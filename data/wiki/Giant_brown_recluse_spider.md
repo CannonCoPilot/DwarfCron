@@ -1,0 +1,7 @@
+# Giant brown recluse spider
+
+- Giant brown recluse spiders** are giant animal versions of the common brown recluse spider who inhabit savage temperate broadleaf forests. While their original counterparts are vermin, these creatures are over three times bigger than a dwarf, and as large as a giant cave spider. While they aren't particularly aggressive, giant brown recluses will attack if provoked, which can quickly lead to the death of dwarves due to the spider's venom and immunity to pain and stunning. Their existence in a biome is marked by the presence of their web on the surface. Unlike giant cave spiders, however, giant brown recluses are unable to spew web as a form of combat, making them considerably easier to kill.
+
+Giant brown recluse spiders can be captured in cage traps and trained into pets, possessing the standard giant creature pet value. They are born adults and can't be turned fully tame. While farming silk out of them may come to mind, it's not as good an idea as it sounds; their silk possesses normal item value, they only produce web sporadically and don't shoot it in huge quantities like a giant cave spider does, and they are extremely short-lived creatures, only living from 1 to 2 years max. All of it makes them a very poor choice for silk production, though you can always butcher them instead. Like other giant beasts, they are are exotic mounts. 
+
+Some dwarves like giant brown recluse spiders for their *venomous bite*.

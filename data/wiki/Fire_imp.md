@@ -1,0 +1,18 @@
+# Fire imp
+
+- Fire imps** are small, hostile creatures straight from the magma sea, emerging in groups of 3-4 mayhem-minded individuals. Only a little bigger than a cat, the threat they pose comes in the form of their special attacks; they are able to throw large fireballs and launch jets of flame from their hands, which can ignite whole landscapes and immediately turn your dwarves into ‼dwarves‼. All fire imps are born with Legendary skill in climbing.
+
+If breaching the magma sea to use its magma, one should expect to face fire imps sooner or later. Take measures when you spot some in a nearby magma pipe, and equip your military with shields in hopes they won't be ignited when facing them. Attempting to drown fire imps is futile, as like all other magma-dwellers, they don't need to breathe. They are also able to open unforbidden doors, meaning these can't be used to block them. To avoid unwanted fun when dealing with fire imps and other nasty magma-dwelling creatures, you can have a narrow channel leading between your source and the point you want to send it to, then put in a magma-safe grate or set of bars (fortifications are useless when submerged, as creatures can swim through them). Beware, though, that magma men and fire men can and will destroy such barriers.
+
+A safer, but more complicated way to do this is having a floor grate cover the magma intake point and getting magma from it through a pump. Due to building-destroying mechanics, floor grates can't be destroyed from below. Pumps can take magma from a grated source. The pump and grate should obviously be magma-safe. Also, the pump should be powered, not manually operated - a dwarf operating the pump would be in line of fire should an imp find itself under the grate.
+
+Fire imps are glass cannons (a dog can take care of them, provided they're not ignited), but resist heat much more than most creatures, only taking damage at . This makes them immune to fire and magma (obviously), but not dragonfire. It is possible for fire imps and other magma-resident creatures to travel to the surface via a volcano; if you are building near a volcano, and your dwarves get set on fire for no apparent reason, look around for a fire imp in the volcano. You can try channeling to the surface of the magma and baiting it or just dump water on it from above. They are one of the few renewable sources of fire-proof leather, aside from spoilers.
+
+thumb|32px|left|Fireball sprite.In an amusing example of the intricacies of *Dwarf Fortress*, fire imps cannot get fevers. It makes sense when you know what a fever is (higher body temperature, by a few degrees), and the fact that fire imps are extremely resistant to high temperatures. This is not likely to affect gameplay unless you expose them to an appropriate evil weather or if modding is involved. Despite their humanoid anatomy, fire imps are not intelligent creatures and therefore your dwarves will be more than eager to butcher them for a small quantity of returns; their fire resistance is inherited by their returns, and the tanned hide of a fire imp can be used to create fireproof leather items. Curiously, fire imps are all genderless and biologically immortal, and rather than blood, they have gray-colored goo as their bodily fluids. Adventurers are able to smell fire imps with , with them being described as smelling like "smoke".
+
+Some dwarves like fire imps for their *terrifying features*.
+
+thumb|center|Admired for its *terrifying features*.*Art by Fault*
+
+1. Trivia
+- rightInitially, the premium version had a sprite for a child fire imp. It was later removed from the game, because fire imps are adults at birth.

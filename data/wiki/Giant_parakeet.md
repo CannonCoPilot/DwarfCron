@@ -1,0 +1,5 @@
+# Giant parakeet
+
+- Giant parakeets** are much larger cousins of their original counterparts, and fast moving birds found in any tropical land biome except for swamps and marshes. They will pose as a nuisance more than a threat, and are likely to cause mass cancellation spam from anyone working above ground. Tight groups of 5-10 will appear, and haphazardly fly around. They will not attack a dwarf on sight, and can be dispatched by your military fairly easily. In combat, they can overpower and kill an unarmored dwarf unlucky enough to be caught.  Fortunately, they will not actively pursue a dwarf as it flees, and will often use its large wings, which inflict much less severe injuries than its beak or talons.  
+
+They make a poor choice for your egg industry, with a clutch size of only 2-4, but a very manageable addition to your meat industry if bred. It takes only one year for hatchlings to fully mature; however, with a pet value of 500, they may be worth more as pets in your zoo, than as roasts and crafts. They are considered exotic animals, and your trainers will have no initial knowledge of their habits.

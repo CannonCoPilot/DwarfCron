@@ -1,0 +1,3 @@
+# Giant mink
+
+- Giant minks** are *much* larger than minks - 257 times larger, in fact, according to the raws, making them slightly larger than a llama when full-grown. Due to this, they are, unlike normal minks, butcherable, and yield fairly decent amount of products. They also reach their maximum size at the age of two years old, just like most domestic livestock mammals. However, unlike those animals, they always give birth to only one kit. Those characteristics make them a decent meat industry animal if a breeding pair is obtained, but inferior to most other giant animal variants. Giant minks are benign, and therefore pose no threat to dwarves and are mostly useless for fortress defense.

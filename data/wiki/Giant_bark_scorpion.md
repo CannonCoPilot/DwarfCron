@@ -1,0 +1,8 @@
+# Giant bark scorpion
+
+- Giant bark scorpions** are super-sized versions of the common bark scorpion who inhabit savage deserts and some tropical areas. While the original critters are some of the smallest in the game, their giant cousins are 3 times the size of a dwarf, weigh about as much as a troll. While they don't go out of their way to hunt dwarves, they are carnivorous and will attack when provoked by snatching with their pincers and stinging enemies with their stinger tails, injecting a venom which causes pain to the victim. Giant bark scorpions are large enough for this venom to quickly knock dwarves out cold, leaving them vulnerable to a finishing blow to the head. Additionally, the creatures are immune to pain themselves, as well as unaffected by stunning, fear or paralysis effects. All giant bark scorpions possess Legendary skill in climbing.
+
+Giant bark scorpions may be captured in cage traps and trained into pets, possessing the standard high value of savage animals. They are born adults, fully-sized right at birth, and can't be fully tamed. Their many limbs translate to a fairly high amount of returns when butchered, and while the idea of breeding them for the purpose of fortress defense is attractive, the creatures may die of old age at anywhere from 10 to just 2 years of age, making them unpredictable in reliability. They are exotic mounts and may be witnessed being ridden by elves during sieges.
+
+Some dwarves like giant bark scorpions for their *pincers* and their *stinging tail*.
+thumb|300px|center|It has enough venom to sting and kill itself by accident.
