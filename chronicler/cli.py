@@ -90,6 +90,18 @@ def ingest(legends_path, legends_plus_path):
     _run(_run_ingest())
 
 
+@cli.command("serve")
+@click.option("--host", default="127.0.0.1", help="Bind address")
+@click.option("--port", default=8080, type=int, help="Port number")
+@click.option("--reload", is_flag=True, help="Enable auto-reload for development")
+def serve(host, port, reload):
+    """Launch the Chronicler web UI."""
+    import uvicorn
+
+    click.echo(f"Starting Chronicler at http://{host}:{port}")
+    uvicorn.run("chronicler.api.app:app", host=host, port=port, reload=reload)
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""

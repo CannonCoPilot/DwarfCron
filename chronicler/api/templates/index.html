@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chronicler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            stone: { 950: '#0f0e0d' },
+            parchment: '#d4c5a9',
+            ink: '#2c1810',
+            amber: { 400: '#f6b93b', 500: '#e2a72e', 600: '#c49122' },
+          },
+          fontFamily: {
+            chronicle: ['"Palatino Linotype"', 'Palatino', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0c0b0a; }
+    .chat-scroll { scrollbar-width: thin; scrollbar-color: #44403c #1c1917; }
+    .chat-scroll::-webkit-scrollbar { width: 6px; }
+    .chat-scroll::-webkit-scrollbar-track { background: #1c1917; }
+    .chat-scroll::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+    .msg-user { background: #292524; border-left: 3px solid #f6b93b; }
+    .msg-assistant { background: #1c1917; border-left: 3px solid #78716c; }
+    .typing-cursor::after { content: '\2588'; animation: blink 1s step-end infinite; color: #f6b93b; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .sidebar-link { transition: background 0.15s; }
+    .sidebar-link:hover { background: #292524; }
+    .stat-badge { font-variant-numeric: tabular-nums; }
+    #input-bar:focus { outline: none; box-shadow: 0 0 0 1px #f6b93b; }
+  </style>
+</head>
+<body class="text-stone-300 font-chronicle min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-64 flex-shrink-0 bg-stone-950 border-r border-stone-800 flex flex-col h-screen overflow-y-auto chat-scroll">
+    <div class="p-4 border-b border-stone-800">
+      <h1 class="text-amber-400 text-xl font-bold tracking-wide">The Chronicler</h1>
+      <p class="text-stone-500 text-xs mt-1">AI Narrator of Dwarf Fortress</p>
+    </div>
+
+    <!-- World Selector -->
+    <div class="p-4 border-b border-stone-800">
+      <label class="text-stone-500 text-xs uppercase tracking-wider">World</label>
+      <select id="world-select" class="w-full mt-1 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+
+    <!-- World Stats -->
+    <div id="world-stats" class="p-4 border-b border-stone-800 hidden">
+      <h3 class="text-stone-500 text-xs uppercase tracking-wider mb-2">World Statistics</h3>
+      <div class="space-y-1 text-sm" id="stats-content"></div>
+    </div>
+
+    <!-- Quick Links -->
+    <div id="quick-links" class="p-4 flex-1 hidden">
+      <h3 class="text-stone-500 text-xs uppercase tracking-wider mb-2">Explore</h3>
+      <nav class="space-y-1">
+        <button onclick="askAbout('civilizations and their histories')" class="sidebar-link w-full text-left px-2 py-1.5 rounded text-sm text-stone-300">Civilizations</button>
+        <button onclick="askAbout('greatest warriors and legendary fighters')" class="sidebar-link w-full text-left px-2 py-1.5 rounded text-sm text-stone-300">Legendary Fighters</button>
+        <button onclick="askAbout('major wars and conflicts')" class="sidebar-link w-full text-left px-2 py-1.5 rounded text-sm text-stone-300">Wars &amp; Conflicts</button>
+        <button onclick="askAbout('notable sites, fortresses, and cities')" class="sidebar-link w-full text-left px-2 py-1.5 rounded text-sm text-stone-300">Notable Sites</button>
+        <button onclick="askAbout('deities, megabeasts, and forgotten beasts')" class="sidebar-link w-full text-left px-2 py-1.5 rounded text-sm text-stone-300">Myths &amp; Beasts</button>
+      </nav>
+
+      <!-- Civilizations List -->
+      <div id="civ-list" class="mt-4"></div>
+    </div>
+
+    <!-- Figure Search -->
+    <div id="figure-search-box" class="p-4 border-t border-stone-800 hidden">
+      <label class="text-stone-500 text-xs uppercase tracking-wider">Search Figures</label>
+      <input id="figure-search" type="text" placeholder="Type a name..."
+             class="w-full mt-1 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-sm focus:border-amber-500 focus:outline-none"
+             oninput="searchFigures(this.value)">
+      <div id="figure-results" class="mt-2 space-y-1 max-h-40 overflow-y-auto chat-scroll"></div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col h-screen">
+    <!-- Chat Messages -->
+    <div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-6 space-y-4">
+      <div class="text-center py-12">
+        <p class="text-amber-400 text-2xl font-bold mb-2">The Chronicler Awaits</p>
+        <p class="text-stone-500 text-sm max-w-md mx-auto">
+          Select a world and ask about its history. I shall weave tales of
+          civilizations, battles, and legendary figures from the annals of time.
+        </p>
+      </div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="border-t border-stone-800 bg-stone-950 p-4">
+      <form id="ask-form" class="flex gap-3" onsubmit="handleSubmit(event)">
+        <input id="input-bar" type="text" placeholder="Ask the Chronicler..."
+               class="flex-1 bg-stone-900 border border-stone-700 text-stone-200 rounded-lg px-4 py-2.5 text-sm font-chronicle"
+               autocomplete="off">
+        <button type="submit" id="send-btn"
+                class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-5 py-2.5 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Send
+        </button>
+      </form>
+    </div>
+  </main>
+
+<script>
+const chatEl = document.getElementById('chat-messages');
+const inputEl = document.getElementById('input-bar');
+const sendBtn = document.getElementById('send-btn');
+const worldSelect = document.getElementById('world-select');
+let streaming = false;
+
+// --- Init ---
+async function init() {
+  const resp = await fetch('/api/worlds');
+  const worlds = await resp.json();
+  worldSelect.innerHTML = worlds.map(w =>
+    `<option value="${w.id}">${w.name}</option>`
+  ).join('');
+  if (worlds.length > 0) {
+    worldSelect.value = worlds[0].id;
+    loadWorldData(worlds[0].id);
+  }
+}
+
+worldSelect.addEventListener('change', () => loadWorldData(worldSelect.value));
+
+async function loadWorldData(worldId) {
+  if (!worldId) return;
+
+  // Stats
+  const statsResp = await fetch(`/api/world/${worldId}/stats`);
+  const stats = await statsResp.json();
+  const statsEl = document.getElementById('stats-content');
+  const labels = {
+    historical_figures: 'Historical Figures',
+    entities: 'Entities',
+    sites: 'Sites',
+    regions: 'Regions',
+    events: 'Events',
+    collections: 'Collections',
+    artifacts: 'Artifacts',
+  };
+  statsEl.innerHTML = Object.entries(stats).map(([k, v]) =>
+    `<div class="flex justify-between">
+      <span class="text-stone-400">${labels[k] || k}</span>
+      <span class="stat-badge text-amber-400">${v.toLocaleString()}</span>
+    </div>`
+  ).join('');
+  document.getElementById('world-stats').classList.remove('hidden');
+  document.getElementById('quick-links').classList.remove('hidden');
+  document.getElementById('figure-search-box').classList.remove('hidden');
+
+  // Civilizations
+  const civResp = await fetch(`/api/world/${worldId}/civilizations`);
+  const civs = await civResp.json();
+  const civList = document.getElementById('civ-list');
+  if (civs.length > 0) {
+    civList.innerHTML = `
+      <h4 class="text-stone-500 text-xs uppercase tracking-wider mb-1">Civilizations</h4>
+      ${civs.map(c => `
+        <button onclick="askAbout('the civilization of ${c.name}')"
+                class="sidebar-link w-full text-left px-2 py-1 rounded text-xs text-stone-400 block">
+          ${c.name || '(unnamed)'} <span class="text-stone-600">${c.race || ''} &middot; ${c.site_count} sites</span>
+        </button>
+      `).join('')}
+    `;
+  }
+}
+
+async function searchFigures(query) {
+  const worldId = worldSelect.value;
+  if (!worldId || query.length < 2) {
+    document.getElementById('figure-results').innerHTML = '';
+    return;
+  }
+  const resp = await fetch(`/api/world/${worldId}/figures?q=${encodeURIComponent(query)}`);
+  const figures = await resp.json();
+  document.getElementById('figure-results').innerHTML = figures.map(f => `
+    <button onclick="askAbout('${f.name.replace(/'/g, "\\'")}')"
+            class="sidebar-link w-full text-left px-2 py-1 rounded text-xs text-stone-400 block">
+      ${f.name} <span class="text-stone-600">${f.race || ''} ${f.kill_count ? '&middot; ' + f.kill_count + ' kills' : ''}</span>
+    </button>
+  `).join('');
+}
+
+function askAbout(topic) {
+  inputEl.value = `Tell me about ${topic}`;
+  handleSubmit(new Event('submit'));
+}
+
+// --- Chat ---
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `px-4 py-3 rounded-lg text-sm leading-relaxed ${role === 'user' ? 'msg-user' : 'msg-assistant'}`;
+  div.innerHTML = role === 'user'
+    ? `<span class="text-amber-400 font-bold text-xs uppercase tracking-wider">You</span><p class="mt-1">${escapeHtml(text)}</p>`
+    : `<span class="text-stone-500 font-bold text-xs uppercase tracking-wider">Chronicler</span><p class="mt-1 whitespace-pre-wrap" id="current-response"></p>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return div;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const query = inputEl.value.trim();
+  const worldId = worldSelect.value;
+  if (!query || !worldId || streaming) return;
+
+  streaming = true;
+  sendBtn.disabled = true;
+  inputEl.value = '';
+
+  // Add user message
+  addMessage('user', query);
+
+  // Add assistant message placeholder
+  const assistantDiv = addMessage('assistant', '');
+  const responseEl = assistantDiv.querySelector('#current-response');
+  responseEl.classList.add('typing-cursor');
+
+  try {
+    const resp = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, world_id: parseInt(worldId) }),
+    });
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.token) {
+            responseEl.textContent += data.token;
+            chatEl.scrollTop = chatEl.scrollHeight;
+          }
+          if (data.error) {
+            responseEl.textContent += `\n[Error: ${data.error}]`;
+          }
+          if (data.done) {
+            responseEl.classList.remove('typing-cursor');
+          }
+        } catch {}
+      }
+    }
+  } catch (err) {
+    responseEl.textContent += `\n[Connection error: ${err.message}]`;
+  }
+
+  responseEl.classList.remove('typing-cursor');
+  responseEl.removeAttribute('id');
+  streaming = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+// Enter to send
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    handleSubmit(e);
+  }
+});
+
+init();
+</script>
+</body>
+</html>

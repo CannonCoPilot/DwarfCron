@@ -16,6 +16,11 @@ LITELLM_URL = os.environ.get("LITELLM_URL", "http://localhost:4000")
 
 EMBED_DIM = 2560
 
+# LLM settings (for storyteller)
+LLM_MODEL = os.environ.get("CHRONICLER_LLM_MODEL", "qwen3-8b-nothink")
+LLM_TEMPERATURE = float(os.environ.get("CHRONICLER_LLM_TEMP", "0.8"))
+LLM_MAX_TOKENS = int(os.environ.get("CHRONICLER_LLM_MAX_TOKENS", "2048"))
+
 # Paths
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 LEGENDS_DIR = os.path.join(DATA_DIR, "legends")
