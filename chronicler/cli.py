@@ -102,6 +102,28 @@ def serve(host, port, reload):
     uvicorn.run("chronicler.api.app:app", host=host, port=port, reload=reload)
 
 
+@cli.command("sync-live")
+@click.option("--world-id", default=1, type=int, help="World ID to tag units with")
+def sync_live(world_id):
+    """Pull live unit data from DFHack and upsert into the CDM."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.dfhack.sync import sync_units, sync_world_info
+
+    async def _run_sync():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            info = await sync_world_info(conn)
+            click.echo(f"World: {info.get('world_english', '?')} ({info.get('mode', '?')})")
+            click.echo(f"  Save: {info.get('save_dir', '?')}, Site: {info.get('site_id', '?')}")
+
+            counts = await sync_units(conn, world_id=world_id)
+            click.echo(f"\nSynced {counts['synced']} units ({counts['dwarves']} named dwarves)")
+
+        await close_pool()
+
+    _run(_run_sync())
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""
