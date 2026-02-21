@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicler — Monitoring</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            stone: { 950: '#0f0e0d' },
+            parchment: '#d4c5a9',
+            ink: '#2c1810',
+            amber: { 400: '#f6b93b', 500: '#e2a72e', 600: '#c49122' },
+          },
+          fontFamily: {
+            chronicle: ['"Palatino Linotype"', 'Palatino', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0c0b0a; }
+    .tbl-scroll { scrollbar-width: thin; scrollbar-color: #44403c #1c1917; }
+    .tbl-scroll::-webkit-scrollbar { width: 6px; }
+    .tbl-scroll::-webkit-scrollbar-track { background: #1c1917; }
+    .tbl-scroll::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+    .stat-badge { font-variant-numeric: tabular-nums; }
+    tr.detail-row { display: none; }
+    tr.detail-row.open { display: table-row; }
+  </style>
+</head>
+<body class="text-stone-300 font-chronicle min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-stone-800 bg-stone-950 px-6 py-4 flex items-center justify-between">
+    <div>
+      <h1 class="text-amber-400 text-xl font-bold tracking-wide">Chronicler Monitoring</h1>
+      <p class="text-stone-500 text-xs mt-0.5">LLM interaction logs &amp; performance metrics</p>
+    </div>
+    <a href="/" class="text-stone-500 hover:text-amber-400 text-sm transition-colors">&larr; Back to Chronicler</a>
+  </header>
+
+  <!-- Summary Cards -->
+  <div id="summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5">
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <div class="text-stone-500 text-xs uppercase tracking-wider">Total Queries</div>
+      <div class="text-2xl font-bold text-amber-400 stat-badge mt-1" id="s-total">—</div>
+    </div>
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <div class="text-stone-500 text-xs uppercase tracking-wider">Avg TTFT</div>
+      <div class="text-2xl font-bold text-stone-200 stat-badge mt-1" id="s-ttft">—</div>
+    </div>
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <div class="text-stone-500 text-xs uppercase tracking-wider">Avg Latency</div>
+      <div class="text-2xl font-bold text-stone-200 stat-badge mt-1" id="s-latency">—</div>
+    </div>
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <div class="text-stone-500 text-xs uppercase tracking-wider">Errors</div>
+      <div class="text-2xl font-bold stat-badge mt-1" id="s-errors">—</div>
+    </div>
+  </div>
+
+  <!-- Interactions Table -->
+  <div class="px-6 pb-6">
+    <div class="bg-stone-900 border border-stone-800 rounded-lg overflow-hidden">
+      <div class="overflow-x-auto tbl-scroll">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-stone-500 text-xs uppercase tracking-wider border-b border-stone-800">
+              <th class="px-4 py-3 text-left">Time</th>
+              <th class="px-4 py-3 text-left">Query</th>
+              <th class="px-4 py-3 text-left">World</th>
+              <th class="px-4 py-3 text-right">Context</th>
+              <th class="px-4 py-3 text-right">Tokens</th>
+              <th class="px-4 py-3 text-right">TTFT</th>
+              <th class="px-4 py-3 text-right">Total</th>
+              <th class="px-4 py-3 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="interactions-body" class="divide-y divide-stone-800">
+            <tr><td colspan="8" class="px-4 py-8 text-center text-stone-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="closeDetail(event)">
+    <div class="bg-stone-900 border border-stone-700 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto tbl-scroll p-6" onclick="event.stopPropagation()">
+      <div class="flex justify-between items-start mb-4">
+        <h2 class="text-amber-400 font-bold">Interaction Detail</h2>
+        <button onclick="document.getElementById('detail-modal').classList.add('hidden');document.getElementById('detail-modal').classList.remove('flex')" class="text-stone-500 hover:text-stone-300">&times;</button>
+      </div>
+      <div id="detail-content" class="text-sm space-y-3 font-mono"></div>
+    </div>
+  </div>
+
+<script>
+async function loadSummary() {
+  try {
+    const resp = await fetch('/api/monitoring/summary');
+    const s = await resp.json();
+    document.getElementById('s-total').textContent = (s.total || 0).toLocaleString();
+    document.getElementById('s-ttft').textContent = s.avg_ttft_ms != null ? s.avg_ttft_ms + 'ms' : '—';
+    document.getElementById('s-latency').textContent = s.avg_latency_ms != null ? s.avg_latency_ms + 'ms' : '—';
+    const errEl = document.getElementById('s-errors');
+    errEl.textContent = s.errors || 0;
+    errEl.className = errEl.className.replace(/text-\S+/g, '') + (s.errors > 0 ? ' text-red-400' : ' text-green-400');
+  } catch {}
+}
+
+async function loadInteractions() {
+  try {
+    const resp = await fetch('/api/monitoring/interactions?limit=50');
+    const rows = await resp.json();
+    const tbody = document.getElementById('interactions-body');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-stone-500">No interactions logged yet. Ask the Chronicler something!</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => {
+      const ts = new Date(r.timestamp).toLocaleTimeString();
+      const q = r.query.length > 60 ? r.query.slice(0, 57) + '...' : r.query;
+      const st = r.status === 'ok'
+        ? '<span class="text-green-400">ok</span>'
+        : '<span class="text-red-400">err</span>';
+      return `<tr class="hover:bg-stone-800/50 cursor-pointer" onclick="showDetail(${r.id})">
+        <td class="px-4 py-2.5 text-stone-400 whitespace-nowrap stat-badge">${ts}</td>
+        <td class="px-4 py-2.5 text-stone-200 max-w-xs truncate">${escapeHtml(q)}</td>
+        <td class="px-4 py-2.5 text-stone-400">${r.world_name || '—'}</td>
+        <td class="px-4 py-2.5 text-right stat-badge">${r.context_records ?? '—'}</td>
+        <td class="px-4 py-2.5 text-right stat-badge">${r.tokens_streamed ?? '—'}</td>
+        <td class="px-4 py-2.5 text-right stat-badge">${r.first_token_ms != null ? r.first_token_ms + 'ms' : '—'}</td>
+        <td class="px-4 py-2.5 text-right stat-badge">${r.total_latency_ms != null ? r.total_latency_ms + 'ms' : '—'}</td>
+        <td class="px-4 py-2.5 text-center">${st}</td>
+      </tr>`;
+    }).join('');
+  } catch {}
+}
+
+async function showDetail(id) {
+  const resp = await fetch('/api/monitoring/interactions/' + id);
+  const d = await resp.json();
+  const el = document.getElementById('detail-content');
+  const fields = [
+    ['Query', d.query],
+    ['World', `${d.world_name || '—'} (id: ${d.world_id})`],
+    ['Keywords', (d.keywords || []).join(', ') || '—'],
+    ['Model', d.model],
+    ['Temperature', d.temperature],
+    ['Max Tokens', d.max_tokens],
+    ['', ''],
+    ['Context Records', d.context_records],
+    ['Context Chars', d.context_chars?.toLocaleString()],
+    ['Context Categories', JSON.stringify(d.context_categories)],
+    ['Context Latency', d.context_latency_ms != null ? d.context_latency_ms + 'ms' : '—'],
+    ['', ''],
+    ['TTFT', d.first_token_ms != null ? d.first_token_ms + 'ms' : '—'],
+    ['LLM Latency', d.llm_latency_ms != null ? d.llm_latency_ms + 'ms' : '—'],
+    ['Total Latency', d.total_latency_ms != null ? d.total_latency_ms + 'ms' : '—'],
+    ['Tokens Streamed', d.tokens_streamed],
+    ['Response Chars', d.response_chars?.toLocaleString()],
+    ['', ''],
+    ['Status', d.status],
+    ['Error', d.error || '—'],
+    ['Timestamp', d.timestamp],
+  ];
+  el.innerHTML = fields.map(([k, v]) =>
+    k === '' ? '<hr class="border-stone-700">'
+    : `<div class="flex justify-between"><span class="text-stone-500">${k}</span><span class="text-stone-200">${v ?? '—'}</span></div>`
+  ).join('');
+  const modal = document.getElementById('detail-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeDetail(e) {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.add('hidden');
+    e.currentTarget.classList.remove('flex');
+  }
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// Initial load + 30s refresh
+loadSummary();
+loadInteractions();
+setInterval(() => { loadSummary(); loadInteractions(); }, 30000);
+</script>
+</body>
+</html>

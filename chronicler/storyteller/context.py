@@ -2,6 +2,57 @@
 
 import asyncpg
 
+# Categorical routing: maps conceptual keywords to structured queries.
+# Without this, asking "tell me about deities" searches for name ILIKE '%deities%'
+# which finds nothing — deities are identified by is_deity=TRUE, not by name.
+_CATEGORY_ROUTES: dict[str, tuple[str, object]] = {
+    # HF boolean flags
+    "deity": ("hf_flag", "is_deity"),
+    "deities": ("hf_flag", "is_deity"),
+    "god": ("hf_flag", "is_deity"),
+    "gods": ("hf_flag", "is_deity"),
+    "divine": ("hf_flag", "is_deity"),
+    "vampire": ("hf_flag", "is_vampire"),
+    "vampires": ("hf_flag", "is_vampire"),
+    "necromancer": ("hf_flag", "is_necromancer"),
+    "necromancers": ("hf_flag", "is_necromancer"),
+    "werebeast": ("hf_flag", "is_werebeast"),
+    "werebeasts": ("hf_flag", "is_werebeast"),
+    "ghost": ("hf_flag", "is_ghost"),
+    "ghosts": ("hf_flag", "is_ghost"),
+    # HF race patterns (DF canonical megabeasts, forgotten beasts, titans)
+    "megabeast": ("hf_race", ("DRAGON", "HYDRA", "COLOSSUS%", "ROC_%", "CYCLOPS", "ETTIN")),
+    "megabeasts": ("hf_race", ("DRAGON", "HYDRA", "COLOSSUS%", "ROC_%", "CYCLOPS", "ETTIN")),
+    "dragon": ("hf_race", ("DRAGON", "CAVE_DRAGON")),
+    "dragons": ("hf_race", ("DRAGON", "CAVE_DRAGON")),
+    "forgotten": ("hf_race", ("FORGOTTEN_BEAST%",)),
+    "beasts": ("hf_race", ("FORGOTTEN_BEAST%",)),
+    "titan": ("hf_race", ("TITAN%",)),
+    "titans": ("hf_race", ("TITAN%",)),
+    # Entity types
+    "religion": ("entity_type", "religion"),
+    "religions": ("entity_type", "religion"),
+    "civilization": ("entity_type", "civilization"),
+    "civilizations": ("entity_type", "civilization"),
+    "kingdom": ("entity_type", "civilization"),
+    "kingdoms": ("entity_type", "civilization"),
+    "empire": ("entity_type", "civilization"),
+    "empires": ("entity_type", "civilization"),
+    # Event collection types
+    "war": ("collection_type", "war"),
+    "wars": ("collection_type", "war"),
+    "battle": ("collection_type", "battle"),
+    "battles": ("collection_type", "battle"),
+    # Artifact searches
+    "artifact": ("artifacts", None),
+    "artifacts": ("artifacts", None),
+    "relic": ("artifacts", None),
+    "relics": ("artifacts", None),
+}
+
+# Allowed column names for hf_flag queries (prevents SQL injection)
+_VALID_HF_FLAGS = {"is_deity", "is_force", "is_vampire", "is_necromancer", "is_werebeast", "is_ghost"}
+
 
 async def retrieve_context(
     pool: asyncpg.Pool,
@@ -10,16 +61,28 @@ async def retrieve_context(
 ) -> list[dict]:
     """Search CDM tables for records relevant to the user's question.
 
-    Strategy: extract keywords from query, search names via ILIKE,
-    pull related events for matched entities. Falls back to world
-    overview if no specific matches found.
+    Strategy: extract keywords, route categorical terms (e.g. "deity",
+    "megabeast") to attribute queries, then search names via ILIKE for
+    remaining keywords. Falls back to world overview if nothing matched.
     """
-    keywords = _extract_keywords(query)
+    keywords = extract_keywords(query)
     results: list[dict] = []
 
     async with pool.acquire() as conn:
-        # Search historical figures by name
+        # Phase 1: Categorical routing — match keywords to structured queries
+        name_keywords = []  # keywords that didn't match a category
+        seen_routes = set()  # avoid duplicate category queries
         for kw in keywords:
+            route = _CATEGORY_ROUTES.get(kw)
+            if route and route not in seen_routes:
+                seen_routes.add(route)
+                cat_results = await _run_category_query(conn, world_id, route)
+                results.extend(cat_results)
+            else:
+                name_keywords.append(kw)
+
+        # Phase 2: Name-based ILIKE search for remaining keywords
+        for kw in name_keywords:
             pattern = f"%{kw}%"
             hfs = await conn.fetch(
                 """
@@ -53,7 +116,8 @@ async def retrieve_context(
                         "text": f"Year {ev['year']}: {ev['event_type']} — {_summarize_details(ev['details'])}",
                     })
 
-        # Search entities by name/type
+        # Search entities by name/type (use all keywords, not just name_keywords,
+        # since entity type ILIKE catches category terms too)
         for kw in keywords:
             pattern = f"%{kw}%"
             ents = await conn.fetch(
@@ -72,7 +136,7 @@ async def retrieve_context(
                 results.append({"category": "Entity", "text": text})
 
         # Search sites by name
-        for kw in keywords:
+        for kw in name_keywords:
             pattern = f"%{kw}%"
             sites = await conn.fetch(
                 """
@@ -88,7 +152,7 @@ async def retrieve_context(
                 results.append({"category": "Site", "text": text})
 
         # Search event collections (wars, battles) by name
-        for kw in keywords:
+        for kw in name_keywords:
             pattern = f"%{kw}%"
             colls = await conn.fetch(
                 """
@@ -119,6 +183,114 @@ async def retrieve_context(
             seen.add(r["text"])
             unique.append(r)
     return unique
+
+
+async def _run_category_query(
+    conn: asyncpg.Connection,
+    world_id: int,
+    route: tuple[str, object],
+) -> list[dict]:
+    """Execute a categorical query based on the route type."""
+    query_type, param = route
+    results: list[dict] = []
+
+    if query_type == "hf_flag" and param in _VALID_HF_FLAGS:
+        # Query HFs by boolean flag (is_deity, is_vampire, etc.)
+        hfs = await conn.fetch(
+            f"""
+            SELECT id, name, race, caste, birth_year, death_year,
+                   death_cause, is_deity, is_force, is_vampire,
+                   is_necromancer, is_werebeast, kill_count, entity_id
+            FROM historical_figures
+            WHERE world_id = $1 AND {param} = TRUE
+            ORDER BY kill_count DESC NULLS LAST, birth_year ASC
+            LIMIT 10
+            """,
+            world_id,
+        )
+        for hf in hfs:
+            results.append({"category": "Historical Figure", "text": _format_hf(hf)})
+
+    elif query_type == "hf_race":
+        # Query HFs by race pattern list (megabeasts, forgotten beasts, etc.)
+        race_patterns = param
+        conditions = " OR ".join(f"race LIKE ${i+2}" for i in range(len(race_patterns)))
+        hfs = await conn.fetch(
+            f"""
+            SELECT id, name, race, caste, birth_year, death_year,
+                   death_cause, is_deity, is_force, is_vampire,
+                   is_necromancer, is_werebeast, kill_count, entity_id
+            FROM historical_figures
+            WHERE world_id = $1 AND ({conditions})
+            ORDER BY kill_count DESC NULLS LAST, birth_year ASC
+            LIMIT 10
+            """,
+            world_id, *race_patterns,
+        )
+        for hf in hfs:
+            results.append({"category": "Historical Figure", "text": _format_hf(hf)})
+
+    elif query_type == "entity_type":
+        ents = await conn.fetch(
+            """
+            SELECT id, name, type, race
+            FROM entities
+            WHERE world_id = $1 AND type = $2
+            ORDER BY name
+            LIMIT 10
+            """,
+            world_id, param,
+        )
+        for ent in ents:
+            text = f"{ent['name'] or '(unnamed)'} — {ent['type'] or 'unknown type'}"
+            if ent["race"]:
+                text += f" ({ent['race']})"
+            results.append({"category": "Entity", "text": text})
+
+    elif query_type == "collection_type":
+        colls = await conn.fetch(
+            """
+            SELECT name, type, start_year, end_year,
+                   attacker_entity_id, defender_entity_id
+            FROM history_event_collections
+            WHERE world_id = $1 AND type = $2 AND name IS NOT NULL
+            ORDER BY start_year DESC
+            LIMIT 10
+            """,
+            world_id, param,
+        )
+        for c in colls:
+            years = f"year {c['start_year']}"
+            if c["end_year"] and c["end_year"] != c["start_year"]:
+                years += f"–{c['end_year']}"
+            text = f"{c['name']} ({c['type']}, {years})"
+            results.append({"category": "Event Collection", "text": text})
+
+    elif query_type == "artifacts":
+        arts = await conn.fetch(
+            """
+            SELECT name, item_type, item_subtype, material
+            FROM artifacts
+            WHERE world_id = $1 AND name IS NOT NULL
+            ORDER BY name
+            LIMIT 10
+            """,
+            world_id,
+        )
+        for a in arts:
+            text = a["name"]
+            parts = []
+            if a["material"]:
+                parts.append(a["material"])
+            if a["item_type"]:
+                parts.append(a["item_type"])
+            if a["item_subtype"]:
+                parts.append(a["item_subtype"])
+            if parts:
+                text += f" ({', '.join(parts)})"
+            results.append({"category": "Artifact", "text": text})
+
+    return results
 
 
 async def _world_overview(conn: asyncpg.Connection, world_id: int) -> list[dict]:
@@ -187,7 +359,7 @@ async def _world_overview(conn: asyncpg.Connection, world_id: int) -> list[dict]
     return results
 
 
-def _extract_keywords(query: str) -> list[str]:
+def extract_keywords(query: str) -> list[str]:
     """Extract meaningful search keywords from a user query.
 
     Filters out common stop words and short tokens.

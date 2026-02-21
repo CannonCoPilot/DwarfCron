@@ -27,12 +27,20 @@ templates = Jinja2Templates(directory=_template_dir)
 # Import and include routers
 from chronicler.api.routes.storyteller import router as storyteller_router
 from chronicler.api.routes.world import router as world_router
+from chronicler.api.routes.monitoring import router as monitoring_router
 
 app.include_router(storyteller_router, prefix="/api")
 app.include_router(world_router, prefix="/api")
+app.include_router(monitoring_router, prefix="/api")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """Serve the main Chronicler UI."""
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/monitoring", response_class=HTMLResponse)
+async def monitoring_page(request: Request):
+    """Serve the monitoring dashboard."""
+    return templates.TemplateResponse("monitoring.html", {"request": request})

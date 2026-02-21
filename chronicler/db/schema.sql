@@ -273,3 +273,31 @@ CREATE INDEX IF NOT EXISTS idx_hf_site_links_hf ON hf_site_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_event_rels_source ON event_relationships(source_hf);
 CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_hf);
+
+-- ─── Monitoring ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS storyteller_log (
+    id                  SERIAL PRIMARY KEY,
+    timestamp           TIMESTAMPTZ NOT NULL DEFAULT now(),
+    query               TEXT NOT NULL,
+    world_id            INT,
+    world_name          TEXT,
+    keywords            TEXT[],
+    context_records     INT DEFAULT 0,
+    context_chars       INT DEFAULT 0,
+    context_categories  JSONB DEFAULT '{}',
+    model               TEXT,
+    temperature         REAL,
+    max_tokens          INT,
+    tokens_streamed     INT DEFAULT 0,
+    response_chars      INT DEFAULT 0,
+    context_latency_ms  INT,
+    first_token_ms      INT,
+    llm_latency_ms      INT,
+    total_latency_ms    INT,
+    status              TEXT DEFAULT 'ok',
+    error               TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_storyteller_log_ts ON storyteller_log(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_storyteller_log_world ON storyteller_log(world_id);
