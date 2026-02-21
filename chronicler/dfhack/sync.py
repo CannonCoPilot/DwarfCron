@@ -12,16 +12,15 @@ from chronicler.dfhack.client import DFHackClient
 log = logging.getLogger(__name__)
 
 
-async def sync_units(conn: asyncpg.Connection, world_id: int = 1) -> dict:
-    """Pull all sane units from DFHack and upsert into the units table.
+async def upsert_units(conn: asyncpg.Connection, units: list[dict],
+                       world_id: int) -> int:
+    """Upsert a list of unit dicts into the units table.
 
-    Returns dict with counts: {'synced': N, 'dwarves': M}.
+    Shared by both sync_units (one-shot) and watch_loop (continuous).
+    Returns the number of units upserted.
     """
-    with DFHackClient(DFHACK_HOST, DFHACK_PORT) as client:
-        units = client.list_units(sane=True)
-
     now = datetime.now(timezone.utc)
-    synced = 0
+    count = 0
 
     for u in units:
         await conn.execute(
@@ -47,7 +46,7 @@ async def sync_units(conn: asyncpg.Connection, world_id: int = 1) -> dict:
             u['id'],
             world_id,
             u['name'],
-            str(u['race']),  # numeric race ID as text until we have creature raws
+            str(u.get('race_name', u['race'])),
             str(u['details']['caste']),
             u['profession'],
             u['pos_x'],
@@ -59,8 +58,20 @@ async def sync_units(conn: asyncpg.Connection, world_id: int = 1) -> dict:
             json.dumps(u['details']),
             now,
         )
-        synced += 1
+        count += 1
 
+    return count
+
+
+async def sync_units(conn: asyncpg.Connection, world_id: int = 1) -> dict:
+    """Pull all sane units from DFHack and upsert into the units table.
+
+    Returns dict with counts: {'synced': N, 'dwarves': M}.
+    """
+    with DFHackClient(DFHACK_HOST, DFHACK_PORT) as client:
+        units = client.list_units(sane=True)
+
+    synced = await upsert_units(conn, units, world_id)
     dwarves = sum(1 for u in units if u['name'])
     log.info("Synced %d units (%d named) from DFHack", synced, dwarves)
     return {'synced': synced, 'dwarves': dwarves}

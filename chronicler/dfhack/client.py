@@ -22,6 +22,7 @@ from chronicler.dfhack.proto import (
     BasicApi_pb2 as api,
     Basic_pb2 as basic,
     CoreProtocol_pb2 as core,
+    RemoteFortressReader_pb2 as rfr,
 )
 
 log = logging.getLogger(__name__)
@@ -58,6 +59,7 @@ class DFHackClient:
         self._bound: dict[str, int] = {}  # method_name -> assigned_id
         self._enums: Optional[api.ListEnumsOut] = None
         self._job_skills: Optional[api.ListJobSkillsOut] = None
+        self._creature_raws: Optional[dict[int, str]] = None
 
     # ── Connection ────────────────────────────────────────────────────
 
@@ -189,6 +191,7 @@ class DFHackClient:
             'save_dir': result.save_dir,
             'civ_id': result.civ_id,
             'site_id': result.site_id,
+            'race_id': result.race_id,
         }
         if result.HasField('world_name'):
             wn = result.world_name
@@ -266,6 +269,58 @@ class DFHackClient:
             if s.id == skill_id:
                 return s.caption or s.key
         return f"SKILL_{skill_id}"
+
+    # ── RemoteFortressReader (requires allow_remote=true) ────────────
+
+    def get_world_map(self, timeout: float = 15.0) -> dict | None:
+        """Get game time via WorldMapCenter (smaller payload than full map).
+
+        Requires allow_remote=true AND game unpaused (plugin calls run on
+        the game main loop, so they hang when paused).
+        """
+        old_timeout = self._sock.gettimeout()
+        self._sock.settimeout(timeout)
+        try:
+            result = self._call('GetWorldMapCenter', core.EmptyMessage(),
+                                rfr.WorldMap, plugin='RemoteFortressReader')
+            return {
+                'cur_year': result.cur_year,
+                'cur_year_tick': result.cur_year_tick,
+                'name': result.name or None,
+                'name_english': result.name_english or None,
+            }
+        except (socket.timeout, TimeoutError):
+            log.debug("GetWorldMap timed out (game paused?)")
+            return None
+        finally:
+            self._sock.settimeout(old_timeout)
+
+    def get_creature_raws(self, timeout: float = 30.0) -> dict[int, str] | None:
+        """Build race_id → race_name mapping from creature raws.
+
+        Cached after first successful call (creature raws don't change mid-game).
+        Returns None on timeout.
+        """
+        if self._creature_raws is not None:
+            return self._creature_raws
+
+        old_timeout = self._sock.gettimeout()
+        self._sock.settimeout(timeout)
+        try:
+            result = self._call('GetCreatureRaws', core.EmptyMessage(),
+                                rfr.CreatureRawList,
+                                plugin='RemoteFortressReader')
+            self._creature_raws = {
+                raw.index: raw.creature_id
+                for raw in result.creature_raws
+            }
+            log.info("Cached %d creature raws", len(self._creature_raws))
+            return self._creature_raws
+        except (socket.timeout, TimeoutError):
+            log.debug("GetCreatureRaws timed out (game paused?)")
+            return None
+        finally:
+            self._sock.settimeout(old_timeout)
 
     # ── Internal helpers ──────────────────────────────────────────────
 

@@ -301,3 +301,31 @@ CREATE TABLE IF NOT EXISTS storyteller_log (
 
 CREATE INDEX IF NOT EXISTS idx_storyteller_log_ts ON storyteller_log(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_storyteller_log_world ON storyteller_log(world_id);
+
+-- ── Live Sync: Unit Events ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS unit_events (
+    id              SERIAL PRIMARY KEY,
+    unit_id         INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    event_type      TEXT NOT NULL,
+    old_value       JSONB,
+    new_value       JSONB,
+    game_year       INT,
+    game_tick       INT,
+    detected_at     TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_unit_events_unit ON unit_events(unit_id);
+CREATE INDEX IF NOT EXISTS idx_unit_events_type ON unit_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_unit_events_time ON unit_events(detected_at);
+
+-- ── Live Sync: Poll Cycle Snapshots ─────────────────────────────────
+CREATE TABLE IF NOT EXISTS sync_snapshots (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    unit_count      INT NOT NULL,
+    event_count     INT DEFAULT 0,
+    game_year       INT,
+    game_tick       INT,
+    synced_at       TIMESTAMPTZ DEFAULT now()
+);

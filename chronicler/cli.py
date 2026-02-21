@@ -124,6 +124,34 @@ def sync_live(world_id):
     _run(_run_sync())
 
 
+@cli.command("watch")
+@click.option("--world-id", default=1, type=int, help="World ID to tag units/events with")
+@click.option("--interval", default=30.0, type=float, help="Seconds between polls")
+def watch(world_id, interval):
+    """Continuously poll DFHack and log changes to the CDM."""
+    import signal as sig
+
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.dfhack.watcher import watch_loop, _handle_signal, _shutdown
+
+    async def _run_watch():
+        # Register signal handlers for graceful shutdown
+        sig.signal(sig.SIGINT, _handle_signal)
+        sig.signal(sig.SIGTERM, _handle_signal)
+
+        pool = await get_pool()
+        click.echo(f"Watching DFHack (world_id={world_id}, interval={interval}s)")
+        click.echo("Press Ctrl+C to stop.\n")
+
+        try:
+            await watch_loop(pool, world_id=world_id, interval=interval)
+        finally:
+            await close_pool()
+            click.echo("\nWatcher stopped.")
+
+    _run(_run_watch())
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""
@@ -137,6 +165,7 @@ def validate():
         "history_event_collections", "collection_events",
         "collection_subcollections", "event_relationships",
         "artifacts", "units", "embeddings",
+        "unit_events", "sync_snapshots",
     ]
 
     async def _run_validate():
