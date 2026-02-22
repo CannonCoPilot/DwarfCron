@@ -81,13 +81,33 @@ def _bool_flag(elem, tag: str) -> bool:
 
 def _parse_regions(root, world_id: int) -> list[tuple]:
     rows = []
-    for r in root.findall(".//region"):
+    for r in root.findall("regions/region"):
         rows.append((
             _int(r, "id"),
             world_id,
             _text(r, "name"),
             _text(r, "type"),
             _text(r, "coords"),
+        ))
+    return rows
+
+
+# ── Parse underground regions ────────────────────────────────────────────────
+
+def _parse_underground_regions(root, world_id: int) -> list[tuple]:
+    """Parse underground_regions from legends.xml (has type + depth).
+
+    legends_plus.xml adds coords but lacks type/depth, so we parse
+    from legends.xml first and enrich from plus later.
+    """
+    rows = []
+    for ur in root.findall("underground_regions/underground_region"):
+        rows.append((
+            _int(ur, "id"),
+            world_id,
+            _text(ur, "type"),
+            _int(ur, "depth"),
+            _text(ur, "coords"),  # Usually absent in legends.xml
         ))
     return rows
 
@@ -110,6 +130,7 @@ def _parse_sites(root, world_id: int) -> tuple[list[tuple], list[tuple]]:
         ))
         for st in s.findall(".//structure"):
             struct_rows.append((
+                world_id,
                 sid,
                 _int(st, "local_id"),
                 _text(st, "name"),
@@ -216,6 +237,7 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         # HF-to-HF links
         for link in hf.findall("hf_link"):
             hf_link_rows.append((
+                world_id,
                 hfid,
                 _int(link, "hfid"),
                 _text(link, "link_type"),
@@ -224,6 +246,7 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         # Entity links
         for link in hf.findall("entity_link"):
             hf_entity_link_rows.append((
+                world_id,
                 hfid,
                 _int(link, "entity_id"),
                 _text(link, "link_type"),
@@ -233,6 +256,7 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         # Site links
         for link in hf.findall("site_link"):
             hf_site_link_rows.append((
+                world_id,
                 hfid,
                 _int(link, "site_id"),
                 _text(link, "link_type"),
@@ -326,13 +350,13 @@ def _parse_event_collections(root, world_id: int) -> tuple[list, list, list]:
             if ev_elem.text:
                 eid = _int_or_none(ev_elem.text)
                 if eid is not None:
-                    coll_event_rows.append((cid, eid))
+                    coll_event_rows.append((world_id, cid, eid))
 
         for sc_elem in coll.findall("eventcol"):
             if sc_elem.text:
                 scid = _int_or_none(sc_elem.text)
                 if scid is not None:
-                    coll_sub_rows.append((cid, scid))
+                    coll_sub_rows.append((world_id, cid, scid))
 
     return coll_rows, coll_event_rows, coll_sub_rows
 
@@ -357,6 +381,71 @@ def _parse_artifacts(root, world_id: int) -> list[tuple]:
     return rows
 
 
+# ── Parse written contents ───────────────────────────────────────────────────
+
+def _parse_written_contents(root, world_id: int) -> list[tuple]:
+    """Parse written_contents from legends.xml.
+
+    Fields: id, title, author_hfid, form (lowercase text), form_id.
+    Style entries are "key:value" pairs (e.g. "melancholy:4").
+    """
+    rows = []
+    section = root.find("written_contents")
+    if section is None:
+        return rows
+    for wc in section.findall("written_content"):
+        wcid = _int(wc, "id")
+        if wcid is None:
+            continue
+        # Collect style elements
+        styles = [s.text for s in wc.findall("style") if s.text]
+        # Build details for extra fields
+        details = {}
+        form_id = _int(wc, "form_id")
+        if form_id is not None:
+            details["form_id"] = form_id
+        author_roll = _int(wc, "author_roll")
+        if author_roll is not None:
+            details["author_roll"] = author_roll
+        rows.append((
+            wcid, world_id,
+            _text(wc, "title"),
+            _int(wc, "author_hfid"),
+            _text(wc, "form"),
+            None,  # type (filled from legends_plus)
+            None, None,  # page_start, page_end (filled from legends_plus)
+            styles or None,
+            json.dumps(details) if details else None,
+        ))
+    return rows
+
+
+# ── Parse historical eras ────────────────────────────────────────────────────
+
+def _parse_historical_eras(root, world_id: int) -> list[tuple]:
+    """Parse historical_eras from legends.xml.
+
+    Note: start_year uses raw int parsing (not _int) because -1 means
+    "beginning of time" for eras, whereas _int skips -1 as a null marker.
+    """
+    rows = []
+    section = root.find("historical_eras")
+    if section is None:
+        return rows
+    for era in section.findall("historical_era"):
+        name = _text(era, "name")
+        if not name:
+            continue
+        start_year_text = _text(era, "start_year")
+        start_year = int(start_year_text) if start_year_text is not None else None
+        rows.append((
+            world_id,
+            name,
+            start_year,
+        ))
+    return rows
+
+
 # ── Parse legends_plus enrichment ─────────────────────────────────────────────
 
 def _parse_legends_plus(filepath: str, world_id: int) -> dict:
@@ -377,6 +466,8 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "event_relationships": [],
         "entities": [],
         "site_owners": [],  # (site_id, owner_entity_id) from cur_owner_id
+        "written_contents": [],  # enrichment from plus (type, pages, references)
+        "world_constructions": [],
     }
 
     for lm in root.findall(".//landmass"):
@@ -395,7 +486,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _int(mp, "height"),
         ))
 
-    for ur in root.findall(".//underground_region"):
+    for ur in root.findall("underground_regions/underground_region"):
         result["underground_regions"].append((
             _int(ur, "id"), world_id,
             _text(ur, "type"),
@@ -455,6 +546,45 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                 _text(ent, "race"),
                 _json.dumps(ent_details) if ent_details else None,
             ))
+
+    # Written contents enrichment (type, pages, styles, references)
+    wc_section = root.find("written_contents")
+    if wc_section is not None:
+        for wc in wc_section.findall("written_content"):
+            wcid = _int(wc, "id")
+            if wcid is None:
+                continue
+            styles = [s.text for s in wc.findall("style") if s.text]
+            # Collect references as JSONB
+            refs = []
+            for ref in wc.findall("reference"):
+                ref_type = _text(ref, "type")
+                ref_id = _int(ref, "id")
+                if ref_type or ref_id is not None:
+                    refs.append({"type": ref_type, "id": ref_id})
+            wc_details = {}
+            if refs:
+                wc_details["references"] = refs
+            result["written_contents"].append((
+                wcid, world_id,
+                _text(wc, "title"),
+                _int(wc, "author"),
+                None,  # form (from legends.xml, not in plus)
+                _text(wc, "type"),
+                _int(wc, "page_start"),
+                _int(wc, "page_end"),
+                styles or None,
+                _json.dumps(wc_details) if wc_details else None,
+            ))
+
+    # World constructions (roads, bridges, tunnels)
+    for wcon in root.findall(".//world_construction"):
+        result["world_constructions"].append((
+            _int(wcon, "id"), world_id,
+            _text(wcon, "name"),
+            _text(wcon, "type"),
+            _text(wcon, "coords"),
+        ))
 
     return result
 
@@ -522,7 +652,8 @@ async def import_legends(
     # Update world_id in plus_data tuples
     if plus_data:
         for key in ("landmasses", "mountain_peaks", "underground_regions",
-                     "identities", "event_relationships", "entities"):
+                     "identities", "event_relationships", "entities",
+                     "written_contents", "world_constructions"):
             plus_data[key] = [
                 (row[0], world_id, *row[2:]) if key != "event_relationships"
                 else (world_id, *row[1:])
@@ -538,6 +669,13 @@ async def import_legends(
     counts["regions"] = n
     log.info("  regions: %d", n)
 
+    # Underground regions (type, depth from legends.xml; coords enriched from plus)
+    ur_rows = _parse_underground_regions(root, world_id)
+    n = await _batch_insert(conn, "underground_regions",
+        ["id", "world_id", "type", "depth", "coords"], ur_rows)
+    counts["underground_regions"] = n
+    log.info("  underground_regions: %d", n)
+
     # Sites + structures
     site_rows, struct_rows = _parse_sites(root, world_id)
     n = await _batch_insert(conn, "sites",
@@ -548,8 +686,8 @@ async def import_legends(
     log.info("  sites: %d", n)
 
     n = await _batch_insert(conn, "structures",
-        ["site_id", "id", "name", "type", "entity_id", "details"],
-        struct_rows, on_conflict="(site_id, id) DO NOTHING")
+        ["world_id", "site_id", "id", "name", "type", "entity_id", "details"],
+        struct_rows, on_conflict="(world_id, site_id, id) DO NOTHING")
     counts["structures"] = n
     log.info("  structures: %d", n)
 
@@ -574,20 +712,21 @@ async def import_legends(
     log.info("  historical_figures: %d", n)
 
     n = await _batch_insert(conn, "hf_links",
-        ["hf_id", "target_hf_id", "link_type"], hf_link_rows,
-        on_conflict="DO NOTHING")
+        ["world_id", "hf_id", "target_hf_id", "link_type"], hf_link_rows,
+        on_conflict="(world_id, hf_id, target_hf_id, link_type) DO NOTHING")
     counts["hf_links"] = n
     log.info("  hf_links: %d", n)
 
     n = await _batch_insert(conn, "hf_entity_links",
-        ["hf_id", "entity_id", "link_type", "position_name"],
-        hf_entity_link_rows, on_conflict="DO NOTHING")
+        ["world_id", "hf_id", "entity_id", "link_type", "position_name"],
+        hf_entity_link_rows,
+        on_conflict="(world_id, hf_id, entity_id, link_type) DO UPDATE SET position_name = EXCLUDED.position_name")
     counts["hf_entity_links"] = n
     log.info("  hf_entity_links: %d", n)
 
     n = await _batch_insert(conn, "hf_site_links",
-        ["hf_id", "site_id", "link_type"], hf_site_link_rows,
-        on_conflict="DO NOTHING")
+        ["world_id", "hf_id", "site_id", "link_type"], hf_site_link_rows,
+        on_conflict="(world_id, hf_id, site_id, link_type) DO NOTHING")
     counts["hf_site_links"] = n
     log.info("  hf_site_links: %d", n)
 
@@ -614,14 +753,14 @@ async def import_legends(
     log.info("  history_event_collections: %d", n)
 
     n = await _batch_insert(conn, "collection_events",
-        ["collection_id", "event_id"], coll_event_rows,
-        on_conflict="(collection_id, event_id) DO NOTHING")
+        ["world_id", "collection_id", "event_id"], coll_event_rows,
+        on_conflict="(world_id, collection_id, event_id) DO NOTHING")
     counts["collection_events"] = n
     log.info("  collection_events: %d", n)
 
     n = await _batch_insert(conn, "collection_subcollections",
-        ["parent_id", "child_id"], coll_sub_rows,
-        on_conflict="(parent_id, child_id) DO NOTHING")
+        ["world_id", "parent_id", "child_id"], coll_sub_rows,
+        on_conflict="(world_id, parent_id, child_id) DO NOTHING")
     counts["collection_subcollections"] = n
     log.info("  collection_subcollections: %d", n)
 
@@ -633,6 +772,23 @@ async def import_legends(
         artifact_rows)
     counts["artifacts"] = n
     log.info("  artifacts: %d", n)
+
+    # Written contents (from legends.xml)
+    wc_rows = _parse_written_contents(root, world_id)
+    n = await _batch_insert(conn, "written_contents",
+        ["id", "world_id", "title", "author_hf_id", "form", "type",
+         "page_start", "page_end", "styles", "details"],
+        wc_rows)
+    counts["written_contents"] = n
+    log.info("  written_contents: %d", n)
+
+    # Historical eras (from legends.xml)
+    era_rows = _parse_historical_eras(root, world_id)
+    n = await _batch_insert(conn, "historical_eras",
+        ["world_id", "name", "start_year"],
+        era_rows, on_conflict="(world_id, name) DO NOTHING")
+    counts["historical_eras"] = n
+    log.info("  historical_eras: %d", n)
 
     # ── Step 5: legends_plus enrichment ───────────────────────────────────
     if plus_data:
@@ -650,9 +806,13 @@ async def import_legends(
 
         n = await _batch_insert(conn, "underground_regions",
             ["id", "world_id", "type", "depth", "coords"],
-            plus_data["underground_regions"])
-        counts["underground_regions"] = n
-        log.info("  underground_regions: %d", n)
+            plus_data["underground_regions"],
+            on_conflict="(world_id, id) DO UPDATE SET "
+                "coords = COALESCE(EXCLUDED.coords, underground_regions.coords), "
+                "type = COALESCE(underground_regions.type, EXCLUDED.type), "
+                "depth = COALESCE(underground_regions.depth, EXCLUDED.depth)")
+        counts["underground_regions_plus"] = n
+        log.info("  underground_regions (plus enrichment): %d", n)
 
         n = await _batch_insert(conn, "identities",
             ["id", "world_id", "name", "histfig_id", "birth_year",
@@ -675,12 +835,36 @@ async def import_legends(
         n = await _batch_insert(conn, "entities",
             ["id", "world_id", "name", "type", "race", "details"],
             plus_data["entities"],
-            on_conflict="(id) DO UPDATE SET "
+            on_conflict="(world_id, id) DO UPDATE SET "
                 "type = COALESCE(EXCLUDED.type, entities.type), "
                 "race = COALESCE(EXCLUDED.race, entities.race), "
                 "details = COALESCE(EXCLUDED.details, entities.details)")
         counts["entities_plus"] = n
         log.info("  entities (plus enrichment): %d", n)
+
+        # Written contents enrichment: merge type/pages from legends_plus
+        # into written_contents already inserted from legends.xml
+        if plus_data["written_contents"]:
+            n = await _batch_insert(conn, "written_contents",
+                ["id", "world_id", "title", "author_hf_id", "form", "type",
+                 "page_start", "page_end", "styles", "details"],
+                plus_data["written_contents"],
+                on_conflict="(world_id, id) DO UPDATE SET "
+                    "type = COALESCE(EXCLUDED.type, written_contents.type), "
+                    "page_start = COALESCE(EXCLUDED.page_start, written_contents.page_start), "
+                    "page_end = COALESCE(EXCLUDED.page_end, written_contents.page_end), "
+                    "styles = COALESCE(EXCLUDED.styles, written_contents.styles), "
+                    "details = COALESCE(EXCLUDED.details, written_contents.details)")
+            counts["written_contents_plus"] = n
+            log.info("  written_contents (plus enrichment): %d", n)
+
+        # World constructions (roads, bridges, tunnels — only in legends_plus)
+        if plus_data["world_constructions"]:
+            n = await _batch_insert(conn, "world_constructions",
+                ["id", "world_id", "name", "type", "coords"],
+                plus_data["world_constructions"])
+            counts["world_constructions"] = n
+            log.info("  world_constructions: %d", n)
 
         # Site ownership: update owner_entity_id from legends_plus cur_owner_id
         if plus_data["site_owners"]:
@@ -695,34 +879,39 @@ async def import_legends(
             counts["site_owners"] = updated_sites
             log.info("  site ownership: %d", updated_sites)
 
-    # ── Step 6: Update computed counts ────────────────────────────────────
+    # ── Step 6: Update computed counts (scoped to current world) ──────────
     await conn.execute("""
         UPDATE historical_figures hf SET
-            event_count = COALESCE(e.cnt, 0),
-            kill_count = COALESCE(k.cnt, 0)
+            event_count = COALESCE(e.cnt, 0)
         FROM (
             SELECT hf_id_1 AS hfid, COUNT(*) AS cnt
-            FROM history_events WHERE hf_id_1 IS NOT NULL
+            FROM history_events WHERE world_id = $1 AND hf_id_1 IS NOT NULL
             GROUP BY hf_id_1
         ) e
-        LEFT JOIN (
-            SELECT hf_id_1 AS hfid, COUNT(*) AS cnt
-            FROM history_events WHERE event_type = 'hf died' AND hf_id_2 IS NOT NULL
-            GROUP BY hf_id_1
-        ) k ON k.hfid = e.hfid
-        WHERE hf.id = e.hfid
-    """)
+        WHERE hf.world_id = $1 AND hf.id = e.hfid
+    """, world_id)
+    # Kill count: count victims per slayer (hf_id_2 is the killer in 'hf died' events)
+    await conn.execute("""
+        UPDATE historical_figures hf SET
+            kill_count = k.cnt
+        FROM (
+            SELECT hf_id_2 AS hfid, COUNT(*) AS cnt
+            FROM history_events WHERE world_id = $1 AND event_type = 'hf died' AND hf_id_2 IS NOT NULL
+            GROUP BY hf_id_2
+        ) k
+        WHERE hf.world_id = $1 AND hf.id = k.hfid
+    """, world_id)
     # Also count hf_id_2 participation
     await conn.execute("""
         UPDATE historical_figures hf SET
             event_count = hf.event_count + COALESCE(e.cnt, 0)
         FROM (
             SELECT hf_id_2 AS hfid, COUNT(*) AS cnt
-            FROM history_events WHERE hf_id_2 IS NOT NULL
+            FROM history_events WHERE world_id = $1 AND hf_id_2 IS NOT NULL
             GROUP BY hf_id_2
         ) e
-        WHERE hf.id = e.hfid
-    """)
+        WHERE hf.world_id = $1 AND hf.id = e.hfid
+    """, world_id)
     log.info("Updated event/kill counts on historical_figures")
 
     # Free memory

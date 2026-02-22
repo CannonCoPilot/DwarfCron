@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicler — Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            stone: { 950: '#0f0e0d' },
+            parchment: '#d4c5a9',
+            ink: '#2c1810',
+            amber: { 400: '#f6b93b', 500: '#e2a72e', 600: '#c49122' },
+          },
+          fontFamily: {
+            chronicle: ['"Palatino Linotype"', 'Palatino', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0c0b0a; }
+    .ex-scroll { scrollbar-width: thin; scrollbar-color: #44403c #1c1917; }
+    .ex-scroll::-webkit-scrollbar { width: 6px; }
+    .ex-scroll::-webkit-scrollbar-track { background: #1c1917; }
+    .ex-scroll::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+    .stat-badge { font-variant-numeric: tabular-nums; }
+    .tab-active { border-bottom: 2px solid #f6b93b; color: #f6b93b; font-weight: 700; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #78716c; }
+    .tab-inactive:hover { color: #d6d3d1; }
+    .tbl-list-item { transition: background 0.1s; cursor: pointer; }
+    .tbl-list-item:hover { background: #292524; }
+    .tbl-list-item.active { background: #292524; border-left: 2px solid #f6b93b; }
+    .pk-badge { background: #f6b93b; color: #0f0e0d; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+    .fk-link { color: #60a5fa; cursor: pointer; }
+    .fk-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body class="text-stone-300 font-chronicle min-h-screen flex flex-col">
+
+  {% set active = "explorer" %}
+  {% include "partials/_nav.html" %}
+
+  <!-- Tab Bar -->
+  <div class="border-b border-stone-800 bg-stone-950 px-6 flex-shrink-0">
+    <div class="flex gap-1">
+      <button onclick="switchTab('schema')" id="tab-schema" class="px-4 py-2.5 text-sm tab-active transition-colors">Schema</button>
+      <button onclick="switchTab('data')" id="tab-data" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Data</button>
+      <button onclick="switchTab('graph')" id="tab-graph" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Graph</button>
+    </div>
+  </div>
+
+  <!-- ========== SCHEMA TAB ========== -->
+  <div id="panel-schema" class="flex-1 flex overflow-hidden">
+    <!-- Table List Sidebar -->
+    <div class="w-72 flex-shrink-0 border-r border-stone-800 overflow-y-auto ex-scroll bg-stone-950/50">
+      <div class="p-3">
+        <input id="table-filter" type="text" placeholder="Filter tables..."
+               class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+               oninput="filterTables(this.value)">
+      </div>
+      <div id="table-list" class="px-1 pb-4">
+        <div class="text-stone-500 text-xs px-3 py-4">Loading tables...</div>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="flex-1 overflow-y-auto ex-scroll p-6" id="schema-detail">
+      <div class="text-stone-500 text-sm text-center py-12">
+        <p class="text-lg mb-2">Select a table to view its schema</p>
+        <p class="text-xs">Browse columns, primary keys, foreign keys, and indexes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== DATA TAB ========== -->
+  <div id="panel-data" class="flex-1 flex flex-col overflow-hidden hidden">
+    <!-- Controls bar -->
+    <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0">
+      <select id="data-table-select" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+              onchange="loadTableData(this.value)">
+        <option value="">Select table...</option>
+      </select>
+      <input id="data-filter" type="text" placeholder="Filter text columns..."
+             class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs w-48 focus:border-amber-500 focus:outline-none"
+             onkeydown="if(event.key==='Enter')applyDataFilter()">
+      <button onclick="applyDataFilter()" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">Filter</button>
+      <button onclick="clearDataFilter()" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">Clear</button>
+      <span id="data-row-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
+    </div>
+
+    <!-- Data grid -->
+    <div class="flex-1 overflow-auto ex-scroll">
+      <div id="data-grid" class="px-6 py-3">
+        <div class="text-stone-500 text-sm text-center py-12">Select a table to browse its data</div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="data-pagination" class="flex items-center justify-between px-6 py-2 border-t border-stone-800 flex-shrink-0 hidden">
+      <div class="flex items-center gap-2">
+        <button onclick="dataPage(-1)" id="data-prev" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Prev</button>
+        <span id="data-page-info" class="text-stone-500 text-xs stat-badge"></span>
+        <button onclick="dataPage(1)" id="data-next" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Next</button>
+      </div>
+      <select id="data-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs" onchange="changeDataLimit()">
+        <option value="25">25 rows</option>
+        <option value="50">50 rows</option>
+        <option value="100">100 rows</option>
+      </select>
+    </div>
+
+    <!-- SQL Runner (collapsible) -->
+    <details class="border-t border-stone-800 flex-shrink-0">
+      <summary class="px-6 py-2 text-stone-500 text-xs uppercase tracking-wider cursor-pointer hover:text-stone-300">SQL Runner</summary>
+      <div class="px-6 pb-4">
+        <textarea id="sql-input" rows="3" placeholder="SELECT name, kill_count FROM historical_figures WHERE kill_count > 100 ORDER BY kill_count DESC"
+                  class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-3 py-2 text-xs font-mono focus:border-amber-500 focus:outline-none resize-y"></textarea>
+        <div class="flex items-center gap-3 mt-2">
+          <button onclick="runQuery()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-4 py-1.5 rounded text-xs transition-colors">Run</button>
+          <select id="sql-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
+            <option value="100">Limit 100</option>
+            <option value="250">Limit 250</option>
+            <option value="500">Limit 500</option>
+          </select>
+          <span id="sql-status" class="text-stone-500 text-xs"></span>
+        </div>
+        <div id="sql-results" class="mt-3"></div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ========== GRAPH TAB ========== -->
+  <div id="panel-graph" class="flex-1 flex flex-col overflow-hidden hidden">
+    <!-- Graph controls -->
+    <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0">
+      <div class="relative flex-1 max-w-sm">
+        <input id="graph-search" type="text" placeholder="Search figures, entities, sites..."
+               class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-3 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+               oninput="debounceGraphSearch()" onkeydown="if(event.key==='Escape')hideSearchResults()">
+        <div id="graph-search-results" class="absolute top-full left-0 right-0 mt-1 bg-stone-900 border border-stone-700 rounded shadow-xl z-50 max-h-64 overflow-y-auto ex-scroll hidden"></div>
+      </div>
+      <div class="flex items-center gap-1 text-xs text-stone-400">
+        <span>Depth:</span>
+        <label class="cursor-pointer"><input type="radio" name="graph-depth" value="1" checked class="mr-0.5" onchange="graphDepthChanged()">1</label>
+        <label class="cursor-pointer ml-2"><input type="radio" name="graph-depth" value="2" class="mr-0.5" onchange="graphDepthChanged()">2</label>
+        <label class="cursor-pointer ml-2"><input type="radio" name="graph-depth" value="3" class="mr-0.5" onchange="graphDepthChanged()">3</label>
+      </div>
+      <span id="graph-node-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
+    </div>
+
+    <!-- Graph canvas + info panel -->
+    <div class="flex-1 flex relative">
+      <div id="graph-canvas" class="flex-1" style="background: #0c0b0a;"></div>
+
+      <!-- Node info overlay -->
+      <div id="graph-info" class="absolute top-4 right-4 w-72 bg-stone-900/95 border border-stone-700 rounded-lg p-4 shadow-xl hidden">
+        <button onclick="document.getElementById('graph-info').classList.add('hidden')"
+                class="absolute top-2 right-2 text-stone-500 hover:text-stone-300 text-xs">&times;</button>
+        <div id="graph-info-content" class="text-xs"></div>
+      </div>
+
+      <!-- Legend overlay -->
+      <div class="absolute bottom-4 left-4 bg-stone-900/90 border border-stone-800 rounded px-3 py-2 text-[10px] text-stone-400">
+        <div class="flex flex-wrap gap-x-3 gap-y-1">
+          <span><span style="color:#78716c">&#9679;</span> HF</span>
+          <span><span style="color:#f6b93b">&#9679;</span> Deity</span>
+          <span><span style="color:#ef4444">&#9679;</span> Vampire</span>
+          <span><span style="color:#a855f7">&#9679;</span> Necromancer</span>
+          <span><span style="color:#f97316">&#9679;</span> Werebeast</span>
+          <span><span style="color:#3b82f6">&#9670;</span> Civ</span>
+          <span><span style="color:#a855f7">&#9670;</span> Religion</span>
+          <span><span style="color:#22c55e">&#9632;</span> Site</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ─── State ───
+let allTables = [];
+let currentTable = null;
+
+// ─── Tab switching ───
+function switchTab(tab) {
+  for (const t of ['schema', 'data', 'graph']) {
+    document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+    const btn = document.getElementById('tab-' + t);
+    btn.className = btn.className.replace(/tab-\w+/, t === tab ? 'tab-active' : 'tab-inactive');
+  }
+}
+
+// ─── Table list ───
+async function loadTables() {
+  try {
+    const resp = await fetch('/api/explorer/tables');
+    allTables = await resp.json();
+    renderTableList(allTables);
+  } catch (e) {
+    document.getElementById('table-list').innerHTML =
+      `<div class="text-red-400 text-xs px-3 py-4">Failed to load tables</div>`;
+  }
+}
+
+function filterTables(query) {
+  const q = query.toLowerCase();
+  const filtered = q ? allTables.filter(t => t.name.includes(q)) : allTables;
+  renderTableList(filtered);
+}
+
+function renderTableList(tables) {
+  // Group by category
+  const groups = {};
+  for (const t of tables) {
+    const g = t.group || 'Other';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(t);
+  }
+
+  const groupOrder = ['Legends', 'Relationships', 'Geography', 'Live Data', 'System', 'Other'];
+  let html = '';
+  for (const g of groupOrder) {
+    if (!groups[g] || groups[g].length === 0) continue;
+    html += `<div class="mt-3 first:mt-0">
+      <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${g}</div>`;
+    for (const t of groups[g]) {
+      const active = currentTable === t.name ? ' active' : '';
+      html += `<div class="tbl-list-item px-3 py-1.5 text-xs rounded${active}"
+                   onclick="showTable('${t.name}')">
+        <span class="text-stone-200">${t.name}</span>
+        <span class="text-stone-600 float-right stat-badge">${formatNum(t.row_count)}</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  document.getElementById('table-list').innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4">No matching tables</div>';
+}
+
+// ─── Table detail ───
+async function showTable(name) {
+  currentTable = name;
+  renderTableList(allTables.filter(t => {
+    const q = document.getElementById('table-filter').value.toLowerCase();
+    return !q || t.name.includes(q);
+  }));
+
+  const panel = document.getElementById('schema-detail');
+  panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+
+  try {
+    const resp = await fetch('/api/explorer/tables/' + name);
+    const d = await resp.json();
+    renderTableDetail(d);
+  } catch (e) {
+    panel.innerHTML = `<div class="text-red-400 text-xs py-4">Failed to load table: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderTableDetail(d) {
+  const panel = document.getElementById('schema-detail');
+  const pkSet = new Set(d.primary_key);
+
+  // Header
+  let html = `<div class="flex items-center gap-3 mb-4">
+    <h2 class="text-amber-400 text-xl font-bold">${d.name}</h2>
+    <span class="text-stone-500 text-xs">${d.group}</span>
+    <span class="text-stone-400 text-xs stat-badge ml-auto">${formatNum(d.row_count)} rows</span>
+  </div>`;
+
+  // Primary Key badge
+  if (d.primary_key.length > 0) {
+    html += `<div class="mb-4">
+      <span class="text-stone-500 text-xs uppercase tracking-wider">Primary Key: </span>
+      <span class="pk-badge">${d.primary_key.join(', ')}</span>
+    </div>`;
+  }
+
+  // Columns table
+  html += `<div class="mb-6">
+    <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Columns (${d.columns.length})</h3>
+    <div class="bg-stone-900 border border-stone-800 rounded-lg overflow-hidden">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">
+            <th class="px-3 py-2 text-left">#</th>
+            <th class="px-3 py-2 text-left">Column</th>
+            <th class="px-3 py-2 text-left">Type</th>
+            <th class="px-3 py-2 text-center">Null</th>
+            <th class="px-3 py-2 text-left">Default</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone-800">`;
+
+  for (const c of d.columns) {
+    const isPk = pkSet.has(c.column_name);
+    const typeStr = c.character_maximum_length
+      ? `${c.data_type}(${c.character_maximum_length})`
+      : c.udt_name === 'vector' ? 'vector(2560)' : c.data_type;
+    const nullStr = c.is_nullable === 'YES'
+      ? '<span class="text-stone-600">yes</span>'
+      : '<span class="text-amber-400/60">NOT NULL</span>';
+    const defStr = c.column_default
+      ? `<span class="text-stone-500 font-mono">${escapeHtml(truncate(c.column_default, 30))}</span>`
+      : '';
+    html += `<tr class="${isPk ? 'bg-amber-400/5' : ''}">
+      <td class="px-3 py-1.5 text-stone-600">${c.ordinal_position}</td>
+      <td class="px-3 py-1.5 text-stone-200 font-mono">
+        ${c.column_name}${isPk ? ' <span class="pk-badge ml-1">PK</span>' : ''}
+      </td>
+      <td class="px-3 py-1.5 text-stone-400 font-mono">${typeStr}</td>
+      <td class="px-3 py-1.5 text-center">${nullStr}</td>
+      <td class="px-3 py-1.5">${defStr}</td>
+    </tr>`;
+  }
+  html += `</tbody></table></div></div>`;
+
+  // Foreign Keys (outgoing)
+  if (d.foreign_keys.length > 0) {
+    html += `<div class="mb-6">
+      <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Foreign Keys (${d.foreign_keys.length})</h3>
+      <div class="space-y-1.5">`;
+    for (const fk of d.foreign_keys) {
+      html += `<div class="bg-stone-900 border border-stone-800 rounded px-3 py-2 text-xs font-mono">
+        <span class="text-stone-300">${fk.columns.join(', ')}</span>
+        <span class="text-stone-600 mx-2">&rarr;</span>
+        <span class="fk-link" onclick="showTable('${fk.foreign_table}')">${fk.foreign_table}</span>
+        <span class="text-stone-500">(${fk.foreign_columns.join(', ')})</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Incoming FKs
+  if (d.incoming_foreign_keys.length > 0) {
+    html += `<div class="mb-6">
+      <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Referenced By (${d.incoming_foreign_keys.length})</h3>
+      <div class="space-y-1.5">`;
+    for (const fk of d.incoming_foreign_keys) {
+      html += `<div class="bg-stone-900 border border-stone-800 rounded px-3 py-2 text-xs font-mono">
+        <span class="fk-link" onclick="showTable('${fk.source_table}')">${fk.source_table}</span>
+        <span class="text-stone-500">(${fk.source_columns.join(', ')})</span>
+        <span class="text-stone-600 mx-2">&rarr;</span>
+        <span class="text-stone-300">${fk.target_columns.join(', ')}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Indexes
+  if (d.indexes.length > 0) {
+    html += `<div class="mb-6">
+      <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Indexes (${d.indexes.length})</h3>
+      <div class="space-y-1">`;
+    for (const idx of d.indexes) {
+      html += `<div class="text-xs font-mono px-3 py-1.5 bg-stone-900 border border-stone-800 rounded">
+        <span class="text-stone-300">${idx.name}</span>
+        <span class="text-stone-600 ml-2">${escapeHtml(idx.definition.replace(/^CREATE\s+(UNIQUE\s+)?INDEX\s+\S+\s+ON\s+\S+\s+/i, ''))}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  panel.innerHTML = html;
+}
+
+// ─── Helpers ───
+function formatNum(n) {
+  if (n == null) return '?';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function truncate(s, max) {
+  if (!s || s.length <= max) return s || '';
+  return s.slice(0, max - 3) + '...';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ─── Data Browser ───
+let dataState = { table: '', page: 1, limit: 25, sort: '', order: 'asc', filter: '', fkMap: {} };
+
+function populateDataTableSelect() {
+  const sel = document.getElementById('data-table-select');
+  sel.innerHTML = '<option value="">Select table...</option>' +
+    allTables.map(t => `<option value="${t.name}">${t.name} (${formatNum(t.row_count)})</option>`).join('');
+}
+
+async function loadTableData(tableName, resetPage) {
+  if (!tableName) return;
+  if (tableName !== dataState.table || resetPage) {
+    dataState.table = tableName;
+    if (resetPage !== false) dataState.page = 1;
+  }
+
+  const params = new URLSearchParams({
+    page: dataState.page,
+    limit: dataState.limit,
+    sort: dataState.sort,
+    order: dataState.order,
+    filter: dataState.filter,
+  });
+
+  try {
+    const resp = await fetch(`/api/explorer/tables/${tableName}/data?${params}`);
+    const d = await resp.json();
+    if (d.detail) { throw new Error(d.detail); }
+    dataState.fkMap = d.foreign_keys || {};
+    renderDataGrid(d);
+    renderDataPagination(d);
+  } catch (e) {
+    document.getElementById('data-grid').innerHTML =
+      `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderDataGrid(d) {
+  const grid = document.getElementById('data-grid');
+  document.getElementById('data-row-count').textContent = `${formatNum(d.total)} rows`;
+
+  if (d.rows.length === 0) {
+    grid.innerHTML = '<div class="text-stone-500 text-xs py-4">No data found</div>';
+    return;
+  }
+
+  const colNames = d.columns.map(c => c.column_name);
+  const colTypes = {};
+  for (const c of d.columns) colTypes[c.column_name] = c.udt_name;
+
+  let html = '<div class="overflow-x-auto ex-scroll"><table class="w-full text-xs"><thead><tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">';
+  for (const col of colNames) {
+    const sortIcon = dataState.sort === col ? (dataState.order === 'asc' ? ' &uarr;' : ' &darr;') : '';
+    html += `<th class="px-3 py-2 text-left cursor-pointer hover:text-amber-400 whitespace-nowrap" onclick="sortData('${col}')">${col}${sortIcon}</th>`;
+  }
+  html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+
+  for (const row of d.rows) {
+    html += '<tr class="hover:bg-stone-800/30">';
+    for (const col of colNames) {
+      html += `<td class="px-3 py-1.5 max-w-xs">${renderCell(col, row[col], colTypes[col])}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  grid.innerHTML = html;
+}
+
+function renderCell(col, val, type) {
+  if (val === null || val === undefined) return '<span class="text-stone-600 italic">null</span>';
+
+  // JSONB
+  if (type === 'jsonb' || type === 'json' || (typeof val === 'object' && val !== null)) {
+    const s = JSON.stringify(val, null, 2);
+    if (s.length > 60) {
+      return `<details class="inline"><summary class="text-stone-400 cursor-pointer">{...}</summary><pre class="text-stone-400 text-[10px] font-mono mt-1 max-h-40 overflow-y-auto ex-scroll bg-stone-900 p-2 rounded">${escapeHtml(s)}</pre></details>`;
+    }
+    return `<span class="text-stone-400 font-mono text-[10px]">${escapeHtml(s)}</span>`;
+  }
+
+  // Boolean
+  if (type === 'bool') {
+    return val ? '<span class="text-green-400">true</span>' : '<span class="text-stone-600">false</span>';
+  }
+
+  // FK link
+  const fk = dataState.fkMap[col];
+  if (fk) {
+    return `<span class="fk-link" onclick="navigateFK('${fk.table}', '${fk.column}', ${JSON.stringify(val)})">${escapeHtml(String(val))}</span>`;
+  }
+
+  // Text arrays
+  if (Array.isArray(val)) return `<span class="text-stone-400 font-mono text-[10px]">${escapeHtml(JSON.stringify(val))}</span>`;
+
+  // Default: truncated text
+  const s = String(val);
+  if (s.length > 120) return `<span title="${escapeHtml(s)}">${escapeHtml(s.slice(0, 117))}...</span>`;
+  return escapeHtml(s);
+}
+
+function navigateFK(table, column, value) {
+  // Switch to the target table with a filter for this value
+  const sel = document.getElementById('data-table-select');
+  sel.value = table;
+  dataState.table = table;
+  dataState.sort = column;
+  dataState.order = 'asc';
+  // For simple values, use the filter. For composite PKs we just sort by the column.
+  document.getElementById('data-filter').value = String(value);
+  dataState.filter = String(value);
+  dataState.page = 1;
+  loadTableData(table);
+}
+
+function sortData(col) {
+  if (dataState.sort === col) {
+    dataState.order = dataState.order === 'asc' ? 'desc' : 'asc';
+  } else {
+    dataState.sort = col;
+    dataState.order = 'asc';
+  }
+  dataState.page = 1;
+  loadTableData(dataState.table, false);
+}
+
+function applyDataFilter() {
+  dataState.filter = document.getElementById('data-filter').value;
+  dataState.page = 1;
+  loadTableData(dataState.table);
+}
+
+function clearDataFilter() {
+  document.getElementById('data-filter').value = '';
+  dataState.filter = '';
+  dataState.page = 1;
+  loadTableData(dataState.table);
+}
+
+function renderDataPagination(d) {
+  const pag = document.getElementById('data-pagination');
+  pag.classList.remove('hidden');
+  document.getElementById('data-page-info').textContent = `Page ${d.page} of ${d.pages}`;
+  document.getElementById('data-prev').disabled = d.page <= 1;
+  document.getElementById('data-next').disabled = d.page >= d.pages;
+}
+
+function dataPage(delta) {
+  dataState.page += delta;
+  loadTableData(dataState.table, false);
+}
+
+function changeDataLimit() {
+  dataState.limit = parseInt(document.getElementById('data-limit').value);
+  dataState.page = 1;
+  loadTableData(dataState.table);
+}
+
+// ─── SQL Runner ───
+async function runQuery() {
+  const sql = document.getElementById('sql-input').value.trim();
+  if (!sql) return;
+  const limit = parseInt(document.getElementById('sql-limit').value);
+  const statusEl = document.getElementById('sql-status');
+  const resultsEl = document.getElementById('sql-results');
+  statusEl.textContent = 'Running...';
+  resultsEl.innerHTML = '';
+
+  const t0 = performance.now();
+  try {
+    const resp = await fetch('/api/explorer/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sql, limit }),
+    });
+    const d = await resp.json();
+    const elapsed = Math.round(performance.now() - t0);
+
+    if (d.detail) { throw new Error(d.detail); }
+
+    statusEl.textContent = `${d.count} rows in ${elapsed}ms${d.truncated ? ' (truncated)' : ''}`;
+
+    if (d.count === 0) {
+      resultsEl.innerHTML = '<div class="text-stone-500 text-xs">No results</div>';
+      return;
+    }
+
+    let html = '<div class="overflow-x-auto ex-scroll max-h-80"><table class="w-full text-xs"><thead><tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">';
+    for (const col of d.columns) html += `<th class="px-3 py-2 text-left whitespace-nowrap">${escapeHtml(col)}</th>`;
+    html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+    for (const row of d.rows) {
+      html += '<tr class="hover:bg-stone-800/30">';
+      for (const col of d.columns) {
+        const v = row[col];
+        const cell = v === null ? '<span class="text-stone-600 italic">null</span>'
+          : typeof v === 'object' ? `<span class="text-stone-400 font-mono text-[10px]">${escapeHtml(JSON.stringify(v))}</span>`
+          : escapeHtml(String(v).length > 100 ? String(v).slice(0, 97) + '...' : String(v));
+        html += `<td class="px-3 py-1.5">${cell}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    resultsEl.innerHTML = html;
+  } catch (e) {
+    statusEl.textContent = '';
+    resultsEl.innerHTML = `<div class="text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ─── Entity Graph ───
+let graphNetwork = null;
+let graphNodes = null;
+let graphEdges = null;
+let graphSearchTimer = null;
+let graphCenter = null;
+
+function getGraphDepth() {
+  const checked = document.querySelector('input[name="graph-depth"]:checked');
+  return checked ? parseInt(checked.value) : 1;
+}
+
+function graphDepthChanged() {
+  if (graphCenter) {
+    // Re-fetch with new depth
+    const parts = graphCenter.split('-');
+    const type = parts[0];
+    const id = parts.slice(1).join('-');
+    // Need world_id from the existing node
+    const node = graphNodes ? graphNodes.get(graphCenter) : null;
+    if (node && node.meta) {
+      loadGraph(type, node.meta.world_id, parseInt(id));
+    }
+  }
+}
+
+function debounceGraphSearch() {
+  clearTimeout(graphSearchTimer);
+  graphSearchTimer = setTimeout(doGraphSearch, 300);
+}
+
+async function doGraphSearch() {
+  const q = document.getElementById('graph-search').value.trim();
+  const results = document.getElementById('graph-search-results');
+  if (q.length < 2) { results.classList.add('hidden'); return; }
+
+  try {
+    const resp = await fetch(`/api/explorer/graph/search?q=${encodeURIComponent(q)}`);
+    const items = await resp.json();
+    if (items.length === 0) {
+      results.innerHTML = '<div class="px-3 py-2 text-stone-500 text-xs">No results</div>';
+    } else {
+      const icons = { hf: '&#9679;', entity: '&#9670;', site: '&#9632;' };
+      const colors = { hf: '#78716c', entity: '#3b82f6', site: '#22c55e' };
+      results.innerHTML = items.map(it =>
+        `<div class="px-3 py-2 text-xs cursor-pointer hover:bg-stone-800 text-stone-300 border-b border-stone-800/50"
+              onclick="selectGraphResult('${it.type}', ${it.world_id}, ${it.id})">
+          <span style="color:${colors[it.type]}">${icons[it.type]}</span>
+          ${escapeHtml(it.label)}
+        </div>`
+      ).join('');
+    }
+    results.classList.remove('hidden');
+  } catch (e) {
+    results.innerHTML = `<div class="px-3 py-2 text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+    results.classList.remove('hidden');
+  }
+}
+
+function hideSearchResults() {
+  document.getElementById('graph-search-results').classList.add('hidden');
+}
+
+function selectGraphResult(type, worldId, id) {
+  hideSearchResults();
+  document.getElementById('graph-search').value = '';
+  loadGraph(type, worldId, id);
+}
+
+async function loadGraph(type, worldId, id) {
+  const depth = getGraphDepth();
+  const url = type === 'hf' ? `/api/explorer/graph/hf/${worldId}/${id}?depth=${depth}`
+            : type === 'entity' ? `/api/explorer/graph/entity/${worldId}/${id}?depth=${depth}`
+            : `/api/explorer/graph/site/${worldId}/${id}`;
+
+  const countEl = document.getElementById('graph-node-count');
+  countEl.textContent = 'Loading...';
+
+  try {
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.detail) throw new Error(data.detail);
+
+    graphCenter = data.center;
+    renderGraph(data);
+
+    let label = `${data.node_count} nodes, ${data.edge_count} edges`;
+    if (data.capped) label += ` (showing ${data.node_count - 1} of ${data.total_members} members)`;
+    if (data.node_count > 500) label = '&#9888; ' + label;
+    countEl.innerHTML = label;
+  } catch (e) {
+    countEl.textContent = 'Error: ' + e.message;
+  }
+}
+
+function renderGraph(data) {
+  const container = document.getElementById('graph-canvas');
+
+  graphNodes = new vis.DataSet(data.nodes);
+  graphEdges = new vis.DataSet(data.edges);
+
+  const options = {
+    physics: {
+      solver: 'forceAtlas2Based',
+      forceAtlas2Based: {
+        gravitationalConstant: -40,
+        centralGravity: 0.01,
+        springLength: 100,
+        springConstant: 0.04,
+        damping: 0.4,
+      },
+      stabilization: { iterations: 150, fit: true },
+    },
+    interaction: {
+      hover: true,
+      tooltipDelay: 200,
+      zoomView: true,
+      dragView: true,
+    },
+    nodes: {
+      font: { color: '#d6d3d1', size: 10, face: 'JetBrains Mono, Consolas, monospace' },
+      borderWidth: 1.5,
+    },
+    edges: {
+      width: 1,
+      font: { align: 'middle' },
+      smooth: { type: 'continuous' },
+    },
+  };
+
+  if (graphNetwork) graphNetwork.destroy();
+  graphNetwork = new vis.Network(container, { nodes: graphNodes, edges: graphEdges }, options);
+
+  // Highlight center node
+  if (data.center && graphNodes.get(data.center)) {
+    const centerNode = graphNodes.get(data.center);
+    graphNodes.update({ id: data.center, size: (centerNode.size || 12) * 1.5, borderWidth: 3 });
+  }
+
+  // Click handler for info panel
+  graphNetwork.on('click', function(params) {
+    if (params.nodes.length > 0) {
+      showNodeInfo(params.nodes[0]);
+    } else {
+      document.getElementById('graph-info').classList.add('hidden');
+    }
+  });
+
+  // Double-click to expand
+  graphNetwork.on('doubleClick', function(params) {
+    if (params.nodes.length > 0) {
+      expandNode(params.nodes[0]);
+    }
+  });
+}
+
+function showNodeInfo(nodeId) {
+  const node = graphNodes.get(nodeId);
+  if (!node || !node.meta) return;
+  const m = node.meta;
+  const panel = document.getElementById('graph-info');
+  const content = document.getElementById('graph-info-content');
+
+  let html = `<h3 class="text-amber-400 font-bold text-sm mb-2">${escapeHtml(m.name || nodeId)}</h3>`;
+
+  if (m.type === 'hf') {
+    html += `<div class="space-y-1 text-stone-400">
+      <div><span class="text-stone-500">Race:</span> ${escapeHtml(m.race || '?')}</div>
+      <div><span class="text-stone-500">Caste:</span> ${escapeHtml(m.caste || '?')}</div>
+      <div><span class="text-stone-500">Born:</span> ${m.birth_year ?? '?'}</div>
+      ${m.alive ? '<div class="text-green-400">Alive</div>' : `<div class="text-red-400">Died: ${m.death_year ?? '?'}</div>`}
+      <div><span class="text-stone-500">Kills:</span> ${m.kill_count || 0}</div>
+    </div>`;
+    html += `<div class="mt-3 flex gap-2">
+      <button onclick="expandNode('${nodeId}')" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded text-[10px]">Expand</button>
+      <button onclick="loadGraph('hf', ${m.world_id}, ${m.hf_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+    </div>`;
+  } else if (m.type === 'entity') {
+    html += `<div class="space-y-1 text-stone-400">
+      <div><span class="text-stone-500">Type:</span> ${escapeHtml(m.entity_type || '?')}</div>
+      <div><span class="text-stone-500">Race:</span> ${escapeHtml(m.race || '?')}</div>
+    </div>`;
+    html += `<div class="mt-3 flex gap-2">
+      <button onclick="loadGraph('entity', ${m.world_id}, ${m.entity_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+    </div>`;
+  } else if (m.type === 'site') {
+    html += `<div class="space-y-1 text-stone-400">
+      <div><span class="text-stone-500">Type:</span> ${escapeHtml(m.site_type || '?')}</div>
+    </div>`;
+    html += `<div class="mt-3 flex gap-2">
+      <button onclick="loadGraph('site', ${m.world_id}, ${m.site_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+    </div>`;
+  }
+
+  // Connected edges
+  const connected = graphEdges.get({
+    filter: e => e.from === nodeId || e.to === nodeId
+  });
+  if (connected.length > 0) {
+    html += `<div class="mt-3 border-t border-stone-700 pt-2">
+      <div class="text-stone-500 text-[10px] uppercase mb-1">${connected.length} connections</div>
+      <div class="max-h-24 overflow-y-auto ex-scroll space-y-0.5">`;
+    for (const e of connected.slice(0, 15)) {
+      const otherId = e.from === nodeId ? e.to : e.from;
+      const other = graphNodes.get(otherId);
+      const otherName = other ? (other.meta?.name || other.label) : otherId;
+      html += `<div class="text-[10px]"><span class="text-stone-500">${escapeHtml(e.label)}:</span> ${escapeHtml(otherName)}</div>`;
+    }
+    if (connected.length > 15) html += `<div class="text-stone-600 text-[10px]">...and ${connected.length - 15} more</div>`;
+    html += '</div></div>';
+  }
+
+  content.innerHTML = html;
+  panel.classList.remove('hidden');
+}
+
+async function expandNode(nodeId) {
+  const node = graphNodes.get(nodeId);
+  if (!node || !node.meta) return;
+  const m = node.meta;
+
+  let url;
+  if (m.type === 'hf') url = `/api/explorer/graph/hf/${m.world_id}/${m.hf_id}?depth=1`;
+  else if (m.type === 'entity') url = `/api/explorer/graph/entity/${m.world_id}/${m.entity_id}?depth=1`;
+  else if (m.type === 'site') url = `/api/explorer/graph/site/${m.world_id}/${m.site_id}`;
+  else return;
+
+  // Check node count guard
+  const currentCount = graphNodes.length;
+  if (currentCount > 1000) {
+    document.getElementById('graph-node-count').innerHTML = '&#9888; Too many nodes (1000+). Clear and re-search.';
+    return;
+  }
+
+  try {
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.detail) throw new Error(data.detail);
+
+    // Merge new nodes/edges into existing graph
+    for (const n of data.nodes) {
+      if (!graphNodes.get(n.id)) graphNodes.add(n);
+    }
+    for (const e of data.edges) {
+      // Check for duplicate edges
+      const existing = graphEdges.get({
+        filter: ex => (ex.from === e.from && ex.to === e.to && ex.label === e.label)
+                   || (ex.from === e.to && ex.to === e.from && ex.label === e.label)
+      });
+      if (existing.length === 0) graphEdges.add(e);
+    }
+
+    document.getElementById('graph-node-count').innerHTML =
+      `${graphNodes.length} nodes, ${graphEdges.length} edges`;
+  } catch (e) {
+    document.getElementById('graph-node-count').textContent = 'Expand error: ' + e.message;
+  }
+}
+
+// Close search results when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#graph-search') && !e.target.closest('#graph-search-results')) {
+    hideSearchResults();
+  }
+});
+
+// ─── Init ───
+async function initAll() {
+  await loadTables();
+  populateDataTableSelect();
+}
+initAll();
+</script>
+</body>
+</html>

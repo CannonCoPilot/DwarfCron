@@ -41,10 +41,14 @@
     #input-bar:focus { outline: none; box-shadow: 0 0 0 1px #f6b93b; }
   </style>
 </head>
-<body class="text-stone-300 font-chronicle min-h-screen flex">
+<body class="text-stone-300 font-chronicle h-screen flex flex-col">
 
+  {% set active = "chat" %}
+  {% include "partials/_nav.html" %}
+
+  <div class="flex flex-1 overflow-hidden">
   <!-- Sidebar -->
-  <aside id="sidebar" class="w-64 flex-shrink-0 bg-stone-950 border-r border-stone-800 flex flex-col h-screen overflow-y-auto chat-scroll">
+  <aside id="sidebar" class="w-64 flex-shrink-0 bg-stone-950 border-r border-stone-800 flex flex-col overflow-y-auto chat-scroll">
     <div class="p-4 border-b border-stone-800">
       <h1 class="text-amber-400 text-xl font-bold tracking-wide">The Chronicler</h1>
       <p class="text-stone-500 text-xs mt-1">AI Narrator of Dwarf Fortress</p>
@@ -90,7 +94,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 flex flex-col h-screen">
+  <main class="flex-1 flex flex-col overflow-hidden">
     <!-- Chat Messages -->
     <div id="chat-messages" class="flex-1 overflow-y-auto chat-scroll p-6 space-y-4">
       <div class="text-center py-12">
@@ -115,6 +119,7 @@
       </form>
     </div>
   </main>
+  </div><!-- /flex wrapper -->
 
 <script>
 const chatEl = document.getElementById('chat-messages');

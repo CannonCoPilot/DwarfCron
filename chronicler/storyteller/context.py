@@ -54,6 +54,18 @@ _CATEGORY_ROUTES: dict[str, tuple[str, object]] = {
     "artifacts": ("artifacts", None),
     "relic": ("artifacts", None),
     "relics": ("artifacts", None),
+    # Written content searches
+    "book": ("written_contents", None),
+    "books": ("written_contents", None),
+    "poem": ("written_contents", None),
+    "poems": ("written_contents", None),
+    "scroll": ("written_contents", None),
+    "scrolls": ("written_contents", None),
+    "composition": ("written_contents", None),
+    "music": ("written_contents", None),
+    "literature": ("written_contents", None),
+    "writing": ("written_contents", None),
+    "writings": ("written_contents", None),
     # v6: Fortress/live data routes
     "fortress": ("live_units", None),
     "dwarves": ("live_units", None),
@@ -128,22 +140,25 @@ async def retrieve_context(
                 text = _format_hf(hf)
                 results.append({"category": "Historical Figure", "text": text})
 
-                # Pull related events (most recent first)
+                # Pull related events with name resolution
                 events = await conn.fetch(
                     """
-                    SELECT year, event_type, details
-                    FROM history_events
-                    WHERE world_id = $1 AND (hf_id_1 = $2 OR hf_id_2 = $2)
-                    ORDER BY year DESC
+                    SELECT e.year, e.event_type, e.details,
+                           h1.name as hf1_name, h2.name as hf2_name,
+                           s.name as site_name
+                    FROM history_events e
+                    LEFT JOIN historical_figures h1 ON h1.world_id = e.world_id AND h1.id = e.hf_id_1
+                    LEFT JOIN historical_figures h2 ON h2.world_id = e.world_id AND h2.id = e.hf_id_2
+                    LEFT JOIN sites s ON s.world_id = e.world_id AND s.id = e.site_id
+                    WHERE e.world_id = $1 AND (e.hf_id_1 = $2 OR e.hf_id_2 = $2)
+                    ORDER BY e.year DESC
                     LIMIT 10
                     """,
                     world_id, hf["id"],
                 )
                 for ev in events:
-                    results.append({
-                        "category": "Event",
-                        "text": f"Year {ev['year']}: {ev['event_type']} — {_summarize_details(ev['details'])}",
-                    })
+                    text = _format_event(ev)
+                    results.append({"category": "Event", "text": text})
 
                 # Cross-reference: check if this HF is alive in fortress
                 alive = await conn.fetchrow(
@@ -165,8 +180,8 @@ async def retrieve_context(
                     """
                     SELECT hl.link_type, hl.target_hf_id, hf2.name as target_name
                     FROM hf_links hl
-                    JOIN historical_figures hf2 ON hf2.id = hl.target_hf_id AND hf2.world_id = $1
-                    WHERE hl.hf_id = $2
+                    JOIN historical_figures hf2 ON hf2.world_id = hl.world_id AND hf2.id = hl.target_hf_id
+                    WHERE hl.world_id = $1 AND hl.hf_id = $2
                     LIMIT 10
                     """,
                     world_id, hf["id"],
@@ -182,8 +197,8 @@ async def retrieve_context(
                     """
                     SELECT hel.link_type, hel.position_name, e.name as entity_name
                     FROM hf_entity_links hel
-                    LEFT JOIN entities e ON e.id = hel.entity_id AND e.world_id = $1
-                    WHERE hel.hf_id = $2
+                    LEFT JOIN entities e ON e.world_id = hel.world_id AND e.id = hel.entity_id
+                    WHERE hel.world_id = $1 AND hel.hf_id = $2
                     LIMIT 5
                     """,
                     world_id, hf["id"],
@@ -193,6 +208,23 @@ async def retrieve_context(
                     results.append({
                         "category": "Membership",
                         "text": f"{hf['name']} — {el['link_type']}{pos} of {el['entity_name'] or '(unknown entity)'}",
+                    })
+
+                # Cross-reference: associated sites via hf_site_links
+                slinks = await conn.fetch(
+                    """
+                    SELECT hsl.link_type, s.name as site_name, s.type as site_type
+                    FROM hf_site_links hsl
+                    LEFT JOIN sites s ON s.world_id = hsl.world_id AND s.id = hsl.site_id
+                    WHERE hsl.world_id = $1 AND hsl.hf_id = $2
+                    LIMIT 5
+                    """,
+                    world_id, hf["id"],
+                )
+                for sl in slinks:
+                    results.append({
+                        "category": "Site Link",
+                        "text": f"{hf['name']} — {sl['link_type']} at {sl['site_name'] or '(unknown site)'} ({sl['site_type'] or 'unknown type'})",
                     })
 
         # Search entities by name/type (use all keywords, not just name_keywords,
@@ -230,15 +262,17 @@ async def retrieve_context(
                 text = f"{site['name']} — {site['type'] or 'unknown'}"
                 results.append({"category": "Site", "text": text})
 
-        # Search event collections (wars, battles) by name
+        # Search event collections (wars, battles) by name with entity resolution
         for kw in name_keywords:
             pattern = f"%{kw}%"
             colls = await conn.fetch(
                 """
-                SELECT name, type, start_year, end_year,
-                       attacker_entity_id, defender_entity_id
-                FROM history_event_collections
-                WHERE world_id = $1 AND name ILIKE $2
+                SELECT hec.name, hec.type, hec.start_year, hec.end_year,
+                       att.name as attacker_name, def.name as defender_name
+                FROM history_event_collections hec
+                LEFT JOIN entities att ON att.world_id = hec.world_id AND att.id = hec.attacker_entity_id
+                LEFT JOIN entities def ON def.world_id = hec.world_id AND def.id = hec.defender_entity_id
+                WHERE hec.world_id = $1 AND hec.name ILIKE $2
                 LIMIT 5
                 """,
                 world_id, pattern,
@@ -248,6 +282,8 @@ async def retrieve_context(
                 if c["end_year"] and c["end_year"] != c["start_year"]:
                     years += f"–{c['end_year']}"
                 text = f"{c['name'] or '(unnamed)'} ({c['type']}, {years})"
+                if c["attacker_name"] or c["defender_name"]:
+                    text += f" — {c['attacker_name'] or '?'} vs {c['defender_name'] or '?'}"
                 results.append({"category": "Event Collection", "text": text})
 
         # Fallback: world overview if nothing matched
@@ -261,6 +297,19 @@ async def retrieve_context(
         if r["text"] not in seen:
             seen.add(r["text"])
             unique.append(r)
+
+    # Confidence signaling — prepend context density indicator
+    if len(unique) < 3:
+        unique.insert(0, {
+            "category": "Context Note",
+            "text": "Context is limited — be cautious about specific details not directly supported by the data below.",
+        })
+    elif len(unique) > 10:
+        unique.insert(0, {
+            "category": "Context Note",
+            "text": "Rich context available — multiple data sources matched this query.",
+        })
+
     return unique
 
 
@@ -330,11 +379,13 @@ async def _run_category_query(
     elif query_type == "collection_type":
         colls = await conn.fetch(
             """
-            SELECT name, type, start_year, end_year,
-                   attacker_entity_id, defender_entity_id
-            FROM history_event_collections
-            WHERE world_id = $1 AND type = $2 AND name IS NOT NULL
-            ORDER BY start_year DESC
+            SELECT hec.name, hec.type, hec.start_year, hec.end_year,
+                   att.name as attacker_name, def.name as defender_name
+            FROM history_event_collections hec
+            LEFT JOIN entities att ON att.world_id = hec.world_id AND att.id = hec.attacker_entity_id
+            LEFT JOIN entities def ON def.world_id = hec.world_id AND def.id = hec.defender_entity_id
+            WHERE hec.world_id = $1 AND hec.type = $2 AND hec.name IS NOT NULL
+            ORDER BY hec.start_year DESC
             LIMIT 10
             """,
             world_id, param,
@@ -344,6 +395,10 @@ async def _run_category_query(
             if c["end_year"] and c["end_year"] != c["start_year"]:
                 years += f"–{c['end_year']}"
             text = f"{c['name']} ({c['type']}, {years})"
+            if c["attacker_name"] or c["defender_name"]:
+                att = c["attacker_name"] or "unknown"
+                dfn = c["defender_name"] or "unknown"
+                text += f" — {att} vs {dfn}"
             results.append({"category": "Event Collection", "text": text})
 
     elif query_type == "artifacts":
@@ -370,6 +425,28 @@ async def _run_category_query(
                 text += f" ({', '.join(parts)})"
             results.append({"category": "Artifact", "text": text})
 
+    elif query_type == "written_contents":
+        wcs = await conn.fetch(
+            """
+            SELECT wc.id, wc.title, wc.form, wc.type, wc.styles,
+                   hf.name as author_name
+            FROM written_contents wc
+            LEFT JOIN historical_figures hf ON hf.world_id = wc.world_id AND hf.id = wc.author_hf_id
+            WHERE wc.world_id = $1 AND wc.title IS NOT NULL
+            ORDER BY wc.id
+            LIMIT 15
+            """,
+            world_id,
+        )
+        for wc in wcs:
+            form = wc["form"] or wc["type"] or "work"
+            text = f'"{wc["title"]}" ({form})'
+            if wc["author_name"]:
+                text += f" by {wc['author_name']}"
+            if wc["styles"]:
+                text += f" [{', '.join(wc['styles'][:3])}]"
+            results.append({"category": "Written Content", "text": text})
+
     # v6: Live data routes
     elif query_type == "live_units":
         results.extend(await _retrieve_live_units(conn, world_id))
@@ -389,11 +466,73 @@ async def _run_category_query(
     return results
 
 
+async def _build_emotion_map(
+    conn: asyncpg.Connection, world_id: int
+) -> dict[int, list[dict]]:
+    """Build unit_id → sorted emotion list from latest dwarf_emotions probe."""
+    probe = await conn.fetchval(
+        """
+        SELECT data FROM lua_probes
+        WHERE world_id = $1 AND probe_name = 'dwarf_emotions'
+        ORDER BY captured_at DESC LIMIT 1
+        """,
+        world_id,
+    )
+    if not probe:
+        return {}
+    data = json.loads(probe) if isinstance(probe, str) else probe
+    dwarves = data.get("dwarves", [])
+    result = {}
+    for d in dwarves:
+        uid = d.get("id")
+        if uid is not None and d.get("emotions"):
+            # Sort by strength descending so most intense emotion is first
+            sorted_emo = sorted(d["emotions"], key=lambda e: e.get("strength", 0), reverse=True)
+            result[uid] = sorted_emo
+    return result
+
+
+async def _build_zone_owner_map(
+    conn: asyncpg.Connection, world_id: int
+) -> dict[int, str]:
+    """Build owner_unit_id → zone name from latest zones probe."""
+    probe = await conn.fetchval(
+        """
+        SELECT data FROM lua_probes
+        WHERE world_id = $1 AND probe_name = 'zones'
+        ORDER BY captured_at DESC LIMIT 1
+        """,
+        world_id,
+    )
+    if not probe:
+        return {}
+    data = json.loads(probe) if isinstance(probe, str) else probe
+    zones = data.get("zones", [])
+    result = {}
+    for z in zones:
+        owner = z.get("owner_unit_id")
+        name = z.get("name") or z.get("type") or "unnamed zone"
+        if owner and owner > 0:
+            result[owner] = name
+    return result
+
+
 async def _retrieve_live_units(
     conn: asyncpg.Connection, world_id: int
 ) -> list[dict]:
-    """Retrieve current fortress inhabitants from units table."""
+    """Retrieve current fortress inhabitants from units table.
+
+    Enriches unit data with:
+    - Historical figure cross-reference (vampires, kill counts, etc.)
+    - Latest dwarf emotions from bridge probe
+    - Zone assignments from bridge probe
+    """
     results: list[dict] = []
+
+    # Pre-fetch emotion and zone data for enrichment
+    emotion_map = await _build_emotion_map(conn, world_id)
+    zone_owner_map = await _build_zone_owner_map(conn, world_id)
+
     units = await conn.fetch(
         """
         SELECT u.id, u.name, u.race, u.profession, u.is_alive,
@@ -418,6 +557,19 @@ async def _retrieve_live_units(
                 mood = details.get("mood")
                 if mood is not None and mood >= 0:
                     text += f" [MOOD: {mood}]"
+        # Emotion enrichment from bridge probe
+        emo = emotion_map.get(u["id"])
+        if emo:
+            top_emotions = emo[:3]  # Show top 3 emotions
+            emo_strs = [f"{e['thought']}({e['strength']})" for e in top_emotions if e.get('thought')]
+            if emo_strs:
+                text += f" [emotions: {', '.join(emo_strs)}]"
+
+        # Zone assignment from bridge probe
+        zone_name = zone_owner_map.get(u["id"])
+        if zone_name:
+            text += f" [zone: {zone_name}]"
+
         # Cross-reference with historical figure
         if u["hist_fig_id"]:
             hf = await conn.fetchrow(
@@ -576,13 +728,16 @@ async def _world_overview(conn: asyncpg.Connection, world_id: int) -> list[dict]
             "text": f"{c['name']} ({c['race']}) — controls {c['site_count']} sites",
         })
 
-    # Major wars
+    # Major wars with entity name resolution
     wars = await conn.fetch(
         """
-        SELECT name, start_year, end_year
-        FROM history_event_collections
-        WHERE world_id = $1 AND type = 'war' AND name IS NOT NULL
-        ORDER BY start_year DESC
+        SELECT hec.name, hec.start_year, hec.end_year,
+               att.name as attacker_name, def.name as defender_name
+        FROM history_event_collections hec
+        LEFT JOIN entities att ON att.world_id = hec.world_id AND att.id = hec.attacker_entity_id
+        LEFT JOIN entities def ON def.world_id = hec.world_id AND def.id = hec.defender_entity_id
+        WHERE hec.world_id = $1 AND hec.type = 'war' AND hec.name IS NOT NULL
+        ORDER BY hec.start_year DESC
         LIMIT 5
         """,
         world_id,
@@ -591,10 +746,10 @@ async def _world_overview(conn: asyncpg.Connection, world_id: int) -> list[dict]
         years = f"year {w['start_year']}"
         if w["end_year"] and w["end_year"] != w["start_year"]:
             years += f"–{w['end_year']}"
-        results.append({
-            "category": "War",
-            "text": f"{w['name']} ({years})",
-        })
+        text = f"{w['name']} ({years})"
+        if w["attacker_name"] or w["defender_name"]:
+            text += f" — {w['attacker_name'] or '?'} vs {w['defender_name'] or '?'}"
+        results.append({"category": "War", "text": text})
 
     # Notable figures (highest kill count)
     legends = await conn.fetch(
@@ -694,6 +849,60 @@ def _format_hf(hf: asyncpg.Record) -> str:
         parts.append(f"{hf['kill_count']} kills")
 
     return " — ".join(parts[:2]) + (", " + ", ".join(parts[2:]) if len(parts) > 2 else "")
+
+
+def _format_event(ev: dict) -> str:
+    """Format a history event with resolved names into readable text."""
+    parts = [f"Year {ev['year']}"]
+    etype = ev["event_type"] or "unknown event"
+
+    # Build natural-language description based on event type
+    hf1 = ev.get("hf1_name")
+    hf2 = ev.get("hf2_name")
+    site = ev.get("site_name")
+
+    if etype == "hf died" and hf1:
+        desc = f"{hf1} died"
+        if hf2:
+            desc += f", slain by {hf2}"
+        if site:
+            desc += f" at {site}"
+    elif etype == "hf simple battle event" and hf1 and hf2:
+        desc = f"{hf1} fought {hf2}"
+        if site:
+            desc += f" at {site}"
+    elif etype == "add hf entity link" and hf1:
+        desc = f"{hf1} joined an entity"
+        if site:
+            desc += f" at {site}"
+    elif etype == "change hf state" and hf1:
+        desc = f"{hf1} changed state"
+        if site:
+            desc += f" at {site}"
+    elif etype == "created site" and hf1 and site:
+        desc = f"{hf1} created {site}"
+    elif etype == "artifact created" and hf1:
+        desc = f"{hf1} created an artifact"
+        if site:
+            desc += f" at {site}"
+    else:
+        # Generic fallback with name substitution
+        actors = []
+        if hf1:
+            actors.append(hf1)
+        if hf2:
+            actors.append(hf2)
+        desc = etype
+        if actors:
+            desc += f" involving {' and '.join(actors)}"
+        if site:
+            desc += f" at {site}"
+
+    parts.append(desc)
+    extra = _summarize_details(ev["details"])
+    if extra and extra != "(no details)":
+        parts.append(extra)
+    return ": ".join(parts[:2]) + (f" — {parts[2]}" if len(parts) > 2 else "")
 
 
 def _summarize_details(details) -> str:

@@ -1,5 +1,6 @@
 -- Chronicler CDM Schema
 -- Designed for Dwarf Fortress legends XML + DFHack RPC data
+-- v2: Composite primary keys (world_id, id) for multi-world support
 
 CREATE EXTENSION IF NOT EXISTS vector;
 
@@ -14,85 +15,94 @@ CREATE TABLE IF NOT EXISTS worlds (
 );
 
 CREATE TABLE IF NOT EXISTS landmasses (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     coord_1     TEXT,
-    coord_2     TEXT
+    coord_2     TEXT,
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS mountain_peaks (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     coords      TEXT,
-    height      INT
+    height      INT,
+    PRIMARY KEY (world_id, id)
 );
 
 -- ─── Geography ───────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS regions (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     type        TEXT,
-    coords      TEXT
+    coords      TEXT,
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS underground_regions (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     type        TEXT,
     depth       INT,
-    coords      TEXT
+    coords      TEXT,
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS sites (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     type        TEXT,
     coord_x     INT,
     coord_y     INT,
     coords      TEXT,
     owner_entity_id INT,
-    details     JSONB DEFAULT '{}'
+    details     JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS structures (
-    site_id     INT REFERENCES sites(id),
-    id          INT,
+    id          INT NOT NULL,
+    world_id    INT NOT NULL,
+    site_id     INT NOT NULL,
     name        TEXT,
     type        TEXT,
     entity_id   INT,
     details     JSONB DEFAULT '{}',
-    PRIMARY KEY (site_id, id)
+    PRIMARY KEY (world_id, site_id, id),
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS world_constructions (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     type        TEXT,
-    coords      TEXT
+    coords      TEXT,
+    PRIMARY KEY (world_id, id)
 );
 
 -- ─── Civilizations & Organizations ───────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS entities (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     type        TEXT,
     race        TEXT,
-    details     JSONB DEFAULT '{}'
+    details     JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
 );
 
 -- ─── Historical Figures ──────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS historical_figures (
-    id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id),
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
     name            TEXT,
     race            TEXT,
     caste           TEXT,
@@ -111,46 +121,60 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     is_ghost        BOOLEAN DEFAULT FALSE,
     kill_count      INT DEFAULT 0,
     event_count     INT DEFAULT 0,
-    details         JSONB DEFAULT '{}'
+    details         JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS hf_links (
-    id          SERIAL PRIMARY KEY,
-    hf_id       INT REFERENCES historical_figures(id),
-    target_hf_id INT REFERENCES historical_figures(id),
-    link_type   TEXT
+    id           SERIAL PRIMARY KEY,
+    world_id     INT NOT NULL,
+    hf_id        INT NOT NULL,
+    target_hf_id INT NOT NULL,
+    link_type    TEXT,
+    UNIQUE (world_id, hf_id, target_hf_id, link_type),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
+    FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS hf_entity_links (
     id              SERIAL PRIMARY KEY,
-    hf_id           INT REFERENCES historical_figures(id),
-    entity_id       INT REFERENCES entities(id),
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    entity_id       INT NOT NULL,
     link_type       TEXT,
-    position_name   TEXT
+    position_name   TEXT,
+    UNIQUE (world_id, hf_id, entity_id, link_type),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS hf_site_links (
     id          SERIAL PRIMARY KEY,
-    hf_id       INT REFERENCES historical_figures(id),
-    site_id     INT REFERENCES sites(id),
-    link_type   TEXT
+    world_id    INT NOT NULL,
+    hf_id       INT NOT NULL,
+    site_id     INT NOT NULL,
+    link_type   TEXT,
+    UNIQUE (world_id, hf_id, site_id, link_type),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS identities (
-    id          INT PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id),
     name        TEXT,
     histfig_id  INT,
     birth_year  INT,
     birth_second INT,
-    entity_id   INT
+    entity_id   INT,
+    PRIMARY KEY (world_id, id)
 );
 
 -- ─── Events ──────────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS history_events (
-    id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id),
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
     year            INT,
     seconds         INT,
     event_type      TEXT,
@@ -164,12 +188,13 @@ CREATE TABLE IF NOT EXISTS history_events (
     artifact_id     INT,
     structure_id    INT,
     -- Overflow for unmapped fields
-    details         JSONB DEFAULT '{}'
+    details         JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS history_event_collections (
-    id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id),
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
     type            TEXT,
     name            TEXT,
     parent_id       INT,
@@ -181,24 +206,31 @@ CREATE TABLE IF NOT EXISTS history_event_collections (
     defender_entity_id INT,
     site_id         INT,
     region_id       INT,
-    details         JSONB DEFAULT '{}'
+    details         JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS collection_events (
-    collection_id   INT REFERENCES history_event_collections(id),
-    event_id        INT REFERENCES history_events(id),
-    PRIMARY KEY (collection_id, event_id)
+    world_id        INT NOT NULL,
+    collection_id   INT NOT NULL,
+    event_id        INT NOT NULL,
+    PRIMARY KEY (world_id, collection_id, event_id),
+    FOREIGN KEY (world_id, collection_id) REFERENCES history_event_collections(world_id, id),
+    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS collection_subcollections (
-    parent_id   INT REFERENCES history_event_collections(id),
-    child_id    INT REFERENCES history_event_collections(id),
-    PRIMARY KEY (parent_id, child_id)
+    world_id    INT NOT NULL,
+    parent_id   INT NOT NULL,
+    child_id    INT NOT NULL,
+    PRIMARY KEY (world_id, parent_id, child_id),
+    FOREIGN KEY (world_id, parent_id) REFERENCES history_event_collections(world_id, id),
+    FOREIGN KEY (world_id, child_id) REFERENCES history_event_collections(world_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS event_relationships (
     id          SERIAL PRIMARY KEY,
-    world_id    INT REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id),
     event_id    INT,
     relationship TEXT,
     source_hf   INT,
@@ -209,8 +241,8 @@ CREATE TABLE IF NOT EXISTS event_relationships (
 -- ─── Artifacts ───────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS artifacts (
-    id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id),
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
     name            TEXT,
     item_type       TEXT,
     item_subtype    TEXT,
@@ -218,7 +250,35 @@ CREATE TABLE IF NOT EXISTS artifacts (
     creator_hf_id   INT,
     holder_hf_id    INT,
     site_id         INT,
-    details         JSONB DEFAULT '{}'
+    details         JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+-- ─── Written Contents ───────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS written_contents (
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    title           TEXT,
+    author_hf_id    INT,
+    form            TEXT,          -- "poem", "musical composition", "guide", etc.
+    type            TEXT,          -- CamelCase from legends_plus: "Poem", "MusicalComposition"
+    page_start      INT,
+    page_end        INT,
+    styles          TEXT[],        -- style tags (merged from both XML sources)
+    details         JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_written_contents_author ON written_contents(author_hf_id);
+
+-- ─── Historical Eras ───────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS historical_eras (
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    name            TEXT NOT NULL,
+    start_year      INT,
+    PRIMARY KEY (world_id, name)
 );
 
 -- ─── Live Data (DFHack RPC) ─────────────────────────────────────────────────

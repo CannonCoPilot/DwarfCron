@@ -109,6 +109,32 @@ async def _store_bridge_sections(conn: asyncpg.Connection, world_id: int,
     return count
 
 
+async def _cleanup_lua_probes_count(conn: asyncpg.Connection, world_id: int,
+                                     keep: int = 10) -> int:
+    """Delete old lua_probes rows, keeping the last `keep` per probe_name.
+
+    Returns the number of rows deleted.
+    """
+    result = await conn.execute(
+        """
+        DELETE FROM lua_probes
+        WHERE id IN (
+            SELECT id FROM (
+                SELECT id, ROW_NUMBER() OVER (
+                    PARTITION BY probe_name ORDER BY captured_at DESC
+                ) AS rn
+                FROM lua_probes
+                WHERE world_id = $1
+            ) ranked
+            WHERE rn > $2
+        )
+        """,
+        world_id, keep,
+    )
+    # result is like "DELETE 42"
+    return int(result.split()[-1]) if result else 0
+
+
 def _log_cycle(cycle: int, game_year: int | None, game_tick: int | None,
                unit_count: int, event_count: int, events: list[dict],
                extras: dict | None = None):
@@ -255,6 +281,8 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
 
     world_map_captured = False
     last_probe_time = 0.0
+    last_cleanup_cycle = 0
+    bridge_failures = 0
     cycle = 0
 
     try:
@@ -272,7 +300,18 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                 game_tick = world_map['cur_year_tick'] if world_map else None
             elif bridge_available:
                 bd = fetch_bridge_data(_bridge_host, _bridge_port)
-                game_year, game_tick = get_game_time(bd)
+                if bd:
+                    bridge_failures = 0
+                    game_year, game_tick = get_game_time(bd)
+                else:
+                    bridge_failures += 1
+                    if bridge_failures == 3:
+                        log.warning("Bridge failed 3 consecutive times — "
+                                    "continuing with core-only data. Check "
+                                    "HTTP server at %s:%d",
+                                    _bridge_host, _bridge_port)
+                    elif bridge_failures % 10 == 0:
+                        log.warning("Bridge failure streak: %d", bridge_failures)
 
             # 2. Pull current units (core method — always works)
             units = client.list_units(sane=True, skills=True, profession=True)
@@ -320,6 +359,17 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                         except Exception as e:
                             log.debug("Bridge section storage failed: %s", e)
                         last_probe_time = now
+
+                # 6b. Retention cleanup (every 10 cycles)
+                if cycle - last_cleanup_cycle >= 10:
+                    try:
+                        deleted = await _cleanup_lua_probes_count(
+                            conn, world_id, keep=10)
+                        if deleted > 0:
+                            log.debug("lua_probes cleanup: %d old rows deleted", deleted)
+                    except Exception as e:
+                        log.debug("lua_probes cleanup failed: %s", e)
+                    last_cleanup_cycle = cycle
 
                 # 7. Optionally collect reports (RFR only)
                 if enable_reports:
