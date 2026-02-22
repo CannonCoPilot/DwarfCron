@@ -166,11 +166,12 @@ def _parse_entities(root, world_id: int) -> list[tuple]:
 
 # ── Parse historical figures ──────────────────────────────────────────────────
 
-def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, list]:
+def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, list, list]:
     hf_rows = []
     hf_link_rows = []
     hf_entity_link_rows = []
     hf_site_link_rows = []
+    hf_position_link_rows = []
 
     for hf in root.findall(".//historical_figure"):
         hfid = _int(hf, "id")
@@ -262,7 +263,27 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
                 _text(link, "link_type"),
             ))
 
-    return hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows
+        # Position links (active)
+        for link in hf.findall("entity_position_link"):
+            hf_position_link_rows.append((
+                world_id, hfid,
+                _int(link, "entity_id"),
+                _int(link, "position_profile_id"),
+                _int(link, "start_year"),
+                None,  # end_year (active = currently held)
+            ))
+
+        # Former position links
+        for link in hf.findall("entity_former_position_link"):
+            hf_position_link_rows.append((
+                world_id, hfid,
+                _int(link, "entity_id"),
+                _int(link, "position_profile_id"),
+                _int(link, "start_year"),
+                _int(link, "end_year"),
+            ))
+
+    return hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows, hf_position_link_rows
 
 
 # ── Parse events ──────────────────────────────────────────────────────────────
@@ -468,6 +489,8 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "site_owners": [],  # (site_id, owner_entity_id) from cur_owner_id
         "written_contents": [],  # enrichment from plus (type, pages, references)
         "world_constructions": [],
+        "entity_positions": [],  # position definitions from <entity_position>
+        "entity_position_assignments": [],  # current holders from <entity_position_assignment>
     }
 
     for lm in root.findall(".//landmass"):
@@ -546,6 +569,29 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                 _text(ent, "race"),
                 _json.dumps(ent_details) if ent_details else None,
             ))
+
+            # Position definitions
+            for pos in ent.findall("entity_position"):
+                result["entity_positions"].append((
+                    world_id, eid,
+                    _int(pos, "id"),
+                    _text(pos, "name"),
+                    _text(pos, "name_male"),
+                    _text(pos, "name_female"),
+                    _text(pos, "spouse"),
+                    _text(pos, "spouse_male"),
+                    _text(pos, "spouse_female"),
+                ))
+
+            # Current position assignments
+            for assign in ent.findall("entity_position_assignment"):
+                histfig = _int(assign, "histfig")
+                pos_id = _int(assign, "position_id")
+                if histfig is not None and pos_id is not None:
+                    result["entity_position_assignments"].append((
+                        world_id, histfig, eid, pos_id,
+                        None, None,  # start/end year not in assignments
+                    ))
 
     # Written contents enrichment (type, pages, styles, references)
     wc_section = root.find("written_contents")
@@ -653,10 +699,16 @@ async def import_legends(
     if plus_data:
         for key in ("landmasses", "mountain_peaks", "underground_regions",
                      "identities", "event_relationships", "entities",
-                     "written_contents", "world_constructions"):
+                     "written_contents", "world_constructions",
+                     "entity_positions", "entity_position_assignments"):
+            # Keys where world_id is at position [0] (not [1])
+            world_id_at_zero = key in (
+                "event_relationships", "entity_positions",
+                "entity_position_assignments",
+            )
             plus_data[key] = [
-                (row[0], world_id, *row[2:]) if key != "event_relationships"
-                else (world_id, *row[1:])
+                (world_id, *row[1:]) if world_id_at_zero
+                else (row[0], world_id, *row[2:])
                 for row in plus_data[key]
             ]
 
@@ -699,7 +751,7 @@ async def import_legends(
     log.info("  entities: %d", n)
 
     # Historical figures + links
-    hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows = \
+    hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows, hf_position_link_rows = \
         _parse_historical_figures(root, world_id)
     n = await _batch_insert(conn, "historical_figures",
         ["id", "world_id", "name", "race", "caste", "sex",
@@ -729,6 +781,15 @@ async def import_legends(
         on_conflict="(world_id, hf_id, site_id, link_type) DO NOTHING")
     counts["hf_site_links"] = n
     log.info("  hf_site_links: %d", n)
+
+    # HF position links (from standard legends)
+    n = await _batch_insert(conn, "hf_position_links",
+        ["world_id", "hf_id", "entity_id", "position_id",
+         "start_year", "end_year"],
+        hf_position_link_rows,
+        on_conflict="(world_id, hf_id, entity_id, position_id, start_year) DO NOTHING")
+    counts["hf_position_links"] = n
+    log.info("  hf_position_links: %d", n)
 
     # Events
     event_rows = _parse_events(root, world_id)
@@ -841,6 +902,32 @@ async def import_legends(
                 "details = COALESCE(EXCLUDED.details, entities.details)")
         counts["entities_plus"] = n
         log.info("  entities (plus enrichment): %d", n)
+
+        # Entity position definitions
+        if plus_data.get("entity_positions"):
+            n = await _batch_insert(conn, "entity_positions",
+                ["world_id", "entity_id", "position_id", "name",
+                 "name_male", "name_female", "spouse", "spouse_male", "spouse_female"],
+                plus_data["entity_positions"],
+                on_conflict="(world_id, entity_id, position_id) DO UPDATE SET "
+                    "name = COALESCE(EXCLUDED.name, entity_positions.name), "
+                    "name_male = COALESCE(EXCLUDED.name_male, entity_positions.name_male), "
+                    "name_female = COALESCE(EXCLUDED.name_female, entity_positions.name_female), "
+                    "spouse = COALESCE(EXCLUDED.spouse, entity_positions.spouse), "
+                    "spouse_male = COALESCE(EXCLUDED.spouse_male, entity_positions.spouse_male), "
+                    "spouse_female = COALESCE(EXCLUDED.spouse_female, entity_positions.spouse_female)")
+            counts["entity_positions"] = n
+            log.info("  entity_positions: %d", n)
+
+        # Position assignments from legends_plus (merge with position links)
+        if plus_data.get("entity_position_assignments"):
+            n = await _batch_insert(conn, "hf_position_links",
+                ["world_id", "hf_id", "entity_id", "position_id",
+                 "start_year", "end_year"],
+                plus_data["entity_position_assignments"],
+                on_conflict="DO NOTHING")  # bare DO NOTHING: catches partial unique index on NULL start_year
+            counts["entity_position_assignments"] = n
+            log.info("  entity_position_assignments: %d", n)
 
         # Written contents enrichment: merge type/pages from legends_plus
         # into written_contents already inserted from legends.xml

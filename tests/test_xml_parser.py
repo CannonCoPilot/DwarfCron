@@ -83,7 +83,7 @@ class TestBooleanFlags:
 
     def test_deity_detected(self):
         root = _xml(self.DEITY_XML)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         assert len(hfs) == 1
         hf = hfs[0]
         # Tuple indices: 12=is_deity, 13=is_force, 14=is_vampire,
@@ -98,26 +98,26 @@ class TestBooleanFlags:
 
     def test_vampire_detected(self):
         root = _xml(self.VAMPIRE_XML)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[14] is True, "is_vampire should be True"
         assert hf[12] is False, "is_deity should be False"
 
     def test_necromancer_detected(self):
         root = _xml(self.NECROMANCER_XML)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[15] is True, "is_necromancer should be True"
 
     def test_werebeast_detected(self):
         root = _xml(self.WEREBEAST_XML)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[16] is True, "is_werebeast should be True"
 
     def test_normal_figure_no_flags(self):
         root = _xml(self.NORMAL_XML)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[12] is False  # is_deity
         assert hf[14] is False  # is_vampire
@@ -193,7 +193,7 @@ class TestCompositePKs:
     def test_hf_tuple_has_world_id(self):
         xml = '<historical_figure><id>1</id><name>Test</name></historical_figure>'
         root = _xml(xml)
-        hfs, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         assert hfs[0][0] == 1        # id
         assert hfs[0][1] == WORLD_ID  # world_id
 
@@ -225,7 +225,7 @@ class TestCompositePKs:
         </historical_figure>
         """
         root = _xml(xml)
-        _, links, _, _ = _parse_historical_figures(root, WORLD_ID)
+        _, links, _, _, _ = _parse_historical_figures(root, WORLD_ID)
         assert links[0][0] == WORLD_ID  # world_id
         assert links[0][1] == 1         # hf_id
         assert links[0][2] == 2         # target_hf_id

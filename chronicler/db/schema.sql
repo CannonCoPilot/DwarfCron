@@ -159,6 +159,50 @@ CREATE TABLE IF NOT EXISTS hf_site_links (
     FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id)
 );
 
+-- ─── Entity Positions ───────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS entity_positions (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    entity_id       INT NOT NULL,
+    position_id     INT NOT NULL,      -- local ID within entity (0, 1, 2...)
+    name            TEXT,              -- generic name ("monarch", "general")
+    name_male       TEXT,              -- gendered variant ("king")
+    name_female     TEXT,              -- gendered variant ("queen")
+    spouse          TEXT,              -- spouse title ("king consort")
+    spouse_male     TEXT,
+    spouse_female   TEXT,
+    UNIQUE (world_id, entity_id, position_id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_positions_entity
+    ON entity_positions(world_id, entity_id);
+
+CREATE TABLE IF NOT EXISTS hf_position_links (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    entity_id       INT NOT NULL,
+    position_id     INT NOT NULL,      -- references entity_positions.position_id
+    start_year      INT,
+    end_year        INT,               -- NULL = currently held
+    UNIQUE (world_id, hf_id, entity_id, position_id, start_year),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hf_position_links_hf
+    ON hf_position_links(world_id, hf_id);
+CREATE INDEX IF NOT EXISTS idx_hf_position_links_entity
+    ON hf_position_links(world_id, entity_id);
+CREATE INDEX IF NOT EXISTS idx_hf_position_links_current
+    ON hf_position_links(world_id, entity_id) WHERE end_year IS NULL;
+-- Partial unique index: prevent duplicate active positions with NULL start_year
+-- (PostgreSQL treats NULLs as distinct in UNIQUE constraints)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hf_position_links_null_start_dedup
+    ON hf_position_links(world_id, hf_id, entity_id, position_id) WHERE start_year IS NULL;
+
 CREATE TABLE IF NOT EXISTS identities (
     id          INT NOT NULL,
     world_id    INT NOT NULL REFERENCES worlds(id),

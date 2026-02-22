@@ -21,6 +21,7 @@ TABLE_GROUPS = {
     ],
     "Relationships": [
         "hf_links", "hf_entity_links", "hf_site_links",
+        "hf_position_links", "entity_positions",
         "collection_events", "collection_subcollections", "event_relationships",
     ],
     "Geography": [
