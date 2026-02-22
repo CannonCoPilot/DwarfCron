@@ -20,7 +20,11 @@
 --   buildings: count by type
 --   artifacts: named artifact list
 --   announcements: last 20 game reports
---   fortress: population, wealth stats
+--   diplomacy: player civ diplomatic relations
+--   history: figure/event counts + recent events
+--   world_info: world name, fortress name, civ/site IDs
+--   entities: nearby civilizations with names and types
+--   dwarf_skills: per-dwarf full skill lists (for skill tracking)
 
 local json = require('json')
 
@@ -233,23 +237,32 @@ local function get_diplomacy()
     local civ_id = df.global.plotinfo.civ_id
     local civ = df.historical_entity.find(civ_id)
     if not civ then
-        return { error = 'player civ not found' }
+        return { civ_id = civ_id, error = 'player civ not found' }
     end
 
     local relations = {}
-    if civ.resources and civ.resources.diplomacy then
-        local states = civ.resources.diplomacy.state
-        for i = 0, #states - 1 do
-            local s = states[i]
-            table.insert(relations, {
-                entity_id = s.group_id,
-                relation = s.relation,
-            })
+    -- Guard: resources.diplomacy may not exist in all DF versions
+    local res_ok, res = pcall(function() return civ.resources end)
+    if res_ok and res then
+        -- Try diplomacy.state (may not exist in DF 53.10)
+        local dip_ok, dip = pcall(function() return res.diplomacy end)
+        if dip_ok and dip then
+            local state_ok, states = pcall(function() return dip.state end)
+            if state_ok and states then
+                for i = 0, #states - 1 do
+                    local s = states[i]
+                    table.insert(relations, {
+                        entity_id = s.group_id,
+                        relation = s.relation,
+                    })
+                end
+            end
         end
     end
 
     return {
         civ_id = civ_id,
+        civ_name = dfhack.df2utf(dfhack.translation.translateName(civ.name)),
         relation_count = #relations,
         relations = relations,
     }
@@ -281,6 +294,114 @@ local function get_history_summary()
     }
 end
 
+-- ── World Info ────────────────────────────────────────────────────────
+
+local function get_world_info()
+    local result = {
+        civ_id = df.global.plotinfo.civ_id,
+        race_id = df.global.plotinfo.race_id,
+        site_id = -1,
+    }
+
+    -- World name (DF-language + English)
+    if df.global.world.world_data and df.global.world.world_data.name then
+        local wn = df.global.world.world_data.name
+        result.world_name = dfhack.df2utf(dfhack.translation.translateName(wn))
+        result.world_name_english = dfhack.df2utf(dfhack.translation.translateName(wn, true))
+    end
+
+    -- Fortress name + site ID
+    if df.global.plotinfo.main and df.global.plotinfo.main.fortress_site then
+        local site = df.global.plotinfo.main.fortress_site
+        result.site_id = site.id
+        if site.name and site.name.has_name then
+            result.fortress_name = dfhack.df2utf(dfhack.translation.translateName(site.name))
+            result.fortress_name_english = dfhack.df2utf(dfhack.translation.translateName(site.name, true))
+        end
+    end
+
+    return result
+end
+
+-- ── Entities (nearby civilizations) ───────────────────────────────────
+
+local function get_entities()
+    local entities = df.global.world.entities.all
+    local count = #entities
+    local list = {}
+    local player_civ = df.global.plotinfo.civ_id
+    local player_found = false
+
+    -- Include player civ first, then fill up to 100
+    for i = 0, count - 1 do
+        local e = entities[i]
+        local is_player = (e.id == player_civ)
+        if is_player or #list < 100 then
+            local entry = {
+                id = e.id,
+                type = e.type,
+                race = e.race,
+                is_player = is_player,
+            }
+            if e.name and e.name.has_name then
+                entry.name = dfhack.df2utf(dfhack.translation.translateName(e.name))
+                entry.name_english = dfhack.df2utf(dfhack.translation.translateName(e.name, true))
+            end
+            table.insert(list, entry)
+            if is_player then player_found = true end
+        end
+        -- Stop once we have 100 + player
+        if #list >= 100 and player_found then break end
+    end
+
+    return {
+        total = count,
+        listed = #list,
+        player_civ_id = player_civ,
+        entities = list,
+    }
+end
+
+-- ── Dwarf Skills (per-unit skill lists) ───────────────────────────────
+
+local function get_dwarf_skills()
+    local units = df.global.world.units.active
+    local player_race = df.global.plotinfo.race_id
+    local player_civ = df.global.plotinfo.civ_id
+    local dwarves = {}
+
+    for i = 0, #units - 1 do
+        local u = units[i]
+        if u.race == player_race and u.civ_id == player_civ
+           and u.status and u.status.current_soul then
+            local skills = {}
+            local soul_skills = u.status.current_soul.skills
+            for j = 0, #soul_skills - 1 do
+                local sk = soul_skills[j]
+                table.insert(skills, {
+                    id = sk.id,
+                    rating = sk.rating,
+                    experience = sk.experience,
+                })
+            end
+            local entry = {
+                id = u.id,
+                skill_count = #skills,
+                skills = skills,
+            }
+            if u.name and u.name.has_name then
+                entry.first_name = to_utf8(u.name.first_name)
+            end
+            table.insert(dwarves, entry)
+        end
+    end
+
+    return {
+        dwarf_count = #dwarves,
+        dwarves = dwarves,
+    }
+end
+
 -- ── Main: assemble and write ───────────────────────────────────────────
 
 local function write_state()
@@ -291,27 +412,31 @@ local function write_state()
 
     -- Expanded data sections (each wrapped in pcall for safety)
     local ok, result
+    local errors = {}
 
-    ok, result = pcall(get_unit_summary)
-    if ok then state.unit_summary = result end
+    local function safe_add(name, fn)
+        ok, result = pcall(fn)
+        if ok then
+            state[name] = result
+        else
+            errors[name] = tostring(result)
+        end
+    end
 
-    ok, result = pcall(get_armies)
-    if ok then state.armies = result end
+    safe_add('unit_summary', get_unit_summary)
+    safe_add('armies', get_armies)
+    safe_add('buildings', get_buildings)
+    safe_add('artifacts', get_artifacts)
+    safe_add('announcements', get_announcements)
+    safe_add('diplomacy', get_diplomacy)
+    safe_add('history', get_history_summary)
+    safe_add('world_info', get_world_info)
+    safe_add('entities', get_entities)
+    safe_add('dwarf_skills', get_dwarf_skills)
 
-    ok, result = pcall(get_buildings)
-    if ok then state.buildings = result end
-
-    ok, result = pcall(get_artifacts)
-    if ok then state.artifacts = result end
-
-    ok, result = pcall(get_announcements)
-    if ok then state.announcements = result end
-
-    ok, result = pcall(get_diplomacy)
-    if ok then state.diplomacy = result end
-
-    ok, result = pcall(get_history_summary)
-    if ok then state.history = result end
+    if next(errors) then
+        state.errors = errors
+    end
 
     local write_ok, write_err = pcall(function()
         json.encode_file(state, 'chronicler-state.json')

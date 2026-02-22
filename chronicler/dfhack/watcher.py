@@ -24,7 +24,9 @@ import time
 import asyncpg
 
 from chronicler.config import DFHACK_HOST, DFHACK_PORT, BRIDGE_HOST, BRIDGE_PORT
-from chronicler.dfhack.bridge import fetch_bridge_data, build_race_map, get_game_time
+from chronicler.dfhack.bridge import (
+    fetch_bridge_data, build_race_map, get_game_time, get_world_info,
+)
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
 from chronicler.dfhack.sync import upsert_units, enrich_units
@@ -85,7 +87,8 @@ async def _store_bridge_sections(conn: asyncpg.Connection, world_id: int,
     """
     count = 0
     sections = ['armies', 'buildings', 'artifacts', 'announcements',
-                'diplomacy', 'history', 'unit_summary']
+                'diplomacy', 'history', 'unit_summary',
+                'world_info', 'entities', 'dwarf_skills']
 
     for section in sections:
         data = bridge_data.get(section)
@@ -182,6 +185,7 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
         pass
 
     # 2. If no RFR, probe the Lua bridge
+    bridge_data = None
     if not rfr_available:
         log.info("RFR unavailable. Probing bridge at %s:%d...",
                  _bridge_host, _bridge_port)
@@ -226,6 +230,23 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
             log.info("Using minimal race map (race %d=DWARF only)", player_race)
         else:
             log.warning("Could not load creature raws — using numeric race IDs")
+
+    # ── Auto-update world name from bridge ──────────────────────────────
+    if bridge_available and bridge_data:
+        wi = get_world_info(bridge_data)
+        if wi.get('world_name') or wi.get('world_name_english'):
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE worlds SET name = COALESCE(NULLIF($2, ''), name), "
+                    "alt_name = COALESCE(NULLIF($3, ''), alt_name) "
+                    "WHERE id = $1",
+                    world_id,
+                    wi.get('world_name', ''),
+                    wi.get('world_name_english', ''),
+                )
+            log.info("World %d: name=%s / %s, fortress=%s",
+                     world_id, wi.get('world_name'), wi.get('world_name_english'),
+                     wi.get('fortress_name'))
 
     world_map_captured = False
     last_probe_time = 0.0

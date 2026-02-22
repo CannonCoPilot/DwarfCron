@@ -18,6 +18,9 @@ Bridge data sections:
   - announcements: last 20 game reports
   - diplomacy: player civ diplomatic relations
   - history: figure/event counts + last 50 events
+  - world_info: world name, fortress name, civ/site IDs
+  - entities: nearby civilizations with names and types
+  - dwarf_skills: per-dwarf full skill lists
 
 Setup on the Windows DF machine:
   1. Place chronicler-bridge.lua in a dir listed in script-paths.txt
@@ -166,3 +169,35 @@ def get_history(bridge_data: dict | None) -> dict:
     if not bridge_data:
         return {}
     return bridge_data.get('history', {})
+
+
+def get_world_info(bridge_data: dict | None) -> dict:
+    """Get world and fortress names from bridge data.
+
+    Returns dict with: world_name, world_name_english, fortress_name,
+    fortress_name_english, civ_id, race_id, site_id.
+    """
+    if not bridge_data:
+        return {}
+    return bridge_data.get('world_info', {})
+
+
+def get_entities(bridge_data: dict | None) -> list[dict]:
+    """Get entity/civilization list from bridge data.
+
+    Returns list of dicts with: id, name, name_english, type, race, is_player.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('entities', {}).get('entities', [])
+
+
+def get_dwarf_skills(bridge_data: dict | None) -> list[dict]:
+    """Get per-dwarf skill lists from bridge data.
+
+    Returns list of dicts with: id, first_name, skill_count,
+    skills (list of {id, rating, experience}).
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('dwarf_skills', {}).get('dwarves', [])
