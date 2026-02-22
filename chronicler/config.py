@@ -8,8 +8,13 @@ DB_DSN = os.environ.get(
     f"postgresql://jarvis:{PG_PASSWORD}@localhost:5432/chronicler",
 )
 
-DFHACK_HOST = os.environ.get("DFHACK_HOST", "192.168.64.2")
+DFHACK_HOST = os.environ.get("DFHACK_HOST", "192.168.4.194")
 DFHACK_PORT = int(os.environ.get("DFHACK_PORT", "5000"))
+
+# Bridge: PowerShell HTTP server on DF machine serving chronicler-state.json
+# Used when RFR is unavailable (DFHack 53.10-r1 — no RemoteFortressReader)
+BRIDGE_HOST = os.environ.get("BRIDGE_HOST", "")  # empty = same as DFHACK_HOST
+BRIDGE_PORT = int(os.environ.get("BRIDGE_PORT", "8888"))
 
 MLX_EMBED_URL = os.environ.get("MLX_EMBED_URL", "http://localhost:8000")
 LITELLM_URL = os.environ.get("LITELLM_URL", "http://localhost:4000")

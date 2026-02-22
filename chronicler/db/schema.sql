@@ -329,3 +329,50 @@ CREATE TABLE IF NOT EXISTS sync_snapshots (
     game_tick       INT,
     synced_at       TIMESTAMPTZ DEFAULT now()
 );
+
+-- ── Live Data: Game Reports (announcements, combat logs) ────────────
+CREATE TABLE IF NOT EXISTS game_reports (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    report_id       INT NOT NULL,
+    report_type     INT,
+    text            TEXT NOT NULL,
+    game_year       INT,
+    game_tick       INT,
+    pos_x           INT,
+    pos_y           INT,
+    pos_z           INT,
+    is_announcement BOOLEAN DEFAULT FALSE,
+    detected_at     TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (world_id, report_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_game_reports_world ON game_reports(world_id);
+CREATE INDEX IF NOT EXISTS idx_game_reports_year ON game_reports(game_year);
+
+-- ── Live Data: World Map Snapshots (geography) ──────────────────────
+CREATE TABLE IF NOT EXISTS world_map_snapshots (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_width     INT NOT NULL,
+    world_height    INT NOT NULL,
+    name            TEXT,
+    name_english    TEXT,
+    geography       JSONB NOT NULL,
+    captured_at     TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (world_id)
+);
+
+-- ── Live Data: Lua Probe Results ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS lua_probes (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    probe_name      TEXT NOT NULL,
+    data            JSONB NOT NULL,
+    game_year       INT,
+    game_tick       INT,
+    captured_at     TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_lua_probes_world ON lua_probes(world_id);
+CREATE INDEX IF NOT EXISTS idx_lua_probes_name ON lua_probes(probe_name);

@@ -1,6 +1,7 @@
 """Chronicler CLI — init, ingest, and validate Dwarf Fortress world data."""
 
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
@@ -127,7 +128,13 @@ def sync_live(world_id):
 @cli.command("watch")
 @click.option("--world-id", default=1, type=int, help="World ID to tag units/events with")
 @click.option("--interval", default=30.0, type=float, help="Seconds between polls")
-def watch(world_id, interval):
+@click.option("--bridge-host", default='', type=str,
+              help="Host for Lua bridge HTTP server (default: same as DFHACK_HOST)")
+@click.option("--reports", is_flag=True, help="Collect game reports each cycle")
+@click.option("--enriched", is_flag=True, help="Enrich units with RFR data (inventory, wounds)")
+@click.option("--probe-interval", default=0.0, type=float,
+              help="Run Lua probes every N seconds (0 = disabled)")
+def watch(world_id, interval, bridge_host, reports, enriched, probe_interval):
     """Continuously poll DFHack and log changes to the CDM."""
     import signal as sig
 
@@ -140,16 +147,80 @@ def watch(world_id, interval):
         sig.signal(sig.SIGTERM, _handle_signal)
 
         pool = await get_pool()
-        click.echo(f"Watching DFHack (world_id={world_id}, interval={interval}s)")
+        streams = []
+        if bridge_host:
+            streams.append(f"bridge@{bridge_host}")
+        if reports:
+            streams.append("reports")
+        if enriched:
+            streams.append("enriched")
+        if probe_interval > 0:
+            streams.append(f"probes every {probe_interval}s")
+        stream_str = f" + {', '.join(streams)}" if streams else ""
+        click.echo(f"Watching DFHack (world_id={world_id}, interval={interval}s{stream_str})")
         click.echo("Press Ctrl+C to stop.\n")
 
         try:
-            await watch_loop(pool, world_id=world_id, interval=interval)
+            await watch_loop(pool, world_id=world_id, interval=interval,
+                             bridge_host=bridge_host,
+                             enable_reports=reports,
+                             enable_enriched=enriched,
+                             probe_interval=probe_interval)
         finally:
             await close_pool()
             click.echo("\nWatcher stopped.")
 
     _run(_run_watch())
+
+
+@cli.command("probe")
+@click.option("--world-id", default=1, type=int, help="World ID for storing results")
+@click.option("--unit-id", default=None, type=int, help="Probe a specific unit's personality/stress")
+@click.option("--store", is_flag=True, help="Store results in the lua_probes table")
+def probe(world_id, unit_id, store):
+    """Run one-shot Lua probes against DFHack for debugging."""
+    from chronicler.config import DFHACK_HOST, DFHACK_PORT
+    from chronicler.dfhack.client import DFHackClient
+    from chronicler.dfhack.probe import (
+        probe_armies, probe_diplomacy, probe_unit_detail, store_probe,
+    )
+
+    client = DFHackClient(DFHACK_HOST, DFHACK_PORT)
+    client.connect()
+
+    try:
+        results = {}
+        if unit_id is not None:
+            data = probe_unit_detail(client, unit_id)
+            results['unit_detail'] = data
+            click.echo(f"Unit {unit_id}: {json.dumps(data, indent=2) if data else 'null'}")
+        else:
+            armies = probe_armies(client)
+            results['armies'] = armies
+            click.echo(f"Armies: {json.dumps(armies, indent=2) if armies else 'null'}")
+
+            diplomacy = probe_diplomacy(client)
+            results['diplomacy'] = diplomacy
+            click.echo(f"Diplomacy: {json.dumps(diplomacy, indent=2) if diplomacy else 'null'}")
+
+        if store:
+            async def _store():
+                from chronicler.db.connection import get_pool, close_pool
+                pool = await get_pool()
+                # Get game time for timestamps
+                world_map = client.get_world_map()
+                game_year = world_map['cur_year'] if world_map else None
+                game_tick = world_map['cur_year_tick'] if world_map else None
+                async with pool.acquire() as conn:
+                    for name, data in results.items():
+                        if data:
+                            await store_probe(conn, world_id, name, data,
+                                              game_year, game_tick)
+                            click.echo(f"Stored {name} probe result")
+                await close_pool()
+            _run(_store())
+    finally:
+        client.close()
 
 
 @cli.command("validate")
@@ -166,6 +237,7 @@ def validate():
         "collection_subcollections", "event_relationships",
         "artifacts", "units", "embeddings",
         "unit_events", "sync_snapshots",
+        "game_reports", "world_map_snapshots", "lua_probes",
     ]
 
     async def _run_validate():

@@ -77,6 +77,40 @@ async def sync_units(conn: asyncpg.Connection, world_id: int = 1) -> dict:
     return {'synced': synced, 'dwarves': dwarves}
 
 
+def enrich_units(base_units: list[dict],
+                 enriched_units: list[dict]) -> list[dict]:
+    """Merge RFR UnitDefinition data into core ListUnits data.
+
+    Matches by unit ID. Adds inventory, wounds, noble_positions, blood stats,
+    soldier status, and age into the unit's 'details' dict.
+
+    Args:
+        base_units: Units from DFHackClient.list_units()
+        enriched_units: Units from DFHackClient.get_enriched_units()
+
+    Returns:
+        The base_units list (mutated in place) with enriched details.
+    """
+    enriched_by_id = {u['id']: u for u in enriched_units}
+
+    for unit in base_units:
+        enriched = enriched_by_id.get(unit['id'])
+        if enriched is None:
+            continue
+
+        details = unit.get('details', {})
+        details['is_soldier'] = enriched.get('is_soldier', False)
+        details['blood_max'] = enriched.get('blood_max')
+        details['blood_count'] = enriched.get('blood_count')
+        details['age'] = enriched.get('age')
+        details['noble_positions'] = enriched.get('noble_positions', [])
+        details['inventory'] = enriched.get('inventory', [])
+        details['wounds'] = enriched.get('wounds', [])
+        unit['details'] = details
+
+    return base_units
+
+
 async def sync_world_info(conn: asyncpg.Connection) -> dict:
     """Pull world info from DFHack and return it (for display/logging)."""
     with DFHackClient(DFHACK_HOST, DFHACK_PORT) as client:
