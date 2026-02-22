@@ -26,6 +26,7 @@ import asyncpg
 from chronicler.config import DFHACK_HOST, DFHACK_PORT, BRIDGE_HOST, BRIDGE_PORT
 from chronicler.dfhack.bridge import (
     fetch_bridge_data, build_race_map, get_game_time, get_world_info,
+    get_fortress_units, get_bridge_version,
 )
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
@@ -88,7 +89,9 @@ async def _store_bridge_sections(conn: asyncpg.Connection, world_id: int,
     count = 0
     sections = ['armies', 'buildings', 'artifacts', 'announcements',
                 'diplomacy', 'history', 'unit_summary',
-                'world_info', 'entities', 'dwarf_skills']
+                'world_info', 'entities', 'dwarf_skills',
+                'dwarf_emotions', 'zones', 'event_collections',
+                'squads', 'mandates', 'incidents']
 
     for section in sections:
         data = bridge_data.get(section)
@@ -195,11 +198,13 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
             yr, tk = get_game_time(bridge_data)
             sections = [k for k in bridge_data.keys() if k not in
                         ('cur_year', 'cur_year_tick', 'cur_season',
-                         'creature_raws', 'creature_count', 'timestamp')]
-            log.info("Bridge available — year %s, tick %s, %d creatures, "
-                     "sections: %s",
-                     yr, tk, bridge_data.get('creature_count', 0),
-                     ', '.join(sections))
+                         'creature_raws', 'creature_count', 'timestamp',
+                         'bridge_version', 'errors')]
+            bver = get_bridge_version(bridge_data)
+            log.info("Bridge v%d available — year %s, tick %s, %d creatures, "
+                     "%d sections: %s",
+                     bver, yr, tk, bridge_data.get('creature_count', 0),
+                     len(sections), ', '.join(sections))
         else:
             log.warning("Bridge unavailable at %s:%d — running without game "
                         "time or creature raws. Set up chronicler-bridge.lua "
@@ -284,8 +289,15 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                 except Exception as e:
                     log.debug("Unit enrichment failed: %s", e)
 
-            # 4. Detect changes
+            # 4. Detect changes (core RPC units)
             events = detector.detect(units)
+
+            # 4b. Detect bridge-based changes (mood, pregnancy, ghost, stress)
+            if bd and get_bridge_version(bd) >= 6:
+                bridge_units = get_fortress_units(bd)
+                if bridge_units:
+                    bridge_events = detector.detect_bridge(bridge_units)
+                    events.extend(bridge_events)
 
             # 5. Upsert units + insert events + record snapshot (single txn)
             async with pool.acquire() as conn:

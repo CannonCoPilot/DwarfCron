@@ -3,6 +3,7 @@
 Uses two-level detection (pattern from Helper.lua in DF modding community):
 1. Count-based: detect mass arrivals/departures by comparing set membership
 2. Key-based: per-unit field diffing for profession, skills, squad, alive status
+3. Bridge-based: mood, tantrum, pregnancy, ghost, emotion detection (v6+)
 
 First call is a silent bootstrap — populates previous state, emits no events.
 """
@@ -18,7 +19,9 @@ class ChangeDetector:
 
     def __init__(self):
         self.previous: dict[int, dict] = {}
+        self.previous_bridge: dict[int, dict] = {}
         self._bootstrapped = False
+        self._bridge_bootstrapped = False
 
     def detect(self, current_units: list[dict]) -> list[dict]:
         """Compare current vs previous. First call = silent bootstrap (no events).
@@ -65,6 +68,36 @@ class ChangeDetector:
                 events.extend(_diff_unit(uid, self.previous[uid], unit))
 
         self.previous = current_by_id
+        return events
+
+    def detect_bridge(self, fortress_units: list[dict]) -> list[dict]:
+        """Detect changes from bridge fortress_units data (v6+ enriched fields).
+
+        Detects: MOOD_CHANGED, MOOD_RESOLVED, TANTRUM, GHOST, PREGNANCY_DETECTED.
+        First call is a silent bootstrap.
+
+        Args:
+            fortress_units: List of unit dicts from bridge unit_summary.fortress_units
+
+        Returns:
+            List of event dicts with keys: unit_id, event_type, old_value, new_value
+        """
+        current_by_id = {u['id']: u for u in fortress_units}
+
+        if not self._bridge_bootstrapped:
+            self.previous_bridge = current_by_id
+            self._bridge_bootstrapped = True
+            log.info("Bridge bootstrap: %d fortress units", len(current_by_id))
+            return []
+
+        events = []
+        for uid, unit in current_by_id.items():
+            old = self.previous_bridge.get(uid)
+            if not old:
+                continue
+            events.extend(_diff_bridge_unit(uid, old, unit))
+
+        self.previous_bridge = current_by_id
         return events
 
 
@@ -134,5 +167,80 @@ def _diff_unit(uid: int, old: dict, new: dict) -> list[dict]:
             'old_value': None,
             'new_value': {'skills': skill_ups},
         })
+
+    return events
+
+
+def _diff_bridge_unit(uid: int, old: dict, new: dict) -> list[dict]:
+    """Compare bridge-enriched unit fields for mood/flag/pregnancy changes."""
+    events = []
+
+    # Mood onset: was not in mood, now is
+    if not old.get('has_mood') and new.get('has_mood'):
+        events.append({
+            'unit_id': uid,
+            'event_type': 'MOOD_CHANGED',
+            'old_value': {'has_mood': False, 'mood': old.get('mood')},
+            'new_value': {
+                'has_mood': True,
+                'mood': new.get('mood'),
+                'name': new.get('first_name'),
+            },
+        })
+
+    # Mood resolution: was in mood, now isn't (artifact created or went insane)
+    if old.get('has_mood') and not new.get('has_mood'):
+        events.append({
+            'unit_id': uid,
+            'event_type': 'MOOD_RESOLVED',
+            'old_value': {'has_mood': True, 'mood': old.get('mood')},
+            'new_value': {
+                'has_mood': False,
+                'had_mood': new.get('had_mood'),
+                'mood': new.get('mood'),
+                'name': new.get('first_name'),
+            },
+        })
+
+    # Ghost detection
+    if not old.get('ghostly') and new.get('ghostly'):
+        events.append({
+            'unit_id': uid,
+            'event_type': 'GHOST',
+            'old_value': None,
+            'new_value': {'ghostly': True, 'name': new.get('first_name')},
+        })
+
+    # Pregnancy detection
+    old_preg = old.get('pregnancy_timer', 0)
+    new_preg = new.get('pregnancy_timer', 0)
+    if old_preg == 0 and new_preg > 0:
+        events.append({
+            'unit_id': uid,
+            'event_type': 'PREGNANCY_DETECTED',
+            'old_value': None,
+            'new_value': {
+                'pregnancy_timer': new_preg,
+                'pregnancy_spouse': new.get('pregnancy_spouse'),
+                'name': new.get('first_name'),
+            },
+        })
+
+    # Stress spike: significant stress increase (>50000 delta)
+    old_stress = old.get('stress', 0)
+    new_stress = new.get('stress', 0)
+    if old_stress is not None and new_stress is not None:
+        delta = new_stress - old_stress
+        if delta > 50000:
+            events.append({
+                'unit_id': uid,
+                'event_type': 'STRESS_SPIKE',
+                'old_value': {'stress': old_stress},
+                'new_value': {
+                    'stress': new_stress,
+                    'delta': delta,
+                    'name': new.get('first_name'),
+                },
+            })
 
     return events

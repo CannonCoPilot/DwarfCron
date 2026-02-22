@@ -8,19 +8,25 @@ Workaround: A Lua script runs as a DFHack `repeat` job on the console thread
 (where CoreSuspend works), writing comprehensive game state to a JSON file.
 A PowerShell HTTP server on the DF machine serves the file. This module reads it.
 
-Bridge data sections:
+Bridge data sections (v6):
   - game_time: cur_year, cur_year_tick, cur_season
   - creature_raws: race_id -> creature_id mapping (934+ entries)
-  - unit_summary: fortress units with stress/focus/names, race distribution
+  - unit_summary: fortress units with stress/profession/flags/mood
   - armies: count + positions + member counts
   - buildings: total + type distribution
   - artifacts: named artifacts with translated names
-  - announcements: last 20 game reports
+  - announcements: cursor-based game reports (lossless)
   - diplomacy: player civ diplomatic relations
-  - history: figure/event counts + last 50 events
+  - history: cursor-based events with payloads (lossless)
   - world_info: world name, fortress name, civ/site IDs
   - entities: nearby civilizations with names and types
   - dwarf_skills: per-dwarf full skill lists
+  - dwarf_emotions: per-dwarf emotion/thought vectors (v6)
+  - zones: fortress civzones with types and assignments (v6)
+  - event_collections: active wars/battles/sieges (v6)
+  - squads: military squads with members and orders (v6)
+  - mandates: noble mandates with items and timeouts (v6)
+  - incidents: crimes and incidents with victims/criminals (v6)
 
 Setup on the Windows DF machine:
   1. Place chronicler-bridge.lua in a dir listed in script-paths.txt
@@ -201,3 +207,102 @@ def get_dwarf_skills(bridge_data: dict | None) -> list[dict]:
     if not bridge_data:
         return []
     return bridge_data.get('dwarf_skills', {}).get('dwarves', [])
+
+
+# ── v6 Accessor Functions ────────────────────────────────────────────
+
+
+def get_bridge_version(bridge_data: dict | None) -> int:
+    """Get bridge script version. Returns 0 if not set (pre-v6)."""
+    if not bridge_data:
+        return 0
+    return bridge_data.get('bridge_version', 0)
+
+
+def get_dwarf_emotions(bridge_data: dict | None) -> list[dict]:
+    """Get per-dwarf emotion vectors from bridge data (v6+).
+
+    Returns list of dicts with: id, first_name, emotion_count,
+    emotions (list of {type, thought, subthought, strength, severity, year, year_tick}).
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('dwarf_emotions', {}).get('dwarves', [])
+
+
+def get_zones(bridge_data: dict | None) -> list[dict]:
+    """Get fortress civzones from bridge data (v6+).
+
+    Returns list of dicts with: id, type, x1, y1, x2, y2, z,
+    assigned_unit_count, is_active, name, owner_unit_id.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('zones', {}).get('zones', [])
+
+
+def get_event_collections(bridge_data: dict | None) -> list[dict]:
+    """Get historical event collections from bridge data (v6+).
+
+    Returns list of dicts with: id, type, start_year, end_year,
+    event_count, name, attacker_civ, defender_civ, site_id,
+    attacker_name, defender_name.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('event_collections', {}).get('collections', [])
+
+
+def get_squads(bridge_data: dict | None) -> list[dict]:
+    """Get military squads from bridge data (v6+).
+
+    Returns list of dicts with: id, name, name_english, alias,
+    members (list of {position, histfig_id}), member_count,
+    position_count, order_count, entity_id.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('squads', {}).get('squads', [])
+
+
+def get_mandates(bridge_data: dict | None) -> list[dict]:
+    """Get noble mandates from bridge data (v6+).
+
+    Returns list of dicts with: mode, item_type, item_subtype,
+    amount_total, amount_remaining, timeout_counter, timeout_limit,
+    unit_id, unit_name.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('mandates', {}).get('mandates', [])
+
+
+def get_incidents(bridge_data: dict | None) -> list[dict]:
+    """Get crimes and incidents from bridge data (v6+).
+
+    Returns list of dicts with: id, type, event_year, event_time,
+    victim, criminal, site, death_cause, conflict_level.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('incidents', {}).get('incidents', [])
+
+
+def get_announcement_cursor(bridge_data: dict | None) -> int:
+    """Get the current announcement cursor from bridge data (v6+).
+
+    Returns the highest seen report ID, or -1 if unavailable.
+    """
+    if not bridge_data:
+        return -1
+    return bridge_data.get('announcements', {}).get('cursor', -1)
+
+
+def get_history_cursor(bridge_data: dict | None) -> int:
+    """Get the current history event cursor from bridge data (v6+).
+
+    Returns the highest seen event ID, or -1 if unavailable.
+    """
+    if not bridge_data:
+        return -1
+    return bridge_data.get('history', {}).get('cursor', -1)
