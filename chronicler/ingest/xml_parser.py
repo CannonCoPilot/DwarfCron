@@ -7,6 +7,7 @@ Uses lxml.iterparse for memory efficiency on large files, with batch INSERTs
 (1000 rows per flush) for performance.
 """
 
+import json
 import re
 import logging
 from pathlib import Path
@@ -155,8 +156,42 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         name = _text(hf, "name")
         race = _text(hf, "race")
 
-        # Detect special types from associated_type or flags
-        assoc_type = (_text(hf, "associated_type") or "").lower()
+        # Detect supernatural types from XML structure:
+        # - Deities/forces have <sphere> child elements
+        # - Vampires have <active_interaction> with DEITY_MAJOR_CURSE_*
+        # - Necromancers have <interaction_knowledge> with SECRET_*
+        # - Werebeasts have <active_interaction> with DEITY_CURSE_WEREBEAST_*
+        spheres = [s.text for s in hf.findall("sphere") if s.text]
+        interactions = [
+            (ai.text or "").upper()
+            for ai in hf.findall("active_interaction")
+        ]
+        knowledge = [
+            (ik.text or "").upper()
+            for ik in hf.findall("interaction_knowledge")
+        ]
+
+        is_deity = len(spheres) > 0
+        is_force = False  # TODO: distinguish from deity via entity worship links
+        is_vampire = any(
+            i.startswith("DEITY_MAJOR_CURSE") for i in interactions
+        )
+        is_necromancer = any(k.startswith("SECRET") for k in knowledge)
+        is_werebeast = any(
+            i.startswith("DEITY_CURSE_WEREBEAST") for i in interactions
+        )
+        is_ghost = False  # No reliable XML tag; detected via events
+
+        # Store supernatural details in JSONB for richer queries
+        details: dict | None = None
+        if spheres or interactions or knowledge:
+            details = {}
+            if spheres:
+                details["spheres"] = spheres
+            if interactions:
+                details["active_interactions"] = interactions
+            if knowledge:
+                details["interaction_knowledge"] = knowledge
 
         hf_rows.append((
             hfid, world_id, name, race,
@@ -168,14 +203,14 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
             _int(hf, "death_seconds72"),
             _text(hf, "death_cause"),
             None,  # entity_id (filled from entity_links later)
-            _bool_flag(hf, "deity"),
-            _bool_flag(hf, "force"),
-            "vampire" in assoc_type,
-            "necromancer" in assoc_type,
-            "werebeast" in assoc_type or "were" in assoc_type,
-            _bool_flag(hf, "ghost"),
+            is_deity,
+            is_force,
+            is_vampire,
+            is_necromancer,
+            is_werebeast,
+            is_ghost,
             0, 0,  # kill_count, event_count (computed later)
-            None,  # details JSONB
+            json.dumps(details) if details else None,
         ))
 
         # HF-to-HF links
@@ -341,6 +376,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "identities": [],
         "event_relationships": [],
         "entities": [],
+        "site_owners": [],  # (site_id, owner_entity_id) from cur_owner_id
     }
 
     for lm in root.findall(".//landmass"):
@@ -386,6 +422,15 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _int(rel, "target_hf"),
             _int(rel, "year"),
         ))
+
+    # Site ownership from legends_plus (cur_owner_id)
+    sites_section = root.find("sites")
+    if sites_section is not None:
+        for site in sites_section.findall("site"):
+            sid = _int(site, "id")
+            owner = _int(site, "cur_owner_id")
+            if sid is not None and owner is not None:
+                result["site_owners"].append((sid, owner))
 
     # Entities (type, race, metadata not in legends.xml)
     import json as _json
@@ -636,6 +681,19 @@ async def import_legends(
                 "details = COALESCE(EXCLUDED.details, entities.details)")
         counts["entities_plus"] = n
         log.info("  entities (plus enrichment): %d", n)
+
+        # Site ownership: update owner_entity_id from legends_plus cur_owner_id
+        if plus_data["site_owners"]:
+            updated_sites = 0
+            for sid, owner_id in plus_data["site_owners"]:
+                result = await conn.execute(
+                    "UPDATE sites SET owner_entity_id = $1 WHERE id = $2 AND world_id = $3",
+                    owner_id, sid, world_id,
+                )
+                if "UPDATE 1" in result:
+                    updated_sites += 1
+            counts["site_owners"] = updated_sites
+            log.info("  site ownership: %d", updated_sites)
 
     # ── Step 6: Update computed counts ────────────────────────────────────
     await conn.execute("""

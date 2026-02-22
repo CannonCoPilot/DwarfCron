@@ -1,5 +1,11 @@
-"""CDM context retriever — queries the database for relevant storytelling context."""
+"""CDM context retriever — queries the database for relevant storytelling context.
 
+Supports two data tiers:
+1. Legends (historical): imported from XML exports — HFs, events, sites, entities
+2. Live (current): polled from in-game memory via bridge — units, reports, emotions, squads
+"""
+
+import json
 import asyncpg
 
 # Categorical routing: maps conceptual keywords to structured queries.
@@ -48,6 +54,29 @@ _CATEGORY_ROUTES: dict[str, tuple[str, object]] = {
     "artifacts": ("artifacts", None),
     "relic": ("artifacts", None),
     "relics": ("artifacts", None),
+    # v6: Fortress/live data routes
+    "fortress": ("live_units", None),
+    "dwarves": ("live_units", None),
+    "inhabitants": ("live_units", None),
+    "population": ("live_units", None),
+    "stress": ("live_units", None),
+    "mood": ("live_units", None),
+    "moody": ("live_units", None),
+    "tantrum": ("live_units", None),
+    "squad": ("live_squads", None),
+    "squads": ("live_squads", None),
+    "military": ("live_squads", None),
+    "army": ("live_armies", None),
+    "armies": ("live_armies", None),
+    "siege": ("live_armies", None),
+    "recent": ("live_events", None),
+    "today": ("live_events", None),
+    "happened": ("live_events", None),
+    "news": ("live_events", None),
+    "announcement": ("live_reports", None),
+    "announcements": ("live_reports", None),
+    "report": ("live_reports", None),
+    "reports": ("live_reports", None),
 }
 
 # Allowed column names for hf_flag queries (prevents SQL injection)
@@ -114,6 +143,56 @@ async def retrieve_context(
                     results.append({
                         "category": "Event",
                         "text": f"Year {ev['year']}: {ev['event_type']} — {_summarize_details(ev['details'])}",
+                    })
+
+                # Cross-reference: check if this HF is alive in fortress
+                alive = await conn.fetchrow(
+                    """
+                    SELECT id, name, profession, is_alive
+                    FROM units
+                    WHERE world_id = $1 AND hist_fig_id = $2
+                    """,
+                    world_id, hf["id"],
+                )
+                if alive and alive["is_alive"]:
+                    results.append({
+                        "category": "Live Status",
+                        "text": f"{hf['name']} is currently alive in the fortress as {alive['profession'] or 'unknown profession'}",
+                    })
+
+                # Cross-reference: family/relationships via hf_links
+                links = await conn.fetch(
+                    """
+                    SELECT hl.link_type, hl.target_hf_id, hf2.name as target_name
+                    FROM hf_links hl
+                    JOIN historical_figures hf2 ON hf2.id = hl.target_hf_id AND hf2.world_id = $1
+                    WHERE hl.hf_id = $2
+                    LIMIT 10
+                    """,
+                    world_id, hf["id"],
+                )
+                for link in links:
+                    results.append({
+                        "category": "Relationship",
+                        "text": f"{hf['name']} — {link['link_type']} — {link['target_name'] or '(unknown)'}",
+                    })
+
+                # Cross-reference: entity memberships via hf_entity_links
+                elinks = await conn.fetch(
+                    """
+                    SELECT hel.link_type, hel.position_name, e.name as entity_name
+                    FROM hf_entity_links hel
+                    LEFT JOIN entities e ON e.id = hel.entity_id AND e.world_id = $1
+                    WHERE hel.hf_id = $2
+                    LIMIT 5
+                    """,
+                    world_id, hf["id"],
+                )
+                for el in elinks:
+                    pos = f" as {el['position_name']}" if el["position_name"] else ""
+                    results.append({
+                        "category": "Membership",
+                        "text": f"{hf['name']} — {el['link_type']}{pos} of {el['entity_name'] or '(unknown entity)'}",
                     })
 
         # Search entities by name/type (use all keywords, not just name_keywords,
@@ -200,7 +279,8 @@ async def _run_category_query(
             f"""
             SELECT id, name, race, caste, birth_year, death_year,
                    death_cause, is_deity, is_force, is_vampire,
-                   is_necromancer, is_werebeast, kill_count, entity_id
+                   is_necromancer, is_werebeast, kill_count, entity_id,
+                   details
             FROM historical_figures
             WHERE world_id = $1 AND {param} = TRUE
             ORDER BY kill_count DESC NULLS LAST, birth_year ASC
@@ -290,6 +370,186 @@ async def _run_category_query(
                 text += f" ({', '.join(parts)})"
             results.append({"category": "Artifact", "text": text})
 
+    # v6: Live data routes
+    elif query_type == "live_units":
+        results.extend(await _retrieve_live_units(conn, world_id))
+
+    elif query_type == "live_squads":
+        results.extend(await _retrieve_live_squads(conn, world_id))
+
+    elif query_type == "live_armies":
+        results.extend(await _retrieve_live_armies(conn, world_id))
+
+    elif query_type == "live_events":
+        results.extend(await _retrieve_live_events(conn, world_id, limit=20))
+
+    elif query_type == "live_reports":
+        results.extend(await _retrieve_live_reports(conn, world_id, limit=20))
+
+    return results
+
+
+async def _retrieve_live_units(
+    conn: asyncpg.Connection, world_id: int
+) -> list[dict]:
+    """Retrieve current fortress inhabitants from units table."""
+    results: list[dict] = []
+    units = await conn.fetch(
+        """
+        SELECT u.id, u.name, u.race, u.profession, u.is_alive,
+               u.hist_fig_id, u.details
+        FROM units u
+        WHERE u.world_id = $1 AND u.is_alive = TRUE
+        ORDER BY u.name
+        LIMIT 30
+        """,
+        world_id,
+    )
+    for u in units:
+        text = f"{u['name'] or '(unnamed)'} — {u['race']}, {u['profession'] or 'no profession'}"
+        details = u.get("details")
+        if details:
+            if isinstance(details, str):
+                details = json.loads(details)
+            if isinstance(details, dict):
+                stress = details.get("stress")
+                if stress is not None and stress > 100000:
+                    text += f" [STRESSED: {stress:,}]"
+                mood = details.get("mood")
+                if mood is not None and mood >= 0:
+                    text += f" [MOOD: {mood}]"
+        # Cross-reference with historical figure
+        if u["hist_fig_id"]:
+            hf = await conn.fetchrow(
+                """
+                SELECT name, birth_year, kill_count, is_deity, is_vampire,
+                       is_necromancer, is_werebeast
+                FROM historical_figures
+                WHERE world_id = $1 AND id = $2
+                """,
+                world_id, u["hist_fig_id"],
+            )
+            if hf:
+                traits = []
+                if hf["is_vampire"]:
+                    traits.append("vampire")
+                if hf["is_necromancer"]:
+                    traits.append("necromancer")
+                if hf["is_werebeast"]:
+                    traits.append("werebeast")
+                if traits:
+                    text += f" [{', '.join(traits)}]"
+                if hf["kill_count"] and hf["kill_count"] > 0:
+                    text += f" [{hf['kill_count']} kills]"
+                if hf["birth_year"]:
+                    text += f" [born year {hf['birth_year']}]"
+        results.append({"category": "Fortress Inhabitant", "text": text})
+    return results
+
+
+async def _retrieve_live_events(
+    conn: asyncpg.Connection, world_id: int, limit: int = 20
+) -> list[dict]:
+    """Retrieve recent unit change events from unit_events table."""
+    results: list[dict] = []
+    events = await conn.fetch(
+        """
+        SELECT ue.event_type, ue.old_value, ue.new_value,
+               ue.game_year, ue.game_tick, u.name
+        FROM unit_events ue
+        LEFT JOIN units u ON u.id = ue.unit_id AND u.world_id = ue.world_id
+        WHERE ue.world_id = $1
+        ORDER BY ue.detected_at DESC
+        LIMIT $2
+        """,
+        world_id, limit,
+    )
+    for ev in events:
+        new_val = ev["new_value"]
+        if isinstance(new_val, str):
+            new_val = json.loads(new_val)
+        name = ev["name"] or (new_val.get("name") if isinstance(new_val, dict) else None) or "(unknown)"
+        time_str = f"year {ev['game_year']}" if ev["game_year"] else "unknown time"
+        text = f"{ev['event_type']}: {name} ({time_str})"
+        if isinstance(new_val, dict):
+            detail_parts = []
+            for k, v in new_val.items():
+                if k not in ("name",) and v is not None:
+                    detail_parts.append(f"{k}={v}")
+            if detail_parts:
+                text += f" — {', '.join(detail_parts[:5])}"
+        results.append({"category": "Recent Event", "text": text})
+    return results
+
+
+async def _retrieve_live_reports(
+    conn: asyncpg.Connection, world_id: int, limit: int = 20
+) -> list[dict]:
+    """Retrieve recent game announcements/reports."""
+    results: list[dict] = []
+    reports = await conn.fetch(
+        """
+        SELECT text, game_year, game_tick, report_type, is_announcement
+        FROM game_reports
+        WHERE world_id = $1
+        ORDER BY detected_at DESC
+        LIMIT $2
+        """,
+        world_id, limit,
+    )
+    for r in reports:
+        time_str = f"year {r['game_year']}" if r["game_year"] else "unknown time"
+        text = f"[{time_str}] {r['text']}"
+        results.append({"category": "Game Report", "text": text})
+    return results
+
+
+async def _retrieve_live_squads(
+    conn: asyncpg.Connection, world_id: int
+) -> list[dict]:
+    """Retrieve military squad info from latest lua_probes snapshot."""
+    results: list[dict] = []
+    probe = await conn.fetchval(
+        """
+        SELECT data FROM lua_probes
+        WHERE world_id = $1 AND probe_name = 'squads'
+        ORDER BY captured_at DESC LIMIT 1
+        """,
+        world_id,
+    )
+    if probe:
+        data = json.loads(probe) if isinstance(probe, str) else probe
+        squads = data.get("squads", [])
+        for sq in squads:
+            name = sq.get("alias") or sq.get("name") or "(unnamed)"
+            text = f"Squad: {name} — {sq.get('member_count', 0)}/{sq.get('position_count', 0)} members"
+            if sq.get("order_count", 0) > 0:
+                text += f", {sq['order_count']} active orders"
+            results.append({"category": "Military", "text": text})
+    return results
+
+
+async def _retrieve_live_armies(
+    conn: asyncpg.Connection, world_id: int
+) -> list[dict]:
+    """Retrieve army info from latest lua_probes snapshot."""
+    results: list[dict] = []
+    probe = await conn.fetchval(
+        """
+        SELECT data FROM lua_probes
+        WHERE world_id = $1 AND probe_name = 'armies'
+        ORDER BY captured_at DESC LIMIT 1
+        """,
+        world_id,
+    )
+    if probe:
+        data = json.loads(probe) if isinstance(probe, str) else probe
+        armies = data.get("armies", [])
+        if not armies:
+            results.append({"category": "Military", "text": "No armies currently in the field."})
+        for a in armies:
+            text = f"Army #{a.get('id', '?')} — {a.get('member_count', '?')} members at ({a.get('pos_x', '?')}, {a.get('pos_y', '?')})"
+            results.append({"category": "Military", "text": text})
     return results
 
 
@@ -411,6 +671,17 @@ def _format_hf(hf: asyncpg.Record) -> str:
         traits.append("werebeast")
     if traits:
         parts.append(f"[{', '.join(traits)}]")
+
+    # Include spheres from details JSONB (e.g., deity spheres like "fire", "war")
+    details = hf.get("details")
+    if details:
+        if isinstance(details, str):
+            try:
+                details = json.loads(details)
+            except (json.JSONDecodeError, TypeError):
+                details = None
+        if isinstance(details, dict) and "spheres" in details:
+            parts.append(f"spheres: {', '.join(details['spheres'])}")
 
     if hf["birth_year"] is not None and hf["birth_year"] != -1:
         parts.append(f"born year {hf['birth_year']}")
