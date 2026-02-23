@@ -4,6 +4,42 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 router = APIRouter()
 
+_NOBLE_KEYWORDS = frozenset([
+    "king", "queen", "duke", "duchess", "baron", "baroness", "count", "countess",
+    "lord", "lady", "monarch", "emperor", "empress", "consort", "prince", "princess",
+])
+_MILITARY_KEYWORDS = frozenset([
+    "general", "captain", "militia", "commander", "sheriff", "champion", "marshal",
+    "soldier", "guard", "war", "hammerer", "executioner",
+])
+_ADMIN_KEYWORDS = frozenset([
+    "manager", "bookkeeper", "broker", "expedition", "mayor", "chief", "medical",
+    "administrator", "diplomat", "outpost", "liaison",
+])
+
+
+def _categorize_position(name: str | None) -> str:
+    if not name:
+        return "other"
+    words = set(name.lower().split())
+    if words & _NOBLE_KEYWORDS:
+        return "noble"
+    if words & _MILITARY_KEYWORDS:
+        return "military"
+    if words & _ADMIN_KEYWORDS:
+        return "admin"
+    return "other"
+
+
+def _gender_title(pos: dict, holder_caste: str | None) -> str | None:
+    """Pick the gender-appropriate title variant for a position holder."""
+    is_female = holder_caste and holder_caste.lower() == "female"
+    if is_female and pos.get("name_female"):
+        return pos["name_female"]
+    if not is_female and pos.get("name_male"):
+        return pos["name_male"]
+    return pos.get("name_male") or pos.get("name_female")
+
 
 @router.get("/civilizations")
 async def list_civilizations(
@@ -66,7 +102,8 @@ async def get_civilization(request: Request, world_id: int, entity_id: int):
         positions = await conn.fetch(
             """
             SELECT ep.position_id, ep.name, ep.name_male, ep.name_female,
-                   hpl.hf_id AS holder_hf_id, hf.name AS holder_name
+                   hpl.hf_id AS holder_hf_id, hf.name AS holder_name,
+                   hf.caste AS holder_caste
             FROM entity_positions ep
             LEFT JOIN hf_position_links hpl
                 ON hpl.world_id = ep.world_id AND hpl.entity_id = ep.entity_id
@@ -96,13 +133,26 @@ async def get_civilization(request: Request, world_id: int, entity_id: int):
         )
 
     result = dict(entity)
-    result["positions"] = [
-        {"position_id": p["position_id"], "name": p["name"],
-         "name_male": p["name_male"], "name_female": p["name_female"],
-         "current_holder": {"hf_id": p["holder_hf_id"], "name": p["holder_name"]}
-             if p["holder_hf_id"] is not None else None}
-        for p in positions
-    ]
+    result["positions"] = []
+    for p in positions:
+        pos_dict = {
+            "position_id": p["position_id"],
+            "name": p["name"],
+            "name_male": p["name_male"],
+            "name_female": p["name_female"],
+            "category": _categorize_position(p["name"]),
+        }
+        if p["holder_hf_id"] is not None:
+            title = _gender_title(dict(p), p["holder_caste"])
+            pos_dict["current_holder"] = {
+                "hf_id": p["holder_hf_id"],
+                "name": p["holder_name"],
+            }
+            pos_dict["title"] = title
+        else:
+            pos_dict["current_holder"] = None
+            pos_dict["title"] = p["name_male"] or p["name_female"]
+        result["positions"].append(pos_dict)
     result["sites"] = [dict(s) for s in sites]
     result["wars"] = [dict(w) for w in wars]
     return result
@@ -111,7 +161,7 @@ async def get_civilization(request: Request, world_id: int, entity_id: int):
 @router.get("/civilizations/{world_id}/{entity_id}/members")
 async def list_members(
     request: Request, world_id: int, entity_id: int,
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0),
 ):
     pool = request.app.state.pool

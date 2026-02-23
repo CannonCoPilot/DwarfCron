@@ -26,7 +26,7 @@ import asyncpg
 from chronicler.config import DFHACK_HOST, DFHACK_PORT, BRIDGE_HOST, BRIDGE_PORT
 from chronicler.dfhack.bridge import (
     fetch_bridge_data, build_race_map, get_game_time, get_world_info,
-    get_fortress_units, get_bridge_version,
+    get_fortress_units, get_bridge_version, merge_bridge_into_units,
 )
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
@@ -90,8 +90,8 @@ async def _store_bridge_sections(conn: asyncpg.Connection, world_id: int,
     sections = ['armies', 'buildings', 'artifacts', 'announcements',
                 'diplomacy', 'history', 'unit_summary',
                 'world_info', 'entities', 'dwarf_skills',
-                'dwarf_emotions', 'zones', 'event_collections',
-                'squads', 'mandates', 'incidents']
+                'dwarf_emotions', 'dwarf_personality', 'zones',
+                'event_collections', 'squads', 'mandates', 'incidents']
 
     for section in sections:
         data = bridge_data.get(section)
@@ -337,6 +337,10 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                 if bridge_units:
                     bridge_events = detector.detect_bridge(bridge_units)
                     events.extend(bridge_events)
+
+            # 4c. Merge bridge biographical + personality data into units
+            if bd and get_bridge_version(bd) >= 7:
+                merge_bridge_into_units(units, bd)
 
             # 5. Upsert units + insert events + record snapshot (single txn)
             async with pool.acquire() as conn:

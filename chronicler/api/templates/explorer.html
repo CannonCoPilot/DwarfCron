@@ -95,6 +95,11 @@
           <button onclick="searchPeople()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1 rounded text-xs transition-colors">Search</button>
         </div>
       </div>
+      <div class="px-3 py-1.5 border-b border-stone-800/50 flex-shrink-0" id="people-filter-bar" style="display:none">
+        <input id="people-filter" type="text" placeholder="Filter results..."
+               class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs focus:border-amber-500 focus:outline-none"
+               oninput="filterPeopleList()">
+      </div>
       <div id="people-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
         <div class="text-stone-500 text-xs px-3 py-4 text-center">Search for a historical figure or unit</div>
       </div>
@@ -115,7 +120,7 @@
   <div id="panel-civs" class="flex-1 flex overflow-hidden hidden">
     <!-- Entity list sidebar -->
     <div class="w-80 flex-shrink-0 border-r border-stone-800 flex flex-col bg-stone-950/50">
-      <div class="p-3 border-b border-stone-800">
+      <div class="p-3 space-y-2 border-b border-stone-800 flex-shrink-0">
         <select id="civs-type-filter" class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs"
                 onchange="loadCivs()">
           <option value="">All types</option>
@@ -125,6 +130,18 @@
           <option value="sitegovernment">Site Governments</option>
           <option value="performancetroupe">Performance Troupes</option>
         </select>
+        <div class="flex gap-1">
+          <input id="civs-filter" type="text" placeholder="Filter by name..."
+                 class="flex-1 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs focus:border-amber-500 focus:outline-none"
+                 oninput="filterCivsList()">
+          <select id="civs-sort" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs"
+                  onchange="filterCivsList()">
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
+            <option value="members-desc">Most Members</option>
+            <option value="sites-desc">Most Sites</option>
+          </select>
+        </div>
       </div>
       <div id="civs-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
         <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>
@@ -146,7 +163,7 @@
   <div id="panel-geo" class="flex-1 flex overflow-hidden hidden">
     <!-- Site list sidebar -->
     <div class="w-80 flex-shrink-0 border-r border-stone-800 flex flex-col bg-stone-950/50">
-      <div class="p-3 border-b border-stone-800">
+      <div class="p-3 space-y-2 border-b border-stone-800 flex-shrink-0">
         <select id="geo-type-filter" class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs"
                 onchange="loadSites()">
           <option value="">All site types</option>
@@ -162,6 +179,18 @@
           <option value="lair">Lairs</option>
           <option value="monument">Monuments</option>
         </select>
+        <div class="flex gap-1">
+          <input id="geo-filter" type="text" placeholder="Filter by name..."
+                 class="flex-1 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs focus:border-amber-500 focus:outline-none"
+                 oninput="filterSitesList()">
+          <select id="geo-sort" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs"
+                  onchange="filterSitesList()">
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
+            <option value="hfs-desc">Most HFs</option>
+            <option value="structures-desc">Most Structures</option>
+          </select>
+        </div>
       </div>
       <div id="geo-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
         <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>
@@ -419,6 +448,37 @@ function typeFlagBadges(flags) {
 // PEOPLE TAB
 // ═══════════════════════════════════════════════════════════════════════
 let selectedPerson = null;
+let peopleResults = [];
+
+function renderPeopleItem(p) {
+  const isActive = selectedPerson === `${p.source}-${p.id}` ? ' active' : '';
+  const aliveClass = p.is_alive ? 'badge-alive' : 'badge-dead';
+  const aliveLabel = p.is_alive ? 'alive' : 'dead';
+  const srcBadge = p.source === 'unit' ? '<span class="badge badge-unit">Unit</span>' : '<span class="badge badge-hf">HF</span>';
+  const displayName = p.english_name ? `${escapeHtml(p.name)} <span class="text-stone-500 text-[10px]">(${escapeHtml(p.english_name)})</span>` : escapeHtml(p.name);
+  return `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
+               onclick="selectPerson('${p.source}', ${p.world_id}, ${p.id})">
+    <div class="flex items-center gap-1.5">
+      ${srcBadge}
+      <span class="badge ${aliveClass}">${aliveLabel}</span>
+      ${typeFlagBadges(p.type_flags)}
+    </div>
+    <div class="text-stone-200 mt-0.5">${displayName}</div>
+    <div class="text-stone-500 text-[10px]">${escapeHtml(p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
+  </div>`;
+}
+
+function filterPeopleList() {
+  const q = (document.getElementById('people-filter').value || '').toLowerCase();
+  const list = document.getElementById('people-list');
+  const filtered = q ? peopleResults.filter(p =>
+    (p.name || '').toLowerCase().includes(q) ||
+    (p.english_name || '').toLowerCase().includes(q) ||
+    (p.race || '').toLowerCase().includes(q)
+  ) : peopleResults;
+  list.innerHTML = filtered.map(renderPeopleItem).join('') ||
+    '<div class="text-stone-500 text-xs px-3 py-4 text-center">No matches</div>';
+}
 
 async function searchPeople() {
   const q = document.getElementById('people-search').value.trim();
@@ -430,29 +490,14 @@ async function searchPeople() {
   try {
     const resp = await fetch(`/api/people/search?q=${encodeURIComponent(q)}&type=${type}&limit=100`);
     const results = await resp.json();
+    peopleResults = results;
+    document.getElementById('people-filter-bar').style.display = results.length > 0 ? '' : 'none';
+    document.getElementById('people-filter').value = '';
     if (results.length === 0) {
       list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">No results</div>';
       return;
     }
-    let html = '';
-    for (const p of results) {
-      const isActive = selectedPerson === `${p.source}-${p.id}` ? ' active' : '';
-      const aliveClass = p.is_alive ? 'badge-alive' : 'badge-dead';
-      const aliveLabel = p.is_alive ? 'alive' : 'dead';
-      const srcBadge = p.source === 'unit' ? '<span class="badge badge-unit">Unit</span>' : '<span class="badge badge-hf">HF</span>';
-      const displayName = p.english_name ? `${escapeHtml(p.name)} <span class="text-stone-500 text-[10px]">(${escapeHtml(p.english_name)})</span>` : escapeHtml(p.name);
-      html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
-                   onclick="selectPerson('${p.source}', ${p.world_id}, ${p.id})">
-        <div class="flex items-center gap-1.5">
-          ${srcBadge}
-          <span class="badge ${aliveClass}">${aliveLabel}</span>
-          ${typeFlagBadges(p.type_flags)}
-        </div>
-        <div class="text-stone-200 mt-0.5">${displayName}</div>
-        <div class="text-stone-500 text-[10px]">${escapeHtml(p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
-      </div>`;
-    }
-    list.innerHTML = html;
+    list.innerHTML = results.map(renderPeopleItem).join('');
   } catch (e) {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
   }
@@ -500,8 +545,14 @@ function renderHfDetail(hf, panel) {
     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
       <div><span class="text-stone-500">Race:</span> ${escapeHtml(titleCase(hf.race))}</div>
       <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(hf.caste))}</div>
-      <div><span class="text-stone-500">Born:</span> ${hf.birth_year ?? '?'}</div>
-      <div><span class="text-stone-500">${alive ? 'Age' : 'Died'}:</span> ${alive ? '(alive)' : `${hf.death_year ?? '?'}${hf.death_cause ? ' (' + escapeHtml(hf.death_cause) + ')' : ''}`}</div>
+      <div><span class="text-stone-500">Born:</span> ${hf.birth_year != null ? 'Year ' + hf.birth_year : '?'}</div>
+      <div><span class="text-stone-500">${alive ? 'Age' : 'Died'}:</span> ${
+        alive
+          ? (hf.birth_year != null && hf.current_game_year != null
+             ? `${hf.current_game_year - hf.birth_year} (born year ${hf.birth_year})`
+             : hf.birth_year != null ? `born year ${hf.birth_year}` : '?')
+          : `Year ${hf.death_year ?? '?'}${hf.birth_year != null && hf.death_year != null ? ', age ' + (hf.death_year - hf.birth_year) : ''}${hf.death_cause ? ' (' + escapeHtml(hf.death_cause) + ')' : ''}`
+      }</div>
       <div><span class="text-stone-500">Kills:</span> ${hf.kill_count || 0}</div>
       <div><span class="text-stone-500">Events:</span> ${formatNum(hf.event_count)}</div>
     </div>
@@ -665,13 +716,25 @@ function renderUnitDetail(unit, panel) {
   </div>`;
 
   // Info card
+  const sexLabel = unit.sex === 0 ? 'Male' : unit.sex === 1 ? 'Female' : null;
   html += `<div class="section-card">
     <div class="section-title">Unit Info</div>
     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
       <div><span class="text-stone-500">Race:</span> ${escapeHtml(titleCase(unit.race))}</div>
       <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(unit.caste))}</div>
       <div><span class="text-stone-500">Profession:</span> ${escapeHtml(unit.profession || 'None')}</div>
+      ${sexLabel ? `<div><span class="text-stone-500">Sex:</span> ${sexLabel}</div>` : ''}
       <div><span class="text-stone-500">Position:</span> ${unit.pos_x ?? '?'}, ${unit.pos_y ?? '?'}, ${unit.pos_z ?? '?'}</div>
+      ${unit.birth_year != null ? `<div><span class="text-stone-500">Age:</span> ${
+        unit.current_game_year != null
+          ? `${unit.current_game_year - unit.birth_year} (born year ${unit.birth_year})${unit.old_year != null ? `, expected ${unit.old_year - unit.birth_year}` : ''}`
+          : `born year ${unit.birth_year}`
+      }</div>` : (unit.linked_hf && unit.linked_hf.birth_year != null ? `<div><span class="text-stone-500">Age:</span> ${
+        unit.current_game_year != null
+          ? `${unit.current_game_year - unit.linked_hf.birth_year} (born year ${unit.linked_hf.birth_year})`
+          : `born year ${unit.linked_hf.birth_year}`
+      }</div>` : '')}
+      ${unit.death_cause ? `<div><span class="text-stone-500">Death:</span> ${escapeHtml(titleCase(unit.death_cause))}</div>` : ''}
     </div>
     ${unit.civ_name ? `<div class="mt-2 text-xs"><span class="text-stone-500">Civilization:</span> <span class="nav-link" onclick="navigateTo('civs','entity',${unit.world_id},${unit.civ_id})">${escapeHtml(unit.civ_name)}</span></div>` : ''}
   </div>`;
@@ -690,6 +753,125 @@ function renderUnitDetail(unit, panel) {
       <div class="section-title">Linked Historical Figure</div>
       <div class="text-xs text-stone-500">HF #${unit.hist_fig_id} — No legends record (born after legends export)</div>
     </div>`;
+  }
+
+  // Relationships
+  if (unit.relationships && unit.relationships.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Relationships (${unit.relationships.length})</div>
+      <div class="grid grid-cols-2 gap-1">`;
+    for (const rel of unit.relationships) {
+      html += `<div class="text-xs">
+        <span class="text-stone-500">${escapeHtml(rel.type)}:</span>
+        ${rel.name ? `<span class="nav-link" onclick="loadHfDetail(${unit.world_id}, ${rel.hf_id})">${escapeHtml(rel.name)}</span>` : `<span class="text-stone-400">HF #${rel.hf_id}</span>`}
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Personality
+  if (unit.personality) {
+    const p = unit.personality;
+
+    // Traits — compact grid of notable traits (far from 50 = extreme)
+    if (p.traits && Object.keys(p.traits).length > 0) {
+      const traitEntries = Object.entries(p.traits)
+        .map(([name, val]) => ({ name, val }))
+        .sort((a, b) => Math.abs(b.val - 50) - Math.abs(a.val - 50));
+      const notable = traitEntries.filter(t => t.val <= 25 || t.val >= 75);
+      const display = notable.length > 0 ? notable.slice(0, 16) : traitEntries.slice(0, 8);
+      html += `<div class="section-card">
+        <div class="section-title">Personality Traits${notable.length > 16 ? ` (top 16 of ${notable.length})` : ''}</div>
+        <div class="grid grid-cols-2 gap-1">`;
+      for (const t of display) {
+        const pct = t.val;
+        const color = pct >= 75 ? 'bg-green-500' : pct <= 25 ? 'bg-red-500' : 'bg-stone-500';
+        html += `<div class="text-xs flex items-center gap-2">
+          <span class="text-stone-300 w-28 truncate">${escapeHtml(titleCase(t.name.replace(/_/g, ' ')))}</span>
+          <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="${color} rounded-full h-1.5" style="width:${pct}%"></div></div>
+          <span class="text-stone-500 w-6 text-right">${t.val}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Values
+    if (p.values && p.values.length > 0) {
+      html += `<div class="section-card">
+        <div class="section-title">Values (${p.values.length})</div>
+        <div class="flex flex-wrap gap-1">`;
+      for (const v of p.values) {
+        const strengthLabel = v.strength > 20 ? 'strong' : v.strength < -20 ? 'opposed' : 'moderate';
+        const color = v.strength > 20 ? 'badge-alive' : v.strength < -20 ? 'badge-dead' : 'badge-type';
+        html += `<span class="badge ${color}" title="Strength: ${v.strength}">${escapeHtml(titleCase((v.type || '').replace(/_/g, ' ')))}</span>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Needs
+    if (p.needs && p.needs.length > 0) {
+      html += `<div class="section-card">
+        <div class="section-title">Needs (${p.needs.length})</div>
+        <div class="grid grid-cols-2 gap-1">`;
+      for (const n of p.needs) {
+        const focus = n.focus || 0;
+        const focusPct = Math.min(Math.max((focus + 400) / 800 * 100, 0), 100);
+        const color = focus > 100 ? 'bg-green-500' : focus < -100 ? 'bg-red-500' : 'bg-amber-500';
+        html += `<div class="text-xs flex items-center gap-2">
+          <span class="text-stone-300 w-28 truncate">${escapeHtml(titleCase((n.type || '').replace(/_/g, ' ')))}</span>
+          <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="${color} rounded-full h-1.5" style="width:${focusPct}%"></div></div>
+          <span class="text-stone-500 w-8 text-right">${focus}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Dreams
+    if (p.dreams && p.dreams.length > 0) {
+      html += `<div class="section-card">
+        <div class="section-title">Dreams & Goals (${p.dreams.length})</div>
+        <div class="flex flex-wrap gap-1">`;
+      for (const d of p.dreams) {
+        const icon = d.accomplished ? '✓' : '○';
+        const color = d.accomplished ? 'text-green-400' : 'text-stone-400';
+        html += `<span class="badge badge-type"><span class="${color}">${icon}</span> ${escapeHtml(titleCase((d.type || '').replace(/_/g, ' ')))}</span>`;
+      }
+      html += '</div></div>';
+    }
+  }
+
+  // Physical + Mental Attributes
+  const hasPhys = unit.physical_attrs && Object.keys(unit.physical_attrs).length > 0;
+  const hasMental = unit.mental_attrs && Object.keys(unit.mental_attrs).length > 0;
+  if (hasPhys || hasMental) {
+    html += `<div class="section-card">
+      <div class="section-title">Attributes</div>
+      <div class="grid grid-cols-2 gap-x-6 gap-y-0">`;
+    if (hasPhys) {
+      html += '<div><div class="text-stone-500 text-[10px] uppercase mb-1">Physical</div>';
+      for (const [name, attr] of Object.entries(unit.physical_attrs)) {
+        const pct = attr.max > 0 ? Math.min(attr.value / attr.max * 100, 100) : 50;
+        html += `<div class="text-xs flex items-center gap-2 mb-0.5">
+          <span class="text-stone-300 w-20 truncate">${escapeHtml(titleCase(name.replace(/_/g, ' ')))}</span>
+          <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="bg-blue-500 rounded-full h-1.5" style="width:${pct}%"></div></div>
+          <span class="text-stone-500 w-12 text-right">${attr.value}/${attr.max}</span>
+        </div>`;
+      }
+      html += '</div>';
+    }
+    if (hasMental) {
+      html += '<div><div class="text-stone-500 text-[10px] uppercase mb-1">Mental</div>';
+      for (const [name, attr] of Object.entries(unit.mental_attrs)) {
+        const pct = attr.max > 0 ? Math.min(attr.value / attr.max * 100, 100) : 50;
+        html += `<div class="text-xs flex items-center gap-2 mb-0.5">
+          <span class="text-stone-300 w-20 truncate">${escapeHtml(titleCase(name.replace(/_/g, ' ')))}</span>
+          <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="bg-purple-500 rounded-full h-1.5" style="width:${pct}%"></div></div>
+          <span class="text-stone-500 w-12 text-right">${attr.value}/${attr.max}</span>
+        </div>`;
+      }
+      html += '</div>';
+    }
+    html += '</div></div>';
   }
 
   // Skills
@@ -751,14 +933,36 @@ async function loadCivs() {
   }
 }
 
-function renderCivsList(data) {
+function renderCivsList(data, filterQ, sortKey) {
   const list = document.getElementById('civs-list');
   const groups = data.groups || {};
   const groupOrder = ['civilization', 'religion', 'military unit', 'sitegovernment', 'performancetroupe', 'unknown'];
+  const q = (filterQ || '').toLowerCase();
+
+  // Flatten for sorting, then re-group
+  let allItems = [];
+  for (const g of groupOrder) {
+    for (const e of (groups[g] || [])) allItems.push({...e, _group: g});
+  }
+  if (q) allItems = allItems.filter(e => (e.name || '').toLowerCase().includes(q) || (e.race || '').toLowerCase().includes(q));
+  if (sortKey) {
+    const [field, dir] = sortKey.split('-');
+    const mul = dir === 'desc' ? -1 : 1;
+    if (field === 'name') allItems.sort((a, b) => mul * (a.name || '').localeCompare(b.name || ''));
+    else if (field === 'members') allItems.sort((a, b) => mul * ((a.member_count || 0) - (b.member_count || 0)));
+    else if (field === 'sites') allItems.sort((a, b) => mul * ((a.site_count || 0) - (b.site_count || 0)));
+  }
+
+  // Re-group after filter/sort
+  const sorted = {};
+  for (const e of allItems) {
+    if (!sorted[e._group]) sorted[e._group] = [];
+    sorted[e._group].push(e);
+  }
 
   let html = '';
   for (const g of groupOrder) {
-    const items = groups[g];
+    const items = sorted[g];
     if (!items || items.length === 0) continue;
     html += `<div class="mt-3 first:mt-0">
       <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
@@ -775,9 +979,16 @@ function renderCivsList(data) {
   list.innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4 text-center">No entities found</div>';
 }
 
+function filterCivsList() {
+  if (!civsData) return;
+  const q = document.getElementById('civs-filter').value;
+  const sort = document.getElementById('civs-sort').value;
+  renderCivsList(civsData, q, sort);
+}
+
 async function loadCivDetail(worldId, entityId) {
   selectedCiv = entityId;
-  if (civsData) renderCivsList(civsData); // re-render for active highlight
+  if (civsData) filterCivsList(); // re-render for active highlight
   const panel = document.getElementById('civs-detail');
   panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
 
@@ -806,23 +1017,29 @@ function renderCivDetail(civ, panel) {
 
   // Positions
   if (civ.positions && civ.positions.length > 0) {
+    const catColors = {noble: 'bg-amber-900/50 text-amber-400', military: 'bg-red-900/50 text-red-400',
+                       admin: 'bg-blue-900/50 text-blue-400', other: 'bg-stone-800 text-stone-400'};
     html += `<div class="section-card">
       <div class="section-title">Positions (${civ.positions.length})</div>
       <table class="w-full text-xs">
         <thead><tr class="text-stone-500 border-b border-stone-800">
           <th class="text-left py-1 pr-3">Position</th>
-          <th class="text-left py-1 pr-3">Variants</th>
+          <th class="text-left py-1 pr-3">Title</th>
+          <th class="text-left py-1 pr-3">Category</th>
           <th class="text-left py-1">Current Holder</th>
         </tr></thead>
         <tbody class="divide-y divide-stone-800/50">`;
     for (const p of civ.positions) {
-      const variants = [p.name_male, p.name_female].filter(Boolean).join(' / ');
+      const cat = p.category || 'other';
+      const catClass = catColors[cat] || catColors.other;
+      const title = p.title ? escapeHtml(titleCase(p.title)) : '';
       const holder = p.current_holder
         ? `<span class="nav-link" onclick="navigateTo('people','hf',${civ.world_id},${p.current_holder.hf_id})">${escapeHtml(p.current_holder.name)}</span>`
         : '<span class="text-stone-600">Vacant</span>';
       html += `<tr class="hover:bg-stone-800/30">
         <td class="py-1 pr-3 text-amber-400">${escapeHtml(p.name)}</td>
-        <td class="py-1 pr-3 text-stone-500">${escapeHtml(variants)}</td>
+        <td class="py-1 pr-3 text-stone-400">${title}</td>
+        <td class="py-1 pr-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${catClass}">${titleCase(cat)}</span></td>
         <td class="py-1">${holder}</td>
       </tr>`;
     }
@@ -876,33 +1093,88 @@ function renderCivDetail(civ, panel) {
   panel.innerHTML = html;
 }
 
+let civMembersData = [];
+let civMembersWorldId = null;
+let civMembersSortCol = 'name';
+let civMembersSortDir = 1;
+
+function renderMembersTable(members, worldId) {
+  if (members.length === 0) return '<div class="text-stone-500 text-xs py-2">No members found</div>';
+
+  const arrows = col => col === civMembersSortCol ? (civMembersSortDir === 1 ? ' ↑' : ' ↓') : '';
+  const thClass = 'text-left py-1 pr-3 cursor-pointer hover:text-stone-300';
+  let html = `<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">
+    <th class="${thClass}" onclick="sortMembers('name')">Name${arrows('name')}</th>
+    <th class="${thClass}" onclick="sortMembers('race')">Race${arrows('race')}</th>
+    <th class="${thClass}" onclick="sortMembers('link_type')">Link${arrows('link_type')}</th>
+    <th class="${thClass}" onclick="sortMembers('position_name')">Position${arrows('position_name')}</th>
+    <th class="${thClass}" onclick="sortMembers('is_alive')">Status${arrows('is_alive')}</th>
+  </tr></thead><tbody class="divide-y divide-stone-800/50">`;
+
+  for (const m of members) {
+    html += `<tr class="hover:bg-stone-800/30">
+      <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
+      <td class="py-1 pr-3 text-stone-400">${escapeHtml(m.race || '')}</td>
+      <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
+      <td class="py-1 pr-3 text-amber-400">${m.position_name ? escapeHtml(titleCase(m.position_name)) : ''}</td>
+      <td class="py-1"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
+    </tr>`;
+  }
+  return html + '</tbody></table>';
+}
+
+function sortMembers(col) {
+  if (civMembersSortCol === col) civMembersSortDir *= -1;
+  else { civMembersSortCol = col; civMembersSortDir = 1; }
+  filterCivMembers();
+}
+
+function filterCivMembers() {
+  const container = document.getElementById('civ-members-container');
+  if (!civMembersData.length) return;
+  const q = (document.getElementById('members-filter')?.value || '').toLowerCase();
+  let filtered = q ? civMembersData.filter(m =>
+    (m.name || '').toLowerCase().includes(q) ||
+    (m.race || '').toLowerCase().includes(q) ||
+    (m.position_name || '').toLowerCase().includes(q)
+  ) : [...civMembersData];
+
+  filtered.sort((a, b) => {
+    const col = civMembersSortCol;
+    if (col === 'is_alive') return civMembersSortDir * ((a.is_alive ? 1 : 0) - (b.is_alive ? 1 : 0));
+    return civMembersSortDir * (a[col] || '').toString().localeCompare((b[col] || '').toString());
+  });
+
+  const tableDiv = container.querySelector('.members-table');
+  if (tableDiv) tableDiv.innerHTML = renderMembersTable(filtered, civMembersWorldId);
+}
+
 async function loadCivMembers(worldId, entityId) {
   const container = document.getElementById('civ-members-container');
   container.innerHTML = '<div class="text-stone-500 text-xs py-2">Loading...</div>';
+  civMembersWorldId = worldId;
+  civMembersSortCol = 'name';
+  civMembersSortDir = 1;
 
   try {
-    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=100`);
+    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=1000`);
     const data = await resp.json();
+    civMembersData = data.members;
 
     if (data.members.length === 0) {
       container.innerHTML = '<div class="text-stone-500 text-xs py-2">No members found</div>';
       return;
     }
 
-    let html = `<div class="mt-3 section-card"><div class="section-title">Members (${data.total} total, showing ${data.members.length})</div>`;
-    html += '<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">';
-    html += '<th class="text-left py-1 pr-3">Name</th><th class="text-left py-1 pr-3">Race</th><th class="text-left py-1 pr-3">Link</th><th class="text-left py-1">Status</th>';
-    html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
-
-    for (const m of data.members) {
-      html += `<tr class="hover:bg-stone-800/30">
-        <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
-        <td class="py-1 pr-3 text-stone-400">${escapeHtml(m.race || '')}</td>
-        <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
-        <td class="py-1"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
-      </tr>`;
-    }
-    html += '</tbody></table></div>';
+    let html = `<div class="mt-3 section-card">
+      <div class="flex items-center justify-between mb-2">
+        <div class="section-title">Members (${data.total} total, showing ${data.members.length})</div>
+        <input id="members-filter" type="text" placeholder="Filter members..."
+               class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
+               oninput="filterCivMembers()">
+      </div>
+      <div class="members-table">${renderMembersTable(data.members, worldId)}</div>
+    </div>`;
     container.innerHTML = html;
   } catch (e) {
     container.innerHTML = `<div class="text-red-400 text-xs py-2">${escapeHtml(e.message)}</div>`;
@@ -933,11 +1205,24 @@ async function loadSites() {
   }
 }
 
-function renderSitesList(sites) {
+function renderSitesList(sites, filterQ, sortKey) {
   const list = document.getElementById('geo-list');
+  const q = (filterQ || '').toLowerCase();
+  let filtered = q ? sites.filter(s =>
+    (s.name || '').toLowerCase().includes(q) || (s.owner_name || '').toLowerCase().includes(q)
+  ) : [...sites];
+
+  if (sortKey) {
+    const [field, dir] = sortKey.split('-');
+    const mul = dir === 'desc' ? -1 : 1;
+    if (field === 'name') filtered.sort((a, b) => mul * (a.name || '').localeCompare(b.name || ''));
+    else if (field === 'hfs') filtered.sort((a, b) => mul * ((a.linked_hf_count || 0) - (b.linked_hf_count || 0)));
+    else if (field === 'structures') filtered.sort((a, b) => mul * ((a.structure_count || 0) - (b.structure_count || 0)));
+  }
+
   // Group by type
   const groups = {};
-  for (const s of sites) {
+  for (const s of filtered) {
     const g = s.type || 'unknown';
     if (!groups[g]) groups[g] = [];
     groups[g].push(s);
@@ -960,9 +1245,16 @@ function renderSitesList(sites) {
   list.innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4 text-center">No sites found</div>';
 }
 
+function filterSitesList() {
+  if (!geoData) return;
+  const q = document.getElementById('geo-filter').value;
+  const sort = document.getElementById('geo-sort').value;
+  renderSitesList(geoData, q, sort);
+}
+
 async function loadSiteDetail(worldId, siteId) {
   selectedSite = siteId;
-  if (geoData) renderSitesList(geoData);
+  if (geoData) filterSitesList();
   const panel = document.getElementById('geo-detail');
   panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
 

@@ -772,7 +772,7 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
         hf_rows = await conn.fetch(f"""
             SELECT id, world_id, name, race, is_deity, is_vampire, is_necromancer
             FROM historical_figures
-            WHERE name ILIKE $1 {world_filter}
+            WHERE unaccent(name) ILIKE unaccent($1) {world_filter}
             ORDER BY kill_count DESC NULLS LAST
             LIMIT 10
         """, *params_hf)
@@ -792,7 +792,7 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
         ent_rows = await conn.fetch(f"""
             SELECT id, world_id, name, type
             FROM entities
-            WHERE name ILIKE $1 {world_filter}
+            WHERE unaccent(name) ILIKE unaccent($1) {world_filter}
             ORDER BY name
             LIMIT 10
         """, *params_ent)
@@ -807,7 +807,7 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
         site_rows = await conn.fetch(f"""
             SELECT id, world_id, name, type
             FROM sites
-            WHERE name ILIKE $1 {world_filter}
+            WHERE unaccent(name) ILIKE unaccent($1) {world_filter}
             ORDER BY name
             LIMIT 10
         """, *params_site)
@@ -823,7 +823,7 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
         unit_rows = await conn.fetch(f"""
             SELECT id, world_id, name, english_name, race, profession, hist_fig_id
             FROM units
-            WHERE (name ILIKE $1 OR english_name ILIKE $1) {world_filter}
+            WHERE (unaccent(name) ILIKE unaccent($1) OR unaccent(COALESCE(english_name, '')) ILIKE unaccent($1)) {world_filter}
             ORDER BY name
             LIMIT 10
         """, *params_unit)

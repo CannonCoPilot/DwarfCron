@@ -27,8 +27,10 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
             """
             INSERT INTO units (id, world_id, name, english_name, race, caste,
                                profession, pos_x, pos_y, pos_z, is_alive,
-                               hist_fig_id, civ_id, details, last_synced_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                               hist_fig_id, civ_id, birth_year, sex,
+                               death_cause, details, last_synced_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+                    $14, $15, $16, $17, $18)
             ON CONFLICT (id) DO UPDATE SET
                 world_id = EXCLUDED.world_id,
                 name = EXCLUDED.name,
@@ -42,6 +44,9 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
                 is_alive = EXCLUDED.is_alive,
                 hist_fig_id = EXCLUDED.hist_fig_id,
                 civ_id = EXCLUDED.civ_id,
+                birth_year = COALESCE(EXCLUDED.birth_year, units.birth_year),
+                sex = COALESCE(EXCLUDED.sex, units.sex),
+                death_cause = COALESCE(EXCLUDED.death_cause, units.death_cause),
                 details = EXCLUDED.details,
                 last_synced_at = EXCLUDED.last_synced_at
             """,
@@ -58,6 +63,9 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
             u['is_alive'],
             u['hist_fig_id'],
             u['civ_id'],
+            u.get('birth_year'),
+            u.get('sex'),
+            u.get('death_cause'),
             json.dumps(u['details']),
             now,
         )

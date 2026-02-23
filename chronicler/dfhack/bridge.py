@@ -288,6 +288,75 @@ def get_incidents(bridge_data: dict | None) -> list[dict]:
     return bridge_data.get('incidents', {}).get('incidents', [])
 
 
+def get_dwarf_personality(bridge_data: dict | None) -> list[dict]:
+    """Get per-dwarf personality data from bridge data (v7+).
+
+    Returns list of dicts with: id, first_name, traits, values,
+    needs, dreams, physical_attrs, mental_attrs.
+    """
+    if not bridge_data:
+        return []
+    return bridge_data.get('dwarf_personality', {}).get('dwarves', [])
+
+
+def merge_bridge_into_units(units: list[dict],
+                            bridge_data: dict | None) -> list[dict]:
+    """Merge bridge unit_summary + dwarf_personality fields into core RPC units.
+
+    Matches by unit ID. Adds biographical data (birth_year, sex, old_year,
+    caste, relationships, death_cause, cultural_identity) to each unit dict,
+    and folds personality data into details.personality.
+
+    Mutates units in place and returns the list.
+    """
+    if not bridge_data:
+        return units
+
+    # Index bridge fortress units by ID
+    fortress_units = get_fortress_units(bridge_data)
+    bridge_by_id = {bu['id']: bu for bu in fortress_units if 'id' in bu}
+
+    # Index personality data by ID
+    personality_list = get_dwarf_personality(bridge_data)
+    personality_by_id = {p['id']: p for p in personality_list if 'id' in p}
+
+    for unit in units:
+        uid = unit['id']
+        bu = bridge_by_id.get(uid)
+        if bu:
+            # Promote key fields to top level (for column storage)
+            unit['birth_year'] = bu.get('birth_year')
+            unit['sex'] = bu.get('sex')
+            unit['death_cause'] = bu.get('death_cause')
+
+            # Merge biographical fields into details
+            details = unit.get('details', {})
+            if bu.get('old_year') is not None:
+                details['old_year'] = bu['old_year']
+            if bu.get('birth_time') is not None:
+                details['birth_time'] = bu['birth_time']
+            if bu.get('cultural_identity') is not None:
+                details['cultural_identity'] = bu['cultural_identity']
+            if bu.get('relationships'):
+                details['relationships'] = bu['relationships']
+            unit['details'] = details
+
+        # Merge personality data into details
+        pd = personality_by_id.get(uid)
+        if pd:
+            details = unit.get('details', {})
+            personality = {}
+            for key in ('traits', 'values', 'needs', 'dreams',
+                        'physical_attrs', 'mental_attrs'):
+                if pd.get(key):
+                    personality[key] = pd[key]
+            if personality:
+                details['personality'] = personality
+            unit['details'] = details
+
+    return units
+
+
 def get_announcement_cursor(bridge_data: dict | None) -> int:
     """Get the current announcement cursor from bridge data (v6+).
 

@@ -42,7 +42,8 @@ async def search_people(
                 SELECT id, world_id, name, english_name, race, caste,
                        profession, is_alive
                 FROM units
-                WHERE name ILIKE $1 OR english_name ILIKE $1
+                WHERE unaccent(name) ILIKE unaccent($1)
+                   OR unaccent(COALESCE(english_name, '')) ILIKE unaccent($1)
                 ORDER BY name
                 LIMIT $2
                 """,
@@ -65,7 +66,7 @@ async def search_people(
                            is_deity, is_force, is_vampire,
                            is_necromancer, is_werebeast, is_ghost
                     FROM historical_figures
-                    WHERE name ILIKE $1
+                    WHERE unaccent(name) ILIKE unaccent($1)
                     ORDER BY name
                     LIMIT $2
                     """,
@@ -90,6 +91,11 @@ async def search_people(
 async def get_historical_figure(request: Request, world_id: int, hf_id: int):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
+        current_year = await conn.fetchval(
+            "SELECT game_year FROM sync_snapshots WHERE world_id = $1 "
+            "ORDER BY synced_at DESC LIMIT 1", world_id,
+        )
+
         hf = await conn.fetchrow(
             """
             SELECT h.*, e.name AS entity_name
@@ -169,6 +175,7 @@ async def get_historical_figure(request: Request, world_id: int, hf_id: int):
         "kill_count": hf["kill_count"], "event_count": hf["event_count"],
         "type_flags": _type_flags(hf),
         "entity_id": hf["entity_id"], "entity_name": hf["entity_name"],
+        "current_game_year": current_year,
         "linked_unit": dict(unit_row) if unit_row else None,
         "relationships": [
             {"target_id": r["target_hf_id"], "target_name": r["target_name"],
@@ -216,6 +223,11 @@ async def get_unit(request: Request, unit_id: int):
             raise HTTPException(404, "Unit not found")
         row = dict(row)
 
+        current_year = await conn.fetchval(
+            "SELECT game_year FROM sync_snapshots WHERE world_id = $1 "
+            "ORDER BY synced_at DESC LIMIT 1", row["world_id"],
+        )
+
         details = row.get("details") or {}
         if isinstance(details, str):
             details = json.loads(details)
@@ -230,6 +242,29 @@ async def get_unit(request: Request, unit_id: int):
             if hf_row:
                 linked_hf = dict(hf_row)
 
+        # Resolve relationship HF IDs to names
+        relationships = details.get("relationships", {})
+        resolved_relationships = []
+        if relationships:
+            rel_ids = [v for v in relationships.values()
+                       if isinstance(v, int) and v >= 0]
+            name_map = {}
+            if rel_ids:
+                hf_names = await conn.fetch(
+                    "SELECT id, name FROM historical_figures "
+                    "WHERE world_id = $1 AND id = ANY($2::int[])",
+                    row["world_id"], rel_ids,
+                )
+                name_map = {r["id"]: r["name"] for r in hf_names}
+            for rel_type, hf_id in relationships.items():
+                if isinstance(hf_id, int) and hf_id >= 0:
+                    resolved_relationships.append({
+                        "type": rel_type, "hf_id": hf_id,
+                        "name": name_map.get(hf_id),
+                    })
+
+    personality = details.get("personality", {})
+
     return {
         "id": row["id"], "world_id": row["world_id"],
         "name": row["name"], "english_name": row["english_name"],
@@ -239,6 +274,21 @@ async def get_unit(request: Request, unit_id: int):
         "is_alive": row["is_alive"],
         "hist_fig_id": row["hist_fig_id"], "civ_id": row["civ_id"],
         "civ_name": row["civ_name"],
+        "current_game_year": current_year,
+        "birth_year": row.get("birth_year"),
+        "sex": row.get("sex"),
+        "death_cause": row.get("death_cause"),
+        "old_year": details.get("old_year"),
+        "cultural_identity": details.get("cultural_identity"),
+        "relationships": resolved_relationships,
+        "personality": {
+            "traits": personality.get("traits", {}),
+            "values": personality.get("values", []),
+            "needs": personality.get("needs", []),
+            "dreams": personality.get("dreams", []),
+        } if personality else None,
+        "physical_attrs": personality.get("physical_attrs", {}),
+        "mental_attrs": personality.get("mental_attrs", {}),
         "skills": details.get("skills", []),
         "labors": details.get("labors", []),
         "linked_hf": linked_hf,

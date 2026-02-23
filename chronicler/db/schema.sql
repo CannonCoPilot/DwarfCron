@@ -3,6 +3,7 @@
 -- v2: Composite primary keys (world_id, id) for multi-world support
 
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 -- ─── World Metadata ──────────────────────────────────────────────────────────
 
@@ -341,6 +342,9 @@ CREATE TABLE IF NOT EXISTS units (
     is_alive        BOOLEAN DEFAULT TRUE,
     hist_fig_id     INT,
     civ_id          INT,
+    birth_year      INT,
+    sex             SMALLINT,
+    death_cause     TEXT,
     details         JSONB DEFAULT '{}',
     last_synced_at  TIMESTAMPTZ DEFAULT now()
 );

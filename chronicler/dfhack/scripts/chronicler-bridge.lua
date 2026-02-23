@@ -1,4 +1,4 @@
--- chronicler-bridge.lua v6 — DFHack bridge for Chronicler
+-- chronicler-bridge.lua v7 — DFHack bridge for Chronicler
 --
 -- Writes comprehensive game state to a JSON file that Chronicler reads
 -- over HTTP. Runs as a `repeat` job on the console thread (where CoreSuspend works).
@@ -15,7 +15,7 @@
 -- Data sections (all from df.global):
 --   game_time: year, tick, season
 --   creature_raws: race_id -> creature_id mapping (934+ entries)
---   unit_summary: fortress dwarves with stress/profession/flags/mood
+--   unit_summary: fortress dwarves with stress/profession/flags/mood/bio/relationships (v7)
 --   armies: count + positions
 --   buildings: count by type
 --   artifacts: named artifact list
@@ -26,6 +26,7 @@
 --   entities: nearby civilizations with names and types
 --   dwarf_skills: per-dwarf full skill lists
 --   dwarf_emotions: per-dwarf emotion/thought vectors (v6)
+--   dwarf_personality: per-dwarf traits, values, needs, dreams, attributes (v7)
 --   zones: fortress civzones with types and assignments (v6)
 --   event_collections: active wars/battles/sieges (v6)
 --   squads: military squads with members and orders (v6)
@@ -146,6 +147,42 @@ local function get_unit_summary()
             if u.pregnancy_timer > 0 then
                 entry.pregnancy_spouse = u.pregnancy_spouse
             end
+
+            -- v7: Biographical data
+            entry.birth_year = u.birth_year
+            entry.birth_time = u.birth_time
+            entry.old_year = u.old_year
+            entry.sex = u.sex
+            entry.caste = u.caste
+
+            -- v7: Death cause (for dead units still in list)
+            if dfhack.units.isDead(u) then
+                local dc_ok, dc = pcall(function() return u.counters.death_cause end)
+                if dc_ok and dc then
+                    entry.death_cause = dc
+                end
+            end
+
+            -- v7: Cultural identity
+            local ci_ok, ci = pcall(function() return u.cultural_identity end)
+            if ci_ok and ci and ci >= 0 then
+                entry.cultural_identity = ci
+            end
+
+            -- v7: Relationships (9 slots — histfig IDs)
+            local rel_ok, _ = pcall(function()
+                local rels = {}
+                local rel_types = {'PetOwner','Spouse','Mother','Father','LastAttacker','GroupLeader','Draggee','Dragger','RiderMount'}
+                for j, rtype in ipairs(rel_types) do
+                    local hfid = u.relationship_ids[j-1]  -- 0-indexed
+                    if hfid and hfid > -1 then
+                        rels[rtype] = hfid
+                    end
+                end
+                if next(rels) then
+                    entry.relationships = rels
+                end
+            end)
 
             table.insert(dwarves, entry)
         end
@@ -569,6 +606,115 @@ local function get_dwarf_emotions()
     }
 end
 
+-- ── Dwarf Personality (traits, values, needs, dreams, attributes — v7)
+
+local function get_dwarf_personality()
+    local units = df.global.world.units.active
+    local player_race = df.global.plotinfo.race_id
+    local player_civ = df.global.plotinfo.civ_id
+    local dwarves = {}
+
+    for i = 0, #units - 1 do
+        local u = units[i]
+        if u.race == player_race and u.civ_id == player_civ
+           and not dfhack.units.isDead(u)
+           and u.status and u.status.current_soul then
+            local soul = u.status.current_soul
+            local p = soul.personality
+            local entry = { id = u.id }
+
+            -- Traits (50 facets, each 0-100 internally)
+            local traits = {}
+            local trait_ok, _ = pcall(function()
+                for j = 0, 49 do
+                    local tname = df.personality_facet_type[j]
+                    if tname then
+                        traits[tname] = p.traits[j]
+                    end
+                end
+            end)
+            if trait_ok and next(traits) then
+                entry.traits = traits
+            end
+
+            -- Values
+            local values = {}
+            local val_ok, _ = pcall(function()
+                for j = 0, #p.values - 1 do
+                    local v = p.values[j]
+                    table.insert(values, {type=df.value_type[v.type], strength=v.strength})
+                end
+            end)
+            if val_ok and #values > 0 then
+                entry.values = values
+            end
+
+            -- Needs with focus level
+            local needs = {}
+            local need_ok, _ = pcall(function()
+                for j = 0, #p.needs - 1 do
+                    local n = p.needs[j]
+                    table.insert(needs, {type=df.need_type[n.id], focus=n.focus_level, level=n.need_level})
+                end
+            end)
+            if need_ok and #needs > 0 then
+                entry.needs = needs
+            end
+
+            -- Dreams/goals
+            local dreams = {}
+            local dream_ok, _ = pcall(function()
+                for j = 0, #p.dreams - 1 do
+                    local d = p.dreams[j]
+                    table.insert(dreams, {type=df.goal_type[d.type], accomplished=d.flags.accomplished})
+                end
+            end)
+            if dream_ok and #dreams > 0 then
+                entry.dreams = dreams
+            end
+
+            -- Physical attributes (6)
+            local phys = {}
+            local phys_ok, _ = pcall(function()
+                for j = 0, 5 do
+                    local attr = u.body.physical_attrs[j]
+                    phys[df.physical_attribute_type[j]] = {value=attr.value, max=attr.max_value}
+                end
+            end)
+            if phys_ok and next(phys) then
+                entry.physical_attrs = phys
+            end
+
+            -- Mental attributes (12)
+            local ment = {}
+            local ment_ok, _ = pcall(function()
+                for j = 0, 12 do
+                    local attr = soul.mental_attrs[j]
+                    if attr then
+                        ment[df.mental_attribute_type[j]] = {value=attr.value, max=attr.max_value}
+                    end
+                end
+            end)
+            if ment_ok and next(ment) then
+                entry.mental_attrs = ment
+            end
+
+            if entry.traits or entry.values or entry.needs or entry.dreams
+               or entry.physical_attrs or entry.mental_attrs then
+                if u.name and u.name.has_name then
+                    entry.first_name = to_utf8(u.name.first_name)
+                end
+                table.insert(dwarves, entry)
+            end
+        end
+    end
+
+    return {
+        dwarf_count = #dwarves,
+        dwarves = dwarves,
+    }
+end
+
 -- ── Zones (fortress civzones) ────────────────────────────────────────
 
 local function get_zones()
@@ -871,7 +1017,7 @@ local function write_state()
     state.creature_raws = get_creature_raws()
     state.creature_count = #df.global.world.raws.creatures.all
     state.timestamp = os.time()
-    state.bridge_version = 6
+    state.bridge_version = 7
 
     -- Data sections (each wrapped in pcall for safety)
     local ok, result
@@ -900,6 +1046,8 @@ local function write_state()
 
     -- v6 new sections
     safe_add('dwarf_emotions', get_dwarf_emotions)
+    -- v7 new sections
+    safe_add('dwarf_personality', get_dwarf_personality)
     safe_add('zones', get_zones)
     safe_add('event_collections', get_event_collections)
     safe_add('squads', get_squads)
