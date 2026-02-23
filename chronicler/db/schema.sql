@@ -331,6 +331,7 @@ CREATE TABLE IF NOT EXISTS units (
     id              INT PRIMARY KEY,
     world_id        INT REFERENCES worlds(id),
     name            TEXT,
+    english_name    TEXT,
     race            TEXT,
     caste           TEXT,
     profession      TEXT,

@@ -1,0 +1,174 @@
+"""Civilization (entity) exploration routes."""
+
+from fastapi import APIRouter, HTTPException, Query, Request
+
+router = APIRouter()
+
+
+@router.get("/civilizations")
+async def list_civilizations(
+    request: Request,
+    type: str | None = Query(None),
+    world_id: int = Query(8),
+):
+    pool = request.app.state.pool
+    conditions = ["e.world_id = $1"]
+    params: list = [world_id]
+
+    if type is not None:
+        conditions.append("e.type = $2")
+        params.append(type)
+
+    where = " AND ".join(conditions)
+    query = f"""
+        SELECT e.id, e.world_id, e.name, e.type, e.race,
+            COALESCE(mem.cnt, 0) AS member_count,
+            COALESCE(sit.cnt, 0) AS site_count,
+            COALESCE(pos.cnt, 0) AS position_count
+        FROM entities e
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS cnt FROM hf_entity_links
+            WHERE world_id = e.world_id AND entity_id = e.id
+        ) mem ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS cnt FROM sites
+            WHERE world_id = e.world_id AND owner_entity_id = e.id
+        ) sit ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS cnt FROM entity_positions
+            WHERE world_id = e.world_id AND entity_id = e.id
+        ) pos ON true
+        WHERE {where}
+        ORDER BY e.type, e.name
+    """
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(query, *params)
+
+    grouped: dict[str, list[dict]] = {}
+    for r in rows:
+        entry = dict(r)
+        grouped.setdefault(entry.get("type") or "unknown", []).append(entry)
+    return {"groups": grouped, "total": len(rows)}
+
+
+@router.get("/civilizations/{world_id}/{entity_id}")
+async def get_civilization(request: Request, world_id: int, entity_id: int):
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        entity = await conn.fetchrow(
+            "SELECT id, world_id, name, type, race FROM entities "
+            "WHERE world_id = $1 AND id = $2",
+            world_id, entity_id,
+        )
+        if not entity:
+            raise HTTPException(404, "Entity not found")
+
+        positions = await conn.fetch(
+            """
+            SELECT ep.position_id, ep.name, ep.name_male, ep.name_female,
+                   hpl.hf_id AS holder_hf_id, hf.name AS holder_name
+            FROM entity_positions ep
+            LEFT JOIN hf_position_links hpl
+                ON hpl.world_id = ep.world_id AND hpl.entity_id = ep.entity_id
+                AND hpl.position_id = ep.position_id AND hpl.end_year IS NULL
+            LEFT JOIN historical_figures hf
+                ON hf.world_id = hpl.world_id AND hf.id = hpl.hf_id
+            WHERE ep.world_id = $1 AND ep.entity_id = $2
+            ORDER BY ep.name
+            """, world_id, entity_id,
+        )
+
+        sites = await conn.fetch(
+            "SELECT id, name, type FROM sites "
+            "WHERE world_id = $1 AND owner_entity_id = $2 ORDER BY name",
+            world_id, entity_id,
+        )
+
+        wars = await conn.fetch(
+            """
+            SELECT id, name, type, start_year, end_year,
+                CASE WHEN attacker_entity_id = $2 THEN 'attacker' ELSE 'defender' END AS role
+            FROM history_event_collections
+            WHERE world_id = $1 AND type = 'war'
+              AND (attacker_entity_id = $2 OR defender_entity_id = $2)
+            ORDER BY start_year
+            """, world_id, entity_id,
+        )
+
+    result = dict(entity)
+    result["positions"] = [
+        {"position_id": p["position_id"], "name": p["name"],
+         "name_male": p["name_male"], "name_female": p["name_female"],
+         "current_holder": {"hf_id": p["holder_hf_id"], "name": p["holder_name"]}
+             if p["holder_hf_id"] is not None else None}
+        for p in positions
+    ]
+    result["sites"] = [dict(s) for s in sites]
+    result["wars"] = [dict(w) for w in wars]
+    return result
+
+
+@router.get("/civilizations/{world_id}/{entity_id}/members")
+async def list_members(
+    request: Request, world_id: int, entity_id: int,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        exists = await conn.fetchval(
+            "SELECT 1 FROM entities WHERE world_id = $1 AND id = $2",
+            world_id, entity_id,
+        )
+        if not exists:
+            raise HTTPException(404, "Entity not found")
+
+        total = await conn.fetchval(
+            "SELECT COUNT(*) FROM hf_entity_links WHERE world_id = $1 AND entity_id = $2",
+            world_id, entity_id,
+        )
+        members = await conn.fetch(
+            """
+            SELECT hel.hf_id, hf.name, hf.race, hel.link_type,
+                   hel.position_name, (hf.death_year IS NULL) AS is_alive
+            FROM hf_entity_links hel
+            JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id
+            WHERE hel.world_id = $1 AND hel.entity_id = $2
+            ORDER BY hf.name LIMIT $3 OFFSET $4
+            """, world_id, entity_id, limit, offset,
+        )
+    return {"total": total, "members": [dict(m) for m in members]}
+
+
+@router.get("/civilizations/{world_id}/{entity_id}/positions")
+async def list_positions(request: Request, world_id: int, entity_id: int):
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        positions = await conn.fetch(
+            "SELECT position_id, name, name_male, name_female FROM entity_positions "
+            "WHERE world_id = $1 AND entity_id = $2 ORDER BY name",
+            world_id, entity_id,
+        )
+        holders = await conn.fetch(
+            """
+            SELECT hpl.position_id, hpl.hf_id, hf.name, hpl.start_year, hpl.end_year
+            FROM hf_position_links hpl
+            JOIN historical_figures hf ON hf.world_id = hpl.world_id AND hf.id = hpl.hf_id
+            WHERE hpl.world_id = $1 AND hpl.entity_id = $2
+            ORDER BY hpl.position_id, hpl.start_year
+            """, world_id, entity_id,
+        )
+
+    holders_by_pos: dict[int, list[dict]] = {}
+    for h in holders:
+        holders_by_pos.setdefault(h["position_id"], []).append({
+            "hf_id": h["hf_id"], "name": h["name"],
+            "start_year": h["start_year"], "end_year": h["end_year"],
+        })
+
+    return [
+        {"position_id": p["position_id"], "name": p["name"],
+         "name_male": p["name_male"], "name_female": p["name_female"],
+         "holders": holders_by_pos.get(p["position_id"], [])}
+        for p in positions
+    ]

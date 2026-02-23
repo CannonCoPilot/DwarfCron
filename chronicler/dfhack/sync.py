@@ -25,13 +25,14 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
     for u in units:
         await conn.execute(
             """
-            INSERT INTO units (id, world_id, name, race, caste, profession,
-                               pos_x, pos_y, pos_z, is_alive,
+            INSERT INTO units (id, world_id, name, english_name, race, caste,
+                               profession, pos_x, pos_y, pos_z, is_alive,
                                hist_fig_id, civ_id, details, last_synced_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             ON CONFLICT (id) DO UPDATE SET
                 world_id = EXCLUDED.world_id,
                 name = EXCLUDED.name,
+                english_name = EXCLUDED.english_name,
                 race = EXCLUDED.race,
                 caste = EXCLUDED.caste,
                 profession = EXCLUDED.profession,
@@ -47,6 +48,7 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
             u['id'],
             world_id,
             u['name'],
+            u.get('details', {}).get('english_name'),
             str(u.get('race_name', u['race'])),
             str(u['details']['caste']),
             u['profession'],
