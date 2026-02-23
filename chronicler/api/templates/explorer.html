@@ -35,12 +35,28 @@
     .tab-active { border-bottom: 2px solid #f6b93b; color: #f6b93b; font-weight: 700; }
     .tab-inactive { border-bottom: 2px solid transparent; color: #78716c; }
     .tab-inactive:hover { color: #d6d3d1; }
-    .tbl-list-item { transition: background 0.1s; cursor: pointer; }
-    .tbl-list-item:hover { background: #292524; }
-    .tbl-list-item.active { background: #292524; border-left: 2px solid #f6b93b; }
+    .list-item { transition: background 0.1s; cursor: pointer; }
+    .list-item:hover { background: #292524; }
+    .list-item.active { background: #292524; border-left: 2px solid #f6b93b; }
     .pk-badge { background: #f6b93b; color: #0f0e0d; font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
-    .fk-link { color: #60a5fa; cursor: pointer; }
-    .fk-link:hover { text-decoration: underline; }
+    .fk-link, .nav-link { color: #60a5fa; cursor: pointer; }
+    .fk-link:hover, .nav-link:hover { text-decoration: underline; }
+    .badge { font-size: 0.6rem; padding: 1px 6px; border-radius: 3px; font-weight: 700; }
+    .badge-hf { background: #78716c; color: #fafaf9; }
+    .badge-unit { background: #3b82f6; color: #fafaf9; }
+    .badge-alive { background: #22c55e30; color: #22c55e; border: 1px solid #22c55e40; }
+    .badge-dead { background: #ef444430; color: #ef4444; border: 1px solid #ef444440; }
+    .badge-deity { background: #f6b93b; color: #0f0e0d; }
+    .badge-vampire { background: #ef4444; color: #fafaf9; }
+    .badge-necro { background: #a855f7; color: #fafaf9; }
+    .badge-were { background: #f97316; color: #fafaf9; }
+    .badge-type { background: #44403c; color: #d6d3d1; }
+    .section-card { background: #1c1917; border: 1px solid #292524; border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem; }
+    .section-title { color: #78716c; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .detail-header { color: #f6b93b; font-size: 1.25rem; font-weight: 700; }
+    .sub-toggle { border-bottom: 1px solid transparent; color: #a8a29e; font-size: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; }
+    .sub-toggle.active { border-bottom-color: #f6b93b; color: #f6b93b; }
+    .sub-toggle:hover { color: #d6d3d1; }
   </style>
 </head>
 <body class="text-stone-300 font-chronicle min-h-screen flex flex-col">
@@ -48,98 +64,237 @@
   {% set active = "explorer" %}
   {% include "partials/_nav.html" %}
 
-  <!-- Tab Bar -->
+  <!-- Main Tab Bar -->
   <div class="border-b border-stone-800 bg-stone-950 px-6 flex-shrink-0">
     <div class="flex gap-1">
-      <button onclick="switchTab('schema')" id="tab-schema" class="px-4 py-2.5 text-sm tab-active transition-colors">Schema</button>
-      <button onclick="switchTab('data')" id="tab-data" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Data</button>
+      <button onclick="switchTab('people')" id="tab-people" class="px-4 py-2.5 text-sm tab-active transition-colors">People</button>
+      <button onclick="switchTab('civs')" id="tab-civs" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Civilizations</button>
+      <button onclick="switchTab('geo')" id="tab-geo" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Geography</button>
+      <button onclick="switchTab('events')" id="tab-events" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Events</button>
+      <button onclick="switchTab('database')" id="tab-database" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Database</button>
       <button onclick="switchTab('graph')" id="tab-graph" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Graph</button>
     </div>
   </div>
 
-  <!-- ========== SCHEMA TAB ========== -->
-  <div id="panel-schema" class="flex-1 flex overflow-hidden">
-    <!-- Table List Sidebar -->
-    <div class="w-72 flex-shrink-0 border-r border-stone-800 overflow-y-auto ex-scroll bg-stone-950/50">
-      <div class="p-3">
-        <input id="table-filter" type="text" placeholder="Filter tables..."
+  <!-- ================================================================== -->
+  <!-- PEOPLE TAB                                                          -->
+  <!-- ================================================================== -->
+  <div id="panel-people" class="flex-1 flex overflow-hidden">
+    <!-- Search sidebar -->
+    <div class="w-80 flex-shrink-0 border-r border-stone-800 flex flex-col bg-stone-950/50">
+      <div class="p-3 space-y-2 border-b border-stone-800">
+        <input id="people-search" type="text" placeholder="Search by name..."
                class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-               oninput="filterTables(this.value)">
-      </div>
-      <div id="table-list" class="px-1 pb-4">
-        <div class="text-stone-500 text-xs px-3 py-4">Loading tables...</div>
-      </div>
-    </div>
-
-    <!-- Detail Panel -->
-    <div class="flex-1 overflow-y-auto ex-scroll p-6" id="schema-detail">
-      <div class="text-stone-500 text-sm text-center py-12">
-        <p class="text-lg mb-2">Select a table to view its schema</p>
-        <p class="text-xs">Browse columns, primary keys, foreign keys, and indexes</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== DATA TAB ========== -->
-  <div id="panel-data" class="flex-1 flex flex-col overflow-hidden hidden">
-    <!-- Controls bar -->
-    <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0">
-      <select id="data-table-select" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
-              onchange="loadTableData(this.value)">
-        <option value="">Select table...</option>
-      </select>
-      <input id="data-filter" type="text" placeholder="Filter text columns..."
-             class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs w-48 focus:border-amber-500 focus:outline-none"
-             onkeydown="if(event.key==='Enter')applyDataFilter()">
-      <button onclick="applyDataFilter()" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">Filter</button>
-      <button onclick="clearDataFilter()" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">Clear</button>
-      <span id="data-row-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
-    </div>
-
-    <!-- Data grid -->
-    <div class="flex-1 overflow-auto ex-scroll">
-      <div id="data-grid" class="px-6 py-3">
-        <div class="text-stone-500 text-sm text-center py-12">Select a table to browse its data</div>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div id="data-pagination" class="flex items-center justify-between px-6 py-2 border-t border-stone-800 flex-shrink-0 hidden">
-      <div class="flex items-center gap-2">
-        <button onclick="dataPage(-1)" id="data-prev" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Prev</button>
-        <span id="data-page-info" class="text-stone-500 text-xs stat-badge"></span>
-        <button onclick="dataPage(1)" id="data-next" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Next</button>
-      </div>
-      <select id="data-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs" onchange="changeDataLimit()">
-        <option value="25">25 rows</option>
-        <option value="50">50 rows</option>
-        <option value="100">100 rows</option>
-      </select>
-    </div>
-
-    <!-- SQL Runner (collapsible) -->
-    <details class="border-t border-stone-800 flex-shrink-0">
-      <summary class="px-6 py-2 text-stone-500 text-xs uppercase tracking-wider cursor-pointer hover:text-stone-300">SQL Runner</summary>
-      <div class="px-6 pb-4">
-        <textarea id="sql-input" rows="3" placeholder="SELECT name, kill_count FROM historical_figures WHERE kill_count > 100 ORDER BY kill_count DESC"
-                  class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-3 py-2 text-xs font-mono focus:border-amber-500 focus:outline-none resize-y"></textarea>
-        <div class="flex items-center gap-3 mt-2">
-          <button onclick="runQuery()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-4 py-1.5 rounded text-xs transition-colors">Run</button>
-          <select id="sql-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
-            <option value="100">Limit 100</option>
-            <option value="250">Limit 250</option>
-            <option value="500">Limit 500</option>
+               onkeydown="if(event.key==='Enter')searchPeople()">
+        <div class="flex gap-1">
+          <select id="people-type" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs flex-1">
+            <option value="all">All</option>
+            <option value="hf">Historical Figures</option>
+            <option value="unit">In-game Units</option>
           </select>
-          <span id="sql-status" class="text-stone-500 text-xs"></span>
+          <button onclick="searchPeople()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1 rounded text-xs transition-colors">Search</button>
         </div>
-        <div id="sql-results" class="mt-3"></div>
       </div>
-    </details>
+      <div id="people-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
+        <div class="text-stone-500 text-xs px-3 py-4 text-center">Search for a historical figure or unit</div>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="flex-1 overflow-y-auto ex-scroll p-6" id="people-detail">
+      <div class="text-stone-500 text-sm text-center py-12">
+        <p class="text-lg mb-2">Search and select a person</p>
+        <p class="text-xs">Browse historical figures and in-game units by name</p>
+      </div>
+    </div>
   </div>
 
-  <!-- ========== GRAPH TAB ========== -->
+  <!-- ================================================================== -->
+  <!-- CIVILIZATIONS TAB                                                   -->
+  <!-- ================================================================== -->
+  <div id="panel-civs" class="flex-1 flex overflow-hidden hidden">
+    <!-- Entity list sidebar -->
+    <div class="w-80 flex-shrink-0 border-r border-stone-800 flex flex-col bg-stone-950/50">
+      <div class="p-3 border-b border-stone-800">
+        <select id="civs-type-filter" class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs"
+                onchange="loadCivs()">
+          <option value="">All types</option>
+          <option value="civilization">Civilizations</option>
+          <option value="religion">Religions</option>
+          <option value="military unit">Military</option>
+          <option value="sitegovernment">Site Governments</option>
+          <option value="performancetroupe">Performance Troupes</option>
+        </select>
+      </div>
+      <div id="civs-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
+        <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="flex-1 overflow-y-auto ex-scroll p-6" id="civs-detail">
+      <div class="text-stone-500 text-sm text-center py-12">
+        <p class="text-lg mb-2">Select an entity</p>
+        <p class="text-xs">Browse civilizations, religions, and organizations</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- GEOGRAPHY TAB                                                       -->
+  <!-- ================================================================== -->
+  <div id="panel-geo" class="flex-1 flex overflow-hidden hidden">
+    <!-- Site list sidebar -->
+    <div class="w-80 flex-shrink-0 border-r border-stone-800 flex flex-col bg-stone-950/50">
+      <div class="p-3 border-b border-stone-800">
+        <select id="geo-type-filter" class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs"
+                onchange="loadSites()">
+          <option value="">All site types</option>
+          <option value="town">Towns</option>
+          <option value="dark fortress">Dark Fortresses</option>
+          <option value="cave">Caves</option>
+          <option value="forest retreat">Forest Retreats</option>
+          <option value="mountain halls">Mountain Halls</option>
+          <option value="fortress">Fortresses</option>
+          <option value="shrine">Shrines</option>
+          <option value="tomb">Tombs</option>
+          <option value="camp">Camps</option>
+          <option value="lair">Lairs</option>
+          <option value="monument">Monuments</option>
+        </select>
+      </div>
+      <div id="geo-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
+        <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="flex-1 overflow-y-auto ex-scroll p-6" id="geo-detail">
+      <div class="text-stone-500 text-sm text-center py-12">
+        <p class="text-lg mb-2">Select a site</p>
+        <p class="text-xs">Browse towns, fortresses, caves, and other locations</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- EVENTS TAB                                                          -->
+  <!-- ================================================================== -->
+  <div id="panel-events" class="flex-1 flex flex-col overflow-hidden hidden">
+    <!-- Filter controls -->
+    <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0 flex-wrap">
+      <div class="flex items-center gap-1 text-xs text-stone-400">
+        <span>Year:</span>
+        <input id="ev-year-from" type="number" placeholder="From" class="w-16 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
+        <span>-</span>
+        <input id="ev-year-to" type="number" placeholder="To" class="w-16 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
+      </div>
+      <select id="ev-type-filter" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
+        <option value="">All event types</option>
+      </select>
+      <div class="flex items-center gap-1">
+        <label class="flex items-center gap-1 text-xs text-stone-400 cursor-pointer">
+          <input type="checkbox" id="ev-collections-mode" onchange="toggleEventsMode()">
+          Collections
+        </label>
+      </div>
+      <button onclick="loadEvents()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1 rounded text-xs transition-colors">Search</button>
+      <span id="ev-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
+    </div>
+
+    <!-- Events list -->
+    <div class="flex-1 overflow-auto ex-scroll">
+      <div id="events-grid" class="px-6 py-3">
+        <div class="text-stone-500 text-sm text-center py-12">Set filters and click Search</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- DATABASE TAB (Schema + Data + SQL)                                  -->
+  <!-- ================================================================== -->
+  <div id="panel-database" class="flex-1 flex flex-col overflow-hidden hidden">
+    <!-- Sub-tabs: Schema | Data -->
+    <div class="flex items-center gap-2 px-6 py-1.5 border-b border-stone-800 flex-shrink-0 bg-stone-900/30">
+      <span onclick="switchDbSub('schema')" id="db-sub-schema" class="sub-toggle active">Schema</span>
+      <span onclick="switchDbSub('data')" id="db-sub-data" class="sub-toggle">Data</span>
+    </div>
+
+    <!-- Schema sub-panel -->
+    <div id="db-panel-schema" class="flex-1 flex overflow-hidden">
+      <div class="w-72 flex-shrink-0 border-r border-stone-800 overflow-y-auto ex-scroll bg-stone-950/50">
+        <div class="p-3">
+          <input id="table-filter" type="text" placeholder="Filter tables..."
+                 class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                 oninput="filterTables(this.value)">
+        </div>
+        <div id="table-list" class="px-1 pb-4">
+          <div class="text-stone-500 text-xs px-3 py-4">Loading tables...</div>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto ex-scroll p-6" id="schema-detail">
+        <div class="text-stone-500 text-sm text-center py-12">
+          <p class="text-lg mb-2">Select a table to view its schema</p>
+          <p class="text-xs">Browse columns, primary keys, foreign keys, and indexes</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data sub-panel -->
+    <div id="db-panel-data" class="flex-1 flex flex-col overflow-hidden hidden">
+      <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0">
+        <select id="data-table-select" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                onchange="loadTableData(this.value)">
+          <option value="">Select table...</option>
+        </select>
+        <input id="data-filter" type="text" placeholder="Filter text columns..."
+               class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1.5 text-xs w-48 focus:border-amber-500 focus:outline-none"
+               onkeydown="if(event.key==='Enter')applyDataFilter()">
+        <button onclick="applyDataFilter()" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">Filter</button>
+        <button onclick="clearDataFilter()" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">Clear</button>
+        <span id="data-row-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
+      </div>
+      <div class="flex-1 overflow-auto ex-scroll">
+        <div id="data-grid" class="px-6 py-3">
+          <div class="text-stone-500 text-sm text-center py-12">Select a table to browse its data</div>
+        </div>
+      </div>
+      <div id="data-pagination" class="flex items-center justify-between px-6 py-2 border-t border-stone-800 flex-shrink-0 hidden">
+        <div class="flex items-center gap-2">
+          <button onclick="dataPage(-1)" id="data-prev" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Prev</button>
+          <span id="data-page-info" class="text-stone-500 text-xs stat-badge"></span>
+          <button onclick="dataPage(1)" id="data-next" class="bg-stone-800 hover:bg-stone-700 disabled:opacity-30 text-stone-300 px-3 py-1 rounded text-xs transition-colors">Next</button>
+        </div>
+        <select id="data-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs" onchange="changeDataLimit()">
+          <option value="25">25 rows</option>
+          <option value="50">50 rows</option>
+          <option value="100">100 rows</option>
+        </select>
+      </div>
+      <details class="border-t border-stone-800 flex-shrink-0">
+        <summary class="px-6 py-2 text-stone-500 text-xs uppercase tracking-wider cursor-pointer hover:text-stone-300">SQL Runner</summary>
+        <div class="px-6 pb-4">
+          <textarea id="sql-input" rows="3" placeholder="SELECT name, kill_count FROM historical_figures WHERE kill_count > 100 ORDER BY kill_count DESC"
+                    class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-3 py-2 text-xs font-mono focus:border-amber-500 focus:outline-none resize-y"></textarea>
+          <div class="flex items-center gap-3 mt-2">
+            <button onclick="runQuery()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-4 py-1.5 rounded text-xs transition-colors">Run</button>
+            <select id="sql-limit" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs">
+              <option value="100">Limit 100</option>
+              <option value="250">Limit 250</option>
+              <option value="500">Limit 500</option>
+            </select>
+            <span id="sql-status" class="text-stone-500 text-xs"></span>
+          </div>
+          <div id="sql-results" class="mt-3"></div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- GRAPH TAB                                                           -->
+  <!-- ================================================================== -->
   <div id="panel-graph" class="flex-1 flex flex-col overflow-hidden hidden">
-    <!-- Graph controls -->
     <div class="flex items-center gap-3 px-6 py-3 border-b border-stone-800 flex-shrink-0">
       <div class="relative flex-1 max-w-sm">
         <input id="graph-search" type="text" placeholder="Search figures, entities, sites..."
@@ -155,19 +310,13 @@
       </div>
       <span id="graph-node-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
     </div>
-
-    <!-- Graph canvas + info panel -->
     <div class="flex-1 flex relative">
       <div id="graph-canvas" class="flex-1" style="background: #0c0b0a;"></div>
-
-      <!-- Node info overlay -->
       <div id="graph-info" class="absolute top-4 right-4 w-72 bg-stone-900/95 border border-stone-700 rounded-lg p-4 shadow-xl hidden">
         <button onclick="document.getElementById('graph-info').classList.add('hidden')"
                 class="absolute top-2 right-2 text-stone-500 hover:text-stone-300 text-xs">&times;</button>
         <div id="graph-info-content" class="text-xs"></div>
       </div>
-
-      <!-- Legend overlay -->
       <div class="absolute bottom-4 left-4 bg-stone-900/90 border border-stone-800 rounded px-3 py-2 text-[10px] text-stone-400">
         <div class="flex flex-wrap gap-x-3 gap-y-1">
           <span><span style="color:#78716c">&#9679;</span> HF</span>
@@ -184,25 +333,909 @@
   </div>
 
 <script>
-// ─── State ───
+// ═══════════════════════════════════════════════════════════════════════
+// GLOBAL STATE & CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════
+const WORLD_ID = 8;
+const ALL_TABS = ['people', 'civs', 'geo', 'events', 'database', 'graph'];
 let allTables = [];
 let currentTable = null;
+let currentDbSub = 'schema';
 
-// ─── Tab switching ───
+// ═══════════════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════════════
 function switchTab(tab) {
-  for (const t of ['schema', 'data', 'graph']) {
+  for (const t of ALL_TABS) {
     document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
     const btn = document.getElementById('tab-' + t);
     btn.className = btn.className.replace(/tab-\w+/, t === tab ? 'tab-active' : 'tab-inactive');
   }
+  // Lazy-load tab data on first visit
+  if (tab === 'civs' && !civsLoaded) loadCivs();
+  if (tab === 'geo' && !geoLoaded) loadSites();
+  if (tab === 'events' && !evTypesLoaded) loadEventTypes();
+  if (tab === 'database' && !dbLoaded) { loadTables(); dbLoaded = true; }
 }
 
-// ─── Table list ───
+function switchDbSub(sub) {
+  currentDbSub = sub;
+  for (const s of ['schema', 'data']) {
+    document.getElementById('db-panel-' + s).classList.toggle('hidden', s !== sub);
+    document.getElementById('db-sub-' + s).classList.toggle('active', s === sub);
+  }
+}
+
+// Cross-tab navigation
+function navigateTo(tab, type, worldId, id) {
+  switchTab(tab);
+  if (tab === 'people') {
+    if (type === 'hf') loadHfDetail(worldId, id);
+    else if (type === 'unit') loadUnitDetail(id);
+  } else if (tab === 'civs') {
+    loadCivDetail(worldId, id);
+  } else if (tab === 'geo') {
+    loadSiteDetail(worldId, id);
+  } else if (tab === 'graph') {
+    loadGraph(type, worldId, id);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+function formatNum(n) {
+  if (n == null) return '?';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  return n.toString();
+}
+
+function truncate(s, max) {
+  if (!s || s.length <= max) return s || '';
+  return s.slice(0, max - 3) + '...';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function titleCase(s) {
+  if (!s) return '';
+  return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function typeFlagBadges(flags) {
+  if (!flags || flags.length === 0) return '';
+  const cls = { deity: 'badge-deity', vampire: 'badge-vampire', necromancer: 'badge-necro', werebeast: 'badge-were' };
+  return flags.map(f => ` <span class="badge ${cls[f] || 'badge-type'}">${f}</span>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// PEOPLE TAB
+// ═══════════════════════════════════════════════════════════════════════
+let selectedPerson = null;
+
+async function searchPeople() {
+  const q = document.getElementById('people-search').value.trim();
+  if (!q) return;
+  const type = document.getElementById('people-type').value;
+  const list = document.getElementById('people-list');
+  list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Searching...</div>';
+
+  try {
+    const resp = await fetch(`/api/people/search?q=${encodeURIComponent(q)}&type=${type}&limit=100`);
+    const results = await resp.json();
+    if (results.length === 0) {
+      list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">No results</div>';
+      return;
+    }
+    let html = '';
+    for (const p of results) {
+      const isActive = selectedPerson === `${p.source}-${p.id}` ? ' active' : '';
+      const aliveClass = p.is_alive ? 'badge-alive' : 'badge-dead';
+      const aliveLabel = p.is_alive ? 'alive' : 'dead';
+      const srcBadge = p.source === 'unit' ? '<span class="badge badge-unit">Unit</span>' : '<span class="badge badge-hf">HF</span>';
+      const displayName = p.english_name ? `${escapeHtml(p.name)} <span class="text-stone-500 text-[10px]">(${escapeHtml(p.english_name)})</span>` : escapeHtml(p.name);
+      html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
+                   onclick="selectPerson('${p.source}', ${p.world_id}, ${p.id})">
+        <div class="flex items-center gap-1.5">
+          ${srcBadge}
+          <span class="badge ${aliveClass}">${aliveLabel}</span>
+          ${typeFlagBadges(p.type_flags)}
+        </div>
+        <div class="text-stone-200 mt-0.5">${displayName}</div>
+        <div class="text-stone-500 text-[10px]">${escapeHtml(p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
+      </div>`;
+    }
+    list.innerHTML = html;
+  } catch (e) {
+    list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function selectPerson(source, worldId, id) {
+  selectedPerson = `${source}-${id}`;
+  if (source === 'hf') loadHfDetail(worldId, id);
+  else loadUnitDetail(id);
+}
+
+async function loadHfDetail(worldId, hfId) {
+  const panel = document.getElementById('people-detail');
+  panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+
+  try {
+    const resp = await fetch(`/api/people/hf/${worldId}/${hfId}`);
+    const hf = await resp.json();
+    if (hf.detail) throw new Error(hf.detail);
+    renderHfDetail(hf, panel);
+  } catch (e) {
+    panel.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderHfDetail(hf, panel) {
+  const alive = hf.death_year === null;
+  let html = `<div class="flex items-start justify-between mb-4">
+    <div>
+      <h2 class="detail-header">${escapeHtml(hf.name)}</h2>
+      ${hf.linked_unit && hf.linked_unit.english_name ? `<div class="text-stone-400 text-sm">"${escapeHtml(hf.linked_unit.english_name)}"</div>` : ''}
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-hf">HF #${hf.id}</span>
+        <span class="badge ${alive ? 'badge-alive' : 'badge-dead'}">${alive ? 'Alive' : 'Dead'}</span>
+        ${typeFlagBadges(hf.type_flags)}
+      </div>
+    </div>
+    <button onclick="navigateTo('graph','hf',${hf.world_id},${hf.id})"
+            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
+  </div>`;
+
+  // Bio card
+  html += `<div class="section-card">
+    <div class="section-title">Biography</div>
+    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+      <div><span class="text-stone-500">Race:</span> ${escapeHtml(titleCase(hf.race))}</div>
+      <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(hf.caste))}</div>
+      <div><span class="text-stone-500">Born:</span> ${hf.birth_year ?? '?'}</div>
+      <div><span class="text-stone-500">${alive ? 'Age' : 'Died'}:</span> ${alive ? '(alive)' : `${hf.death_year ?? '?'}${hf.death_cause ? ' (' + escapeHtml(hf.death_cause) + ')' : ''}`}</div>
+      <div><span class="text-stone-500">Kills:</span> ${hf.kill_count || 0}</div>
+      <div><span class="text-stone-500">Events:</span> ${formatNum(hf.event_count)}</div>
+    </div>
+    ${hf.entity_name ? `<div class="mt-2 text-xs"><span class="text-stone-500">Primary Civ:</span> <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${hf.entity_id})">${escapeHtml(hf.entity_name)}</span></div>` : ''}
+  </div>`;
+
+  // Linked unit
+  if (hf.linked_unit) {
+    html += `<div class="section-card">
+      <div class="section-title">In-Game Unit</div>
+      <div class="text-xs">
+        <span class="nav-link" onclick="loadUnitDetail(${hf.linked_unit.id})">${escapeHtml(hf.linked_unit.name)}</span>
+        ${hf.linked_unit.english_name ? ` <span class="text-stone-500">(${escapeHtml(hf.linked_unit.english_name)})</span>` : ''}
+        ${hf.linked_unit.profession ? ` <span class="text-stone-500">/ ${escapeHtml(hf.linked_unit.profession)}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // Relationships
+  if (hf.relationships.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Relationships (${hf.relationships.length})</div>
+      <div class="space-y-1">`;
+    for (const r of hf.relationships) {
+      html += `<div class="text-xs">
+        <span class="text-stone-500">${escapeHtml(titleCase(r.link_type))}:</span>
+        <span class="nav-link" onclick="navigateTo('people','hf',${hf.world_id},${r.target_id})">${escapeHtml(r.target_name || 'Unknown')}</span>
+        <span class="text-stone-600 text-[10px]">${escapeHtml(r.target_race || '')}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Entity memberships
+  if (hf.entity_links.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Entity Memberships (${hf.entity_links.length})</div>
+      <div class="space-y-1">`;
+    for (const el of hf.entity_links) {
+      html += `<div class="text-xs">
+        <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${el.entity_id})">${escapeHtml(el.entity_name || 'Unknown')}</span>
+        <span class="text-stone-500">${escapeHtml(titleCase(el.link_type))}</span>
+        ${el.position_name ? ` <span class="badge badge-type">${escapeHtml(el.position_name)}</span>` : ''}
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Positions held
+  if (hf.positions.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Positions Held (${hf.positions.length})</div>
+      <div class="space-y-1">`;
+    for (const p of hf.positions) {
+      const years = p.end_year ? `${p.start_year}-${p.end_year}` : `${p.start_year}-present`;
+      html += `<div class="text-xs">
+        <span class="text-amber-400">${escapeHtml(p.position_name || 'Unknown')}</span>
+        at <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${p.entity_id})">${escapeHtml(p.entity_name || 'Unknown')}</span>
+        <span class="text-stone-500">(${years})</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Site links
+  if (hf.site_links.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Site Links (${hf.site_links.length})</div>
+      <div class="space-y-1">`;
+    for (const sl of hf.site_links) {
+      html += `<div class="text-xs">
+        <span class="text-stone-500">${escapeHtml(titleCase(sl.link_type))}:</span>
+        <span class="nav-link" onclick="navigateTo('geo','site',${hf.world_id},${sl.site_id})">${escapeHtml(sl.site_name || 'Unknown')}</span>
+        <span class="text-stone-600 text-[10px]">${escapeHtml(sl.site_type || '')}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Identities
+  if (hf.identities.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Identities (${hf.identities.length})</div>
+      <div class="space-y-1">`;
+    for (const id of hf.identities) {
+      html += `<div class="text-xs text-stone-300">${escapeHtml(id.name)}</div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Events button
+  html += `<div class="mt-4">
+    <button onclick="loadHfEvents(${hf.world_id}, ${hf.id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-4 py-2 rounded text-xs transition-colors">
+      Load Recent Events
+    </button>
+    <div id="hf-events-container"></div>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+async function loadHfEvents(worldId, hfId) {
+  const container = document.getElementById('hf-events-container');
+  container.innerHTML = '<div class="text-stone-500 text-xs py-2">Loading events...</div>';
+
+  try {
+    const resp = await fetch(`/api/people/hf/${worldId}/${hfId}/events?limit=50`);
+    const events = await resp.json();
+
+    if (events.length === 0) {
+      container.innerHTML = '<div class="text-stone-500 text-xs py-2">No events found</div>';
+      return;
+    }
+
+    let html = '<div class="mt-3 section-card"><div class="section-title">Recent Events</div>';
+    html += '<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">';
+    html += '<th class="text-left py-1 pr-3">Year</th><th class="text-left py-1 pr-3">Type</th><th class="text-left py-1 pr-3">Other</th><th class="text-left py-1">Site</th>';
+    html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+
+    for (const ev of events) {
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3 text-stone-400">${ev.year}</td>
+        <td class="py-1 pr-3">${escapeHtml(titleCase(ev.event_type))}</td>
+        <td class="py-1 pr-3">${ev.other_hf_id ? `<span class="nav-link" onclick="navigateTo('people','hf',${worldId},${ev.other_hf_id})">${escapeHtml(ev.other_hf_name || '?')}</span>` : '<span class="text-stone-600">-</span>'}</td>
+        <td class="py-1">${ev.site_id ? `<span class="nav-link" onclick="navigateTo('geo','site',${worldId},${ev.site_id})">${escapeHtml(ev.site_name || '?')}</span>` : '<span class="text-stone-600">-</span>'}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="text-red-400 text-xs py-2">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function loadUnitDetail(unitId) {
+  const panel = document.getElementById('people-detail');
+  panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+
+  try {
+    const resp = await fetch(`/api/people/unit/${unitId}`);
+    const unit = await resp.json();
+    if (unit.detail) throw new Error(unit.detail);
+    renderUnitDetail(unit, panel);
+  } catch (e) {
+    panel.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderUnitDetail(unit, panel) {
+  let html = `<div class="flex items-start justify-between mb-4">
+    <div>
+      <h2 class="detail-header">${escapeHtml(unit.name)}</h2>
+      ${unit.english_name ? `<div class="text-stone-400 text-sm">"${escapeHtml(unit.english_name)}"</div>` : ''}
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-unit">Unit #${unit.id}</span>
+        <span class="badge ${unit.is_alive ? 'badge-alive' : 'badge-dead'}">${unit.is_alive ? 'alive' : 'dead'}</span>
+      </div>
+    </div>
+    ${unit.hist_fig_id ? `<button onclick="navigateTo('graph','hf',${unit.world_id},${unit.hist_fig_id})"
+            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>` : ''}
+  </div>`;
+
+  // Info card
+  html += `<div class="section-card">
+    <div class="section-title">Unit Info</div>
+    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+      <div><span class="text-stone-500">Race:</span> ${escapeHtml(titleCase(unit.race))}</div>
+      <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(unit.caste))}</div>
+      <div><span class="text-stone-500">Profession:</span> ${escapeHtml(unit.profession || 'None')}</div>
+      <div><span class="text-stone-500">Position:</span> ${unit.pos_x ?? '?'}, ${unit.pos_y ?? '?'}, ${unit.pos_z ?? '?'}</div>
+    </div>
+    ${unit.civ_name ? `<div class="mt-2 text-xs"><span class="text-stone-500">Civilization:</span> <span class="nav-link" onclick="navigateTo('civs','entity',${unit.world_id},${unit.civ_id})">${escapeHtml(unit.civ_name)}</span></div>` : ''}
+  </div>`;
+
+  // Linked HF
+  if (unit.linked_hf) {
+    html += `<div class="section-card">
+      <div class="section-title">Linked Historical Figure</div>
+      <div class="text-xs">
+        <span class="nav-link" onclick="loadHfDetail(${unit.world_id}, ${unit.linked_hf.id})">${escapeHtml(unit.linked_hf.name)}</span>
+        <span class="text-stone-500">${escapeHtml(unit.linked_hf.race || '')}, born ${unit.linked_hf.birth_year ?? '?'}</span>
+      </div>
+    </div>`;
+  } else if (unit.hist_fig_id) {
+    html += `<div class="section-card">
+      <div class="section-title">Linked Historical Figure</div>
+      <div class="text-xs text-stone-500">HF #${unit.hist_fig_id} — No legends record (born after legends export)</div>
+    </div>`;
+  }
+
+  // Skills
+  if (unit.skills && unit.skills.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Skills (${unit.skills.length})</div>
+      <div class="grid grid-cols-2 gap-1">`;
+    const sorted = [...unit.skills].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    for (const sk of sorted) {
+      const pct = Math.min((sk.rating || 0) / 20 * 100, 100);
+      html += `<div class="text-xs flex items-center gap-2">
+        <span class="text-stone-300 w-32 truncate">${escapeHtml(titleCase(sk.id || sk.name || ''))}</span>
+        <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="bg-amber-500 rounded-full h-1.5" style="width:${pct}%"></div></div>
+        <span class="text-stone-500 w-6 text-right">${sk.rating || 0}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Labors
+  if (unit.labors && unit.labors.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Active Labors (${unit.labors.length})</div>
+      <div class="flex flex-wrap gap-1">`;
+    for (const lb of unit.labors) {
+      html += `<span class="badge badge-type">${escapeHtml(titleCase(lb))}</span>`;
+    }
+    html += '</div></div>';
+  }
+
+  if (unit.last_synced_at) {
+    html += `<div class="text-stone-600 text-[10px] mt-4">Last synced: ${escapeHtml(unit.last_synced_at)}</div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CIVILIZATIONS TAB
+// ═══════════════════════════════════════════════════════════════════════
+let civsLoaded = false;
+let civsData = null;
+let selectedCiv = null;
+
+async function loadCivs() {
+  const list = document.getElementById('civs-list');
+  const typeFilter = document.getElementById('civs-type-filter').value;
+  list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>';
+
+  try {
+    const params = new URLSearchParams({ world_id: WORLD_ID });
+    if (typeFilter) params.set('type', typeFilter);
+    const resp = await fetch(`/api/civilizations?${params}`);
+    civsData = await resp.json();
+    civsLoaded = true;
+    renderCivsList(civsData);
+  } catch (e) {
+    list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderCivsList(data) {
+  const list = document.getElementById('civs-list');
+  const groups = data.groups || {};
+  const groupOrder = ['civilization', 'religion', 'military unit', 'sitegovernment', 'performancetroupe', 'unknown'];
+
+  let html = '';
+  for (const g of groupOrder) {
+    const items = groups[g];
+    if (!items || items.length === 0) continue;
+    html += `<div class="mt-3 first:mt-0">
+      <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
+    for (const e of items) {
+      const isActive = selectedCiv === e.id ? ' active' : '';
+      html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
+                   onclick="loadCivDetail(${e.world_id}, ${e.id})">
+        <div class="text-stone-200">${escapeHtml(e.name)}</div>
+        <div class="text-stone-500 text-[10px]">${escapeHtml(e.race || '')} | ${e.member_count} members | ${e.site_count} sites</div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  list.innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4 text-center">No entities found</div>';
+}
+
+async function loadCivDetail(worldId, entityId) {
+  selectedCiv = entityId;
+  if (civsData) renderCivsList(civsData); // re-render for active highlight
+  const panel = document.getElementById('civs-detail');
+  panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+
+  try {
+    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}`);
+    const civ = await resp.json();
+    if (civ.detail) throw new Error(civ.detail);
+    renderCivDetail(civ, panel);
+  } catch (e) {
+    panel.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderCivDetail(civ, panel) {
+  let html = `<div class="flex items-start justify-between mb-4">
+    <div>
+      <h2 class="detail-header">${escapeHtml(civ.name)}</h2>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-type">${escapeHtml(titleCase(civ.type))}</span>
+        <span class="text-stone-500 text-xs">${escapeHtml(titleCase(civ.race))}</span>
+      </div>
+    </div>
+    <button onclick="navigateTo('graph','entity',${civ.world_id},${civ.id})"
+            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
+  </div>`;
+
+  // Positions
+  if (civ.positions && civ.positions.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Positions (${civ.positions.length})</div>
+      <table class="w-full text-xs">
+        <thead><tr class="text-stone-500 border-b border-stone-800">
+          <th class="text-left py-1 pr-3">Position</th>
+          <th class="text-left py-1 pr-3">Variants</th>
+          <th class="text-left py-1">Current Holder</th>
+        </tr></thead>
+        <tbody class="divide-y divide-stone-800/50">`;
+    for (const p of civ.positions) {
+      const variants = [p.name_male, p.name_female].filter(Boolean).join(' / ');
+      const holder = p.current_holder
+        ? `<span class="nav-link" onclick="navigateTo('people','hf',${civ.world_id},${p.current_holder.hf_id})">${escapeHtml(p.current_holder.name)}</span>`
+        : '<span class="text-stone-600">Vacant</span>';
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3 text-amber-400">${escapeHtml(p.name)}</td>
+        <td class="py-1 pr-3 text-stone-500">${escapeHtml(variants)}</td>
+        <td class="py-1">${holder}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  // Sites
+  if (civ.sites && civ.sites.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Controlled Sites (${civ.sites.length})</div>
+      <div class="space-y-1">`;
+    for (const s of civ.sites) {
+      html += `<div class="text-xs">
+        <span class="nav-link" onclick="navigateTo('geo','site',${civ.world_id},${s.id})">${escapeHtml(s.name)}</span>
+        <span class="text-stone-500 text-[10px]">${escapeHtml(s.type || '')}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Wars
+  if (civ.wars && civ.wars.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Wars (${civ.wars.length})</div>
+      <table class="w-full text-xs">
+        <thead><tr class="text-stone-500 border-b border-stone-800">
+          <th class="text-left py-1 pr-3">Name</th>
+          <th class="text-left py-1 pr-3">Years</th>
+          <th class="text-left py-1">Role</th>
+        </tr></thead>
+        <tbody class="divide-y divide-stone-800/50">`;
+    for (const w of civ.wars) {
+      const years = w.end_year ? `${w.start_year}-${w.end_year}` : `${w.start_year}-ongoing`;
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3 text-stone-200">${escapeHtml(w.name || 'Unnamed')}</td>
+        <td class="py-1 pr-3 text-stone-400">${years}</td>
+        <td class="py-1"><span class="badge ${w.role === 'attacker' ? 'badge-vampire' : 'badge-alive'}">${w.role}</span></td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  // Members button
+  html += `<div class="mt-4">
+    <button onclick="loadCivMembers(${civ.world_id}, ${civ.id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-4 py-2 rounded text-xs transition-colors">
+      Load Members
+    </button>
+    <div id="civ-members-container"></div>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+async function loadCivMembers(worldId, entityId) {
+  const container = document.getElementById('civ-members-container');
+  container.innerHTML = '<div class="text-stone-500 text-xs py-2">Loading...</div>';
+
+  try {
+    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=100`);
+    const data = await resp.json();
+
+    if (data.members.length === 0) {
+      container.innerHTML = '<div class="text-stone-500 text-xs py-2">No members found</div>';
+      return;
+    }
+
+    let html = `<div class="mt-3 section-card"><div class="section-title">Members (${data.total} total, showing ${data.members.length})</div>`;
+    html += '<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">';
+    html += '<th class="text-left py-1 pr-3">Name</th><th class="text-left py-1 pr-3">Race</th><th class="text-left py-1 pr-3">Link</th><th class="text-left py-1">Status</th>';
+    html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+
+    for (const m of data.members) {
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
+        <td class="py-1 pr-3 text-stone-400">${escapeHtml(m.race || '')}</td>
+        <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
+        <td class="py-1"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="text-red-400 text-xs py-2">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// GEOGRAPHY TAB
+// ═══════════════════════════════════════════════════════════════════════
+let geoLoaded = false;
+let geoData = null;
+let selectedSite = null;
+
+async function loadSites() {
+  const list = document.getElementById('geo-list');
+  const typeFilter = document.getElementById('geo-type-filter').value;
+  list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>';
+
+  try {
+    const params = new URLSearchParams({ world_id: WORLD_ID, limit: '500' });
+    if (typeFilter) params.set('type', typeFilter);
+    const resp = await fetch(`/api/geography/sites?${params}`);
+    geoData = await resp.json();
+    geoLoaded = true;
+    renderSitesList(geoData);
+  } catch (e) {
+    list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderSitesList(sites) {
+  const list = document.getElementById('geo-list');
+  // Group by type
+  const groups = {};
+  for (const s of sites) {
+    const g = s.type || 'unknown';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(s);
+  }
+
+  let html = '';
+  for (const [g, items] of Object.entries(groups).sort((a, b) => b[1].length - a[1].length)) {
+    html += `<div class="mt-3 first:mt-0">
+      <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
+    for (const s of items) {
+      const isActive = selectedSite === s.id ? ' active' : '';
+      html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
+                   onclick="loadSiteDetail(${s.world_id}, ${s.id})">
+        <div class="text-stone-200">${escapeHtml(s.name)}</div>
+        <div class="text-stone-500 text-[10px]">${s.owner_name ? escapeHtml(s.owner_name) : 'Unowned'} | ${s.structure_count} structures | ${s.linked_hf_count} HFs</div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  list.innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4 text-center">No sites found</div>';
+}
+
+async function loadSiteDetail(worldId, siteId) {
+  selectedSite = siteId;
+  if (geoData) renderSitesList(geoData);
+  const panel = document.getElementById('geo-detail');
+  panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+
+  try {
+    const resp = await fetch(`/api/geography/sites/${worldId}/${siteId}`);
+    const site = await resp.json();
+    if (site.detail) throw new Error(site.detail);
+    renderSiteDetail(site, panel);
+  } catch (e) {
+    panel.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderSiteDetail(site, panel) {
+  let html = `<div class="flex items-start justify-between mb-4">
+    <div>
+      <h2 class="detail-header">${escapeHtml(site.name)}</h2>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-type">${escapeHtml(titleCase(site.type))}</span>
+        ${site.coord_x != null ? `<span class="text-stone-500 text-xs">(${site.coord_x}, ${site.coord_y})</span>` : ''}
+      </div>
+    </div>
+    <button onclick="navigateTo('graph','site',${site.world_id},${site.id})"
+            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
+  </div>`;
+
+  // Owner
+  if (site.owner) {
+    html += `<div class="section-card">
+      <div class="section-title">Owner</div>
+      <div class="text-xs">
+        <span class="nav-link" onclick="navigateTo('civs','entity',${site.world_id},${site.owner.id})">${escapeHtml(site.owner.name)}</span>
+        <span class="text-stone-500">${escapeHtml(titleCase(site.owner.type))}</span>
+      </div>
+    </div>`;
+  }
+
+  // Structures
+  if (site.structures && site.structures.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Structures (${site.structures.length})</div>
+      <div class="space-y-1">`;
+    for (const s of site.structures) {
+      html += `<div class="text-xs">
+        <span class="text-stone-200">${escapeHtml(s.name || 'Unnamed')}</span>
+        <span class="text-stone-500 text-[10px]">${escapeHtml(titleCase(s.type || ''))}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Linked HFs
+  if (site.linked_hfs && site.linked_hfs.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Notable Inhabitants (${site.linked_hfs.length})</div>
+      <div class="space-y-1">`;
+    for (const h of site.linked_hfs) {
+      html += `<div class="text-xs">
+        <span class="nav-link" onclick="navigateTo('people','hf',${site.world_id},${h.hf_id})">${escapeHtml(h.name)}</span>
+        <span class="text-stone-500">${escapeHtml(h.race || '')} / ${escapeHtml(titleCase(h.link_type))}</span>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
+  // Recent events
+  if (site.recent_events && site.recent_events.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Recent Events (${site.recent_events.length})</div>
+      <table class="w-full text-xs">
+        <thead><tr class="text-stone-500 border-b border-stone-800">
+          <th class="text-left py-1 pr-3">Year</th><th class="text-left py-1">Type</th>
+        </tr></thead>
+        <tbody class="divide-y divide-stone-800/50">`;
+    for (const ev of site.recent_events) {
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3 text-stone-400">${ev.year}</td>
+        <td class="py-1">${escapeHtml(titleCase(ev.event_type))}</td>
+      </tr>`;
+    }
+    html += '</tbody></table></div>';
+  }
+
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EVENTS TAB
+// ═══════════════════════════════════════════════════════════════════════
+let evTypesLoaded = false;
+let collectionsMode = false;
+
+async function loadEventTypes() {
+  try {
+    const resp = await fetch(`/api/events/types?world_id=${WORLD_ID}`);
+    const types = await resp.json();
+    const sel = document.getElementById('ev-type-filter');
+    for (const t of types) {
+      const opt = document.createElement('option');
+      opt.value = t.type;
+      opt.textContent = `${titleCase(t.type)} (${formatNum(t.count)})`;
+      sel.appendChild(opt);
+    }
+    evTypesLoaded = true;
+  } catch (e) { /* ignore */ }
+}
+
+function toggleEventsMode() {
+  collectionsMode = document.getElementById('ev-collections-mode').checked;
+}
+
+async function loadEvents() {
+  const grid = document.getElementById('events-grid');
+  const countEl = document.getElementById('ev-count');
+  grid.innerHTML = '<div class="text-stone-500 text-xs py-4 text-center">Loading...</div>';
+
+  try {
+    if (collectionsMode) {
+      await loadCollections(grid, countEl);
+    } else {
+      await loadEventsList(grid, countEl);
+    }
+  } catch (e) {
+    grid.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function loadEventsList(grid, countEl) {
+  const params = new URLSearchParams({ world_id: WORLD_ID, limit: '200' });
+  const yearFrom = document.getElementById('ev-year-from').value;
+  const yearTo = document.getElementById('ev-year-to').value;
+  const type = document.getElementById('ev-type-filter').value;
+
+  if (yearFrom) params.set('year_from', yearFrom);
+  if (yearTo) params.set('year_to', yearTo);
+  if (type) params.set('type', type);
+
+  const resp = await fetch(`/api/events?${params}`);
+  const events = await resp.json();
+  countEl.textContent = `${events.length} events`;
+
+  if (events.length === 0) {
+    grid.innerHTML = '<div class="text-stone-500 text-xs py-4 text-center">No events found</div>';
+    return;
+  }
+
+  let html = '<div class="overflow-x-auto ex-scroll"><table class="w-full text-xs"><thead><tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">';
+  html += '<th class="px-3 py-2 text-left">Year</th><th class="px-3 py-2 text-left">Type</th>';
+  html += '<th class="px-3 py-2 text-left">Actor</th><th class="px-3 py-2 text-left">Target</th>';
+  html += '<th class="px-3 py-2 text-left">Site</th>';
+  html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+
+  for (const ev of events) {
+    const actor = ev.hf_id_1 ? `<span class="nav-link" onclick="navigateTo('people','hf',${WORLD_ID},${ev.hf_id_1})">${escapeHtml(ev.hf1_name || '?')}</span>` : '<span class="text-stone-600">-</span>';
+    const target = ev.hf_id_2 ? `<span class="nav-link" onclick="navigateTo('people','hf',${WORLD_ID},${ev.hf_id_2})">${escapeHtml(ev.hf2_name || '?')}</span>` : '<span class="text-stone-600">-</span>';
+    const site = ev.site_id ? `<span class="nav-link" onclick="navigateTo('geo','site',${WORLD_ID},${ev.site_id})">${escapeHtml(ev.site_name || '?')}</span>` : '<span class="text-stone-600">-</span>';
+
+    html += `<tr class="hover:bg-stone-800/30">
+      <td class="px-3 py-1.5 text-stone-400 stat-badge">${ev.year}</td>
+      <td class="px-3 py-1.5">${escapeHtml(titleCase(ev.event_type))}</td>
+      <td class="px-3 py-1.5">${actor}</td>
+      <td class="px-3 py-1.5">${target}</td>
+      <td class="px-3 py-1.5">${site}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div>';
+  grid.innerHTML = html;
+}
+
+async function loadCollections(grid, countEl) {
+  const params = new URLSearchParams({ world_id: WORLD_ID, limit: '100' });
+  const type = document.getElementById('ev-type-filter').value;
+  // Map broad type to collection type
+  if (type) params.set('type', type);
+
+  const resp = await fetch(`/api/events/collections?${params}`);
+  const collections = await resp.json();
+  countEl.textContent = `${collections.length} collections`;
+
+  if (collections.length === 0) {
+    grid.innerHTML = '<div class="text-stone-500 text-xs py-4 text-center">No collections found</div>';
+    return;
+  }
+
+  let html = '<div class="overflow-x-auto ex-scroll"><table class="w-full text-xs"><thead><tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">';
+  html += '<th class="px-3 py-2 text-left">Name</th><th class="px-3 py-2 text-left">Type</th>';
+  html += '<th class="px-3 py-2 text-left">Years</th><th class="px-3 py-2 text-left">Attacker</th>';
+  html += '<th class="px-3 py-2 text-left">Defender</th><th class="px-3 py-2 text-left">Site</th>';
+  html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
+
+  for (const c of collections) {
+    const years = c.end_year ? `${c.start_year}-${c.end_year}` : `${c.start_year}-?`;
+    const att = c.attacker_entity_id ? `<span class="nav-link" onclick="navigateTo('civs','entity',${WORLD_ID},${c.attacker_entity_id})">${escapeHtml(c.attacker_name || '?')}</span>` : '-';
+    const def = c.defender_entity_id ? `<span class="nav-link" onclick="navigateTo('civs','entity',${WORLD_ID},${c.defender_entity_id})">${escapeHtml(c.defender_name || '?')}</span>` : '-';
+    const site = c.site_name ? escapeHtml(c.site_name) : '-';
+
+    html += `<tr class="hover:bg-stone-800/30 cursor-pointer" onclick="loadCollectionDetail(${WORLD_ID}, ${c.id})">
+      <td class="px-3 py-1.5 text-stone-200">${escapeHtml(c.name || 'Unnamed')}</td>
+      <td class="px-3 py-1.5"><span class="badge badge-type">${escapeHtml(c.type)}</span></td>
+      <td class="px-3 py-1.5 text-stone-400 stat-badge">${years}</td>
+      <td class="px-3 py-1.5">${att}</td>
+      <td class="px-3 py-1.5">${def}</td>
+      <td class="px-3 py-1.5 text-stone-400">${site}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div>';
+  grid.innerHTML = html;
+}
+
+async function loadCollectionDetail(worldId, collId) {
+  const grid = document.getElementById('events-grid');
+  try {
+    const resp = await fetch(`/api/events/collections/${worldId}/${collId}`);
+    const coll = await resp.json();
+    if (coll.detail) throw new Error(coll.detail);
+
+    const years = coll.end_year ? `${coll.start_year}-${coll.end_year}` : `${coll.start_year}-?`;
+    let html = `<div class="mb-4">
+      <button onclick="loadEvents()" class="text-stone-500 hover:text-stone-300 text-xs mb-2">&larr; Back to list</button>
+      <h2 class="detail-header">${escapeHtml(coll.name || 'Unnamed Collection')}</h2>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-type">${escapeHtml(coll.type)}</span>
+        <span class="text-stone-400 text-xs">${years}</span>
+      </div>
+    </div>`;
+
+    // Subcollections
+    if (coll.subcollections && coll.subcollections.length > 0) {
+      html += `<div class="section-card">
+        <div class="section-title">Sub-events (${coll.subcollections.length})</div>
+        <div class="space-y-1">`;
+      for (const sc of coll.subcollections) {
+        html += `<div class="text-xs cursor-pointer hover:text-amber-400" onclick="loadCollectionDetail(${worldId}, ${sc.id})">
+          <span class="badge badge-type">${escapeHtml(sc.type)}</span>
+          ${escapeHtml(sc.name || 'Unnamed')}
+          <span class="text-stone-500">${sc.start_year}${sc.end_year ? '-' + sc.end_year : ''}</span>
+        </div>`;
+      }
+      html += '</div></div>';
+    }
+
+    // Events
+    if (coll.events && coll.events.length > 0) {
+      html += `<div class="section-card">
+        <div class="section-title">Events (${coll.events.length})</div>
+        <table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">
+          <th class="text-left py-1 pr-3">Year</th><th class="text-left py-1">Type</th>
+        </tr></thead><tbody class="divide-y divide-stone-800/50">`;
+      for (const ev of coll.events) {
+        html += `<tr class="hover:bg-stone-800/30">
+          <td class="py-1 pr-3 text-stone-400">${ev.year}</td>
+          <td class="py-1">${escapeHtml(titleCase(ev.event_type))}</td>
+        </tr>`;
+      }
+      html += '</tbody></table></div>';
+    }
+
+    grid.innerHTML = html;
+  } catch (e) {
+    grid.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// DATABASE TAB — Schema Browser
+// ═══════════════════════════════════════════════════════════════════════
+let dbLoaded = false;
+
 async function loadTables() {
   try {
     const resp = await fetch('/api/explorer/tables');
     allTables = await resp.json();
     renderTableList(allTables);
+    populateDataTableSelect();
   } catch (e) {
     document.getElementById('table-list').innerHTML =
       `<div class="text-red-400 text-xs px-3 py-4">Failed to load tables</div>`;
@@ -216,7 +1249,6 @@ function filterTables(query) {
 }
 
 function renderTableList(tables) {
-  // Group by category
   const groups = {};
   for (const t of tables) {
     const g = t.group || 'Other';
@@ -232,7 +1264,7 @@ function renderTableList(tables) {
       <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${g}</div>`;
     for (const t of groups[g]) {
       const active = currentTable === t.name ? ' active' : '';
-      html += `<div class="tbl-list-item px-3 py-1.5 text-xs rounded${active}"
+      html += `<div class="list-item px-3 py-1.5 text-xs rounded${active}"
                    onclick="showTable('${t.name}')">
         <span class="text-stone-200">${t.name}</span>
         <span class="text-stone-600 float-right stat-badge">${formatNum(t.row_count)}</span>
@@ -243,7 +1275,6 @@ function renderTableList(tables) {
   document.getElementById('table-list').innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4">No matching tables</div>';
 }
 
-// ─── Table detail ───
 async function showTable(name) {
   currentTable = name;
   renderTableList(allTables.filter(t => {
@@ -267,14 +1298,12 @@ function renderTableDetail(d) {
   const panel = document.getElementById('schema-detail');
   const pkSet = new Set(d.primary_key);
 
-  // Header
   let html = `<div class="flex items-center gap-3 mb-4">
     <h2 class="text-amber-400 text-xl font-bold">${d.name}</h2>
     <span class="text-stone-500 text-xs">${d.group}</span>
     <span class="text-stone-400 text-xs stat-badge ml-auto">${formatNum(d.row_count)} rows</span>
   </div>`;
 
-  // Primary Key badge
   if (d.primary_key.length > 0) {
     html += `<div class="mb-4">
       <span class="text-stone-500 text-xs uppercase tracking-wider">Primary Key: </span>
@@ -282,7 +1311,6 @@ function renderTableDetail(d) {
     </div>`;
   }
 
-  // Columns table
   html += `<div class="mb-6">
     <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Columns (${d.columns.length})</h3>
     <div class="bg-stone-900 border border-stone-800 rounded-lg overflow-hidden">
@@ -321,7 +1349,6 @@ function renderTableDetail(d) {
   }
   html += `</tbody></table></div></div>`;
 
-  // Foreign Keys (outgoing)
   if (d.foreign_keys.length > 0) {
     html += `<div class="mb-6">
       <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Foreign Keys (${d.foreign_keys.length})</h3>
@@ -337,7 +1364,6 @@ function renderTableDetail(d) {
     html += '</div></div>';
   }
 
-  // Incoming FKs
   if (d.incoming_foreign_keys.length > 0) {
     html += `<div class="mb-6">
       <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Referenced By (${d.incoming_foreign_keys.length})</h3>
@@ -353,7 +1379,6 @@ function renderTableDetail(d) {
     html += '</div></div>';
   }
 
-  // Indexes
   if (d.indexes.length > 0) {
     html += `<div class="mb-6">
       <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">Indexes (${d.indexes.length})</h3>
@@ -370,27 +1395,9 @@ function renderTableDetail(d) {
   panel.innerHTML = html;
 }
 
-// ─── Helpers ───
-function formatNum(n) {
-  if (n == null) return '?';
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
-  return n.toString();
-}
-
-function truncate(s, max) {
-  if (!s || s.length <= max) return s || '';
-  return s.slice(0, max - 3) + '...';
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-// ─── Data Browser ───
+// ═══════════════════════════════════════════════════════════════════════
+// DATABASE TAB — Data Browser
+// ═══════════════════════════════════════════════════════════════════════
 let dataState = { table: '', page: 1, limit: 25, sort: '', order: 'asc', filter: '', fkMap: {} };
 
 function populateDataTableSelect() {
@@ -461,7 +1468,6 @@ function renderDataGrid(d) {
 function renderCell(col, val, type) {
   if (val === null || val === undefined) return '<span class="text-stone-600 italic">null</span>';
 
-  // JSONB
   if (type === 'jsonb' || type === 'json' || (typeof val === 'object' && val !== null)) {
     const s = JSON.stringify(val, null, 2);
     if (s.length > 60) {
@@ -470,34 +1476,28 @@ function renderCell(col, val, type) {
     return `<span class="text-stone-400 font-mono text-[10px]">${escapeHtml(s)}</span>`;
   }
 
-  // Boolean
   if (type === 'bool') {
     return val ? '<span class="text-green-400">true</span>' : '<span class="text-stone-600">false</span>';
   }
 
-  // FK link
   const fk = dataState.fkMap[col];
   if (fk) {
     return `<span class="fk-link" onclick="navigateFK('${fk.table}', '${fk.column}', ${JSON.stringify(val)})">${escapeHtml(String(val))}</span>`;
   }
 
-  // Text arrays
   if (Array.isArray(val)) return `<span class="text-stone-400 font-mono text-[10px]">${escapeHtml(JSON.stringify(val))}</span>`;
 
-  // Default: truncated text
   const s = String(val);
   if (s.length > 120) return `<span title="${escapeHtml(s)}">${escapeHtml(s.slice(0, 117))}...</span>`;
   return escapeHtml(s);
 }
 
 function navigateFK(table, column, value) {
-  // Switch to the target table with a filter for this value
   const sel = document.getElementById('data-table-select');
   sel.value = table;
   dataState.table = table;
   dataState.sort = column;
   dataState.order = 'asc';
-  // For simple values, use the filter. For composite PKs we just sort by the column.
   document.getElementById('data-filter').value = String(value);
   dataState.filter = String(value);
   dataState.page = 1;
@@ -547,7 +1547,9 @@ function changeDataLimit() {
   loadTableData(dataState.table);
 }
 
-// ─── SQL Runner ───
+// ═══════════════════════════════════════════════════════════════════════
+// DATABASE TAB — SQL Runner
+// ═══════════════════════════════════════════════════════════════════════
 async function runQuery() {
   const sql = document.getElementById('sql-input').value.trim();
   if (!sql) return;
@@ -598,7 +1600,9 @@ async function runQuery() {
   }
 }
 
-// ─── Entity Graph ───
+// ═══════════════════════════════════════════════════════════════════════
+// GRAPH TAB
+// ═══════════════════════════════════════════════════════════════════════
 let graphNetwork = null;
 let graphNodes = null;
 let graphEdges = null;
@@ -612,11 +1616,9 @@ function getGraphDepth() {
 
 function graphDepthChanged() {
   if (graphCenter) {
-    // Re-fetch with new depth
     const parts = graphCenter.split('-');
     const type = parts[0];
     const id = parts.slice(1).join('-');
-    // Need world_id from the existing node
     const node = graphNodes ? graphNodes.get(graphCenter) : null;
     if (node && node.meta) {
       loadGraph(type, node.meta.world_id, parseInt(id));
@@ -731,13 +1733,11 @@ function renderGraph(data) {
   if (graphNetwork) graphNetwork.destroy();
   graphNetwork = new vis.Network(container, { nodes: graphNodes, edges: graphEdges }, options);
 
-  // Highlight center node
   if (data.center && graphNodes.get(data.center)) {
     const centerNode = graphNodes.get(data.center);
     graphNodes.update({ id: data.center, size: (centerNode.size || 12) * 1.5, borderWidth: 3 });
   }
 
-  // Click handler for info panel
   graphNetwork.on('click', function(params) {
     if (params.nodes.length > 0) {
       showNodeInfo(params.nodes[0]);
@@ -746,7 +1746,6 @@ function renderGraph(data) {
     }
   });
 
-  // Double-click to expand
   graphNetwork.on('doubleClick', function(params) {
     if (params.nodes.length > 0) {
       expandNode(params.nodes[0]);
@@ -774,6 +1773,7 @@ function showNodeInfo(nodeId) {
     html += `<div class="mt-3 flex gap-2">
       <button onclick="expandNode('${nodeId}')" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded text-[10px]">Expand</button>
       <button onclick="loadGraph('hf', ${m.world_id}, ${m.hf_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+      <button onclick="navigateTo('people','hf',${m.world_id},${m.hf_id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded text-[10px]">Detail</button>
     </div>`;
   } else if (m.type === 'entity') {
     html += `<div class="space-y-1 text-stone-400">
@@ -782,6 +1782,7 @@ function showNodeInfo(nodeId) {
     </div>`;
     html += `<div class="mt-3 flex gap-2">
       <button onclick="loadGraph('entity', ${m.world_id}, ${m.entity_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+      <button onclick="navigateTo('civs','entity',${m.world_id},${m.entity_id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded text-[10px]">Detail</button>
     </div>`;
   } else if (m.type === 'site') {
     html += `<div class="space-y-1 text-stone-400">
@@ -789,10 +1790,10 @@ function showNodeInfo(nodeId) {
     </div>`;
     html += `<div class="mt-3 flex gap-2">
       <button onclick="loadGraph('site', ${m.world_id}, ${m.site_id})" class="bg-amber-600 hover:bg-amber-500 text-stone-950 px-2 py-1 rounded text-[10px] font-bold">Center</button>
+      <button onclick="navigateTo('geo','site',${m.world_id},${m.site_id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-2 py-1 rounded text-[10px]">Detail</button>
     </div>`;
   }
 
-  // Connected edges
   const connected = graphEdges.get({
     filter: e => e.from === nodeId || e.to === nodeId
   });
@@ -825,7 +1826,6 @@ async function expandNode(nodeId) {
   else if (m.type === 'site') url = `/api/explorer/graph/site/${m.world_id}/${m.site_id}`;
   else return;
 
-  // Check node count guard
   const currentCount = graphNodes.length;
   if (currentCount > 1000) {
     document.getElementById('graph-node-count').innerHTML = '&#9888; Too many nodes (1000+). Clear and re-search.';
@@ -837,12 +1837,10 @@ async function expandNode(nodeId) {
     const data = await resp.json();
     if (data.detail) throw new Error(data.detail);
 
-    // Merge new nodes/edges into existing graph
     for (const n of data.nodes) {
       if (!graphNodes.get(n.id)) graphNodes.add(n);
     }
     for (const e of data.edges) {
-      // Check for duplicate edges
       const existing = graphEdges.get({
         filter: ex => (ex.from === e.from && ex.to === e.to && ex.label === e.label)
                    || (ex.from === e.to && ex.to === e.from && ex.label === e.label)
@@ -864,12 +1862,10 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// ─── Init ───
-async function initAll() {
-  await loadTables();
-  populateDataTableSelect();
-}
-initAll();
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+// People tab is shown by default — no auto-load needed (user searches)
 </script>
 </body>
 </html>
