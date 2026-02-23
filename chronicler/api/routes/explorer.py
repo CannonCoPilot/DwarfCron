@@ -818,4 +818,43 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
                 "url": f"/api/explorer/graph/site/{r['world_id']}/{r['id']}",
             })
 
+        # Units (search by name or english_name, link to HF graph if possible)
+        params_unit = [pattern, world_id] if world_id else [pattern]
+        unit_rows = await conn.fetch(f"""
+            SELECT id, world_id, name, english_name, race, profession, hist_fig_id
+            FROM units
+            WHERE (name ILIKE $1 OR english_name ILIKE $1) {world_filter}
+            ORDER BY name
+            LIMIT 10
+        """, *params_unit)
+        for r in unit_rows:
+            eng = f' "{r["english_name"]}"' if r["english_name"] else ""
+            prof = r["profession"] or "?"
+            hf_id = r["hist_fig_id"]
+            if hf_id:
+                # Check if HF actually exists in legends (units born after
+                # export have hist_fig_ids that exceed the legends range)
+                hf_exists = await conn.fetchval(
+                    "SELECT 1 FROM historical_figures WHERE world_id = $1 AND id = $2",
+                    r["world_id"], hf_id,
+                )
+                if hf_exists:
+                    results.append({
+                        "type": "hf", "id": hf_id, "world_id": r["world_id"],
+                        "label": f"{r['name']}{eng} ({r['race'] or '?'}, {prof}) [unit]",
+                        "url": f"/api/explorer/graph/hf/{r['world_id']}/{hf_id}",
+                    })
+                else:
+                    results.append({
+                        "type": "hf", "id": 0, "world_id": r["world_id"],
+                        "label": f"{r['name']}{eng} ({r['race'] or '?'}, {prof}) [unit, born after legends]",
+                        "url": "",
+                    })
+            else:
+                results.append({
+                    "type": "hf", "id": 0, "world_id": r["world_id"],
+                    "label": f"{r['name']}{eng} ({r['race'] or '?'}, {prof}) [unit, no HF]",
+                    "url": "",
+                })
+
     return results

@@ -404,7 +404,8 @@ function escapeHtml(str) {
 }
 
 function titleCase(s) {
-  if (!s) return '';
+  if (s == null || s === '') return '';
+  s = String(s);
   return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -696,13 +697,13 @@ function renderUnitDetail(unit, panel) {
     html += `<div class="section-card">
       <div class="section-title">Skills (${unit.skills.length})</div>
       <div class="grid grid-cols-2 gap-1">`;
-    const sorted = [...unit.skills].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const sorted = [...unit.skills].sort((a, b) => (b.level || 0) - (a.level || 0) || (b.xp || 0) - (a.xp || 0));
     for (const sk of sorted) {
-      const pct = Math.min((sk.rating || 0) / 20 * 100, 100);
+      const pct = Math.min((sk.level || 0) / 15 * 100, 100);
       html += `<div class="text-xs flex items-center gap-2">
-        <span class="text-stone-300 w-32 truncate">${escapeHtml(titleCase(sk.id || sk.name || ''))}</span>
+        <span class="text-stone-300 w-32 truncate">${escapeHtml(titleCase(sk.name || ''))}</span>
         <div class="flex-1 bg-stone-800 rounded-full h-1.5"><div class="bg-amber-500 rounded-full h-1.5" style="width:${pct}%"></div></div>
-        <span class="text-stone-500 w-6 text-right">${sk.rating || 0}</span>
+        <span class="text-stone-500 w-6 text-right">${sk.level || 0}</span>
       </div>`;
     }
     html += '</div></div>';
@@ -1666,6 +1667,10 @@ function hideSearchResults() {
 function selectGraphResult(type, worldId, id) {
   hideSearchResults();
   document.getElementById('graph-search').value = '';
+  if (id === 0) {
+    document.getElementById('graph-node-count').textContent = 'This unit was born after the legends export — no graph data available';
+    return;
+  }
   loadGraph(type, worldId, id);
 }
 
