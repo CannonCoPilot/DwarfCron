@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS sites (
     coord_y     INT,
     coords      TEXT,
     owner_entity_id INT,
+    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
     details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -122,6 +123,7 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     is_ghost        BOOLEAN DEFAULT FALSE,
     kill_count      INT DEFAULT 0,
     event_count     INT DEFAULT 0,
+    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -295,6 +297,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
     creator_hf_id   INT,
     holder_hf_id    INT,
     site_id         INT,
+    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -382,6 +385,9 @@ CREATE INDEX IF NOT EXISTS idx_hf_site_links_hf ON hf_site_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_event_rels_source ON event_relationships(source_hf);
 CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_hf);
+CREATE INDEX IF NOT EXISTS idx_hf_importance ON historical_figures(world_id, importance_score DESC);
+CREATE INDEX IF NOT EXISTS idx_sites_importance ON sites(world_id, importance_score DESC);
+CREATE INDEX IF NOT EXISTS idx_artifacts_importance ON artifacts(world_id, importance_score DESC);
 
 -- ─── Monitoring ─────────────────────────────────────────────────────────────
 
@@ -485,3 +491,46 @@ CREATE TABLE IF NOT EXISTS lua_probes (
 
 CREATE INDEX IF NOT EXISTS idx_lua_probes_world ON lua_probes(world_id);
 CREATE INDEX IF NOT EXISTS idx_lua_probes_name ON lua_probes(probe_name);
+
+-- ─── Fortress Denizen Registry ────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS fortress_denizens (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id),
+    unit_id         INT,                -- NULL if HF-only (never had unit record)
+    hf_id           INT,                -- NULL if unit-only (no HF match yet)
+    name            TEXT NOT NULL,       -- Best available name
+    english_name    TEXT,                -- English translation if available
+    race            TEXT,
+    status          TEXT NOT NULL DEFAULT 'unknown',
+        -- 'resident'   : Currently living in fortress
+        -- 'departed'   : Left alive (migrated out, caravan departed)
+        -- 'deceased'   : Confirmed dead
+        -- 'missing'    : Was resident, now absent (no departure/death event)
+        -- 'visitor'    : Temporary presence (diplomat, merchant, performer)
+        -- 'attacker'   : Hostile presence (siege, ambush)
+        -- 'skulker'    : Covert presence (thief, snatcher)
+        -- 'historical' : Known only from legends/relationships, never present
+    embark          BOOLEAN DEFAULT FALSE,  -- TRUE if starting dwarf at embark
+    arrival_year    INT,                -- Year first detected at fortress
+    arrival_tick    INT,                -- Tick within year
+    departure_year  INT,                -- Year departed/died (NULL if still present)
+    departure_tick  INT,
+    departure_cause TEXT,               -- 'death', 'departure', 'unknown'
+    narrative_value FLOAT DEFAULT 0.0,  -- Storytelling importance score (0.0-100.0)
+    last_seen_tick  INT,                -- Last watcher cycle tick where observed
+    details         JSONB DEFAULT '{}', -- Extended metadata
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (world_id, unit_id),
+    UNIQUE (world_id, hf_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fortress_denizens_status
+    ON fortress_denizens(world_id, status);
+CREATE INDEX IF NOT EXISTS idx_fortress_denizens_narrative
+    ON fortress_denizens(world_id, narrative_value DESC);
+CREATE INDEX IF NOT EXISTS idx_fortress_denizens_hf
+    ON fortress_denizens(world_id, hf_id) WHERE hf_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_fortress_denizens_embark
+    ON fortress_denizens(world_id) WHERE embark = TRUE;

@@ -31,6 +31,10 @@ from chronicler.dfhack.bridge import (
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
 from chronicler.dfhack.sync import upsert_units, enrich_units
+from chronicler.denizens import (
+    has_denizens, register_denizen, detect_missing, detect_deaths,
+    mark_seen, restore_resident, compute_nvs, link_hf,
+)
 
 log = logging.getLogger(__name__)
 
@@ -135,6 +139,74 @@ async def _cleanup_lua_probes_count(conn: asyncpg.Connection, world_id: int,
     return int(result.split()[-1]) if result else 0
 
 
+async def _update_denizen_registry(
+    conn: asyncpg.Connection,
+    world_id: int,
+    units: list[dict],
+    cycle: int,
+    game_year: int | None,
+    game_tick: int | None,
+) -> None:
+    """Update the fortress denizen registry from current unit data.
+
+    On the first cycle (no existing denizens), all units are marked as
+    embark dwarves. Subsequent cycles register new arrivals, detect
+    deaths and absences, and periodically recompute NVS.
+    """
+    is_first = not await has_denizens(conn, world_id)
+
+    current_unit_ids = set()
+    for u in units:
+        uid = u['id']
+        current_unit_ids.add(uid)
+        await register_denizen(
+            conn, world_id, u,
+            is_embark=is_first,
+            game_year=game_year,
+            game_tick=game_tick,
+        )
+
+    if is_first:
+        log.info("Denizen registry: %d embark dwarves registered", len(units))
+    else:
+        # Detect deaths (is_alive=False transitions)
+        deaths = await detect_deaths(
+            conn, world_id, units,
+            game_year=game_year, game_tick=game_tick,
+        )
+        if deaths:
+            log.info("Denizen deaths detected: %d", len(deaths))
+
+        # Detect missing (residents no longer in unit list)
+        missing = await detect_missing(
+            conn, world_id, current_unit_ids,
+            game_year=game_year, game_tick=game_tick,
+        )
+        if missing:
+            log.info("Denizen missing detected: %d", len(missing))
+
+        # Restore any previously missing denizens who reappeared
+        restored = await conn.fetch(
+            """
+            SELECT unit_id FROM fortress_denizens
+            WHERE world_id = $1 AND status = 'missing'
+              AND unit_id = ANY($2::int[])
+            """,
+            world_id, list(current_unit_ids),
+        )
+        for r in restored:
+            if await restore_resident(conn, world_id, r['unit_id']):
+                log.info("Denizen unit %d restored to resident", r['unit_id'])
+
+    # Update last_seen_tick for all observed units
+    await mark_seen(conn, world_id, list(current_unit_ids), game_tick)
+
+    # Periodic: HF linking + NVS recomputation (every 10 cycles)
+    if cycle % 10 == 0:
+        await link_hf(conn, world_id)
+        await compute_nvs(conn, world_id, total_cycles=cycle)
+
+
 def _log_cycle(cycle: int, game_year: int | None, game_tick: int | None,
                unit_count: int, event_count: int, events: list[dict],
                extras: dict | None = None):
@@ -150,6 +222,8 @@ def _log_cycle(cycle: int, game_year: int | None, game_tick: int | None,
             extra_parts.append("world map captured")
         if extras.get('bridge_sections'):
             extra_parts.append(f"{extras['bridge_sections']} bridge sections")
+        if extras.get('denizens'):
+            extra_parts.append("denizens")
     extra_str = f" [{', '.join(extra_parts)}]" if extra_parts else ""
     log.info("Cycle %d: %d units, %d events (%s)%s", cycle, unit_count,
              event_count, time_str, extra_str)
@@ -350,6 +424,15 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                                          game_year, game_tick)
                     await _record_snapshot(conn, world_id, len(units),
                                           len(events), game_year, game_tick)
+
+                # 5b. Denizen registry tracking
+                try:
+                    await _update_denizen_registry(
+                        conn, world_id, units, cycle,
+                        game_year, game_tick)
+                    extras['denizens'] = True
+                except Exception as e:
+                    log.debug("Denizen tracking failed: %s", e)
 
                 # 6. Store expanded bridge sections
                 if bd and bridge_available:

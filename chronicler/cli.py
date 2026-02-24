@@ -223,6 +223,26 @@ def probe(world_id, unit_id, store):
         client.close()
 
 
+@cli.command("rescore")
+@click.option("--world-id", required=True, type=int, help="World ID to compute scores for")
+def rescore(world_id):
+    """Recompute importance scores for all entities in a world."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.scoring import compute_importance_scores
+
+    async def _run_rescore():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            counts = await compute_importance_scores(conn, world_id)
+
+        click.echo("── Importance Scores Recomputed ──")
+        for entity_type, n in sorted(counts.items()):
+            click.echo(f"  {entity_type:30s} {n:>8,d} updated")
+        await close_pool()
+
+    _run(_run_rescore())
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""
@@ -238,6 +258,7 @@ def validate():
         "artifacts", "units", "embeddings",
         "unit_events", "sync_snapshots",
         "game_reports", "world_map_snapshots", "lua_probes",
+        "fortress_denizens",
     ]
 
     async def _run_validate():
@@ -256,3 +277,67 @@ def validate():
         await close_pool()
 
     _run(_run_validate())
+
+
+@cli.command("denizens")
+@click.option("--world-id", default=1, type=int, help="World ID to query")
+@click.option("--status", "status_filter", default=None,
+              type=click.Choice(["resident", "deceased", "missing", "departed",
+                                 "visitor", "attacker", "skulker", "historical"]),
+              help="Filter by status")
+@click.option("--sort", "sort_by", default="narrative_value",
+              type=click.Choice(["narrative_value", "name", "status", "arrival_year"]),
+              help="Sort column")
+@click.option("--limit", default=50, type=int, help="Max rows to display")
+def denizens(world_id, status_filter, sort_by, limit):
+    """Show the fortress denizen registry."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.denizens import get_fortress_denizens
+
+    async def _run_denizens():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            rows = await get_fortress_denizens(
+                conn, world_id,
+                status_filter=status_filter,
+                sort_by=sort_by,
+                limit=limit,
+            )
+
+        if not rows:
+            click.echo("No denizens found. Run 'chronicler watch' first.")
+            await close_pool()
+            return
+
+        # Header
+        click.echo(f"── Fortress Denizens (world {world_id}) ──")
+        click.echo(f"{'Name':<30s} {'Status':<12s} {'Race':<15s} "
+                   f"{'Embark':<8s} {'NVS':>6s} {'HF':>6s} {'Unit':>6s}")
+        click.echo("─" * 90)
+
+        for r in rows:
+            embark = "★" if r['embark'] else ""
+            hf_str = str(r['hf_id']) if r['hf_id'] else "—"
+            unit_str = str(r['unit_id']) if r['unit_id'] else "—"
+            nvs_str = f"{r['narrative_value']:.1f}" if r['narrative_value'] else "0.0"
+            name = r['name'] or '(unnamed)'
+            english = f" ({r['english_name']})" if r.get('english_name') else ""
+
+            click.echo(f"{(name + english):<30s} {r['status']:<12s} "
+                       f"{(r['race'] or '?'):<15s} {embark:<8s} "
+                       f"{nvs_str:>6s} {hf_str:>6s} {unit_str:>6s}")
+
+        # Summary
+        status_counts = {}
+        for r in rows:
+            s = r['status']
+            status_counts[s] = status_counts.get(s, 0) + 1
+        summary = ", ".join(f"{v} {k}" for k, v in sorted(status_counts.items()))
+        embark_count = sum(1 for r in rows if r['embark'])
+        click.echo(f"\nTotal: {len(rows)} denizens ({summary})")
+        if embark_count:
+            click.echo(f"Embark dwarves: {embark_count} (★)")
+
+        await close_pool()
+
+    _run(_run_denizens())
