@@ -88,13 +88,15 @@ class TestBooleanFlags:
         hf = hfs[0]
         # Tuple indices: 12=is_deity, 13=is_force, 14=is_vampire,
         # 15=is_necromancer, 16=is_werebeast, 17=is_ghost
+        # 20=spheres, 21=goals, 22=skills, 23=holds_artifact,
+        # 24=active_interactions, 25=details
         assert hf[12] is True, "is_deity should be True"
         assert hf[14] is False, "is_vampire should be False"
-        # Spheres should be in details JSONB
-        details = json.loads(hf[20])
-        assert "spheres" in details
-        assert "war" in details["spheres"]
-        assert "fire" in details["spheres"]
+        # Spheres should be in first-class TEXT[] column (index 20)
+        spheres = hf[20]
+        assert spheres is not None, "spheres should not be None for deity"
+        assert "war" in spheres
+        assert "fire" in spheres
 
     def test_vampire_detected(self):
         root = _xml(self.VAMPIRE_XML)

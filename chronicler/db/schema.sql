@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS mountain_peaks (
     name        TEXT,
     coords      TEXT,
     height      INT,
+    is_volcano  BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (world_id, id)
 );
 
@@ -88,6 +89,32 @@ CREATE TABLE IF NOT EXISTS world_constructions (
     PRIMARY KEY (world_id, id)
 );
 
+CREATE TABLE IF NOT EXISTS art_forms (
+    world_id    INT NOT NULL REFERENCES worlds(id),
+    id          INT NOT NULL,
+    name        TEXT,
+    form_type   TEXT NOT NULL,  -- 'dance', 'musical', 'poetic'
+    description TEXT,
+    details     JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_art_forms_type ON art_forms(world_id, form_type);
+CREATE INDEX IF NOT EXISTS idx_art_forms_name ON art_forms(world_id, name);
+
+CREATE TABLE IF NOT EXISTS rivers (
+    world_id     INT NOT NULL REFERENCES worlds(id),
+    id           INT NOT NULL,
+    name         TEXT,
+    name_english TEXT,
+    path         TEXT,      -- pipe-delimited coordinate pairs for river path
+    end_type     TEXT,      -- ocean, lake, underground, etc.
+    details      JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_rivers_name ON rivers(world_id, name);
+
 -- ─── Civilizations & Organizations ───────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS entities (
@@ -123,10 +150,26 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     is_ghost        BOOLEAN DEFAULT FALSE,
     kill_count      INT DEFAULT 0,
     event_count     INT DEFAULT 0,
-    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
+    importance_score FLOAT DEFAULT 0.0,
+    spheres         TEXT[],
+    goals           JSONB DEFAULT '[]',
+    skills          JSONB DEFAULT '[]',
+    kills           JSONB DEFAULT '{}',
+    whereabouts     JSONB DEFAULT '{}',
+    entity_reputations JSONB DEFAULT '[]',
+    intrigue_actors JSONB DEFAULT '[]',
+    used_identities JSONB DEFAULT '[]',
+    journey_pets    JSONB DEFAULT '[]',
+    holds_artifact  INTEGER[],
+    active_interactions TEXT[],
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_hf_spheres
+    ON historical_figures USING gin(spheres);
+CREATE INDEX IF NOT EXISTS idx_hf_interactions
+    ON historical_figures USING gin(active_interactions);
 
 CREATE TABLE IF NOT EXISTS hf_links (
     id           SERIAL PRIMARY KEY,
@@ -214,6 +257,10 @@ CREATE TABLE IF NOT EXISTS identities (
     birth_year  INT,
     birth_second INT,
     entity_id   INT,
+    race        TEXT,
+    caste       TEXT,
+    profession  TEXT,
+    details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
 
@@ -388,6 +435,57 @@ CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_h
 CREATE INDEX IF NOT EXISTS idx_hf_importance ON historical_figures(world_id, importance_score DESC);
 CREATE INDEX IF NOT EXISTS idx_sites_importance ON sites(world_id, importance_score DESC);
 CREATE INDEX IF NOT EXISTS idx_artifacts_importance ON artifacts(world_id, importance_score DESC);
+
+-- ─── Event Cross-Reference Index ───────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS event_entity_xref (
+    world_id    INT NOT NULL,
+    event_id    INT NOT NULL,
+    entity_type TEXT NOT NULL,   -- 'hf', 'entity', 'site', 'artifact', 'region'
+    entity_id   INT NOT NULL,
+    role        TEXT,            -- 'subject', 'object', 'location', 'participant'
+    PRIMARY KEY (world_id, event_id, entity_type, entity_id),
+    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_event_entity_xref_entity
+    ON event_entity_xref(world_id, entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_event_entity_xref_event
+    ON event_entity_xref(world_id, event_id);
+
+-- ─── System Tables ─────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS worldgen_snapshots (
+    id          SERIAL PRIMARY KEY,
+    world_id    INT NOT NULL REFERENCES worlds(id),
+    phase       TEXT NOT NULL,
+    progress_pct FLOAT,
+    year        INT,
+    pop_count   INT,
+    site_count  INT,
+    hf_count    INT,
+    entity_count INT,
+    event_count INT,
+    data        JSONB DEFAULT '{}',
+    captured_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_worldgen_snapshots_world
+    ON worldgen_snapshots(world_id);
+
+CREATE TABLE IF NOT EXISTS world_modpacks (
+    id          SERIAL PRIMARY KEY,
+    world_id    INT NOT NULL REFERENCES worlds(id),
+    name        TEXT NOT NULL,
+    version     TEXT,
+    source      TEXT,         -- 'steam_workshop', 'manual', 'dfhack'
+    active      BOOLEAN DEFAULT TRUE,
+    details     JSONB DEFAULT '{}',
+    recorded_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_modpacks_world
+    ON world_modpacks(world_id);
 
 -- ─── Monitoring ─────────────────────────────────────────────────────────────
 

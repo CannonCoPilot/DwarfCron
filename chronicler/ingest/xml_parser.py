@@ -204,16 +204,25 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         )
         is_ghost = False  # No reliable XML tag; detected via events
 
-        # Store supernatural details in JSONB for richer queries
+        # Goals (from legends.xml <goal> elements)
+        goals = [g.text for g in hf.findall("goal") if g.text]
+
+        # Skills (from legends.xml <hf_skill> elements)
+        skills = []
+        for sk in hf.findall("hf_skill"):
+            skill_name = _text(sk, "skill")
+            total_ip = _int(sk, "total_ip")
+            if skill_name:
+                skills.append({"name": skill_name, "total_ip": total_ip})
+
+        # Holds artifact (from legends.xml <holds_artifact> elements)
+        held_artifacts = [_int_or_none(ha.text) for ha in hf.findall("holds_artifact") if ha.text]
+        held_artifacts = [h for h in held_artifacts if h is not None]
+
+        # Overflow details: interaction_knowledge and other misc data
         details: dict | None = None
-        if spheres or interactions or knowledge:
-            details = {}
-            if spheres:
-                details["spheres"] = spheres
-            if interactions:
-                details["active_interactions"] = interactions
-            if knowledge:
-                details["interaction_knowledge"] = knowledge
+        if knowledge:
+            details = {"interaction_knowledge": knowledge}
 
         hf_rows.append((
             hfid, world_id, name, race,
@@ -232,6 +241,11 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
             is_werebeast,
             is_ghost,
             0, 0,  # kill_count, event_count (computed later)
+            spheres or None,  # spheres TEXT[]
+            json.dumps(goals) if goals else None,  # goals JSONB
+            json.dumps(skills) if skills else None,  # skills JSONB
+            held_artifacts or None,  # holds_artifact INTEGER[]
+            interactions or None,  # active_interactions TEXT[]
             json.dumps(details) if details else None,
         ))
 
@@ -491,6 +505,9 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "world_constructions": [],
         "entity_positions": [],  # position definitions from <entity_position>
         "entity_position_assignments": [],  # current holders from <entity_position_assignment>
+        "art_forms": [],
+        "rivers": [],
+        "hf_enrichment": [],  # (hf_id, world_id, field_dict) for HF UPDATE pass
     }
 
     for lm in root.findall(".//landmass"):
@@ -507,6 +524,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _text(mp, "name"),
             _text(mp, "coords"),
             _int(mp, "height"),
+            _bool_flag(mp, "is_volcano"),
         ))
 
     for ur in root.findall("underground_regions/underground_region"):
@@ -525,6 +543,9 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _int(ident, "birth_year"),
             _int(ident, "birth_second"),
             _int(ident, "entity_id"),
+            _text(ident, "race"),
+            _text(ident, "caste"),
+            _text(ident, "profession"),
         ))
 
     for rel in root.findall(".//historical_event_relationship"):
@@ -632,6 +653,143 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _text(wcon, "coords"),
         ))
 
+    # Art forms: dance_forms, musical_forms, poetic_forms → unified art_forms table
+    for form_type, tag in [("dance", "dance_form"), ("musical", "musical_form"), ("poetic", "poetic_form")]:
+        for af in root.findall(f".//{tag}"):
+            af_details = {}
+            # Collect form-type-specific fields into details
+            for child in af:
+                if child.tag not in ("id", "name", "description") and child.text:
+                    af_details[child.tag] = child.text
+            result["art_forms"].append((
+                _int(af, "id"), world_id,
+                _text(af, "name"),
+                form_type,
+                _text(af, "description"),
+                _json.dumps(af_details) if af_details else None,
+            ))
+
+    # Rivers — DF XML has no <id> element, so we generate synthetic sequential IDs
+    for idx, river in enumerate(root.findall(".//river")):
+        r_details = {}
+        for child in river:
+            if child.tag not in ("name", "name_english", "path", "end_type", "end_pos") and child.text:
+                r_details[child.tag] = child.text
+        # end_pos is DF's actual field; store as end_type for our schema
+        end_info = _text(river, "end_pos") or _text(river, "end_type")
+        if end_info:
+            r_details["end_pos"] = end_info
+        result["rivers"].append((
+            idx, world_id,
+            _text(river, "name"),
+            _text(river, "name_english"),
+            _text(river, "path"),
+            None,  # end_type (DF uses end_pos coords, not a type string)
+            _json.dumps(r_details) if r_details else None,
+        ))
+
+    # HF enrichment: expanded fields from legends_plus HF elements
+    hf_section = root.find("historical_figures")
+    if hf_section is not None:
+        for hf in hf_section.findall("historical_figure"):
+            hfid = _int(hf, "id")
+            if hfid is None:
+                continue
+            enrichment = {}
+
+            # Spheres (TEXT[])
+            spheres = [s.text for s in hf.findall("sphere") if s.text]
+            if spheres:
+                enrichment["spheres"] = spheres
+
+            # Active interactions (TEXT[])
+            interactions = [ai.text for ai in hf.findall("active_interaction") if ai.text]
+            if interactions:
+                enrichment["active_interactions"] = interactions
+
+            # Goals (JSONB array)
+            goals = []
+            for goal_elem in hf.findall("goal"):
+                goals.append(goal_elem.text or "")
+            if goals:
+                enrichment["goals"] = goals
+
+            # Skills (JSONB array with id, rating, xp)
+            skills = []
+            for skill_elem in hf.findall(".//skill"):
+                skill_id = _int(skill_elem, "id")
+                rating = _int(skill_elem, "rating")
+                xp = _int(skill_elem, "experience")
+                if skill_id is not None:
+                    skills.append({"id": skill_id, "rating": rating, "xp": xp})
+            if skills:
+                enrichment["skills"] = skills
+
+            # Kills (JSONB with notable + other count)
+            kills = {"notable": [], "other": 0}
+            for kill_elem in hf.findall(".//notable_kill"):
+                kills["notable"].append({
+                    "hf_id": _int(kill_elem, "hf_id"),
+                    "type": _text(kill_elem, "type"),
+                })
+            other_kills = _int(hf, "other_kill_count")
+            if other_kills is not None:
+                kills["other"] = other_kills
+            if kills["notable"] or kills["other"]:
+                enrichment["kills"] = kills
+
+            # Whereabouts (JSONB)
+            current_state = _text(hf, "current_state")
+            if current_state:
+                enrichment["whereabouts"] = {
+                    "state": current_state,
+                    "site_id": _int(hf, "cur_site_id"),
+                    "subregion_id": _int(hf, "cur_subregion_id"),
+                }
+
+            # Entity reputations (JSONB array)
+            reputations = []
+            for rep in hf.findall("entity_reputation"):
+                reputations.append({
+                    "entity_id": _int(rep, "entity_id"),
+                    "type": _text(rep, "type"),
+                    "severity": _int(rep, "severity"),
+                })
+            if reputations:
+                enrichment["entity_reputations"] = reputations
+
+            # Intrigue actors (JSONB array)
+            intrigue = []
+            for ia in hf.findall("intrigue_actor"):
+                intrigue.append({
+                    "role": _text(ia, "role"),
+                    "strategy": _text(ia, "strategy"),
+                    "entity_id": _int(ia, "entity_id"),
+                    "hf_id": _int(ia, "hf_id"),
+                })
+            if intrigue:
+                enrichment["intrigue_actors"] = intrigue
+
+            # Used identities (JSONB array of IDs)
+            used_ids = [_int_or_none(uid.text) for uid in hf.findall("used_identity_id") if uid.text]
+            used_ids = [u for u in used_ids if u is not None]
+            if used_ids:
+                enrichment["used_identities"] = used_ids
+
+            # Journey pets (JSONB array)
+            pets = [jp.text for jp in hf.findall("journey_pet") if jp.text]
+            if pets:
+                enrichment["journey_pets"] = pets
+
+            # Holds artifact (INTEGER[])
+            held = [_int_or_none(ha.text) for ha in hf.findall("holds_artifact") if ha.text]
+            held = [h for h in held if h is not None]
+            if held:
+                enrichment["holds_artifact"] = held
+
+            if enrichment:
+                result["hf_enrichment"].append((hfid, world_id, enrichment))
+
     return result
 
 
@@ -700,7 +858,8 @@ async def import_legends(
         for key in ("landmasses", "mountain_peaks", "underground_regions",
                      "identities", "event_relationships", "entities",
                      "written_contents", "world_constructions",
-                     "entity_positions", "entity_position_assignments"):
+                     "entity_positions", "entity_position_assignments",
+                     "art_forms", "rivers"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
@@ -711,6 +870,10 @@ async def import_legends(
                 else (row[0], world_id, *row[2:])
                 for row in plus_data[key]
             ]
+        # HF enrichment: update world_id at position [1]
+        plus_data["hf_enrichment"] = [
+            (row[0], world_id, row[2]) for row in plus_data["hf_enrichment"]
+        ]
 
     # ── Step 4: Insert in FK dependency order ─────────────────────────────
 
@@ -758,7 +921,9 @@ async def import_legends(
          "birth_year", "birth_seconds", "death_year", "death_seconds",
          "death_cause", "entity_id",
          "is_deity", "is_force", "is_vampire", "is_necromancer",
-         "is_werebeast", "is_ghost", "kill_count", "event_count", "details"],
+         "is_werebeast", "is_ghost", "kill_count", "event_count",
+         "spheres", "goals", "skills", "holds_artifact",
+         "active_interactions", "details"],
         hf_rows)
     counts["historical_figures"] = n
     log.info("  historical_figures: %d", n)
@@ -860,7 +1025,7 @@ async def import_legends(
         log.info("  landmasses: %d", n)
 
         n = await _batch_insert(conn, "mountain_peaks",
-            ["id", "world_id", "name", "coords", "height"],
+            ["id", "world_id", "name", "coords", "height", "is_volcano"],
             plus_data["mountain_peaks"])
         counts["mountain_peaks"] = n
         log.info("  mountain_peaks: %d", n)
@@ -877,7 +1042,7 @@ async def import_legends(
 
         n = await _batch_insert(conn, "identities",
             ["id", "world_id", "name", "histfig_id", "birth_year",
-             "birth_second", "entity_id"],
+             "birth_second", "entity_id", "race", "caste", "profession"],
             plus_data["identities"])
         counts["identities"] = n
         log.info("  identities: %d", n)
@@ -952,6 +1117,83 @@ async def import_legends(
                 plus_data["world_constructions"])
             counts["world_constructions"] = n
             log.info("  world_constructions: %d", n)
+
+        # Art forms (dance, musical, poetic)
+        if plus_data["art_forms"]:
+            n = await _batch_insert(conn, "art_forms",
+                ["id", "world_id", "name", "form_type", "description", "details"],
+                plus_data["art_forms"])
+            counts["art_forms"] = n
+            log.info("  art_forms: %d", n)
+
+        # Rivers
+        if plus_data["rivers"]:
+            n = await _batch_insert(conn, "rivers",
+                ["id", "world_id", "name", "name_english", "path", "end_type", "details"],
+                plus_data["rivers"])
+            counts["rivers"] = n
+            log.info("  rivers: %d", n)
+
+        # HF enrichment: update expanded fields from legends_plus
+        if plus_data["hf_enrichment"]:
+            hf_updated = 0
+            for hfid, wid, enrichment in plus_data["hf_enrichment"]:
+                sets = []
+                params = [wid, hfid]
+                idx = 3  # $1=world_id, $2=hfid
+
+                if "spheres" in enrichment:
+                    sets.append(f"spheres = ${idx}::TEXT[]")
+                    params.append(enrichment["spheres"])
+                    idx += 1
+                if "active_interactions" in enrichment:
+                    sets.append(f"active_interactions = ${idx}::TEXT[]")
+                    params.append(enrichment["active_interactions"])
+                    idx += 1
+                if "goals" in enrichment:
+                    sets.append(f"goals = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["goals"]))
+                    idx += 1
+                if "skills" in enrichment:
+                    sets.append(f"skills = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["skills"]))
+                    idx += 1
+                if "kills" in enrichment:
+                    sets.append(f"kills = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["kills"]))
+                    idx += 1
+                if "whereabouts" in enrichment:
+                    sets.append(f"whereabouts = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["whereabouts"]))
+                    idx += 1
+                if "entity_reputations" in enrichment:
+                    sets.append(f"entity_reputations = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["entity_reputations"]))
+                    idx += 1
+                if "intrigue_actors" in enrichment:
+                    sets.append(f"intrigue_actors = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["intrigue_actors"]))
+                    idx += 1
+                if "used_identities" in enrichment:
+                    sets.append(f"used_identities = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["used_identities"]))
+                    idx += 1
+                if "journey_pets" in enrichment:
+                    sets.append(f"journey_pets = ${idx}::JSONB")
+                    params.append(json.dumps(enrichment["journey_pets"]))
+                    idx += 1
+                if "holds_artifact" in enrichment:
+                    sets.append(f"holds_artifact = ${idx}::INTEGER[]")
+                    params.append(enrichment["holds_artifact"])
+                    idx += 1
+
+                if sets:
+                    sql = f"UPDATE historical_figures SET {', '.join(sets)} WHERE world_id = $1 AND id = $2"
+                    await conn.execute(sql, *params)
+                    hf_updated += 1
+
+            counts["hf_enrichment"] = hf_updated
+            log.info("  hf_enrichment: %d HFs updated", hf_updated)
 
         # Site ownership: update owner_entity_id from legends_plus cur_owner_id
         if plus_data["site_owners"]:
