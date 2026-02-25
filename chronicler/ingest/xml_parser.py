@@ -1243,10 +1243,12 @@ async def import_legends(
     """, world_id)
     log.info("Updated event/kill counts on historical_figures")
 
-    # ── Step 7: Compute importance scores ─────────────────────────────
-    from chronicler.scoring import compute_importance_scores
-    score_counts = await compute_importance_scores(conn, world_id)
-    log.info("Computed importance scores: %s", score_counts)
+    # ── Step 7: Post-parse processing pipeline ────────────────────────
+    from chronicler.ingest.post_parse import PostParseProcessor
+    processor = PostParseProcessor(conn, world_id)
+    pipeline_results = await processor.run_all()
+    log.info("Post-parse pipeline complete: %s",
+             {k: v for k, v in pipeline_results.items() if k != "step_10"})
 
     # Free memory
     del root, cleaned
