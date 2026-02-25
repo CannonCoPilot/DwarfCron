@@ -43,14 +43,14 @@ class DFHackClient:
 
     Usage::
 
-        client = DFHackClient("192.168.4.194", 5000)
+        client = DFHackClient("192.168.64.3", 5000)
         client.connect()
         info = client.get_world_info()
         units = client.list_units(sane=True)
         client.close()
     """
 
-    def __init__(self, host: str = "192.168.4.194", port: int = 5000,
+    def __init__(self, host: str = "192.168.64.3", port: int = 5000,
                  timeout: float = 15.0):
         self.host = host
         self.port = port
