@@ -507,6 +507,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "entity_position_assignments": [],  # current holders from <entity_position_assignment>
         "art_forms": [],
         "rivers": [],
+        "entity_populations": [],
         "hf_enrichment": [],  # (hf_id, world_id, field_dict) for HF UPDATE pass
     }
 
@@ -688,6 +689,30 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _json.dumps(r_details) if r_details else None,
         ))
 
+    # Entity populations (race:count pairs per civilization)
+    for ep in root.findall(".//entity_population"):
+        ep_id = _int(ep, "id")
+        if ep_id is None:
+            continue
+        race_raw = _text(ep, "race") or ""
+        # DF encodes as "race_token:count" — split into race and count
+        if ":" in race_raw:
+            race_str, count_str = race_raw.rsplit(":", 1)
+            try:
+                pop_count = int(count_str)
+            except ValueError:
+                race_str = race_raw
+                pop_count = None
+        else:
+            race_str = race_raw
+            pop_count = None
+        result["entity_populations"].append((
+            ep_id, world_id,
+            race_str or None,
+            pop_count,
+            _int(ep, "civ_id"),
+        ))
+
     # HF enrichment: expanded fields from legends_plus HF elements
     hf_section = root.find("historical_figures")
     if hf_section is not None:
@@ -859,7 +884,7 @@ async def import_legends(
                      "identities", "event_relationships", "entities",
                      "written_contents", "world_constructions",
                      "entity_positions", "entity_position_assignments",
-                     "art_forms", "rivers"):
+                     "art_forms", "rivers", "entity_populations"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
@@ -1133,6 +1158,14 @@ async def import_legends(
                 plus_data["rivers"])
             counts["rivers"] = n
             log.info("  rivers: %d", n)
+
+        # Entity populations (race composition per entity/civilization)
+        if plus_data["entity_populations"]:
+            n = await _batch_insert(conn, "entity_populations",
+                ["id", "world_id", "race", "count", "civ_id"],
+                plus_data["entity_populations"])
+            counts["entity_populations"] = n
+            log.info("  entity_populations: %d", n)
 
         # HF enrichment: update expanded fields from legends_plus
         if plus_data["hf_enrichment"]:

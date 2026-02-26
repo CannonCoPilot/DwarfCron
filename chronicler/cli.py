@@ -40,25 +40,120 @@ def init_db():
     _run(_run_init())
 
 
-@cli.command("ingest")
-@click.option(
-    "--legends", "legends_path",
-    type=click.Path(exists=True),
-    default=None,
-    help="Path to legends.xml (default: auto-detect in data/legends/)",
-)
-@click.option(
-    "--legends-plus", "legends_plus_path",
-    type=click.Path(exists=True),
-    default=None,
-    help="Path to legends_plus.xml (default: auto-detect in data/legends/)",
-)
-def ingest(legends_path, legends_plus_path):
-    """Parse and import Dwarf Fortress legends XML into the database."""
-    from chronicler.db.connection import get_pool, close_pool
-    from chronicler.ingest.xml_parser import import_legends
+# ── World management ─────────────────────────────────────────────────────────
 
-    # Auto-detect files if not specified
+@cli.group("worlds")
+def worlds_group():
+    """Manage world records in the database."""
+
+
+@worlds_group.command("list")
+def worlds_list():
+    """Show all worlds with summary statistics."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.db.worlds import list_worlds
+
+    async def _run_list():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            worlds = await list_worlds(conn)
+
+        if not worlds:
+            click.echo("No worlds in database.")
+            await close_pool()
+            return
+
+        click.echo("── Worlds ──")
+        for w in worlds:
+            c = w["counts"]
+            click.echo(
+                f"  [{w['id']:>3d}] {w['name'] or '?':30s} "
+                f"({w['alt_name'] or '?'})"
+            )
+            click.echo(
+                f"        HFs: {c['historical_figures']:>8,d}  "
+                f"Events: {c['history_events']:>8,d}  "
+                f"Sites: {c['sites']:>6,d}  "
+                f"Entities: {c['entities']:>6,d}  "
+                f"Artifacts: {c['artifacts']:>6,d}"
+            )
+            if w["import_path"]:
+                click.echo(f"        Source: {w['import_path']}")
+        click.echo(f"\nTotal: {len(worlds)} world(s)")
+        await close_pool()
+
+    _run(_run_list())
+
+
+@worlds_group.command("delete")
+@click.option("--world-id", type=int, default=None, help="ID of the world to delete")
+@click.option("--all", "delete_all", is_flag=True, help="Delete all worlds")
+@click.option("--yes", is_flag=True, help="Skip confirmation prompt")
+def worlds_delete(world_id, delete_all, yes):
+    """Delete world(s) and all associated data."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.db.worlds import delete_world, delete_all_worlds
+
+    if world_id is None and not delete_all:
+        click.echo("Specify --world-id N or --all", err=True)
+        sys.exit(1)
+    if world_id is not None and delete_all:
+        click.echo("--world-id and --all are mutually exclusive", err=True)
+        sys.exit(1)
+
+    async def _run_delete():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            if delete_all:
+                if not yes:
+                    click.confirm("Delete ALL worlds and data?", abort=True)
+                count, deleted = await delete_all_worlds(conn)
+                click.echo(f"Deleted {count} world(s).")
+                total = sum(deleted.values())
+                click.echo(f"  {total:,d} total rows removed across {len(deleted)} tables.")
+            else:
+                if not yes:
+                    click.confirm(f"Delete world {world_id} and all data?", abort=True)
+                try:
+                    deleted = await delete_world(conn, world_id)
+                except ValueError as e:
+                    click.echo(str(e), err=True)
+                    await close_pool()
+                    sys.exit(1)
+                total = sum(deleted.values())
+                click.echo(f"Deleted world {world_id}.")
+                click.echo(f"  {total:,d} total rows removed across {len(deleted)} tables.")
+        await close_pool()
+
+    _run(_run_delete())
+
+
+def _resolve_legends_pair(
+    legends_path: str | None,
+    legends_plus_path: str | None,
+) -> tuple[str, str | None]:
+    """Resolve legends/legends_plus paths from files, directories, or defaults.
+
+    Accepts:
+      - A directory: auto-detects *-legends.xml and *-legends_plus.xml inside it
+      - A file: uses as-is
+      - None: falls back to LEGENDS_DIR auto-detection
+    """
+    # If legends_path is a directory, auto-detect files within it
+    if legends_path is not None and Path(legends_path).is_dir():
+        search_dir = Path(legends_path)
+        candidates = sorted(search_dir.glob("*-legends.xml"))
+        if not candidates:
+            click.echo(f"No *-legends.xml found in {legends_path}", err=True)
+            sys.exit(1)
+        legends_path = str(candidates[0])
+        # Auto-detect plus from same directory
+        if legends_plus_path is None:
+            plus_candidates = sorted(search_dir.glob("*-legends_plus.xml"))
+            if plus_candidates:
+                legends_plus_path = str(plus_candidates[0])
+
+    # Fall back to LEGENDS_DIR if nothing specified
     if legends_path is None:
         candidates = sorted(Path(LEGENDS_DIR).glob("*-legends.xml"))
         if not candidates:
@@ -66,10 +161,35 @@ def ingest(legends_path, legends_plus_path):
             sys.exit(1)
         legends_path = str(candidates[0])
 
+    # Auto-detect plus from same directory as legends if not specified
     if legends_plus_path is None:
-        candidates = sorted(Path(LEGENDS_DIR).glob("*-legends_plus.xml"))
-        if candidates:
-            legends_plus_path = str(candidates[0])
+        legends_dir = Path(legends_path).parent
+        plus_candidates = sorted(legends_dir.glob("*-legends_plus.xml"))
+        if plus_candidates:
+            legends_plus_path = str(plus_candidates[0])
+
+    return legends_path, legends_plus_path
+
+
+@cli.command("ingest")
+@click.option(
+    "--legends", "legends_path",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to legends.xml or directory containing it",
+)
+@click.option(
+    "--legends-plus", "legends_plus_path",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to legends_plus.xml (default: auto-detect from legends dir)",
+)
+def ingest(legends_path, legends_plus_path):
+    """Parse and import Dwarf Fortress legends XML into the database."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.ingest.xml_parser import import_legends
+
+    legends_path, legends_plus_path = _resolve_legends_pair(legends_path, legends_plus_path)
 
     click.echo(f"Legends:      {legends_path}")
     click.echo(f"Legends Plus: {legends_plus_path or '(none)'}")
@@ -243,6 +363,30 @@ def rescore(world_id):
     _run(_run_rescore())
 
 
+@cli.command("validate-phase1")
+@click.option("--world-id", default=1, type=int, help="World ID to validate")
+def validate_phase1(world_id):
+    """Validate Phase 1 (Data Foundation) Definition of Done criteria."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.ingest.validate_phase1 import Phase1Validator, format_results
+
+    async def _run_validate():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            validator = Phase1Validator(conn, world_id)
+            results = await validator.run_all()
+        await close_pool()
+        return results
+
+    results = _run(_run_validate())
+    click.echo(format_results(results))
+
+    # Exit with non-zero status if any checks failed
+    failed = sum(1 for r in results if not r["passed"])
+    if failed > 0:
+        raise SystemExit(1)
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""
@@ -251,14 +395,18 @@ def validate():
     tables = [
         "worlds", "landmasses", "mountain_peaks", "regions",
         "underground_regions", "sites", "structures", "world_constructions",
-        "entities", "historical_figures", "hf_links", "hf_entity_links",
-        "hf_site_links", "identities", "history_events",
-        "history_event_collections", "collection_events",
-        "collection_subcollections", "event_relationships",
-        "artifacts", "units", "embeddings",
-        "unit_events", "sync_snapshots",
-        "game_reports", "world_map_snapshots", "lua_probes",
-        "fortress_denizens",
+        "art_forms", "rivers",
+        "entity_populations", "entities", "entity_positions",
+        "historical_figures", "hf_links", "hf_entity_links",
+        "hf_site_links", "hf_position_links", "identities",
+        "history_events", "history_event_collections",
+        "collection_events", "collection_subcollections",
+        "event_relationships", "event_entity_xref",
+        "artifacts", "written_contents", "historical_eras",
+        "units", "unit_events", "embeddings",
+        "sync_snapshots", "game_reports",
+        "world_map_snapshots", "lua_probes", "fortress_denizens",
+        "worldgen_snapshots", "world_modpacks", "storyteller_log",
     ]
 
     async def _run_validate():

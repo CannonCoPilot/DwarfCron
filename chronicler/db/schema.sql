@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS worlds (
 
 CREATE TABLE IF NOT EXISTS landmasses (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     coord_1     TEXT,
     coord_2     TEXT,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS landmasses (
 
 CREATE TABLE IF NOT EXISTS mountain_peaks (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     coords      TEXT,
     height      INT,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS mountain_peaks (
 
 CREATE TABLE IF NOT EXISTS regions (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     type        TEXT,
     coords      TEXT,
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS regions (
 
 CREATE TABLE IF NOT EXISTS underground_regions (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     type        TEXT,
     depth       INT,
     coords      TEXT,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS underground_regions (
 
 CREATE TABLE IF NOT EXISTS sites (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     type        TEXT,
     coord_x     INT,
@@ -77,12 +77,12 @@ CREATE TABLE IF NOT EXISTS structures (
     entity_id   INT,
     details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, site_id, id),
-    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id)
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS world_constructions (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     type        TEXT,
     coords      TEXT,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS world_constructions (
 );
 
 CREATE TABLE IF NOT EXISTS art_forms (
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     id          INT NOT NULL,
     name        TEXT,
     form_type   TEXT NOT NULL,  -- 'dance', 'musical', 'poetic'
@@ -103,7 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_art_forms_type ON art_forms(world_id, form_type);
 CREATE INDEX IF NOT EXISTS idx_art_forms_name ON art_forms(world_id, name);
 
 CREATE TABLE IF NOT EXISTS rivers (
-    world_id     INT NOT NULL REFERENCES worlds(id),
+    world_id     INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     id           INT NOT NULL,
     name         TEXT,
     name_english TEXT,
@@ -115,11 +115,27 @@ CREATE TABLE IF NOT EXISTS rivers (
 
 CREATE INDEX IF NOT EXISTS idx_rivers_name ON rivers(world_id, name);
 
+-- ─── Entity Populations ────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS entity_populations (
+    id          INT NOT NULL,
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    race        TEXT,              -- creature race token (e.g. 'DWARF', 'goblin')
+    count       INT,               -- population count for this race in this entity
+    civ_id      INT,               -- entity/civilization ID this population belongs to
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_entity_populations_civ
+    ON entity_populations(world_id, civ_id);
+CREATE INDEX IF NOT EXISTS idx_entity_populations_race
+    ON entity_populations(world_id, race);
+
 -- ─── Civilizations & Organizations ───────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS entities (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     type        TEXT,
     race        TEXT,
@@ -131,7 +147,7 @@ CREATE TABLE IF NOT EXISTS entities (
 
 CREATE TABLE IF NOT EXISTS historical_figures (
     id              INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name            TEXT,
     race            TEXT,
     caste           TEXT,
@@ -178,8 +194,8 @@ CREATE TABLE IF NOT EXISTS hf_links (
     target_hf_id INT NOT NULL,
     link_type    TEXT,
     UNIQUE (world_id, hf_id, target_hf_id, link_type),
-    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
-    FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id)
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS hf_entity_links (
@@ -190,8 +206,8 @@ CREATE TABLE IF NOT EXISTS hf_entity_links (
     link_type       TEXT,
     position_name   TEXT,
     UNIQUE (world_id, hf_id, entity_id, link_type),
-    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
-    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS hf_site_links (
@@ -201,8 +217,8 @@ CREATE TABLE IF NOT EXISTS hf_site_links (
     site_id     INT NOT NULL,
     link_type   TEXT,
     UNIQUE (world_id, hf_id, site_id, link_type),
-    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
-    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id)
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
 );
 
 -- ─── Entity Positions ───────────────────────────────────────────────────────
@@ -219,7 +235,7 @@ CREATE TABLE IF NOT EXISTS entity_positions (
     spouse_male     TEXT,
     spouse_female   TEXT,
     UNIQUE (world_id, entity_id, position_id),
-    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_entity_positions_entity
@@ -234,8 +250,8 @@ CREATE TABLE IF NOT EXISTS hf_position_links (
     start_year      INT,
     end_year        INT,               -- NULL = currently held
     UNIQUE (world_id, hf_id, entity_id, position_id, start_year),
-    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id),
-    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id)
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_hf_position_links_hf
@@ -251,7 +267,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_hf_position_links_null_start_dedup
 
 CREATE TABLE IF NOT EXISTS identities (
     id          INT NOT NULL,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT,
     histfig_id  INT,
     birth_year  INT,
@@ -268,7 +284,7 @@ CREATE TABLE IF NOT EXISTS identities (
 
 CREATE TABLE IF NOT EXISTS history_events (
     id              INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     year            INT,
     seconds         INT,
     event_type      TEXT,
@@ -288,7 +304,7 @@ CREATE TABLE IF NOT EXISTS history_events (
 
 CREATE TABLE IF NOT EXISTS history_event_collections (
     id              INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     type            TEXT,
     name            TEXT,
     parent_id       INT,
@@ -309,8 +325,8 @@ CREATE TABLE IF NOT EXISTS collection_events (
     collection_id   INT NOT NULL,
     event_id        INT NOT NULL,
     PRIMARY KEY (world_id, collection_id, event_id),
-    FOREIGN KEY (world_id, collection_id) REFERENCES history_event_collections(world_id, id),
-    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id)
+    FOREIGN KEY (world_id, collection_id) REFERENCES history_event_collections(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS collection_subcollections (
@@ -318,13 +334,13 @@ CREATE TABLE IF NOT EXISTS collection_subcollections (
     parent_id   INT NOT NULL,
     child_id    INT NOT NULL,
     PRIMARY KEY (world_id, parent_id, child_id),
-    FOREIGN KEY (world_id, parent_id) REFERENCES history_event_collections(world_id, id),
-    FOREIGN KEY (world_id, child_id) REFERENCES history_event_collections(world_id, id)
+    FOREIGN KEY (world_id, parent_id) REFERENCES history_event_collections(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, child_id) REFERENCES history_event_collections(world_id, id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS event_relationships (
     id          SERIAL PRIMARY KEY,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     event_id    INT,
     relationship TEXT,
     source_hf   INT,
@@ -336,7 +352,7 @@ CREATE TABLE IF NOT EXISTS event_relationships (
 
 CREATE TABLE IF NOT EXISTS artifacts (
     id              INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name            TEXT,
     item_type       TEXT,
     item_subtype    TEXT,
@@ -353,7 +369,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
 
 CREATE TABLE IF NOT EXISTS written_contents (
     id              INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     title           TEXT,
     author_hf_id    INT,
     form            TEXT,          -- "poem", "musical composition", "guide", etc.
@@ -370,7 +386,7 @@ CREATE INDEX IF NOT EXISTS idx_written_contents_author ON written_contents(autho
 -- ─── Historical Eras ───────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS historical_eras (
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name            TEXT NOT NULL,
     start_year      INT,
     PRIMARY KEY (world_id, name)
@@ -380,7 +396,7 @@ CREATE TABLE IF NOT EXISTS historical_eras (
 
 CREATE TABLE IF NOT EXISTS units (
     id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id),
+    world_id        INT REFERENCES worlds(id) ON DELETE CASCADE,
     name            TEXT,
     english_name    TEXT,
     race            TEXT,
@@ -445,7 +461,7 @@ CREATE TABLE IF NOT EXISTS event_entity_xref (
     entity_id   INT NOT NULL,
     role        TEXT,            -- 'subject', 'object', 'location', 'participant'
     PRIMARY KEY (world_id, event_id, entity_type, entity_id),
-    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id)
+    FOREIGN KEY (world_id, event_id) REFERENCES history_events(world_id, id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_event_entity_xref_entity
@@ -457,7 +473,7 @@ CREATE INDEX IF NOT EXISTS idx_event_entity_xref_event
 
 CREATE TABLE IF NOT EXISTS worldgen_snapshots (
     id          SERIAL PRIMARY KEY,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     phase       TEXT NOT NULL,
     progress_pct FLOAT,
     year        INT,
@@ -475,7 +491,7 @@ CREATE INDEX IF NOT EXISTS idx_worldgen_snapshots_world
 
 CREATE TABLE IF NOT EXISTS world_modpacks (
     id          SERIAL PRIMARY KEY,
-    world_id    INT NOT NULL REFERENCES worlds(id),
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
     version     TEXT,
     source      TEXT,         -- 'steam_workshop', 'manual', 'dfhack'
@@ -519,7 +535,7 @@ CREATE INDEX IF NOT EXISTS idx_storyteller_log_world ON storyteller_log(world_id
 CREATE TABLE IF NOT EXISTS unit_events (
     id              SERIAL PRIMARY KEY,
     unit_id         INT NOT NULL,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     event_type      TEXT NOT NULL,
     old_value       JSONB,
     new_value       JSONB,
@@ -535,7 +551,7 @@ CREATE INDEX IF NOT EXISTS idx_unit_events_time ON unit_events(detected_at);
 -- ── Live Sync: Poll Cycle Snapshots ─────────────────────────────────
 CREATE TABLE IF NOT EXISTS sync_snapshots (
     id              SERIAL PRIMARY KEY,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     unit_count      INT NOT NULL,
     event_count     INT DEFAULT 0,
     game_year       INT,
@@ -546,7 +562,7 @@ CREATE TABLE IF NOT EXISTS sync_snapshots (
 -- ── Live Data: Game Reports (announcements, combat logs) ────────────
 CREATE TABLE IF NOT EXISTS game_reports (
     id              SERIAL PRIMARY KEY,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     report_id       INT NOT NULL,
     report_type     INT,
     text            TEXT NOT NULL,
@@ -566,7 +582,7 @@ CREATE INDEX IF NOT EXISTS idx_game_reports_year ON game_reports(game_year);
 -- ── Live Data: World Map Snapshots (geography) ──────────────────────
 CREATE TABLE IF NOT EXISTS world_map_snapshots (
     id              SERIAL PRIMARY KEY,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     world_width     INT NOT NULL,
     world_height    INT NOT NULL,
     name            TEXT,
@@ -579,7 +595,7 @@ CREATE TABLE IF NOT EXISTS world_map_snapshots (
 -- ── Live Data: Lua Probe Results ────────────────────────────────────
 CREATE TABLE IF NOT EXISTS lua_probes (
     id              SERIAL PRIMARY KEY,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     probe_name      TEXT NOT NULL,
     data            JSONB NOT NULL,
     game_year       INT,
@@ -594,7 +610,7 @@ CREATE INDEX IF NOT EXISTS idx_lua_probes_name ON lua_probes(probe_name);
 
 CREATE TABLE IF NOT EXISTS fortress_denizens (
     id              SERIAL PRIMARY KEY,
-    world_id        INT NOT NULL REFERENCES worlds(id),
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     unit_id         INT,                -- NULL if HF-only (never had unit record)
     hf_id           INT,                -- NULL if unit-only (no HF match yet)
     name            TEXT NOT NULL,       -- Best available name
