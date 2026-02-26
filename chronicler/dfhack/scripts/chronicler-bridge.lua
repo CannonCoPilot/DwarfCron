@@ -455,6 +455,12 @@ local function get_world_info()
         site_id = -1,
     }
 
+    -- Save directory (needed by legends export automation)
+    local sd_ok, sd = pcall(function() return df.global.world.cur_savegame.save_dir end)
+    if sd_ok and sd then
+        result.save_dir = to_utf8(sd)
+    end
+
     if df.global.world.world_data and df.global.world.world_data.name then
         local wn = df.global.world.world_data.name
         result.world_name = dfhack.df2utf(dfhack.translation.translateName(wn))
