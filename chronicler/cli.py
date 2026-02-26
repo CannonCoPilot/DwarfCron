@@ -387,6 +387,65 @@ def validate_phase1(world_id):
         raise SystemExit(1)
 
 
+@cli.command("dump-schema")
+@click.option("--output", "-o", "output_path", default=None,
+              type=click.Path(), help="Write to file instead of stdout")
+def dump_schema(output_path):
+    """Print the full CDM database schema (tables, columns, keys, indexes)."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.db.schema_dump import dump_schema as _dump_schema
+
+    async def _run_dump():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            text = await _dump_schema(conn)
+        await close_pool()
+        return text
+
+    text = _run(_run_dump())
+
+    if output_path:
+        Path(output_path).write_text(text, encoding="utf-8")
+        click.echo(f"Schema written to {output_path}")
+    else:
+        click.echo(text)
+
+
+@cli.command("erd")
+@click.option("--format", "fmt", default="mermaid",
+              type=click.Choice(["mermaid", "dot"]),
+              help="Output format (default: mermaid)")
+@click.option("--output", "-o", "output_path", default=None,
+              type=click.Path(), help="Write to file instead of stdout")
+def erd(fmt, output_path):
+    """Generate an annotated Entity Relationship Diagram of the CDM schema."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.db.erd import generate_mermaid, generate_dot
+
+    async def _run_erd():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            if fmt == "mermaid":
+                text = await generate_mermaid(conn)
+            else:
+                text = await generate_dot(conn)
+        await close_pool()
+        return text
+
+    text = _run(_run_erd())
+
+    if output_path:
+        Path(output_path).write_text(text, encoding="utf-8")
+        ext = ".mmd" if fmt == "mermaid" else ".dot"
+        click.echo(f"ERD written to {output_path}")
+        if fmt == "mermaid":
+            click.echo("  View: open in VS Code (Mermaid extension) or paste into mermaid.live")
+        else:
+            click.echo("  Render: dot -Tsvg <file> -o erd.svg  (requires Graphviz)")
+    else:
+        click.echo(text)
+
+
 @cli.command("validate")
 def validate():
     """Query all CDM tables and print row counts."""
