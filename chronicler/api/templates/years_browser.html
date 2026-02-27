@@ -1,0 +1,155 @@
+{% extends "detail_base.html" %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+<span class="text-stone-300 text-xs">Years & Events</span>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge badge-type">Chronological Browser</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  <span class="text-stone-400">Years: <span class="text-stone-200">{{ year_counts|length }}</span></span>
+  <span class="text-stone-400">Total Events: <span class="text-stone-200">{{ "{:,}".format(total_events) }}</span></span>
+  <span class="text-stone-400">Event Types: <span class="text-stone-200">{{ event_type_stats|length }}</span></span>
+</div>
+{% endblock %}
+
+{% block tabs %}
+<div class="border-b border-stone-800 px-6 flex gap-0">
+  <button class="detail-tab active" id="dtab-timeline" onclick="switchDetailTab('timeline')">Timeline</button>
+  <button class="detail-tab" id="dtab-types" onclick="switchDetailTab('types')">Event Types</button>
+</div>
+{% endblock %}
+
+{% block body %}
+<!-- Timeline Tab -->
+<div class="tab-content active" id="dtab-content-timeline">
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <!-- Year list -->
+    <div class="section-card lg:col-span-1">
+      <div class="section-title">Years</div>
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="year-search" placeholder="Jump to year..."
+               class="bg-stone-900 border border-stone-700 text-stone-200 text-sm rounded px-2 py-1 w-full"
+               onkeyup="filterYears(this.value)">
+      </div>
+      <div id="year-list" class="space-y-0 max-h-[60vh] overflow-y-auto ex-scroll">
+        {% for yc in year_counts %}
+        <div class="year-row flex justify-between py-1 px-2 cursor-pointer hover:bg-stone-800 rounded text-sm"
+             data-year="{{ yc.year }}" onclick="loadYear({{ yc.year }})">
+          <span class="text-stone-200">Year {{ yc.year }}</span>
+          <span class="text-stone-500 font-mono text-xs">{{ "{:,}".format(yc.event_count) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Events panel -->
+    <div class="section-card lg:col-span-3">
+      <div class="section-title" id="events-title">Select a year to view events</div>
+      <div id="events-container" class="max-h-[60vh] overflow-y-auto ex-scroll">
+        <p class="text-stone-500 text-sm italic">Click a year on the left to load its events.</p>
+      </div>
+      <div id="events-pagination" class="mt-3 flex gap-2 items-center hidden">
+        <button onclick="loadYearPage(-1)" class="text-stone-400 hover:text-stone-200 text-sm px-2 py-1 border border-stone-700 rounded">&larr; Prev</button>
+        <span id="events-page-info" class="text-stone-500 text-sm"></span>
+        <button onclick="loadYearPage(1)" class="text-stone-400 hover:text-stone-200 text-sm px-2 py-1 border border-stone-700 rounded">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Types Tab -->
+<div class="tab-content" id="dtab-content-types">
+  <div class="section-card">
+    <div class="section-title">Event Types ({{ event_type_stats|length }} types, {{ "{:,}".format(total_events) }} total)</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+      {% for stat in event_type_stats %}
+      <div class="flex justify-between text-sm py-1 px-2 bg-stone-900 rounded">
+        <span class="text-stone-300">{{ stat.event_type|replace('_',' ') }}</span>
+        <span class="text-stone-500 font-mono text-xs">{{ "{:,}".format(stat.cnt) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentYear = null;
+  let currentPage = 1;
+  let totalPages = 1;
+
+  function filterYears(query) {
+    const rows = document.querySelectorAll('.year-row');
+    rows.forEach(row => {
+      const year = row.dataset.year;
+      row.style.display = year.includes(query) ? '' : 'none';
+    });
+  }
+
+  async function loadYear(year, page) {
+    currentYear = year;
+    currentPage = page || 1;
+    const container = document.getElementById('events-container');
+    const title = document.getElementById('events-title');
+    const pagination = document.getElementById('events-pagination');
+
+    container.innerHTML = '<p class="text-stone-500 text-sm">Loading...</p>';
+    title.textContent = `Year ${year} — Loading...`;
+
+    try {
+      const resp = await fetch(`/api/explorer/years/${year}?world_id={{ world_id }}&page=${currentPage}`);
+      const data = await resp.json();
+
+      title.textContent = `Year ${year} — ${data.total.toLocaleString()} events`;
+      totalPages = data.pages;
+
+      if (data.events.length === 0) {
+        container.innerHTML = '<p class="text-stone-500 text-sm italic">No events in this year.</p>';
+        pagination.classList.add('hidden');
+        return;
+      }
+
+      let html = '<div class="space-y-0">';
+      for (const ev of data.events) {
+        html += `<div class="event-row flex gap-3 py-1.5 px-1">
+          <span class="event-year">${ev.date_short}</span>
+          <span class="event-type-badge">${ev.event_type.replace(/_/g, ' ')}</span>
+          <span class="event-text">${ev.text}</span>
+        </div>`;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      // Pagination
+      if (totalPages > 1) {
+        pagination.classList.remove('hidden');
+        document.getElementById('events-page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+      } else {
+        pagination.classList.add('hidden');
+      }
+
+      // Highlight selected year
+      document.querySelectorAll('.year-row').forEach(r => r.classList.remove('bg-stone-800'));
+      const selected = document.querySelector(`.year-row[data-year="${year}"]`);
+      if (selected) selected.classList.add('bg-stone-800');
+
+    } catch (err) {
+      container.innerHTML = `<p class="text-red-400 text-sm">Error loading events: ${err.message}</p>`;
+    }
+  }
+
+  function loadYearPage(delta) {
+    const newPage = currentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+      loadYear(currentYear, newPage);
+    }
+  }
+</script>
+{% endblock %}

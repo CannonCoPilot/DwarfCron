@@ -1,0 +1,145 @@
+{% extends "detail_base.html" %}
+
+{% block title %}{{ entity_name }} — Site — Chronicler{% endblock %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+<a href="/explorer?tab=geography">Geography</a>
+<span>›</span>
+<span class="text-stone-300 text-xs">{{ entity_name }}</span>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex items-center gap-2">
+  {% if prev_site %}
+    <a href="/explorer/site/{{ prev_site.id }}?world_id={{ world_id }}" title="{{ prev_site.name }}">← Prev</a>
+  {% endif %}
+  {% if next_site %}
+    <a href="/explorer/site/{{ next_site.id }}?world_id={{ world_id }}" title="{{ next_site.name }}">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge badge-site">{{ site.type|default('Site', true)|title }}</span>
+{% if is_ruin %}
+  <span class="badge badge-ruin">Ruined</span>
+{% endif %}
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
+  {% if site.coord_x is not none %}<span>Coords: {{ site.coord_x }}, {{ site.coord_y }}</span>{% endif %}
+  {% if owner %}<span>Owner: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
+  <span>Structures: {{ structures|length }}</span>
+  <span>Events: {{ event_count }}</span>
+</div>
+{% endblock %}
+
+{% block tabs %}
+<div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
+  <button class="detail-tab active" id="dtab-structures" onclick="switchDetailTab('structures')">Structures ({{ structures|length }})</button>
+  <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
+  <button class="detail-tab" id="dtab-history" onclick="switchDetailTab('history')">History ({{ event_count }})</button>
+</div>
+{% endblock %}
+
+{% block body %}
+
+{# Structures Tab #}
+<div id="dtab-content-structures" class="tab-content active">
+  <div class="section-card">
+    <div class="section-title">Structures at this Site</div>
+    {% if structures %}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-stone-500 border-b border-stone-800 text-xs">
+          <th class="text-left pb-1">Name</th>
+          <th class="text-left pb-1">Type</th>
+          <th class="text-left pb-1">Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in structures %}
+        <tr class="border-b border-stone-800/50">
+          <td class="py-1">{{ linker.link('structure', s.id, s.name, world_id, site_id=site.id)|safe }}</td>
+          <td><span class="badge badge-type">{{ s.type|default('?', true)|title }}</span></td>
+          <td>
+            {% if s.entity_id %}
+              {{ linker.link('entity', s.entity_id, s.entity_name, world_id)|safe }}
+              {% if s.entity_type %}<span class="text-stone-600 text-xs">({{ s.entity_type|title }})</span>{% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No structures recorded.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# Properties Tab #}
+<div id="dtab-content-properties" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Site Properties</div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+      <div><span class="text-stone-500">Type:</span> {{ site.type|default('?', true)|title }}</div>
+      {% if site.coord_x is not none %}
+        <div><span class="text-stone-500">Coordinates:</span> {{ site.coord_x }}, {{ site.coord_y }}</div>
+      {% endif %}
+      {% if owner %}
+        <div><span class="text-stone-500">Owner:</span> {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</div>
+      {% endif %}
+      {% if is_ruin %}
+        <div><span class="text-stone-500">Status:</span> <span class="text-red-400">Ruined</span></div>
+      {% endif %}
+    </div>
+    {% if site.details %}
+      <div class="mt-3">
+        <div class="section-title">Details (JSONB)</div>
+        <pre class="text-xs text-stone-400 bg-stone-950 p-2 rounded overflow-x-auto max-h-48 ex-scroll">{{ site.details|tojson(indent=2) }}</pre>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+{# History Tab #}
+<div id="dtab-content-history" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Event History ({{ event_count }} total, showing {{ events|length }})</div>
+    {% if events %}
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1 w-20">Date</th>
+            <th class="text-left pb-1 w-28">Type</th>
+            <th class="text-left pb-1">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+          <tr class="event-row">
+            <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
+            <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
+            <td class="py-1 event-text">{{ ev.text|safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if event_count > 50 %}
+      <div class="mt-2 text-center text-stone-500 text-xs">
+        Showing first 50 of {{ event_count }} events.
+      </div>
+    {% endif %}
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No events recorded.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

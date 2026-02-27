@@ -1,0 +1,153 @@
+{% extends "detail_base.html" %}
+
+{% block title %}{{ entity_name }} — Written Content — Chronicler{% endblock %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+<span class="text-stone-400 text-xs">Written Content</span>
+<span>›</span>
+<span class="text-stone-300 text-xs">{{ entity_name }}</span>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex items-center gap-2">
+  {% if prev_wc %}
+    <a href="/explorer/written_content/{{ prev_wc.id }}?world_id={{ world_id }}" title="{{ prev_wc.title }}">← Prev</a>
+  {% endif %}
+  {% if next_wc %}
+    <a href="/explorer/written_content/{{ next_wc.id }}?world_id={{ world_id }}" title="{{ next_wc.title }}">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge" style="background: #ec4899; color: #fafaf9;">Written Content</span>
+{% if wc.form %}
+  <span class="badge badge-type">{{ wc.form|replace('_', ' ')|title }}</span>
+{% endif %}
+{% if wc.type %}
+  <span class="badge badge-type">{{ wc.type|replace('_', ' ')|title }}</span>
+{% endif %}
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
+  {% if wc.form %}
+    <span>Form: {{ wc.form|replace('_', ' ')|title }}</span>
+  {% endif %}
+  {% if author %}
+    <span>Author: {{ linker.link('hf', author.id, author.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if wc.styles %}
+    <span>Styles: {{ wc.styles|join(', ') }}</span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+  <div class="section-card lg:col-span-2">
+    <div class="section-title">Details</div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+      <div><span class="text-stone-500">Title:</span> {{ wc.title|default('?', true) }}</div>
+      {% if wc.form %}
+        <div><span class="text-stone-500">Form:</span> {{ wc.form|replace('_', ' ')|title }}</div>
+      {% endif %}
+      {% if wc.type %}
+        <div><span class="text-stone-500">Type:</span> {{ wc.type|replace('_', ' ')|title }}</div>
+      {% endif %}
+      {% if author %}
+        <div><span class="text-stone-500">Author:</span> {{ linker.link('hf', author.id, author.name, world_id)|safe }}</div>
+      {% endif %}
+      {% if wc.page_start is not none and wc.page_end is not none %}
+        <div><span class="text-stone-500">Pages:</span> {{ wc.page_start }} – {{ wc.page_end }}</div>
+      {% endif %}
+    </div>
+    {% if wc.styles %}
+      <div class="mt-2">
+        <span class="text-stone-500 text-xs">Styles:</span>
+        {% for s in wc.styles %}
+          <span class="badge badge-type text-xs">{{ s|replace('_', ' ')|title }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if author %}
+  <div class="section-card">
+    <div class="section-title">Author</div>
+    <div class="text-sm">
+      {{ linker.link('hf', author.id, author.name, world_id)|safe }}
+      {% if author.race %}
+        <span class="text-stone-500 text-xs">({{ author.race|title }})</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if associated_artifact %}
+  <div class="section-card">
+    <div class="section-title">Physical Artifact</div>
+    <div class="text-sm">
+      {{ linker.link('artifact', associated_artifact.id, associated_artifact.name, world_id)|safe }}
+      {% if associated_artifact.material %}
+        <span class="text-stone-500 text-xs">({{ associated_artifact.material }})</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if referenced_hfs %}
+  <div class="section-card">
+    <div class="section-title">Referenced Figures ({{ referenced_hfs|length }})</div>
+    <div class="max-h-48 overflow-y-auto ex-scroll space-y-1 text-sm">
+      {% for r in referenced_hfs %}
+        <div class="flex items-center gap-2">
+          {{ linker.link('hf', r.id, r.name, world_id)|safe }}
+          {% if r.race %}
+            <span class="text-stone-600 text-xs">{{ r.race|title }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if referenced_sites %}
+  <div class="section-card">
+    <div class="section-title">Referenced Sites ({{ referenced_sites|length }})</div>
+    <div class="space-y-1 text-sm">
+      {% for r in referenced_sites %}
+        <div class="flex items-center gap-2">
+          {{ linker.link('site', r.id, r.name, world_id)|safe }}
+          {% if r.type %}
+            <span class="text-stone-600 text-xs">{{ r.type|title }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if referenced_entities %}
+  <div class="section-card">
+    <div class="section-title">Referenced Entities ({{ referenced_entities|length }})</div>
+    <div class="space-y-1 text-sm">
+      {% for r in referenced_entities %}
+        <div class="flex items-center gap-2">
+          {{ linker.link('entity', r.id, r.name, world_id)|safe }}
+          {% if r.type %}
+            <span class="badge badge-type">{{ r.type|title }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

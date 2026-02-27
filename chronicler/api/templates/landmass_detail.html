@@ -1,0 +1,48 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+<span class="badge badge-biome">Landmass</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  {% if landmass.coord_1 and landmass.coord_2 %}
+  <span class="text-stone-400">Bounds: <span class="text-stone-200 font-mono text-xs">{{ landmass.coord_1 }} → {{ landmass.coord_2 }}</span></span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_landmass %}
+    <a href="/explorer/landmass/{{ prev_landmass.id }}?world_id={{ world_id }}">&larr; {{ prev_landmass.name or 'Prev' }}</a>
+  {% endif %}
+  {% if next_landmass %}
+    <a href="/explorer/landmass/{{ next_landmass.id }}?world_id={{ world_id }}">{{ next_landmass.name or 'Next' }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <!-- Properties -->
+  <div class="section-card">
+    <div class="section-title">Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Name</td><td class="text-stone-200">{{ landmass.name or 'Unnamed' }}</td></tr>
+      <tr><td class="text-stone-500 pr-3 py-1">ID</td><td class="text-stone-200 font-mono text-xs">{{ landmass.id }}</td></tr>
+      {% if landmass.coord_1 %}
+      <tr><td class="text-stone-500 pr-3 py-1">Corner 1</td><td class="text-stone-200 font-mono text-xs">{{ landmass.coord_1 }}</td></tr>
+      {% endif %}
+      {% if landmass.coord_2 %}
+      <tr><td class="text-stone-500 pr-3 py-1">Corner 2</td><td class="text-stone-200 font-mono text-xs">{{ landmass.coord_2 }}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- Mini-map placeholder -->
+  <div class="section-card flex items-center justify-center text-stone-600 text-sm italic" style="min-height: 200px;">
+    Mini-map placeholder (Phase 4)
+  </div>
+</div>
+{% endblock %}

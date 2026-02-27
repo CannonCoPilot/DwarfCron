@@ -6,4 +6,106 @@
     <a href="/explorer" class="{{ 'text-amber-400 font-bold' if active == 'explorer' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Explorer</a>
     <a href="/monitoring" class="{{ 'text-amber-400 font-bold' if active == 'monitoring' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Monitoring</a>
   </div>
+
+  <!-- Global Search -->
+  <div class="ml-auto relative" id="global-search-container">
+    <input id="global-search-input" type="text" placeholder="Search entities..."
+           class="bg-stone-900 border border-stone-700 rounded px-3 py-1 text-sm text-stone-300 w-64
+                  placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+           autocomplete="off"
+           oninput="debounceGlobalSearch()" onkeydown="handleGlobalSearchKey(event)">
+    <div id="global-search-results"
+         class="absolute top-full left-0 right-0 mt-1 bg-stone-900 border border-stone-700 rounded shadow-xl z-[100]
+                max-h-80 overflow-y-auto hidden"
+         style="scrollbar-width: thin; scrollbar-color: #44403c #1c1917;">
+    </div>
+  </div>
 </nav>
+
+<style>
+  .gs-result { padding: 6px 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+  .gs-result:hover, .gs-result.gs-active { background: #292524; }
+  .gs-type { font-size: 0.6rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; white-space: nowrap; }
+  .gs-type-hf { background: #f6b93b30; color: #f6b93b; }
+  .gs-type-entity { background: #3b82f630; color: #3b82f6; }
+  .gs-type-site { background: #22c55e30; color: #22c55e; }
+  .gs-type-artifact { background: #a855f730; color: #a855f7; }
+  .gs-type-region { background: #f9731630; color: #f97316; }
+  .gs-type-default { background: #44403c; color: #d6d3d1; }
+</style>
+
+<script>
+(function() {
+  let gsTimer = null;
+  let gsActiveIdx = -1;
+  let gsResults = [];
+
+  window.debounceGlobalSearch = function() {
+    clearTimeout(gsTimer);
+    gsTimer = setTimeout(doGlobalSearch, 200);
+  };
+
+  async function doGlobalSearch() {
+    const input = document.getElementById('global-search-input');
+    const box = document.getElementById('global-search-results');
+    const term = input.value.trim();
+    if (term.length < 2) { box.classList.add('hidden'); gsResults = []; return; }
+
+    try {
+      const resp = await fetch('/api/search?term=' + encodeURIComponent(term) + '&limit=20');
+      if (!resp.ok) { box.classList.add('hidden'); return; }
+      gsResults = await resp.json();
+      gsActiveIdx = -1;
+
+      if (gsResults.length === 0) {
+        box.innerHTML = '<div class="text-stone-500 text-xs px-3 py-3 text-center">No results found</div>';
+      } else {
+        box.innerHTML = gsResults.map((r, i) => {
+          const cls = 'gs-type-' + (['hf','entity','site','artifact','region'].includes(r.type) ? r.type : 'default');
+          return '<a href="' + r.url + '" class="gs-result" data-idx="' + i + '">'
+            + '<span class="gs-type ' + cls + '">' + r.type_display + '</span>'
+            + '<span class="text-stone-300">' + escapeHtml(r.name) + '</span>'
+            + '</a>';
+        }).join('');
+      }
+      box.classList.remove('hidden');
+    } catch(e) { box.classList.add('hidden'); }
+  }
+
+  window.handleGlobalSearchKey = function(e) {
+    const box = document.getElementById('global-search-results');
+    if (box.classList.contains('hidden')) return;
+    const items = box.querySelectorAll('.gs-result');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      gsActiveIdx = Math.min(gsActiveIdx + 1, items.length - 1);
+      updateActive(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      gsActiveIdx = Math.max(gsActiveIdx - 1, -1);
+      updateActive(items);
+    } else if (e.key === 'Enter' && gsActiveIdx >= 0 && gsActiveIdx < gsResults.length) {
+      e.preventDefault();
+      window.location.href = gsResults[gsActiveIdx].url;
+    } else if (e.key === 'Escape') {
+      box.classList.add('hidden');
+    }
+  };
+
+  function updateActive(items) {
+    items.forEach((el, i) => el.classList.toggle('gs-active', i === gsActiveIdx));
+    if (gsActiveIdx >= 0 && items[gsActiveIdx]) items[gsActiveIdx].scrollIntoView({block: 'nearest'});
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#global-search-container')) {
+      document.getElementById('global-search-results').classList.add('hidden');
+    }
+  });
+})();
+</script>

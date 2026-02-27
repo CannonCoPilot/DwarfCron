@@ -1,0 +1,71 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+{% if peak.is_volcano %}
+<span class="badge" style="background: #ff4500; color: #fafaf9;">Volcano</span>
+{% else %}
+<span class="badge badge-biome">Mountain Peak</span>
+{% endif %}
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  {% if peak.height %}
+  <span class="text-stone-400">Height: <span class="text-stone-200">{{ peak.height }}</span></span>
+  {% endif %}
+  {% if peak.is_volcano %}
+  <span class="badge" style="background: #ff450030; color: #ff4500; border: 1px solid #ff450040; font-size: 0.65rem;">Active Volcano</span>
+  {% endif %}
+  {% if peak.coords %}
+  <span class="text-stone-400">Location: <span class="text-stone-200 font-mono text-xs">{{ peak.coords }}</span></span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_peak %}
+    <a href="/explorer/mountain_peak/{{ prev_peak.id }}?world_id={{ world_id }}">&larr; {{ prev_peak.name or 'Prev' }}</a>
+  {% endif %}
+  {% if next_peak %}
+    <a href="/explorer/mountain_peak/{{ next_peak.id }}?world_id={{ world_id }}">{{ next_peak.name or 'Next' }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <!-- Properties -->
+  <div class="section-card">
+    <div class="section-title">Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Name</td><td class="text-stone-200">{{ peak.name or 'Unnamed' }}</td></tr>
+      {% if peak.height %}
+      <tr><td class="text-stone-500 pr-3 py-1">Height</td><td class="text-stone-200">{{ peak.height }}</td></tr>
+      {% endif %}
+      <tr><td class="text-stone-500 pr-3 py-1">Volcano</td><td class="text-stone-200">{{ 'Yes' if peak.is_volcano else 'No' }}</td></tr>
+      {% if peak.coords %}
+      <tr><td class="text-stone-500 pr-3 py-1">Coordinates</td><td class="text-stone-200 font-mono text-xs">{{ peak.coords }}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- Events -->
+  <div class="section-card lg:col-span-2">
+    <div class="section-title">Events ({{ event_count }} total{% if event_count > 50 %}, showing first 50{% endif %})</div>
+    {% if events %}
+    <div class="space-y-0">
+      {% for ev in events %}
+      <div class="event-row flex gap-3 py-1.5 px-1">
+        <span class="event-year">{{ ev.date_short }}</span>
+        <span class="event-type-badge">{{ ev.type|replace('_',' ') }}</span>
+        <span class="event-text">{{ ev.text|safe }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-stone-500 text-sm italic">No events recorded for this mountain peak.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

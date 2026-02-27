@@ -94,6 +94,13 @@
           </select>
           <button onclick="searchPeople()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1 rounded text-xs transition-colors">Search</button>
         </div>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-stone-400">
+          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-amber-500" value="deity" onchange="filterPeopleList()"><span style="color:#f6b93b">Deity</span></label>
+          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-red-500" value="vampire" onchange="filterPeopleList()"><span style="color:#ef4444">Vampire</span></label>
+          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-purple-500" value="necromancer" onchange="filterPeopleList()"><span style="color:#a855f7">Necro</span></label>
+          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-orange-500" value="werebeast" onchange="filterPeopleList()"><span style="color:#f97316">Were</span></label>
+          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-gray-400" value="ghost" onchange="filterPeopleList()"><span style="color:#a8a29e">Ghost</span></label>
+        </div>
       </div>
       <div class="px-3 py-1.5 border-b border-stone-800/50 flex-shrink-0" id="people-filter-bar" style="display:none">
         <input id="people-filter" type="text" placeholder="Filter results..."
@@ -282,6 +289,8 @@
         <button onclick="applyDataFilter()" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">Filter</button>
         <button onclick="clearDataFilter()" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">Clear</button>
         <span id="data-row-count" class="text-stone-500 text-xs stat-badge ml-auto"></span>
+        <button onclick="exportData('csv')" id="data-export-csv" class="bg-stone-800 hover:bg-stone-700 text-stone-400 px-2 py-1 rounded text-[10px] transition-colors hidden">CSV</button>
+        <button onclick="exportData('json')" id="data-export-json" class="bg-stone-800 hover:bg-stone-700 text-stone-400 px-2 py-1 rounded text-[10px] transition-colors hidden">JSON</button>
       </div>
       <div class="flex-1 overflow-auto ex-scroll">
         <div id="data-grid" class="px-6 py-3">
@@ -313,10 +322,25 @@
               <option value="500">Limit 500</option>
             </select>
             <span id="sql-status" class="text-stone-500 text-xs"></span>
+            <button onclick="exportQuery('csv')" id="sql-export-csv" class="bg-stone-800 hover:bg-stone-700 text-stone-400 px-2 py-1 rounded text-[10px] transition-colors hidden ml-auto">Export CSV</button>
+            <button onclick="exportQuery('json')" id="sql-export-json" class="bg-stone-800 hover:bg-stone-700 text-stone-400 px-2 py-1 rounded text-[10px] transition-colors hidden">Export JSON</button>
           </div>
           <div id="sql-results" class="mt-3"></div>
         </div>
       </details>
+    </div>
+  </div>
+
+  <!-- Row Detail Overlay Modal -->
+  <div id="row-detail-overlay" class="fixed inset-0 bg-black/70 z-[200] hidden flex items-center justify-center"
+       onclick="if(event.target===this)closeRowDetail()">
+    <div class="bg-stone-900 border border-stone-700 rounded-lg shadow-2xl w-11/12 max-w-3xl max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-stone-800">
+        <h3 class="text-amber-400 font-bold text-sm" id="row-detail-title">Row Detail</h3>
+        <button onclick="closeRowDetail()" class="text-stone-500 hover:text-stone-300 text-lg leading-none">&times;</button>
+      </div>
+      <div class="flex-1 overflow-y-auto ex-scroll px-5 py-4" id="row-detail-body">
+      </div>
     </div>
   </div>
 
@@ -470,12 +494,21 @@ function renderPeopleItem(p) {
 
 function filterPeopleList() {
   const q = (document.getElementById('people-filter').value || '').toLowerCase();
+  const activeFlags = [...document.querySelectorAll('.hf-flag-filter:checked')].map(cb => cb.value);
   const list = document.getElementById('people-list');
-  const filtered = q ? peopleResults.filter(p =>
-    (p.name || '').toLowerCase().includes(q) ||
-    (p.english_name || '').toLowerCase().includes(q) ||
-    (p.race || '').toLowerCase().includes(q)
-  ) : peopleResults;
+  let filtered = peopleResults;
+  if (q) {
+    filtered = filtered.filter(p =>
+      (p.name || '').toLowerCase().includes(q) ||
+      (p.english_name || '').toLowerCase().includes(q) ||
+      (p.race || '').toLowerCase().includes(q)
+    );
+  }
+  if (activeFlags.length > 0) {
+    filtered = filtered.filter(p =>
+      p.type_flags && activeFlags.some(f => p.type_flags.includes(f))
+    );
+  }
   list.innerHTML = filtered.map(renderPeopleItem).join('') ||
     '<div class="text-stone-500 text-xs px-3 py-4 text-center">No matches</div>';
 }
@@ -1685,7 +1718,65 @@ function renderTableDetail(d) {
     html += '</div></div>';
   }
 
+  // JSONB field inventory — find JSONB columns and add a section
+  const jsonbCols = d.columns.filter(c => c.udt_name === 'jsonb');
+  if (jsonbCols.length > 0) {
+    html += `<div class="mb-6">
+      <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-2">JSONB Field Inventory (${jsonbCols.length} columns)</h3>
+      <div class="space-y-3" id="jsonb-inventory-${d.name}">`;
+    for (const jc of jsonbCols) {
+      html += `<div class="bg-stone-900 border border-stone-800 rounded-lg p-3" id="jsonb-keys-${d.name}-${jc.column_name}">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-stone-200 font-mono text-xs">${jc.column_name}</span>
+          <span class="text-stone-600 text-[10px]">loading keys...</span>
+        </div>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+
   panel.innerHTML = html;
+
+  // Async-load JSONB keys for each column
+  for (const jc of jsonbCols) {
+    fetchJsonbKeys(d.name, jc.column_name);
+  }
+}
+
+async function fetchJsonbKeys(table, col) {
+  const container = document.getElementById('jsonb-keys-' + table + '-' + col);
+  if (!container) return;
+  try {
+    const resp = await fetch('/api/explorer/schema/jsonb_keys/' + table + '/' + col);
+    if (!resp.ok) throw new Error('Failed');
+    const keys = await resp.json();
+    if (keys.length === 0) {
+      container.innerHTML = `<div class="flex items-center gap-2">
+        <span class="text-stone-200 font-mono text-xs">${col}</span>
+        <span class="text-stone-600 text-[10px]">no keys found</span>
+      </div>`;
+      return;
+    }
+    let html = `<div class="flex items-center gap-2 mb-2">
+      <span class="text-stone-200 font-mono text-xs">${col}</span>
+      <span class="text-stone-500 text-[10px]">${keys.length} distinct keys</span>
+    </div>
+    <div class="flex flex-wrap gap-1">`;
+    for (const k of keys) {
+      const typeColor = k.type === 'string' ? 'text-green-400' : k.type === 'number' ? 'text-blue-400' : k.type === 'boolean' ? 'text-amber-400' : k.type === 'array' ? 'text-purple-400' : k.type === 'object' ? 'text-pink-400' : 'text-stone-500';
+      html += `<span class="bg-stone-800 px-2 py-0.5 rounded text-[10px] font-mono">
+        <span class="text-stone-300">${escapeHtml(k.key)}</span>
+        <span class="${typeColor} ml-1">${k.type}</span>
+      </span>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="flex items-center gap-2">
+      <span class="text-stone-200 font-mono text-xs">${col}</span>
+      <span class="text-red-400 text-[10px]">failed to load keys</span>
+    </div>`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1730,6 +1821,8 @@ async function loadTableData(tableName, resetPage) {
 function renderDataGrid(d) {
   const grid = document.getElementById('data-grid');
   document.getElementById('data-row-count').textContent = `${formatNum(d.total)} rows`;
+  document.getElementById('data-export-csv').classList.toggle('hidden', d.rows.length === 0);
+  document.getElementById('data-export-json').classList.toggle('hidden', d.rows.length === 0);
 
   if (d.rows.length === 0) {
     grid.innerHTML = '<div class="text-stone-500 text-xs py-4">No data found</div>';
@@ -1747,8 +1840,12 @@ function renderDataGrid(d) {
   }
   html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
 
-  for (const row of d.rows) {
-    html += '<tr class="hover:bg-stone-800/30">';
+  window._dataGridRows = d.rows;
+  window._dataGridCols = colNames;
+  window._dataGridColTypes = colTypes;
+  for (let ri = 0; ri < d.rows.length; ri++) {
+    const row = d.rows[ri];
+    html += `<tr class="hover:bg-stone-800/30 cursor-pointer" onclick="openRowDetail(${ri})">`;
     for (const col of colNames) {
       html += `<td class="px-3 py-1.5 max-w-xs">${renderCell(col, row[col], colTypes[col])}</td>`;
     }
@@ -1840,6 +1937,98 @@ function changeDataLimit() {
   loadTableData(dataState.table);
 }
 
+function exportData(format) {
+  if (!dataState.table) return;
+  const params = new URLSearchParams({
+    format: format,
+    filter: dataState.filter,
+    sort: dataState.sort,
+    order: dataState.order,
+    limit: 10000,
+  });
+  window.open('/api/explorer/export/data/' + dataState.table + '?' + params, '_blank');
+}
+
+// Entity type detection from table name for "View detail page" link
+const TABLE_ENTITY_MAP = {
+  historical_figures: {type: 'hf', idCol: 'id'},
+  entities: {type: 'entity', idCol: 'id'},
+  sites: {type: 'site', idCol: 'id'},
+  artifacts: {type: 'artifact', idCol: 'id'},
+  regions: {type: 'region', idCol: 'id'},
+  structures: {type: 'structure', idCol: 'id', siteCol: 'site_id'},
+  written_contents: {type: 'written_content', idCol: 'id'},
+  history_event_collections: {type: 'collection', idCol: 'id'},
+  underground_regions: {type: 'underground_region', idCol: 'id'},
+  landmasses: {type: 'landmass', idCol: 'id'},
+  mountain_peaks: {type: 'mountain_peak', idCol: 'id'},
+  rivers: {type: 'river', idCol: 'id'},
+  world_constructions: {type: 'construction', idCol: 'id'},
+  art_forms: {type: 'art_form', idCol: 'id'},
+  identities: {type: 'identity', idCol: 'id'},
+  historical_eras: {type: 'era', idCol: 'name'},
+};
+
+function openRowDetail(rowIdx) {
+  const row = window._dataGridRows[rowIdx];
+  const cols = window._dataGridCols;
+  const colTypes = window._dataGridColTypes;
+  if (!row) return;
+
+  const titleEl = document.getElementById('row-detail-title');
+  const bodyEl = document.getElementById('row-detail-body');
+  titleEl.textContent = dataState.table + (row.id != null ? ' #' + row.id : '') + (row.name ? ' — ' + row.name : '');
+
+  let html = '';
+
+  // Entity detail page link
+  const mapping = TABLE_ENTITY_MAP[dataState.table];
+  if (mapping && row[mapping.idCol] != null) {
+    let url;
+    if (mapping.siteCol) {
+      url = '/explorer/site/' + (row[mapping.siteCol] || 0) + '/structure/' + row[mapping.idCol];
+    } else if (mapping.idCol === 'name') {
+      url = '/explorer/' + mapping.type + '/' + encodeURIComponent(row[mapping.idCol]);
+    } else {
+      url = '/explorer/' + mapping.type + '/' + row[mapping.idCol];
+    }
+    html += `<div class="mb-4"><a href="${url}" class="text-amber-400 hover:text-amber-300 text-xs font-bold">&rarr; View detail page</a></div>`;
+  }
+
+  // Column values
+  html += '<div class="space-y-2">';
+  for (const col of cols) {
+    const val = row[col];
+    const type = colTypes[col];
+    html += `<div class="flex gap-3">
+      <span class="text-stone-500 text-xs font-mono w-44 flex-shrink-0 text-right pt-0.5">${escapeHtml(col)}</span>
+      <div class="text-xs flex-1 min-w-0">`;
+
+    if (val === null || val === undefined) {
+      html += '<span class="text-stone-600 italic">null</span>';
+    } else if (type === 'jsonb' || type === 'json' || (typeof val === 'object' && val !== null)) {
+      html += `<pre class="text-stone-400 font-mono text-[10px] bg-stone-800 p-2 rounded overflow-x-auto ex-scroll max-h-60">${escapeHtml(JSON.stringify(val, null, 2))}</pre>`;
+    } else {
+      // Check if this is an FK
+      const fk = dataState.fkMap[col];
+      if (fk) {
+        html += `<span class="fk-link" onclick="closeRowDetail();navigateFK('${fk.table}','${fk.column}',${JSON.stringify(val)})">${escapeHtml(String(val))}</span>`;
+      } else {
+        html += `<span class="text-stone-200">${escapeHtml(String(val))}</span>`;
+      }
+    }
+    html += '</div></div>';
+  }
+  html += '</div>';
+
+  bodyEl.innerHTML = html;
+  document.getElementById('row-detail-overlay').classList.remove('hidden');
+}
+
+function closeRowDetail() {
+  document.getElementById('row-detail-overlay').classList.add('hidden');
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // DATABASE TAB — SQL Runner
 // ═══════════════════════════════════════════════════════════════════════
@@ -1865,6 +2054,8 @@ async function runQuery() {
     if (d.detail) { throw new Error(d.detail); }
 
     statusEl.textContent = `${d.count} rows in ${elapsed}ms${d.truncated ? ' (truncated)' : ''}`;
+    document.getElementById('sql-export-csv').classList.toggle('hidden', d.count === 0);
+    document.getElementById('sql-export-json').classList.toggle('hidden', d.count === 0);
 
     if (d.count === 0) {
       resultsEl.innerHTML = '<div class="text-stone-500 text-xs">No results</div>';
@@ -1890,6 +2081,33 @@ async function runQuery() {
   } catch (e) {
     statusEl.textContent = '';
     resultsEl.innerHTML = `<div class="text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+    document.getElementById('sql-export-csv').classList.add('hidden');
+    document.getElementById('sql-export-json').classList.add('hidden');
+  }
+}
+
+async function exportQuery(format) {
+  const sql = document.getElementById('sql-input').value.trim();
+  if (!sql) return;
+  const limit = parseInt(document.getElementById('sql-limit').value);
+  try {
+    const resp = await fetch('/api/explorer/export/query?format=' + format, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sql, limit }),
+    });
+    if (!resp.ok) { const err = await resp.json(); alert(err.detail || 'Export failed'); return; }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'query-results.' + format;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Export failed: ' + e.message);
   }
 }
 

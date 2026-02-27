@@ -1,0 +1,174 @@
+{% extends "detail_base.html" %}
+
+{% block title %}{{ entity_name }} — Artifact — Chronicler{% endblock %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+<span class="text-stone-400 text-xs">Artifact</span>
+<span>›</span>
+<span class="text-stone-300 text-xs">{{ entity_name }}</span>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex items-center gap-2">
+  {% if prev_artifact %}
+    <a href="/explorer/artifact/{{ prev_artifact.id }}?world_id={{ world_id }}" title="{{ prev_artifact.name }}">← Prev</a>
+  {% endif %}
+  {% if next_artifact %}
+    <a href="/explorer/artifact/{{ next_artifact.id }}?world_id={{ world_id }}" title="{{ next_artifact.name }}">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge" style="background: #a855f7; color: #fafaf9;">Artifact</span>
+{% if artifact.item_type %}
+  <span class="badge badge-type">{{ artifact.item_type|replace('_', ' ')|title }}</span>
+{% endif %}
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
+  {% if artifact.material %}
+    <span>Material: {{ artifact.material }}</span>
+  {% endif %}
+  {% if artifact.item_type %}
+    <span>Type: {{ artifact.item_type|replace('_', ' ')|title }}</span>
+  {% endif %}
+  {% if artifact.item_subtype %}
+    <span>Subtype: {{ artifact.item_subtype|replace('_', ' ')|title }}</span>
+  {% endif %}
+  {% if creator %}
+    <span>Created by: {{ linker.link('hf', creator.id, creator.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if holder %}
+    <span>Held by: {{ linker.link('hf', holder.id, holder.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if site %}
+    <span>At: {{ linker.link('site', site.id, site.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if artifact.importance_score %}
+    <span>Importance: {{ "%.0f"|format(artifact.importance_score) }}</span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block tabs %}
+<div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
+  <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
+  <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
+</div>
+{% endblock %}
+
+{% block body %}
+
+{# ═══════════════════════ OVERVIEW TAB ════════════════════════════════════ #}
+<div id="dtab-content-overview" class="tab-content active">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+    {# ── Details Card ────────────────────────────────────────────────────── #}
+    <div class="section-card lg:col-span-2">
+      <div class="section-title">Details</div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+        <div><span class="text-stone-500">Name:</span> {{ artifact.name|default('?', true) }}</div>
+        <div><span class="text-stone-500">Material:</span> {{ artifact.material|default('?', true) }}</div>
+        <div><span class="text-stone-500">Type:</span> {{ artifact.item_type|default('?', true)|replace('_', ' ')|title }}</div>
+        {% if artifact.item_subtype %}
+          <div><span class="text-stone-500">Subtype:</span> {{ artifact.item_subtype|replace('_', ' ')|title }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Creator ──────────────────────────────────────────────────────── #}
+    {% if creator %}
+    <div class="section-card">
+      <div class="section-title">Creator</div>
+      <div class="text-sm">
+        {{ linker.link('hf', creator.id, creator.name, world_id)|safe }}
+        {% if creator.race %}
+          <span class="text-stone-500 text-xs">({{ creator.race|title }})</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Current Holder ───────────────────────────────────────────────── #}
+    {% if holder %}
+    <div class="section-card">
+      <div class="section-title">Current Holder</div>
+      <div class="text-sm">
+        {{ linker.link('hf', holder.id, holder.name, world_id)|safe }}
+        {% if holder.race %}
+          <span class="text-stone-500 text-xs">({{ holder.race|title }})</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Location ─────────────────────────────────────────────────────── #}
+    {% if site %}
+    <div class="section-card">
+      <div class="section-title">Location</div>
+      <div class="text-sm">
+        {{ linker.link('site', site.id, site.name, world_id)|safe }}
+        {% if site.type %}
+          <span class="text-stone-500 text-xs">({{ site.type|title }})</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Written Content ──────────────────────────────────────────────── #}
+    {% if written_content %}
+    <div class="section-card">
+      <div class="section-title">Written Content</div>
+      <div class="text-sm">
+        {{ linker.link('written_content', written_content.id, written_content.title, world_id)|safe }}
+        {% if written_content.form %}
+          <span class="text-stone-500 text-xs">({{ written_content.form|replace('_', ' ')|title }})</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ═══════════════════════ EVENTS TAB ═════════════════════════════════════ #}
+<div id="dtab-content-events" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Event History ({{ event_count }} total, showing {{ events|length }})</div>
+    {% if events %}
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1 w-20">Date</th>
+            <th class="text-left pb-1 w-28">Type</th>
+            <th class="text-left pb-1">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+          <tr class="event-row">
+            <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
+            <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
+            <td class="py-1 event-text">{{ ev.text|safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if event_count > 50 %}
+      <div class="mt-2 text-center text-stone-500 text-xs">
+        Showing first 50 of {{ event_count }} events.
+      </div>
+    {% endif %}
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No events recorded.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

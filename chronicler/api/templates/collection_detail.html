@@ -1,0 +1,211 @@
+{% extends "detail_base.html" %}
+
+{% block title %}{{ entity_name }} — Event Collection — Chronicler{% endblock %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+{% if parent_collection %}
+  <a href="/explorer/collection/{{ parent_collection.id }}?world_id={{ world_id }}">{{ parent_collection.name }}</a>
+{% else %}
+  <span class="text-stone-400 text-xs">Event Collection</span>
+{% endif %}
+<span>›</span>
+<span class="text-stone-300 text-xs">{{ entity_name }}</span>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex items-center gap-2">
+  {% if prev_collection %}
+    <a href="/explorer/collection/{{ prev_collection.id }}?world_id={{ world_id }}" title="{{ prev_collection.name }}">← Prev</a>
+  {% endif %}
+  {% if next_collection %}
+    <a href="/explorer/collection/{{ next_collection.id }}?world_id={{ world_id }}" title="{{ next_collection.name }}">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge" style="background: #ef4444; color: #fafaf9;">{{ collection.type|default('Collection', true)|replace('_', ' ')|title }}</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
+  {% if duration %}
+    <span>{{ duration }}</span>
+  {% endif %}
+  {% if attacker %}
+    <span>Aggressor: {{ linker.link('entity', attacker.id, attacker.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if defender %}
+    <span>Defender: {{ linker.link('entity', defender.id, defender.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if site %}
+    <span>Site: {{ linker.link('site', site.id, site.name, world_id)|safe }}</span>
+  {% endif %}
+  {% if col_region %}
+    <span>Region: {{ linker.link('region', col_region.id, col_region.name, world_id)|safe }}</span>
+  {% endif %}
+  <span>Events: {{ event_count }}</span>
+</div>
+{% endblock %}
+
+{% block tabs %}
+<div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
+  <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
+  {% if children %}<button class="detail-tab" id="dtab-subcollections" onclick="switchDetailTab('subcollections')">Sub-collections ({{ children|length }})</button>{% endif %}
+  <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
+</div>
+{% endblock %}
+
+{% block body %}
+
+{# ═══════════════════════ OVERVIEW TAB ════════════════════════════════════ #}
+<div id="dtab-content-overview" class="tab-content active">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+    <div class="section-card lg:col-span-2">
+      <div class="section-title">Collection Details</div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+        <div><span class="text-stone-500">Name:</span> {{ collection.name|default('Unnamed', true) }}</div>
+        <div><span class="text-stone-500">Type:</span> {{ collection.type|default('?', true)|replace('_', ' ')|title }}</div>
+        {% if duration %}
+          <div><span class="text-stone-500">Duration:</span> {{ duration }}</div>
+        {% endif %}
+        {% if collection.start_year %}
+          <div><span class="text-stone-500">Started:</span> Year {{ collection.start_year }}</div>
+        {% endif %}
+        {% if collection.end_year %}
+          <div><span class="text-stone-500">Ended:</span> Year {{ collection.end_year }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Belligerents ─────────────────────────────────────────────────── #}
+    {% if attacker or defender %}
+    <div class="section-card">
+      <div class="section-title">Belligerents</div>
+      <div class="space-y-2 text-sm">
+        {% if attacker %}
+          <div>
+            <span class="text-red-400 text-xs font-bold">Aggressor:</span>
+            {{ linker.link('entity', attacker.id, attacker.name, world_id)|safe }}
+            {% if attacker.type %}
+              <span class="text-stone-500 text-xs">({{ attacker.type|title }})</span>
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if defender %}
+          <div>
+            <span class="text-blue-400 text-xs font-bold">Defender:</span>
+            {{ linker.link('entity', defender.id, defender.name, world_id)|safe }}
+            {% if defender.type %}
+              <span class="text-stone-500 text-xs">({{ defender.type|title }})</span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Location ─────────────────────────────────────────────────────── #}
+    {% if site or col_region %}
+    <div class="section-card">
+      <div class="section-title">Location</div>
+      <div class="space-y-1 text-sm">
+        {% if site %}
+          <div>
+            <span class="text-stone-500">Site:</span>
+            {{ linker.link('site', site.id, site.name, world_id)|safe }}
+          </div>
+        {% endif %}
+        {% if col_region %}
+          <div>
+            <span class="text-stone-500">Region:</span>
+            {{ linker.link('region', col_region.id, col_region.name, world_id)|safe }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Parent Collection ────────────────────────────────────────────── #}
+    {% if parent_collection %}
+    <div class="section-card">
+      <div class="section-title">Parent Collection</div>
+      <div class="text-sm">
+        {{ linker.link('event_collection', parent_collection.id, parent_collection.name, world_id)|safe }}
+        <span class="badge badge-type">{{ parent_collection.type|replace('_', ' ')|title }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ═══════════════════════ SUB-COLLECTIONS TAB ═════════════════════════════ #}
+{% if children %}
+<div id="dtab-content-subcollections" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Sub-collections ({{ children|length }})</div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Type</th>
+            <th class="text-left pb-1">Period</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for child in children %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-1">{{ linker.link('event_collection', child.id, child.name, world_id)|safe }}</td>
+            <td><span class="badge badge-type">{{ child.type|replace('_', ' ')|title }}</span></td>
+            <td class="text-stone-500 text-xs">
+              Year {{ child.start_year|default('?') }}{% if child.end_year and child.end_year != child.start_year %} – {{ child.end_year }}{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ═══════════════════════ EVENTS TAB ═════════════════════════════════════ #}
+<div id="dtab-content-events" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Event History ({{ event_count }} total, showing {{ events|length }})</div>
+    {% if events %}
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1 w-20">Date</th>
+            <th class="text-left pb-1 w-28">Type</th>
+            <th class="text-left pb-1">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in events %}
+          <tr class="event-row">
+            <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
+            <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
+            <td class="py-1 event-text">{{ ev.text|safe }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if event_count > 50 %}
+      <div class="mt-2 text-center text-stone-500 text-xs">Showing first 50 of {{ event_count }} events.</div>
+    {% endif %}
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No events recorded.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

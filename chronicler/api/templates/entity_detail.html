@@ -1,0 +1,197 @@
+{% extends "detail_base.html" %}
+
+{% block title %}{{ entity_name }} — Civilization — Chronicler{% endblock %}
+
+{% block breadcrumb %}
+<a href="/explorer">Explorer</a>
+<span>›</span>
+<a href="/explorer?tab=civilizations">Civilizations</a>
+<span>›</span>
+<span class="text-stone-300 text-xs">{{ entity_name }}</span>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex items-center gap-2">
+  {% if prev_entity %}
+    <a href="/explorer/entity/{{ prev_entity.id }}?world_id={{ world_id }}" title="{{ prev_entity.name }}">← Prev</a>
+  {% endif %}
+  {% if next_entity %}
+    <a href="/explorer/entity/{{ next_entity.id }}?world_id={{ world_id }}" title="{{ next_entity.name }}">Next →</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block entity_type_badge %}
+<span class="badge {{ badge_class }}">{{ entity.type|default('Entity', true)|title }}</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
+  {% if entity.race %}<span>Race: {{ entity.race|title }}</span>{% endif %}
+  <span>Members: {{ member_count }}</span>
+  {% if sites %}<span>Sites: {{ sites|length }}</span>{% endif %}
+  {% if wars %}<span>Wars: {{ wars|length }}</span>{% endif %}
+</div>
+{% endblock %}
+
+{% block tabs %}
+<div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
+  <button class="detail-tab active" id="dtab-leaders" onclick="switchDetailTab('leaders')">Leaders ({{ leaders|length }})</button>
+  <button class="detail-tab" id="dtab-sites" onclick="switchDetailTab('sites')">Sites ({{ sites|length }})</button>
+  <button class="detail-tab" id="dtab-members" onclick="switchDetailTab('members')">Members ({{ member_count }})</button>
+  <button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ positions|length }})</button>
+  <button class="detail-tab" id="dtab-wars" onclick="switchDetailTab('wars')">Wars ({{ wars|length }})</button>
+</div>
+{% endblock %}
+
+{% block body %}
+
+{# Leaders Tab #}
+<div id="dtab-content-leaders" class="tab-content active">
+  <div class="section-card">
+    <div class="section-title">Position Holders</div>
+    {% if leaders %}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-stone-500 border-b border-stone-800 text-xs">
+          <th class="text-left pb-1">Name</th>
+          <th class="text-left pb-1">Position</th>
+          <th class="text-left pb-1">From</th>
+          <th class="text-left pb-1">To</th>
+          <th class="text-left pb-1">Race</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in leaders %}
+        <tr class="border-b border-stone-800/50">
+          <td class="py-1">{{ linker.link('hf', l.hf_id, l.hf_name, world_id)|safe }}</td>
+          <td><span class="badge badge-leader">{{ l.position_name|default('?', true)|title }}</span></td>
+          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.start_year) if l.start_year else '?' }}</td>
+          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.end_year) if l.end_year and l.end_year > 0 else 'Present' }}</td>
+          <td class="text-stone-600 text-xs">{{ l.hf_race|default('', true)|title }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No known position holders.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# Sites Tab #}
+<div id="dtab-content-sites" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Owned Sites</div>
+    {% if sites %}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-stone-500 border-b border-stone-800 text-xs">
+          <th class="text-left pb-1">Name</th>
+          <th class="text-left pb-1">Type</th>
+          <th class="text-left pb-1">Coords</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sites %}
+        <tr class="border-b border-stone-800/50">
+          <td class="py-1">{{ linker.link('site', s.id, s.name, world_id)|safe }}</td>
+          <td><span class="badge badge-site">{{ s.type|default('?', true)|title }}</span></td>
+          <td class="text-stone-600 text-xs">{{ s.coord_x }}, {{ s.coord_y }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No owned sites.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# Members Tab #}
+<div id="dtab-content-members" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Notable Members (showing {{ members|length }} of {{ member_count }})</div>
+    {% if members %}
+    <div class="max-h-[500px] overflow-y-auto ex-scroll">
+      <table class="w-full text-sm">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Role</th>
+            <th class="text-left pb-1">Race</th>
+            <th class="text-right pb-1">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in members %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-0.5">
+              {{ linker.link('hf', m.hf_id, m.hf_name, world_id)|safe }}
+              {% if m.is_deity %}<span class="badge badge-deity">Deity</span>{% endif %}
+              {% if m.is_vampire %}<span class="badge badge-vampire">Vamp</span>{% endif %}
+              {% if m.is_necromancer %}<span class="badge badge-necromancer">Necro</span>{% endif %}
+            </td>
+            <td>
+              <span class="badge badge-type">{{ m.link_type|title }}</span>
+              {% if m.position_name %}<span class="badge badge-leader">{{ m.position_name }}</span>{% endif %}
+            </td>
+            <td class="text-stone-600 text-xs">{{ m.hf_race|default('', true)|title }}</td>
+            <td class="text-right text-stone-500 text-xs">{{ '%.0f'|format(m.importance_score) if m.importance_score else '-' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No known members.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# Positions Tab #}
+<div id="dtab-content-positions" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Defined Positions</div>
+    {% if positions %}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+      {% for p in positions %}
+        <div class="badge badge-leader">{{ p.name|default('?', true)|title }}</div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No positions defined.</div>
+    {% endif %}
+  </div>
+</div>
+
+{# Wars Tab #}
+<div id="dtab-content-wars" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">War Participation</div>
+    {% if wars %}
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-stone-500 border-b border-stone-800 text-xs">
+          <th class="text-left pb-1">War</th>
+          <th class="text-left pb-1">Start</th>
+          <th class="text-left pb-1">End</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for w in wars %}
+        <tr class="border-b border-stone-800/50">
+          <td class="py-1">{{ linker.link('event_collection', w.id, w.name, world_id)|safe }}</td>
+          <td class="text-stone-500 text-xs">Year {{ w.start_year }}</td>
+          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(w.end_year) if w.end_year and w.end_year > 0 else 'Ongoing' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No wars recorded.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

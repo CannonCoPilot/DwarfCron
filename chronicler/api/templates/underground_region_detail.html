@@ -1,0 +1,61 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+<span class="badge badge-type">Underground Region</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  <span class="text-stone-400">Type: <span class="text-stone-200">{{ ur.type|replace('_',' ')|title }}</span></span>
+  {% if ur.depth is not none %}
+  <span class="text-stone-400">Depth: <span class="text-stone-200">{{ ur.depth }}</span></span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_ur %}
+    <a href="/explorer/underground_region/{{ prev_ur.id }}?world_id={{ world_id }}">&larr; {{ prev_ur.display_name }}</a>
+  {% endif %}
+  {% if next_ur %}
+    <a href="/explorer/underground_region/{{ next_ur.id }}?world_id={{ world_id }}">{{ next_ur.display_name }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <!-- Properties -->
+  <div class="section-card">
+    <div class="section-title">Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Type</td><td class="text-stone-200">{{ ur.type|replace('_',' ')|title }}</td></tr>
+      {% if ur.depth is not none %}
+      <tr><td class="text-stone-500 pr-3 py-1">Depth</td><td class="text-stone-200">{{ ur.depth }}</td></tr>
+      {% endif %}
+      {% if ur.coords %}
+      <tr><td class="text-stone-500 pr-3 py-1">Coordinates</td><td class="text-stone-200 text-xs font-mono break-all">{{ ur.coords[:120] }}{% if ur.coords|length > 120 %}...{% endif %}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- Events -->
+  <div class="section-card lg:col-span-2">
+    <div class="section-title">Events ({{ event_count }} total{% if event_count > 50 %}, showing first 50{% endif %})</div>
+    {% if events %}
+    <div class="space-y-0">
+      {% for ev in events %}
+      <div class="event-row flex gap-3 py-1.5 px-1">
+        <span class="event-year">{{ ev.date_short }}</span>
+        <span class="event-type-badge">{{ ev.type|replace('_',' ') }}</span>
+        <span class="event-text">{{ ev.text|safe }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-stone-500 text-sm italic">No events recorded for this underground region.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

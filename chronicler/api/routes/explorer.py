@@ -1,11 +1,14 @@
 """Explorer API routes — schema browser, data browser, entity graph."""
 
+import csv
+import io
 import json
 import re
 from datetime import datetime, date
 from decimal import Decimal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -858,3 +861,211 @@ async def graph_search(q: str, request: Request, world_id: int = 0):
                 })
 
     return results
+
+
+# ─── JSONB Field Inventory ──────────────────────────────────────────────────
+
+@router.get("/explorer/schema/jsonb_keys/{table_name}/{column_name}")
+async def jsonb_key_inventory(table_name: str, column_name: str, request: Request,
+                               world_id: int = Query(0)):
+    """Return all distinct keys found in a JSONB column."""
+    if not VALID_TABLE_RE.match(table_name) or not VALID_TABLE_RE.match(column_name):
+        raise HTTPException(400, "Invalid table or column name")
+
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        col_info = await conn.fetchrow("""
+            SELECT data_type, udt_name FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2
+        """, table_name, column_name)
+        if not col_info:
+            raise HTTPException(404, "Column not found")
+        if col_info['udt_name'] != 'jsonb':
+            raise HTTPException(400, "Column is not JSONB")
+
+        world_filter = f"AND world_id = {int(world_id)}" if world_id else ""
+        keys = await conn.fetch(f"""
+            SELECT DISTINCT jsonb_object_keys("{column_name}") AS key
+            FROM "{table_name}"
+            WHERE "{column_name}" IS NOT NULL
+              AND "{column_name}" != '{{}}'::jsonb
+              {world_filter}
+            ORDER BY key
+        """)
+
+        result = []
+        for k in keys:
+            key_name = k['key']
+            sample = await conn.fetchval(f"""
+                SELECT jsonb_typeof("{column_name}" -> $1)
+                FROM "{table_name}"
+                WHERE "{column_name}" -> $1 IS NOT NULL
+                  {world_filter}
+                LIMIT 1
+            """, key_name)
+            result.append({'key': key_name, 'type': sample or 'unknown'})
+
+    return result
+
+
+# ─── Query Results Export ───────────────────────────────────────────────────
+
+@router.get("/explorer/export/data/{table_name}")
+async def export_table_data(
+    table_name: str,
+    request: Request,
+    format: str = "csv",
+    filter: str = "",
+    sort: str = "",
+    order: str = "asc",
+    limit: int = 10000,
+):
+    """Export table data as CSV or JSON."""
+    if not VALID_TABLE_RE.match(table_name):
+        raise HTTPException(400, "Invalid table name")
+    if format not in ("csv", "json"):
+        raise HTTPException(400, "Format must be 'csv' or 'json'")
+    if order not in ("asc", "desc"):
+        order = "asc"
+    limit = min(max(limit, 1), 50000)
+
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        exists = await conn.fetchval(
+            "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name=$1",
+            table_name,
+        )
+        if not exists:
+            raise HTTPException(404, "Table not found")
+
+        valid_sort = ""
+        if sort:
+            col_exists = await conn.fetchval(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_schema='public' AND table_name=$1 AND column_name=$2",
+                table_name, sort,
+            )
+            if col_exists:
+                valid_sort = sort
+
+        filter_clause = ""
+        filter_params = []
+        if filter:
+            text_cols = await conn.fetch(
+                """SELECT column_name FROM information_schema.columns
+                   WHERE table_schema='public' AND table_name=$1
+                   AND data_type IN ('text', 'character varying')""",
+                table_name,
+            )
+            if text_cols:
+                or_parts = []
+                for c in text_cols:
+                    col = c["column_name"]
+                    if VALID_TABLE_RE.match(col):
+                        or_parts.append(f'"{col}"::text ILIKE $1')
+                if or_parts:
+                    filter_clause = "WHERE " + " OR ".join(or_parts)
+                    filter_params = [f"%{filter}%"]
+
+        order_clause = f'ORDER BY "{valid_sort}" {order}' if valid_sort else ""
+
+        if filter_params:
+            data_sql = f'SELECT * FROM "{table_name}" {filter_clause} {order_clause} LIMIT $2'
+            rows = await conn.fetch(data_sql, filter_params[0], limit)
+        else:
+            data_sql = f'SELECT * FROM "{table_name}" {order_clause} LIMIT $1'
+            rows = await conn.fetch(data_sql, limit)
+
+    if not rows:
+        empty = b"[]" if format == "json" else b""
+        mt = "application/json" if format == "json" else "text/csv"
+        return StreamingResponse(
+            io.BytesIO(empty), media_type=mt,
+            headers={"Content-Disposition": f'attachment; filename="{table_name}.{format}"'},
+        )
+
+    columns = list(rows[0].keys())
+
+    if format == "json":
+        serialized = [_serialize_row(dict(r)) for r in rows]
+        content = json.dumps(serialized, indent=2, default=str)
+        return StreamingResponse(
+            io.BytesIO(content.encode('utf-8')),
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="{table_name}.json"'},
+        )
+    else:
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(columns)
+        for row in rows:
+            sr = _serialize_row(dict(row))
+            writer.writerow([
+                json.dumps(v) if isinstance(v, (dict, list)) else v
+                for v in [sr.get(c) for c in columns]
+            ])
+        return StreamingResponse(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{table_name}.csv"'},
+        )
+
+
+@router.post("/explorer/export/query")
+async def export_query_results(body: QueryRequest, request: Request,
+                                format: str = "csv"):
+    """Export SQL query results as CSV or JSON."""
+    if format not in ("csv", "json"):
+        raise HTTPException(400, "Format must be 'csv' or 'json'")
+
+    sql = body.sql.strip().rstrip(';')
+    if not (sql.upper().lstrip().startswith('SELECT') or sql.upper().lstrip().startswith('WITH')):
+        raise HTTPException(400, "Only SELECT/WITH queries are allowed")
+    if _DANGEROUS_KW.search(sql):
+        raise HTTPException(400, "Query contains forbidden keyword")
+
+    max_limit = min(body.limit, 10000)
+
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        async with conn.transaction(readonly=True):
+            try:
+                wrapped = f"SELECT * FROM ({sql}) _q LIMIT {max_limit}"
+                rows = await conn.fetch(wrapped)
+            except Exception as e:
+                raise HTTPException(400, f"Query error: {str(e)}")
+
+    if not rows:
+        empty = b"[]" if format == "json" else b""
+        mt = "application/json" if format == "json" else "text/csv"
+        fn = "query_results"
+        return StreamingResponse(
+            io.BytesIO(empty), media_type=mt,
+            headers={"Content-Disposition": f'attachment; filename="{fn}.{format}"'},
+        )
+
+    columns = list(rows[0].keys())
+
+    if format == "json":
+        serialized = [_serialize_row(dict(r)) for r in rows]
+        content = json.dumps(serialized, indent=2, default=str)
+        return StreamingResponse(
+            io.BytesIO(content.encode('utf-8')),
+            media_type="application/json",
+            headers={"Content-Disposition": 'attachment; filename="query_results.json"'},
+        )
+    else:
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(columns)
+        for row in rows:
+            sr = _serialize_row(dict(row))
+            writer.writerow([
+                json.dumps(v) if isinstance(v, (dict, list)) else v
+                for v in [sr.get(c) for c in columns]
+            ])
+        return StreamingResponse(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            media_type="text/csv",
+            headers={"Content-Disposition": 'attachment; filename="query_results.csv"'},
+        )

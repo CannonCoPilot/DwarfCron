@@ -1,0 +1,47 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+<span class="badge badge-type">World Construction</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  {% if construction.type %}
+  <span class="text-stone-400">Type: <span class="text-stone-200">{{ construction.type|replace('_',' ')|title }}</span></span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_construction %}
+    <a href="/explorer/construction/{{ prev_construction.id }}?world_id={{ world_id }}">&larr; {{ prev_construction.name or 'Prev' }}</a>
+  {% endif %}
+  {% if next_construction %}
+    <a href="/explorer/construction/{{ next_construction.id }}?world_id={{ world_id }}">{{ next_construction.name or 'Next' }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <!-- Properties -->
+  <div class="section-card">
+    <div class="section-title">Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Name</td><td class="text-stone-200">{{ construction.name or 'Unnamed' }}</td></tr>
+      {% if construction.type %}
+      <tr><td class="text-stone-500 pr-3 py-1">Type</td><td class="text-stone-200">{{ construction.type|replace('_',' ')|title }}</td></tr>
+      {% endif %}
+      {% if construction.coords %}
+      <tr><td class="text-stone-500 pr-3 py-1">Path</td><td class="text-stone-200 text-xs font-mono break-all">{{ construction.coords[:200] }}{% if construction.coords|length > 200 %}...{% endif %}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- Mini-map placeholder -->
+  <div class="section-card flex items-center justify-center text-stone-600 text-sm italic" style="min-height: 200px;">
+    Construction path mini-map (Phase 4)
+  </div>
+</div>
+{% endblock %}

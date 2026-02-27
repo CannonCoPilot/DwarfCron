@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ entity_name }} — Chronicler{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            stone: { 950: '#0f0e0d' },
+            parchment: '#d4c5a9',
+            ink: '#2c1810',
+            amber: { 400: '#f6b93b', 500: '#e2a72e', 600: '#c49122' },
+          },
+          fontFamily: {
+            chronicle: ['"Palatino Linotype"', 'Palatino', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0c0b0a; }
+    .ex-scroll { scrollbar-width: thin; scrollbar-color: #44403c #1c1917; }
+    .ex-scroll::-webkit-scrollbar { width: 6px; }
+    .ex-scroll::-webkit-scrollbar-track { background: #1c1917; }
+    .ex-scroll::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+
+    /* Entity links */
+    .entity-link { color: #60a5fa; text-decoration: none; }
+    .entity-link:hover { text-decoration: underline; color: #93c5fd; }
+    .entity-hf { color: #f6b93b; }
+    .entity-entity { color: #3b82f6; }
+    .entity-site { color: #22c55e; }
+    .entity-artifact { color: #a855f7; }
+    .entity-region { color: #f97316; }
+    .entity-structure { color: #14b8a6; }
+    .entity-written_content { color: #ec4899; }
+    .entity-event_collection { color: #ef4444; }
+
+    /* Section cards */
+    .section-card {
+      background: #1c1917; border: 1px solid #292524;
+      border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem;
+    }
+    .section-title {
+      color: #78716c; font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 0.5rem; font-weight: 700;
+    }
+
+    /* Badges */
+    .badge { font-size: 0.6rem; padding: 1px 6px; border-radius: 3px; font-weight: 700; display: inline-block; }
+    .badge-alive { background: #22c55e30; color: #22c55e; border: 1px solid #22c55e40; }
+    .badge-dead { background: #ef444430; color: #ef4444; border: 1px solid #ef444440; }
+    .badge-deity { background: #f6b93b; color: #0f0e0d; }
+    .badge-force { background: #87ceeb; color: #0f0e0d; }
+    .badge-vampire { background: #8b0000; color: #fafaf9; }
+    .badge-necromancer { background: #4b0082; color: #fafaf9; }
+    .badge-werebeast { background: #8b4513; color: #fafaf9; }
+    .badge-ghost { background: #c0c0c0; color: #0f0e0d; }
+    .badge-leader { background: #228b22; color: #fafaf9; }
+    .badge-megabeast { background: #ff4500; color: #fafaf9; }
+    .badge-type { background: #44403c; color: #d6d3d1; }
+    .badge-civ { background: #3b82f6; color: #fafaf9; }
+    .badge-religion { background: #a855f7; color: #fafaf9; }
+    .badge-site { background: #22c55e; color: #0f0e0d; }
+    .badge-ruin { background: #ef444440; color: #ef4444; border: 1px solid #ef444440; }
+    .badge-biome { background: #0d9488; color: #fafaf9; }
+    .badge-evil { background: #d946ef; color: #fafaf9; }
+    .badge-benign { background: #06b6d4; color: #0f0e0d; }
+    .badge-neutral { background: #78716c; color: #fafaf9; }
+
+    /* Tab system */
+    .detail-tab { border-bottom: 2px solid transparent; color: #78716c; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.8rem; }
+    .detail-tab:hover { color: #d6d3d1; }
+    .detail-tab.active { border-bottom-color: #f6b93b; color: #f6b93b; font-weight: 700; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Event table */
+    .event-row { border-bottom: 1px solid #292524; }
+    .event-row:hover { background: #292524; }
+    .event-year { color: #78716c; font-size: 0.7rem; white-space: nowrap; min-width: 60px; }
+    .event-type-badge { font-size: 0.55rem; padding: 1px 4px; border-radius: 2px; background: #44403c; color: #a8a29e; white-space: nowrap; }
+    .event-text { font-size: 0.8rem; }
+    .event-text em { font-style: normal; color: #f6b93b; font-weight: 600; }
+
+    /* Breadcrumb */
+    .breadcrumb a { color: #78716c; font-size: 0.75rem; }
+    .breadcrumb a:hover { color: #d6d3d1; }
+    .breadcrumb span { color: #44403c; font-size: 0.75rem; }
+
+    /* Prev/Next nav */
+    .prevnext a { color: #78716c; font-size: 0.75rem; padding: 0.25rem 0.5rem; border: 1px solid #292524; border-radius: 0.25rem; }
+    .prevnext a:hover { color: #d6d3d1; border-color: #44403c; }
+  </style>
+  <!-- Tippy.js for hover popovers -->
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <style>
+    .tippy-box[data-theme~='chronicler'] {
+      background: #1c1917; border: 1px solid #44403c; color: #d6d3d1;
+      font-size: 0.75rem; border-radius: 0.375rem; font-family: inherit;
+    }
+    .tippy-box[data-theme~='chronicler'] .tippy-arrow { color: #44403c; }
+    .tippy-box[data-theme~='chronicler'] .tippy-content { padding: 8px 10px; }
+    .pop-name { color: #f6b93b; font-weight: 700; font-size: 0.85rem; }
+    .pop-meta { color: #78716c; font-size: 0.65rem; }
+    .pop-badge { font-size: 0.55rem; padding: 1px 4px; border-radius: 2px; font-weight: 700; display: inline-block; margin-right: 2px; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="text-stone-300 font-chronicle min-h-screen flex flex-col">
+
+  {% set active = "explorer" %}
+  {% include "partials/_nav.html" %}
+
+  <!-- Breadcrumb bar -->
+  <div class="border-b border-stone-800 bg-stone-950 px-6 py-2 flex items-center justify-between flex-shrink-0">
+    <div class="breadcrumb flex items-center gap-1">
+      <a href="/explorer">Explorer</a>
+      <span>›</span>
+      {% block breadcrumb %}
+      <a href="/explorer">{{ entity_type_display }}</a>
+      <span>›</span>
+      <span class="text-stone-300 text-xs">{{ entity_name }}</span>
+      {% endblock %}
+    </div>
+    {% block prevnext %}{% endblock %}
+  </div>
+
+  <!-- Main content area: sidebar + detail -->
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Sidebar (optional, entity types can fill or hide) -->
+    {% block sidebar %}{% endblock %}
+
+    <!-- Main detail area -->
+    <div class="flex-1 overflow-y-auto ex-scroll">
+      <!-- Entity header -->
+      {% block header %}
+      <div class="px-6 py-4 border-b border-stone-800">
+        <div class="flex items-start justify-between">
+          <div>
+            {% block entity_type_badge %}{% endblock %}
+            <h1 class="text-xl font-bold text-amber-400 mt-1">{{ entity_name }}</h1>
+            {% if entity_alt_name %}
+              <h2 class="text-stone-400 text-sm italic">"{{ entity_alt_name }}"</h2>
+            {% endif %}
+            {% block vital_stats %}{% endblock %}
+          </div>
+          {% block header_actions %}{% endblock %}
+        </div>
+      </div>
+      {% endblock %}
+
+      <!-- Tab bar (if entity type uses tabs) -->
+      {% block tabs %}{% endblock %}
+
+      <!-- Detail body -->
+      <div class="px-6 py-4">
+        {% block body %}{% endblock %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab switching script -->
+  <script>
+    function switchDetailTab(tabName) {
+      document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const tab = document.getElementById('dtab-' + tabName);
+      const content = document.getElementById('dtab-content-' + tabName);
+      if (tab) tab.classList.add('active');
+      if (content) content.classList.add('active');
+      // Update URL hash
+      history.replaceState(null, '', '#tab=' + tabName);
+    }
+
+    // Restore tab from URL hash on load
+    document.addEventListener('DOMContentLoaded', function() {
+      const hash = location.hash;
+      if (hash && hash.startsWith('#tab=')) {
+        switchDetailTab(hash.replace('#tab=', ''));
+      }
+    });
+  </script>
+  <!-- Entity link hover popovers -->
+  <script>
+  (function() {
+    const popoverCache = {};
+
+    function initPopovers() {
+      document.querySelectorAll('.entity-link[data-entity-type][data-entity-id]').forEach(el => {
+        if (el._tippyInit) return;
+        el._tippyInit = true;
+        tippy(el, {
+          theme: 'chronicler',
+          delay: [300, 0],
+          allowHTML: true,
+          interactive: true,
+          placement: 'top',
+          content: 'Loading...',
+          onShow(instance) {
+            const type = el.dataset.entityType;
+            const id = el.dataset.entityId;
+            const key = type + ':' + id;
+            if (popoverCache[key]) {
+              instance.setContent(popoverCache[key]);
+              return;
+            }
+            fetch('/api/popover/' + type + '/' + id)
+              .then(r => r.json())
+              .then(data => {
+                const html = renderPopover(data);
+                popoverCache[key] = html;
+                instance.setContent(html);
+              })
+              .catch(() => instance.setContent('<span class="text-stone-500">Failed to load</span>'));
+          }
+        });
+      });
+    }
+
+    function renderPopover(d) {
+      if (d.error) return '<span class="text-stone-500">' + d.error + '</span>';
+      let html = '<div class="pop-name">' + escHtml(d.name || '?') + '</div>';
+
+      if (d.type === 'hf') {
+        const badges = (d.badges || []).map(b =>
+          '<span class="pop-badge" style="background:' + badgeColor(b) + '">' + b + '</span>'
+        ).join('');
+        html += '<div>' + badges;
+        html += '<span class="pop-badge" style="background:' + (d.alive ? '#22c55e30;color:#22c55e' : '#ef444430;color:#ef4444') + '">' + (d.alive ? 'alive' : 'dead') + '</span>';
+        html += '</div>';
+        html += '<div class="pop-meta">' + escHtml(d.race || '') + (d.caste ? ' (' + escHtml(d.caste) + ')' : '') + '</div>';
+        if (d.birth_year) html += '<div class="pop-meta">Born: Year ' + d.birth_year + (d.death_year ? ' / Died: Year ' + d.death_year : '') + '</div>';
+        if (d.kill_count) html += '<div class="pop-meta">Kills: ' + d.kill_count + '</div>';
+      } else if (d.type === 'site') {
+        html += '<div class="pop-meta">' + escHtml(d.site_type || '') + (d.owner ? ' / ' + escHtml(d.owner) : '') + '</div>';
+        if (d.coord_x != null) html += '<div class="pop-meta">(' + d.coord_x + ', ' + d.coord_y + ')</div>';
+      } else if (d.type === 'entity') {
+        html += '<div class="pop-meta">' + escHtml(d.entity_type || '') + ' / ' + escHtml(d.race || '') + '</div>';
+      } else if (d.type === 'artifact') {
+        html += '<div class="pop-meta">' + escHtml(d.item_type || '') + (d.material ? ' (' + escHtml(d.material) + ')' : '') + '</div>';
+        if (d.holder) html += '<div class="pop-meta">Held by: ' + escHtml(d.holder) + '</div>';
+      } else if (d.type === 'structure') {
+        html += '<div class="pop-meta">' + escHtml(d.structure_type || '') + (d.site ? ' at ' + escHtml(d.site) : '') + '</div>';
+      } else {
+        // Generic
+        if (d.entity_type) html += '<div class="pop-meta">' + escHtml(d.entity_type) + '</div>';
+      }
+      return html;
+    }
+
+    function badgeColor(b) {
+      const m = {deity:'#f6b93b',vampire:'#8b0000',necromancer:'#4b0082',werebeast:'#8b4513',ghost:'#c0c0c0',force:'#87ceeb'};
+      return (m[b] || '#44403c') + ';color:#fafaf9';
+    }
+
+    function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    document.addEventListener('DOMContentLoaded', initPopovers);
+    // Re-init after dynamic content loads
+    window.initPopovers = initPopovers;
+  })();
+  </script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

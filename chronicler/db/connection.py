@@ -1,4 +1,6 @@
-"""Asyncpg connection pool with pgvector codec registration."""
+"""Asyncpg connection pool with pgvector and JSONB codec registration."""
+
+import json
 
 import asyncpg
 import numpy as np
@@ -23,8 +25,12 @@ async def get_pool() -> asyncpg.Pool:
 
 
 async def _init_connection(conn: asyncpg.Connection):
-    """Register pgvector type codec on each new connection."""
+    """Register pgvector and JSONB type codecs on each new connection."""
     await register_vector(conn)
+    await conn.set_type_codec(
+        'jsonb', encoder=json.dumps, decoder=json.loads,
+        schema='pg_catalog',
+    )
 
 
 async def close_pool():

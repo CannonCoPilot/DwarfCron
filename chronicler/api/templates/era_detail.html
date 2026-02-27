@@ -1,0 +1,79 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+<span class="badge badge-type">Historical Era</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  <span class="text-stone-400">Period: <span class="text-stone-200">
+    Year {{ start_year }}{% if end_year %} – Year {{ end_year }}{% else %} – present{% endif %}
+  </span></span>
+  <span class="text-stone-400">Total Events: <span class="text-stone-200">{{ "{:,}".format(total_events) }}</span></span>
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_era %}
+    <a href="/explorer/era/{{ prev_era.name|urlencode }}?world_id={{ world_id }}">&larr; {{ prev_era.name }}</a>
+  {% endif %}
+  {% if next_era %}
+    <a href="/explorer/era/{{ next_era.name|urlencode }}?world_id={{ world_id }}">{{ next_era.name }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <!-- Era Properties -->
+  <div class="section-card">
+    <div class="section-title">Era Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Name</td><td class="text-stone-200">{{ era.name }}</td></tr>
+      <tr><td class="text-stone-500 pr-3 py-1">Start Year</td><td class="text-stone-200">{{ start_year }}</td></tr>
+      {% if end_year %}
+      <tr><td class="text-stone-500 pr-3 py-1">End Year</td><td class="text-stone-200">{{ end_year }}</td></tr>
+      <tr><td class="text-stone-500 pr-3 py-1">Duration</td><td class="text-stone-200">{{ end_year - start_year + 1 }} years</td></tr>
+      {% else %}
+      <tr><td class="text-stone-500 pr-3 py-1">End Year</td><td class="text-stone-200 italic">Ongoing</td></tr>
+      {% endif %}
+      <tr><td class="text-stone-500 pr-3 py-1">Total Events</td><td class="text-stone-200">{{ "{:,}".format(total_events) }}</td></tr>
+    </table>
+  </div>
+
+  <!-- Event Type Stats -->
+  <div class="section-card">
+    <div class="section-title">Events by Type</div>
+    {% if event_stats %}
+    <div class="space-y-1 max-h-80 overflow-y-auto ex-scroll">
+      {% for stat in event_stats %}
+      <div class="flex justify-between text-sm py-0.5">
+        <span class="text-stone-300">{{ stat.event_type|replace('_',' ') }}</span>
+        <span class="text-stone-500 font-mono text-xs">{{ "{:,}".format(stat.cnt) }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-stone-500 text-sm italic">No events in this era.</p>
+    {% endif %}
+  </div>
+
+  <!-- Sample Events -->
+  <div class="section-card">
+    <div class="section-title">Sample Events (first 50)</div>
+    {% if events %}
+    <div class="space-y-0 max-h-80 overflow-y-auto ex-scroll">
+      {% for ev in events %}
+      <div class="event-row flex gap-2 py-1 px-1">
+        <span class="event-year">{{ ev.date_short }}</span>
+        <span class="event-text text-xs">{{ ev.text|safe }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-stone-500 text-sm italic">No events recorded.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

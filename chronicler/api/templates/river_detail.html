@@ -1,0 +1,50 @@
+{% extends "detail_base.html" %}
+
+{% block entity_type_badge %}
+<span class="badge badge-biome">River</span>
+{% endblock %}
+
+{% block vital_stats %}
+<div class="flex gap-3 mt-2 text-sm">
+  {% if river.end_type %}
+  <span class="text-stone-400">Flows to: <span class="text-stone-200">{{ river.end_type|replace('_',' ')|title }}</span></span>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block prevnext %}
+<div class="prevnext flex gap-2">
+  {% if prev_river %}
+    <a href="/explorer/river/{{ prev_river.id }}?world_id={{ world_id }}">&larr; {{ prev_river.name or 'Prev' }}</a>
+  {% endif %}
+  {% if next_river %}
+    <a href="/explorer/river/{{ next_river.id }}?world_id={{ world_id }}">{{ next_river.name or 'Next' }} &rarr;</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  <!-- Properties -->
+  <div class="section-card">
+    <div class="section-title">Properties</div>
+    <table class="w-full text-sm">
+      <tr><td class="text-stone-500 pr-3 py-1">Name</td><td class="text-stone-200">{{ river.name or 'Unnamed' }}</td></tr>
+      {% if river.name_english %}
+      <tr><td class="text-stone-500 pr-3 py-1">Translation</td><td class="text-stone-200 italic">{{ river.name_english }}</td></tr>
+      {% endif %}
+      {% if river.end_type %}
+      <tr><td class="text-stone-500 pr-3 py-1">End Type</td><td class="text-stone-200">{{ river.end_type|replace('_',' ')|title }}</td></tr>
+      {% endif %}
+      {% if river.path %}
+      <tr><td class="text-stone-500 pr-3 py-1">Path</td><td class="text-stone-200 text-xs font-mono break-all">{{ river.path[:200] }}{% if river.path|length > 200 %}...{% endif %}</td></tr>
+      {% endif %}
+    </table>
+  </div>
+
+  <!-- Mini-map placeholder -->
+  <div class="section-card flex items-center justify-center text-stone-600 text-sm italic" style="min-height: 200px;">
+    River path mini-map (Phase 4)
+  </div>
+</div>
+{% endblock %}
