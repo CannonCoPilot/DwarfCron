@@ -139,6 +139,7 @@ CREATE TABLE IF NOT EXISTS entities (
     name        TEXT,
     type        TEXT,
     race        TEXT,
+    importance_score FLOAT DEFAULT 0.0,  -- IDF-weighted event rarity score
     details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -451,6 +452,7 @@ CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_h
 CREATE INDEX IF NOT EXISTS idx_hf_importance ON historical_figures(world_id, importance_score DESC);
 CREATE INDEX IF NOT EXISTS idx_sites_importance ON sites(world_id, importance_score DESC);
 CREATE INDEX IF NOT EXISTS idx_artifacts_importance ON artifacts(world_id, importance_score DESC);
+CREATE INDEX IF NOT EXISTS idx_entities_importance ON entities(world_id, importance_score DESC);
 
 -- ─── Event Cross-Reference Index ───────────────────────────────────────────
 
