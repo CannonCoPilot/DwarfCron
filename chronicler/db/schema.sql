@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS regions (
     name        TEXT,
     type        TEXT,
     coords      TEXT,
+    evilness    TEXT,
+    salience_score   REAL DEFAULT 0,
+    prominence_score REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -64,6 +67,8 @@ CREATE TABLE IF NOT EXISTS sites (
     coords      TEXT,
     owner_entity_id INT,
     importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
+    salience_score   REAL DEFAULT 0,
+    prominence_score REAL DEFAULT 0,
     details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -86,6 +91,8 @@ CREATE TABLE IF NOT EXISTS world_constructions (
     name        TEXT,
     type        TEXT,
     coords      TEXT,
+    salience_score   REAL DEFAULT 0,
+    prominence_score REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -110,10 +117,26 @@ CREATE TABLE IF NOT EXISTS rivers (
     path         TEXT,      -- pipe-delimited coordinate pairs for river path
     end_type     TEXT,      -- ocean, lake, underground, etc.
     details      JSONB DEFAULT '{}',
+    salience_score   REAL DEFAULT 0,
+    prominence_score REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_rivers_name ON rivers(world_id, name);
+
+-- ─── Creature Dictionary (Stage 1.5) ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS creature_dictionary (
+    world_id       INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    creature_id    TEXT NOT NULL,       -- matches historical_figures.race token
+    name_singular  TEXT,                -- "dwarf", "forgotten beast", "midnight freak"
+    name_plural    TEXT,                -- "dwarves", "forgotten beasts"
+    flags          JSONB DEFAULT '{}',  -- all boolean tags from creature_raw
+    PRIMARY KEY (world_id, creature_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_creature_dictionary_world
+    ON creature_dictionary(world_id);
 
 -- ─── Entity Populations ────────────────────────────────────────────────────
 

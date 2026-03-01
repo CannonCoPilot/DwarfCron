@@ -73,6 +73,24 @@ async def hf_detail_page(hf_id: int, request: Request,
             raise HTTPException(404, f"Historical figure #{hf_id} not found")
         hf = dict(hf)
 
+        # Resolve race display name from creature_dictionary
+        cd_name = await conn.fetchval(
+            "SELECT name_singular FROM creature_dictionary "
+            "WHERE world_id = $1 AND creature_id = $2",
+            world_id, hf.get("race"),
+        )
+        race_raw = hf.get("race") or ""
+        if cd_name:
+            # Capitalize first letter of each word, respecting apostrophes
+            hf["race_display"] = " ".join(
+                w[0].upper() + w[1:] if w else w
+                for w in cd_name.split(" ")
+            )
+        elif race_raw.startswith("HFEXP"):
+            hf["race_display"] = "Experiment"
+        else:
+            hf["race_display"] = race_raw.replace("_", " ").title()
+
         world = await _get_world_info(conn, world_id)
 
         # Relationships (hf_links)

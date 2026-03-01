@@ -242,11 +242,11 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
             is_ghost,
             0, 0,  # kill_count, event_count (computed later)
             spheres or None,  # spheres TEXT[]
-            json.dumps(goals) if goals else None,  # goals JSONB
-            json.dumps(skills) if skills else None,  # skills JSONB
+            goals if goals else None,  # goals JSONB
+            skills if skills else None,  # skills JSONB
             held_artifacts or None,  # holds_artifact INTEGER[]
             interactions or None,  # active_interactions TEXT[]
-            json.dumps(details) if details else None,
+            details if details else None,
         ))
 
         # HF-to-HF links
@@ -344,7 +344,7 @@ def _parse_event(ev, world_id: int) -> tuple:
     return (
         eid, world_id, year, seconds, event_type,
         hf1, hf2, site, region, ent1, ent2, artifact, structure,
-        json.dumps(details) if details else "{}",
+        details if details else {},
     )
 
 
@@ -450,7 +450,7 @@ def _parse_written_contents(root, world_id: int) -> list[tuple]:
             None,  # type (filled from legends_plus)
             None, None,  # page_start, page_end (filled from legends_plus)
             styles or None,
-            json.dumps(details) if details else None,
+            details if details else None,
         ))
     return rows
 
@@ -483,6 +483,32 @@ def _parse_historical_eras(root, world_id: int) -> list[tuple]:
 
 # ── Parse legends_plus enrichment ─────────────────────────────────────────────
 
+def _parse_creature_raw(root, world_id: int) -> list[tuple]:
+    """Parse <creature_raw> section from legends_plus.xml.
+
+    Extracts creature_id, name_singular, name_plural, and all boolean flags
+    (self-closing tags with no text content) into a JSONB dict.
+    """
+    import json as _json
+    rows = []
+    cr = root.find("creature_raw")
+    if cr is None:
+        return rows
+    for creature in cr.findall("creature"):
+        cid = _text(creature, "creature_id")
+        if not cid:
+            continue
+        ns = _text(creature, "name_singular")
+        np = _text(creature, "name_plural")
+        # Boolean flags: child tags with None text (self-closing)
+        flags = {}
+        for child in creature:
+            if child.tag not in ("creature_id", "name_singular", "name_plural") and child.text is None:
+                flags[child.tag] = True
+        rows.append((world_id, cid, ns, np, flags if flags else {}))
+    return rows
+
+
 def _parse_legends_plus(filepath: str, world_id: int) -> dict:
     """Parse legends_plus.xml for supplementary data."""
     import xml.etree.ElementTree as ET
@@ -509,7 +535,17 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "rivers": [],
         "entity_populations": [],
         "hf_enrichment": [],  # (hf_id, world_id, field_dict) for HF UPDATE pass
+        "region_enrichment": [],  # (id, world_id, coords, evilness) for region UPDATE
+        "creature_dictionary": [],  # (world_id, creature_id, name_singular, name_plural, flags_json)
     }
+
+    # Region enrichment: legends_plus has coords + evilness for surface regions
+    for r in root.findall("regions/region"):
+        result["region_enrichment"].append((
+            _int(r, "id"), world_id,
+            _text(r, "coords"),
+            _text(r, "evilness"),
+        ))
 
     for lm in root.findall(".//landmass"):
         result["landmasses"].append((
@@ -578,18 +614,36 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                 continue
             ent_details = {}
             hfid = _int(ent, "histfig_id")
-            child = _int(ent, "child")
             if hfid is not None:
                 ent_details["histfig_id"] = hfid
-            if child is not None:
-                ent_details["child"] = child
+            # Capture ALL <child> elements as an array (not just the first)
+            children = [int(c.text) for c in ent.findall("child") if c.text]
+            if children:
+                ent_details["children"] = children
+            # Capture <entity_link> elements (typed relationships to other entities)
+            entity_links = []
+            for el in ent.findall("entity_link"):
+                link = {}
+                lt = el.findtext("type")
+                target = el.findtext("target")
+                strength = el.findtext("strength")
+                if lt:
+                    link["type"] = lt
+                if target:
+                    link["target"] = int(target)
+                if strength:
+                    link["strength"] = int(strength)
+                if link:
+                    entity_links.append(link)
+            if entity_links:
+                ent_details["entity_links"] = entity_links
             result["entities"].append((
                 eid,
                 world_id,
                 _text(ent, "name"),
                 _text(ent, "type"),
                 _text(ent, "race"),
-                _json.dumps(ent_details) if ent_details else None,
+                ent_details if ent_details else None,
             ))
 
             # Position definitions
@@ -642,7 +696,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                 _int(wc, "page_start"),
                 _int(wc, "page_end"),
                 styles or None,
-                _json.dumps(wc_details) if wc_details else None,
+                wc_details if wc_details else None,
             ))
 
     # World constructions (roads, bridges, tunnels)
@@ -667,7 +721,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                 _text(af, "name"),
                 form_type,
                 _text(af, "description"),
-                _json.dumps(af_details) if af_details else None,
+                af_details if af_details else None,
             ))
 
     # Rivers — DF XML has no <id> element, so we generate synthetic sequential IDs
@@ -686,7 +740,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _text(river, "name_english"),
             _text(river, "path"),
             None,  # end_type (DF uses end_pos coords, not a type string)
-            _json.dumps(r_details) if r_details else None,
+            r_details if r_details else None,
         ))
 
     # Entity populations (race:count pairs per civilization)
@@ -815,6 +869,9 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             if enrichment:
                 result["hf_enrichment"].append((hfid, world_id, enrichment))
 
+    # Creature dictionary (creature_raw section)
+    result["creature_dictionary"] = _parse_creature_raw(root, world_id)
+
     return result
 
 
@@ -884,11 +941,12 @@ async def import_legends(
                      "identities", "event_relationships", "entities",
                      "written_contents", "world_constructions",
                      "entity_positions", "entity_position_assignments",
-                     "art_forms", "rivers", "entity_populations"):
+                     "art_forms", "rivers", "entity_populations",
+                     "region_enrichment", "creature_dictionary"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
-                "entity_position_assignments",
+                "entity_position_assignments", "creature_dictionary",
             )
             plus_data[key] = [
                 (world_id, *row[1:]) if world_id_at_zero
@@ -1065,6 +1123,17 @@ async def import_legends(
         counts["underground_regions_plus"] = n
         log.info("  underground_regions (plus enrichment): %d", n)
 
+        # Region enrichment: coords + evilness from legends_plus
+        if plus_data["region_enrichment"]:
+            n = await _batch_insert(conn, "regions",
+                ["id", "world_id", "coords", "evilness"],
+                plus_data["region_enrichment"],
+                on_conflict="(world_id, id) DO UPDATE SET "
+                    "coords = COALESCE(EXCLUDED.coords, regions.coords), "
+                    "evilness = COALESCE(EXCLUDED.evilness, regions.evilness)")
+            counts["regions_plus"] = n
+            log.info("  regions (plus enrichment): %d", n)
+
         n = await _batch_insert(conn, "identities",
             ["id", "world_id", "name", "histfig_id", "birth_year",
              "birth_second", "entity_id", "race", "caste", "profession"],
@@ -1167,6 +1236,14 @@ async def import_legends(
             counts["entity_populations"] = n
             log.info("  entity_populations: %d", n)
 
+        # Creature dictionary (creature_raw section — Stage 1.5)
+        if plus_data["creature_dictionary"]:
+            n = await _batch_insert(conn, "creature_dictionary",
+                ["world_id", "creature_id", "name_singular", "name_plural", "flags"],
+                plus_data["creature_dictionary"])
+            counts["creature_dictionary"] = n
+            log.info("  creature_dictionary: %d", n)
+
         # HF enrichment: update expanded fields from legends_plus
         if plus_data["hf_enrichment"]:
             hf_updated = 0
@@ -1185,35 +1262,35 @@ async def import_legends(
                     idx += 1
                 if "goals" in enrichment:
                     sets.append(f"goals = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["goals"]))
+                    params.append(enrichment["goals"])
                     idx += 1
                 if "skills" in enrichment:
                     sets.append(f"skills = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["skills"]))
+                    params.append(enrichment["skills"])
                     idx += 1
                 if "kills" in enrichment:
                     sets.append(f"kills = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["kills"]))
+                    params.append(enrichment["kills"])
                     idx += 1
                 if "whereabouts" in enrichment:
                     sets.append(f"whereabouts = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["whereabouts"]))
+                    params.append(enrichment["whereabouts"])
                     idx += 1
                 if "entity_reputations" in enrichment:
                     sets.append(f"entity_reputations = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["entity_reputations"]))
+                    params.append(enrichment["entity_reputations"])
                     idx += 1
                 if "intrigue_actors" in enrichment:
                     sets.append(f"intrigue_actors = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["intrigue_actors"]))
+                    params.append(enrichment["intrigue_actors"])
                     idx += 1
                 if "used_identities" in enrichment:
                     sets.append(f"used_identities = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["used_identities"]))
+                    params.append(enrichment["used_identities"])
                     idx += 1
                 if "journey_pets" in enrichment:
                     sets.append(f"journey_pets = ${idx}::JSONB")
-                    params.append(json.dumps(enrichment["journey_pets"]))
+                    params.append(enrichment["journey_pets"])
                     idx += 1
                 if "holds_artifact" in enrichment:
                     sets.append(f"holds_artifact = ${idx}::INTEGER[]")

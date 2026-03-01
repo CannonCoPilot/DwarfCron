@@ -57,9 +57,28 @@
     .sub-toggle { border-bottom: 1px solid transparent; color: #a8a29e; font-size: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; }
     .sub-toggle.active { border-bottom-color: #f6b93b; color: #f6b93b; }
     .sub-toggle:hover { color: #d6d3d1; }
+    /* Race pills */
+    .race-pill {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 9999px; cursor: pointer;
+      border: 1px solid #44403c; background: transparent;
+      color: #a8a29e; font-size: 0.625rem; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .race-pill:hover { border-color: #78716c; color: #d6d3d1; }
+    .race-pill.active { background: #f6b93b; color: #0f0e0d; border-color: #f6b93b; font-weight: 700; }
+    .race-pill .pill-count { opacity: 0.7; font-variant-numeric: tabular-nums; }
+    .race-pill.dim { opacity: 0.55; border-style: dashed; }
+    .race-pill.dim:hover { opacity: 0.85; }
+    /* Variants bar chart */
+    .variant-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .variant-label { width: 70px; text-align: right; color: #78716c; }
+    .variant-bar-bg { flex: 1; height: 10px; background: #292524; border-radius: 3px; overflow: hidden; }
+    .variant-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; min-width: 1px; }
+    .variant-count { width: 30px; color: #a8a29e; text-align: right; font-variant-numeric: tabular-nums; }
   </style>
 </head>
-<body class="text-stone-300 font-chronicle min-h-screen flex flex-col">
+<body class="text-stone-300 font-chronicle h-screen flex flex-col overflow-hidden">
 
   {% set active = "explorer" %}
   {% include "partials/_nav.html" %}
@@ -94,12 +113,12 @@
           </select>
           <button onclick="searchPeople()" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold px-3 py-1 rounded text-xs transition-colors">Search</button>
         </div>
-        <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-stone-400">
-          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-amber-500" value="deity" onchange="filterPeopleList()"><span style="color:#f6b93b">Deity</span></label>
-          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-red-500" value="vampire" onchange="filterPeopleList()"><span style="color:#ef4444">Vampire</span></label>
-          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-purple-500" value="necromancer" onchange="filterPeopleList()"><span style="color:#a855f7">Necro</span></label>
-          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-orange-500" value="werebeast" onchange="filterPeopleList()"><span style="color:#f97316">Were</span></label>
-          <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="hf-flag-filter accent-gray-400" value="ghost" onchange="filterPeopleList()"><span style="color:#a8a29e">Ghost</span></label>
+        <div id="race-pills" class="flex flex-wrap gap-1 text-[10px]">
+          <span class="text-stone-500">Loading races...</span>
+        </div>
+        <div id="variants-tile" class="hidden mt-2 p-2 bg-stone-900/50 border border-stone-800 rounded text-[10px]">
+          <div class="text-stone-400 font-semibold mb-1">Biological Variants</div>
+          <div id="variants-bars"></div>
         </div>
       </div>
       <div class="px-3 py-1.5 border-b border-stone-800/50 flex-shrink-0" id="people-filter-bar" style="display:none">
@@ -108,7 +127,7 @@
                oninput="filterPeopleList()">
       </div>
       <div id="people-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
-        <div class="text-stone-500 text-xs px-3 py-4 text-center">Search for a historical figure or unit</div>
+        <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading top figures...</div>
       </div>
     </div>
 
@@ -149,6 +168,13 @@
             <option value="sites-desc">Most Sites</option>
           </select>
         </div>
+        <label class="flex items-center gap-1.5 text-stone-500 text-[10px] cursor-pointer select-none">
+          <input type="checkbox" id="civs-hide-empty" checked
+                 onchange="filterCivsList()"
+                 class="rounded border-stone-600 bg-stone-800 text-amber-500 focus:ring-amber-500 w-3 h-3">
+          Hide entities with 0 members &amp; 0 sites
+        </label>
+        <div id="civs-race-pills" class="flex flex-wrap gap-1 text-[10px]"></div>
       </div>
       <div id="civs-list" class="flex-1 overflow-y-auto ex-scroll px-1 py-2">
         <div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>
@@ -389,7 +415,7 @@
 // ═══════════════════════════════════════════════════════════════════════
 // GLOBAL STATE & CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════
-const WORLD_ID = 8;
+let WORLD_ID = null;  // Set dynamically from /api/worlds on page load
 const ALL_TABS = ['people', 'civs', 'geo', 'events', 'database', 'graph'];
 let allTables = [];
 let currentTable = null;
@@ -488,13 +514,12 @@ function renderPeopleItem(p) {
       ${typeFlagBadges(p.type_flags)}
     </div>
     <div class="text-stone-200 mt-0.5">${displayName}</div>
-    <div class="text-stone-500 text-[10px]">${escapeHtml(p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
+    <div class="text-stone-500 text-[10px]">${escapeHtml(p.race_display || p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
   </div>`;
 }
 
 function filterPeopleList() {
   const q = (document.getElementById('people-filter').value || '').toLowerCase();
-  const activeFlags = [...document.querySelectorAll('.hf-flag-filter:checked')].map(cb => cb.value);
   const list = document.getElementById('people-list');
   let filtered = peopleResults;
   if (q) {
@@ -502,11 +527,6 @@ function filterPeopleList() {
       (p.name || '').toLowerCase().includes(q) ||
       (p.english_name || '').toLowerCase().includes(q) ||
       (p.race || '').toLowerCase().includes(q)
-    );
-  }
-  if (activeFlags.length > 0) {
-    filtered = filtered.filter(p =>
-      p.type_flags && activeFlags.some(f => p.type_flags.includes(f))
     );
   }
   list.innerHTML = filtered.map(renderPeopleItem).join('') ||
@@ -576,7 +596,7 @@ function renderHfDetail(hf, panel) {
   html += `<div class="section-card">
     <div class="section-title">Biography</div>
     <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-      <div><span class="text-stone-500">Race:</span> ${escapeHtml(titleCase(hf.race))}</div>
+      <div><span class="text-stone-500">Race:</span> ${escapeHtml(hf.race_display || titleCase(hf.race))}</div>
       <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(hf.caste))}</div>
       <div><span class="text-stone-500">Born:</span> ${hf.birth_year != null ? 'Year ' + hf.birth_year : '?'}</div>
       <div><span class="text-stone-500">${alive ? 'Age' : 'Died'}:</span> ${
@@ -948,6 +968,19 @@ function renderUnitDetail(unit, panel) {
 let civsLoaded = false;
 let civsData = null;
 let selectedCiv = null;
+let activeCivRace = null;
+
+// Classify an entity race for civ race filtering (dynamic — no hardcoded list)
+function _isAnimalPerson(race) {
+  if (!race) return false;
+  const upper = race.toUpperCase();
+  return upper.endsWith('_MAN') || upper === 'RODENT MAN';
+}
+function _civRaceKey(race) {
+  if (!race) return 'unknown';
+  if (_isAnimalPerson(race)) return '_animal_men';
+  return race;  // raw token — matches pill keys from server
+}
 
 async function loadCivs() {
   const list = document.getElementById('civs-list');
@@ -960,10 +993,36 @@ async function loadCivs() {
     const resp = await fetch(`/api/civilizations?${params}`);
     civsData = await resp.json();
     civsLoaded = true;
+    loadCivRacePills();
     renderCivsList(civsData);
   } catch (e) {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
   }
+}
+
+async function loadCivRacePills() {
+  const container = document.getElementById('civs-race-pills');
+  if (!container) return;
+  try {
+    const resp = await fetch(`/api/civilizations/race-summary?world_id=${WORLD_ID}`);
+    const data = await resp.json();
+    const races = data.races || [];
+    let html = `<button class="race-pill${activeCivRace === null ? ' active' : ''}" onclick="selectCivRace(this, null)">All <span class="pill-count">${data.total.toLocaleString()}</span></button>`;
+    for (const r of races) {
+      const isActive = activeCivRace === r.key ? ' active' : '';
+      html += `<button class="race-pill${isActive}" onclick="selectCivRace(this, '${escapeHtml(r.key)}')">${escapeHtml(r.label)} <span class="pill-count">${r.count.toLocaleString()}</span></button>`;
+    }
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<span class="text-red-400 text-[10px]">Failed to load races</span>';
+  }
+}
+
+function selectCivRace(el, raceKey) {
+  document.querySelectorAll('#civs-race-pills .race-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeCivRace = raceKey;
+  filterCivsList();
 }
 
 function renderCivsList(data, filterQ, sortKey) {
@@ -976,6 +1035,13 @@ function renderCivsList(data, filterQ, sortKey) {
   let allItems = [];
   for (const g of groupOrder) {
     for (const e of (groups[g] || [])) allItems.push({...e, _group: g});
+  }
+  // Hide entities with 0 members and 0 sites (default: on)
+  const hideEmpty = document.getElementById('civs-hide-empty')?.checked;
+  if (hideEmpty) allItems = allItems.filter(e => (e.member_count || 0) > 0 || (e.site_count || 0) > 0);
+  // Race pill filter
+  if (activeCivRace) {
+    allItems = allItems.filter(e => _civRaceKey(e.race) === activeCivRace);
   }
   if (q) allItems = allItems.filter(e => (e.name || '').toLowerCase().includes(q) || (e.race || '').toLowerCase().includes(q));
   if (sortKey) {
@@ -1001,10 +1067,11 @@ function renderCivsList(data, filterQ, sortKey) {
       <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
     for (const e of items) {
       const isActive = selectedCiv === e.id ? ' active' : '';
+      const raceLabel = (e.race || '').replace(/_/g, ' ');
       html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                    onclick="loadCivDetail(${e.world_id}, ${e.id})">
         <div class="text-stone-200">${escapeHtml(e.name)}</div>
-        <div class="text-stone-500 text-[10px]">${escapeHtml(e.race || '')} | ${e.member_count} members | ${e.site_count} sites</div>
+        <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.member_count} members | ${e.site_count} sites</div>
       </div>`;
     }
     html += '</div>';
@@ -1392,6 +1459,8 @@ async function loadEventTypes() {
       sel.appendChild(opt);
     }
     evTypesLoaded = true;
+    // Auto-load default events listing
+    loadEvents();
   } catch (e) { /* ignore */ }
 }
 
@@ -2378,9 +2447,105 @@ document.addEventListener('click', function(e) {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-// INIT
+// INIT — fetch world ID, then auto-load default People listing
 // ═══════════════════════════════════════════════════════════════════════
-// People tab is shown by default — no auto-load needed (user searches)
+(async function init() {
+  try {
+    const resp = await fetch('/api/worlds');
+    const worlds = await resp.json();
+    if (worlds.length > 0) {
+      WORLD_ID = worlds[0].id;
+    }
+  } catch (e) {
+    console.error('Failed to fetch worlds:', e);
+  }
+
+  if (WORLD_ID) {
+    // Auto-load People tab with race pills + top historical figures
+    loadRacePills();
+    loadVariants('');
+    browsePeople();
+  }
+})();
+
+let activeRaceCategory = null;
+
+async function loadRacePills() {
+  const container = document.getElementById('race-pills');
+  try {
+    const resp = await fetch(`/api/people/race-summary?world_id=${WORLD_ID}`);
+    const data = await resp.json();
+    const races = data.races || [];
+    // Build "All" pill + one per race
+    let html = `<button class="race-pill active" data-race="" onclick="selectRace(this, '')">All <span class="pill-count">${data.total.toLocaleString()}</span></button>`;
+    for (const r of races) {
+      const dim = r.key === '_other' ? ' dim' : '';
+      html += `<button class="race-pill${dim}" data-race="${escapeHtml(r.key)}" onclick="selectRace(this, '${escapeHtml(r.key)}')">${escapeHtml(r.label)} <span class="pill-count">${r.count.toLocaleString()}</span></button>`;
+    }
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<span class="text-red-400">Failed to load races</span>';
+  }
+}
+
+function selectRace(el, raceKey) {
+  // Toggle active pill
+  document.querySelectorAll('#race-pills .race-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activeRaceCategory = raceKey || null;
+  browsePeople();
+  loadVariants(raceKey);
+}
+
+async function loadVariants(raceKey) {
+  const tile = document.getElementById('variants-tile');
+  const bars = document.getElementById('variants-bars');
+  try {
+    let url = `/api/people/variants-summary?world_id=${WORLD_ID}`;
+    if (raceKey) url += `&race_category=${encodeURIComponent(raceKey)}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const variants = (data.variants || []).filter(v => v.count > 0);
+    if (variants.length === 0) {
+      tile.classList.add('hidden');
+      return;
+    }
+    tile.classList.remove('hidden');
+    const maxCount = Math.max(...variants.map(v => v.count));
+    let html = '';
+    for (const v of variants) {
+      const pct = maxCount > 0 ? (v.count / maxCount * 100) : 0;
+      html += `<div class="variant-row">
+        <span class="variant-label">${escapeHtml(v.label)}</span>
+        <div class="variant-bar-bg"><div class="variant-bar" style="width:${pct}%;background:${v.color}"></div></div>
+        <span class="variant-count">${v.count}</span>
+      </div>`;
+    }
+    bars.innerHTML = html;
+  } catch (e) {
+    tile.classList.add('hidden');
+  }
+}
+
+async function browsePeople() {
+  const list = document.getElementById('people-list');
+  list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Loading top figures...</div>';
+  try {
+    let url = `/api/people/browse?world_id=${WORLD_ID}&limit=100`;
+    if (activeRaceCategory) url += `&race_category=${encodeURIComponent(activeRaceCategory)}`;
+    const resp = await fetch(url);
+    const results = await resp.json();
+    peopleResults = results;
+    document.getElementById('people-filter-bar').style.display = results.length > 0 ? '' : 'none';
+    if (results.length === 0) {
+      list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">No figures found</div>';
+      return;
+    }
+    filterPeopleList();
+  } catch (e) {
+    list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
 </script>
 </body>
 </html>

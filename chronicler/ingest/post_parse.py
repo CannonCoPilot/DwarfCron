@@ -107,7 +107,7 @@ class PostParseProcessor:
                 UPDATE historical_figures
                 SET details = COALESCE(details, '{}'::jsonb) || jsonb_build_object('positions', $3::jsonb)
                 WHERE world_id = $1 AND id = $2
-            """, wid, row["hf_id"], json.dumps(positions))
+            """, wid, row["hf_id"], positions)
             updated += 1
 
         log.info("  Step 2 complete: %d HFs updated with position history", updated)
@@ -118,21 +118,22 @@ class PostParseProcessor:
         log.info("Step 3: Deriving supernatural flags...")
         wid = self.world_id
 
-        # Derive from active_interactions column
+        # Derive from active_interactions column (additive — never overwrite
+        # flags already set by the XML parser).
+        # Vampires: DEITY_MAJOR_CURSE_<number> (numbered per deity)
+        # Necromancers: SECRET_<N> only (SECRET_ANIMATE = caster, SECRET_UNDEAD_RES = target)
+        # Werebeasts: DEITY_CURSE_WEREBEAST_<animal>[_BITE]
         r = await self.conn.execute("""
             UPDATE historical_figures
-            SET is_vampire = COALESCE(
-                    active_interactions && ARRAY['DEITY_MAJOR_CURSE_VAMPIRE_BLOOD_DRINKER',
-                                                 'DEITY_MAJOR_CURSE_BLOOD_DRINKER']::TEXT[],
-                    is_vampire),
-                is_necromancer = COALESCE(
-                    active_interactions && ARRAY['DEITY_CURSE_ANIMATE_DEAD',
-                                                 'DEITY_CURSE_REANIMATE']::TEXT[],
-                    is_necromancer),
-                is_werebeast = COALESCE(
+            SET is_vampire = is_vampire OR
                     (EXISTS (SELECT 1 FROM unnest(active_interactions) AS ai
-                             WHERE ai LIKE 'DEITY_CURSE_WEREBEAST%')),
-                    is_werebeast)
+                             WHERE ai ~ '^DEITY_MAJOR_CURSE_[0-9]+$')),
+                is_necromancer = is_necromancer OR
+                    (EXISTS (SELECT 1 FROM unnest(active_interactions) AS ai
+                             WHERE ai ~ '^SECRET_[0-9]+$')),
+                is_werebeast = is_werebeast OR
+                    (EXISTS (SELECT 1 FROM unnest(active_interactions) AS ai
+                             WHERE ai LIKE 'DEITY_CURSE_WEREBEAST_%'))
             WHERE world_id = $1
               AND active_interactions IS NOT NULL
               AND array_length(active_interactions, 1) > 0
@@ -262,7 +263,7 @@ class PostParseProcessor:
                 UPDATE entities
                 SET details = COALESCE(details, '{}'::jsonb) || jsonb_build_object('wars', $3::jsonb)
                 WHERE world_id = $1 AND id = $2
-            """, wid, entity_id, json.dumps(war_list))
+            """, wid, entity_id, war_list)
             updated += 1
 
         log.info("  Step 5 complete: %d wars, %d entities updated", len(wars), updated)
@@ -297,7 +298,7 @@ class PostParseProcessor:
                 SET kills = COALESCE(kills, '{}'::jsonb) ||
                             jsonb_build_object('event_kills', $3::jsonb)
                 WHERE world_id = $1 AND id = $2
-            """, wid, row["killer_id"], json.dumps(kill_list))
+            """, wid, row["killer_id"], kill_list)
             updated += 1
 
         log.info("  Step 6 complete: %d HFs with event-derived kills", updated)
@@ -428,7 +429,7 @@ class PostParseProcessor:
                 SET details = COALESCE(details, '{}'::jsonb) ||
                               jsonb_build_object('ownership_history', $3::jsonb)
                 WHERE world_id = $1 AND id = $2
-            """, wid, site_id, json.dumps(history))
+            """, wid, site_id, history)
             updated += 1
 
         log.info("  Step 9 complete: %d sites with ownership history", updated)

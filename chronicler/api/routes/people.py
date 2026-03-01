@@ -1,6 +1,7 @@
 """People router — search and detail views for historical figures and units."""
 
 import json
+import re
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
@@ -15,9 +16,43 @@ _TYPE_FLAG_COLS = [
     ("is_ghost", "ghost"),
 ]
 
+# Collapsed race category keys (underscore-prefixed)
+_COLLAPSED_CATEGORIES = {
+    "_demigod", "_gods", "_forgotten_beast", "_titan",
+    "_night_creature", "_demon", "_animated_dead", "_animal_people",
+}
+
 
 def _type_flags(row: dict) -> list[str]:
     return [label for col, label in _TYPE_FLAG_COLS if row.get(col)]
+
+
+def _is_animal_person(creature_id: str) -> bool:
+    """Check if a creature_id follows the DF animal person pattern."""
+    return bool(creature_id and (
+        creature_id.endswith("_MAN") or creature_id == "RODENT MAN"
+    ))
+
+
+def _race_display_name(race: str | None, cd_name: str | None = None) -> str:
+    """Resolve a raw race token to a human-readable display name.
+
+    Priority: creature_dictionary name_singular > titlecased token.
+    For HFEXP (necromancer experiment) races without a dictionary entry,
+    returns "Experiment" instead of the cryptic code.
+    """
+    if not race:
+        return "Unknown"
+    if cd_name:
+        # Capitalize first letter of each word, but respect apostrophe
+        # contractions (e.g., "night's demon" → "Night's Demon", not "Night'S Demon")
+        return " ".join(
+            w[0].upper() + w[1:] if w else w
+            for w in cd_name.split(" ")
+        )
+    if race.startswith("HFEXP"):
+        return "Experiment"
+    return race.replace("_", " ").title()
 
 
 # ---------------------------------------------------------------------------
@@ -39,12 +74,15 @@ async def search_people(
         if type in ("all", "unit"):
             rows = await conn.fetch(
                 """
-                SELECT id, world_id, name, english_name, race, caste,
-                       profession, is_alive
-                FROM units
-                WHERE unaccent(name) ILIKE unaccent($1)
-                   OR unaccent(COALESCE(english_name, '')) ILIKE unaccent($1)
-                ORDER BY name
+                SELECT u.id, u.world_id, u.name, u.english_name, u.race, u.caste,
+                       u.profession, u.is_alive,
+                       cd.name_singular AS race_name
+                FROM units u
+                LEFT JOIN creature_dictionary cd
+                       ON cd.world_id = u.world_id AND cd.creature_id = u.race
+                WHERE unaccent(u.name) ILIKE unaccent($1)
+                   OR unaccent(COALESCE(u.english_name, '')) ILIKE unaccent($1)
+                ORDER BY u.name
                 LIMIT $2
                 """,
                 pattern, limit,
@@ -53,7 +91,9 @@ async def search_people(
                 results.append({
                     "source": "unit", "id": r["id"], "world_id": r["world_id"],
                     "name": r["name"], "english_name": r["english_name"],
-                    "race": r["race"], "is_alive": r["is_alive"],
+                    "race": r["race"],
+                    "race_display": _race_display_name(r["race"], r.get("race_name")),
+                    "is_alive": r["is_alive"],
                     "profession": r["profession"], "type_flags": [],
                 })
 
@@ -62,12 +102,15 @@ async def search_people(
             if remaining > 0:
                 rows = await conn.fetch(
                     """
-                    SELECT id, world_id, name, race, caste, death_year,
-                           is_deity, is_force, is_vampire,
-                           is_necromancer, is_werebeast, is_ghost
-                    FROM historical_figures
-                    WHERE unaccent(name) ILIKE unaccent($1)
-                    ORDER BY name
+                    SELECT h.id, h.world_id, h.name, h.race, h.caste, h.death_year,
+                           h.is_deity, h.is_force, h.is_vampire,
+                           h.is_necromancer, h.is_werebeast, h.is_ghost,
+                           cd.name_singular AS race_name
+                    FROM historical_figures h
+                    LEFT JOIN creature_dictionary cd
+                           ON cd.world_id = h.world_id AND cd.creature_id = h.race
+                    WHERE unaccent(h.name) ILIKE unaccent($1)
+                    ORDER BY h.name
                     LIMIT $2
                     """,
                     pattern, remaining,
@@ -77,10 +120,344 @@ async def search_people(
                     results.append({
                         "source": "hf", "id": row["id"], "world_id": row["world_id"],
                         "name": row["name"], "english_name": None,
-                        "race": row["race"], "is_alive": row["death_year"] is None,
+                        "race": row["race"],
+                        "race_display": _race_display_name(row["race"], row.get("race_name")),
+                        "is_alive": row["death_year"] is None,
                         "profession": None, "type_flags": _type_flags(row),
                     })
     return results
+
+
+# ---------------------------------------------------------------------------
+# 1b. Browse (default listing — top HFs by importance)
+# ---------------------------------------------------------------------------
+
+async def _resolve_world_id(conn, world_id: int | None) -> int | None:
+    if world_id is None:
+        world_id = await conn.fetchval(
+            "SELECT id FROM worlds ORDER BY id LIMIT 1"
+        )
+    return world_id
+
+
+def _build_race_category_clause(race_category: str, param_idx: int) -> tuple[str, list]:
+    """Build SQL WHERE clause fragment for a race_category filter.
+
+    Returns (clause_string, extra_params). clause_string uses $N placeholders
+    starting at param_idx.
+    """
+    if not race_category:
+        return "", []
+
+    rc = race_category.strip()
+
+    if rc == "_demigod":
+        # Exclude creatures with beast/titan/demon/night flags (they have
+        # is_deity=TRUE in DF data but are categorized by creature type)
+        return (
+            "AND h.is_deity = TRUE AND h.death_year IS NULL "
+            "AND NOT EXISTS (SELECT 1 FROM creature_dictionary cd "
+            "WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            "AND (cd.flags @> '{\"has_any_feature_beast\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_titan\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_unique_demon\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_night_creature\": true}'::jsonb))",
+            [],
+        )
+    if rc == "_gods":
+        return (
+            "AND h.is_deity = TRUE AND h.death_year IS NOT NULL "
+            "AND NOT EXISTS (SELECT 1 FROM creature_dictionary cd "
+            "WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            "AND (cd.flags @> '{\"has_any_feature_beast\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_titan\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_unique_demon\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_night_creature\": true}'::jsonb))",
+            [],
+        )
+    if rc == "_animated_dead":
+        return f"AND h.race LIKE ${param_idx}", ["HFEXP%"]
+    if rc == "_animal_people":
+        return (
+            f"AND (h.race LIKE ${param_idx} OR h.race = ${param_idx + 1}) "
+            "AND h.race NOT IN ('DWARF','ELF','GOBLIN','HUMAN','KOBOLD')",
+            ["%\\_MAN", "RODENT MAN"],
+        )
+    if rc == "_forgotten_beast":
+        return (
+            f"AND EXISTS (SELECT 1 FROM creature_dictionary cd "
+            f"WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            f"AND cd.flags @> '{{\"has_any_feature_beast\": true}}'::jsonb)",
+            [],
+        )
+    if rc == "_titan":
+        return (
+            f"AND EXISTS (SELECT 1 FROM creature_dictionary cd "
+            f"WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            f"AND cd.flags @> '{{\"has_any_titan\": true}}'::jsonb)",
+            [],
+        )
+    if rc == "_night_creature":
+        return (
+            f"AND EXISTS (SELECT 1 FROM creature_dictionary cd "
+            f"WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            f"AND cd.flags @> '{{\"has_any_night_creature\": true}}'::jsonb)",
+            [],
+        )
+    if rc == "_demon":
+        return (
+            f"AND EXISTS (SELECT 1 FROM creature_dictionary cd "
+            f"WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            f"AND cd.flags @> '{{\"has_any_unique_demon\": true}}'::jsonb)",
+            [],
+        )
+
+    if rc == "_other":
+        # Everything not caught by entity races, deity, beast/titan/demon/night,
+        # animated dead, or animal people
+        return (
+            "AND h.is_deity = FALSE "
+            "AND h.race NOT LIKE 'HFEXP%' "
+            "AND h.race NOT LIKE '%\\_MAN' AND h.race != 'RODENT MAN' "
+            "AND NOT EXISTS (SELECT 1 FROM creature_dictionary cd "
+            "WHERE cd.world_id = h.world_id AND cd.creature_id = h.race "
+            "AND (cd.flags @> '{\"occurs_as_entity_race\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_feature_beast\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_titan\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_unique_demon\": true}'::jsonb "
+            "OR cd.flags @> '{\"has_any_night_creature\": true}'::jsonb))",
+            [],
+        )
+
+    # Direct race token match (e.g. "DWARF", "ELF")
+    return f"AND h.race = ${param_idx}", [rc]
+
+
+@router.get("/people/browse")
+async def browse_people(
+    request: Request,
+    world_id: int = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    flags: str = Query(None),
+    race_category: str = Query(None),
+):
+    """Return top historical figures by importance score for default tab view.
+
+    Optional `race_category` parameter: filter by race group key
+    (e.g. "DWARF", "_forgotten_beast", "_demigod").
+    Legacy `flags` parameter still supported for backwards compatibility.
+    """
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        world_id = await _resolve_world_id(conn, world_id)
+        if not world_id:
+            return []
+
+        extra_clauses = []
+        params = [world_id, limit]
+        next_idx = 3  # $1=world_id, $2=limit
+
+        # Race category filter (new)
+        if race_category:
+            rc_clause, rc_params = _build_race_category_clause(race_category, next_idx)
+            if rc_clause:
+                extra_clauses.append(rc_clause)
+                params.extend(rc_params)
+                next_idx += len(rc_params)
+
+        # Legacy flag filter (backwards compat)
+        if flags and not race_category:
+            flag_map = {
+                "deity": "is_deity", "force": "is_force",
+                "vampire": "is_vampire", "necromancer": "is_necromancer",
+                "werebeast": "is_werebeast", "ghost": "is_ghost",
+            }
+            active = [f.strip() for f in flags.split(",") if f.strip() in flag_map]
+            if active:
+                conditions = [f"h.{flag_map[f]} = TRUE" for f in active]
+                extra_clauses.append("AND (" + " OR ".join(conditions) + ")")
+
+        where_extra = " ".join(extra_clauses)
+
+        rows = await conn.fetch(
+            f"""
+            SELECT h.id, h.world_id, h.name, h.race, h.caste, h.death_year,
+                   h.is_deity, h.is_force, h.is_vampire,
+                   h.is_necromancer, h.is_werebeast, h.is_ghost,
+                   h.importance_score,
+                   cd.name_singular AS race_name
+            FROM historical_figures h
+            LEFT JOIN creature_dictionary cd
+                   ON cd.world_id = h.world_id AND cd.creature_id = h.race
+            WHERE h.world_id = $1 AND h.name IS NOT NULL AND h.name != ''
+            {where_extra}
+            ORDER BY h.importance_score DESC NULLS LAST, h.id
+            LIMIT $2
+            """,
+            *params,
+        )
+        results = []
+        for r in rows:
+            row = dict(r)
+            results.append({
+                "source": "hf", "id": row["id"], "world_id": row["world_id"],
+                "name": row["name"], "english_name": None,
+                "race": row["race"],
+                "race_display": _race_display_name(row["race"], row.get("race_name")),
+                "is_alive": row["death_year"] is None,
+                "profession": None, "type_flags": _type_flags(row),
+            })
+        return results
+
+
+# ---------------------------------------------------------------------------
+# 1c. Race summary (dynamic race categories with counts)
+# ---------------------------------------------------------------------------
+
+@router.get("/people/race-summary")
+async def race_summary(
+    request: Request,
+    world_id: int = Query(None),
+):
+    """Return dynamically categorized race groups with HF counts.
+
+    Categories are derived from creature_dictionary flags, not hardcoded.
+    Deity alive→Demigod, dead→Gods. Animal people collapsed. Modded races
+    auto-appear via occurs_as_entity_race flag.
+    """
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        world_id = await _resolve_world_id(conn, world_id)
+        if not world_id:
+            return {"races": [], "total": 0}
+
+        # Get creature_dictionary for classification
+        cd_rows = await conn.fetch(
+            "SELECT creature_id, name_singular, name_plural, flags "
+            "FROM creature_dictionary WHERE world_id = $1",
+            world_id,
+        )
+        cd_map = {}
+        for r in cd_rows:
+            raw_flags = r["flags"]
+            flags = raw_flags if isinstance(raw_flags, dict) else json.loads(raw_flags or "{}")
+            cd_map[r["creature_id"]] = {
+                "name_singular": r["name_singular"],
+                "name_plural": r["name_plural"],
+                "flags": flags,
+            }
+
+        # Get all HF race/deity/death data in one query
+        hf_rows = await conn.fetch(
+            "SELECT race, is_deity, death_year "
+            "FROM historical_figures "
+            "WHERE world_id = $1 AND name IS NOT NULL AND name != ''",
+            world_id,
+        )
+
+        # Categorize each HF
+        category_counts: dict[str, int] = {}
+        category_labels: dict[str, str] = {}
+        for r in hf_rows:
+            race = r["race"] or ""
+            is_deity = r["is_deity"]
+            death_year = r["death_year"]
+            cd_entry = cd_map.get(race, {})
+            cd_flags = cd_entry.get("flags", {})
+            name_s = cd_entry.get("name_singular", race.lower().replace("_", " "))
+
+            # Priority-ordered categorization
+            # Creature-type flags first (beasts/titans/demons have is_deity=True
+            # in DF data but should be categorized by creature type, not deity)
+            if cd_flags.get("has_any_feature_beast"):
+                key, label = "_forgotten_beast", "Forgotten Beast"
+            elif cd_flags.get("has_any_titan"):
+                key, label = "_titan", "Titan"
+            elif cd_flags.get("has_any_unique_demon"):
+                key, label = "_demon", "Demon"
+            elif cd_flags.get("has_any_night_creature"):
+                key, label = "_night_creature", "Night Creature"
+            elif is_deity and death_year is None:
+                key, label = "_demigod", "Demigod"
+            elif is_deity and death_year is not None:
+                key, label = "_gods", "Gods"
+            elif race.startswith("HFEXP"):
+                key, label = "_animated_dead", "Animated Dead"
+            elif _is_animal_person(race):
+                key, label = "_animal_people", "Animal People"
+            elif cd_flags.get("occurs_as_entity_race") and not _is_animal_person(race):
+                key = race
+                label = name_s.title() if name_s else race.title()
+            else:
+                # Remaining creatures (wild animals, megabeasts, etc.)
+                key, label = "_other", "Other"
+
+            category_counts[key] = category_counts.get(key, 0) + 1
+            category_labels[key] = label
+
+        # Build sorted result
+        races = [
+            {"key": k, "label": category_labels[k], "count": v}
+            for k, v in category_counts.items()
+        ]
+        races.sort(key=lambda x: x["count"], reverse=True)
+
+        return {"races": races, "total": sum(r["count"] for r in races)}
+
+
+# ---------------------------------------------------------------------------
+# 1d. Biological variants summary (vampire/necromancer/werebeast/ghost/etc.)
+# ---------------------------------------------------------------------------
+
+@router.get("/people/variants-summary")
+async def variants_summary(
+    request: Request,
+    world_id: int = Query(None),
+    race_category: str = Query(None),
+):
+    """Return biological variant counts, optionally filtered by race category.
+
+    Variants: vampire, necromancer, werebeast, ghost, animated dead.
+    When race_category is set, counts are scoped to HFs within that group.
+    """
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        world_id = await _resolve_world_id(conn, world_id)
+        if not world_id:
+            return {"variants": []}
+
+        # Build optional race filter
+        params = [world_id]
+        next_idx = 2
+        rc_clause = ""
+        if race_category:
+            clause, rc_params = _build_race_category_clause(race_category, next_idx)
+            rc_clause = clause
+            params.extend(rc_params)
+
+        # Count each variant type
+        variant_defs = [
+            ("vampire", "Vampire", "h.is_vampire = TRUE", "#ef4444"),
+            ("necromancer", "Necromancer", "h.is_necromancer = TRUE", "#a855f7"),
+            ("werebeast", "Werebeast", "h.is_werebeast = TRUE", "#f97316"),
+            ("ghost", "Ghost", "h.is_ghost = TRUE", "#94a3b8"),
+            ("animated_dead", "Animated Dead", "h.race LIKE 'HFEXP%'", "#6b7280"),
+        ]
+
+        variants = []
+        for key, label, condition, color in variant_defs:
+            count = await conn.fetchval(
+                f"SELECT COUNT(*) FROM historical_figures h "
+                f"WHERE h.world_id = $1 AND h.name IS NOT NULL AND h.name != '' "
+                f"AND {condition} {rc_clause}",
+                *params,
+            )
+            variants.append({
+                "key": key, "label": label,
+                "count": count, "color": color,
+            })
+
+        return {"variants": variants}
 
 
 # ---------------------------------------------------------------------------
@@ -98,9 +475,12 @@ async def get_historical_figure(request: Request, world_id: int, hf_id: int):
 
         hf = await conn.fetchrow(
             """
-            SELECT h.*, e.name AS entity_name
+            SELECT h.*, e.name AS entity_name,
+                   cd.name_singular AS race_name
             FROM historical_figures h
             LEFT JOIN entities e ON e.world_id = h.world_id AND e.id = h.entity_id
+            LEFT JOIN creature_dictionary cd
+                   ON cd.world_id = h.world_id AND cd.creature_id = h.race
             WHERE h.world_id = $1 AND h.id = $2
             """, world_id, hf_id,
         )
@@ -169,7 +549,9 @@ async def get_historical_figure(request: Request, world_id: int, hf_id: int):
 
     return {
         "id": hf["id"], "world_id": hf["world_id"], "name": hf["name"],
-        "race": hf["race"], "caste": hf["caste"],
+        "race": hf["race"],
+        "race_display": _race_display_name(hf["race"], hf.get("race_name")),
+        "caste": hf["caste"],
         "birth_year": hf["birth_year"], "death_year": hf["death_year"],
         "death_cause": hf["death_cause"],
         "kill_count": hf["kill_count"], "event_count": hf["event_count"],

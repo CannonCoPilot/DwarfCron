@@ -41,6 +41,72 @@ def _gender_title(pos: dict, holder_caste: str | None) -> str | None:
     return pos.get("name_male") or pos.get("name_female")
 
 
+def _is_animal_person(creature_id: str) -> bool:
+    """Check if a creature_id follows the DF animal person pattern."""
+    if not creature_id:
+        return False
+    upper = creature_id.upper()
+    return upper.endswith("_MAN") or upper == "RODENT MAN"
+
+
+@router.get("/civilizations/race-summary")
+async def civ_race_summary(
+    request: Request,
+    world_id: int = Query(8),
+):
+    """Return dynamically categorized race groups with entity counts.
+
+    Races are derived from the entities table and creature_dictionary.
+    Animal people are collapsed into a single group. All other races
+    get their own pill — modded civ races auto-appear.
+    """
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT e.race, COUNT(*) AS cnt, cd.name_singular
+            FROM entities e
+            LEFT JOIN creature_dictionary cd
+                ON cd.world_id = e.world_id AND cd.creature_id = e.race
+            WHERE e.world_id = $1
+            GROUP BY e.race, cd.name_singular
+            ORDER BY cnt DESC
+            """,
+            world_id,
+        )
+
+    category_counts: dict[str, int] = {}
+    category_labels: dict[str, str] = {}
+    for r in rows:
+        race = r["race"] or "unknown"
+        count = r["cnt"]
+        name_s = r["name_singular"]
+
+        if _is_animal_person(race):
+            key = "_animal_men"
+            label = "Animal Men"
+        else:
+            key = race
+            if name_s:
+                # Capitalize respecting apostrophes
+                label = " ".join(
+                    w[0].upper() + w[1:] if w else w
+                    for w in name_s.split(" ")
+                )
+            else:
+                label = race.replace("_", " ").title()
+
+        category_counts[key] = category_counts.get(key, 0) + count
+        category_labels[key] = label
+
+    races = [
+        {"key": k, "label": category_labels[k], "count": v}
+        for k, v in category_counts.items()
+    ]
+    races.sort(key=lambda x: x["count"], reverse=True)
+    return {"races": races, "total": sum(r["count"] for r in races)}
+
+
 @router.get("/civilizations")
 async def list_civilizations(
     request: Request,
