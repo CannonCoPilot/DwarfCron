@@ -1,105 +1,72 @@
-{% extends base_template|default("detail_base.html") %}
+{# Inline HF detail partial — rendered inside Explorer's people-detail panel.
+   Receives the same context variables as hf_detail.html but without the full page wrapper. #}
 
-{% block extra_head %}
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-{% endblock %}
-
-{% block title %}{{ entity_name }} — Historical Figure — Chronicler{% endblock %}
-
-{# ─── Breadcrumb ─────────────────────────────────────────────────────────── #}
-{% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
-<a href="/explorer?tab=people">People</a>
-<span>›</span>
-<span class="text-stone-300 text-xs">{{ entity_name }}</span>
-{% endblock %}
-
-{# ─── Prev/Next Navigation ───────────────────────────────────────────────── #}
-{% block prevnext %}
-<div class="prevnext flex items-center gap-2">
-  {% if prev_hf %}
-    <a href="/explorer/hf/{{ prev_hf.id }}?world_id={{ world_id }}" title="{{ prev_hf.name }}">← Prev</a>
-  {% endif %}
-  {% if next_hf %}
-    <a href="/explorer/hf/{{ next_hf.id }}?world_id={{ world_id }}" title="{{ next_hf.name }}">Next →</a>
-  {% endif %}
+<!-- Header -->
+<div class="flex items-start justify-between mb-3">
+  <div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="badge badge-type">Historical Figure</span>
+      {% for flag in type_flags %}
+        {% if flag == 'Deity' %}<span class="badge badge-deity">{{ flag }}</span>
+        {% elif flag == 'Force' %}<span class="badge badge-force">{{ flag }}</span>
+        {% elif flag == 'Vampire' %}<span class="badge" style="background:#8b0000;color:#fafaf9">{{ flag }}</span>
+        {% elif flag == 'Necromancer' %}<span class="badge badge-necromancer">{{ flag }}</span>
+        {% elif flag == 'Werebeast' %}<span class="badge badge-werebeast">{{ flag }}</span>
+        {% elif flag == 'Ghost' %}<span class="badge badge-ghost">{{ flag }}</span>
+        {% else %}<span class="badge badge-type">{{ flag }}</span>
+        {% endif %}
+      {% endfor %}
+      {% if alive %}
+        <span class="badge badge-alive">Alive</span>
+      {% else %}
+        <span class="badge badge-dead">Dead</span>
+      {% endif %}
+    </div>
+    <h2 style="color:#f6b93b; font-size:1.25rem; font-weight:700; margin-top:0.25rem;">{{ entity_name }}</h2>
+    <div class="flex flex-wrap gap-3 mt-1 text-xs text-stone-400">
+      <span>{{ hf.race_display|default(hf.race|default('Unknown', true)|title) }}{% if hf.caste %} ({{ hf.caste|title }}){% endif %}</span>
+      {% if hf.birth_year and hf.birth_year > 0 %}
+        <span>Born: {{ calendar.format_date(hf.birth_year, hf.birth_seconds) }}</span>
+      {% endif %}
+      {% if hf.death_year and hf.death_year > 0 %}
+        <span>Died: {{ calendar.format_date(hf.death_year, hf.death_seconds) }}
+          {% if hf.death_cause %} ({{ hf.death_cause|replace('_', ' ')|title }}){% endif %}
+        </span>
+      {% endif %}
+      {% if hf.birth_year and hf.birth_year > 0 %}
+        {% if hf.death_year and hf.death_year > 0 %}
+          <span>Age: {{ hf.death_year - hf.birth_year }}</span>
+        {% endif %}
+      {% endif %}
+      {% if hf.importance_score %}
+        <span>Importance: {{ "%.0f"|format(hf.importance_score) }}</span>
+      {% endif %}
+      {% if primary_entity %}
+        <span>Civ: {{ linker.link('entity', primary_entity.id, primary_entity.name, world_id)|safe }}</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="flex gap-2 flex-shrink-0">
+    <a href="/explorer/hf/{{ hf.id }}?world_id={{ world_id }}"
+       class="text-xs px-3 py-1.5 border border-stone-600 rounded text-stone-300 hover:text-amber-400 hover:border-amber-400 transition-colors whitespace-nowrap">Open Full Page</a>
+    <a href="/explorer?tab=graph&world_id={{ world_id }}"
+       class="text-xs px-3 py-1.5 border border-stone-600 rounded text-stone-300 hover:text-amber-400 hover:border-amber-400 transition-colors whitespace-nowrap">View Graph</a>
+  </div>
 </div>
-{% endblock %}
 
-{# ─── Header Actions (top-right buttons) ─────────────────────────────────── #}
-{% block header_actions %}
-<div class="flex gap-2">
-  <a href="/explorer?tab=graph&world_id={{ world_id }}"
-     class="text-xs px-3 py-1.5 border border-stone-600 rounded text-stone-300 hover:text-amber-400 hover:border-amber-400 transition-colors">View Graph</a>
+<!-- Tab Bar -->
+<div class="border-b border-stone-800 flex gap-0 overflow-x-auto mb-4">
+  <button class="detail-tab active" data-dtab="overview" onclick="switchInlineTab(this,'overview')">Overview</button>
+  <button class="detail-tab" data-dtab="relationships" onclick="switchInlineTab(this,'relationships')">Relationships</button>
+  <button class="detail-tab" data-dtab="career" onclick="switchInlineTab(this,'career')">Career</button>
+  <button class="detail-tab" data-dtab="events" onclick="switchInlineTab(this,'events')">Events ({{ event_count }})</button>
 </div>
-{% endblock %}
-
-{# ─── Entity Header ──────────────────────────────────────────────────────── #}
-{% block entity_type_badge %}
-<span class="badge badge-type">Historical Figure</span>
-{% for flag in type_flags %}
-  {% if flag == 'Deity' %}<span class="badge badge-deity">{{ flag }}</span>
-  {% elif flag == 'Force' %}<span class="badge badge-force">{{ flag }}</span>
-  {% elif flag == 'Vampire' %}<span class="badge badge-vampire">{{ flag }}</span>
-  {% elif flag == 'Necromancer' %}<span class="badge badge-necromancer">{{ flag }}</span>
-  {% elif flag == 'Werebeast' %}<span class="badge badge-werebeast">{{ flag }}</span>
-  {% elif flag == 'Ghost' %}<span class="badge badge-ghost">{{ flag }}</span>
-  {% else %}<span class="badge badge-type">{{ flag }}</span>
-  {% endif %}
-{% endfor %}
-{% if alive %}
-  <span class="badge badge-alive">Alive</span>
-{% else %}
-  <span class="badge badge-dead">Dead</span>
-{% endif %}
-{% endblock %}
-
-{% block vital_stats %}
-<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
-  <span>{{ hf.race_display|default(hf.race|default('Unknown', true)|title) }}{% if hf.caste %} ({{ hf.caste|title }}){% endif %}</span>
-  {% if hf.birth_year and hf.birth_year > 0 %}
-    <span>Born: {{ calendar.format_date(hf.birth_year, hf.birth_seconds) }}</span>
-  {% endif %}
-  {% if hf.death_year and hf.death_year > 0 %}
-    <span>Died: {{ calendar.format_date(hf.death_year, hf.death_seconds) }}
-      {% if hf.death_cause %} ({{ hf.death_cause|replace('_', ' ')|title }}){% endif %}
-    </span>
-  {% endif %}
-  {% if hf.birth_year and hf.birth_year > 0 %}
-    {% if hf.death_year and hf.death_year > 0 %}
-      <span>Age: {{ hf.death_year - hf.birth_year }}</span>
-    {% elif alive %}
-      <span>Age: 250+</span>
-    {% endif %}
-  {% endif %}
-  {% if hf.importance_score %}
-    <span>Importance: {{ "%.0f"|format(hf.importance_score) }}</span>
-  {% endif %}
-  {% if primary_entity %}
-    <span>Civ: {{ linker.link('entity', primary_entity.id, primary_entity.name, world_id)|safe }}</span>
-  {% endif %}
-</div>
-{% endblock %}
-
-{# ─── Tab Bar ─────────────────────────────────────────────────────────────── #}
-{% block tabs %}
-<div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
-  <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
-  <button class="detail-tab" id="dtab-relationships" onclick="switchDetailTab('relationships')">Relationships</button>
-  <button class="detail-tab" id="dtab-career" onclick="switchDetailTab('career')">Career</button>
-  <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
-</div>
-{% endblock %}
-
-{# ─── Tab Content ─────────────────────────────────────────────────────────── #}
-{% block body %}
 
 {# ═══════════════════════ OVERVIEW TAB ════════════════════════════════════ #}
-<div id="dtab-content-overview" class="tab-content active">
+<div class="inline-tab-content active" data-dtab-content="overview">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-    {# ── 1. Profile Overview ───────────────────────────────────────────── #}
+    {# Profile #}
     <div class="section-card lg:col-span-2">
       <div class="section-title">Profile</div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
@@ -150,7 +117,7 @@
       {% endif %}
     </div>
 
-    {# ── 2. Family Tree (placeholder for Phase 4 Cytoscape.js) ─────── #}
+    {# Family #}
     {% if family %}
     <div class="section-card">
       <div class="section-title">Family</div>
@@ -169,7 +136,7 @@
     </div>
     {% endif %}
 
-    {# ── 3. Skills ────────────────────────────────────────────────────── #}
+    {# Skills #}
     {% if skills %}
     <div class="section-card">
       <div class="section-title">Skills ({{ skills|length }})</div>
@@ -188,7 +155,6 @@
               <td class="py-0.5">{{ sk.name|default('?', true)|replace('_', ' ')|title }}</td>
               <td class="text-right text-stone-500">{{ sk.total_ip|default(0) }}</td>
               <td class="text-right">
-                {# DF skill ranks: 0-399=Dabbling, 400-799=Novice, ... 13200+=Legendary+5 #}
                 {% set ip = sk.total_ip|default(0) %}
                 {% if ip >= 13200 %}<span class="text-amber-400">Legendary+</span>
                 {% elif ip >= 9600 %}<span class="text-amber-500">Legendary</span>
@@ -209,7 +175,7 @@
     </div>
     {% endif %}
 
-    {# ── 4. Related Factions/Groups ───────────────────────────────────── #}
+    {# Factions & Groups #}
     {% if entity_links %}
     <div class="section-card lg:col-span-2">
       <div class="section-title">Factions & Groups ({{ entity_links|length }})</div>
@@ -249,7 +215,7 @@
     </div>
     {% endif %}
 
-    {# ── 5. Related Sites ─────────────────────────────────────────────── #}
+    {# Related Sites #}
     {% if site_links %}
     <div class="section-card">
       <div class="section-title">Related Sites ({{ site_links|length }})</div>
@@ -267,7 +233,7 @@
     </div>
     {% endif %}
 
-    {# ── 9. Journey Pets ──────────────────────────────────────────────── #}
+    {# Journey Pets #}
     {% if journey_pets %}
     <div class="section-card">
       <div class="section-title">Journey Pets</div>
@@ -279,7 +245,7 @@
     </div>
     {% endif %}
 
-    {# ── 14. Artifacts ────────────────────────────────────────────────── #}
+    {# Artifacts #}
     {% if artifacts %}
     <div class="section-card">
       <div class="section-title">Held Artifacts ({{ artifacts|length }})</div>
@@ -299,7 +265,7 @@
     </div>
     {% endif %}
 
-    {# ── 15. Dedicated Structures (temples via religion entities) ────── #}
+    {# Dedicated Structures #}
     {% if dedicated_structures %}
     <div class="section-card">
       <div class="section-title">Dedicated Structures ({{ dedicated_structures|length }})</div>
@@ -315,7 +281,7 @@
     </div>
     {% endif %}
 
-    {# ── 22. Used Identities ──────────────────────────────────────────── #}
+    {# Used Identities #}
     {% if identities %}
     <div class="section-card">
       <div class="section-title">Used Identities ({{ identities|length }})</div>
@@ -336,22 +302,9 @@
 </div>
 
 {# ═══════════════════════ RELATIONSHIPS TAB ═══════════════════════════════ #}
-<div id="dtab-content-relationships" class="tab-content">
-
-  {# ── Relationship Graph ────────────────────────────────────────────── #}
-  {% if graph_data and graph_data.edges|length > 0 %}
-  <div class="section-card mb-3">
-    <div class="section-title">
-      Relationship Graph
-      <span class="text-stone-600 font-normal">({{ graph_data.nodes|length }} people, {{ graph_data.edges|length }} connections — double-click to navigate)</span>
-    </div>
-    <div id="rel-graph-canvas" style="height: 350px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
-  </div>
-  {% endif %}
-
+<div class="inline-tab-content" data-dtab-content="relationships">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-    {# ── 6. Close Relationships ───────────────────────────────────────── #}
     {% if relationships %}
     <div class="section-card lg:col-span-2">
       <div class="section-title">All Relationships ({{ relationships|length }})</div>
@@ -386,7 +339,6 @@
     </div>
     {% endif %}
 
-    {# ── 7. Vague Relationships ───────────────────────────────────────── #}
     {% if vague_relationships %}
     <div class="section-card">
       <div class="section-title">Vague Relationships</div>
@@ -398,7 +350,6 @@
     </div>
     {% endif %}
 
-    {# ── 8. Worshipped Deities ────────────────────────────────────────── #}
     {% if worshipped_deities %}
     <div class="section-card">
       <div class="section-title">Worshipped Deities ({{ worshipped_deities|length }})</div>
@@ -413,7 +364,6 @@
     </div>
     {% endif %}
 
-    {# ── 11. Worshipping Figures (deity only) ─────────────────────────── #}
     {% if worshippers %}
     <div class="section-card">
       <div class="section-title">Worshipping Figures ({{ worshippers|length }}{% if worshippers|length == 100 %}+{% endif %})</div>
@@ -428,7 +378,6 @@
     </div>
     {% endif %}
 
-    {# ── 12. Worshipping Entities (deity only) ────────────────────────── #}
     {% if worshipping_entities %}
     <div class="section-card">
       <div class="section-title">Worshipping Civilizations ({{ worshipping_entities|length }})</div>
@@ -443,7 +392,6 @@
     </div>
     {% endif %}
 
-    {# ── 20. Entity Reputations ───────────────────────────────────────── #}
     {% if entity_reputations_data %}
     <div class="section-card">
       <div class="section-title">Entity Reputations</div>
@@ -455,7 +403,6 @@
     </div>
     {% endif %}
 
-    {# ── 21. Intrigue Actors ──────────────────────────────────────────── #}
     {% if intrigue_actors_data %}
     <div class="section-card">
       <div class="section-title">Intrigue Plots</div>
@@ -471,10 +418,9 @@
 </div>
 
 {# ═══════════════════════ CAREER TAB ═════════════════════════════════════ #}
-<div id="dtab-content-career" class="tab-content">
+<div class="inline-tab-content" data-dtab-content="career">
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-    {# ── 10. Noble Positions ──────────────────────────────────────────── #}
     {% if position_links %}
     <div class="section-card lg:col-span-2">
       <div class="section-title">Noble/Leadership Positions ({{ position_links|length }})</div>
@@ -501,7 +447,6 @@
     </div>
     {% endif %}
 
-    {# ── 13. Notable Kills ────────────────────────────────────────────── #}
     {% if kills_resolved %}
     <div class="section-card lg:col-span-2">
       <div class="section-title">Kills ({{ kills_resolved|length }})</div>
@@ -544,7 +489,6 @@
     </div>
     {% endif %}
 
-    {# ── 16. Snatcher Of ──────────────────────────────────────────────── #}
     {% if snatcher_victims %}
     <div class="section-card">
       <div class="section-title">Snatcher Of ({{ snatcher_victims|length }})</div>
@@ -563,7 +507,6 @@
     </div>
     {% endif %}
 
-    {# ── 17. Battles ──────────────────────────────────────────────────── #}
     {% if battles %}
     <div class="section-card">
       <div class="section-title">Battles ({{ battles|length }})</div>
@@ -580,7 +523,6 @@
     </div>
     {% endif %}
 
-    {# ── 18. Beast Attacks ────────────────────────────────────────────── #}
     {% if beast_attacks %}
     <div class="section-card">
       <div class="section-title">Beast Attacks ({{ beast_attacks|length }})</div>
@@ -597,45 +539,11 @@
     </div>
     {% endif %}
 
-    {# ── 23. Squad Links ──────────────────────────────────────────────── #}
-    {% set squad_links = entity_links|selectattr('link_type', 'containing', 'squad')|list %}
-    {% if squad_links %}
-    <div class="section-card">
-      <div class="section-title">Squad Links</div>
-      <div class="space-y-1 text-sm">
-        {% for sq in squad_links %}
-          <div class="flex items-center gap-2">
-            {{ linker.link('entity', sq.entity_id, sq.entity_name, world_id)|safe }}
-            <span class="badge badge-type">{{ sq.link_type|title }}</span>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {# ── 24. Site Property Links ──────────────────────────────────────── #}
-    {% set site_property_links = site_links|selectattr('link_type', 'equalto', 'SiteProperty')|list %}
-    {% if site_property_links %}
-    <div class="section-card">
-      <div class="section-title">Site Property Links</div>
-      <div class="space-y-1 text-sm">
-        {% for sp in site_property_links %}
-          <div class="flex items-center gap-2">
-            {{ linker.link('site', sp.site_id, sp.site_name, world_id)|safe }}
-            <span class="text-stone-600 text-xs">{{ sp.site_type|default('', true)|title }}</span>
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
   </div>
 </div>
 
 {# ═══════════════════════ EVENTS TAB ═════════════════════════════════════ #}
-<div id="dtab-content-events" class="tab-content">
-
-  {# ── 19. Full Event History ─────────────────────────────────────────── #}
+<div class="inline-tab-content" data-dtab-content="events">
   <div class="section-card">
     <div class="section-title">Event History ({{ event_count }} total, showing {{ events|length }})</div>
     {% if events %}
@@ -662,7 +570,7 @@
     {% if event_count > events|length and not show_all_events %}
       <div class="mt-2 text-center text-stone-500 text-xs">
         Showing first {{ events|length }} of {{ event_count }} events.
-        <a href="/explorer/hf/{{ hf.id }}?world_id={{ world_id }}&events=all#tab=events" class="text-amber-400 hover:underline">Load all</a>
+        <a href="/explorer/hf/{{ hf.id }}?world_id={{ world_id }}&events=all#tab=events" class="text-amber-400 hover:underline">Load all (opens full page)</a>
       </div>
     {% elif show_all_events %}
       <div class="mt-2 text-center text-stone-500 text-xs">
@@ -673,78 +581,4 @@
       <div class="text-stone-600 text-sm italic">No events recorded.</div>
     {% endif %}
   </div>
-
 </div>
-
-{% endblock %}
-
-{% block extra_scripts %}
-{% if graph_data and graph_data.edges|length > 0 %}
-<script>
-(function() {
-  var graphData = {{ graph_data|tojson }};
-  var canvas = document.getElementById('rel-graph-canvas');
-  if (!canvas || typeof vis === 'undefined') return;
-
-  function initRelGraph() {
-    var nodes = new vis.DataSet(graphData.nodes);
-    var edges = new vis.DataSet(graphData.edges);
-    var options = {
-      physics: {
-        solver: 'forceAtlas2Based',
-        forceAtlas2Based: {
-          gravitationalConstant: -40,
-          centralGravity: 0.01,
-          springLength: 100,
-          springConstant: 0.04,
-          damping: 0.4,
-        },
-        stabilization: { iterations: 150, fit: true },
-      },
-      interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
-      nodes: {
-        shape: 'dot',
-        font: { color: '#d6d3d1', size: 10, face: 'JetBrains Mono, Consolas, monospace' },
-        borderWidth: 1.5,
-      },
-      edges: {
-        width: 1,
-        font: { align: 'middle' },
-        smooth: { type: 'continuous' },
-      },
-    };
-    var network = new vis.Network(canvas, { nodes: nodes, edges: edges }, options);
-    network.on('doubleClick', function(params) {
-      if (params.nodes.length > 0) {
-        var nid = params.nodes[0];
-        var m = nid.match(/^hf-(\d+)$/);
-        if (m) {
-          var url = '/explorer/hf/' + m[1] + '?world_id={{ world_id }}';
-          if (typeof loadDetail === 'function') {
-            loadDetail(url + '&partial=1');
-          } else {
-            window.location.href = url;
-          }
-        }
-      }
-    });
-  }
-
-  /* Lazy init: vis.Network needs a visible container with dimensions */
-  if (canvas.offsetHeight > 0) {
-    initRelGraph();
-  } else {
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting && entry.intersectionRatio > 0) {
-          observer.disconnect();
-          initRelGraph();
-        }
-      });
-    }, { threshold: 0.1 });
-    observer.observe(canvas);
-  }
-})();
-</script>
-{% endif %}
-{% endblock %}

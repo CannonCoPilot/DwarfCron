@@ -28,6 +28,16 @@ templates.env.tests['containing'] = lambda value, substring: substring in (value
 _linker = EntityLinkRenderer()
 _name_cache = EntityNameCache()
 
+# Edge colors for relationship graphs (matches Graph tab styling in explorer.py)
+_GRAPH_EDGE_COLORS = {
+    "child": "#4ade80", "mother": "#4ade80", "father": "#4ade80",
+    "spouse": "#f472b6", "former spouse": "#f472b6", "deceased spouse": "#f472b6",
+    "lover": "#f472b6",
+    "master": "#60a5fa", "apprentice": "#60a5fa",
+    "former master": "#60a5fa", "former apprentice": "#60a5fa",
+    "companion": "#fbbf24", "imprisonment": "#ef4444", "jealous_obsession": "#dc2626",
+}
+
 
 def _world_id_or_default(request: Request, world_id: int = None) -> int:
     """Get world_id from query param, defaulting to the first available world."""
@@ -58,7 +68,8 @@ async def _get_world_info(conn, world_id: int) -> dict:
 @router.get("/explorer/hf/{hf_id}", response_class=HTMLResponse)
 async def hf_detail_page(hf_id: int, request: Request,
                          world_id: int = Query(None),
-                         events: str = Query(None)):
+                         events: str = Query(None),
+                         partial: str = Query(None)):
     show_all_events = events == 'all'
     pool = request.app.state.pool
     async with pool.acquire() as conn:
@@ -104,12 +115,20 @@ async def hf_detail_page(hf_id: int, request: Request,
             ORDER BY l.link_type, h.name
         """, world_id, hf_id)
 
-        # Entity memberships (hf_entity_links)
+        # Entity memberships (hf_entity_links) + primary site via LATERAL
         entity_links = await conn.fetch("""
             SELECT l.entity_id, l.link_type, l.position_name,
-                   e.name AS entity_name, e.type AS entity_type
+                   e.name AS entity_name, e.type AS entity_type, e.race AS entity_race,
+                   ps.site_id AS primary_site_id, ps.site_name AS primary_site_name
             FROM hf_entity_links l
             LEFT JOIN entities e ON e.world_id = l.world_id AND e.id = l.entity_id
+            LEFT JOIN LATERAL (
+                SELECT s.id AS site_id, s.name AS site_name
+                FROM sites s
+                WHERE s.world_id = l.world_id AND s.owner_entity_id = l.entity_id
+                ORDER BY s.importance_score DESC NULLS LAST
+                LIMIT 1
+            ) ps ON true
             WHERE l.world_id = $1 AND l.hf_id = $2
             ORDER BY l.link_type, e.name
         """, world_id, hf_id)
@@ -305,7 +324,7 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'victim_id': victim_id, 'victim_name': victim_name,
             })
 
-        # Resolve kill victim names from kills JSONB
+        # Resolve kill victim names, race, and entity from kills JSONB
         kills_resolved = []
         raw_kills = hf.get('kills')
         if raw_kills:
@@ -317,13 +336,26 @@ async def hf_detail_page(hf_id: int, request: Request,
                 if victim_ids:
                     victim_refs = [('hf', vid) for vid in victim_ids]
                     kill_names = await _name_cache.batch_resolve(conn, world_id, victim_refs)
+                    # Batch-fetch victim race + entity name
+                    victim_details_rows = await conn.fetch("""
+                        SELECT h.id, h.race, h.entity_id, e.name AS entity_name
+                        FROM historical_figures h
+                        LEFT JOIN entities e ON e.world_id = h.world_id AND e.id = h.entity_id
+                        WHERE h.world_id = $1 AND h.id = ANY($2::int[])
+                    """, world_id, victim_ids)
+                    victim_info = {r['id']: dict(r) for r in victim_details_rows}
                     for k in event_kills:
                         vid = k.get('victim_id')
+                        info = victim_info.get(int(vid), {}) if vid else {}
+                        race_raw = info.get('race', '')
                         kills_resolved.append({
                             'year': k.get('year'),
                             'cause': k.get('cause'),
                             'victim_id': vid,
                             'victim_name': kill_names.get(('hf', int(vid))) if vid else None,
+                            'victim_race': race_raw.replace('_', ' ').title() if race_raw else None,
+                            'victim_entity_name': info.get('entity_name'),
+                            'victim_entity_id': info.get('entity_id'),
                         })
 
         # Parse JSONB fields for template
@@ -361,6 +393,88 @@ async def hf_detail_page(hf_id: int, request: Request,
         # Worshipped deities (this HF worships)
         worshipped_deities = [dict(r) for r in relationships if r['link_type'] == 'deity']
 
+        # ── Relationship graph data for vis.js ──
+        # Collect HF IDs (exclude deity links to keep graph readable)
+        graph_hf_ids = {hf_id}
+        for r in relationships:
+            if r['link_type'] not in ('deity',):
+                graph_hf_ids.add(r['target_hf_id'])
+
+        # Cap at 50 nodes for readability
+        if len(graph_hf_ids) > 51:
+            graph_hf_ids = {hf_id} | set(list(graph_hf_ids - {hf_id})[:50])
+
+        graph_data = {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}'}
+
+        if len(graph_hf_ids) > 1:
+            # Fetch full HF data for node coloring
+            graph_hf_rows = await conn.fetch(
+                "SELECT id, name, death_year, is_deity, is_vampire, "
+                "is_necromancer, is_werebeast, is_ghost "
+                "FROM historical_figures WHERE world_id = $1 AND id = ANY($2::int[])",
+                world_id, list(graph_hf_ids))
+            graph_hf_map = {r['id']: dict(r) for r in graph_hf_rows}
+
+            # Build nodes
+            for gid in graph_hf_ids:
+                r = graph_hf_map.get(gid, {})
+                is_center = (gid == hf_id)
+                if r.get('is_deity'):
+                    color = '#f6b93b'
+                elif r.get('is_vampire'):
+                    color = '#ef4444'
+                elif r.get('is_necromancer'):
+                    color = '#a855f7'
+                elif r.get('is_werebeast'):
+                    color = '#92400e'
+                elif r.get('is_ghost'):
+                    color = '#9ca3af'
+                else:
+                    color = '#78716c'
+                alive_g = r.get('death_year') is None or r.get('death_year') == -1
+                border = '#f6b93b' if is_center else ('#22c55e' if alive_g else '#ef4444')
+                graph_data['nodes'].append({
+                    'id': f'hf-{gid}',
+                    'label': r.get('name') or f'HF #{gid}',
+                    'size': 20 if is_center else 12,
+                    'color': {
+                        'background': color, 'border': border,
+                        'highlight': {'background': color, 'border': '#f6b93b'},
+                    },
+                    'font': {
+                        'color': '#f6b93b' if is_center else '#d6d3d1',
+                        'size': 11 if is_center else 9,
+                    },
+                    'borderWidth': 3 if is_center else 1,
+                })
+
+            # Get ALL edges between HFs in the graph set
+            graph_edges_raw = await conn.fetch("""
+                SELECT hf_id, target_hf_id, link_type
+                FROM hf_links
+                WHERE world_id = $1
+                  AND hf_id = ANY($2::int[])
+                  AND target_hf_id = ANY($2::int[])
+                  AND link_type NOT IN ('deity')
+            """, world_id, list(graph_hf_ids))
+
+            seen_edges = set()
+            for e in graph_edges_raw:
+                pair = (min(e['hf_id'], e['target_hf_id']),
+                        max(e['hf_id'], e['target_hf_id']))
+                key = pair + (e['link_type'],)
+                if key not in seen_edges:
+                    seen_edges.add(key)
+                    ec = _GRAPH_EDGE_COLORS.get(e['link_type'], '#57534e')
+                    graph_data['edges'].append({
+                        'from': f"hf-{e['hf_id']}",
+                        'to': f"hf-{e['target_hf_id']}",
+                        'label': e['link_type'],
+                        'color': {'color': ec, 'highlight': '#f6b93b'},
+                        'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                        'arrows': '',
+                    })
+
     # Build type flags
     type_flags = []
     for flag, label in [
@@ -373,9 +487,13 @@ async def hf_detail_page(hf_id: int, request: Request,
 
     alive = hf['death_year'] is None or hf['death_year'] == -1
 
+    # When partial=1, use the minimal base template for inline rendering
+    base_tmpl = "detail_partial_base.html" if partial == "1" else "detail_base.html"
+
     return templates.TemplateResponse("hf_detail.html", {
         "request": request,
         "active": "explorer",
+        "base_template": base_tmpl,
         "entity_type_display": "Historical Figure",
         "entity_name": hf['name'] or f"HF #{hf_id}",
         "entity_alt_name": None,
@@ -413,6 +531,7 @@ async def hf_detail_page(hf_id: int, request: Request,
         "worshipped_deities": worshipped_deities,
         "linker": _linker,
         "calendar": DFCalendar,
+        "graph_data": graph_data,
     })
 
 

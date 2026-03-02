@@ -57,6 +57,36 @@
     .sub-toggle { border-bottom: 1px solid transparent; color: #a8a29e; font-size: 0.75rem; cursor: pointer; padding: 0.25rem 0.5rem; }
     .sub-toggle.active { border-bottom-color: #f6b93b; color: #f6b93b; }
     .sub-toggle:hover { color: #d6d3d1; }
+    /* Entity link colors (for inline HF detail) */
+    .entity-link { color: #60a5fa; text-decoration: none; }
+    .entity-link:hover { text-decoration: underline; color: #93c5fd; }
+    .entity-hf { color: #f6b93b; }
+    .entity-entity { color: #3b82f6; }
+    .entity-site { color: #22c55e; }
+    .entity-artifact { color: #a855f7; }
+    .entity-region { color: #f97316; }
+    .entity-structure { color: #14b8a6; }
+    .entity-written_content { color: #ec4899; }
+    .entity-event_collection { color: #ef4444; }
+    /* Detail tab system (for inline HF detail) */
+    .detail-tab { border-bottom: 2px solid transparent; color: #78716c; padding: 0.5rem 1rem; cursor: pointer; font-size: 0.8rem; background: none; border-top: none; border-left: none; border-right: none; }
+    .detail-tab:hover { color: #d6d3d1; }
+    .detail-tab.active { border-bottom-color: #f6b93b; color: #f6b93b; font-weight: 700; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Badges from detail_base (extended set) */
+    .badge-force { background: #87ceeb; color: #0f0e0d; }
+    .badge-necromancer { background: #4b0082; color: #fafaf9; }
+    .badge-werebeast { background: #8b4513; color: #fafaf9; }
+    .badge-ghost { background: #c0c0c0; color: #0f0e0d; }
+    .badge-leader { background: #228b22; color: #fafaf9; }
+    /* Event table styles */
+    .event-row { border-bottom: 1px solid #292524; }
+    .event-row:hover { background: #292524; }
+    .event-year { color: #78716c; font-size: 0.7rem; white-space: nowrap; min-width: 60px; }
+    .event-type-badge { font-size: 0.55rem; padding: 1px 4px; border-radius: 2px; background: #44403c; color: #a8a29e; white-space: nowrap; }
+    .event-text { font-size: 0.8rem; }
+    .event-text em { font-style: normal; color: #f6b93b; font-weight: 600; }
     /* Race pills */
     .race-pill {
       display: inline-flex; align-items: center; gap: 3px;
@@ -567,176 +597,59 @@ async function loadHfDetail(worldId, hfId) {
   panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
 
   try {
-    const resp = await fetch(`/api/people/hf/${worldId}/${hfId}`);
-    const hf = await resp.json();
-    if (hf.detail) throw new Error(hf.detail);
-    renderHfDetail(hf, panel);
+    // Fetch server-rendered partial HTML (same template as full page, minimal wrapper)
+    const resp = await fetch(`/explorer/hf/${hfId}?world_id=${worldId}&partial=1`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const html = await resp.text();
+    panel.innerHTML = html;
+
+    // Execute any <script> tags in the injected HTML (for tab switching)
+    panel.querySelectorAll('script').forEach(oldScript => {
+      const newScript = document.createElement('script');
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+
+    // Intercept all internal links to navigate within the explorer
+    panel.querySelectorAll('a[href^="/explorer/"]').forEach(link => {
+      // Skip the "Open Full Page" button (opens in new tab via target=_blank)
+      if (link.getAttribute('target') === '_blank') return;
+      link.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (!href) return;
+        // Parse /explorer/{type}/{id} links
+        const m = href.match(/\/explorer\/(hf|entity|site|artifact|region|structure|written_content|event_collection)\/(\d+)/);
+        if (m) {
+          e.preventDefault();
+          const typeMap = {
+            hf: ['people', 'hf'], entity: ['civs', 'entity'],
+            site: ['geo', 'site'], artifact: ['geo', 'artifact'],
+            region: ['geo', 'region'], structure: ['geo', 'structure'],
+            written_content: ['geo', 'written_content'],
+            event_collection: ['geo', 'event_collection']
+          };
+          const [tab, src] = typeMap[m[1]] || ['people', m[1]];
+          // For HF self-links with query params (like "Load all events"), reload inline
+          if (m[1] === 'hf' && parseInt(m[2]) === hfId) {
+            const url = new URL(href, location.origin);
+            url.searchParams.set('partial', '1');
+            panel.innerHTML = '<div class="text-stone-500 text-xs py-4">Loading...</div>';
+            fetch(url.toString()).then(r => r.text()).then(h => {
+              panel.innerHTML = h;
+              panel.querySelectorAll('script').forEach(s => {
+                const ns = document.createElement('script');
+                ns.textContent = s.textContent;
+                s.parentNode.replaceChild(ns, s);
+              });
+            });
+          } else {
+            navigateTo(tab, src, worldId, parseInt(m[2]));
+          }
+        }
+      });
+    });
   } catch (e) {
     panel.innerHTML = `<div class="text-red-400 text-xs py-4">${escapeHtml(e.message)}</div>`;
-  }
-}
-
-function renderHfDetail(hf, panel) {
-  const alive = hf.death_year === null;
-  let html = `<div class="flex items-start justify-between mb-4">
-    <div>
-      <h2 class="detail-header">${escapeHtml(hf.name)}</h2>
-      ${hf.linked_unit && hf.linked_unit.english_name ? `<div class="text-stone-400 text-sm">"${escapeHtml(hf.linked_unit.english_name)}"</div>` : ''}
-      <div class="flex items-center gap-2 mt-1">
-        <span class="badge badge-hf">HF #${hf.id}</span>
-        <span class="badge ${alive ? 'badge-alive' : 'badge-dead'}">${alive ? 'Alive' : 'Dead'}</span>
-        ${typeFlagBadges(hf.type_flags)}
-      </div>
-    </div>
-    <button onclick="navigateTo('graph','hf',${hf.world_id},${hf.id})"
-            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
-  </div>`;
-
-  // Bio card
-  html += `<div class="section-card">
-    <div class="section-title">Biography</div>
-    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-      <div><span class="text-stone-500">Race:</span> ${escapeHtml(hf.race_display || titleCase(hf.race))}</div>
-      <div><span class="text-stone-500">Caste:</span> ${escapeHtml(titleCase(hf.caste))}</div>
-      <div><span class="text-stone-500">Born:</span> ${hf.birth_year != null ? 'Year ' + hf.birth_year : '?'}</div>
-      <div><span class="text-stone-500">${alive ? 'Age' : 'Died'}:</span> ${
-        alive
-          ? (hf.birth_year != null && hf.current_game_year != null
-             ? `${hf.current_game_year - hf.birth_year} (born year ${hf.birth_year})`
-             : hf.birth_year != null ? `born year ${hf.birth_year}` : '?')
-          : `Year ${hf.death_year ?? '?'}${hf.birth_year != null && hf.death_year != null ? ', age ' + (hf.death_year - hf.birth_year) : ''}${hf.death_cause ? ' (' + escapeHtml(hf.death_cause) + ')' : ''}`
-      }</div>
-      <div><span class="text-stone-500">Kills:</span> ${hf.kill_count || 0}</div>
-      <div><span class="text-stone-500">Events:</span> ${formatNum(hf.event_count)}</div>
-    </div>
-    ${hf.entity_name ? `<div class="mt-2 text-xs"><span class="text-stone-500">Primary Civ:</span> <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${hf.entity_id})">${escapeHtml(hf.entity_name)}</span></div>` : ''}
-  </div>`;
-
-  // Linked unit
-  if (hf.linked_unit) {
-    html += `<div class="section-card">
-      <div class="section-title">In-Game Unit</div>
-      <div class="text-xs">
-        <span class="nav-link" onclick="loadUnitDetail(${hf.linked_unit.id})">${escapeHtml(hf.linked_unit.name)}</span>
-        ${hf.linked_unit.english_name ? ` <span class="text-stone-500">(${escapeHtml(hf.linked_unit.english_name)})</span>` : ''}
-        ${hf.linked_unit.profession ? ` <span class="text-stone-500">/ ${escapeHtml(hf.linked_unit.profession)}</span>` : ''}
-      </div>
-    </div>`;
-  }
-
-  // Relationships
-  if (hf.relationships.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Relationships (${hf.relationships.length})</div>
-      <div class="space-y-1">`;
-    for (const r of hf.relationships) {
-      html += `<div class="text-xs">
-        <span class="text-stone-500">${escapeHtml(titleCase(r.link_type))}:</span>
-        <span class="nav-link" onclick="navigateTo('people','hf',${hf.world_id},${r.target_id})">${escapeHtml(r.target_name || 'Unknown')}</span>
-        <span class="text-stone-600 text-[10px]">${escapeHtml(r.target_race || '')}</span>
-      </div>`;
-    }
-    html += '</div></div>';
-  }
-
-  // Entity memberships
-  if (hf.entity_links.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Entity Memberships (${hf.entity_links.length})</div>
-      <div class="space-y-1">`;
-    for (const el of hf.entity_links) {
-      html += `<div class="text-xs">
-        <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${el.entity_id})">${escapeHtml(el.entity_name || 'Unknown')}</span>
-        <span class="text-stone-500">${escapeHtml(titleCase(el.link_type))}</span>
-        ${el.position_name ? ` <span class="badge badge-type">${escapeHtml(el.position_name)}</span>` : ''}
-      </div>`;
-    }
-    html += '</div></div>';
-  }
-
-  // Positions held
-  if (hf.positions.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Positions Held (${hf.positions.length})</div>
-      <div class="space-y-1">`;
-    for (const p of hf.positions) {
-      const years = p.end_year ? `${p.start_year}-${p.end_year}` : `${p.start_year}-present`;
-      html += `<div class="text-xs">
-        <span class="text-amber-400">${escapeHtml(p.position_name || 'Unknown')}</span>
-        at <span class="nav-link" onclick="navigateTo('civs','entity',${hf.world_id},${p.entity_id})">${escapeHtml(p.entity_name || 'Unknown')}</span>
-        <span class="text-stone-500">(${years})</span>
-      </div>`;
-    }
-    html += '</div></div>';
-  }
-
-  // Site links
-  if (hf.site_links.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Site Links (${hf.site_links.length})</div>
-      <div class="space-y-1">`;
-    for (const sl of hf.site_links) {
-      html += `<div class="text-xs">
-        <span class="text-stone-500">${escapeHtml(titleCase(sl.link_type))}:</span>
-        <span class="nav-link" onclick="navigateTo('geo','site',${hf.world_id},${sl.site_id})">${escapeHtml(sl.site_name || 'Unknown')}</span>
-        <span class="text-stone-600 text-[10px]">${escapeHtml(sl.site_type || '')}</span>
-      </div>`;
-    }
-    html += '</div></div>';
-  }
-
-  // Identities
-  if (hf.identities.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Identities (${hf.identities.length})</div>
-      <div class="space-y-1">`;
-    for (const id of hf.identities) {
-      html += `<div class="text-xs text-stone-300">${escapeHtml(id.name)}</div>`;
-    }
-    html += '</div></div>';
-  }
-
-  // Events button
-  html += `<div class="mt-4">
-    <button onclick="loadHfEvents(${hf.world_id}, ${hf.id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-4 py-2 rounded text-xs transition-colors">
-      Load Recent Events
-    </button>
-    <div id="hf-events-container"></div>
-  </div>`;
-
-  panel.innerHTML = html;
-}
-
-async function loadHfEvents(worldId, hfId) {
-  const container = document.getElementById('hf-events-container');
-  container.innerHTML = '<div class="text-stone-500 text-xs py-2">Loading events...</div>';
-
-  try {
-    const resp = await fetch(`/api/people/hf/${worldId}/${hfId}/events?limit=50`);
-    const events = await resp.json();
-
-    if (events.length === 0) {
-      container.innerHTML = '<div class="text-stone-500 text-xs py-2">No events found</div>';
-      return;
-    }
-
-    let html = '<div class="mt-3 section-card"><div class="section-title">Recent Events</div>';
-    html += '<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">';
-    html += '<th class="text-left py-1 pr-3">Year</th><th class="text-left py-1 pr-3">Type</th><th class="text-left py-1 pr-3">Other</th><th class="text-left py-1">Site</th>';
-    html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
-
-    for (const ev of events) {
-      html += `<tr class="hover:bg-stone-800/30">
-        <td class="py-1 pr-3 text-stone-400">${ev.year}</td>
-        <td class="py-1 pr-3">${escapeHtml(titleCase(ev.event_type))}</td>
-        <td class="py-1 pr-3">${ev.other_hf_id ? `<span class="nav-link" onclick="navigateTo('people','hf',${worldId},${ev.other_hf_id})">${escapeHtml(ev.other_hf_name || '?')}</span>` : '<span class="text-stone-600">-</span>'}</td>
-        <td class="py-1">${ev.site_id ? `<span class="nav-link" onclick="navigateTo('geo','site',${worldId},${ev.site_id})">${escapeHtml(ev.site_name || '?')}</span>` : '<span class="text-stone-600">-</span>'}</td>
-      </tr>`;
-    }
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
-  } catch (e) {
-    container.innerHTML = `<div class="text-red-400 text-xs py-2">${escapeHtml(e.message)}</div>`;
   }
 }
 
@@ -2546,6 +2459,209 @@ async function browsePeople() {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
   }
 }
+
+// Honor ?tab= query param on page load (used by "View Graph" links)
+{
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  if (urlTab && ALL_TABS.includes(urlTab)) switchTab(urlTab);
+}
+</script>
+
+<!-- ================================================================== -->
+<!-- AI CHAT POPUP                                                       -->
+<!-- ================================================================== -->
+<style>
+  #chat-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 200;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #c49122; color: #0f0e0d; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+    font-size: 1.5rem;
+  }
+  #chat-fab:hover { background: #e2a72e; transform: scale(1.08); }
+  #chat-fab.open { background: #44403c; }
+  #chat-popup {
+    position: fixed; bottom: 92px; right: 24px; z-index: 199;
+    width: 400px; max-height: 520px; border-radius: 12px;
+    background: #1c1917; border: 1px solid #292524;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    display: none; flex-direction: column; overflow: hidden;
+  }
+  #chat-popup.visible { display: flex; }
+  #chat-popup-header {
+    padding: 12px 16px; background: #0f0e0d; border-bottom: 1px solid #292524;
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  }
+  #chat-popup-messages {
+    flex: 1; overflow-y: auto; padding: 12px; min-height: 200px; max-height: 360px;
+    scrollbar-width: thin; scrollbar-color: #44403c #1c1917;
+  }
+  #chat-popup-messages::-webkit-scrollbar { width: 5px; }
+  #chat-popup-messages::-webkit-scrollbar-track { background: #1c1917; }
+  #chat-popup-messages::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
+  .chat-msg { margin-bottom: 10px; font-size: 0.8rem; line-height: 1.5; }
+  .chat-msg-user { padding: 8px 10px; background: #292524; border-left: 3px solid #f6b93b; border-radius: 4px; }
+  .chat-msg-assistant { padding: 8px 10px; background: #0f0e0d; border-left: 3px solid #78716c; border-radius: 4px; }
+  .chat-msg-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 3px; }
+  .chat-typing::after { content: '\2588'; animation: blink 1s step-end infinite; color: #f6b93b; }
+  #chat-popup-input {
+    border-top: 1px solid #292524; padding: 10px 12px;
+    display: flex; gap: 8px; flex-shrink: 0; background: #0f0e0d;
+  }
+  #chat-popup-input input {
+    flex: 1; background: #292524; border: 1px solid #44403c; color: #d6d3d1;
+    border-radius: 6px; padding: 8px 12px; font-size: 0.8rem;
+    font-family: inherit; outline: none;
+  }
+  #chat-popup-input input:focus { border-color: #f6b93b; box-shadow: 0 0 0 1px rgba(246,185,59,0.3); }
+  #chat-popup-input button {
+    background: #c49122; color: #0f0e0d; border: none; border-radius: 6px;
+    padding: 8px 14px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: background 0.15s;
+  }
+  #chat-popup-input button:hover { background: #e2a72e; }
+  #chat-popup-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+</style>
+
+<!-- FAB button -->
+<button id="chat-fab" onclick="toggleChatPopup()" title="Ask the Chronicler">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</button>
+
+<!-- Chat popup panel -->
+<div id="chat-popup">
+  <div id="chat-popup-header">
+    <span style="color:#f6b93b; font-weight:700; font-size:0.85rem;">The Chronicler</span>
+    <span style="color:#78716c; font-size:0.65rem; flex:1;">AI Narrator</span>
+    <button onclick="clearChatHistory()" title="Clear chat" style="background:none; border:none; color:#78716c; cursor:pointer; font-size:0.7rem; padding:2px 6px; border-radius:4px;"
+            onmouseover="this.style.color='#d6d3d1'" onmouseout="this.style.color='#78716c'">Clear</button>
+  </div>
+  <div id="chat-popup-messages">
+    <div style="text-align:center; padding:24px 12px; color:#78716c; font-size:0.75rem;">
+      Ask about the history, people, and events of this world.
+    </div>
+  </div>
+  <div id="chat-popup-input">
+    <input type="text" id="chat-input" placeholder="Ask the Chronicler..." autocomplete="off"
+           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}">
+    <button id="chat-send-btn" onclick="sendChatMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// AI CHAT POPUP — Floating assistant integrated into Explorer
+// ═══════════════════════════════════════════════════════════════════════
+(function() {
+  let chatOpen = false;
+  let chatStreaming = false;
+
+  window.toggleChatPopup = function() {
+    chatOpen = !chatOpen;
+    document.getElementById('chat-popup').classList.toggle('visible', chatOpen);
+    document.getElementById('chat-fab').classList.toggle('open', chatOpen);
+    if (chatOpen) document.getElementById('chat-input').focus();
+  };
+
+  window.clearChatHistory = function() {
+    document.getElementById('chat-popup-messages').innerHTML =
+      '<div style="text-align:center; padding:24px 12px; color:#78716c; font-size:0.75rem;">Ask about the history, people, and events of this world.</div>';
+  };
+
+  window.sendChatMessage = async function() {
+    const input = document.getElementById('chat-input');
+    const messages = document.getElementById('chat-popup-messages');
+    const sendBtn = document.getElementById('chat-send-btn');
+    const query = input.value.trim();
+
+    if (!query || chatStreaming) return;
+    if (!WORLD_ID) {
+      appendChatMsg('assistant', 'No world loaded yet. Please wait for the Explorer to initialize.');
+      return;
+    }
+
+    chatStreaming = true;
+    sendBtn.disabled = true;
+    input.value = '';
+
+    // Clear placeholder if first message
+    if (messages.querySelector('div[style*="text-align:center"]')) {
+      messages.innerHTML = '';
+    }
+
+    // User message
+    appendChatMsg('user', query);
+
+    // Assistant placeholder
+    const responseEl = document.createElement('div');
+    responseEl.className = 'chat-msg chat-msg-assistant';
+    responseEl.innerHTML = '<div class="chat-msg-label" style="color:#78716c;">Chronicler</div><span class="chat-typing" id="chat-response-text"></span>';
+    messages.appendChild(responseEl);
+    messages.scrollTop = messages.scrollHeight;
+
+    const textEl = responseEl.querySelector('#chat-response-text');
+
+    try {
+      const resp = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query, world_id: WORLD_ID }),
+      });
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.token) {
+              textEl.textContent += data.token;
+              messages.scrollTop = messages.scrollHeight;
+            }
+            if (data.error) {
+              textEl.textContent += '\n[Error: ' + data.error + ']';
+            }
+            if (data.done) {
+              textEl.classList.remove('chat-typing');
+            }
+          } catch(e) {}
+        }
+      }
+    } catch (err) {
+      textEl.textContent += '\n[Connection error: ' + err.message + ']';
+    }
+
+    textEl.classList.remove('chat-typing');
+    textEl.removeAttribute('id');
+    chatStreaming = false;
+    sendBtn.disabled = false;
+    input.focus();
+  };
+
+  function appendChatMsg(role, text) {
+    const messages = document.getElementById('chat-popup-messages');
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + (role === 'user' ? 'chat-msg-user' : 'chat-msg-assistant');
+    const label = role === 'user' ? 'You' : 'Chronicler';
+    const labelColor = role === 'user' ? '#f6b93b' : '#78716c';
+    div.innerHTML = '<div class="chat-msg-label" style="color:' + labelColor + ';">' + label + '</div>'
+      + '<div style="white-space:pre-wrap;">' + escapeHtml(text) + '</div>';
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+})();
 </script>
 </body>
 </html>

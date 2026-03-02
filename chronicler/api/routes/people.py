@@ -65,27 +65,48 @@ async def search_people(
     q: str = Query(..., min_length=1),
     type: str = Query("all"),
     limit: int = Query(50, ge=1, le=200),
+    world_id: int = Query(None),
+    race_categories: str = Query(None),
+    alive: str = Query(None),
 ):
+    """Search people by name with optional race and alive/dead filters.
+
+    race_categories: comma-separated race keys (multi-select)
+    alive: "alive", "dead", or None (all)
+    """
     pool = request.app.state.pool
     pattern = f"%{q}%"
     results: list[dict] = []
 
     async with pool.acquire() as conn:
+        if world_id is None:
+            world_id = await _resolve_world_id(conn, None)
+
         if type in ("all", "unit"):
+            unit_clauses = []
+            unit_params = [pattern, limit]
+            uidx = 3
+            if alive == "alive":
+                unit_clauses.append("AND u.is_alive = TRUE")
+            elif alive == "dead":
+                unit_clauses.append("AND u.is_alive = FALSE")
+            unit_where = " ".join(unit_clauses)
+
             rows = await conn.fetch(
-                """
+                f"""
                 SELECT u.id, u.world_id, u.name, u.english_name, u.race, u.caste,
                        u.profession, u.is_alive,
                        cd.name_singular AS race_name
                 FROM units u
                 LEFT JOIN creature_dictionary cd
                        ON cd.world_id = u.world_id AND cd.creature_id = u.race
-                WHERE unaccent(u.name) ILIKE unaccent($1)
-                   OR unaccent(COALESCE(u.english_name, '')) ILIKE unaccent($1)
+                WHERE (unaccent(u.name) ILIKE unaccent($1)
+                   OR unaccent(COALESCE(u.english_name, '')) ILIKE unaccent($1))
+                {unit_where}
                 ORDER BY u.name
                 LIMIT $2
                 """,
-                pattern, limit,
+                *unit_params,
             )
             for r in rows:
                 results.append({
@@ -100,20 +121,48 @@ async def search_people(
         if type in ("all", "hf"):
             remaining = limit - len(results)
             if remaining > 0:
+                extra_clauses = []
+                params = [pattern, remaining]
+                next_idx = 3
+
+                # Alive/dead filter
+                if alive == "alive":
+                    extra_clauses.append("AND h.death_year IS NULL")
+                elif alive == "dead":
+                    extra_clauses.append("AND h.death_year IS NOT NULL")
+
+                # Multi-select race categories
+                if race_categories:
+                    cats = [c.strip() for c in race_categories.split(",") if c.strip()]
+                    if cats:
+                        race_parts = []
+                        for cat in cats:
+                            rc_clause, rc_params = _build_race_category_clause(cat, next_idx)
+                            if rc_clause:
+                                # Strip leading "AND " to combine with OR
+                                race_parts.append(rc_clause.lstrip("AND "))
+                                params.extend(rc_params)
+                                next_idx += len(rc_params)
+                        if race_parts:
+                            extra_clauses.append("AND (" + " OR ".join(race_parts) + ")")
+
+                where_extra = " ".join(extra_clauses)
                 rows = await conn.fetch(
-                    """
+                    f"""
                     SELECT h.id, h.world_id, h.name, h.race, h.caste, h.death_year,
                            h.is_deity, h.is_force, h.is_vampire,
                            h.is_necromancer, h.is_werebeast, h.is_ghost,
+                           h.importance_score,
                            cd.name_singular AS race_name
                     FROM historical_figures h
                     LEFT JOIN creature_dictionary cd
                            ON cd.world_id = h.world_id AND cd.creature_id = h.race
                     WHERE unaccent(h.name) ILIKE unaccent($1)
-                    ORDER BY h.name
+                    {where_extra}
+                    ORDER BY h.importance_score DESC NULLS LAST, h.name
                     LIMIT $2
                     """,
-                    pattern, remaining,
+                    *params,
                 )
                 for r in rows:
                     row = dict(r)
@@ -240,12 +289,14 @@ async def browse_people(
     limit: int = Query(50, ge=1, le=200),
     flags: str = Query(None),
     race_category: str = Query(None),
+    race_categories: str = Query(None),
+    alive: str = Query(None),
 ):
-    """Return top historical figures by importance score for default tab view.
+    """Return top historical figures by prominence score for default tab view.
 
-    Optional `race_category` parameter: filter by race group key
-    (e.g. "DWARF", "_forgotten_beast", "_demigod").
-    Legacy `flags` parameter still supported for backwards compatibility.
+    race_category: single race key (legacy, still supported)
+    race_categories: comma-separated race keys (multi-select)
+    alive: "alive", "dead", or None (all)
     """
     pool = request.app.state.pool
     async with pool.acquire() as conn:
@@ -257,13 +308,29 @@ async def browse_people(
         params = [world_id, limit]
         next_idx = 3  # $1=world_id, $2=limit
 
-        # Race category filter (new)
-        if race_category:
-            rc_clause, rc_params = _build_race_category_clause(race_category, next_idx)
-            if rc_clause:
-                extra_clauses.append(rc_clause)
-                params.extend(rc_params)
-                next_idx += len(rc_params)
+        # Alive/dead filter
+        if alive == "alive":
+            extra_clauses.append("AND h.death_year IS NULL")
+        elif alive == "dead":
+            extra_clauses.append("AND h.death_year IS NOT NULL")
+
+        # Multi-select race categories (new)
+        cats_to_filter = []
+        if race_categories:
+            cats_to_filter = [c.strip() for c in race_categories.split(",") if c.strip()]
+        elif race_category:
+            cats_to_filter = [race_category]
+
+        if cats_to_filter:
+            race_parts = []
+            for cat in cats_to_filter:
+                rc_clause, rc_params = _build_race_category_clause(cat, next_idx)
+                if rc_clause:
+                    race_parts.append(rc_clause.lstrip("AND "))
+                    params.extend(rc_params)
+                    next_idx += len(rc_params)
+            if race_parts:
+                extra_clauses.append("AND (" + " OR ".join(race_parts) + ")")
 
         # Legacy flag filter (backwards compat)
         if flags and not race_category:

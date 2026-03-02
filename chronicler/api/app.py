@@ -4,7 +4,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from chronicler.db.connection import get_pool, close_pool
@@ -46,10 +46,10 @@ app.include_router(events_router, prefix="/api")
 app.include_router(detail_pages_router)  # No prefix — routes already include /explorer/
 
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    """Serve the main Chronicler UI."""
-    return templates.TemplateResponse("index.html", {"request": request, "active": "chat"})
+@app.get("/")
+async def index():
+    """Redirect root to the Explorer."""
+    return RedirectResponse(url="/explorer", status_code=302)
 
 
 @app.get("/explorer", response_class=HTMLResponse)
