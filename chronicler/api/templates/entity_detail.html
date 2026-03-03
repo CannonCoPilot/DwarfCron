@@ -82,13 +82,14 @@
 {# Sites Tab #}
 <div id="dtab-content-sites" class="tab-content">
   <div class="section-card">
-    <div class="section-title">Owned Sites</div>
+    <div class="section-title">Sites ({{ sites|length }})</div>
     {% if sites %}
     <table class="w-full text-sm">
       <thead>
         <tr class="text-stone-500 border-b border-stone-800 text-xs">
           <th class="text-left pb-1">Name</th>
           <th class="text-left pb-1">Type</th>
+          <th class="text-left pb-1">Status</th>
           <th class="text-left pb-1">Coords</th>
         </tr>
       </thead>
@@ -97,13 +98,20 @@
         <tr class="border-b border-stone-800/50">
           <td class="py-1">{{ linker.link('site', s.id, s.name, world_id)|safe }}</td>
           <td><span class="badge badge-site">{{ s.type|default('?', true)|title }}</span></td>
+          <td>
+            {% if s.ownership == 'current' %}
+              <span class="text-emerald-400 text-xs">Current</span>
+            {% else %}
+              <span class="text-stone-500 text-xs">Historical</span>
+            {% endif %}
+          </td>
           <td class="text-stone-600 text-xs">{{ s.coord_x }}, {{ s.coord_y }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
     {% else %}
-      <div class="text-stone-600 text-sm italic">No owned sites.</div>
+      <div class="text-stone-600 text-sm italic">No associated sites.</div>
     {% endif %}
   </div>
 </div>

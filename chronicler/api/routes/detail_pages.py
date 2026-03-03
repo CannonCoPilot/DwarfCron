@@ -1115,13 +1115,39 @@ async def entity_detail_page(entity_id: int, request: Request,
             ORDER BY p.start_year DESC
         """, world_id, entity_id)
 
-        # Owned sites
-        sites = await conn.fetch("""
-            SELECT id, name, type, coord_x, coord_y
-            FROM sites
-            WHERE world_id = $1 AND owner_entity_id = $2
-            ORDER BY name
-        """, world_id, entity_id)
+        # Owned sites — include child entity ownership + ownership history
+        # 1) Get child entity IDs from JSONB entity_links
+        child_ids = []
+        elinks = (entity.get('details') or {}).get('entity_links', [])
+        for link in elinks:
+            if link.get('type') == 'CHILD':
+                child_ids.append(link['target'])
+
+        # 2) Sites directly owned or owned by child entities
+        owner_ids = [entity_id] + child_ids
+        sites_direct = await conn.fetch("""
+            SELECT DISTINCT s.id, s.name, s.type, s.coord_x, s.coord_y,
+                   'current' AS ownership
+            FROM sites s
+            WHERE s.world_id = $1 AND s.owner_entity_id = ANY($2)
+            ORDER BY s.name
+        """, world_id, owner_ids)
+
+        # 3) Sites from ownership history (founded/historically owned)
+        sites_history = await conn.fetch("""
+            SELECT DISTINCT s.id, s.name, s.type, s.coord_x, s.coord_y,
+                   'historical' AS ownership
+            FROM sites s,
+                 jsonb_array_elements(s.details->'ownership_history') elem
+            WHERE s.world_id = $1
+              AND (elem->>'entity_id')::int = $2
+              AND s.id NOT IN (
+                  SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = ANY($3)
+              )
+            ORDER BY s.name
+        """, world_id, entity_id, owner_ids)
+
+        sites = [dict(s) for s in sites_direct] + [dict(s) for s in sites_history]
 
         # Notable members by importance
         members = await conn.fetch("""
@@ -1239,6 +1265,29 @@ async def site_detail_page(site_id: int, request: Request,
                 world_id, site['owner_entity_id'],
             )
 
+        # Ownership timeline from JSONB history
+        ownership_timeline = []
+        oh = (site.get('details') or {}).get('ownership_history', [])
+        if oh:
+            entity_ids = [e['entity_id'] for e in oh if e.get('entity_id')]
+            entity_names = {}
+            if entity_ids:
+                rows = await conn.fetch("""
+                    SELECT id, name, type FROM entities
+                    WHERE world_id = $1 AND id = ANY($2)
+                """, world_id, entity_ids)
+                entity_names = {r['id']: dict(r) for r in rows}
+            for entry in oh:
+                eid = entry.get('entity_id')
+                ent = entity_names.get(eid) if eid else None
+                ownership_timeline.append({
+                    'year': entry['year'],
+                    'event': entry['event'].replace('_', ' ').title(),
+                    'entity_id': eid,
+                    'entity_name': ent['name'] if ent else None,
+                    'entity_type': ent['type'] if ent else None,
+                })
+
         # Event count
         event_count = await conn.fetchval("""
             SELECT count(*) FROM event_entity_xref
@@ -1303,6 +1352,7 @@ async def site_detail_page(site_id: int, request: Request,
         "is_ruin": is_ruin,
         "structures": [dict(s) for s in structures],
         "owner": dict(owner) if owner else None,
+        "ownership_timeline": ownership_timeline,
         "events": rendered_events,
         "event_count": event_count,
         "prev_site": dict(prev_site) if prev_site else None,

@@ -453,8 +453,34 @@ class PostParseProcessor:
             """, wid, site_id, history)
             updated += 1
 
-        log.info("  Step 9 complete: %d sites with ownership history", updated)
-        return {"sites_updated": updated}
+        # Backfill owner_entity_id from ownership_history for sites with NULL owner
+        # Use the last non-null entity_id that isn't a "destroyed" event
+        status = await self.conn.execute("""
+            WITH last_owners AS (
+                SELECT s.id,
+                       (SELECT (elem->>'entity_id')::int
+                        FROM jsonb_array_elements(s.details->'ownership_history') elem
+                        WHERE elem->>'entity_id' IS NOT NULL
+                          AND elem->>'entity_id' != 'null'
+                          AND elem->>'event' NOT LIKE '%%destroyed%%'
+                        ORDER BY (elem->>'year')::int DESC
+                        LIMIT 1) AS last_owner
+                FROM sites s
+                WHERE s.world_id = $1
+                  AND s.owner_entity_id IS NULL
+                  AND s.details ? 'ownership_history'
+                  AND jsonb_array_length(s.details->'ownership_history') > 0
+            )
+            UPDATE sites s
+            SET owner_entity_id = lo.last_owner
+            FROM last_owners lo
+            WHERE s.world_id = $1 AND s.id = lo.id AND lo.last_owner IS NOT NULL
+        """, wid)
+        backfilled = int(status.split()[-1]) if status else 0
+
+        log.info("  Step 9 complete: %d sites with ownership history, %s backfilled owner_entity_id",
+                 updated, backfilled or 0)
+        return {"sites_updated": updated, "owners_backfilled": backfilled or 0}
 
     async def step_10_validate_referential_integrity(self) -> dict:
         """Verify FK-like references resolve to existing records."""
