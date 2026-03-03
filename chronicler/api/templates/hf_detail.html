@@ -753,14 +753,41 @@
   <div class="section-card">
     <div class="section-title">
       Relationship Network
-      <span class="text-stone-600 font-normal">({{ graph_data_full.nodes|length }} people, {{ graph_data_full.edges|length }} connections — double-click to navigate)</span>
+      <span id="graph-node-count" class="text-stone-600 font-normal">({{ graph_data_full.nodes|length }} nodes, {{ graph_data_full.edges|length }} connections — double-click to navigate)</span>
+    </div>
+
+    {# ── Controls row: degree, layout, reset ───────────────────────────── #}
+    <div class="flex flex-wrap items-center gap-3 mb-3 text-xs">
+      <div class="flex items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Depth:</span>
+        <select id="graph-degree-select" class="bg-stone-800 text-stone-300 border border-stone-600 rounded px-2 py-0.5 text-xs">
+          <option value="1" selected>1 hop</option>
+          <option value="2">2 hops</option>
+          <option value="3">3 hops</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Layout:</span>
+        <select id="graph-layout-select" class="bg-stone-800 text-stone-300 border border-stone-600 rounded px-2 py-0.5 text-xs">
+          <option value="forceAtlas2Based" selected>Force Atlas 2</option>
+          <option value="barnesHut">Barnes-Hut</option>
+          <option value="repulsion">Repulsion</option>
+          <option value="hierarchical">Hierarchical</option>
+          <option value="circle">Circle</option>
+          <option value="grid">Grid</option>
+        </select>
+      </div>
+      <button id="graph-reset-btn"
+        class="border border-stone-600 rounded px-2 py-1 text-xs text-stone-400 hover:text-amber-400 hover:border-amber-400 transition-colors">
+        Reset
+      </button>
     </div>
 
     {# ── Legend with toggleable checkboxes ──────────────────────────────── #}
     <div class="flex flex-wrap gap-3 mb-3 text-xs">
-      {# Node type legend #}
+      {# HF node type legend #}
       <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
-        <span class="text-stone-500 font-medium">Nodes:</span>
+        <span class="text-stone-500 font-medium">People:</span>
         <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
           <input type="checkbox" checked class="graph-node-toggle accent-yellow-500" data-group="deity">
           <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#f6b93b"></span>
@@ -792,6 +819,61 @@
           <span>Mortal</span>
         </label>
       </div>
+      {# Organization node type legend #}
+      <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Orgs:</span>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-blue-500" data-group="entity_civilization">
+          <span class="inline-block w-2.5 h-2.5 rotate-45" style="background:#3b82f6"></span>
+          <span>Civilization</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-purple-500" data-group="entity_religion">
+          <span class="inline-block w-2.5 h-2.5" style="background:#8b5cf6; clip-path:polygon(50% 0%,0% 100%,100% 100%)"></span>
+          <span>Sect</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-amber-500" data-group="entity_guild">
+          <span class="inline-block w-2.5 h-2.5" style="background:#f59e0b"></span>
+          <span>Guild</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-emerald-500" data-group="entity_sitegovernment">
+          <span class="inline-block w-2.5 h-2.5 rotate-45" style="background:#10b981"></span>
+          <span>Site Gov</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-red-500" data-group="entity_merchantcompany">
+          <span class="inline-block w-2.5 h-2.5" style="background:#ef4444"></span>
+          <span>Mercenary</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-pink-500" data-group="entity_performancetroupe">
+          <span class="inline-block w-2.5 h-2.5" style="background:#ec4899; clip-path:polygon(50% 0%,0% 100%,100% 100%)"></span>
+          <span>Troupe</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-stone-500" data-group="entity_outcast">
+          <span class="inline-block w-2.5 h-2.5" style="background:#78716c; clip-path:polygon(0% 0%,100% 0%,50% 100%)"></span>
+          <span>Outcast</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-red-700" data-group="entity_militaryunit">
+          <span class="inline-block w-2.5 h-2.5" style="background:#dc2626; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></span>
+          <span>Military</span>
+        </label>
+      </div>
+      {# Site node legend #}
+      <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Places:</span>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-green-500" data-group="site">
+          <span class="inline-block w-2.5 h-2.5" style="background:#22c55e; clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)"></span>
+          <span>Site</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-3 mb-3 text-xs">
       {# Edge type legend #}
       <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
         <span class="text-stone-500 font-medium">Edges:</span>
@@ -820,10 +902,25 @@
           <span class="inline-block w-4 h-0.5 rounded" style="background:#ef4444"></span>
           <span>Imprisonment</span>
         </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-violet-400" data-category="membership">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#a78bfa"></span>
+          <span>Membership</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-green-500" data-category="residence">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#22c55e"></span>
+          <span>Residence</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-red-500" data-category="conflict">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#f87171"></span>
+          <span>Conflict</span>
+        </label>
       </div>
     </div>
 
-    <div id="full-graph-canvas" style="height: 500px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
+    <div id="full-graph-canvas" style="aspect-ratio: 1; max-height: 80vh; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
   </div>
   {% else %}
   <div class="section-card">
@@ -870,25 +967,150 @@ function _lazyInitGraph(canvasId, initFn) {
   }
 }
 
-/* ── 1. Pedigree Graph (hierarchical, generation-filtered) ─────────────── */
+/* ── 1. Pedigree Graph (custom tree layout, generation-filtered) ────────── */
 {% if graph_data_pedigree and graph_data_pedigree.edges|length > 0 %}
 (function() {
   var pedData = {{ graph_data_pedigree|tojson }};
   var pedNodes, pedEdges;
 
+  /* ── Custom tree layout: roots above, branches below, subject centered ── */
+  function _layoutPedigreeTree(nodes, edges, centerId) {
+    var LEVEL_H = 130;  /* vertical px between generations */
+    var X_UNIT  = 100;  /* base horizontal spacing unit */
+    var SPOUSE_GAP = 60; /* horizontal gap for spouse */
+
+    /* Build node map with tree structure */
+    var nmap = {};
+    nodes.forEach(function(n) {
+      nmap[n.id] = { id: n.id, gen: n.generation || 0,
+                     parents: [], children: [], spouses: [],
+                     x: 0, y: 0 };
+    });
+
+    /* Parse edges: use generation to determine parent/child direction */
+    edges.forEach(function(e) {
+      var a = nmap[e.from], b = nmap[e.to];
+      if (!a || !b) return;
+      if (e.category === 'romantic') {
+        if (a.spouses.indexOf(b.id) === -1) a.spouses.push(b.id);
+        if (b.spouses.indexOf(a.id) === -1) b.spouses.push(a.id);
+        return;
+      }
+      /* family edge: lower generation = ancestor */
+      if (a.gen < b.gen) {
+        if (a.children.indexOf(b.id) === -1) a.children.push(b.id);
+        if (b.parents.indexOf(a.id) === -1) b.parents.push(a.id);
+      } else if (b.gen < a.gen) {
+        if (b.children.indexOf(a.id) === -1) b.children.push(a.id);
+        if (a.parents.indexOf(b.id) === -1) a.parents.push(b.id);
+      }
+    });
+
+    var placed = {};
+
+    /* Place a node + its spouse(s) at the given x, y */
+    function _place(id, x, y) {
+      if (placed[id]) return;
+      var n = nmap[id];
+      placed[id] = true;
+      n.x = x; n.y = y;
+      /* Place unplaced spouses beside this node */
+      var sx = x;
+      n.spouses.forEach(function(sid) {
+        if (!placed[sid] && nmap[sid]) {
+          sx += SPOUSE_GAP;
+          placed[sid] = true;
+          nmap[sid].x = sx;
+          nmap[sid].y = y;
+        }
+      });
+    }
+
+    /* ── Ancestors: binary tree upward ────────────────────────────────── */
+    /* Each generation doubles the spread.  Parents are centered over child. */
+    function _layoutUp(id, cx, depth) {
+      var n = nmap[id];
+      if (!n) return;
+      var pars = n.parents.filter(function(p) { return nmap[p] && !placed[p]; });
+      if (pars.length === 0) return;
+      var spread = Math.pow(2, depth - 1) * X_UNIT;
+      var py = -(depth) * LEVEL_H;
+      if (pars.length === 1) {
+        _place(pars[0], cx, py);
+        _layoutUp(pars[0], cx, depth + 1);
+      } else {
+        _place(pars[0], cx - spread, py);
+        _place(pars[1], cx + spread, py);
+        _layoutUp(pars[0], cx - spread, depth + 1);
+        _layoutUp(pars[1], cx + spread, depth + 1);
+      }
+    }
+
+    /* ── Descendants: variable-arity tree downward ────────────────────── */
+    /* Compute subtree leaf-count for width allocation */
+    function _stWidth(id, seen) {
+      if (seen[id]) return 0;
+      seen[id] = true;
+      var n = nmap[id];
+      if (!n) return 0;
+      var kids = n.children.filter(function(c) { return nmap[c]; });
+      if (kids.length === 0) return 1;
+      var w = 0;
+      kids.forEach(function(c) { w += _stWidth(c, Object.assign({}, seen)); });
+      return Math.max(1, w);
+    }
+
+    function _layoutDown(id, cx, depth) {
+      var n = nmap[id];
+      if (!n) return;
+      var kids = n.children.filter(function(c) { return nmap[c] && !placed[c]; });
+      if (kids.length === 0) return;
+      /* Compute widths */
+      var widths = kids.map(function(c) { return _stWidth(c, {}); });
+      var totalW = 0;
+      widths.forEach(function(w) { totalW += w; });
+      var startX = cx - (totalW - 1) * X_UNIT / 2;
+      var cumW = 0;
+      kids.forEach(function(cid, i) {
+        var childX = startX + (cumW + widths[i] / 2 - 0.5) * X_UNIT;
+        _place(cid, childX, depth * LEVEL_H);
+        _layoutDown(cid, childX, depth + 1);
+        cumW += widths[i];
+      });
+    }
+
+    /* ── Execute layout ──────────────────────────────────────────────── */
+    _place(centerId, 0, 0);
+    _layoutUp(centerId, 0, 1);
+    _layoutDown(centerId, 0, 1);
+
+    /* Any remaining unplaced nodes (disconnected): stack them aside */
+    var unplacedX = 0;
+    nodes.forEach(function(n) {
+      if (!placed[n.id]) {
+        unplacedX += X_UNIT;
+        nmap[n.id].x = unplacedX + 500;
+        nmap[n.id].y = (n.generation || 0) * LEVEL_H;
+      }
+    });
+
+    /* Return positioned nodes */
+    return nodes.map(function(n) {
+      var p = nmap[n.id];
+      return Object.assign({}, n, {
+        x: p.x, y: p.y,
+        fixed: { x: true, y: true }
+      });
+    });
+  }
+
   function initPedigree(canvas) {
-    pedNodes = new vis.DataSet(pedData.nodes);
+    /* Compute tree positions */
+    var positioned = _layoutPedigreeTree(
+      pedData.nodes, pedData.edges, pedData.center);
+    pedNodes = new vis.DataSet(positioned);
     pedEdges = new vis.DataSet(pedData.edges);
     var options = {
-      layout: {
-        hierarchical: {
-          enabled: true,
-          direction: 'UD',
-          sortMethod: 'directed',
-          levelSeparation: 100,
-          nodeSpacing: 120,
-        }
-      },
       physics: false,
       interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
       nodes: {
@@ -899,15 +1121,13 @@ function _lazyInitGraph(canvasId, initFn) {
       edges: {
         width: 1.5,
         font: { align: 'middle', color: '#78716c', size: 9, strokeWidth: 0 },
-        smooth: { type: 'cubicBezier' },
+        smooth: { enabled: true, type: 'cubicBezier', roundness: 0.5 },
       },
     };
-    /* Assign hierarchical level from generation (negated: ancestors up, descendants down) */
-    pedNodes.forEach(function(n) {
-      pedNodes.update({ id: n.id, level: (n.generation || 0) });
-    });
     var network = new vis.Network(canvas, { nodes: pedNodes, edges: pedEdges }, options);
     network.on('doubleClick', _hfGraphDblClick);
+    /* Fit the view to show all nodes */
+    network.once('afterDrawing', function() { network.fit({ animation: false }); });
   }
 
   window.filterPedigreeGenerations = function() {
@@ -923,12 +1143,11 @@ function _lazyInitGraph(canvasId, initFn) {
       pedNodes.update({ id: n.id, hidden: !visible });
       if (visible) shown++;
     });
-    /* Also hide edges where either endpoint is hidden */
     pedEdges.forEach(function(e) {
       var fromNode = pedNodes.get(e.from);
       var toNode = pedNodes.get(e.to);
-      var vis = fromNode && !fromNode.hidden && toNode && !toNode.hidden;
-      pedEdges.update({ id: e.id, hidden: !vis });
+      var v = fromNode && !fromNode.hidden && toNode && !toNode.hidden;
+      pedEdges.update({ id: e.id, hidden: !v });
     });
     var countEl = document.getElementById('ped-count');
     if (countEl) countEl.textContent = '(' + shown + ' shown)';
@@ -981,26 +1200,18 @@ function _lazyInitGraph(canvasId, initFn) {
 {% if graph_data_full and graph_data_full.edges|length > 0 %}
 (function() {
   var fullData = {{ graph_data_full|tojson }};
-  var fullNodes, fullEdges;
+  /* Deep clones for toggle/reset — never mutated */
+  var _origNodes = JSON.parse(JSON.stringify(fullData.nodes));
+  var _origEdges = JSON.parse(JSON.stringify(fullData.edges));
+  var fullNodes, fullEdges, fullNetwork;
+  var _currentSolver = 'forceAtlas2Based';
 
-  function initFullGraph(canvas) {
-    fullNodes = new vis.DataSet(fullData.nodes);
-    fullEdges = new vis.DataSet(fullData.edges);
-    var options = {
-      physics: {
-        solver: 'forceAtlas2Based',
-        forceAtlas2Based: {
-          gravitationalConstant: -40,
-          centralGravity: 0.01,
-          springLength: 100,
-          springConstant: 0.04,
-          damping: 0.4,
-        },
-        stabilization: { iterations: 150, fit: true },
-      },
+  /* ── Options builder ──────────────────────────────────────────────────── */
+  function _getFullGraphOptions(solver) {
+    solver = solver || 'forceAtlas2Based';
+    var opts = {
       interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
       nodes: {
-        shape: 'dot',
         font: { color: '#d6d3d1', size: 10, face: 'JetBrains Mono, Consolas, monospace' },
         borderWidth: 1.5,
       },
@@ -1009,45 +1220,201 @@ function _lazyInitGraph(canvasId, initFn) {
         font: { align: 'middle', color: '#78716c', size: 9, strokeWidth: 0 },
         smooth: { type: 'continuous' },
       },
+      layout: { hierarchical: { enabled: false } },
     };
-    var network = new vis.Network(canvas, { nodes: fullNodes, edges: fullEdges }, options);
-    network.on('doubleClick', _hfGraphDblClick);
+    if (solver === 'circle' || solver === 'grid') {
+      opts.physics = false;
+    } else if (solver === 'hierarchical') {
+      opts.layout = {
+        hierarchical: { enabled: true, direction: 'UD', sortMethod: 'directed',
+                        levelSeparation: 120, nodeSpacing: 80 }
+      };
+      opts.physics = false;
+    } else {
+      opts.physics = {
+        solver: solver,
+        stabilization: { iterations: 150, fit: true },
+      };
+      if (solver === 'forceAtlas2Based') {
+        opts.physics.forceAtlas2Based = {
+          gravitationalConstant: -40, centralGravity: 0.01,
+          springLength: 100, springConstant: 0.04, damping: 0.4,
+        };
+      }
+    }
+    return opts;
+  }
 
-    /* Wire up legend toggle checkboxes */
+  /* ── Filter helpers ───────────────────────────────────────────────────── */
+  function _getActiveFilters() {
+    var hiddenGroups = new Set();
+    var hiddenCats = new Set();
     document.querySelectorAll('.graph-node-toggle').forEach(function(cb) {
-      cb.addEventListener('change', function() {
-        var group = this.dataset.group;
-        var show = this.checked;
-        fullNodes.forEach(function(n) {
-          if (n.group === group) {
-            fullNodes.update({ id: n.id, hidden: !show });
-          }
-        });
-        _syncEdgeVisibility();
-      });
+      if (!cb.checked) hiddenGroups.add(cb.dataset.group);
     });
     document.querySelectorAll('.graph-edge-toggle').forEach(function(cb) {
-      cb.addEventListener('change', function() {
-        var cat = this.dataset.category;
-        var show = this.checked;
-        fullEdges.forEach(function(e) {
-          if (e.category === cat) {
-            fullEdges.update({ id: e.id, hidden: !show });
-          }
-        });
+      if (!cb.checked) hiddenCats.add(cb.dataset.category);
+    });
+    return { hiddenGroups: hiddenGroups, hiddenCats: hiddenCats };
+  }
+
+  function _rebuildDataSets() {
+    var filters = _getActiveFilters();
+    var visibleNodes = _origNodes.filter(function(n) {
+      return !filters.hiddenGroups.has(n.group);
+    });
+    var visibleNodeIds = new Set(visibleNodes.map(function(n) { return n.id; }));
+    var visibleEdges = _origEdges.filter(function(e) {
+      return !filters.hiddenCats.has(e.category)
+        && visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to);
+    });
+    /* Apply custom positions for non-physics layouts */
+    if (_currentSolver === 'circle') {
+      visibleNodes = _computeCirclePositions(visibleNodes, fullData.center);
+    } else if (_currentSolver === 'grid') {
+      visibleNodes = _computeGridPositions(visibleNodes);
+    }
+    fullNodes.clear();
+    fullEdges.clear();
+    fullNodes.add(visibleNodes);
+    fullEdges.add(visibleEdges);
+    /* Update node count display */
+    var countEl = document.getElementById('graph-node-count');
+    if (countEl) countEl.textContent = '(' + visibleNodes.length + ' nodes, ' + visibleEdges.length + ' edges)';
+  }
+
+  /* ── Custom position calculators ──────────────────────────────────────── */
+  function _computeCirclePositions(nodes, centerId) {
+    var center = null;
+    var others = [];
+    nodes.forEach(function(n) {
+      if (n.id === centerId) center = n;
+      else others.push(n);
+    });
+    var result = [];
+    if (center) {
+      result.push(Object.assign({}, center, { x: 0, y: 0, fixed: { x: true, y: true } }));
+    }
+    var count = others.length;
+    var radius = Math.max(200, count * 18);
+    others.forEach(function(n, i) {
+      var angle = (2 * Math.PI * i) / count - Math.PI / 2;
+      result.push(Object.assign({}, n, {
+        x: radius * Math.cos(angle), y: radius * Math.sin(angle),
+        fixed: { x: true, y: true }
+      }));
+    });
+    return result;
+  }
+
+  function _computeGridPositions(nodes) {
+    var cols = Math.ceil(Math.sqrt(nodes.length));
+    var spacing = 120;
+    return nodes.map(function(n, i) {
+      return Object.assign({}, n, {
+        x: (i % cols) * spacing, y: Math.floor(i / cols) * spacing,
+        fixed: { x: true, y: true }
       });
     });
   }
 
-  function _syncEdgeVisibility() {
-    /* Hide edges connected to hidden nodes */
-    fullEdges.forEach(function(e) {
-      var fromNode = fullNodes.get(e.from);
-      var toNode = fullNodes.get(e.to);
-      if ((fromNode && fromNode.hidden) || (toNode && toNode.hidden)) {
-        fullEdges.update({ id: e.id, hidden: true });
+  /* ── Layout switcher ──────────────────────────────────────────────────── */
+  function _applyLayout(solver) {
+    _currentSolver = solver;
+    _rebuildDataSets();
+    var opts = _getFullGraphOptions(solver);
+    fullNetwork.setOptions(opts);
+    if (solver === 'circle' || solver === 'grid' || solver === 'hierarchical') {
+      fullNetwork.fit({ animation: { duration: 300 } });
+    } else {
+      fullNetwork.stabilize();
+    }
+  }
+
+  /* ── Graph double-click navigation (supports HF, Entity, Site) ────────── */
+  function _fullGraphDblClick(params) {
+    if (params.nodes.length > 0) {
+      var nodeId = params.nodes[0];
+      var m;
+      if ((m = nodeId.match(/^hf-(\d+)$/))) {
+        var url = '/explorer/hf/' + m[1] + '?world_id={{ world_id }}';
+        if (typeof loadDetail === 'function') loadDetail(url + '&partial=1');
+        else window.location.href = url;
+      } else if ((m = nodeId.match(/^entity-(\d+)$/))) {
+        var url = '/explorer/entity/' + m[1] + '?world_id={{ world_id }}';
+        if (typeof loadDetail === 'function') loadDetail(url + '&partial=1');
+        else window.location.href = url;
+      } else if ((m = nodeId.match(/^site-(\d+)$/))) {
+        var url = '/explorer/site/' + m[1] + '?world_id={{ world_id }}';
+        if (typeof loadDetail === 'function') loadDetail(url + '&partial=1');
+        else window.location.href = url;
       }
+    }
+  }
+
+  /* ── Init ──────────────────────────────────────────────────────────────── */
+  function initFullGraph(canvas) {
+    fullNodes = new vis.DataSet(_origNodes.slice());
+    fullEdges = new vis.DataSet(_origEdges.slice());
+    var options = _getFullGraphOptions('forceAtlas2Based');
+    fullNetwork = new vis.Network(canvas, { nodes: fullNodes, edges: fullEdges }, options);
+    fullNetwork.on('doubleClick', _fullGraphDblClick);
+
+    /* Wire toggle checkboxes → rebuild DataSets (removes from physics) */
+    document.querySelectorAll('.graph-node-toggle, .graph-edge-toggle').forEach(function(cb) {
+      cb.addEventListener('change', function() { _rebuildDataSets(); });
     });
+
+    /* Wire layout selector */
+    var layoutSel = document.getElementById('graph-layout-select');
+    if (layoutSel) {
+      layoutSel.addEventListener('change', function() { _applyLayout(this.value); });
+    }
+
+    /* Wire degree selector (AJAX fetch) */
+    var degreeSel = document.getElementById('graph-degree-select');
+    if (degreeSel) {
+      degreeSel.addEventListener('change', function() {
+        var degree = parseInt(this.value);
+        var url = '/api/hf/{{ hf.id }}/graph?world_id={{ world_id }}&degree=' + degree;
+        degreeSel.disabled = true;
+        fetch(url)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            _origNodes = data.nodes;
+            _origEdges = data.edges;
+            _rebuildDataSets();
+            if (_currentSolver !== 'circle' && _currentSolver !== 'grid' && _currentSolver !== 'hierarchical') {
+              fullNetwork.stabilize();
+            } else {
+              fullNetwork.fit({ animation: { duration: 300 } });
+            }
+          })
+          .finally(function() { degreeSel.disabled = false; });
+      });
+    }
+
+    /* Wire reset button */
+    var resetBtn = document.getElementById('graph-reset-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        document.querySelectorAll('.graph-node-toggle, .graph-edge-toggle').forEach(function(cb) {
+          cb.checked = true;
+        });
+        var ds = document.getElementById('graph-degree-select');
+        if (ds) ds.value = '1';
+        var ls = document.getElementById('graph-layout-select');
+        if (ls) ls.value = 'forceAtlas2Based';
+        /* Restore original degree-1 data */
+        _origNodes = JSON.parse(JSON.stringify(fullData.nodes));
+        _origEdges = JSON.parse(JSON.stringify(fullData.edges));
+        _applyLayout('forceAtlas2Based');
+      });
+    }
+
+    /* Initial count */
+    var countEl = document.getElementById('graph-node-count');
+    if (countEl) countEl.textContent = '(' + _origNodes.length + ' nodes, ' + _origEdges.length + ' edges)';
   }
 
   _lazyInitGraph('full-graph-canvas', initFullGraph);

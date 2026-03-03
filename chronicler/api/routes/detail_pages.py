@@ -9,7 +9,7 @@ pages that use the cross-linking infrastructure.
 import os
 
 from fastapi import APIRouter, HTTPException, Request, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from chronicler.explorer.linking import EntityLinkRenderer, EntityNameCache
@@ -100,6 +100,78 @@ def _build_hf_node(gid: int, hf_map: dict, center_id: int) -> dict:
 
 _HF_GRAPH_COLS = ("id, name, death_year, is_deity, is_vampire, "
                    "is_necromancer, is_werebeast, is_ghost")
+
+# Entity node styles for full network graph (keyed by entities.type)
+_ENTITY_NODE_STYLES = {
+    'civilization':    {'color': '#3b82f6', 'shape': 'diamond',       'label': 'Civilization'},
+    'religion':        {'color': '#8b5cf6', 'shape': 'triangle',      'label': 'Sect'},
+    'guild':           {'color': '#f59e0b', 'shape': 'square',        'label': 'Guild'},
+    'sitegovernment':  {'color': '#10b981', 'shape': 'diamond',       'label': 'Site Gov'},
+    'merchantcompany': {'color': '#ef4444', 'shape': 'square',        'label': 'Mercenary'},
+    'performancetroupe': {'color': '#ec4899', 'shape': 'triangle',    'label': 'Troupe'},
+    'outcast':         {'color': '#78716c', 'shape': 'triangleDown',  'label': 'Outcast'},
+    'militaryunit':    {'color': '#dc2626', 'shape': 'star',          'label': 'Military'},
+    'nomadicgroup':    {'color': '#a3a3a3', 'shape': 'triangle',      'label': 'Nomads'},
+    'migratinggroup':  {'color': '#a3a3a3', 'shape': 'triangle',      'label': 'Migrants'},
+}
+
+# Additional edge colors and categories for entity/site relationships
+_GRAPH_EDGE_COLORS.update({
+    'member': '#a78bfa', 'former member': '#a78bfa',
+    'enemy': '#f87171', 'former prisoner': '#f87171',
+    'criminal': '#f87171', 'prisoner': '#ef4444',
+    'former slave': '#ef4444', 'slave': '#ef4444',
+    'home structure': '#22c55e', 'occupation': '#22c55e',
+    'seat of power': '#f6b93b', 'lair': '#92400e',
+    'hangout': '#78716c', 'home site building': '#22c55e',
+})
+
+_EDGE_CATEGORY.update({
+    'member': 'membership', 'former member': 'membership',
+    'enemy': 'conflict', 'former prisoner': 'conflict',
+    'criminal': 'conflict', 'prisoner': 'imprisonment',
+    'former slave': 'imprisonment', 'slave': 'imprisonment',
+    'home structure': 'residence', 'occupation': 'residence',
+    'seat of power': 'residence', 'lair': 'residence',
+    'hangout': 'residence', 'home site building': 'residence',
+})
+
+
+def _build_entity_node(entity_id: int, entity_row: dict) -> dict:
+    """Build a vis.js node dict for an entity (org/group)."""
+    etype = entity_row.get('entity_type') or entity_row.get('type') or ''
+    style = _ENTITY_NODE_STYLES.get(etype, {'color': '#6b7280', 'shape': 'diamond', 'label': etype})
+    return {
+        'id': f'entity-{entity_id}',
+        'label': entity_row.get('entity_name') or entity_row.get('name') or f'Entity #{entity_id}',
+        'size': 14,
+        'group': f'entity_{etype}',
+        'shape': style['shape'],
+        'color': {
+            'background': style['color'], 'border': '#44403c',
+            'highlight': {'background': style['color'], 'border': '#f6b93b'},
+        },
+        'font': {'color': '#d6d3d1', 'size': 9},
+        'borderWidth': 1,
+    }
+
+
+def _build_site_node(site_id: int, site_row: dict) -> dict:
+    """Build a vis.js node dict for a site (location)."""
+    return {
+        'id': f'site-{site_id}',
+        'label': site_row.get('site_name') or site_row.get('name') or f'Site #{site_id}',
+        'size': 14,
+        'group': 'site',
+        'shape': 'hexagon',
+        'color': {
+            'background': '#22c55e', 'border': '#44403c',
+            'highlight': {'background': '#22c55e', 'border': '#f6b93b'},
+        },
+        'font': {'color': '#d6d3d1', 'size': 9},
+        'borderWidth': 1,
+    }
+
 
 _MAX_NODES_PER_GEN = 30  # cap to prevent dynasty explosion
 
@@ -278,8 +350,17 @@ async def _build_career_data(conn, world_id: int, hf_id: int) -> dict:
 
 
 async def _build_full_graph_data(conn, world_id: int, hf_id: int,
-                                  relationships, co_parents) -> dict:
-    """Build the full network graph with all connection types."""
+                                  relationships, co_parents,
+                                  entity_links=None, site_links=None,
+                                  degree: int = 1) -> dict:
+    """Build the full network graph with BFS expansion and entity/site nodes.
+
+    degree 1 = direct relationships only (default).
+    degree 2-3 = BFS expansion through hf_links.
+    """
+    MAX_HF_NODES = 200
+
+    # ── BFS: collect HF IDs ───────────────────────────────────────────────
     graph_hf_ids = {hf_id}
     for r in relationships:
         if r['link_type'] not in ('deity',):
@@ -287,53 +368,83 @@ async def _build_full_graph_data(conn, world_id: int, hf_id: int,
     for cp in co_parents:
         graph_hf_ids.add(cp['target_hf_id'])
 
-    # Cap at 50 nodes for readability
-    if len(graph_hf_ids) > 51:
-        graph_hf_ids = {hf_id} | set(list(graph_hf_ids - {hf_id})[:50])
+    frontier = graph_hf_ids - {hf_id}
+
+    # Degrees 2+ : expand through hf_links
+    for _d in range(2, degree + 1):
+        if not frontier or len(graph_hf_ids) >= MAX_HF_NODES:
+            break
+        remaining = MAX_HF_NODES - len(graph_hf_ids)
+        flist = list(frontier)
+        vlist = list(graph_hf_ids)
+        new_fwd = await conn.fetch(
+            "SELECT DISTINCT target_hf_id FROM hf_links "
+            "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+            "AND link_type NOT IN ('deity') "
+            "AND target_hf_id != ALL($3::int[]) LIMIT $4",
+            world_id, flist, vlist, remaining)
+        new_rev = await conn.fetch(
+            "SELECT DISTINCT hf_id AS target_hf_id FROM hf_links "
+            "WHERE world_id = $1 AND target_hf_id = ANY($2::int[]) "
+            "AND link_type NOT IN ('deity') "
+            "AND hf_id != ALL($3::int[]) LIMIT $4",
+            world_id, flist, vlist, remaining)
+        next_frontier = set()
+        for r in list(new_fwd) + list(new_rev):
+            tid = r['target_hf_id']
+            if tid not in graph_hf_ids and len(graph_hf_ids) < MAX_HF_NODES:
+                graph_hf_ids.add(tid)
+                next_frontier.add(tid)
+        frontier = next_frontier
+
+    # Cap
+    if len(graph_hf_ids) > MAX_HF_NODES:
+        graph_hf_ids = {hf_id} | set(list(graph_hf_ids - {hf_id})[:MAX_HF_NODES - 1])
 
     graph_data: dict = {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}'}
 
-    if len(graph_hf_ids) <= 1:
+    if len(graph_hf_ids) <= 1 and not entity_links and not site_links:
         return graph_data
 
-    hf_rows = await conn.fetch(
-        f"SELECT {_HF_GRAPH_COLS} FROM historical_figures "
-        "WHERE world_id = $1 AND id = ANY($2::int[])",
-        world_id, list(graph_hf_ids))
-    hf_map = {r['id']: dict(r) for r in hf_rows}
+    # ── HF nodes ──────────────────────────────────────────────────────────
+    if graph_hf_ids:
+        hf_rows = await conn.fetch(
+            f"SELECT {_HF_GRAPH_COLS} FROM historical_figures "
+            "WHERE world_id = $1 AND id = ANY($2::int[])",
+            world_id, list(graph_hf_ids))
+        hf_map = {r['id']: dict(r) for r in hf_rows}
+        for gid in graph_hf_ids:
+            graph_data['nodes'].append(_build_hf_node(gid, hf_map, hf_id))
 
-    for gid in graph_hf_ids:
-        graph_data['nodes'].append(_build_hf_node(gid, hf_map, hf_id))
-
-    # Edges between all HFs in the set
-    graph_edges_raw = await conn.fetch(
-        "SELECT hf_id, target_hf_id, link_type FROM hf_links "
-        "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
-        "AND target_hf_id = ANY($2::int[]) AND link_type NOT IN ('deity')",
-        world_id, list(graph_hf_ids))
-
+    # ── HF-HF edges (among the collected set) ────────────────────────────
     seen_edges: set[tuple] = set()
     edge_id = 0
-    for e in graph_edges_raw:
-        pair = (min(e['hf_id'], e['target_hf_id']),
-                max(e['hf_id'], e['target_hf_id']))
-        key = pair + (e['link_type'],)
-        if key not in seen_edges:
-            seen_edges.add(key)
-            ec = _GRAPH_EDGE_COLORS.get(e['link_type'], '#57534e')
-            graph_data['edges'].append({
-                'id': edge_id,
-                'from': f"hf-{e['hf_id']}",
-                'to': f"hf-{e['target_hf_id']}",
-                'label': e['link_type'],
-                'category': _EDGE_CATEGORY.get(e['link_type'], 'other'),
-                'color': {'color': ec, 'highlight': '#f6b93b'},
-                'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
-                'arrows': '',
-            })
-            edge_id += 1
+    if len(graph_hf_ids) > 1:
+        graph_edges_raw = await conn.fetch(
+            "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+            "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+            "AND target_hf_id = ANY($2::int[]) AND link_type NOT IN ('deity')",
+            world_id, list(graph_hf_ids))
+        for e in graph_edges_raw:
+            pair = (min(e['hf_id'], e['target_hf_id']),
+                    max(e['hf_id'], e['target_hf_id']))
+            key = pair + (e['link_type'],)
+            if key not in seen_edges:
+                seen_edges.add(key)
+                ec = _GRAPH_EDGE_COLORS.get(e['link_type'], '#57534e')
+                graph_data['edges'].append({
+                    'id': edge_id,
+                    'from': f"hf-{e['hf_id']}",
+                    'to': f"hf-{e['target_hf_id']}",
+                    'label': e['link_type'],
+                    'category': _EDGE_CATEGORY.get(e['link_type'], 'other'),
+                    'color': {'color': ec, 'highlight': '#f6b93b'},
+                    'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                    'arrows': '',
+                })
+                edge_id += 1
 
-    # Add inferred co-parent edges (dashed)
+    # ── Inferred co-parent edges (dashed) ─────────────────────────────────
     node_ids = {n['id'] for n in graph_data['nodes']}
     for cp in co_parents:
         cp_id = cp['target_hf_id']
@@ -354,6 +465,52 @@ async def _build_full_graph_data(conn, world_id: int, hf_id: int,
                     'arrows': '',
                 })
                 edge_id += 1
+
+    # ── Entity nodes + membership edges (center HF only) ─────────────────
+    if entity_links:
+        seen_entity_ids = set()
+        for el in entity_links:
+            eid = el['entity_id']
+            if eid not in seen_entity_ids:
+                seen_entity_ids.add(eid)
+                graph_data['nodes'].append(_build_entity_node(eid, dict(el)))
+            lt = el.get('link_type') or 'member'
+            ec = _GRAPH_EDGE_COLORS.get(lt, '#a78bfa')
+            cat = _EDGE_CATEGORY.get(lt, 'membership')
+            graph_data['edges'].append({
+                'id': edge_id,
+                'from': f'hf-{hf_id}',
+                'to': f'entity-{eid}',
+                'label': lt,
+                'category': cat,
+                'color': {'color': ec, 'highlight': '#f6b93b'},
+                'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                'arrows': 'to',
+            })
+            edge_id += 1
+
+    # ── Site nodes + residence edges (center HF only) ─────────────────────
+    if site_links:
+        seen_site_ids = set()
+        for sl in site_links:
+            sid = sl['site_id']
+            if sid not in seen_site_ids:
+                seen_site_ids.add(sid)
+                graph_data['nodes'].append(_build_site_node(sid, dict(sl)))
+            lt = sl.get('link_type') or 'home'
+            ec = _GRAPH_EDGE_COLORS.get(lt, '#22c55e')
+            cat = _EDGE_CATEGORY.get(lt, 'residence')
+            graph_data['edges'].append({
+                'id': edge_id,
+                'from': f'hf-{hf_id}',
+                'to': f'site-{sid}',
+                'label': lt,
+                'category': cat,
+                'color': {'color': ec, 'highlight': '#f6b93b'},
+                'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                'arrows': '',
+            })
+            edge_id += 1
 
     return graph_data
 
@@ -784,7 +941,8 @@ async def hf_detail_page(hf_id: int, request: Request,
             conn, world_id, hf_id, max_up=5, max_down=5)
         graph_data_career = await _build_career_data(conn, world_id, hf_id)
         graph_data_full = await _build_full_graph_data(
-            conn, world_id, hf_id, relationships, co_parents)
+            conn, world_id, hf_id, relationships, co_parents,
+            entity_links=entity_links, site_links=site_links)
 
     # Build type flags
     type_flags = []
@@ -846,6 +1004,82 @@ async def hf_detail_page(hf_id: int, request: Request,
         "graph_data_career": graph_data_career,
         "graph_data_full": graph_data_full,
     })
+
+
+# ─── Graph Data API (AJAX endpoint for degree changes) ─────────────────────
+
+@router.get("/api/hf/{hf_id}/graph")
+async def hf_graph_data(hf_id: int, request: Request,
+                        world_id: int = Query(None),
+                        degree: int = Query(1)):
+    """Return graph JSON for the full network at a given hop depth."""
+    degree = max(1, min(3, degree))
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        if not world_id:
+            world_id = await _get_default_world_id(conn)
+
+        # Direct relationships (same query as hf_detail_page)
+        relationships = await conn.fetch(
+            "SELECT l.target_hf_id, l.link_type, "
+            "h.name AS target_name, h.race AS target_race, "
+            "h.caste AS target_caste, h.death_year AS target_death_year "
+            "FROM hf_links l "
+            "LEFT JOIN historical_figures h ON h.world_id = l.world_id "
+            "AND h.id = l.target_hf_id "
+            "WHERE l.world_id = $1 AND l.hf_id = $2 "
+            "ORDER BY l.link_type, h.name",
+            world_id, hf_id)
+
+        # Co-parents (simplified — just need target_hf_id for graph)
+        co_parents = await conn.fetch("""
+            SELECT other_parent.target_hf_id
+            FROM hf_links child_link
+            JOIN hf_links other_parent
+                ON other_parent.world_id = child_link.world_id
+                AND other_parent.hf_id = child_link.target_hf_id
+                AND other_parent.link_type IN ('mother', 'father')
+                AND other_parent.target_hf_id != $2
+            WHERE child_link.world_id = $1
+                AND child_link.hf_id = $2
+                AND child_link.link_type = 'child'
+                AND NOT EXISTS (
+                    SELECT 1 FROM hf_links ex
+                    WHERE ex.world_id = $1
+                      AND ((ex.hf_id = $2 AND ex.target_hf_id = other_parent.target_hf_id)
+                        OR (ex.hf_id = other_parent.target_hf_id AND ex.target_hf_id = $2))
+                      AND ex.link_type IN ('spouse', 'former spouse', 'deceased spouse', 'lover')
+                )
+            GROUP BY other_parent.target_hf_id
+        """, world_id, hf_id)
+
+        # Entity memberships
+        entity_links = await conn.fetch(
+            "SELECT l.entity_id, l.link_type, "
+            "e.name AS entity_name, e.type AS entity_type "
+            "FROM hf_entity_links l "
+            "LEFT JOIN entities e ON e.world_id = l.world_id AND e.id = l.entity_id "
+            "WHERE l.world_id = $1 AND l.hf_id = $2",
+            world_id, hf_id)
+
+        # Site links
+        site_links = await conn.fetch(
+            "SELECT l.site_id, l.link_type, "
+            "s.name AS site_name, s.type AS site_type "
+            "FROM hf_site_links l "
+            "LEFT JOIN sites s ON s.world_id = l.world_id AND s.id = l.site_id "
+            "WHERE l.world_id = $1 AND l.hf_id = $2",
+            world_id, hf_id)
+
+        graph_data = await _build_full_graph_data(
+            conn, world_id, hf_id,
+            [dict(r) for r in relationships],
+            [dict(r) for r in co_parents],
+            entity_links=[dict(e) for e in entity_links],
+            site_links=[dict(s) for s in site_links],
+            degree=degree)
+
+    return JSONResponse(graph_data)
 
 
 # ─── Entity (Civilization) Detail Page ──────────────────────────────────────
