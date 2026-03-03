@@ -156,6 +156,15 @@
         </div>
       </div>
       <div class="px-3 py-1.5 border-b border-stone-800/50 flex-shrink-0" id="people-filter-bar" style="display:none">
+        <div class="flex items-center gap-2 mb-1.5">
+          <span class="text-stone-500 text-[10px] font-medium">Status:</span>
+          <div class="inline-flex rounded border border-stone-700 text-[10px] overflow-hidden">
+            <button class="px-2 py-0.5 bg-amber-600 text-stone-950 font-bold people-alive-btn" data-val="all" onclick="setPeopleAliveFilter('all')">All</button>
+            <button class="px-2 py-0.5 text-stone-400 hover:text-stone-200 people-alive-btn" data-val="alive" onclick="setPeopleAliveFilter('alive')">Alive</button>
+            <button class="px-2 py-0.5 text-stone-400 hover:text-stone-200 people-alive-btn" data-val="dead" onclick="setPeopleAliveFilter('dead')">Dead</button>
+          </div>
+          <span id="people-alive-count" class="text-stone-600 text-[10px]"></span>
+        </div>
         <input id="people-filter" type="text" placeholder="Filter results..."
                class="w-full bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs focus:border-amber-500 focus:outline-none"
                oninput="filterPeopleList()">
@@ -533,6 +542,19 @@ function typeFlagBadges(flags) {
 // ═══════════════════════════════════════════════════════════════════════
 let selectedPerson = null;
 let peopleResults = [];
+let peopleAliveFilter = 'all';  /* 'all' | 'alive' | 'dead' */
+
+function setPeopleAliveFilter(val) {
+  peopleAliveFilter = val;
+  document.querySelectorAll('.people-alive-btn').forEach(function(btn) {
+    if (btn.dataset.val === val) {
+      btn.className = 'px-2 py-0.5 bg-amber-600 text-stone-950 font-bold people-alive-btn';
+    } else {
+      btn.className = 'px-2 py-0.5 text-stone-400 hover:text-stone-200 people-alive-btn';
+    }
+  });
+  filterPeopleList();
+}
 
 function renderPeopleItem(p) {
   const isActive = selectedPerson === `${p.source}-${p.id}` ? ' active' : '';
@@ -556,6 +578,11 @@ function filterPeopleList() {
   const q = (document.getElementById('people-filter').value || '').toLowerCase();
   const list = document.getElementById('people-list');
   let filtered = peopleResults;
+  if (peopleAliveFilter === 'alive') {
+    filtered = filtered.filter(p => p.is_alive);
+  } else if (peopleAliveFilter === 'dead') {
+    filtered = filtered.filter(p => !p.is_alive);
+  }
   if (q) {
     filtered = filtered.filter(p =>
       (p.name || '').toLowerCase().includes(q) ||
@@ -563,6 +590,8 @@ function filterPeopleList() {
       (p.race || '').toLowerCase().includes(q)
     );
   }
+  var countEl = document.getElementById('people-alive-count');
+  if (countEl) countEl.textContent = '(' + filtered.length + ')';
   list.innerHTML = filtered.map(renderPeopleItem).join('') ||
     '<div class="text-stone-500 text-xs px-3 py-4 text-center">No matches</div>';
 }
@@ -594,7 +623,7 @@ async function searchPeople() {
       list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">No results</div>';
       return;
     }
-    list.innerHTML = results.map(renderPeopleItem).join('');
+    filterPeopleList();
   } catch (e) {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
   }
