@@ -3,9 +3,7 @@
 {% block title %}{{ entity_name }} — Site — Chronicler{% endblock %}
 
 {% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
-<a href="/explorer?tab=geography">Geography</a>
+<a href="/explorer?tab=geo">Geography</a>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
 {% endblock %}
@@ -34,6 +32,8 @@
   {% if owner %}<span>Owner: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
   <span>Structures: {{ structures|length }}</span>
   <span>Events: {{ event_count }}</span>
+  {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
+  {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
 </div>
 {% endblock %}
 

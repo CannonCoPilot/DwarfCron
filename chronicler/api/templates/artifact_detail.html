@@ -3,8 +3,6 @@
 {% block title %}{{ entity_name }} — Artifact — Chronicler{% endblock %}
 
 {% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
 <span class="text-stone-400 text-xs">Artifact</span>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
@@ -48,8 +46,11 @@
   {% if site %}
     <span>At: {{ linker.link('site', site.id, site.name, world_id)|safe }}</span>
   {% endif %}
-  {% if artifact.importance_score %}
-    <span>Importance: {{ "%.0f"|format(artifact.importance_score) }}</span>
+  {% if artifact.prominence_score %}
+    <span>Prominence: {{ "%.1f"|format(artifact.prominence_score) }}</span>
+  {% endif %}
+  {% if artifact.salience_score %}
+    <span>Salience: {{ "%.1f"|format(artifact.salience_score) }}</span>
   {% endif %}
 </div>
 {% endblock %}

@@ -109,20 +109,21 @@ async def delete_world(conn: asyncpg.Connection, world_id: int) -> dict[str, int
 
 
 async def delete_all_worlds(conn: asyncpg.Connection) -> tuple[int, dict[str, int]]:
-    """Delete all worlds and child rows via CASCADE. Returns (world_count, table_counts)."""
+    """Delete all worlds and child rows via TRUNCATE CASCADE. Returns (world_count, table_counts)."""
     world_count = await conn.fetchval("SELECT count(*) FROM worlds")
     if world_count == 0:
         return 0, {}
 
-    # Snapshot counts before delete (for reporting)
+    # Snapshot counts before truncate (for reporting)
     deleted = {}
     for table in _DELETE_ORDER:
         count = await conn.fetchval(f"SELECT count(*) FROM {table}")
         if count > 0:
             deleted[table] = count
 
-    # Single DELETE cascades to all child tables
-    await conn.execute("DELETE FROM worlds")
+    # TRUNCATE CASCADE is O(1) regardless of row count — deallocates pages
+    # instead of scanning/deleting rows individually like DELETE does
+    await conn.execute("TRUNCATE worlds CASCADE")
     deleted["worlds"] = world_count
 
     # Reset world ID sequence

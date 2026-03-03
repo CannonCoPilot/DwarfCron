@@ -68,9 +68,7 @@ async def _get_world_info(conn, world_id: int) -> dict:
 @router.get("/explorer/hf/{hf_id}", response_class=HTMLResponse)
 async def hf_detail_page(hf_id: int, request: Request,
                          world_id: int = Query(None),
-                         events: str = Query(None),
                          partial: str = Query(None)):
-    show_all_events = events == 'all'
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
@@ -126,7 +124,7 @@ async def hf_detail_page(hf_id: int, request: Request,
                 SELECT s.id AS site_id, s.name AS site_name
                 FROM sites s
                 WHERE s.world_id = l.world_id AND s.owner_entity_id = l.entity_id
-                ORDER BY s.importance_score DESC NULLS LAST
+                ORDER BY s.prominence_score DESC NULLS LAST
                 LIMIT 1
             ) ps ON true
             WHERE l.world_id = $1 AND l.hf_id = $2
@@ -228,7 +226,7 @@ async def hf_detail_page(hf_id: int, request: Request,
             WHERE world_id = $1 AND entity_type = 'hf' AND entity_id = $2
         """, world_id, hf_id)
 
-        event_limit = 5000 if show_all_events else 50
+        event_limit = 5000  # Fetch all; client-side show/hide handles truncation
         events_rows = await conn.fetch("""
             SELECT e.id, e.year, e.seconds, e.event_type, e.details,
                    e.hf_id_1, e.hf_id_2, e.site_id, e.region_id,
@@ -324,7 +322,7 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'victim_id': victim_id, 'victim_name': victim_name,
             })
 
-        # Resolve kill victim names, race, and entity from kills JSONB
+        # Resolve kill victim names, race, entity, and site from kills JSONB
         kills_resolved = []
         raw_kills = hf.get('kills')
         if raw_kills:
@@ -344,9 +342,19 @@ async def hf_detail_page(hf_id: int, request: Request,
                         WHERE h.world_id = $1 AND h.id = ANY($2::int[])
                     """, world_id, victim_ids)
                     victim_info = {r['id']: dict(r) for r in victim_details_rows}
+                    # Batch-fetch kill sites from death events (hf_id_1=victim, hf_id_2=slayer)
+                    kill_site_rows = await conn.fetch("""
+                        SELECT e.hf_id_1 AS victim_id, e.site_id, s.name AS site_name
+                        FROM history_events e
+                        LEFT JOIN sites s ON s.world_id = e.world_id AND s.id = e.site_id
+                        WHERE e.world_id = $1 AND e.event_type = 'hf died'
+                          AND e.hf_id_2 = $2 AND e.hf_id_1 = ANY($3::int[])
+                    """, world_id, hf_id, victim_ids)
+                    kill_sites = {r['victim_id']: dict(r) for r in kill_site_rows}
                     for k in event_kills:
                         vid = k.get('victim_id')
                         info = victim_info.get(int(vid), {}) if vid else {}
+                        site_info = kill_sites.get(int(vid), {}) if vid else {}
                         race_raw = info.get('race', '')
                         kills_resolved.append({
                             'year': k.get('year'),
@@ -356,6 +364,8 @@ async def hf_detail_page(hf_id: int, request: Request,
                             'victim_race': race_raw.replace('_', ' ').title() if race_raw else None,
                             'victim_entity_name': info.get('entity_name'),
                             'victim_entity_id': info.get('entity_id'),
+                            'site_id': site_info.get('site_id'),
+                            'site_name': site_info.get('site_name'),
                         })
 
         # Parse JSONB fields for template
@@ -513,7 +523,6 @@ async def hf_detail_page(hf_id: int, request: Request,
         "identities": [dict(i) for i in identities],
         "events": rendered_events,
         "event_count": event_count,
-        "show_all_events": show_all_events,
         "primary_entity": dict(primary_entity) if primary_entity else None,
         "prev_hf": dict(prev_hf) if prev_hf else None,
         "next_hf": dict(next_hf) if next_hf else None,
@@ -579,12 +588,12 @@ async def entity_detail_page(entity_id: int, request: Request,
         # Notable members by importance
         members = await conn.fetch("""
             SELECT l.hf_id, l.link_type, l.position_name,
-                   h.name AS hf_name, h.race AS hf_race, h.importance_score,
+                   h.name AS hf_name, h.race AS hf_race, h.prominence_score,
                    h.is_deity, h.is_vampire, h.is_necromancer
             FROM hf_entity_links l
             JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.hf_id
             WHERE l.world_id = $1 AND l.entity_id = $2
-            ORDER BY h.importance_score DESC NULLS LAST
+            ORDER BY h.prominence_score DESC NULLS LAST
             LIMIT 100
         """, world_id, entity_id)
 

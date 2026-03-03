@@ -3,9 +3,7 @@
 {% block title %}{{ entity_name }} — Civilization — Chronicler{% endblock %}
 
 {% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
-<a href="/explorer?tab=civilizations">Civilizations</a>
+<a href="/explorer?tab=civs">Civilizations</a>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
 {% endblock %}
@@ -31,6 +29,8 @@
   <span>Members: {{ member_count }}</span>
   {% if sites %}<span>Sites: {{ sites|length }}</span>{% endif %}
   {% if wars %}<span>Wars: {{ wars|length }}</span>{% endif %}
+  {% if entity.prominence_score %}<span>Prominence: {{ "%.1f"|format(entity.prominence_score) }}</span>{% endif %}
+  {% if entity.salience_score %}<span>Salience: {{ "%.1f"|format(entity.salience_score) }}</span>{% endif %}
 </div>
 {% endblock %}
 
@@ -137,7 +137,7 @@
               {% if m.position_name %}<span class="badge badge-leader">{{ m.position_name }}</span>{% endif %}
             </td>
             <td class="text-stone-600 text-xs">{{ m.hf_race|default('', true)|title }}</td>
-            <td class="text-right text-stone-500 text-xs">{{ '%.0f'|format(m.importance_score) if m.importance_score else '-' }}</td>
+            <td class="text-right text-stone-500 text-xs">{{ '%.1f'|format(m.prominence_score) if m.prominence_score else '-' }}</td>
           </tr>
           {% endfor %}
         </tbody>

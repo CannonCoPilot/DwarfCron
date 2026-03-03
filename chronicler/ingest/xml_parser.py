@@ -401,6 +401,17 @@ def _parse_event_collections(root, world_id: int) -> tuple[list, list, list]:
 def _parse_artifacts(root, world_id: int) -> list[tuple]:
     rows = []
     for a in root.findall(".//artifact"):
+        # Build details JSONB from any extra tags in legends.xml
+        details = {}
+        writing_id = _int(a, "writing")
+        if writing_id is not None:
+            details["writing_id"] = writing_id
+        page_count = _int(a, "page_count")
+        if page_count is not None:
+            details["page_count"] = page_count
+        item_desc = _text(a, "item_description")
+        if item_desc:
+            details["item_description"] = item_desc
         rows.append((
             _int(a, "id"),
             world_id,
@@ -411,7 +422,7 @@ def _parse_artifacts(root, world_id: int) -> list[tuple]:
             _int(a, "creator_hfid") or _int(a, "hist_figure_id"),
             _int(a, "holder_hfid"),
             _int(a, "site_id"),
-            None,  # details
+            details if details else None,
         ))
     return rows
 
@@ -537,6 +548,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "hf_enrichment": [],  # (hf_id, world_id, field_dict) for HF UPDATE pass
         "region_enrichment": [],  # (id, world_id, coords, evilness) for region UPDATE
         "creature_dictionary": [],  # (world_id, creature_id, name_singular, name_plural, flags_json)
+        "artifact_enrichment": [],  # (artifact_id, world_id, details_dict) for artifact UPDATE
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -872,6 +884,24 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
     # Creature dictionary (creature_raw section)
     result["creature_dictionary"] = _parse_creature_raw(root, world_id)
 
+    # Artifact enrichment: capture writing_id and page_count from legends_plus
+    for a in root.findall(".//artifact"):
+        aid = _int(a, "id")
+        if aid is None:
+            continue
+        details = {}
+        writing_id = _int(a, "writing")
+        if writing_id is not None:
+            details["writing_id"] = writing_id
+        page_count = _int(a, "page_count")
+        if page_count is not None:
+            details["page_count"] = page_count
+        item_desc = _text(a, "item_description")
+        if item_desc:
+            details["item_description"] = item_desc
+        if details:
+            result["artifact_enrichment"].append((aid, world_id, details))
+
     return result
 
 
@@ -956,6 +986,10 @@ async def import_legends(
         # HF enrichment: update world_id at position [1]
         plus_data["hf_enrichment"] = [
             (row[0], world_id, row[2]) for row in plus_data["hf_enrichment"]
+        ]
+        # Artifact enrichment: update world_id at position [1]
+        plus_data["artifact_enrichment"] = [
+            (row[0], world_id, row[2]) for row in plus_data["artifact_enrichment"]
         ]
 
     # ── Step 4: Insert in FK dependency order ─────────────────────────────
@@ -1317,6 +1351,19 @@ async def import_legends(
                     updated_sites += 1
             counts["site_owners"] = updated_sites
             log.info("  site ownership: %d", updated_sites)
+
+        # Artifact enrichment: writing_id, page_count from legends_plus
+        if plus_data["artifact_enrichment"]:
+            art_updated = 0
+            for aid, wid, details in plus_data["artifact_enrichment"]:
+                await conn.execute(
+                    "UPDATE artifacts SET details = COALESCE(details, '{}'::jsonb) || $1::jsonb "
+                    "WHERE world_id = $2 AND id = $3",
+                    details, wid, aid,
+                )
+                art_updated += 1
+            counts["artifact_enrichment"] = art_updated
+            log.info("  artifact_enrichment: %d artifacts updated", art_updated)
 
     # ── Step 6: Update computed counts (scoped to current world) ──────────
     await conn.execute("""

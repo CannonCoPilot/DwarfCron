@@ -3,9 +3,7 @@
 {% block title %}{{ entity_name }} — Region — Chronicler{% endblock %}
 
 {% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
-<a href="/explorer?tab=geography">Geography</a>
+<a href="/explorer?tab=geo">Geography</a>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
 {% endblock %}
@@ -44,6 +42,8 @@
     <span>Coords: {{ region.coords }}</span>
   {% endif %}
   <span>Events: {{ event_count }}</span>
+  {% if region.prominence_score %}<span>Prominence: {{ "%.1f"|format(region.prominence_score) }}</span>{% endif %}
+  {% if region.salience_score %}<span>Salience: {{ "%.1f"|format(region.salience_score) }}</span>{% endif %}
 </div>
 {% endblock %}
 

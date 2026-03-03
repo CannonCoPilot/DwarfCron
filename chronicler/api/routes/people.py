@@ -152,14 +152,14 @@ async def search_people(
                     SELECT h.id, h.world_id, h.name, h.race, h.caste, h.death_year,
                            h.is_deity, h.is_force, h.is_vampire,
                            h.is_necromancer, h.is_werebeast, h.is_ghost,
-                           h.importance_score,
+                           h.prominence_score,
                            cd.name_singular AS race_name
                     FROM historical_figures h
                     LEFT JOIN creature_dictionary cd
                            ON cd.world_id = h.world_id AND cd.creature_id = h.race
                     WHERE unaccent(h.name) ILIKE unaccent($1)
                     {where_extra}
-                    ORDER BY h.importance_score DESC NULLS LAST, h.name
+                    ORDER BY h.prominence_score DESC NULLS LAST, h.name
                     LIMIT $2
                     """,
                     *params,
@@ -351,14 +351,14 @@ async def browse_people(
             SELECT h.id, h.world_id, h.name, h.race, h.caste, h.death_year,
                    h.is_deity, h.is_force, h.is_vampire,
                    h.is_necromancer, h.is_werebeast, h.is_ghost,
-                   h.importance_score,
+                   h.prominence_score,
                    cd.name_singular AS race_name
             FROM historical_figures h
             LEFT JOIN creature_dictionary cd
                    ON cd.world_id = h.world_id AND cd.creature_id = h.race
             WHERE h.world_id = $1 AND h.name IS NOT NULL AND h.name != ''
             {where_extra}
-            ORDER BY h.importance_score DESC NULLS LAST, h.id
+            ORDER BY h.prominence_score DESC NULLS LAST, h.id
             LIMIT $2
             """,
             *params,

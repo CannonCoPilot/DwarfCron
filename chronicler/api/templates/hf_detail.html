@@ -2,14 +2,13 @@
 
 {% block extra_head %}
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>.hf-event-overflow { display: none; }</style>
 {% endblock %}
 
 {% block title %}{{ entity_name }} — Historical Figure — Chronicler{% endblock %}
 
 {# ─── Breadcrumb ─────────────────────────────────────────────────────────── #}
 {% block breadcrumb %}
-<a href="/explorer">Explorer</a>
-<span>›</span>
 <a href="/explorer?tab=people">People</a>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
@@ -73,8 +72,11 @@
       <span>Age: 250+</span>
     {% endif %}
   {% endif %}
-  {% if hf.importance_score %}
-    <span>Importance: {{ "%.0f"|format(hf.importance_score) }}</span>
+  {% if hf.prominence_score %}
+    <span>Prominence: {{ "%.1f"|format(hf.prominence_score) }}</span>
+  {% endif %}
+  {% if hf.salience_score %}
+    <span>Salience: {{ "%.1f"|format(hf.salience_score) }}</span>
   {% endif %}
   {% if primary_entity %}
     <span>Civ: {{ linker.link('entity', primary_entity.id, primary_entity.name, world_id)|safe }}</span>
@@ -505,20 +507,36 @@
     {% if kills_resolved %}
     <div class="section-card lg:col-span-2">
       <div class="section-title">Kills ({{ kills_resolved|length }})</div>
+      {# Year range filter slider #}
+      {% set kill_years = kills_resolved|map(attribute='year')|select('number')|list %}
+      {% if kill_years|length > 1 %}
+      <div class="flex items-center gap-3 mb-2 text-xs text-stone-400">
+        <span>Year:</span>
+        <span id="kills-year-min-label">{{ kill_years|min }}</span>
+        <input type="range" id="kills-year-min" min="{{ kill_years|min }}" max="{{ kill_years|max }}" value="{{ kill_years|min }}"
+               class="flex-1 h-1 accent-amber-500 cursor-pointer" oninput="filterKillsByYear()">
+        <span>–</span>
+        <input type="range" id="kills-year-max" min="{{ kill_years|min }}" max="{{ kill_years|max }}" value="{{ kill_years|max }}"
+               class="flex-1 h-1 accent-amber-500 cursor-pointer" oninput="filterKillsByYear()">
+        <span id="kills-year-max-label">{{ kill_years|max }}</span>
+        <span id="kills-year-count" class="text-stone-500 ml-1">({{ kills_resolved|length }})</span>
+      </div>
+      {% endif %}
       <div class="max-h-96 overflow-y-auto ex-scroll">
-        <table class="w-full text-xs">
+        <table class="w-full text-xs" id="kills-table">
           <thead>
             <tr class="text-stone-500 border-b border-stone-800">
               <th class="text-left pb-1">Year</th>
-              <th class="text-left pb-1">Victim</th>
+              <th class="text-left pb-1">Name</th>
               <th class="text-left pb-1">Race</th>
+              <th class="text-left pb-1">Site</th>
               <th class="text-left pb-1">Civilization</th>
               <th class="text-left pb-1">Cause</th>
             </tr>
           </thead>
           <tbody>
             {% for k in kills_resolved %}
-            <tr class="border-b border-stone-800/50">
+            <tr class="border-b border-stone-800/50 kills-row" data-year="{{ k.year|default(0) }}">
               <td class="py-0.5 text-stone-500">{{ k.year|default('?') }}</td>
               <td>
                 {% if k.victim_id %}
@@ -528,6 +546,13 @@
                 {% endif %}
               </td>
               <td class="text-stone-500">{{ k.victim_race|default('', true) }}</td>
+              <td>
+                {% if k.site_id %}
+                  {{ linker.link('site', k.site_id, k.site_name, world_id)|safe }}
+                {% else %}
+                  <span class="text-stone-700">—</span>
+                {% endif %}
+              </td>
               <td>
                 {% if k.victim_entity_id %}
                   {{ linker.link('entity', k.victim_entity_id, k.victim_entity_name, world_id)|safe }}
@@ -650,7 +675,7 @@
         </thead>
         <tbody>
           {% for ev in events %}
-          <tr class="event-row">
+          <tr class="event-row{% if loop.index > 50 %} hf-event-overflow{% endif %}">
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
             <td class="py-1 event-text">{{ ev.text|safe }}</td>
@@ -659,14 +684,16 @@
         </tbody>
       </table>
     </div>
-    {% if event_count > events|length and not show_all_events %}
-      <div class="mt-2 text-center text-stone-500 text-xs">
-        Showing first {{ events|length }} of {{ event_count }} events.
-        <a href="/explorer/hf/{{ hf.id }}?world_id={{ world_id }}&events=all#tab=events" class="text-amber-400 hover:underline">Load all</a>
-      </div>
-    {% elif show_all_events %}
-      <div class="mt-2 text-center text-stone-500 text-xs">
-        Showing all {{ events|length }} events.
+    {% if events|length > 50 %}
+      <div class="mt-2 text-center text-stone-500 text-xs" id="hf-events-toggle">
+        <span id="hf-events-truncated">
+          Showing first 50 of {{ events|length }} events.
+          <button onclick="toggleAllHfEvents(true)" class="text-amber-400 hover:underline bg-transparent border-0 cursor-pointer p-0 font-inherit text-inherit">Load all</button>
+        </span>
+        <span id="hf-events-expanded" style="display:none;">
+          Showing all {{ events|length }} events.
+          <button onclick="toggleAllHfEvents(false)" class="text-amber-400 hover:underline bg-transparent border-0 cursor-pointer p-0 font-inherit text-inherit">Show first 50</button>
+        </span>
       </div>
     {% endif %}
     {% else %}
@@ -747,4 +774,33 @@
 })();
 </script>
 {% endif %}
+<script>
+function filterKillsByYear() {
+  var minEl = document.getElementById('kills-year-min');
+  var maxEl = document.getElementById('kills-year-max');
+  if (!minEl || !maxEl) return;
+  var lo = parseInt(minEl.value), hi = parseInt(maxEl.value);
+  if (lo > hi) { var t = lo; lo = hi; hi = t; minEl.value = lo; maxEl.value = hi; }
+  document.getElementById('kills-year-min-label').textContent = lo;
+  document.getElementById('kills-year-max-label').textContent = hi;
+  var rows = document.querySelectorAll('.kills-row');
+  var shown = 0;
+  rows.forEach(function(r) {
+    var y = parseInt(r.dataset.year);
+    var vis = (y >= lo && y <= hi);
+    r.style.display = vis ? '' : 'none';
+    if (vis) shown++;
+  });
+  document.getElementById('kills-year-count').textContent = '(' + shown + ')';
+}
+function toggleAllHfEvents(showAll) {
+  document.querySelectorAll('.hf-event-overflow').forEach(function(r) {
+    r.style.display = showAll ? '' : 'none';
+  });
+  var trunc = document.getElementById('hf-events-truncated');
+  var expanded = document.getElementById('hf-events-expanded');
+  if (trunc) trunc.style.display = showAll ? 'none' : '';
+  if (expanded) expanded.style.display = showAll ? '' : 'none';
+}
+</script>
 {% endblock %}

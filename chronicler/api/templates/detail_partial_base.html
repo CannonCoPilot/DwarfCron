@@ -6,9 +6,13 @@
    The endpoint passes base_template="detail_partial_base.html" when ?partial=1.
 
    Blocks NOT defined here (title, breadcrumb, prevnext, header_actions,
-   extra_head, header) are silently discarded by Jinja2 when the child
-   fills them — this is how we suppress the full-page chrome.
+   header) are silently discarded by Jinja2 when the child fills them —
+   this is how we suppress the full-page chrome. extra_head IS defined
+   so child styles (like .hf-event-overflow) render inline in the partial.
 #}
+
+{# ── Extra Head (styles/scripts from child templates — rendered inline for partials) ── #}
+{% block extra_head %}{% endblock %}
 
 {# ── Entity Header ── #}
 <div class="px-2 py-3 border-b border-stone-800">
