@@ -2395,19 +2395,27 @@ async def construction_detail_page(construction_id: int, request: Request,
 
 @router.get("/explorer/art_form/{art_form_id}", response_class=HTMLResponse)
 async def art_form_detail_page(art_form_id: int, request: Request,
-                                world_id: int = Query(None)):
+                                world_id: int = Query(None),
+                                form_type: str = Query(None)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
 
-        art_form = await conn.fetchrow(
-            "SELECT * FROM art_forms WHERE world_id = $1 AND id = $2",
-            world_id, art_form_id,
-        )
+        if form_type:
+            art_form = await conn.fetchrow(
+                "SELECT * FROM art_forms WHERE world_id = $1 AND id = $2 AND form_type = $3",
+                world_id, art_form_id, form_type,
+            )
+        else:
+            art_form = await conn.fetchrow(
+                "SELECT * FROM art_forms WHERE world_id = $1 AND id = $2 ORDER BY form_type LIMIT 1",
+                world_id, art_form_id,
+            )
         if not art_form:
             raise HTTPException(404, f"Art form #{art_form_id} not found")
         art_form = dict(art_form)
+        ft = art_form['form_type']
 
         world = await _get_world_info(conn, world_id)
 
@@ -2422,15 +2430,15 @@ async def art_form_detail_page(art_form_id: int, request: Request,
         elif details is None:
             details = {}
 
-        # Prev/Next
+        # Prev/Next within the same form_type
         prev_af = await conn.fetchrow("""
-            SELECT id, name FROM art_forms
-            WHERE world_id = $1 AND id < $2 ORDER BY id DESC LIMIT 1
-        """, world_id, art_form_id)
+            SELECT id, name, form_type FROM art_forms
+            WHERE world_id = $1 AND form_type = $2 AND id < $3 ORDER BY id DESC LIMIT 1
+        """, world_id, ft, art_form_id)
         next_af = await conn.fetchrow("""
-            SELECT id, name FROM art_forms
-            WHERE world_id = $1 AND id > $2 ORDER BY id ASC LIMIT 1
-        """, world_id, art_form_id)
+            SELECT id, name, form_type FROM art_forms
+            WHERE world_id = $1 AND form_type = $2 AND id > $3 ORDER BY id ASC LIMIT 1
+        """, world_id, ft, art_form_id)
 
     return templates.TemplateResponse("art_form_detail.html", {
         "request": request,
