@@ -36,7 +36,326 @@ _GRAPH_EDGE_COLORS = {
     "master": "#60a5fa", "apprentice": "#60a5fa",
     "former master": "#60a5fa", "former apprentice": "#60a5fa",
     "companion": "#fbbf24", "imprisonment": "#ef4444", "jealous_obsession": "#dc2626",
+    "partner": "#f472b6",  # inferred co-parent (dashed edge)
 }
+
+_FAMILY_LINK_TYPES = frozenset({
+    'mother', 'father', 'child',
+    'spouse', 'former spouse', 'deceased spouse', 'lover', 'partner',
+})
+
+_MENTORSHIP_LINK_TYPES = frozenset({
+    'master', 'apprentice', 'former master', 'former apprentice',
+})
+
+_EDGE_CATEGORY = {
+    'child': 'family', 'mother': 'family', 'father': 'family',
+    'spouse': 'romantic', 'former spouse': 'romantic',
+    'deceased spouse': 'romantic', 'lover': 'romantic', 'partner': 'romantic',
+    'master': 'mentorship', 'apprentice': 'mentorship',
+    'former master': 'mentorship', 'former apprentice': 'mentorship',
+    'companion': 'companion',
+    'imprisonment': 'imprisonment', 'jealous_obsession': 'imprisonment',
+}
+
+# HF node type flags in priority order
+_NODE_TYPE_RULES = [
+    ('is_deity', 'deity', '#f6b93b'),
+    ('is_vampire', 'vampire', '#ef4444'),
+    ('is_necromancer', 'necromancer', '#a855f7'),
+    ('is_werebeast', 'werebeast', '#92400e'),
+    ('is_ghost', 'ghost', '#9ca3af'),
+]
+
+
+def _build_hf_node(gid: int, hf_map: dict, center_id: int) -> dict:
+    """Build a vis.js node dict for a historical figure."""
+    r = hf_map.get(gid, {})
+    is_center = (gid == center_id)
+    color = '#78716c'
+    node_type = 'mortal'
+    for flag, ntype, ncolor in _NODE_TYPE_RULES:
+        if r.get(flag):
+            color = ncolor
+            node_type = ntype
+            break
+    alive = r.get('death_year') is None or r.get('death_year') == -1
+    border = '#f6b93b' if is_center else ('#22c55e' if alive else '#ef4444')
+    return {
+        'id': f'hf-{gid}',
+        'label': r.get('name') or f'HF #{gid}',
+        'size': 20 if is_center else 12,
+        'group': node_type,
+        'color': {
+            'background': color, 'border': border,
+            'highlight': {'background': color, 'border': '#f6b93b'},
+        },
+        'font': {
+            'color': '#f6b93b' if is_center else '#d6d3d1',
+            'size': 11 if is_center else 9,
+        },
+        'borderWidth': 3 if is_center else 1,
+    }
+
+
+_HF_GRAPH_COLS = ("id, name, death_year, is_deity, is_vampire, "
+                   "is_necromancer, is_werebeast, is_ghost")
+
+_MAX_NODES_PER_GEN = 30  # cap to prevent dynasty explosion
+
+
+async def _build_pedigree_data(conn, world_id: int, hf_id: int,
+                                max_up: int = 5, max_down: int = 5) -> dict:
+    """Build ancestor/descendant pedigree graph up to max generations."""
+    ANCESTOR_TYPES = ('mother', 'father')
+    PARTNER_TYPES = ('spouse', 'former spouse', 'deceased spouse', 'lover')
+
+    hf_generations: dict[int, int] = {hf_id: 0}
+    raw_edges: list[tuple] = []  # (from_id, to_id, link_type)
+    edge_id = 0
+
+    # --- Ancestor expansion ---
+    frontier = {hf_id}
+    for gen in range(1, max_up + 1):
+        if not frontier:
+            break
+        rows = await conn.fetch(
+            "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+            "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+            "AND link_type = ANY($3::text[])",
+            world_id, list(frontier), list(ANCESTOR_TYPES))
+        next_frontier: set[int] = set()
+        for r in rows:
+            parent_id = r['target_hf_id']
+            if parent_id not in hf_generations:
+                hf_generations[parent_id] = -gen
+                next_frontier.add(parent_id)
+            raw_edges.append((r['hf_id'], parent_id, r['link_type']))
+        # Collect spouses of the ancestor frontier (show at same generation)
+        if next_frontier:
+            spouse_rows = await conn.fetch(
+                "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+                "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+                "AND link_type = ANY($3::text[])",
+                world_id, list(next_frontier), list(PARTNER_TYPES))
+            for r in spouse_rows:
+                sid = r['target_hf_id']
+                if sid not in hf_generations:
+                    hf_generations[sid] = -gen
+                raw_edges.append((r['hf_id'], sid, r['link_type']))
+        # Cap frontier size
+        frontier = set(list(next_frontier)[:_MAX_NODES_PER_GEN])
+
+    # --- Descendant expansion ---
+    frontier = {hf_id}
+    for gen in range(1, max_down + 1):
+        if not frontier:
+            break
+        rows = await conn.fetch(
+            "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+            "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+            "AND link_type = 'child'",
+            world_id, list(frontier))
+        next_frontier: set[int] = set()
+        for r in rows:
+            child_id = r['target_hf_id']
+            if child_id not in hf_generations:
+                hf_generations[child_id] = gen
+                next_frontier.add(child_id)
+            raw_edges.append((r['hf_id'], child_id, r['link_type']))
+        frontier = set(list(next_frontier)[:_MAX_NODES_PER_GEN])
+
+    # Also add spouses of center HF at generation 0
+    spouse_rows = await conn.fetch(
+        "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+        "WHERE world_id = $1 AND hf_id = $2 "
+        "AND link_type = ANY($3::text[])",
+        world_id, hf_id, list(PARTNER_TYPES))
+    for r in spouse_rows:
+        sid = r['target_hf_id']
+        if sid not in hf_generations:
+            hf_generations[sid] = 0
+        raw_edges.append((r['hf_id'], sid, r['link_type']))
+
+    all_ids = list(hf_generations.keys())
+    if len(all_ids) <= 1:
+        return {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}',
+                'max_up': max_up, 'max_down': max_down}
+
+    hf_rows = await conn.fetch(
+        f"SELECT {_HF_GRAPH_COLS} FROM historical_figures "
+        "WHERE world_id = $1 AND id = ANY($2::int[])",
+        world_id, all_ids)
+    hf_map = {r['id']: dict(r) for r in hf_rows}
+
+    nodes = []
+    for gid in hf_generations:
+        node = _build_hf_node(gid, hf_map, hf_id)
+        node['generation'] = hf_generations[gid]
+        nodes.append(node)
+
+    seen: set[tuple] = set()
+    edges = []
+    for (from_id, to_id, link_type) in raw_edges:
+        key = (min(from_id, to_id), max(from_id, to_id), link_type)
+        if key in seen:
+            continue
+        seen.add(key)
+        ec = _GRAPH_EDGE_COLORS.get(link_type, '#57534e')
+        is_partner = link_type in PARTNER_TYPES
+        edges.append({
+            'id': edge_id,
+            'from': f'hf-{from_id}',
+            'to': f'hf-{to_id}',
+            'label': link_type,
+            'category': 'romantic' if is_partner else 'family',
+            'color': {'color': ec, 'highlight': '#f6b93b'},
+            'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+            'arrows': '',
+        })
+        edge_id += 1
+
+    return {
+        'nodes': nodes, 'edges': edges, 'center': f'hf-{hf_id}',
+        'max_up': max_up, 'max_down': max_down,
+    }
+
+
+async def _build_career_data(conn, world_id: int, hf_id: int) -> dict:
+    """Build directed master->apprentice mentorship graph."""
+    rows = await conn.fetch(
+        "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+        "WHERE world_id = $1 AND (hf_id = $2 OR target_hf_id = $2) "
+        "AND link_type = ANY($3::text[])",
+        world_id, hf_id, list(_MENTORSHIP_LINK_TYPES))
+
+    if not rows:
+        return {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}'}
+
+    hf_ids = {hf_id}
+    for r in rows:
+        hf_ids.add(r['hf_id'])
+        hf_ids.add(r['target_hf_id'])
+
+    hf_rows = await conn.fetch(
+        f"SELECT {_HF_GRAPH_COLS} FROM historical_figures "
+        "WHERE world_id = $1 AND id = ANY($2::int[])",
+        world_id, list(hf_ids))
+    hf_map = {r['id']: dict(r) for r in hf_rows}
+    nodes = [_build_hf_node(gid, hf_map, hf_id) for gid in hf_ids]
+
+    # Normalize direction: master -> apprentice
+    # "X has master Y" means Y taught X → edge from Y to X
+    # "X has apprentice Y" means X taught Y → edge from X to Y
+    seen: set[tuple] = set()
+    edges = []
+    edge_id = 0
+    for r in rows:
+        link_type = r['link_type']
+        if link_type in ('master', 'former master'):
+            from_id, to_id = r['target_hf_id'], r['hf_id']
+        else:  # apprentice, former apprentice
+            from_id, to_id = r['hf_id'], r['target_hf_id']
+        key = (from_id, to_id)
+        if key in seen:
+            continue
+        seen.add(key)
+        is_former = 'former' in link_type
+        edges.append({
+            'id': edge_id,
+            'from': f'hf-{from_id}',
+            'to': f'hf-{to_id}',
+            'label': 'former' if is_former else 'mentored',
+            'category': 'mentorship',
+            'color': {'color': '#60a5fa', 'highlight': '#f6b93b'},
+            'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+            'arrows': 'to',
+            'dashes': [5, 5] if is_former else False,
+        })
+        edge_id += 1
+
+    return {'nodes': nodes, 'edges': edges, 'center': f'hf-{hf_id}'}
+
+
+async def _build_full_graph_data(conn, world_id: int, hf_id: int,
+                                  relationships, co_parents) -> dict:
+    """Build the full network graph with all connection types."""
+    graph_hf_ids = {hf_id}
+    for r in relationships:
+        if r['link_type'] not in ('deity',):
+            graph_hf_ids.add(r['target_hf_id'])
+    for cp in co_parents:
+        graph_hf_ids.add(cp['target_hf_id'])
+
+    # Cap at 50 nodes for readability
+    if len(graph_hf_ids) > 51:
+        graph_hf_ids = {hf_id} | set(list(graph_hf_ids - {hf_id})[:50])
+
+    graph_data: dict = {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}'}
+
+    if len(graph_hf_ids) <= 1:
+        return graph_data
+
+    hf_rows = await conn.fetch(
+        f"SELECT {_HF_GRAPH_COLS} FROM historical_figures "
+        "WHERE world_id = $1 AND id = ANY($2::int[])",
+        world_id, list(graph_hf_ids))
+    hf_map = {r['id']: dict(r) for r in hf_rows}
+
+    for gid in graph_hf_ids:
+        graph_data['nodes'].append(_build_hf_node(gid, hf_map, hf_id))
+
+    # Edges between all HFs in the set
+    graph_edges_raw = await conn.fetch(
+        "SELECT hf_id, target_hf_id, link_type FROM hf_links "
+        "WHERE world_id = $1 AND hf_id = ANY($2::int[]) "
+        "AND target_hf_id = ANY($2::int[]) AND link_type NOT IN ('deity')",
+        world_id, list(graph_hf_ids))
+
+    seen_edges: set[tuple] = set()
+    edge_id = 0
+    for e in graph_edges_raw:
+        pair = (min(e['hf_id'], e['target_hf_id']),
+                max(e['hf_id'], e['target_hf_id']))
+        key = pair + (e['link_type'],)
+        if key not in seen_edges:
+            seen_edges.add(key)
+            ec = _GRAPH_EDGE_COLORS.get(e['link_type'], '#57534e')
+            graph_data['edges'].append({
+                'id': edge_id,
+                'from': f"hf-{e['hf_id']}",
+                'to': f"hf-{e['target_hf_id']}",
+                'label': e['link_type'],
+                'category': _EDGE_CATEGORY.get(e['link_type'], 'other'),
+                'color': {'color': ec, 'highlight': '#f6b93b'},
+                'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                'arrows': '',
+            })
+            edge_id += 1
+
+    # Add inferred co-parent edges (dashed)
+    node_ids = {n['id'] for n in graph_data['nodes']}
+    for cp in co_parents:
+        cp_id = cp['target_hf_id']
+        if f'hf-{cp_id}' in node_ids:
+            pair = (min(hf_id, cp_id), max(hf_id, cp_id))
+            key = pair + ('partner',)
+            if key not in seen_edges:
+                seen_edges.add(key)
+                graph_data['edges'].append({
+                    'id': edge_id,
+                    'from': f'hf-{hf_id}',
+                    'to': f'hf-{cp_id}',
+                    'label': 'partner',
+                    'category': 'romantic',
+                    'color': {'color': '#f472b6', 'highlight': '#f6b93b'},
+                    'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                    'dashes': [5, 5],
+                    'arrows': '',
+                })
+                edge_id += 1
+
+    return graph_data
 
 
 def _world_id_or_default(request: Request, world_id: int = None) -> int:
@@ -111,6 +430,37 @@ async def hf_detail_page(hf_id: int, request: Request,
             LEFT JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.target_hf_id
             WHERE l.world_id = $1 AND l.hf_id = $2
             ORDER BY l.link_type, h.name
+        """, world_id, hf_id)
+
+        # Infer co-parents: for each child, find the other parent who has no
+        # explicit romantic link to this HF.  Recovers ~12,900 invisible partnerships.
+        co_parents = await conn.fetch("""
+            SELECT other_parent.target_hf_id,
+                   other_parent.link_type AS parent_type,
+                   h.name AS target_name, h.race AS target_race,
+                   h.caste AS target_caste, h.death_year AS target_death_year,
+                   array_agg(DISTINCT child_link.target_hf_id) AS shared_child_ids
+            FROM hf_links child_link
+            JOIN hf_links other_parent
+                ON other_parent.world_id = child_link.world_id
+                AND other_parent.hf_id = child_link.target_hf_id
+                AND other_parent.link_type IN ('mother', 'father')
+                AND other_parent.target_hf_id != $2
+            LEFT JOIN historical_figures h
+                ON h.world_id = other_parent.world_id
+                AND h.id = other_parent.target_hf_id
+            WHERE child_link.world_id = $1
+                AND child_link.hf_id = $2
+                AND child_link.link_type = 'child'
+                AND NOT EXISTS (
+                    SELECT 1 FROM hf_links ex
+                    WHERE ex.world_id = $1
+                      AND ((ex.hf_id = $2 AND ex.target_hf_id = other_parent.target_hf_id)
+                        OR (ex.hf_id = other_parent.target_hf_id AND ex.target_hf_id = $2))
+                      AND ex.link_type IN ('spouse', 'former spouse', 'deceased spouse', 'lover')
+                )
+            GROUP BY other_parent.target_hf_id, other_parent.link_type,
+                     h.name, h.race, h.caste, h.death_year
         """, world_id, hf_id)
 
         # Entity memberships (hf_entity_links) + primary site via LATERAL
@@ -397,93 +747,44 @@ async def hf_detail_page(hf_id: int, request: Request,
             vague_relationships = []
 
         # Family members (filter from relationships)
-        family_types = {'mother', 'father', 'child', 'spouse', 'former spouse', 'deceased spouse'}
+        family_types = {
+            'mother', 'father', 'child',
+            'spouse', 'former spouse', 'deceased spouse', 'lover',
+        }
         family = [dict(r) for r in relationships if r['link_type'] in family_types]
+
+        # Add inferred co-parents (partners with shared children but no explicit link)
+        for cp in co_parents:
+            family.append({
+                'target_hf_id': cp['target_hf_id'],
+                'link_type': 'partner',
+                'target_name': cp['target_name'],
+                'target_race': cp['target_race'],
+                'target_caste': cp['target_caste'],
+                'target_death_year': cp['target_death_year'],
+                'inferred': True,
+                'shared_children': len(cp['shared_child_ids']),
+            })
+
+        # Sort family: parents → spouses/partners → children
+        _FAMILY_ORDER = {
+            'father': 0, 'mother': 1,
+            'spouse': 2, 'deceased spouse': 3, 'former spouse': 4,
+            'lover': 5, 'partner': 6,
+            'child': 7,
+        }
+        family.sort(key=lambda f: (_FAMILY_ORDER.get(f['link_type'], 99),
+                                   f.get('target_name') or ''))
 
         # Worshipped deities (this HF worships)
         worshipped_deities = [dict(r) for r in relationships if r['link_type'] == 'deity']
 
-        # ── Relationship graph data for vis.js ──
-        # Collect HF IDs (exclude deity links to keep graph readable)
-        graph_hf_ids = {hf_id}
-        for r in relationships:
-            if r['link_type'] not in ('deity',):
-                graph_hf_ids.add(r['target_hf_id'])
-
-        # Cap at 50 nodes for readability
-        if len(graph_hf_ids) > 51:
-            graph_hf_ids = {hf_id} | set(list(graph_hf_ids - {hf_id})[:50])
-
-        graph_data = {'nodes': [], 'edges': [], 'center': f'hf-{hf_id}'}
-
-        if len(graph_hf_ids) > 1:
-            # Fetch full HF data for node coloring
-            graph_hf_rows = await conn.fetch(
-                "SELECT id, name, death_year, is_deity, is_vampire, "
-                "is_necromancer, is_werebeast, is_ghost "
-                "FROM historical_figures WHERE world_id = $1 AND id = ANY($2::int[])",
-                world_id, list(graph_hf_ids))
-            graph_hf_map = {r['id']: dict(r) for r in graph_hf_rows}
-
-            # Build nodes
-            for gid in graph_hf_ids:
-                r = graph_hf_map.get(gid, {})
-                is_center = (gid == hf_id)
-                if r.get('is_deity'):
-                    color = '#f6b93b'
-                elif r.get('is_vampire'):
-                    color = '#ef4444'
-                elif r.get('is_necromancer'):
-                    color = '#a855f7'
-                elif r.get('is_werebeast'):
-                    color = '#92400e'
-                elif r.get('is_ghost'):
-                    color = '#9ca3af'
-                else:
-                    color = '#78716c'
-                alive_g = r.get('death_year') is None or r.get('death_year') == -1
-                border = '#f6b93b' if is_center else ('#22c55e' if alive_g else '#ef4444')
-                graph_data['nodes'].append({
-                    'id': f'hf-{gid}',
-                    'label': r.get('name') or f'HF #{gid}',
-                    'size': 20 if is_center else 12,
-                    'color': {
-                        'background': color, 'border': border,
-                        'highlight': {'background': color, 'border': '#f6b93b'},
-                    },
-                    'font': {
-                        'color': '#f6b93b' if is_center else '#d6d3d1',
-                        'size': 11 if is_center else 9,
-                    },
-                    'borderWidth': 3 if is_center else 1,
-                })
-
-            # Get ALL edges between HFs in the graph set
-            graph_edges_raw = await conn.fetch("""
-                SELECT hf_id, target_hf_id, link_type
-                FROM hf_links
-                WHERE world_id = $1
-                  AND hf_id = ANY($2::int[])
-                  AND target_hf_id = ANY($2::int[])
-                  AND link_type NOT IN ('deity')
-            """, world_id, list(graph_hf_ids))
-
-            seen_edges = set()
-            for e in graph_edges_raw:
-                pair = (min(e['hf_id'], e['target_hf_id']),
-                        max(e['hf_id'], e['target_hf_id']))
-                key = pair + (e['link_type'],)
-                if key not in seen_edges:
-                    seen_edges.add(key)
-                    ec = _GRAPH_EDGE_COLORS.get(e['link_type'], '#57534e')
-                    graph_data['edges'].append({
-                        'from': f"hf-{e['hf_id']}",
-                        'to': f"hf-{e['target_hf_id']}",
-                        'label': e['link_type'],
-                        'color': {'color': ec, 'highlight': '#f6b93b'},
-                        'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
-                        'arrows': '',
-                    })
+        # ── Build three graph datasets for vis.js ──
+        graph_data_pedigree = await _build_pedigree_data(
+            conn, world_id, hf_id, max_up=5, max_down=5)
+        graph_data_career = await _build_career_data(conn, world_id, hf_id)
+        graph_data_full = await _build_full_graph_data(
+            conn, world_id, hf_id, relationships, co_parents)
 
     # Build type flags
     type_flags = []
@@ -537,10 +838,13 @@ async def hf_detail_page(hf_id: int, request: Request,
         "intrigue_actors_data": intrigue_actors if isinstance(intrigue_actors, list) else [],
         "vague_relationships": vague_relationships,
         "family": family,
+        "co_parents": [dict(cp) for cp in co_parents],
         "worshipped_deities": worshipped_deities,
         "linker": _linker,
         "calendar": DFCalendar,
-        "graph_data": graph_data,
+        "graph_data_pedigree": graph_data_pedigree,
+        "graph_data_career": graph_data_career,
+        "graph_data_full": graph_data_full,
     })
 
 

@@ -91,6 +91,7 @@
   <button class="detail-tab" id="dtab-relationships" onclick="switchDetailTab('relationships')">Relationships</button>
   <button class="detail-tab" id="dtab-career" onclick="switchDetailTab('career')">Career</button>
   <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
+  <button class="detail-tab" id="dtab-graph" onclick="switchDetailTab('graph')">Graph</button>
 </div>
 {% endblock %}
 
@@ -158,12 +159,15 @@
       <div class="section-title">Family</div>
       <div class="space-y-1 text-sm">
         {% for f in family %}
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2{% if f.get('inferred') %} pl-1{% endif %}" {% if f.get('inferred') %}style="border-left: 2px dashed #f472b6;"{% endif %}>
             <span class="text-stone-500 text-xs w-24">{{ f.link_type|title }}:</span>
             {{ linker.link('hf', f.target_hf_id, f.target_name, world_id)|safe }}
             <span class="text-stone-600 text-xs">{{ f.target_race|default('', true)|title }}</span>
             {% if f.target_death_year and f.target_death_year > 0 %}
               <span class="text-stone-700 text-xs">(d.{{ f.target_death_year }})</span>
+            {% endif %}
+            {% if f.get('shared_children') %}
+              <span class="text-stone-600 text-xs italic">({{ f.shared_children }} shared children)</span>
             {% endif %}
           </div>
         {% endfor %}
@@ -340,23 +344,49 @@
 {# ═══════════════════════ RELATIONSHIPS TAB ═══════════════════════════════ #}
 <div id="dtab-content-relationships" class="tab-content">
 
-  {# ── Relationship Graph ────────────────────────────────────────────── #}
-  {% if graph_data and graph_data.edges|length > 0 %}
+  {# ── Family Pedigree Graph ───────────────────────────────────────────── #}
+  {% if graph_data_pedigree and graph_data_pedigree.edges|length > 0 %}
   <div class="section-card mb-3">
     <div class="section-title">
-      Relationship Graph
-      <span class="text-stone-600 font-normal">({{ graph_data.nodes|length }} people, {{ graph_data.edges|length }} connections — double-click to navigate)</span>
+      Family Pedigree
+      <span class="text-stone-600 font-normal">({{ graph_data_pedigree.nodes|length }} people — double-click to navigate)</span>
     </div>
-    <div id="rel-graph-canvas" style="height: 350px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
+    <div class="flex flex-wrap items-center gap-4 mb-2 text-xs text-stone-400">
+      <div class="flex items-center gap-2">
+        <span>Ancestors:</span>
+        <input type="range" id="ped-up-slider" min="0" max="{{ graph_data_pedigree.max_up }}" value="{{ graph_data_pedigree.max_up }}"
+               class="w-24 h-1 accent-amber-500 cursor-pointer" oninput="filterPedigreeGenerations()">
+        <span id="ped-up-label" class="text-stone-300 w-4 text-center">{{ graph_data_pedigree.max_up }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span>Descendants:</span>
+        <input type="range" id="ped-down-slider" min="0" max="{{ graph_data_pedigree.max_down }}" value="{{ graph_data_pedigree.max_down }}"
+               class="w-24 h-1 accent-amber-500 cursor-pointer" oninput="filterPedigreeGenerations()">
+        <span id="ped-down-label" class="text-stone-300 w-4 text-center">{{ graph_data_pedigree.max_down }}</span>
+      </div>
+      <span id="ped-count" class="text-stone-500">({{ graph_data_pedigree.nodes|length }} shown)</span>
+    </div>
+    <div id="pedigree-canvas" style="height: 400px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
+  </div>
+  {% endif %}
+
+  {# ── Career / Mentorship Graph ──────────────────────────────────────── #}
+  {% if graph_data_career and graph_data_career.edges|length > 0 %}
+  <div class="section-card mb-3">
+    <div class="section-title">
+      Mentorship
+      <span class="text-stone-600 font-normal">(Master → Apprentice — {{ graph_data_career.nodes|length }} people, {{ graph_data_career.edges|length }} links — double-click to navigate)</span>
+    </div>
+    <div id="career-canvas" style="height: 300px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
   </div>
   {% endif %}
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
     {# ── 6. Close Relationships ───────────────────────────────────────── #}
-    {% if relationships %}
+    {% if relationships or co_parents %}
     <div class="section-card lg:col-span-2">
-      <div class="section-title">All Relationships ({{ relationships|length }})</div>
+      <div class="section-title">All Relationships ({{ relationships|length + co_parents|length }})</div>
       <div class="max-h-96 overflow-y-auto ex-scroll">
         <table class="w-full text-sm">
           <thead>
@@ -376,6 +406,20 @@
               <td>
                 {% if r.target_death_year and r.target_death_year > 0 %}
                   <span class="text-red-400 text-xs">d.{{ r.target_death_year }}</span>
+                {% else %}
+                  <span class="text-green-400 text-xs">alive</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            {% for cp in co_parents %}
+            <tr class="border-b border-stone-800/50" style="border-left: 2px dashed #f472b6;">
+              <td class="py-0.5 pl-1">{{ linker.link('hf', cp.target_hf_id, cp.target_name, world_id)|safe }}</td>
+              <td><span class="badge badge-type" style="border: 1px dashed #f472b6;">Partner</span></td>
+              <td class="text-stone-500 text-xs">{{ cp.target_race|default('', true)|title }}{% if cp.target_caste %} ({{ cp.target_caste|title }}){% endif %}</td>
+              <td>
+                {% if cp.target_death_year and cp.target_death_year > 0 %}
+                  <span class="text-red-400 text-xs">d.{{ cp.target_death_year }}</span>
                 {% else %}
                   <span class="text-green-400 text-xs">alive</span>
                 {% endif %}
@@ -703,19 +747,245 @@
 
 </div>
 
+{# ═══════════════════════ GRAPH TAB ════════════════════════════════════ #}
+<div id="dtab-content-graph" class="tab-content">
+  {% if graph_data_full and graph_data_full.edges|length > 0 %}
+  <div class="section-card">
+    <div class="section-title">
+      Relationship Network
+      <span class="text-stone-600 font-normal">({{ graph_data_full.nodes|length }} people, {{ graph_data_full.edges|length }} connections — double-click to navigate)</span>
+    </div>
+
+    {# ── Legend with toggleable checkboxes ──────────────────────────────── #}
+    <div class="flex flex-wrap gap-3 mb-3 text-xs">
+      {# Node type legend #}
+      <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Nodes:</span>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-yellow-500" data-group="deity">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#f6b93b"></span>
+          <span>Deity</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-red-500" data-group="vampire">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ef4444"></span>
+          <span>Vampire</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-purple-500" data-group="necromancer">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#a855f7"></span>
+          <span>Necromancer</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-amber-700" data-group="werebeast">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#92400e"></span>
+          <span>Werebeast</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-gray-500" data-group="ghost">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#9ca3af"></span>
+          <span>Ghost</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-stone-500" data-group="mortal">
+          <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#78716c"></span>
+          <span>Mortal</span>
+        </label>
+      </div>
+      {# Edge type legend #}
+      <div class="flex flex-wrap items-center gap-2 border border-stone-700 rounded px-2 py-1.5">
+        <span class="text-stone-500 font-medium">Edges:</span>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-green-500" data-category="family">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#4ade80"></span>
+          <span>Family</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-pink-500" data-category="romantic">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#f472b6"></span>
+          <span>Romantic</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-blue-500" data-category="mentorship">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#60a5fa"></span>
+          <span>Mentorship</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-amber-500" data-category="companion">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#fbbf24"></span>
+          <span>Companion</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-edge-toggle accent-red-500" data-category="imprisonment">
+          <span class="inline-block w-4 h-0.5 rounded" style="background:#ef4444"></span>
+          <span>Imprisonment</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="full-graph-canvas" style="height: 500px; background: #0c0b0a; border-radius: 0.375rem; border: 1px solid #292524;"></div>
+  </div>
+  {% else %}
+  <div class="section-card">
+    <div class="text-stone-600 text-sm italic">No relationship data available for network graph.</div>
+  </div>
+  {% endif %}
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}
-{% if graph_data and graph_data.edges|length > 0 %}
 <script>
-(function() {
-  var graphData = {{ graph_data|tojson }};
-  var canvas = document.getElementById('rel-graph-canvas');
-  if (!canvas || typeof vis === 'undefined') return;
+/* ── Shared: double-click-to-navigate handler for all vis.js graphs ────── */
+function _hfGraphDblClick(params) {
+  if (params.nodes.length > 0) {
+    var m = params.nodes[0].match(/^hf-(\d+)$/);
+    if (m) {
+      var url = '/explorer/hf/' + m[1] + '?world_id={{ world_id }}';
+      if (typeof loadDetail === 'function') {
+        loadDetail(url + '&partial=1');
+      } else {
+        window.location.href = url;
+      }
+    }
+  }
+}
 
-  function initRelGraph() {
-    var nodes = new vis.DataSet(graphData.nodes);
-    var edges = new vis.DataSet(graphData.edges);
+/* ── Lazy initializer: wait for container to become visible ────────────── */
+function _lazyInitGraph(canvasId, initFn) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas || typeof vis === 'undefined') return;
+  if (canvas.offsetHeight > 0) {
+    initFn(canvas);
+  } else {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && entry.intersectionRatio > 0) {
+          observer.disconnect();
+          initFn(canvas);
+        }
+      });
+    }, { threshold: 0.1 });
+    observer.observe(canvas);
+  }
+}
+
+/* ── 1. Pedigree Graph (hierarchical, generation-filtered) ─────────────── */
+{% if graph_data_pedigree and graph_data_pedigree.edges|length > 0 %}
+(function() {
+  var pedData = {{ graph_data_pedigree|tojson }};
+  var pedNodes, pedEdges;
+
+  function initPedigree(canvas) {
+    pedNodes = new vis.DataSet(pedData.nodes);
+    pedEdges = new vis.DataSet(pedData.edges);
+    var options = {
+      layout: {
+        hierarchical: {
+          enabled: true,
+          direction: 'UD',
+          sortMethod: 'directed',
+          levelSeparation: 100,
+          nodeSpacing: 120,
+        }
+      },
+      physics: false,
+      interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
+      nodes: {
+        shape: 'dot',
+        font: { color: '#d6d3d1', size: 10, face: 'JetBrains Mono, Consolas, monospace' },
+        borderWidth: 1.5,
+      },
+      edges: {
+        width: 1.5,
+        font: { align: 'middle', color: '#78716c', size: 9, strokeWidth: 0 },
+        smooth: { type: 'cubicBezier' },
+      },
+    };
+    /* Assign hierarchical level from generation (negated: ancestors up, descendants down) */
+    pedNodes.forEach(function(n) {
+      pedNodes.update({ id: n.id, level: (n.generation || 0) });
+    });
+    var network = new vis.Network(canvas, { nodes: pedNodes, edges: pedEdges }, options);
+    network.on('doubleClick', _hfGraphDblClick);
+  }
+
+  window.filterPedigreeGenerations = function() {
+    if (!pedNodes) return;
+    var upMax = parseInt(document.getElementById('ped-up-slider').value);
+    var downMax = parseInt(document.getElementById('ped-down-slider').value);
+    document.getElementById('ped-up-label').textContent = upMax;
+    document.getElementById('ped-down-label').textContent = downMax;
+    var shown = 0;
+    pedNodes.forEach(function(n) {
+      var gen = n.generation || 0;
+      var visible = (gen >= -upMax && gen <= downMax);
+      pedNodes.update({ id: n.id, hidden: !visible });
+      if (visible) shown++;
+    });
+    /* Also hide edges where either endpoint is hidden */
+    pedEdges.forEach(function(e) {
+      var fromNode = pedNodes.get(e.from);
+      var toNode = pedNodes.get(e.to);
+      var vis = fromNode && !fromNode.hidden && toNode && !toNode.hidden;
+      pedEdges.update({ id: e.id, hidden: !vis });
+    });
+    var countEl = document.getElementById('ped-count');
+    if (countEl) countEl.textContent = '(' + shown + ' shown)';
+  };
+
+  _lazyInitGraph('pedigree-canvas', initPedigree);
+})();
+{% endif %}
+
+/* ── 2. Career / Mentorship Graph (hierarchical left-to-right, directed) ── */
+{% if graph_data_career and graph_data_career.edges|length > 0 %}
+(function() {
+  var careerData = {{ graph_data_career|tojson }};
+
+  function initCareer(canvas) {
+    var nodes = new vis.DataSet(careerData.nodes);
+    var edges = new vis.DataSet(careerData.edges);
+    var options = {
+      layout: {
+        hierarchical: {
+          enabled: true,
+          direction: 'LR',
+          sortMethod: 'directed',
+          levelSeparation: 180,
+          nodeSpacing: 80,
+        }
+      },
+      physics: false,
+      interaction: { hover: true, tooltipDelay: 200, zoomView: true, dragView: true },
+      nodes: {
+        shape: 'dot',
+        font: { color: '#d6d3d1', size: 10, face: 'JetBrains Mono, Consolas, monospace' },
+        borderWidth: 1.5,
+      },
+      edges: {
+        width: 1.5,
+        font: { align: 'middle', color: '#78716c', size: 9, strokeWidth: 0 },
+        smooth: { type: 'cubicBezier' },
+      },
+    };
+    var network = new vis.Network(canvas, { nodes: nodes, edges: edges }, options);
+    network.on('doubleClick', _hfGraphDblClick);
+  }
+
+  _lazyInitGraph('career-canvas', initCareer);
+})();
+{% endif %}
+
+/* ── 3. Full Network Graph (force-directed, with legend toggles) ───────── */
+{% if graph_data_full and graph_data_full.edges|length > 0 %}
+(function() {
+  var fullData = {{ graph_data_full|tojson }};
+  var fullNodes, fullEdges;
+
+  function initFullGraph(canvas) {
+    fullNodes = new vis.DataSet(fullData.nodes);
+    fullEdges = new vis.DataSet(fullData.edges);
     var options = {
       physics: {
         solver: 'forceAtlas2Based',
@@ -736,45 +1006,55 @@
       },
       edges: {
         width: 1,
-        font: { align: 'middle' },
+        font: { align: 'middle', color: '#78716c', size: 9, strokeWidth: 0 },
         smooth: { type: 'continuous' },
       },
     };
-    var network = new vis.Network(canvas, { nodes: nodes, edges: edges }, options);
-    network.on('doubleClick', function(params) {
-      if (params.nodes.length > 0) {
-        var nid = params.nodes[0];
-        var m = nid.match(/^hf-(\d+)$/);
-        if (m) {
-          var url = '/explorer/hf/' + m[1] + '?world_id={{ world_id }}';
-          if (typeof loadDetail === 'function') {
-            loadDetail(url + '&partial=1');
-          } else {
-            window.location.href = url;
+    var network = new vis.Network(canvas, { nodes: fullNodes, edges: fullEdges }, options);
+    network.on('doubleClick', _hfGraphDblClick);
+
+    /* Wire up legend toggle checkboxes */
+    document.querySelectorAll('.graph-node-toggle').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var group = this.dataset.group;
+        var show = this.checked;
+        fullNodes.forEach(function(n) {
+          if (n.group === group) {
+            fullNodes.update({ id: n.id, hidden: !show });
           }
-        }
+        });
+        _syncEdgeVisibility();
+      });
+    });
+    document.querySelectorAll('.graph-edge-toggle').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var cat = this.dataset.category;
+        var show = this.checked;
+        fullEdges.forEach(function(e) {
+          if (e.category === cat) {
+            fullEdges.update({ id: e.id, hidden: !show });
+          }
+        });
+      });
+    });
+  }
+
+  function _syncEdgeVisibility() {
+    /* Hide edges connected to hidden nodes */
+    fullEdges.forEach(function(e) {
+      var fromNode = fullNodes.get(e.from);
+      var toNode = fullNodes.get(e.to);
+      if ((fromNode && fromNode.hidden) || (toNode && toNode.hidden)) {
+        fullEdges.update({ id: e.id, hidden: true });
       }
     });
   }
 
-  /* Lazy init: vis.Network needs a visible container with dimensions */
-  if (canvas.offsetHeight > 0) {
-    initRelGraph();
-  } else {
-    var observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting && entry.intersectionRatio > 0) {
-          observer.disconnect();
-          initRelGraph();
-        }
-      });
-    }, { threshold: 0.1 });
-    observer.observe(canvas);
-  }
+  _lazyInitGraph('full-graph-canvas', initFullGraph);
 })();
-</script>
 {% endif %}
-<script>
+
+/* ── Existing utility functions ────────────────────────────────────────── */
 function filterKillsByYear() {
   var minEl = document.getElementById('kills-year-min');
   var maxEl = document.getElementById('kills-year-max');
@@ -787,9 +1067,9 @@ function filterKillsByYear() {
   var shown = 0;
   rows.forEach(function(r) {
     var y = parseInt(r.dataset.year);
-    var vis = (y >= lo && y <= hi);
-    r.style.display = vis ? '' : 'none';
-    if (vis) shown++;
+    var v = (y >= lo && y <= hi);
+    r.style.display = v ? '' : 'none';
+    if (v) shown++;
   });
   document.getElementById('kills-year-count').textContent = '(' + shown + ')';
 }
