@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS art_forms (
     details     JSONB DEFAULT '{}',
     prominence_score REAL DEFAULT 0,
     salience_score   REAL DEFAULT 0,
-    PRIMARY KEY (world_id, id)
+    PRIMARY KEY (world_id, id, form_type)
 );
 
 CREATE INDEX IF NOT EXISTS idx_art_forms_type ON art_forms(world_id, form_type);
@@ -382,7 +382,8 @@ CREATE TABLE IF NOT EXISTS event_relationships (
     relationship TEXT,
     source_hf   INT,
     target_hf   INT,
-    year        INT
+    year        INT,
+    details     JSONB
 );
 
 -- ─── Artifacts ───────────────────────────────────────────────────────────────

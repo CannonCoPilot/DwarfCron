@@ -549,6 +549,9 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "region_enrichment": [],  # (id, world_id, coords, evilness) for region UPDATE
         "creature_dictionary": [],  # (world_id, creature_id, name_singular, name_plural, flags_json)
         "artifact_enrichment": [],  # (artifact_id, world_id, details_dict) for artifact UPDATE
+        "event_enrichment": [],  # (event_id, world_id, details_dict) for event UPDATE
+        "structure_enrichment": [],  # (world_id, site_id, struct_id, details_dict) for structure UPDATE
+        "relationship_supplements": [],  # (world_id, event_id, occasion_type, site_id, reason)
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -607,6 +610,48 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _int(rel, "year"),
         ))
 
+    # Event enrichment: capture plus-only fields (reason, nested circumstance, etc.)
+    # Skip tags already handled by base parser (structured columns + core fields)
+    _ALREADY_HANDLED = (
+        frozenset({"id", "year", "seconds72", "type"})
+        | _EVENT_HF1_FIELDS | _EVENT_HF2_FIELDS
+        | _EVENT_SITE_FIELDS | _EVENT_REGION_FIELDS
+        | _EVENT_ENTITY1_FIELDS | _EVENT_ENTITY2_FIELDS
+        | _EVENT_ARTIFACT_FIELDS | _EVENT_STRUCTURE_FIELDS
+    )
+    events_section = root.find("historical_events")
+    if events_section is not None:
+        for ev in events_section.findall("historical_event"):
+            eid = _int(ev, "id")
+            if eid is None:
+                continue
+            enrichment = {}
+            for child in ev:
+                tag = child.tag
+                if tag in _ALREADY_HANDLED:
+                    continue  # Already captured from base into structured columns
+                sub_elems = list(child)
+                if sub_elems:
+                    # Nested element (e.g., <circumstance>)
+                    nested = {}
+                    for sub in sub_elems:
+                        nested[sub.tag] = sub.text
+                    enrichment[tag] = nested
+                elif child.text:
+                    enrichment[tag] = child.text
+            if enrichment:
+                result["event_enrichment"].append((eid, world_id, enrichment))
+
+    # Relationship supplements (plus-only: occasion_type, site, reason)
+    for sup in root.findall(".//historical_event_relationship_supplement"):
+        result["relationship_supplements"].append((
+            world_id,
+            _int(sup, "event"),
+            _text(sup, "occasion_type"),
+            _int(sup, "site"),
+            _text(sup, "reason"),
+        ))
+
     # Site ownership from legends_plus (cur_owner_id)
     sites_section = root.find("sites")
     if sites_section is not None:
@@ -615,6 +660,32 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             owner = _int(site, "cur_owner_id")
             if sid is not None and owner is not None:
                 result["site_owners"].append((sid, owner))
+
+            # Structure enrichment: deity, religion, inhabitant, name2
+            for struct in site.findall(".//structure"):
+                struct_id = _int(struct, "local_id") or _int(struct, "id")
+                if struct_id is None or sid is None:
+                    continue
+                s_enrichment = {}
+                deity = _int(struct, "deity")
+                if deity is not None:
+                    s_enrichment["deity_hf_id"] = deity
+                deity_type = _int(struct, "deity_type")
+                if deity_type is not None:
+                    s_enrichment["deity_type"] = deity_type
+                religion = _int(struct, "religion")
+                if religion is not None:
+                    s_enrichment["religion_entity_id"] = religion
+                name2 = _text(struct, "name2")
+                if name2:
+                    s_enrichment["name2"] = name2
+                # Inhabitants (can be multiple)
+                inhabitants = [_int_or_none(inh.text) for inh in struct.findall("inhabitant") if inh.text]
+                inhabitants = [i for i in inhabitants if i is not None]
+                if inhabitants:
+                    s_enrichment["inhabitants"] = inhabitants
+                if s_enrichment:
+                    result["structure_enrichment"].append((world_id, sid, struct_id, s_enrichment))
 
     # Entities (type, race, metadata not in legends.xml)
     import json as _json
@@ -972,11 +1043,13 @@ async def import_legends(
                      "written_contents", "world_constructions",
                      "entity_positions", "entity_position_assignments",
                      "art_forms", "rivers", "entity_populations",
-                     "region_enrichment", "creature_dictionary"):
+                     "region_enrichment", "creature_dictionary",
+                     "relationship_supplements"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
                 "entity_position_assignments", "creature_dictionary",
+                "relationship_supplements",
             )
             plus_data[key] = [
                 (world_id, *row[1:]) if world_id_at_zero
@@ -990,6 +1063,14 @@ async def import_legends(
         # Artifact enrichment: update world_id at position [1]
         plus_data["artifact_enrichment"] = [
             (row[0], world_id, row[2]) for row in plus_data["artifact_enrichment"]
+        ]
+        # Event enrichment: update world_id at position [1]
+        plus_data["event_enrichment"] = [
+            (row[0], world_id, row[2]) for row in plus_data["event_enrichment"]
+        ]
+        # Structure enrichment: update world_id at position [0]
+        plus_data["structure_enrichment"] = [
+            (world_id, row[1], row[2], row[3]) for row in plus_data["structure_enrichment"]
         ]
 
     # ── Step 4: Insert in FK dependency order ─────────────────────────────
@@ -1247,7 +1328,28 @@ async def import_legends(
             log.info("  world_constructions: %d", n)
 
         # Art forms (dance, musical, poetic)
+        # Merge descriptions from base legends XML (has id+description but no name)
+        # into legends_plus data (has id+name but no description)
         if plus_data["art_forms"]:
+            base_descs: dict[tuple[str, int], str] = {}
+            for form_type, tag in [("dance", "dance_form"), ("musical", "musical_form"),
+                                   ("poetic", "poetic_form")]:
+                for af in root.findall(f".//{tag}"):
+                    af_id = _int(af, "id")
+                    desc = _text(af, "description")
+                    if af_id is not None and desc:
+                        base_descs[(form_type, af_id)] = desc
+            if base_descs:
+                log.info("  art_forms: merging %d descriptions from base legends",
+                         len(base_descs))
+                merged = []
+                for row in plus_data["art_forms"]:
+                    # row = (id, world_id, name, form_type, description, details)
+                    af_id, wid, name, ft, existing_desc, details = row
+                    desc = existing_desc or base_descs.get((ft, af_id))
+                    merged.append((af_id, wid, name, ft, desc, details))
+                plus_data["art_forms"] = merged
+
             n = await _batch_insert(conn, "art_forms",
                 ["id", "world_id", "name", "form_type", "description", "details"],
                 plus_data["art_forms"])
@@ -1364,6 +1466,60 @@ async def import_legends(
                 art_updated += 1
             counts["artifact_enrichment"] = art_updated
             log.info("  artifact_enrichment: %d artifacts updated", art_updated)
+
+        # Event enrichment: merge plus-only fields (reason, circumstance, etc.)
+        # into the details JSONB of events already inserted from base
+        if plus_data["event_enrichment"]:
+            ev_sql = ("UPDATE history_events "
+                      "SET details = COALESCE(details, '{}'::jsonb) || $1::jsonb "
+                      "WHERE world_id = $2 AND id = $3")
+            ev_updated = 0
+            for batch_start in range(0, len(plus_data["event_enrichment"]), _BATCH_SIZE):
+                batch = plus_data["event_enrichment"][batch_start:batch_start + _BATCH_SIZE]
+                params = [(enrichment, wid, eid) for eid, wid, enrichment in batch]
+                await conn.executemany(ev_sql, params)
+                ev_updated += len(batch)
+            counts["event_enrichment"] = ev_updated
+            log.info("  event_enrichment: %d events updated", ev_updated)
+
+        # Structure enrichment: deity, religion, inhabitant from legends_plus
+        if plus_data["structure_enrichment"]:
+            struct_sql = ("UPDATE structures "
+                          "SET details = COALESCE(details, '{}'::jsonb) || $1::jsonb "
+                          "WHERE world_id = $2 AND site_id = $3 AND id = $4")
+            struct_params = [
+                (enrichment, wid, sid, struct_id)
+                for wid, sid, struct_id, enrichment in plus_data["structure_enrichment"]
+            ]
+            for batch_start in range(0, len(struct_params), _BATCH_SIZE):
+                batch = struct_params[batch_start:batch_start + _BATCH_SIZE]
+                await conn.executemany(struct_sql, batch)
+            counts["structure_enrichment"] = len(struct_params)
+            log.info("  structure_enrichment: %d structures updated", len(struct_params))
+
+        # Relationship supplements: occasion_type/site/reason for event_relationships
+        # The <event> tag in supplements references event_relationships.id, NOT history_events.id
+        if plus_data["relationship_supplements"]:
+            sup_params = []
+            for wid, rel_id, occasion_type, site_id, reason in plus_data["relationship_supplements"]:
+                if rel_id is None:
+                    continue
+                supplement = {}
+                if occasion_type:
+                    supplement["occasion_type"] = occasion_type
+                if site_id is not None:
+                    supplement["supplement_site_id"] = site_id
+                if reason:
+                    supplement["supplement_reason"] = reason
+                if supplement:
+                    sup_params.append((supplement, wid, rel_id))
+            if sup_params:
+                sup_sql = ("UPDATE event_relationships "
+                           "SET details = COALESCE(details, '{}'::jsonb) || $1::jsonb "
+                           "WHERE world_id = $2 AND id = $3")
+                await conn.executemany(sup_sql, sup_params)
+            counts["relationship_supplements"] = len(sup_params)
+            log.info("  relationship_supplements: %d relationships supplemented", len(sup_params))
 
     # ── Step 6: Update computed counts (scoped to current world) ──────────
     await conn.execute("""

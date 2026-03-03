@@ -983,8 +983,8 @@ async def _compute_structure_scores(conn, world_id: int) -> int:
 
         ec = event_counts.get(s["id"], 0)
         # Deity info is in details JSONB (deity or deity_hf fields)
-        details = s["details"] or {}
-        has_deity = 1 if details.get("deity") or details.get("deity_hf") else 0
+        details = s["details"] if isinstance(s["details"], dict) else {}
+        has_deity = 1 if details.get("deity") or details.get("deity_hf") or details.get("deity_hf_id") else 0
 
         prominence = p_weight + ec * 2
         salience = s_weight + has_deity * weights.get("s_deity", 30)
