@@ -510,7 +510,7 @@ async def _compute_art_scores(conn, world_id: int) -> dict[str, int]:
     counts["hf_auteurs"] = auteur_count
 
     # ── Step 8: HF prominence_score += author + auteur bonuses ───────
-    # Author bonus: SUM(copy_num) for all works authored by this HF
+    # Author bonus: SUM(wc.prominence_score) for all works authored by this HF
     await conn.execute(
         "UPDATE historical_figures hf SET prominence_score = prominence_score + COALESCE(bonus.total, 0) "
         "FROM ("
