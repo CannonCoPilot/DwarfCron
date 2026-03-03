@@ -100,11 +100,15 @@
     .race-pill .pill-count { opacity: 0.7; font-variant-numeric: tabular-nums; }
     .race-pill.dim { opacity: 0.55; border-style: dashed; }
     .race-pill.dim:hover { opacity: 0.85; }
-    /* Variants bar chart */
-    .variant-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
-    .variant-label { width: 70px; text-align: right; color: #78716c; }
+    /* Variants bar chart — clickable filter rows */
+    .variant-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; cursor: pointer; padding: 1px 2px; border-radius: 3px; transition: background 0.15s, opacity 0.15s; }
+    .variant-row:hover { background: rgba(255,255,255,0.05); }
+    .variant-row.active { background: rgba(255,255,255,0.08); }
+    .variant-row.active .variant-label { color: #d6d3d1; font-weight: 600; }
+    .variant-row.dimmed { opacity: 0.4; }
+    .variant-label { width: 70px; text-align: right; color: #78716c; font-size: inherit; transition: color 0.15s; }
     .variant-bar-bg { flex: 1; height: 10px; background: #292524; border-radius: 3px; overflow: hidden; }
-    .variant-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; min-width: 1px; }
+    .variant-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
     .variant-count { width: 30px; color: #a8a29e; text-align: right; font-variant-numeric: tabular-nums; }
   </style>
 </head>
@@ -146,7 +150,7 @@
         <div id="race-pills" class="flex flex-wrap gap-1 text-[10px]">
           <span class="text-stone-500">Loading races...</span>
         </div>
-        <div id="variants-tile" class="hidden mt-2 p-2 bg-stone-900/50 border border-stone-800 rounded text-[10px]">
+        <div id="variants-tile" class="mt-2 p-2 bg-stone-900/50 border border-stone-800 rounded text-[10px]">
           <div class="text-stone-400 font-semibold mb-1">Biological Variants</div>
           <div id="variants-bars"></div>
         </div>
@@ -566,12 +570,22 @@ function filterPeopleList() {
 async function searchPeople() {
   const q = document.getElementById('people-search').value.trim();
   if (!q) return;
+  // Track search mode so race pills re-run the search, not browse
+  peopleMode = 'search';
+  lastSearchQuery = q;
   const type = document.getElementById('people-type').value;
   const list = document.getElementById('people-list');
   list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Searching...</div>';
 
   try {
-    const resp = await fetch(`/api/people/search?q=${encodeURIComponent(q)}&type=${type}&limit=100`);
+    let url = `/api/people/search?q=${encodeURIComponent(q)}&type=${type}&limit=500`;
+    if (activeRaceCategories.size > 0) {
+      url += `&race_categories=${encodeURIComponent([...activeRaceCategories].join(','))}`;
+    }
+    if (activeVariantFlags.size > 0) {
+      url += `&variant_flags=${encodeURIComponent([...activeVariantFlags].join(','))}`;
+    }
+    const resp = await fetch(url);
     const results = await resp.json();
     peopleResults = results;
     document.getElementById('people-filter-bar').style.display = results.length > 0 ? '' : 'none';
@@ -2374,14 +2388,17 @@ document.addEventListener('click', function(e) {
   }
 
   if (WORLD_ID) {
-    // Auto-load People tab with race pills + top historical figures
+    // Auto-load People tab with race pills + top historical figures + variant chart
     loadRacePills();
-    loadVariants('');
+    refreshVariants();  // always-visible chart, fetches DB counts
     browsePeople();
   }
 })();
 
-let activeRaceCategory = null;
+let activeRaceCategories = new Set();
+let activeVariantFlags = new Set();   // biological variant bar toggles
+let peopleMode = 'browse';   // 'browse' or 'search'
+let lastSearchQuery = '';
 
 async function loadRacePills() {
   const container = document.getElementById('race-pills');
@@ -2389,7 +2406,7 @@ async function loadRacePills() {
     const resp = await fetch(`/api/people/race-summary?world_id=${WORLD_ID}`);
     const data = await resp.json();
     const races = data.races || [];
-    // Build "All" pill + one per race
+    // Build "All" pill + one per race; All is active when no filters selected
     let html = `<button class="race-pill active" data-race="" onclick="selectRace(this, '')">All <span class="pill-count">${data.total.toLocaleString()}</span></button>`;
     for (const r of races) {
       const dim = r.key === '_other' ? ' dim' : '';
@@ -2402,50 +2419,125 @@ async function loadRacePills() {
 }
 
 function selectRace(el, raceKey) {
-  // Toggle active pill
-  document.querySelectorAll('#race-pills .race-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  activeRaceCategory = raceKey || null;
-  browsePeople();
-  loadVariants(raceKey);
+  const allPill = document.querySelector('#race-pills .race-pill[data-race=""]');
+
+  if (!raceKey) {
+    // "All" clicked — clear all selections
+    activeRaceCategories.clear();
+    document.querySelectorAll('#race-pills .race-pill').forEach(p => p.classList.remove('active'));
+    allPill.classList.add('active');
+  } else {
+    // Toggle this specific race on/off
+    if (activeRaceCategories.has(raceKey)) {
+      activeRaceCategories.delete(raceKey);
+      el.classList.remove('active');
+    } else {
+      activeRaceCategories.add(raceKey);
+      el.classList.add('active');
+    }
+    // Update "All" pill: active only when no filters selected
+    if (activeRaceCategories.size === 0) {
+      allPill.classList.add('active');
+    } else {
+      allPill.classList.remove('active');
+    }
+  }
+
+  // Race changed — refresh variant counts (DB demographics) and results
+  refreshVariants();
+  refreshPeopleResults();
 }
 
-async function loadVariants(raceKey) {
-  const tile = document.getElementById('variants-tile');
-  const bars = document.getElementById('variants-bars');
-  try {
-    let url = `/api/people/variants-summary?world_id=${WORLD_ID}`;
-    if (raceKey) url += `&race_category=${encodeURIComponent(raceKey)}`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    const variants = (data.variants || []).filter(v => v.count > 0);
-    if (variants.length === 0) {
-      tile.classList.add('hidden');
-      return;
-    }
-    tile.classList.remove('hidden');
-    const maxCount = Math.max(...variants.map(v => v.count));
-    let html = '';
-    for (const v of variants) {
-      const pct = maxCount > 0 ? (v.count / maxCount * 100) : 0;
-      html += `<div class="variant-row">
-        <span class="variant-label">${escapeHtml(v.label)}</span>
-        <div class="variant-bar-bg"><div class="variant-bar" style="width:${pct}%;background:${v.color}"></div></div>
-        <span class="variant-count">${v.count}</span>
-      </div>`;
-    }
-    bars.innerHTML = html;
-  } catch (e) {
-    tile.classList.add('hidden');
+function refreshPeopleResults() {
+  if (peopleMode === 'search' && lastSearchQuery) {
+    searchPeople();
+  } else {
+    browsePeople();
   }
 }
 
+// All 5 variant definitions — always rendered, never hidden
+const VARIANT_DEFS = [
+  { key: 'vampire',      label: 'Vampire',      color: '#ef4444' },
+  { key: 'necromancer',  label: 'Necromancer',  color: '#a855f7' },
+  { key: 'werebeast',    label: 'Werebeast',    color: '#f97316' },
+  { key: 'ghost',        label: 'Ghost',        color: '#94a3b8' },
+  { key: 'animated_dead', label: 'Animated Dead', color: '#6b7280' },
+];
+
+async function refreshVariants() {
+  // Always fetch DB counts filtered by current race pills.
+  // Chart is always visible; shows all 5 bars (even if 0).
+  const bars = document.getElementById('variants-bars');
+  try {
+    let url = `/api/people/variants-summary?world_id=${WORLD_ID}`;
+    if (activeRaceCategories.size > 0) {
+      url += `&race_categories=${encodeURIComponent([...activeRaceCategories].join(','))}`;
+    }
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const countsMap = {};
+    for (const v of (data.variants || [])) countsMap[v.key] = v.count;
+    _renderVariantBars(bars, countsMap);
+  } catch (e) {
+    // On error, render zeroes
+    _renderVariantBars(bars, {});
+  }
+}
+
+function _renderVariantBars(bars, countsMap) {
+  const maxCount = Math.max(1, ...VARIANT_DEFS.map(d => countsMap[d.key] || 0));
+  const hasActive = activeVariantFlags.size > 0;
+  let html = '';
+  for (const d of VARIANT_DEFS) {
+    const count = countsMap[d.key] || 0;
+    const pct = maxCount > 0 ? (count / maxCount * 100) : 0;
+    const isActive = activeVariantFlags.has(d.key);
+    const rowClass = 'variant-row' + (isActive ? ' active' : '') + (hasActive && !isActive ? ' dimmed' : '');
+    html += `<div class="${rowClass}" onclick="toggleVariantFlag('${d.key}')">
+      <span class="variant-label">${escapeHtml(d.label)}</span>
+      <div class="variant-bar-bg"><div class="variant-bar" style="width:${pct}%;background:${d.color}"></div></div>
+      <span class="variant-count">${count.toLocaleString()}</span>
+    </div>`;
+  }
+  bars.innerHTML = html;
+}
+
+function toggleVariantFlag(key) {
+  if (activeVariantFlags.has(key)) {
+    activeVariantFlags.delete(key);
+  } else {
+    activeVariantFlags.add(key);
+  }
+  // Re-render bars to update active/dimmed state (no server re-fetch needed)
+  const bars = document.getElementById('variants-bars');
+  // Preserve current counts from the DOM
+  const countsMap = {};
+  for (const d of VARIANT_DEFS) {
+    const row = bars.querySelector(`.variant-row[onclick*="'${d.key}'"] .variant-count`);
+    countsMap[d.key] = row ? parseInt(row.textContent.replace(/,/g, ''), 10) || 0 : 0;
+  }
+  _renderVariantBars(bars, countsMap);
+  // Variant filter changed — refresh results list
+  refreshPeopleResults();
+}
+
 async function browsePeople() {
+  // If search field is empty, reset to browse mode
+  if (!document.getElementById('people-search').value.trim()) {
+    peopleMode = 'browse';
+    lastSearchQuery = '';
+  }
   const list = document.getElementById('people-list');
   list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Loading top figures...</div>';
   try {
-    let url = `/api/people/browse?world_id=${WORLD_ID}&limit=100`;
-    if (activeRaceCategory) url += `&race_category=${encodeURIComponent(activeRaceCategory)}`;
+    let url = `/api/people/browse?world_id=${WORLD_ID}&limit=500`;
+    if (activeRaceCategories.size > 0) {
+      url += `&race_categories=${encodeURIComponent([...activeRaceCategories].join(','))}`;
+    }
+    if (activeVariantFlags.size > 0) {
+      url += `&variant_flags=${encodeURIComponent([...activeVariantFlags].join(','))}`;
+    }
     const resp = await fetch(url);
     const results = await resp.json();
     peopleResults = results;

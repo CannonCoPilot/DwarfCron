@@ -27,6 +27,26 @@ def _type_flags(row: dict) -> list[str]:
     return [label for col, label in _TYPE_FLAG_COLS if row.get(col)]
 
 
+_VARIANT_FLAG_MAP = {
+    "vampire": "h.is_vampire = TRUE",
+    "necromancer": "h.is_necromancer = TRUE",
+    "werebeast": "h.is_werebeast = TRUE",
+    "ghost": "h.is_ghost = TRUE",
+    "animated_dead": "h.race LIKE 'HFEXP%'",
+}
+
+
+def _build_variant_clause(variant_flags: str | None) -> str:
+    """Build SQL WHERE clause for variant flag filtering (OR logic)."""
+    if not variant_flags:
+        return ""
+    flags = [f.strip() for f in variant_flags.split(",") if f.strip() in _VARIANT_FLAG_MAP]
+    if not flags:
+        return ""
+    conditions = [_VARIANT_FLAG_MAP[f] for f in flags]
+    return "AND (" + " OR ".join(conditions) + ")"
+
+
 def _is_animal_person(creature_id: str) -> bool:
     """Check if a creature_id follows the DF animal person pattern."""
     return bool(creature_id and (
@@ -64,15 +84,17 @@ async def search_people(
     request: Request,
     q: str = Query(..., min_length=1),
     type: str = Query("all"),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(100, ge=1, le=500),
     world_id: int = Query(None),
     race_categories: str = Query(None),
     alive: str = Query(None),
+    variant_flags: str = Query(None),
 ):
-    """Search people by name with optional race and alive/dead filters.
+    """Search people by name with optional race, alive/dead, and variant filters.
 
     race_categories: comma-separated race keys (multi-select)
     alive: "alive", "dead", or None (all)
+    variant_flags: comma-separated variant keys (vampire,necromancer,werebeast,ghost,animated_dead)
     """
     pool = request.app.state.pool
     pattern = f"%{q}%"
@@ -145,6 +167,11 @@ async def search_people(
                                 next_idx += len(rc_params)
                         if race_parts:
                             extra_clauses.append("AND (" + " OR ".join(race_parts) + ")")
+
+                # Variant flag filter (vampire, necromancer, etc.)
+                vf_clause = _build_variant_clause(variant_flags)
+                if vf_clause:
+                    extra_clauses.append(vf_clause)
 
                 where_extra = " ".join(extra_clauses)
                 rows = await conn.fetch(
@@ -286,17 +313,19 @@ def _build_race_category_clause(race_category: str, param_idx: int) -> tuple[str
 async def browse_people(
     request: Request,
     world_id: int = Query(None),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(100, ge=1, le=500),
     flags: str = Query(None),
     race_category: str = Query(None),
     race_categories: str = Query(None),
     alive: str = Query(None),
+    variant_flags: str = Query(None),
 ):
     """Return top historical figures by prominence score for default tab view.
 
     race_category: single race key (legacy, still supported)
     race_categories: comma-separated race keys (multi-select)
     alive: "alive", "dead", or None (all)
+    variant_flags: comma-separated variant keys (vampire,necromancer,werebeast,ghost,animated_dead)
     """
     pool = request.app.state.pool
     async with pool.acquire() as conn:
@@ -343,6 +372,11 @@ async def browse_people(
             if active:
                 conditions = [f"h.{flag_map[f]} = TRUE" for f in active]
                 extra_clauses.append("AND (" + " OR ".join(conditions) + ")")
+
+        # Variant flag filter (vampire, necromancer, etc.)
+        vf_clause = _build_variant_clause(variant_flags)
+        if vf_clause:
+            extra_clauses.append(vf_clause)
 
         where_extra = " ".join(extra_clauses)
 
@@ -481,11 +515,13 @@ async def variants_summary(
     request: Request,
     world_id: int = Query(None),
     race_category: str = Query(None),
+    race_categories: str = Query(None),
 ):
     """Return biological variant counts, optionally filtered by race category.
 
     Variants: vampire, necromancer, werebeast, ghost, animated dead.
-    When race_category is set, counts are scoped to HFs within that group.
+    race_category: single race key (legacy)
+    race_categories: comma-separated race keys (multi-select)
     """
     pool = request.app.state.pool
     async with pool.acquire() as conn:
@@ -493,14 +529,26 @@ async def variants_summary(
         if not world_id:
             return {"variants": []}
 
-        # Build optional race filter
+        # Build optional race filter (multi-select or legacy single)
         params = [world_id]
         next_idx = 2
         rc_clause = ""
-        if race_category:
-            clause, rc_params = _build_race_category_clause(race_category, next_idx)
-            rc_clause = clause
-            params.extend(rc_params)
+        cats_to_filter = []
+        if race_categories:
+            cats_to_filter = [c.strip() for c in race_categories.split(",") if c.strip()]
+        elif race_category:
+            cats_to_filter = [race_category]
+
+        if cats_to_filter:
+            race_parts = []
+            for cat in cats_to_filter:
+                clause, rc_params = _build_race_category_clause(cat, next_idx)
+                if clause:
+                    race_parts.append(clause.lstrip("AND "))
+                    params.extend(rc_params)
+                    next_idx += len(rc_params)
+            if race_parts:
+                rc_clause = "AND (" + " OR ".join(race_parts) + ")"
 
         # Count each variant type
         variant_defs = [
