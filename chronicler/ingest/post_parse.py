@@ -36,7 +36,12 @@ class PostParseProcessor:
         return results
 
     async def step_1_resolve_family_links(self) -> dict:
-        """Ensure bidirectional family relationships in hf_links."""
+        """Ensure bidirectional family & romantic relationships in hf_links.
+
+        Enforces inverse links for: mother↔child, father↔child, spouse↔spouse,
+        deceased spouse↔deceased spouse, former spouse↔former spouse, lover↔lover.
+        Also deduplicates spouse where deceased spouse exists for the same pair.
+        """
         log.info("Step 1: Resolving family links...")
         wid = self.world_id
         inserted = 0
@@ -64,18 +69,34 @@ class PostParseProcessor:
         # For each child link, ensure inverse parent links exist
         # (child->parent: we don't know gender, so skip — already handled above)
 
-        # For each spouse link, ensure inverse spouse link exists
-        r = await self.conn.execute("""
-            INSERT INTO hf_links (world_id, hf_id, target_hf_id, link_type)
-            SELECT world_id, target_hf_id, hf_id, 'spouse'
-            FROM hf_links
-            WHERE link_type = 'spouse' AND world_id = $1
-            ON CONFLICT DO NOTHING
-        """, wid)
-        inserted += _count(r)
+        # Bidirectional enforcement for all romantic/partnership link types
+        for link_type in ('spouse', 'deceased spouse', 'former spouse', 'lover'):
+            r = await self.conn.execute("""
+                INSERT INTO hf_links (world_id, hf_id, target_hf_id, link_type)
+                SELECT world_id, target_hf_id, hf_id, $2
+                FROM hf_links
+                WHERE link_type = $2 AND world_id = $1
+                ON CONFLICT DO NOTHING
+            """, wid, link_type)
+            inserted += _count(r)
 
-        log.info("  Step 1 complete: %d inverse links inserted", inserted)
-        return {"inserted": inserted}
+        # Deduplicate: remove 'spouse' where 'deceased spouse' exists for same pair
+        # (deceased spouse is more specific — keep it, drop the generic duplicate)
+        r = await self.conn.execute("""
+            DELETE FROM hf_links s
+            USING hf_links d
+            WHERE s.link_type = 'spouse'
+              AND d.link_type = 'deceased spouse'
+              AND s.world_id = d.world_id
+              AND s.hf_id = d.hf_id
+              AND s.target_hf_id = d.target_hf_id
+              AND s.world_id = $1
+        """, wid)
+        deduped = _count(r)
+
+        log.info("  Step 1 complete: %d inverse links inserted, %d spouse duplicates removed",
+                 inserted, deduped)
+        return {"inserted": inserted, "deduped": deduped}
 
     async def step_2_resolve_position_assignments(self) -> dict:
         """Resolve position names from entity_positions into HF details."""
