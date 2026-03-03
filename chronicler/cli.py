@@ -346,16 +346,16 @@ def probe(world_id, unit_id, store):
 @cli.command("rescore")
 @click.option("--world-id", required=True, type=int, help="World ID to compute scores for")
 def rescore(world_id):
-    """Recompute importance scores for all entities in a world."""
+    """Recompute prominence and salience scores for all entities in a world."""
     from chronicler.db.connection import get_pool, close_pool
-    from chronicler.scoring import compute_importance_scores
+    from chronicler.scoring import compute_scores
 
     async def _run_rescore():
         pool = await get_pool()
         async with pool.acquire() as conn:
-            counts = await compute_importance_scores(conn, world_id)
+            counts = await compute_scores(conn, world_id)
 
-        click.echo("── Importance Scores Recomputed ──")
+        click.echo("── Scoring Recomputed ──")
         for entity_type, n in sorted(counts.items()):
             click.echo(f"  {entity_type:30s} {n:>8,d} updated")
         await close_pool()

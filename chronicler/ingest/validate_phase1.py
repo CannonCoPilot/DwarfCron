@@ -313,22 +313,22 @@ class Phase1Validator:
         self._record(cat, f"Step 6: HF kill lists ({hfs_with_kills:,d} HFs with kills)",
                       hfs_with_kills > 0)
 
-        # Step 7: Importance scores
+        # Step 7: Prominence/salience scores
         hf_scored = await self.conn.fetchval("""
             SELECT COUNT(*) FROM historical_figures
-            WHERE world_id = $1 AND importance_score > 0
+            WHERE world_id = $1 AND prominence_score > 0
         """, self.world_id)
         site_scored = await self.conn.fetchval("""
             SELECT COUNT(*) FROM sites
-            WHERE world_id = $1 AND importance_score > 0
+            WHERE world_id = $1 AND prominence_score > 0
         """, self.world_id)
         art_scored = await self.conn.fetchval("""
             SELECT COUNT(*) FROM artifacts
-            WHERE world_id = $1 AND importance_score > 0
+            WHERE world_id = $1 AND prominence_score > 0
         """, self.world_id)
         self._record(
             cat,
-            f"Step 7: Importance scores (HF:{hf_scored:,d} Site:{site_scored:,d} Art:{art_scored:,d})",
+            f"Step 7: Scoring (HF:{hf_scored:,d} Site:{site_scored:,d} Art:{art_scored:,d})",
             hf_scored > 0 and site_scored > 0 and art_scored > 0)
 
         # Step 8: Event-entity xref (already checked in schema)
@@ -419,14 +419,14 @@ class Phase1Validator:
                       total > 100000,
                       "Target: significant world data (>100K records)")
 
-        # Top HFs by importance (sanity check)
+        # Top HFs by prominence (sanity check)
         top_hf = await self.conn.fetch("""
-            SELECT name, importance_score, is_deity, is_force, is_vampire, is_necromancer
+            SELECT name, prominence_score, is_deity, is_force, is_vampire, is_necromancer
             FROM historical_figures
-            WHERE world_id = $1 AND importance_score > 0
-            ORDER BY importance_score DESC LIMIT 5
+            WHERE world_id = $1 AND prominence_score > 0
+            ORDER BY prominence_score DESC LIMIT 5
         """, self.world_id)
-        top_names = [f"{r['name']} ({r['importance_score']:.0f})" for r in top_hf]
+        top_names = [f"{r['name']} ({r['prominence_score']:.2f})" for r in top_hf]
         deities_at_top = any(r["is_deity"] or r["is_force"] for r in top_hf[:3])
         self._record(cat, "Top HFs are deities/forces (sanity check)",
                       deities_at_top,

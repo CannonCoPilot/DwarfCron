@@ -40,7 +40,8 @@ on BOTH columns: `ON a.world_id = b.world_id AND a.id = b.some_id`.
   `is_deity BOOL, is_force BOOL, is_vampire BOOL, is_necromancer BOOL, \
 is_werebeast BOOL, is_ghost BOOL`
   `kill_count INT, event_count INT` — precomputed aggregates
-  `importance_score FLOAT` — 0-1000+, higher = more narratively significant
+  `prominence_score FLOAT` — 0-1, how widely known (structural reach)
+  `salience_score FLOAT` — 0-1, how narratively interesting (supernatural, kills)
   `details JSONB` — overflow fields (spheres, goals, journey_pets, etc.)
   Common races: HUMAN, GOBLIN, ELF, DWARF, KOBOLD, FORGOTTEN_BEAST*, TITAN*, \
 DRAGON, GIANT_*
@@ -55,7 +56,7 @@ performancetroupe, migratinggroup, militaryunit, merchantcompany
   `id INT, world_id INT` (PK: world_id, id)
   `name TEXT, type TEXT, coord_x INT, coord_y INT, coords TEXT`
   `owner_entity_id INT` — current owner (→ entities.id)
-  `importance_score FLOAT, details JSONB`
+  `prominence_score FLOAT, salience_score FLOAT, details JSONB`
   Types: cave, hamlet, forest retreat, lair, dark pits, monastery, camp, \
 hillocks, mountain halls, fortress, fort, dark fortress, town, tower, tomb, \
 castle, shrine, labyrinth, vault
@@ -65,7 +66,7 @@ castle, shrine, labyrinth, vault
   `name TEXT, item_type TEXT, item_subtype TEXT, material TEXT`
   `creator_hf_id INT` (→ historical_figures.id)
   `holder_hf_id INT` (→ historical_figures.id, NULL if stored/lost)
-  `site_id INT, importance_score FLOAT, details JSONB`
+  `site_id INT, prominence_score FLOAT, salience_score FLOAT, details JSONB`
 
 ---
 
@@ -202,7 +203,7 @@ skulker, historical
 ```sql
 SELECT * FROM historical_figures
 WHERE world_id = $1 AND name ILIKE '%' || $2 || '%'
-ORDER BY importance_score DESC LIMIT 5
+ORDER BY prominence_score DESC LIMIT 5
 ```
 
 **Get a figure's relationships:**
@@ -235,13 +236,13 @@ WHERE e.world_id = $1 AND (e.hf_id_1 = $2 OR e.hf_id_2 = $2)
 ORDER BY e.year DESC LIMIT 20
 ```
 
-**Top figures by importance:**
+**Top figures by prominence:**
 ```sql
-SELECT name, race, kill_count, importance_score,
+SELECT name, race, kill_count, prominence_score, salience_score,
        is_deity, is_vampire, is_necromancer
 FROM historical_figures
-WHERE world_id = $1 AND importance_score > 100
-ORDER BY importance_score DESC LIMIT 20
+WHERE world_id = $1 AND prominence_score > 0
+ORDER BY prominence_score DESC LIMIT 20
 ```
 
 **Wars between civilizations:**

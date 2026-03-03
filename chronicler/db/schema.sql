@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS mountain_peaks (
     coords      TEXT,
     height      INT,
     is_volcano  BOOLEAN DEFAULT FALSE,
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -54,6 +56,8 @@ CREATE TABLE IF NOT EXISTS underground_regions (
     type        TEXT,
     depth       INT,
     coords      TEXT,
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -66,7 +70,6 @@ CREATE TABLE IF NOT EXISTS sites (
     coord_y     INT,
     coords      TEXT,
     owner_entity_id INT,
-    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
     salience_score   REAL DEFAULT 0,
     prominence_score REAL DEFAULT 0,
     details     JSONB DEFAULT '{}',
@@ -81,6 +84,8 @@ CREATE TABLE IF NOT EXISTS structures (
     type        TEXT,
     entity_id   INT,
     details     JSONB DEFAULT '{}',
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, site_id, id),
     FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
 );
@@ -103,6 +108,8 @@ CREATE TABLE IF NOT EXISTS art_forms (
     form_type   TEXT NOT NULL,  -- 'dance', 'musical', 'poetic'
     description TEXT,
     details     JSONB DEFAULT '{}',
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -162,7 +169,8 @@ CREATE TABLE IF NOT EXISTS entities (
     name        TEXT,
     type        TEXT,
     race        TEXT,
-    importance_score FLOAT DEFAULT 0.0,  -- IDF-weighted event rarity score
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -188,9 +196,12 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     is_necromancer  BOOLEAN DEFAULT FALSE,
     is_werebeast    BOOLEAN DEFAULT FALSE,
     is_ghost        BOOLEAN DEFAULT FALSE,
+    is_author       BOOLEAN DEFAULT FALSE,
+    is_auteur       BOOLEAN DEFAULT FALSE,
     kill_count      INT DEFAULT 0,
     event_count     INT DEFAULT 0,
-    importance_score FLOAT DEFAULT 0.0,
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     spheres         TEXT[],
     goals           JSONB DEFAULT '[]',
     skills          JSONB DEFAULT '[]',
@@ -341,6 +352,8 @@ CREATE TABLE IF NOT EXISTS history_event_collections (
     site_id         INT,
     region_id       INT,
     details         JSONB DEFAULT '{}',
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -384,7 +397,8 @@ CREATE TABLE IF NOT EXISTS artifacts (
     creator_hf_id   INT,
     holder_hf_id    INT,
     site_id         INT,
-    importance_score FLOAT DEFAULT 0.0,  -- Computed importance for LLM context selection
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -402,6 +416,8 @@ CREATE TABLE IF NOT EXISTS written_contents (
     page_end        INT,
     styles          TEXT[],        -- style tags (merged from both XML sources)
     details         JSONB DEFAULT '{}',
+    prominence_score REAL DEFAULT 0,
+    salience_score   REAL DEFAULT 0,
     PRIMARY KEY (world_id, id)
 );
 
@@ -472,10 +488,10 @@ CREATE INDEX IF NOT EXISTS idx_hf_site_links_hf ON hf_site_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_event_rels_source ON event_relationships(source_hf);
 CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_hf);
-CREATE INDEX IF NOT EXISTS idx_hf_importance ON historical_figures(world_id, importance_score DESC);
-CREATE INDEX IF NOT EXISTS idx_sites_importance ON sites(world_id, importance_score DESC);
-CREATE INDEX IF NOT EXISTS idx_artifacts_importance ON artifacts(world_id, importance_score DESC);
-CREATE INDEX IF NOT EXISTS idx_entities_importance ON entities(world_id, importance_score DESC);
+CREATE INDEX IF NOT EXISTS idx_hf_prominence ON historical_figures(world_id, prominence_score DESC);
+CREATE INDEX IF NOT EXISTS idx_sites_prominence ON sites(world_id, prominence_score DESC);
+CREATE INDEX IF NOT EXISTS idx_entities_prominence ON entities(world_id, prominence_score DESC);
+CREATE INDEX IF NOT EXISTS idx_artifacts_prominence ON artifacts(world_id, prominence_score DESC);
 
 -- ─── Event Cross-Reference Index ───────────────────────────────────────────
 

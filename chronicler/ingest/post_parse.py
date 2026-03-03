@@ -29,7 +29,7 @@ class PostParseProcessor:
         results["step_4"] = await self.step_4_compute_site_ruin_status()
         results["step_5"] = await self.step_5_build_entity_war_lists()
         results["step_6"] = await self.step_6_compute_hf_kill_lists()
-        results["step_7"] = await self.step_7_calculate_importance_scores()
+        results["step_7"] = await self.step_7_calculate_scores()
         results["step_8"] = await self.step_8_build_event_entity_xref()
         results["step_9"] = await self.step_9_resolve_site_ownership_history()
         results["step_10"] = await self.step_10_validate_referential_integrity()
@@ -304,11 +304,11 @@ class PostParseProcessor:
         log.info("  Step 6 complete: %d HFs with event-derived kills", updated)
         return {"hfs_with_kills": updated}
 
-    async def step_7_calculate_importance_scores(self) -> dict:
-        """Calculate importance scores using existing scoring module."""
-        log.info("Step 7: Calculating importance scores...")
-        from chronicler.scoring import compute_importance_scores
-        counts = await compute_importance_scores(self.conn, self.world_id)
+    async def step_7_calculate_scores(self) -> dict:
+        """Calculate prominence and salience scores using scoring module."""
+        log.info("Step 7: Calculating prominence and salience scores...")
+        from chronicler.scoring import compute_scores
+        counts = await compute_scores(self.conn, self.world_id)
         log.info("  Step 7 complete: %s", counts)
         return counts
 
