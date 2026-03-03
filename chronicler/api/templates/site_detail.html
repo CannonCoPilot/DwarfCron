@@ -42,6 +42,7 @@
   <button class="detail-tab active" id="dtab-structures" onclick="switchDetailTab('structures')">Structures ({{ structures|length }})</button>
   <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
   {% if ownership_timeline %}<button class="detail-tab" id="dtab-ownership" onclick="switchDetailTab('ownership')">Ownership ({{ ownership_timeline|length }})</button>{% endif %}
+  {% if residents %}<button class="detail-tab" id="dtab-residents" onclick="switchDetailTab('residents')">Residents ({{ residents|length }}{% if residents|length >= 200 %}+{% endif %})</button>{% endif %}
   <button class="detail-tab" id="dtab-history" onclick="switchDetailTab('history')">History ({{ event_count }})</button>
 </div>
 {% endblock %}
@@ -143,6 +144,56 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+{% endif %}
+
+{# Residents Tab #}
+{% if residents %}
+<div id="dtab-content-residents" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Historical Figures Linked to this Site ({{ residents|length }}{% if residents|length >= 200 %}+{% endif %})</div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-sm">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Race</th>
+            <th class="text-left pb-1">Link</th>
+            <th class="text-left pb-1">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in residents %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-1">
+              {{ linker.link('hf', r.hf_id, r.name, world_id)|safe }}
+              {% if r.is_deity %}<span class="badge badge-deity" title="Deity">D</span>{% endif %}
+              {% if r.is_force %}<span class="badge badge-force" title="Force">F</span>{% endif %}
+              {% if r.is_vampire %}<span class="badge badge-vampire" title="Vampire">V</span>{% endif %}
+              {% if r.is_necromancer %}<span class="badge badge-necro" title="Necromancer">N</span>{% endif %}
+              {% if r.is_werebeast %}<span class="badge badge-were" title="Werebeast">W</span>{% endif %}
+              {% if r.is_ghost %}<span class="badge badge-ghost" title="Ghost">G</span>{% endif %}
+            </td>
+            <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
+            <td><span class="badge badge-type">{{ r.link_type|title }}</span></td>
+            <td>
+              {% if r.death_year %}
+                <span class="text-red-400" title="Died year {{ r.death_year }}">Dead ({{ r.death_year }})</span>
+              {% else %}
+                <span class="text-emerald-400">Alive</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if residents|length >= 200 %}
+      <div class="mt-2 text-center text-stone-500 text-xs">
+        Showing first 200 residents. More may exist.
+      </div>
+    {% endif %}
   </div>
 </div>
 {% endif %}

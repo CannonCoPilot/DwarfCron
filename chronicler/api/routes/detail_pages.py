@@ -124,6 +124,7 @@ _GRAPH_EDGE_COLORS.update({
     'home structure': '#22c55e', 'occupation': '#22c55e',
     'seat of power': '#f6b93b', 'lair': '#92400e',
     'hangout': '#78716c', 'home site building': '#22c55e',
+    'resident': '#34d399', 'former resident': '#6ee7b7',
 })
 
 _EDGE_CATEGORY.update({
@@ -134,6 +135,7 @@ _EDGE_CATEGORY.update({
     'home structure': 'residence', 'occupation': 'residence',
     'seat of power': 'residence', 'lair': 'residence',
     'hangout': 'residence', 'home site building': 'residence',
+    'resident': 'residence', 'former resident': 'residence',
 })
 
 
@@ -489,6 +491,52 @@ async def _build_full_graph_data(conn, world_id: int, hf_id: int,
             })
             edge_id += 1
 
+        # ── Co-members: other HFs linked to these entities ──────────────
+        MAX_CO_MEMBERS_PER_ENTITY = 10
+        if seen_entity_ids:
+            _hf_cols_ent = ", ".join(
+                f"h.{c.strip()}" for c in _HF_GRAPH_COLS.split(","))
+            co_mem = await conn.fetch(
+                f"SELECT el.hf_id, el.entity_id, el.link_type, "
+                f"  {_hf_cols_ent} "
+                "FROM hf_entity_links el "
+                "JOIN historical_figures h ON h.world_id = el.world_id AND h.id = el.hf_id "
+                "WHERE el.world_id = $1 AND el.entity_id = ANY($2::int[]) "
+                "  AND el.hf_id != $3 "
+                "  AND el.link_type IN ('member', 'former member') "
+                "ORDER BY el.entity_id, "
+                "  CASE el.link_type WHEN 'member' THEN 0 ELSE 1 END, "
+                "  h.name",
+                world_id, list(seen_entity_ids), hf_id)
+
+            ent_counts: dict[int, int] = {}
+            for row in co_mem:
+                eid = row['entity_id']
+                ent_counts.setdefault(eid, 0)
+                if ent_counts[eid] >= MAX_CO_MEMBERS_PER_ENTITY:
+                    continue
+                ent_counts[eid] += 1
+                co_hf_id = row['hf_id']
+                node_id = f'hf-{co_hf_id}'
+                if co_hf_id not in graph_hf_ids:
+                    graph_hf_ids.add(co_hf_id)
+                    co_map = {co_hf_id: dict(row)}
+                    graph_data['nodes'].append(_build_hf_node(co_hf_id, co_map, hf_id))
+                lt = row['link_type']
+                ec = _GRAPH_EDGE_COLORS.get(lt, '#a78bfa')
+                cat = _EDGE_CATEGORY.get(lt, 'membership')
+                graph_data['edges'].append({
+                    'id': edge_id,
+                    'from': f'entity-{eid}',
+                    'to': node_id,
+                    'label': lt,
+                    'category': cat,
+                    'color': {'color': ec, 'highlight': '#f6b93b'},
+                    'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                    'arrows': '',
+                })
+                edge_id += 1
+
     # ── Site nodes + residence edges (center HF only) ─────────────────────
     if site_links:
         seen_site_ids = set()
@@ -511,6 +559,56 @@ async def _build_full_graph_data(conn, world_id: int, hf_id: int,
                 'arrows': '',
             })
             edge_id += 1
+
+        # ── Co-occupants: other HFs linked to these sites ───────────────
+        MAX_CO_OCCUPANTS_PER_SITE = 10
+        if seen_site_ids:
+            _hf_cols_prefixed = ", ".join(
+                f"h.{c.strip()}" for c in _HF_GRAPH_COLS.split(","))
+            co_occ = await conn.fetch(
+                f"SELECT l.hf_id, l.site_id, l.link_type, "
+                f"  {_hf_cols_prefixed} "
+                "FROM hf_site_links l "
+                "JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.hf_id "
+                "WHERE l.world_id = $1 AND l.site_id = ANY($2::int[]) "
+                "  AND l.hf_id != $3 "
+                "  AND l.link_type IN ('resident', 'former resident', "
+                "      'home structure', 'occupation', 'seat of power') "
+                "ORDER BY l.site_id, "
+                "  CASE l.link_type WHEN 'resident' THEN 0 ELSE 1 END, "
+                "  h.name",
+                world_id, list(seen_site_ids), hf_id)
+
+            # Group by site and cap per site
+            site_counts: dict[int, int] = {}
+            for row in co_occ:
+                sid = row['site_id']
+                site_counts.setdefault(sid, 0)
+                if site_counts[sid] >= MAX_CO_OCCUPANTS_PER_SITE:
+                    continue
+                site_counts[sid] += 1
+                co_hf_id = row['hf_id']
+                # Add HF node if not already present
+                node_id = f'hf-{co_hf_id}'
+                if co_hf_id not in graph_hf_ids:
+                    graph_hf_ids.add(co_hf_id)
+                    co_map = {co_hf_id: dict(row)}
+                    graph_data['nodes'].append(_build_hf_node(co_hf_id, co_map, hf_id))
+                # Add edge from site to co-occupant
+                lt = row['link_type']
+                ec = _GRAPH_EDGE_COLORS.get(lt, '#22c55e')
+                cat = _EDGE_CATEGORY.get(lt, 'residence')
+                graph_data['edges'].append({
+                    'id': edge_id,
+                    'from': f'site-{sid}',
+                    'to': node_id,
+                    'label': lt,
+                    'category': cat,
+                    'color': {'color': ec, 'highlight': '#f6b93b'},
+                    'font': {'color': '#78716c', 'size': 9, 'strokeWidth': 0},
+                    'arrows': '',
+                })
+                edge_id += 1
 
     return graph_data
 
@@ -1328,6 +1426,20 @@ async def site_detail_page(site_id: int, request: Request,
                 'text': renderer.render_event(dict(ev), 'site', site_id, name_map),
             })
 
+        # Residents (HFs linked to this site via hf_site_links)
+        residents = await conn.fetch("""
+            SELECT l.hf_id, l.link_type,
+                   h.name, h.race, h.caste, h.birth_year, h.death_year,
+                   h.is_vampire, h.is_necromancer, h.is_werebeast, h.is_ghost,
+                   h.is_deity, h.is_force
+            FROM hf_site_links l
+            JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.hf_id
+            WHERE l.world_id = $1 AND l.site_id = $2
+            ORDER BY l.link_type, h.name
+            LIMIT 200
+        """, world_id, site_id)
+        residents = [dict(r) for r in residents]
+
         # Prev/Next
         prev_site = await conn.fetchrow("""
             SELECT id, name FROM sites WHERE world_id = $1 AND id < $2
@@ -1353,6 +1465,7 @@ async def site_detail_page(site_id: int, request: Request,
         "structures": [dict(s) for s in structures],
         "owner": dict(owner) if owner else None,
         "ownership_timeline": ownership_timeline,
+        "residents": residents,
         "events": rendered_events,
         "event_count": event_count,
         "prev_site": dict(prev_site) if prev_site else None,

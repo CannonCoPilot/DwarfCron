@@ -414,6 +414,7 @@ EDGE_COLORS = {
     "slave": "#ef4444", "former slave": "#9ca3af",
     "home structure": "#a3e635", "occupation": "#a3e635",
     "seat of power": "#f6b93b", "lair": "#94a3b8", "hangout": "#d6d3d1",
+    "resident": "#34d399", "former resident": "#6ee7b7",
 }
 
 # Max nodes per hop to prevent graph explosion
