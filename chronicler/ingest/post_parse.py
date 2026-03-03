@@ -1,7 +1,7 @@
 """Post-parse processing pipeline for Chronicler CDM.
 
 Runs after XML ingestion to resolve cross-references, derive computed flags,
-build indexes, and validate referential integrity. 10 steps executed in order
+build indexes, and validate referential integrity. 11 steps executed in order
 (later steps depend on earlier steps).
 """
 
@@ -21,7 +21,7 @@ class PostParseProcessor:
         self.world_id = world_id
 
     async def run_all(self) -> dict[str, any]:
-        """Execute all 10 processing steps in order. Returns step results."""
+        """Execute all 11 processing steps in order. Returns step results."""
         results = {}
         results["step_1"] = await self.step_1_resolve_family_links()
         results["step_2"] = await self.step_2_resolve_position_assignments()
@@ -32,7 +32,8 @@ class PostParseProcessor:
         results["step_7"] = await self.step_7_calculate_scores()
         results["step_8"] = await self.step_8_build_event_entity_xref()
         results["step_9"] = await self.step_9_resolve_site_ownership_history()
-        results["step_10"] = await self.step_10_validate_referential_integrity()
+        results["step_10"] = await self.step_10_materialize_hf_settlement_links()
+        results["step_11"] = await self.step_11_validate_referential_integrity()
         return results
 
     async def step_1_resolve_family_links(self) -> dict:
@@ -482,9 +483,68 @@ class PostParseProcessor:
                  updated, backfilled or 0)
         return {"sites_updated": updated, "owners_backfilled": backfilled or 0}
 
-    async def step_10_validate_referential_integrity(self) -> dict:
+    async def step_10_materialize_hf_settlement_links(self) -> dict:
+        """Materialize resident/former resident links from change-hf-state events.
+
+        For each HF, the site from their most recent 'settled' event becomes
+        'resident'; all other HF-site settlement pairs become 'former resident'.
+        """
+        log.info("Step 10: Materializing HF settlement links...")
+        wid = self.world_id
+
+        # Clean any prior materialized settlement links for this world
+        r = await self.conn.execute("""
+            DELETE FROM hf_site_links
+            WHERE world_id = $1 AND link_type IN ('settled', 'resident', 'former resident')
+        """, wid)
+        cleaned = _count(r)
+        if cleaned:
+            log.info("  Cleaned %d prior settlement links", cleaned)
+
+        # CTE: for each HF, rank settlement events by year DESC per site,
+        # then pick the most recent site overall as 'resident'
+        status = await self.conn.execute("""
+            WITH settlements AS (
+                SELECT DISTINCT ON (hf_id_1, site_id)
+                    world_id, hf_id_1, site_id, year
+                FROM history_events
+                WHERE world_id = $1
+                  AND event_type = 'change hf state'
+                  AND details->>'state' = 'settled'
+                  AND hf_id_1 IS NOT NULL
+                  AND site_id IS NOT NULL
+                ORDER BY hf_id_1, site_id, year DESC
+            ),
+            ranked AS (
+                SELECT *,
+                    ROW_NUMBER() OVER (PARTITION BY hf_id_1 ORDER BY year DESC) AS rn
+                FROM settlements
+            )
+            INSERT INTO hf_site_links (world_id, hf_id, site_id, link_type)
+            SELECT world_id, hf_id_1, site_id,
+                   CASE WHEN rn = 1 THEN 'resident' ELSE 'former resident' END
+            FROM ranked
+            ON CONFLICT DO NOTHING
+        """, wid)
+        inserted = _count(status)
+
+        # Count breakdown
+        residents = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM hf_site_links
+            WHERE world_id = $1 AND link_type = 'resident'
+        """, wid)
+        former = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM hf_site_links
+            WHERE world_id = $1 AND link_type = 'former resident'
+        """, wid)
+
+        log.info("  Step 10 complete: %d links (%d resident, %d former resident)",
+                 inserted, residents, former)
+        return {"inserted": inserted, "residents": residents, "former_residents": former}
+
+    async def step_11_validate_referential_integrity(self) -> dict:
         """Verify FK-like references resolve to existing records."""
-        log.info("Step 10: Validating referential integrity...")
+        log.info("Step 11: Validating referential integrity...")
         wid = self.world_id
         issues = {}
 
@@ -539,9 +599,9 @@ class PostParseProcessor:
         pct = (broken_total / total_refs * 100) if total_refs > 0 else 0
 
         if not issues:
-            log.info("  Step 10 complete: no referential integrity issues found")
+            log.info("  Step 11 complete: no referential integrity issues found")
         else:
-            log.info("  Step 10 complete: %d broken references (%.2f%% of %d total)",
+            log.info("  Step 11 complete: %d broken references (%.2f%% of %d total)",
                      broken_total, pct, total_refs)
 
         return {"broken": issues, "broken_total": broken_total,

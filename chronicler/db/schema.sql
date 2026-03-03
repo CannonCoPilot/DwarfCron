@@ -485,6 +485,7 @@ CREATE INDEX IF NOT EXISTS idx_hf_links_hf ON hf_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_hf_links_target ON hf_links(target_hf_id);
 CREATE INDEX IF NOT EXISTS idx_hf_entity_links_hf ON hf_entity_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_hf_site_links_hf ON hf_site_links(hf_id);
+CREATE INDEX IF NOT EXISTS idx_hf_site_links_site ON hf_site_links(site_id);
 CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_event_rels_source ON event_relationships(source_hf);
 CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_hf);
