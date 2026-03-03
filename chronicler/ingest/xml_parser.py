@@ -1498,11 +1498,12 @@ async def import_legends(
             log.info("  structure_enrichment: %d structures updated", len(struct_params))
 
         # Relationship supplements: occasion_type/site/reason for event_relationships
-        # The <event> tag in supplements references event_relationships.id, NOT history_events.id
+        # The <event> tag in supplements references event_relationships.event_id
+        # (the shared history_event FK), NOT the auto-generated serial id
         if plus_data["relationship_supplements"]:
             sup_params = []
-            for wid, rel_id, occasion_type, site_id, reason in plus_data["relationship_supplements"]:
-                if rel_id is None:
+            for wid, event_id, occasion_type, site_id, reason in plus_data["relationship_supplements"]:
+                if event_id is None:
                     continue
                 supplement = {}
                 if occasion_type:
@@ -1512,11 +1513,11 @@ async def import_legends(
                 if reason:
                     supplement["supplement_reason"] = reason
                 if supplement:
-                    sup_params.append((supplement, wid, rel_id))
+                    sup_params.append((supplement, wid, event_id))
             if sup_params:
                 sup_sql = ("UPDATE event_relationships "
                            "SET details = COALESCE(details, '{}'::jsonb) || $1::jsonb "
-                           "WHERE world_id = $2 AND id = $3")
+                           "WHERE world_id = $2 AND event_id = $3")
                 await conn.executemany(sup_sql, sup_params)
             counts["relationship_supplements"] = len(sup_params)
             log.info("  relationship_supplements: %d relationships supplemented", len(sup_params))
