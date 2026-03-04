@@ -341,6 +341,7 @@ async def table_data(
 class QueryRequest(BaseModel):
     sql: str
     limit: int = 100
+    format: str = "csv"
 
 
 _DANGEROUS_KW = re.compile(
@@ -1013,9 +1014,9 @@ async def export_table_data(
 
 
 @router.post("/explorer/export/query")
-async def export_query_results(body: QueryRequest, request: Request,
-                                format: str = "csv"):
+async def export_query_results(body: QueryRequest, request: Request):
     """Export SQL query results as CSV or JSON."""
+    format = body.format
     if format not in ("csv", "json"):
         raise HTTPException(400, "Format must be 'csv' or 'json'")
 
