@@ -30,12 +30,17 @@
   {% if deity %}
     <span>Deity: {{ linker.link('hf', deity.id, deity.name, world_id)|safe }}</span>
   {% endif %}
+  {% if religion_entity %}
+    <span>Sect: {{ linker.link('entity', religion_entity.id, religion_entity.name, world_id)|safe }}</span>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
+  {% if positions %}<button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ positions|length }})</button>{% endif %}
+  {% if members %}<button class="detail-tab" id="dtab-members" onclick="switchDetailTab('members')">Members ({{ members|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
 </div>
 {% endblock %}
@@ -49,6 +54,10 @@
       <div class="section-title">Structure Details</div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
         <div><span class="text-stone-500">Name:</span> {{ structure.name|default('Unnamed', true) }}</div>
+        {% set details = structure.details or {} %}
+        {% if details.get('name2') %}
+          <div><span class="text-stone-500">Alt Name:</span> {{ details.name2 }}</div>
+        {% endif %}
         <div><span class="text-stone-500">Type:</span> {{ structure.type|default('?', true)|replace('_', ' ')|title }}</div>
         {% if parent_site %}
           <div><span class="text-stone-500">Site:</span> {{ linker.link('site', parent_site.id, parent_site.name, world_id)|safe }}</div>
@@ -59,24 +68,85 @@
         {% if deity %}
           <div><span class="text-stone-500">Deity:</span> {{ linker.link('hf', deity.id, deity.name, world_id)|safe }}</div>
         {% endif %}
+        {% if religion_entity %}
+          <div><span class="text-stone-500">Sect:</span> {{ linker.link('entity', religion_entity.id, religion_entity.name, world_id)|safe }}</div>
+        {% endif %}
       </div>
     </div>
-
-    {# Details JSONB #}
-    {% set details = structure.details or {} %}
-    {% if details %}
-    <div class="section-card lg:col-span-2">
-      <div class="section-title">Additional Details</div>
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-        {% for key, val in details.items() if val is not none %}
-          <div><span class="text-stone-500">{{ key|replace('_', ' ')|title }}:</span> {{ val }}</div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
 
   </div>
 </div>
+
+{% if positions %}
+<div id="dtab-content-positions" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Positions ({{ positions|length }} defined)</div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1 w-40">Position</th>
+            <th class="text-left pb-1">Holders</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pos_id, pos in positions.items() %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-2 align-top text-sm font-medium text-stone-300">{{ pos.name|title }}</td>
+            <td class="py-2 text-sm">
+              {% if pos.holders %}
+                {% for h in pos.holders %}
+                  <div class="{% if not loop.first %}mt-1{% endif %}">
+                    {{ linker.link('hf', h.hf_id, h.hf_name, world_id)|safe }}
+                    <span class="text-stone-500 text-xs">({{ h.start_year }}–{{ h.end_year if h.end_year > 0 else 'present' }})</span>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <span class="text-stone-600 italic">Vacant</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if members %}
+<div id="dtab-content-members" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Membership ({{ members|length }}{% if members|length >= 100 %}+{% endif %})</div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1 w-32">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in members %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-1 text-sm">{{ linker.link('hf', m.hf_id, m.hf_name, world_id)|safe }}</td>
+            <td class="py-1 text-sm">
+              {% if m.link_type == 'member' %}
+                <span class="text-emerald-500">Member</span>
+              {% elif m.link_type == 'former member' %}
+                <span class="text-stone-500">Former</span>
+              {% else %}
+                <span class="text-stone-500">{{ m.link_type|title }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <div id="dtab-content-events" class="tab-content">
   <div class="section-card">
@@ -93,11 +163,20 @@
         </thead>
         <tbody>
           {% for ev in events %}
-          <tr class="event-row">
+          <tr class="event-row{% if ev.enrichment %} has-enrichment{% endif %}"{% if ev.enrichment %} onclick="toggleEnrichment(this)"{% endif %}>
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
             <td class="py-1 event-text">{{ ev.text|safe }}</td>
           </tr>
+          {% if ev.enrichment %}
+          <tr class="enrichment-row">
+            <td colspan="3"><div class="enrichment-tags">
+              {% for label, value in ev.enrichment.items() %}
+              <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value }}</span></span>
+              {% endfor %}
+            </div></td>
+          </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>

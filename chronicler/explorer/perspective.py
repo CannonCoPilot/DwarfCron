@@ -296,6 +296,87 @@ def merge_columns_into_details(event: dict) -> dict:
     return details
 
 
+# Fields to suppress from enrichment display — entity refs (already linked in
+# narrative text), internal IDs, and coordinate noise.
+_SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
+    'type', 'subtype', 'hist_event_collection_id', 'coords',
+    # Plus-XML short entity reference names (values are raw numeric IDs)
+    'histfig', 'civ', 'eater', 'entity', 'victim', 'woundee', 'wounder',
+    'group', 'site_civ', 'slayer_hf', 'victim_hf', 'hf', 'hf_target',
+    'trickster', 'student', 'teacher', 'target', 'stash_site',
+    'victim_entity', 'entity_1', 'entity_2',
+    # Numeric race/caste indices (not human-readable)
+    'slayer_race', 'slayer_caste', 'woundee_race', 'woundee_caste',
+})
+
+# Numeric fields where integer values ARE meaningful (not entity IDs)
+_NUMERIC_KEEP = frozenset({
+    'quality', 'prison_months', 'bodies', 'account_shift',
+    'top_value_rating', 'top_facet_rating', 'top_relationship_rating',
+    'top_value_modifier', 'top_facet_modifier', 'top_relationship_modifier',
+    'ally_defense_bonus',
+})
+
+# DF sentinel values that mean "no data"
+_SENTINEL_VALUES = frozenset({'none', '-1', 'unknown', ''})
+
+
+def extract_enrichment_details(event: dict) -> dict:
+    """Extract displayable enrichment fields not already shown in event text.
+
+    Returns {display_label: display_value} for fields in the JSONB details
+    that are NOT entity references, NOT consumed by template placeholders,
+    and NOT sentinel/noise values.
+    """
+    raw_details = event.get('details') or {}
+    if not raw_details:
+        return {}
+
+    event_type = event.get('event_type') or event.get('type', '')
+    template = EVENT_TEMPLATES.get(event_type, '')
+
+    enrichment = {}
+    for key, val in raw_details.items():
+        if key in _SUPPRESS_FROM_ENRICHMENT:
+            continue
+        if val is None:
+            continue
+        # Skip fields already substituted into template text
+        if '{' + key + '}' in template:
+            continue
+        # Suppress keys that look like entity ID references
+        if key.endswith('_hfid') or key.endswith('_id') or key.endswith('_enid'):
+            continue
+
+        # Suppress pure-integer values (likely entity IDs) unless whitelisted
+        if key not in _NUMERIC_KEEP and isinstance(val, (int, float)):
+            continue
+        if key not in _NUMERIC_KEEP and isinstance(val, str):
+            try:
+                int(val)
+                continue  # Pure integer string → likely an entity ID
+            except (ValueError, TypeError):
+                pass
+
+        label = key.replace('_', ' ').title()
+
+        if isinstance(val, dict):
+            parts = [f"{k.replace('_', ' ').title()}: {v}"
+                     for k, v in val.items()
+                     if v is not None and str(v).lower() not in _SENTINEL_VALUES]
+            if parts:
+                enrichment[label] = '; '.join(parts)
+        elif isinstance(val, list):
+            enrichment[label] = ', '.join(str(v) for v in val)
+        else:
+            sv = str(val)
+            if sv.lower() in _SENTINEL_VALUES:
+                continue
+            enrichment[label] = sv
+
+    return enrichment
+
+
 class PerspectiveRenderer:
     """Render events from a specific entity's perspective.
 

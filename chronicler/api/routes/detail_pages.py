@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 from chronicler.explorer.linking import EntityLinkRenderer, EntityNameCache
 from chronicler.explorer.calendar import DFCalendar
-from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_into_details
+from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_into_details, extract_enrichment_details
 
 router = APIRouter()
 
@@ -867,6 +867,7 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'date': DFCalendar.format_date(ev['year'], ev['seconds']),
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'hf', hf_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Primary entity name
@@ -1424,6 +1425,7 @@ async def site_detail_page(site_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'site', site_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Residents (HFs linked to this site via hf_site_links)
@@ -1566,6 +1568,7 @@ async def artifact_detail_page(artifact_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'artifact', artifact_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Prev/Next
@@ -1672,6 +1675,7 @@ async def region_detail_page(region_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'region', region_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         prev_reg = await conn.fetchrow("""
@@ -1746,32 +1750,78 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
                 world_id, structure['entity_id'],
             )
 
-        # Deity (from details JSONB — check for deity or worship_hf_id)
+        # Deity + Religion entity
         deity = None
+        religion_entity = None
         details = structure.get('details') or {}
+
+        # Try direct deity fields first
         deity_hf_id = details.get('deity') or details.get('worship_hf_id') or details.get('deity_hf_id')
+
+        # If no direct deity, resolve through religion entity
+        religion_entity_id = details.get('religion_entity_id') or structure.get('entity_id')
+        if religion_entity_id:
+            religion_entity = await conn.fetchrow(
+                "SELECT id, name, type, details FROM entities WHERE world_id = $1 AND id = $2",
+                world_id, int(religion_entity_id),
+            )
+            if religion_entity and not deity_hf_id:
+                re_details = religion_entity['details'] or {}
+                if isinstance(re_details, str):
+                    import json as _json
+                    re_details = _json.loads(re_details)
+                deity_hf_id = re_details.get('histfig_id') or re_details.get('worship_hfid')
+
         if deity_hf_id:
             deity = await conn.fetchrow(
                 "SELECT id, name, race FROM historical_figures WHERE world_id = $1 AND id = $2",
                 world_id, int(deity_hf_id),
             )
 
-        # Events at this structure
-        event_count = await conn.fetchval("""
-            SELECT count(*) FROM event_entity_xref
-            WHERE world_id = $1 AND entity_type = 'structure' AND entity_id = $2
-        """, world_id, structure_id)
+        # Positions defined for the religion/owning entity
+        positions = []
+        position_holders = []
+        pos_entity_id = religion_entity_id or structure.get('entity_id')
+        if pos_entity_id:
+            positions = await conn.fetch(
+                "SELECT position_id, name FROM entity_positions WHERE world_id = $1 AND entity_id = $2 ORDER BY position_id",
+                world_id, int(pos_entity_id),
+            )
+            position_holders = await conn.fetch("""
+                SELECT pl.position_id, pl.start_year, pl.end_year, hf.id as hf_id, hf.name as hf_name
+                FROM hf_position_links pl
+                JOIN historical_figures hf ON hf.world_id = pl.world_id AND hf.id = pl.hf_id
+                WHERE pl.world_id = $1 AND pl.entity_id = $2
+                ORDER BY pl.position_id, pl.start_year
+            """, world_id, int(pos_entity_id))
 
+        # Membership
+        members = []
+        if pos_entity_id:
+            members = await conn.fetch("""
+                SELECT hel.hf_id, hel.link_type, hf.name as hf_name
+                FROM hf_entity_links hel
+                JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id
+                WHERE hel.world_id = $1 AND hel.entity_id = $2
+                ORDER BY hel.link_type, hf.name
+                LIMIT 100
+            """, world_id, int(pos_entity_id))
+
+        # Events — query directly by structure_id + site_id
+        # (structure IDs are site-local, so xref entity_id alone is ambiguous)
+        event_count = await conn.fetchval("""
+            SELECT count(*) FROM history_events
+            WHERE world_id = $1 AND structure_id = $2 AND site_id = $3
+        """, world_id, structure_id, site_id)
         events = await conn.fetch("""
-            SELECT e.id, e.year, e.seconds, e.event_type, e.details,
-                   e.hf_id_1, e.hf_id_2, e.site_id, e.region_id,
-                   e.entity_id_1, e.entity_id_2, e.artifact_id, e.structure_id
-            FROM history_events e
-            JOIN event_entity_xref x ON x.world_id = e.world_id AND x.event_id = e.id
-            WHERE x.world_id = $1 AND x.entity_type = 'structure' AND x.entity_id = $2
-            ORDER BY e.year, e.seconds
+            SELECT id, year, seconds, event_type, details,
+                   hf_id_1, hf_id_2, site_id, region_id,
+                   entity_id_1, entity_id_2, artifact_id, structure_id
+            FROM history_events
+            WHERE world_id = $1 AND structure_id = $2 AND site_id = $3
+            ORDER BY year, seconds
             LIMIT 50
-        """, world_id, structure_id)
+        """, world_id, structure_id, site_id)
 
         refs = set()
         for ev in events:
@@ -1792,6 +1842,7 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'structure', structure_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
     # Structure type badge class
@@ -1804,12 +1855,25 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
     }
     badge_class = STRUCTURE_BADGE_MAP.get(stype, 'badge-type')
 
+    # Build position map: {position_id: {name, holders: [{hf_id, hf_name, start, end}]}}
+    pos_map = {}
+    for p in positions:
+        pos_map[p['position_id']] = {'name': p['name'], 'holders': []}
+    for ph in position_holders:
+        pid = ph['position_id']
+        if pid not in pos_map:
+            pos_map[pid] = {'name': f'Position {pid}', 'holders': []}
+        pos_map[pid]['holders'].append({
+            'hf_id': ph['hf_id'], 'hf_name': ph['hf_name'],
+            'start_year': ph['start_year'], 'end_year': ph['end_year'],
+        })
+
     return templates.TemplateResponse("structure_detail.html", {
         "request": request,
         "active": "explorer",
         "entity_type_display": "Structure",
         "entity_name": structure['name'] or f"Structure #{structure_id}",
-        "entity_alt_name": None,
+        "entity_alt_name": details.get('name2'),
         "structure": structure,
         "world": world,
         "world_id": world_id,
@@ -1817,6 +1881,9 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
         "parent_site": dict(parent_site) if parent_site else None,
         "owner_entity": dict(owner_entity) if owner_entity else None,
         "deity": dict(deity) if deity else None,
+        "religion_entity": dict(religion_entity) if religion_entity else None,
+        "positions": pos_map,
+        "members": [dict(m) for m in members],
         "badge_class": badge_class,
         "events": rendered_events,
         "event_count": event_count,
@@ -2017,6 +2084,7 @@ async def collection_detail_page(collection_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'event_collection', collection_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Prev/Next
@@ -2123,6 +2191,7 @@ async def underground_region_detail_page(ur_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'underground_region', ur_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Prev/Next
@@ -2269,6 +2338,7 @@ async def mountain_peak_detail_page(peak_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'mountain_peak', peak_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # Prev/Next
@@ -2597,6 +2667,7 @@ async def era_detail_page(era_name: str, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'era', 0, name_map),
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
         # All eras for prev/next
@@ -2980,6 +3051,7 @@ async def api_year_events(year: int, request: Request,
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), None, None, name_map),
                 'details': dict(ev['details']) if ev['details'] else {},
+                'enrichment': extract_enrichment_details(dict(ev)),
             })
 
     return {
@@ -3045,4 +3117,5 @@ async def api_event_detail(event_id: int, request: Request,
         "date_short": DFCalendar.format_short(ev['year'], ev['seconds']),
         "text": renderer.render_event(dict(ev), None, None, name_map),
         "details": dict(ev['details']) if ev['details'] else {},
+        "enrichment": extract_enrichment_details(dict(ev)),
     }

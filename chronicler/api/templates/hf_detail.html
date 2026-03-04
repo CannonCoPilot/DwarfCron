@@ -719,11 +719,20 @@
         </thead>
         <tbody>
           {% for ev in events %}
-          <tr class="event-row{% if loop.index > 50 %} hf-event-overflow{% endif %}">
+          <tr class="event-row{% if ev.enrichment %} has-enrichment{% endif %}{% if loop.index > 50 %} hf-event-overflow{% endif %}"{% if ev.enrichment %} onclick="toggleEnrichment(this)"{% endif %}>
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
             <td class="py-1 event-text">{{ ev.text|safe }}</td>
           </tr>
+          {% if ev.enrichment %}
+          <tr class="enrichment-row{% if loop.index > 50 %} hf-event-overflow{% endif %}">
+            <td colspan="3"><div class="enrichment-tags">
+              {% for label, value in ev.enrichment.items() %}
+              <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value }}</span></span>
+              {% endfor %}
+            </div></td>
+          </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>

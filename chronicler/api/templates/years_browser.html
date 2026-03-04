@@ -93,6 +93,8 @@
     });
   }
 
+  function _esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
   async function loadYear(year, page) {
     currentYear = year;
     currentPage = page || 1;
@@ -118,11 +120,19 @@
 
       let html = '<div class="space-y-0">';
       for (const ev of data.events) {
-        html += `<div class="event-row flex gap-3 py-1.5 px-1">
+        const hasE = ev.enrichment && Object.keys(ev.enrichment).length > 0;
+        html += `<div class="event-row flex gap-3 py-1.5 px-1${hasE ? ' has-enrichment' : ''}"${hasE ? ' onclick="toggleEnrichment(this)"' : ''}>
           <span class="event-year">${ev.date_short}</span>
           <span class="event-type-badge">${ev.event_type.replace(/_/g, ' ')}</span>
           <span class="event-text">${ev.text}</span>
         </div>`;
+        if (hasE) {
+          let tags = '';
+          for (const [label, value] of Object.entries(ev.enrichment)) {
+            tags += `<span class="enrichment-tag"><span class="enrichment-label">${_esc(label)}:</span> <span class="enrichment-value">${_esc(value)}</span></span> `;
+          }
+          html += `<div class="enrichment-row"><div class="enrichment-tags">${tags}</div></div>`;
+        }
       }
       html += '</div>';
       container.innerHTML = html;

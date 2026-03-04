@@ -71,10 +71,19 @@
     {% if events %}
     <div class="space-y-0 max-h-80 overflow-y-auto ex-scroll">
       {% for ev in events %}
-      <div class="event-row flex gap-2 py-1 px-1">
+      <div class="event-row flex gap-2 py-1 px-1{% if ev.enrichment %} has-enrichment{% endif %}"{% if ev.enrichment %} onclick="toggleEnrichment(this)"{% endif %}>
         <span class="event-year">{{ ev.date_short }}</span>
         <span class="event-text text-xs">{{ ev.text|safe }}</span>
       </div>
+      {% if ev.enrichment %}
+      <div class="enrichment-row">
+        <div class="enrichment-tags">
+          {% for label, value in ev.enrichment.items() %}
+          <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value }}</span></span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
       {% endfor %}
     </div>
     {% else %}
