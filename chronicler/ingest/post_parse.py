@@ -374,6 +374,10 @@ class PostParseProcessor:
                 -- Artifact
                 SELECT world_id, id, 'artifact', artifact_id, 'artifact'
                 FROM history_events WHERE world_id = $1 AND artifact_id IS NOT NULL
+                UNION ALL
+                -- Structure
+                SELECT world_id, id, 'structure', structure_id, 'structure'
+                FROM history_events WHERE world_id = $1 AND structure_id IS NOT NULL
             ) refs
             ON CONFLICT DO NOTHING
         """
@@ -393,6 +397,23 @@ class PostParseProcessor:
             r = await self.conn.execute(f"""
                 INSERT INTO event_entity_xref (world_id, event_id, entity_type, entity_id, role)
                 SELECT world_id, id, 'hf', (details->>'{key}')::INTEGER, 'participant'
+                FROM history_events
+                WHERE world_id = $1
+                  AND details ? '{key}'
+                  AND (details->>'{key}')::INTEGER IS NOT NULL
+                ON CONFLICT DO NOTHING
+            """, wid)
+            from_details += _count(r)
+
+        # Extract structure references from details keys
+        struct_detail_keys = [
+            'destroyed_structure_id', 'dest_structure_id',
+            'source_structure_id', 'new_structure', 'old_structure',
+        ]
+        for key in struct_detail_keys:
+            r = await self.conn.execute(f"""
+                INSERT INTO event_entity_xref (world_id, event_id, entity_type, entity_id, role)
+                SELECT world_id, id, 'structure', (details->>'{key}')::INTEGER, 'participant'
                 FROM history_events
                 WHERE world_id = $1
                   AND details ? '{key}'
