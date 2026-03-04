@@ -552,6 +552,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "event_enrichment": [],  # (event_id, world_id, details_dict) for event UPDATE
         "structure_enrichment": [],  # (world_id, site_id, struct_id, details_dict) for structure UPDATE
         "relationship_supplements": [],  # (world_id, event_id, occasion_type, site_id, reason)
+        "position_profile_map": {},  # {(world_id, entity_id): {assignment_id: position_id}}
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -742,10 +743,16 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                     _text(pos, "spouse_female"),
                 ))
 
-            # Current position assignments
+            # Current position assignments + profile→position mapping
             for assign in ent.findall("entity_position_assignment"):
+                assign_id = _int(assign, "id")  # profile/slot ID
+                pos_id = _int(assign, "position_id")  # actual position definition ID
                 histfig = _int(assign, "histfig")
-                pos_id = _int(assign, "position_id")
+                if assign_id is not None and pos_id is not None:
+                    key = (world_id, eid)
+                    if key not in result["position_profile_map"]:
+                        result["position_profile_map"][key] = {}
+                    result["position_profile_map"][key][assign_id] = pos_id
                 if histfig is not None and pos_id is not None:
                     result["entity_position_assignments"].append((
                         world_id, histfig, eid, pos_id,
@@ -1302,6 +1309,33 @@ async def import_legends(
                 on_conflict="DO NOTHING")  # bare DO NOTHING: catches partial unique index on NULL start_year
             counts["entity_position_assignments"] = n
             log.info("  entity_position_assignments: %d", n)
+
+        # Correct position_profile_id → position_id in hf_position_links.
+        # Base legends.xml stores position_profile_id (assignment slot) as
+        # position_id, but it should be the actual position definition ID.
+        # The plus-XML entity_position_assignment provides the mapping.
+        profile_map = plus_data.get("position_profile_map", {})
+        if profile_map:
+            corrected = 0
+            for (wid, eid), mapping in profile_map.items():
+                # Build VALUES list for all profile→position translations
+                translations = [(p, a) for p, a in mapping.items() if p != a]
+                if not translations:
+                    continue
+                # Single UPDATE per entity using a CASE expression
+                cases = " ".join(
+                    f"WHEN {prof} THEN {actual}" for prof, actual in translations
+                )
+                profile_ids = ", ".join(str(p) for p, _ in translations)
+                r = await conn.execute(f"""
+                    UPDATE hf_position_links
+                    SET position_id = CASE position_id {cases} END
+                    WHERE world_id = $1 AND entity_id = $2
+                      AND position_id IN ({profile_ids})
+                """, wid, eid)
+                corrected += int(r.split()[-1]) if isinstance(r, str) else 0
+            log.info("  position_profile corrections: %d rows", corrected)
+            counts["position_profile_corrections"] = corrected
 
         # Written contents enrichment: merge type/pages from legends_plus
         # into written_contents already inserted from legends.xml
