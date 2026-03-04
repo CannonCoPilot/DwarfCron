@@ -867,7 +867,7 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'date': DFCalendar.format_date(ev['year'], ev['seconds']),
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'hf', hf_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Primary entity name
@@ -1425,7 +1425,7 @@ async def site_detail_page(site_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'site', site_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Residents (HFs linked to this site via hf_site_links)
@@ -1568,7 +1568,7 @@ async def artifact_detail_page(artifact_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'artifact', artifact_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Prev/Next
@@ -1675,7 +1675,7 @@ async def region_detail_page(region_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'region', region_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         prev_reg = await conn.fetchrow("""
@@ -1842,7 +1842,7 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'structure', structure_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
     # Structure type badge class
@@ -2084,7 +2084,7 @@ async def collection_detail_page(collection_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'event_collection', collection_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Prev/Next
@@ -2191,7 +2191,7 @@ async def underground_region_detail_page(ur_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'underground_region', ur_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Prev/Next
@@ -2338,7 +2338,7 @@ async def mountain_peak_detail_page(peak_id: int, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'mountain_peak', peak_id, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # Prev/Next
@@ -2667,7 +2667,7 @@ async def era_detail_page(era_name: str, request: Request,
                 'type': ev['event_type'],
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'era', 0, name_map),
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
         # All eras for prev/next
@@ -3051,7 +3051,7 @@ async def api_year_events(year: int, request: Request,
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), None, None, name_map),
                 'details': dict(ev['details']) if ev['details'] else {},
-                'enrichment': extract_enrichment_details(dict(ev)),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
     return {
@@ -3117,5 +3117,5 @@ async def api_event_detail(event_id: int, request: Request,
         "date_short": DFCalendar.format_short(ev['year'], ev['seconds']),
         "text": renderer.render_event(dict(ev), None, None, name_map),
         "details": dict(ev['details']) if ev['details'] else {},
-        "enrichment": extract_enrichment_details(dict(ev)),
+        "enrichment": extract_enrichment_details(dict(ev), _linker, world_id, name_map),
     }

@@ -296,6 +296,16 @@ def merge_columns_into_details(event: dict) -> dict:
     return details
 
 
+# ── Link-type-aware templates for 'add hf entity link' ─────────────────────
+_ADD_HF_LINK_TEMPLATES = {
+    'enemy': '{hfid} became an enemy of {civ_id}',
+    'member': '{hfid} joined {civ_id}',
+    'prisoner': '{hfid} was imprisoned by {civ_id}',
+    'slave': '{hfid} was enslaved by {civ_id}',
+    'squad': '{hfid} joined a squad in {civ_id}',
+    'criminal': '{hfid} became a criminal of {civ_id}',
+}
+
 # Fields to suppress from enrichment display — entity refs (already linked in
 # narrative text), internal IDs, and coordinate noise.
 _SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
@@ -307,6 +317,8 @@ _SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
     'victim_entity', 'entity_1', 'entity_2',
     # Numeric race/caste indices (not human-readable)
     'slayer_race', 'slayer_caste', 'woundee_race', 'woundee_caste',
+    # Link/position fields consumed by dynamic templates
+    'link_type', 'position',
 })
 
 # Numeric fields where integer values ARE meaningful (not entity IDs)
@@ -321,12 +333,19 @@ _NUMERIC_KEEP = frozenset({
 _SENTINEL_VALUES = frozenset({'none', '-1', 'unknown', ''})
 
 
-def extract_enrichment_details(event: dict) -> dict:
+def extract_enrichment_details(event: dict, linker=None,
+                               world_id: int = None,
+                               name_cache: dict = None) -> dict:
     """Extract displayable enrichment fields not already shown in event text.
 
     Returns {display_label: display_value} for fields in the JSONB details
     that are NOT entity references, NOT consumed by template placeholders,
     and NOT sentinel/noise values.
+
+    Values are HTML-escaped.  When *linker* / *name_cache* are provided,
+    fields like ``reason`` and ``circumstance`` that reference HFs (via a
+    companion ``*_id`` field) are enriched with clickable links.  Callers
+    should render values with ``|safe`` in templates.
     """
     raw_details = event.get('details') or {}
     if not raw_details:
@@ -361,18 +380,44 @@ def extract_enrichment_details(event: dict) -> dict:
         label = key.replace('_', ' ').title()
 
         if isinstance(val, dict):
-            parts = [f"{k.replace('_', ' ').title()}: {v}"
+            parts = [f"{escape(k.replace('_', ' ').title())}: {escape(str(v))}"
                      for k, v in val.items()
                      if v is not None and str(v).lower() not in _SENTINEL_VALUES]
             if parts:
                 enrichment[label] = '; '.join(parts)
         elif isinstance(val, list):
-            enrichment[label] = ', '.join(str(v) for v in val)
+            enrichment[label] = ', '.join(escape(str(v)) for v in val)
         else:
             sv = str(val)
             if sv.lower() in _SENTINEL_VALUES:
                 continue
-            enrichment[label] = sv
+            enrichment[label] = escape(sv)
+
+    # ── Resolve HF references in reason/circumstance fields ─────────────
+    if linker and name_cache:
+        for text_field, id_field in [('reason', 'reason_id'),
+                                     ('circumstance', 'circumstance_id')]:
+            label = text_field.replace('_', ' ').title()
+            if label not in enrichment:
+                continue
+            hf_id_raw = raw_details.get(id_field)
+            if not hf_id_raw or str(hf_id_raw) in ('-1', 'none', ''):
+                continue
+            try:
+                hf_id = int(hf_id_raw)
+            except (ValueError, TypeError):
+                continue
+            name = name_cache.get(('hf', hf_id), f'HF #{hf_id}')
+            link_html = linker.link('hf', hf_id, name, world_id)
+            # Replace bare 'hf' placeholder in text like "glorify hf"
+            text = enrichment[label]
+            if ' hf' in text.lower():
+                enrichment[label] = text.replace(' hf', f' {link_html}')
+                enrichment[label] = enrichment[label].replace(' Hf',
+                                                              f' {link_html}')
+            else:
+                # Append link if no 'hf' placeholder found
+                enrichment[label] = f'{text} ({link_html})'
 
     return enrichment
 
@@ -420,8 +465,14 @@ class PerspectiveRenderer:
         details = merge_columns_into_details(event)
         event_type = event.get('event_type') or event.get('type', '')
 
-        # Try template-based rendering first
-        template = EVENT_TEMPLATES.get(event_type)
+        # Custom renderer for complex event types
+        if event_type == 'hf does interaction':
+            return self._render_hf_does_interaction(
+                details, perspective_type, perspective_id, name_cache
+            )
+
+        # Template-based rendering (dynamic overrides + static fallback)
+        template = self._resolve_template(event_type, details)
         if template:
             return self._render_template(
                 template, details, perspective_type, perspective_id, name_cache
@@ -431,6 +482,86 @@ class PerspectiveRenderer:
         return self._render_generic(
             event_type, details, perspective_type, perspective_id, name_cache
         )
+
+    # ── Dynamic template resolution ────────────────────────────────────────
+    def _resolve_template(self, event_type: str, details: dict) -> str | None:
+        """Select the right template, handling context-dependent event types."""
+        if event_type == 'add hf entity link':
+            link = (details.get('link_type')
+                    or details.get('link') or 'member').lower()
+            if link == 'position':
+                pos = details.get('position', '')
+                if pos and pos != '-1':
+                    # {position} placeholder will be replaced by _render_template
+                    return '{hfid} became {position} of {civ_id}'
+                return '{hfid} took a position in {civ_id}'
+            return _ADD_HF_LINK_TEMPLATES.get(link,
+                                              '{hfid} joined {civ_id}')
+
+        if event_type == 'change hf state':
+            if details.get('site_id') is not None:
+                return '{hfid} became {state} in {site_id}'
+            return '{hfid} became {state}'
+
+        return EVENT_TEMPLATES.get(event_type)
+
+    # ── Custom renderer: hf does interaction ───────────────────────────────
+    def _render_hf_does_interaction(self, details: dict, persp_type: str,
+                                    persp_id: int,
+                                    name_cache: dict = None) -> str:
+        """Render interaction events with readable verbs instead of raw IDs.
+
+        Raw DF identifiers like ``DEITY_CURSE_WEREBEAST_bull_BITE`` are
+        replaced with a human-readable verb, with the raw ID shown in a
+        muted parenthetical for reference.
+        """
+        raw_interaction = details.get('interaction', '')
+
+        # Choose a clean verb based on the interaction pattern
+        if '_BITE' in raw_interaction:
+            verb = 'afflicted'
+        elif 'CURSE' in raw_interaction:
+            verb = 'cursed'
+        else:
+            verb = 'interacted with'
+
+        # Render doer (subject)
+        doer_val = details.get('doer_hfid')
+        if doer_val is not None:
+            if persp_type == 'hf' and int(doer_val) == persp_id:
+                doer_html = f'<em>{self._pronoun("doer_hfid", persp_type)}</em>'
+            else:
+                name = self._resolve_name('hf', doer_val, name_cache)
+                doer_html = self.linker.link('hf', doer_val, name,
+                                             self.world_id)
+        else:
+            doer_html = '?'
+
+        # Render target (object)
+        target_val = details.get('target_hfid')
+        if target_val is not None:
+            if persp_type == 'hf' and int(target_val) == persp_id:
+                target_html = (
+                    f'<em>{self._pronoun("target_hfid", persp_type)}</em>')
+            else:
+                name = self._resolve_name('hf', target_val, name_cache)
+                target_html = self.linker.link('hf', target_val, name,
+                                               self.world_id)
+        else:
+            target_html = ''
+
+        # Build result
+        parts = [doer_html, verb]
+        if target_html:
+            parts.append(target_html)
+        result = ' '.join(parts)
+
+        # Append raw identifier in muted parens for reference
+        if raw_interaction:
+            result += (f' <span class="text-stone-600 text-xs">'
+                       f'({escape(raw_interaction)})</span>')
+
+        return result
 
     def _render_template(self, template: str, details: dict,
                          persp_type: str, persp_id: int,

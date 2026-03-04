@@ -715,24 +715,21 @@
             <th class="text-left pb-1 w-20">Date</th>
             <th class="text-left pb-1 w-28">Type</th>
             <th class="text-left pb-1">Description</th>
+            <th class="text-left pb-1 w-48">Details</th>
           </tr>
         </thead>
         <tbody>
           {% for ev in events %}
-          <tr class="event-row{% if ev.enrichment %} has-enrichment{% endif %}{% if loop.index > 50 %} hf-event-overflow{% endif %}"{% if ev.enrichment %} onclick="toggleEnrichment(this)"{% endif %}>
+          <tr class="event-row{% if loop.index > 50 %} hf-event-overflow{% endif %}">
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top"><span class="event-type-badge">{{ ev.type|replace('_', ' ') }}</span></td>
             <td class="py-1 event-text">{{ ev.text|safe }}</td>
-          </tr>
-          {% if ev.enrichment %}
-          <tr class="enrichment-row{% if loop.index > 50 %} hf-event-overflow{% endif %}">
-            <td colspan="3"><div class="enrichment-tags">
+            <td class="py-1 align-top">{% if ev.enrichment %}<div class="enrichment-tags">
               {% for label, value in ev.enrichment.items() %}
-              <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value }}</span></span>
+              <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value|safe }}</span></span>
               {% endfor %}
-            </div></td>
+            </div>{% endif %}</td>
           </tr>
-          {% endif %}
           {% endfor %}
         </tbody>
       </table>
@@ -870,6 +867,16 @@
           <input type="checkbox" checked class="graph-node-toggle accent-red-700" data-group="entity_militaryunit">
           <span class="inline-block w-2.5 h-2.5" style="background:#dc2626; clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></span>
           <span>Military</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-gray-400" data-group="entity_nomadicgroup">
+          <span class="inline-block w-2.5 h-2.5" style="background:#a3a3a3; clip-path:polygon(50% 0%,0% 100%,100% 100%)"></span>
+          <span>Nomads</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer hover:text-stone-200">
+          <input type="checkbox" checked class="graph-node-toggle accent-gray-400" data-group="entity_migratinggroup">
+          <span class="inline-block w-2.5 h-2.5" style="background:#a3a3a3; clip-path:polygon(50% 0%,0% 100%,100% 100%)"></span>
+          <span>Migrants</span>
         </label>
       </div>
       {# Site node legend #}

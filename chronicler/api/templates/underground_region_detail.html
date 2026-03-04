@@ -52,20 +52,16 @@
     {% if events %}
     <div class="space-y-0">
       {% for ev in events %}
-      <div class="event-row flex gap-3 py-1.5 px-1{% if ev.enrichment %} has-enrichment{% endif %}"{% if ev.enrichment %} onclick="toggleEnrichment(this)"{% endif %}>
+      <div class="event-row flex gap-3 py-1.5 px-1">
         <span class="event-year">{{ ev.date_short }}</span>
         <span class="event-type-badge">{{ ev.type|replace('_',' ') }}</span>
-        <span class="event-text">{{ ev.text|safe }}</span>
-      </div>
-      {% if ev.enrichment %}
-      <div class="enrichment-row">
-        <div class="enrichment-tags">
+        <span class="event-text flex-1">{{ ev.text|safe }}</span>
+        {% if ev.enrichment %}<span class="enrichment-tags inline-details">
           {% for label, value in ev.enrichment.items() %}
-          <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value }}</span></span>
+          <span class="enrichment-tag"><span class="enrichment-label">{{ label }}:</span> <span class="enrichment-value">{{ value|safe }}</span></span>
           {% endfor %}
-        </div>
+        </span>{% endif %}
       </div>
-      {% endif %}
       {% endfor %}
     </div>
     {% else %}

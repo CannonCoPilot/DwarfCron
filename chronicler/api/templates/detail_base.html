@@ -90,21 +90,9 @@
     .event-text { font-size: 0.8rem; }
     .event-text em { font-style: normal; color: #f6b93b; font-weight: 600; }
 
-    /* Enrichment expand/collapse */
-    .event-row.has-enrichment { cursor: pointer; }
-    .event-row.has-enrichment .event-year::before {
-      content: '\25B8 '; font-size: 0.6rem; color: #78716c;
-    }
-    .event-row.has-enrichment.expanded .event-year::before {
-      content: '\25BE '; color: #f6b93b;
-    }
-    .enrichment-row { display: none; }
-    .enrichment-row.visible { display: table-row; }
-    div.enrichment-row.visible { display: block; }
-    .enrichment-row td, .enrichment-row.visible {
-      padding-bottom: 0.5rem; border-bottom: 1px solid #292524;
-    }
-    .enrichment-tags { padding: 0.15rem 0 0.25rem 4.5rem; }
+    /* Enrichment details column */
+    .enrichment-tags { padding: 0.15rem 0 0.25rem 0; }
+    .enrichment-tags.inline-details { min-width: 12rem; flex-shrink: 0; }
     .enrichment-tag {
       display: inline-block; font-size: 0.6rem; padding: 1px 5px;
       border-radius: 2px; background: #292524; color: #a8a29e;
@@ -211,16 +199,6 @@
         switchDetailTab(hash.replace('#tab=', ''));
       }
     });
-  </script>
-  <!-- Enrichment row toggle -->
-  <script>
-    function toggleEnrichment(eventRow) {
-      var er = eventRow.nextElementSibling;
-      if (!er || !er.classList.contains('enrichment-row')) return;
-      var show = !er.classList.contains('visible');
-      er.classList.toggle('visible', show);
-      eventRow.classList.toggle('expanded', show);
-    }
   </script>
   <!-- Entity link hover popovers -->
   <script>

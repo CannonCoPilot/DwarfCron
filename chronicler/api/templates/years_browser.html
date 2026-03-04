@@ -121,18 +121,20 @@
       let html = '<div class="space-y-0">';
       for (const ev of data.events) {
         const hasE = ev.enrichment && Object.keys(ev.enrichment).length > 0;
-        html += `<div class="event-row flex gap-3 py-1.5 px-1${hasE ? ' has-enrichment' : ''}"${hasE ? ' onclick="toggleEnrichment(this)"' : ''}>
-          <span class="event-year">${ev.date_short}</span>
-          <span class="event-type-badge">${ev.event_type.replace(/_/g, ' ')}</span>
-          <span class="event-text">${ev.text}</span>
-        </div>`;
+        let enrichHtml = '';
         if (hasE) {
           let tags = '';
           for (const [label, value] of Object.entries(ev.enrichment)) {
-            tags += `<span class="enrichment-tag"><span class="enrichment-label">${_esc(label)}:</span> <span class="enrichment-value">${_esc(value)}</span></span> `;
+            tags += `<span class="enrichment-tag"><span class="enrichment-label">${_esc(label)}:</span> <span class="enrichment-value">${value}</span></span> `;
           }
-          html += `<div class="enrichment-row"><div class="enrichment-tags">${tags}</div></div>`;
+          enrichHtml = `<span class="enrichment-tags inline-details">${tags}</span>`;
         }
+        html += `<div class="event-row flex gap-3 py-1.5 px-1">
+          <span class="event-year">${ev.date_short}</span>
+          <span class="event-type-badge">${ev.event_type.replace(/_/g, ' ')}</span>
+          <span class="event-text flex-1">${ev.text}</span>
+          ${enrichHtml}
+        </div>`;
       }
       html += '</div>';
       container.innerHTML = html;
