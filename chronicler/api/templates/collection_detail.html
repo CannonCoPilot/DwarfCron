@@ -36,7 +36,7 @@
 {% block vital_stats %}
 <div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
   {% if duration %}
-    <span>{{ duration }}</span>
+    <span>Duration: {{ duration }}</span>
   {% endif %}
   {% if attacker %}
     <span>Aggressor: {{ linker.link('entity', attacker.id, attacker.name, world_id)|safe }}</span>
@@ -77,14 +77,14 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
         <div><span class="text-stone-500">Name:</span> {{ entity_name }}</div>
         <div><span class="text-stone-500">Type:</span> {{ collection.type|default('?', true)|replace('_', ' ')|title }}</div>
+        {% if started %}
+          <div><span class="text-stone-500">Started:</span> {{ started }}</div>
+        {% endif %}
+        {% if ended %}
+          <div><span class="text-stone-500">Ended:</span> {{ ended }}</div>
+        {% endif %}
         {% if duration %}
           <div><span class="text-stone-500">Duration:</span> {{ duration }}</div>
-        {% endif %}
-        {% if collection.start_year %}
-          <div><span class="text-stone-500">Started:</span> Year {{ collection.start_year }}</div>
-        {% endif %}
-        {% if collection.end_year %}
-          <div><span class="text-stone-500">Ended:</span> Year {{ collection.end_year }}</div>
         {% endif %}
         {% if outcome %}
           <div><span class="text-stone-500">Outcome:</span> <span class="text-amber-400">{{ outcome|title }}</span></div>
@@ -438,7 +438,10 @@
             <td class="py-1">{{ linker.link('event_collection', child.id, child.name, world_id)|safe }}</td>
             <td><span class="badge badge-type">{{ child.type|replace('_', ' ')|title }}</span></td>
             <td class="text-stone-500 text-xs">
-              Year {{ child.start_year|default('?') }}{% if child.end_year and child.end_year != child.start_year %} – {{ child.end_year }}{% endif %}
+              {{ calendar.format_date(child.start_year, child.start_seconds) }}{% if child.end_year and (child.end_year != child.start_year or child.end_seconds != child.start_seconds) %} – {{ calendar.format_date(child.end_year, child.end_seconds) }}{% endif %}
+              {% if child.start_year is not none and child.end_year is not none %}
+                <span class="text-stone-600">({{ calendar.format_duration(child.start_year, child.start_seconds, child.end_year, child.end_seconds) }})</span>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}

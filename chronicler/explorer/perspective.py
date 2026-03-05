@@ -12,6 +12,7 @@ type's DB columns back to the template field names used by EVENT_TEMPLATES.
 
 from html import escape
 
+from chronicler.explorer.death_cause import DeathCauseRenderer
 from chronicler.explorer.linking import EntityLinkRenderer
 
 
@@ -70,6 +71,69 @@ EVENT_TEMPLATES = {
     'artifact recovered': '{hfid} recovered {artifact_id} at {site_id}',
     'artifact given': '{giver_hist_figure_id} gave {artifact_id} to {receiver_hist_figure_id}',
     'hfs formed reputation relationship': '{hfid} formed a reputation with {target_hfid}',
+    # ── Stage 3.1b: New event templates ──────────────────────────────────────
+    # Occasion events
+    'competition': '{winner_hfid} won a competition at {site_id}',
+    'performance': 'a performance was held at {site_id}',
+    'ceremony': 'a ceremony was held at {site_id}',
+    'procession': 'a procession was held at {site_id}',
+    'gamble': '{gambler_hfid} gambled at {site_id}',
+    # Diplomacy / Intrigue
+    'agreement formed': 'an agreement was formed',
+    'trade': '{trader_hfid} traded goods',
+    'failed intrigue corruption': '{corruptor_hfid} failed to corrupt {target_hfid}',
+    'hfs formed intrigue relationship': '{corruptor_hfid} corrupted {target_hfid}',
+    'hf convicted': '{convicted_hfid} was convicted of {crime}',
+    'failed frame attempt': '{framer_hfid} failed to frame {target_hfid} for {crime}',
+    'hf interrogated': '{interrogator_hfid} interrogated {target_hfid}',
+    'hf ransomed': '{ransomer_hfid} ransomed {ransomed_hfid}',
+    'hf enslaved': '{seller_hfid} enslaved {enslaved_hfid}',
+    # Artifact events
+    'artifact claim formed': '{hfid} claimed {artifact_id}',
+    'artifact lost': '{artifact_id} was lost at {site_id}',
+    'artifact found': '{hfid} found {artifact_id} at {site_id}',
+    'artifact possessed': '{hfid} came to possess {artifact_id}',
+    'artifact destroyed': '{artifact_id} was destroyed at {site_id}',
+    'artifact copied': '{artifact_id} was copied',
+    'hf viewed artifact': '{hfid} viewed {artifact_id} at {site_id}',
+    # Site/Construction
+    'site dispute': '{civ_id} and {defender_civ_id} had a dispute',
+    'new site leader': '{new_leader_hfid} became the new leader of {site_id}',
+    'replaced structure': '{civ_id} replaced a structure at {site_id}',
+    'modified building': '{modifier_hfid} modified a building at {site_id}',
+    'building profile acquired': '{acquirer_hfid} acquired a building profile at {site_id}',
+    'sneak into site': '{hfid} snuck into {site_id}',
+    'holy city declaration': 'a holy city was declared at {site_id}',
+    # Entity events
+    'entity dissolved': '{civ_id} dissolved',
+    'entity incorporated': '{joiner_entity_id} was incorporated into {joined_entity_id}',
+    'entity overthrown': '{instigator_hfid} overthrew {overthrown_hfid} at {site_id}',
+    'entity law': '{civ_id} enacted a law',
+    'entity persecuted': '{persecutor_hfid} persecuted {target_enid} at {site_id}',
+    'entity primary criminals': '{civ_id} identified primary criminals at {site_id}',
+    'entity relocate': '{civ_id} relocated at {site_id}',
+    'entity alliance formed': '{initiating_enid} formed an alliance with {joining_enid}',
+    'entity equipment purchase': '{hfid} purchased equipment for {civ_id}',
+    'entity breach feature layer': 'a feature layer was breached at {site_id}',
+    'regionpop incorporated into entity': 'a population was incorporated at {site_id}',
+    # Culture/Art
+    'poetic form created': '{hfid} created a poetic form at {site_id}',
+    'musical form created': '{hfid} created a musical form at {site_id}',
+    'dance form created': '{hfid} created a dance form at {site_id}',
+    # HF actions
+    'hf preach': '{speaker_hfid} preached about {topic}',
+    'hf prayed inside structure': '{hfid} prayed inside {structure_id} at {site_id}',
+    'hf profaned structure': '{hfid} profaned {structure_id} at {site_id}',
+    'hf disturbed structure': '{hfid} disturbed {structure_id} at {site_id}',
+    'hf performed horrible experiments': '{hfid} performed horrible experiments at {site_id}',
+    'hf gains secret goal': '{hfid} gained a secret goal',
+    'hf equipment purchase': '{hfid} purchased equipment',
+    'add hf entity honor': '{hfid} received an honor from {civ_id}',
+    'change hf body state': '{hfid} changed body state at {site_id}',
+    'remove hf site link': '{hfid} departed from {site_id}',
+    # Military
+    'squad vs squad': 'a squad battle occurred at {site_id}',
+    'tactical situation': 'a tactical situation developed at {site_id}',
 }
 
 # ── DB column → template field mapping per event type ────────────────────────
@@ -246,6 +310,153 @@ COLUMN_MAP_BY_EVENT = {
     'hfs formed reputation relationship': {
         'hf_id_1': 'hfid', 'hf_id_2': 'target_hfid',
     },
+    # ── Stage 3.1b: Column maps for new event templates ──────────────────────
+    'competition': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'performance': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'ceremony': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'procession': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'gamble': {
+        'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'trade': {},  # all fields in JSONB
+    'failed intrigue corruption': {
+        'hf_id_2': 'target_hfid', 'site_id': 'site_id',
+    },
+    'hfs formed intrigue relationship': {
+        'hf_id_2': 'target_hfid', 'site_id': 'site_id',
+    },
+    'hf convicted': {},  # all fields in JSONB
+    'failed frame attempt': {
+        'hf_id_2': 'target_hfid',
+    },
+    'hf interrogated': {
+        'hf_id_2': 'target_hfid',
+    },
+    'hf ransomed': {},  # all fields in JSONB
+    'hf enslaved': {},  # all fields in JSONB
+    'artifact claim formed': {
+        'hf_id_1': 'hfid', 'entity_id_1': 'civ_id', 'artifact_id': 'artifact_id',
+    },
+    'artifact lost': {
+        'site_id': 'site_id', 'artifact_id': 'artifact_id', 'region_id': 'region_id',
+    },
+    'artifact found': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'artifact_id': 'artifact_id',
+    },
+    'artifact possessed': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'artifact_id': 'artifact_id',
+    },
+    'artifact destroyed': {
+        'site_id': 'site_id', 'artifact_id': 'artifact_id',
+    },
+    'artifact copied': {
+        'artifact_id': 'artifact_id',
+    },
+    'hf viewed artifact': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'artifact_id': 'artifact_id',
+        'structure_id': 'structure_id',
+    },
+    'site dispute': {
+        'entity_id_1': 'civ_id', 'entity_id_2': 'defender_civ_id',
+    },
+    'new site leader': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id', 'entity_id_2': 'defender_civ_id',
+    },
+    'replaced structure': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id', 'entity_id_2': 'defender_civ_id',
+    },
+    'modified building': {
+        'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'building profile acquired': {
+        'site_id': 'site_id',
+    },
+    'sneak into site': {
+        'site_id': 'site_id', 'entity_id_2': 'defender_civ_id',
+    },
+    'holy city declaration': {
+        'site_id': 'site_id',
+    },
+    'entity dissolved': {
+        'entity_id_1': 'civ_id',
+    },
+    'entity incorporated': {},  # all fields in JSONB
+    'entity overthrown': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'entity law': {
+        'hf_id_1': 'hfid', 'entity_id_1': 'civ_id',
+    },
+    'entity persecuted': {
+        'site_id': 'site_id',
+    },
+    'entity primary criminals': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id',
+    },
+    'entity relocate': {
+        'site_id': 'site_id', 'entity_id_1': 'civ_id', 'structure_id': 'structure_id',
+    },
+    'entity alliance formed': {},  # all fields in JSONB
+    'entity equipment purchase': {
+        'hf_id_1': 'hfid', 'entity_id_1': 'civ_id',
+    },
+    'entity breach feature layer': {
+        'site_id': 'site_id',
+    },
+    'regionpop incorporated into entity': {
+        'site_id': 'site_id',
+    },
+    'poetic form created': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id',
+    },
+    'musical form created': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id',
+    },
+    'dance form created': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id',
+    },
+    'hf preach': {},  # all fields in JSONB
+    'hf prayed inside structure': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'hf profaned structure': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'hf disturbed structure': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'hf performed horrible experiments': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id',
+    },
+    'hf gains secret goal': {
+        'hf_id_1': 'hfid',
+    },
+    'hf equipment purchase': {
+        'hf_id_1': 'hfid',
+    },
+    'add hf entity honor': {
+        'hf_id_1': 'hfid', 'entity_id_1': 'civ_id',
+    },
+    'change hf body state': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'structure_id': 'structure_id',
+    },
+    'remove hf site link': {
+        'site_id': 'site_id',
+    },
+    'squad vs squad': {
+        'site_id': 'site_id',
+    },
+    'tactical situation': {
+        'site_id': 'site_id',
+    },
 }
 
 # DB columns that hold entity references
@@ -267,21 +478,56 @@ ENTITY_REF_FIELDS = {
     'civ_id': 'entity', 'source_entity_id': 'entity', 'target_entity_id': 'entity',
     'attacker_civ_id': 'entity', 'defender_civ_id': 'entity',
     'entity_id': 'entity', 'receiver_entity_id': 'entity', 'giver_entity_id': 'entity',
+    'source': 'entity', 'destination': 'entity',  # peace accepted/rejected
+    'new_site_civ_id': 'entity', 'new_leader_hfid': 'hf',
+    'appointer_hfid': 'hf', 'promise_to_hfid': 'hf',
+    'creator_hfid': 'hf', 'winner_hfid': 'hf', 'competitor_hfid': 'hf',
+    'trader_hfid': 'hf', 'corruptor_hfid': 'hf',
+    'builder_hfid': 'hf', 'maker_hfid': 'hf',
+    'dest_site_id': 'site', 'source_site_id': 'site',
+    'moved_to_site_id': 'site',
     'site_id': 'site', 'site_id1': 'site', 'site_id2': 'site',
+    'site_id_1': 'site', 'site_id_2': 'site',
     'artifact_id': 'artifact',
     'structure_id': 'structure',
     'region_id': 'region',
     'wcid': 'world_construction',
     'mountain_peak_id': 'mountain_peak',
+    # Stage 3.1b: new JSONB-only entity ref fields
+    'gambler_hfid': 'hf', 'speaker_hfid': 'hf', 'site_hfid': 'hf',
+    'convicted_hfid': 'hf', 'framer_hfid': 'hf', 'fooled_hfid': 'hf',
+    'interrogator_hfid': 'hf', 'ransomer_hfid': 'hf', 'ransomed_hfid': 'hf',
+    'seller_hfid': 'hf', 'enslaved_hfid': 'hf', 'payer_hfid': 'hf',
+    'instigator_hfid': 'hf', 'overthrown_hfid': 'hf', 'pos_taker_hfid': 'hf',
+    'modifier_hfid': 'hf', 'acquirer_hfid': 'hf', 'last_owner_hfid': 'hf',
+    'persecutor_hfid': 'hf', 'leader_hfid': 'hf',
+    'a_hfid': 'hf', 'a_tactician_hfid': 'hf', 'd_tactician_hfid': 'hf',
+    'lure_hfid': 'hf', 'plotter_hfid': 'hf',
+    'convicter_enid': 'entity', 'persecutor_enid': 'entity',
+    'target_enid': 'entity', 'destroyer_enid': 'entity',
+    'arresting_enid': 'entity', 'payer_entity_id': 'entity',
+    'site_civ_id': 'entity', 'new_site_civ_id': 'entity',
+    'joiner_entity_id': 'entity', 'joined_entity_id': 'entity',
+    'initiating_enid': 'entity', 'joining_enid': 'entity',
+    'trader_entity_id': 'entity', 'religion_id': 'entity',
+    'join_entity_id': 'entity',
+    'civ_entity_id': 'entity', 'site_entity_id': 'entity',
+    'dest_structure_id': 'structure', 'source_structure_id': 'structure',
+    'dest_entity_id': 'entity',
 }
 
 # Grammatical roles for pronoun selection
 SUBJECT_FIELDS = {
     'hfid', 'hfid1', 'doer_hfid', 'snatcher_hfid', 'attacker_hfid',
     'actor_hfid', 'student_hfid', 'seeker_hfid', 'group_1_hfid',
+    'gambler_hfid', 'speaker_hfid', 'corruptor_hfid', 'framer_hfid',
+    'instigator_hfid', 'modifier_hfid', 'acquirer_hfid', 'persecutor_hfid',
+    'ransomer_hfid', 'seller_hfid', 'interrogator_hfid', 'trader_hfid',
 }
 OBJECT_FIELDS = {
     'target_hfid', 'hfid_target', 'victim_hfid', 'hfid2', 'wounder_hfid', 'group_2_hfid',
+    'convicted_hfid', 'overthrown_hfid', 'ransomed_hfid', 'enslaved_hfid',
+    'fooled_hfid', 'lure_hfid',
 }
 
 
@@ -317,6 +563,46 @@ _ADD_HF_LINK_TEMPLATES = {
     'criminal': '{hfid} became a criminal of {civ_id}',
 }
 
+# ── Reason/Circumstance templates for enrichment display ──────────────────
+# Map raw DF reason codes to natural-language phrases.
+# {hf} placeholder is replaced with a linked HF name when reason_id is present.
+REASON_TEMPLATES = {
+    'none': None,  # suppress
+    'be_with_master': 'to be with their master',
+    'glorify hf': 'to glorify {hf}',
+    'gather_information': 'to gather information',
+    'prefers working alone': 'prefers working alone',
+    'as_a_matter_of_course': 'as a matter of course',
+    'on_a_pilgrimage': 'on a pilgrimage',
+    'flight': 'in flight',
+    'scholarship': 'for scholarship',
+    'jealousy': 'out of jealousy',
+    'threat_of_violence': 'under threat of violence',
+    'force_of_argument': 'by force of argument',
+    'collaboration': 'through collaboration',
+    'wave_of_popular_support': 'on a wave of popular support',
+    'failed mood': 'after a failed mood',
+    'ageless': 'being ageless',
+    'sanctify_hf': 'to sanctify {hf}',
+    'murder': 'by murder',
+    'artifact is symbol of entity position': 'the artifact symbolizes a position',
+    'artifact is heirloom of family hfid': 'the artifact is a family heirloom',
+    'heavy losses in battle': 'due to heavy losses in battle',
+}
+
+# Map raw DF circumstance codes to natural-language phrases.
+# {hf} is replaced with a linked HF name when circumstance_id is present.
+CIRCUMSTANCE_TEMPLATES = {
+    'dream': 'in a dream',
+    'nightmare': 'in a nightmare',
+    'pray to hf': 'while praying to {hf}',
+    'from afar': 'from afar',
+    'dream about hf': 'dreaming about {hf}',
+    'is entity subordinate': 'as an entity subordinate',
+    'hf is dead': 'after {hf} died',
+}
+
+
 # Fields to suppress from enrichment display — entity refs (already linked in
 # narrative text), internal IDs, and coordinate noise.
 _SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
@@ -334,6 +620,16 @@ _SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
     'link_type', 'position',
     # Journey/travel fields consumed by dynamic templates or route UI
     'return', 'coords_x', 'coords_y',
+    # Death cause fields consumed by DeathCauseRenderer
+    'cause', 'death_cause',
+    # Internal scheduling/profiling IDs consumed by templates
+    'occasion_id', 'schedule_id', 'form_id', 'agreement_id',
+    'building_profile_id', 'honor_id', 'position_profile_id',
+    'feature_layer_id', 'production_zone_id', 'allotment_index',
+    'pop_srid', 'old_ab_id', 'new_ab_id',
+    'relevant_position_profile_id', 'relevant_id_for_method',
+    'corruptor_identity', 'target_identity', 'corruptor_seen_as', 'target_seen_as',
+    'confessed_after_apb_arrest_enid',
 })
 
 # Numeric fields where integer values ARE meaningful (not entity IDs)
@@ -408,31 +704,76 @@ def extract_enrichment_details(event: dict, linker=None,
                 continue
             enrichment[label] = escape(sv)
 
-    # ── Resolve HF references in reason/circumstance fields ─────────────
-    if linker and name_cache:
-        for text_field, id_field in [('reason', 'reason_id'),
-                                     ('circumstance', 'circumstance_id')]:
-            label = text_field.replace('_', ' ').title()
-            if label not in enrichment:
-                continue
-            hf_id_raw = raw_details.get(id_field)
-            if not hf_id_raw or str(hf_id_raw) in ('-1', 'none', ''):
-                continue
-            try:
-                hf_id = int(hf_id_raw)
-            except (ValueError, TypeError):
-                continue
-            name = name_cache.get(('hf', hf_id), f'HF #{hf_id}')
-            link_html = linker.link('hf', hf_id, name, world_id)
-            # Replace bare 'hf' placeholder in text like "glorify hf"
-            text = enrichment[label]
-            if ' hf' in text.lower():
-                enrichment[label] = text.replace(' hf', f' {link_html}')
-                enrichment[label] = enrichment[label].replace(' Hf',
-                                                              f' {link_html}')
+    # ── Apply reason/circumstance templates ──────────────────────────────
+    for text_field, id_field, template_map in [
+        ('reason', 'reason_id', REASON_TEMPLATES),
+        ('circumstance', 'circumstance_id', CIRCUMSTANCE_TEMPLATES),
+    ]:
+        label = text_field.replace('_', ' ').title()
+        raw_val = raw_details.get(text_field)
+        if raw_val is None:
+            continue
+
+        # Handle JSON-object circumstances (e.g. {"type": "favoritepossession"})
+        if isinstance(raw_val, dict):
+            ctype = raw_val.get('type', '')
+            if ctype == 'favoritepossession':
+                enrichment[label] = 'regarding a favorite possession'
+            elif ctype == 'preservebody':
+                enrichment[label] = 'to preserve the body'
+            elif ctype == 'histeventcollection':
+                coll_id = raw_val.get('hist_event_collection')
+                if coll_id and linker:
+                    enrichment[label] = (
+                        f'during <a href="/explorer/collection/{coll_id}'
+                        f'?world_id={world_id}" class="entity-link">'
+                        f'event collection #{coll_id}</a>'
+                    )
+                else:
+                    enrichment[label] = f'during event collection #{coll_id}'
+            elif ctype == 'defeated':
+                defeated_id = raw_val.get('defeated')
+                if defeated_id and linker and name_cache:
+                    try:
+                        did = int(defeated_id)
+                        name = name_cache.get(('hf', did), f'HF #{did}')
+                        link_html = linker.link('hf', did, name, world_id)
+                        enrichment[label] = f'after defeating {link_html}'
+                    except (ValueError, TypeError):
+                        enrichment[label] = 'after defeating an opponent'
+                else:
+                    enrichment[label] = 'after defeating an opponent'
             else:
-                # Append link if no 'hf' placeholder found
-                enrichment[label] = f'{text} ({link_html})'
+                enrichment[label] = escape(str(raw_val))
+            continue
+
+        sv = str(raw_val).strip()
+        # Look up template
+        tmpl = template_map.get(sv)
+        if tmpl is None and sv.lower() != 'none':
+            # Fallback: humanize the raw string
+            tmpl = sv.replace('_', ' ')
+
+        if tmpl is None:
+            # Suppress 'none' values
+            enrichment.pop(label, None)
+            continue
+
+        # Resolve {hf} placeholder with linked name
+        if '{hf}' in tmpl and linker and name_cache:
+            hf_id_raw = raw_details.get(id_field)
+            if hf_id_raw and str(hf_id_raw) not in ('-1', 'none', ''):
+                try:
+                    hf_id = int(hf_id_raw)
+                    name = name_cache.get(('hf', hf_id), f'HF #{hf_id}')
+                    link_html = linker.link('hf', hf_id, name, world_id)
+                    tmpl = tmpl.replace('{hf}', link_html)
+                except (ValueError, TypeError):
+                    tmpl = tmpl.replace('{hf}', '?')
+            else:
+                tmpl = tmpl.replace('{hf}', '?')
+
+        enrichment[label] = tmpl
 
     return enrichment
 
@@ -543,12 +884,15 @@ class PerspectiveRenderer:
         if event_type == 'hf died':
             has_site = details.get('site_id') is not None
             cause = details.get('cause', '')
-            if has_site and cause:
-                return '{hfid} died ({cause}) at {site_id}'
+            # Render cause via DeathCauseRenderer for human-readable text
+            if cause:
+                rendered_cause = DeathCauseRenderer.render_event_cause(cause)
+                details['_rendered_cause'] = rendered_cause
+                if has_site:
+                    return '{hfid} ' + rendered_cause + ' at {site_id}'
+                return '{hfid} ' + rendered_cause
             elif has_site:
                 return '{hfid} died at {site_id}'
-            elif cause:
-                return '{hfid} died ({cause})'
             return '{hfid} died'
 
         if event_type == 'creature devoured':
@@ -616,6 +960,83 @@ class PerspectiveRenderer:
             elif has_region:
                 return '{hfid} traveled through {region_id}'
             return '{hfid} traveled'
+
+        # ── Dynamic overrides for new event types ─────────────────────────
+        if event_type == 'competition':
+            has_winner = details.get('winner_hfid') is not None
+            has_competitor = details.get('competitor_hfid') is not None
+            if has_winner and has_competitor:
+                return '{winner_hfid} won a competition against {competitor_hfid} at {site_id}'
+            elif has_winner:
+                return '{winner_hfid} won a competition at {site_id}'
+            return 'a competition was held at {site_id}'
+
+        if event_type == 'gamble':
+            account = details.get('new_account')
+            old = details.get('old_account')
+            if account is not None and old is not None:
+                try:
+                    shift = int(account) - int(old)
+                    verb = 'won' if shift > 0 else 'lost'
+                    details['_gamble_result'] = f'{verb} {abs(shift)}'
+                except (ValueError, TypeError):
+                    pass
+            return '{gambler_hfid} gambled at {site_id}'
+
+        if event_type == 'trade':
+            has_dest = details.get('dest_site_id') is not None
+            has_source = details.get('source_site_id') is not None
+            if has_source and has_dest:
+                return '{trader_hfid} traded from {source_site_id} to {dest_site_id}'
+            elif has_dest:
+                return '{trader_hfid} traded at {dest_site_id}'
+            return '{trader_hfid} traded goods'
+
+        if event_type == 'entity dissolved':
+            reason = details.get('reason', '')
+            if reason:
+                details['_dissolve_reason'] = reason.replace('_', ' ')
+            return '{civ_id} dissolved'
+
+        if event_type == 'entity overthrown':
+            has_pos_taker = details.get('pos_taker_hfid') is not None
+            if has_pos_taker:
+                return '{instigator_hfid} overthrew {overthrown_hfid}, replaced by {pos_taker_hfid}'
+            return '{instigator_hfid} overthrew {overthrown_hfid} at {site_id}'
+
+        if event_type == 'hf preach':
+            topic = (details.get('topic') or '').replace('_', ' ')
+            if topic:
+                return '{speaker_hfid} preached about ' + escape(topic)
+            return '{speaker_hfid} preached'
+
+        if event_type == 'change hf body state':
+            body_state = (details.get('body_state') or '').replace('_', ' ')
+            if body_state:
+                return '{hfid} became ' + escape(body_state) + ' at {site_id}'
+            return '{hfid} changed body state at {site_id}'
+
+        if event_type == 'hf gains secret goal':
+            goal = (details.get('secret_goal') or '').replace('_', ' ')
+            if goal:
+                return '{hfid} gained the secret goal: ' + escape(goal)
+            return '{hfid} gained a secret goal'
+
+        if event_type == 'remove hf site link':
+            link_type = (details.get('link_type') or '').lower()
+            if link_type == 'occupation':
+                return '{hfid} ended occupation of {site_id}'
+            elif link_type == 'seat of power':
+                return '{hfid} left the seat of power at {site_id}'
+            elif link_type == 'lair':
+                return '{hfid} left their lair at {site_id}'
+            return '{hfid} departed from {site_id}'
+
+        if event_type == 'artifact claim formed':
+            claim = (details.get('claim') or '').replace('_', ' ')
+            if claim:
+                return '{hfid} claimed {artifact_id} (' + escape(claim) + ')'
+            return '{hfid} claimed {artifact_id}'
 
         return EVENT_TEMPLATES.get(event_type)
 

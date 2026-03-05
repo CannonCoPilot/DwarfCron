@@ -184,14 +184,16 @@
           <th class="text-left pb-1">War</th>
           <th class="text-left pb-1">Start</th>
           <th class="text-left pb-1">End</th>
+          <th class="text-left pb-1">Duration</th>
         </tr>
       </thead>
       <tbody>
         {% for w in wars %}
         <tr class="border-b border-stone-800/50">
           <td class="py-1">{{ linker.link('event_collection', w.id, w.name, world_id)|safe }}</td>
-          <td class="text-stone-500 text-xs">Year {{ w.start_year }}</td>
-          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(w.end_year) if w.end_year and w.end_year > 0 else 'Ongoing' }}</td>
+          <td class="text-stone-500 text-xs">{{ calendar.format_date(w.start_year, w.start_seconds) }}</td>
+          <td class="text-stone-500 text-xs">{{ calendar.format_date(w.end_year, w.end_seconds) if w.end_year and w.end_year > 0 else 'Ongoing' }}</td>
+          <td class="text-stone-500 text-xs">{{ calendar.format_duration(w.start_year, w.start_seconds, w.end_year, w.end_seconds) if w.end_year and w.end_year > 0 else '' }}</td>
         </tr>
         {% endfor %}
       </tbody>

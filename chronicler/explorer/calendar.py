@@ -103,6 +103,73 @@ class DFCalendar:
             return f"Y{year}"
         return f"Y{year} {date['month']} {date['day']}"
 
+    @classmethod
+    def format_duration(cls, start_year: int, start_seconds: int,
+                        end_year: int, end_seconds: int) -> str:
+        """Compute and format the duration between two DF timestamps.
+
+        Uses tick-level precision when available, falls back to year-level.
+
+        Examples:
+            (100, 0, 100, 1200)       -> "1 day"
+            (100, 0, 100, 33600)      -> "1 month"
+            (100, 0, 100, 100800)     -> "3 months"
+            (100, 0, 102, 0)          -> "2 years"
+            (100, 0, 100, 0)          -> "<1 day"
+            (100, None, 105, None)    -> "5 years"
+        """
+        if start_year is None or end_year is None:
+            return None
+
+        have_ticks = (start_seconds is not None and start_seconds >= 0
+                      and end_seconds is not None and end_seconds >= 0)
+
+        if have_ticks:
+            total_ticks = ((end_year - start_year) * cls.TICKS_PER_YEAR
+                           + end_seconds - start_seconds)
+            if total_ticks < 0:
+                total_ticks = 0
+
+            total_days = total_ticks // cls.TICKS_PER_DAY
+
+            if total_days == 0:
+                return "<1 day"
+
+            years = total_days // (cls.DAYS_PER_MONTH * cls.MONTHS_PER_YEAR)
+            remaining_days = total_days % (cls.DAYS_PER_MONTH * cls.MONTHS_PER_YEAR)
+            months = remaining_days // cls.DAYS_PER_MONTH
+            days = remaining_days % cls.DAYS_PER_MONTH
+
+            parts = []
+            if years:
+                parts.append(f"{years} year{'s' if years != 1 else ''}")
+            if months:
+                parts.append(f"{months} month{'s' if months != 1 else ''}")
+            if days and not years:  # skip days when showing years (too granular)
+                parts.append(f"{days} day{'s' if days != 1 else ''}")
+            return ", ".join(parts) if parts else "<1 day"
+        else:
+            # Year-level only
+            span = end_year - start_year
+            if span == 0:
+                return "<1 year"
+            return f"{span} year{'s' if span != 1 else ''}"
+
+    @classmethod
+    def format_timespan(cls, start_year: int, start_seconds: int,
+                        end_year: int, end_seconds: int) -> str:
+        """Format a full timespan: 'start_date – end_date (duration)'.
+
+        Returns a rich string combining the date range with computed duration.
+        """
+        start_str = cls.format_date(start_year, start_seconds)
+        end_str = cls.format_date(end_year, end_seconds)
+        duration = cls.format_duration(start_year, start_seconds,
+                                       end_year, end_seconds)
+        if start_str == end_str:
+            return f"{start_str} ({duration})"
+        return f"{start_str} – {end_str} ({duration})"
+
     @staticmethod
     def _ordinal(n: int) -> str:
         """Convert integer to ordinal string (1st, 2nd, 3rd, etc.)."""

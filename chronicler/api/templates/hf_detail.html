@@ -62,15 +62,13 @@
   {% endif %}
   {% if hf.death_year and hf.death_year > 0 %}
     <span>Died: {{ calendar.format_date(hf.death_year, hf.death_seconds) }}
-      {% if hf.death_cause %} ({{ hf.death_cause|replace('_', ' ')|title }}){% endif %}
+      {% if death_cause_rendered %} ({{ death_cause_rendered }}){% endif %}
     </span>
   {% endif %}
-  {% if hf.birth_year and hf.birth_year > 0 %}
-    {% if hf.death_year and hf.death_year > 0 %}
-      <span>Age: {{ hf.death_year - hf.birth_year }}</span>
-    {% elif alive %}
-      <span>Age: 250+</span>
-    {% endif %}
+  {% if age_at_death %}
+    <span>Age at death: {{ age_at_death }}</span>
+  {% elif hf.birth_year and hf.birth_year > 0 and alive %}
+    <span>Age: 250+</span>
   {% endif %}
   {% if hf.prominence_score %}
     <span>Prominence: {{ "%.1f"|format(hf.prominence_score) }}</span>
@@ -114,8 +112,8 @@
         {% if hf.death_year and hf.death_year > 0 %}
           <div><span class="text-stone-500">Died:</span> {{ calendar.format_date(hf.death_year, hf.death_seconds) }}</div>
         {% endif %}
-        {% if hf.death_cause %}
-          <div><span class="text-stone-500">Cause:</span> {{ hf.death_cause|replace('_', ' ')|title }}</div>
+        {% if death_cause_rendered %}
+          <div><span class="text-stone-500">Cause:</span> {{ death_cause_rendered|title }}</div>
         {% endif %}
         {% if primary_entity %}
           <div><span class="text-stone-500">Civ:</span> {{ linker.link('entity', primary_entity.id, primary_entity.name, world_id)|safe }}</div>
@@ -604,7 +602,7 @@
                   <span class="text-stone-700">—</span>
                 {% endif %}
               </td>
-              <td class="text-stone-500">{{ k.cause|default('?', true)|replace('_', ' ')|title }}</td>
+              <td class="text-stone-500">{{ k.cause_rendered|default(k.cause|default('?', true)|replace('_', ' ')|title) }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -641,7 +639,8 @@
           <div class="flex items-center gap-2">
             {{ linker.link('event_collection', b.id, b.name, world_id)|safe }}
             <span class="text-stone-600 text-xs">
-              Year {{ b.start_year }}{% if b.end_year and b.end_year != b.start_year %} – {{ b.end_year }}{% endif %}
+              {{ calendar.format_date(b.start_year, b.start_seconds) }}{% if b.end_year and (b.end_year != b.start_year or b.end_seconds != b.start_seconds) %} – {{ calendar.format_date(b.end_year, b.end_seconds) }}{% endif %}
+              ({{ calendar.format_duration(b.start_year, b.start_seconds, b.end_year, b.end_seconds) }})
             </span>
           </div>
         {% endfor %}
@@ -658,7 +657,8 @@
           <div class="flex items-center gap-2">
             {{ linker.link('event_collection', ba.id, ba.name, world_id)|safe }}
             <span class="text-stone-600 text-xs">
-              Year {{ ba.start_year }}{% if ba.end_year and ba.end_year != ba.start_year %} – {{ ba.end_year }}{% endif %}
+              {{ calendar.format_date(ba.start_year, ba.start_seconds) }}{% if ba.end_year and (ba.end_year != ba.start_year or ba.end_seconds != ba.start_seconds) %} – {{ calendar.format_date(ba.end_year, ba.end_seconds) }}{% endif %}
+              ({{ calendar.format_duration(ba.start_year, ba.start_seconds, ba.end_year, ba.end_seconds) }})
             </span>
           </div>
         {% endfor %}

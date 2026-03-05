@@ -114,7 +114,7 @@ async def list_collections(
     params.append(limit)
 
     query = f"""
-        SELECT c.id, c.type, c.name, c.start_year, c.end_year,
+        SELECT c.id, c.type, c.name, c.start_year, c.start_seconds, c.end_year, c.end_seconds,
                c.attacker_entity_id, c.defender_entity_id,
                att.name AS attacker_name, def.name AS defender_name,
                s.name AS site_name

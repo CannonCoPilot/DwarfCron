@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 from chronicler.explorer.linking import EntityLinkRenderer, EntityNameCache
 from chronicler.explorer.calendar import DFCalendar
+from chronicler.explorer.death_cause import DeathCauseRenderer
 from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_into_details, extract_enrichment_details
 
 router = APIRouter()
@@ -892,7 +893,7 @@ async def hf_detail_page(hf_id: int, request: Request,
 
         # Battle/beast attack collections
         all_collections = await conn.fetch("""
-            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.end_year
+            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.start_seconds, c.end_year, c.end_seconds
             FROM history_event_collections c
             JOIN collection_events ce ON ce.world_id = c.world_id AND ce.collection_id = c.id
             JOIN event_entity_xref x ON x.world_id = ce.world_id AND x.event_id = ce.event_id
@@ -1055,6 +1056,19 @@ async def hf_detail_page(hf_id: int, request: Request,
 
     alive = hf['death_year'] is None or hf['death_year'] == -1
 
+    # Pre-render death cause and age at death
+    death_cause_rendered = DeathCauseRenderer.render_hf_cause(
+        hf.get('death_cause')) if hf.get('death_cause') else None
+    age_at_death = DeathCauseRenderer.render_age_at_death(
+        hf.get('birth_year'), hf.get('death_year'),
+        hf.get('birth_seconds'), hf.get('death_seconds'),
+    ) if not alive else None
+
+    # Also render kill causes
+    for k in kills_resolved:
+        if k.get('cause'):
+            k['cause_rendered'] = DeathCauseRenderer.render_hf_cause(k['cause'])
+
     # When partial=1, use the minimal base template for inline rendering
     base_tmpl = "detail_partial_base.html" if partial == "1" else "detail_base.html"
 
@@ -1099,6 +1113,8 @@ async def hf_detail_page(hf_id: int, request: Request,
         "worshipped_deities": worshipped_deities,
         "linker": _linker,
         "calendar": DFCalendar,
+        "death_cause_rendered": death_cause_rendered,
+        "age_at_death": age_at_death,
         "graph_data_pedigree": graph_data_pedigree,
         "graph_data_career": graph_data_career,
         "graph_data_full": graph_data_full,
@@ -1265,14 +1281,12 @@ async def entity_detail_page(entity_id: int, request: Request,
             WHERE world_id = $1 AND entity_id = $2
         """, world_id, entity_id)
 
-        # Wars
+        # Wars — check both attacker/defender entity IDs and event xref
         wars = await conn.fetch("""
-            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.end_year
+            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.start_seconds, c.end_year, c.end_seconds
             FROM history_event_collections c
-            JOIN collection_events ce ON ce.world_id = c.world_id AND ce.collection_id = c.id
-            JOIN event_entity_xref x ON x.world_id = ce.world_id AND x.event_id = ce.event_id
-            WHERE x.world_id = $1 AND x.entity_type = 'entity' AND x.entity_id = $2
-              AND c.type = 'war'
+            WHERE c.world_id = $1 AND c.type = 'war'
+              AND (c.attacker_entity_id = $2 OR c.defender_entity_id = $2)
             ORDER BY c.start_year
         """, world_id, entity_id)
 
@@ -2169,7 +2183,7 @@ async def collection_detail_page(collection_id: int, request: Request,
         # Child collections — check both parent_id (war/battle hierarchy)
         # and collection_subcollections (occasion/competition/beast attack eventcol refs)
         children = await conn.fetch("""
-            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.end_year
+            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.start_seconds, c.end_year, c.end_seconds
             FROM history_event_collections c
             LEFT JOIN collection_subcollections cs
                 ON cs.world_id = c.world_id AND cs.child_id = c.id
@@ -2670,15 +2684,22 @@ async def collection_detail_page(collection_id: int, request: Request,
             ORDER BY id ASC LIMIT 1
         """, world_id, collection_id)
 
-    # Duration display
+    # Duration display — uses tick-level precision when available
     duration = None
-    if collection.get('start_year') and collection.get('end_year'):
-        if collection['end_year'] != collection['start_year']:
-            duration = f"Year {collection['start_year']} – Year {collection['end_year']}"
-        else:
-            duration = f"Year {collection['start_year']}"
-    elif collection.get('start_year'):
-        duration = f"Year {collection['start_year']} – ongoing"
+    started = None
+    ended = None
+    sy = collection.get('start_year')
+    ey = collection.get('end_year')
+    ss = collection.get('start_seconds')
+    es = collection.get('end_seconds')
+    if sy is not None:
+        started = DFCalendar.format_date(sy, ss)
+    if ey is not None:
+        ended = DFCalendar.format_date(ey, es)
+    if sy is not None and ey is not None:
+        duration = DFCalendar.format_duration(sy, ss, ey, es)
+    elif sy is not None:
+        duration = "ongoing"
 
     return templates.TemplateResponse("collection_detail.html", {
         "request": request,
@@ -2697,6 +2718,8 @@ async def collection_detail_page(collection_id: int, request: Request,
         "parent_collection": dict(parent_collection) if parent_collection else None,
         "children": [dict(c) for c in children],
         "duration": duration,
+        "started": started,
+        "ended": ended,
         "events": rendered_events,
         "event_count": event_count,
         "prev_collection": dict(prev_col) if prev_col else None,

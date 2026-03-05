@@ -194,26 +194,31 @@
                 onchange="loadCivs()">
           <option value="">All types</option>
           <option value="civilization">Civilizations</option>
-          <option value="religion">Religions</option>
-          <option value="military unit">Military</option>
           <option value="sitegovernment">Site Governments</option>
+          <option value="religion">Religions</option>
+          <option value="nomadicgroup">Nomadic Groups</option>
+          <option value="outcast">Outcasts</option>
+          <option value="guild">Guilds</option>
           <option value="performancetroupe">Performance Troupes</option>
+          <option value="migratinggroup">Migrating Groups</option>
+          <option value="militaryunit">Military Units</option>
+          <option value="merchantcompany">Merchant Companies</option>
         </select>
         <div class="flex gap-1">
           <input id="civs-filter" type="text" placeholder="Filter by name..."
                  class="flex-1 bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs focus:border-amber-500 focus:outline-none"
-                 oninput="filterCivsList()">
+                 oninput="civsResetLimit(); filterCivsList()">
           <select id="civs-sort" class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs"
                   onchange="filterCivsList()">
-            <option value="name-asc">Name A-Z</option>
-            <option value="name-desc">Name Z-A</option>
             <option value="members-desc">Most Members</option>
             <option value="sites-desc">Most Sites</option>
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
           </select>
         </div>
         <label class="flex items-center gap-1.5 text-stone-500 text-[10px] cursor-pointer select-none">
           <input type="checkbox" id="civs-hide-empty" checked
-                 onchange="filterCivsList()"
+                 onchange="renderCivRacePills(); filterCivsList()"
                  class="rounded border-stone-600 bg-stone-800 text-amber-500 focus:ring-amber-500 w-3 h-3">
           Hide entities with 0 members &amp; 0 sites
         </label>
@@ -523,6 +528,42 @@ function escapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
+}
+
+// DF Calendar utilities for client-side duration formatting
+const DF_MONTHS = ['Granite','Slate','Felsite','Hematite','Malachite','Galena','Limestone','Sandstone','Timber','Moonstone','Opal','Obsidian'];
+const DF_TICKS_DAY = 1200, DF_DAYS_MONTH = 28, DF_MONTHS_YEAR = 12;
+const DF_TICKS_YEAR = DF_TICKS_DAY * DF_DAYS_MONTH * DF_MONTHS_YEAR;
+
+function dfFormatDate(year, seconds) {
+  if (year == null) return '?';
+  if (seconds == null || seconds < 0) return `Year ${year}`;
+  const dayOfYear = Math.floor(seconds / DF_TICKS_DAY);
+  const monthIdx = Math.min(Math.floor(dayOfYear / DF_DAYS_MONTH), 11);
+  const day = (dayOfYear % DF_DAYS_MONTH) + 1;
+  return `${DF_MONTHS[monthIdx]} ${day}, Y${year}`;
+}
+
+function dfFormatDuration(sy, ss, ey, es) {
+  if (sy == null || ey == null) return '';
+  const haveTicks = ss != null && ss >= 0 && es != null && es >= 0;
+  if (haveTicks) {
+    let totalTicks = (ey - sy) * DF_TICKS_YEAR + es - ss;
+    if (totalTicks < 0) totalTicks = 0;
+    const totalDays = Math.floor(totalTicks / DF_TICKS_DAY);
+    if (totalDays === 0) return '<1 day';
+    const years = Math.floor(totalDays / (DF_DAYS_MONTH * DF_MONTHS_YEAR));
+    const rem = totalDays % (DF_DAYS_MONTH * DF_MONTHS_YEAR);
+    const months = Math.floor(rem / DF_DAYS_MONTH);
+    const days = rem % DF_DAYS_MONTH;
+    const parts = [];
+    if (years) parts.push(`${years}y`);
+    if (months) parts.push(`${months}mo`);
+    if (days && !years) parts.push(`${days}d`);
+    return parts.join(' ') || '<1 day';
+  }
+  const span = ey - sy;
+  return span === 0 ? '<1 year' : `${span}y`;
 }
 
 function titleCase(s) {
@@ -925,6 +966,9 @@ let civsLoaded = false;
 let civsData = null;
 let selectedCiv = null;
 let activeCivRace = null;
+const CIVS_PAGE_SIZE = 50;
+let civsDisplayLimit = CIVS_PAGE_SIZE;
+let civRaceLabels = null;  // cached {key: label} from race-summary API
 
 // Classify an entity race for civ race filtering (dynamic — no hardcoded list)
 function _isAnimalPerson(race) {
@@ -942,6 +986,8 @@ async function loadCivs() {
   const list = document.getElementById('civs-list');
   const typeFilter = document.getElementById('civs-type-filter').value;
   list.innerHTML = '<div class="text-stone-500 text-xs px-3 py-4 text-center">Loading...</div>';
+  // Reset page limit: show all when a specific type is selected, paginate otherwise
+  civsDisplayLimit = typeFilter ? Infinity : CIVS_PAGE_SIZE;
 
   try {
     const params = new URLSearchParams({ world_id: WORLD_ID });
@@ -949,29 +995,57 @@ async function loadCivs() {
     const resp = await fetch(`/api/civilizations?${params}`);
     civsData = await resp.json();
     civsLoaded = true;
-    loadCivRacePills();
-    renderCivsList(civsData);
+    await loadCivRacePills();
+    filterCivsList();
   } catch (e) {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
   }
 }
 
 async function loadCivRacePills() {
-  const container = document.getElementById('civs-race-pills');
-  if (!container) return;
-  try {
-    const resp = await fetch(`/api/civilizations/race-summary?world_id=${WORLD_ID}`);
-    const data = await resp.json();
-    const races = data.races || [];
-    let html = `<button class="race-pill${activeCivRace === null ? ' active' : ''}" onclick="selectCivRace(this, null)">All <span class="pill-count">${data.total.toLocaleString()}</span></button>`;
-    for (const r of races) {
-      const isActive = activeCivRace === r.key ? ' active' : '';
-      html += `<button class="race-pill${isActive}" onclick="selectCivRace(this, '${escapeHtml(r.key)}')">${escapeHtml(r.label)} <span class="pill-count">${r.count.toLocaleString()}</span></button>`;
+  // Fetch race labels once from API (includes creature_dictionary display names)
+  if (!civRaceLabels) {
+    try {
+      const resp = await fetch(`/api/civilizations/race-summary?world_id=${WORLD_ID}`);
+      const data = await resp.json();
+      civRaceLabels = {};
+      for (const r of (data.races || [])) civRaceLabels[r.key] = r.label;
+    } catch (e) {
+      const container = document.getElementById('civs-race-pills');
+      if (container) container.innerHTML = '<span class="text-red-400 text-[10px]">Failed to load races</span>';
+      return;
     }
-    container.innerHTML = html;
-  } catch (e) {
-    container.innerHTML = '<span class="text-red-400 text-[10px]">Failed to load races</span>';
   }
+  renderCivRacePills();
+}
+
+function renderCivRacePills() {
+  const container = document.getElementById('civs-race-pills');
+  if (!container || !civsData || !civRaceLabels) return;
+
+  // Count races from currently loaded civsData (already filtered by type dropdown)
+  const groups = civsData.groups || {};
+  const hideEmpty = document.getElementById('civs-hide-empty')?.checked;
+  const counts = {};
+  let total = 0;
+  for (const entities of Object.values(groups)) {
+    for (const e of entities) {
+      if (hideEmpty && (e.member_count || 0) === 0 && (e.site_count || 0) === 0) continue;
+      const key = _civRaceKey(e.race);
+      counts[key] = (counts[key] || 0) + 1;
+      total++;
+    }
+  }
+
+  // Build pills sorted by count descending, using cached labels
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  let html = `<button class="race-pill${activeCivRace === null ? ' active' : ''}" onclick="selectCivRace(this, null)">All <span class="pill-count">${total.toLocaleString()}</span></button>`;
+  for (const [key, count] of sorted) {
+    const label = civRaceLabels[key] || titleCase(key.replace(/_/g, ' '));
+    const isActive = activeCivRace === key ? ' active' : '';
+    html += `<button class="race-pill${isActive}" onclick="selectCivRace(this, '${escapeHtml(key)}')">${escapeHtml(label)} <span class="pill-count">${count.toLocaleString()}</span></button>`;
+  }
+  container.innerHTML = html;
 }
 
 function selectCivRace(el, raceKey) {
@@ -984,13 +1058,27 @@ function selectCivRace(el, raceKey) {
 function renderCivsList(data, filterQ, sortKey) {
   const list = document.getElementById('civs-list');
   const groups = data.groups || {};
-  const groupOrder = ['civilization', 'religion', 'military unit', 'sitegovernment', 'performancetroupe', 'unknown'];
+  const GROUP_ORDER = ['civilization', 'sitegovernment', 'religion', 'nomadicgroup', 'outcast', 'guild', 'performancetroupe', 'migratinggroup', 'militaryunit', 'merchantcompany'];
+  const GROUP_LABELS = {
+    civilization: 'Civilizations', sitegovernment: 'Site Governments', religion: 'Religions',
+    nomadicgroup: 'Nomadic Groups', outcast: 'Outcasts', guild: 'Guilds',
+    performancetroupe: 'Performance Troupes', migratinggroup: 'Migrating Groups',
+    militaryunit: 'Military Units', merchantcompany: 'Merchant Companies',
+  };
   const q = (filterQ || '').toLowerCase();
 
-  // Flatten for sorting, then re-group
+  // Flatten for sorting, then re-group (known types in dropdown order, then any extras)
   let allItems = [];
+  const groupOrder = [...GROUP_ORDER];
+  const groupSet = new Set(groupOrder);
   for (const g of groupOrder) {
     for (const e of (groups[g] || [])) allItems.push({...e, _group: g});
+  }
+  for (const g of Object.keys(groups)) {
+    if (!groupSet.has(g)) {
+      for (const e of groups[g]) allItems.push({...e, _group: g});
+      groupOrder.push(g);
+    }
   }
   // Hide entities with 0 members and 0 sites (default: on)
   const hideEmpty = document.getElementById('civs-hide-empty')?.checked;
@@ -1015,12 +1103,24 @@ function renderCivsList(data, filterQ, sortKey) {
     sorted[e._group].push(e);
   }
 
+  const totalFiltered = allItems.length;
+  // Apply display limit (lazy load): truncate flat list then re-bucket
+  if (civsDisplayLimit < Infinity && allItems.length > civsDisplayLimit) {
+    allItems = allItems.slice(0, civsDisplayLimit);
+    // Re-bucket the truncated set
+    for (const g of groupOrder) sorted[g] = [];
+    for (const e of allItems) {
+      if (!sorted[e._group]) sorted[e._group] = [];
+      sorted[e._group].push(e);
+    }
+  }
+
   let html = '';
   for (const g of groupOrder) {
     const items = sorted[g];
     if (!items || items.length === 0) continue;
     html += `<div class="mt-3 first:mt-0">
-      <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
+      <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${GROUP_LABELS[g] || titleCase(g)} (${items.length})</div>`;
     for (const e of items) {
       const isActive = selectedCiv === e.id ? ' active' : '';
       const raceLabel = (e.race || '').replace(/_/g, ' ');
@@ -1032,6 +1132,15 @@ function renderCivsList(data, filterQ, sortKey) {
     }
     html += '</div>';
   }
+  // Show "Load more" button when truncated
+  if (civsDisplayLimit < Infinity && totalFiltered > civsDisplayLimit) {
+    const remaining = totalFiltered - civsDisplayLimit;
+    html += `<div class="px-3 py-3 text-center">
+      <button onclick="civsShowMore()" class="text-amber-400 hover:text-amber-300 text-xs underline">
+        Show more (${remaining.toLocaleString()} remaining)
+      </button>
+    </div>`;
+  }
   list.innerHTML = html || '<div class="text-stone-500 text-xs px-3 py-4 text-center">No entities found</div>';
 }
 
@@ -1040,6 +1149,16 @@ function filterCivsList() {
   const q = document.getElementById('civs-filter').value;
   const sort = document.getElementById('civs-sort').value;
   renderCivsList(civsData, q, sort);
+}
+
+function civsShowMore() {
+  civsDisplayLimit += CIVS_PAGE_SIZE;
+  filterCivsList();
+}
+
+function civsResetLimit() {
+  const typeFilter = document.getElementById('civs-type-filter').value;
+  civsDisplayLimit = typeFilter ? Infinity : CIVS_PAGE_SIZE;
 }
 
 async function loadCivDetail(worldId, entityId) {
@@ -1058,7 +1177,72 @@ async function loadCivDetail(worldId, entityId) {
   }
 }
 
+let civSitesData = [];
+let civSitesWorldId = null;
+let civSitesSortCol = 'site_name';
+let civSitesSortDir = 1;
+
+function sortCivSites(col) {
+  if (civSitesSortCol === col) civSitesSortDir *= -1;
+  else { civSitesSortCol = col; civSitesSortDir = 1; }
+  const container = document.getElementById('civ-sites-tbody');
+  if (container) container.innerHTML = renderCivSitesRows(civSitesData, civSitesWorldId);
+  // Update headers
+  document.querySelectorAll('#civ-sites-thead th[data-col]').forEach(th => {
+    const col2 = th.dataset.col;
+    const base = th.dataset.label;
+    th.textContent = base + (col2 === civSitesSortCol ? (civSitesSortDir === 1 ? ' \u2191' : ' \u2193') : '');
+  });
+}
+
+function renderCivSitesRows(sites, worldId) {
+  const sorted = [...sites].sort((a, b) => {
+    const col = civSitesSortCol;
+    if (col === 'population' || col === 'struct_count') {
+      return civSitesSortDir * ((a[col] || 0) - (b[col] || 0));
+    }
+    return civSitesSortDir * (a[col] || '').toString().localeCompare((b[col] || '').toString());
+  });
+  let html = '';
+  for (const sg of sorted) {
+    const structs = (sg.structures || []).map(t => {
+      const icon = _structIcon(t);
+      return `<span title="${escapeHtml(t)}" class="cursor-default">${icon}</span>`;
+    }).join(' ');
+    const sgRuler = sg.ruler
+      ? `<span class="nav-link" onclick="navigateTo('people','hf',${worldId},${sg.ruler.hf_id})">${escapeHtml(sg.ruler.name)}</span>
+         <span class="text-stone-600 text-[10px]">${escapeHtml(sg.ruler.title || '')}</span>`
+      : '<span class="text-stone-600">\u2014</span>';
+    html += `<tr class="hover:bg-stone-800/30">
+      <td class="py-1 pr-3 text-stone-300">${escapeHtml(sg.sg_name)}</td>
+      <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('geo','site',${worldId},${sg.site_id})">${escapeHtml(sg.site_name)}</span>
+        <span class="text-stone-600 text-[10px]">${escapeHtml(sg.site_type || '')}</span></td>
+      <td class="py-1 pr-3">${structs || '<span class="text-stone-700">\u2014</span>'}</td>
+      <td class="py-1 pr-3 text-stone-400">${sg.population.toLocaleString()}</td>
+      <td class="py-1">${sgRuler}</td>
+    </tr>`;
+  }
+  return html;
+}
+
+const _STRUCT_ICONS = {
+  'inn tavern': '\u{1F3E8}', 'tavern': '\u{1F3E8}',
+  'temple': '\u26EA', 'mead hall': '\u{1F37A}', 'guildhall': '\u2692',
+  'tomb': '\u26B0', 'market': '\u{1F3EA}', 'dungeon': '\u26D3',
+  'counting house': '\u{1F4B0}', 'keep': '\u{1F3F0}', 'tower': '\u{1F5FC}',
+  'library': '\u{1F4DA}', 'underworld spire': '\u{1F52E}',
+};
+
+function _structIcon(type) {
+  if (!type) return '';
+  const lower = type.toLowerCase();
+  return _STRUCT_ICONS[lower] || '\u{1F3E0}';
+}
+
 function renderCivDetail(civ, panel) {
+  const catColors = {noble: 'bg-amber-900/50 text-amber-400', military: 'bg-red-900/50 text-red-400',
+                     admin: 'bg-blue-900/50 text-blue-400', other: 'bg-stone-800 text-stone-400'};
+
   let html = `<div class="flex items-start justify-between mb-4">
     <div>
       <h2 class="detail-header">${escapeHtml(civ.name)}</h2>
@@ -1067,56 +1251,107 @@ function renderCivDetail(civ, panel) {
         <span class="text-stone-500 text-xs">${escapeHtml(titleCase(civ.race))}</span>
       </div>
     </div>
-    <button onclick="navigateTo('graph','entity',${civ.world_id},${civ.id})"
-            class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
+    <div class="flex gap-2">
+      <a href="/explorer/entity/${civ.id}?world_id=${civ.world_id}" target="_blank"
+         class="text-xs px-3 py-1.5 border border-stone-600 rounded text-stone-300 hover:text-amber-400 hover:border-amber-400 transition-colors whitespace-nowrap">Open Full Page</a>
+      <button onclick="navigateTo('graph','entity',${civ.world_id},${civ.id})"
+              class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1.5 rounded text-xs transition-colors">View Graph</button>
+    </div>
   </div>`;
 
-  // Positions
-  if (civ.positions && civ.positions.length > 0) {
-    const catColors = {noble: 'bg-amber-900/50 text-amber-400', military: 'bg-red-900/50 text-red-400',
-                       admin: 'bg-blue-900/50 text-blue-400', other: 'bg-stone-800 text-stone-400'};
+  // ── Overview Tile ──
+  const rulerHtml = civ.ruler
+    ? `<span class="nav-link" onclick="navigateTo('people','hf',${civ.world_id},${civ.ruler.hf_id})">${escapeHtml(civ.ruler.name)}</span>
+       <span class="text-stone-600 text-[10px]">${escapeHtml(civ.ruler.title || '')}</span>`
+    : '<span class="text-stone-600">None</span>';
+  html += `<div class="section-card">
+    <div class="section-title">Overview</div>
+    <div class="grid grid-cols-2 gap-3 text-xs">
+      <div><span class="text-stone-500">Race</span><div class="text-stone-200 mt-0.5">${escapeHtml(titleCase(civ.race))}</div></div>
+      <div><span class="text-stone-500">Sites</span><div class="text-stone-200 mt-0.5">${civ.site_count ?? 0}</div></div>
+      <div><span class="text-stone-500">Population</span><div class="text-stone-200 mt-0.5">${(civ.total_population ?? 0).toLocaleString()}</div></div>
+      <div><span class="text-stone-500">Ruler</span><div class="mt-0.5">${rulerHtml}</div></div>
+    </div>
+  </div>`;
+
+  // ── Sites Table (sortable) ──
+  const siteGovts = civ.site_govts || [];
+  const govtsWithSites = siteGovts.filter(sg => sg.site);
+  if (govtsWithSites.length > 0) {
+    // Flatten for sorting
+    civSitesData = govtsWithSites.map(sg => ({
+      ...sg, sg_name: sg.name, site_id: sg.site.id,
+      site_name: sg.site.name, site_type: sg.site.type || '',
+      struct_count: (sg.structures || []).length,
+      ruler_name: sg.ruler ? sg.ruler.name : '',
+    }));
+    civSitesWorldId = civ.world_id;
+    civSitesSortCol = 'site_name';
+    civSitesSortDir = 1;
+
+    const thClass = 'text-left py-1 pr-3 cursor-pointer hover:text-stone-300';
     html += `<div class="section-card">
-      <div class="section-title">Positions (${civ.positions.length})</div>
+      <div class="section-title">Sites (${govtsWithSites.length})</div>
       <table class="w-full text-xs">
-        <thead><tr class="text-stone-500 border-b border-stone-800">
-          <th class="text-left py-1 pr-3">Position</th>
-          <th class="text-left py-1 pr-3">Title</th>
-          <th class="text-left py-1 pr-3">Category</th>
-          <th class="text-left py-1">Current Holder</th>
+        <thead id="civ-sites-thead"><tr class="text-stone-500 border-b border-stone-800">
+          <th class="${thClass}" data-col="sg_name" data-label="Site Govt" onclick="sortCivSites('sg_name')">Site Govt</th>
+          <th class="${thClass}" data-col="site_name" data-label="Site" onclick="sortCivSites('site_name')">Site \u2191</th>
+          <th class="${thClass}" data-col="struct_count" data-label="Structures" onclick="sortCivSites('struct_count')">Structures</th>
+          <th class="${thClass}" data-col="population" data-label="Pop." onclick="sortCivSites('population')">Pop.</th>
+          <th class="${thClass}" data-col="ruler_name" data-label="Ruler" onclick="sortCivSites('ruler_name')">Ruler</th>
         </tr></thead>
-        <tbody class="divide-y divide-stone-800/50">`;
-    for (const p of civ.positions) {
+        <tbody id="civ-sites-tbody" class="divide-y divide-stone-800/50">${renderCivSitesRows(civSitesData, civ.world_id)}</tbody>
+      </table></div>`;
+  }
+
+  // ── Positions Nested List ──
+  const civPos = civ.positions || [];
+  // Site govts with at least one filled position
+  const govtsWithHolders = siteGovts.filter(sg =>
+    (sg.positions || []).some(p => p.current_holder)
+  );
+  if (civPos.length > 0 || govtsWithHolders.length > 0) {
+    html += `<div class="section-card">
+      <div class="section-title">Positions</div>`;
+
+    // Helper to render a position row
+    function posRow(p) {
       const cat = p.category || 'other';
       const catClass = catColors[cat] || catColors.other;
       const title = p.title ? escapeHtml(titleCase(p.title)) : '';
       const holder = p.current_holder
         ? `<span class="nav-link" onclick="navigateTo('people','hf',${civ.world_id},${p.current_holder.hf_id})">${escapeHtml(p.current_holder.name)}</span>`
         : '<span class="text-stone-600">Vacant</span>';
-      html += `<tr class="hover:bg-stone-800/30">
-        <td class="py-1 pr-3 text-amber-400">${escapeHtml(p.name)}</td>
-        <td class="py-1 pr-3 text-stone-400">${title}</td>
-        <td class="py-1 pr-3"><span class="px-1.5 py-0.5 rounded text-[10px] ${catClass}">${titleCase(cat)}</span></td>
-        <td class="py-1">${holder}</td>
-      </tr>`;
-    }
-    html += '</tbody></table></div>';
-  }
-
-  // Sites
-  if (civ.sites && civ.sites.length > 0) {
-    html += `<div class="section-card">
-      <div class="section-title">Controlled Sites (${civ.sites.length})</div>
-      <div class="space-y-1">`;
-    for (const s of civ.sites) {
-      html += `<div class="text-xs">
-        <span class="nav-link" onclick="navigateTo('geo','site',${civ.world_id},${s.id})">${escapeHtml(s.name)}</span>
-        <span class="text-stone-500 text-[10px]">${escapeHtml(s.type || '')}</span>
+      return `<div class="flex items-center gap-2 py-0.5 text-xs">
+        <span class="text-amber-400 min-w-[100px]">${title || escapeHtml(p.name)}</span>
+        <span class="text-stone-500">${escapeHtml(p.name)}</span>
+        <span class="px-1.5 py-0.5 rounded text-[10px] ${catClass}">${titleCase(cat)}</span>
+        <span class="ml-auto">${holder}</span>
       </div>`;
     }
-    html += '</div></div>';
+
+    // Civ-level positions
+    if (civPos.length > 0) {
+      html += `<div class="mb-3">
+        <div class="text-xs text-stone-400 font-medium mb-1 border-b border-stone-800 pb-1">Civilization Positions (${civPos.length})</div>`;
+      for (const p of civPos) html += posRow(p);
+      html += '</div>';
+    }
+
+    // Per site govt positions
+    for (const sg of govtsWithHolders) {
+      const siteName = sg.site ? sg.site.name : '';
+      const label = siteName ? `${sg.name} \u2192 ${siteName}` : sg.name;
+      html += `<details class="mb-2">
+        <summary class="text-xs text-stone-400 cursor-pointer hover:text-stone-300 border-b border-stone-800/50 pb-1">${escapeHtml(label)} (${(sg.positions||[]).length})</summary>
+        <div class="pl-2 mt-1">`;
+      for (const p of (sg.positions || [])) html += posRow(p);
+      html += '</div></details>';
+    }
+    html += '</div>';
   }
 
-  // Wars
+  // ── Wars Table ──
   if (civ.wars && civ.wars.length > 0) {
     html += `<div class="section-card">
       <div class="section-title">Wars (${civ.wars.length})</div>
@@ -1124,7 +1359,8 @@ function renderCivDetail(civ, panel) {
         <thead><tr class="text-stone-500 border-b border-stone-800">
           <th class="text-left py-1 pr-3">Name</th>
           <th class="text-left py-1 pr-3">Years</th>
-          <th class="text-left py-1">Role</th>
+          <th class="text-left py-1 pr-3">Role</th>
+          <th class="text-left py-1">Outcome</th>
         </tr></thead>
         <tbody class="divide-y divide-stone-800/50">`;
     for (const w of civ.wars) {
@@ -1132,13 +1368,14 @@ function renderCivDetail(civ, panel) {
       html += `<tr class="hover:bg-stone-800/30">
         <td class="py-1 pr-3 text-stone-200">${escapeHtml(w.name || 'Unnamed')}</td>
         <td class="py-1 pr-3 text-stone-400">${years}</td>
-        <td class="py-1"><span class="badge ${w.role === 'attacker' ? 'badge-vampire' : 'badge-alive'}">${w.role}</span></td>
+        <td class="py-1 pr-3"><span class="badge ${w.role === 'attacker' ? 'badge-vampire' : 'badge-alive'}">${w.role}</span></td>
+        <td class="py-1 text-stone-600">\u2014</td>
       </tr>`;
     }
     html += '</tbody></table></div>';
   }
 
-  // Members button
+  // ── Members button ──
   html += `<div class="mt-4">
     <button onclick="loadCivMembers(${civ.world_id}, ${civ.id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-4 py-2 rounded text-xs transition-colors">
       Load Members
@@ -1157,13 +1394,14 @@ let civMembersSortDir = 1;
 function renderMembersTable(members, worldId) {
   if (members.length === 0) return '<div class="text-stone-500 text-xs py-2">No members found</div>';
 
-  const arrows = col => col === civMembersSortCol ? (civMembersSortDir === 1 ? ' ↑' : ' ↓') : '';
+  const arrows = col => col === civMembersSortCol ? (civMembersSortDir === 1 ? ' \u2191' : ' \u2193') : '';
   const thClass = 'text-left py-1 pr-3 cursor-pointer hover:text-stone-300';
   let html = `<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">
     <th class="${thClass}" onclick="sortMembers('name')">Name${arrows('name')}</th>
     <th class="${thClass}" onclick="sortMembers('race')">Race${arrows('race')}</th>
-    <th class="${thClass}" onclick="sortMembers('link_type')">Link${arrows('link_type')}</th>
     <th class="${thClass}" onclick="sortMembers('position_name')">Position${arrows('position_name')}</th>
+    <th class="${thClass}" onclick="sortMembers('profession')">Profession${arrows('profession')}</th>
+    <th class="${thClass}" onclick="sortMembers('link_type')">Membership${arrows('link_type')}</th>
     <th class="${thClass}" onclick="sortMembers('is_alive')">Status${arrows('is_alive')}</th>
   </tr></thead><tbody class="divide-y divide-stone-800/50">`;
 
@@ -1171,8 +1409,9 @@ function renderMembersTable(members, worldId) {
     html += `<tr class="hover:bg-stone-800/30">
       <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
       <td class="py-1 pr-3 text-stone-400">${escapeHtml(m.race || '')}</td>
-      <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
       <td class="py-1 pr-3 text-amber-400">${m.position_name ? escapeHtml(titleCase(m.position_name)) : ''}</td>
+      <td class="py-1 pr-3 text-stone-400">${m.profession ? escapeHtml(m.profession) : ''}</td>
+      <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
       <td class="py-1"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
     </tr>`;
   }
@@ -1499,12 +1738,13 @@ async function loadCollections(grid, countEl) {
 
   let html = '<div class="overflow-x-auto ex-scroll"><table class="w-full text-xs"><thead><tr class="text-stone-500 uppercase tracking-wider border-b border-stone-800">';
   html += '<th class="px-3 py-2 text-left">Name</th><th class="px-3 py-2 text-left">Type</th>';
-  html += '<th class="px-3 py-2 text-left">Years</th><th class="px-3 py-2 text-left">Attacker</th>';
+  html += '<th class="px-3 py-2 text-left">Period</th><th class="px-3 py-2 text-left">Duration</th><th class="px-3 py-2 text-left">Attacker</th>';
   html += '<th class="px-3 py-2 text-left">Defender</th><th class="px-3 py-2 text-left">Site</th>';
   html += '</tr></thead><tbody class="divide-y divide-stone-800/50">';
 
   for (const c of collections) {
-    const years = c.end_year ? `${c.start_year}-${c.end_year}` : `${c.start_year}-?`;
+    const period = dfFormatDate(c.start_year, c.start_seconds) + (c.end_year && (c.end_year !== c.start_year || c.end_seconds !== c.start_seconds) ? ' – ' + dfFormatDate(c.end_year, c.end_seconds) : '');
+    const dur = dfFormatDuration(c.start_year, c.start_seconds, c.end_year, c.end_seconds);
     const att = c.attacker_entity_id ? `<span class="nav-link" onclick="navigateTo('civs','entity',${WORLD_ID},${c.attacker_entity_id})">${escapeHtml(c.attacker_name || '?')}</span>` : '-';
     const def = c.defender_entity_id ? `<span class="nav-link" onclick="navigateTo('civs','entity',${WORLD_ID},${c.defender_entity_id})">${escapeHtml(c.defender_name || '?')}</span>` : '-';
     const site = c.site_name ? escapeHtml(c.site_name) : '-';
@@ -1512,7 +1752,8 @@ async function loadCollections(grid, countEl) {
     html += `<tr class="hover:bg-stone-800/30 cursor-pointer" onclick="loadCollectionDetail(${WORLD_ID}, ${c.id})">
       <td class="px-3 py-1.5 text-stone-200">${escapeHtml(c.name || 'Unnamed')}</td>
       <td class="px-3 py-1.5"><span class="badge badge-type">${escapeHtml(c.type)}</span></td>
-      <td class="px-3 py-1.5 text-stone-400 stat-badge">${years}</td>
+      <td class="px-3 py-1.5 text-stone-400 stat-badge">${period}</td>
+      <td class="px-3 py-1.5 text-stone-500">${dur}</td>
       <td class="px-3 py-1.5">${att}</td>
       <td class="px-3 py-1.5">${def}</td>
       <td class="px-3 py-1.5 text-stone-400">${site}</td>
@@ -1529,13 +1770,15 @@ async function loadCollectionDetail(worldId, collId) {
     const coll = await resp.json();
     if (coll.detail) throw new Error(coll.detail);
 
-    const years = coll.end_year ? `${coll.start_year}-${coll.end_year}` : `${coll.start_year}-?`;
+    const period = dfFormatDate(coll.start_year, coll.start_seconds) + (coll.end_year && (coll.end_year !== coll.start_year || coll.end_seconds !== coll.start_seconds) ? ' – ' + dfFormatDate(coll.end_year, coll.end_seconds) : '');
+    const dur = dfFormatDuration(coll.start_year, coll.start_seconds, coll.end_year, coll.end_seconds);
     let html = `<div class="mb-4">
       <button onclick="loadEvents()" class="text-stone-500 hover:text-stone-300 text-xs mb-2">&larr; Back to list</button>
       <h2 class="detail-header">${escapeHtml(coll.name || 'Unnamed Collection')}</h2>
       <div class="flex items-center gap-2 mt-1">
         <span class="badge badge-type">${escapeHtml(coll.type)}</span>
-        <span class="text-stone-400 text-xs">${years}</span>
+        <span class="text-stone-400 text-xs">${period}</span>
+        <span class="text-stone-500 text-xs">(${dur})</span>
       </div>
     </div>`;
 
@@ -1548,7 +1791,7 @@ async function loadCollectionDetail(worldId, collId) {
         html += `<div class="text-xs cursor-pointer hover:text-amber-400" onclick="loadCollectionDetail(${worldId}, ${sc.id})">
           <span class="badge badge-type">${escapeHtml(sc.type)}</span>
           ${escapeHtml(sc.name || 'Unnamed')}
-          <span class="text-stone-500">${sc.start_year}${sc.end_year ? '-' + sc.end_year : ''}</span>
+          <span class="text-stone-500">${dfFormatDate(sc.start_year, sc.start_seconds)} (${dfFormatDuration(sc.start_year, sc.start_seconds, sc.end_year, sc.end_seconds)})</span>
         </div>`;
       }
       html += '</div></div>';
