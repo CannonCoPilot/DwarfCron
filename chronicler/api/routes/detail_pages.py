@@ -778,7 +778,13 @@ async def hf_detail_page(hf_id: int, request: Request,
             LEFT JOIN entity_positions ep ON ep.world_id = l.world_id
                   AND ep.entity_id = l.entity_id AND ep.position_id = l.position_id
             WHERE l.world_id = $1 AND l.hf_id = $2
-            ORDER BY l.start_year
+              AND NOT (l.start_year IS NULL AND EXISTS (
+                  SELECT 1 FROM hf_position_links l2
+                  WHERE l2.world_id = l.world_id AND l2.hf_id = l.hf_id
+                    AND l2.entity_id = l.entity_id AND l2.position_id = l.position_id
+                    AND l2.start_year IS NOT NULL
+              ))
+            ORDER BY l.start_year NULLS LAST
         """, world_id, hf_id)
 
         # Worshippers (if deity) — HFs that worship this one
@@ -1254,7 +1260,13 @@ async def entity_detail_page(entity_id: int, request: Request,
             LEFT JOIN entity_positions ep ON ep.world_id = p.world_id
                   AND ep.entity_id = p.entity_id AND ep.position_id = p.position_id
             WHERE p.world_id = $1 AND p.entity_id = $2
-            ORDER BY p.start_year DESC
+              AND NOT (p.start_year IS NULL AND EXISTS (
+                  SELECT 1 FROM hf_position_links p2
+                  WHERE p2.world_id = p.world_id AND p2.hf_id = p.hf_id
+                    AND p2.entity_id = p.entity_id AND p2.position_id = p.position_id
+                    AND p2.start_year IS NOT NULL
+              ))
+            ORDER BY p.start_year DESC NULLS LAST
         """, world_id, entity_id)
 
         # Prev/Next
@@ -1780,7 +1792,13 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
                 FROM hf_position_links pl
                 JOIN historical_figures hf ON hf.world_id = pl.world_id AND hf.id = pl.hf_id
                 WHERE pl.world_id = $1 AND pl.entity_id = $2
-                ORDER BY pl.position_id, pl.start_year
+                  AND NOT (pl.start_year IS NULL AND EXISTS (
+                      SELECT 1 FROM hf_position_links pl2
+                      WHERE pl2.world_id = pl.world_id AND pl2.hf_id = pl.hf_id
+                        AND pl2.entity_id = pl.entity_id AND pl2.position_id = pl.position_id
+                        AND pl2.start_year IS NOT NULL
+                  ))
+                ORDER BY pl.position_id, pl.start_year NULLS LAST
             """, world_id, int(pos_entity_id))
 
         # Membership

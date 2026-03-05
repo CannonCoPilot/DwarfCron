@@ -1424,6 +1424,23 @@ async def import_legends(
             counts["entity_position_assignments"] = n
             log.info("  entity_position_assignments: %d", n)
 
+            # Clean up NULL-start shadow rows: if a dated row exists from
+            # legends.xml for the same (world, hf, entity, position), the
+            # NULL-start row from legends_plus is redundant.  PostgreSQL
+            # treats NULL ≠ NULL so the unique constraint doesn't catch this.
+            cleanup = await conn.execute("""
+                DELETE FROM hf_position_links a
+                USING hf_position_links b
+                WHERE a.world_id = b.world_id AND a.hf_id = b.hf_id
+                  AND a.entity_id = b.entity_id AND a.position_id = b.position_id
+                  AND a.start_year IS NULL AND b.start_year IS NOT NULL
+                  AND a.world_id = $1
+            """, world_id)
+            cleaned = int(cleanup.split()[-1]) if isinstance(cleanup, str) else 0
+            if cleaned:
+                log.info("  position_link NULL-start shadows removed: %d", cleaned)
+                counts["position_link_shadows_removed"] = cleaned
+
         # Correct position_profile_id → position_id in hf_position_links.
         # Base legends.xml stores position_profile_id (assignment slot) as
         # position_id, but it should be the actual position definition ID.
