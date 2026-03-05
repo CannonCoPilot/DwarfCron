@@ -1920,29 +1920,58 @@ async def written_content_detail_page(wc_id: int, request: Request,
                 world_id, wc['author_hf_id'],
             )
 
-        # Referenced entities from details JSONB
+        # Referenced entities from details.references[] array
         details = wc.get('details') or {}
+        raw_refs = details.get('references') or []
+        # Group reference IDs by type; track counts for all types
+        ref_ids_by_type = {}
+        ref_counts_by_type = {}
+        for ref in raw_refs:
+            rtype = ref.get('type')
+            rid = ref.get('id')
+            if rtype:
+                ref_counts_by_type[rtype] = ref_counts_by_type.get(rtype, 0) + 1
+                if rid is not None:
+                    ref_ids_by_type.setdefault(rtype, []).append(int(rid))
+
         referenced_hfs = []
-        ref_hf_ids = details.get('referenced_hf_ids') or details.get('hf_ids') or []
-        if ref_hf_ids and isinstance(ref_hf_ids, list):
+        if ref_ids_by_type.get('HISTORICAL_FIGURE'):
             referenced_hfs = await conn.fetch(
                 "SELECT id, name, race FROM historical_figures WHERE world_id = $1 AND id = ANY($2::int[])",
-                world_id, [int(x) for x in ref_hf_ids],
+                world_id, ref_ids_by_type['HISTORICAL_FIGURE'],
             )
         referenced_sites = []
-        ref_site_ids = details.get('referenced_site_ids') or details.get('site_ids') or []
-        if ref_site_ids and isinstance(ref_site_ids, list):
+        if ref_ids_by_type.get('SITE'):
             referenced_sites = await conn.fetch(
                 "SELECT id, name, type FROM sites WHERE world_id = $1 AND id = ANY($2::int[])",
-                world_id, [int(x) for x in ref_site_ids],
+                world_id, ref_ids_by_type['SITE'],
             )
         referenced_entities = []
-        ref_ent_ids = details.get('referenced_entity_ids') or details.get('entity_ids') or []
-        if ref_ent_ids and isinstance(ref_ent_ids, list):
+        if ref_ids_by_type.get('ENTITY'):
             referenced_entities = await conn.fetch(
                 "SELECT id, name, type FROM entities WHERE world_id = $1 AND id = ANY($2::int[])",
-                world_id, [int(x) for x in ref_ent_ids],
+                world_id, ref_ids_by_type['ENTITY'],
             )
+        referenced_events = []
+        if ref_ids_by_type.get('HISTORICAL_EVENT'):
+            referenced_events = await conn.fetch(
+                "SELECT id, event_type, year FROM history_events WHERE world_id = $1 AND id = ANY($2::int[])",
+                world_id, ref_ids_by_type['HISTORICAL_EVENT'],
+            )
+        referenced_wcs = []
+        if ref_ids_by_type.get('WRITTEN_CONTENT'):
+            referenced_wcs = await conn.fetch(
+                "SELECT id, title, form FROM written_contents WHERE world_id = $1 AND id = ANY($2::int[])",
+                world_id, ref_ids_by_type['WRITTEN_CONTENT'],
+            )
+        # Collect non-linkable reference types for display (use counts, not just ID'd refs)
+        other_refs = []
+        for rtype in ('KNOWLEDGE_SCHOLAR_FLAG', 'VALUE_LEVEL', 'MUSICAL_FORM',
+                       'POETIC_FORM', 'DANCE_FORM', 'LANGUAGE', 'INTERACTION',
+                       'ABSTRACT_BUILDING'):
+            if rtype in ref_counts_by_type:
+                other_refs.append({'type': rtype.replace('_', ' ').title(),
+                                   'count': ref_counts_by_type[rtype]})
 
         # Associated artifact (books)
         associated_artifact = None
@@ -1952,6 +1981,60 @@ async def written_content_detail_page(wc_id: int, request: Request,
                 "SELECT id, name, material, item_type FROM artifacts WHERE world_id = $1 AND id = $2",
                 world_id, int(assoc_artifact_id),
             )
+
+        # Art form linkage (form_id -> art_forms with correct form_type)
+        art_form = None
+        form_id = details.get('form_id')
+        if form_id is not None:
+            form_type_map = {
+                'poem': 'poetic', 'musical composition': 'musical',
+                'choreography': 'dance',
+            }
+            mapped_type = form_type_map.get(wc.get('form'))
+            if mapped_type:
+                art_form = await conn.fetchrow(
+                    "SELECT id, name, description, form_type FROM art_forms "
+                    "WHERE world_id = $1 AND id = $2 AND form_type = $3",
+                    world_id, int(form_id), mapped_type,
+                )
+
+        # Composition event (when/why/how it was written)
+        composition_event = await conn.fetchrow("""
+            SELECT id, year, details FROM history_events
+            WHERE world_id = $1 AND event_type = 'written content composed'
+            AND details->>'wc_id' = $2
+            LIMIT 1
+        """, world_id, str(wc_id))
+        composition = None
+        if composition_event:
+            ce = dict(composition_event)
+            ce_details = ce.get('details') or {}
+            composition = {
+                'event_id': ce['id'],
+                'year': ce['year'],
+                'circumstance': ce_details.get('circumstance'),
+                'reason': ce_details.get('reason'),
+            }
+            # Resolve circumstance/reason HF links
+            reason_id = ce_details.get('reason_id')
+            circ_id = ce_details.get('circumstance_id')
+            link_ids = set()
+            if reason_id:
+                link_ids.add(int(reason_id))
+            if circ_id:
+                link_ids.add(int(circ_id))
+            if link_ids:
+                linked_hfs = await conn.fetch(
+                    "SELECT id, name FROM historical_figures WHERE world_id = $1 AND id = ANY($2::int[])",
+                    world_id, list(link_ids),
+                )
+                hf_map = {r['id']: r['name'] for r in linked_hfs}
+                if reason_id:
+                    composition['reason_hf'] = {'id': int(reason_id),
+                                                'name': hf_map.get(int(reason_id))}
+                if circ_id:
+                    composition['circumstance_hf'] = {'id': int(circ_id),
+                                                      'name': hf_map.get(int(circ_id))}
 
         # Prev/Next
         prev_wc = await conn.fetchrow("""
@@ -1976,12 +2059,42 @@ async def written_content_detail_page(wc_id: int, request: Request,
         "referenced_hfs": [dict(r) for r in referenced_hfs],
         "referenced_sites": [dict(r) for r in referenced_sites],
         "referenced_entities": [dict(r) for r in referenced_entities],
+        "referenced_events": [dict(r) for r in referenced_events],
+        "referenced_wcs": [dict(r) for r in referenced_wcs],
+        "other_refs": other_refs,
         "associated_artifact": dict(associated_artifact) if associated_artifact else None,
+        "art_form": dict(art_form) if art_form else None,
+        "composition": composition,
+        "author_roll": details.get('author_roll'),
         "prev_wc": dict(prev_wc) if prev_wc else None,
         "next_wc": dict(next_wc) if next_wc else None,
         "linker": _linker,
         "calendar": DFCalendar,
     })
+
+
+def _collection_display_name(collection, occasion_info, coll_type, event_schedule_id, occasion_schedules):
+    """Derive a meaningful display name for event collections."""
+    festival_name = occasion_info['name'] if occasion_info and occasion_info.get('name') else None
+    coll_name = collection.get('name')
+    # For parent occasion collections, use the festival name
+    if coll_type == 'occasion' and festival_name:
+        return festival_name
+    # For child collections (performance/ceremony/etc.), combine schedule type with festival
+    if coll_type in ('performance', 'ceremony', 'procession', 'competition', 'dance_performance'):
+        schedule_label = coll_type.replace('_', ' ').title()
+        # If we know which schedule this maps to, use its specific type
+        if event_schedule_id is not None and occasion_schedules:
+            for sched in occasion_schedules:
+                if sched.get('schedule_id') == event_schedule_id:
+                    schedule_label = (sched.get('type') or coll_type).replace('_', ' ').title()
+                    if sched.get('ref_name'):
+                        schedule_label = f"{schedule_label}: {sched['ref_name']}"
+                    break
+        if festival_name:
+            return f"{schedule_label} — {festival_name}"
+        return schedule_label
+    return coll_name or (festival_name if festival_name else f"Collection #{collection['id']}")
 
 
 # ─── Event Collection Detail Page ─────────────────────────────────────────
@@ -2036,16 +2149,33 @@ async def collection_detail_page(collection_id: int, request: Request,
         parent_collection = None
         if collection.get('parent_id'):
             parent_collection = await conn.fetchrow(
-                "SELECT id, name, type FROM history_event_collections WHERE world_id = $1 AND id = $2",
+                "SELECT id, name, type, attacker_entity_id, defender_entity_id "
+                "FROM history_event_collections WHERE world_id = $1 AND id = $2",
                 world_id, collection['parent_id'],
             )
 
-        # Child collections (sub-battles, sub-events)
+        # Inherit attacker/defender from parent war for battle sub-collections
+        if not attacker and parent_collection and parent_collection.get('attacker_entity_id'):
+            attacker = await conn.fetchrow(
+                "SELECT id, name, type FROM entities WHERE world_id = $1 AND id = $2",
+                world_id, parent_collection['attacker_entity_id'],
+            )
+        if not defender and parent_collection and parent_collection.get('defender_entity_id'):
+            defender = await conn.fetchrow(
+                "SELECT id, name, type FROM entities WHERE world_id = $1 AND id = $2",
+                world_id, parent_collection['defender_entity_id'],
+            )
+
+        # Child collections — check both parent_id (war/battle hierarchy)
+        # and collection_subcollections (occasion/competition/beast attack eventcol refs)
         children = await conn.fetch("""
-            SELECT id, name, type, start_year, end_year
-            FROM history_event_collections
-            WHERE world_id = $1 AND parent_id = $2
-            ORDER BY start_year, id
+            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.end_year
+            FROM history_event_collections c
+            LEFT JOIN collection_subcollections cs
+                ON cs.world_id = c.world_id AND cs.child_id = c.id
+            WHERE c.world_id = $1
+              AND (c.parent_id = $2 OR (cs.parent_id = $2 AND cs.world_id = $1))
+            ORDER BY c.start_year, c.id
         """, world_id, collection_id)
 
         # Events in this collection
@@ -2087,6 +2217,449 @@ async def collection_detail_page(collection_id: int, request: Request,
                 'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
+        # ── Resolve HF/entity names from collection details ──
+        details = collection.get('details') or {}
+        coll_type = collection.get('type', '')
+
+        # Collect HF IDs to resolve from details
+        detail_hf_refs = set()
+        detail_entity_refs = set()
+        detail_site_refs = set()
+
+        # Battle/duel combatants
+        for key in ('attacking_hfid', 'defending_hfid', 'noncom_hfid'):
+            val = details.get(key)
+            if val is not None:
+                ids = val if isinstance(val, list) else [val]
+                for hf_id in ids:
+                    if isinstance(hf_id, int):
+                        detail_hf_refs.add(hf_id)
+
+        # Mercenary entities
+        for key in ('attacking_merc_enid', 'defending_merc_enid'):
+            val = details.get(key)
+            if val is not None:
+                ids = val if isinstance(val, list) else [val]
+                for eid in ids:
+                    if isinstance(eid, int):
+                        detail_entity_refs.add(eid)
+
+        # Occasion civ
+        civ_id = details.get('civ_id')
+        if isinstance(civ_id, int):
+            detail_entity_refs.add(civ_id)
+
+        # Persecution/overthrow target entity
+        target_ent = details.get('target_entity_id')
+        if isinstance(target_ent, int):
+            detail_entity_refs.add(target_ent)
+
+        # Squad sites
+        for key in ('attacking_squad_site', 'defending_squad_site'):
+            val = details.get(key)
+            if val is not None:
+                ids = val if isinstance(val, list) else [val]
+                for sid in ids:
+                    if isinstance(sid, int):
+                        detail_site_refs.add(sid)
+
+        # Batch resolve all references
+        all_refs = set()
+        for hf_id in detail_hf_refs:
+            all_refs.add(('hf', hf_id))
+        for eid in detail_entity_refs:
+            all_refs.add(('entity', eid))
+        for sid in detail_site_refs:
+            all_refs.add(('site', sid))
+        detail_names = await _name_cache.batch_resolve(conn, world_id, list(all_refs))
+
+        # Build resolved combatant lists
+        attacking_hfs = []
+        for hf_id in (details.get('attacking_hfid') if isinstance(details.get('attacking_hfid'), list) else [details.get('attacking_hfid')] if details.get('attacking_hfid') else []):
+            if isinstance(hf_id, int):
+                attacking_hfs.append({'id': hf_id, 'name': detail_names.get(('hf', hf_id), f'HF #{hf_id}')})
+        defending_hfs = []
+        for hf_id in (details.get('defending_hfid') if isinstance(details.get('defending_hfid'), list) else [details.get('defending_hfid')] if details.get('defending_hfid') else []):
+            if isinstance(hf_id, int):
+                defending_hfs.append({'id': hf_id, 'name': detail_names.get(('hf', hf_id), f'HF #{hf_id}')})
+        noncom_hfs = []
+        for hf_id in (details.get('noncom_hfid') if isinstance(details.get('noncom_hfid'), list) else [details.get('noncom_hfid')] if details.get('noncom_hfid') else []):
+            if isinstance(hf_id, int):
+                noncom_hfs.append({'id': hf_id, 'name': detail_names.get(('hf', hf_id), f'HF #{hf_id}')})
+
+        # Build squad summary (zip parallel arrays)
+        attacking_squads = []
+        defending_squads = []
+        for prefix, squads_list in [('attacking', attacking_squads), ('defending', defending_squads)]:
+            races = details.get(f'{prefix}_squad_race', [])
+            numbers = details.get(f'{prefix}_squad_number', [])
+            deaths = details.get(f'{prefix}_squad_deaths', [])
+            sites = details.get(f'{prefix}_squad_site', [])
+            if not isinstance(races, list):
+                races = [races]
+            if not isinstance(numbers, list):
+                numbers = [numbers]
+            if not isinstance(deaths, list):
+                deaths = [deaths]
+            if not isinstance(sites, list):
+                sites = [sites]
+            for i, race in enumerate(races):
+                squad = {
+                    'race': str(race).replace('_', ' ').title() if race else '?',
+                    'number': numbers[i] if i < len(numbers) else '?',
+                    'deaths': deaths[i] if i < len(deaths) else 0,
+                }
+                if i < len(sites) and isinstance(sites[i], int):
+                    squad['site_id'] = sites[i]
+                    squad['site_name'] = detail_names.get(('site', sites[i]), f'Site #{sites[i]}')
+                squads_list.append(squad)
+
+        # Occasion details — look up festival name and schedules
+        # For occasion collections, civ_id/occasion_id are in the collection details.
+        # For child collections (performance/ceremony/etc.), derive from first event.
+        occasion_civ = None
+        occasion_info = None
+        occasion_schedules = []
+        event_schedule_id = None  # which schedule this sub-collection corresponds to
+
+        occ_id_val = details.get('occasion_id')
+        if occ_id_val is not None and not isinstance(occ_id_val, int):
+            try:
+                occ_id_val = int(occ_id_val)
+            except (ValueError, TypeError):
+                occ_id_val = None
+
+        # For child collections without civ_id — derive from first event
+        if not civ_id and coll_type in ('performance', 'ceremony', 'procession',
+                                         'competition', 'dance_performance'):
+            first_cultural_ev = await conn.fetchrow("""
+                SELECT e.entity_id_1, e.details
+                FROM history_events e
+                JOIN collection_events ce ON ce.world_id = e.world_id AND ce.event_id = e.id
+                WHERE ce.world_id = $1 AND ce.collection_id = $2
+                LIMIT 1
+            """, world_id, collection_id)
+            if first_cultural_ev:
+                ev_details = first_cultural_ev['details'] or {}
+                if isinstance(ev_details, str):
+                    import json as _json
+                    ev_details = _json.loads(ev_details)
+                if first_cultural_ev['entity_id_1']:
+                    civ_id = first_cultural_ev['entity_id_1']
+                if occ_id_val is None:
+                    raw_occ = ev_details.get('occasion_id')
+                    if raw_occ is not None:
+                        try:
+                            occ_id_val = int(raw_occ)
+                        except (ValueError, TypeError):
+                            pass
+                raw_sched = ev_details.get('schedule_id')
+                if raw_sched is not None:
+                    try:
+                        event_schedule_id = int(raw_sched)
+                    except (ValueError, TypeError):
+                        pass
+
+        if civ_id and isinstance(civ_id, int):
+            # Resolve civ name (may not be in detail_names if derived from child event)
+            civ_name = detail_names.get(('entity', civ_id))
+            if not civ_name:
+                extra = await _name_cache.batch_resolve(conn, world_id, [('entity', civ_id)])
+                civ_name = extra.get(('entity', civ_id), f'Entity #{civ_id}')
+            occasion_civ = {'id': civ_id, 'name': civ_name}
+        if civ_id and occ_id_val is not None:
+            occasion_info = await conn.fetchrow("""
+                SELECT name, event_id FROM entity_occasions
+                WHERE world_id = $1 AND entity_id = $2 AND occasion_id = $3
+            """, world_id, civ_id, occ_id_val)
+            if occasion_info:
+                occasion_info = dict(occasion_info)
+            occasion_schedules = await conn.fetch("""
+                SELECT schedule_id, type, reference, reference2,
+                       item_type, item_subtype, features
+                FROM occasion_schedules
+                WHERE world_id = $1 AND entity_id = $2 AND occasion_id = $3
+                ORDER BY schedule_id
+            """, world_id, civ_id, occ_id_val)
+            occasion_schedules = [dict(s) for s in occasion_schedules]
+
+            # Resolve schedule-level and feature references → art_forms / written_contents
+            _FEAT_TO_FORM = {
+                'dance_performance': 'dance',
+                'musical_performance': 'musical',
+                'poetry_recital': 'poetic',
+            }
+            _FEAT_TO_WC = {'storytelling', 'images'}
+
+            for sched in occasion_schedules:
+                # Resolve schedule-level reference (primary art form / written content)
+                sched_type = sched.get('type', '')
+                sched_ref = sched.get('reference')
+                sched['ref_name'] = None
+                sched['ref_link'] = None
+                if sched_ref is not None:
+                    if sched_type in _FEAT_TO_FORM:
+                        form_type = _FEAT_TO_FORM[sched_type]
+                        af = await conn.fetchrow(
+                            "SELECT id, name FROM art_forms WHERE world_id=$1 AND form_type=$2 AND id=$3",
+                            world_id, form_type, sched_ref)
+                        if af:
+                            sched['ref_name'] = af['name']
+                            sched['ref_link'] = f'/explorer/art_form/{af["id"]}?world_id={world_id}&form_type={form_type}'
+                    elif sched_type in _FEAT_TO_WC:
+                        wc = await conn.fetchrow(
+                            "SELECT id, title FROM written_contents WHERE world_id=$1 AND id=$2",
+                            world_id, sched_ref)
+                        if wc:
+                            sched['ref_name'] = wc['title']
+                            sched['ref_link'] = f'/explorer/written_content/{wc["id"]}?world_id={world_id}'
+
+                raw_feats = sched.get('features')
+                if not raw_feats:
+                    sched['resolved_features'] = []
+                    continue
+                if isinstance(raw_feats, str):
+                    import json as _json
+                    raw_feats = _json.loads(raw_feats)
+                if not isinstance(raw_feats, list):
+                    sched['resolved_features'] = []
+                    continue
+
+                resolved = []
+                for feat in raw_feats:
+                    ft = feat.get('type', '')
+                    ref = feat.get('reference')
+                    entry = {
+                        'type': ft.replace('_', ' ').title(),
+                        'type_raw': ft,
+                        'ref_name': None,
+                        'ref_link': None,
+                    }
+
+                    if ref is not None:
+                        if isinstance(ref, str):
+                            try:
+                                ref = int(ref)
+                            except ValueError:
+                                ref = None
+
+                    if ref is not None and ft in _FEAT_TO_FORM:
+                        form_type = _FEAT_TO_FORM[ft]
+                        af = await conn.fetchrow(
+                            "SELECT id, name FROM art_forms WHERE world_id=$1 AND form_type=$2 AND id=$3",
+                            world_id, form_type, ref)
+                        if af:
+                            entry['ref_name'] = af['name']
+                            entry['ref_link'] = f'/explorer/art_form/{af["id"]}?world_id={world_id}&form_type={form_type}'
+                    elif ref is not None and ft in _FEAT_TO_WC:
+                        wc = await conn.fetchrow(
+                            "SELECT id, title FROM written_contents WHERE world_id=$1 AND id=$2",
+                            world_id, ref)
+                        if wc:
+                            entry['ref_name'] = wc['title']
+                            entry['ref_link'] = f'/explorer/written_content/{wc["id"]}?world_id={world_id}'
+
+                    resolved.append(entry)
+                sched['resolved_features'] = resolved
+
+        # Cultural event summaries — derive site/civ/participants from child events
+        # for collection types that store detail at the event level, not the collection
+        event_site = None
+        event_civ = None
+        competition_results = []
+        if coll_type in ('competition', 'performance', 'ceremony', 'procession', 'occasion'):
+            # Get site/civ from first child event if collection itself has none
+            if not collection.get('site_id'):
+                first_ev = await conn.fetchrow("""
+                    SELECT e.site_id, e.entity_id_1
+                    FROM history_events e
+                    JOIN collection_events ce ON ce.world_id = e.world_id AND ce.event_id = e.id
+                    WHERE ce.world_id = $1 AND ce.collection_id = $2
+                    AND (e.site_id IS NOT NULL OR e.entity_id_1 IS NOT NULL)
+                    LIMIT 1
+                """, world_id, collection_id)
+                if first_ev:
+                    if first_ev['site_id']:
+                        s = await conn.fetchrow(
+                            "SELECT id, name, type FROM sites WHERE world_id=$1 AND id=$2",
+                            world_id, first_ev['site_id'])
+                        if s:
+                            event_site = dict(s)
+                    if first_ev['entity_id_1']:
+                        event_civ = {
+                            'id': first_ev['entity_id_1'],
+                            'name': detail_names.get(('entity', first_ev['entity_id_1']),
+                                                     f'Entity #{first_ev["entity_id_1"]}')
+                        }
+
+            # Competition results — extract competitor/winner HF names
+            if coll_type == 'competition':
+                comp_events = await conn.fetch("""
+                    SELECT e.id, e.details, e.site_id, e.entity_id_1
+                    FROM history_events e
+                    JOIN collection_events ce ON ce.world_id = e.world_id AND ce.event_id = e.id
+                    WHERE ce.world_id = $1 AND ce.collection_id = $2
+                    AND e.event_type = 'competition'
+                    ORDER BY e.id
+                """, world_id, collection_id)
+                # Resolve all HF refs
+                def _safe_int(v):
+                    """Coerce str/int to int, return None on failure."""
+                    if isinstance(v, int):
+                        return v
+                    if isinstance(v, str):
+                        try:
+                            return int(v)
+                        except ValueError:
+                            pass
+                    return None
+
+                comp_hf_ids = set()
+                for cev in comp_events:
+                    d = cev['details'] or {}
+                    if isinstance(d, str):
+                        import json as _json
+                        d = _json.loads(d)
+                    for key in ('competitor_hfid', 'winner_hfid'):
+                        val = d.get(key)
+                        if isinstance(val, list):
+                            for v in val:
+                                iv = _safe_int(v)
+                                if iv is not None:
+                                    comp_hf_ids.add(iv)
+                        else:
+                            iv = _safe_int(val)
+                            if iv is not None:
+                                comp_hf_ids.add(iv)
+                if comp_hf_ids:
+                    hf_names = await _name_cache.batch_resolve(
+                        conn, world_id, [('hf', hid) for hid in comp_hf_ids])
+                    for cev in comp_events:
+                        d = cev['details'] or {}
+                        if isinstance(d, str):
+                            import json as _json
+                            d = _json.loads(d)
+                        sched_id = _safe_int(d.get('schedule_id'))
+                        # Look up schedule type from occasion_schedules
+                        sched_type = None
+                        occ_id_ev = _safe_int(d.get('occasion_id'))
+                        # civ_id from: collection details → event entity_id_1
+                        civ_id_ev = civ_id or _safe_int((collection.get('details') or {}).get('civ_id'))
+                        if civ_id_ev is None and cev['entity_id_1']:
+                            civ_id_ev = cev['entity_id_1']
+                        if occ_id_ev is not None and civ_id_ev and sched_id is not None:
+                            sched_row = await conn.fetchrow("""
+                                SELECT type FROM occasion_schedules
+                                WHERE world_id=$1 AND entity_id=$2
+                                AND occasion_id=$3 AND schedule_id=$4
+                            """, world_id, civ_id_ev, occ_id_ev, sched_id)
+                            if sched_row:
+                                sched_type = sched_row['type']
+                        winner_id = _safe_int(d.get('winner_hfid'))
+                        raw_comp = d.get('competitor_hfid', [])
+                        if not isinstance(raw_comp, list):
+                            raw_comp = [raw_comp]
+                        competitor_ids = [_safe_int(c) for c in raw_comp]
+                        competitor_ids = [c for c in competitor_ids if c is not None]
+                        competition_results.append({
+                            'schedule_id': sched_id,
+                            'schedule_type': (sched_type or '').replace('_', ' ').title() if sched_type else None,
+                            'winner': {'id': winner_id, 'name': hf_names.get(('hf', winner_id), f'HF #{winner_id}')} if winner_id is not None else None,
+                            'competitors': [{'id': cid, 'name': hf_names.get(('hf', cid), f'HF #{cid}')} for cid in competitor_ids],
+                        })
+
+        # Journey route — build ordered list of stops from hf travel events
+        journey_traveler = None
+        journey_companion = None
+        journey_route = []
+        if coll_type == 'journey':
+            travel_events = await conn.fetch("""
+                SELECT e.id, e.hf_id_1, e.site_id, e.region_id, e.details
+                FROM history_events e
+                JOIN collection_events ce ON ce.world_id = e.world_id AND ce.event_id = e.id
+                WHERE ce.world_id = $1 AND ce.collection_id = $2
+                  AND e.event_type = 'hf travel'
+                ORDER BY e.id
+            """, world_id, collection_id)
+            # Collect all referenced IDs for batch name resolution
+            route_refs = set()
+            for tev in travel_events:
+                if tev['hf_id_1'] is not None:
+                    route_refs.add(('hf', tev['hf_id_1']))
+                if tev['site_id'] is not None:
+                    route_refs.add(('site', tev['site_id']))
+                if tev['region_id'] is not None:
+                    route_refs.add(('region', tev['region_id']))
+                # Traveling companion
+                d = tev['details'] or {}
+                if isinstance(d, str):
+                    import json as _json
+                    d = _json.loads(d)
+                ghf = d.get('group_hfid')
+                if ghf is not None:
+                    try:
+                        route_refs.add(('hf', int(ghf)))
+                    except (ValueError, TypeError):
+                        pass
+            route_names = {}
+            if route_refs:
+                route_names = await _name_cache.batch_resolve(
+                    conn, world_id, list(route_refs))
+            # Build route stops
+            for tev in travel_events:
+                d = tev['details'] or {}
+                if isinstance(d, str):
+                    import json as _json
+                    d = _json.loads(d)
+                is_return = d.get('return') is True
+                stop = {
+                    'event_id': tev['id'],
+                    'is_return': is_return,
+                    'coords': d.get('coords'),
+                    'coords_x': d.get('coords_x'),
+                    'coords_y': d.get('coords_y'),
+                }
+                if tev['site_id'] is not None:
+                    stop['location_type'] = 'site'
+                    stop['location_id'] = tev['site_id']
+                    stop['location_name'] = route_names.get(
+                        ('site', tev['site_id']), f"Site #{tev['site_id']}")
+                elif tev['region_id'] is not None:
+                    stop['location_type'] = 'region'
+                    stop['location_id'] = tev['region_id']
+                    stop['location_name'] = route_names.get(
+                        ('region', tev['region_id']), f"Region #{tev['region_id']}")
+                else:
+                    stop['location_type'] = 'unknown'
+                    stop['location_id'] = None
+                    stop['location_name'] = 'Unknown location'
+                journey_route.append(stop)
+                # Use first traveler HF
+                if journey_traveler is None and tev['hf_id_1'] is not None:
+                    journey_traveler = {
+                        'id': tev['hf_id_1'],
+                        'name': route_names.get(
+                            ('hf', tev['hf_id_1']), f"HF #{tev['hf_id_1']}")
+                    }
+                # Extract traveling companion from first event that has one
+                if journey_companion is None:
+                    ghf = d.get('group_hfid')
+                    if ghf is not None:
+                        try:
+                            ghf_id = int(ghf)
+                            journey_companion = {
+                                'id': ghf_id,
+                                'name': route_names.get(
+                                    ('hf', ghf_id), f"HF #{ghf_id}")
+                            }
+                        except (ValueError, TypeError):
+                            pass
+
+        # Target entity (persecution/overthrow)
+        target_entity = None
+        if target_ent and isinstance(target_ent, int):
+            target_entity = {'id': target_ent, 'name': detail_names.get(('entity', target_ent), f'Entity #{target_ent}')}
+
         # Prev/Next
         prev_col = await conn.fetchrow("""
             SELECT id, name FROM history_event_collections WHERE world_id = $1 AND id < $2
@@ -2111,9 +2684,10 @@ async def collection_detail_page(collection_id: int, request: Request,
         "request": request,
         "active": "explorer",
         "entity_type_display": "Event Collection",
-        "entity_name": collection['name'] or f"Collection #{collection_id}",
+        "entity_name": _collection_display_name(collection, occasion_info, coll_type, event_schedule_id, occasion_schedules),
         "entity_alt_name": None,
         "collection": collection,
+        "details": details,
         "world": world,
         "world_id": world_id,
         "attacker": dict(attacker) if attacker else None,
@@ -2129,6 +2703,27 @@ async def collection_detail_page(collection_id: int, request: Request,
         "next_collection": dict(next_col) if next_col else None,
         "linker": _linker,
         "calendar": DFCalendar,
+        # Rich details from JSONB
+        "attacking_hfs": attacking_hfs,
+        "defending_hfs": defending_hfs,
+        "noncom_hfs": noncom_hfs,
+        "attacking_squads": attacking_squads,
+        "defending_squads": defending_squads,
+        "occasion_civ": occasion_civ,
+        "occasion_info": occasion_info,
+        "occasion_schedules": occasion_schedules,
+        "event_schedule_id": event_schedule_id,
+        "event_site": event_site,
+        "event_civ": event_civ,
+        "competition_results": competition_results,
+        "target_entity": target_entity,
+        "outcome": details.get('outcome'),
+        "coords": details.get('coords'),
+        "adjective": details.get('adjective'),
+        # Journey route
+        "journey_traveler": journey_traveler,
+        "journey_companion": journey_companion,
+        "journey_route": journey_route,
     })
 
 

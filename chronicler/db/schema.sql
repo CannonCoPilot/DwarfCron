@@ -256,6 +256,34 @@ CREATE TABLE IF NOT EXISTS hf_site_links (
     FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
 );
 
+-- ─── Entity Occasions (festivals, celebrations — from legends_plus) ────────
+
+CREATE TABLE IF NOT EXISTS entity_occasions (
+    world_id    INT NOT NULL,
+    entity_id   INT NOT NULL,
+    occasion_id INT NOT NULL,
+    name        TEXT,
+    event_id    INT,
+    PRIMARY KEY (world_id, entity_id, occasion_id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS occasion_schedules (
+    world_id        INT NOT NULL,
+    entity_id       INT NOT NULL,
+    occasion_id     INT NOT NULL,
+    schedule_id     INT NOT NULL,
+    type            TEXT,
+    reference       INT,
+    reference2      INT,
+    item_type       TEXT,
+    item_subtype    TEXT,
+    features        JSONB,
+    PRIMARY KEY (world_id, entity_id, occasion_id, schedule_id),
+    FOREIGN KEY (world_id, entity_id, occasion_id)
+        REFERENCES entity_occasions(world_id, entity_id, occasion_id) ON DELETE CASCADE
+);
+
 -- ─── Entity Positions ───────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS entity_positions (

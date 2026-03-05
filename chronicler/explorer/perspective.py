@@ -38,7 +38,7 @@ EVENT_TEMPLATES = {
     'hf does interaction': '{doer_hfid} {interaction} on {target_hfid}',
     'hf gains secret knowledge': '{hfid} gained secret knowledge of {secret}',
     'hf learns secret': '{hfid} learned {interaction}',
-    'hf new pet': '{hfid} gained a new pet {pet}',
+    'hf new pet': '{hfid} tamed a {pets}',
     'hf reach summit': '{hfid} reached the summit of {mountain_peak_id}',
     'hf relationship denied': '{seeker_hfid} was denied by {target_hfid}',
     'hf reunion': '{group_1_hfid} reunited with {group_2_hfid}',
@@ -67,6 +67,8 @@ EVENT_TEMPLATES = {
     'created structure': '{civ_id} constructed {structure_id} at {site_id}',
     'entity created': '{civ_id} was founded at {site_id}',
     'artifact stored': '{hfid} stored {artifact_id} at {site_id}',
+    'artifact recovered': '{hfid} recovered {artifact_id} at {site_id}',
+    'artifact given': '{giver_hist_figure_id} gave {artifact_id} to {receiver_hist_figure_id}',
     'hfs formed reputation relationship': '{hfid} formed a reputation with {target_hfid}',
 }
 
@@ -169,7 +171,7 @@ COLUMN_MAP_BY_EVENT = {
         'hf_id_1': 'hfid1', 'hf_id_2': 'hfid2',
     },
     'hf travel': {
-        'hf_id_1': 'hfid', 'site_id': 'site_id',
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'region_id': 'region_id',
     },
     'hf wounded': {
         'hf_id_1': 'hfid', 'hf_id_2': 'wounder_hfid',
@@ -234,6 +236,13 @@ COLUMN_MAP_BY_EVENT = {
     'artifact stored': {
         'hf_id_1': 'hfid', 'site_id': 'site_id', 'artifact_id': 'artifact_id',
     },
+    'artifact recovered': {
+        'hf_id_1': 'hfid', 'site_id': 'site_id', 'artifact_id': 'artifact_id',
+        'structure_id': 'structure_id',
+    },
+    'artifact given': {
+        'artifact_id': 'artifact_id',
+    },
     'hfs formed reputation relationship': {
         'hf_id_1': 'hfid', 'hf_id_2': 'target_hfid',
     },
@@ -253,9 +262,11 @@ ENTITY_REF_FIELDS = {
     'attacker_hfid': 'hf', 'wounder_hfid': 'hf', 'slayer_hfid': 'hf',
     'actor_hfid': 'hf', 'student_hfid': 'hf', 'teacher_hfid': 'hf',
     'seeker_hfid': 'hf', 'victim_hfid': 'hf', 'hist_fig_id': 'hf',
+    'giver_hist_figure_id': 'hf', 'receiver_hist_figure_id': 'hf',
+    'group_hfid': 'hf',
     'civ_id': 'entity', 'source_entity_id': 'entity', 'target_entity_id': 'entity',
     'attacker_civ_id': 'entity', 'defender_civ_id': 'entity',
-    'entity_id': 'entity',
+    'entity_id': 'entity', 'receiver_entity_id': 'entity', 'giver_entity_id': 'entity',
     'site_id': 'site', 'site_id1': 'site', 'site_id2': 'site',
     'artifact_id': 'artifact',
     'structure_id': 'structure',
@@ -315,10 +326,14 @@ _SUPPRESS_FROM_ENRICHMENT = frozenset(ENTITY_REF_FIELDS.keys()) | frozenset({
     'group', 'site_civ', 'slayer_hf', 'victim_hf', 'hf', 'hf_target',
     'trickster', 'student', 'teacher', 'target', 'stash_site',
     'victim_entity', 'entity_1', 'entity_2',
+    'giver_hist_figure_id', 'receiver_hist_figure_id',
+    'giver_entity_id', 'receiver_entity_id',
     # Numeric race/caste indices (not human-readable)
     'slayer_race', 'slayer_caste', 'woundee_race', 'woundee_caste',
     # Link/position fields consumed by dynamic templates
     'link_type', 'position',
+    # Journey/travel fields consumed by dynamic templates or route UI
+    'return', 'coords_x', 'coords_y',
 })
 
 # Numeric fields where integer values ARE meaningful (not entity IDs)
@@ -503,6 +518,105 @@ class PerspectiveRenderer:
                 return '{hfid} became {state} in {site_id}'
             return '{hfid} became {state}'
 
+        if event_type == 'artifact stored':
+            has_hf = details.get('hfid') is not None
+            has_site = details.get('site_id') is not None
+            if has_hf and has_site:
+                return '{hfid} stored {artifact_id} at {site_id}'
+            elif has_hf:
+                return '{hfid} stored {artifact_id}'
+            elif has_site:
+                return '{artifact_id} was stored at {site_id}'
+            return '{artifact_id} was stored'
+
+        if event_type == 'artifact recovered':
+            has_hf = details.get('hfid') is not None
+            has_site = details.get('site_id') is not None
+            if has_hf and has_site:
+                return '{hfid} recovered {artifact_id} at {site_id}'
+            elif has_hf:
+                return '{hfid} recovered {artifact_id}'
+            elif has_site:
+                return '{artifact_id} was recovered at {site_id}'
+            return '{artifact_id} was recovered'
+
+        if event_type == 'hf died':
+            has_site = details.get('site_id') is not None
+            cause = details.get('cause', '')
+            if has_site and cause:
+                return '{hfid} died ({cause}) at {site_id}'
+            elif has_site:
+                return '{hfid} died at {site_id}'
+            elif cause:
+                return '{hfid} died ({cause})'
+            return '{hfid} died'
+
+        if event_type == 'creature devoured':
+            has_eater = details.get('hfid') is not None
+            has_victim = details.get('target_hfid') is not None
+            if has_eater and has_victim:
+                return '{hfid} devoured {target_hfid}'
+            elif has_eater:
+                return '{hfid} devoured a creature'
+            elif has_victim:
+                return '{target_hfid} was devoured'
+            return 'a creature was devoured'
+
+        if event_type == 'item stolen':
+            has_hf = details.get('hfid') is not None
+            has_site = details.get('site_id') is not None
+            if has_hf and has_site:
+                return '{hfid} stole {item} from {site_id}'
+            elif has_hf:
+                return '{hfid} stole {item}'
+            elif has_site:
+                return '{item} was stolen from {site_id}'
+            return '{item} was stolen'
+
+        if event_type == 'artifact given':
+            has_giver_hf = details.get('giver_hist_figure_id') is not None
+            has_receiver_hf = details.get('receiver_hist_figure_id') is not None
+            has_receiver_ent = details.get('receiver_entity_id') is not None
+            if has_giver_hf and has_receiver_hf:
+                return '{giver_hist_figure_id} gave {artifact_id} to {receiver_hist_figure_id}'
+            elif has_giver_hf and has_receiver_ent:
+                return '{giver_hist_figure_id} gave {artifact_id} to {receiver_entity_id}'
+            elif has_giver_hf:
+                return '{giver_hist_figure_id} gave away {artifact_id}'
+            return '{artifact_id} was given'
+
+        if event_type == 'hf simple battle event':
+            subtype = (details.get('subtype') or '').lower()
+            verb_map = {
+                'attacked': 'attacked',
+                'scuffle': 'scuffled with',
+                'ambushed': 'ambushed',
+                'confront': 'confronted',
+                'happen upon': 'happened upon',
+                'corner': 'cornered',
+                'surprised': 'surprised',
+                'subdued': 'subdued',
+                'got into a brawl': 'brawled with',
+            }
+            if '2 lost after' in subtype:
+                return '{group_1_hfid} fought {group_2_hfid} (' + subtype + ')'
+            verb = verb_map.get(subtype, 'fought')
+            return '{group_1_hfid} ' + verb + ' {group_2_hfid}'
+
+        if event_type == 'hf travel':
+            is_return = details.get('return') is True
+            has_site = details.get('site_id') is not None
+            has_region = details.get('region_id') is not None
+            if is_return and has_site:
+                return '{hfid} returned to {site_id}'
+            elif is_return and has_region:
+                return '{hfid} returned to {region_id}'
+            elif has_site:
+                return '{hfid} traveled to {site_id}'
+            elif has_region:
+                return '{hfid} traveled through {region_id}'
+            return '{hfid} traveled'
+
         return EVENT_TEMPLATES.get(event_type)
 
     # ── Custom renderer: hf does interaction ───────────────────────────────
@@ -593,7 +707,60 @@ class PerspectiveRenderer:
             if placeholder in result:
                 result = result.replace(placeholder, escape(str(val)) if val else '?')
 
+        # Clean up unresolved '?' placeholders left from any remaining {field}
+        # patterns that didn't match details keys
+        import re as _re
+        result = _re.sub(r'\{[a-z_]+\}', '?', result)
+
+        # Post-render cleanup: rewrite sentences with leading '?' to passive
+        result = self._clean_unresolved(result)
         return result
+
+    @staticmethod
+    def _clean_unresolved(text: str) -> str:
+        """Rewrite sentences containing '?' to remove ambiguity.
+
+        Patterns handled:
+        - '? verb obj ...'  → 'obj was verb-ed ...' (passive rewrite)
+        - '... at ?'        → '...' (drop trailing unknown location)
+        - '... to ?'        → '...' (drop trailing unknown destination)
+        - '... from ?'      → '...' (drop trailing unknown origin)
+        """
+        import re as _re
+        # Drop trailing ' at/to/from/by ?' (unknown location/destination)
+        text = _re.sub(r'\s+(?:at|to|from|by|in)\s+\?$', '', text)
+        # Drop mid-sentence ' at/to/from ?' before other clauses
+        text = _re.sub(r'\s+(?:at|to|from|by|in)\s+\?\s*(?=[—(])', ' ', text)
+        # Leading '? verb ...' → passive: move the verb's object forward
+        if text.startswith('? '):
+            rest = text[2:]
+            # Try to find the verb + known object pattern:
+            # '? stored <obj> at <loc>' → '<obj> was stored at <loc>'
+            # '? stole <obj> from <loc>' → '<obj> was stolen from <loc>'
+            passive_map = {
+                'stored': 'was stored',
+                'stole': 'was stolen',
+                'recovered': 'was recovered',
+                'created': 'was created',
+                'devoured': 'was devoured',
+                'fought': 'fought',
+                'attacked': 'was attacked',
+                'abducted': 'was abducted',
+            }
+            for verb, passive in passive_map.items():
+                if rest.startswith(verb + ' '):
+                    after_verb = rest[len(verb) + 1:]
+                    text = f'{after_verb.split(" ", 1)[0] if after_verb else "something"} {passive}'
+                    if ' ' in after_verb:
+                        text += ' ' + after_verb.split(' ', 1)[1]
+                    break
+            else:
+                # Generic: just drop the '?'
+                text = rest
+        # Clean up any remaining isolated '?'
+        text = _re.sub(r'\s*—\s*\?\s*', '', text)
+        text = _re.sub(r'\?\s*$', '', text).strip()
+        return text
 
     def _render_generic(self, event_type: str, details: dict,
                         persp_type: str, persp_id: int,

@@ -40,6 +40,9 @@
   {% if wc.styles %}
     <span>Styles: {{ wc.styles|join(', ') }}</span>
   {% endif %}
+  {% if composition %}
+    <span>Composed: Year {{ composition.year }}</span>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -63,6 +66,9 @@
       {% if wc.page_start is not none and wc.page_end is not none %}
         <div><span class="text-stone-500">Pages:</span> {{ wc.page_start }} – {{ wc.page_end }}</div>
       {% endif %}
+      {% if author_roll %}
+        <div><span class="text-stone-500">Quality:</span> {{ author_roll }}</div>
+      {% endif %}
     </div>
     {% if wc.styles %}
       <div class="mt-2">
@@ -73,6 +79,55 @@
       </div>
     {% endif %}
   </div>
+
+  {% if composition %}
+  <div class="section-card lg:col-span-2">
+    <div class="section-title">Composition</div>
+    <div class="text-sm space-y-1">
+      <div>
+        <span class="text-stone-500">Written in</span>
+        <span class="text-stone-300">Year {{ composition.year }}</span>
+        {% if author %}
+          <span class="text-stone-500">by</span>
+          {{ linker.link('hf', author.id, author.name, world_id)|safe }}
+        {% endif %}
+      </div>
+      {% if composition.circumstance %}
+        <div>
+          <span class="text-stone-500">Circumstance:</span>
+          <span class="text-stone-300">{{ composition.circumstance|replace('_', ' ')|title }}</span>
+          {% if composition.circumstance_hf and composition.circumstance_hf.name %}
+            — {{ linker.link('hf', composition.circumstance_hf.id, composition.circumstance_hf.name, world_id)|safe }}
+          {% endif %}
+        </div>
+      {% endif %}
+      {% if composition.reason %}
+        <div>
+          <span class="text-stone-500">Reason:</span>
+          <span class="text-stone-300">{{ composition.reason|replace('_', ' ')|title }}</span>
+          {% if composition.reason_hf and composition.reason_hf.name %}
+            — {{ linker.link('hf', composition.reason_hf.id, composition.reason_hf.name, world_id)|safe }}
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if art_form %}
+  <div class="section-card lg:col-span-2">
+    <div class="section-title">Artistic Tradition</div>
+    <div class="text-sm">
+      <div class="flex items-center gap-2 mb-1">
+        <a href="/explorer/art_form/{{ art_form.id }}?world_id={{ world_id }}&form_type={{ art_form.form_type }}" class="text-amber-400 hover:text-amber-300 font-medium">{{ art_form.name }}</a>
+        <span class="badge badge-type text-xs">{{ art_form.form_type|title }}</span>
+      </div>
+      {% if art_form.description %}
+        <p class="text-stone-400 text-xs leading-relaxed">{{ art_form.description[:500] }}{% if art_form.description|length > 500 %}…{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 
   {% if author %}
   <div class="section-card">
@@ -141,6 +196,48 @@
             <span class="badge badge-type">{{ r.type|title }}</span>
           {% endif %}
         </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if referenced_events %}
+  <div class="section-card">
+    <div class="section-title">Referenced Events ({{ referenced_events|length }})</div>
+    <div class="max-h-48 overflow-y-auto ex-scroll space-y-1 text-sm">
+      {% for r in referenced_events %}
+        <div class="flex items-center gap-2">
+          <span class="text-stone-300">Year {{ r.year }}:</span>
+          <span class="text-stone-400">{{ r.event_type|replace('_', ' ')|title }}</span>
+          <span class="text-stone-600 text-xs">(#{{ r.id }})</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if referenced_wcs %}
+  <div class="section-card">
+    <div class="section-title">Referenced Works ({{ referenced_wcs|length }})</div>
+    <div class="max-h-48 overflow-y-auto ex-scroll space-y-1 text-sm">
+      {% for r in referenced_wcs %}
+        <div class="flex items-center gap-2">
+          <a href="/explorer/written_content/{{ r.id }}?world_id={{ world_id }}" class="text-pink-400 hover:text-pink-300">{{ r.title }}</a>
+          {% if r.form %}
+            <span class="text-stone-600 text-xs">{{ r.form|replace('_', ' ')|title }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if other_refs %}
+  <div class="section-card">
+    <div class="section-title">Other References</div>
+    <div class="flex flex-wrap gap-2 text-sm">
+      {% for r in other_refs %}
+        <span class="badge badge-type text-xs">{{ r.type }} ({{ r.count }})</span>
       {% endfor %}
     </div>
   </div>

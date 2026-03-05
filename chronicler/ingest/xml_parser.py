@@ -44,6 +44,10 @@ _EVENT_STRUCTURE_FIELDS = {"structure_id"}
 
 _SKIP_VALUES = frozenset(("-1", "", "-1,-1"))
 
+# Boolean tags: self-closing XML tags (e.g. <return/>) where presence = True.
+# child.text is None for these, so they'd be dropped by the `if not val` guard.
+_EVENT_BOOLEAN_TAGS = frozenset({"return"})
+
 
 def _clean_legends_xml(filepath: str) -> str:
     """Read CP437-encoded legends.xml, strip invalid XML control characters."""
@@ -318,6 +322,8 @@ def _parse_event(ev, world_id: int) -> tuple:
         if tag in ("id", "year", "seconds72", "type") or val in _SKIP_VALUES:
             continue
         if not val:
+            if tag in _EVENT_BOOLEAN_TAGS:
+                details[tag] = True
             continue
 
         if tag in _EVENT_HF1_FIELDS and hf1 is None:
@@ -339,6 +345,15 @@ def _parse_event(ev, world_id: int) -> tuple:
         else:
             # Unmapped field → details JSONB
             details[tag] = val
+            # Decompose "x,y" coords into numeric fields for visualization
+            if tag == "coords" and "," in val:
+                parts = val.split(",")
+                if len(parts) == 2:
+                    try:
+                        details["coords_x"] = int(parts[0])
+                        details["coords_y"] = int(parts[1])
+                    except ValueError:
+                        pass
 
     import json
     return (
@@ -362,8 +377,38 @@ def _parse_event_collections(root, world_id: int) -> tuple[list, list, list]:
     coll_event_rows = []
     coll_sub_rows = []
 
+    # Tags already stored as dedicated columns — skip for details JSONB
+    _COLL_COLUMN_TAGS = frozenset({
+        "id", "type", "name", "parent_eventcol", "war_eventcol",
+        "start_year", "start_seconds72", "end_year", "end_seconds72",
+        "aggressor_ent_id", "attacking_enid", "defender_ent_id", "defending_enid",
+        "site_id", "subregion_id", "event", "eventcol",
+    })
+
     for coll in root.findall(".//historical_event_collection"):
         cid = _int(coll, "id")
+
+        # Collect all non-column tags into details JSONB
+        # Multi-value tags (attacking_hfid, defending_hfid, squad data) → lists
+        details: dict = {}
+        for child in coll:
+            if child.tag in _COLL_COLUMN_TAGS or not child.text:
+                continue
+            val = child.text.strip()
+            if not val or val == "-1":
+                continue
+            # Try int conversion
+            int_val = _int_or_none(val)
+            parsed = int_val if int_val is not None else val
+            # Multi-value tags → accumulate as lists
+            if child.tag in details:
+                existing = details[child.tag]
+                if isinstance(existing, list):
+                    existing.append(parsed)
+                else:
+                    details[child.tag] = [existing, parsed]
+            else:
+                details[child.tag] = parsed
 
         coll_rows.append((
             cid, world_id,
@@ -378,7 +423,7 @@ def _parse_event_collections(root, world_id: int) -> tuple[list, list, list]:
             _int(coll, "defender_ent_id") or _int(coll, "defending_enid"),
             _int(coll, "site_id"),
             _int(coll, "subregion_id"),
-            None,  # details
+            details if details else None,
         ))
 
         for ev_elem in coll.findall("event"):
@@ -553,6 +598,8 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "structure_enrichment": [],  # (world_id, site_id, struct_id, details_dict) for structure UPDATE
         "relationship_supplements": [],  # (world_id, event_id, occasion_type, site_id, reason)
         "position_profile_map": {},  # {(world_id, entity_id): {assignment_id: position_id}}
+        "entity_occasions": [],  # (world_id, entity_id, occasion_id, name, event_id)
+        "occasion_schedules": [],  # (world_id, entity_id, occasion_id, schedule_id, type, ref, ref2, item_type, item_subtype, features)
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -757,6 +804,48 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                     result["entity_position_assignments"].append((
                         world_id, histfig, eid, pos_id,
                         None, None,  # start/end year not in assignments
+                    ))
+
+            # Entity occasions (festivals, celebrations)
+            for occ in ent.findall("occasion"):
+                occ_id = _int(occ, "id")
+                if occ_id is None:
+                    continue
+                occ_name = _text(occ, "name")
+                occ_event = _int(occ, "event")
+                if occ_event == -1:
+                    occ_event = None
+                result["entity_occasions"].append((
+                    world_id, eid, occ_id, occ_name, occ_event,
+                ))
+                for sched in occ.findall("schedule"):
+                    sched_id = _int(sched, "id")
+                    if sched_id is None:
+                        continue
+                    sched_ref = _int(sched, "reference")
+                    if sched_ref == -1:
+                        sched_ref = None
+                    sched_ref2 = _int(sched, "reference2")
+                    if sched_ref2 == -1:
+                        sched_ref2 = None
+                    # Collect features as list of dicts
+                    features = []
+                    for feat in sched.findall("feature"):
+                        feat_type = _text(feat, "type")
+                        feat_ref = _int(feat, "reference")
+                        if feat_type:
+                            f = {"type": feat_type}
+                            if feat_ref is not None and feat_ref != -1:
+                                f["reference"] = feat_ref
+                            features.append(f)
+                    result["occasion_schedules"].append((
+                        world_id, eid, occ_id, sched_id,
+                        _text(sched, "type"),
+                        sched_ref,
+                        sched_ref2,
+                        _text(sched, "item_type"),
+                        _text(sched, "item_subtype"),
+                        features if features else None,
                     ))
 
     # Written contents enrichment (type, pages, styles, references)
@@ -1051,12 +1140,14 @@ async def import_legends(
                      "entity_positions", "entity_position_assignments",
                      "art_forms", "rivers", "entity_populations",
                      "region_enrichment", "creature_dictionary",
-                     "relationship_supplements"):
+                     "relationship_supplements",
+                     "entity_occasions", "occasion_schedules"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
                 "entity_position_assignments", "creature_dictionary",
                 "relationship_supplements",
+                "entity_occasions", "occasion_schedules",
             )
             plus_data[key] = [
                 (world_id, *row[1:]) if world_id_at_zero
@@ -1300,6 +1391,29 @@ async def import_legends(
             counts["entity_positions"] = n
             log.info("  entity_positions: %d", n)
 
+        # Entity occasions (festivals, celebrations from legends_plus)
+        if plus_data.get("entity_occasions"):
+            n = await _batch_insert(conn, "entity_occasions",
+                ["world_id", "entity_id", "occasion_id", "name", "event_id"],
+                plus_data["entity_occasions"],
+                on_conflict="(world_id, entity_id, occasion_id) DO UPDATE SET "
+                    "name = COALESCE(EXCLUDED.name, entity_occasions.name), "
+                    "event_id = COALESCE(EXCLUDED.event_id, entity_occasions.event_id)")
+            counts["entity_occasions"] = n
+            log.info("  entity_occasions: %d", n)
+
+        if plus_data.get("occasion_schedules"):
+            n = await _batch_insert(conn, "occasion_schedules",
+                ["world_id", "entity_id", "occasion_id", "schedule_id",
+                 "type", "reference", "reference2", "item_type", "item_subtype", "features"],
+                plus_data["occasion_schedules"],
+                on_conflict="(world_id, entity_id, occasion_id, schedule_id) DO UPDATE SET "
+                    "type = COALESCE(EXCLUDED.type, occasion_schedules.type), "
+                    "reference = COALESCE(EXCLUDED.reference, occasion_schedules.reference), "
+                    "features = COALESCE(EXCLUDED.features, occasion_schedules.features)")
+            counts["occasion_schedules"] = n
+            log.info("  occasion_schedules: %d", n)
+
         # Position assignments from legends_plus (merge with position links)
         if plus_data.get("entity_position_assignments"):
             n = await _batch_insert(conn, "hf_position_links",
@@ -1338,7 +1452,9 @@ async def import_legends(
             counts["position_profile_corrections"] = corrected
 
         # Written contents enrichment: merge type/pages from legends_plus
-        # into written_contents already inserted from legends.xml
+        # into written_contents already inserted from legends.xml.
+        # Uses JSONB || for details to preserve base keys (author_roll, form_id)
+        # while adding plus keys (references).
         if plus_data["written_contents"]:
             n = await _batch_insert(conn, "written_contents",
                 ["id", "world_id", "title", "author_hf_id", "form", "type",
@@ -1349,7 +1465,8 @@ async def import_legends(
                     "page_start = COALESCE(EXCLUDED.page_start, written_contents.page_start), "
                     "page_end = COALESCE(EXCLUDED.page_end, written_contents.page_end), "
                     "styles = COALESCE(EXCLUDED.styles, written_contents.styles), "
-                    "details = COALESCE(EXCLUDED.details, written_contents.details)")
+                    "details = COALESCE(written_contents.details, '{}'::jsonb) || "
+                    "COALESCE(EXCLUDED.details, '{}'::jsonb)")
             counts["written_contents_plus"] = n
             log.info("  written_contents (plus enrichment): %d", n)
 

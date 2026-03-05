@@ -25,6 +25,12 @@
 
 {% block entity_type_badge %}
 <span class="badge" style="background: #ef4444; color: #fafaf9;">{{ collection.type|default('Collection', true)|replace('_', ' ')|title }}</span>
+{% if outcome %}
+  <span class="badge" style="background: #6366f1; color: #fafaf9;">{{ outcome|title }}</span>
+{% endif %}
+{% if adjective %}
+  <span class="badge" style="background: #f59e0b; color: #1c1917;">{{ adjective|title }}</span>
+{% endif %}
 {% endblock %}
 
 {% block vital_stats %}
@@ -44,6 +50,9 @@
   {% if col_region %}
     <span>Region: {{ linker.link('region', col_region.id, col_region.name, world_id)|safe }}</span>
   {% endif %}
+  {% if coords %}
+    <span>Coords: {{ coords }}</span>
+  {% endif %}
   <span>Events: {{ event_count }}</span>
 </div>
 {% endblock %}
@@ -51,6 +60,7 @@
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
+  {% if attacking_squads or defending_squads %}<button class="detail-tab" id="dtab-forces" onclick="switchDetailTab('forces')">Forces</button>{% endif %}
   {% if children %}<button class="detail-tab" id="dtab-subcollections" onclick="switchDetailTab('subcollections')">Sub-collections ({{ children|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
 </div>
@@ -65,7 +75,7 @@
     <div class="section-card lg:col-span-2">
       <div class="section-title">Collection Details</div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-        <div><span class="text-stone-500">Name:</span> {{ collection.name|default('Unnamed', true) }}</div>
+        <div><span class="text-stone-500">Name:</span> {{ entity_name }}</div>
         <div><span class="text-stone-500">Type:</span> {{ collection.type|default('?', true)|replace('_', ' ')|title }}</div>
         {% if duration %}
           <div><span class="text-stone-500">Duration:</span> {{ duration }}</div>
@@ -76,14 +86,21 @@
         {% if collection.end_year %}
           <div><span class="text-stone-500">Ended:</span> Year {{ collection.end_year }}</div>
         {% endif %}
+        {% if outcome %}
+          <div><span class="text-stone-500">Outcome:</span> <span class="text-amber-400">{{ outcome|title }}</span></div>
+        {% endif %}
+        {% if coords %}
+          <div><span class="text-stone-500">Coordinates:</span> {{ coords }}</div>
+        {% endif %}
       </div>
     </div>
 
     {# ── Belligerents ─────────────────────────────────────────────────── #}
-    {% if attacker or defender %}
-    <div class="section-card">
+    {% if attacker or defender or attacking_hfs or defending_hfs %}
+    <div class="section-card{% if not (occasion_civ or target_entity or parent_collection) %} lg:col-span-2{% endif %}">
       <div class="section-title">Belligerents</div>
       <div class="space-y-2 text-sm">
+        {# Entity-level belligerents #}
         {% if attacker %}
           <div>
             <span class="text-red-400 text-xs font-bold">Aggressor:</span>
@@ -102,12 +119,118 @@
             {% endif %}
           </div>
         {% endif %}
+
+        {# Individual combatants from details #}
+        {% if attacking_hfs %}
+          <div class="mt-2">
+            <span class="text-red-400 text-xs font-bold">Attacking Combatants ({{ attacking_hfs|length }}):</span>
+            <div class="flex flex-wrap gap-1 mt-1">
+              {% for hf in attacking_hfs %}
+                {{ linker.link('hf', hf.id, hf.name, world_id)|safe }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        {% if defending_hfs %}
+          <div class="mt-2">
+            <span class="text-blue-400 text-xs font-bold">Defending Combatants ({{ defending_hfs|length }}):</span>
+            <div class="flex flex-wrap gap-1 mt-1">
+              {% for hf in defending_hfs %}
+                {{ linker.link('hf', hf.id, hf.name, world_id)|safe }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        {% if noncom_hfs %}
+          <div class="mt-2">
+            <span class="text-stone-400 text-xs font-bold">Non-Combatants ({{ noncom_hfs|length }}):</span>
+            <div class="flex flex-wrap gap-1 mt-1">
+              {% for hf in noncom_hfs %}
+                {{ linker.link('hf', hf.id, hf.name, world_id)|safe }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Occasion Details ────────────────────────────────────────────── #}
+    {% if occasion_civ or occasion_info %}
+    <div class="section-card">
+      <div class="section-title">Occasion</div>
+      <div class="space-y-1 text-sm">
+        {% if occasion_info and occasion_info.name %}
+          <div><span class="text-stone-500">Festival:</span> <strong>{{ occasion_info.name }}</strong></div>
+        {% endif %}
+        {% if occasion_civ %}
+        <div>
+          <span class="text-stone-500">Hosting Civilization:</span>
+          {{ linker.link('entity', occasion_civ.id, occasion_civ.name, world_id)|safe }}
+        </div>
+        {% endif %}
+      </div>
+      {% if occasion_schedules %}
+      <div class="mt-3">
+        <div class="text-xs text-stone-500 uppercase tracking-wider mb-1">Schedule</div>
+        <div class="space-y-2">
+          {% for sched in occasion_schedules %}
+          <div class="text-sm rounded p-2 {% if event_schedule_id is not none and sched.schedule_id == event_schedule_id %}bg-amber-900/30 ring-1 ring-amber-600/40{% else %}bg-stone-800/40{% endif %}">
+            <span class="text-amber-400 font-medium">#{{ sched.schedule_id }}</span>
+            {% if sched.type %}<span class="text-stone-300 ml-2">{{ sched.type|replace('_', ' ')|title }}</span>{% endif %}
+            {% if sched.ref_name %}
+              <span class="text-stone-500 ml-1">—</span>
+              {% if sched.ref_link %}<a href="{{ sched.ref_link }}" class="text-amber-300 hover:underline ml-1">{{ sched.ref_name }}</a>
+              {% else %}<span class="text-amber-300 ml-1">{{ sched.ref_name }}</span>{% endif %}
+            {% endif %}
+            {% if sched.item_type %}<div class="text-stone-400 text-xs mt-1">Item: {{ sched.item_type }}{% if sched.item_subtype %} / {{ sched.item_subtype }}{% endif %}</div>{% endif %}
+            {% if sched.resolved_features %}
+            <div class="mt-1 flex flex-wrap gap-1">
+              {% for feat in sched.resolved_features %}
+                {% if feat.ref_name %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs
+                    {% if feat.type_raw == 'dance_performance' %}bg-purple-900/50 text-purple-300
+                    {% elif feat.type_raw == 'musical_performance' %}bg-blue-900/50 text-blue-300
+                    {% elif feat.type_raw == 'poetry_recital' %}bg-emerald-900/50 text-emerald-300
+                    {% elif feat.type_raw == 'storytelling' %}bg-amber-900/50 text-amber-300
+                    {% elif feat.type_raw == 'images' %}bg-rose-900/50 text-rose-300
+                    {% else %}bg-stone-700/50 text-stone-300{% endif %}">
+                    <span class="opacity-70">{{ feat.type }}:</span>
+                    {% if feat.ref_link %}<a href="{{ feat.ref_link }}" class="hover:underline font-medium">{{ feat.ref_name }}</a>
+                    {% else %}{{ feat.ref_name }}{% endif %}
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-stone-700/40 text-stone-400
+                    {% if feat.type_raw == 'the_sacrifice_of_items' %}bg-red-900/40 text-red-400
+                    {% elif feat.type_raw == 'the_giving_of_items' %}bg-green-900/40 text-green-400
+                    {% elif feat.type_raw == 'order_of_precedence' %}bg-yellow-900/40 text-yellow-400{% endif %}">
+                    {{ feat.type }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {# ── Target Entity (persecution/overthrow) ───────────────────────── #}
+    {% if target_entity %}
+    <div class="section-card">
+      <div class="section-title">Target</div>
+      <div class="text-sm">
+        <span class="text-stone-500">Target Entity:</span>
+        {{ linker.link('entity', target_entity.id, target_entity.name, world_id)|safe }}
       </div>
     </div>
     {% endif %}
 
     {# ── Location ─────────────────────────────────────────────────────── #}
-    {% if site or col_region %}
+    {% if site or col_region or coords or event_site or event_civ %}
     <div class="section-card">
       <div class="section-title">Location</div>
       <div class="space-y-1 text-sm">
@@ -116,6 +239,18 @@
             <span class="text-stone-500">Site:</span>
             {{ linker.link('site', site.id, site.name, world_id)|safe }}
           </div>
+        {% elif event_site %}
+          <div>
+            <span class="text-stone-500">Site:</span>
+            {{ linker.link('site', event_site.id, event_site.name, world_id)|safe }}
+            {% if event_site.type %}<span class="text-stone-500 text-xs">({{ event_site.type|replace('_', ' ')|title }})</span>{% endif %}
+          </div>
+        {% endif %}
+        {% if event_civ and not occasion_civ and not attacker and not defender %}
+          <div>
+            <span class="text-stone-500">Civilization:</span>
+            {{ linker.link('entity', event_civ.id, event_civ.name, world_id)|safe }}
+          </div>
         {% endif %}
         {% if col_region %}
           <div>
@@ -123,6 +258,83 @@
             {{ linker.link('region', col_region.id, col_region.name, world_id)|safe }}
           </div>
         {% endif %}
+        {% if coords %}
+          <div>
+            <span class="text-stone-500">Coordinates:</span> {{ coords }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Journey Route ──────────────────────────────────────────────── #}
+    {% if journey_route %}
+    <div class="section-card lg:col-span-2">
+      <div class="section-title">Journey Route</div>
+      <div class="space-y-2 text-sm">
+        {% if journey_traveler %}
+          <div>
+            <span class="text-stone-500">Traveler:</span>
+            {{ linker.link('hf', journey_traveler.id, journey_traveler.name, world_id)|safe }}
+            {% if journey_companion %}
+              <span class="text-stone-600 mx-1">with</span>
+              {{ linker.link('hf', journey_companion.id, journey_companion.name, world_id)|safe }}
+            {% endif %}
+          </div>
+        {% endif %}
+        <div class="flex flex-wrap items-center gap-1 mt-2">
+          {% for stop in journey_route %}
+            {% if not loop.first %}
+              <span class="text-stone-600 text-lg mx-1">→</span>
+            {% endif %}
+            <div class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm
+              {% if stop.is_return %}bg-emerald-900/30 ring-1 ring-emerald-600/40{% else %}bg-stone-800/60{% endif %}">
+              {% if stop.is_return %}
+                <span class="text-emerald-400 text-xs font-bold" title="Return trip">↩</span>
+              {% endif %}
+              {% if stop.location_type == 'site' %}
+                {{ linker.link('site', stop.location_id, stop.location_name, world_id)|safe }}
+              {% elif stop.location_type == 'region' %}
+                {{ linker.link('region', stop.location_id, stop.location_name, world_id)|safe }}
+              {% else %}
+                <span class="text-stone-400">{{ stop.location_name }}</span>
+              {% endif %}
+              {% if stop.coords %}
+                <span class="text-stone-600 text-xs ml-1">({{ stop.coords }})</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Competition Results ─────────────────────────────────────────── #}
+    {% if competition_results %}
+    <div class="section-card lg:col-span-2">
+      <div class="section-title">Competition Results</div>
+      <div class="space-y-2">
+        {% for result in competition_results %}
+        <div class="text-sm bg-stone-800/40 rounded p-2">
+          {% if result.schedule_type %}
+            <span class="text-amber-400 font-medium">{{ result.schedule_type }}</span>
+          {% else %}
+            <span class="text-stone-400">Event #{{ result.schedule_id }}</span>
+          {% endif %}
+          {% if result.winner %}
+            <span class="ml-2 text-stone-500">Winner:</span>
+            <span class="text-yellow-300 font-medium">{{ linker.link('hf', result.winner.id, result.winner.name, world_id)|safe }}</span>
+          {% endif %}
+          {% if result.competitors %}
+            <div class="mt-1 text-xs text-stone-400">
+              Competitors:
+              {% for c in result.competitors %}
+                {{ linker.link('hf', c.id, c.name, world_id)|safe }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        {% endfor %}
       </div>
     </div>
     {% endif %}
@@ -140,6 +352,71 @@
 
   </div>
 </div>
+
+{# ═══════════════════════ FORCES TAB ═══════════════════════════════════════ #}
+{% if attacking_squads or defending_squads %}
+<div id="dtab-content-forces" class="tab-content">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+    {% if attacking_squads %}
+    <div class="section-card">
+      <div class="section-title text-red-400">Attacking Forces ({{ attacking_squads|length }} units){% if attacker %} — {{ linker.link('entity', attacker.id, attacker.name, world_id)|safe }}{% endif %}</div>
+      <div class="max-h-[400px] overflow-y-auto ex-scroll">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-stone-500 border-b border-stone-800 text-xs">
+              <th class="text-left pb-1">Race</th>
+              <th class="text-right pb-1">Count</th>
+              <th class="text-right pb-1">Deaths</th>
+              <th class="text-left pb-1">From Site</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sq in attacking_squads %}
+            <tr class="border-b border-stone-800/50">
+              <td class="py-1">{{ sq.race }}</td>
+              <td class="py-1 text-right">{{ sq.number }}</td>
+              <td class="py-1 text-right {% if sq.deaths and sq.deaths > 0 %}text-red-400{% endif %}">{{ sq.deaths }}</td>
+              <td class="py-1">{% if sq.site_id %}{{ linker.link('site', sq.site_id, sq.site_name, world_id)|safe }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if defending_squads %}
+    <div class="section-card">
+      <div class="section-title text-blue-400">Defending Forces ({{ defending_squads|length }} units){% if defender %} — {{ linker.link('entity', defender.id, defender.name, world_id)|safe }}{% endif %}</div>
+      <div class="max-h-[400px] overflow-y-auto ex-scroll">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-stone-500 border-b border-stone-800 text-xs">
+              <th class="text-left pb-1">Race</th>
+              <th class="text-right pb-1">Count</th>
+              <th class="text-right pb-1">Deaths</th>
+              <th class="text-left pb-1">From Site</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sq in defending_squads %}
+            <tr class="border-b border-stone-800/50">
+              <td class="py-1">{{ sq.race }}</td>
+              <td class="py-1 text-right">{{ sq.number }}</td>
+              <td class="py-1 text-right {% if sq.deaths and sq.deaths > 0 %}text-red-400{% endif %}">{{ sq.deaths }}</td>
+              <td class="py-1">{% if sq.site_id %}{{ linker.link('site', sq.site_id, sq.site_name, world_id)|safe }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
 
 {# ═══════════════════════ SUB-COLLECTIONS TAB ═════════════════════════════ #}
 {% if children %}
