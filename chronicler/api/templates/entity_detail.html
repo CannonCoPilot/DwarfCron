@@ -24,29 +24,52 @@
 {% endblock %}
 
 {% block vital_stats %}
-<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
-  {% if entity.race %}<span>Race: {{ entity.race|title }}</span>{% endif %}
-  <span>Members: {{ member_count }}</span>
-  {% if sites %}<span>Sites: {{ sites|length }}</span>{% endif %}
-  {% if wars %}<span>Wars: {{ wars|length }}</span>{% endif %}
-  {% if entity.prominence_score %}<span>Prominence: {{ "%.1f"|format(entity.prominence_score) }}</span>{% endif %}
-  {% if entity.salience_score %}<span>Salience: {{ "%.1f"|format(entity.salience_score) }}</span>{% endif %}
+{# ── Overview Tile (2x2 grid matching inline viewer) ── #}
+<div class="section-card mt-2">
+  <div class="section-title">Overview</div>
+  <div class="grid grid-cols-2 gap-3 text-xs">
+    <div>
+      <span class="text-stone-500">Race</span>
+      <div class="text-stone-200 mt-0.5">{{ entity.race|default('Unknown', true)|title }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Sites</span>
+      <div class="text-stone-200 mt-0.5">{{ site_count }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Population</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(total_population) }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Ruler</span>
+      <div class="mt-0.5">
+        {% if ruler %}
+          {{ linker.link('hf', ruler.hf_id, ruler.name, world_id)|safe }}
+          <span class="text-stone-600 text-[10px]">{{ ruler.title }}</span>
+        {% else %}
+          <span class="text-stone-600">None</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-leaders" onclick="switchDetailTab('leaders')">Leaders ({{ leaders|length }})</button>
-  <button class="detail-tab" id="dtab-sites" onclick="switchDetailTab('sites')">Sites ({{ sites|length }})</button>
+  <button class="detail-tab" id="dtab-sites" onclick="switchDetailTab('sites')">Sites ({{ site_govts|selectattr('site')|list|length }})</button>
   <button class="detail-tab" id="dtab-members" onclick="switchDetailTab('members')">Members ({{ member_count }})</button>
-  <button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ positions|length }})</button>
+  <button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ civ_positions|length }})</button>
   <button class="detail-tab" id="dtab-wars" onclick="switchDetailTab('wars')">Wars ({{ wars|length }})</button>
 </div>
 {% endblock %}
 
 {% block body %}
 
-{# Leaders Tab #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Leaders Tab (kept as-is — full position history is a detail-page advantage) #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-leaders" class="tab-content active">
   <div class="section-card">
     <div class="section-title">Position Holders</div>
@@ -79,33 +102,55 @@
   </div>
 </div>
 
-{# Sites Tab #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Sites Tab — 5-column sortable table matching inline viewer            #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-sites" class="tab-content">
   <div class="section-card">
-    <div class="section-title">Sites ({{ sites|length }})</div>
-    {% if sites %}
-    <table class="w-full text-sm">
+    {% set govts_with_sites = site_govts|selectattr('site')|list %}
+    <div class="section-title">Sites ({{ govts_with_sites|length }})</div>
+    {% if govts_with_sites %}
+    <table class="w-full text-xs" id="sites-table">
       <thead>
-        <tr class="text-stone-500 border-b border-stone-800 text-xs">
-          <th class="text-left pb-1">Name</th>
-          <th class="text-left pb-1">Type</th>
-          <th class="text-left pb-1">Status</th>
-          <th class="text-left pb-1">Coords</th>
+        <tr class="text-stone-500 border-b border-stone-800">
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="sg_name" data-label="Site Govt" onclick="sortSitesTable('sg_name')">Site Govt</th>
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="site_name" data-label="Site" onclick="sortSitesTable('site_name')">Site ↑</th>
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="struct_count" data-label="Structures" onclick="sortSitesTable('struct_count')">Structures</th>
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="population" data-label="Pop." onclick="sortSitesTable('population')">Pop.</th>
+          <th class="text-left py-1 cursor-pointer hover:text-stone-300" data-col="ruler_name" data-label="Ruler" onclick="sortSitesTable('ruler_name')">Ruler</th>
         </tr>
       </thead>
-      <tbody>
-        {% for s in sites %}
-        <tr class="border-b border-stone-800/50">
-          <td class="py-1">{{ linker.link('site', s.id, s.name, world_id)|safe }}</td>
-          <td><span class="badge badge-site">{{ s.type|default('?', true)|title }}</span></td>
-          <td>
-            {% if s.ownership == 'current' %}
-              <span class="text-emerald-400 text-xs">Current</span>
+      <tbody class="divide-y divide-stone-800/50" id="sites-tbody">
+        {% for sg in govts_with_sites %}
+        <tr class="hover:bg-stone-800/30"
+            data-sg-name="{{ sg.name|lower }}"
+            data-site-name="{{ sg.site.name|lower }}"
+            data-struct-count="{{ sg.structures|length }}"
+            data-population="{{ sg.population }}"
+            data-ruler-name="{{ sg.ruler.name|lower if sg.ruler else '' }}">
+          <td class="py-1 pr-3 text-stone-300">{{ sg.name }}</td>
+          <td class="py-1 pr-3">
+            {{ linker.link('site', sg.site.id, sg.site.name, world_id)|safe }}
+            <span class="text-stone-600 text-[10px]">{{ sg.site.type|default('', true) }}</span>
+          </td>
+          <td class="py-1 pr-3">
+            {% if sg.structures %}
+              {% for st in sg.structures %}
+                <span title="{{ st }}" class="cursor-default">{{ struct_icon(st) }}</span>
+              {% endfor %}
             {% else %}
-              <span class="text-stone-500 text-xs">Historical</span>
+              <span class="text-stone-700">—</span>
             {% endif %}
           </td>
-          <td class="text-stone-600 text-xs">{{ s.coord_x }}, {{ s.coord_y }}</td>
+          <td class="py-1 pr-3 text-stone-400">{{ "{:,}".format(sg.population) }}</td>
+          <td class="py-1">
+            {% if sg.ruler %}
+              {{ linker.link('hf', sg.ruler.hf_id, sg.ruler.name, world_id)|safe }}
+              <span class="text-stone-600 text-[10px]">{{ sg.ruler.title|default('', true) }}</span>
+            {% else %}
+              <span class="text-stone-600">—</span>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -116,36 +161,53 @@
   </div>
 </div>
 
-{# Members Tab #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Members Tab — 6-column table + filter + lazy-load                     #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-members" class="tab-content">
   <div class="section-card">
-    <div class="section-title">Notable Members (showing {{ members|length }} of {{ member_count }})</div>
+    <div class="flex items-center justify-between mb-2">
+      <div class="section-title">Members (showing {{ members|length }} of {{ member_count }})</div>
+      <div class="flex items-center gap-2">
+        <input id="members-filter" type="text" placeholder="Filter members..."
+               class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
+               oninput="filterMembers()">
+        {% if member_count > members|length %}
+          <button id="load-all-btn" onclick="loadAllMembers({{ world_id }}, {{ entity.id }})"
+                  class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1 rounded text-xs transition-colors whitespace-nowrap">
+            Load All ({{ member_count }})
+          </button>
+        {% endif %}
+      </div>
+    </div>
     {% if members %}
-    <div class="max-h-[500px] overflow-y-auto ex-scroll">
-      <table class="w-full text-sm">
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs" id="members-table">
         <thead class="sticky top-0 bg-stone-900">
-          <tr class="text-stone-500 border-b border-stone-800 text-xs">
-            <th class="text-left pb-1">Name</th>
-            <th class="text-left pb-1">Role</th>
-            <th class="text-left pb-1">Race</th>
-            <th class="text-right pb-1">Score</th>
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('name')">Name ↑</th>
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('race')">Race</th>
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('position_name')">Position</th>
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('profession')">Profession</th>
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('link_type')">Membership</th>
+            <th class="text-left py-1 cursor-pointer hover:text-stone-300" onclick="sortMembers('is_alive')">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="divide-y divide-stone-800/50" id="members-tbody">
           {% for m in members %}
-          <tr class="border-b border-stone-800/50">
-            <td class="py-0.5">
-              {{ linker.link('hf', m.hf_id, m.hf_name, world_id)|safe }}
-              {% if m.is_deity %}<span class="badge badge-deity">Deity</span>{% endif %}
-              {% if m.is_vampire %}<span class="badge badge-vampire">Vamp</span>{% endif %}
-              {% if m.is_necromancer %}<span class="badge badge-necromancer">Necro</span>{% endif %}
+          <tr class="hover:bg-stone-800/30">
+            <td class="py-1 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
+            <td class="py-1 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
+            <td class="py-1 pr-3 text-amber-400">{{ m.position_name|default('', true)|title }}</td>
+            <td class="py-1 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
+            <td class="py-1 pr-3 text-stone-500">{{ m.link_type|default('', true)|title }}</td>
+            <td class="py-1">
+              {% if m.is_alive %}
+                <span class="badge badge-alive">alive</span>
+              {% else %}
+                <span class="badge badge-dead">dead</span>
+              {% endif %}
             </td>
-            <td>
-              <span class="badge badge-type">{{ m.link_type|title }}</span>
-              {% if m.position_name %}<span class="badge badge-leader">{{ m.position_name }}</span>{% endif %}
-            </td>
-            <td class="text-stone-600 text-xs">{{ m.hf_race|default('', true)|title }}</td>
-            <td class="text-right text-stone-500 text-xs">{{ '%.1f'|format(m.prominence_score) if m.prominence_score else '-' }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -157,23 +219,75 @@
   </div>
 </div>
 
-{# Positions Tab #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Positions Tab — categorized with holders + per-site-govt collapsible  #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-positions" class="tab-content">
   <div class="section-card">
-    <div class="section-title">Defined Positions</div>
-    {% if positions %}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-      {% for p in positions %}
-        <div class="badge badge-leader">{{ p.name|default('?', true)|title }}</div>
+    <div class="section-title">Positions</div>
+
+    {# ── Civilization-level positions ── #}
+    {% if civ_positions %}
+    <div class="mb-3">
+      <div class="text-xs text-stone-400 font-medium mb-1 border-b border-stone-800 pb-1">Civilization Positions ({{ civ_positions|length }})</div>
+      {% for p in civ_positions %}
+      <div class="flex items-center gap-2 py-0.5 text-xs">
+        <span class="text-amber-400 min-w-[100px]">{{ (p.title or p.name)|title }}</span>
+        <span class="text-stone-500">{{ p.name|title }}</span>
+        <span class="px-1.5 py-0.5 rounded text-[10px] {{ cat_badge_class(p.category) }}">{{ p.category|title }}</span>
+        <span class="ml-auto">
+          {% if p.current_holder %}
+            {{ linker.link('hf', p.current_holder.hf_id, p.current_holder.name, world_id)|safe }}
+          {% else %}
+            <span class="text-stone-600">Vacant</span>
+          {% endif %}
+        </span>
+      </div>
       {% endfor %}
     </div>
-    {% else %}
+    {% endif %}
+
+    {# ── Per site-govt positions (collapsible) ── #}
+    {% set govts_with_holders = [] %}
+    {% for sg in site_govts %}
+      {% if sg.positions and sg.positions|selectattr('current_holder')|list %}
+        {% if govts_with_holders.append(sg) %}{% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% for sg in govts_with_holders %}
+    <details class="mb-2">
+      <summary class="text-xs text-stone-400 cursor-pointer hover:text-stone-300 border-b border-stone-800/50 pb-1">
+        {{ sg.name }}{% if sg.site %} → {{ sg.site.name }}{% endif %} ({{ sg.positions|length }})
+      </summary>
+      <div class="pl-2 mt-1">
+        {% for p in sg.positions %}
+        <div class="flex items-center gap-2 py-0.5 text-xs">
+          <span class="text-amber-400 min-w-[100px]">{{ (p.title or p.name)|title }}</span>
+          <span class="text-stone-500">{{ p.name|title }}</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] {{ cat_badge_class(p.category) }}">{{ p.category|title }}</span>
+          <span class="ml-auto">
+            {% if p.current_holder %}
+              {{ linker.link('hf', p.current_holder.hf_id, p.current_holder.name, world_id)|safe }}
+            {% else %}
+              <span class="text-stone-600">Vacant</span>
+            {% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </details>
+    {% endfor %}
+
+    {% if not civ_positions and not govts_with_holders %}
       <div class="text-stone-600 text-sm italic">No positions defined.</div>
     {% endif %}
   </div>
 </div>
 
-{# Wars Tab #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Wars Tab — with attacker/defender role badges                         #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-wars" class="tab-content">
   <div class="section-card">
     <div class="section-title">War Participation</div>
@@ -182,18 +296,28 @@
       <thead>
         <tr class="text-stone-500 border-b border-stone-800 text-xs">
           <th class="text-left pb-1">War</th>
-          <th class="text-left pb-1">Start</th>
-          <th class="text-left pb-1">End</th>
-          <th class="text-left pb-1">Duration</th>
+          <th class="text-left pb-1">Years</th>
+          <th class="text-left pb-1">Role</th>
         </tr>
       </thead>
       <tbody>
         {% for w in wars %}
         <tr class="border-b border-stone-800/50">
-          <td class="py-1">{{ linker.link('event_collection', w.id, w.name, world_id)|safe }}</td>
-          <td class="text-stone-500 text-xs">{{ calendar.format_date(w.start_year, w.start_seconds) }}</td>
-          <td class="text-stone-500 text-xs">{{ calendar.format_date(w.end_year, w.end_seconds) if w.end_year and w.end_year > 0 else 'Ongoing' }}</td>
-          <td class="text-stone-500 text-xs">{{ calendar.format_duration(w.start_year, w.start_seconds, w.end_year, w.end_seconds) if w.end_year and w.end_year > 0 else '' }}</td>
+          <td class="py-1 text-stone-200">{{ w.name|default('Unnamed', true) }}</td>
+          <td class="text-stone-500 text-xs">
+            {% if w.end_year and w.end_year > 0 %}
+              {{ w.start_year }}-{{ w.end_year }}
+            {% else %}
+              {{ w.start_year }}-ongoing
+            {% endif %}
+          </td>
+          <td>
+            {% if w.role == 'attacker' %}
+              <span class="badge badge-vampire">attacker</span>
+            {% else %}
+              <span class="badge badge-alive">defender</span>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -204,4 +328,159 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  // ═══════════════════════════════════════════════════════════════
+  // Sites table sorting
+  // ═══════════════════════════════════════════════════════════════
+  let sitesSortCol = 'site_name';
+  let sitesSortDir = 1;
+
+  window.sortSitesTable = function(col) {
+    if (sitesSortCol === col) sitesSortDir *= -1;
+    else { sitesSortCol = col; sitesSortDir = 1; }
+
+    const tbody = document.getElementById('sites-tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+      const aVal = a.dataset[colToCamel(col)] || '';
+      const bVal = b.dataset[colToCamel(col)] || '';
+      if (col === 'population' || col === 'struct_count') {
+        return sitesSortDir * ((parseInt(aVal) || 0) - (parseInt(bVal) || 0));
+      }
+      return sitesSortDir * aVal.localeCompare(bVal);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+
+    // Update header arrows
+    document.querySelectorAll('#sites-table thead th[data-col]').forEach(th => {
+      const base = th.dataset.label;
+      th.textContent = base + (th.dataset.col === sitesSortCol ? (sitesSortDir === 1 ? ' \u2191' : ' \u2193') : '');
+    });
+  };
+
+  function colToCamel(col) {
+    // Convert data-attr names: sg_name -> sgName, site_name -> siteName
+    return col.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // Members sort, filter, and lazy-load
+  // ═══════════════════════════════════════════════════════════════
+  let membersSortCol = 'name';
+  let membersSortDir = 1;
+  let allMembersLoaded = false;
+  let membersData = null; // null = using server-rendered rows; array = JS-managed
+
+  window.sortMembers = function(col) {
+    if (membersSortCol === col) membersSortDir *= -1;
+    else { membersSortCol = col; membersSortDir = 1; }
+
+    // Update header arrows
+    document.querySelectorAll('#members-table thead th').forEach(th => {
+      const text = th.textContent.replace(/ [↑↓]/g, '');
+      th.textContent = text;
+    });
+    const thIndex = {name:0, race:1, position_name:2, profession:3, link_type:4, is_alive:5}[col];
+    const ths = document.querySelectorAll('#members-table thead th');
+    if (ths[thIndex]) ths[thIndex].textContent += (membersSortDir === 1 ? ' \u2191' : ' \u2193');
+
+    if (membersData) {
+      filterMembers();
+    } else {
+      // Sort server-rendered rows via DOM
+      const tbody = document.getElementById('members-tbody');
+      if (!tbody) return;
+      sortTbodyByText(tbody, thIndex, col === 'is_alive');
+    }
+  };
+
+  function sortTbodyByText(tbody, colIdx, isBool) {
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort((a, b) => {
+      const aText = (a.children[colIdx]?.textContent || '').trim().toLowerCase();
+      const bText = (b.children[colIdx]?.textContent || '').trim().toLowerCase();
+      if (isBool) return membersSortDir * aText.localeCompare(bText);
+      return membersSortDir * aText.localeCompare(bText);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  }
+
+  window.filterMembers = function() {
+    const q = (document.getElementById('members-filter')?.value || '').toLowerCase();
+    if (!membersData) {
+      // Filter server-rendered rows
+      const tbody = document.getElementById('members-tbody');
+      if (!tbody) return;
+      tbody.querySelectorAll('tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+      return;
+    }
+    // JS-managed: filter + sort + re-render
+    let filtered = q ? membersData.filter(m =>
+      (m.name || '').toLowerCase().includes(q) ||
+      (m.race || '').toLowerCase().includes(q) ||
+      (m.position_name || '').toLowerCase().includes(q) ||
+      (m.profession || '').toLowerCase().includes(q)
+    ) : [...membersData];
+
+    filtered.sort((a, b) => {
+      const col = membersSortCol;
+      if (col === 'is_alive') return membersSortDir * ((a.is_alive ? 1 : 0) - (b.is_alive ? 1 : 0));
+      return membersSortDir * (a[col] || '').toString().localeCompare((b[col] || '').toString());
+    });
+
+    renderMembersRows(filtered);
+  };
+
+  function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function titleCase(s) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+  function renderMembersRows(members) {
+    const tbody = document.getElementById('members-tbody');
+    if (!tbody) return;
+    const worldId = {{ world_id }};
+    let html = '';
+    for (const m of members) {
+      const status = m.is_alive ? '<span class="badge badge-alive">alive</span>' : '<span class="badge badge-dead">dead</span>';
+      html += `<tr class="hover:bg-stone-800/30">
+        <td class="py-1 pr-3"><a href="/explorer/hf/${m.hf_id}?world_id=${worldId}" class="text-amber-400 hover:text-amber-300 underline decoration-stone-700">${escHtml(m.name)}</a></td>
+        <td class="py-1 pr-3 text-stone-400">${escHtml(titleCase(m.race || ''))}</td>
+        <td class="py-1 pr-3 text-amber-400">${m.position_name ? escHtml(titleCase(m.position_name)) : ''}</td>
+        <td class="py-1 pr-3 text-stone-400">${m.profession ? escHtml(m.profession) : ''}</td>
+        <td class="py-1 pr-3 text-stone-500">${escHtml(titleCase(m.link_type || ''))}</td>
+        <td class="py-1">${status}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
+  }
+
+  window.loadAllMembers = async function(worldId, entityId) {
+    const btn = document.getElementById('load-all-btn');
+    if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+
+    try {
+      const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=10000`);
+      const data = await resp.json();
+      membersData = data.members;
+      allMembersLoaded = true;
+
+      // Update count display
+      const title = document.querySelector('#dtab-content-members .section-title');
+      if (title) title.textContent = `Members (${data.total} total)`;
+      if (btn) btn.remove();
+
+      filterMembers();
+    } catch (e) {
+      if (btn) { btn.textContent = 'Error — retry?'; btn.disabled = false; }
+    }
+  };
+})();
+</script>
 {% endblock %}

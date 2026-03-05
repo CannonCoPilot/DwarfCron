@@ -16,6 +16,9 @@ from chronicler.explorer.linking import EntityLinkRenderer, EntityNameCache
 from chronicler.explorer.calendar import DFCalendar
 from chronicler.explorer.death_cause import DeathCauseRenderer
 from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_into_details, extract_enrichment_details
+from chronicler.api.routes.civilizations import (
+    fetch_civilization_data, fetch_civilization_members, _categorize_position,
+)
 
 router = APIRouter()
 
@@ -24,6 +27,23 @@ templates = Jinja2Templates(directory=_template_dir)
 
 # Register custom Jinja2 test: 'containing' — substring match for selectattr
 templates.env.tests['containing'] = lambda value, substring: substring in (value or '')
+
+# ── Jinja2 globals for entity detail template ──
+_STRUCT_ICONS = {
+    'inn tavern': '\U0001f3e8', 'tavern': '\U0001f3e8',
+    'temple': '\u26ea', 'mead hall': '\U0001f37a', 'guildhall': '\u2692',
+    'tomb': '\u26b0', 'market': '\U0001f3ea', 'dungeon': '\u26d3',
+    'counting house': '\U0001f4b0', 'keep': '\U0001f3f0', 'tower': '\U0001f5fc',
+    'library': '\U0001f4da', 'underworld spire': '\U0001f52e',
+}
+_CAT_BADGE_CLASSES = {
+    'noble': 'bg-amber-900/50 text-amber-400',
+    'military': 'bg-red-900/50 text-red-400',
+    'admin': 'bg-blue-900/50 text-blue-400',
+    'other': 'bg-stone-800 text-stone-400',
+}
+templates.env.globals['struct_icon'] = lambda t: _STRUCT_ICONS.get((t or '').lower(), '\U0001f3e0')
+templates.env.globals['cat_badge_class'] = lambda c: _CAT_BADGE_CLASSES.get(c, _CAT_BADGE_CLASSES['other'])
 
 # Shared instances
 _linker = EntityLinkRenderer()
@@ -1217,7 +1237,14 @@ async def entity_detail_page(entity_id: int, request: Request,
 
         world = await _get_world_info(conn, world_id)
 
-        # Leaders — position holders (join entity_positions for name)
+        # ── Rich civ data from shared helpers ──
+        civ_data = await fetch_civilization_data(conn, world_id, entity_id)
+        members_data = await fetch_civilization_members(
+            conn, world_id, entity_id, limit=100, offset=0,
+        )
+
+        # Leaders — full position history with start/end years
+        # (detail-page advantage over inline viewer which only shows current holders)
         leaders = await conn.fetch("""
             SELECT p.hf_id, p.position_id, p.start_year, p.end_year,
                    h.name AS hf_name, h.race AS hf_race,
@@ -1228,73 +1255,6 @@ async def entity_detail_page(entity_id: int, request: Request,
                   AND ep.entity_id = p.entity_id AND ep.position_id = p.position_id
             WHERE p.world_id = $1 AND p.entity_id = $2
             ORDER BY p.start_year DESC
-        """, world_id, entity_id)
-
-        # Owned sites — include child entity ownership + ownership history
-        # 1) Get child entity IDs from JSONB entity_links
-        child_ids = []
-        elinks = (entity.get('details') or {}).get('entity_links', [])
-        for link in elinks:
-            if link.get('type') == 'CHILD':
-                child_ids.append(link['target'])
-
-        # 2) Sites directly owned or owned by child entities
-        owner_ids = [entity_id] + child_ids
-        sites_direct = await conn.fetch("""
-            SELECT DISTINCT s.id, s.name, s.type, s.coord_x, s.coord_y,
-                   'current' AS ownership
-            FROM sites s
-            WHERE s.world_id = $1 AND s.owner_entity_id = ANY($2)
-            ORDER BY s.name
-        """, world_id, owner_ids)
-
-        # 3) Sites from ownership history (founded/historically owned)
-        sites_history = await conn.fetch("""
-            SELECT DISTINCT s.id, s.name, s.type, s.coord_x, s.coord_y,
-                   'historical' AS ownership
-            FROM sites s,
-                 jsonb_array_elements(s.details->'ownership_history') elem
-            WHERE s.world_id = $1
-              AND (elem->>'entity_id')::int = $2
-              AND s.id NOT IN (
-                  SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = ANY($3)
-              )
-            ORDER BY s.name
-        """, world_id, entity_id, owner_ids)
-
-        sites = [dict(s) for s in sites_direct] + [dict(s) for s in sites_history]
-
-        # Notable members by importance
-        members = await conn.fetch("""
-            SELECT l.hf_id, l.link_type, l.position_name,
-                   h.name AS hf_name, h.race AS hf_race, h.prominence_score,
-                   h.is_deity, h.is_vampire, h.is_necromancer
-            FROM hf_entity_links l
-            JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.hf_id
-            WHERE l.world_id = $1 AND l.entity_id = $2
-            ORDER BY h.prominence_score DESC NULLS LAST
-            LIMIT 100
-        """, world_id, entity_id)
-
-        member_count = await conn.fetchval("""
-            SELECT count(*) FROM hf_entity_links
-            WHERE world_id = $1 AND entity_id = $2
-        """, world_id, entity_id)
-
-        # Wars — check both attacker/defender entity IDs and event xref
-        wars = await conn.fetch("""
-            SELECT DISTINCT c.id, c.name, c.type, c.start_year, c.start_seconds, c.end_year, c.end_seconds
-            FROM history_event_collections c
-            WHERE c.world_id = $1 AND c.type = 'war'
-              AND (c.attacker_entity_id = $2 OR c.defender_entity_id = $2)
-            ORDER BY c.start_year
-        """, world_id, entity_id)
-
-        # Entity positions
-        positions = await conn.fetch("""
-            SELECT id, name FROM entity_positions
-            WHERE world_id = $1 AND entity_id = $2
-            ORDER BY name
         """, world_id, entity_id)
 
         # Prev/Next
@@ -1317,6 +1277,17 @@ async def entity_detail_page(entity_id: int, request: Request,
     else:
         badge_class = 'badge-type'
 
+    # Extract rich data from civ_data (may be sparse for non-civilizations)
+    ruler = civ_data.get("ruler") if civ_data else None
+    total_population = civ_data.get("total_population", 0) if civ_data else 0
+    site_count = civ_data.get("site_count", 0) if civ_data else 0
+    site_govts = civ_data.get("site_govts", []) if civ_data else []
+    civ_positions = civ_data.get("positions", []) if civ_data else []
+    wars = civ_data.get("wars", []) if civ_data else []
+
+    members = members_data.get("members", [])
+    member_total = members_data.get("total", 0)
+
     return templates.TemplateResponse("entity_detail.html", {
         "request": request,
         "active": "explorer",
@@ -1328,11 +1299,14 @@ async def entity_detail_page(entity_id: int, request: Request,
         "world_id": world_id,
         "badge_class": badge_class,
         "leaders": [dict(l) for l in leaders],
-        "sites": [dict(s) for s in sites],
-        "members": [dict(m) for m in members],
-        "member_count": member_count,
-        "wars": [dict(w) for w in wars],
-        "positions": [dict(p) for p in positions],
+        "ruler": ruler,
+        "total_population": total_population,
+        "site_count": site_count,
+        "site_govts": site_govts,
+        "civ_positions": civ_positions,
+        "members": members,
+        "member_count": member_total,
+        "wars": wars,
         "prev_entity": dict(prev_ent) if prev_ent else None,
         "next_entity": dict(next_ent) if next_ent else None,
         "linker": _linker,
