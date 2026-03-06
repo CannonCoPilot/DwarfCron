@@ -100,6 +100,8 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     )
     sg_ids = [r["id"] for r in site_govt_rows]
 
+    is_civ = entity["type"] == "civilization"
+
     # Batch-fetch data for all site govts in one pass
     sg_sites: dict[int, dict] = {}
     sg_structures: dict[int, list[str]] = {}
@@ -134,12 +136,14 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                 if sg_id:
                     sg_structures.setdefault(sg_id, []).append(st["type"])
 
-        # Population counts per site govt
+        # Population counts per site govt (living current members only)
         pop_rows = await conn.fetch(
-            "SELECT entity_id, COUNT(*) AS cnt FROM hf_entity_links "
-            "WHERE world_id = $1 AND entity_id = ANY($2::int[]) "
-            "AND link_type IN ('member', 'former member') "
-            "GROUP BY entity_id",
+            "SELECT hel.entity_id, COUNT(*) AS cnt "
+            "FROM hf_entity_links hel "
+            "JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id "
+            "WHERE hel.world_id = $1 AND hel.entity_id = ANY($2::int[]) "
+            "AND hel.link_type = 'member' AND hf.death_year IS NULL "
+            "GROUP BY hel.entity_id",
             world_id, sg_ids,
         )
         for pr in pop_rows:
@@ -223,22 +227,59 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                 "title": title or cn["pos_name"],
             }
 
-    # ── Direct member count for civ itself ──
-    civ_member_count = await conn.fetchval(
-        "SELECT COUNT(*) FROM hf_entity_links "
-        "WHERE world_id = $1 AND entity_id = $2 "
-        "AND link_type IN ('member', 'former member')",
-        world_id, entity_id,
+    # ── Population counts ──
+    # Deduplicated across civ + child SGs to avoid double-counting HFs
+    # who belong to both a civilization and its child site government.
+    all_entity_ids = [entity_id] + sg_ids
+    population_stats = await conn.fetchrow(
+        """
+        SELECT
+            COUNT(DISTINCT hel.hf_id) AS total_known_hfs,
+            COUNT(DISTINCT hel.hf_id) FILTER (WHERE hel.link_type = 'member') AS current_members,
+            COUNT(DISTINCT hel.hf_id) FILTER (
+                WHERE hel.link_type = 'member' AND hf.death_year IS NULL
+            ) AS living_population
+        FROM hf_entity_links hel
+        JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
+        WHERE hel.world_id = $1 AND hel.entity_id = ANY($2::int[])
+          AND hel.link_type IN ('member', 'former member')
+        """,
+        world_id, all_entity_ids,
     )
 
     wars = await conn.fetch(
         """
-        SELECT id, name, type, start_year, end_year,
-            CASE WHEN attacker_entity_id = $2 THEN 'attacker' ELSE 'defender' END AS role
-        FROM history_event_collections
-        WHERE world_id = $1 AND type = 'war'
-          AND (attacker_entity_id = $2 OR defender_entity_id = $2)
-        ORDER BY start_year
+        SELECT w.id, w.name, w.type, w.start_year, w.end_year,
+            w.attacker_entity_id, w.defender_entity_id,
+            CASE WHEN w.attacker_entity_id = $2 THEN 'attacker' ELSE 'defender' END AS role,
+            -- Peace treaty: who requested it
+            peace.requester AS peace_requester,
+            -- Site conquest tallies
+            COALESCE(conquests.atk_sites, 0) AS atk_conquests,
+            COALESCE(conquests.def_sites, 0) AS def_conquests
+        FROM history_event_collections w
+        LEFT JOIN LATERAL (
+            SELECT (p.details->>'source')::int AS requester
+            FROM history_events p
+            WHERE p.world_id = w.world_id AND p.event_type = 'peace accepted'
+              AND p.year = w.end_year
+              AND ((p.details->>'source' = w.attacker_entity_id::text
+                    AND p.details->>'destination' = w.defender_entity_id::text)
+                OR (p.details->>'source' = w.defender_entity_id::text
+                    AND p.details->>'destination' = w.attacker_entity_id::text))
+            LIMIT 1
+        ) peace ON true
+        LEFT JOIN LATERAL (
+            SELECT
+                COUNT(*) FILTER (WHERE sc.attacker_entity_id = w.attacker_entity_id) AS atk_sites,
+                COUNT(*) FILTER (WHERE sc.attacker_entity_id = w.defender_entity_id) AS def_sites
+            FROM history_event_collections sc
+            WHERE sc.world_id = w.world_id AND sc.parent_id = w.id
+              AND sc.type = 'site conquered'
+        ) conquests ON true
+        WHERE w.world_id = $1 AND w.type = 'war'
+          AND (w.attacker_entity_id = $2 OR w.defender_entity_id = $2)
+        ORDER BY w.start_year
         """, world_id, entity_id,
     )
 
@@ -280,6 +321,16 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             }
             break
 
+    # Find which site govt the civ ruler resides in
+    ruler_sg_id = None
+    if ruler and sg_ids:
+        ruler_sg_id = await conn.fetchval(
+            "SELECT entity_id FROM hf_entity_links "
+            "WHERE world_id = $1 AND hf_id = $2 AND entity_id = ANY($3::int[]) "
+            "AND link_type = 'member' LIMIT 1",
+            world_id, ruler["hf_id"], sg_ids,
+        )
+
     # Site govts with enriched data
     site_govts = []
     for sg in site_govt_rows:
@@ -320,15 +371,107 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             "population": sg_populations.get(sg_id, 0),
             "ruler": sg_ruler,
             "positions": sg_pos,
+            "is_ruler_site": sg_id == ruler_sg_id,
         })
 
-    total_population = civ_member_count + sum(sg["population"] for sg in site_govts)
+    # For non-civilization entities, also fetch directly-owned sites.
+    # Each owned site becomes a row in the Sites tab with this entity as the "govt".
+    direct_site_rows = []
+    if not is_civ:
+        direct_site_rows = await conn.fetch(
+            "SELECT id, name, type FROM sites "
+            "WHERE world_id = $1 AND owner_entity_id = $2 ORDER BY name",
+            world_id, entity_id,
+        )
+        if direct_site_rows:
+            # Structures in those sites
+            direct_site_ids = [s["id"] for s in direct_site_rows]
+            direct_structs = await conn.fetch(
+                "SELECT site_id, type FROM structures "
+                "WHERE world_id = $1 AND site_id = ANY($2::int[]) ORDER BY type",
+                world_id, direct_site_ids,
+            )
+            site_structs: dict[int, list[str]] = {}
+            for st in direct_structs:
+                site_structs.setdefault(st["site_id"], []).append(st["type"])
+
+            # Entity's own positions/ruler already computed above
+            own_pos = sg_positions_map.get(entity_id, [])
+            own_ruler = None
+            best_noble = None
+            lord_fallback = None
+            for sp in own_pos:
+                if not sp.get("is_noble") or not sp.get("current_holder"):
+                    continue
+                title_lower = (sp.get("title") or sp["name"]).lower()
+                if title_lower in _LORD_LADY:
+                    if lord_fallback is None:
+                        lord_fallback = sp
+                else:
+                    best_noble = sp
+                    break
+            chosen = best_noble or lord_fallback
+            if chosen:
+                own_ruler = {
+                    "hf_id": chosen["current_holder"]["hf_id"],
+                    "name": chosen["current_holder"]["name"],
+                    "title": chosen.get("title") or chosen["name"],
+                }
+
+            for s in direct_site_rows:
+                site_govts.append({
+                    "id": entity_id,
+                    "name": entity["name"],
+                    "site": {"id": s["id"], "name": s["name"], "type": s["type"]},
+                    "structures": site_structs.get(s["id"], []),
+                    "population": sg_populations.get(entity_id, 0) if len(direct_site_rows) == 1 else 0,
+                    "ruler": own_ruler,
+                    "positions": own_pos,
+                    "is_ruler_site": False,
+                })
 
     result["ruler"] = ruler
-    result["total_population"] = total_population
-    result["site_count"] = len([sg for sg in site_govts if sg["site"]])
+    result["total_population"] = int(population_stats["living_population"])
+    result["total_known_hfs"] = int(population_stats["total_known_hfs"])
+    result["current_members"] = int(population_stats["current_members"])
+    if is_civ:
+        result["site_count"] = len(site_rows) if sg_ids else 0
+    else:
+        # Count all sites shown: child sg sites + directly-owned sites
+        direct_count = len(direct_site_rows) if direct_site_rows else 0
+        child_count = len(site_rows) if sg_ids else 0
+        result["site_count"] = child_count + direct_count
     result["site_govts"] = site_govts
-    result["wars"] = [dict(w) for w in wars]
+    # Compute perspectival outcome for each war relative to entity_id
+    war_list = []
+    for w in wars:
+        wd = dict(w)
+        is_attacker = wd["role"] == "attacker"
+        my_conquests = wd["atk_conquests"] if is_attacker else wd["def_conquests"]
+        their_conquests = wd["def_conquests"] if is_attacker else wd["atk_conquests"]
+
+        if wd["end_year"] is None:
+            outcome = "ongoing"
+        elif wd["peace_requester"] is not None:
+            outcome = "treaty"
+        elif my_conquests > their_conquests:
+            outcome = "victory"
+        elif their_conquests > my_conquests:
+            outcome = "defeat"
+        elif my_conquests == their_conquests and my_conquests > 0:
+            outcome = "stalemate"
+        else:
+            outcome = "inconclusive"
+
+        wd["outcome"] = outcome
+        wd["my_conquests"] = my_conquests
+        wd["their_conquests"] = their_conquests
+        # Clean up internal fields
+        for k in ("peace_requester", "atk_conquests", "def_conquests",
+                   "attacker_entity_id", "defender_entity_id"):
+            wd.pop(k, None)
+        war_list.append(wd)
+    result["wars"] = war_list
     return result
 
 
@@ -340,12 +483,18 @@ async def fetch_civilization_members(
 
     Standalone helper shared by the JSON API route and the detail page route.
     """
-    total = await conn.fetchval(
-        "SELECT COUNT(*) FROM hf_entity_links "
-        "WHERE world_id = $1 AND entity_id = $2 "
-        "AND link_type IN ('member', 'former member')",
-        world_id, entity_id,
-    )
+    counts = await conn.fetchrow("""
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE hel.link_type = 'member') AS current_total,
+               COUNT(*) FILTER (WHERE hel.link_type = 'former member') AS former_total,
+               COUNT(*) FILTER (WHERE hf.death_year IS NULL) AS alive_total,
+               COUNT(*) FILTER (WHERE hel.link_type = 'member' AND hf.death_year IS NULL) AS current_alive
+        FROM hf_entity_links hel
+        JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id
+        WHERE hel.world_id = $1 AND hel.entity_id = $2
+          AND hel.link_type IN ('member', 'former member')
+    """, world_id, entity_id)
+    total = counts["total"]
     members = await conn.fetch(
         """
         SELECT hel.hf_id, hf.name, hf.race, hel.link_type,
@@ -383,7 +532,14 @@ async def fetch_civilization_members(
                 profession = top["name"].replace("_", " ").title()
         d["profession"] = profession
         result_members.append(d)
-    return {"total": total, "members": result_members}
+    return {
+        "total": total,
+        "current_total": counts["current_total"],
+        "former_total": counts["former_total"],
+        "alive_total": counts["alive_total"],
+        "current_alive": counts["current_alive"],
+        "members": result_members,
+    }
 
 
 # ─── API routes (thin wrappers around helpers) ────────────────────────────
@@ -462,23 +618,50 @@ async def list_civilizations(
         params.append(type)
 
     where = " AND ".join(conditions)
+    # Two counting strategies depending on entity type:
+    # - Civilizations: roll up members/sites from child site governments
+    #   (civs own sites indirectly: civ -> site_govt PARENT link -> site)
+    # - All other types: count direct members and directly-owned sites
+    # member_count: direct members only (no roll-up to avoid double-counting)
+    # site_count: civs use roll-up via child SGs; others use direct ownership
     query = f"""
+        WITH child_sg AS (
+            SELECT sg.id AS sg_id,
+                   (el->>'target')::int AS parent_id
+            FROM entities sg,
+                 jsonb_array_elements(sg.details->'entity_links') el
+            WHERE sg.world_id = $1 AND sg.type = 'sitegovernment'
+              AND el->>'type' = 'PARENT'
+        ),
+        mem_counts AS (
+            SELECT entity_id, COUNT(*) AS cnt
+            FROM hf_entity_links WHERE world_id = $1
+              AND link_type = 'member'
+            GROUP BY entity_id
+        ),
+        civ_sites AS (
+            SELECT cs.parent_id AS civ_id, COUNT(*) AS cnt
+            FROM sites s
+            JOIN child_sg cs ON cs.sg_id = s.owner_entity_id
+            WHERE s.world_id = $1
+            GROUP BY cs.parent_id
+        ),
+        direct_sites AS (
+            SELECT owner_entity_id AS entity_id, COUNT(*) AS cnt
+            FROM sites WHERE world_id = $1 AND owner_entity_id IS NOT NULL
+            GROUP BY owner_entity_id
+        )
         SELECT e.id, e.world_id, e.name, e.type, e.race,
-            COALESCE(mem.cnt, 0) AS member_count,
-            COALESCE(sit.cnt, 0) AS site_count,
+            COALESCE(mc.cnt, 0) AS member_count,
+            CASE WHEN e.type = 'civilization'
+                THEN COALESCE(csit.cnt, 0)
+                ELSE COALESCE(ds.cnt, 0)
+            END AS site_count,
             COALESCE(pos.cnt, 0) AS position_count
         FROM entities e
-        LEFT JOIN (
-            SELECT world_id, entity_id, COUNT(*) AS cnt
-            FROM hf_entity_links WHERE world_id = $1
-              AND link_type IN ('member', 'former member')
-            GROUP BY world_id, entity_id
-        ) mem ON mem.world_id = e.world_id AND mem.entity_id = e.id
-        LEFT JOIN (
-            SELECT world_id, owner_entity_id, COUNT(*) AS cnt
-            FROM sites WHERE world_id = $1
-            GROUP BY world_id, owner_entity_id
-        ) sit ON sit.world_id = e.world_id AND sit.owner_entity_id = e.id
+        LEFT JOIN mem_counts mc ON mc.entity_id = e.id
+        LEFT JOIN civ_sites csit ON csit.civ_id = e.id
+        LEFT JOIN direct_sites ds ON ds.entity_id = e.id
         LEFT JOIN (
             SELECT world_id, entity_id, COUNT(*) AS cnt
             FROM entity_positions WHERE world_id = $1

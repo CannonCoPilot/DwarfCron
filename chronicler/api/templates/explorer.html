@@ -6,6 +6,7 @@
   <title>Chronicler — Explorer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -126,6 +127,7 @@
       <button onclick="switchTab('events')" id="tab-events" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Events</button>
       <button onclick="switchTab('database')" id="tab-database" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Database</button>
       <button onclick="switchTab('graph')" id="tab-graph" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Graph</button>
+      <button onclick="switchTab('stats')" id="tab-stats" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Statistics</button>
     </div>
   </div>
 
@@ -459,12 +461,213 @@
     </div>
   </div>
 
+  <!-- ================================================================== -->
+  <!-- STATISTICS TAB                                                      -->
+  <!-- ================================================================== -->
+  <div id="panel-stats" class="flex-1 flex flex-col overflow-hidden hidden">
+    <!-- Sub-tabs: Report | Visualizations -->
+    <div class="flex items-center gap-2 px-6 py-1.5 border-b border-stone-800 flex-shrink-0 bg-stone-900/30">
+      <span onclick="switchStatsSub('report')" id="stats-sub-report" class="sub-toggle active">Report</span>
+      <span onclick="switchStatsSub('viz')" id="stats-sub-viz" class="sub-toggle">Visualizations</span>
+    </div>
+
+    <!-- Report sub-panel -->
+    <div id="stats-panel-report" class="flex-1 overflow-y-auto ex-scroll p-6">
+      <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- Global Totals -->
+        <div class="section-card">
+          <div class="section-title">Global Totals</div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center" id="stats-global-totals">
+            <div class="text-stone-500 text-xs py-4">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Three-tier explanation -->
+        <div class="section-card">
+          <div class="section-title">Population Data Model — Three Tiers</div>
+          <div class="text-xs text-stone-400 space-y-3">
+            <div>
+              <span class="text-amber-400 font-bold">Tier 1: entity_populations</span>
+              <span class="text-stone-500 ml-2">(DF-native race counts per civilization)</span>
+              <p class="mt-1 text-stone-500">Aggregate race-level population counts recorded by DF in the legends XML. These represent the game engine's own census of each civilization — not individual-level, but race-level totals. Includes all races associated with a civ (e.g., dwarf, elf, goblin citizens).</p>
+            </div>
+            <div>
+              <span class="text-blue-400 font-bold">Tier 2: hf_entity_links</span>
+              <span class="text-stone-500 ml-2">(organizational membership — who belongs to what group)</span>
+              <p class="mt-1 text-stone-500">Individual-level links between historical figures and entities (civilizations, religions, site governments). Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the relationship: member, former member, enemy, prisoner, etc. This is the basis for "Population" counts (alive current members) and the "Members" tab (all links, filterable).</p>
+            </div>
+            <div>
+              <span class="text-green-400 font-bold">Tier 3: hf_site_links</span>
+              <span class="text-stone-500 ml-2">(physical site presence — who is at what site)</span>
+              <p class="mt-1 text-stone-500">Individual-level links between historical figures and specific sites. Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the physical attachment: home structure, occupation, seat of power, lair, hangout. This is the basis for the "Residents" tab on site detail pages. Orthogonal to entity membership — a figure can be a member of a civ without having a site link, and vice versa.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cross-reference -->
+        <div class="section-card">
+          <div class="section-title">Cross-Reference: Entity Links vs. Site Links</div>
+          <div class="grid grid-cols-3 gap-4 text-center" id="stats-cross-ref">
+            <div class="text-stone-500 text-xs py-4">Loading...</div>
+          </div>
+          <p class="text-stone-500 text-[10px] mt-2">Entity membership and site presence are orthogonal dimensions. Most historical figures have entity links (organizational membership) but few have site links (physical site attachment). Site links are recorded only for figures with specific structural associations.</p>
+        </div>
+
+        <!-- hf_entity_links table -->
+        <div class="section-card">
+          <div class="section-title">hf_entity_links — Link Type Distribution</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-stone-500 text-left border-b border-stone-700">
+                  <th class="py-1.5 px-2">link_type</th>
+                  <th class="py-1.5 px-2 text-right">Count</th>
+                  <th class="py-1.5 px-2 text-right">Unique HFs</th>
+                  <th class="py-1.5 px-2 text-right">Unique Entities</th>
+                  <th class="py-1.5 px-2 text-right">Alive</th>
+                  <th class="py-1.5 px-2 text-right">Dead</th>
+                  <th class="py-1.5 px-2">Tabulation Handling</th>
+                </tr>
+              </thead>
+              <tbody id="stats-entity-links-body">
+                <tr><td colspan="7" class="text-stone-500 py-4 text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- hf_site_links table -->
+        <div class="section-card">
+          <div class="section-title">hf_site_links — Link Type Distribution</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-stone-500 text-left border-b border-stone-700">
+                  <th class="py-1.5 px-2">link_type</th>
+                  <th class="py-1.5 px-2 text-right">Count</th>
+                  <th class="py-1.5 px-2 text-right">Unique HFs</th>
+                  <th class="py-1.5 px-2 text-right">Unique Sites</th>
+                  <th class="py-1.5 px-2 text-right">Alive</th>
+                  <th class="py-1.5 px-2 text-right">Dead</th>
+                  <th class="py-1.5 px-2">Tabulation Handling</th>
+                </tr>
+              </thead>
+              <tbody id="stats-site-links-body">
+                <tr><td colspan="7" class="text-stone-500 py-4 text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Site coverage -->
+        <div class="section-card">
+          <div class="section-title">Site Coverage by Type</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-stone-500 text-left border-b border-stone-700">
+                  <th class="py-1.5 px-2">Site Type</th>
+                  <th class="py-1.5 px-2 text-right">Total Sites</th>
+                  <th class="py-1.5 px-2 text-right">With Links</th>
+                  <th class="py-1.5 px-2 text-right">Coverage</th>
+                  <th class="py-1.5 px-2 text-right">Alive Residents</th>
+                </tr>
+              </thead>
+              <tbody id="stats-site-coverage-body">
+                <tr><td colspan="5" class="text-stone-500 py-4 text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Population vs Residents divergence -->
+        <div class="section-card">
+          <div class="section-title">Population (Entity Members) vs. Residents (Site Links)</div>
+          <p class="text-stone-500 text-[10px] mb-2">Compares the count of living current entity members ("Population") against the count of living site-linked HFs ("Residents") for each site. Large divergence indicates entity membership is much broader than physical site presence.</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-stone-500 text-left border-b border-stone-700">
+                  <th class="py-1.5 px-2">Site</th>
+                  <th class="py-1.5 px-2">Type</th>
+                  <th class="py-1.5 px-2 text-right">Population</th>
+                  <th class="py-1.5 px-2 text-right">Residents</th>
+                  <th class="py-1.5 px-2 text-right">Divergence</th>
+                </tr>
+              </thead>
+              <tbody id="stats-divergence-body">
+                <tr><td colspan="5" class="text-stone-500 py-4 text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Special flags -->
+        <div class="section-card">
+          <div class="section-title">Special Flags Among Site Residents</div>
+          <div class="grid grid-cols-5 gap-4 text-center" id="stats-special-flags">
+            <div class="text-stone-500 text-xs py-4">Loading...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Visualizations sub-panel -->
+    <div id="stats-panel-viz" class="flex-1 overflow-y-auto ex-scroll p-6 hidden">
+      <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- Chart 1: Entity link type bar -->
+        <div class="section-card">
+          <div class="section-title">Entity Link Type Distribution</div>
+          <div style="max-height: 320px; position: relative;">
+            <canvas id="chart-entity-links"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Site coverage stacked bar -->
+        <div class="section-card">
+          <div class="section-title">Site Coverage by Type</div>
+          <div style="max-height: 320px; position: relative;">
+            <canvas id="chart-site-coverage"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Race x Link Type heatmap (rendered as grouped bar) -->
+        <div class="section-card">
+          <div class="section-title">Top Races by Site Link Type</div>
+          <div style="max-height: 400px; position: relative;">
+            <canvas id="chart-race-links"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4: Population vs Residents scatter -->
+        <div class="section-card">
+          <div class="section-title">Population vs. Residents per Site</div>
+          <div style="max-height: 400px; position: relative;">
+            <canvas id="chart-pop-vs-res"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 5: Special flags donut -->
+        <div class="section-card">
+          <div class="section-title">Supernatural Residents</div>
+          <div style="max-height: 300px; max-width: 300px; margin: 0 auto; position: relative;">
+            <canvas id="chart-special"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════════
 // GLOBAL STATE & CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════
 let WORLD_ID = null;  // Set dynamically from /api/worlds on page load
-const ALL_TABS = ['people', 'civs', 'geo', 'events', 'database', 'graph'];
+const ALL_TABS = ['people', 'civs', 'geo', 'events', 'database', 'graph', 'stats'];
 let allTables = [];
 let currentTable = null;
 let currentDbSub = 'schema';
@@ -483,6 +686,7 @@ function switchTab(tab) {
   if (tab === 'geo' && !geoLoaded) loadSites();
   if (tab === 'events' && !evTypesLoaded) loadEventTypes();
   if (tab === 'database' && !dbLoaded) { loadTables(); dbLoaded = true; }
+  if (tab === 'stats' && !statsLoaded) { loadStats(); statsLoaded = true; }
 }
 
 function switchDbSub(sub) {
@@ -1127,7 +1331,7 @@ function renderCivsList(data, filterQ, sortKey) {
       html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                    onclick="loadCivDetail(${e.world_id}, ${e.id})">
         <div class="text-stone-200">${escapeHtml(e.name)}</div>
-        <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.member_count} members | ${e.site_count} sites</div>
+        <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.member_count.toLocaleString()} pop | ${e.site_count} sites</div>
       </div>`;
     }
     html += '</div>';
@@ -1213,9 +1417,11 @@ function renderCivSitesRows(sites, worldId) {
       ? `<span class="nav-link" onclick="navigateTo('people','hf',${worldId},${sg.ruler.hf_id})">${escapeHtml(sg.ruler.name)}</span>
          <span class="text-stone-600 text-[10px]">${escapeHtml(sg.ruler.title || '')}</span>`
       : '<span class="text-stone-600">\u2014</span>';
-    html += `<tr class="hover:bg-stone-800/30">
+    const rulerClass = sg.is_ruler_site ? 'hover:bg-stone-800/30 bg-amber-900/10' : 'hover:bg-stone-800/30';
+    const crownPrefix = sg.is_ruler_site ? '\u{1F451} ' : '';
+    html += `<tr class="${rulerClass}">
       <td class="py-1 pr-3 text-stone-300">${escapeHtml(sg.sg_name)}</td>
-      <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('geo','site',${worldId},${sg.site_id})">${escapeHtml(sg.site_name)}</span>
+      <td class="py-1 pr-3">${crownPrefix}<span class="nav-link" onclick="navigateTo('geo','site',${worldId},${sg.site_id})">${escapeHtml(sg.site_name)}</span>
         <span class="text-stone-600 text-[10px]">${escapeHtml(sg.site_type || '')}</span></td>
       <td class="py-1 pr-3">${structs || '<span class="text-stone-700">\u2014</span>'}</td>
       <td class="py-1 pr-3 text-stone-400">${sg.population.toLocaleString()}</td>
@@ -1284,6 +1490,7 @@ function renderCivDetail(civ, panel) {
       site_name: sg.site.name, site_type: sg.site.type || '',
       struct_count: (sg.structures || []).length,
       ruler_name: sg.ruler ? sg.ruler.name : '',
+      is_ruler_site: !!sg.is_ruler_site,
     }));
     civSitesWorldId = civ.world_id;
     civSitesSortCol = 'site_name';
@@ -1365,11 +1572,20 @@ function renderCivDetail(civ, panel) {
         <tbody class="divide-y divide-stone-800/50">`;
     for (const w of civ.wars) {
       const years = w.end_year ? `${w.start_year}-${w.end_year}` : `${w.start_year}-ongoing`;
+      const oc = w.outcome || 'inconclusive';
+      const ocMap = {
+        victory:      `<span class="text-green-400" title="Won ${w.my_conquests} site(s), lost ${w.their_conquests}">Victory</span>`,
+        defeat:       `<span class="text-red-400" title="Won ${w.my_conquests} site(s), lost ${w.their_conquests}">Defeat</span>`,
+        treaty:       '<span class="text-amber-400">Treaty</span>',
+        stalemate:    `<span class="text-stone-400" title="Both conquered ${w.my_conquests} site(s)">Stalemate</span>`,
+        ongoing:      '<span class="text-blue-400">Ongoing</span>',
+        inconclusive: '<span class="text-stone-600">Inconclusive</span>',
+      };
       html += `<tr class="hover:bg-stone-800/30">
         <td class="py-1 pr-3 text-stone-200">${escapeHtml(w.name || 'Unnamed')}</td>
         <td class="py-1 pr-3 text-stone-400">${years}</td>
         <td class="py-1 pr-3"><span class="badge ${w.role === 'attacker' ? 'badge-vampire' : 'badge-alive'}">${w.role}</span></td>
-        <td class="py-1 text-stone-600">\u2014</td>
+        <td class="py-1">${ocMap[oc] || ocMap.inconclusive}</td>
       </tr>`;
     }
     html += '</tbody></table></div>';
@@ -1823,6 +2039,7 @@ async function loadCollectionDetail(worldId, collId) {
 // DATABASE TAB — Schema Browser
 // ═══════════════════════════════════════════════════════════════════════
 let dbLoaded = false;
+let statsLoaded = false;
 
 async function loadTables() {
   try {
@@ -2821,6 +3038,302 @@ async function browsePeople() {
     filterPeopleList();
   } catch (e) {
     list.innerHTML = `<div class="text-red-400 text-xs px-3 py-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// STATISTICS TAB
+// ═══════════════════════════════════════════════════════════════════════
+
+const ENTITY_LINK_ANNOTATIONS = {
+  'member': 'Counted in Population (alive only). Shown in Members tab (Current filter).',
+  'former member': 'Excluded from Population. Shown in Members tab (Former filter).',
+  'enemy': 'Excluded from Population. Hostile relationship; not a member.',
+  'former prisoner': 'Excluded from Population. Historical imprisonment record.',
+  'criminal': 'Excluded from Population. Wanted/convicted status.',
+  'prisoner': 'Excluded from Population. Currently imprisoned.',
+  'former slave': 'Excluded from Population. Historical enslavement record.',
+  'slave': 'Excluded from Population. Currently enslaved.',
+};
+
+const SITE_LINK_ANNOTATIONS = {
+  'home structure': 'Primary residence. Shown in Residents tab (Home Structure filter).',
+  'occupation': 'Workplace attachment. Shown in Residents tab (Occupation filter).',
+  'seat of power': 'Ruling position at site. Shown in Residents tab (Seat of Power filter).',
+  'lair': 'Creature lair (often megabeasts). Included in residents count.',
+  'hangout': 'Casual gathering spot. Included in residents count.',
+  'home site building': 'Legacy variant of home structure. Included in residents count.',
+};
+
+function switchStatsSub(sub) {
+  for (const s of ['report', 'viz']) {
+    document.getElementById('stats-panel-' + s).classList.toggle('hidden', s !== sub);
+    document.getElementById('stats-sub-' + s).classList.toggle('active', s === sub);
+  }
+}
+
+let _statsData = null;
+let _chartInstances = {};
+
+async function loadStats() {
+  if (!WORLD_ID) { setTimeout(loadStats, 200); return; }
+  try {
+    const resp = await fetch(`/api/statistics/population-model?world_id=${WORLD_ID}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    _statsData = await resp.json();
+    renderStatsReport(_statsData);
+    renderStatsCharts(_statsData);
+  } catch (e) {
+    document.getElementById('stats-global-totals').innerHTML =
+      `<div class="text-red-400 text-xs col-span-4">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderStatsReport(d) {
+  // Global totals
+  const g = d.global;
+  document.getElementById('stats-global-totals').innerHTML = `
+    <div><div class="text-amber-400 text-lg font-bold stat-badge">${formatNum(g.total_hfs)}</div><div class="text-stone-500 text-[10px]">Historical Figures</div></div>
+    <div><div class="text-green-400 text-lg font-bold stat-badge">${formatNum(g.alive_hfs)}</div><div class="text-stone-500 text-[10px]">Alive</div></div>
+    <div><div class="text-blue-400 text-lg font-bold stat-badge">${formatNum(g.total_entity_links)}</div><div class="text-stone-500 text-[10px]">Entity Links</div></div>
+    <div><div class="text-green-400 text-lg font-bold stat-badge">${formatNum(g.total_site_links)}</div><div class="text-stone-500 text-[10px]">Site Links</div></div>
+  `;
+
+  // Cross-reference
+  const cr = d.cross_reference;
+  document.getElementById('stats-cross-ref').innerHTML = `
+    <div><div class="text-amber-400 text-lg font-bold stat-badge">${formatNum(cr.both_links)}</div><div class="text-stone-500 text-[10px]">Both Entity + Site Links</div></div>
+    <div><div class="text-blue-400 text-lg font-bold stat-badge">${formatNum(cr.entity_only)}</div><div class="text-stone-500 text-[10px]">Entity Links Only</div></div>
+    <div><div class="text-green-400 text-lg font-bold stat-badge">${formatNum(cr.site_only)}</div><div class="text-stone-500 text-[10px]">Site Links Only</div></div>
+  `;
+
+  // Entity links table
+  const elBody = document.getElementById('stats-entity-links-body');
+  elBody.innerHTML = d.entity_link_types.map(r => `
+    <tr class="border-b border-stone-800 hover:bg-stone-900/50">
+      <td class="py-1.5 px-2 text-stone-300 font-mono">${escapeHtml(r.link_type)}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${r.count.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${r.unique_hfs.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${r.unique_entities.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right"><span class="badge badge-alive">${r.alive.toLocaleString()}</span></td>
+      <td class="py-1.5 px-2 text-right"><span class="badge badge-dead">${r.dead.toLocaleString()}</span></td>
+      <td class="py-1.5 px-2 text-stone-500 text-[10px]">${ENTITY_LINK_ANNOTATIONS[r.link_type] || ''}</td>
+    </tr>
+  `).join('');
+
+  // Site links table
+  const slBody = document.getElementById('stats-site-links-body');
+  slBody.innerHTML = d.site_link_types.map(r => `
+    <tr class="border-b border-stone-800 hover:bg-stone-900/50">
+      <td class="py-1.5 px-2 text-stone-300 font-mono">${escapeHtml(r.link_type)}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${r.count.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${r.unique_hfs.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${r.unique_sites.toLocaleString()}</td>
+      <td class="py-1.5 px-2 text-right"><span class="badge badge-alive">${r.alive.toLocaleString()}</span></td>
+      <td class="py-1.5 px-2 text-right"><span class="badge badge-dead">${r.dead.toLocaleString()}</span></td>
+      <td class="py-1.5 px-2 text-stone-500 text-[10px]">${SITE_LINK_ANNOTATIONS[r.link_type] || ''}</td>
+    </tr>
+  `).join('');
+
+  // Site coverage table
+  const scBody = document.getElementById('stats-site-coverage-body');
+  scBody.innerHTML = d.site_coverage.map(r => {
+    const pct = r.total_sites > 0 ? ((r.sites_with_links / r.total_sites) * 100).toFixed(1) : '0.0';
+    return `
+    <tr class="border-b border-stone-800 hover:bg-stone-900/50">
+      <td class="py-1.5 px-2 text-stone-300">${escapeHtml(r.type || 'unknown')}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${r.total_sites}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${r.sites_with_links}</td>
+      <td class="py-1.5 px-2 text-right stat-badge text-stone-400">${pct}%</td>
+      <td class="py-1.5 px-2 text-right"><span class="badge badge-alive">${r.alive_residents}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Divergence table
+  const dvBody = document.getElementById('stats-divergence-body');
+  dvBody.innerHTML = d.divergence.map(r => {
+    const div = r.population - r.residents;
+    const divClass = div > 0 ? 'text-amber-400' : (div < 0 ? 'text-red-400' : 'text-stone-500');
+    return `
+    <tr class="border-b border-stone-800 hover:bg-stone-900/50">
+      <td class="py-1.5 px-2 text-stone-300">${escapeHtml(r.site_name || 'unknown')}</td>
+      <td class="py-1.5 px-2 text-stone-400">${escapeHtml(r.site_type || '')}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${r.population}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${r.residents}</td>
+      <td class="py-1.5 px-2 text-right stat-badge ${divClass}">${div > 0 ? '+' : ''}${div}</td>
+    </tr>`;
+  }).join('');
+
+  // Special flags
+  const sf = d.special_flags;
+  document.getElementById('stats-special-flags').innerHTML = `
+    <div><div class="text-red-400 text-lg font-bold stat-badge">${sf.vampires}</div><div class="text-stone-500 text-[10px]">Vampires</div></div>
+    <div><div class="text-orange-400 text-lg font-bold stat-badge">${sf.werebeasts}</div><div class="text-stone-500 text-[10px]">Werebeasts</div></div>
+    <div><div class="text-purple-400 text-lg font-bold stat-badge">${sf.necromancers}</div><div class="text-stone-500 text-[10px]">Necromancers</div></div>
+    <div><div class="text-amber-400 text-lg font-bold stat-badge">${sf.deities}</div><div class="text-stone-500 text-[10px]">Deities</div></div>
+    <div><div class="text-stone-300 text-lg font-bold stat-badge">${sf.ghosts}</div><div class="text-stone-500 text-[10px]">Ghosts</div></div>
+  `;
+}
+
+function renderStatsCharts(d) {
+  const chartColors = {
+    amber: '#f6b93b', blue: '#3b82f6', green: '#22c55e',
+    red: '#ef4444', purple: '#a855f7', orange: '#f97316',
+    teal: '#14b8a6', pink: '#ec4899', stone: '#78716c',
+  };
+  const palette = [chartColors.amber, chartColors.blue, chartColors.green, chartColors.red, chartColors.purple, chartColors.orange, chartColors.teal, chartColors.pink, chartColors.stone];
+
+  Chart.defaults.color = '#a8a29e';
+  Chart.defaults.borderColor = '#292524';
+  Chart.defaults.font.family = '"JetBrains Mono", Consolas, monospace';
+  Chart.defaults.font.size = 11;
+
+  // Destroy existing charts on re-render
+  for (const key in _chartInstances) {
+    _chartInstances[key].destroy();
+  }
+  _chartInstances = {};
+
+  // Chart 1: Entity link type horizontal bar
+  _chartInstances.entityLinks = new Chart(document.getElementById('chart-entity-links'), {
+    type: 'bar',
+    data: {
+      labels: d.entity_link_types.map(r => r.link_type),
+      datasets: [
+        { label: 'Alive', data: d.entity_link_types.map(r => r.alive), backgroundColor: chartColors.green + '80', borderColor: chartColors.green, borderWidth: 1 },
+        { label: 'Dead', data: d.entity_link_types.map(r => r.dead), backgroundColor: chartColors.red + '40', borderColor: chartColors.red, borderWidth: 1 },
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: { stacked: true, grid: { color: '#1c1917' } }, y: { stacked: true, grid: { display: false } } }
+    }
+  });
+
+  // Chart 2: Site coverage stacked bar
+  const covData = d.site_coverage.filter(r => r.total_sites > 0);
+  _chartInstances.siteCoverage = new Chart(document.getElementById('chart-site-coverage'), {
+    type: 'bar',
+    data: {
+      labels: covData.map(r => r.type || 'unknown'),
+      datasets: [
+        { label: 'With Links', data: covData.map(r => r.sites_with_links), backgroundColor: chartColors.green + '80', borderColor: chartColors.green, borderWidth: 1 },
+        { label: 'Without Links', data: covData.map(r => r.total_sites - r.sites_with_links), backgroundColor: chartColors.stone + '40', borderColor: chartColors.stone, borderWidth: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#1c1917' } } }
+    }
+  });
+
+  // Chart 3: Race x Link Type grouped bar (top 15 races)
+  const raceMap = {};
+  const linkTypes = [...new Set(d.race_breakdown.map(r => r.link_type))];
+  for (const r of d.race_breakdown) {
+    if (!raceMap[r.race]) raceMap[r.race] = {};
+    raceMap[r.race][r.link_type] = (raceMap[r.race][r.link_type] || 0) + r.count;
+  }
+  const raceTotals = Object.entries(raceMap).map(([race, counts]) => ({
+    race, total: Object.values(counts).reduce((a, b) => a + b, 0), counts,
+  })).sort((a, b) => b.total - a.total).slice(0, 15);
+
+  _chartInstances.raceLinks = new Chart(document.getElementById('chart-race-links'), {
+    type: 'bar',
+    data: {
+      labels: raceTotals.map(r => r.race),
+      datasets: linkTypes.map((lt, i) => ({
+        label: lt,
+        data: raceTotals.map(r => r.counts[lt] || 0),
+        backgroundColor: palette[i % palette.length] + '80',
+        borderColor: palette[i % palette.length],
+        borderWidth: 1,
+      })),
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: { stacked: true, grid: { color: '#1c1917' } }, y: { stacked: true, grid: { display: false } } }
+    }
+  });
+
+  // Chart 4: Population vs Residents scatter
+  const scatterData = d.divergence.filter(r => r.population > 0 || r.residents > 0);
+  _chartInstances.popVsRes = new Chart(document.getElementById('chart-pop-vs-res'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Sites',
+        data: scatterData.map(r => ({ x: r.population, y: r.residents, label: r.site_name })),
+        backgroundColor: chartColors.amber + '80',
+        borderColor: chartColors.amber,
+        borderWidth: 1,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+      }, {
+        label: 'Parity line',
+        data: (() => {
+          const max = Math.max(...scatterData.map(r => Math.max(r.population, r.residents)), 10);
+          return [{x: 0, y: 0}, {x: max, y: max}];
+        })(),
+        type: 'line',
+        borderColor: chartColors.stone + '60',
+        borderDash: [4, 4],
+        borderWidth: 1,
+        pointRadius: 0,
+        fill: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.datasetIndex === 1) return null;
+              const pt = ctx.raw;
+              return `${pt.label}: Pop=${pt.x}, Res=${pt.y}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: 'Population (living entity members)' }, grid: { color: '#1c1917' } },
+        y: { title: { display: true, text: 'Residents (site links, alive)' }, grid: { color: '#1c1917' } },
+      }
+    }
+  });
+
+  // Chart 5: Special flags donut
+  const sf = d.special_flags;
+  const sfLabels = ['Vampires', 'Werebeasts', 'Necromancers', 'Deities', 'Ghosts'];
+  const sfValues = [sf.vampires, sf.werebeasts, sf.necromancers, sf.deities, sf.ghosts];
+  const sfColors = [chartColors.red, chartColors.orange, chartColors.purple, chartColors.amber, chartColors.stone];
+  if (sfValues.some(v => v > 0)) {
+    _chartInstances.special = new Chart(document.getElementById('chart-special'), {
+      type: 'doughnut',
+      data: {
+        labels: sfLabels.filter((_, i) => sfValues[i] > 0),
+        datasets: [{
+          data: sfValues.filter(v => v > 0),
+          backgroundColor: sfColors.filter((_, i) => sfValues[i] > 0).map(c => c + '80'),
+          borderColor: sfColors.filter((_, i) => sfValues[i] > 0),
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' } },
+      }
+    });
+  } else {
+    document.getElementById('chart-special').parentElement.innerHTML =
+      '<div class="text-stone-500 text-xs text-center py-8">No supernatural residents found among site-linked HFs</div>';
   }
 }
 

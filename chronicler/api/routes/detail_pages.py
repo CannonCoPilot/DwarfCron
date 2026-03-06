@@ -1266,7 +1266,7 @@ async def entity_detail_page(entity_id: int, request: Request,
                     AND p2.entity_id = p.entity_id AND p2.position_id = p.position_id
                     AND p2.start_year IS NOT NULL
               ))
-            ORDER BY p.start_year DESC NULLS LAST
+            ORDER BY ep.name ASC NULLS LAST, p.end_year DESC NULLS FIRST
         """, world_id, entity_id)
 
         # Prev/Next
@@ -1299,6 +1299,13 @@ async def entity_detail_page(entity_id: int, request: Request,
 
     members = members_data.get("members", [])
     member_total = members_data.get("total", 0)
+    member_counts = {
+        "total": member_total,
+        "current": members_data.get("current_total", 0),
+        "former": members_data.get("former_total", 0),
+        "alive": members_data.get("alive_total", 0),
+        "current_alive": members_data.get("current_alive", 0),
+    }
 
     return templates.TemplateResponse("entity_detail.html", {
         "request": request,
@@ -1318,6 +1325,7 @@ async def entity_detail_page(entity_id: int, request: Request,
         "civ_positions": civ_positions,
         "members": members,
         "member_count": member_total,
+        "member_counts": member_counts,
         "wars": wars,
         "prev_entity": dict(prev_ent) if prev_ent else None,
         "next_entity": dict(next_ent) if next_ent else None,
@@ -1346,12 +1354,16 @@ async def site_detail_page(site_id: int, request: Request,
 
         world = await _get_world_info(conn, world_id)
 
-        # Structures (join entity for owner info)
+        # Structures (join entity for affiliation, HF for deity)
         structures = await conn.fetch("""
-            SELECT s.id, s.name, s.type, s.entity_id,
-                   e.name AS entity_name, e.type AS entity_type
+            SELECT s.id, s.name, s.type, s.entity_id, s.details,
+                   e.name AS entity_name, e.type AS entity_type,
+                   hf.name AS deity_name
             FROM structures s
             LEFT JOIN entities e ON e.world_id = s.world_id AND e.id = s.entity_id
+            LEFT JOIN historical_figures hf
+                ON hf.world_id = s.world_id
+                AND hf.id = (s.details->>'deity_hf_id')::int
             WHERE s.world_id = $1 AND s.site_id = $2
             ORDER BY s.type, s.name
         """, world_id, site_id)

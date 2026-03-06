@@ -78,21 +78,29 @@
       <thead>
         <tr class="text-stone-500 border-b border-stone-800 text-xs">
           <th class="text-left pb-1">Name</th>
-          <th class="text-left pb-1">Position</th>
           <th class="text-left pb-1">From</th>
           <th class="text-left pb-1">To</th>
           <th class="text-left pb-1">Race</th>
         </tr>
       </thead>
       <tbody>
+        {% set ns = namespace(current_position='') %}
         {% for l in leaders %}
-        <tr class="border-b border-stone-800/50">
-          <td class="py-1">{{ linker.link('hf', l.hf_id, l.hf_name, world_id)|safe }}</td>
-          <td><span class="badge badge-leader">{{ l.position_name|default('?', true)|title }}</span></td>
-          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.start_year) if l.start_year else '?' }}</td>
-          <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.end_year) if l.end_year and l.end_year > 0 else 'Present' }}</td>
-          <td class="text-stone-600 text-xs">{{ l.hf_race|default('', true)|title }}</td>
-        </tr>
+          {% set pos = l.position_name|default('Unknown', true)|title %}
+          {% if pos != ns.current_position %}
+            {% set ns.current_position = pos %}
+            <tr class="border-b border-stone-700">
+              <td colspan="4" class="pt-3 pb-1">
+                <span class="badge badge-leader">{{ pos }}</span>
+              </td>
+            </tr>
+          {% endif %}
+          <tr class="border-b border-stone-800/50">
+            <td class="py-1 pl-4">{{ linker.link('hf', l.hf_id, l.hf_name, world_id)|safe }}</td>
+            <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.start_year) if l.start_year else '?' }}</td>
+            <td class="text-stone-500 text-xs">{{ 'Year %d'|format(l.end_year) if l.end_year and l.end_year > 0 else 'Present' }}</td>
+            <td class="text-stone-600 text-xs">{{ l.hf_race|default('', true)|title }}</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -122,14 +130,15 @@
       </thead>
       <tbody class="divide-y divide-stone-800/50" id="sites-tbody">
         {% for sg in govts_with_sites %}
-        <tr class="hover:bg-stone-800/30"
+        <tr class="hover:bg-stone-800/30{% if sg.is_ruler_site %} bg-amber-900/10{% endif %}"
             data-sg-name="{{ sg.name|lower }}"
             data-site-name="{{ sg.site.name|lower }}"
             data-struct-count="{{ sg.structures|length }}"
             data-population="{{ sg.population }}"
             data-ruler-name="{{ sg.ruler.name|lower if sg.ruler else '' }}">
-          <td class="py-1 pr-3 text-stone-300">{{ sg.name }}</td>
+          <td class="py-1 pr-3 text-stone-300">{{ linker.link('entity', sg.id, sg.name, world_id)|safe }}</td>
           <td class="py-1 pr-3">
+            {% if sg.is_ruler_site %}<span title="Ruler's seat">&#x1F451;</span> {% endif %}
             {{ linker.link('site', sg.site.id, sg.site.name, world_id)|safe }}
             <span class="text-stone-600 text-[10px]">{{ sg.site.type|default('', true) }}</span>
           </td>
@@ -162,12 +171,12 @@
 </div>
 
 {# ═══════════════════════════════════════════════════════════════════════ #}
-{# Members Tab — 6-column table + filter + lazy-load                     #}
+{# Members Tab — 6-column table + filter chips + lazy-load              #}
 {# ═══════════════════════════════════════════════════════════════════════ #}
 <div id="dtab-content-members" class="tab-content">
   <div class="section-card">
     <div class="flex items-center justify-between mb-2">
-      <div class="section-title">Members (showing {{ members|length }} of {{ member_count }})</div>
+      <div class="section-title" id="members-title">Members (showing {{ members|length }} of {{ member_count }})</div>
       <div class="flex items-center gap-2">
         <input id="members-filter" type="text" placeholder="Filter members..."
                class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
@@ -179,6 +188,22 @@
           </button>
         {% endif %}
       </div>
+    </div>
+    {# ── Filter chips ── #}
+    <div class="flex flex-wrap gap-1.5 mb-2" id="members-chips">
+      <button class="filter-chip active" data-filter="membership" data-value="current" onclick="toggleMemberChip(this)">
+        Current ({{ member_counts.current }})
+      </button>
+      <button class="filter-chip" data-filter="membership" data-value="former" onclick="toggleMemberChip(this)">
+        Former ({{ member_counts.former }})
+      </button>
+      <span class="text-stone-700 mx-0.5">|</span>
+      <button class="filter-chip active" data-filter="status" data-value="alive" onclick="toggleMemberChip(this)">
+        Alive ({{ member_counts.alive }})
+      </button>
+      <button class="filter-chip" data-filter="status" data-value="dead" onclick="toggleMemberChip(this)">
+        Dead ({{ member_counts.total - member_counts.alive }})
+      </button>
     </div>
     {% if members %}
     <div class="max-h-[600px] overflow-y-auto ex-scroll">
@@ -195,7 +220,9 @@
         </thead>
         <tbody class="divide-y divide-stone-800/50" id="members-tbody">
           {% for m in members %}
-          <tr class="hover:bg-stone-800/30">
+          <tr class="hover:bg-stone-800/30"
+              data-membership="{{ 'current' if m.link_type == 'member' else 'former' }}"
+              data-status="{{ 'alive' if m.is_alive else 'dead' }}">
             <td class="py-1 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
             <td class="py-1 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
             <td class="py-1 pr-3 text-amber-400">{{ m.position_name|default('', true)|title }}</td>
@@ -258,7 +285,7 @@
     {% for sg in govts_with_holders %}
     <details class="mb-2">
       <summary class="text-xs text-stone-400 cursor-pointer hover:text-stone-300 border-b border-stone-800/50 pb-1">
-        {{ sg.name }}{% if sg.site %} → {{ sg.site.name }}{% endif %} ({{ sg.positions|length }})
+        {{ linker.link('entity', sg.id, sg.name, world_id)|safe }}{% if sg.site %} → {{ sg.site.name }}{% endif %} ({{ sg.positions|length }})
       </summary>
       <div class="pl-2 mt-1">
         {% for p in sg.positions %}
@@ -298,6 +325,7 @@
           <th class="text-left pb-1">War</th>
           <th class="text-left pb-1">Years</th>
           <th class="text-left pb-1">Role</th>
+          <th class="text-left pb-1">Outcome</th>
         </tr>
       </thead>
       <tbody>
@@ -316,6 +344,21 @@
               <span class="badge badge-vampire">attacker</span>
             {% else %}
               <span class="badge badge-alive">defender</span>
+            {% endif %}
+          </td>
+          <td class="text-xs">
+            {% if w.outcome == 'victory' %}
+              <span class="text-green-400" title="Won {{ w.my_conquests }} site{{ 's' if w.my_conquests != 1 else '' }}, lost {{ w.their_conquests }}">Victory</span>
+            {% elif w.outcome == 'defeat' %}
+              <span class="text-red-400" title="Won {{ w.my_conquests }} site{{ 's' if w.my_conquests != 1 else '' }}, lost {{ w.their_conquests }}">Defeat</span>
+            {% elif w.outcome == 'treaty' %}
+              <span class="text-amber-400">Treaty</span>
+            {% elif w.outcome == 'stalemate' %}
+              <span class="text-stone-400" title="Both sides conquered {{ w.my_conquests }} site{{ 's' if w.my_conquests != 1 else '' }}">Stalemate</span>
+            {% elif w.outcome == 'ongoing' %}
+              <span class="text-blue-400">Ongoing</span>
+            {% else %}
+              <span class="text-stone-600">Inconclusive</span>
             {% endif %}
           </td>
         </tr>
@@ -369,30 +412,62 @@
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // Members sort, filter, and lazy-load
+  // Members sort, filter chips, and lazy-load
   // ═══════════════════════════════════════════════════════════════
   let membersSortCol = 'name';
   let membersSortDir = 1;
   let allMembersLoaded = false;
   let membersData = null; // null = using server-rendered rows; array = JS-managed
 
+  // ── Filter chip state ──
+  // Active filters: if a group has active chips, only matching rows show.
+  // If no chips active in a group, all values in that group pass.
+  const memberChipState = { membership: new Set(['current']), status: new Set(['alive']) };
+
+  window.toggleMemberChip = function(btn) {
+    const group = btn.dataset.filter;
+    const value = btn.dataset.value;
+    if (memberChipState[group].has(value)) {
+      memberChipState[group].delete(value);
+      btn.classList.remove('active');
+    } else {
+      memberChipState[group].add(value);
+      btn.classList.add('active');
+    }
+    filterMembers();
+  };
+
+  function memberPassesChips(row) {
+    // row can be a DOM element (data-* attrs) or an object (membersData)
+    if (row instanceof HTMLElement) {
+      const membership = row.dataset.membership;
+      const status = row.dataset.status;
+      if (memberChipState.membership.size > 0 && !memberChipState.membership.has(membership)) return false;
+      if (memberChipState.status.size > 0 && !memberChipState.status.has(status)) return false;
+    } else {
+      const membership = row.link_type === 'member' ? 'current' : 'former';
+      const status = row.is_alive ? 'alive' : 'dead';
+      if (memberChipState.membership.size > 0 && !memberChipState.membership.has(membership)) return false;
+      if (memberChipState.status.size > 0 && !memberChipState.status.has(status)) return false;
+    }
+    return true;
+  }
+
   window.sortMembers = function(col) {
     if (membersSortCol === col) membersSortDir *= -1;
     else { membersSortCol = col; membersSortDir = 1; }
 
-    // Update header arrows
     document.querySelectorAll('#members-table thead th').forEach(th => {
       const text = th.textContent.replace(/ [↑↓]/g, '');
       th.textContent = text;
     });
     const thIndex = {name:0, race:1, position_name:2, profession:3, link_type:4, is_alive:5}[col];
     const ths = document.querySelectorAll('#members-table thead th');
-    if (ths[thIndex]) ths[thIndex].textContent += (membersSortDir === 1 ? ' \u2191' : ' \u2193');
+    if (ths[thIndex]) ths[thIndex].textContent += (membersSortDir === 1 ? ' ↑' : ' ↓');
 
     if (membersData) {
       filterMembers();
     } else {
-      // Sort server-rendered rows via DOM
       const tbody = document.getElementById('members-tbody');
       if (!tbody) return;
       sortTbodyByText(tbody, thIndex, col === 'is_alive');
@@ -404,7 +479,6 @@
     rows.sort((a, b) => {
       const aText = (a.children[colIdx]?.textContent || '').trim().toLowerCase();
       const bText = (b.children[colIdx]?.textContent || '').trim().toLowerCase();
-      if (isBool) return membersSortDir * aText.localeCompare(bText);
       return membersSortDir * aText.localeCompare(bText);
     });
     rows.forEach(r => tbody.appendChild(r));
@@ -413,22 +487,31 @@
   window.filterMembers = function() {
     const q = (document.getElementById('members-filter')?.value || '').toLowerCase();
     if (!membersData) {
-      // Filter server-rendered rows
+      // Filter server-rendered rows (chip + text)
       const tbody = document.getElementById('members-tbody');
       if (!tbody) return;
+      let visCount = 0;
       tbody.querySelectorAll('tr').forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = !q || text.includes(q) ? '' : 'none';
+        const passChip = memberPassesChips(row);
+        const passText = !q || row.textContent.toLowerCase().includes(q);
+        const show = passChip && passText;
+        row.style.display = show ? '' : 'none';
+        if (show) visCount++;
       });
+      updateMembersTitle(visCount);
       return;
     }
-    // JS-managed: filter + sort + re-render
-    let filtered = q ? membersData.filter(m =>
-      (m.name || '').toLowerCase().includes(q) ||
-      (m.race || '').toLowerCase().includes(q) ||
-      (m.position_name || '').toLowerCase().includes(q) ||
-      (m.profession || '').toLowerCase().includes(q)
-    ) : [...membersData];
+    // JS-managed: chip + text filter + sort + re-render
+    let filtered = membersData.filter(m => {
+      if (!memberPassesChips(m)) return false;
+      if (q) {
+        return (m.name || '').toLowerCase().includes(q) ||
+          (m.race || '').toLowerCase().includes(q) ||
+          (m.position_name || '').toLowerCase().includes(q) ||
+          (m.profession || '').toLowerCase().includes(q);
+      }
+      return true;
+    });
 
     filtered.sort((a, b) => {
       const col = membersSortCol;
@@ -437,7 +520,13 @@
     });
 
     renderMembersRows(filtered);
+    updateMembersTitle(filtered.length);
   };
+
+  function updateMembersTitle(visCount) {
+    const title = document.getElementById('members-title');
+    if (title) title.textContent = `Members (${visCount} shown)`;
+  }
 
   function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
   function titleCase(s) { return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
@@ -448,14 +537,16 @@
     const worldId = {{ world_id }};
     let html = '';
     for (const m of members) {
-      const status = m.is_alive ? '<span class="badge badge-alive">alive</span>' : '<span class="badge badge-dead">dead</span>';
-      html += `<tr class="hover:bg-stone-800/30">
+      const membership = m.link_type === 'member' ? 'current' : 'former';
+      const status = m.is_alive ? 'alive' : 'dead';
+      const statusBadge = m.is_alive ? '<span class="badge badge-alive">alive</span>' : '<span class="badge badge-dead">dead</span>';
+      html += `<tr class="hover:bg-stone-800/30" data-membership="${membership}" data-status="${status}">
         <td class="py-1 pr-3"><a href="/explorer/hf/${m.hf_id}?world_id=${worldId}" class="text-amber-400 hover:text-amber-300 underline decoration-stone-700">${escHtml(m.name)}</a></td>
         <td class="py-1 pr-3 text-stone-400">${escHtml(titleCase(m.race || ''))}</td>
         <td class="py-1 pr-3 text-amber-400">${m.position_name ? escHtml(titleCase(m.position_name)) : ''}</td>
         <td class="py-1 pr-3 text-stone-400">${m.profession ? escHtml(m.profession) : ''}</td>
         <td class="py-1 pr-3 text-stone-500">${escHtml(titleCase(m.link_type || ''))}</td>
-        <td class="py-1">${status}</td>
+        <td class="py-1">${statusBadge}</td>
       </tr>`;
     }
     tbody.innerHTML = html;
@@ -471,16 +562,30 @@
       membersData = data.members;
       allMembersLoaded = true;
 
-      // Update count display
-      const title = document.querySelector('#dtab-content-members .section-title');
-      if (title) title.textContent = `Members (${data.total} total)`;
-      if (btn) btn.remove();
+      // Update chip counts with full data
+      const chips = document.querySelectorAll('#members-chips .filter-chip');
+      const counts = {
+        current: data.current_total || 0,
+        former: data.former_total || 0,
+        alive: data.alive_total || 0,
+        dead: data.total - (data.alive_total || 0),
+      };
+      chips.forEach(chip => {
+        const val = chip.dataset.value;
+        if (counts[val] !== undefined) {
+          chip.textContent = `${titleCase(val)} (${counts[val]})`;
+        }
+      });
 
+      if (btn) btn.remove();
       filterMembers();
     } catch (e) {
       if (btn) { btn.textContent = 'Error — retry?'; btn.disabled = false; }
     }
   };
+
+  // Apply default chip filter on load
+  filterMembers();
 })();
 </script>
 {% endblock %}

@@ -29,7 +29,7 @@
 {% block vital_stats %}
 <div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
   {% if site.coord_x is not none %}<span>Coords: {{ site.coord_x }}, {{ site.coord_y }}</span>{% endif %}
-  {% if owner %}<span>Owner: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
+  {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
   <span>Structures: {{ structures|length }}</span>
   <span>Events: {{ event_count }}</span>
   {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
@@ -59,7 +59,7 @@
         <tr class="text-stone-500 border-b border-stone-800 text-xs">
           <th class="text-left pb-1">Name</th>
           <th class="text-left pb-1">Type</th>
-          <th class="text-left pb-1">Owner</th>
+          <th class="text-left pb-1">Affiliation</th>
         </tr>
       </thead>
       <tbody>
@@ -71,6 +71,9 @@
             {% if s.entity_id %}
               {{ linker.link('entity', s.entity_id, s.entity_name, world_id)|safe }}
               {% if s.entity_type %}<span class="text-stone-600 text-xs">({{ s.entity_type|title }})</span>{% endif %}
+            {% elif s.deity_name and s.details and s.details.deity_hf_id %}
+              {{ linker.link('hf', s.details.deity_hf_id, s.deity_name, world_id)|safe }}
+              <span class="text-stone-600 text-xs">(Deity)</span>
             {% endif %}
           </td>
         </tr>
@@ -93,7 +96,7 @@
         <div><span class="text-stone-500">Coordinates:</span> {{ site.coord_x }}, {{ site.coord_y }}</div>
       {% endif %}
       {% if owner %}
-        <div><span class="text-stone-500">Owner:</span> {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</div>
+        <div><span class="text-stone-500">Government:</span> {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</div>
       {% endif %}
       {% if is_ruin %}
         <div><span class="text-stone-500">Status:</span> <span class="text-red-400">Ruined</span></div>
@@ -150,11 +153,31 @@
 
 {# Residents Tab #}
 {% if residents %}
+{% set alive_residents = residents|selectattr('death_year', 'none')|list %}
+{% set dead_residents = residents|rejectattr('death_year', 'none')|list %}
+{% set link_types = residents|map(attribute='link_type')|unique|sort|list %}
 <div id="dtab-content-residents" class="tab-content">
   <div class="section-card">
-    <div class="section-title">Historical Figures Linked to this Site ({{ residents|length }}{% if residents|length >= 200 %}+{% endif %})</div>
+    <div class="section-title" id="residents-title">Residents ({{ alive_residents|length }} alive / {{ residents|length }} total{% if residents|length >= 200 %}+{% endif %})</div>
+    {# ── Filter chips ── #}
+    <div class="flex flex-wrap gap-1.5 mb-2" id="residents-chips">
+      <button class="filter-chip active" data-filter="status" data-value="alive" onclick="toggleResidentChip(this)">
+        Alive ({{ alive_residents|length }})
+      </button>
+      <button class="filter-chip" data-filter="status" data-value="dead" onclick="toggleResidentChip(this)">
+        Dead ({{ dead_residents|length }})
+      </button>
+      {% if link_types|length > 1 %}
+      <span class="text-stone-700 mx-0.5">|</span>
+      {% for lt in link_types %}
+      <button class="filter-chip active" data-filter="linktype" data-value="{{ lt }}" onclick="toggleResidentChip(this)">
+        {{ lt|title }} ({{ residents|selectattr('link_type', 'equalto', lt)|list|length }})
+      </button>
+      {% endfor %}
+      {% endif %}
+    </div>
     <div class="max-h-[600px] overflow-y-auto ex-scroll">
-      <table class="w-full text-sm">
+      <table class="w-full text-sm" id="residents-table">
         <thead class="sticky top-0 bg-stone-900">
           <tr class="text-stone-500 border-b border-stone-800 text-xs">
             <th class="text-left pb-1">Name</th>
@@ -163,9 +186,11 @@
             <th class="text-left pb-1">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="residents-tbody">
           {% for r in residents %}
-          <tr class="border-b border-stone-800/50">
+          <tr class="border-b border-stone-800/50"
+              data-status="{{ 'alive' if not r.death_year else 'dead' }}"
+              data-linktype="{{ r.link_type }}">
             <td class="py-1">
               {{ linker.link('hf', r.hf_id, r.name, world_id)|safe }}
               {% if r.is_deity %}<span class="badge badge-deity" title="Deity">D</span>{% endif %}
@@ -240,4 +265,50 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  const residentChipState = { status: new Set(['alive']), linktype: new Set() };
+
+  // Initialize linktype chips: all active by default
+  document.querySelectorAll('#residents-chips .filter-chip[data-filter="linktype"]').forEach(btn => {
+    residentChipState.linktype.add(btn.dataset.value);
+  });
+
+  window.toggleResidentChip = function(btn) {
+    const group = btn.dataset.filter;
+    const value = btn.dataset.value;
+    if (residentChipState[group].has(value)) {
+      residentChipState[group].delete(value);
+      btn.classList.remove('active');
+    } else {
+      residentChipState[group].add(value);
+      btn.classList.add('active');
+    }
+    filterResidents();
+  };
+
+  function filterResidents() {
+    const tbody = document.getElementById('residents-tbody');
+    if (!tbody) return;
+    let visCount = 0;
+    tbody.querySelectorAll('tr').forEach(row => {
+      const status = row.dataset.status;
+      const linktype = row.dataset.linktype;
+      const passStatus = residentChipState.status.size === 0 || residentChipState.status.has(status);
+      const passLink = residentChipState.linktype.size === 0 || residentChipState.linktype.has(linktype);
+      const show = passStatus && passLink;
+      row.style.display = show ? '' : 'none';
+      if (show) visCount++;
+    });
+    const title = document.getElementById('residents-title');
+    if (title) title.textContent = `Residents (${visCount} shown)`;
+  }
+
+  // Apply default filter on load
+  filterResidents();
+})();
+</script>
 {% endblock %}
