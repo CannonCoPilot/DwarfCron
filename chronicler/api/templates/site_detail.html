@@ -32,6 +32,7 @@
   {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
   <span>Structures: {{ structures|length }}</span>
   <span>Events: {{ event_count }}</span>
+  {% if residents_count is defined and residents_count > 0 %}<span>Residents: {{ "{:,}".format(residents_count) }}</span>{% endif %}
   {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
   {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
 </div>
@@ -97,6 +98,13 @@
       {% endif %}
       {% if owner %}
         <div><span class="text-stone-500">Government:</span> {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</div>
+      {% endif %}
+      {% if residents_count is defined and residents_count > 0 %}
+        <div><span class="text-stone-500">Residents:</span> {{ "{:,}".format(residents_count) }}</div>
+      {% endif %}
+      {% if residents %}
+        {% set alive_res_count = residents|selectattr('death_year', 'none')|list|length %}
+        <div><span class="text-stone-500">Site-Linked Residents:</span> {{ "{:,}".format(alive_res_count) }} alive / {{ residents|length }} total</div>
       {% endif %}
       {% if is_ruin %}
         <div><span class="text-stone-500">Status:</span> <span class="text-red-400">Ruined</span></div>
@@ -176,6 +184,9 @@
       {% endfor %}
       {% endif %}
     </div>
+    {% if residents_count is defined and residents_count > 0 and alive_residents|length < residents_count %}
+    <p class="text-stone-500 text-[10px] mb-2">This site has {{ "{:,}".format(residents_count) }} living sentient residents (via whereabouts + site links). The table below shows only HFs with explicit site-link records.</p>
+    {% endif %}
     <div class="max-h-[600px] overflow-y-auto ex-scroll">
       <table class="w-full text-sm" id="residents-table">
         <thead class="sticky top-0 bg-stone-900">

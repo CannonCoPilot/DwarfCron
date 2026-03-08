@@ -1331,7 +1331,7 @@ function renderCivsList(data, filterQ, sortKey) {
       html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                    onclick="loadCivDetail(${e.world_id}, ${e.id})">
         <div class="text-stone-200">${escapeHtml(e.name)}</div>
-        <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.member_count.toLocaleString()} pop | ${e.site_count} sites</div>
+        <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.type === 'civilization' ? (e.entity_population || 0).toLocaleString() + ' pop' : e.type === 'sitegovernment' ? e.member_count.toLocaleString() + ' citizens' : e.member_count.toLocaleString() + ' members'} | ${e.site_count} sites</div>
       </div>`;
     }
     html += '</div>';
@@ -1402,7 +1402,7 @@ function sortCivSites(col) {
 function renderCivSitesRows(sites, worldId) {
   const sorted = [...sites].sort((a, b) => {
     const col = civSitesSortCol;
-    if (col === 'population' || col === 'struct_count') {
+    if (col === 'residents' || col === 'struct_count') {
       return civSitesSortDir * ((a[col] || 0) - (b[col] || 0));
     }
     return civSitesSortDir * (a[col] || '').toString().localeCompare((b[col] || '').toString());
@@ -1420,11 +1420,11 @@ function renderCivSitesRows(sites, worldId) {
     const rulerClass = sg.is_ruler_site ? 'hover:bg-stone-800/30 bg-amber-900/10' : 'hover:bg-stone-800/30';
     const crownPrefix = sg.is_ruler_site ? '\u{1F451} ' : '';
     html += `<tr class="${rulerClass}">
-      <td class="py-1 pr-3 text-stone-300">${escapeHtml(sg.sg_name)}</td>
+      <td class="py-1 pr-3"><a href="/explorer/entity/${sg.sg_id}?world_id=${worldId}" class="nav-link">${escapeHtml(sg.sg_name)}</a></td>
       <td class="py-1 pr-3">${crownPrefix}<span class="nav-link" onclick="navigateTo('geo','site',${worldId},${sg.site_id})">${escapeHtml(sg.site_name)}</span>
         <span class="text-stone-600 text-[10px]">${escapeHtml(sg.site_type || '')}</span></td>
       <td class="py-1 pr-3">${structs || '<span class="text-stone-700">\u2014</span>'}</td>
-      <td class="py-1 pr-3 text-stone-400">${sg.population.toLocaleString()}</td>
+      <td class="py-1 pr-3 text-stone-400">${(sg.residents || 0).toLocaleString()}</td>
       <td class="py-1">${sgRuler}</td>
     </tr>`;
   }
@@ -1470,15 +1470,39 @@ function renderCivDetail(civ, panel) {
     ? `<span class="nav-link" onclick="navigateTo('people','hf',${civ.world_id},${civ.ruler.hf_id})">${escapeHtml(civ.ruler.name)}</span>
        <span class="text-stone-600 text-[10px]">${escapeHtml(civ.ruler.title || '')}</span>`
     : '<span class="text-stone-600">None</span>';
-  html += `<div class="section-card">
-    <div class="section-title">Overview</div>
-    <div class="grid grid-cols-2 gap-3 text-xs">
-      <div><span class="text-stone-500">Race</span><div class="text-stone-200 mt-0.5">${escapeHtml(titleCase(civ.race))}</div></div>
-      <div><span class="text-stone-500">Sites</span><div class="text-stone-200 mt-0.5">${civ.site_count ?? 0}</div></div>
-      <div><span class="text-stone-500">Population</span><div class="text-stone-200 mt-0.5">${(civ.total_population ?? 0).toLocaleString()}</div></div>
-      <div><span class="text-stone-500">Ruler</span><div class="mt-0.5">${rulerHtml}</div></div>
-    </div>
-  </div>`;
+  if (civ.is_civ) {
+    html += `<div class="section-card">
+      <div class="section-title">Overview</div>
+      <div class="grid grid-cols-3 gap-3 text-xs">
+        <div><span class="text-stone-500">Race</span><div class="text-stone-200 mt-0.5">${escapeHtml(titleCase(civ.race))}</div></div>
+        <div><span class="text-stone-500">Sites</span><div class="text-stone-200 mt-0.5">${civ.site_count ?? 0}</div></div>
+        <div><span class="text-stone-500">Population (DF Census)</span><div class="text-stone-200 mt-0.5">${(civ.df_population ?? 0).toLocaleString()}</div></div>
+        <div><span class="text-stone-500">Citizens</span><div class="text-stone-200 mt-0.5">${(civ.citizens ?? 0).toLocaleString()}</div></div>
+        <div><span class="text-stone-500">Residents</span><div class="text-stone-200 mt-0.5">${(civ.total_residents ?? 0).toLocaleString()}</div></div>
+        <div><span class="text-stone-500">Ruler</span><div class="mt-0.5">${rulerHtml}</div></div>
+      </div>
+    </div>`;
+  } else if (civ.type === 'sitegovernment') {
+    html += `<div class="section-card">
+      <div class="section-title">Overview</div>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div><span class="text-stone-500">Race</span><div class="text-stone-200 mt-0.5">${escapeHtml(titleCase(civ.race))}</div></div>
+        <div><span class="text-stone-500">Sites</span><div class="text-stone-200 mt-0.5">${civ.site_count ?? 0}</div></div>
+        <div><span class="text-stone-500">Citizens</span><div class="text-stone-200 mt-0.5">${(civ.citizens ?? 0).toLocaleString()}</div></div>
+        <div><span class="text-stone-500">Ruler</span><div class="mt-0.5">${rulerHtml}</div></div>
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="section-card">
+      <div class="section-title">Overview</div>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div><span class="text-stone-500">Race</span><div class="text-stone-200 mt-0.5">${escapeHtml(titleCase(civ.race))}</div></div>
+        <div><span class="text-stone-500">Sites</span><div class="text-stone-200 mt-0.5">${civ.site_count ?? 0}</div></div>
+        <div><span class="text-stone-500">Members</span><div class="text-stone-200 mt-0.5">${(civ.citizens ?? 0).toLocaleString()}</div></div>
+        <div><span class="text-stone-500">Ruler</span><div class="mt-0.5">${rulerHtml}</div></div>
+      </div>
+    </div>`;
+  }
 
   // ── Sites Table (sortable) ──
   const siteGovts = civ.site_govts || [];
@@ -1486,15 +1510,15 @@ function renderCivDetail(civ, panel) {
   if (govtsWithSites.length > 0) {
     // Flatten for sorting
     civSitesData = govtsWithSites.map(sg => ({
-      ...sg, sg_name: sg.name, site_id: sg.site.id,
+      ...sg, sg_id: sg.id, sg_name: sg.name, site_id: sg.site.id,
       site_name: sg.site.name, site_type: sg.site.type || '',
       struct_count: (sg.structures || []).length,
       ruler_name: sg.ruler ? sg.ruler.name : '',
       is_ruler_site: !!sg.is_ruler_site,
     }));
     civSitesWorldId = civ.world_id;
-    civSitesSortCol = 'site_name';
-    civSitesSortDir = 1;
+    civSitesSortCol = 'residents';
+    civSitesSortDir = -1;
 
     const thClass = 'text-left py-1 pr-3 cursor-pointer hover:text-stone-300';
     html += `<div class="section-card">
@@ -1502,9 +1526,9 @@ function renderCivDetail(civ, panel) {
       <table class="w-full text-xs">
         <thead id="civ-sites-thead"><tr class="text-stone-500 border-b border-stone-800">
           <th class="${thClass}" data-col="sg_name" data-label="Site Govt" onclick="sortCivSites('sg_name')">Site Govt</th>
-          <th class="${thClass}" data-col="site_name" data-label="Site" onclick="sortCivSites('site_name')">Site \u2191</th>
+          <th class="${thClass}" data-col="site_name" data-label="Site" onclick="sortCivSites('site_name')">Site</th>
           <th class="${thClass}" data-col="struct_count" data-label="Structures" onclick="sortCivSites('struct_count')">Structures</th>
-          <th class="${thClass}" data-col="population" data-label="Pop." onclick="sortCivSites('population')">Pop.</th>
+          <th class="${thClass}" data-col="residents" data-label="Residents" onclick="sortCivSites('residents')">Residents \u2193</th>
           <th class="${thClass}" data-col="ruler_name" data-label="Ruler" onclick="sortCivSites('ruler_name')">Ruler</th>
         </tr></thead>
         <tbody id="civ-sites-tbody" class="divide-y divide-stone-800/50">${renderCivSitesRows(civSitesData, civ.world_id)}</tbody>
@@ -1800,6 +1824,13 @@ function renderSiteDetail(site, panel) {
         <span class="nav-link" onclick="navigateTo('civs','entity',${site.world_id},${site.owner.id})">${escapeHtml(site.owner.name)}</span>
         <span class="text-stone-500">${escapeHtml(titleCase(site.owner.type))}</span>
       </div>
+    </div>`;
+  }
+
+  // Residents count
+  if (site.residents_count != null && site.residents_count > 0) {
+    html += `<div class="section-card">
+      <div class="text-xs"><span class="text-stone-500">Residents:</span> <span class="text-stone-200">${site.residents_count.toLocaleString()}</span></div>
     </div>`;
   }
 

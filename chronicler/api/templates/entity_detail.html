@@ -24,10 +24,12 @@
 {% endblock %}
 
 {% block vital_stats %}
-{# ── Overview Tile (2x2 grid matching inline viewer) ── #}
+{# ── Overview Tile — entity-type-specific layout ── #}
 <div class="section-card mt-2">
   <div class="section-title">Overview</div>
-  <div class="grid grid-cols-2 gap-3 text-xs">
+  {% if is_civ %}
+  {# Civilization: 3-column grid, 2 rows #}
+  <div class="grid grid-cols-3 gap-3 text-xs">
     <div>
       <span class="text-stone-500">Race</span>
       <div class="text-stone-200 mt-0.5">{{ entity.race|default('Unknown', true)|title }}</div>
@@ -37,8 +39,16 @@
       <div class="text-stone-200 mt-0.5">{{ site_count }}</div>
     </div>
     <div>
-      <span class="text-stone-500">Population</span>
-      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(total_population) }}</div>
+      <span class="text-stone-500">Population (DF Census)</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(df_population) }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Citizens</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(citizens) }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Residents</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(total_residents) }}</div>
     </div>
     <div>
       <span class="text-stone-500">Ruler</span>
@@ -52,6 +62,61 @@
       </div>
     </div>
   </div>
+  {% elif entity.type == 'sitegovernment' %}
+  {# Site Government: 2-column grid #}
+  <div class="grid grid-cols-2 gap-3 text-xs">
+    <div>
+      <span class="text-stone-500">Race</span>
+      <div class="text-stone-200 mt-0.5">{{ entity.race|default('Unknown', true)|title }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Sites</span>
+      <div class="text-stone-200 mt-0.5">{{ site_count }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Citizens</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(citizens) }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Ruler</span>
+      <div class="mt-0.5">
+        {% if ruler %}
+          {{ linker.link('hf', ruler.hf_id, ruler.name, world_id)|safe }}
+          <span class="text-stone-600 text-[10px]">{{ ruler.title }}</span>
+        {% else %}
+          <span class="text-stone-600">None</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  {# Other (guild, religion, troupe): 2-column grid, Members label #}
+  <div class="grid grid-cols-2 gap-3 text-xs">
+    <div>
+      <span class="text-stone-500">Race</span>
+      <div class="text-stone-200 mt-0.5">{{ entity.race|default('Unknown', true)|title }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Sites</span>
+      <div class="text-stone-200 mt-0.5">{{ site_count }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Members</span>
+      <div class="text-stone-200 mt-0.5">{{ "{:,}".format(citizens) }}</div>
+    </div>
+    <div>
+      <span class="text-stone-500">Ruler</span>
+      <div class="mt-0.5">
+        {% if ruler %}
+          {{ linker.link('hf', ruler.hf_id, ruler.name, world_id)|safe }}
+          <span class="text-stone-600 text-[10px]">{{ ruler.title }}</span>
+        {% else %}
+          <span class="text-stone-600">None</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -122,9 +187,9 @@
       <thead>
         <tr class="text-stone-500 border-b border-stone-800">
           <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="sg_name" data-label="Site Govt" onclick="sortSitesTable('sg_name')">Site Govt</th>
-          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="site_name" data-label="Site" onclick="sortSitesTable('site_name')">Site ↑</th>
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="site_name" data-label="Site" onclick="sortSitesTable('site_name')">Site</th>
           <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="struct_count" data-label="Structures" onclick="sortSitesTable('struct_count')">Structures</th>
-          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="population" data-label="Pop." onclick="sortSitesTable('population')">Pop.</th>
+          <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" data-col="residents" data-label="Residents" onclick="sortSitesTable('residents')">Residents ↓</th>
           <th class="text-left py-1 cursor-pointer hover:text-stone-300" data-col="ruler_name" data-label="Ruler" onclick="sortSitesTable('ruler_name')">Ruler</th>
         </tr>
       </thead>
@@ -134,7 +199,7 @@
             data-sg-name="{{ sg.name|lower }}"
             data-site-name="{{ sg.site.name|lower }}"
             data-struct-count="{{ sg.structures|length }}"
-            data-population="{{ sg.population }}"
+            data-residents="{{ sg.residents }}"
             data-ruler-name="{{ sg.ruler.name|lower if sg.ruler else '' }}">
           <td class="py-1 pr-3 text-stone-300">{{ linker.link('entity', sg.id, sg.name, world_id)|safe }}</td>
           <td class="py-1 pr-3">
@@ -151,7 +216,7 @@
               <span class="text-stone-700">—</span>
             {% endif %}
           </td>
-          <td class="py-1 pr-3 text-stone-400">{{ "{:,}".format(sg.population) }}</td>
+          <td class="py-1 pr-3 text-stone-400">{{ "{:,}".format(sg.residents) }}</td>
           <td class="py-1">
             {% if sg.ruler %}
               {{ linker.link('hf', sg.ruler.hf_id, sg.ruler.name, world_id)|safe }}
@@ -379,8 +444,8 @@
   // ═══════════════════════════════════════════════════════════════
   // Sites table sorting
   // ═══════════════════════════════════════════════════════════════
-  let sitesSortCol = 'site_name';
-  let sitesSortDir = 1;
+  let sitesSortCol = 'residents';
+  let sitesSortDir = -1;
 
   window.sortSitesTable = function(col) {
     if (sitesSortCol === col) sitesSortDir *= -1;
@@ -392,7 +457,7 @@
     rows.sort((a, b) => {
       const aVal = a.dataset[colToCamel(col)] || '';
       const bVal = b.dataset[colToCamel(col)] || '';
-      if (col === 'population' || col === 'struct_count') {
+      if (col === 'residents' || col === 'struct_count') {
         return sitesSortDir * ((parseInt(aVal) || 0) - (parseInt(bVal) || 0));
       }
       return sitesSortDir * aVal.localeCompare(bVal);
@@ -409,6 +474,18 @@
   function colToCamel(col) {
     // Convert data-attr names: sg_name -> sgName, site_name -> siteName
     return col.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  }
+
+  // Apply initial sort (Pop. descending) to server-rendered rows
+  {
+    const tbody = document.getElementById('sites-tbody');
+    if (tbody) {
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        return -1 * ((parseInt(a.dataset.residents) || 0) - (parseInt(b.dataset.residents) || 0));
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════

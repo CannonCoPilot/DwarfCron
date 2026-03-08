@@ -52,6 +52,67 @@ def _is_animal_person(creature_id: str) -> bool:
     return upper.endswith("_MAN") or upper == "RODENT MAN"
 
 
+# ─── Sentience filter SQL fragment ───────────────────────────────────────
+# A creature is sentient if creature_dictionary flags include
+# has_any_intelligent_speaks OR has_any_intelligent_learns.
+# Fallback for missing dictionary entries: exclude GIANT_* without _MAN suffix.
+SENTIENCE_FILTER = """(
+    cd.flags->>'has_any_intelligent_speaks' = 'true'
+    OR cd.flags->>'has_any_intelligent_learns' = 'true'
+    OR (cd.creature_id IS NULL AND NOT (
+        hf.race LIKE 'GIANT_%' AND hf.race NOT LIKE '%_MAN'
+    ))
+)"""
+
+SENTIENCE_JOIN = (
+    "LEFT JOIN creature_dictionary cd "
+    "ON cd.world_id = hf.world_id AND cd.creature_id = hf.race"
+)
+
+
+async def fetch_site_residents_batch(
+    conn, world_id: int, site_ids: list[int],
+) -> dict[int, int]:
+    """Count living sentient HFs at each site.
+
+    Uses UNION of:
+    1. whereabouts->>'site_id' (physical presence)
+    2. hf_site_links (structural links: home, occupation, seat of power, lair)
+    Both filtered by death_year IS NULL + sentience (creature_dictionary).
+    """
+    if not site_ids:
+        return {}
+    rows = await conn.fetch(f"""
+        SELECT site_id, COUNT(DISTINCT hf_id) AS cnt
+        FROM (
+            SELECT (hf.whereabouts->>'site_id')::int AS site_id, hf.id AS hf_id
+            FROM historical_figures hf
+            {SENTIENCE_JOIN}
+            WHERE hf.world_id = $1 AND hf.death_year IS NULL
+              AND (hf.whereabouts->>'site_id')::int = ANY($2::int[])
+              AND {SENTIENCE_FILTER}
+            UNION
+            SELECT hsl.site_id, hsl.hf_id
+            FROM hf_site_links hsl
+            JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
+            {SENTIENCE_JOIN}
+            WHERE hsl.world_id = $1 AND hsl.site_id = ANY($2::int[])
+              AND hf.death_year IS NULL
+              AND {SENTIENCE_FILTER}
+        ) sub
+        GROUP BY site_id
+    """, world_id, site_ids)
+    return {r["site_id"]: r["cnt"] for r in rows}
+
+
+async def fetch_site_residents_count(
+    conn, world_id: int, site_id: int,
+) -> int:
+    """Single-site convenience wrapper."""
+    result = await fetch_site_residents_batch(conn, world_id, [site_id])
+    return result.get(site_id, 0)
+
+
 # ─── Reusable helpers (shared by JSON API + detail page) ──────────────────
 
 
@@ -105,7 +166,6 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     # Batch-fetch data for all site govts in one pass
     sg_sites: dict[int, dict] = {}
     sg_structures: dict[int, list[str]] = {}
-    sg_populations: dict[int, int] = {}
     sg_positions_map: dict[int, list] = {}
     civ_noble_sg_map: dict[int, dict] = {}
 
@@ -136,19 +196,7 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                 if sg_id:
                     sg_structures.setdefault(sg_id, []).append(st["type"])
 
-        # Population counts per site govt (living current members only)
-        pop_rows = await conn.fetch(
-            "SELECT hel.entity_id, COUNT(*) AS cnt "
-            "FROM hf_entity_links hel "
-            "JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id "
-            "WHERE hel.world_id = $1 AND hel.entity_id = ANY($2::int[]) "
-            "AND hel.link_type = 'member' AND hf.death_year IS NULL "
-            "GROUP BY hel.entity_id",
-            world_id, sg_ids,
-        )
-        for pr in pop_rows:
-            sg_populations[pr["entity_id"]] = pr["cnt"]
-
+    if sg_ids:
         # Positions + current holders for all site govts
         sg_pos_rows = await conn.fetch(
             """
@@ -232,20 +280,42 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     # who belong to both a civilization and its child site government.
     all_entity_ids = [entity_id] + sg_ids
     population_stats = await conn.fetchrow(
-        """
+        f"""
         SELECT
             COUNT(DISTINCT hel.hf_id) AS total_known_hfs,
             COUNT(DISTINCT hel.hf_id) FILTER (WHERE hel.link_type = 'member') AS current_members,
             COUNT(DISTINCT hel.hf_id) FILTER (
                 WHERE hel.link_type = 'member' AND hf.death_year IS NULL
-            ) AS living_population
+                AND {SENTIENCE_FILTER}
+            ) AS citizens
         FROM hf_entity_links hel
         JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
+        {SENTIENCE_JOIN}
         WHERE hel.world_id = $1 AND hel.entity_id = ANY($2::int[])
           AND hel.link_type IN ('member', 'former member')
         """,
         world_id, all_entity_ids,
     )
+
+    # DF native population (entity_populations) — civs only
+    df_population = 0
+    if is_civ:
+        df_population = await conn.fetchval(
+            "SELECT COALESCE(SUM(count), 0) FROM entity_populations "
+            "WHERE world_id = $1 AND civ_id = $2",
+            world_id, entity_id,
+        ) or 0
+
+    # Per-site residents via whereabouts + site_links (sentience-filtered)
+    all_site_ids = [s["id"] for s in (site_rows if sg_ids else [])]
+    if not is_civ:
+        direct_site_rows_for_residents = await conn.fetch(
+            "SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = $2",
+            world_id, entity_id,
+        )
+        all_site_ids += [s["id"] for s in direct_site_rows_for_residents]
+    site_residents = await fetch_site_residents_batch(conn, world_id, all_site_ids)
+    total_residents = sum(site_residents.values())
 
     wars = await conn.fetch(
         """
@@ -368,7 +438,7 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             "name": sg["name"],
             "site": site,
             "structures": sg_structures.get(sg_id, []),
-            "population": sg_populations.get(sg_id, 0),
+            "residents": site_residents.get(site["id"], 0) if site else 0,
             "ruler": sg_ruler,
             "positions": sg_pos,
             "is_ruler_site": sg_id == ruler_sg_id,
@@ -424,16 +494,20 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                     "name": entity["name"],
                     "site": {"id": s["id"], "name": s["name"], "type": s["type"]},
                     "structures": site_structs.get(s["id"], []),
-                    "population": sg_populations.get(entity_id, 0) if len(direct_site_rows) == 1 else 0,
+                    "residents": site_residents.get(s["id"], 0),
                     "ruler": own_ruler,
                     "positions": own_pos,
                     "is_ruler_site": False,
                 })
 
     result["ruler"] = ruler
-    result["total_population"] = int(population_stats["living_population"])
+    result["citizens"] = int(population_stats["citizens"])
     result["total_known_hfs"] = int(population_stats["total_known_hfs"])
     result["current_members"] = int(population_stats["current_members"])
+    result["is_civ"] = is_civ
+    if is_civ:
+        result["df_population"] = df_population
+        result["total_residents"] = total_residents
     if is_civ:
         result["site_count"] = len(site_rows) if sg_ids else 0
     else:
@@ -650,6 +724,11 @@ async def list_civilizations(
             SELECT owner_entity_id AS entity_id, COUNT(*) AS cnt
             FROM sites WHERE world_id = $1 AND owner_entity_id IS NOT NULL
             GROUP BY owner_entity_id
+        ),
+        ep_totals AS (
+            SELECT civ_id, SUM(count) AS pop
+            FROM entity_populations WHERE world_id = $1
+            GROUP BY civ_id
         )
         SELECT e.id, e.world_id, e.name, e.type, e.race,
             COALESCE(mc.cnt, 0) AS member_count,
@@ -657,7 +736,8 @@ async def list_civilizations(
                 THEN COALESCE(csit.cnt, 0)
                 ELSE COALESCE(ds.cnt, 0)
             END AS site_count,
-            COALESCE(pos.cnt, 0) AS position_count
+            COALESCE(pos.cnt, 0) AS position_count,
+            COALESCE(ept.pop, 0) AS entity_population
         FROM entities e
         LEFT JOIN mem_counts mc ON mc.entity_id = e.id
         LEFT JOIN civ_sites csit ON csit.civ_id = e.id
@@ -667,6 +747,7 @@ async def list_civilizations(
             FROM entity_positions WHERE world_id = $1
             GROUP BY world_id, entity_id
         ) pos ON pos.world_id = e.world_id AND pos.entity_id = e.id
+        LEFT JOIN ep_totals ept ON ept.civ_id = e.id
         WHERE {where}
         ORDER BY e.type, e.name
     """

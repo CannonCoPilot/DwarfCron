@@ -92,6 +92,9 @@ async def get_site(request: Request, world_id: int, site_id: int):
             world_id, site_id,
         )
 
+        from chronicler.api.routes.civilizations import fetch_site_residents_count
+        residents_count = await fetch_site_residents_count(conn, world_id, site_id)
+
     owner = None
     if site["owner_entity_id"] is not None:
         owner = {"id": site["owner_entity_id"],
@@ -109,6 +112,7 @@ async def get_site(request: Request, world_id: int, site_id: int):
             for r in hf_rows
         ],
         "recent_events": [dict(e) for e in events],
+        "residents_count": residents_count,
     }
 
 

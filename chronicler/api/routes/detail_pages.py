@@ -1291,7 +1291,10 @@ async def entity_detail_page(entity_id: int, request: Request,
 
     # Extract rich data from civ_data (may be sparse for non-civilizations)
     ruler = civ_data.get("ruler") if civ_data else None
-    total_population = civ_data.get("total_population", 0) if civ_data else 0
+    citizens = civ_data.get("citizens", 0) if civ_data else 0
+    df_population = civ_data.get("df_population", 0) if civ_data else 0
+    total_residents = civ_data.get("total_residents", 0) if civ_data else 0
+    is_civ = civ_data.get("is_civ", False) if civ_data else False
     site_count = civ_data.get("site_count", 0) if civ_data else 0
     site_govts = civ_data.get("site_govts", []) if civ_data else []
     civ_positions = civ_data.get("positions", []) if civ_data else []
@@ -1319,7 +1322,10 @@ async def entity_detail_page(entity_id: int, request: Request,
         "badge_class": badge_class,
         "leaders": [dict(l) for l in leaders],
         "ruler": ruler,
-        "total_population": total_population,
+        "citizens": citizens,
+        "df_population": df_population,
+        "total_residents": total_residents,
+        "is_civ": is_civ,
         "site_count": site_count,
         "site_govts": site_govts,
         "civ_positions": civ_positions,
@@ -1454,6 +1460,10 @@ async def site_detail_page(site_id: int, request: Request,
         """, world_id, site_id)
         residents = [dict(r) for r in residents]
 
+        # Residents: living sentient HFs at this site
+        from chronicler.api.routes.civilizations import fetch_site_residents_count
+        residents_count = await fetch_site_residents_count(conn, world_id, site_id)
+
         # Prev/Next
         prev_site = await conn.fetchrow("""
             SELECT id, name FROM sites WHERE world_id = $1 AND id < $2
@@ -1480,6 +1490,7 @@ async def site_detail_page(site_id: int, request: Request,
         "owner": dict(owner) if owner else None,
         "ownership_timeline": ownership_timeline,
         "residents": residents,
+        "residents_count": residents_count,
         "events": rendered_events,
         "event_count": event_count,
         "prev_site": dict(prev_site) if prev_site else None,
