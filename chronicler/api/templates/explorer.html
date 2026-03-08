@@ -1615,13 +1615,13 @@ function renderCivDetail(civ, panel) {
     html += '</tbody></table></div>';
   }
 
-  // ── Members button ──
+  // ── Members (auto-loaded) ──
   html += `<div class="mt-4">
-    <button onclick="loadCivMembers(${civ.world_id}, ${civ.id})" class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-4 py-2 rounded text-xs transition-colors">
-      Load Members
-    </button>
-    <div id="civ-members-container"></div>
+    <div id="civ-members-container"><div class="text-stone-500 text-xs py-2">Loading members...</div></div>
   </div>`;
+
+  // Auto-load members after rendering
+  setTimeout(() => loadCivMembers(civ.world_id, civ.id), 0);
 
   panel.innerHTML = html;
 }
@@ -1631,31 +1631,36 @@ let civMembersWorldId = null;
 let civMembersSortCol = 'name';
 let civMembersSortDir = 1;
 
+let civMembersStatusFilter = 'alive'; // 'alive', 'dead', 'all'
+
 function renderMembersTable(members, worldId) {
   if (members.length === 0) return '<div class="text-stone-500 text-xs py-2">No members found</div>';
 
   const arrows = col => col === civMembersSortCol ? (civMembersSortDir === 1 ? ' \u2191' : ' \u2193') : '';
-  const thClass = 'text-left py-1 pr-3 cursor-pointer hover:text-stone-300';
-  let html = `<table class="w-full text-xs"><thead><tr class="text-stone-500 border-b border-stone-800">
+  const thClass = 'text-left py-0.5 pr-2 cursor-pointer hover:text-stone-300';
+  let html = `<div class="max-h-[400px] overflow-y-auto ex-scroll"><table class="w-full text-xs"><thead class="sticky top-0 bg-stone-900"><tr class="text-stone-500 border-b border-stone-800">
     <th class="${thClass}" onclick="sortMembers('name')">Name${arrows('name')}</th>
     <th class="${thClass}" onclick="sortMembers('race')">Race${arrows('race')}</th>
     <th class="${thClass}" onclick="sortMembers('position_name')">Position${arrows('position_name')}</th>
     <th class="${thClass}" onclick="sortMembers('profession')">Profession${arrows('profession')}</th>
-    <th class="${thClass}" onclick="sortMembers('link_type')">Membership${arrows('link_type')}</th>
+    <th class="${thClass}" onclick="sortMembers('link_type')">Link${arrows('link_type')}</th>
+    <th class="${thClass}" onclick="sortMembers('is_citizen')">Citizen${arrows('is_citizen')}</th>
     <th class="${thClass}" onclick="sortMembers('is_alive')">Status${arrows('is_alive')}</th>
   </tr></thead><tbody class="divide-y divide-stone-800/50">`;
 
   for (const m of members) {
-    html += `<tr class="hover:bg-stone-800/30">
-      <td class="py-1 pr-3"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
-      <td class="py-1 pr-3 text-stone-400">${escapeHtml(m.race || '')}</td>
-      <td class="py-1 pr-3 text-amber-400">${m.position_name ? escapeHtml(titleCase(m.position_name)) : ''}</td>
-      <td class="py-1 pr-3 text-stone-400">${m.profession ? escapeHtml(m.profession) : ''}</td>
-      <td class="py-1 pr-3 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
-      <td class="py-1"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
+    const citizenLabel = m.is_citizen ? '<span class="text-emerald-400">Yes</span>' : '<span class="text-stone-600">No</span>';
+    html += `<tr class="hover:bg-stone-800/30" style="height: 25px;">
+      <td class="py-0.5 pr-2"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
+      <td class="py-0.5 pr-2 text-stone-400">${escapeHtml(m.race || '')}</td>
+      <td class="py-0.5 pr-2 text-amber-400">${m.position_name ? escapeHtml(titleCase(m.position_name)) : ''}</td>
+      <td class="py-0.5 pr-2 text-stone-400">${m.profession ? escapeHtml(m.profession) : ''}</td>
+      <td class="py-0.5 pr-2 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
+      <td class="py-0.5 pr-2">${citizenLabel}</td>
+      <td class="py-0.5"><span class="badge ${m.is_alive ? 'badge-alive' : 'badge-dead'}">${m.is_alive ? 'alive' : 'dead'}</span></td>
     </tr>`;
   }
-  return html + '</tbody></table>';
+  return html + '</tbody></table></div>';
 }
 
 function sortMembers(col) {
@@ -1668,20 +1673,48 @@ function filterCivMembers() {
   const container = document.getElementById('civ-members-container');
   if (!civMembersData.length) return;
   const q = (document.getElementById('members-filter')?.value || '').toLowerCase();
-  let filtered = q ? civMembersData.filter(m =>
-    (m.name || '').toLowerCase().includes(q) ||
-    (m.race || '').toLowerCase().includes(q) ||
-    (m.position_name || '').toLowerCase().includes(q)
-  ) : [...civMembersData];
+
+  let filtered = civMembersData.filter(m => {
+    // Status filter (Alive/Dead/All)
+    if (civMembersStatusFilter === 'alive' && !m.is_alive) return false;
+    if (civMembersStatusFilter === 'dead' && m.is_alive) return false;
+    // Text search
+    if (q) {
+      return (m.name || '').toLowerCase().includes(q) ||
+        (m.race || '').toLowerCase().includes(q) ||
+        (m.position_name || '').toLowerCase().includes(q) ||
+        (m.profession || '').toLowerCase().includes(q);
+    }
+    return true;
+  });
 
   filtered.sort((a, b) => {
     const col = civMembersSortCol;
     if (col === 'is_alive') return civMembersSortDir * ((a.is_alive ? 1 : 0) - (b.is_alive ? 1 : 0));
+    if (col === 'is_citizen') return civMembersSortDir * ((a.is_citizen ? 1 : 0) - (b.is_citizen ? 1 : 0));
     return civMembersSortDir * (a[col] || '').toString().localeCompare((b[col] || '').toString());
   });
 
   const tableDiv = container.querySelector('.members-table');
   if (tableDiv) tableDiv.innerHTML = renderMembersTable(filtered, civMembersWorldId);
+
+  // Update the "showing Y" in the title
+  const titleEl = container.querySelector('.section-title');
+  if (titleEl) {
+    titleEl.textContent = `Members (${civMembersData.length} total, showing ${filtered.length})`;
+  }
+}
+
+function setCivMembersStatusFilter(val) {
+  civMembersStatusFilter = val;
+  // Update toggle button styles
+  document.querySelectorAll('.members-status-toggle').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === val);
+    btn.classList.toggle('bg-amber-500/20', btn.dataset.value === val);
+    btn.classList.toggle('text-amber-400', btn.dataset.value === val);
+    btn.classList.toggle('text-stone-500', btn.dataset.value !== val);
+  });
+  filterCivMembers();
 }
 
 async function loadCivMembers(worldId, entityId) {
@@ -1690,9 +1723,10 @@ async function loadCivMembers(worldId, entityId) {
   civMembersWorldId = worldId;
   civMembersSortCol = 'name';
   civMembersSortDir = 1;
+  civMembersStatusFilter = 'alive';
 
   try {
-    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=1000`);
+    const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=10000`);
     const data = await resp.json();
     civMembersData = data.members;
 
@@ -1701,14 +1735,24 @@ async function loadCivMembers(worldId, entityId) {
       return;
     }
 
+    const aliveCount = data.members.filter(m => m.is_alive).length;
+    const deadCount = data.members.length - aliveCount;
+
     let html = `<div class="mt-3 section-card">
       <div class="flex items-center justify-between mb-2">
-        <div class="section-title">Members (${data.total} total, showing ${data.members.length})</div>
-        <input id="members-filter" type="text" placeholder="Filter members..."
-               class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
-               oninput="filterCivMembers()">
+        <div class="section-title">Members (${data.total} total, showing ${aliveCount})</div>
+        <div class="flex items-center gap-2">
+          <div class="flex gap-1 text-[10px]">
+            <button class="members-status-toggle px-2 py-0.5 rounded active bg-amber-500/20 text-amber-400" data-value="alive" onclick="setCivMembersStatusFilter('alive')">Alive (${aliveCount})</button>
+            <button class="members-status-toggle px-2 py-0.5 rounded text-stone-500" data-value="dead" onclick="setCivMembersStatusFilter('dead')">Dead (${deadCount})</button>
+            <button class="members-status-toggle px-2 py-0.5 rounded text-stone-500" data-value="all" onclick="setCivMembersStatusFilter('all')">All (${data.members.length})</button>
+          </div>
+          <input id="members-filter" type="text" placeholder="Filter..."
+                 class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-32 focus:border-amber-500 focus:outline-none"
+                 oninput="filterCivMembers()">
+        </div>
       </div>
-      <div class="members-table">${renderMembersTable(data.members, worldId)}</div>
+      <div class="members-table">${renderMembersTable(data.members.filter(m => m.is_alive), worldId)}</div>
     </div>`;
     container.innerHTML = html;
   } catch (e) {

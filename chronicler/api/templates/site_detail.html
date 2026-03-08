@@ -27,24 +27,49 @@
 {% endblock %}
 
 {% block vital_stats %}
-<div class="flex flex-wrap gap-3 mt-2 text-xs text-stone-400">
-  {% if site.coord_x is not none %}<span>Coords: {{ site.coord_x }}, {{ site.coord_y }}</span>{% endif %}
-  {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
-  <span>Structures: {{ structures|length }}</span>
-  <span>Events: {{ event_count }}</span>
-  {% if residents_count is defined and residents_count > 0 %}<span>Residents: {{ "{:,}".format(residents_count) }}</span>{% endif %}
-  {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
-  {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
+<div class="flex gap-4 mt-2">
+  <div class="flex flex-wrap gap-3 text-xs text-stone-400 flex-1">
+    {% if site.coord_x is not none %}<span>Coords: {{ site.coord_x }}, {{ site.coord_y }}</span>{% endif %}
+    {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
+    <span>Structures: {{ structures|length }}</span>
+    <span>Events: {{ event_count }}</span>
+    {% if residents_count is defined and residents_count > 0 %}<span>Residents: {{ "{:,}".format(residents_count) }}</span>{% endif %}
+    {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
+    {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
+  </div>
+  {# ── Details tile (upper right) ── #}
+  {% if region_info or co_located %}
+  <div class="bg-stone-900 border border-stone-800 rounded px-3 py-2 text-xs min-w-[200px]">
+    {% if region_info %}
+    <div class="mb-1">
+      <span class="text-stone-500">Region:</span>
+      {{ linker.link('region', region_info.id, region_info.name, world_id)|safe }}
+      {% if region_info.type %}<span class="text-stone-600 text-[10px]">({{ region_info.type }})</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if co_located %}
+    <div>
+      <span class="text-stone-500">Co-located:</span>
+      {% for cl in co_located %}
+        <div class="ml-2 mt-0.5">
+          {{ linker.link('site', cl.id, cl.name, world_id)|safe }}
+          <span class="text-stone-600 text-[10px]">({{ cl.type|default('?', true) }})</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-structures" onclick="switchDetailTab('structures')">Structures ({{ structures|length }})</button>
-  <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
-  {% if ownership_timeline %}<button class="detail-tab" id="dtab-ownership" onclick="switchDetailTab('ownership')">Ownership ({{ ownership_timeline|length }})</button>{% endif %}
-  {% if residents %}<button class="detail-tab" id="dtab-residents" onclick="switchDetailTab('residents')">Residents ({{ residents|length }}{% if residents|length >= 200 %}+{% endif %})</button>{% endif %}
+  {% if residents %}<button class="detail-tab" id="dtab-residents" onclick="switchDetailTab('residents')">Residents ({{ residents|length }}{% if residents|length >= 500 %}+{% endif %})</button>{% endif %}
   <button class="detail-tab" id="dtab-history" onclick="switchDetailTab('history')">History ({{ event_count }})</button>
+  {% if ownership_timeline %}<button class="detail-tab" id="dtab-ownership" onclick="switchDetailTab('ownership')">Ownership ({{ ownership_timeline|length }})</button>{% endif %}
+  <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
 </div>
 {% endblock %}
 
@@ -194,6 +219,9 @@
             <th class="text-left pb-1">Name</th>
             <th class="text-left pb-1">Race</th>
             <th class="text-left pb-1">Link</th>
+            <th class="text-left pb-1">Citizen</th>
+            <th class="text-left pb-1">Profession</th>
+            <th class="text-left pb-1">Position</th>
             <th class="text-left pb-1">Status</th>
           </tr>
         </thead>
@@ -214,6 +242,15 @@
             <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
             <td><span class="badge badge-type">{{ r.link_type|title }}</span></td>
             <td>
+              {% if r.is_citizen %}
+                <span class="text-emerald-400">Yes</span>
+              {% else %}
+                <span class="text-stone-600">No</span>
+              {% endif %}
+            </td>
+            <td class="text-stone-400">{{ r.profession|default('', true) }}</td>
+            <td class="text-amber-400">{{ r.position_name|default('', true)|title }}</td>
+            <td>
               {% if r.death_year %}
                 <span class="text-red-400" title="Died year {{ r.death_year }}">Dead ({{ r.death_year }})</span>
               {% else %}
@@ -225,9 +262,9 @@
         </tbody>
       </table>
     </div>
-    {% if residents|length >= 200 %}
+    {% if residents|length >= 500 %}
       <div class="mt-2 text-center text-stone-500 text-xs">
-        Showing first 200 residents. More may exist.
+        Showing first 500 residents. More may exist.
       </div>
     {% endif %}
   </div>

@@ -570,13 +570,16 @@ async def fetch_civilization_members(
     """, world_id, entity_id)
     total = counts["total"]
     members = await conn.fetch(
-        """
+        f"""
         SELECT hel.hf_id, hf.name, hf.race, hel.link_type,
                pos.position_name,
                (hf.death_year IS NULL) AS is_alive,
-               hf.skills
+               hf.skills,
+               (hel.link_type = 'member' AND hf.death_year IS NULL
+                AND {SENTIENCE_FILTER}) AS is_citizen
         FROM hf_entity_links hel
         JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id
+        {SENTIENCE_JOIN}
         LEFT JOIN LATERAL (
             SELECT ep.name AS position_name
             FROM hf_position_links hpl

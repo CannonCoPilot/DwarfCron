@@ -1246,7 +1246,7 @@ async def entity_detail_page(entity_id: int, request: Request,
         # ── Rich civ data from shared helpers ──
         civ_data = await fetch_civilization_data(conn, world_id, entity_id)
         members_data = await fetch_civilization_members(
-            conn, world_id, entity_id, limit=100, offset=0,
+            conn, world_id, entity_id, limit=10000, offset=0,
         )
 
         # Leaders — full position history with start/end years
@@ -1447,22 +1447,87 @@ async def site_detail_page(site_id: int, request: Request,
             })
 
         # Residents (HFs linked to this site via hf_site_links)
-        residents = await conn.fetch("""
+        # Enhanced: include is_citizen (living+sentient+current member of site owner),
+        # profession (from highest-IP skill), and position (from entity positions)
+        from chronicler.api.routes.civilizations import (
+            SENTIENCE_FILTER, SENTIENCE_JOIN, fetch_site_residents_count,
+        )
+        owner_entity_id = site.get('owner_entity_id')
+        residents_raw = await conn.fetch(f"""
             SELECT l.hf_id, l.link_type,
-                   h.name, h.race, h.caste, h.birth_year, h.death_year,
-                   h.is_vampire, h.is_necromancer, h.is_werebeast, h.is_ghost,
-                   h.is_deity, h.is_force
+                   hf.name, hf.race, hf.caste, hf.birth_year, hf.death_year,
+                   hf.is_vampire, hf.is_necromancer, hf.is_werebeast, hf.is_ghost,
+                   hf.is_deity, hf.is_force, hf.skills,
+                   pos.position_name,
+                   (hf.death_year IS NULL AND {SENTIENCE_FILTER}
+                    AND EXISTS (
+                        SELECT 1 FROM hf_entity_links hel2
+                        WHERE hel2.world_id = hf.world_id AND hel2.hf_id = hf.id
+                          AND hel2.link_type = 'member'
+                          AND ($3::int IS NULL OR hel2.entity_id = $3)
+                    )) AS is_citizen
             FROM hf_site_links l
-            JOIN historical_figures h ON h.world_id = l.world_id AND h.id = l.hf_id
+            JOIN historical_figures hf ON hf.world_id = l.world_id AND hf.id = l.hf_id
+            {SENTIENCE_JOIN}
+            LEFT JOIN LATERAL (
+                SELECT ep.name AS position_name
+                FROM hf_position_links hpl
+                JOIN entity_positions ep
+                    ON ep.world_id = hpl.world_id AND ep.entity_id = hpl.entity_id
+                    AND ep.position_id = hpl.position_id
+                WHERE hpl.world_id = l.world_id AND hpl.hf_id = l.hf_id
+                ORDER BY hpl.end_year IS NULL DESC, hpl.start_year DESC
+                LIMIT 1
+            ) pos ON true
             WHERE l.world_id = $1 AND l.site_id = $2
-            ORDER BY l.link_type, h.name
-            LIMIT 200
-        """, world_id, site_id)
-        residents = [dict(r) for r in residents]
+            ORDER BY l.link_type, hf.name
+            LIMIT 500
+        """, world_id, site_id, owner_entity_id)
+        residents = []
+        for r in residents_raw:
+            d = dict(r)
+            # Derive profession from highest-IP skill
+            skills = d.pop("skills", None)
+            profession = None
+            if skills and isinstance(skills, list):
+                top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
+                if top:
+                    profession = top["name"].replace("_", " ").title()
+            d["profession"] = profession
+            residents.append(d)
 
         # Residents: living sentient HFs at this site
-        from chronicler.api.routes.civilizations import fetch_site_residents_count
         residents_count = await fetch_site_residents_count(conn, world_id, site_id)
+
+        # Region info: find which region this site belongs to
+        # Sites don't have region_id directly; use coordinates overlap or events
+        region_info = None
+        if site.get('coords'):
+            # Try to find region from event cross-references
+            region_row = await conn.fetchrow("""
+                SELECT DISTINCT r.id, r.name, r.type
+                FROM regions r
+                JOIN event_entity_xref xr ON xr.world_id = r.world_id
+                    AND xr.entity_type = 'region' AND xr.entity_id = r.id
+                JOIN event_entity_xref xs ON xs.world_id = xr.world_id
+                    AND xs.event_id = xr.event_id
+                    AND xs.entity_type = 'site' AND xs.entity_id = $2
+                WHERE r.world_id = $1
+                LIMIT 1
+            """, world_id, site_id)
+            if region_row:
+                region_info = dict(region_row)
+
+        # Co-located sites (same coordinates, different site)
+        co_located = []
+        if site.get('coord_x') is not None and site.get('coord_y') is not None:
+            co_located_rows = await conn.fetch("""
+                SELECT id, name, type FROM sites
+                WHERE world_id = $1 AND coord_x = $2 AND coord_y = $3
+                  AND id != $4
+                ORDER BY name
+            """, world_id, site['coord_x'], site['coord_y'], site_id)
+            co_located = [dict(r) for r in co_located_rows]
 
         # Prev/Next
         prev_site = await conn.fetchrow("""
@@ -1493,6 +1558,8 @@ async def site_detail_page(site_id: int, request: Request,
         "residents_count": residents_count,
         "events": rendered_events,
         "event_count": event_count,
+        "region_info": region_info,
+        "co_located": co_located,
         "prev_site": dict(prev_site) if prev_site else None,
         "next_site": dict(next_site) if next_site else None,
         "linker": _linker,

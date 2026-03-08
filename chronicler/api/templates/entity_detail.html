@@ -241,18 +241,10 @@
 <div id="dtab-content-members" class="tab-content">
   <div class="section-card">
     <div class="flex items-center justify-between mb-2">
-      <div class="section-title" id="members-title">Members (showing {{ members|length }} of {{ member_count }})</div>
-      <div class="flex items-center gap-2">
-        <input id="members-filter" type="text" placeholder="Filter members..."
-               class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
-               oninput="filterMembers()">
-        {% if member_count > members|length %}
-          <button id="load-all-btn" onclick="loadAllMembers({{ world_id }}, {{ entity.id }})"
-                  class="bg-stone-800 hover:bg-stone-700 text-stone-300 px-3 py-1 rounded text-xs transition-colors whitespace-nowrap">
-            Load All ({{ member_count }})
-          </button>
-        {% endif %}
-      </div>
+      <div class="section-title" id="members-title">Members ({{ member_count }} total, showing {{ members|length }})</div>
+      <input id="members-filter" type="text" placeholder="Filter members..."
+             class="bg-stone-900 border border-stone-700 text-stone-200 rounded px-2 py-1 text-xs w-40 focus:border-amber-500 focus:outline-none"
+             oninput="filterMembers()">
     </div>
     {# ── Filter chips ── #}
     <div class="flex flex-wrap gap-1.5 mb-2" id="members-chips">
@@ -280,20 +272,28 @@
             <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('position_name')">Position</th>
             <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('profession')">Profession</th>
             <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('link_type')">Membership</th>
+            <th class="text-left py-1 pr-3 cursor-pointer hover:text-stone-300" onclick="sortMembers('is_citizen')">Citizen</th>
             <th class="text-left py-1 cursor-pointer hover:text-stone-300" onclick="sortMembers('is_alive')">Status</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-stone-800/50" id="members-tbody">
           {% for m in members %}
-          <tr class="hover:bg-stone-800/30"
+          <tr class="hover:bg-stone-800/30" style="height: 25px;"
               data-membership="{{ 'current' if m.link_type == 'member' else 'former' }}"
               data-status="{{ 'alive' if m.is_alive else 'dead' }}">
-            <td class="py-1 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
-            <td class="py-1 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
-            <td class="py-1 pr-3 text-amber-400">{{ m.position_name|default('', true)|title }}</td>
-            <td class="py-1 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
-            <td class="py-1 pr-3 text-stone-500">{{ m.link_type|default('', true)|title }}</td>
-            <td class="py-1">
+            <td class="py-0.5 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3 text-amber-400">{{ m.position_name|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
+            <td class="py-0.5 pr-3 text-stone-500">{{ m.link_type|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3">
+              {% if m.is_citizen %}
+                <span class="text-emerald-400">Yes</span>
+              {% else %}
+                <span class="text-stone-600">No</span>
+              {% endif %}
+            </td>
+            <td class="py-0.5">
               {% if m.is_alive %}
                 <span class="badge badge-alive">alive</span>
               {% else %}
@@ -538,7 +538,7 @@
       const text = th.textContent.replace(/ [↑↓]/g, '');
       th.textContent = text;
     });
-    const thIndex = {name:0, race:1, position_name:2, profession:3, link_type:4, is_alive:5}[col];
+    const thIndex = {name:0, race:1, position_name:2, profession:3, link_type:4, is_citizen:5, is_alive:6}[col];
     const ths = document.querySelectorAll('#members-table thead th');
     if (ths[thIndex]) ths[thIndex].textContent += (membersSortDir === 1 ? ' ↑' : ' ↓');
 
@@ -617,22 +617,21 @@
       const membership = m.link_type === 'member' ? 'current' : 'former';
       const status = m.is_alive ? 'alive' : 'dead';
       const statusBadge = m.is_alive ? '<span class="badge badge-alive">alive</span>' : '<span class="badge badge-dead">dead</span>';
-      html += `<tr class="hover:bg-stone-800/30" data-membership="${membership}" data-status="${status}">
-        <td class="py-1 pr-3"><a href="/explorer/hf/${m.hf_id}?world_id=${worldId}" class="text-amber-400 hover:text-amber-300 underline decoration-stone-700">${escHtml(m.name)}</a></td>
-        <td class="py-1 pr-3 text-stone-400">${escHtml(titleCase(m.race || ''))}</td>
-        <td class="py-1 pr-3 text-amber-400">${m.position_name ? escHtml(titleCase(m.position_name)) : ''}</td>
-        <td class="py-1 pr-3 text-stone-400">${m.profession ? escHtml(m.profession) : ''}</td>
-        <td class="py-1 pr-3 text-stone-500">${escHtml(titleCase(m.link_type || ''))}</td>
-        <td class="py-1">${statusBadge}</td>
+      const citizenBadge = m.is_citizen ? '<span class="text-emerald-400">Yes</span>' : '<span class="text-stone-600">No</span>';
+      html += `<tr class="hover:bg-stone-800/30" style="height: 25px;" data-membership="${membership}" data-status="${status}">
+        <td class="py-0.5 pr-3"><a href="/explorer/hf/${m.hf_id}?world_id=${worldId}" class="text-amber-400 hover:text-amber-300 underline decoration-stone-700">${escHtml(m.name)}</a></td>
+        <td class="py-0.5 pr-3 text-stone-400">${escHtml(titleCase(m.race || ''))}</td>
+        <td class="py-0.5 pr-3 text-amber-400">${m.position_name ? escHtml(titleCase(m.position_name)) : ''}</td>
+        <td class="py-0.5 pr-3 text-stone-400">${m.profession ? escHtml(m.profession) : ''}</td>
+        <td class="py-0.5 pr-3 text-stone-500">${escHtml(titleCase(m.link_type || ''))}</td>
+        <td class="py-0.5 pr-3">${citizenBadge}</td>
+        <td class="py-0.5">${statusBadge}</td>
       </tr>`;
     }
     tbody.innerHTML = html;
   }
 
   window.loadAllMembers = async function(worldId, entityId) {
-    const btn = document.getElementById('load-all-btn');
-    if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
-
     try {
       const resp = await fetch(`/api/civilizations/${worldId}/${entityId}/members?limit=10000`);
       const data = await resp.json();
@@ -654,15 +653,17 @@
         }
       });
 
-      if (btn) btn.remove();
       filterMembers();
     } catch (e) {
-      if (btn) { btn.textContent = 'Error — retry?'; btn.disabled = false; }
+      console.error('Failed to load all members:', e);
     }
   };
 
-  // Apply default chip filter on load
+  // Apply default chip filter on load, then auto-load all members
   filterMembers();
+  {% if member_count > members|length %}
+  loadAllMembers({{ world_id }}, {{ entity.id }});
+  {% endif %}
 })();
 </script>
 {% endblock %}
