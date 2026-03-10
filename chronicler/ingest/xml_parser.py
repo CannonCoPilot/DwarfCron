@@ -600,6 +600,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "position_profile_map": {},  # {(world_id, entity_id): {assignment_id: position_id}}
         "entity_occasions": [],  # (world_id, entity_id, occasion_id, name, event_id)
         "occasion_schedules": [],  # (world_id, entity_id, occasion_id, schedule_id, type, ref, ref2, item_type, item_subtype, features)
+        "entity_entity_links": [],  # (world_id, source_entity_id, target_entity_id, link_type, strength, details)
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -768,6 +769,18 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                     entity_links.append(link)
             if entity_links:
                 ent_details["entity_links"] = entity_links
+            # Also collect rows for the dedicated entity_entity_links table
+            for link in entity_links:
+                target = link.get("target")
+                if target is not None:
+                    result["entity_entity_links"].append((
+                        world_id,
+                        eid,
+                        target,
+                        link.get("type", "UNKNOWN"),
+                        link.get("strength", 100),
+                        None,  # details JSONB
+                    ))
             result["entities"].append((
                 eid,
                 world_id,
@@ -1141,13 +1154,15 @@ async def import_legends(
                      "art_forms", "rivers", "entity_populations",
                      "region_enrichment", "creature_dictionary",
                      "relationship_supplements",
-                     "entity_occasions", "occasion_schedules"):
+                     "entity_occasions", "occasion_schedules",
+                     "entity_entity_links"):
             # Keys where world_id is at position [0] (not [1])
             world_id_at_zero = key in (
                 "event_relationships", "entity_positions",
                 "entity_position_assignments", "creature_dictionary",
                 "relationship_supplements",
                 "entity_occasions", "occasion_schedules",
+                "entity_entity_links",
             )
             plus_data[key] = [
                 (world_id, *row[1:]) if world_id_at_zero
@@ -1374,6 +1389,17 @@ async def import_legends(
                 "details = COALESCE(EXCLUDED.details, entities.details)")
         counts["entities_plus"] = n
         log.info("  entities (plus enrichment): %d", n)
+
+        # Entity-entity links (PARENT/CHILD/etc. from entity_link elements)
+        if plus_data.get("entity_entity_links"):
+            n = await _batch_insert(conn, "entity_entity_links",
+                ["world_id", "source_entity_id", "target_entity_id",
+                 "link_type", "strength", "details"],
+                plus_data["entity_entity_links"],
+                on_conflict="(world_id, source_entity_id, target_entity_id, link_type) DO UPDATE SET "
+                    "strength = COALESCE(EXCLUDED.strength, entity_entity_links.strength)")
+            counts["entity_entity_links"] = n
+            log.info("  entity_entity_links: %d", n)
 
         # Entity position definitions
         if plus_data.get("entity_positions"):
@@ -1621,6 +1647,21 @@ async def import_legends(
                     updated_sites += 1
             counts["site_owners"] = updated_sites
             log.info("  site ownership: %d", updated_sites)
+
+            # Derive entity_site_links from ownership records
+            esl_rows = [
+                (world_id, owner_id, sid, "owner", None, None, None, 100, None)
+                for sid, owner_id in plus_data["site_owners"]
+                if owner_id is not None
+            ]
+            if esl_rows:
+                n = await _batch_insert(conn, "entity_site_links",
+                    ["world_id", "entity_id", "site_id", "link_type",
+                     "flags", "start_year", "end_year", "link_strength", "details"],
+                    esl_rows,
+                    on_conflict="(world_id, entity_id, site_id, link_type) DO NOTHING")
+                counts["entity_site_links"] = n
+                log.info("  entity_site_links (from ownership): %d", n)
 
         # Artifact enrichment: writing_id, page_count from legends_plus
         if plus_data["artifact_enrichment"]:

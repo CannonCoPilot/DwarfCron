@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS sites (
     coord_y     INT,
     coords      TEXT,
     owner_entity_id INT,
+    founded_year    INT,
+    founder_entity_id INT,
     salience_score   REAL DEFAULT 0,
     prominence_score REAL DEFAULT 0,
     details     JSONB DEFAULT '{}',
@@ -175,6 +177,41 @@ CREATE TABLE IF NOT EXISTS entities (
     PRIMARY KEY (world_id, id)
 );
 
+-- ─── Entity-Entity Links ───────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS entity_entity_links (
+    world_id            INT NOT NULL,
+    source_entity_id    INT NOT NULL,
+    target_entity_id    INT NOT NULL,
+    link_type           TEXT NOT NULL,
+    strength            SMALLINT DEFAULT 100,
+    details             JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, source_entity_id, target_entity_id, link_type),
+    FOREIGN KEY (world_id, source_entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, target_entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_eel_target ON entity_entity_links(world_id, target_entity_id);
+
+-- ─── Entity-Site Links ────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS entity_site_links (
+    world_id            INT NOT NULL,
+    entity_id           INT NOT NULL,
+    site_id             INT NOT NULL,
+    link_type           TEXT NOT NULL,
+    flags               JSONB DEFAULT '{}',
+    start_year          INT,
+    end_year            INT,
+    link_strength       INT DEFAULT 100,
+    details             JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, entity_id, site_id, link_type),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_esl_site ON entity_site_links(world_id, site_id);
+
 -- ─── Historical Figures ──────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS historical_figures (
@@ -228,6 +265,7 @@ CREATE TABLE IF NOT EXISTS hf_links (
     hf_id        INT NOT NULL,
     target_hf_id INT NOT NULL,
     link_type    TEXT,
+    strength     SMALLINT,
     UNIQUE (world_id, hf_id, target_hf_id, link_type),
     FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
     FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
@@ -362,6 +400,7 @@ CREATE TABLE IF NOT EXISTS history_events (
     structure_id    INT,
     -- Overflow for unmapped fields
     details         JSONB DEFAULT '{}',
+    source          TEXT DEFAULT 'legends_xml',
     PRIMARY KEY (world_id, id)
 );
 
@@ -464,8 +503,8 @@ CREATE TABLE IF NOT EXISTS historical_eras (
 -- ─── Live Data (DFHack RPC) ─────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS units (
-    id              INT PRIMARY KEY,
-    world_id        INT REFERENCES worlds(id) ON DELETE CASCADE,
+    id              INT NOT NULL,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     name            TEXT,
     english_name    TEXT,
     race            TEXT,
@@ -481,7 +520,8 @@ CREATE TABLE IF NOT EXISTS units (
     sex             SMALLINT,
     death_cause     TEXT,
     details         JSONB DEFAULT '{}',
-    last_synced_at  TIMESTAMPTZ DEFAULT now()
+    last_synced_at  TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (world_id, id)
 );
 
 -- ─── Embeddings (Phase 2) ───────────────────────────────────────────────────
@@ -614,12 +654,15 @@ CREATE TABLE IF NOT EXISTS unit_events (
     new_value       JSONB,
     game_year       INT,
     game_tick       INT,
-    detected_at     TIMESTAMPTZ DEFAULT now()
+    detected_at     TIMESTAMPTZ DEFAULT now(),
+    reconciled_event_id INTEGER,
+    reconciled_at   TIMESTAMPTZ
 );
 
 CREATE INDEX IF NOT EXISTS idx_unit_events_unit ON unit_events(unit_id);
 CREATE INDEX IF NOT EXISTS idx_unit_events_type ON unit_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_unit_events_time ON unit_events(detected_at);
+CREATE INDEX IF NOT EXISTS idx_unit_events_reconciled ON unit_events(reconciled_event_id) WHERE reconciled_event_id IS NOT NULL;
 
 -- ── Live Sync: Poll Cycle Snapshots ─────────────────────────────────
 CREATE TABLE IF NOT EXISTS sync_snapshots (

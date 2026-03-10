@@ -1,4 +1,4 @@
--- chronicler-bridge.lua v7 — DFHack bridge for Chronicler
+-- chronicler-bridge.lua v8 — DFHack bridge for Chronicler
 --
 -- Writes comprehensive game state to a JSON file that Chronicler reads
 -- over HTTP. Runs as a `repeat` job on the console thread (where CoreSuspend works).
@@ -15,7 +15,7 @@
 -- Data sections (all from df.global):
 --   game_time: year, tick, season
 --   creature_raws: race_id -> creature_id mapping (934+ entries)
---   unit_summary: fortress dwarves with stress/profession/flags/mood/bio/relationships (v7)
+--   unit_summary: fortress dwarves with stress/profession/flags/mood/bio/relationships/family (v8)
 --   armies: count + positions
 --   buildings: count by type
 --   artifacts: named artifact list
@@ -32,6 +32,8 @@
 --   squads: military squads with members and orders (v6)
 --   mandates: noble mandates with items and timeouts (v6)
 --   incidents: crimes and incidents with victims/criminals (v6)
+--   reactive_events: buffered eventful callbacks — deaths, items, jobs, invasions, syndromes (v8)
+--   skill_changes: per-dwarf skill rating deltas since last cycle (v8)
 
 local json = require('json')
 
@@ -40,6 +42,25 @@ local json = require('json')
 chronicler_state = chronicler_state or {}
 chronicler_state.last_report_id = chronicler_state.last_report_id or -1
 chronicler_state.last_event_id = chronicler_state.last_event_id or -1
+
+-- ── v8: Eventful subscription buffers ───────────────────────────────
+-- Events accumulate between bridge cycles via DFHack eventful callbacks.
+-- Flushed (swapped) each time write_state() runs.
+
+chronicler_state.pending_events = chronicler_state.pending_events or {
+    unit_deaths = {},
+    new_units = {},
+    items_created = {},
+    jobs_completed = {},
+    syndromes = {},
+    invasions = {},
+}
+
+-- v8: Skill snapshot for delta tracking (unit_id -> {skill_id -> rating})
+chronicler_state.skill_snapshots = chronicler_state.skill_snapshots or {}
+
+-- v8: Eventful initialization flag
+chronicler_state.eventful_init = chronicler_state.eventful_init or false
 
 -- Helper: safely convert DF CP437 string to UTF-8
 local function to_utf8(s)
@@ -55,6 +76,301 @@ local function translate_name(name, english)
         return dfhack.df2utf(dfhack.translation.translateName(name, english or false))
     end
     return nil
+end
+
+-- ══════════════════════════════════════════════════════════════════════
+-- v8: EVENTFUL SUBSCRIPTIONS + ENRICHMENT FUNCTIONS
+-- ══════════════════════════════════════════════════════════════════════
+
+-- ── Death Cause Enrichment ──────────────────────────────────────────
+-- Searches recent incidents for a matching death, returning cause + killer info.
+
+local function get_death_cause(unit_id)
+    local inc_ok, incidents = pcall(function()
+        return df.global.world.incidents.all
+    end)
+    if not inc_ok or not incidents then return nil end
+
+    -- Search backwards through recent incidents (deaths are near the end)
+    for i = #incidents - 1, math.max(0, #incidents - 100), -1 do
+        local incident = incidents[i]
+        if incident.victim == unit_id then
+            local result = {
+                death_cause_id = incident.death_cause,
+            }
+            -- Resolve enum name
+            local dc_ok, dc_name = pcall(function()
+                return df.death_type[incident.death_cause]
+            end)
+            if dc_ok and dc_name then
+                result.death_cause = dc_name
+            else
+                result.death_cause = tostring(incident.death_cause)
+            end
+            -- Killer info
+            if incident.criminal and incident.criminal >= 0 then
+                local killer = df.unit.find(incident.criminal)
+                if killer then
+                    result.killer_unit_id = incident.criminal
+                    result.killer_race = killer.race
+                    result.killer_hf_id = killer.hist_figure_id
+                    if killer.name and killer.name.has_name then
+                        result.killer_name = dfhack.df2utf(dfhack.translation.translateName(killer.name))
+                    end
+                end
+            end
+            return result
+        end
+    end
+    return nil
+end
+
+-- ── Family Chain Extraction ─────────────────────────────────────────
+-- Extracts parent/spouse/children HF IDs from a unit's relationships.
+
+local function get_family_chain(unit)
+    local family = {}
+
+    -- Direct relationship IDs (Mother, Father, Spouse)
+    local rel_ok, _ = pcall(function()
+        if unit.relationship_ids.Mother >= 0 then
+            family.mother_hf_id = unit.relationship_ids.Mother
+        end
+        if unit.relationship_ids.Father >= 0 then
+            family.father_hf_id = unit.relationship_ids.Father
+        end
+        if unit.relationship_ids.Spouse >= 0 then
+            family.spouse_hf_id = unit.relationship_ids.Spouse
+        end
+    end)
+
+    -- Children via historical figure links
+    if unit.hist_figure_id >= 0 then
+        local hf_ok, _ = pcall(function()
+            local hf = df.historical_figure.find(unit.hist_figure_id)
+            if hf then
+                local children = {}
+                for _, link in ipairs(hf.histfig_links) do
+                    if link._type == df.histfig_hf_link_childst then
+                        table.insert(children, link.target_hf)
+                    end
+                end
+                if #children > 0 then
+                    family.children_hf_ids = children
+                end
+            end
+        end)
+    end
+
+    if next(family) then
+        return family
+    end
+    return nil
+end
+
+-- ── Book Detection ──────────────────────────────────────────────────
+-- Extracts book title from an item (for written works).
+
+local function get_book_title(item)
+    local ok, title = pcall(function()
+        return dfhack.items.getBookTitle(item)
+    end)
+    if ok and title and title ~= '' then
+        return dfhack.df2utf(title)
+    end
+    return nil
+end
+
+-- ── Eventful Initialization ─────────────────────────────────────────
+-- Subscribe to DFHack eventful callbacks (once per session).
+
+local function init_eventful()
+    if chronicler_state.eventful_init then return end
+
+    local ev_ok, eventful = pcall(function()
+        return require('plugins.eventful')
+    end)
+    if not ev_ok or not eventful then
+        dfhack.printerr('[Chronicler] eventful plugin not available — reactive events disabled')
+        return
+    end
+
+    -- UNIT_DEATH: enrich with death cause immediately
+    eventful.onUnitDeath['chronicler'] = function(unit_id)
+        local entry = {
+            unit_id = unit_id,
+            tick = dfhack.world.ReadCurrentTick(),
+        }
+        -- Enrich with death cause from incidents
+        local cause = get_death_cause(unit_id)
+        if cause then
+            entry.death_cause = cause.death_cause
+            entry.death_cause_id = cause.death_cause_id
+            entry.killer_unit_id = cause.killer_unit_id
+            entry.killer_name = cause.killer_name
+            entry.killer_race = cause.killer_race
+            entry.killer_hf_id = cause.killer_hf_id
+        end
+        -- Unit name for immediate identification
+        local unit = df.unit.find(unit_id)
+        if unit and unit.name and unit.name.has_name then
+            entry.name = dfhack.df2utf(dfhack.translation.translateName(unit.name))
+            entry.race = unit.race
+            entry.hf_id = unit.hist_figure_id
+        end
+        table.insert(chronicler_state.pending_events.unit_deaths, entry)
+    end
+
+    -- UNIT_NEW_ACTIVE: new unit appeared in active list
+    eventful.onUnitNewActive['chronicler'] = function(unit_id)
+        local entry = {
+            unit_id = unit_id,
+            tick = dfhack.world.ReadCurrentTick(),
+        }
+        local unit = df.unit.find(unit_id)
+        if unit then
+            entry.race = unit.race
+            entry.civ_id = unit.civ_id
+            if unit.name and unit.name.has_name then
+                entry.name = dfhack.df2utf(dfhack.translation.translateName(unit.name))
+            end
+        end
+        table.insert(chronicler_state.pending_events.new_units, entry)
+    end
+
+    -- ITEM_CREATED: detect books and notable items
+    eventful.onItemCreated['chronicler'] = function(item_id)
+        local item = df.item.find(item_id)
+        if not item then return end
+        local entry = {
+            item_id = item_id,
+            tick = dfhack.world.ReadCurrentTick(),
+            item_type = item:getType(),
+        }
+        -- Check for book title
+        local title = get_book_title(item)
+        if title then
+            entry.book_title = title
+        end
+        table.insert(chronicler_state.pending_events.items_created, entry)
+    end
+
+    -- JOB_COMPLETED
+    eventful.onJobCompleted['chronicler'] = function(job)
+        table.insert(chronicler_state.pending_events.jobs_completed, {
+            job_type = tostring(job.job_type),
+            pos = {x = job.pos.x, y = job.pos.y, z = job.pos.z},
+            tick = dfhack.world.ReadCurrentTick(),
+        })
+    end
+
+    -- SYNDROME: tracks syndrome onset (injuries, illnesses, curses)
+    eventful.onSyndrome['chronicler'] = function(unit_id, syndrome_index)
+        table.insert(chronicler_state.pending_events.syndromes, {
+            unit_id = unit_id,
+            syndrome_index = syndrome_index,
+            tick = dfhack.world.ReadCurrentTick(),
+        })
+    end
+
+    -- INVASION
+    eventful.onInvasion['chronicler'] = function(invasion_id)
+        table.insert(chronicler_state.pending_events.invasions, {
+            invasion_id = invasion_id,
+            tick = dfhack.world.ReadCurrentTick(),
+        })
+    end
+
+    -- Enable event checking (0 = every tick for immediate capture)
+    eventful.enableEvent(eventful.eventType.UNIT_DEATH, 0)
+    eventful.enableEvent(eventful.eventType.UNIT_NEW_ACTIVE, 0)
+    eventful.enableEvent(eventful.eventType.ITEM_CREATED, 0)
+    eventful.enableEvent(eventful.eventType.JOB_COMPLETED, 0)
+    eventful.enableEvent(eventful.eventType.SYNDROME, 0)
+    eventful.enableEvent(eventful.eventType.INVASION, 0)
+
+    chronicler_state.eventful_init = true
+    print('[Chronicler] v8 eventful subscriptions active')
+end
+
+-- ── Flush Event Buffers ─────────────────────────────────────────────
+-- Atomically swap buffers and return accumulated events since last cycle.
+
+local function flush_events()
+    local events = chronicler_state.pending_events
+    chronicler_state.pending_events = {
+        unit_deaths = {},
+        new_units = {},
+        items_created = {},
+        jobs_completed = {},
+        syndromes = {},
+        invasions = {},
+    }
+    -- Count total events
+    local total = 0
+    for _, buf in pairs(events) do
+        total = total + #buf
+    end
+    events.total_count = total
+    return events
+end
+
+-- ── Skill Delta Tracking ────────────────────────────────────────────
+-- Compares current skill ratings against stored snapshot; returns changes.
+
+local function get_skill_changes()
+    local units = df.global.world.units.active
+    local player_race = df.global.plotinfo.race_id
+    local player_civ = df.global.plotinfo.civ_id
+    local changes = {}
+    local new_snapshots = {}
+
+    for i = 0, #units - 1 do
+        local u = units[i]
+        if u.race == player_race and u.civ_id == player_civ
+           and not dfhack.units.isDead(u)
+           and u.status and u.status.current_soul then
+
+            local uid = u.id
+            local prev = chronicler_state.skill_snapshots[uid] or {}
+            local curr = {}
+            local unit_changes = {}
+
+            local soul_skills = u.status.current_soul.skills
+            for j = 0, #soul_skills - 1 do
+                local sk = soul_skills[j]
+                local sid = sk.id
+                curr[sid] = sk.rating
+                local old_rating = prev[sid] or 0
+                if sk.rating > old_rating then
+                    table.insert(unit_changes, {
+                        skill_id = sid,
+                        skill_name = df.job_skill[sid] or tostring(sid),
+                        old_rating = old_rating,
+                        new_rating = sk.rating,
+                    })
+                end
+            end
+
+            new_snapshots[uid] = curr
+            if #unit_changes > 0 then
+                local entry = {
+                    unit_id = uid,
+                    changes = unit_changes,
+                }
+                if u.name and u.name.has_name then
+                    entry.first_name = to_utf8(u.name.first_name)
+                end
+                table.insert(changes, entry)
+            end
+        end
+    end
+
+    chronicler_state.skill_snapshots = new_snapshots
+    return {
+        dwarf_count = #changes,
+        dwarves = changes,
+    }
 end
 
 -- ── Game Time ──────────────────────────────────────────────────────────
@@ -183,6 +499,12 @@ local function get_unit_summary()
                     entry.relationships = rels
                 end
             end)
+
+            -- v8: Family chain (parent/spouse/children HF IDs)
+            local family = get_family_chain(u)
+            if family then
+                entry.family = family
+            end
 
             table.insert(dwarves, entry)
         end
@@ -1019,11 +1341,14 @@ end
 -- ── Main: assemble and write ─────────────────────────────────────────
 
 local function write_state()
+    -- v8: Initialize eventful subscriptions on first run
+    init_eventful()
+
     local state = get_game_time()
     state.creature_raws = get_creature_raws()
     state.creature_count = #df.global.world.raws.creatures.all
     state.timestamp = os.time()
-    state.bridge_version = 7
+    state.bridge_version = 8
 
     -- Data sections (each wrapped in pcall for safety)
     local ok, result
@@ -1059,6 +1384,11 @@ local function write_state()
     safe_add('squads', get_squads)
     safe_add('mandates', get_mandates)
     safe_add('incidents', get_incidents)
+
+    -- v8: Reactive events (flushed from eventful buffers)
+    safe_add('reactive_events', flush_events)
+    -- v8: Skill delta tracking
+    safe_add('skill_changes', get_skill_changes)
 
     if next(errors) then
         state.errors = errors

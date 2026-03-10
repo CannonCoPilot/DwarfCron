@@ -31,8 +31,7 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
                                death_cause, details, last_synced_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
                     $14, $15, $16, $17, $18)
-            ON CONFLICT (id) DO UPDATE SET
-                world_id = EXCLUDED.world_id,
+            ON CONFLICT (world_id, id) DO UPDATE SET
                 name = EXCLUDED.name,
                 english_name = EXCLUDED.english_name,
                 race = EXCLUDED.race,

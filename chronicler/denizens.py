@@ -481,7 +481,7 @@ async def link_hf(
         """
         SELECT d.id, d.unit_id, u.hist_fig_id
         FROM fortress_denizens d
-        JOIN units u ON u.id = d.unit_id
+        JOIN units u ON u.id = d.unit_id AND u.world_id = d.world_id
         WHERE d.world_id = $1
           AND d.hf_id IS NULL
           AND u.hist_fig_id IS NOT NULL

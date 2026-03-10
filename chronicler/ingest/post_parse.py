@@ -500,9 +500,38 @@ class PostParseProcessor:
         """, wid)
         backfilled = int(status.split()[-1]) if status else 0
 
-        log.info("  Step 9 complete: %d sites with ownership history, %s backfilled owner_entity_id",
-                 updated, backfilled or 0)
-        return {"sites_updated": updated, "owners_backfilled": backfilled or 0}
+        # Derive entity_site_links from ownership history events
+        # Each ownership change creates a link record with temporal data
+        esl_inserted = 0
+        for site_id, history in site_history.items():
+            for entry in history:
+                eid = entry.get("entity_id")
+                if eid is None:
+                    continue
+                event_type = entry.get("event", "")
+                if "destroyed" in event_type:
+                    link_type = "destroyed"
+                elif event_type in ("created site",):
+                    link_type = "founded"
+                elif event_type in ("site taken over", "reclaim site"):
+                    link_type = "conquered"
+                elif event_type in ("attacked site", "plundered site"):
+                    link_type = "attacked"
+                else:
+                    link_type = "owner"
+                await self.conn.execute("""
+                    INSERT INTO entity_site_links
+                        (world_id, entity_id, site_id, link_type, start_year, link_strength)
+                    VALUES ($1, $2, $3, $4, $5, 100)
+                    ON CONFLICT (world_id, entity_id, site_id, link_type) DO UPDATE SET
+                        start_year = COALESCE(EXCLUDED.start_year, entity_site_links.start_year)
+                """, wid, eid, site_id, link_type, entry.get("year"))
+                esl_inserted += 1
+
+        log.info("  Step 9 complete: %d sites with ownership history, %s backfilled owner_entity_id, %d entity_site_links",
+                 updated, backfilled or 0, esl_inserted)
+        return {"sites_updated": updated, "owners_backfilled": backfilled or 0,
+                "entity_site_links": esl_inserted}
 
     async def step_10_materialize_hf_settlement_links(self) -> dict:
         """Materialize resident/former resident links from change-hf-state events.

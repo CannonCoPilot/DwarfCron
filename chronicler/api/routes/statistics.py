@@ -213,7 +213,8 @@ async def population_model(request: Request, world_id: int = Query(...)):
                    COALESCE(sr.residents, 0) AS residents
             FROM entity_pop ep
             LEFT JOIN site_res sr ON sr.site_id = ep.site_id
-            ORDER BY ep.population DESC
+            WHERE ep.population > 0 OR COALESCE(sr.residents, 0) > 0
+            ORDER BY ABS(ep.population - COALESCE(sr.residents, 0)) DESC
             LIMIT 50
             """,
             world_id,
