@@ -1249,6 +1249,212 @@ async def entity_detail_page(entity_id: int, request: Request,
             conn, world_id, entity_id, limit=10000, offset=0,
         )
 
+        # ── For Site Governments: augment members with all citizen sources ──
+        # Citizens come from 3 sources (SG members, site links, position
+        # holders), but fetch_civilization_members only queries hf_entity_links.
+        # Add the missing citizens so the Members tab shows everyone.
+        is_site_government = (entity.get('type') or '').lower() == 'sitegovernment'
+        if is_site_government:
+            from chronicler.api.routes.civilizations import (
+                SENTIENCE_FILTER as _SF, SENTIENCE_JOIN as _SJ,
+            )
+            existing_hf_ids = {m["hf_id"] for m in members_data["members"]}
+            # Find sites owned by this SG
+            sg_site_ids = [
+                r["id"] for r in await conn.fetch(
+                    "SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = $2",
+                    world_id, entity_id,
+                )
+            ]
+            extra_citizens = []
+            if sg_site_ids:
+                # Source 2: hf_site_links (resident/occupation/seat of power)
+                site_link_rows = await conn.fetch(f"""
+                    SELECT DISTINCT ON (hsl.hf_id)
+                           hsl.hf_id, hf.name, hf.race, hf.death_year,
+                           'citizen (site link)' AS link_type,
+                           hsl.link_type AS site_link_detail,
+                           hf.skills
+                    FROM hf_site_links hsl
+                    JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
+                    {_SJ}
+                    WHERE hsl.world_id = $1 AND hsl.site_id = ANY($2::int[])
+                      AND hsl.link_type NOT IN ('former resident')
+                      AND hf.death_year IS NULL AND {_SF}
+                    ORDER BY hsl.hf_id
+                """, world_id, sg_site_ids)
+                for r in site_link_rows:
+                    if r["hf_id"] not in existing_hf_ids:
+                        d = dict(r)
+                        skills = d.pop("skills", None)
+                        d.pop("death_year", None)
+                        profession = None
+                        if skills and isinstance(skills, list):
+                            top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
+                            if top:
+                                profession = top["name"].replace("_", " ").title()
+                        d["profession"] = profession
+                        d["position_name"] = None
+                        d["is_alive"] = True
+                        d["is_citizen"] = True
+                        extra_citizens.append(d)
+                        existing_hf_ids.add(r["hf_id"])
+
+            # Source 3: position holders at this SG
+            pos_rows = await conn.fetch(f"""
+                SELECT DISTINCT ON (hpl.hf_id)
+                       hpl.hf_id, hf.name, hf.race, hf.death_year,
+                       'citizen (position)' AS link_type,
+                       ep.name AS position_name,
+                       hf.skills
+                FROM hf_position_links hpl
+                JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
+                {_SJ}
+                LEFT JOIN entity_positions ep ON ep.world_id = hpl.world_id
+                    AND ep.entity_id = hpl.entity_id AND ep.position_id = hpl.position_id
+                WHERE hpl.world_id = $1 AND hpl.entity_id = $2
+                  AND hpl.end_year IS NULL
+                  AND hf.death_year IS NULL AND {_SF}
+                ORDER BY hpl.hf_id
+            """, world_id, entity_id)
+            for r in pos_rows:
+                if r["hf_id"] not in existing_hf_ids:
+                    d = dict(r)
+                    skills = d.pop("skills", None)
+                    d.pop("death_year", None)
+                    profession = None
+                    if skills and isinstance(skills, list):
+                        top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
+                        if top:
+                            profession = top["name"].replace("_", " ").title()
+                    d["profession"] = profession
+                    d["is_alive"] = True
+                    d["is_citizen"] = True
+                    extra_citizens.append(d)
+                    existing_hf_ids.add(r["hf_id"])
+
+            if extra_citizens:
+                members_data["members"].extend(extra_citizens)
+                members_data["total"] += len(extra_citizens)
+
+            # Recalculate is_citizen for ALL members using canonical citizen
+            # set. This fixes former members who are citizens via site links
+            # (their is_citizen was False because the base query only checks
+            # hf_entity_links.link_type = 'member').
+            from chronicler.api.routes.civilizations import (
+                fetch_site_citizens_batch,
+            )
+            canonical_citizens = await fetch_site_citizens_batch(
+                conn, world_id, sg_site_ids,
+            )
+            # Get the actual citizen HF IDs by running the citizen query
+            citizen_hf_ids_rows = await conn.fetch(f"""
+                SELECT DISTINCT hf_id FROM (
+                    -- Source 1: SG members
+                    SELECT hel.hf_id
+                    FROM hf_entity_links hel
+                    JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
+                    {_SJ}
+                    WHERE hel.world_id = $1 AND hel.entity_id = $2
+                      AND hel.link_type = 'member'
+                      AND hf.death_year IS NULL AND {_SF}
+                    UNION
+                    -- Source 2: site links (exclude former resident)
+                    SELECT hsl.hf_id
+                    FROM hf_site_links hsl
+                    JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
+                    {_SJ}
+                    WHERE hsl.world_id = $1 AND hsl.site_id = ANY($3::int[])
+                      AND hsl.link_type != 'former resident'
+                      AND hf.death_year IS NULL AND {_SF}
+                    UNION
+                    -- Source 3: position holders
+                    SELECT hpl.hf_id
+                    FROM hf_position_links hpl
+                    JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
+                    {_SJ}
+                    WHERE hpl.world_id = $1 AND hpl.entity_id = $2
+                      AND hpl.end_year IS NULL
+                      AND hf.death_year IS NULL AND {_SF}
+                ) sub
+            """, world_id, entity_id, sg_site_ids)
+            citizen_hf_set = {r["hf_id"] for r in citizen_hf_ids_rows}
+
+            # Override is_citizen and recount
+            current_total = 0
+            alive_total = 0
+            current_alive = 0
+            former_total = 0
+            for m in members_data["members"]:
+                m["is_citizen"] = m["hf_id"] in citizen_hf_set
+                is_current = (m.get("link_type") == "member"
+                              or m["is_citizen"]
+                              or (m.get("link_type") or "").startswith("citizen"))
+                is_alive = m.get("is_alive", False)
+                if is_current:
+                    current_total += 1
+                    if is_alive:
+                        current_alive += 1
+                else:
+                    former_total += 1
+                if is_alive:
+                    alive_total += 1
+            members_data["current_total"] = current_total
+            members_data["former_total"] = former_total
+            members_data["alive_total"] = alive_total
+            members_data["current_alive"] = current_alive
+
+        # ── For Site Governments: separate ne'er-do-wells from members ──
+        sg_neerdowells = []
+        if is_site_government:
+            # Query adversarial HF links to this SG
+            sg_adversarial = await conn.fetch("""
+                SELECT hel.hf_id, hel.link_type AS threat_type
+                FROM hf_entity_links hel
+                WHERE hel.world_id = $1 AND hel.entity_id = $2
+                  AND hel.link_type IN ('enemy', 'criminal', 'prisoner',
+                                        'former prisoner', 'slave', 'former slave')
+            """, world_id, entity_id)
+            adversarial_map = {
+                r["hf_id"]: r["threat_type"].replace("_", " ").title()
+                for r in sg_adversarial
+            }
+
+            if adversarial_map:
+                clean_members = []
+                for m in members_data["members"]:
+                    threat = adversarial_map.get(m["hf_id"])
+                    if threat:
+                        m["threat_type"] = threat
+                        m["threat_basis"] = "entity link"
+                        sg_neerdowells.append(m)
+                    else:
+                        clean_members.append(m)
+                members_data["members"] = clean_members
+                # Recount after filtering
+                members_data["total"] = len(clean_members)
+                current_total = 0
+                alive_total = 0
+                current_alive = 0
+                former_total = 0
+                for m in clean_members:
+                    is_current = (m.get("link_type") == "member"
+                                  or m.get("is_citizen", False)
+                                  or (m.get("link_type") or "").startswith("citizen"))
+                    is_alive = m.get("is_alive", False)
+                    if is_current:
+                        current_total += 1
+                        if is_alive:
+                            current_alive += 1
+                    else:
+                        former_total += 1
+                    if is_alive:
+                        alive_total += 1
+                members_data["current_total"] = current_total
+                members_data["former_total"] = former_total
+                members_data["alive_total"] = alive_total
+                members_data["current_alive"] = current_alive
+
         # Leaders — full position history with start/end years
         # (detail-page advantage over inline viewer which only shows current holders)
         leaders = await conn.fetch("""
@@ -1333,6 +1539,7 @@ async def entity_detail_page(entity_id: int, request: Request,
         "member_count": member_total,
         "member_counts": member_counts,
         "wars": wars,
+        "sg_neerdowells": sg_neerdowells,
         "prev_entity": dict(prev_ent) if prev_ent else None,
         "next_entity": dict(next_ent) if next_ent else None,
         "linker": _linker,
@@ -1446,42 +1653,101 @@ async def site_detail_page(site_id: int, request: Request,
                 'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
-        # Residents (HFs linked to this site via hf_site_links)
-        # Enhanced: include is_citizen (living+sentient+current member of site owner),
-        # profession (from highest-IP skill), and position (from entity positions)
+        # Residents: canonical UNION of all sources matching fetch_site_residents_batch
+        # Sources: SG members + hf_site_links + position holders + whereabouts
+        # No LIMIT — load all residents; the UI provides scroll + filtering
         from chronicler.api.routes.civilizations import (
             SENTIENCE_FILTER, SENTIENCE_JOIN, fetch_site_residents_count,
         )
         owner_entity_id = site.get('owner_entity_id')
         residents_raw = await conn.fetch(f"""
-            SELECT l.hf_id, l.link_type,
-                   hf.name, hf.race, hf.caste, hf.birth_year, hf.death_year,
-                   hf.is_vampire, hf.is_necromancer, hf.is_werebeast, hf.is_ghost,
-                   hf.is_deity, hf.is_force, hf.skills,
-                   pos.position_name,
-                   (hf.death_year IS NULL AND {SENTIENCE_FILTER}
-                    AND EXISTS (
-                        SELECT 1 FROM hf_entity_links hel2
-                        WHERE hel2.world_id = hf.world_id AND hel2.hf_id = hf.id
-                          AND hel2.link_type = 'member'
-                          AND ($3::int IS NULL OR hel2.entity_id = $3)
-                    )) AS is_citizen
-            FROM hf_site_links l
-            JOIN historical_figures hf ON hf.world_id = l.world_id AND hf.id = l.hf_id
-            {SENTIENCE_JOIN}
-            LEFT JOIN LATERAL (
-                SELECT ep.name AS position_name
-                FROM hf_position_links hpl
-                JOIN entity_positions ep
-                    ON ep.world_id = hpl.world_id AND ep.entity_id = hpl.entity_id
-                    AND ep.position_id = hpl.position_id
-                WHERE hpl.world_id = l.world_id AND hpl.hf_id = l.hf_id
-                ORDER BY hpl.end_year IS NULL DESC, hpl.start_year DESC
-                LIMIT 1
-            ) pos ON true
-            WHERE l.world_id = $1 AND l.site_id = $2
-            ORDER BY l.link_type, hf.name
-            LIMIT 500
+            SELECT * FROM (
+                SELECT DISTINCT ON (sub.hf_id)
+                       sub.hf_id, sub.link_type,
+                       hf.name, hf.race, hf.caste, hf.birth_year, hf.death_year,
+                       hf.is_vampire, hf.is_necromancer, hf.is_werebeast, hf.is_ghost,
+                       hf.is_deity, hf.is_force, hf.skills,
+                       hf.whereabouts,
+                       pos.position_name,
+                       mem.member_status,
+                       (hf.death_year IS NULL AND {SENTIENCE_FILTER}
+                        AND EXISTS (
+                            SELECT 1 FROM hf_entity_links hel2
+                            WHERE hel2.world_id = hf.world_id AND hel2.hf_id = hf.id
+                              AND hel2.link_type = 'member'
+                              AND ($3::int IS NULL OR hel2.entity_id = $3)
+                        )) AS is_citizen,
+                       CASE
+                           WHEN hf.death_year IS NOT NULL OR NOT ({SENTIENCE_FILTER}) THEN NULL
+                           WHEN mem.member_status = 'member' THEN 'SG member'
+                           WHEN sub.link_type IN ('resident', 'occupation', 'seat of power') THEN 'site link'
+                           WHEN sub.link_type = 'position_holder' THEN 'position'
+                           ELSE NULL
+                       END AS citizen_reason,
+                       CASE
+                           WHEN hf.death_year IS NOT NULL OR NOT ({SENTIENCE_FILTER}) THEN NULL
+                           WHEN mem.member_status = 'member' THEN 'citizen'
+                           WHEN sub.link_type IN ('resident', 'occupation', 'seat of power') THEN 'citizen'
+                           WHEN sub.link_type = 'position_holder' THEN 'citizen'
+                           WHEN sub.link_type = 'whereabouts' THEN 'whereabouts'
+                           ELSE NULL
+                       END AS resident_reason
+                FROM (
+                    -- Source 1: hf_site_links (residents/former residents)
+                    SELECT hsl.hf_id, hsl.link_type,
+                        CASE hsl.link_type
+                            WHEN 'resident' THEN 1
+                            WHEN 'occupation' THEN 2
+                            WHEN 'seat of power' THEN 3
+                            WHEN 'former resident' THEN 8
+                            ELSE 4
+                        END AS priority
+                    FROM hf_site_links hsl
+                    WHERE hsl.world_id = $1 AND hsl.site_id = $2
+                    UNION ALL
+                    -- Source 2: SG members (citizens via entity membership)
+                    SELECT hel.hf_id, 'sg_member' AS link_type, 5 AS priority
+                    FROM entities sg
+                    JOIN hf_entity_links hel ON hel.world_id = sg.world_id
+                        AND hel.entity_id = sg.id AND hel.link_type = 'member'
+                    WHERE sg.world_id = $1 AND sg.id = COALESCE($3, -1)
+                        AND sg.type = 'sitegovernment'
+                    UNION ALL
+                    -- Source 3: position holders at governing entity
+                    SELECT hpl.hf_id, 'position_holder' AS link_type, 0 AS priority
+                    FROM hf_position_links hpl
+                    WHERE hpl.world_id = $1 AND hpl.entity_id = COALESCE($3, -1)
+                        AND hpl.end_year IS NULL
+                    UNION ALL
+                    -- Source 4: physical presence via whereabouts
+                    SELECT hfw.id AS hf_id, 'whereabouts' AS link_type, 6 AS priority
+                    FROM historical_figures hfw
+                    WHERE hfw.world_id = $1 AND hfw.death_year IS NULL
+                        AND (hfw.whereabouts->>'site_id')::int = $2
+                ) sub
+                JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = sub.hf_id
+                {SENTIENCE_JOIN}
+                LEFT JOIN LATERAL (
+                    SELECT ep.name AS position_name
+                    FROM hf_position_links hpl
+                    JOIN entity_positions ep
+                        ON ep.world_id = hpl.world_id AND ep.entity_id = hpl.entity_id
+                        AND ep.position_id = hpl.position_id
+                    WHERE hpl.world_id = $1 AND hpl.hf_id = sub.hf_id
+                    ORDER BY hpl.end_year IS NULL DESC, hpl.start_year DESC
+                    LIMIT 1
+                ) pos ON true
+                LEFT JOIN LATERAL (
+                    SELECT hel.link_type AS member_status
+                    FROM hf_entity_links hel
+                    WHERE hel.world_id = $1 AND hel.hf_id = sub.hf_id
+                      AND hel.entity_id = COALESCE($3, -1)
+                    ORDER BY CASE hel.link_type WHEN 'member' THEN 0 ELSE 1 END
+                    LIMIT 1
+                ) mem ON true
+                ORDER BY sub.hf_id, sub.priority, sub.link_type
+            ) deduped
+            ORDER BY link_type, name
         """, world_id, site_id, owner_entity_id)
         residents = []
         for r in residents_raw:
@@ -1495,6 +1761,105 @@ async def site_detail_page(site_id: int, request: Request,
                     profession = top["name"].replace("_", " ").title()
             d["profession"] = profession
             residents.append(d)
+
+        # ── Ne'er-do-well detection ──────────────────────────────────────
+        # Query adversarial HF links to the governing SG entity
+        neerdowell_info = {}  # hf_id -> {"threat_type": str, "basis": str}
+        if owner_entity_id:
+            adversarial_rows = await conn.fetch("""
+                SELECT hel.hf_id, hel.link_type AS threat_type
+                FROM hf_entity_links hel
+                WHERE hel.world_id = $1 AND hel.entity_id = $2
+                  AND hel.link_type IN ('enemy', 'criminal', 'prisoner',
+                                        'former prisoner', 'slave', 'former slave')
+            """, world_id, owner_entity_id)
+            for r in adversarial_rows:
+                neerdowell_info[r["hf_id"]] = {
+                    "threat_type": r["threat_type"].replace("_", " ").title(),
+                    "basis": "entity link",
+                }
+
+        # ── Population taxonomy: classify each resident ──────────────────
+        # Priority: Ne'er-do-well > Citizen > Resident > Visitor
+        # "Native" XML link types are persistent (home structure, seat of power, etc.)
+        # "Materialized" link types (resident, former resident) derive from events
+        # and may be stale if the HF has since moved elsewhere.
+        NATIVE_STRUCTURAL_LINKS = {
+            'home structure', 'home site building',
+            'seat of power', 'occupation', 'hangout',
+        }
+        ALL_STRUCTURAL_LINKS = NATIVE_STRUCTURAL_LINKS | {'resident'}
+        denizens = []
+        neerdowells = []
+        citizen_count = 0
+        resident_count = 0
+        visitor_count = 0
+
+        for r in residents:
+            hf_id = r["hf_id"]
+            link_type = r.get("link_type", "")
+
+            # Skip former residents with no other presence (fail presence gate)
+            if link_type == 'former resident':
+                continue
+
+            # Presence gate: if link is 'resident' (materialized from settler
+            # events), cross-check whereabouts. If whereabouts places HF at a
+            # different site, the resident link is stale — skip this HF.
+            if link_type == 'resident':
+                whereabouts = r.get("whereabouts") or {}
+                if isinstance(whereabouts, dict):
+                    wb_site = whereabouts.get("site_id")
+                    if wb_site is not None and wb_site != site_id:
+                        continue  # HF has moved to a different site
+
+            # Priority 1: Ne'er-do-well
+            ndw = neerdowell_info.get(hf_id)
+            # Indirect: lair holders
+            if not ndw and link_type == 'lair':
+                ndw = {"threat_type": "Lair", "basis": "lair at site"}
+            # Indirect: werebeast/vampire without SG membership
+            if not ndw and (r.get("is_werebeast") or r.get("is_vampire")):
+                if not r.get("member_status") or r["member_status"] != 'member':
+                    creature = "Werebeast" if r.get("is_werebeast") else "Vampire"
+                    ndw = {"threat_type": creature, "basis": f"{creature.lower()} without SG membership"}
+
+            if ndw:
+                r["population_type"] = "Ne'er-do-well"
+                r["threat_type"] = ndw["threat_type"]
+                r["threat_basis"] = ndw["basis"]
+                r["has_structural_link"] = link_type in ALL_STRUCTURAL_LINKS
+                neerdowells.append(r)
+                continue
+
+            # Priority 2: Citizen
+            if r.get("is_citizen"):
+                r["population_type"] = "Citizen"
+                citizen_count += 1
+                denizens.append(r)
+                continue
+
+            # Priority 3: Resident (structural link)
+            if link_type in ALL_STRUCTURAL_LINKS:
+                r["population_type"] = "Resident"
+                resident_count += 1
+                denizens.append(r)
+                continue
+
+            # Priority 3b: Settler via whereabouts → Resident
+            whereabouts = r.get("whereabouts") or {}
+            if isinstance(whereabouts, dict):
+                wb_state = whereabouts.get("state", "")
+                if wb_state in ("settled", "settler"):
+                    r["population_type"] = "Resident"
+                    resident_count += 1
+                    denizens.append(r)
+                    continue
+
+            # Priority 4: Visitor (event-only presence)
+            r["population_type"] = "Visitor"
+            visitor_count += 1
+            denizens.append(r)
 
         # Residents: living sentient HFs at this site
         residents_count = await fetch_site_residents_count(conn, world_id, site_id)
@@ -1554,6 +1919,13 @@ async def site_detail_page(site_id: int, request: Request,
         "structures": [dict(s) for s in structures],
         "owner": dict(owner) if owner else None,
         "ownership_timeline": ownership_timeline,
+        "denizens": denizens,
+        "neerdowells": neerdowells,
+        "citizen_count": citizen_count,
+        "resident_count": resident_count,
+        "visitor_count": visitor_count,
+        "denizens_count": len(denizens),
+        "neerdowells_count": len(neerdowells),
         "residents": residents,
         "residents_count": residents_count,
         "events": rendered_events,

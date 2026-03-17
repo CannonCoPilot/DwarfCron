@@ -33,7 +33,8 @@
     {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
     <span>Structures: {{ structures|length }}</span>
     <span>Events: {{ event_count }}</span>
-    {% if residents_count is defined and residents_count > 0 %}<span>Residents: {{ "{:,}".format(residents_count) }}</span>{% endif %}
+    {% if denizens_count is defined and denizens_count > 0 %}<span>Denizens: {{ "{:,}".format(denizens_count) }} ({{ citizen_count }} Citizens, {{ resident_count }} Residents, {{ visitor_count }} Visitors)</span>{% endif %}
+    {% if neerdowells_count is defined and neerdowells_count > 0 %}<span>Ne'er-do-wells: {{ neerdowells_count }}</span>{% endif %}
     {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
     {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
   </div>
@@ -66,7 +67,8 @@
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-structures" onclick="switchDetailTab('structures')">Structures ({{ structures|length }})</button>
-  {% if residents %}<button class="detail-tab" id="dtab-residents" onclick="switchDetailTab('residents')">Residents ({{ residents|length }}{% if residents|length >= 500 %}+{% endif %})</button>{% endif %}
+  {% if denizens %}<button class="detail-tab" id="dtab-denizens" onclick="switchDetailTab('denizens')">Denizens ({{ denizens|length }})</button>{% endif %}
+  {% if neerdowells %}<button class="detail-tab" id="dtab-neerdowells" onclick="switchDetailTab('neerdowells')">Ne'er-do-wells ({{ neerdowells|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-history" onclick="switchDetailTab('history')">History ({{ event_count }})</button>
   {% if ownership_timeline %}<button class="detail-tab" id="dtab-ownership" onclick="switchDetailTab('ownership')">Ownership ({{ ownership_timeline|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
@@ -124,12 +126,11 @@
       {% if owner %}
         <div><span class="text-stone-500">Government:</span> {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</div>
       {% endif %}
-      {% if residents_count is defined and residents_count > 0 %}
-        <div><span class="text-stone-500">Residents:</span> {{ "{:,}".format(residents_count) }}</div>
+      {% if denizens_count is defined and denizens_count > 0 %}
+        <div><span class="text-stone-500">Denizens:</span> {{ "{:,}".format(denizens_count) }} ({{ citizen_count }} Citizens, {{ resident_count }} Residents, {{ visitor_count }} Visitors)</div>
       {% endif %}
-      {% if residents %}
-        {% set alive_res_count = residents|selectattr('death_year', 'none')|list|length %}
-        <div><span class="text-stone-500">Site-Linked Residents:</span> {{ "{:,}".format(alive_res_count) }} alive / {{ residents|length }} total</div>
+      {% if neerdowells_count is defined and neerdowells_count > 0 %}
+        <div><span class="text-stone-500">Ne'er-do-wells:</span> {{ neerdowells_count }}</div>
       {% endif %}
       {% if is_ruin %}
         <div><span class="text-stone-500">Status:</span> <span class="text-red-400">Ruined</span></div>
@@ -184,52 +185,50 @@
 </div>
 {% endif %}
 
-{# Residents Tab #}
-{% if residents %}
-{% set alive_residents = residents|selectattr('death_year', 'none')|list %}
-{% set dead_residents = residents|rejectattr('death_year', 'none')|list %}
-{% set link_types = residents|map(attribute='link_type')|unique|sort|list %}
-<div id="dtab-content-residents" class="tab-content">
+{# Denizens Tab (Citizens + Residents + Visitors) #}
+{% if denizens %}
+{% set alive_denizens = denizens|selectattr('death_year', 'none')|list %}
+{% set dead_denizens = denizens|rejectattr('death_year', 'none')|list %}
+<div id="dtab-content-denizens" class="tab-content">
   <div class="section-card">
-    <div class="section-title" id="residents-title">Residents ({{ alive_residents|length }} alive / {{ residents|length }} total{% if residents|length >= 200 %}+{% endif %})</div>
+    <div class="section-title" id="denizens-title">Denizens ({{ alive_denizens|length }} alive / {{ denizens|length }} total)</div>
     {# ── Filter chips ── #}
-    <div class="flex flex-wrap gap-1.5 mb-2" id="residents-chips">
-      <button class="filter-chip active" data-filter="status" data-value="alive" onclick="toggleResidentChip(this)">
-        Alive ({{ alive_residents|length }})
+    <div class="flex flex-wrap gap-1.5 mb-2" id="denizens-chips">
+      <button class="filter-chip active" data-filter="status" data-value="alive" onclick="toggleDenizenChip(this)">
+        Alive ({{ alive_denizens|length }})
       </button>
-      <button class="filter-chip" data-filter="status" data-value="dead" onclick="toggleResidentChip(this)">
-        Dead ({{ dead_residents|length }})
+      <button class="filter-chip" data-filter="status" data-value="dead" onclick="toggleDenizenChip(this)">
+        Dead ({{ dead_denizens|length }})
       </button>
-      {% if link_types|length > 1 %}
       <span class="text-stone-700 mx-0.5">|</span>
-      {% for lt in link_types %}
-      <button class="filter-chip active" data-filter="linktype" data-value="{{ lt }}" onclick="toggleResidentChip(this)">
-        {{ lt|title }} ({{ residents|selectattr('link_type', 'equalto', lt)|list|length }})
+      <button class="filter-chip active" data-filter="poptype" data-value="Citizen" onclick="toggleDenizenChip(this)">
+        Citizens ({{ citizen_count }})
       </button>
-      {% endfor %}
-      {% endif %}
+      <button class="filter-chip active" data-filter="poptype" data-value="Resident" onclick="toggleDenizenChip(this)">
+        Residents ({{ resident_count }})
+      </button>
+      <button class="filter-chip active" data-filter="poptype" data-value="Visitor" onclick="toggleDenizenChip(this)">
+        Visitors ({{ visitor_count }})
+      </button>
     </div>
-    {% if residents_count is defined and residents_count > 0 and alive_residents|length < residents_count %}
-    <p class="text-stone-500 text-[10px] mb-2">This site has {{ "{:,}".format(residents_count) }} living sentient residents (via whereabouts + site links). The table below shows only HFs with explicit site-link records.</p>
-    {% endif %}
     <div class="max-h-[600px] overflow-y-auto ex-scroll">
-      <table class="w-full text-sm" id="residents-table">
+      <table class="w-full text-sm" id="denizens-table">
         <thead class="sticky top-0 bg-stone-900">
           <tr class="text-stone-500 border-b border-stone-800 text-xs">
             <th class="text-left pb-1">Name</th>
             <th class="text-left pb-1">Race</th>
-            <th class="text-left pb-1">Link</th>
-            <th class="text-left pb-1">Citizen</th>
+            <th class="text-left pb-1">Type</th>
+            <th class="text-left pb-1">Basis</th>
             <th class="text-left pb-1">Profession</th>
             <th class="text-left pb-1">Position</th>
             <th class="text-left pb-1">Status</th>
           </tr>
         </thead>
-        <tbody id="residents-tbody">
-          {% for r in residents %}
+        <tbody id="denizens-tbody">
+          {% for r in denizens %}
           <tr class="border-b border-stone-800/50"
               data-status="{{ 'alive' if not r.death_year else 'dead' }}"
-              data-linktype="{{ r.link_type }}">
+              data-poptype="{{ r.population_type }}">
             <td class="py-1">
               {{ linker.link('hf', r.hf_id, r.name, world_id)|safe }}
               {% if r.is_deity %}<span class="badge badge-deity" title="Deity">D</span>{% endif %}
@@ -240,13 +239,20 @@
               {% if r.is_ghost %}<span class="badge badge-ghost" title="Ghost">G</span>{% endif %}
             </td>
             <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
-            <td><span class="badge badge-type">{{ r.link_type|title }}</span></td>
             <td>
-              {% if r.is_citizen %}
-                <span class="text-emerald-400">Yes</span>
+              {% if r.population_type == 'Citizen' %}
+                <span class="text-emerald-400">Citizen</span>
+              {% elif r.population_type == 'Resident' %}
+                <span class="text-sky-400">Resident</span>
               {% else %}
-                <span class="text-stone-600">No</span>
+                <span class="text-amber-400">Visitor</span>
               {% endif %}
+            </td>
+            <td class="text-stone-400 text-xs">
+              {% if r.citizen_reason %}{{ r.citizen_reason }}
+              {% elif r.link_type %}{{ r.link_type|replace('_', ' ')|title }}
+              {% elif r.resident_reason %}{{ r.resident_reason }}
+              {% else %}&mdash;{% endif %}
             </td>
             <td class="text-stone-400">{{ r.profession|default('', true) }}</td>
             <td class="text-amber-400">{{ r.position_name|default('', true)|title }}</td>
@@ -262,11 +268,80 @@
         </tbody>
       </table>
     </div>
-    {% if residents|length >= 500 %}
-      <div class="mt-2 text-center text-stone-500 text-xs">
-        Showing first 500 residents. More may exist.
-      </div>
-    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# Ne'er-do-wells Tab #}
+{% if neerdowells %}
+{% set alive_ndw = neerdowells|selectattr('death_year', 'none')|list %}
+{% set dead_ndw = neerdowells|rejectattr('death_year', 'none')|list %}
+<div id="dtab-content-neerdowells" class="tab-content">
+  <div class="section-card">
+    <div class="section-title" id="neerdowells-title">Ne'er-do-wells ({{ alive_ndw|length }} alive / {{ neerdowells|length }} total)</div>
+    <div class="flex flex-wrap gap-1.5 mb-2" id="neerdowells-chips">
+      <button class="filter-chip active" data-filter="ndw-status" data-value="alive" onclick="toggleNdwChip(this)">
+        Alive ({{ alive_ndw|length }})
+      </button>
+      <button class="filter-chip" data-filter="ndw-status" data-value="dead" onclick="toggleNdwChip(this)">
+        Dead ({{ dead_ndw|length }})
+      </button>
+      <span class="text-stone-700 mx-0.5">|</span>
+      {% set threat_types = neerdowells|map(attribute='threat_type')|unique|sort|list %}
+      {% for tt in threat_types %}
+      <button class="filter-chip active" data-filter="ndw-threat" data-value="{{ tt }}" onclick="toggleNdwChip(this)">
+        {{ tt }} ({{ neerdowells|selectattr('threat_type', 'equalto', tt)|list|length }})
+      </button>
+      {% endfor %}
+    </div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-sm" id="neerdowells-table">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Race</th>
+            <th class="text-left pb-1">Threat</th>
+            <th class="text-left pb-1">Basis</th>
+            <th class="text-left pb-1">Resident</th>
+            <th class="text-left pb-1">Profession</th>
+            <th class="text-left pb-1">Status</th>
+          </tr>
+        </thead>
+        <tbody id="neerdowells-tbody">
+          {% for r in neerdowells %}
+          <tr class="border-b border-stone-800/50"
+              data-ndw-status="{{ 'alive' if not r.death_year else 'dead' }}"
+              data-ndw-threat="{{ r.threat_type }}">
+            <td class="py-1">
+              {{ linker.link('hf', r.hf_id, r.name, world_id)|safe }}
+              {% if r.is_vampire %}<span class="badge badge-vampire" title="Vampire">V</span>{% endif %}
+              {% if r.is_necromancer %}<span class="badge badge-necro" title="Necromancer">N</span>{% endif %}
+              {% if r.is_werebeast %}<span class="badge badge-were" title="Werebeast">W</span>{% endif %}
+              {% if r.is_ghost %}<span class="badge badge-ghost" title="Ghost">G</span>{% endif %}
+            </td>
+            <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
+            <td><span class="text-red-400">{{ r.threat_type }}</span></td>
+            <td class="text-stone-400 text-xs">{{ r.threat_basis }}</td>
+            <td>
+              {% if r.has_structural_link %}
+                <span class="text-sky-400">Yes</span>
+              {% else %}
+                <span class="text-stone-600">No</span>
+              {% endif %}
+            </td>
+            <td class="text-stone-400">{{ r.profession|default('', true) }}</td>
+            <td>
+              {% if r.death_year %}
+                <span class="text-red-400" title="Died year {{ r.death_year }}">Dead ({{ r.death_year }})</span>
+              {% else %}
+                <span class="text-emerald-400">Alive</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endif %}
@@ -318,45 +393,74 @@
 {% block extra_scripts %}
 <script>
 (function() {
-  const residentChipState = { status: new Set(['alive']), linktype: new Set() };
+  // ── Denizens tab filter ──
+  const denizenState = { status: new Set(['alive']), poptype: new Set(['Citizen', 'Resident', 'Visitor']) };
 
-  // Initialize linktype chips: all active by default
-  document.querySelectorAll('#residents-chips .filter-chip[data-filter="linktype"]').forEach(btn => {
-    residentChipState.linktype.add(btn.dataset.value);
-  });
-
-  window.toggleResidentChip = function(btn) {
+  window.toggleDenizenChip = function(btn) {
     const group = btn.dataset.filter;
     const value = btn.dataset.value;
-    if (residentChipState[group].has(value)) {
-      residentChipState[group].delete(value);
+    if (denizenState[group].has(value)) {
+      denizenState[group].delete(value);
       btn.classList.remove('active');
     } else {
-      residentChipState[group].add(value);
+      denizenState[group].add(value);
       btn.classList.add('active');
     }
-    filterResidents();
+    filterDenizens();
   };
 
-  function filterResidents() {
-    const tbody = document.getElementById('residents-tbody');
+  function filterDenizens() {
+    const tbody = document.getElementById('denizens-tbody');
     if (!tbody) return;
     let visCount = 0;
     tbody.querySelectorAll('tr').forEach(row => {
-      const status = row.dataset.status;
-      const linktype = row.dataset.linktype;
-      const passStatus = residentChipState.status.size === 0 || residentChipState.status.has(status);
-      const passLink = residentChipState.linktype.size === 0 || residentChipState.linktype.has(linktype);
-      const show = passStatus && passLink;
+      const passStatus = denizenState.status.size === 0 || denizenState.status.has(row.dataset.status);
+      const passType = denizenState.poptype.size === 0 || denizenState.poptype.has(row.dataset.poptype);
+      const show = passStatus && passType;
       row.style.display = show ? '' : 'none';
       if (show) visCount++;
     });
-    const title = document.getElementById('residents-title');
-    if (title) title.textContent = `Residents (${visCount} shown)`;
+    const title = document.getElementById('denizens-title');
+    if (title) title.textContent = `Denizens (${visCount} shown)`;
   }
 
-  // Apply default filter on load
-  filterResidents();
+  filterDenizens();
+
+  // ── Ne'er-do-wells tab filter ──
+  const ndwState = { 'ndw-status': new Set(['alive']), 'ndw-threat': new Set() };
+  document.querySelectorAll('#neerdowells-chips .filter-chip[data-filter="ndw-threat"]').forEach(btn => {
+    ndwState['ndw-threat'].add(btn.dataset.value);
+  });
+
+  window.toggleNdwChip = function(btn) {
+    const group = btn.dataset.filter;
+    const value = btn.dataset.value;
+    if (ndwState[group].has(value)) {
+      ndwState[group].delete(value);
+      btn.classList.remove('active');
+    } else {
+      ndwState[group].add(value);
+      btn.classList.add('active');
+    }
+    filterNdw();
+  };
+
+  function filterNdw() {
+    const tbody = document.getElementById('neerdowells-tbody');
+    if (!tbody) return;
+    let visCount = 0;
+    tbody.querySelectorAll('tr').forEach(row => {
+      const passStatus = ndwState['ndw-status'].size === 0 || ndwState['ndw-status'].has(row.dataset.ndwStatus);
+      const passThreat = ndwState['ndw-threat'].size === 0 || ndwState['ndw-threat'].has(row.dataset.ndwThreat);
+      const show = passStatus && passThreat;
+      row.style.display = show ? '' : 'none';
+      if (show) visCount++;
+    });
+    const title = document.getElementById('neerdowells-title');
+    if (title) title.textContent = `Ne'er-do-wells (${visCount} shown)`;
+  }
+
+  filterNdw();
 })();
 </script>
 {% endblock %}

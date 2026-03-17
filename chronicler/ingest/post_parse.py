@@ -21,7 +21,7 @@ class PostParseProcessor:
         self.world_id = world_id
 
     async def run_all(self) -> dict[str, any]:
-        """Execute all 11 processing steps in order. Returns step results."""
+        """Execute all processing steps in order. Returns step results."""
         results = {}
         results["step_1"] = await self.step_1_resolve_family_links()
         results["step_2"] = await self.step_2_resolve_position_assignments()
@@ -33,6 +33,7 @@ class PostParseProcessor:
         results["step_8"] = await self.step_8_build_event_entity_xref()
         results["step_9"] = await self.step_9_resolve_site_ownership_history()
         results["step_10"] = await self.step_10_materialize_hf_settlement_links()
+        results["step_10b"] = await self.step_10b_populate_hf_whereabouts()
         results["step_11"] = await self.step_11_validate_referential_integrity()
         return results
 
@@ -536,8 +537,12 @@ class PostParseProcessor:
     async def step_10_materialize_hf_settlement_links(self) -> dict:
         """Materialize resident/former resident links from change-hf-state events.
 
-        For each HF, the site from their most recent 'settled' event becomes
-        'resident'; all other HF-site settlement pairs become 'former resident'.
+        For each HF, the site from their most recent 'settled'/'settler' event
+        becomes 'resident'; all other HF-site settlement pairs become
+        'former resident'.
+
+        Note: Base legends uses 'settled' while legends_plus uses 'settler'.
+        We accept both naming conventions.
         """
         log.info("Step 10: Materializing HF settlement links...")
         wid = self.world_id
@@ -552,7 +557,8 @@ class PostParseProcessor:
             log.info("  Cleaned %d prior settlement links", cleaned)
 
         # CTE: for each HF, rank settlement events by year DESC per site,
-        # then pick the most recent site overall as 'resident'
+        # then pick the most recent site overall as 'resident'.
+        # Accept both 'settled' (base legends) and 'settler' (legends_plus).
         status = await self.conn.execute("""
             WITH settlements AS (
                 SELECT DISTINCT ON (hf_id_1, site_id)
@@ -560,7 +566,7 @@ class PostParseProcessor:
                 FROM history_events
                 WHERE world_id = $1
                   AND event_type = 'change hf state'
-                  AND details->>'state' = 'settled'
+                  AND details->>'state' IN ('settled', 'settler')
                   AND hf_id_1 IS NOT NULL
                   AND site_id IS NOT NULL
                 ORDER BY hf_id_1, site_id, year DESC
@@ -591,6 +597,128 @@ class PostParseProcessor:
         log.info("  Step 10 complete: %d links (%d resident, %d former resident)",
                  inserted, residents, former)
         return {"inserted": inserted, "residents": residents, "former_residents": former}
+
+    async def step_10b_populate_hf_whereabouts(self) -> dict:
+        """Populate whereabouts JSONB on historical_figures from state events.
+
+        For each living HF, find their most recent 'change hf state' event
+        and store the derived location as whereabouts JSONB:
+          { "state": "settler", "site_id": 867 }
+        or for wilderness:
+          { "state": "wanderer", "subregion_id": 1426 }
+
+        Accepts all state values: settled/settler, visiting/visitor,
+        wandering/wanderer, refugee.
+        """
+        log.info("Step 10b: Populating HF whereabouts from state events...")
+        wid = self.world_id
+
+        # Clear existing whereabouts for this world
+        await self.conn.execute("""
+            UPDATE historical_figures SET whereabouts = '{}'::jsonb
+            WHERE world_id = $1
+        """, wid)
+
+        # Derive whereabouts from most recent change_hf_state per living HF.
+        # Uses hf_id_1 (dedicated column) and site_id (dedicated column).
+        # State and reason come from details JSONB.
+        updated = await self.conn.execute("""
+            WITH latest_state AS (
+                SELECT DISTINCT ON (he.hf_id_1)
+                    he.hf_id_1,
+                    he.details->>'state' AS state,
+                    he.details->>'reason' AS reason,
+                    he.site_id,
+                    he.year
+                FROM history_events he
+                WHERE he.world_id = $1
+                  AND he.event_type = 'change hf state'
+                  AND he.hf_id_1 IS NOT NULL
+                  AND he.details->>'state' IS NOT NULL
+                ORDER BY he.hf_id_1, he.year DESC, he.seconds DESC NULLS LAST
+            )
+            UPDATE historical_figures hf
+            SET whereabouts = jsonb_build_object(
+                'state', ls.state,
+                'site_id', ls.site_id,
+                'year', ls.year
+            ) || CASE WHEN ls.reason IS NOT NULL AND ls.reason != 'none'
+                     THEN jsonb_build_object('reason', ls.reason)
+                     ELSE '{}'::jsonb END
+            FROM latest_state ls
+            WHERE hf.world_id = $1
+              AND hf.id = ls.hf_id_1
+              AND hf.death_year IS NULL
+        """, wid)
+        total = _count(updated)
+
+        # Breakdown
+        at_site = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM historical_figures
+            WHERE world_id = $1 AND (whereabouts->>'site_id')::int IS NOT NULL
+              AND (whereabouts->>'site_id')::int > 0
+        """, wid)
+        wilderness = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM historical_figures
+            WHERE world_id = $1 AND whereabouts != '{}'::jsonb
+              AND (whereabouts->>'site_id' IS NULL
+                   OR (whereabouts->>'site_id')::int IS NULL)
+        """, wid)
+
+        # Fallback: for living HFs still without whereabouts, derive from hf_site_links.
+        # Priority: home structure > seat of power > occupation > lair > hangout
+        fallback = await self.conn.execute("""
+            WITH ranked_links AS (
+                SELECT DISTINCT ON (hsl.hf_id)
+                    hsl.hf_id, hsl.site_id, hsl.link_type
+                FROM hf_site_links hsl
+                JOIN historical_figures hf
+                    ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
+                WHERE hsl.world_id = $1
+                  AND hf.death_year IS NULL
+                  AND hf.whereabouts = '{}'::jsonb
+                ORDER BY hsl.hf_id,
+                    CASE hsl.link_type
+                        WHEN 'home structure' THEN 1
+                        WHEN 'home site building' THEN 2
+                        WHEN 'seat of power' THEN 3
+                        WHEN 'occupation' THEN 4
+                        WHEN 'lair' THEN 5
+                        WHEN 'hangout' THEN 6
+                        WHEN 'resident' THEN 7
+                        ELSE 8
+                    END
+            )
+            UPDATE historical_figures hf
+            SET whereabouts = jsonb_build_object(
+                'state', 'inferred',
+                'site_id', rl.site_id,
+                'source', rl.link_type
+            )
+            FROM ranked_links rl
+            WHERE hf.world_id = $1 AND hf.id = rl.hf_id
+        """, wid)
+        fallback_count = _count(fallback)
+        if fallback_count:
+            log.info("  Step 10b fallback: %d HFs got whereabouts from hf_site_links", fallback_count)
+
+        # Final counts
+        total_with = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM historical_figures
+            WHERE world_id = $1 AND death_year IS NULL AND whereabouts != '{}'::jsonb
+        """, wid)
+        at_site = await self.conn.fetchval("""
+            SELECT COUNT(*) FROM historical_figures
+            WHERE world_id = $1 AND death_year IS NULL AND whereabouts != '{}'::jsonb
+              AND (whereabouts->>'site_id')::int IS NOT NULL
+        """, wid)
+        wilderness = total_with - (at_site or 0)
+
+        log.info("  Step 10b complete: %d/%d living HFs with whereabouts (%d at site, %d wilderness, %d from fallback)",
+                 total_with, total + fallback_count, at_site or 0, wilderness, fallback_count)
+        return {"updated_from_events": total, "fallback_from_links": fallback_count,
+                "total_with_whereabouts": total_with, "at_site": at_site or 0,
+                "wilderness": wilderness}
 
     async def step_11_validate_referential_integrity(self) -> dict:
         """Verify FK-like references resolve to existing records."""

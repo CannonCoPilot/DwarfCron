@@ -125,6 +125,7 @@
   <button class="detail-tab active" id="dtab-leaders" onclick="switchDetailTab('leaders')">Leaders ({{ leaders|length }})</button>
   <button class="detail-tab" id="dtab-sites" onclick="switchDetailTab('sites')">Sites ({{ site_govts|selectattr('site')|list|length }})</button>
   <button class="detail-tab" id="dtab-members" onclick="switchDetailTab('members')">Members ({{ member_count }})</button>
+  {% if sg_neerdowells %}<button class="detail-tab" id="dtab-sg-neerdowells" onclick="switchDetailTab('sg-neerdowells')">Ne'er-do-wells ({{ sg_neerdowells|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ civ_positions|length }})</button>
   <button class="detail-tab" id="dtab-wars" onclick="switchDetailTab('wars')">Wars ({{ wars|length }})</button>
 </div>
@@ -279,7 +280,7 @@
         <tbody class="divide-y divide-stone-800/50" id="members-tbody">
           {% for m in members %}
           <tr class="hover:bg-stone-800/30" style="height: 25px;"
-              data-membership="{{ 'current' if m.link_type == 'member' else 'former' }}"
+              data-membership="{{ 'current' if m.link_type == 'member' or m.is_citizen or (m.link_type is string and m.link_type.startswith('citizen')) else 'former' }}"
               data-status="{{ 'alive' if m.is_alive else 'dead' }}">
             <td class="py-0.5 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
             <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
@@ -310,6 +311,70 @@
     {% endif %}
   </div>
 </div>
+
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{# Ne'er-do-wells Tab (SG pages only)                                    #}
+{# ═══════════════════════════════════════════════════════════════════════ #}
+{% if sg_neerdowells %}
+{% set alive_sg_ndw = sg_neerdowells|selectattr('is_alive')|list %}
+{% set dead_sg_ndw = sg_neerdowells|rejectattr('is_alive')|list %}
+<div id="dtab-content-sg-neerdowells" class="tab-content">
+  <div class="section-card">
+    <div class="section-title" id="sg-ndw-title">Ne'er-do-wells ({{ alive_sg_ndw|length }} alive / {{ sg_neerdowells|length }} total)</div>
+    <div class="flex flex-wrap gap-1.5 mb-2" id="sg-ndw-chips">
+      <button class="filter-chip active" data-filter="sg-ndw-status" data-value="alive" onclick="toggleSgNdwChip(this)">
+        Alive ({{ alive_sg_ndw|length }})
+      </button>
+      <button class="filter-chip" data-filter="sg-ndw-status" data-value="dead" onclick="toggleSgNdwChip(this)">
+        Dead ({{ dead_sg_ndw|length }})
+      </button>
+      <span class="text-stone-700 mx-0.5">|</span>
+      {% set sg_threat_types = sg_neerdowells|map(attribute='threat_type')|unique|sort|list %}
+      {% for tt in sg_threat_types %}
+      <button class="filter-chip active" data-filter="sg-ndw-threat" data-value="{{ tt }}" onclick="toggleSgNdwChip(this)">
+        {{ tt }} ({{ sg_neerdowells|selectattr('threat_type', 'equalto', tt)|list|length }})
+      </button>
+      {% endfor %}
+    </div>
+    {% if sg_neerdowells %}
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs" id="sg-ndw-table">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left py-1 pr-3">Name</th>
+            <th class="text-left py-1 pr-3">Race</th>
+            <th class="text-left py-1 pr-3">Threat</th>
+            <th class="text-left py-1 pr-3">Basis</th>
+            <th class="text-left py-1 pr-3">Profession</th>
+            <th class="text-left py-1">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone-800/50" id="sg-ndw-tbody">
+          {% for m in sg_neerdowells %}
+          <tr class="hover:bg-stone-800/30" style="height: 25px;"
+              data-sg-ndw-status="{{ 'alive' if m.is_alive else 'dead' }}"
+              data-sg-ndw-threat="{{ m.threat_type }}">
+            <td class="py-0.5 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3"><span class="text-red-400">{{ m.threat_type }}</span></td>
+            <td class="py-0.5 pr-3 text-stone-400 text-xs">{{ m.threat_basis }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
+            <td class="py-0.5">
+              {% if m.is_alive %}
+                <span class="badge badge-alive">alive</span>
+              {% else %}
+                <span class="badge badge-dead">dead</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 
 {# ═══════════════════════════════════════════════════════════════════════ #}
 {# Positions Tab — categorized with holders + per-site-govt collapsible  #}
@@ -664,6 +729,43 @@
   {% if member_count > members|length %}
   loadAllMembers({{ world_id }}, {{ entity.id }});
   {% endif %}
+
+  // ═══════════════════════════════════════════════════════════════
+  // SG Ne'er-do-wells filter
+  // ═══════════════════════════════════════════════════════════════
+  const sgNdwState = { 'sg-ndw-status': new Set(['alive']), 'sg-ndw-threat': new Set() };
+  document.querySelectorAll('#sg-ndw-chips .filter-chip[data-filter="sg-ndw-threat"]').forEach(btn => {
+    sgNdwState['sg-ndw-threat'].add(btn.dataset.value);
+  });
+
+  window.toggleSgNdwChip = function(btn) {
+    const group = btn.dataset.filter;
+    const value = btn.dataset.value;
+    if (sgNdwState[group].has(value)) {
+      sgNdwState[group].delete(value);
+      btn.classList.remove('active');
+    } else {
+      sgNdwState[group].add(value);
+      btn.classList.add('active');
+    }
+    filterSgNdw();
+  };
+
+  function filterSgNdw() {
+    const tbody = document.getElementById('sg-ndw-tbody');
+    if (!tbody) return;
+    let visCount = 0;
+    tbody.querySelectorAll('tr').forEach(row => {
+      const passStatus = sgNdwState['sg-ndw-status'].size === 0 || sgNdwState['sg-ndw-status'].has(row.dataset.sgNdwStatus);
+      const passThreat = sgNdwState['sg-ndw-threat'].size === 0 || sgNdwState['sg-ndw-threat'].has(row.dataset.sgNdwThreat);
+      const show = passStatus && passThreat;
+      row.style.display = show ? '' : 'none';
+      if (show) visCount++;
+    });
+    const title = document.getElementById('sg-ndw-title');
+    if (title) title.textContent = `Ne'er-do-wells (${visCount} shown)`;
+  }
+  filterSgNdw();
 })();
 </script>
 {% endblock %}

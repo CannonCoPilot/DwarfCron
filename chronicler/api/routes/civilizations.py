@@ -70,34 +70,127 @@ SENTIENCE_JOIN = (
 )
 
 
-async def fetch_site_residents_batch(
+async def fetch_site_citizens_batch(
     conn, world_id: int, site_ids: list[int],
 ) -> dict[int, int]:
-    """Count living sentient HFs at each site.
+    """Count citizens per site using the canonical definition.
 
-    Uses UNION of:
-    1. whereabouts->>'site_id' (physical presence)
-    2. hf_site_links (structural links: home, occupation, seat of power, lair)
-    Both filtered by death_year IS NULL + sentience (creature_dictionary).
+    A citizen of a site is:
+      1) A member of the Site Government that governs THAT site
+         (if the SG governs >1 site, only members with whereabouts there)
+      2) An HF with an hf_site_link to THAT site
+      3) An HF holding a position at THAT site
+
+    All filtered by: living (death_year IS NULL) + sentient.
+    Lairs are excluded (no citizen concept for lairs).
     """
     if not site_ids:
         return {}
     rows = await conn.fetch(f"""
         SELECT site_id, COUNT(DISTINCT hf_id) AS cnt
         FROM (
-            SELECT (hf.whereabouts->>'site_id')::int AS site_id, hf.id AS hf_id
-            FROM historical_figures hf
+            -- Source 1: SG members (single-site SGs → all members; multi-site → whereabouts only)
+            SELECT s.id AS site_id, hel.hf_id
+            FROM sites s
+            JOIN entities sg ON sg.world_id = s.world_id AND sg.id = s.owner_entity_id
+                AND sg.type = 'sitegovernment'
+            JOIN hf_entity_links hel ON hel.world_id = s.world_id AND hel.entity_id = sg.id
+                AND hel.link_type = 'member'
+            JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
             {SENTIENCE_JOIN}
-            WHERE hf.world_id = $1 AND hf.death_year IS NULL
-              AND (hf.whereabouts->>'site_id')::int = ANY($2::int[])
-              AND {SENTIENCE_FILTER}
+            WHERE s.world_id = $1 AND s.id = ANY($2::int[])
+              AND s.type != 'lair'
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+              -- For multi-site SGs, require whereabouts match
+              AND (
+                  (SELECT COUNT(*) FROM sites s2
+                   WHERE s2.world_id = $1 AND s2.owner_entity_id = sg.id) = 1
+                  OR (hf.whereabouts->>'site_id')::int = s.id
+              )
             UNION
+            -- Source 2: hf_site_links to that site (exclude lairs + former residents)
+            SELECT hsl.site_id, hsl.hf_id
+            FROM hf_site_links hsl
+            JOIN sites s2 ON s2.world_id = hsl.world_id AND s2.id = hsl.site_id
+            JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
+            {SENTIENCE_JOIN}
+            WHERE hsl.world_id = $1 AND hsl.site_id = ANY($2::int[])
+              AND s2.type != 'lair'
+              AND hsl.link_type != 'former resident'
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+            UNION
+            -- Source 3: position holders at that site's governing entity
+            SELECT s.id AS site_id, hpl.hf_id
+            FROM sites s
+            JOIN hf_position_links hpl ON hpl.world_id = s.world_id
+                AND hpl.entity_id = s.owner_entity_id AND hpl.end_year IS NULL
+            JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
+            {SENTIENCE_JOIN}
+            WHERE s.world_id = $1 AND s.id = ANY($2::int[])
+              AND s.type != 'lair'
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+        ) sub
+        GROUP BY site_id
+    """, world_id, site_ids)
+    return {r["site_id"]: r["cnt"] for r in rows}
+
+
+async def fetch_site_residents_batch(
+    conn, world_id: int, site_ids: list[int],
+) -> dict[int, int]:
+    """Count residents per site. Residents = Citizens + others physically present.
+
+    Uses UNION of all citizen sources (SG members, site links, position holders)
+    plus physical presence (whereabouts). Guarantees Residents >= Citizens.
+    All filtered by: living + sentient.
+    """
+    if not site_ids:
+        return {}
+    rows = await conn.fetch(f"""
+        SELECT site_id, COUNT(DISTINCT hf_id) AS cnt
+        FROM (
+            -- Citizen source 1: SG members
+            SELECT s.id AS site_id, hel.hf_id
+            FROM sites s
+            JOIN entities sg ON sg.world_id = s.world_id AND sg.id = s.owner_entity_id
+                AND sg.type = 'sitegovernment'
+            JOIN hf_entity_links hel ON hel.world_id = s.world_id AND hel.entity_id = sg.id
+                AND hel.link_type = 'member'
+            JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
+            {SENTIENCE_JOIN}
+            WHERE s.world_id = $1 AND s.id = ANY($2::int[])
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+              AND (
+                  (SELECT COUNT(*) FROM sites s2
+                   WHERE s2.world_id = $1 AND s2.owner_entity_id = sg.id) = 1
+                  OR (hf.whereabouts->>'site_id')::int = s.id
+              )
+            UNION
+            -- Citizen source 2: hf_site_links (exclude former residents)
             SELECT hsl.site_id, hsl.hf_id
             FROM hf_site_links hsl
             JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
             {SENTIENCE_JOIN}
             WHERE hsl.world_id = $1 AND hsl.site_id = ANY($2::int[])
-              AND hf.death_year IS NULL
+              AND hsl.link_type != 'former resident'
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+            UNION
+            -- Citizen source 3: position holders
+            SELECT s.id AS site_id, hpl.hf_id
+            FROM sites s
+            JOIN hf_position_links hpl ON hpl.world_id = s.world_id
+                AND hpl.entity_id = s.owner_entity_id AND hpl.end_year IS NULL
+            JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
+            {SENTIENCE_JOIN}
+            WHERE s.world_id = $1 AND s.id = ANY($2::int[])
+              AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+            UNION
+            -- Physical presence: whereabouts
+            SELECT (hf.whereabouts->>'site_id')::int AS site_id, hf.id AS hf_id
+            FROM historical_figures hf
+            {SENTIENCE_JOIN}
+            WHERE hf.world_id = $1 AND hf.death_year IS NULL
+              AND (hf.whereabouts->>'site_id')::int = ANY($2::int[])
               AND {SENTIENCE_FILTER}
         ) sub
         GROUP BY site_id
@@ -276,21 +369,15 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             }
 
     # ── Population counts ──
-    # Deduplicated across civ + child SGs to avoid double-counting HFs
-    # who belong to both a civilization and its child site government.
+    # Entity membership stats (for display metadata)
     all_entity_ids = [entity_id] + sg_ids
     population_stats = await conn.fetchrow(
         f"""
         SELECT
             COUNT(DISTINCT hel.hf_id) AS total_known_hfs,
-            COUNT(DISTINCT hel.hf_id) FILTER (WHERE hel.link_type = 'member') AS current_members,
-            COUNT(DISTINCT hel.hf_id) FILTER (
-                WHERE hel.link_type = 'member' AND hf.death_year IS NULL
-                AND {SENTIENCE_FILTER}
-            ) AS citizens
+            COUNT(DISTINCT hel.hf_id) FILTER (WHERE hel.link_type = 'member') AS current_members
         FROM hf_entity_links hel
         JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hel.hf_id
-        {SENTIENCE_JOIN}
         WHERE hel.world_id = $1 AND hel.entity_id = ANY($2::int[])
           AND hel.link_type IN ('member', 'former member')
         """,
@@ -306,7 +393,7 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             world_id, entity_id,
         ) or 0
 
-    # Per-site residents via whereabouts + site_links (sentience-filtered)
+    # Collect all site IDs in the entity's hierarchy
     all_site_ids = [s["id"] for s in (site_rows if sg_ids else [])]
     if not is_civ:
         direct_site_rows_for_residents = await conn.fetch(
@@ -314,6 +401,12 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             world_id, entity_id,
         )
         all_site_ids += [s["id"] for s in direct_site_rows_for_residents]
+
+    # Citizens per site (canonical: SG members + site-linked + position holders)
+    site_citizens = await fetch_site_citizens_batch(conn, world_id, all_site_ids)
+    total_citizens = sum(site_citizens.values())
+
+    # Residents per site (citizens + physically present — guarantees >= citizens)
     site_residents = await fetch_site_residents_batch(conn, world_id, all_site_ids)
     total_residents = sum(site_residents.values())
 
@@ -438,6 +531,7 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
             "name": sg["name"],
             "site": site,
             "structures": sg_structures.get(sg_id, []),
+            "citizens": site_citizens.get(site["id"], 0) if site else 0,
             "residents": site_residents.get(site["id"], 0) if site else 0,
             "ruler": sg_ruler,
             "positions": sg_pos,
@@ -494,6 +588,7 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                     "name": entity["name"],
                     "site": {"id": s["id"], "name": s["name"], "type": s["type"]},
                     "structures": site_structs.get(s["id"], []),
+                    "citizens": site_citizens.get(s["id"], 0),
                     "residents": site_residents.get(s["id"], 0),
                     "ruler": own_ruler,
                     "positions": own_pos,
@@ -501,13 +596,13 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                 })
 
     result["ruler"] = ruler
-    result["citizens"] = int(population_stats["citizens"])
+    result["citizens"] = total_citizens
     result["total_known_hfs"] = int(population_stats["total_known_hfs"])
     result["current_members"] = int(population_stats["current_members"])
     result["is_civ"] = is_civ
+    result["total_residents"] = total_residents
     if is_civ:
         result["df_population"] = df_population
-        result["total_residents"] = total_residents
     if is_civ:
         result["site_count"] = len(site_rows) if sg_ids else 0
     else:
@@ -777,7 +872,7 @@ async def get_civilization(request: Request, world_id: int, entity_id: int):
 @router.get("/civilizations/{world_id}/{entity_id}/members")
 async def list_members(
     request: Request, world_id: int, entity_id: int,
-    limit: int = Query(50, ge=1, le=1000),
+    limit: int = Query(50, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
     pool = request.app.state.pool
