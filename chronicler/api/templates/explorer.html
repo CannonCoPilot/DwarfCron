@@ -495,12 +495,12 @@
             <div>
               <span class="text-blue-400 font-bold">Tier 2: hf_entity_links</span>
               <span class="text-stone-500 ml-2">(organizational membership — who belongs to what group)</span>
-              <p class="mt-1 text-stone-500">Individual-level links between historical figures and entities (civilizations, religions, site governments). Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the relationship: member, former member, enemy, prisoner, etc. This is the basis for "Population" counts (alive current members) and the "Members" tab (all links, filterable).</p>
+              <p class="mt-1 text-stone-500">Individual-level links between historical figures and entities (civilizations, religions, site governments). Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the relationship: member, former member, enemy, prisoner, etc. This is the basis for "Citizens" counts (alive current members with civic affiliation) and the "Members" tab (all links, filterable).</p>
             </div>
             <div>
               <span class="text-green-400 font-bold">Tier 3: hf_site_links</span>
               <span class="text-stone-500 ml-2">(physical site presence — who is at what site)</span>
-              <p class="mt-1 text-stone-500">Individual-level links between historical figures and specific sites. Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the physical attachment: home structure, occupation, seat of power, lair, hangout. This is the basis for the "Residents" tab on site detail pages. Orthogonal to entity membership — a figure can be a member of a civ without having a site link, and vice versa.</p>
+              <p class="mt-1 text-stone-500">Individual-level links between historical figures and specific sites. Each link has a <code class="text-stone-300">link_type</code> indicating the nature of the physical attachment: home structure, occupation, seat of power, lair, hangout. Combined with entity membership, this forms the basis for the "Denizens" tab on site pages (Citizens + Residents + Visitors). Orthogonal to entity membership — a figure can be a member of a civ without having a site link, and vice versa.</p>
             </div>
           </div>
         </div>
@@ -583,8 +583,8 @@
 
         <!-- Population vs Residents divergence -->
         <div class="section-card">
-          <div class="section-title">Population (Entity Members) vs. Residents (Site Links)</div>
-          <p class="text-stone-500 text-[10px] mb-2">Compares the count of living current entity members ("Population") against the count of living site-linked HFs ("Residents") for each site. Large divergence indicates entity membership is much broader than physical site presence.</p>
+          <div class="section-title">Citizens (Entity Members) vs. Denizens (Site Links)</div>
+          <p class="text-stone-500 text-[10px] mb-2">Compares the count of living current entity members ("Citizens") against the count of living site-linked HFs ("Denizens") for each site. Large divergence indicates entity membership is much broader than physical site presence.</p>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead>
@@ -605,7 +605,7 @@
 
         <!-- Special flags -->
         <div class="section-card">
-          <div class="section-title">Special Flags Among Site Residents</div>
+          <div class="section-title">Special Flags Among Site Denizens</div>
           <div class="grid grid-cols-5 gap-4 text-center" id="stats-special-flags">
             <div class="text-stone-500 text-xs py-4">Loading...</div>
           </div>
@@ -642,9 +642,9 @@
           </div>
         </div>
 
-        <!-- Chart 4: Population vs Residents scatter -->
+        <!-- Chart 4: Citizens vs Denizens scatter -->
         <div class="section-card">
-          <div class="section-title">Population vs. Residents per Site</div>
+          <div class="section-title">Citizens vs. Denizens per Site</div>
           <div style="max-height: 400px; position: relative;">
             <canvas id="chart-pop-vs-res"></canvas>
           </div>
@@ -652,7 +652,7 @@
 
         <!-- Chart 5: Special flags donut -->
         <div class="section-card">
-          <div class="section-title">Supernatural Residents</div>
+          <div class="section-title">Supernatural Denizens</div>
           <div style="max-height: 300px; max-width: 300px; margin: 0 auto; position: relative;">
             <canvas id="chart-special"></canvas>
           </div>
@@ -1653,7 +1653,7 @@ function renderMembersTable(members, worldId) {
     html += `<tr class="hover:bg-stone-800/30" style="height: 25px;">
       <td class="py-0.5 pr-2"><span class="nav-link" onclick="navigateTo('people','hf',${worldId},${m.hf_id})">${escapeHtml(m.name)}</span></td>
       <td class="py-0.5 pr-2 text-stone-400">${escapeHtml(m.race || '')}</td>
-      <td class="py-0.5 pr-2 text-amber-400">${m.position_name ? escapeHtml(titleCase(m.position_name)) : ''}</td>
+      <td class="py-0.5 pr-2 text-amber-400">${m.position_display ? escapeHtml(m.position_display) : (m.position_name ? escapeHtml(titleCase(m.position_name)) : '')}</td>
       <td class="py-0.5 pr-2 text-stone-400">${m.profession ? escapeHtml(m.profession) : ''}</td>
       <td class="py-0.5 pr-2 text-stone-500">${escapeHtml(titleCase(m.link_type))}</td>
       <td class="py-0.5 pr-2">${citizenLabel}</td>
@@ -1682,7 +1682,7 @@ function filterCivMembers() {
     if (q) {
       return (m.name || '').toLowerCase().includes(q) ||
         (m.race || '').toLowerCase().includes(q) ||
-        (m.position_name || '').toLowerCase().includes(q) ||
+        (m.position_display || m.position_name || '').toLowerCase().includes(q) ||
         (m.profession || '').toLowerCase().includes(q);
     }
     return true;
@@ -3132,9 +3132,9 @@ const ENTITY_LINK_ANNOTATIONS = {
 };
 
 const SITE_LINK_ANNOTATIONS = {
-  'home structure': 'Primary residence. Shown in Residents tab (Home Structure filter).',
-  'occupation': 'Workplace attachment. Shown in Residents tab (Occupation filter).',
-  'seat of power': 'Ruling position at site. Shown in Residents tab (Seat of Power filter).',
+  'home structure': 'Primary residence. Shown in Denizens tab (Home Structure filter).',
+  'occupation': 'Workplace attachment. Shown in Denizens tab (Occupation filter).',
+  'seat of power': 'Ruling position at site. Shown in Denizens tab (Seat of Power filter).',
   'lair': 'Creature lair (often megabeasts). Included in residents count.',
   'hangout': 'Casual gathering spot. Included in residents count.',
   'home site building': 'Legacy variant of home structure. Included in residents count.',

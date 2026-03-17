@@ -255,7 +255,7 @@
               {% else %}&mdash;{% endif %}
             </td>
             <td class="text-stone-400">{{ r.profession|default('', true) }}</td>
-            <td class="text-amber-400">{{ r.position_name|default('', true)|title }}</td>
+            <td class="text-amber-400">{{ r.position_display|default(r.position_name|default('', true)|title, true) }}</td>
             <td>
               {% if r.death_year %}
                 <span class="text-red-400" title="Died year {{ r.death_year }}">Dead ({{ r.death_year }})</span>

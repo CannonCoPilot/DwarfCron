@@ -19,6 +19,10 @@ from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_i
 from chronicler.api.routes.civilizations import (
     fetch_civilization_data, fetch_civilization_members, _categorize_position,
 )
+from chronicler.api.routes._profession import (
+    derive_profession, derive_position,
+    batch_fetch_profession_data, batch_fetch_positions,
+)
 
 router = APIRouter()
 
@@ -1274,7 +1278,9 @@ async def entity_detail_page(entity_id: int, request: Request,
                            hsl.hf_id, hf.name, hf.race, hf.death_year,
                            'citizen (site link)' AS link_type,
                            hsl.link_type AS site_link_detail,
-                           hf.skills
+                           hf.skills, hf.details,
+                           hf.is_deity, hf.is_necromancer, hf.is_vampire,
+                           hf.is_werebeast, hf.is_ghost, hf.is_author, hf.is_auteur
                     FROM hf_site_links hsl
                     JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
                     {_SJ}
@@ -1283,17 +1289,18 @@ async def entity_detail_page(entity_id: int, request: Request,
                       AND hf.death_year IS NULL AND {_SF}
                     ORDER BY hsl.hf_id
                 """, world_id, sg_site_ids)
+                # Batch-fetch profession data for site-link citizens
+                sl_hf_ids = [r["hf_id"] for r in site_link_rows if r["hf_id"] not in existing_hf_ids]
+                sl_prof_data = await batch_fetch_profession_data(conn, world_id, sl_hf_ids) if sl_hf_ids else {}
+                sl_positions = await batch_fetch_positions(conn, world_id, sl_hf_ids, viewing_entity_id=entity_id) if sl_hf_ids else {}
                 for r in site_link_rows:
                     if r["hf_id"] not in existing_hf_ids:
                         d = dict(r)
-                        skills = d.pop("skills", None)
                         d.pop("death_year", None)
-                        profession = None
-                        if skills and isinstance(skills, list):
-                            top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
-                            if top:
-                                profession = top["name"].replace("_", " ").title()
-                        d["profession"] = profession
+                        d["profession"] = derive_profession(d, sl_prof_data.get(d["hf_id"]))
+                        d["position_display"] = derive_position(sl_positions.get(d["hf_id"]), viewing_entity_id=entity_id)
+                        d.pop("skills", None)
+                        d.pop("details", None)
                         d["position_name"] = None
                         d["is_alive"] = True
                         d["is_citizen"] = True
@@ -1306,7 +1313,9 @@ async def entity_detail_page(entity_id: int, request: Request,
                        hpl.hf_id, hf.name, hf.race, hf.death_year,
                        'citizen (position)' AS link_type,
                        ep.name AS position_name,
-                       hf.skills
+                       hf.skills, hf.details,
+                       hf.is_deity, hf.is_necromancer, hf.is_vampire,
+                       hf.is_werebeast, hf.is_ghost, hf.is_author, hf.is_auteur
                 FROM hf_position_links hpl
                 JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
                 {_SJ}
@@ -1317,17 +1326,18 @@ async def entity_detail_page(entity_id: int, request: Request,
                   AND hf.death_year IS NULL AND {_SF}
                 ORDER BY hpl.hf_id
             """, world_id, entity_id)
+            # Batch-fetch profession data for position-holder citizens
+            pos_hf_ids = [r["hf_id"] for r in pos_rows if r["hf_id"] not in existing_hf_ids]
+            pos_prof_data = await batch_fetch_profession_data(conn, world_id, pos_hf_ids) if pos_hf_ids else {}
+            pos_positions = await batch_fetch_positions(conn, world_id, pos_hf_ids, viewing_entity_id=entity_id) if pos_hf_ids else {}
             for r in pos_rows:
                 if r["hf_id"] not in existing_hf_ids:
                     d = dict(r)
-                    skills = d.pop("skills", None)
                     d.pop("death_year", None)
-                    profession = None
-                    if skills and isinstance(skills, list):
-                        top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
-                        if top:
-                            profession = top["name"].replace("_", " ").title()
-                    d["profession"] = profession
+                    d["profession"] = derive_profession(d, pos_prof_data.get(d["hf_id"]))
+                    d["position_display"] = derive_position(pos_positions.get(d["hf_id"]), viewing_entity_id=entity_id)
+                    d.pop("skills", None)
+                    d.pop("details", None)
                     d["is_alive"] = True
                     d["is_citizen"] = True
                     extra_citizens.append(d)
@@ -1666,7 +1676,8 @@ async def site_detail_page(site_id: int, request: Request,
                        sub.hf_id, sub.link_type,
                        hf.name, hf.race, hf.caste, hf.birth_year, hf.death_year,
                        hf.is_vampire, hf.is_necromancer, hf.is_werebeast, hf.is_ghost,
-                       hf.is_deity, hf.is_force, hf.skills,
+                       hf.is_deity, hf.is_force, hf.is_author, hf.is_auteur,
+                       hf.skills, hf.details,
                        hf.whereabouts,
                        pos.position_name,
                        mem.member_status,
@@ -1749,17 +1760,19 @@ async def site_detail_page(site_id: int, request: Request,
             ) deduped
             ORDER BY link_type, name
         """, world_id, site_id, owner_entity_id)
+        # Batch-fetch profession data (jobs, entity types, events)
+        res_hf_ids = [r["hf_id"] for r in residents_raw]
+        res_prof_data = await batch_fetch_profession_data(conn, world_id, res_hf_ids)
+        # Batch-fetch cross-entity positions for the Position column
+        res_positions = await batch_fetch_positions(conn, world_id, res_hf_ids, viewing_entity_id=owner_entity_id)
+
         residents = []
         for r in residents_raw:
             d = dict(r)
-            # Derive profession from highest-IP skill
-            skills = d.pop("skills", None)
-            profession = None
-            if skills and isinstance(skills, list):
-                top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
-                if top:
-                    profession = top["name"].replace("_", " ").title()
-            d["profession"] = profession
+            d["profession"] = derive_profession(d, res_prof_data.get(d["hf_id"]))
+            d["position_display"] = derive_position(res_positions.get(d["hf_id"]), viewing_entity_id=owner_entity_id)
+            d.pop("skills", None)
+            d.pop("details", None)
             residents.append(d)
 
         # ── Ne'er-do-well detection ──────────────────────────────────────

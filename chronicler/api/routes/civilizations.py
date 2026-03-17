@@ -1,6 +1,10 @@
 """Civilization (entity) exploration routes."""
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from chronicler.api.routes._profession import (
+    derive_profession, derive_position,
+    batch_fetch_profession_data, batch_fetch_positions,
+)
 
 router = APIRouter()
 
@@ -669,7 +673,9 @@ async def fetch_civilization_members(
         SELECT hel.hf_id, hf.name, hf.race, hel.link_type,
                pos.position_name,
                (hf.death_year IS NULL) AS is_alive,
-               hf.skills,
+               hf.skills, hf.details,
+               hf.is_deity, hf.is_necromancer, hf.is_vampire, hf.is_werebeast,
+               hf.is_ghost, hf.is_author, hf.is_auteur,
                (hel.link_type = 'member' AND hf.death_year IS NULL
                 AND {SENTIENCE_FILTER}) AS is_citizen
         FROM hf_entity_links hel
@@ -692,17 +698,20 @@ async def fetch_civilization_members(
         """, world_id, entity_id, limit, offset,
     )
 
+    # Batch-fetch all profession data (jobs, entity types, events)
+    hf_ids = [m["hf_id"] for m in members]
+    prof_data = await batch_fetch_profession_data(conn, world_id, hf_ids)
+    # Batch-fetch cross-entity positions for the Position column
+    pos_data = await batch_fetch_positions(conn, world_id, hf_ids, viewing_entity_id=entity_id)
+
     result_members = []
     for m in members:
         d = dict(m)
-        # Derive profession from highest-IP skill
-        skills = d.pop("skills", None)
-        profession = None
-        if skills and isinstance(skills, list):
-            top = max(skills, key=lambda s: s.get("total_ip", 0), default=None)
-            if top:
-                profession = top["name"].replace("_", " ").title()
-        d["profession"] = profession
+        d["profession"] = derive_profession(d, prof_data.get(d["hf_id"]))
+        d["position_display"] = derive_position(pos_data.get(d["hf_id"]), viewing_entity_id=entity_id)
+        # Clean up raw fields not needed by templates
+        d.pop("skills", None)
+        d.pop("details", None)
         result_members.append(d)
     return {
         "total": total,
