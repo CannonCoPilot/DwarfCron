@@ -469,6 +469,7 @@
     <div class="flex items-center gap-2 px-6 py-1.5 border-b border-stone-800 flex-shrink-0 bg-stone-900/30">
       <span onclick="switchStatsSub('report')" id="stats-sub-report" class="sub-toggle active">Report</span>
       <span onclick="switchStatsSub('viz')" id="stats-sub-viz" class="sub-toggle">Visualizations</span>
+      <span onclick="switchStatsSub('demo')" id="stats-sub-demo" class="sub-toggle">Demographics</span>
     </div>
 
     <!-- Report sub-panel -->
@@ -655,6 +656,271 @@
           <div class="section-title">Supernatural Denizens</div>
           <div style="max-height: 300px; max-width: 300px; margin: 0 auto; position: relative;">
             <canvas id="chart-special"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Demographics sub-panel -->
+    <div id="stats-panel-demo" class="flex-1 overflow-y-auto ex-scroll p-6 hidden">
+      <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Demographics loading indicator -->
+        <div id="demo-loading" class="text-stone-500 text-xs text-center py-8">Loading demographics data...</div>
+
+        <!-- ── Summary Cards ── -->
+        <div id="demo-summary" class="hidden">
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3" id="demo-summary-cards"></div>
+        </div>
+
+        <!-- ── Row 1: Race Distribution + Age Distribution ── -->
+        <div id="demo-row1" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Race Distribution (Alive vs Dead)</div>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-race"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Age Distribution (Living HFs)</div>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-age"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 2: Entity Types + Caste Distribution ── -->
+        <div id="demo-row2" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Entity Types — Members by Category</div>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-entity-types"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Caste (Gender) Distribution</div>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-caste"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 3: Birth/Death Timeline (full width) ── -->
+        <div id="demo-row3" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Births &amp; Deaths Over Time</div>
+            <p class="text-stone-500 text-[10px] mb-2">Annual birth and death counts across the world's history. The net curve shows cumulative population change.</p>
+            <div style="height: 300px; position: relative;">
+              <canvas id="demo-chart-birth-death"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 4: Civilization Comparison (full width) ── -->
+        <div id="demo-row4" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Civilization Comparison</div>
+            <p class="text-stone-500 text-[10px] mb-2">Side-by-side comparison of all civilizations: living members, DF census population, sites controlled, and racial composition.</p>
+            <div style="height: 400px; position: relative;">
+              <canvas id="demo-chart-civ-compare"></canvas>
+            </div>
+            <div class="overflow-x-auto mt-4">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-stone-500 text-left border-b border-stone-700">
+                    <th class="py-1.5 px-2">Civilization</th>
+                    <th class="py-1.5 px-2">Race</th>
+                    <th class="py-1.5 px-2 text-right">Living Members</th>
+                    <th class="py-1.5 px-2 text-right">Total Members</th>
+                    <th class="py-1.5 px-2 text-right">DF Population</th>
+                    <th class="py-1.5 px-2 text-right">Sites</th>
+                    <th class="py-1.5 px-2">Racial Composition</th>
+                  </tr>
+                </thead>
+                <tbody id="demo-civ-table-body">
+                  <tr><td colspan="7" class="text-stone-500 py-4 text-center">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 5: Race Lifespan Comparison ── -->
+        <div id="demo-row5" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Lifespan by Race</div>
+            <p class="text-stone-500 text-[10px] mb-2">Average, median, and range of lifespans for each race (dead HFs only, minimum 5 samples). Hover for details.</p>
+            <div style="height: 400px; position: relative;">
+              <canvas id="demo-chart-lifespan"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 6: Membership Time-Series (interactive) ── -->
+        <div id="demo-row6" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Membership Over Time — Interactive</div>
+            <p class="text-stone-500 text-[10px] mb-2">Select an entity to see how its living membership count changed over the centuries. Based on birth/death years and membership status of each historical figure.</p>
+            <div class="flex items-center gap-3 mb-3">
+              <select id="demo-ts-entity-select" class="bg-stone-900 border border-stone-700 text-stone-300 text-xs rounded px-2 py-1.5 w-80 focus:border-amber-500 focus:outline-none"
+                      onchange="loadTimeSeries()">
+                <option value="">— Select an entity —</option>
+              </select>
+              <span id="demo-ts-status" class="text-stone-500 text-[10px]"></span>
+            </div>
+            <div style="height: 350px; position: relative;">
+              <canvas id="demo-chart-timeseries"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- EXTENDED ANALYTICS (loaded on demand via "Show More" button)  -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="demo-extended-toggle" class="hidden text-center py-4">
+          <button onclick="loadExtendedDemographics()"
+                  class="px-4 py-2 bg-amber-900/40 hover:bg-amber-800/50 text-amber-400 rounded text-xs border border-amber-700/50 transition-colors"
+                  id="demo-extend-btn">
+            Load Extended Analytics (Death Causes, Relationships, Conflicts, Culture)
+          </button>
+        </div>
+        <div id="demo-extended-loading" class="hidden text-stone-500 text-xs text-center py-4">Loading extended analytics...</div>
+
+        <!-- ── Row 7: Death Causes + Mortality Timeline ── -->
+        <div id="demo-row7" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Causes of Death</div>
+            <p class="text-stone-500 text-[10px] mb-2">How historical figures meet their end — from combat to old age to execution.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-death-causes"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Mortality by Decade</div>
+            <p class="text-stone-500 text-[10px] mb-2">Death counts aggregated per decade — reveals periods of war, plague, and peace.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-mortality"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 8: Deaths by Race ── -->
+        <div id="demo-row8" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Deaths by Race (Top 15)</div>
+            <p class="text-stone-500 text-[10px] mb-2">Which races suffer the most casualties, and their average age at death. Hover for details.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-deaths-by-race"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 9: Relationship Types + Most Connected ── -->
+        <div id="demo-row9" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Social Relationships</div>
+            <p class="text-stone-500 text-[10px] mb-2">Distribution of relationship types across all historical figures — deity worship, family, romance, mentorship.</p>
+            <div style="height: 400px; position: relative;">
+              <canvas id="demo-chart-relationships"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Relationship Summary</div>
+            <div id="demo-rel-summary" class="space-y-3 pt-2"></div>
+            <div class="section-title mt-4 pt-3 border-t border-stone-800">Most Connected Figures</div>
+            <div class="overflow-y-auto max-h-56">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-stone-500 text-left border-b border-stone-700">
+                    <th class="py-1 px-2">Name</th>
+                    <th class="py-1 px-2">Race</th>
+                    <th class="py-1 px-2 text-right">Relationships</th>
+                    <th class="py-1 px-2 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="demo-connected-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 10: Conflict Timeline ── -->
+        <div id="demo-row10" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Conflict Timeline</div>
+            <p class="text-stone-500 text-[10px] mb-2">Wars, battles, sieges, and beast attacks per decade. Stacked view reveals the character of each era.</p>
+            <div style="height: 350px; position: relative;">
+              <canvas id="demo-chart-conflicts"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 11: War List ── -->
+        <div id="demo-row11" class="hidden">
+          <div class="section-card">
+            <div class="section-title">War Chronicle</div>
+            <p class="text-stone-500 text-[10px] mb-2">Complete list of wars across the world's history.</p>
+            <div class="overflow-y-auto max-h-72">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-stone-500 text-left border-b border-stone-700">
+                    <th class="py-1.5 px-2">War Name</th>
+                    <th class="py-1.5 px-2 text-right">Start</th>
+                    <th class="py-1.5 px-2 text-right">End</th>
+                    <th class="py-1.5 px-2 text-right">Duration</th>
+                  </tr>
+                </thead>
+                <tbody id="demo-war-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 12: Cultural Production ── -->
+        <div id="demo-row12" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Literary &amp; Artistic Works</div>
+            <p class="text-stone-500 text-[10px] mb-2">Written works by type — poems, compositions, manuals, essays, and more.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-written"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Artifacts by Type</div>
+            <p class="text-stone-500 text-[10px] mb-2">Material culture — artifacts crafted throughout the world's history.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-artifacts"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 13: Site Types + Art Forms ── -->
+        <div id="demo-row13" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="section-card">
+            <div class="section-title">Geographic Settlement Types</div>
+            <p class="text-stone-500 text-[10px] mb-2">Distribution of settlement types across the world — from mountain halls to dark fortresses.</p>
+            <div style="height: 400px; position: relative;">
+              <canvas id="demo-chart-sites"></canvas>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-title">Art Form Traditions</div>
+            <p class="text-stone-500 text-[10px] mb-2">Types of art forms practiced across civilizations.</p>
+            <div style="height: 400px; position: relative;">
+              <canvas id="demo-chart-artforms"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Row 14: Event Types Overview ── -->
+        <div id="demo-row14" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Historical Event Types</div>
+            <p class="text-stone-500 text-[10px] mb-2">All categories of historical event collections — from wars to performances to ceremonies.</p>
+            <div style="height: 360px; position: relative;">
+              <canvas id="demo-chart-event-types"></canvas>
+            </div>
           </div>
         </div>
 
@@ -3141,14 +3407,21 @@ const SITE_LINK_ANNOTATIONS = {
 };
 
 function switchStatsSub(sub) {
-  for (const s of ['report', 'viz']) {
+  for (const s of ['report', 'viz', 'demo']) {
     document.getElementById('stats-panel-' + s).classList.toggle('hidden', s !== sub);
     document.getElementById('stats-sub-' + s).classList.toggle('active', s === sub);
   }
+  // Lazy-load demographics on first visit
+  if (sub === 'demo' && !_demoLoaded) { loadDemographics(); _demoLoaded = true; }
 }
 
 let _statsData = null;
 let _chartInstances = {};
+const chartColors = {
+  amber: '#f6b93b', blue: '#3b82f6', green: '#22c55e',
+  red: '#ef4444', purple: '#a855f7', orange: '#f97316',
+  teal: '#14b8a6', pink: '#ec4899', stone: '#78716c',
+};
 
 async function loadStats() {
   if (!WORLD_ID) { setTimeout(loadStats, 200); return; }
@@ -3251,11 +3524,6 @@ function renderStatsReport(d) {
 }
 
 function renderStatsCharts(d) {
-  const chartColors = {
-    amber: '#f6b93b', blue: '#3b82f6', green: '#22c55e',
-    red: '#ef4444', purple: '#a855f7', orange: '#f97316',
-    teal: '#14b8a6', pink: '#ec4899', stone: '#78716c',
-  };
   const palette = [chartColors.amber, chartColors.blue, chartColors.green, chartColors.red, chartColors.purple, chartColors.orange, chartColors.teal, chartColors.pink, chartColors.stone];
 
   Chart.defaults.color = '#a8a29e';
@@ -3412,10 +3680,850 @@ function renderStatsCharts(d) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// DEMOGRAPHICS SUB-TAB
+// ═══════════════════════════════════════════════════════════════════════
+let _demoLoaded = false;
+let _demoCharts = {};
+let _demoEntityList = null;
+
+async function loadDemographics() {
+  if (!WORLD_ID) { setTimeout(loadDemographics, 200); return; }
+  try {
+    // Parallel fetch: overview + civ comparison + lifespan + entity list
+    const [overviewResp, civResp, lifespanResp, entityResp] = await Promise.all([
+      fetch(`/api/demographics/overview?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/civilization-comparison?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/race-lifespan?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/entity-list?world_id=${WORLD_ID}`),
+    ]);
+    if (!overviewResp.ok) throw new Error(`Overview: HTTP ${overviewResp.status}`);
+    if (!civResp.ok) throw new Error(`Civ comparison: HTTP ${civResp.status}`);
+    if (!lifespanResp.ok) throw new Error(`Lifespan: HTTP ${lifespanResp.status}`);
+    if (!entityResp.ok) throw new Error(`Entity list: HTTP ${entityResp.status}`);
+
+    const overview = await overviewResp.json();
+    const civs = await civResp.json();
+    const lifespan = await lifespanResp.json();
+    _demoEntityList = await entityResp.json();
+
+    document.getElementById('demo-loading').classList.add('hidden');
+    renderDemoSummary(overview);
+    renderDemoCharts(overview, civs, lifespan);
+    populateEntitySelector(_demoEntityList);
+  } catch (e) {
+    document.getElementById('demo-loading').innerHTML =
+      `<div class="text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderDemoSummary(d) {
+  const el = document.getElementById('demo-summary');
+  el.classList.remove('hidden');
+  const g = d;
+  const totalHfs = d.race_distribution.reduce((s, r) => s + r.total, 0);
+  const aliveHfs = d.race_distribution.reduce((s, r) => s + r.alive, 0);
+  const deadHfs = totalHfs - aliveHfs;
+  const totalEntities = d.entity_types.reduce((s, r) => s + r.entity_count, 0);
+  const ls = d.lifespan_stats;
+  const cards = [
+    { value: formatNum(totalHfs), label: 'Historical Figures', color: 'text-amber-400' },
+    { value: formatNum(aliveHfs), label: 'Alive', color: 'text-green-400' },
+    { value: formatNum(deadHfs), label: 'Dead', color: 'text-red-400' },
+    { value: formatNum(totalEntities), label: 'Entities', color: 'text-blue-400' },
+    { value: ls.avg_lifespan.toFixed(0) + ' yr', label: 'Avg Lifespan', color: 'text-purple-400' },
+    { value: 'Y' + d.world_year, label: 'World Year', color: 'text-stone-300' },
+  ];
+  document.getElementById('demo-summary-cards').innerHTML = cards.map(c =>
+    `<div class="section-card text-center py-3">
+      <div class="${c.color} text-lg font-bold stat-badge">${c.value}</div>
+      <div class="text-stone-500 text-[10px]">${c.label}</div>
+    </div>`
+  ).join('');
+}
+
+function renderDemoCharts(overview, civs, lifespanData) {
+  const C = chartColors || {
+    amber: '#f6b93b', blue: '#3b82f6', green: '#22c55e',
+    red: '#ef4444', purple: '#a855f7', orange: '#f97316',
+    teal: '#14b8a6', pink: '#ec4899', stone: '#78716c',
+  };
+  const palette = [C.amber, C.blue, C.green, C.red, C.purple, C.orange, C.teal, C.pink, C.stone,
+                   '#6366f1', '#06b6d4', '#84cc16', '#f43f5e', '#8b5cf6', '#d946ef'];
+
+  // Destroy existing demo charts
+  for (const key in _demoCharts) { _demoCharts[key].destroy(); }
+  _demoCharts = {};
+
+  // ── Chart 1: Race Distribution (horizontal stacked bar, top 20) ──
+  document.getElementById('demo-row1').classList.remove('hidden');
+  const raceData = overview.race_distribution.slice(0, 20);
+  _demoCharts.race = new Chart(document.getElementById('demo-chart-race'), {
+    type: 'bar',
+    data: {
+      labels: raceData.map(r => r.race.replace(/_/g, ' ')),
+      datasets: [
+        { label: 'Alive', data: raceData.map(r => r.alive), backgroundColor: C.green + '80', borderColor: C.green, borderWidth: 1 },
+        { label: 'Dead', data: raceData.map(r => r.dead), backgroundColor: C.red + '40', borderColor: C.red, borderWidth: 1 },
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, grid: { color: '#1c1917' } },
+        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Chart 2: Age Distribution (vertical bar) ──
+  const ageBins = overview.age_distribution;
+  _demoCharts.age = new Chart(document.getElementById('demo-chart-age'), {
+    type: 'bar',
+    data: {
+      labels: ageBins.map(b => b.bin),
+      datasets: [{
+        label: 'Living HFs',
+        data: ageBins.map(b => b.count),
+        backgroundColor: C.amber + '80',
+        borderColor: C.amber,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, title: { display: true, text: 'Age Range (years)' } },
+        y: { grid: { color: '#1c1917' }, title: { display: true, text: 'Count' } }
+      }
+    }
+  });
+
+  // ── Chart 3: Entity Types (horizontal bar with members) ──
+  document.getElementById('demo-row2').classList.remove('hidden');
+  const etData = overview.entity_types.filter(e => e.entity_count > 0);
+  _demoCharts.entityTypes = new Chart(document.getElementById('demo-chart-entity-types'), {
+    type: 'bar',
+    data: {
+      labels: etData.map(e => e.type.replace(/_/g, ' ')),
+      datasets: [
+        { label: 'Alive Members', data: etData.map(e => e.alive_members), backgroundColor: C.green + '80', borderColor: C.green, borderWidth: 1 },
+        { label: 'Dead Members', data: etData.map(e => e.total_members - e.alive_members), backgroundColor: C.red + '40', borderColor: C.red, borderWidth: 1 },
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              return `Entities: ${etData[idx].entity_count}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { color: '#1c1917' } },
+        y: { stacked: true, grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Chart 4: Caste (Gender) doughnut ──
+  const casteData = overview.caste_distribution.filter(c => c.total > 0);
+  _demoCharts.caste = new Chart(document.getElementById('demo-chart-caste'), {
+    type: 'doughnut',
+    data: {
+      labels: casteData.map(c => c.caste),
+      datasets: [{
+        data: casteData.map(c => c.total),
+        backgroundColor: casteData.map((_, i) => palette[i % palette.length] + '80'),
+        borderColor: casteData.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right' },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const c = casteData[ctx.dataIndex];
+              return `${c.caste}: ${formatNum(c.total)} (${formatNum(c.alive)} alive)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Chart 5: Birth/Death Timeline ──
+  document.getElementById('demo-row3').classList.remove('hidden');
+  const bdData = overview.birth_death_timeline;
+  // Compute running net population
+  let runningPop = 0;
+  const netPop = bdData.map(d => { runningPop += d.births - d.deaths; return runningPop; });
+
+  _demoCharts.birthDeath = new Chart(document.getElementById('demo-chart-birth-death'), {
+    type: 'line',
+    data: {
+      labels: bdData.map(d => d.year),
+      datasets: [
+        {
+          label: 'Births',
+          data: bdData.map(d => d.births),
+          borderColor: C.green,
+          backgroundColor: C.green + '20',
+          fill: true,
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.3,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Deaths',
+          data: bdData.map(d => d.deaths),
+          borderColor: C.red,
+          backgroundColor: C.red + '20',
+          fill: true,
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.3,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Cumulative Living',
+          data: netPop,
+          borderColor: C.amber,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+          yAxisID: 'y2',
+          borderDash: [4, 2],
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { grid: { color: '#1c1917' }, title: { display: true, text: 'Year' },
+             ticks: { maxTicksLimit: 20 } },
+        y: { grid: { color: '#1c1917' }, title: { display: true, text: 'Births / Deaths' },
+             position: 'left' },
+        y2: { grid: { display: false }, title: { display: true, text: 'Cumulative Living' },
+              position: 'right' },
+      }
+    }
+  });
+
+  // ── Chart 6: Civilization Comparison (grouped bar) ──
+  document.getElementById('demo-row4').classList.remove('hidden');
+  const civData = civs.filter(c => c.alive_current > 0 || c.df_population > 0).slice(0, 15);
+  _demoCharts.civCompare = new Chart(document.getElementById('demo-chart-civ-compare'), {
+    type: 'bar',
+    data: {
+      labels: civData.map(c => c.name),
+      datasets: [
+        { label: 'Living Members', data: civData.map(c => c.alive_current), backgroundColor: C.green + '80', borderColor: C.green, borderWidth: 1 },
+        { label: 'Total Members', data: civData.map(c => c.total_members), backgroundColor: C.blue + '40', borderColor: C.blue, borderWidth: 1 },
+        { label: 'DF Population', data: civData.map(c => c.df_population), backgroundColor: C.amber + '40', borderColor: C.amber, borderWidth: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              return `Sites: ${civData[idx].site_count}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } },
+        y: { grid: { color: '#1c1917' }, type: 'logarithmic',
+             title: { display: true, text: 'Count (log scale)' } }
+      }
+    }
+  });
+
+  // Civ comparison table
+  const civTableBody = document.getElementById('demo-civ-table-body');
+  civTableBody.innerHTML = civs.map(c => {
+    const races = (c.races || []).slice(0, 5);
+    const racePills = races.map(r =>
+      `<span class="inline-block bg-stone-800 text-stone-400 rounded px-1.5 py-0.5 text-[10px] mr-1">${escapeHtml((r.race || '').replace(/_/g, ' '))} (${r.count})</span>`
+    ).join('');
+    return `<tr class="border-b border-stone-800/50 hover:bg-stone-900/30">
+      <td class="py-1 px-2"><span class="nav-link" onclick="navigateTo('civs','civ',${WORLD_ID},${c.id})">${escapeHtml(c.name)}</span></td>
+      <td class="py-1 px-2 text-stone-400">${escapeHtml((c.primary_race || '').replace(/_/g, ' '))}</td>
+      <td class="py-1 px-2 text-right text-green-400 stat-badge">${formatNum(c.alive_current)}</td>
+      <td class="py-1 px-2 text-right text-stone-400 stat-badge">${formatNum(c.total_members)}</td>
+      <td class="py-1 px-2 text-right text-amber-400 stat-badge">${formatNum(c.df_population)}</td>
+      <td class="py-1 px-2 text-right text-stone-400 stat-badge">${c.site_count}</td>
+      <td class="py-1 px-2">${racePills || '<span class="text-stone-600">—</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Chart 7: Race Lifespan (horizontal floating bar — min to max range) ──
+  document.getElementById('demo-row5').classList.remove('hidden');
+  const lsData = lifespanData.slice(0, 20);
+  _demoCharts.lifespan = new Chart(document.getElementById('demo-chart-lifespan'), {
+    type: 'bar',
+    data: {
+      labels: lsData.map(r => r.race.replace(/_/g, ' ')),
+      datasets: [
+        {
+          label: 'Median Lifespan',
+          data: lsData.map(r => r.median_lifespan),
+          backgroundColor: C.purple + '80',
+          borderColor: C.purple,
+          borderWidth: 1,
+        },
+        {
+          label: 'Average Lifespan',
+          data: lsData.map(r => r.avg_lifespan),
+          backgroundColor: C.teal + '60',
+          borderColor: C.teal,
+          borderWidth: 1,
+        },
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              const r = lsData[idx];
+              return `Range: ${r.min_lifespan}–${r.max_lifespan} yr | Samples: ${r.sample_size}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1c1917' }, title: { display: true, text: 'Years' } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Show time-series section + extended toggle ──
+  document.getElementById('demo-row6').classList.remove('hidden');
+  document.getElementById('demo-extended-toggle').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// EXTENDED DEMOGRAPHICS (death causes, relationships, conflicts, culture)
+// ═══════════════════════════════════════════════════════════════════════
+let _extendedLoaded = false;
+
+async function loadExtendedDemographics() {
+  if (_extendedLoaded) return;
+  _extendedLoaded = true;
+  const btn = document.getElementById('demo-extend-btn');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  document.getElementById('demo-extended-loading').classList.remove('hidden');
+
+  try {
+    const [deathResp, relResp, conflictResp, cultureResp] = await Promise.all([
+      fetch(`/api/demographics/death-causes?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/relationships?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/conflicts?world_id=${WORLD_ID}`),
+      fetch(`/api/demographics/culture?world_id=${WORLD_ID}`),
+    ]);
+    if (!deathResp.ok) throw new Error(`Death causes: HTTP ${deathResp.status}`);
+    if (!relResp.ok) throw new Error(`Relationships: HTTP ${relResp.status}`);
+    if (!conflictResp.ok) throw new Error(`Conflicts: HTTP ${conflictResp.status}`);
+    if (!cultureResp.ok) throw new Error(`Culture: HTTP ${cultureResp.status}`);
+
+    const deathData = await deathResp.json();
+    const relData = await relResp.json();
+    const conflictData = await conflictResp.json();
+    const cultureData = await cultureResp.json();
+
+    document.getElementById('demo-extended-toggle').classList.add('hidden');
+    document.getElementById('demo-extended-loading').classList.add('hidden');
+
+    renderDeathCharts(deathData);
+    renderRelationshipCharts(relData);
+    renderConflictCharts(conflictData);
+    renderCultureCharts(cultureData);
+  } catch (e) {
+    document.getElementById('demo-extended-loading').innerHTML =
+      `<div class="text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderDeathCharts(data) {
+  const C = chartColors;
+  const palette = [C.red, C.amber, C.orange, C.purple, C.blue, C.green, C.teal, C.pink, C.stone,
+                   '#6366f1', '#06b6d4', '#84cc16', '#f43f5e', '#8b5cf6', '#d946ef'];
+
+  // ── Death Causes (doughnut) ──
+  document.getElementById('demo-row7').classList.remove('hidden');
+  const causes = data.causes.filter(c => c.count > 0);
+  _demoCharts.deathCauses = new Chart(document.getElementById('demo-chart-death-causes'), {
+    type: 'doughnut',
+    data: {
+      labels: causes.map(c => c.cause.replace(/_/g, ' ')),
+      datasets: [{
+        data: causes.map(c => c.count),
+        backgroundColor: causes.map((_, i) => palette[i % palette.length] + '80'),
+        borderColor: causes.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = causes.reduce((s, c) => s + c.count, 0);
+              const pct = ((ctx.raw / total) * 100).toFixed(1);
+              return `${ctx.label}: ${formatNum(ctx.raw)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Mortality Timeline ──
+  const mortData = data.mortality_timeline;
+  _demoCharts.mortality = new Chart(document.getElementById('demo-chart-mortality'), {
+    type: 'bar',
+    data: {
+      labels: mortData.map(d => d.decade + 's'),
+      datasets: [{
+        label: 'Deaths',
+        data: mortData.map(d => d.deaths),
+        backgroundColor: C.red + '60',
+        borderColor: C.red,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, title: { display: true, text: 'Decade' } },
+        y: { grid: { color: '#1c1917' }, title: { display: true, text: 'Deaths' } }
+      }
+    }
+  });
+
+  // ── Deaths by Race ──
+  document.getElementById('demo-row8').classList.remove('hidden');
+  const raceDeaths = data.deaths_by_race;
+  _demoCharts.deathsByRace = new Chart(document.getElementById('demo-chart-deaths-by-race'), {
+    type: 'bar',
+    data: {
+      labels: raceDeaths.map(r => r.race.replace(/_/g, ' ')),
+      datasets: [{
+        label: 'Deaths',
+        data: raceDeaths.map(r => r.count),
+        backgroundColor: C.red + '60',
+        borderColor: C.red,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              const r = raceDeaths[idx];
+              return r.avg_age_at_death != null ? `Avg age at death: ${r.avg_age_at_death} yr` : '';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1c1917' } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderRelationshipCharts(data) {
+  const C = chartColors;
+  const palette = [C.amber, C.blue, C.green, C.red, C.purple, C.orange, C.teal, C.pink, C.stone,
+                   '#6366f1', '#06b6d4', '#84cc16'];
+
+  // ── Relationship Types ──
+  document.getElementById('demo-row9').classList.remove('hidden');
+  const relTypes = data.types;
+  _demoCharts.relationships = new Chart(document.getElementById('demo-chart-relationships'), {
+    type: 'bar',
+    data: {
+      labels: relTypes.map(r => r.type.replace(/_/g, ' ')),
+      datasets: [{
+        label: 'Count',
+        data: relTypes.map(r => r.count),
+        backgroundColor: relTypes.map((_, i) => palette[i % palette.length] + '70'),
+        borderColor: relTypes.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c1917' }, type: 'logarithmic' },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Summary cards ──
+  const s = data.summary;
+  const summaryEl = document.getElementById('demo-rel-summary');
+  const summaryItems = [
+    { label: 'Deity Worship', value: formatNum(s.deity_worship), color: 'text-amber-400', icon: 'star' },
+    { label: 'Parent-Child', value: formatNum(s.parent_child), color: 'text-blue-400', icon: 'users' },
+    { label: 'Marriages', value: formatNum(s.marriages), color: 'text-pink-400', icon: 'heart' },
+    { label: 'Romantic', value: formatNum(s.romantic), color: 'text-red-400', icon: 'fire' },
+    { label: 'Mentorships', value: formatNum(s.mentorships), color: 'text-teal-400', icon: 'book' },
+  ];
+  summaryEl.innerHTML = summaryItems.map(item =>
+    `<div class="flex items-center justify-between px-2 py-1.5 bg-stone-900/50 rounded">
+      <span class="text-stone-400 text-xs">${item.label}</span>
+      <span class="${item.color} font-bold text-sm stat-badge">${item.value}</span>
+    </div>`
+  ).join('');
+
+  // ── Most Connected table ──
+  const connTable = document.getElementById('demo-connected-table');
+  connTable.innerHTML = data.most_connected.map(r =>
+    `<tr class="border-b border-stone-800/50 hover:bg-stone-900/30">
+      <td class="py-1 px-2"><span class="nav-link" onclick="navigateTo('people','hf',${WORLD_ID},${r.id})">${escapeHtml(r.name || '(unnamed)')}</span></td>
+      <td class="py-1 px-2 text-stone-400 text-[10px]">${escapeHtml((r.race || '').replace(/_/g, ' '))}</td>
+      <td class="py-1 px-2 text-right text-amber-400 stat-badge">${r.relationships}</td>
+      <td class="py-1 px-2 text-center">${r.alive ? '<span class="text-green-400">alive</span>' : '<span class="text-stone-600">dead</span>'}</td>
+    </tr>`
+  ).join('');
+}
+
+function renderConflictCharts(data) {
+  const C = chartColors;
+
+  // ── Conflict Timeline (stacked bar) ──
+  document.getElementById('demo-row10').classList.remove('hidden');
+  const tl = data.timeline;
+  _demoCharts.conflicts = new Chart(document.getElementById('demo-chart-conflicts'), {
+    type: 'bar',
+    data: {
+      labels: tl.map(d => d.decade + 's'),
+      datasets: [
+        { label: 'Wars', data: tl.map(d => d.wars), backgroundColor: C.red + '80', borderColor: C.red, borderWidth: 1 },
+        { label: 'Battles', data: tl.map(d => d.battles), backgroundColor: C.orange + '80', borderColor: C.orange, borderWidth: 1 },
+        { label: 'Sieges', data: tl.map(d => d.sieges), backgroundColor: C.purple + '80', borderColor: C.purple, borderWidth: 1 },
+        { label: 'Beast Attacks', data: tl.map(d => d.beast_attacks), backgroundColor: C.teal + '60', borderColor: C.teal, borderWidth: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, grid: { display: false }, title: { display: true, text: 'Decade' } },
+        y: { stacked: true, grid: { color: '#1c1917' }, title: { display: true, text: 'Events' } }
+      }
+    }
+  });
+
+  // ── War Table ──
+  document.getElementById('demo-row11').classList.remove('hidden');
+  const warTable = document.getElementById('demo-war-table');
+  warTable.innerHTML = data.wars.map(w =>
+    `<tr class="border-b border-stone-800/50 hover:bg-stone-900/30">
+      <td class="py-1 px-2 text-stone-300">${escapeHtml(w.name || '(unnamed)')}</td>
+      <td class="py-1 px-2 text-right text-stone-400">Y${w.start}</td>
+      <td class="py-1 px-2 text-right text-stone-400">${w.end != null ? 'Y' + w.end : '<span class="text-amber-400">ongoing</span>'}</td>
+      <td class="py-1 px-2 text-right text-amber-400 stat-badge">${w.duration != null ? w.duration + ' yr' : '—'}</td>
+    </tr>`
+  ).join('');
+
+  // ── Event Types ──
+  document.getElementById('demo-row14').classList.remove('hidden');
+  const palette = [C.amber, C.blue, C.green, C.red, C.purple, C.orange, C.teal, C.pink, C.stone,
+                   '#6366f1', '#06b6d4', '#84cc16', '#f43f5e', '#8b5cf6', '#d946ef', '#a3e635', '#fb923c'];
+  const etData = data.event_types;
+  _demoCharts.eventTypes = new Chart(document.getElementById('demo-chart-event-types'), {
+    type: 'bar',
+    data: {
+      labels: etData.map(e => e.type.replace(/_/g, ' ')),
+      datasets: [{
+        label: 'Count',
+        data: etData.map(e => e.count),
+        backgroundColor: etData.map((_, i) => palette[i % palette.length] + '70'),
+        borderColor: etData.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c1917' }, type: 'logarithmic' },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function renderCultureCharts(data) {
+  const C = chartColors;
+  const palette = [C.amber, C.blue, C.green, C.red, C.purple, C.orange, C.teal, C.pink, C.stone,
+                   '#6366f1', '#06b6d4', '#84cc16', '#f43f5e', '#8b5cf6', '#d946ef'];
+
+  // ── Written Works (doughnut) ──
+  document.getElementById('demo-row12').classList.remove('hidden');
+  const ww = data.written_works;
+  _demoCharts.written = new Chart(document.getElementById('demo-chart-written'), {
+    type: 'doughnut',
+    data: {
+      labels: ww.map(w => w.type),
+      datasets: [{
+        data: ww.map(w => w.count),
+        backgroundColor: ww.map((_, i) => palette[i % palette.length] + '80'),
+        borderColor: ww.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = ww.reduce((s, w) => s + w.count, 0);
+              return `${ctx.label}: ${formatNum(ctx.raw)} (${((ctx.raw / total) * 100).toFixed(1)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Artifacts ──
+  const art = data.artifacts.slice(0, 15);
+  _demoCharts.artifacts = new Chart(document.getElementById('demo-chart-artifacts'), {
+    type: 'bar',
+    data: {
+      labels: art.map(a => a.type.replace(/_/g, ' ')),
+      datasets: [{
+        label: 'Count',
+        data: art.map(a => a.count),
+        backgroundColor: C.amber + '70',
+        borderColor: C.amber,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c1917' } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Site Types (horizontal bar) ──
+  document.getElementById('demo-row13').classList.remove('hidden');
+  const sites = data.site_types;
+  _demoCharts.sites = new Chart(document.getElementById('demo-chart-sites'), {
+    type: 'bar',
+    data: {
+      labels: sites.map(s => s.type.replace(/_/g, ' ')),
+      datasets: [{
+        label: 'Count',
+        data: sites.map(s => s.count),
+        backgroundColor: sites.map((_, i) => palette[i % palette.length] + '60'),
+        borderColor: sites.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c1917' } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // ── Art Forms (doughnut) ──
+  const af = data.art_forms;
+  _demoCharts.artForms = new Chart(document.getElementById('demo-chart-artforms'), {
+    type: 'doughnut',
+    data: {
+      labels: af.map(a => a.type.replace(/_/g, ' ')),
+      datasets: [{
+        data: af.map(a => a.count),
+        backgroundColor: af.map((_, i) => palette[i % palette.length] + '80'),
+        borderColor: af.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { font: { size: 10 } } },
+      }
+    }
+  });
+}
+
+function populateEntitySelector(entities) {
+  const select = document.getElementById('demo-ts-entity-select');
+  // Group by entity type
+  const groups = {};
+  for (const e of entities) {
+    const t = e.type || 'unknown';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(e);
+  }
+  // Sort groups: civilization first, then sitegovernment, then alphabetical
+  const order = ['civilization', 'sitegovernment', 'religion', 'guild', 'performance troupe', 'military'];
+  const sortedTypes = Object.keys(groups).sort((a, b) => {
+    const ai = order.indexOf(a), bi = order.indexOf(b);
+    if (ai >= 0 && bi >= 0) return ai - bi;
+    if (ai >= 0) return -1;
+    if (bi >= 0) return 1;
+    return a.localeCompare(b);
+  });
+  let html = '<option value="">— Select an entity —</option>';
+  for (const t of sortedTypes) {
+    const label = t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    html += `<optgroup label="${escapeHtml(label)} (${groups[t].length})">`;
+    for (const e of groups[t]) {
+      const suffix = e.total_members > 0 ? ` — ${formatNum(e.alive_members)} alive / ${formatNum(e.total_members)} total` : '';
+      html += `<option value="${e.id}">${escapeHtml(e.name)}${suffix}</option>`;
+    }
+    html += '</optgroup>';
+  }
+  select.innerHTML = html;
+}
+
+let _tsChart = null;
+async function loadTimeSeries() {
+  const entityId = document.getElementById('demo-ts-entity-select').value;
+  const status = document.getElementById('demo-ts-status');
+  if (!entityId) {
+    status.textContent = '';
+    if (_tsChart) { _tsChart.destroy(); _tsChart = null; }
+    return;
+  }
+  status.textContent = 'Loading...';
+  status.className = 'text-stone-500 text-[10px]';
+  try {
+    const resp = await fetch(`/api/demographics/time-series?world_id=${WORLD_ID}&entity_id=${entityId}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.years || data.years.length === 0) {
+      status.textContent = 'No membership data available for this entity.';
+      if (_tsChart) { _tsChart.destroy(); _tsChart = null; }
+      return;
+    }
+    status.textContent = `${data.entity.name} — ${data.years.length} data points`;
+    renderTimeSeries(data);
+  } catch (e) {
+    status.textContent = e.message;
+    status.className = 'text-red-400 text-[10px]';
+  }
+}
+
+function renderTimeSeries(data) {
+  const C = { amber: '#f6b93b', green: '#22c55e', blue: '#3b82f6', stone: '#78716c' };
+  if (_tsChart) { _tsChart.destroy(); _tsChart = null; }
+
+  const canvas = document.getElementById('demo-chart-timeseries');
+  _tsChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: data.years.map(y => y.year),
+      datasets: [
+        {
+          label: 'Living Members',
+          data: data.years.map(y => y.living_members),
+          borderColor: C.green,
+          backgroundColor: C.green + '20',
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.2,
+        },
+        {
+          label: 'Living (any link)',
+          data: data.years.map(y => y.living_total),
+          borderColor: C.blue,
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          pointRadius: 0,
+          borderDash: [3, 3],
+          tension: 0.2,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: data.entity.name + ' — ' + (data.entity.type || '').replace(/_/g, ' '),
+          color: '#f6b93b',
+          font: { size: 13 },
+        },
+        tooltip: {
+          callbacks: {
+            title: (items) => `Year ${items[0].label}`,
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1c1917' }, title: { display: true, text: 'Year' },
+             ticks: { maxTicksLimit: 25 } },
+        y: { grid: { color: '#1c1917' }, title: { display: true, text: 'Living Members' },
+             beginAtZero: true },
+      }
+    }
+  });
+}
+
 // Honor ?tab= query param on page load (used by "View Graph" links)
 {
   const urlTab = new URLSearchParams(window.location.search).get('tab');
   if (urlTab && ALL_TABS.includes(urlTab)) switchTab(urlTab);
+  // Also handle ?tab=stats&sub=demo
+  const urlSub = new URLSearchParams(window.location.search).get('sub');
+  if (urlSub && ['report', 'viz', 'demo'].includes(urlSub)) switchStatsSub(urlSub);
 }
 </script>
 

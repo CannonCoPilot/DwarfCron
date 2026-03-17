@@ -35,6 +35,7 @@ from chronicler.api.routes.geography import router as geography_router
 from chronicler.api.routes.events import router as events_router
 from chronicler.api.routes.detail_pages import router as detail_pages_router
 from chronicler.api.routes.statistics import router as statistics_router
+from chronicler.api.routes.demographics import router as demographics_router
 
 app.include_router(storyteller_router, prefix="/api")
 app.include_router(world_router, prefix="/api")
@@ -46,6 +47,7 @@ app.include_router(geography_router, prefix="/api")
 app.include_router(events_router, prefix="/api")
 app.include_router(detail_pages_router)  # No prefix — routes already include /explorer/
 app.include_router(statistics_router, prefix="/api")
+app.include_router(demographics_router, prefix="/api")
 
 
 @app.get("/")
