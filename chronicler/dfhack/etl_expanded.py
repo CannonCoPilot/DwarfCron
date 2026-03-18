@@ -39,7 +39,7 @@ async def etl_live_history(conn: asyncpg.Connection, history_data: dict,
     if not history_data:
         return 0
 
-    events = history_data.get("events", [])
+    events = history_data.get("recent_events") or history_data.get("events") or []
     if not events:
         return 0
 
@@ -57,11 +57,11 @@ async def etl_live_history(conn: asyncpg.Connection, history_data: dict,
         if exists:
             continue
 
-        # Extract standard fields from the event
-        details = {k: v for k, v in ev.items()
-                   if k not in ("id", "year", "seconds", "type",
-                                "hf_id", "hf_id_2", "site_id",
-                                "entity_id", "entity_id_2")}
+        # Bridge uses 'hfid' (no underscore) and numeric type codes
+        top_keys = {"id", "year", "seconds", "type",
+                    "hfid", "hf_id", "hf_id_2", "site_id",
+                    "entity_id", "entity_id_2"}
+        details = {k: v for k, v in ev.items() if k not in top_keys}
 
         await conn.execute(
             """
@@ -73,8 +73,10 @@ async def etl_live_history(conn: asyncpg.Connection, history_data: dict,
             ON CONFLICT (world_id, id) DO NOTHING
             """,
             world_id, event_id,
-            ev.get("year"), ev.get("seconds"), ev.get("type"),
-            ev.get("hf_id"), ev.get("hf_id_2"),
+            ev.get("year"), ev.get("seconds"),
+            str(ev.get("type", "")),  # numeric code as string
+            ev.get("hfid") or ev.get("hf_id"),
+            ev.get("hf_id_2"),
             ev.get("site_id"),
             ev.get("entity_id"), ev.get("entity_id_2"),
             details,
@@ -256,24 +258,27 @@ async def etl_announcements(conn: asyncpg.Connection, ann_data: dict,
     if not ann_data:
         return 0
 
-    reports = ann_data.get("announcements", [])
+    reports = ann_data.get("recent") or ann_data.get("announcements") or []
     if not reports:
         return 0
 
     count = 0
     for rpt in reports:
         text = rpt.get("text", "").strip()
-        if not text:
+        report_id = rpt.get("id")
+        if not text or report_id is None:
             continue
 
         await conn.execute(
             """
             INSERT INTO game_reports
-                (world_id, report_type, text, game_year, game_tick, details)
-            VALUES ($1, 'announcement', $2, $3, $4, $5)
+                (world_id, report_id, report_type, text, game_year, game_tick,
+                 is_announcement)
+            VALUES ($1, $2, $3, $4, $5, $6, true)
+            ON CONFLICT (world_id, report_id) DO NOTHING
             """,
-            world_id, text, game_year, game_tick,
-            {k: v for k, v in rpt.items() if k != "text"},
+            world_id, report_id, rpt.get("type"),
+            text, rpt.get("year") or game_year, rpt.get("time") or game_tick,
         )
         count += 1
 
