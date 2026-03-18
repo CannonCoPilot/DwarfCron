@@ -1523,15 +1523,9 @@ local function get_fortress_state()
     pcall(function() state.fortress_rank = pi.fortress_rank end)
     pcall(function() state.king_arrived = pi.king_arrived end)
 
-    -- Population count (from active units)
+    -- Population count (fortress citizens only, excludes visitors/merchants)
     pcall(function()
-        local pop = 0
-        for _, u in ipairs(df.global.world.units.active) do
-            if u.civ_id == pi.civ_id and not u.flags1.dead then
-                pop = pop + 1
-            end
-        end
-        state.population = pop
+        state.population = #dfhack.units.getCitizens()
     end)
 
     -- Infiltrators (known vampire/werebeast HF IDs)
