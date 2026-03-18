@@ -4,6 +4,7 @@ import asyncio
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 
 import click
@@ -548,3 +549,284 @@ def denizens(world_id, status_filter, sort_by, limit):
         await close_pool()
 
     _run(_run_denizens())
+
+
+# ── Game control ─────────────────────────────────────────────────────────
+
+@cli.group("control")
+def control_group():
+    """Control the live DF game (pause, unpause, step, status)."""
+
+
+def _get_controller(host):
+    """Create a GameController (SSH-based, no persistent connection)."""
+    from chronicler.dfhack.controller import GameController
+    return GameController(host=host)
+
+
+@control_group.command("status")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+def control_status(host):
+    """Show current game status (time, pause state, fortress info)."""
+    ctrl = _get_controller(host)
+    s = ctrl.get_status()
+    pause_str = "PAUSED" if s["paused"] else "RUNNING"
+    click.echo(f"── Game Status ──")
+    click.echo(f"  Fortress:  {s['fortress_name']}")
+    click.echo(f"  Citizens:  {s['citizen_count']}")
+    click.echo(f"  Year:      {s['cur_year']}")
+    click.echo(f"  Season:    {s['season']}")
+    click.echo(f"  Tick:      {s['cur_year_tick']}")
+    click.echo(f"  State:     {pause_str}")
+
+
+@control_group.command("pause")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+def control_pause(host):
+    """Pause the game."""
+    ctrl = _get_controller(host)
+    if ctrl.pause():
+        click.echo("Game paused.")
+    else:
+        click.echo("Warning: pause command sent but game may not be paused.")
+
+
+@control_group.command("unpause")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+def control_unpause(host):
+    """Unpause the game."""
+    ctrl = _get_controller(host)
+    if ctrl.unpause():
+        click.echo("Game unpaused.")
+    else:
+        click.echo("Warning: unpause command sent but game may still be paused.")
+
+
+@control_group.command("step")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--ticks", default=100, type=int, help="Ticks to advance (default: 100)")
+@click.option("--timeout", default=30.0, type=float, help="Max seconds to wait")
+def control_step(host, ticks, timeout):
+    """Advance the game by N ticks then re-pause."""
+    ctrl = _get_controller(host)
+    click.echo(f"Stepping {ticks} ticks...")
+    result = ctrl.step(ticks=ticks, timeout=timeout)
+    click.echo(f"  Start:   Y{result['start_year']} T{result['start_tick']}")
+    click.echo(f"  End:     Y{result['end_year']} T{result['end_tick']}")
+    click.echo(f"  Elapsed: {result['elapsed_ticks']} ticks")
+    click.echo(f"  Season:  {result['season']}")
+
+
+@control_group.command("bridge")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--setup-repeat", is_flag=True,
+              help="Register bridge as DFHack repeating job (every 100 ticks)")
+def control_bridge(host, setup_repeat):
+    """Run the bridge script and/or fetch bridge data."""
+    ctrl = _get_controller(host)
+
+    if setup_repeat:
+        click.echo("Registering bridge as repeating job...")
+        output = ctrl.setup_bridge_repeat()
+        click.echo(f"  {output}" if output else "  Registered.")
+
+    click.echo("Running bridge script...")
+    output = ctrl.run_bridge()
+    click.echo(f"  {output}" if output else "  Done.")
+
+    click.echo("Fetching bridge data via SSH...")
+    data = ctrl.fetch_bridge_data()
+    if data:
+        sections = [k for k in data.keys() if k not in
+                    ('cur_year', 'cur_year_tick', 'cur_season',
+                     'creature_raws', 'creature_count', 'timestamp',
+                     'bridge_version', 'errors')]
+        click.echo(f"  Bridge v{data.get('bridge_version', '?')}")
+        click.echo(f"  Year {data.get('cur_year')}, Tick {data.get('cur_year_tick')}")
+        click.echo(f"  Creatures: {data.get('creature_count', 0)}")
+        click.echo(f"  Sections ({len(sections)}): {', '.join(sections)}")
+    else:
+        click.echo("  Failed to fetch bridge data.")
+
+
+@control_group.command("stream")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--ticks", default=100, type=int,
+              help="Ticks per step (default: 100, ~2 in-game hours)")
+@click.option("--cycles", default=10, type=int,
+              help="Number of step+collect cycles (default: 10)")
+@click.option("--interval", default=1.0, type=float,
+              help="Seconds to wait between cycles (default: 1)")
+@click.option("--timeout", default=30.0, type=float,
+              help="Max seconds per step (default: 30)")
+@click.option("--dry-run", is_flag=True,
+              help="Step and collect but don't ingest into DB")
+def control_stream(host, ticks, cycles, interval, timeout, dry_run):
+    """Step-and-collect loop: advance game, capture bridge data, ingest.
+
+    Orchestrates the game control + data pipeline:
+      1. Step game by N ticks (unpause → poll → re-pause)
+      2. Run bridge script to snapshot current state
+      3. Read bridge JSON via SSH
+      4. Ingest bridge data into PostgreSQL
+      5. Repeat for --cycles iterations
+
+    Example: chronicler control stream --ticks 500 --cycles 20
+    """
+    import asyncio
+    import signal as sig
+    from chronicler.dfhack.controller import GameController, ControllerError
+
+    ctrl = GameController(host=host)
+
+    # Verify connectivity
+    try:
+        status = ctrl.get_status()
+    except ControllerError as e:
+        click.echo(f"Cannot connect to game: {e}")
+        return
+
+    click.echo(f"── Streaming from {status['fortress_name']} ──")
+    click.echo(f"  Citizens: {status['citizen_count']}, "
+               f"Y{status['cur_year']} {status['season']}")
+    click.echo(f"  Plan: {cycles} cycles x {ticks} ticks "
+               f"= ~{cycles * ticks} total ticks")
+    if dry_run:
+        click.echo("  Mode: DRY RUN (no DB ingestion)")
+    click.echo()
+
+    # Ensure bridge script is deployed
+    click.echo("Initializing bridge...")
+    ctrl.run_bridge()
+
+    stopped = False
+
+    def _signal_handler(signum, frame):
+        nonlocal stopped
+        click.echo("\nStopping after current cycle...")
+        stopped = True
+
+    old_handler = sig.signal(sig.SIGINT, _signal_handler)
+
+    total_ticks = 0
+    total_sections = 0
+
+    try:
+        for cycle in range(1, cycles + 1):
+            if stopped:
+                break
+
+            # Step + collect
+            try:
+                result = ctrl.step_and_collect(
+                    ticks=ticks, timeout=timeout)
+            except ControllerError as e:
+                click.echo(f"  Cycle {cycle}: ERROR - {e}")
+                break
+
+            step = result["step"]
+            bridge = result.get("bridge_data")
+            total_ticks += step["elapsed_ticks"]
+
+            # Count sections in bridge data
+            n_sections = 0
+            if bridge:
+                n_sections = len([k for k in bridge.keys() if k not in
+                                  ('cur_year', 'cur_year_tick', 'cur_season',
+                                   'creature_raws', 'creature_count',
+                                   'timestamp', 'bridge_version', 'errors')])
+                total_sections += n_sections
+
+            # Ingest if not dry run
+            ingested = False
+            if not dry_run and bridge:
+                try:
+                    ingested = asyncio.run(_ingest_bridge_cycle(
+                        bridge, step, world_id=1))
+                except Exception as e:
+                    click.echo(f"  Cycle {cycle}: ingest error - {e}")
+
+            # Status line
+            status_char = "+" if ingested else ("~" if bridge else "!")
+            click.echo(
+                f"  [{status_char}] Cycle {cycle}/{cycles}: "
+                f"+{step['elapsed_ticks']}t → Y{step['end_year']} "
+                f"T{step['end_tick']} {step['season']} "
+                f"({n_sections} sections)"
+            )
+
+            # Inter-cycle pause
+            if cycle < cycles and interval > 0 and not stopped:
+                time.sleep(interval)
+
+    finally:
+        sig.signal(sig.SIGINT, old_handler)
+
+    # Final status
+    end_status = ctrl.get_status()
+    click.echo()
+    click.echo(f"── Stream Complete ──")
+    click.echo(f"  Cycles:   {cycle if stopped else cycles}")
+    click.echo(f"  Ticks:    {total_ticks}")
+    click.echo(f"  Sections: {total_sections}")
+    click.echo(f"  Now:      Y{end_status['cur_year']} "
+               f"T{end_status['cur_year_tick']} {end_status['season']}")
+    click.echo(f"  Citizens: {end_status['citizen_count']}")
+    click.echo(f"  State:    {'PAUSED' if end_status['paused'] else 'RUNNING'}")
+
+
+async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
+                                world_id: int = 1) -> bool:
+    """Ingest one cycle of bridge data into the CDM.
+
+    Stores bridge sections in lua_probes and updates sync_snapshots.
+    """
+    import json as _json
+    from chronicler.db.connection import get_pool, close_pool
+
+    pool = await get_pool()
+    try:
+        game_year = bridge_data.get('cur_year')
+        game_tick = bridge_data.get('cur_year_tick')
+
+        async with pool.acquire() as conn:
+            # Store bridge sections
+            sections = ['armies', 'buildings', 'artifacts', 'announcements',
+                        'diplomacy', 'history', 'unit_summary',
+                        'world_info', 'entities', 'dwarf_skills',
+                        'dwarf_emotions', 'dwarf_personality', 'zones',
+                        'event_collections', 'squads', 'mandates', 'incidents']
+
+            stored = 0
+            for section in sections:
+                data = bridge_data.get(section)
+                if data:
+                    await conn.execute(
+                        """
+                        INSERT INTO lua_probes (world_id, probe_name, data,
+                                                game_year, game_tick)
+                        VALUES ($1, $2, $3, $4, $5)
+                        """,
+                        world_id, section, _json.dumps(data),
+                        game_year, game_tick,
+                    )
+                    stored += 1
+
+            # Record snapshot
+            unit_count = 0
+            if bridge_data.get('unit_summary'):
+                units = bridge_data['unit_summary'].get('fortress_units', [])
+                unit_count = len(units)
+
+            await conn.execute(
+                """
+                INSERT INTO sync_snapshots (world_id, unit_count, event_count,
+                                            game_year, game_tick)
+                VALUES ($1, $2, $3, $4, $5)
+                """,
+                world_id, unit_count, 0, game_year, game_tick,
+            )
+
+        return stored > 0
+    finally:
+        await close_pool()
