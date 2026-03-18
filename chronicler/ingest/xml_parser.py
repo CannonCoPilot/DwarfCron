@@ -118,9 +118,10 @@ def _parse_underground_regions(root, world_id: int) -> list[tuple]:
 
 # ── Parse sites ───────────────────────────────────────────────────────────────
 
-def _parse_sites(root, world_id: int) -> tuple[list[tuple], list[tuple]]:
+def _parse_sites(root, world_id: int) -> tuple[list[tuple], list[tuple], list[tuple]]:
     site_rows = []
     struct_rows = []
+    site_property_rows = []
     for s in root.findall(".//site"):
         sid = _int(s, "id")
         coords = _text(s, "coords")
@@ -142,17 +143,27 @@ def _parse_sites(root, world_id: int) -> tuple[list[tuple], list[tuple]]:
                 _int(st, "entity_id"),
                 None,  # details
             ))
-    return site_rows, struct_rows
+        # Site properties (house/property ownership)
+        for sp in s.findall(".//site_property"):
+            site_property_rows.append((
+                world_id, sid,
+                _int(sp, "id"),
+                _text(sp, "type"),
+                _int(sp, "owner_hfid"),
+                _int(sp, "structure_id"),
+            ))
+    return site_rows, struct_rows, site_property_rows
 
 
 # ── Parse entities ────────────────────────────────────────────────────────────
 
-def _parse_entities(root, world_id: int) -> list[tuple]:
+def _parse_entities(root, world_id: int) -> tuple[list[tuple], list[tuple]]:
     rows = []
+    honor_rows = []
     # Use scoped path to avoid matching bare <entity>ID</entity> refs inside events
     entities_section = root.find("entities")
     if entities_section is None:
-        return rows
+        return rows, honor_rows
     for e in entities_section.findall("entity"):
         eid = _int(e, "id")
         if eid is None:
@@ -163,19 +174,42 @@ def _parse_entities(root, world_id: int) -> list[tuple]:
             _text(e, "name"),
             _text(e, "type"),
             _text(e, "race"),
+            None,  # worship_id (from plus)
+            None,  # weapons (from plus)
             None,  # details
         ))
-    return rows
+        # Honor definitions (military honors with skill requirements)
+        for hon in e.findall("honor"):
+            hon_id = _int(hon, "id")
+            if hon_id is None:
+                continue
+            honor_rows.append((
+                world_id, eid, hon_id,
+                _text(hon, "name"),
+                _int(hon, "gives_precedence"),
+                _text(hon, "required_skill"),
+                _int(hon, "required_skill_ip_total"),
+                _int(hon, "required_battles"),
+                _int(hon, "exempt_epid"),
+                _int(hon, "exempt_former_epid"),
+                _bool_flag(hon, "granted_to_everybody"),
+                _bool_flag(hon, "requires_any_melee_or_ranged_skill"),
+            ))
+    return rows, honor_rows
 
 
 # ── Parse historical figures ──────────────────────────────────────────────────
 
-def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, list, list]:
+def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, list, list, list, list, list, list]:
     hf_rows = []
     hf_link_rows = []
     hf_entity_link_rows = []
     hf_site_link_rows = []
     hf_position_link_rows = []
+    hf_rel_profile_rows = []
+    hf_vague_rel_rows = []
+    hf_intrigue_rows = []
+    hf_squad_link_rows = []
 
     for hf in root.findall(".//historical_figure"):
         hfid = _int(hf, "id")
@@ -228,6 +262,15 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
         if knowledge:
             details = {"interaction_knowledge": knowledge}
 
+        # first_ageless_year: DF XML nests this inside <entity_reputation> due to
+        # broken XML generation. Must search inside child elements to find it.
+        first_ageless = _int(hf, "first_ageless_year")
+        if first_ageless is None:
+            for rep in hf.findall("entity_reputation"):
+                first_ageless = _int(rep, "first_ageless_year")
+                if first_ageless is not None:
+                    break
+
         hf_rows.append((
             hfid, world_id, name, race,
             _text(hf, "caste"),
@@ -250,6 +293,10 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
             skills if skills else None,  # skills JSONB
             held_artifacts or None,  # holds_artifact INTEGER[]
             interactions or None,  # active_interactions TEXT[]
+            _text(hf, "associated_type"),
+            _int(hf, "appeared"),
+            first_ageless,
+            _int(hf, "current_identity_id"),
             details if details else None,
         ))
 
@@ -260,6 +307,7 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
                 hfid,
                 _int(link, "hfid"),
                 _text(link, "link_type"),
+                _int(link, "link_strength"),
             ))
 
         # Entity links
@@ -301,7 +349,69 @@ def _parse_historical_figures(root, world_id: int) -> tuple[list, list, list, li
                 _int(link, "end_year"),
             ))
 
-    return hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows, hf_position_link_rows
+        # Relationship profiles (emotional scores toward other HFs)
+        for rp in hf.findall("relationship_profile_hf_visual"):
+            target = _int(rp, "hf_id")
+            if target is not None:
+                hf_rel_profile_rows.append((
+                    world_id, hfid, target,
+                    _int(rp, "meet_count"),
+                    _int(rp, "last_meet_year"),
+                    _int(rp, "last_meet_seconds72"),
+                    _int(rp, "known_identity_id"),
+                    _int(rp, "rep_friendly"),
+                    _int(rp, "love"),
+                    _int(rp, "respect"),
+                    _int(rp, "trust"),
+                    _int(rp, "loyalty"),
+                    _int(rp, "fear"),
+                ))
+
+        # Vague relationships (war_buddy, grudge, etc.)
+        for vr in hf.findall("vague_relationship"):
+            target = _int(vr, "hfid")
+            if target is not None:
+                # The relationship type is encoded as an empty boolean tag
+                rel_type = None
+                for child in vr:
+                    if child.tag != "hfid":
+                        rel_type = child.tag
+                        break
+                if rel_type:
+                    hf_vague_rel_rows.append((
+                        world_id, hfid, target, rel_type,
+                    ))
+
+        # Intrigue plots
+        for ip in hf.findall("intrigue_plot"):
+            local_id = _int(ip, "local_id")
+            plot_details = {}
+            # Capture any extra fields beyond the structured columns
+            for child in ip:
+                if child.tag not in ("local_id", "type", "entity_id", "on_hold", "actor_hfid") and child.text:
+                    plot_details[child.tag] = child.text
+            hf_intrigue_rows.append((
+                world_id, hfid, local_id,
+                _text(ip, "type"),
+                _int(ip, "entity_id"),
+                _bool_flag(ip, "on_hold"),
+                _int(ip, "actor_hfid"),
+                plot_details if plot_details else None,
+            ))
+
+        # Squad links (military squad membership)
+        for sq in hf.findall("entity_squad_link"):
+            hf_squad_link_rows.append((
+                world_id, hfid,
+                _int(sq, "squad_id"),
+                _int(sq, "squad_position"),
+                _int(sq, "entity_id"),
+                _int(sq, "start_year"),
+            ))
+
+    return (hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows,
+            hf_position_link_rows, hf_rel_profile_rows, hf_vague_rel_rows,
+            hf_intrigue_rows, hf_squad_link_rows)
 
 
 # ── Parse events ──────────────────────────────────────────────────────────────
@@ -601,6 +711,7 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
         "entity_occasions": [],  # (world_id, entity_id, occasion_id, name, event_id)
         "occasion_schedules": [],  # (world_id, entity_id, occasion_id, schedule_id, type, ref, ref2, item_type, item_subtype, features)
         "entity_entity_links": [],  # (world_id, source_entity_id, target_entity_id, link_type, strength, details)
+        "entity_honors": [],  # (world_id, entity_id, id, name, gives_precedence, ...)
     }
 
     # Region enrichment: legends_plus has coords + evilness for surface regions
@@ -701,7 +812,8 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             _text(sup, "reason"),
         ))
 
-    # Site ownership from legends_plus (cur_owner_id)
+    # Site ownership and founding civ from legends_plus
+    result["site_civ_ids"] = []  # (site_id, civ_id) for founder_entity_id UPDATE
     sites_section = root.find("sites")
     if sites_section is not None:
         for site in sites_section.findall("site"):
@@ -709,6 +821,9 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
             owner = _int(site, "cur_owner_id")
             if sid is not None and owner is not None:
                 result["site_owners"].append((sid, owner))
+            civ_id = _int(site, "civ_id")
+            if sid is not None and civ_id is not None:
+                result["site_civ_ids"].append((sid, civ_id))
 
             # Structure enrichment: deity, religion, inhabitant, name2
             for struct in site.findall(".//structure"):
@@ -781,14 +896,39 @@ def _parse_legends_plus(filepath: str, world_id: int) -> dict:
                         link.get("strength", 100),
                         None,  # details JSONB
                     ))
+            # Worship ID (deity HF linked to religion entities)
+            worship_id = _int(ent, "worship_id")
+            # Weapons (military unit preferred weapons)
+            weapons = [w.text for w in ent.findall("weapon") if w.text]
+
             result["entities"].append((
                 eid,
                 world_id,
                 _text(ent, "name"),
                 _text(ent, "type"),
                 _text(ent, "race"),
+                worship_id,
+                weapons or None,
                 ent_details if ent_details else None,
             ))
+
+            # Honor definitions
+            for hon in ent.findall("honor"):
+                hon_id = _int(hon, "id")
+                if hon_id is None:
+                    continue
+                result["entity_honors"].append((
+                    world_id, eid, hon_id,
+                    _text(hon, "name"),
+                    _int(hon, "gives_precedence"),
+                    _text(hon, "required_skill"),
+                    _int(hon, "required_skill_ip_total"),
+                    _int(hon, "required_battles"),
+                    _int(hon, "exempt_epid"),
+                    _int(hon, "exempt_former_epid"),
+                    _bool_flag(hon, "granted_to_everybody"),
+                    _bool_flag(hon, "requires_any_melee_or_ranged_skill"),
+                ))
 
             # Position definitions
             for pos in ent.findall("entity_position"):
@@ -1202,8 +1342,8 @@ async def import_legends(
     counts["underground_regions"] = n
     log.info("  underground_regions: %d", n)
 
-    # Sites + structures
-    site_rows, struct_rows = _parse_sites(root, world_id)
+    # Sites + structures + site properties
+    site_rows, struct_rows, site_property_rows = _parse_sites(root, world_id)
     n = await _batch_insert(conn, "sites",
         ["id", "world_id", "name", "type", "coord_x", "coord_y", "coords",
          "owner_entity_id", "details"],
@@ -1217,16 +1357,35 @@ async def import_legends(
     counts["structures"] = n
     log.info("  structures: %d", n)
 
+    n = await _batch_insert(conn, "site_properties",
+        ["world_id", "site_id", "id", "type", "owner_hfid", "structure_id"],
+        site_property_rows,
+        on_conflict="(world_id, site_id, id) DO NOTHING")
+    counts["site_properties"] = n
+    log.info("  site_properties: %d", n)
+
     # Entities
-    entity_rows = _parse_entities(root, world_id)
+    entity_rows, entity_honor_rows = _parse_entities(root, world_id)
     n = await _batch_insert(conn, "entities",
-        ["id", "world_id", "name", "type", "race", "details"], entity_rows)
+        ["id", "world_id", "name", "type", "race", "worship_id", "weapons", "details"], entity_rows)
     counts["entities"] = n
     log.info("  entities: %d", n)
 
+    # Entity honors (from base legends.xml)
+    n = await _batch_insert(conn, "entity_honors",
+        ["world_id", "entity_id", "id", "name", "gives_precedence",
+         "required_skill", "required_skill_ip_total", "required_battles",
+         "exempt_epid", "exempt_former_epid",
+         "granted_to_everybody", "requires_any_melee_or_ranged_skill"],
+        entity_honor_rows,
+        on_conflict="(world_id, entity_id, id) DO NOTHING")
+    counts["entity_honors"] = n
+    log.info("  entity_honors: %d", n)
+
     # Historical figures + links
-    hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows, hf_position_link_rows = \
-        _parse_historical_figures(root, world_id)
+    (hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows,
+     hf_position_link_rows, hf_rel_profile_rows, hf_vague_rel_rows,
+     hf_intrigue_rows, hf_squad_link_rows) = _parse_historical_figures(root, world_id)
     n = await _batch_insert(conn, "historical_figures",
         ["id", "world_id", "name", "race", "caste", "sex",
          "birth_year", "birth_seconds", "death_year", "death_seconds",
@@ -1234,14 +1393,15 @@ async def import_legends(
          "is_deity", "is_force", "is_vampire", "is_necromancer",
          "is_werebeast", "is_ghost", "kill_count", "event_count",
          "spheres", "goals", "skills", "holds_artifact",
-         "active_interactions", "details"],
+         "active_interactions", "associated_type", "appeared",
+         "first_ageless_year", "current_identity_id", "details"],
         hf_rows)
     counts["historical_figures"] = n
     log.info("  historical_figures: %d", n)
 
     n = await _batch_insert(conn, "hf_links",
-        ["world_id", "hf_id", "target_hf_id", "link_type"], hf_link_rows,
-        on_conflict="(world_id, hf_id, target_hf_id, link_type) DO NOTHING")
+        ["world_id", "hf_id", "target_hf_id", "link_type", "strength"], hf_link_rows,
+        on_conflict="(world_id, hf_id, target_hf_id, link_type) DO UPDATE SET strength = EXCLUDED.strength")
     counts["hf_links"] = n
     log.info("  hf_links: %d", n)
 
@@ -1266,6 +1426,42 @@ async def import_legends(
         on_conflict="(world_id, hf_id, entity_id, position_id, start_year) DO NOTHING")
     counts["hf_position_links"] = n
     log.info("  hf_position_links: %d", n)
+
+    # HF relationship profiles
+    n = await _batch_insert(conn, "hf_relationship_profiles",
+        ["world_id", "hf_id", "target_hf_id", "meet_count",
+         "last_meet_year", "last_meet_seconds", "known_identity_id",
+         "rep_friendly", "love", "respect", "trust", "loyalty", "fear"],
+        hf_rel_profile_rows,
+        on_conflict="(world_id, hf_id, target_hf_id) DO NOTHING")
+    counts["hf_relationship_profiles"] = n
+    log.info("  hf_relationship_profiles: %d", n)
+
+    # HF vague relationships
+    n = await _batch_insert(conn, "hf_vague_relationships",
+        ["world_id", "hf_id", "target_hf_id", "relationship_type"],
+        hf_vague_rel_rows,
+        on_conflict="(world_id, hf_id, target_hf_id, relationship_type) DO NOTHING")
+    counts["hf_vague_relationships"] = n
+    log.info("  hf_vague_relationships: %d", n)
+
+    # HF intrigue plots
+    n = await _batch_insert(conn, "hf_intrigue_plots",
+        ["world_id", "hf_id", "local_id", "type", "entity_id",
+         "on_hold", "actor_hf_id", "details"],
+        hf_intrigue_rows,
+        on_conflict="(world_id, hf_id, local_id) DO NOTHING")
+    counts["hf_intrigue_plots"] = n
+    log.info("  hf_intrigue_plots: %d", n)
+
+    # HF squad links
+    n = await _batch_insert(conn, "hf_squad_links",
+        ["world_id", "hf_id", "squad_id", "squad_position",
+         "entity_id", "start_year"],
+        hf_squad_link_rows,
+        on_conflict="(world_id, hf_id, squad_id, entity_id) DO NOTHING")
+    counts["hf_squad_links"] = n
+    log.info("  hf_squad_links: %d", n)
 
     # Events
     event_rows = _parse_events(root, world_id)
@@ -1381,11 +1577,13 @@ async def import_legends(
         # entities already inserted from legends.xml, and insert new
         # sub-entities (site governments, military units, etc.)
         n = await _batch_insert(conn, "entities",
-            ["id", "world_id", "name", "type", "race", "details"],
+            ["id", "world_id", "name", "type", "race", "worship_id", "weapons", "details"],
             plus_data["entities"],
             on_conflict="(world_id, id) DO UPDATE SET "
                 "type = COALESCE(EXCLUDED.type, entities.type), "
                 "race = COALESCE(EXCLUDED.race, entities.race), "
+                "worship_id = COALESCE(EXCLUDED.worship_id, entities.worship_id), "
+                "weapons = COALESCE(EXCLUDED.weapons, entities.weapons), "
                 "details = COALESCE(EXCLUDED.details, entities.details)")
         counts["entities_plus"] = n
         log.info("  entities (plus enrichment): %d", n)
@@ -1400,6 +1598,18 @@ async def import_legends(
                     "strength = COALESCE(EXCLUDED.strength, entity_entity_links.strength)")
             counts["entity_entity_links"] = n
             log.info("  entity_entity_links: %d", n)
+
+        # Entity honors (military honor definitions)
+        if plus_data.get("entity_honors"):
+            n = await _batch_insert(conn, "entity_honors",
+                ["world_id", "entity_id", "id", "name", "gives_precedence",
+                 "required_skill", "required_skill_ip_total", "required_battles",
+                 "exempt_epid", "exempt_former_epid",
+                 "granted_to_everybody", "requires_any_melee_or_ranged_skill"],
+                plus_data["entity_honors"],
+                on_conflict="(world_id, entity_id, id) DO NOTHING")
+            counts["entity_honors"] = n
+            log.info("  entity_honors: %d", n)
 
         # Entity position definitions
         if plus_data.get("entity_positions"):
@@ -1648,6 +1858,20 @@ async def import_legends(
             counts["site_owners"] = updated_sites
             log.info("  site ownership: %d", updated_sites)
 
+        # Site founding civ: update founder_entity_id from legends_plus civ_id
+        if plus_data["site_civ_ids"]:
+            updated_civs = 0
+            for sid, civ_id in plus_data["site_civ_ids"]:
+                result = await conn.execute(
+                    "UPDATE sites SET founder_entity_id = $1 WHERE id = $2 AND world_id = $3",
+                    civ_id, sid, world_id,
+                )
+                if "UPDATE 1" in result:
+                    updated_civs += 1
+            counts["site_civ_ids"] = updated_civs
+            log.info("  site founding civ: %d", updated_civs)
+
+        if plus_data["site_owners"]:
             # Derive entity_site_links from ownership records
             esl_rows = [
                 (world_id, owner_id, sid, "owner", None, None, None, 100, None)

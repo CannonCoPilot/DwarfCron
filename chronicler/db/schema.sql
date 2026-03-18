@@ -171,6 +171,8 @@ CREATE TABLE IF NOT EXISTS entities (
     name        TEXT,
     type        TEXT,
     race        TEXT,
+    worship_id  INT,
+    weapons     TEXT[],
     prominence_score REAL DEFAULT 0,
     salience_score   REAL DEFAULT 0,
     details     JSONB DEFAULT '{}',
@@ -250,6 +252,10 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     journey_pets    JSONB DEFAULT '[]',
     holds_artifact  INTEGER[],
     active_interactions TEXT[],
+    associated_type TEXT,
+    appeared        INT,
+    first_ageless_year INT,
+    current_identity_id INT,
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
@@ -258,6 +264,8 @@ CREATE INDEX IF NOT EXISTS idx_hf_spheres
     ON historical_figures USING gin(spheres);
 CREATE INDEX IF NOT EXISTS idx_hf_interactions
     ON historical_figures USING gin(active_interactions);
+CREATE INDEX IF NOT EXISTS idx_hf_associated_type
+    ON historical_figures(associated_type);
 
 CREATE TABLE IF NOT EXISTS hf_links (
     id           SERIAL PRIMARY KEY,
@@ -292,6 +300,117 @@ CREATE TABLE IF NOT EXISTS hf_site_links (
     UNIQUE (world_id, hf_id, site_id, link_type),
     FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
     FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
+);
+
+-- ─── HF Relationship Profiles (emotional scores toward other HFs) ─────────
+
+CREATE TABLE IF NOT EXISTS hf_relationship_profiles (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    target_hf_id    INT NOT NULL,
+    meet_count      INT DEFAULT 0,
+    last_meet_year  INT,
+    last_meet_seconds INT,
+    known_identity_id INT,
+    rep_friendly    INT DEFAULT 0,
+    love            INT DEFAULT 0,
+    respect         INT DEFAULT 0,
+    trust           INT DEFAULT 0,
+    loyalty         INT DEFAULT 0,
+    fear            INT DEFAULT 0,
+    UNIQUE (world_id, hf_id, target_hf_id),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hf_rel_profiles_hf
+    ON hf_relationship_profiles(world_id, hf_id);
+CREATE INDEX IF NOT EXISTS idx_hf_rel_profiles_target
+    ON hf_relationship_profiles(world_id, target_hf_id);
+
+-- ─── HF Vague Relationships (informal bonds: war_buddy, grudge, etc.) ─────
+
+CREATE TABLE IF NOT EXISTS hf_vague_relationships (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    target_hf_id    INT NOT NULL,
+    relationship_type TEXT NOT NULL,
+    UNIQUE (world_id, hf_id, target_hf_id, relationship_type),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE,
+    FOREIGN KEY (world_id, target_hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hf_vague_rel_hf
+    ON hf_vague_relationships(world_id, hf_id);
+
+-- ─── HF Intrigue Plots (political schemes) ───────────────────────────────
+
+CREATE TABLE IF NOT EXISTS hf_intrigue_plots (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    local_id        INT,
+    type            TEXT,
+    entity_id       INT,
+    on_hold         BOOLEAN DEFAULT FALSE,
+    actor_hf_id     INT,
+    details         JSONB DEFAULT '{}',
+    UNIQUE (world_id, hf_id, local_id),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hf_intrigue_hf
+    ON hf_intrigue_plots(world_id, hf_id);
+
+-- ─── HF Squad Links (military squad membership) ──────────────────────────
+
+CREATE TABLE IF NOT EXISTS hf_squad_links (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    hf_id           INT NOT NULL,
+    squad_id        INT NOT NULL,
+    squad_position  INT,
+    entity_id       INT,
+    start_year      INT,
+    UNIQUE (world_id, hf_id, squad_id, entity_id),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_hf_squad_links_hf
+    ON hf_squad_links(world_id, hf_id);
+
+-- ─── Site Properties (house/property ownership) ──────────────────────────
+
+CREATE TABLE IF NOT EXISTS site_properties (
+    world_id        INT NOT NULL,
+    site_id         INT NOT NULL,
+    id              INT NOT NULL,
+    type            TEXT,
+    owner_hfid      INT,
+    structure_id    INT,
+    PRIMARY KEY (world_id, site_id, id),
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE CASCADE
+);
+
+-- ─── Entity Honors (military honor definitions) ──────────────────────────
+
+CREATE TABLE IF NOT EXISTS entity_honors (
+    world_id        INT NOT NULL,
+    entity_id       INT NOT NULL,
+    id              INT NOT NULL,
+    name            TEXT,
+    gives_precedence INT,
+    required_skill  TEXT,
+    required_skill_ip_total INT,
+    required_battles INT,
+    exempt_epid     INT,
+    exempt_former_epid INT,
+    granted_to_everybody BOOLEAN DEFAULT FALSE,
+    requires_any_melee_or_ranged_skill BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (world_id, entity_id, id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE CASCADE
 );
 
 -- ─── Entity Occasions (festivals, celebrations — from legends_plus) ────────
