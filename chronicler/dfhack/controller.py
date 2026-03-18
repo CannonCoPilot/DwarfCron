@@ -57,7 +57,11 @@ class GameController:
         self._dfhack_run_ps = _DFHACK_RUN.replace("\\", "\\\\")
 
     def _ssh(self, remote_cmd: str, timeout: int | None = None) -> str:
-        """Execute a command on the VM via SSH and return stdout."""
+        """Execute a command on the VM via SSH and return stdout.
+
+        Uses raw bytes + encoding fallback (UTF-8 → latin-1) to handle
+        Windows-1252 encoded DF names that contain non-ASCII characters.
+        """
         t = timeout or self._ssh_timeout
         cmd = [
             "ssh",
@@ -71,12 +75,18 @@ class GameController:
         ]
         try:
             result = subprocess.run(
-                cmd, capture_output=True, text=True,
+                cmd, capture_output=True,
                 timeout=t + 5,
             )
-            if result.returncode != 0 and result.stderr.strip():
-                log.warning("SSH stderr: %s", result.stderr.strip())
-            return result.stdout.strip()
+            if result.returncode != 0 and result.stderr:
+                log.warning("SSH stderr: %s",
+                            result.stderr.decode('utf-8', errors='replace').strip())
+            # Decode stdout with fallback for Windows-1252 DF names
+            try:
+                stdout = result.stdout.decode('utf-8')
+            except UnicodeDecodeError:
+                stdout = result.stdout.decode('latin-1')
+            return stdout.strip()
         except subprocess.TimeoutExpired:
             raise ControllerError(
                 f"SSH command timed out after {self._ssh_timeout}s"
@@ -87,14 +97,15 @@ class GameController:
     def _lua(self, code: str) -> str:
         """Execute a Lua snippet via SSH + PowerShell + dfhack-run.
 
-        Uses PowerShell's & operator with single-quoted paths to avoid
-        the SSH→cmd.exe→PowerShell quoting nightmare.
+        Uses PowerShell's & operator with single-quoted paths. Inner
+        single quotes in the Lua code are doubled ('') per PowerShell
+        escaping rules for single-quoted strings.
         """
-        # PowerShell command: & 'path\to\dfhack-run.exe' lua 'code'
-        # SSH wraps this in double quotes
+        # Escape single quotes for PowerShell single-quoted string
+        escaped = code.replace("'", "''")
         ps_cmd = (
             f"powershell -Command "
-            f"\"& '{_DFHACK_RUN}' lua '{code}' \""
+            f"\"& '{_DFHACK_RUN}' lua '{escaped}' \""
         )
         return self._ssh(ps_cmd)
 
@@ -288,6 +299,152 @@ class GameController:
         except ControllerError as e:
             log.warning("Bridge data fetch failed: %s", e)
             return None
+
+    # ── Utility commands ─────────────────────────────────────────
+
+    def save(self) -> bool:
+        """Trigger a quicksave. Game should be paused first.
+
+        Returns True if the command completed without error.
+        """
+        ps_cmd = (
+            f"powershell -Command "
+            f"\"& '{_DFHACK_RUN}' quicksave\""
+        )
+        output = self._ssh(ps_cmd, timeout=30)
+        log.info("Quicksave: %s", output or "done")
+        return True
+
+    def execute_lua(self, code: str) -> str:
+        """Execute arbitrary Lua code and return the output.
+
+        This is the raw introspection command — no wrapping, no parsing.
+        Whatever Lua prints via print() is returned as a string.
+        """
+        return self._lua(code)
+
+    def set_speed(self, speed: int) -> str:
+        """Set game speed (0=pause, 1-4=normal speeds).
+
+        DF uses df.global.d_init.fps_cap and simulation_fps for speed
+        but the simplest approach is through the DF game speed setting.
+        """
+        # DF speed settings: 0=PAUSED is separate from pause_state
+        # 10fps=slow, 50=normal, 100=fast, 0=max
+        fps_map = {1: 10, 2: 50, 3: 100, 4: 0}
+        fps = fps_map.get(speed)
+        if fps is None:
+            return f"Invalid speed {speed}. Use 1-4 (1=slow, 4=max)."
+        output = self._lua(f"df.global.d_init.fps_cap={fps} print(df.global.d_init.fps_cap)")
+        log.info("Set speed %d (fps_cap=%d): %s", speed, fps, output)
+        return output
+
+    def get_citizens(self) -> list[dict]:
+        """List all living citizens with id, name, profession, and age.
+
+        Returns a list of dicts with keys: id, name, profession, sex, age.
+        """
+        lua = (
+            "local out={} "
+            "for _,u in ipairs(df.global.world.units.active) do "
+            "if dfhack.units.isCitizen(u) and dfhack.units.isAlive(u) then "
+            "local name=dfhack.translation.translateName(u.name,false) "
+            "local prof=dfhack.units.getProfessionName(u) "
+            "local sex=u.sex==0 and 'F' or 'M' "
+            "local age=df.global.cur_year - u.birth_year "
+            "print(u.id..'\t'..name..'\t'..prof..'\t'..sex..'\t'..age) "
+            "end end"
+        )
+        output = self._lua(lua)
+        citizens = []
+        for line in output.strip().splitlines():
+            parts = line.split('\t')
+            if len(parts) >= 5:
+                citizens.append({
+                    "id": int(parts[0]),
+                    "name": parts[1],
+                    "profession": parts[2],
+                    "sex": parts[3],
+                    "age": int(parts[4]),
+                })
+        return citizens
+
+    def get_announcements(self, limit: int = 20) -> list[dict]:
+        """Read recent game announcements/log entries.
+
+        Returns list of dicts with keys: year, tick, text.
+        """
+        lua = (
+            f"local ann=df.global.world.status.announcements "
+            f"local start=math.max(0,#ann-{limit}) "
+            f"for i=start,#ann-1 do "
+            f"local a=ann[i] "
+            f"print(a.year..'\t'..a.time..'\t'..dfhack.df2utf(a.text)) "
+            f"end"
+        )
+        output = self._lua(lua)
+        results = []
+        for line in output.strip().splitlines():
+            parts = line.split('\t', 2)
+            if len(parts) >= 3:
+                results.append({
+                    "year": int(parts[0]),
+                    "tick": int(parts[1]),
+                    "text": parts[2],
+                })
+        return results
+
+    def probe_path(self, path: str) -> str:
+        """Introspect a df.global path and return its type and child fields.
+
+        Uses pairs() which works on both DF userdata and regular tables.
+        Shows field names, their Lua type, and a truncated string value.
+
+        Example: probe_path("df.global.world.units.active[0]")
+        """
+        lua = (
+            f"local obj={path} "
+            f"if obj==nil then print('NIL') return end "
+            f"local t=type(obj) "
+            f"print('TYPE:'..t) "
+            f"if t=='userdata' or t=='table' then "
+            f"local ok,td=pcall(function() return obj._type end) "
+            f"if ok and td then print('DF_TYPE:'..tostring(td)) end "
+            f"local fields={{}} "
+            f"for k,v in pairs(obj) do "
+            f"local vt=type(v) "
+            f"local vs=tostring(v) "
+            f"if #vs>60 then vs=vs:sub(1,60) end "
+            f"table.insert(fields,k..'\t'..vt..'\t'..vs) end "
+            f"table.sort(fields) "
+            f"for _,f in ipairs(fields) do print(f) end "
+            f"else print('VALUE:'..tostring(obj)) end"
+        )
+        return self._lua(lua)
+
+    def enumerate_fields(self, path: str) -> str:
+        """Enumerate all fields of a DF object at the given path with types.
+
+        More detailed than probe_path — for userdata children, also shows
+        the DF type name via _type. Used for CDM mapping.
+        """
+        lua = (
+            f"local obj={path} "
+            f"if obj==nil then print('NIL') return end "
+            f"for k,v in pairs(obj) do "
+            f"local vt=type(v) "
+            f"local vs=tostring(v) "
+            f"if vt=='userdata' then "
+            f"local ok,td=pcall(function() return v._type end) "
+            f"if ok and td then vs=tostring(td) end "
+            f"end "
+            f"if #vs>80 then vs=vs:sub(1,80) end "
+            f"print(k..'\t'..vt..'\t'..vs) "
+            f"end"
+        )
+        return self._lua(lua)
+
+    # ── Composite operations ───────────────────────────────────────
 
     def step_and_collect(self, ticks: int = 100,
                          poll_interval: float = 0.5,

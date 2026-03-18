@@ -649,6 +649,141 @@ def control_bridge(host, setup_repeat):
         click.echo("  Failed to fetch bridge data.")
 
 
+@control_group.command("save")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+def control_save(host):
+    """Quicksave the game (should be paused first)."""
+    ctrl = _get_controller(host)
+    if not ctrl.is_paused():
+        click.echo("Warning: game is not paused. Pausing first...")
+        ctrl.pause()
+    click.echo("Saving...")
+    ctrl.save()
+    click.echo("Quicksave complete.")
+
+
+@control_group.command("exec")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.argument("lua_code")
+def control_exec(host, lua_code):
+    """Execute raw Lua code via dfhack-run and print the output.
+
+    Useful for ad-hoc introspection of DF memory structures.
+
+    Examples:
+
+      chronicler control exec "print(df.global.cur_year)"
+
+      chronicler control exec "for k,v in pairs(df.global.world) do print(k) end"
+    """
+    ctrl = _get_controller(host)
+    output = ctrl.execute_lua(lua_code)
+    if output:
+        click.echo(output)
+    else:
+        click.echo("(no output)")
+
+
+@control_group.command("citizens")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+def control_citizens(host):
+    """List all living citizens with name, profession, sex, and age."""
+    ctrl = _get_controller(host)
+    citizens = ctrl.get_citizens()
+    if not citizens:
+        click.echo("No citizens found.")
+        return
+    click.echo(f"── Citizens ({len(citizens)}) ──")
+    # Column headers
+    click.echo(f"  {'ID':>6}  {'Name':<28} {'Profession':<22} {'Sex':>3}  {'Age':>3}")
+    click.echo(f"  {'─'*6}  {'─'*28} {'─'*22} {'─'*3}  {'─'*3}")
+    for c in sorted(citizens, key=lambda x: x["name"]):
+        click.echo(
+            f"  {c['id']:>6}  {c['name']:<28} {c['profession']:<22} "
+            f"{c['sex']:>3}  {c['age']:>3}"
+        )
+
+
+@control_group.command("speed")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.argument("level", type=int)
+def control_speed(host, level):
+    """Set game speed (1=slow/10fps, 2=normal/50fps, 3=fast/100fps, 4=max)."""
+    ctrl = _get_controller(host)
+    output = ctrl.set_speed(level)
+    click.echo(f"Speed set to {level}: {output}")
+
+
+@control_group.command("announce")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.option("--limit", default=20, type=int, help="Number of announcements to show")
+def control_announce(host, limit):
+    """Show recent game announcements/log entries."""
+    ctrl = _get_controller(host)
+    announcements = ctrl.get_announcements(limit=limit)
+    if not announcements:
+        click.echo("No announcements found.")
+        return
+    click.echo(f"── Announcements (last {len(announcements)}) ──")
+    for a in announcements:
+        click.echo(f"  Y{a['year']} T{a['tick']:>6}: {a['text']}")
+
+
+@control_group.command("probe")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.argument("path")
+def control_probe(host, path):
+    """Introspect a df.global path — show type and fields.
+
+    Used for mapping DF memory structures to CDM tables.
+
+    Examples:
+
+      chronicler control probe "df.global.world.units.active[0]"
+
+      chronicler control probe "df.global.world.sites.all[0]"
+
+      chronicler control probe "df.global.world.history"
+    """
+    ctrl = _get_controller(host)
+    output = ctrl.probe_path(path)
+    if output:
+        click.echo(output)
+    else:
+        click.echo("(no output — path may be nil)")
+
+
+@control_group.command("fields")
+@click.option("--host", default="192.168.64.3", help="VM host (SSH)")
+@click.argument("path")
+def control_fields(host, path):
+    """Enumerate fields of a DF object with types and sample values.
+
+    More detailed than 'probe' — shows field name, Lua type, and value.
+
+    Examples:
+
+      chronicler control fields "df.global.world.units.active[0].status"
+
+      chronicler control fields "df.global.world.units.active[0].status.current_soul"
+    """
+    ctrl = _get_controller(host)
+    output = ctrl.enumerate_fields(path)
+    if output:
+        # Format as a table
+        click.echo(f"── Fields of {path} ──")
+        click.echo(f"  {'Field':<30} {'Type':<12} {'Value'}")
+        click.echo(f"  {'─'*30} {'─'*12} {'─'*40}")
+        for line in output.strip().splitlines():
+            parts = line.split('\t', 2)
+            if len(parts) >= 3:
+                click.echo(f"  {parts[0]:<30} {parts[1]:<12} {parts[2]}")
+            else:
+                click.echo(f"  {line}")
+    else:
+        click.echo("(no output — path may be nil)")
+
+
 @control_group.command("stream")
 @click.option("--host", default="192.168.64.3", help="VM host (SSH)")
 @click.option("--ticks", default=100, type=int,
@@ -676,8 +811,10 @@ def control_stream(host, ticks, cycles, interval, timeout, dry_run):
     import asyncio
     import signal as sig
     from chronicler.dfhack.controller import GameController, ControllerError
+    from chronicler.dfhack.ingest_live import DeltaDetector
 
     ctrl = GameController(host=host)
+    delta_detector = DeltaDetector()  # persists across cycles for CDC
 
     # Verify connectivity
     try:
@@ -739,10 +876,20 @@ def control_stream(host, ticks, cycles, interval, timeout, dry_run):
 
             # Ingest if not dry run
             ingested = False
+            etl_info = ""
             if not dry_run and bridge:
                 try:
-                    ingested = asyncio.run(_ingest_bridge_cycle(
-                        bridge, step, world_id=1))
+                    result = asyncio.run(_ingest_bridge_cycle(
+                        bridge, step, world_id=1,
+                        delta_detector=delta_detector))
+                    ingested = bool(result and result.get("stored"))
+                    etl = result.get("etl", {})
+                    if etl:
+                        etl_info = (
+                            f" | {etl.get('units_upserted', 0)}u "
+                            f"{etl.get('events_generated', 0)}ev "
+                            f"+{etl.get('denizens', {}).get('added', 0)}d"
+                        )
                 except Exception as e:
                     click.echo(f"  Cycle {cycle}: ingest error - {e}")
 
@@ -752,7 +899,7 @@ def control_stream(host, ticks, cycles, interval, timeout, dry_run):
                 f"  [{status_char}] Cycle {cycle}/{cycles}: "
                 f"+{step['elapsed_ticks']}t → Y{step['end_year']} "
                 f"T{step['end_tick']} {step['season']} "
-                f"({n_sections} sections)"
+                f"({n_sections} sections){etl_info}"
             )
 
             # Inter-cycle pause
@@ -776,13 +923,19 @@ def control_stream(host, ticks, cycles, interval, timeout, dry_run):
 
 
 async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
-                                world_id: int = 1) -> bool:
+                                world_id: int = 1,
+                                delta_detector=None) -> dict:
     """Ingest one cycle of bridge data into the CDM.
 
-    Stores bridge sections in lua_probes and updates sync_snapshots.
+    Layer 1: Raw staging — stores bridge sections in lua_probes.
+    Layer 2+3: Transform + load — upserts units, generates unit_events,
+               syncs fortress_denizens via ingest_live.
+
+    Returns summary dict (or empty dict on failure).
     """
     import json as _json
     from chronicler.db.connection import get_pool, close_pool
+    from chronicler.dfhack.ingest_live import ingest_bridge_live
 
     pool = await get_pool()
     try:
@@ -790,12 +943,13 @@ async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
         game_tick = bridge_data.get('cur_year_tick')
 
         async with pool.acquire() as conn:
-            # Store bridge sections
+            # ── Layer 1: Raw staging (lua_probes) ──────────────────
             sections = ['armies', 'buildings', 'artifacts', 'announcements',
                         'diplomacy', 'history', 'unit_summary',
                         'world_info', 'entities', 'dwarf_skills',
                         'dwarf_emotions', 'dwarf_personality', 'zones',
-                        'event_collections', 'squads', 'mandates', 'incidents']
+                        'event_collections', 'squads', 'mandates', 'incidents',
+                        'reactive_events', 'skill_changes']
 
             stored = 0
             for section in sections:
@@ -827,6 +981,15 @@ async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
                 world_id, unit_count, 0, game_year, game_tick,
             )
 
-        return stored > 0
+            # ── Layer 2+3: Transform + Load (CDM tables) ──────────
+            etl_summary = await ingest_bridge_live(
+                conn, bridge_data, world_id,
+                delta_detector=delta_detector,
+            )
+
+        return {
+            "stored": stored,
+            "etl": etl_summary,
+        }
     finally:
         await close_pool()
