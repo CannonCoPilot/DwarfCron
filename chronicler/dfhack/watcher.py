@@ -28,6 +28,7 @@ from chronicler.dfhack.bridge import (
     fetch_bridge_data, build_race_map, get_game_time, get_world_info,
     get_fortress_units, get_bridge_version, merge_bridge_into_units,
 )
+from chronicler.dfhack.etl_expanded import ingest_expanded
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
 from chronicler.dfhack.sync import upsert_units, enrich_units
@@ -358,6 +359,7 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
     last_cleanup_cycle = 0
     bridge_failures = 0
     cycle = 0
+    prev_season = None  # Track season changes for fortress_state snapshots
 
     try:
         while not _shutdown.is_set():
@@ -447,7 +449,25 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                             log.debug("Bridge section storage failed: %s", e)
                         last_probe_time = now
 
-                # 6b. Retention cleanup (every 10 cycles)
+                # 6b. Expanded ETL: promote bridge sections → CDM tables
+                if bd and bridge_available:
+                    try:
+                        cur_season = bd.get("cur_season")
+                        season_changed = (prev_season is not None
+                                          and cur_season != prev_season)
+                        prev_season = cur_season
+
+                        etl_summary = await ingest_expanded(
+                            conn, bd, world_id,
+                            game_year=game_year, game_tick=game_tick,
+                            season_changed=season_changed)
+                        active_etl = {k: v for k, v in etl_summary.items() if v}
+                        if active_etl:
+                            extras['expanded_etl'] = active_etl
+                    except Exception as e:
+                        log.debug("Expanded ETL failed: %s", e)
+
+                # 6c. Retention cleanup (every 10 cycles)
                 if cycle - last_cleanup_cycle >= 10:
                     try:
                         deleted = await _cleanup_lua_probes_count(

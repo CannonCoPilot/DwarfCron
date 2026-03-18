@@ -3957,9 +3957,10 @@ function renderDemoCharts(overview, civs, lifespanData) {
     }
   });
 
-  // Civ comparison table
+  // Civ comparison table — only show named civs with living members
   const civTableBody = document.getElementById('demo-civ-table-body');
-  civTableBody.innerHTML = civs.map(c => {
+  const visibleCivs = civs.filter(c => c.name && c.alive_current > 0);
+  civTableBody.innerHTML = visibleCivs.map(c => {
     const races = (c.races || []).slice(0, 5);
     const racePills = races.map(r =>
       `<span class="inline-block bg-stone-800 text-stone-400 rounded px-1.5 py-0.5 text-[10px] mr-1">${escapeHtml((r.race || '').replace(/_/g, ' '))} (${r.count})</span>`

@@ -1,4 +1,4 @@
--- chronicler-bridge.lua v8 — DFHack bridge for Chronicler
+-- chronicler-bridge.lua v9 — DFHack bridge for Chronicler
 --
 -- Writes comprehensive game state to a JSON file that Chronicler reads
 -- over HTTP. Runs as a `repeat` job on the console thread (where CoreSuspend works).
@@ -34,6 +34,12 @@
 --   incidents: crimes and incidents with victims/criminals (v6)
 --   reactive_events: buffered eventful callbacks — deaths, items, jobs, invasions, syndromes (v8)
 --   skill_changes: per-dwarf skill rating deltas since last cycle (v8)
+--   belief_systems: religious belief systems with deity worship (v9, memory-only)
+--   cultural_identities: ethics/values per cultural identity (v9, memory-only)
+--   occupations: tavern keepers, scholars, performers (v9, memory-only)
+--   interaction_instances: active curses/syndromes (v9, memory-only)
+--   fortress_state: fortress progression snapshot (v9, once/season)
+--   daily_events: births, marriages, coming-of-age (v9, fortress mode)
 
 local json = require('json')
 
@@ -1338,6 +1344,255 @@ local function get_incidents()
     }
 end
 
+-- ── v9: Memory-Only Structure Extraction ────────────────────────────
+
+local function get_belief_systems()
+    local bs_ok, bs_all = pcall(function()
+        return df.global.world.belief_systems.all
+    end)
+    if not bs_ok or not bs_all then
+        return { total = 0, systems = {} }
+    end
+
+    local count = #bs_all
+    local list = {}
+
+    for i = 0, count - 1 do
+        local bs = bs_all[i]
+        local entry = { id = bs.id }
+
+        -- Deity HF IDs and worship levels
+        local deities = {}
+        local worship = {}
+        pcall(function()
+            for j = 0, #bs.deities - 1 do
+                table.insert(deities, bs.deities[j])
+                if bs.worship_levels and j < #bs.worship_levels then
+                    table.insert(worship, bs.worship_levels[j])
+                end
+            end
+        end)
+        entry.deities = deities
+        entry.worship_levels = worship
+
+        -- Cultural value weights
+        local values = {}
+        pcall(function()
+            for j = 0, #bs.value - 1 do
+                values[j] = bs.value[j]
+            end
+        end)
+        if next(values) then
+            entry.cultural_values = values
+        end
+
+        table.insert(list, entry)
+    end
+
+    return { total = count, systems = list }
+end
+
+
+local function get_cultural_identities()
+    local ci_ok, ci_all = pcall(function()
+        return df.global.world.cultural_identities.all
+    end)
+    if not ci_ok or not ci_all then
+        return { total = 0, identities = {} }
+    end
+
+    local count = #ci_all
+    local list = {}
+
+    for i = 0, count - 1 do
+        local ci = ci_all[i]
+        local entry = {
+            id = ci.id,
+        }
+
+        pcall(function() entry.site_id = ci.site_id end)
+        pcall(function() entry.civ_id = ci.civ_id end)
+
+        -- Ethics array (ethic_type -> response)
+        local ethics = {}
+        pcall(function()
+            for j = 0, #ci.ethic - 1 do
+                ethics[j] = ci.ethic[j]
+            end
+        end)
+        if next(ethics) then
+            entry.ethics = ethics
+        end
+
+        -- Cultural values
+        local values = {}
+        pcall(function()
+            for j = 0, #ci.values - 1 do
+                values[j] = ci.values[j]
+            end
+        end)
+        if next(values) then
+            entry.cultural_values = values
+        end
+
+        table.insert(list, entry)
+    end
+
+    return { total = count, identities = list }
+end
+
+
+local function get_occupations()
+    local occ_ok, occ_all = pcall(function()
+        return df.global.world.occupations.all
+    end)
+    if not occ_ok or not occ_all then
+        return { total = 0, occupations = {} }
+    end
+
+    local count = #occ_all
+    local list = {}
+
+    for i = 0, count - 1 do
+        local occ = occ_all[i]
+        local entry = { id = occ.id }
+
+        pcall(function() entry.occupation_type = tostring(occ.type) end)
+        pcall(function() entry.hf_id = occ.histfig_id end)
+        pcall(function() entry.unit_id = occ.unit_id end)
+        pcall(function() entry.site_id = occ.site_id end)
+        pcall(function() entry.location_id = occ.location_id end)
+        pcall(function() entry.entity_id = occ.group_id end)
+
+        table.insert(list, entry)
+    end
+
+    return { total = count, occupations = list }
+end
+
+
+local function get_interaction_instances()
+    local ii_ok, ii_all = pcall(function()
+        return df.global.world.interaction_instances.all
+    end)
+    if not ii_ok or not ii_all then
+        return { total = 0, instances = {} }
+    end
+
+    local count = #ii_all
+    local list = {}
+
+    for i = 0, count - 1 do
+        local inst = ii_all[i]
+        local entry = { id = inst.id }
+
+        pcall(function() entry.interaction_type = tostring(inst.interaction_id) end)
+
+        -- Source context
+        pcall(function()
+            if inst.source_context then
+                entry.source_hf_id = inst.source_context.histfig_id
+            end
+        end)
+
+        -- Affected units
+        local affected = {}
+        pcall(function()
+            for j = 0, #inst.affected_units - 1 do
+                table.insert(affected, inst.affected_units[j])
+            end
+        end)
+        entry.affected_units = affected
+
+        table.insert(list, entry)
+    end
+
+    return { total = count, instances = list }
+end
+
+
+local function get_fortress_state()
+    -- Only meaningful in fortress mode
+    local pi_ok, pi = pcall(function() return df.global.plotinfo end)
+    if not pi_ok or not pi then
+        return nil
+    end
+
+    local state = {}
+
+    pcall(function() state.site_id = pi.site_id end)
+    pcall(function() state.fortress_age = pi.fortress_age end)
+    pcall(function() state.fortress_rank = pi.fortress_rank end)
+    pcall(function() state.king_arrived = pi.king_arrived end)
+
+    -- Population count (from active units)
+    pcall(function()
+        local pop = 0
+        for _, u in ipairs(df.global.world.units.active) do
+            if u.civ_id == pi.civ_id and not u.flags1.dead then
+                pop = pop + 1
+            end
+        end
+        state.population = pop
+    end)
+
+    -- Infiltrators (known vampire/werebeast HF IDs)
+    local infiltrators = {}
+    pcall(function()
+        for j = 0, #pi.infiltrator_histfigs - 1 do
+            table.insert(infiltrators, pi.infiltrator_histfigs[j])
+        end
+    end)
+    state.infiltrators = infiltrators
+
+    -- Invasion count
+    pcall(function()
+        state.invasion_count = pi.invasions.next_id or 0
+    end)
+
+    -- Wealth metrics
+    pcall(function()
+        state.wealth_created = pi.tasks.wealth.created
+        state.wealth_imported = pi.tasks.wealth.imported
+        state.wealth_exported = pi.tasks.wealth.exported
+    end)
+
+    return state
+end
+
+
+local function get_daily_events()
+    -- Daily events from plotinfo (births, marriages, coming-of-age)
+    local de_ok, de = pcall(function() return df.global.plotinfo.daily_events end)
+    if not de_ok or not de then
+        return nil
+    end
+
+    local result = {}
+
+    local function extract_ids(vec)
+        local ids = {}
+        pcall(function()
+            if vec then
+                for j = 0, #vec - 1 do
+                    table.insert(ids, vec[j])
+                end
+            end
+        end)
+        return ids
+    end
+
+    pcall(function() result.deaths = extract_ids(de.deaths) end)
+    pcall(function() result.pregnancies = extract_ids(de.pregnancies) end)
+    pcall(function() result.births = extract_ids(de.births) end)
+    pcall(function() result.grown_up = extract_ids(de.grown_up) end)
+    pcall(function() result.marriages_1 = extract_ids(de.marriage_1) end)
+    pcall(function() result.marriages_2 = extract_ids(de.marriage_2) end)
+
+    return result
+end
+
+
 -- ── Main: assemble and write ─────────────────────────────────────────
 
 local function write_state()
@@ -1348,7 +1603,7 @@ local function write_state()
     state.creature_raws = get_creature_raws()
     state.creature_count = #df.global.world.raws.creatures.all
     state.timestamp = os.time()
-    state.bridge_version = 8
+    state.bridge_version = 9
 
     -- Data sections (each wrapped in pcall for safety)
     local ok, result
@@ -1389,6 +1644,14 @@ local function write_state()
     safe_add('reactive_events', flush_events)
     -- v8: Skill delta tracking
     safe_add('skill_changes', get_skill_changes)
+
+    -- v9: Memory-only structures (not available in legends XML)
+    safe_add('belief_systems', get_belief_systems)
+    safe_add('cultural_identities', get_cultural_identities)
+    safe_add('occupations', get_occupations)
+    safe_add('interaction_instances', get_interaction_instances)
+    safe_add('fortress_state', get_fortress_state)
+    safe_add('daily_events', get_daily_events)
 
     if next(errors) then
         state.errors = errors

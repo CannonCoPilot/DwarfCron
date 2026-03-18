@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS regions (
     evilness    TEXT,
     salience_score   REAL DEFAULT 0,
     prominence_score REAL DEFAULT 0,
+    details     JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
 
@@ -256,10 +257,14 @@ CREATE TABLE IF NOT EXISTS historical_figures (
     appeared        INT,
     first_ageless_year INT,
     current_identity_id INT,
+    unit_id         INT,                -- Bidirectional HF↔Unit link
+    family_head_id  INT,                -- Family lineage root pointer
     details         JSONB DEFAULT '{}',
     PRIMARY KEY (world_id, id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_hf_unit_id
+    ON historical_figures(world_id, unit_id) WHERE unit_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_hf_spheres
     ON historical_figures USING gin(spheres);
 CREATE INDEX IF NOT EXISTS idx_hf_interactions
@@ -883,3 +888,116 @@ CREATE INDEX IF NOT EXISTS idx_fortress_denizens_hf
     ON fortress_denizens(world_id, hf_id) WHERE hf_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_fortress_denizens_embark
     ON fortress_denizens(world_id) WHERE embark = TRUE;
+
+-- ─── Memory-Only Structures (Stage 3.1 CDM Expansion) ──────────────────────────
+
+CREATE TABLE IF NOT EXISTS belief_systems (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    deities          INTEGER[],
+    worship_levels   INTEGER[],
+    cultural_values  JSONB DEFAULT '{}',
+    details          JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_belief_systems_world ON belief_systems(world_id);
+
+CREATE TABLE IF NOT EXISTS cultural_identities (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    site_id          INT,
+    civ_id           INT,
+    ethics           JSONB DEFAULT '{}',
+    cultural_values  JSONB DEFAULT '{}',
+    details          JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id),
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE SET NULL,
+    FOREIGN KEY (world_id, civ_id) REFERENCES entities(world_id, id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_cultural_identities_civ ON cultural_identities(world_id, civ_id);
+
+CREATE TABLE IF NOT EXISTS squads (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    entity_id        INT,
+    name             TEXT,
+    name_english     TEXT,
+    alias            TEXT,
+    leader_hf_id     INT,
+    position_count   INT DEFAULT 0,
+    members          JSONB DEFAULT '[]',
+    details          JSONB DEFAULT '{}',
+    last_synced_at   TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (world_id, id),
+    FOREIGN KEY (world_id, entity_id) REFERENCES entities(world_id, id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_squads_entity ON squads(world_id, entity_id);
+
+CREATE TABLE IF NOT EXISTS occupations (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    occupation_type  TEXT NOT NULL,
+    hf_id            INT,
+    unit_id          INT,
+    site_id          INT,
+    location_id      INT,
+    entity_id        INT,
+    details          JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id),
+    FOREIGN KEY (world_id, hf_id) REFERENCES historical_figures(world_id, id) ON DELETE SET NULL,
+    FOREIGN KEY (world_id, site_id) REFERENCES sites(world_id, id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_occupations_hf ON occupations(world_id, hf_id);
+CREATE INDEX IF NOT EXISTS idx_occupations_site ON occupations(world_id, site_id);
+
+CREATE TABLE IF NOT EXISTS fortress_state (
+    id               SERIAL PRIMARY KEY,
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    site_id          INT NOT NULL,
+    fortress_age     INT,
+    fortress_rank    INT,
+    population       INT,
+    king_arrived     BOOLEAN DEFAULT FALSE,
+    infiltrators     INTEGER[],
+    invasion_count   INT DEFAULT 0,
+    wealth_created   BIGINT,
+    wealth_imported  BIGINT,
+    wealth_exported  BIGINT,
+    game_year        INT,
+    game_tick        INT,
+    details          JSONB DEFAULT '{}',
+    captured_at      TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_fortress_state_world ON fortress_state(world_id);
+CREATE INDEX IF NOT EXISTS idx_fortress_state_time ON fortress_state(captured_at DESC);
+
+CREATE TABLE IF NOT EXISTS interaction_instances (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    interaction_type TEXT,
+    source_hf_id     INT,
+    affected_units   INTEGER[],
+    details          JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_interaction_inst_world ON interaction_instances(world_id);
+
+CREATE TABLE IF NOT EXISTS agreements (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    id               INT NOT NULL,
+    agreement_type   TEXT,
+    parties          JSONB DEFAULT '[]',
+    flags            JSONB DEFAULT '{}',
+    map_x            INT,
+    map_y            INT,
+    details          JSONB DEFAULT '{}',
+    PRIMARY KEY (world_id, id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_agreements_world ON agreements(world_id);
