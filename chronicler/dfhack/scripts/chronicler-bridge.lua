@@ -1191,9 +1191,8 @@ local function get_squads()
 
     local count = #sq_all
     local list = {}
-    local limit = math.min(count, 50)
 
-    for i = 0, limit - 1 do
+    for i = 0, count - 1 do
         local sq = sq_all[i]
         local entry = {
             id = sq.id,
@@ -1237,7 +1236,6 @@ local function get_squads()
 
     return {
         total = count,
-        listed = #list,
         squads = list,
     }
 end
@@ -1550,11 +1548,14 @@ local function get_fortress_state()
         state.invasion_count = pi.invasions.next_id or 0
     end)
 
-    -- Wealth metrics
+    -- Wealth metrics (DF 53.10 field names)
     pcall(function()
-        state.wealth_created = pi.tasks.wealth.created
-        state.wealth_imported = pi.tasks.wealth.imported
-        state.wealth_exported = pi.tasks.wealth.exported
+        local w = pi.tasks.wealth
+        state.wealth_total = w.total
+        state.wealth_imported = w.imported
+        state.wealth_exported = w.exported
+        state.wealth_architecture = w.architecture
+        state.wealth_displayed = w.displayed
     end)
 
     return state
@@ -1562,32 +1563,43 @@ end
 
 
 local function get_daily_events()
-    -- Daily events from plotinfo (births, marriages, coming-of-age)
-    local de_ok, de = pcall(function() return df.global.plotinfo.daily_events end)
+    -- Scheduled yearly events: world.daily_events (world_yearly_schedulest)
+    -- 336-element static arrays, one per ~4-day period
+    -- Each slot holds vectors of nemesis_record IDs
+    local de_ok, de = pcall(function() return df.global.world.daily_events end)
     if not de_ok or not de then
         return nil
     end
 
-    local result = {}
+    -- Calculate current day index (0-335) from game time
+    local cur_tick = df.global.cur_year_tick or 0
+    local day_index = math.floor(cur_tick / 1200) -- ~1200 ticks per DF day, 336 per year
 
-    local function extract_ids(vec)
-        local ids = {}
-        pcall(function()
-            if vec then
+    -- Extract only upcoming events (current day + next 30 days) to keep JSON small
+    local result = { day_index = day_index }
+
+    local function extract_window(arr, start_idx, window)
+        local events = {}
+        for offset = 0, window - 1 do
+            local idx = (start_idx + offset) % 336
+            local vec = arr[idx]
+            if vec and #vec > 0 then
+                local ids = {}
                 for j = 0, #vec - 1 do
                     table.insert(ids, vec[j])
                 end
+                events[tostring(idx)] = ids
             end
-        end)
-        return ids
+        end
+        return events
     end
 
-    pcall(function() result.deaths = extract_ids(de.deaths) end)
-    pcall(function() result.pregnancies = extract_ids(de.pregnancies) end)
-    pcall(function() result.births = extract_ids(de.births) end)
-    pcall(function() result.grown_up = extract_ids(de.grown_up) end)
-    pcall(function() result.marriages_1 = extract_ids(de.marriage_1) end)
-    pcall(function() result.marriages_2 = extract_ids(de.marriage_2) end)
+    pcall(function() result.deaths = extract_window(de.deaths, day_index, 30) end)
+    pcall(function() result.pregnancies = extract_window(de.pregnancies, day_index, 30) end)
+    pcall(function() result.births = extract_window(de.births, day_index, 30) end)
+    pcall(function() result.grown_up = extract_window(de.grown_up, day_index, 30) end)
+    pcall(function() result.marriages_1 = extract_window(de.marriage_1, day_index, 30) end)
+    pcall(function() result.marriages_2 = extract_window(de.marriage_2, day_index, 30) end)
 
     return result
 end

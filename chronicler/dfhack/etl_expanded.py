@@ -467,11 +467,11 @@ async def etl_fortress_state(conn: asyncpg.Connection, state_data: dict,
     if site_id is None:
         return 0
 
-    details = {k: v for k, v in state_data.items()
-                if k not in ("site_id", "fortress_age", "fortress_rank",
-                             "population", "king_arrived", "infiltrators",
-                             "invasion_count", "wealth_created",
-                             "wealth_imported", "wealth_exported")}
+    # Top-level columns extracted; everything else goes into details JSONB
+    top_keys = {"site_id", "fortress_age", "fortress_rank", "population",
+                "king_arrived", "infiltrators", "invasion_count",
+                "wealth_total", "wealth_imported", "wealth_exported"}
+    details = {k: v for k, v in state_data.items() if k not in top_keys}
 
     await conn.execute(
         """
@@ -489,7 +489,7 @@ async def etl_fortress_state(conn: asyncpg.Connection, state_data: dict,
         state_data.get("king_arrived", False),
         state_data.get("infiltrators", []),
         state_data.get("invasion_count", 0),
-        state_data.get("wealth_created"),
+        state_data.get("wealth_total"),       # DF 53.10: 'total' not 'created'
         state_data.get("wealth_imported"),
         state_data.get("wealth_exported"),
         game_year, game_tick,
@@ -659,43 +659,85 @@ async def etl_daily_events(conn: asyncpg.Connection, data: dict,
                            game_tick: int | None) -> int:
     """Transform bridge daily_events into unit_events.
 
-    Captures births, marriages, coming-of-age events.
+    Bridge sends scheduled events as {day_index: [nemesis_ids]} dicts.
+    Nemesis IDs reference nemesis_record, not unit/HF IDs directly.
+    We store them as-is with source metadata; resolution to HF happens later.
 
     Returns count of events inserted.
     """
     if not data:
         return 0
 
+    # Replace-all strategy: delete previous scheduled events, then re-insert.
+    # Scheduled events are a rolling window that shifts as game time advances,
+    # so stale projections must be removed each cycle.
+    await conn.execute(
+        "DELETE FROM unit_events WHERE world_id = $1 AND event_type LIKE 'scheduled_%'",
+        world_id,
+    )
+
     count = 0
     event_mappings = [
-        ("births", "birth"),
-        ("deaths", "daily_death"),
-        ("pregnancies", "pregnancy"),
-        ("grown_up", "grown_up"),
-        ("marriages_1", "marriage"),
-        ("marriages_2", "marriage"),
+        ("births", "scheduled_birth"),
+        ("deaths", "scheduled_death"),
+        ("pregnancies", "scheduled_pregnancy"),
+        ("grown_up", "scheduled_grown_up"),
     ]
 
+    day_index = data.get("day_index")
+
     for key, event_type in event_mappings:
-        unit_ids = data.get(key, [])
-        for uid in unit_ids:
-            if not uid or uid < 0:
+        day_dict = data.get(key, {})
+        if not isinstance(day_dict, dict):
+            continue
+        for day_idx, nemesis_ids in day_dict.items():
+            if not isinstance(nemesis_ids, list):
                 continue
-            await conn.execute(
-                """
-                INSERT INTO unit_events
-                    (unit_id, world_id, event_type, new_value,
-                     game_year, game_tick)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                """,
-                uid, world_id, event_type,
-                {"source": "daily_events"},
-                game_year, game_tick,
-            )
-            count += 1
+            for nid in nemesis_ids:
+                if not nid or nid < 0:
+                    continue
+                await conn.execute(
+                    """
+                    INSERT INTO unit_events
+                        (unit_id, world_id, event_type, new_value,
+                         game_year, game_tick)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    """,
+                    nid, world_id, event_type,
+                    {"source": "daily_events", "day_index": int(day_idx),
+                     "current_day": day_index, "nemesis_id": nid},
+                    game_year, game_tick,
+                )
+                count += 1
+
+    # Handle marriages — pair marriage_1 and marriage_2 nemesis IDs
+    m1 = data.get("marriages_1", {})
+    m2 = data.get("marriages_2", {})
+    if isinstance(m1, dict) and isinstance(m2, dict):
+        for day_idx in m1:
+            ids1 = m1.get(day_idx, [])
+            ids2 = m2.get(day_idx, [])
+            for i, nid in enumerate(ids1):
+                partner = ids2[i] if i < len(ids2) else None
+                if not nid or nid < 0:
+                    continue
+                await conn.execute(
+                    """
+                    INSERT INTO unit_events
+                        (unit_id, world_id, event_type, new_value,
+                         game_year, game_tick)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                    """,
+                    nid, world_id, "scheduled_marriage",
+                    {"source": "daily_events", "day_index": int(day_idx),
+                     "current_day": day_index,
+                     "nemesis_id": nid, "partner_nemesis_id": partner},
+                    game_year, game_tick,
+                )
+                count += 1
 
     if count:
-        log.info("etl_daily_events: %d events inserted", count)
+        log.info("etl_daily_events: %d scheduled events (replace-all)", count)
     return count
 
 
