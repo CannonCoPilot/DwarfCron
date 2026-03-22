@@ -231,13 +231,10 @@ class GameController:
             "df.global.world.world_data.active_site[0].name,true))"
         )
 
-        # Citizen count
+        # Citizen count — use getCitizens() for accurate count
+        # (isCitizen() is broader and includes raised undead with citizenship flags)
         count_output = self._lua(
-            "local c=0 "
-            "for _,u in ipairs(df.global.world.units.active) do "
-            "if dfhack.units.isCitizen(u) and dfhack.units.isAlive(u) "
-            "then c=c+1 end end "
-            "print(c)"
+            "print(#dfhack.units.getCitizens())"
         )
 
         fortress_name = name_output.strip() if name_output else "?"
@@ -380,6 +377,99 @@ class GameController:
                     "age": int(parts[4]),
                 })
         return citizens
+
+    def survey_fortress(self) -> dict:
+        """Comprehensive fortress survey — all unit categories.
+
+        Casts a wide net beyond just citizens. Returns counts and rosters
+        for: citizens, residents, visitors, undead (friendly + hostile),
+        invaders, ghosts, animals, and other active units.
+
+        Uses getCitizens() for the authoritative citizen count, plus
+        manual classification of all active units by DFHack predicates.
+        """
+        # Real citizen count and roster
+        cit_count = self._lua("print(#dfhack.units.getCitizens())")
+        cit_roster = self._lua(
+            "for _,u in ipairs(dfhack.units.getCitizens()) do "
+            "print(u.id, dfhack.units.getReadableName(u), "
+            "u.status.current_soul and u.status.current_soul.personality.stress or -999) "
+            "end"
+        )
+
+        # Full census: classify every active alive unit
+        census = self._lua(
+            "local cit=0; local res=0; local vis=0; local inv=0 "
+            "local undead_f=0; local undead_h=0; local ghost=0 "
+            "local animal=0; local other=0 "
+            "for _,u in ipairs(df.global.world.units.active) do "
+            "if dfhack.units.isGhost(u) then ghost=ghost+1 "
+            "elseif dfhack.units.isUndead(u) then "
+            "if dfhack.units.isFortControlled(u) then undead_f=undead_f+1 "
+            "else undead_h=undead_h+1 end "
+            "elseif dfhack.units.isAlive(u) then "
+            "if dfhack.units.isInvader(u) then inv=inv+1 "
+            "elseif dfhack.units.isCitizen(u) then cit=cit+1 "
+            "elseif dfhack.units.isResident(u) then res=res+1 "
+            "elseif dfhack.units.isVisitor(u) or dfhack.units.isVisiting(u) "
+            "then vis=vis+1 "
+            "elseif dfhack.units.isAnimal(u) then animal=animal+1 "
+            "else other=other+1 end end end "
+            "print(cit, res, vis, inv, undead_f, undead_h, ghost, animal, other)"
+        )
+
+        # Non-citizen alive dwarves (raised undead, insane, stripped of status)
+        noncit = self._lua(
+            "local civ=df.global.plotinfo.civ_id "
+            "for _,u in ipairs(df.global.world.units.active) do "
+            "if dfhack.units.isDwarf(u) and dfhack.units.isAlive(u) "
+            "and not dfhack.units.isCitizen(u) then "
+            "print(u.id, dfhack.units.getReadableName(u), "
+            "dfhack.units.isResident(u), dfhack.units.isVisitor(u), "
+            "u.counters2.hunger_timer, u.counters2.thirst_timer) "
+            "end end"
+        )
+
+        # Parse census line
+        result = {
+            "real_citizens": int(cit_count.strip()) if cit_count.strip().isdigit() else 0,
+            "citizen_roster": [],
+            "census": {},
+            "noncitizen_dwarves": [],
+        }
+
+        # Parse citizen roster
+        for line in (cit_roster or "").strip().splitlines():
+            parts = line.split('\t')
+            if len(parts) >= 3:
+                result["citizen_roster"].append({
+                    "id": parts[0].strip(),
+                    "name": parts[1].strip(),
+                    "stress": parts[2].strip(),
+                })
+
+        # Parse census
+        parts = (census or "").strip().split()
+        if len(parts) >= 9:
+            labels = ["isCitizen_alive", "residents", "visitors", "invaders",
+                       "undead_friendly", "undead_hostile", "ghosts",
+                       "animals", "other"]
+            result["census"] = {labels[i]: int(parts[i]) for i in range(9)}
+
+        # Parse non-citizen dwarves
+        for line in (noncit or "").strip().splitlines():
+            parts = line.split('\t')
+            if len(parts) >= 6:
+                result["noncitizen_dwarves"].append({
+                    "id": parts[0].strip(),
+                    "name": parts[1].strip(),
+                    "is_resident": parts[2].strip(),
+                    "is_visitor": parts[3].strip(),
+                    "hunger": parts[4].strip(),
+                    "thirst": parts[5].strip(),
+                })
+
+        return result
 
     def get_announcements(self, limit: int = 20) -> list[dict]:
         """Read recent game announcements/log entries.

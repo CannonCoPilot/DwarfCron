@@ -474,6 +474,16 @@ local function get_unit_summary()
             entry.profession = u.profession
             -- Alive check
             entry.is_alive = not dfhack.units.isDead(u)
+            -- v10: Unit classification flags (wider net for ETL)
+            entry.is_citizen = dfhack.units.isCitizen(u)
+            entry.is_resident = dfhack.units.isResident(u)
+            entry.is_visitor = dfhack.units.isVisitor(u) or dfhack.units.isVisiting(u)
+            entry.is_undead = dfhack.units.isUndead(u)
+            entry.is_invader = dfhack.units.isInvader(u)
+            entry.is_sane = dfhack.units.isSane(u)
+            entry.is_fort_controlled = dfhack.units.isFortControlled(u)
+            entry.hunger = u.counters2.hunger_timer
+            entry.thirst = u.counters2.thirst_timer
             -- Stress from personality
             if u.status and u.status.current_soul then
                 local pers = u.status.current_soul.personality
@@ -562,11 +572,60 @@ local function get_unit_summary()
         race_counts[tostring(rid)] = count
     end
 
+    -- v10: Wider net — visitors, invaders, undead, ghosts (non-fortress-dwarf)
+    local others = {}
+    for i = 0, total - 1 do
+        local u = units[i]
+        local dominated_race = u.race == player_race and u.civ_id == df.global.plotinfo.civ_id
+        if not dominated_race then
+            local dominated_ok, dominated_entry = pcall(function()
+                -- Only capture "interesting" units: visitors, invaders, undead, ghosts
+                local dominated_is_visitor = dfhack.units.isVisitor(u) or dfhack.units.isVisiting(u)
+                local dominated_is_invader = dfhack.units.isInvader(u)
+                local dominated_is_undead = dfhack.units.isUndead(u)
+                local dominated_is_ghost = dfhack.units.isGhost(u)
+                if not (dominated_is_visitor or dominated_is_invader or dominated_is_undead or dominated_is_ghost) then
+                    return nil
+                end
+                local race_name = df.creature_raw.find(u.race).creature_id
+                local e = {
+                    id = u.id,
+                    race = race_name,
+                    is_alive = not dfhack.units.isDead(u),
+                    is_visitor = dominated_is_visitor,
+                    is_invader = dominated_is_invader,
+                    is_undead = dominated_is_undead,
+                    is_ghost = dominated_is_ghost,
+                    profession = u.profession,
+                }
+                if u.name and u.name.has_name then
+                    e.name = dfhack.df2utf(dfhack.translation.translateName(u.name))
+                end
+                if u.hist_figure_id >= 0 then
+                    e.hist_fig_id = u.hist_figure_id
+                end
+                return e
+            end)
+            if dominated_ok and dominated_entry then
+                table.insert(others, dominated_entry)
+            end
+        end
+    end
+
+    -- v10: Authoritative citizen count via getCitizens()
+    local real_citizen_count = 0
+    pcall(function()
+        real_citizen_count = #dfhack.units.getCitizens()
+    end)
+
     return {
         total_active = total,
         race_counts = race_counts,
         fortress_units = dwarves,
         fortress_count = #dwarves,
+        real_citizen_count = real_citizen_count,
+        other_notable_units = others,
+        other_notable_count = #others,
     }
 end
 
