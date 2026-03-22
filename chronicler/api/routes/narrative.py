@@ -1,0 +1,162 @@
+"""Stage 3.6 Narrative API routes.
+
+Provides:
+  GET /api/narrative/timeline — Unified fortress timeline
+  GET /api/narrative/arcs — Detected narrative arcs
+  GET /api/narrative/status — Narrative data layer statistics
+"""
+
+from fastapi import APIRouter, Query
+
+from chronicler.db.connection import get_pool
+
+router = APIRouter(tags=["narrative"])
+
+
+@router.get("/narrative/timeline")
+async def fortress_timeline(
+    world_id: int = Query(1),
+    start_year: int = Query(0),
+    end_year: int = Query(9999),
+    min_weight: float = Query(0.0),
+    limit: int = Query(200),
+):
+    """Unified chronological stream of events with narrative metadata.
+
+    Joins history_events + narrative_events for scored, filterable timeline.
+    """
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT he.id AS event_id, he.event_type, he.year, he.site_id,
+                   he.details,
+                   ne.narrative_weight, ne.drama_score, ne.emotional_tone,
+                   ne.irony_flags,
+                   s.name AS site_name
+            FROM history_events he
+            JOIN narrative_events ne
+                ON ne.world_id = he.world_id AND ne.event_id = he.id
+            LEFT JOIN sites s
+                ON s.world_id = he.world_id AND s.id = he.site_id
+            WHERE he.world_id = $1
+                AND he.year BETWEEN $2 AND $3
+                AND ne.narrative_weight >= $4
+            ORDER BY ne.narrative_weight DESC, he.year, he.id
+            LIMIT $5
+        """, world_id, start_year, end_year, min_weight, limit)
+
+    return {
+        "world_id": world_id,
+        "count": len(rows),
+        "events": [dict(r) for r in rows],
+    }
+
+
+@router.get("/narrative/arcs")
+async def narrative_arcs(
+    world_id: int = Query(1),
+    arc_type: str | None = Query(None),
+    min_weight: float = Query(0.0),
+    limit: int = Query(50),
+):
+    """List detected narrative arcs, optionally filtered by type."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        if arc_type:
+            rows = await conn.fetch("""
+                SELECT id, arc_type, title,
+                       start_tick / 403200 AS start_year,
+                       end_tick / 403200 AS end_year,
+                       key_events, characters, resolution, dramatic_weight
+                FROM narrative_arcs
+                WHERE world_id = $1 AND arc_type = $2
+                    AND dramatic_weight >= $3
+                ORDER BY dramatic_weight DESC LIMIT $4
+            """, world_id, arc_type, min_weight, limit)
+        else:
+            rows = await conn.fetch("""
+                SELECT id, arc_type, title,
+                       start_tick / 403200 AS start_year,
+                       end_tick / 403200 AS end_year,
+                       key_events, characters, resolution, dramatic_weight
+                FROM narrative_arcs
+                WHERE world_id = $1 AND dramatic_weight >= $2
+                ORDER BY dramatic_weight DESC LIMIT $3
+            """, world_id, min_weight, limit)
+
+    return {
+        "world_id": world_id,
+        "count": len(rows),
+        "arcs": [dict(r) for r in rows],
+    }
+
+
+@router.get("/narrative/status")
+async def narrative_status(world_id: int = Query(1)):
+    """Show narrative data layer statistics."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        tables = {
+            "narrative_events": "SELECT COUNT(*) FROM narrative_events WHERE world_id = $1",
+            "event_causal_links": "SELECT COUNT(*) FROM event_causal_links WHERE world_id = $1",
+            "narrative_arcs": "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1",
+            "event_summaries": "SELECT COUNT(*) FROM event_summaries WHERE world_id = $1",
+            "character_narratives": "SELECT COUNT(*) FROM character_narratives WHERE world_id = $1",
+            "event_clusters": "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1",
+        }
+        counts = {}
+        for name, sql in tables.items():
+            counts[name] = await conn.fetchval(sql, world_id)
+
+        # Tone distribution
+        tones = await conn.fetch(
+            "SELECT emotional_tone, COUNT(*) AS n FROM narrative_events "
+            "WHERE world_id = $1 GROUP BY emotional_tone ORDER BY n DESC",
+            world_id,
+        )
+
+        # Arc type distribution
+        arc_types = await conn.fetch(
+            "SELECT arc_type, COUNT(*) AS n FROM narrative_arcs "
+            "WHERE world_id = $1 GROUP BY arc_type ORDER BY n DESC",
+            world_id,
+        )
+
+        # Causal link types
+        link_types = await conn.fetch(
+            "SELECT link_type, COUNT(*) AS n FROM event_causal_links "
+            "WHERE world_id = $1 GROUP BY link_type ORDER BY n DESC",
+            world_id,
+        )
+
+    return {
+        "world_id": world_id,
+        "table_counts": counts,
+        "tone_distribution": {r["emotional_tone"]: r["n"] for r in tones},
+        "arc_types": {r["arc_type"]: r["n"] for r in arc_types},
+        "causal_link_types": {r["link_type"]: r["n"] for r in link_types},
+    }
+
+
+@router.get("/narrative/context")
+async def narrative_context(
+    world_id: int = Query(1),
+    query_type: str = Query("world_overview"),
+    target_id: int | None = Query(None),
+    year: int | None = Query(None),
+    budget: int = Query(32000),
+):
+    """Assemble narrative context for LLM storytelling.
+
+    Query types: fortress_saga, character_focus, year_chronicle,
+    event_detail, world_overview.
+    """
+    from chronicler.storyteller.narrative_context import assemble_context
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        ctx = await assemble_context(
+            conn, world_id, query_type,
+            target_id=target_id, year=year, token_budget=budget)
+
+    return ctx.as_dict()

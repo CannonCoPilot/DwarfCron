@@ -71,6 +71,18 @@ def _race_display_name(race: str | None, cd_name: str | None = None) -> str:
             for w in cd_name.split(" ")
         )
     if race.startswith("HFEXP"):
+        # Extract base race from suffix: "HFEXP36835 E_HUM1" → "Human"
+        _HFEXP_RACE_MAP = {
+            "E_HUM": "Human", "E_ELF": "Elf", "E_DWF": "Dwarf",
+            "E_GOB": "Goblin", "E_KOB": "Kobold",
+        }
+        parts = race.split()
+        if len(parts) > 1:
+            suffix = parts[-1]
+            # Strip trailing digit(s): E_HUM1 → E_HUM
+            base = suffix.rstrip("0123456789")
+            if base in _HFEXP_RACE_MAP:
+                return _HFEXP_RACE_MAP[base]
         return "Experiment"
     return race.replace("_", " ").title()
 
@@ -180,11 +192,15 @@ async def search_people(
                            h.is_deity, h.is_force, h.is_vampire,
                            h.is_necromancer, h.is_werebeast, h.is_ghost,
                            h.prominence_score,
-                           cd.name_singular AS race_name
+                           cd.name_singular AS race_name,
+                           u_link.name AS native_name
                     FROM historical_figures h
                     LEFT JOIN creature_dictionary cd
                            ON cd.world_id = h.world_id AND cd.creature_id = h.race
-                    WHERE unaccent(h.name) ILIKE unaccent($1)
+                    LEFT JOIN units u_link
+                           ON u_link.hist_fig_id = h.id AND u_link.world_id = h.world_id
+                    WHERE (unaccent(h.name) ILIKE unaccent($1)
+                       OR unaccent(COALESCE(u_link.name, '')) ILIKE unaccent($1))
                     {where_extra}
                     ORDER BY h.prominence_score DESC NULLS LAST, h.name
                     LIMIT $2
@@ -195,7 +211,9 @@ async def search_people(
                     row = dict(r)
                     results.append({
                         "source": "hf", "id": row["id"], "world_id": row["world_id"],
-                        "name": row["name"], "english_name": None,
+                        "name": row["name"],
+                        "english_name": None,
+                        "native_name": row.get("native_name"),
                         "race": row["race"],
                         "race_display": _race_display_name(row["race"], row.get("race_name")),
                         "is_alive": row["death_year"] is None,
@@ -386,10 +404,13 @@ async def browse_people(
                    h.is_deity, h.is_force, h.is_vampire,
                    h.is_necromancer, h.is_werebeast, h.is_ghost,
                    h.prominence_score,
-                   cd.name_singular AS race_name
+                   cd.name_singular AS race_name,
+                   u_link.name AS native_name
             FROM historical_figures h
             LEFT JOIN creature_dictionary cd
                    ON cd.world_id = h.world_id AND cd.creature_id = h.race
+            LEFT JOIN units u_link
+                   ON u_link.hist_fig_id = h.id AND u_link.world_id = h.world_id
             WHERE h.world_id = $1 AND h.name IS NOT NULL AND h.name != ''
             {where_extra}
             ORDER BY h.prominence_score DESC NULLS LAST, h.id
@@ -402,7 +423,9 @@ async def browse_people(
             row = dict(r)
             results.append({
                 "source": "hf", "id": row["id"], "world_id": row["world_id"],
-                "name": row["name"], "english_name": None,
+                "name": row["name"],
+                "english_name": None,
+                "native_name": row.get("native_name"),
                 "race": row["race"],
                 "race_display": _race_display_name(row["race"], row.get("race_name")),
                 "is_alive": row["death_year"] is None,

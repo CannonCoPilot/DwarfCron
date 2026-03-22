@@ -30,11 +30,13 @@
 <div class="flex gap-4 mt-2">
   <div class="flex flex-wrap gap-3 text-xs text-stone-400 flex-1">
     {% if site.coord_x is not none %}<span>Coords: {{ site.coord_x }}, {{ site.coord_y }}</span>{% endif %}
-    {% if owner %}<span>Government: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
+    {% if site_government %}<span>Government: {{ linker.link('entity', site_government.id, site_government.name, world_id)|safe }}</span>{% endif %}
+    {% if owner and (not site_government or owner.id != site_government.id) %}<span>Civilization: {{ linker.link('entity', owner.id, owner.name, world_id)|safe }}</span>{% endif %}
     <span>Structures: {{ structures|length }}</span>
     <span>Events: {{ event_count }}</span>
     {% if denizens_count is defined and denizens_count > 0 %}<span>Denizens: {{ "{:,}".format(denizens_count) }} ({{ citizen_count }} Citizens, {{ resident_count }} Residents, {{ visitor_count }} Visitors)</span>{% endif %}
     {% if neerdowells_count is defined and neerdowells_count > 0 %}<span>Ne'er-do-wells: {{ neerdowells_count }}</span>{% endif %}
+    {% if is_active_fortress %}<span class="text-green-400 font-medium">Active Fortress {% if live_denizen_count %}&mdash; {{ live_denizen_count }} live-tracked{% endif %}</span>{% endif %}
     {% if site.prominence_score %}<span>Prominence: {{ "%.1f"|format(site.prominence_score) }}</span>{% endif %}
     {% if site.salience_score %}<span>Salience: {{ "%.1f"|format(site.salience_score) }}</span>{% endif %}
   </div>
@@ -82,32 +84,60 @@
   <div class="section-card">
     <div class="section-title">Structures at this Site</div>
     {% if structures %}
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="text-stone-500 border-b border-stone-800 text-xs">
-          <th class="text-left pb-1">Name</th>
-          <th class="text-left pb-1">Type</th>
-          <th class="text-left pb-1">Affiliation</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in structures %}
-        <tr class="border-b border-stone-800/50">
-          <td class="py-1">{{ linker.link('structure', s.id, s.name, world_id, site_id=site.id)|safe }}</td>
-          <td><span class="badge badge-type">{{ s.type|default('?', true)|title }}</span></td>
-          <td>
-            {% if s.entity_id %}
-              {{ linker.link('entity', s.entity_id, s.entity_name, world_id)|safe }}
-              {% if s.entity_type %}<span class="text-stone-600 text-xs">({{ s.entity_type|title }})</span>{% endif %}
-            {% elif s.deity_name and s.details and s.details.deity_hf_id %}
-              {{ linker.link('hf', s.details.deity_hf_id, s.deity_name, world_id)|safe }}
-              <span class="text-stone-600 text-xs">(Deity)</span>
+    {# Group structures by type #}
+    {% set struct_types = structures|map(attribute='type')|unique|list %}
+    {% for stype in struct_types %}
+    {% set type_structs = structures|selectattr('type', 'equalto', stype)|list %}
+    <div class="mb-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-lg">{{ struct_icon(stype) }}</span>
+        <span class="text-stone-300 text-sm font-medium">{{ stype|default('Unknown', true)|title }}</span>
+        <span class="text-stone-600 text-xs">({{ type_structs|length }})</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 ml-1">
+        {% for s in type_structs %}
+        <div class="bg-stone-800/40 border border-stone-700/50 rounded px-3 py-2">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="text-stone-200 text-sm">{{ linker.link('structure', s.id, s.name, world_id, site_id=site.id)|safe }}</div>
+              {% if s.name2 %}<div class="text-stone-500 text-xs italic">{{ s.name2 }}</div>{% endif %}
+            </div>
+            {% if s.attendant_count %}
+            <span class="text-stone-400 text-xs whitespace-nowrap" title="{{ s.attendant_count }} living attendants at this site ({{ s.total_listed }} listed in legends)">{{ s.attendant_count }} att.</span>
             {% endif %}
-          </td>
-        </tr>
+          </div>
+          {# Affiliation / Deity #}
+          {% if s.entity_id or s.deity_name %}
+          <div class="mt-1 text-xs">
+            {% if s.entity_id %}
+              <span class="text-stone-500">Affil:</span>
+              {{ linker.link('entity', s.entity_id, s.entity_name, world_id)|safe }}
+              {% if s.entity_type %}<span class="text-stone-600">({{ s.entity_type|title }})</span>{% endif %}
+            {% endif %}
+            {% if s.deity_name and s.deity_hf_id %}
+              <span class="text-stone-500">Deity:</span>
+              {{ linker.link('hf', s.deity_hf_id, s.deity_name, world_id)|safe }}
+            {% endif %}
+          </div>
+          {% endif %}
+          {# Attendants: living HFs at this site associated with this structure #}
+          {% if s.attendants %}
+          <div class="mt-1.5 flex flex-wrap gap-1">
+            {% for att in s.attendants[:6] %}
+            <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-stone-700/50 text-stone-400">
+              {{ linker.link('hf', att.id, att.name, world_id)|safe }}
+            </span>
+            {% endfor %}
+            {% if s.attendants|length > 6 %}
+            <span class="text-stone-600 text-[10px] py-0.5">+{{ s.attendants|length - 6 }} more</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
+      </div>
+    </div>
+    {% endfor %}
     {% else %}
       <div class="text-stone-600 text-sm italic">No structures recorded.</div>
     {% endif %}
@@ -222,6 +252,7 @@
             <th class="text-left pb-1">Profession</th>
             <th class="text-left pb-1">Position</th>
             <th class="text-left pb-1">Status</th>
+            {% if is_active_fortress %}<th class="text-left pb-1">Source</th>{% endif %}
           </tr>
         </thead>
         <tbody id="denizens-tbody">
@@ -238,7 +269,7 @@
               {% if r.is_werebeast %}<span class="badge badge-were" title="Werebeast">W</span>{% endif %}
               {% if r.is_ghost %}<span class="badge badge-ghost" title="Ghost">G</span>{% endif %}
             </td>
-            <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
+            <td class="text-stone-400">{{ r.race|default('?', true)|clean_race }}</td>
             <td>
               {% if r.population_type == 'Citizen' %}
                 <span class="text-emerald-400">Citizen</span>
@@ -263,6 +294,17 @@
                 <span class="text-emerald-400">Alive</span>
               {% endif %}
             </td>
+            {% if is_active_fortress %}
+            <td class="text-xs">
+              {% if r.live_tracked %}
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-900/40 text-green-400 border border-green-800/50" title="Tracked by live bridge{% if r.arrival_year %} — arrived Y{{ r.arrival_year }}{% endif %}{% if r.embark %} (embarker){% endif %}">
+                  Live{% if r.embark %}/E{% endif %}
+                </span>
+              {% else %}
+                <span class="text-stone-600">Legends</span>
+              {% endif %}
+            </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>
@@ -305,6 +347,7 @@
             <th class="text-left pb-1">Resident</th>
             <th class="text-left pb-1">Profession</th>
             <th class="text-left pb-1">Status</th>
+            {% if is_active_fortress %}<th class="text-left pb-1">Source</th>{% endif %}
           </tr>
         </thead>
         <tbody id="neerdowells-tbody">
@@ -319,7 +362,7 @@
               {% if r.is_werebeast %}<span class="badge badge-were" title="Werebeast">W</span>{% endif %}
               {% if r.is_ghost %}<span class="badge badge-ghost" title="Ghost">G</span>{% endif %}
             </td>
-            <td class="text-stone-400">{{ r.race|default('?', true)|title }}</td>
+            <td class="text-stone-400">{{ r.race|default('?', true)|clean_race }}</td>
             <td><span class="text-red-400">{{ r.threat_type }}</span></td>
             <td class="text-stone-400 text-xs">{{ r.threat_basis }}</td>
             <td>
@@ -337,6 +380,15 @@
                 <span class="text-emerald-400">Alive</span>
               {% endif %}
             </td>
+            {% if is_active_fortress %}
+            <td class="text-xs">
+              {% if r.live_tracked %}
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-900/40 text-green-400 border border-green-800/50">Live</span>
+              {% else %}
+                <span class="text-stone-600">Legends</span>
+              {% endif %}
+            </td>
+            {% endif %}
           </tr>
           {% endfor %}
         </tbody>

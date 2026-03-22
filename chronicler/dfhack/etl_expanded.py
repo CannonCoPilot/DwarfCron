@@ -746,6 +746,44 @@ async def etl_daily_events(conn: asyncpg.Connection, data: dict,
     return count
 
 
+# ── HF ↔ Unit Bidirectional Link ───────────────────────────────────────
+
+
+async def etl_hf_unit_links(conn: asyncpg.Connection, bridge_data: dict,
+                             world_id: int) -> int:
+    """Populate historical_figures.unit_id from bridge unit hist_fig_id.
+
+    Each fortress unit has a hist_fig_id linking it to a historical figure.
+    This enables bidirectional navigation between HF detail pages and live
+    unit data.
+
+    Returns count of HFs updated.
+    """
+    us = bridge_data.get("unit_summary", {})
+    fortress_units = us.get("fortress_units", [])
+    if not fortress_units:
+        return 0
+
+    count = 0
+    for u in fortress_units:
+        hf_id = u.get("hist_fig_id")
+        unit_id = u.get("id")
+        if not hf_id or hf_id < 0 or not unit_id:
+            continue
+        result = await conn.execute(
+            """UPDATE historical_figures
+               SET unit_id = $3
+               WHERE world_id = $1 AND id = $2 AND (unit_id IS NULL OR unit_id != $3)""",
+            world_id, hf_id, unit_id,
+        )
+        if result and result.endswith("1"):
+            count += 1
+
+    if count:
+        log.info("etl_hf_unit_links: %d HFs linked to units", count)
+    return count
+
+
 # ── Reconciliation ──────────────────────────────────────────────────────
 
 
@@ -776,6 +814,249 @@ async def reconcile_events(conn: asyncpg.Connection, world_id: int) -> int:
     count = int(result.split()[-1]) if result else 0
     if count:
         log.info("reconcile_events: %d deaths matched to history_events", count)
+    return count
+
+
+# ── Noble Position ETL ───────────────────────────────────────────────────
+
+
+async def etl_noble_positions(
+    conn: asyncpg.Connection, positions_data: dict | None,
+    world_id: int, game_year: int | None,
+) -> int:
+    """Sync position assignments from bridge data (ground truth for 'present').
+
+    Compares bridge snapshot against DB active rows (end_year IS NULL) to detect:
+    - New appointments  → INSERT with start_year = game_year
+    - Removals          → SET end_year = game_year on stale DB rows
+    - Reassignments     → end old holder + insert new holder
+    - Backfills         → NULL start_year rows get game_year
+
+    Returns count of rows changed (inserts + updates + removals).
+    """
+    if not positions_data:
+        return 0
+
+    count = 0
+    for label in ('fortress_entity', 'site_government'):
+        section = positions_data.get(label)
+        if not section:
+            continue
+        entity_id = section.get('entity_id')
+        if not entity_id:
+            continue
+
+        # ── Build bridge truth set: {(position_id, hf_id)} ──
+        bridge_active = set()
+        for a in section.get('assignments', []):
+            hf_id = a.get('histfig_id')
+            position_id = a.get('position_id')
+            if hf_id is None or position_id is None:
+                continue
+            if hf_id < 0:
+                continue
+            bridge_active.add((position_id, hf_id))
+
+        # ── Load DB active rows for this entity ──
+        db_rows = await conn.fetch("""
+            SELECT id, position_id, hf_id, start_year
+            FROM hf_position_links
+            WHERE world_id = $1 AND entity_id = $2 AND end_year IS NULL
+        """, world_id, entity_id)
+        db_active = {}  # (position_id, hf_id) → {id, start_year}
+        for r in db_rows:
+            key = (r['position_id'], r['hf_id'])
+            db_active[key] = {'id': r['id'], 'start_year': r['start_year']}
+
+        # ── Removals: in DB but not in bridge → end the position ──
+        removed = set(db_active.keys()) - bridge_active
+        for pos_id, hf_id in removed:
+            row = db_active[(pos_id, hf_id)]
+            await conn.execute("""
+                UPDATE hf_position_links SET end_year = $1 WHERE id = $2
+            """, game_year, row['id'])
+            count += 1
+            log.info("Position ended: entity=%d pos=%d hf=%d year=%s",
+                     entity_id, pos_id, hf_id, game_year)
+
+        # ── Additions + backfills: in bridge ──
+        for pos_id, hf_id in bridge_active:
+            existing = db_active.get((pos_id, hf_id))
+            if existing:
+                # Row exists — backfill NULL start_year if needed
+                if existing['start_year'] is None and game_year is not None:
+                    await conn.execute("""
+                        UPDATE hf_position_links SET start_year = $1 WHERE id = $2
+                    """, game_year, existing['id'])
+                    count += 1
+            else:
+                # New appointment — insert
+                await conn.execute("""
+                    INSERT INTO hf_position_links
+                        (world_id, hf_id, entity_id, position_id, start_year)
+                    VALUES ($1, $2, $3, $4, $5)
+                """, world_id, hf_id, entity_id, pos_id, game_year)
+                count += 1
+                log.info("Position added: entity=%d pos=%d hf=%d year=%s",
+                         entity_id, pos_id, hf_id, game_year)
+
+    return count
+
+
+# ── Fortress Operational Tables ───────────────────────────────────────
+
+
+async def etl_armies(conn: asyncpg.Connection, armies_data,
+                     world_id: int, game_year: int | None = None,
+                     game_tick: int | None = None) -> int:
+    """Promote bridge 'armies' section into fortress_armies table.
+
+    Data comes as {"armies": [{id, controller_id, member_count, pos_x, pos_y}]}.
+    Double-encoded in lua_probes — raw bridge_data is already parsed.
+    """
+    if not armies_data:
+        return 0
+
+    # Handle both dict wrapper and direct list
+    army_list = armies_data
+    if isinstance(armies_data, dict):
+        army_list = armies_data.get("armies") or []
+    if isinstance(army_list, str):
+        army_list = json.loads(army_list)
+        if isinstance(army_list, dict):
+            army_list = army_list.get("armies", [])
+
+    if not army_list:
+        return 0
+
+    count = 0
+    for a in army_list:
+        army_id = a.get("id")
+        if army_id is None:
+            continue
+        await conn.execute("""
+            INSERT INTO fortress_armies
+                (world_id, army_id, controller_id, member_count, pos_x, pos_y,
+                 last_seen_year, last_seen_tick, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+            ON CONFLICT (world_id, army_id) DO UPDATE SET
+                controller_id = EXCLUDED.controller_id,
+                member_count = EXCLUDED.member_count,
+                pos_x = EXCLUDED.pos_x,
+                pos_y = EXCLUDED.pos_y,
+                last_seen_year = EXCLUDED.last_seen_year,
+                last_seen_tick = EXCLUDED.last_seen_tick,
+                updated_at = now()
+        """, world_id, army_id,
+             _sanitize_id(a.get("controller_id")),
+             a.get("member_count", 0),
+             a.get("pos_x"), a.get("pos_y"),
+             game_year, game_tick)
+        count += 1
+
+    return count
+
+
+async def etl_zones(conn: asyncpg.Connection, zones_data,
+                    world_id: int) -> int:
+    """Promote bridge 'zones' section into fortress_zones table.
+
+    Data comes as {"zones": [{id, type, is_active, assigned_unit_count, ...}]}.
+    """
+    if not zones_data:
+        return 0
+
+    zone_list = zones_data
+    if isinstance(zones_data, dict):
+        zone_list = zones_data.get("zones") or []
+    if isinstance(zone_list, str):
+        zone_list = json.loads(zone_list)
+        if isinstance(zone_list, dict):
+            zone_list = zone_list.get("zones", [])
+
+    if not zone_list:
+        return 0
+
+    count = 0
+    for z in zone_list:
+        zone_id = z.get("id")
+        if zone_id is None:
+            continue
+        await conn.execute("""
+            INSERT INTO fortress_zones
+                (world_id, zone_id, zone_type, is_active, assigned_unit_count,
+                 owner_unit_id, x1, y1, x2, y2, z, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
+            ON CONFLICT (world_id, zone_id) DO UPDATE SET
+                zone_type = EXCLUDED.zone_type,
+                is_active = EXCLUDED.is_active,
+                assigned_unit_count = EXCLUDED.assigned_unit_count,
+                owner_unit_id = EXCLUDED.owner_unit_id,
+                x1 = EXCLUDED.x1, y1 = EXCLUDED.y1,
+                x2 = EXCLUDED.x2, y2 = EXCLUDED.y2,
+                z = EXCLUDED.z,
+                updated_at = now()
+        """, world_id, zone_id,
+             z.get("type"), z.get("is_active", True),
+             z.get("assigned_unit_count", 0),
+             _sanitize_id(z.get("owner_unit_id")),
+             z.get("x1"), z.get("y1"), z.get("x2"), z.get("y2"), z.get("z"))
+        count += 1
+
+    return count
+
+
+async def etl_mandates(conn: asyncpg.Connection, mandates_data,
+                       world_id: int) -> int:
+    """Promote bridge 'mandates' section into fortress_mandates table.
+
+    Data comes as {"mandates": [{...}]}.
+    """
+    if not mandates_data:
+        return 0
+
+    mandate_list = mandates_data
+    if isinstance(mandates_data, dict):
+        mandate_list = mandates_data.get("mandates") or []
+    if isinstance(mandate_list, str):
+        mandate_list = json.loads(mandate_list)
+        if isinstance(mandate_list, dict):
+            mandate_list = mandate_list.get("mandates", [])
+
+    if not mandate_list:
+        return 0
+
+    count = 0
+    for idx, m in enumerate(mandate_list):
+        mandate_id = m.get("id", idx)
+        await conn.execute("""
+            INSERT INTO fortress_mandates
+                (world_id, mandate_id, mandate_type, item_type, item_subtype,
+                 amount_total, amount_remaining, timeout_at, punish_type,
+                 issuer_unit_id, details, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
+            ON CONFLICT (world_id, mandate_id) DO UPDATE SET
+                mandate_type = EXCLUDED.mandate_type,
+                item_type = EXCLUDED.item_type,
+                item_subtype = EXCLUDED.item_subtype,
+                amount_total = EXCLUDED.amount_total,
+                amount_remaining = EXCLUDED.amount_remaining,
+                timeout_at = EXCLUDED.timeout_at,
+                punish_type = EXCLUDED.punish_type,
+                issuer_unit_id = EXCLUDED.issuer_unit_id,
+                details = EXCLUDED.details,
+                updated_at = now()
+        """, world_id, mandate_id,
+             m.get("type"), m.get("item_type"), m.get("item_subtype"),
+             m.get("amount_total", 0), m.get("amount_remaining", 0),
+             m.get("timeout_at"), m.get("punish_type"),
+             _sanitize_id(m.get("issuer_unit_id")),
+             json.dumps({k: v for k, v in m.items()
+                         if k not in ("id", "type", "item_type", "item_subtype",
+                                      "amount_total", "amount_remaining",
+                                      "timeout_at", "punish_type", "issuer_unit_id")}))
+        count += 1
+
     return count
 
 
@@ -833,11 +1114,16 @@ async def ingest_expanded(conn: asyncpg.Connection, bridge_data: dict,
     await _safe("diplomacy", etl_diplomacy(
         conn, bridge_data.get("diplomacy"), world_id))
 
-    # Fortress state — only on season change
+    # Fortress state — only on season change; merge buildings counts into details
     if season_changed:
+        fs_data = bridge_data.get("fortress_state") or {}
+        # Include building counts in fortress state snapshot
+        buildings = bridge_data.get("buildings")
+        if buildings and isinstance(fs_data, dict):
+            fs_data = dict(fs_data)  # copy to avoid mutating bridge_data
+            fs_data["buildings"] = buildings
         await _safe("fortress_state", etl_fortress_state(
-            conn, bridge_data.get("fortress_state"), world_id,
-            game_year, game_tick))
+            conn, fs_data, world_id, game_year, game_tick))
 
     # Tier 2: Memory-only structures (only if bridge provides them)
     await _safe("belief_systems", etl_belief_systems(
@@ -848,6 +1134,22 @@ async def ingest_expanded(conn: asyncpg.Connection, bridge_data: dict,
         conn, bridge_data.get("occupations"), world_id))
     await _safe("daily_events", etl_daily_events(
         conn, bridge_data.get("daily_events"), world_id, game_year, game_tick))
+
+    # Noble position tracking (backfill NULL start_year)
+    await _safe("noble_positions", etl_noble_positions(
+        conn, bridge_data.get("noble_positions"), world_id, game_year))
+
+    # HF ↔ Unit bidirectional links (from bridge unit hist_fig_id)
+    await _safe("hf_unit_links", etl_hf_unit_links(
+        conn, bridge_data, world_id))
+
+    # Fortress operational tables
+    await _safe("armies", etl_armies(
+        conn, bridge_data.get("armies"), world_id, game_year, game_tick))
+    await _safe("zones", etl_zones(
+        conn, bridge_data.get("zones"), world_id))
+    await _safe("mandates", etl_mandates(
+        conn, bridge_data.get("mandates"), world_id))
 
     # Log non-zero results
     active = {k: v for k, v in summary.items() if v}

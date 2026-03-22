@@ -138,6 +138,13 @@
   {% set active = "explorer" %}
   {% include "partials/_nav.html" %}
 
+  <!-- KH fog-of-war banner (shown when entity is outside knowledge horizon) -->
+  <div id="kh-fog-banner" class="hidden bg-stone-900 border-b border-amber-600/30 px-6 py-2.5 text-center">
+    <span class="text-amber-400 text-sm font-bold">Beyond the Knowledge Horizon</span>
+    <span class="text-stone-400 text-sm ml-2">— The fortress has no knowledge of this {{ entity_type_display|lower|default('entity') }}.</span>
+    <span class="text-stone-600 text-xs ml-2">(KH is enabled — <a href="#" onclick="toggleKH(false);document.getElementById('kh-toggle').checked=false;document.getElementById('kh-fog-banner').classList.add('hidden');return false;" class="text-amber-500 hover:underline">disable</a>)</span>
+  </div>
+
   <!-- Breadcrumb bar -->
   <div class="border-b border-stone-800 bg-stone-950 px-6 py-2 flex items-center justify-between flex-shrink-0">
     <div class="breadcrumb flex items-center gap-1">
@@ -226,12 +233,19 @@
           onShow(instance) {
             const type = el.dataset.entityType;
             const id = el.dataset.entityId;
-            const key = type + ':' + id;
+            const siteId = el.dataset.siteId || '';
+            const worldId = el.dataset.worldId || '';
+            const key = type + ':' + id + (siteId ? ':s' + siteId : '') + (worldId ? ':w' + worldId : '');
             if (popoverCache[key]) {
               instance.setContent(popoverCache[key]);
               return;
             }
-            fetch('/api/popover/' + type + '/' + id)
+            let url = '/api/popover/' + type + '/' + id;
+            const params = [];
+            if (worldId) params.push('world_id=' + worldId);
+            if (siteId) params.push('site_id=' + siteId);
+            if (params.length) url += '?' + params.join('&');
+            fetch(url)
               .then(r => r.json())
               .then(data => {
                 const html = renderPopover(data);
@@ -268,6 +282,8 @@
         if (d.holder) html += '<div class="pop-meta">Held by: ' + escHtml(d.holder) + '</div>';
       } else if (d.type === 'structure') {
         html += '<div class="pop-meta">' + escHtml(d.structure_type || '') + (d.site ? ' at ' + escHtml(d.site) : '') + '</div>';
+        if (d.affiliation) html += '<div class="pop-meta">Affiliation: ' + escHtml(d.affiliation) + (d.affiliation_type ? ' (' + escHtml(d.affiliation_type) + ')' : '') + '</div>';
+        if (d.deity) html += '<div class="pop-meta">Deity: ' + escHtml(d.deity) + '</div>';
       } else {
         // Generic
         if (d.entity_type) html += '<div class="pop-meta">' + escHtml(d.entity_type) + '</div>';
@@ -288,5 +304,37 @@
   })();
   </script>
   {% block extra_scripts %}{% endblock %}
+
+  <!-- KH fog-of-war check for detail pages -->
+  <script>
+  (function() {
+    if (localStorage.getItem('kh_enabled') !== 'true') return;
+
+    // Parse entity type and ID from URL: /explorer/{type}/{id}
+    const m = location.pathname.match(/\/explorer\/(\w+)\/(\d+)/);
+    if (!m) return;
+
+    const typeMap = {
+      'hf': 'hf', 'entity': 'entity', 'site': 'site',
+      'artifact': 'artifact', 'region': 'region'
+    };
+    const khType = typeMap[m[1]];
+    if (!khType) return;
+
+    const entityId = m[2];
+    const params = new URLSearchParams(location.search);
+    const worldId = params.get('world_id') || 1;
+
+    fetch(`/api/kh/check/${khType}/${entityId}?world_id=${worldId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.visible) {
+          const banner = document.getElementById('kh-fog-banner');
+          if (banner) banner.classList.remove('hidden');
+        }
+      })
+      .catch(() => {});
+  })();
+  </script>
 </body>
 </html>

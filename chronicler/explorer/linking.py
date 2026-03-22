@@ -84,10 +84,17 @@ class EntityLinkRenderer:
         if css_class:
             classes += f" {css_class}"
 
+        # Extra data attributes for composite-key entities
+        extra_attrs = ''
+        if entity_type == 'structure' and site_id:
+            extra_attrs = f' data-site-id="{site_id}"'
+        if world_id is not None:
+            extra_attrs += f' data-world-id="{world_id}"'
+
         return (
             f'<a href="{url}" class="{classes}" '
             f'data-entity-type="{entity_type}" '
-            f'data-entity-id="{entity_id}">'
+            f'data-entity-id="{entity_id}"{extra_attrs}>'
             f'{name}</a>'
         )
 

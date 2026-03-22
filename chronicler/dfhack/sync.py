@@ -54,7 +54,7 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
             u['name'],
             u.get('details', {}).get('english_name'),
             str(u.get('race_name', u['race'])),
-            str(u['details']['caste']),
+            str(u.get('details', {}).get('caste', '')),
             u['profession'],
             u['pos_x'],
             u['pos_y'],
@@ -65,7 +65,7 @@ async def upsert_units(conn: asyncpg.Connection, units: list[dict],
             u.get('birth_year'),
             u.get('sex'),
             u.get('death_cause'),
-            json.dumps(u['details']),
+            u['details'],  # dict — asyncpg JSONB codec auto-encodes
             now,
         )
         count += 1

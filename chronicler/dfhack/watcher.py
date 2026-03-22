@@ -29,6 +29,7 @@ from chronicler.dfhack.bridge import (
     get_fortress_units, get_bridge_version, merge_bridge_into_units,
 )
 from chronicler.dfhack.etl_expanded import ingest_expanded
+from chronicler.dfhack.etl_state_capture import ingest_state_capture
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
 from chronicler.dfhack.sync import upsert_units, enrich_units
@@ -36,6 +37,7 @@ from chronicler.denizens import (
     has_denizens, register_denizen, detect_missing, detect_deaths,
     mark_seen, restore_resident, compute_nvs, link_hf,
 )
+from chronicler.dfhack.bridge_log import BridgeLogger
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +69,103 @@ async def _insert_events(conn: asyncpg.Connection, events: list[dict],
             game_year,
             game_tick,
         )
+
+
+async def _insert_reactive_events(conn: asyncpg.Connection,
+                                   bridge_data: dict, world_id: int,
+                                   game_year: int | None,
+                                   game_tick: int | None) -> int:
+    """Persist reactive events (jobs, items, syndromes) as unit_events.
+
+    These come from DFHack eventful subscriptions and were previously
+    WebSocket-only. Now stored in unit_events for the Explorer UI.
+    """
+    reactive = bridge_data.get("reactive_events", {})
+    if not reactive:
+        return 0
+
+    count = 0
+
+    for job in (reactive.get("jobs_completed") or []):
+        await conn.execute(
+            "INSERT INTO unit_events (unit_id, world_id, event_type, "
+            "new_value, game_year, game_tick) VALUES ($1,$2,$3,$4,$5,$6)",
+            0, world_id, "job_completed",
+            json.dumps({"job_type": job.get("job_type"),
+                        "pos": job.get("pos"), "tick": job.get("tick")}),
+            game_year, game_tick,
+        )
+        count += 1
+
+    for item in (reactive.get("items_created") or []):
+        await conn.execute(
+            "INSERT INTO unit_events (unit_id, world_id, event_type, "
+            "new_value, game_year, game_tick) VALUES ($1,$2,$3,$4,$5,$6)",
+            item.get("unit_id", 0), world_id, "item_created",
+            json.dumps({"item_id": item.get("item_id"),
+                        "book_title": item.get("book_title"),
+                        "tick": item.get("tick")}),
+            game_year, game_tick,
+        )
+        count += 1
+
+    for syn in (reactive.get("syndromes") or []):
+        await conn.execute(
+            "INSERT INTO unit_events (unit_id, world_id, event_type, "
+            "new_value, game_year, game_tick) VALUES ($1,$2,$3,$4,$5,$6)",
+            syn.get("unit_id", 0), world_id, "syndrome_applied",
+            json.dumps({"syndrome_index": syn.get("syndrome_index"),
+                        "tick": syn.get("tick")}),
+            game_year, game_tick,
+        )
+        count += 1
+
+    return count
+
+
+async def _expand_kh_from_events(
+    pool: asyncpg.Pool, world_id: int,
+    events: list[dict], bridge_data: dict | None,
+) -> int:
+    """Expand Knowledge Horizon based on detected events and bridge data.
+
+    Processes:
+    - ARRIVED events: new arrivals may bring knowledge of origin sites
+    - Invasion data from reactive events: reveals attacking entity
+    - Diplomacy data from bridge: trade caravans reveal source civ/site
+    """
+    # Check if KH has been initialized for this world
+    async with pool.acquire() as conn:
+        has_kh = await conn.fetchval(
+            "SELECT EXISTS(SELECT 1 FROM knowledge_horizon WHERE world_id = $1)",
+            world_id,
+        )
+    if not has_kh:
+        return 0
+
+    from chronicler.kh import KnowledgeHorizonEngine
+    kh = KnowledgeHorizonEngine(pool, world_id)
+
+    total = 0
+
+    # Process unit arrival events — new arrivals expand what the fortress knows
+    for ev in events:
+        if ev["event_type"] == "ARRIVED":
+            total += await kh.process_revelation_event({
+                "type": "migrant",
+                "data": {"unit_id": ev["unit_id"]},
+            })
+
+    # Process invasion events from bridge reactive data
+    if bridge_data:
+        reactive = bridge_data.get("reactive_events", {})
+        for inv in (reactive.get("invasions") or []):
+            total += await kh.process_revelation_event({
+                "type": "invasion",
+                "data": inv,
+            })
+
+    return total
 
 
 async def _record_snapshot(conn: asyncpg.Connection, world_id: int,
@@ -112,6 +211,43 @@ async def _store_bridge_sections(conn: asyncpg.Connection, world_id: int,
             count += 1
 
     return count
+
+
+async def _embed_cycle_changes(conn, world_id, units, events, bd):
+    """Embed changed entities from a watcher cycle (Stage 3.4 live pipeline).
+
+    Collects: unit deltas, new history events, announcements.
+    Extracts text, checks content hashes, embeds changed items.
+    Returns count of newly embedded items.
+    """
+    from chronicler.embedding.extractors import extract_unit, extract_announcement
+    from chronicler.embedding.pipeline import embed_changed
+
+    changes = []
+
+    # Units that changed this cycle
+    for u in units:
+        try:
+            text = extract_unit(u)
+            if text:
+                changes.append(("unit", u.get("id", 0), text))
+        except Exception:
+            pass
+
+    # Announcements from bridge
+    recent = bd.get("announcements", {}).get("recent", [])
+    for ann in recent:
+        try:
+            text = extract_announcement(ann)
+            if text:
+                changes.append(("announcement", ann.get("id", 0), text))
+        except Exception:
+            pass
+
+    if not changes:
+        return 0
+
+    return await embed_changed(conn, world_id, changes)
 
 
 async def _cleanup_lua_probes_count(conn: asyncpg.Connection, world_id: int,
@@ -354,12 +490,21 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                      world_id, wi.get('world_name'), wi.get('world_name_english'),
                      wi.get('fortress_name'))
 
+    # ── Bridge JSONL logger (durable capture of raw bridge data) ─────
+    bridge_logger = BridgeLogger()
+    if bridge_available and bridge_data:
+        wi = get_world_info(bridge_data)
+        world_name = wi.get('world_name_english') or wi.get('world_name') or 'unknown'
+        bridge_logger.open(world_name)
+
     world_map_captured = False
     last_probe_time = 0.0
     last_cleanup_cycle = 0
     bridge_failures = 0
     cycle = 0
     prev_season = None  # Track season changes for fortress_state snapshots
+    prev_year = None    # Track year changes for session markers
+    last_snapshot_tick = 0  # Tick of last fortress_state_snapshot
 
     try:
         while not _shutdown.is_set():
@@ -379,6 +524,8 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                 if bd:
                     bridge_failures = 0
                     game_year, game_tick = get_game_time(bd)
+                    # Durable capture: append raw bridge data to JSONL log
+                    bridge_logger.append(bd, cycle, game_year, game_tick)
                 else:
                     bridge_failures += 1
                     if bridge_failures == 3:
@@ -389,10 +536,36 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                     elif bridge_failures % 10 == 0:
                         log.warning("Bridge failure streak: %d", bridge_failures)
 
-            # 2. Pull current units (core method — always works)
-            units = client.list_units(sane=True, skills=True, profession=True)
+            # 2. Pull current units (core method — may timeout under timestream)
+            try:
+                units = client.list_units(sane=True, skills=True, profession=True)
+            except (TimeoutError, OSError) as e:
+                log.warning("ListUnits RPC timeout (cycle %d): %s — "
+                            "using bridge units only", cycle, e)
+                # Fall back to bridge fortress_units if available
+                if bd:
+                    bridge_units = get_fortress_units(bd)
+                    units = []
+                    for bu in (bridge_units or []):
+                        units.append({
+                            'id': bu.get('id', 0),
+                            'name': bu.get('name', ''),
+                            'race': bu.get('race', 0),
+                            'race_name': 'DWARF',
+                            'profession': bu.get('profession', 0),
+                        })
+                else:
+                    log.warning("No fallback data — skipping cycle %d", cycle)
+                    try:
+                        await asyncio.wait_for(_shutdown.wait(),
+                                               timeout=interval)
+                        break
+                    except asyncio.TimeoutError:
+                        continue
             for u in units:
-                u['race_name'] = race_map.get(u['race'], str(u['race']))
+                if 'race_name' not in u:
+                    u['race_name'] = race_map.get(u.get('race', 0),
+                                                  str(u.get('race', 0)))
 
             # 3. Optionally enrich units with RFR data
             if enable_enriched:
@@ -424,8 +597,14 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                     await upsert_units(conn, units, world_id)
                     await _insert_events(conn, events, world_id,
                                          game_year, game_tick)
+                    # Persist reactive events (jobs, items, syndromes)
+                    reactive_count = 0
+                    if bd:
+                        reactive_count = await _insert_reactive_events(
+                            conn, bd, world_id, game_year, game_tick)
                     await _record_snapshot(conn, world_id, len(units),
-                                          len(events), game_year, game_tick)
+                                          len(events) + reactive_count,
+                                          game_year, game_tick)
 
                 # 5b. Denizen registry tracking
                 try:
@@ -457,6 +636,12 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                                           and cur_season != prev_season)
                         prev_season = cur_season
 
+                        year_changed = (prev_year is not None
+                                        and game_year is not None
+                                        and game_year != prev_year)
+                        if game_year is not None:
+                            prev_year = game_year
+
                         etl_summary = await ingest_expanded(
                             conn, bd, world_id,
                             game_year=game_year, game_tick=game_tick,
@@ -467,7 +652,46 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                     except Exception as e:
                         log.debug("Expanded ETL failed: %s", e)
 
-                # 6c. Retention cleanup (every 10 cycles)
+                # 6b2. Stage 3.5: Fortress state capture
+                if bd and bridge_available:
+                    try:
+                        sc_summary = await ingest_state_capture(
+                            conn, bd, world_id,
+                            game_year=game_year, game_tick=game_tick,
+                            season_changed=season_changed,
+                            year_changed=year_changed,
+                            recent_events=events,
+                            last_snapshot_tick=last_snapshot_tick)
+                        if sc_summary.get('last_snapshot_tick'):
+                            last_snapshot_tick = sc_summary['last_snapshot_tick']
+                        active_sc = {k: v for k, v in sc_summary.items()
+                                     if v and k != 'last_snapshot_tick'}
+                        if active_sc:
+                            extras['state_capture'] = active_sc
+                    except Exception as e:
+                        log.debug("State capture failed: %s", e)
+
+                # 6b3. Live embedding (incremental)
+                if bd and bridge_available:
+                    try:
+                        embed_count = await _embed_cycle_changes(
+                            conn, world_id, units, events, bd)
+                        if embed_count:
+                            extras['embedded'] = embed_count
+                    except Exception as e:
+                        log.debug("Live embedding failed: %s", e)
+
+                # 6c. Knowledge Horizon expansion (every 10 cycles)
+                if cycle % 10 == 0 and events:
+                    try:
+                        kh_count = await _expand_kh_from_events(
+                            pool, world_id, events, bd)
+                        if kh_count:
+                            extras['kh_reveals'] = kh_count
+                    except Exception as e:
+                        log.debug("KH expansion failed: %s", e)
+
+                # 6d. Retention cleanup (every 10 cycles)
                 if cycle - last_cleanup_cycle >= 10:
                     try:
                         deleted = await _cleanup_lua_probes_count(
@@ -508,5 +732,6 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
             except asyncio.TimeoutError:
                 continue
     finally:
+        bridge_logger.close()
         client.close()
         log.info("Watcher stopped after %d cycles", cycle)

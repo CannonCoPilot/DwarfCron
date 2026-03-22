@@ -47,7 +47,7 @@ class GameController:
 
     def __init__(self, host: str = "192.168.64.3",
                  ssh_key: str = "~/.ssh/df-vm",
-                 ssh_user: str = "Jarvis",
+                 ssh_user: str = "administrator",
                  ssh_timeout: int = 10):
         self._host = host
         self._ssh_key = ssh_key
@@ -137,7 +137,7 @@ class GameController:
         return output.strip().lower() == "true"
 
     def step(self, ticks: int = 100, poll_interval: float = 0.5,
-             timeout: float = 30.0) -> dict:
+             timeout: float = 0) -> dict:
         """Advance the game by approximately `ticks` ticks, then re-pause.
 
         1. Record current tick
@@ -145,13 +145,21 @@ class GameController:
         3. Poll until tick has advanced by >= ticks
         4. Re-pause
         5. Return {start_tick, end_tick, elapsed_ticks, year, season}
+
+        If timeout is 0 (default), it auto-scales based on tick count:
+        ~30s per 10,000 ticks under Prism emulation.
         """
+        if timeout <= 0:
+            # Auto-scale: Prism emulation ~500 ticks/sec, add buffer
+            timeout = max(30.0, ticks / 400)
+
         start = self.get_game_time()
         start_tick = start["cur_year_tick"]
         start_year = start["cur_year"]
         target_tick = start_tick + ticks
 
-        log.info("Stepping %d ticks from Y%d T%d", ticks, start_year, start_tick)
+        log.info("Stepping %d ticks from Y%d T%d (timeout=%.0fs)",
+                 ticks, start_year, start_tick, timeout)
 
         self._lua("df.global.pause_state=false")
 
@@ -258,14 +266,12 @@ class GameController:
         """Register bridge as a DFHack repeating job.
 
         Runs chronicler-bridge every N ticks automatically.
+        Uses dfhack_command() which handles the PowerShell invocation.
         """
-        ps_cmd = (
-            f"powershell -Command "
-            f"\"& '{_DFHACK_RUN}' "
-            f"'repeat --name chronicler --time {ticks} "
-            f"--timeUnits ticks --command [ chronicler-bridge ]'\""
+        return self.dfhack_command(
+            f"repeat --name chronicler --time {ticks} "
+            f"--timeUnits ticks --command [ chronicler-bridge ]"
         )
-        return self._ssh(ps_cmd)
 
     def fetch_bridge_data(self) -> dict | None:
         """Read chronicler-state.json from the VM via SSH + base64.
@@ -324,19 +330,25 @@ class GameController:
         return self._lua(code)
 
     def set_speed(self, speed: int) -> str:
-        """Set game speed (0=pause, 1-4=normal speeds).
+        """Set game speed via timestream plugin (1=slow, 2=normal, 3=fast, 4=max).
 
-        DF uses df.global.d_init.fps_cap and simulation_fps for speed
-        but the simplest approach is through the DF game speed setting.
+        DF 53.x removed d_init.fps_cap. Use timestream for speed control:
+        - 1: disable timestream (native ~30fps under Prism)
+        - 2: timestream fps 50
+        - 3: timestream fps 100
+        - 4: timestream fps 200
         """
-        # DF speed settings: 0=PAUSED is separate from pause_state
-        # 10fps=slow, 50=normal, 100=fast, 0=max
-        fps_map = {1: 10, 2: 50, 3: 100, 4: 0}
+        if speed == 1:
+            output = self.dfhack_command("disable timestream")
+            log.info("Speed 1 (native): timestream disabled")
+            return output
+        fps_map = {2: 50, 3: 100, 4: 200}
         fps = fps_map.get(speed)
         if fps is None:
-            return f"Invalid speed {speed}. Use 1-4 (1=slow, 4=max)."
-        output = self._lua(f"df.global.d_init.fps_cap={fps} print(df.global.d_init.fps_cap)")
-        log.info("Set speed %d (fps_cap=%d): %s", speed, fps, output)
+            return f"Invalid speed {speed}. Use 1-4 (1=native, 4=max)."
+        self.dfhack_command("enable timestream")
+        output = self.dfhack_command(f"timestream set fps {fps}")
+        log.info("Speed %d (fps=%d): %s", speed, fps, output)
         return output
 
     def get_citizens(self) -> list[dict]:
@@ -443,6 +455,78 @@ class GameController:
             f"end"
         )
         return self._lua(lua)
+
+    # ── DFHack command execution ─────────────────────────────────
+
+    def dfhack_command(self, command: str) -> str:
+        """Execute any DFHack console command and return output.
+
+        This is the general-purpose command runner. Examples:
+            dfhack_command("allneeds")
+            dfhack_command("enable timestream")
+            dfhack_command("timestream set fps 200")
+        """
+        ps_cmd = (
+            f"powershell -Command "
+            f"\"& '{_DFHACK_RUN}' {command}\""
+        )
+        return self._ssh(ps_cmd, timeout=20)
+
+    def enable_timestream(self, target_fps: int = 200) -> str:
+        """Enable timestream for faster game advancement."""
+        self.dfhack_command("enable timestream")
+        return self.dfhack_command(f"timestream set fps {target_fps}")
+
+    def disable_timestream(self) -> str:
+        """Disable timestream."""
+        return self.dfhack_command("disable timestream")
+
+    def get_needs_summary(self) -> str:
+        """Get fortress needs summary (allneeds)."""
+        return self.dfhack_command("allneeds")
+
+    def get_all_announcements(self, limit: int = 50) -> list[dict]:
+        """Read game announcements with utf-8 safe encoding."""
+        return self.get_announcements(limit)
+
+    def advance_season(self, callback=None) -> dict:
+        """Advance the game by one full season (~100,800 ticks).
+
+        Enables timestream for speed, then steps in chunks of 10,000 ticks
+        to allow periodic data collection. Calls optional callback after
+        each chunk with the step result.
+        """
+        self.enable_timestream(200)
+
+        start = self.get_game_time()
+        chunk_size = 10000
+        ticks_remaining = 100800
+        total_elapsed = 0
+
+        while ticks_remaining > 0:
+            step_ticks = min(chunk_size, ticks_remaining)
+            result = self.step(step_ticks)
+            actual = result["elapsed_ticks"]
+            total_elapsed += actual
+            ticks_remaining -= actual
+
+            if callback:
+                callback(result, total_elapsed, ticks_remaining)
+
+            # Safety: if we crossed a year boundary, stop
+            if result["end_year"] > start["cur_year"]:
+                break
+
+        self.disable_timestream()
+
+        end = self.get_game_time()
+        return {
+            "start_season": start["season"],
+            "end_season": end["season"],
+            "total_elapsed": total_elapsed,
+            "start_year": start["cur_year"],
+            "end_year": end["cur_year"],
+        }
 
     # ── Composite operations ───────────────────────────────────────
 

@@ -2,7 +2,10 @@
 
 {% block extra_head %}
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<style>.hf-event-overflow { display: none; }</style>
+<style>
+.hf-event-overflow { display: none; }
+@keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
 {% endblock %}
 
 {% block title %}{{ entity_name }} — Historical Figure — Chronicler{% endblock %}
@@ -51,6 +54,9 @@
   <span class="badge badge-alive">Alive</span>
 {% else %}
   <span class="badge badge-dead">Dead</span>
+{% endif %}
+{% if live_unit_id %}
+  <span class="badge" style="background:rgba(34,197,94,0.2);color:#22c55e;border:1px solid #22c55e40;animation:livePulse 2s infinite;" title="This figure is an active fortress denizen — data auto-refreshes">LIVE</span>
 {% endif %}
 {% endblock %}
 
@@ -150,6 +156,19 @@
         </div>
       {% endif %}
     </div>
+
+    {# ── 1b. Live Fortress Status (if active denizen) ────────────── #}
+    {% if live_unit_id %}
+    <div class="section-card lg:col-span-2" id="live-status-panel" style="border: 1px solid #22c55e30;">
+      <div class="flex items-center justify-between">
+        <div class="section-title" style="color: #22c55e;">Live Fortress Status</div>
+        <span class="text-xs text-stone-600" id="live-last-update">Updating...</span>
+      </div>
+      <div id="live-status-content">
+        <div class="text-stone-600 text-sm">Loading live data...</div>
+      </div>
+    </div>
+    {% endif %}
 
     {# ── 2. Family Tree (placeholder for Phase 4 Cytoscape.js) ─────── #}
     {% if family %}
@@ -1484,5 +1503,75 @@ function toggleAllHfEvents(showAll) {
   if (trunc) trunc.style.display = showAll ? 'none' : '';
   if (expanded) expanded.style.display = showAll ? '' : 'none';
 }
+
+// ── Live Denizen Auto-Refresh ──────────────────────────────────────
+{% if live_unit_id %}
+(function() {
+  const UNIT_ID = {{ live_unit_id }};
+  const REFRESH_MS = 15000;
+  const SKILL_LEVELS = ['Dabbling','Novice','Adequate','Competent','Skilled','Proficient',
+    'Talented','Adept','Expert','Professional','Accomplished','Great','Master','High Master',
+    'Grand Master','Legendary','Legendary+1','Legendary+2','Legendary+3','Legendary+4','Legendary+5'];
+
+  async function refreshLive() {
+    try {
+      const resp = await fetch('/api/live/denizen/' + UNIT_ID + '?world_id={{ world_id }}');
+      const d = await resp.json();
+      if (d.error) return;
+      renderLivePanel(d);
+      document.getElementById('live-last-update').textContent =
+        'Updated ' + new Date().toLocaleTimeString();
+    } catch (e) { /* silent */ }
+  }
+
+  function renderLivePanel(d) {
+    const el = document.getElementById('live-status-content');
+    if (!el) return;
+
+    const stress = d.stress_level;
+    const stressColor = stress == null ? 'text-stone-500' :
+      stress < 0 ? 'text-green-400' : stress > 100000 ? 'text-red-400' :
+      stress > 50000 ? 'text-yellow-400' : 'text-stone-300';
+    const stressLabel = stress != null ? Number(stress).toLocaleString() : '?';
+
+    let html = '<div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">';
+    html += '<div><span class="text-stone-500">Profession:</span> <span class="text-stone-300">' + (d.custom_profession || d.profession || '?') + '</span></div>';
+    html += '<div><span class="text-stone-500">Stress:</span> <span class="' + stressColor + ' stat-badge">' + stressLabel + '</span></div>';
+    if (d.mood) html += '<div><span class="text-stone-500">Mood:</span> <span class="text-purple-300">' + d.mood + '</span></div>';
+    if (d.squad_id != null && d.squad_id >= 0)
+      html += '<div><span class="text-stone-500">Squad:</span> #' + d.squad_id + '</div>';
+    if (d.position)
+      html += '<div><span class="text-stone-500">Position:</span> ' + d.position.x + ',' + d.position.y + ',' + d.position.z + '</div>';
+    html += '</div>';
+
+    // Top 8 skills
+    if (d.skills && d.skills.length > 0) {
+      html += '<div class="section-title" style="font-size:0.6rem;">Top Skills</div><div class="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs mb-2">';
+      const top = d.skills.slice(0, 8);
+      for (const sk of top) {
+        const lvl = SKILL_LEVELS[Math.min(sk.level || 0, SKILL_LEVELS.length - 1)];
+        html += '<div class="flex justify-between"><span class="text-stone-400">' + sk.name + '</span><span class="text-stone-500">' + lvl + '</span></div>';
+      }
+      if (d.skills.length > 8) html += '<div class="text-stone-600 col-span-2">+' + (d.skills.length - 8) + ' more</div>';
+      html += '</div>';
+    }
+
+    // Recent events
+    if (d.recent_events && d.recent_events.length > 0) {
+      html += '<div class="section-title" style="font-size:0.6rem;">Recent Activity</div><div class="space-y-0.5">';
+      for (const ev of d.recent_events.slice(0, 5)) {
+        html += '<div class="text-xs"><span class="text-stone-500">Y' + (ev.game_year || '?') + '</span> <span class="text-stone-400">' + ev.event_type + '</span></div>';
+      }
+      html += '</div>';
+    }
+
+    el.innerHTML = html;
+  }
+
+  // Initial load + interval
+  refreshLive();
+  setInterval(refreshLive, REFRESH_MS);
+})();
+{% endif %}
 </script>
 {% endblock %}

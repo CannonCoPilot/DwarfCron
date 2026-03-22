@@ -648,17 +648,19 @@ CREATE TABLE IF NOT EXISTS units (
     PRIMARY KEY (world_id, id)
 );
 
--- ─── Embeddings (Phase 2) ───────────────────────────────────────────────────
+-- ─── Embeddings (Stage 3.4) ──────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS embeddings (
     id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL DEFAULT 1,
     entity_type     TEXT NOT NULL,
     entity_id       INT NOT NULL,
     chunk_index     INT NOT NULL DEFAULT 0,
     chunk_text      TEXT NOT NULL,
     content_hash    TEXT NOT NULL,
     embedding       vector(2560),
-    created_at      TIMESTAMPTZ DEFAULT now()
+    created_at      TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT fk_embeddings_world FOREIGN KEY (world_id) REFERENCES worlds(id)
 );
 
 -- ─── Indexes ─────────────────────────────────────────────────────────────────
@@ -681,7 +683,10 @@ CREATE INDEX IF NOT EXISTS idx_hf_entity_links_hf ON hf_entity_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_hf_entity_links_entity ON hf_entity_links(world_id, entity_id);
 CREATE INDEX IF NOT EXISTS idx_hf_site_links_hf ON hf_site_links(hf_id);
 CREATE INDEX IF NOT EXISTS idx_hf_site_links_site ON hf_site_links(site_id);
-CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(entity_type, entity_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_embeddings_unique
+    ON embeddings(world_id, entity_type, entity_id, chunk_index);
+CREATE INDEX IF NOT EXISTS idx_embeddings_hash ON embeddings(world_id, content_hash);
+CREATE INDEX IF NOT EXISTS idx_embeddings_entity ON embeddings(world_id, entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_event_rels_source ON event_relationships(source_hf);
 CREATE INDEX IF NOT EXISTS idx_event_rels_target ON event_relationships(target_hf);
 CREATE INDEX IF NOT EXISTS idx_hf_prominence ON historical_figures(world_id, prominence_score DESC);
@@ -739,6 +744,19 @@ CREATE TABLE IF NOT EXISTS world_modpacks (
 
 CREATE INDEX IF NOT EXISTS idx_world_modpacks_world
     ON world_modpacks(world_id);
+
+-- ─── World Terrain/Biome Data ──────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS world_terrain (
+    id          SERIAL PRIMARY KEY,
+    world_id    INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    width       INT NOT NULL,
+    height      INT NOT NULL,
+    data        JSONB NOT NULL,   -- per-tile arrays: elevation, rainfall, etc.
+    region_types JSONB NOT NULL,  -- region_id -> {type, type_name}
+    extracted_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(world_id)
+);
 
 -- ─── Monitoring ─────────────────────────────────────────────────────────────
 
@@ -812,12 +830,22 @@ CREATE TABLE IF NOT EXISTS game_reports (
     pos_y           INT,
     pos_z           INT,
     is_announcement BOOLEAN DEFAULT FALSE,
+    category        TEXT,              -- combat, death, social, economic, environmental, migration, diplomacy
+    attacker_unit_id INT,
+    defender_unit_id INT,
+    body_part       TEXT,
+    attack_type     TEXT,
+    weapon          TEXT,
+    result_flags    JSONB DEFAULT '{}',
+    related_unit_ids JSONB,            -- unit IDs mentioned in this report/announcement
     detected_at     TIMESTAMPTZ DEFAULT now(),
     UNIQUE (world_id, report_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_game_reports_world ON game_reports(world_id);
 CREATE INDEX IF NOT EXISTS idx_game_reports_year ON game_reports(game_year);
+CREATE INDEX IF NOT EXISTS idx_game_reports_category ON game_reports(world_id, category);
+CREATE INDEX IF NOT EXISTS idx_game_reports_tick ON game_reports(world_id, game_tick);
 
 -- ── Live Data: World Map Snapshots (geography) ──────────────────────
 CREATE TABLE IF NOT EXISTS world_map_snapshots (
@@ -976,6 +1004,56 @@ CREATE TABLE IF NOT EXISTS fortress_state (
 CREATE INDEX IF NOT EXISTS idx_fortress_state_world ON fortress_state(world_id);
 CREATE INDEX IF NOT EXISTS idx_fortress_state_time ON fortress_state(captured_at DESC);
 
+-- Active world armies (live bridge snapshot — replaces each cycle)
+CREATE TABLE IF NOT EXISTS fortress_armies (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    army_id          INT NOT NULL,
+    controller_id    INT,
+    member_count     INT DEFAULT 0,
+    pos_x            INT,
+    pos_y            INT,
+    last_seen_year   INT,
+    last_seen_tick   INT,
+    updated_at       TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (world_id, army_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fortress_armies_world ON fortress_armies(world_id);
+
+-- Fortress activity zones (civzones from bridge)
+CREATE TABLE IF NOT EXISTS fortress_zones (
+    world_id             INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    zone_id              INT NOT NULL,
+    zone_type            INT,
+    is_active            BOOLEAN DEFAULT TRUE,
+    assigned_unit_count  INT DEFAULT 0,
+    owner_unit_id        INT,
+    x1 INT, y1 INT, x2 INT, y2 INT, z INT,
+    updated_at           TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (world_id, zone_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fortress_zones_world ON fortress_zones(world_id);
+
+-- Noble mandates (from bridge)
+CREATE TABLE IF NOT EXISTS fortress_mandates (
+    world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    mandate_id       INT NOT NULL,
+    mandate_type     TEXT,
+    item_type        TEXT,
+    item_subtype     TEXT,
+    amount_total     INT DEFAULT 0,
+    amount_remaining INT DEFAULT 0,
+    timeout_at       INT,
+    punish_type      TEXT,
+    issuer_unit_id   INT,
+    details          JSONB DEFAULT '{}',
+    updated_at       TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (world_id, mandate_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fortress_mandates_world ON fortress_mandates(world_id);
+
 CREATE TABLE IF NOT EXISTS interaction_instances (
     world_id         INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
     id               INT NOT NULL,
@@ -1001,3 +1079,160 @@ CREATE TABLE IF NOT EXISTS agreements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_agreements_world ON agreements(world_id);
+
+-- ── Stage 3.5: Fortress State Capture ──────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS fortress_state_snapshots (
+    id                     SERIAL PRIMARY KEY,
+    world_id               INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    tick                   BIGINT NOT NULL,
+    year                   INT NOT NULL,
+    season                 TEXT,
+    population             INT,
+    military_count         INT,
+    food_stocks            INT,
+    drink_stocks           INT,
+    wealth                 BIGINT,
+    happiness_distribution JSONB,
+    threats                JSONB,
+    captured_at            TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(world_id, tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_fss_world_tick
+    ON fortress_state_snapshots(world_id, tick);
+
+CREATE TABLE IF NOT EXISTS threat_tracking (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    tick            BIGINT NOT NULL,
+    hostile_count   INT DEFAULT 0,
+    undead_count    INT DEFAULT 0,
+    invader_count   INT DEFAULT 0,
+    megabeast_count INT DEFAULT 0,
+    threat_details  JSONB,
+    UNIQUE(world_id, tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_threat_world_tick
+    ON threat_tracking(world_id, tick);
+
+CREATE TABLE IF NOT EXISTS character_arcs (
+    id                         SERIAL PRIMARY KEY,
+    world_id                   INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    unit_id                    INT NOT NULL,
+    tick                       BIGINT NOT NULL,
+    year                       INT NOT NULL,
+    stress_level               INT,
+    happiness                  TEXT,
+    skill_snapshot             JSONB,
+    profession                 TEXT,
+    squad_id                   INT,
+    notable_events_since_last  JSONB,
+    UNIQUE(world_id, unit_id, tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_arcs_world_unit
+    ON character_arcs(world_id, unit_id);
+CREATE INDEX IF NOT EXISTS idx_arcs_world_tick
+    ON character_arcs(world_id, tick);
+
+CREATE TABLE IF NOT EXISTS environmental_state (
+    id                  SERIAL PRIMARY KEY,
+    world_id            INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    tick                BIGINT NOT NULL,
+    year                INT NOT NULL,
+    season              TEXT NOT NULL,
+    temperature         INT,
+    weather             TEXT,
+    fortress_depth      INT,
+    features_discovered JSONB,
+    UNIQUE(world_id, tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_env_world_tick
+    ON environmental_state(world_id, tick);
+
+CREATE TABLE IF NOT EXISTS death_narratives (
+    id                 SERIAL PRIMARY KEY,
+    world_id           INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    unit_id            INT NOT NULL,
+    hf_id              INT,
+    tick               BIGINT NOT NULL,
+    year               INT NOT NULL,
+    cause              TEXT NOT NULL,
+    killer_unit_id     INT,
+    killer_race        TEXT,
+    weapon             TEXT,
+    body_part          TEXT,
+    combat_report_ids  JSONB,
+    witness_unit_ids   JSONB,
+    location           TEXT,
+    narrative_text     TEXT,
+    UNIQUE(world_id, unit_id, tick)
+);
+
+CREATE INDEX IF NOT EXISTS idx_death_narr_world
+    ON death_narratives(world_id, year);
+
+CREATE TABLE IF NOT EXISTS session_markers (
+    id                       SERIAL PRIMARY KEY,
+    world_id                 INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    tick                     BIGINT NOT NULL,
+    event_type               TEXT NOT NULL,
+    fortress_state_at_marker JSONB,
+    UNIQUE(world_id, tick, event_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_world_tick
+    ON session_markers(world_id, tick);
+
+-- ── Knowledge Horizon ────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS knowledge_horizon (
+    world_id    INTEGER NOT NULL,
+    entity_type TEXT    NOT NULL,
+    entity_id   INTEGER NOT NULL,
+    visible     BOOLEAN DEFAULT TRUE,
+    reason      TEXT,
+    revealed_at TIMESTAMPTZ DEFAULT NOW(),
+    revealed_by TEXT,
+    PRIMARY KEY (world_id, entity_type, entity_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_kh_visible
+    ON knowledge_horizon (world_id, entity_type) WHERE visible = TRUE;
+CREATE INDEX IF NOT EXISTS idx_kh_entity_lookup
+    ON knowledge_horizon (world_id, entity_id, entity_type);
+
+CREATE OR REPLACE VIEW visible_historical_figures AS
+SELECT hf.* FROM historical_figures hf
+JOIN knowledge_horizon kh ON kh.world_id = hf.world_id
+    AND kh.entity_type = 'hf' AND kh.entity_id = hf.id AND kh.visible = TRUE;
+
+CREATE OR REPLACE VIEW visible_entities AS
+SELECT e.* FROM entities e
+JOIN knowledge_horizon kh ON kh.world_id = e.world_id
+    AND kh.entity_type = 'entity' AND kh.entity_id = e.id AND kh.visible = TRUE;
+
+CREATE OR REPLACE VIEW visible_sites AS
+SELECT s.* FROM sites s
+JOIN knowledge_horizon kh ON kh.world_id = s.world_id
+    AND kh.entity_type = 'site' AND kh.entity_id = s.id AND kh.visible = TRUE;
+
+CREATE OR REPLACE VIEW visible_regions AS
+SELECT r.* FROM regions r
+JOIN knowledge_horizon kh ON kh.world_id = r.world_id
+    AND kh.entity_type = 'region' AND kh.entity_id = r.id AND kh.visible = TRUE;
+
+CREATE OR REPLACE VIEW visible_artifacts AS
+SELECT a.* FROM artifacts a
+JOIN knowledge_horizon kh ON kh.world_id = a.world_id
+    AND kh.entity_type = 'artifact' AND kh.entity_id = a.id AND kh.visible = TRUE;
+
+CREATE OR REPLACE VIEW visible_events AS
+SELECT DISTINCT he.* FROM history_events he
+JOIN event_entity_xref xref ON xref.world_id = he.world_id AND xref.event_id = he.id
+JOIN knowledge_horizon kh ON kh.world_id = xref.world_id
+    AND kh.entity_type = xref.entity_type AND kh.entity_id = xref.entity_id
+    AND kh.visible = TRUE;

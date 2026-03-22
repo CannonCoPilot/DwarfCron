@@ -279,12 +279,52 @@ local function init_eventful()
         })
     end
 
-    -- INVASION
+    -- INVASION — enrich with army controller composition data
     eventful.onInvasion['chronicler'] = function(invasion_id)
-        table.insert(chronicler_state.pending_events.invasions, {
+        local entry = {
             invasion_id = invasion_id,
             tick = dfhack.world.ReadCurrentTick(),
-        })
+        }
+        -- Look up army controller for composition data
+        local ok, _ = pcall(function()
+            local controllers = df.global.world.army_controllers.all
+            for i = 0, #controllers - 1 do
+                local ac = controllers[i]
+                if ac.id == invasion_id then
+                    entry.entity_id = ac.entity_id
+                    entry.target_site_id = ac.site_id
+                    entry.master_hf_id = ac.master_hf
+                    -- Resolve entity name and race
+                    if ac.entity_id >= 0 then
+                        local ent = df.historical_entity.find(ac.entity_id)
+                        if ent then
+                            entry.entity_name = dfhack.TranslateName(ent.name)
+                            entry.entity_race_id = ent.race
+                            if ent.race >= 0 then
+                                local cr = df.creature_raw.find(ent.race)
+                                if cr then
+                                    entry.race = cr.name[0]
+                                end
+                            end
+                        end
+                    end
+                    -- Count total army members across controlled armies
+                    local total_members = 0
+                    local squad_count = 0
+                    for j = 0, #df.global.world.armies.all - 1 do
+                        local army = df.global.world.armies.all[j]
+                        if army.controller_id == ac.id then
+                            total_members = total_members + #army.members
+                            squad_count = squad_count + #army.squads
+                        end
+                    end
+                    entry.total_members = total_members
+                    entry.squad_count = squad_count
+                    break
+                end
+            end
+        end)
+        table.insert(chronicler_state.pending_events.invasions, entry)
     end
 
     -- Enable event checking (0 = every tick for immediate capture)
@@ -537,17 +577,54 @@ local function get_armies()
     local count = #armies
     local list = {}
 
+    -- Build controller lookup for enrichment
+    local controller_cache = {}
+    pcall(function()
+        local controllers = df.global.world.army_controllers.all
+        for i = 0, #controllers - 1 do
+            local ac = controllers[i]
+            local info = {
+                entity_id = ac.entity_id,
+                site_id = ac.site_id,
+                master_hf_id = ac.master_hf,
+            }
+            -- Resolve entity name + race
+            if ac.entity_id >= 0 then
+                local ent = df.historical_entity.find(ac.entity_id)
+                if ent then
+                    info.entity_name = dfhack.TranslateName(ent.name)
+                    info.entity_race_id = ent.race
+                    if ent.race >= 0 then
+                        local cr = df.creature_raw.find(ent.race)
+                        if cr then info.race = cr.name[0] end
+                    end
+                end
+            end
+            controller_cache[ac.id] = info
+        end
+    end)
+
     -- Cap at 50 to keep JSON size reasonable
     local limit = math.min(count, 50)
     for i = 0, limit - 1 do
         local a = armies[i]
-        table.insert(list, {
+        local entry = {
             id = a.id,
             pos_x = a.pos.x,
             pos_y = a.pos.y,
             member_count = #a.members,
+            squad_count = #a.squads,
             controller_id = a.controller_id,
-        })
+        }
+        -- Attach controller enrichment if available
+        local ci = controller_cache[a.controller_id]
+        if ci then
+            entry.entity_id = ci.entity_id
+            entry.entity_name = ci.entity_name
+            entry.race = ci.race
+            entry.target_site_id = ci.site_id
+        end
+        table.insert(list, entry)
     end
 
     return {
@@ -1509,6 +1586,60 @@ local function get_interaction_instances()
 end
 
 
+local function get_noble_positions()
+    -- Read position assignments from the fortress entity.
+    -- DF stores these in entity.positions.assignments (entity_position_assignmentst).
+    -- Each assignment has: id, position_id, histfig (HF ID), squad_id.
+    -- We read from the fortress entity (plotinfo.main.fortress_entity)
+    -- and include the site government entity if different.
+    local pi_ok, pi = pcall(function() return df.global.plotinfo end)
+    if not pi_ok or not pi then
+        return nil
+    end
+
+    local result = {}
+    local function read_entity_positions(ent, label)
+        if not ent or not ent.positions then return end
+        local assignments = {}
+        pcall(function()
+            local asn = ent.positions.assignments
+            for i = 0, #asn - 1 do
+                local a = asn[i]
+                local entry = {}
+                pcall(function() entry.assignment_id = a.id end)
+                pcall(function() entry.position_id = a.position_id end)
+                pcall(function() entry.histfig_id = a.histfig end)
+                pcall(function() entry.squad_id = a.squad_id end)
+                -- Only include assignments with an actual HF
+                if entry.histfig_id and entry.histfig_id >= 0 then
+                    table.insert(assignments, entry)
+                end
+            end
+        end)
+        result[label] = {
+            entity_id = ent.id,
+            count = #assignments,
+            assignments = assignments,
+        }
+    end
+
+    -- Fortress entity (the civilization)
+    pcall(function()
+        read_entity_positions(pi.main.fortress_entity, 'fortress_entity')
+    end)
+
+    -- Site government (may have additional noble positions)
+    pcall(function()
+        local sg = df.global.world.entities.all[pi.group_id]
+        if sg and sg.id ~= pi.main.fortress_entity.id then
+            read_entity_positions(sg, 'site_government')
+        end
+    end)
+
+    return result
+end
+
+
 local function get_fortress_state()
     -- Only meaningful in fortress mode
     local pi_ok, pi = pcall(function() return df.global.plotinfo end)
@@ -1550,6 +1681,34 @@ local function get_fortress_state()
         state.wealth_exported = w.exported
         state.wealth_architecture = w.architecture
         state.wealth_displayed = w.displayed
+    end)
+
+    -- Food & drink stocks (Stage 3.5 — fortress_state_snapshots)
+    pcall(function()
+        local food = pi.tasks.food
+        state.food_stocks = food.total or 0
+        state.drink_stocks = food.drink or 0
+    end)
+
+    -- Fortress entity IDs (for filtering squads to fortress-only)
+    pcall(function()
+        state.group_id = pi.group_id
+        state.civ_id = pi.civ_id
+    end)
+
+    -- Fortress depth: difference between surface z and lowest dug z
+    pcall(function()
+        local map = df.global.world.map
+        state.fortress_depth = map.z_count_current or 0
+    end)
+
+    -- Current temperature at fort (approximation from weather)
+    pcall(function()
+        local weather = df.global.current_weather
+        if weather then
+            -- Weather is a 5x5 grid; average the center
+            state.weather_type = weather[2][2]
+        end
     end)
 
     return state
@@ -1599,9 +1758,130 @@ local function get_daily_events()
 end
 
 
+-- ── Biome/terrain data extraction (one-time, static post-worldgen) ───
+-- Writes comprehensive per-tile terrain data to chronicler-biome-data.json.
+-- Called on demand (not every bridge cycle) since world terrain never changes.
+
+local function extract_biome_data()
+    local wd = df.global.world.world_data
+    if not wd then return nil end
+
+    local width = wd.world_width
+    local height = wd.world_height
+    local rm = wd.region_map
+
+    -- Build region type lookup: region_id -> {type, type_name}
+    local region_types = {}
+    local regions = wd.regions
+    for i = 0, #regions - 1 do
+        local r = regions[i]
+        region_types[r.index] = {
+            type = r.type,
+            type_name = df.world_region_type[r.type] or tostring(r.type),
+        }
+    end
+
+    -- Extract per-tile arrays (flat, row-major: tile[x * height + y])
+    local elevation = {}
+    local rainfall = {}
+    local vegetation = {}
+    local temperature = {}
+    local evilness = {}
+    local drainage = {}
+    local volcanism = {}
+    local savagery = {}
+    local salinity = {}
+    local region_id = {}
+    local landmass_id = {}
+
+    for x = 0, width - 1 do
+        local col = rm[x]
+        for y = 0, height - 1 do
+            local tile = col:_displace(y)
+            local idx = x * height + y + 1  -- Lua 1-indexed
+            elevation[idx] = tile.elevation
+            rainfall[idx] = tile.rainfall
+            vegetation[idx] = tile.vegetation
+            temperature[idx] = tile.temperature
+            evilness[idx] = tile.evilness
+            drainage[idx] = tile.drainage
+            volcanism[idx] = tile.volcanism
+            savagery[idx] = tile.savagery
+            salinity[idx] = tile.salinity
+            region_id[idx] = tile.region_id
+            landmass_id[idx] = tile.landmass_id
+        end
+    end
+
+    return {
+        width = width,
+        height = height,
+        region_types = region_types,
+        elevation = elevation,
+        rainfall = rainfall,
+        vegetation = vegetation,
+        temperature = temperature,
+        evilness = evilness,
+        drainage = drainage,
+        volcanism = volcanism,
+        savagery = savagery,
+        salinity = salinity,
+        region_id = region_id,
+        landmass_id = landmass_id,
+        extracted_at = os.time(),
+    }
+end
+
+local function write_biome_data()
+    local data = extract_biome_data()
+    if not data then
+        dfhack.printerr('[Chronicler] No world data available for biome extraction')
+        return false
+    end
+    local ok, err = pcall(function()
+        json.encode_file(data, 'chronicler-biome-data.json')
+    end)
+    if ok then
+        print('[Chronicler] Biome data extracted: ' .. data.width .. 'x' .. data.height
+              .. ' (' .. (data.width * data.height) .. ' tiles) -> chronicler-biome-data.json')
+    else
+        dfhack.printerr('[Chronicler] Biome write failed: ' .. tostring(err))
+    end
+    return ok
+end
+
 -- ── Main: assemble and write ─────────────────────────────────────────
 
+-- ── v9.1: Auto-dismiss game popups ─────────────────────────────────
+-- DF53+ uses world.status.popups for events like caravan arrivals,
+-- season changes, migrant waves, and diplomat visits. These block the
+-- simulation loop even when pause_state=false. Dismiss them automatically
+-- during bridge cycles so the game keeps running.
+
+local function dismiss_popups()
+    local popups = df.global.world.status.popups
+    local count = #popups
+    if count == 0 then return 0 end
+    -- Log each popup before dismissing
+    for i = 0, count - 1 do
+        local text = popups[i].text or ''
+        if #text > 0 then
+            local safe = dfhack.df2utf(text) or text
+            dfhack.println('[chronicler] Dismissing popup: ' .. safe:sub(1, 80))
+        end
+    end
+    -- Erase all popups (erase from end to avoid index shifting)
+    for i = count - 1, 0, -1 do
+        popups:erase(i)
+    end
+    return count
+end
+
+
 local function write_state()
+    -- v9.1: Auto-dismiss any blocking popups before data capture
+    dismiss_popups()
+
     -- v8: Initialize eventful subscriptions on first run
     init_eventful()
 
@@ -1656,6 +1936,7 @@ local function write_state()
     safe_add('cultural_identities', get_cultural_identities)
     safe_add('occupations', get_occupations)
     safe_add('interaction_instances', get_interaction_instances)
+    safe_add('noble_positions', get_noble_positions)
     safe_add('fortress_state', get_fortress_state)
     safe_add('daily_events', get_daily_events)
 
@@ -1673,3 +1954,11 @@ local function write_state()
 end
 
 write_state()
+
+-- One-time biome extraction (only if not already extracted this session)
+if not chronicler_state.biome_extracted then
+    local biome_ok = write_biome_data()
+    if biome_ok then
+        chronicler_state.biome_extracted = true
+    end
+end

@@ -120,7 +120,7 @@
 
   <!-- Main Tab Bar -->
   <div class="border-b border-stone-800 bg-stone-950 px-6 flex-shrink-0">
-    <div class="flex gap-1">
+    <div class="flex gap-1 items-center">
       <button onclick="switchTab('people')" id="tab-people" class="px-4 py-2.5 text-sm tab-active transition-colors">People</button>
       <button onclick="switchTab('civs')" id="tab-civs" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Civilizations</button>
       <button onclick="switchTab('geo')" id="tab-geo" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Geography</button>
@@ -128,6 +128,10 @@
       <button onclick="switchTab('database')" id="tab-database" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Database</button>
       <button onclick="switchTab('graph')" id="tab-graph" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Graph</button>
       <button onclick="switchTab('stats')" id="tab-stats" class="px-4 py-2.5 text-sm tab-inactive transition-colors">Statistics</button>
+      <div class="ml-auto">
+        <select id="world-selector" class="bg-stone-900 border border-stone-700 text-amber-400 rounded px-2 py-1 text-xs font-bold focus:border-amber-500 focus:outline-none cursor-pointer" onchange="switchWorld(this.value)">
+        </select>
+      </div>
     </div>
   </div>
 
@@ -470,6 +474,7 @@
       <span onclick="switchStatsSub('report')" id="stats-sub-report" class="sub-toggle active">Report</span>
       <span onclick="switchStatsSub('viz')" id="stats-sub-viz" class="sub-toggle">Visualizations</span>
       <span onclick="switchStatsSub('demo')" id="stats-sub-demo" class="sub-toggle">Demographics</span>
+      <span onclick="switchStatsSub('deity')" id="stats-sub-deity" class="sub-toggle">Deities</span>
     </div>
 
     <!-- Report sub-panel -->
@@ -926,6 +931,89 @@
 
       </div>
     </div>
+
+    <!-- Deities sub-panel -->
+    <div id="stats-panel-deity" class="flex-1 overflow-y-auto ex-scroll p-6 hidden">
+      <div class="max-w-6xl mx-auto space-y-6">
+        <div id="deity-loading" class="text-stone-500 text-xs text-center py-8">Loading deity analysis...</div>
+
+        <!-- Controls row -->
+        <div id="deity-controls" class="hidden flex flex-wrap items-center gap-4">
+          <div>
+            <label class="text-stone-500 text-[10px] block mb-0.5">Civilization</label>
+            <select id="deity-civ-filter" class="bg-stone-900 border border-stone-700 text-stone-300 text-xs rounded px-2 py-1.5 w-56 focus:border-amber-500 focus:outline-none"
+                    onchange="renderDeityCharts()">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="flex-1"></div>
+          <div id="deity-summary-cards" class="flex gap-3"></div>
+        </div>
+
+        <!-- Row 1: Categorical chart -->
+        <div id="deity-row1" class="hidden">
+          <div class="section-card">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="section-title flex-1 mb-0">Categorical Breakdown</div>
+              <select id="deity-cat-select" class="bg-stone-900 border border-stone-700 text-stone-300 text-xs rounded px-2 py-1.5 focus:border-amber-500 focus:outline-none"
+                      onchange="renderDeityCharts()">
+                <option value="sphere">Sphere</option>
+                <option value="race">Race</option>
+                <option value="status">Alive / Dead</option>
+                <option value="caste">Caste</option>
+              </select>
+            </div>
+            <div style="height: 500px; position: relative;">
+              <canvas id="deity-chart-categorical"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Histogram -->
+        <div id="deity-row2" class="hidden">
+          <div class="section-card">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="section-title flex-1 mb-0">Quantitative Distribution</div>
+              <select id="deity-quant-select" class="bg-stone-900 border border-stone-700 text-stone-300 text-xs rounded px-2 py-1.5 focus:border-amber-500 focus:outline-none"
+                      onchange="renderDeityCharts()">
+                <option value="age">Age</option>
+                <option value="worshippers">Worshipper Count</option>
+                <option value="spheres">Number of Spheres</option>
+                <option value="religions">Number of Religions</option>
+              </select>
+            </div>
+            <div style="height: 380px; position: relative;">
+              <canvas id="deity-chart-histogram"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 3: Top deities table -->
+        <div id="deity-row3" class="hidden">
+          <div class="section-card">
+            <div class="section-title">Notable Deities</div>
+            <div class="max-h-[500px] overflow-y-auto ex-scroll">
+              <table class="w-full text-xs">
+                <thead class="sticky top-0 bg-stone-900">
+                  <tr class="text-stone-500 text-left border-b border-stone-700">
+                    <th class="py-1.5 px-2 cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('name')">Name</th>
+                    <th class="py-1.5 px-2 cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('race')">Race</th>
+                    <th class="py-1.5 px-2 cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('spheres')">Spheres</th>
+                    <th class="py-1.5 px-2 text-right cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('worshippers')">Worshippers</th>
+                    <th class="py-1.5 px-2 text-right cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('religions')">Religions</th>
+                    <th class="py-1.5 px-2 text-right cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('age')">Age</th>
+                    <th class="py-1.5 px-2 cursor-pointer hover:text-stone-300 select-none" onclick="sortDeityTable('status')">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="deity-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
 <script>
@@ -1072,7 +1160,12 @@ function renderPeopleItem(p) {
   const aliveClass = p.is_alive ? 'badge-alive' : 'badge-dead';
   const aliveLabel = p.is_alive ? 'alive' : 'dead';
   const srcBadge = p.source === 'unit' ? '<span class="badge badge-unit">Unit</span>' : '<span class="badge badge-hf">HF</span>';
-  const displayName = p.english_name ? `${escapeHtml(p.name)} <span class="text-stone-500 text-[10px]">(${escapeHtml(p.english_name)})</span>` : escapeHtml(p.name);
+  // Dual-name rendering: bold primary name + italic native/alt name
+  let nameHtml = `<span class="font-bold">${escapeHtml(p.name)}</span>`;
+  const altName = p.native_name || p.english_name;
+  if (altName && altName.toLowerCase() !== p.name.toLowerCase()) {
+    nameHtml += `<div class="text-stone-500 text-[10px] italic">${escapeHtml(altName)}</div>`;
+  }
   return `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                onclick="selectPerson('${p.source}', ${p.world_id}, ${p.id})">
     <div class="flex items-center gap-1.5">
@@ -1080,7 +1173,7 @@ function renderPeopleItem(p) {
       <span class="badge ${aliveClass}">${aliveLabel}</span>
       ${typeFlagBadges(p.type_flags)}
     </div>
-    <div class="text-stone-200 mt-0.5">${displayName}</div>
+    <div class="text-stone-200 mt-0.5">${nameHtml}</div>
     <div class="text-stone-500 text-[10px]">${escapeHtml(p.race_display || p.race || '')}${p.profession ? ' / ' + escapeHtml(p.profession) : ''}</div>
   </div>`;
 }
@@ -1098,6 +1191,7 @@ function filterPeopleList() {
     filtered = filtered.filter(p =>
       (p.name || '').toLowerCase().includes(q) ||
       (p.english_name || '').toLowerCase().includes(q) ||
+      (p.native_name || '').toLowerCase().includes(q) ||
       (p.race || '').toLowerCase().includes(q)
     );
   }
@@ -1594,9 +1688,10 @@ function renderCivsList(data, filterQ, sortKey) {
     for (const e of items) {
       const isActive = selectedCiv === e.id ? ' active' : '';
       const raceLabel = (e.race || '').replace(/_/g, ' ');
+      const civAlt = e.alt_name && e.alt_name.toLowerCase() !== e.name.toLowerCase() ? `<div class="text-stone-500 text-[10px] italic">${escapeHtml(e.alt_name)}</div>` : '';
       html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                    onclick="loadCivDetail(${e.world_id}, ${e.id})">
-        <div class="text-stone-200">${escapeHtml(e.name)}</div>
+        <div class="text-stone-200 font-bold">${escapeHtml(e.name)}</div>${civAlt}
         <div class="text-stone-500 text-[10px]">${escapeHtml(titleCase(raceLabel))} | ${e.type === 'civilization' ? (e.entity_population || 0).toLocaleString() + ' pop' : e.type === 'sitegovernment' ? e.member_count.toLocaleString() + ' citizens' : e.member_count.toLocaleString() + ' members'} | ${e.site_count} sites</div>
       </div>`;
     }
@@ -1713,7 +1808,8 @@ function _structIcon(type) {
 
 function renderCivDetail(civ, panel) {
   const catColors = {noble: 'bg-amber-900/50 text-amber-400', military: 'bg-red-900/50 text-red-400',
-                     admin: 'bg-blue-900/50 text-blue-400', other: 'bg-stone-800 text-stone-400'};
+                     admin: 'bg-blue-900/50 text-blue-400', justice: 'bg-purple-900/50 text-purple-400',
+                     medical: 'bg-emerald-900/50 text-emerald-400', other: 'bg-stone-800 text-stone-400'};
 
   let html = `<div class="flex items-start justify-between mb-4">
     <div>
@@ -2079,9 +2175,10 @@ function renderSitesList(sites, filterQ, sortKey) {
       <div class="text-stone-500 text-xs uppercase tracking-wider px-3 py-1">${titleCase(g)} (${items.length})</div>`;
     for (const s of items) {
       const isActive = selectedSite === s.id ? ' active' : '';
+      const siteAlt = s.alt_name && s.alt_name.toLowerCase() !== s.name.toLowerCase() ? `<div class="text-stone-500 text-[10px] italic">${escapeHtml(s.alt_name)}</div>` : '';
       html += `<div class="list-item px-3 py-2 text-xs rounded${isActive}"
                    onclick="loadSiteDetail(${s.world_id}, ${s.id})">
-        <div class="text-stone-200">${escapeHtml(s.name)}</div>
+        <div class="text-stone-200 font-bold">${escapeHtml(s.name)}</div>${siteAlt}
         <div class="text-stone-500 text-[10px]">${s.owner_name ? escapeHtml(s.owner_name) : 'Unowned'} | ${s.structure_count} structures | ${s.linked_hf_count} HFs</div>
       </div>`;
     }
@@ -3211,7 +3308,26 @@ document.addEventListener('click', function(e) {
     const resp = await fetch('/api/worlds');
     const worlds = await resp.json();
     if (worlds.length > 0) {
-      WORLD_ID = worlds[0].id;
+      const urlParams = new URLSearchParams(window.location.search);
+      const requested = parseInt(urlParams.get('world_id'));
+      if (requested && worlds.some(w => w.id === requested)) {
+        WORLD_ID = requested;
+      } else {
+        WORLD_ID = worlds[0].id;
+      }
+
+      // Populate world selector dropdown
+      const sel = document.getElementById('world-selector');
+      for (const w of worlds) {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.alt_name ? `${w.name} — ${w.alt_name}` : w.name;
+        if (w.id === WORLD_ID) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      // Update page title
+      const active = worlds.find(w => w.id === WORLD_ID);
+      if (active) document.title = `Chronicler — ${active.name}`;
     }
   } catch (e) {
     console.error('Failed to fetch worlds:', e);
@@ -3224,6 +3340,12 @@ document.addEventListener('click', function(e) {
     browsePeople();
   }
 })();
+
+function switchWorld(newId) {
+  const url = new URL(window.location);
+  url.searchParams.set('world_id', newId);
+  window.location.href = url.toString();
+}
 
 let activeRaceCategories = new Set();
 let activeVariantFlags = new Set();   // biological variant bar toggles
@@ -3407,12 +3529,13 @@ const SITE_LINK_ANNOTATIONS = {
 };
 
 function switchStatsSub(sub) {
-  for (const s of ['report', 'viz', 'demo']) {
+  for (const s of ['report', 'viz', 'demo', 'deity']) {
     document.getElementById('stats-panel-' + s).classList.toggle('hidden', s !== sub);
     document.getElementById('stats-sub-' + s).classList.toggle('active', s === sub);
   }
   // Lazy-load demographics on first visit
   if (sub === 'demo' && !_demoLoaded) { loadDemographics(); _demoLoaded = true; }
+  if (sub === 'deity' && !_deityLoaded) { loadDeityAnalysis(); _deityLoaded = true; }
 }
 
 let _statsData = null;
@@ -3684,6 +3807,7 @@ function renderStatsCharts(d) {
 // DEMOGRAPHICS SUB-TAB
 // ═══════════════════════════════════════════════════════════════════════
 let _demoLoaded = false;
+let _deityLoaded = false;
 let _demoCharts = {};
 let _demoEntityList = null;
 
@@ -4518,13 +4642,358 @@ function renderTimeSeries(data) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// DEITY ANALYSIS
+// ═══════════════════════════════════════════════════════════════════════
+let _deityData = null;
+let _deityChartCat = null;
+let _deityChartHist = null;
+let _deitySortCol = 'worshippers';
+let _deitySortDir = -1;
+
+async function loadDeityAnalysis() {
+  if (!WORLD_ID) { setTimeout(loadDeityAnalysis, 200); return; }
+  try {
+    const resp = await fetch(`/api/statistics/deity-analysis?world_id=${WORLD_ID}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    _deityData = await resp.json();
+
+    document.getElementById('deity-loading').classList.add('hidden');
+    document.getElementById('deity-controls').classList.remove('hidden');
+    document.getElementById('deity-row1').classList.remove('hidden');
+    document.getElementById('deity-row2').classList.remove('hidden');
+    document.getElementById('deity-row3').classList.remove('hidden');
+
+    // Populate civ dropdown
+    const civSel = document.getElementById('deity-civ-filter');
+    for (const c of _deityData.civilizations) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.name;
+      civSel.appendChild(opt);
+    }
+
+    renderDeityCharts();
+  } catch (e) {
+    document.getElementById('deity-loading').innerHTML =
+      `<div class="text-red-400 text-xs">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function _filteredDeities() {
+  const civId = document.getElementById('deity-civ-filter').value;
+  if (!civId) return _deityData.deities;
+  const cid = parseInt(civId);
+  return _deityData.deities.filter(d => d.civ_ids.includes(cid));
+}
+
+function renderDeityCharts() {
+  if (!_deityData) return;
+  const deities = _filteredDeities();
+  const palette = [chartColors.amber, chartColors.blue, chartColors.green, chartColors.red,
+                   chartColors.purple, chartColors.orange, chartColors.teal, chartColors.pink,
+                   chartColors.stone, '#e879f9', '#38bdf8', '#fb923c', '#4ade80', '#f87171',
+                   '#a78bfa', '#fbbf24', '#34d399', '#f472b6', '#60a5fa', '#facc15'];
+
+  // ── Summary cards ──
+  const total = deities.length;
+  const alive = deities.filter(d => d.alive).length;
+  const totalWorshippers = deities.reduce((s, d) => s + d.worshippers, 0);
+  const avgSpheres = total > 0 ? (deities.reduce((s, d) => s + d.spheres.length, 0) / total).toFixed(1) : 0;
+  document.getElementById('deity-summary-cards').innerHTML = `
+    <div class="text-center"><div class="text-amber-400 text-lg font-bold stat-badge">${total}</div><div class="text-stone-500 text-[10px]">Deities</div></div>
+    <div class="text-center"><div class="text-green-400 text-lg font-bold stat-badge">${alive}</div><div class="text-stone-500 text-[10px]">Living</div></div>
+    <div class="text-center"><div class="text-blue-400 text-lg font-bold stat-badge">${formatNum(totalWorshippers)}</div><div class="text-stone-500 text-[10px]">Worshippers</div></div>
+    <div class="text-center"><div class="text-purple-400 text-lg font-bold stat-badge">${avgSpheres}</div><div class="text-stone-500 text-[10px]">Avg Spheres</div></div>
+  `;
+
+  // ── Categorical chart ──
+  const catType = document.getElementById('deity-cat-select').value;
+  let catData = {};
+  if (catType === 'sphere') {
+    for (const d of deities) for (const s of d.spheres) catData[s] = (catData[s] || 0) + 1;
+  } else if (catType === 'race') {
+    for (const d of deities) catData[d.race_group] = (catData[d.race_group] || 0) + 1;
+  } else if (catType === 'status') {
+    for (const d of deities) {
+      const k = d.alive ? 'Living' : 'Dead';
+      catData[k] = (catData[k] || 0) + 1;
+    }
+  } else if (catType === 'caste') {
+    for (const d of deities) {
+      const k = (d.caste || 'unknown').toLowerCase().replace(/_/g, ' ');
+      catData[k] = (catData[k] || 0) + 1;
+    }
+  }
+  // Sort by count descending
+  const catEntries = Object.entries(catData).sort((a, b) => b[1] - a[1]);
+  const catLabels = catEntries.map(e => e[0]);
+  const catValues = catEntries.map(e => e[1]);
+
+  if (_deityChartCat) _deityChartCat.destroy();
+  const catCtx = document.getElementById('deity-chart-categorical');
+
+  // Pack bubbles using a simple spiral layout
+  const maxVal = Math.max(...catValues, 1);
+  const minR = 6, maxR = 55;
+  const bubbleData = _packBubbles(catEntries.map(([label, count], i) => ({
+    label, count,
+    r: minR + (maxR - minR) * Math.sqrt(count / maxVal),
+    color: palette[i % palette.length],
+  })));
+
+  _deityChartCat = new Chart(catCtx, {
+    type: 'bubble',
+    data: {
+      datasets: bubbleData.map(b => ({
+        label: b.label,
+        data: [{ x: b.x, y: b.y, r: b.r, _count: b.count, _label: b.label }],
+        backgroundColor: b.color + '70',
+        borderColor: b.color,
+        borderWidth: 1.5,
+        hoverBackgroundColor: b.color + 'aa',
+        hoverBorderWidth: 2,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const pt = ctx.raw;
+              return `${pt._label}: ${pt._count}`;
+            }
+          },
+          backgroundColor: '#1c1917ee',
+          titleFont: { size: 0 },
+          bodyFont: { size: 12, weight: 'bold' },
+          padding: 8,
+          cornerRadius: 6,
+        },
+      },
+      scales: {
+        x: { display: false },
+        y: { display: false },
+      },
+      // Draw labels on bubbles
+      animation: {
+        onComplete: function() {
+          const chart = this;
+          const ctx2d = chart.ctx;
+          ctx2d.save();
+          ctx2d.textAlign = 'center';
+          ctx2d.textBaseline = 'middle';
+          chart.data.datasets.forEach((ds, i) => {
+            const meta = chart.getDatasetMeta(i);
+            if (!meta.data[0]) return;
+            const el = meta.data[0];
+            const pt = ds.data[0];
+            const r = el.options.radius || pt.r;
+            if (r < 14) return; // too small for label
+            const maxChars = Math.max(3, Math.floor(r / 3.5));
+            let txt = pt._label;
+            if (txt.length > maxChars) txt = txt.substring(0, maxChars - 1) + '…';
+            ctx2d.font = `${Math.max(8, Math.min(13, r * 0.35))}px "JetBrains Mono", monospace`;
+            ctx2d.fillStyle = '#e7e5e4';
+            ctx2d.fillText(txt, el.x, el.y - r * 0.12);
+            // Count below label
+            ctx2d.font = `bold ${Math.max(8, Math.min(12, r * 0.3))}px "JetBrains Mono", monospace`;
+            ctx2d.fillStyle = '#a8a29e';
+            ctx2d.fillText(String(pt._count), el.x, el.y + r * 0.22);
+          });
+          ctx2d.restore();
+        }
+      }
+    }
+  });
+
+  // ── Histogram ──
+  const quantType = document.getElementById('deity-quant-select').value;
+  let values = [];
+  let xLabel = '';
+  if (quantType === 'age') {
+    values = deities.filter(d => d.age != null && d.age >= 0).map(d => d.age);
+    xLabel = 'Age (years)';
+  } else if (quantType === 'worshippers') {
+    values = deities.map(d => d.worshippers);
+    xLabel = 'Worshipper Count';
+  } else if (quantType === 'spheres') {
+    values = deities.map(d => d.spheres.length);
+    xLabel = 'Number of Spheres';
+  } else if (quantType === 'religions') {
+    values = deities.map(d => d.religions);
+    xLabel = 'Number of Religions';
+  }
+
+  // Build histogram bins
+  const histBins = _buildHistogram(values);
+
+  if (_deityChartHist) _deityChartHist.destroy();
+  _deityChartHist = new Chart(document.getElementById('deity-chart-histogram'), {
+    type: 'bar',
+    data: {
+      labels: histBins.labels,
+      datasets: [{
+        label: 'Deities',
+        data: histBins.counts,
+        backgroundColor: chartColors.amber + '60',
+        borderColor: chartColors.amber,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#1c1917' }, title: { display: true, text: xLabel } },
+        y: { grid: { color: '#1c1917' }, title: { display: true, text: 'Count' }, beginAtZero: true },
+      }
+    }
+  });
+
+  // ── Table ──
+  renderDeityTable(deities);
+}
+
+function _packBubbles(items) {
+  // Circle-packing via front-chain algorithm (simplified)
+  // Places circles from largest to smallest, finding the closest open position
+  if (items.length === 0) return [];
+  // Sort descending by radius for better packing
+  const sorted = [...items].sort((a, b) => b.r - a.r);
+  const placed = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    const item = sorted[i];
+    if (i === 0) {
+      placed.push({ ...item, x: 0, y: 0 });
+      continue;
+    }
+    // Try positions around existing circles in a spiral scan
+    let bestX = 0, bestY = 0, bestDist = Infinity;
+    for (const p of placed) {
+      // Try multiple angles around each placed circle
+      const gap = item.r + p.r + 2;
+      for (let a = 0; a < 12; a++) {
+        const angle = (a / 12) * Math.PI * 2 + i * 0.5;
+        const tx = p.x + Math.cos(angle) * gap;
+        const ty = p.y + Math.sin(angle) * gap;
+        // Check no overlap
+        let overlaps = false;
+        for (const q of placed) {
+          const dx = tx - q.x, dy = ty - q.y;
+          if (Math.sqrt(dx * dx + dy * dy) < item.r + q.r + 1.5) {
+            overlaps = true; break;
+          }
+        }
+        if (!overlaps) {
+          const dist = tx * tx + ty * ty;
+          if (dist < bestDist) { bestDist = dist; bestX = tx; bestY = ty; }
+        }
+      }
+    }
+    // Fallback: spiral outward if nothing found
+    if (bestDist === Infinity) {
+      const angle = i * 2.4; // golden angle
+      const rad = (item.r + 10) * Math.sqrt(i);
+      bestX = Math.cos(angle) * rad;
+      bestY = Math.sin(angle) * rad;
+    }
+    placed.push({ ...item, x: bestX, y: bestY });
+  }
+  return placed;
+}
+
+function _buildHistogram(values) {
+  if (values.length === 0) return { labels: [], counts: [] };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (min === max) return { labels: [String(min)], counts: [values.length] };
+
+  // For small discrete ranges (like sphere count 0-5), use each value as a bin
+  const range = max - min;
+  let binCount, binWidth;
+  if (range <= 15) {
+    binCount = range + 1;
+    binWidth = 1;
+  } else {
+    binCount = Math.min(25, Math.max(8, Math.ceil(Math.sqrt(values.length))));
+    binWidth = range / binCount;
+  }
+
+  const counts = new Array(binCount).fill(0);
+  const labels = [];
+  for (let i = 0; i < binCount; i++) {
+    const lo = min + i * binWidth;
+    const hi = lo + binWidth;
+    if (binWidth === 1) {
+      labels.push(String(Math.round(lo)));
+    } else {
+      labels.push(`${Math.round(lo)}–${Math.round(hi)}`);
+    }
+  }
+
+  for (const v of values) {
+    let idx = Math.floor((v - min) / binWidth);
+    if (idx >= binCount) idx = binCount - 1;
+    counts[idx]++;
+  }
+  return { labels, counts };
+}
+
+function renderDeityTable(deities) {
+  // Sort
+  const sorted = [...deities].sort((a, b) => {
+    let av, bv;
+    const col = _deitySortCol;
+    if (col === 'name') { av = a.name || ''; bv = b.name || ''; }
+    else if (col === 'race') { av = a.race_group || ''; bv = b.race_group || ''; }
+    else if (col === 'spheres') { av = a.spheres.join(', '); bv = b.spheres.join(', '); }
+    else if (col === 'worshippers') { av = a.worshippers; bv = b.worshippers; }
+    else if (col === 'religions') { av = a.religions; bv = b.religions; }
+    else if (col === 'age') { av = a.age ?? -1; bv = b.age ?? -1; }
+    else if (col === 'status') { av = a.alive ? 1 : 0; bv = b.alive ? 1 : 0; }
+    else return 0;
+    if (typeof av === 'string') return _deitySortDir * av.localeCompare(bv);
+    return _deitySortDir * ((av || 0) - (bv || 0));
+  });
+
+  // Show top 100
+  const tbody = document.getElementById('deity-table-body');
+  tbody.innerHTML = sorted.slice(0, 100).map(d => {
+    const sphereTags = d.spheres.map(s =>
+      `<span class="inline-block text-[10px] px-1 py-0 rounded bg-stone-800 text-stone-400 border border-stone-700/50 mr-0.5 mb-0.5">${escapeHtml(s)}</span>`
+    ).join('');
+    const statusBadge = d.alive
+      ? '<span class="badge badge-alive">alive</span>'
+      : '<span class="badge badge-dead">dead</span>';
+    return `<tr class="border-b border-stone-800 hover:bg-stone-900/50">
+      <td class="py-1.5 px-2"><a href="/explorer/hf/${d.id}?world_id=${WORLD_ID}" class="entity-link entity-hf" data-entity-type="hf" data-entity-id="${d.id}" data-world-id="${WORLD_ID}">${escapeHtml(d.name)}</a></td>
+      <td class="py-1.5 px-2 text-stone-400">${escapeHtml(d.race_group)}</td>
+      <td class="py-1.5 px-2">${sphereTags || '<span class="text-stone-600">—</span>'}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${d.worshippers > 0 ? formatNum(d.worshippers) : '<span class="text-stone-600">0</span>'}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${d.religions || '<span class="text-stone-600">0</span>'}</td>
+      <td class="py-1.5 px-2 text-right stat-badge">${d.age != null ? formatNum(d.age) : '<span class="text-stone-600">—</span>'}</td>
+      <td class="py-1.5 px-2">${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+window.sortDeityTable = function(col) {
+  if (_deitySortCol === col) _deitySortDir *= -1;
+  else { _deitySortCol = col; _deitySortDir = col === 'name' || col === 'race' ? 1 : -1; }
+  renderDeityTable(_filteredDeities());
+};
+
 // Honor ?tab= query param on page load (used by "View Graph" links)
 {
   const urlTab = new URLSearchParams(window.location.search).get('tab');
   if (urlTab && ALL_TABS.includes(urlTab)) switchTab(urlTab);
-  // Also handle ?tab=stats&sub=demo
+  // Also handle ?tab=stats&sub=demo or ?tab=stats&sub=deity
   const urlSub = new URLSearchParams(window.location.search).get('sub');
-  if (urlSub && ['report', 'viz', 'demo'].includes(urlSub)) switchStatsSub(urlSub);
+  if (urlSub && ['report', 'viz', 'demo', 'deity'].includes(urlSub)) switchStatsSub(urlSub);
 }
 </script>
 

@@ -33,12 +33,16 @@
   {% if religion_entity %}
     <span>Sect: {{ linker.link('entity', religion_entity.id, religion_entity.name, world_id)|safe }}</span>
   {% endif %}
+  {% if attendants %}
+    <span>Attendants: {{ attendants|length }}{% if total_listed != attendants|length %} of {{ total_listed }} listed{% endif %}</span>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block tabs %}
 <div class="border-b border-stone-800 px-6 flex gap-0 overflow-x-auto">
   <button class="detail-tab active" id="dtab-overview" onclick="switchDetailTab('overview')">Overview</button>
+  {% if attendants %}<button class="detail-tab" id="dtab-attendants" onclick="switchDetailTab('attendants')">Attendants ({{ attendants|length }})</button>{% endif %}
   {% if positions %}<button class="detail-tab" id="dtab-positions" onclick="switchDetailTab('positions')">Positions ({{ positions|length }})</button>{% endif %}
   {% if members %}<button class="detail-tab" id="dtab-members" onclick="switchDetailTab('members')">Members ({{ members|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-events" onclick="switchDetailTab('events')">Events ({{ event_count }})</button>
@@ -55,15 +59,17 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
         <div><span class="text-stone-500">Name:</span> {{ structure.name|default('Unnamed', true) }}</div>
         {% set details = structure.details or {} %}
-        {% if details.get('name2') %}
-          <div><span class="text-stone-500">Alt Name:</span> {{ details.name2 }}</div>
+        {% if details is mapping and details.get('name2') %}
+          <div><span class="text-stone-500">Alt Name:</span> <span class="italic text-stone-400">{{ details.name2 }}</span></div>
         {% endif %}
         <div><span class="text-stone-500">Type:</span> {{ structure.type|default('?', true)|replace('_', ' ')|title }}</div>
         {% if parent_site %}
           <div><span class="text-stone-500">Site:</span> {{ linker.link('site', parent_site.id, parent_site.name, world_id)|safe }}</div>
         {% endif %}
         {% if owner_entity %}
-          <div><span class="text-stone-500">Owner:</span> {{ linker.link('entity', owner_entity.id, owner_entity.name, world_id)|safe }}</div>
+          <div><span class="text-stone-500">Owner:</span> {{ linker.link('entity', owner_entity.id, owner_entity.name, world_id)|safe }}
+            {% if owner_entity.type %}<span class="text-stone-600 text-xs">({{ owner_entity.type|title }})</span>{% endif %}
+          </div>
         {% endif %}
         {% if deity %}
           <div><span class="text-stone-500">Deity:</span> {{ linker.link('hf', deity.id, deity.name, world_id)|safe }}</div>
@@ -74,9 +80,108 @@
       </div>
     </div>
 
+    {# Summary cards for key stats #}
+    {% if attendants or positions or event_count %}
+    <div class="section-card lg:col-span-2">
+      <div class="flex flex-wrap gap-4 text-sm">
+        {% if attendants %}
+        <div class="bg-stone-800/60 rounded px-4 py-2 text-center min-w-[100px]">
+          <div class="text-xl font-semibold text-stone-200">{{ attendants|length }}</div>
+          <div class="text-stone-500 text-xs">Attendants{% if total_listed != attendants|length %} <span class="text-stone-600">({{ total_listed }} listed)</span>{% endif %}</div>
+        </div>
+        {% endif %}
+        {% if positions %}
+        <div class="bg-stone-800/60 rounded px-4 py-2 text-center min-w-[100px]">
+          <div class="text-xl font-semibold text-stone-200">{{ positions|length }}</div>
+          <div class="text-stone-500 text-xs">Positions</div>
+        </div>
+        {% endif %}
+        {% if members %}
+        <div class="bg-stone-800/60 rounded px-4 py-2 text-center min-w-[100px]">
+          <div class="text-xl font-semibold text-stone-200">{{ members|length }}{% if members|length >= 100 %}+{% endif %}</div>
+          <div class="text-stone-500 text-xs">Members</div>
+        </div>
+        {% endif %}
+        <div class="bg-stone-800/60 rounded px-4 py-2 text-center min-w-[100px]">
+          <div class="text-xl font-semibold text-stone-200">{{ event_count }}</div>
+          <div class="text-stone-500 text-xs">Events</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 
+{# Attendants Tab #}
+{% if attendants %}
+<div id="dtab-content-attendants" class="tab-content">
+  <div class="section-card">
+    <div class="section-title">Attendants ({{ attendants|length }} living at site{% if total_listed != attendants|length %}, {{ total_listed }} listed in legends{% endif %})</div>
+    {# Race breakdown #}
+    {% set race_counts = {} %}
+    {% for a in attendants %}
+      {% set race = a.race|default('Unknown', true)|clean_race %}
+      {% if race_counts.update({race: race_counts.get(race, 0) + 1}) %}{% endif %}
+    {% endfor %}
+    {% if race_counts|length > 1 %}
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      {% for race, count in race_counts|dictsort(by='value', reverse=true) %}
+      <span class="text-xs px-2 py-0.5 rounded bg-stone-800 text-stone-400 border border-stone-700/50">{{ race }} ({{ count }})</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="max-h-[600px] overflow-y-auto ex-scroll">
+      <table class="w-full text-sm" id="attendants-table">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800 text-xs" id="attendants-thead">
+            <th class="text-left pb-1 cursor-pointer hover:text-stone-300 select-none" data-col="name" onclick="sortAttendants('name')">Name ↑</th>
+            <th class="text-left pb-1 cursor-pointer hover:text-stone-300 select-none" data-col="race" onclick="sortAttendants('race')">Race</th>
+            <th class="text-left pb-1 cursor-pointer hover:text-stone-300 select-none" data-col="position" onclick="sortAttendants('position')">Position</th>
+            <th class="text-left pb-1 cursor-pointer hover:text-stone-300 select-none" data-col="work" onclick="sortAttendants('work')">Work</th>
+          </tr>
+        </thead>
+        <tbody id="attendants-tbody">
+          {% for a in attendants %}
+          <tr class="border-b border-stone-800/50"
+              data-sort-name="{{ a.name|default('', true)|lower }}"
+              data-sort-race="{{ a.race|default('', true)|clean_race|lower }}"
+              data-sort-position="{{ a.position_name|default('', true)|lower }}"
+              data-sort-work="{{ a.last_event_sort|default(0) }}">
+            <td class="py-1">{{ linker.link('hf', a.id, a.name, world_id)|safe }}</td>
+            <td class="py-1 text-stone-400">{{ a.race|default('?', true)|clean_race }}</td>
+            <td class="py-1 text-stone-400 text-xs">
+              {% if a.position_name %}
+                {% if a.position_tier == 'position' %}
+                  <span class="text-amber-400">{{ a.position_name|title }}</span>
+                {% elif a.position_tier == 'job' %}
+                  <span class="text-sky-400">{{ a.position_name|title }}</span>
+                {% elif a.position_tier == 'sg' %}
+                  <span class="text-emerald-400">{{ a.position_name|title }}</span>
+                {% else %}
+                  <span class="text-stone-400">{{ a.position_name|title }}</span>
+                {% endif %}
+                {% if a.position_entity %}<span class="text-stone-600"> @ {{ a.position_entity }}</span>{% endif %}
+              {% endif %}
+            </td>
+            <td class="py-1 text-xs">
+              {% if a.last_event_type %}
+                <span class="text-stone-500">{{ a.last_event_date }}</span>
+                <span class="text-stone-400">{{ a.last_event_text|default(a.last_event_type|replace('_', ' '), true) }}</span>
+              {% else %}
+                <span class="text-stone-600">&mdash;</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# Positions Tab #}
 {% if positions %}
 <div id="dtab-content-positions" class="tab-content">
   <div class="section-card">
@@ -98,7 +203,7 @@
                 {% for h in pos.holders %}
                   <div class="{% if not loop.first %}mt-1{% endif %}">
                     {{ linker.link('hf', h.hf_id, h.hf_name, world_id)|safe }}
-                    <span class="text-stone-500 text-xs">({{ h.start_year }}–{{ h.end_year if h.end_year > 0 else 'present' }})</span>
+                    <span class="text-stone-500 text-xs">({{ h.start_year if h.start_year else '?' }}–{{ h.end_year if h.end_year else 'present' }})</span>
                   </div>
                 {% endfor %}
               {% else %}
@@ -114,6 +219,7 @@
 </div>
 {% endif %}
 
+{# Members Tab #}
 {% if members %}
 <div id="dtab-content-members" class="tab-content">
   <div class="section-card">
@@ -148,6 +254,7 @@
 </div>
 {% endif %}
 
+{# Events Tab #}
 <div id="dtab-content-events" class="tab-content">
   <div class="section-card">
     <div class="section-title">Event History ({{ event_count }} total, showing {{ events|length }})</div>
@@ -187,4 +294,39 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  let attSortCol = 'name';
+  let attSortDir = 1;
+
+  window.sortAttendants = function(col) {
+    if (attSortCol === col) attSortDir *= -1;
+    else { attSortCol = col; attSortDir = 1; }
+
+    // Update header arrows
+    document.querySelectorAll('#attendants-thead th').forEach(th => {
+      const base = th.textContent.replace(/ [↑↓]/g, '');
+      th.textContent = base + (th.dataset.col === col ? (attSortDir === 1 ? ' ↑' : ' ↓') : '');
+    });
+
+    const tbody = document.getElementById('attendants-tbody');
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const isNumeric = col === 'work';
+
+    rows.sort((a, b) => {
+      const aVal = a.dataset['sort' + col.charAt(0).toUpperCase() + col.slice(1)] || '';
+      const bVal = b.dataset['sort' + col.charAt(0).toUpperCase() + col.slice(1)] || '';
+      if (isNumeric) {
+        return attSortDir * ((parseFloat(aVal) || 0) - (parseFloat(bVal) || 0));
+      }
+      return attSortDir * aVal.localeCompare(bVal);
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  };
+})();
+</script>
 {% endblock %}

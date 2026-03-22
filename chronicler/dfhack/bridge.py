@@ -44,6 +44,15 @@ log = logging.getLogger(__name__)
 _BRIDGE_TIMEOUT = 5.0  # seconds
 
 
+def fetch_biome_data(host: str, port: int = 8888) -> dict | None:
+    """Fetch one-time biome/terrain extraction from the bridge.
+
+    Returns dict with width, height, per-tile arrays (elevation, rainfall, etc.),
+    region_types lookup, or None on error.
+    """
+    return fetch_bridge_data(host, port, path='chronicler-biome-data.json')
+
+
 def fetch_bridge_data(host: str, port: int = 8888,
                       path: str = 'chronicler-state.json') -> dict | None:
     """Fetch bridge data from the PowerShell HTTP server on the DF machine.

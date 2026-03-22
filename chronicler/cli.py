@@ -294,6 +294,132 @@ def watch(world_id, interval, bridge_host, reports, enriched, probe_interval):
     _run(_run_watch())
 
 
+@cli.group("worldgen")
+def worldgen_group():
+    """Monitor, backfill, and explore world generation data."""
+
+
+@worldgen_group.command("watch")
+@click.option("--world-id", default=1, type=int, help="World ID to associate snapshots with")
+@click.option("--bridge-host", default='', type=str,
+              help="Bridge HTTP host (default: DFHACK_HOST)")
+def worldgen_watch(world_id, bridge_host):
+    """Monitor world generation progress in real time."""
+    import signal as sig
+
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.dfhack.worldgen import WorldgenIngester
+
+    async def _watch():
+        sig.signal(sig.SIGINT, lambda s, f: ingester.stop())
+        sig.signal(sig.SIGTERM, lambda s, f: ingester.stop())
+
+        pool = await get_pool()
+        click.echo(f"Worldgen monitor started (world_id={world_id})")
+        click.echo("Polling for worldgen-status.json every 2s.")
+        click.echo("Press Ctrl+C to stop.\n")
+
+        try:
+            await ingester.run(pool, world_id=world_id,
+                               bridge_host=bridge_host)
+        finally:
+            await close_pool()
+            click.echo("\nWorldgen monitor stopped.")
+
+    ingester = WorldgenIngester()
+    _run(_watch())
+
+
+@worldgen_group.command("backfill")
+@click.option("--world-id", required=True, type=int,
+              help="World ID to backfill temporal data for")
+def worldgen_backfill(world_id):
+    """Backfill temporal data from Legends events for a world.
+
+    Runs two post-parse steps:
+      1. Backfill sites.founded_year from 'created site' events
+      2. Materialize year-by-year world timeline into worldgen_snapshots
+
+    Safe to run multiple times (idempotent).
+    """
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.ingest.post_parse import PostParseProcessor
+
+    async def _backfill():
+        pool = await get_pool()
+        try:
+            async with pool.acquire() as conn:
+                pp = PostParseProcessor(conn, world_id=world_id)
+                click.echo(f"Backfilling temporal data for world {world_id}...")
+
+                r1 = await pp.step_9b_backfill_site_temporal_data()
+                click.echo(f"  Sites: {r1['founded_backfilled']} founded_year, "
+                           f"{r1['destroyed_backfilled']} destroyed_year")
+
+                r2 = await pp.step_12_materialize_world_timeline()
+                click.echo(f"  Timeline: {r2['years']} year snapshots")
+                click.echo("Done.")
+        finally:
+            await close_pool()
+
+    _run(_backfill())
+
+
+@worldgen_group.command("history")
+@click.option("--world-id", required=True, type=int,
+              help="World ID to show timeline for")
+def worldgen_history(world_id):
+    """Print timeline summary for a world."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _history():
+        pool = await get_pool()
+        try:
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT year, hf_count, site_count, event_count, data
+                    FROM worldgen_snapshots
+                    WHERE world_id = $1
+                    ORDER BY year
+                    """,
+                    world_id,
+                )
+                if not rows:
+                    click.echo(f"No timeline data for world {world_id}. "
+                               f"Run 'chronicler worldgen backfill --world-id {world_id}' first.")
+                    return
+
+                click.echo(f"── World {world_id} Timeline ({len(rows)} years) ──")
+                click.echo(f"  {'Year':>5}  {'Living HFs':>10}  {'Sites':>6}  "
+                           f"{'Cum Events':>10}  {'Births':>7}  {'Deaths':>7}")
+                click.echo(f"  {'─'*5}  {'─'*10}  {'─'*6}  {'─'*10}  {'─'*7}  {'─'*7}")
+
+                # Show every 25th year + first and last
+                for r in rows:
+                    y = r["year"]
+                    if y == 1 or y == len(rows) or y % 25 == 0:
+                        data = r["data"] if isinstance(r["data"], dict) else {}
+                        click.echo(
+                            f"  {y:>5}  {r['hf_count']:>10}  {r['site_count']:>6}  "
+                            f"{r['event_count']:>10}  {data.get('births', ''):>7}  "
+                            f"{data.get('deaths', ''):>7}"
+                        )
+
+                # Summary
+                last = rows[-1]
+                data = last["data"] if isinstance(last["data"], dict) else {}
+                click.echo(f"\n  Final: {last['hf_count']} living HFs, "
+                           f"{last['site_count']} sites, "
+                           f"{last['event_count']} total events, "
+                           f"{data.get('total_born', '?')} total born, "
+                           f"{data.get('total_died', '?')} total died")
+        finally:
+            await close_pool()
+
+    _run(_history())
+
+
 @cli.command("probe")
 @click.option("--world-id", default=1, type=int, help="World ID for storing results")
 @click.option("--unit-id", default=None, type=int, help="Probe a specific unit's personality/stress")
@@ -467,6 +593,9 @@ def validate():
         "sync_snapshots", "game_reports",
         "world_map_snapshots", "lua_probes", "fortress_denizens",
         "worldgen_snapshots", "world_modpacks", "storyteller_log",
+        # Stage 3.5: Fortress State Capture
+        "fortress_state_snapshots", "threat_tracking", "character_arcs",
+        "environmental_state", "death_narratives", "session_markers",
     ]
 
     async def _run_validate():
@@ -605,7 +734,8 @@ def control_unpause(host):
 @control_group.command("step")
 @click.option("--host", default="192.168.64.3", help="VM host (SSH)")
 @click.option("--ticks", default=100, type=int, help="Ticks to advance (default: 100)")
-@click.option("--timeout", default=30.0, type=float, help="Max seconds to wait")
+@click.option("--timeout", default=0, type=float,
+              help="Max seconds to wait (0=auto-scale based on tick count)")
 def control_step(host, ticks, timeout):
     """Advance the game by N ticks then re-pause."""
     ctrl = _get_controller(host)
@@ -993,3 +1123,1040 @@ async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
         }
     finally:
         await close_pool()
+
+
+@cli.command("extract-biome")
+@click.option("--world-id", default=1, type=int, help="World ID to associate biome data with")
+@click.option("--bridge-host", default='', type=str,
+              help="Bridge HTTP host (default: DFHACK_HOST)")
+def extract_biome(world_id, bridge_host):
+    """Fetch biome/terrain data from the bridge and store in world_terrain table."""
+    from chronicler.config import DFHACK_HOST, BRIDGE_PORT
+    from chronicler.dfhack.bridge import fetch_biome_data
+    from chronicler.db.connection import get_pool, close_pool
+
+    host = bridge_host or DFHACK_HOST
+    click.echo(f"Fetching biome data from {host}:{BRIDGE_PORT}...")
+
+    data = fetch_biome_data(host, BRIDGE_PORT)
+    if not data:
+        click.echo("ERROR: Could not fetch biome data. Is the bridge running?", err=True)
+        raise SystemExit(1)
+
+    width = data['width']
+    height = data['height']
+    click.echo(f"Received {width}x{height} = {width * height} tiles, "
+               f"{len(data.get('region_types', {}))} region types")
+
+    # Separate tile arrays from metadata for storage
+    tile_keys = ['elevation', 'rainfall', 'vegetation', 'temperature',
+                 'evilness', 'drainage', 'volcanism', 'savagery',
+                 'salinity', 'region_id', 'landmass_id']
+    tile_data = {k: data[k] for k in tile_keys if k in data}
+
+    async def _store():
+        pool = await get_pool()
+        try:
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    INSERT INTO world_terrain (world_id, width, height, data, region_types)
+                    VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)
+                    ON CONFLICT (world_id) DO UPDATE SET
+                        width = EXCLUDED.width,
+                        height = EXCLUDED.height,
+                        data = EXCLUDED.data,
+                        region_types = EXCLUDED.region_types,
+                        extracted_at = now()
+                    """,
+                    world_id, width, height,
+                    json.dumps(tile_data),
+                    json.dumps(data.get('region_types', {})),
+                )
+                click.echo(f"Stored biome data for world_id={world_id}")
+        finally:
+            await close_pool()
+
+    _run(_store())
+
+
+# ── Knowledge Horizon ────────────────────────────────────────────────────────
+
+@cli.group("kh")
+def kh_group():
+    """Knowledge Horizon — visibility masking for fortress perspective."""
+
+
+@kh_group.command("init")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def kh_init(world_id):
+    """Initialize Knowledge Horizon for a world (runs all phases)."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.kh import KnowledgeHorizonEngine
+
+    async def _run_init():
+        pool = await get_pool()
+        try:
+            engine = KnowledgeHorizonEngine(pool, world_id)
+            counts = await engine.initialize()
+
+            click.echo(f"Knowledge Horizon initialized for world {world_id}:")
+            for k, v in counts.items():
+                click.echo(f"  {k}: {v}")
+        finally:
+            await close_pool()
+
+    _run(_run_init())
+
+
+@kh_group.command("stats")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def kh_stats(world_id):
+    """Show Knowledge Horizon coverage statistics."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.kh import KnowledgeHorizonEngine
+
+    async def _run_stats():
+        pool = await get_pool()
+        try:
+            engine = KnowledgeHorizonEngine(pool, world_id)
+            stats = await engine.get_stats()
+
+            click.echo(f"Knowledge Horizon — World {world_id}:")
+            click.echo(f"{'Type':<12} {'Visible':>8} {'Total':>8} {'Coverage':>8}")
+            click.echo("-" * 40)
+            for etype in ("hf", "entity", "site", "region", "artifact"):
+                v = stats["visible"].get(etype, 0)
+                t = stats["total"].get(etype, 0)
+                pct = stats["coverage_pct"].get(etype, 0)
+                click.echo(f"{etype:<12} {v:>8,} {t:>8,} {pct:>7.1f}%")
+        finally:
+            await close_pool()
+
+    _run(_run_stats())
+
+
+@kh_group.command("clear")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.confirmation_option(prompt="Clear all KH data for this world?")
+def kh_clear(world_id):
+    """Clear Knowledge Horizon data for a world."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _run_clear():
+        pool = await get_pool()
+        try:
+            async with pool.acquire() as conn:
+                result = await conn.execute(
+                    "DELETE FROM knowledge_horizon WHERE world_id = $1",
+                    world_id,
+                )
+                click.echo(f"Cleared KH data: {result}")
+        finally:
+            await close_pool()
+
+    _run(_run_clear())
+
+
+# ── Stage 3.5 Validation ────────────────────────────────────────────────────
+
+@cli.command("validate-stage35")
+@click.option("--world-id", default=1, type=int, help="World ID to validate")
+def validate_stage35(world_id):
+    """Validate Stage 3.5 (Fortress State Capture) — all PRD criteria."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    checks = []
+
+    async def _run_validate():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            # ── Check 1: fortress_state_snapshots ≥ 50 entries ──────────
+            n = await conn.fetchval(
+                "SELECT COUNT(*) FROM fortress_state_snapshots WHERE world_id = $1",
+                world_id,
+            )
+            checks.append({
+                "name": "fortress_state_snapshots ≥ 50 entries",
+                "passed": n >= 50,
+                "detail": f"{n} rows",
+            })
+
+            # Show sample if present
+            if n > 0:
+                latest = await conn.fetchrow(
+                    "SELECT year, season, population, military_count, wealth "
+                    "FROM fortress_state_snapshots WHERE world_id = $1 "
+                    "ORDER BY tick DESC LIMIT 1",
+                    world_id,
+                )
+                if latest:
+                    checks[-1]["detail"] += (
+                        f" | latest: Y{latest['year']} {latest['season'] or '?'}, "
+                        f"pop={latest['population']}, mil={latest['military_count']}, "
+                        f"wealth={latest['wealth']}"
+                    )
+
+            # ── Check 2: game_reports with combat category ──────────────
+            combat_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM game_reports "
+                "WHERE world_id = $1 AND category = 'combat'",
+                world_id,
+            )
+            checks.append({
+                "name": "game_reports: combat reports captured",
+                "passed": combat_n > 0,
+                "detail": f"{combat_n} combat reports",
+            })
+
+            # ── Check 3: ≥ 5 distinct announcement categories ──────────
+            cats = await conn.fetch(
+                "SELECT category, COUNT(*) AS n FROM game_reports "
+                "WHERE world_id = $1 AND category IS NOT NULL "
+                "GROUP BY category ORDER BY n DESC",
+                world_id,
+            )
+            cat_names = [r["category"] for r in cats]
+            cat_summary = ", ".join(f"{r['category']}={r['n']}" for r in cats)
+            checks.append({
+                "name": "game_reports: ≥ 5 distinct categories",
+                "passed": len(cat_names) >= 5,
+                "detail": f"{len(cat_names)} categories: {cat_summary}" if cats else "0 categories",
+            })
+
+            # ── Check 4: threat_tracking records ────────────────────────
+            threat_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM threat_tracking WHERE world_id = $1",
+                world_id,
+            )
+            max_hostile = await conn.fetchval(
+                "SELECT COALESCE(MAX(hostile_count), 0) FROM threat_tracking "
+                "WHERE world_id = $1",
+                world_id,
+            )
+            checks.append({
+                "name": "threat_tracking populated",
+                "passed": threat_n > 0,
+                "detail": f"{threat_n} rows, peak hostile={max_hostile}",
+            })
+
+            # ── Check 5: character_arcs delta detection ─────────────────
+            arc_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM character_arcs WHERE world_id = $1",
+                world_id,
+            )
+            # Check for duplicates (same unit, consecutive ticks with identical data)
+            dup_n = await conn.fetchval("""
+                SELECT COUNT(*) FROM (
+                    SELECT unit_id, tick,
+                           LAG(skill_snapshot) OVER (
+                               PARTITION BY unit_id ORDER BY tick
+                           ) AS prev_skills,
+                           skill_snapshot,
+                           LAG(stress_level) OVER (
+                               PARTITION BY unit_id ORDER BY tick
+                           ) AS prev_stress,
+                           stress_level,
+                           LAG(profession) OVER (
+                               PARTITION BY unit_id ORDER BY tick
+                           ) AS prev_prof,
+                           profession
+                    FROM character_arcs WHERE world_id = $1
+                ) sub
+                WHERE prev_skills = skill_snapshot
+                  AND prev_stress = stress_level
+                  AND prev_prof = profession
+            """, world_id)
+            distinct_units = await conn.fetchval(
+                "SELECT COUNT(DISTINCT unit_id) FROM character_arcs WHERE world_id = $1",
+                world_id,
+            )
+            checks.append({
+                "name": "character_arcs: delta detection (no useless dupes)",
+                "passed": arc_n > 0 and dup_n == 0,
+                "detail": f"{arc_n} rows, {distinct_units} units, {dup_n} identical consecutive snapshots",
+            })
+
+            # ── Check 6: death_narratives links combat_report_ids ───────
+            death_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM death_narratives WHERE world_id = $1",
+                world_id,
+            )
+            linked_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM death_narratives "
+                "WHERE world_id = $1 AND combat_report_ids IS NOT NULL "
+                "AND combat_report_ids != '[]'::jsonb",
+                world_id,
+            )
+            checks.append({
+                "name": "death_narratives populated",
+                "passed": death_n > 0,
+                "detail": f"{death_n} deaths, {linked_n} with combat report links",
+            })
+
+            # ── Check 7: session_markers with season_change ─────────────
+            marker_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM session_markers WHERE world_id = $1",
+                world_id,
+            )
+            season_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM session_markers "
+                "WHERE world_id = $1 AND event_type = 'season_change'",
+                world_id,
+            )
+            types = await conn.fetch(
+                "SELECT event_type, COUNT(*) AS n FROM session_markers "
+                "WHERE world_id = $1 GROUP BY event_type ORDER BY n DESC",
+                world_id,
+            )
+            type_summary = ", ".join(f"{r['event_type']}={r['n']}" for r in types)
+            checks.append({
+                "name": "session_markers: season_change detected",
+                "passed": season_n > 0,
+                "detail": f"{marker_n} markers ({type_summary})" if types else "0 markers",
+            })
+
+            # ── Check 8: environmental_state populated ──────────────────
+            env_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM environmental_state WHERE world_id = $1",
+                world_id,
+            )
+            checks.append({
+                "name": "environmental_state populated",
+                "passed": env_n > 0,
+                "detail": f"{env_n} rows",
+            })
+
+            # ── Check 9: Schema tables exist ────────────────────────────
+            stage35_tables = [
+                "fortress_state_snapshots", "threat_tracking",
+                "character_arcs", "environmental_state",
+                "death_narratives", "session_markers",
+            ]
+            existing = await conn.fetch(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
+                "AND tablename = ANY($1)",
+                stage35_tables,
+            )
+            existing_names = {r["tablename"] for r in existing}
+            missing = [t for t in stage35_tables if t not in existing_names]
+            checks.append({
+                "name": "all 6 Stage 3.5 tables exist",
+                "passed": len(missing) == 0,
+                "detail": f"{len(existing_names)}/6 tables"
+                + (f" (missing: {', '.join(missing)})" if missing else ""),
+            })
+
+        await close_pool()
+
+    _run(_run_validate())
+
+    # ── Print results ───────────────────────────────────────────────
+    passed = sum(1 for c in checks if c["passed"])
+    total = len(checks)
+
+    click.echo(f"\n── Stage 3.5 Validation (world {world_id}) ──")
+    click.echo(f"{'#':<4} {'Status':<8} {'Check':<50} {'Detail'}")
+    click.echo("─" * 100)
+    for i, c in enumerate(checks, 1):
+        status = "PASS" if c["passed"] else "FAIL"
+        marker = "✓" if c["passed"] else "✗"
+        click.echo(f"{i:<4} {marker} {status:<5} {c['name']:<50} {c['detail']}")
+    click.echo("─" * 100)
+    click.echo(f"Result: {passed}/{total} checks passed")
+
+    if passed < total:
+        click.echo(
+            "\nNote: Some checks require live data. Run 'chronicler watch' "
+            "with an active DF session to populate Stage 3.5 tables."
+        )
+        raise SystemExit(1)
+    else:
+        click.echo("\nStage 3.5: Fortress State Capture — ALL CHECKS PASSED")
+
+
+@cli.command("validate-stage36")
+@click.option("--world-id", default=1, type=int, help="World ID to validate")
+def validate_stage36(world_id):
+    """Validate Stage 3.6 (Narrative Data Layer) — all PRD criteria."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    checks = []
+
+    async def _run_validate():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            # ── Check 1: narrative_events table populated (3.6.1) ─────
+            ne_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM narrative_events WHERE world_id = $1",
+                world_id)
+            checks.append({
+                "name": "3.6.1 narrative_events populated",
+                "passed": ne_n > 0,
+                "detail": f"{ne_n:,} scored events",
+            })
+
+            # Check scoring fields present
+            sample = await conn.fetchrow(
+                "SELECT narrative_weight, drama_score, emotional_tone, irony_flags "
+                "FROM narrative_events WHERE world_id = $1 LIMIT 1", world_id)
+            has_fields = sample is not None and all(
+                sample[f] is not None for f in
+                ("narrative_weight", "drama_score", "emotional_tone"))
+            checks.append({
+                "name": "3.6.1 scoring fields populated (weight, drama, tone)",
+                "passed": has_fields,
+                "detail": f"weight={sample['narrative_weight']:.1f}, "
+                          f"drama={sample['drama_score']:.1f}, "
+                          f"tone={sample['emotional_tone']}" if sample else "no data",
+            })
+
+            # ── Check 2: event_causal_links (3.6.2) ──────────────────
+            ecl_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_causal_links WHERE world_id = $1",
+                world_id)
+            link_types = await conn.fetch(
+                "SELECT link_type, COUNT(*) AS n FROM event_causal_links "
+                "WHERE world_id = $1 GROUP BY link_type ORDER BY n DESC",
+                world_id)
+            type_summary = ", ".join(f"{r['link_type']}={r['n']}" for r in link_types)
+            checks.append({
+                "name": "3.6.2 event_causal_links populated",
+                "passed": ecl_n > 0 and len(link_types) >= 2,
+                "detail": f"{ecl_n:,} links ({type_summary})",
+            })
+
+            # ── Check 3: narrative_arcs (3.6.3) ──────────────────────
+            na_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1",
+                world_id)
+            titled_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1 "
+                "AND title IS NOT NULL AND title != ''", world_id)
+            arc_types = await conn.fetch(
+                "SELECT arc_type, COUNT(*) AS n FROM narrative_arcs "
+                "WHERE world_id = $1 GROUP BY arc_type ORDER BY n DESC",
+                world_id)
+            arc_summary = ", ".join(f"{r['arc_type']}={r['n']}" for r in arc_types)
+            checks.append({
+                "name": "3.6.3 narrative_arcs: ≥ 3 arc types detected",
+                "passed": na_n > 0 and len(arc_types) >= 3,
+                "detail": f"{na_n:,} arcs, {titled_n} titled ({arc_summary})",
+            })
+
+            # ── Check 4: event_summaries (3.6.4) ─────────────────────
+            es_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_summaries WHERE world_id = $1",
+                world_id)
+            checks.append({
+                "name": "3.6.4 event_summaries: year summaries generated",
+                "passed": es_n >= 10,
+                "detail": f"{es_n} summaries",
+            })
+
+            # Check summary quality — non-empty text
+            empty_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_summaries WHERE world_id = $1 "
+                "AND (summary_text IS NULL OR length(summary_text) < 20)",
+                world_id)
+            checks.append({
+                "name": "3.6.4 summary quality: all ≥ 20 chars",
+                "passed": empty_n == 0,
+                "detail": f"{empty_n} empty/short summaries",
+            })
+
+            # ── Check 5: fortress_timeline API (3.6.5) ───────────────
+            # Verify the timeline query works
+            timeline_n = await conn.fetchval("""
+                SELECT COUNT(*) FROM history_events he
+                JOIN narrative_events ne
+                    ON ne.world_id = he.world_id AND ne.event_id = he.id
+                WHERE he.world_id = $1 AND ne.narrative_weight >= 5
+            """, world_id)
+            checks.append({
+                "name": "3.6.5 fortress timeline: query returns results",
+                "passed": timeline_n > 0,
+                "detail": f"{timeline_n:,} events with weight ≥ 5",
+            })
+
+            # ── Check 6: character_narratives (3.6.6) ────────────────
+            cn_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM character_narratives WHERE world_id = $1",
+                world_id)
+            with_voice = await conn.fetchval(
+                "SELECT COUNT(*) FROM character_narratives WHERE world_id = $1 "
+                "AND personality_voice IS NOT NULL AND personality_voice != ''",
+                world_id)
+            checks.append({
+                "name": "3.6.6 character_narratives: profiles generated",
+                "passed": cn_n >= 5,
+                "detail": f"{cn_n} profiles, {with_voice} with personality voice",
+            })
+
+            # ── Check 7: narrative_context assembler (3.6.7) ─────────
+            from chronicler.storyteller.narrative_context import assemble_context
+            ctx = await assemble_context(conn, world_id, "world_overview")
+            checks.append({
+                "name": "3.6.7 context assembler: world_overview works",
+                "passed": ctx.total_tokens > 0 and len(ctx.blocks) >= 3,
+                "detail": f"{len(ctx.blocks)} blocks, ~{ctx.total_tokens} tokens",
+            })
+
+            ctx2 = await assemble_context(conn, world_id, "fortress_saga")
+            checks.append({
+                "name": "3.6.7 context assembler: fortress_saga works",
+                "passed": ctx2.total_tokens > 0,
+                "detail": f"{len(ctx2.blocks)} blocks, ~{ctx2.total_tokens} tokens",
+            })
+
+            # ── Check 8: event_clusters (3.6.8) ──────────────────────
+            ec_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1",
+                world_id)
+            summarized_n = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1 "
+                "AND summary IS NOT NULL AND summary != ''", world_id)
+            cluster_types = await conn.fetch(
+                "SELECT cluster_type, COUNT(*) AS n FROM event_clusters "
+                "WHERE world_id = $1 GROUP BY cluster_type ORDER BY n DESC",
+                world_id)
+            cl_summary = ", ".join(f"{r['cluster_type']}={r['n']}" for r in cluster_types)
+            checks.append({
+                "name": "3.6.8 event_clusters: ≥ 3 cluster types",
+                "passed": ec_n > 0 and len(cluster_types) >= 3,
+                "detail": f"{ec_n:,} clusters, {summarized_n} summarized ({cl_summary})",
+            })
+
+            # ── Check 9: Schema completeness ─────────────────────────
+            stage36_tables = [
+                "narrative_events", "event_causal_links", "narrative_arcs",
+                "event_summaries", "character_narratives", "event_clusters",
+            ]
+            existing = await conn.fetch(
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
+                "AND tablename = ANY($1)",
+                stage36_tables)
+            existing_names = {r["tablename"] for r in existing}
+            missing = [t for t in stage36_tables if t not in existing_names]
+            checks.append({
+                "name": "all 6 Stage 3.6 tables exist",
+                "passed": len(missing) == 0,
+                "detail": f"{len(existing_names)}/6 tables"
+                + (f" (missing: {', '.join(missing)})" if missing else ""),
+            })
+
+            # ── Check 10: narrative_weight DESC index ─────────────────
+            idx = await conn.fetchval(
+                "SELECT COUNT(*) FROM pg_indexes "
+                "WHERE tablename = 'narrative_events' "
+                "AND indexdef LIKE '%narrative_weight%'")
+            checks.append({
+                "name": "narrative_events.narrative_weight index exists",
+                "passed": idx > 0,
+                "detail": f"{idx} matching index(es)",
+            })
+
+        await close_pool()
+
+    _run(_run_validate())
+
+    # ── Print results ───────────────────────────────────────────────
+    passed = sum(1 for c in checks if c["passed"])
+    total = len(checks)
+
+    click.echo(f"\n── Stage 3.6 Validation (world {world_id}) ──")
+    click.echo(f"{'#':<4} {'Status':<8} {'Check':<55} {'Detail'}")
+    click.echo("─" * 110)
+    for i, c in enumerate(checks, 1):
+        status = "PASS" if c["passed"] else "FAIL"
+        marker = "+" if c["passed"] else "-"
+        click.echo(f"{i:<4} {marker} {status:<5} {c['name']:<55} {c['detail']}")
+    click.echo("─" * 110)
+    click.echo(f"Result: {passed}/{total} checks passed")
+
+    if passed < total:
+        click.echo(
+            "\nNote: Run 'chronicler narrative generate --target all' to "
+            "populate LLM-generated content."
+        )
+        raise SystemExit(1)
+    else:
+        click.echo("\nStage 3.6: Narrative Data Layer — ALL CHECKS PASSED")
+
+
+@cli.command("fortress-state")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--limit", default=10, type=int, help="Number of snapshots to show")
+def fortress_state(world_id, limit):
+    """Show recent fortress state snapshots (population, wealth, threats)."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _run_fs():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT tick, year, season, population, military_count, "
+                "food_stocks, drink_stocks, wealth, happiness_distribution, threats "
+                "FROM fortress_state_snapshots WHERE world_id = $1 "
+                "ORDER BY tick DESC LIMIT $2",
+                world_id, limit,
+            )
+
+        if not rows:
+            click.echo("No fortress state snapshots. Run 'chronicler watch' first.")
+            await close_pool()
+            return
+
+        click.echo(f"── Fortress State (world {world_id}, last {limit}) ──")
+        click.echo(
+            f"{'Tick':>10} {'Year':>5} {'Season':<8} {'Pop':>4} {'Mil':>4} "
+            f"{'Food':>6} {'Drink':>6} {'Wealth':>10}"
+        )
+        click.echo("─" * 70)
+        for r in rows:
+            click.echo(
+                f"{r['tick']:>10} {r['year']:>5} {(r['season'] or '?'):<8} "
+                f"{r['population'] or 0:>4} {r['military_count'] or 0:>4} "
+                f"{r['food_stocks'] or 0:>6} {r['drink_stocks'] or 0:>6} "
+                f"{r['wealth'] or 0:>10,}"
+            )
+
+        # Trend summary
+        if len(rows) >= 2:
+            newest, oldest = rows[0], rows[-1]
+            pop_delta = (newest["population"] or 0) - (oldest["population"] or 0)
+            wealth_delta = (newest["wealth"] or 0) - (oldest["wealth"] or 0)
+            sign = "+" if pop_delta >= 0 else ""
+            wsign = "+" if wealth_delta >= 0 else ""
+            click.echo(
+                f"\nTrend: pop {sign}{pop_delta}, wealth {wsign}{wealth_delta:,}"
+            )
+
+        await close_pool()
+
+    _run(_run_fs())
+
+
+@cli.command("threats")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--limit", default=20, type=int, help="Number of entries to show")
+def threats(world_id, limit):
+    """Show threat tracking history (hostile counts over time)."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _run_threats():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT tick, hostile_count, undead_count, invader_count, "
+                "megabeast_count FROM threat_tracking "
+                "WHERE world_id = $1 ORDER BY tick DESC LIMIT $2",
+                world_id, limit,
+            )
+
+        if not rows:
+            click.echo("No threat tracking data. Run 'chronicler watch' first.")
+            await close_pool()
+            return
+
+        click.echo(f"── Threat Tracking (world {world_id}, last {limit}) ──")
+        click.echo(
+            f"{'Tick':>10} {'Hostile':>8} {'Undead':>8} {'Invader':>8} {'Mega':>8}"
+        )
+        click.echo("─" * 50)
+        for r in rows:
+            click.echo(
+                f"{r['tick']:>10} {r['hostile_count']:>8} "
+                f"{r['undead_count']:>8} {r['invader_count']:>8} "
+                f"{r['megabeast_count']:>8}"
+            )
+
+        peak = max(r["hostile_count"] for r in rows)
+        click.echo(f"\nPeak hostile count: {peak}")
+
+        await close_pool()
+
+    _run(_run_threats())
+
+
+@cli.command("deaths")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--limit", default=20, type=int, help="Number of entries to show")
+def deaths(world_id, limit):
+    """Show death narratives with cause and killer details."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _run_deaths():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT dn.unit_id, dn.hf_id, dn.year, dn.cause, "
+                "dn.killer_race, dn.weapon, dn.location, "
+                "dn.combat_report_ids, dn.witness_unit_ids, "
+                "fd.name AS victim_name "
+                "FROM death_narratives dn "
+                "LEFT JOIN fortress_denizens fd "
+                "  ON fd.world_id = dn.world_id AND fd.unit_id = dn.unit_id "
+                "WHERE dn.world_id = $1 "
+                "ORDER BY dn.tick DESC LIMIT $2",
+                world_id, limit,
+            )
+
+        if not rows:
+            click.echo("No death narratives. Deaths are recorded during 'chronicler watch'.")
+            await close_pool()
+            return
+
+        click.echo(f"── Death Narratives (world {world_id}, last {limit}) ──")
+        for r in rows:
+            name = r["victim_name"] or f"unit#{r['unit_id']}"
+            hf = f" (HF {r['hf_id']})" if r["hf_id"] else ""
+            click.echo(f"\n  {name}{hf} — Y{r['year']}")
+            click.echo(f"    Cause: {r['cause']}")
+            if r["killer_race"]:
+                click.echo(f"    Killer: {r['killer_race']}")
+            if r["weapon"]:
+                click.echo(f"    Weapon: {r['weapon']}")
+            if r["location"]:
+                click.echo(f"    Location: {r['location']}")
+            reports = r["combat_report_ids"]
+            if reports and reports != []:
+                click.echo(f"    Combat reports: {len(reports)} linked")
+            witnesses = r["witness_unit_ids"]
+            if witnesses and witnesses != []:
+                click.echo(f"    Witnesses: {len(witnesses)}")
+
+        await close_pool()
+
+    _run(_run_deaths())
+
+
+# ── Narrative Generation ─────────────────────────────────────────────────────
+
+@cli.group("narrative")
+def narrative_group():
+    """Narrative data layer — LLM generation, scoring, context assembly."""
+
+
+@narrative_group.command("generate")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--target", type=click.Choice(
+    ["all", "arcs", "summaries", "profiles", "clusters"]),
+    default="all", help="What to generate")
+@click.option("--limit", default=100, type=int, help="Max items per generator")
+@click.option("--force", is_flag=True, help="Re-generate existing content")
+def narrative_generate(world_id, target, limit, force):
+    """Generate LLM-powered narrative content (arc titles, summaries, profiles)."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.storyteller.narrative_generation import (
+        generate_arc_titles,
+        generate_year_summaries,
+        generate_character_profiles,
+        generate_cluster_summaries,
+    )
+
+    async def _run_generate():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            results = {}
+            targets = [target] if target != "all" else [
+                "arcs", "summaries", "profiles", "clusters"]
+
+            for t in targets:
+                click.echo(f"Generating {t}...")
+                if t == "arcs":
+                    results[t] = await generate_arc_titles(conn, world_id)
+                elif t == "summaries":
+                    results[t] = await generate_year_summaries(
+                        conn, world_id, force=force)
+                elif t == "profiles":
+                    results[t] = await generate_character_profiles(
+                        conn, world_id, limit=limit)
+                elif t == "clusters":
+                    results[t] = await generate_cluster_summaries(
+                        conn, world_id)
+
+        click.echo("\n── Narrative Generation Complete ──")
+        for name, count in results.items():
+            click.echo(f"  {name:20s} {count:>6,d} generated")
+        await close_pool()
+
+    _run(_run_generate())
+
+
+@narrative_group.command("context")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--query-type", type=click.Choice(
+    ["fortress_saga", "character_focus", "year_chronicle",
+     "event_detail", "world_overview"]),
+    default="world_overview", help="Context query type")
+@click.option("--target-id", type=int, default=None, help="HF ID or event ID")
+@click.option("--year", type=int, default=None, help="Year for year_chronicle")
+@click.option("--budget", default=32000, type=int, help="Token budget")
+def narrative_context(world_id, query_type, target_id, year, budget):
+    """Assemble narrative context for the storyteller LLM."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.storyteller.narrative_context import assemble_context
+
+    async def _run_context():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            ctx = await assemble_context(
+                conn, world_id, query_type,
+                target_id=target_id, year=year, token_budget=budget)
+
+        click.echo(f"── Narrative Context ({query_type}) ──")
+        click.echo(f"Blocks: {len(ctx.blocks)}, ~{ctx.total_tokens:,} tokens "
+                   f"(budget: {ctx.budget:,}, truncated: {ctx.truncated})")
+        click.echo(f"Categories: {', '.join({b.category for b in ctx.blocks})}")
+        click.echo("\n" + ctx.text[:3000])
+        if len(ctx.text) > 3000:
+            click.echo(f"\n... ({len(ctx.text):,} chars total)")
+        await close_pool()
+
+    _run(_run_context())
+
+
+@narrative_group.command("status")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def narrative_status(world_id):
+    """Show narrative data layer statistics."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _run_status():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            tables = {
+                "narrative_events": "SELECT COUNT(*) FROM narrative_events WHERE world_id = $1",
+                "event_causal_links": "SELECT COUNT(*) FROM event_causal_links WHERE world_id = $1",
+                "narrative_arcs": "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1",
+                "  titled arcs": "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1 AND title IS NOT NULL AND title != ''",
+                "event_summaries": "SELECT COUNT(*) FROM event_summaries WHERE world_id = $1",
+                "character_narratives": "SELECT COUNT(*) FROM character_narratives WHERE world_id = $1",
+                "event_clusters": "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1",
+                "  summarized": "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1 AND summary IS NOT NULL AND summary != ''",
+            }
+
+            click.echo(f"── Narrative Data Layer (world {world_id}) ──")
+            for name, sql in tables.items():
+                count = await conn.fetchval(sql, world_id)
+                click.echo(f"  {name:30s} {count:>8,d}")
+
+            # Work remaining
+            click.echo("\n── Remaining Work ──")
+            untitled = await conn.fetchval(
+                "SELECT COUNT(*) FROM narrative_arcs WHERE world_id = $1 AND (title IS NULL OR title = '')",
+                world_id)
+            no_profile = await conn.fetchval(
+                "SELECT COUNT(*) FROM historical_figures hf WHERE hf.world_id = $1 "
+                "AND hf.prominence_score > 0.3 AND NOT EXISTS ("
+                "SELECT 1 FROM character_narratives cn WHERE cn.world_id = $1 AND cn.hf_id = hf.id)",
+                world_id)
+            unsummarized = await conn.fetchval(
+                "SELECT COUNT(*) FROM event_clusters WHERE world_id = $1 AND (summary IS NULL OR summary = '')",
+                world_id)
+            click.echo(f"  Untitled arcs:             {untitled:>8,d}")
+            click.echo(f"  HFs needing profiles:      {no_profile:>8,d}")
+            click.echo(f"  Unsummarized clusters:     {unsummarized:>8,d}")
+
+        await close_pool()
+
+    _run(_run_status())
+
+
+# ── Embedding pipelines ─────────────────────────────────────────────────────
+
+@cli.group("embed")
+def embed_group():
+    """Embedding pipelines — batch and live entity embedding for semantic search."""
+
+
+@embed_group.command("run")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--entity-types", default="all",
+              help="Comma-separated types or 'all' (art_form,hf,event,site,entity,artifact,written_content)")
+@click.option("--force", is_flag=True, help="Re-embed even if content hash unchanged")
+@click.option("--batch-size", default=64, type=int, help="Rows per embedding batch")
+@click.option("--page-size", default=5000, type=int, help="DB fetch page size")
+@click.option("--dry-run", is_flag=True, help="Show counts without embedding")
+def embed_run(world_id, entity_types, force, batch_size, page_size, dry_run):
+    """Run batch embedding pipeline for legends entities."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.embedding.extractors import BATCH_ENTITY_TYPES
+    from chronicler.embedding.pipeline import embed_entities, build_vector_index
+
+    # Parse entity types
+    if entity_types == "all":
+        types_to_run = list(BATCH_ENTITY_TYPES.keys())
+    else:
+        types_to_run = [t.strip() for t in entity_types.split(",")]
+        for t in types_to_run:
+            if t not in BATCH_ENTITY_TYPES:
+                click.echo(f"Unknown entity type: {t}", err=True)
+                click.echo(f"Available: {', '.join(BATCH_ENTITY_TYPES.keys())}", err=True)
+                sys.exit(1)
+
+    async def _run_embed():
+        pool = await get_pool()
+        grand_total = {"embedded": 0, "skipped": 0, "errors": 0}
+
+        async with pool.acquire() as conn:
+            for etype in types_to_run:
+                spec = BATCH_ENTITY_TYPES[etype]
+                total = await conn.fetchval(spec["count_sql"], world_id)
+                click.echo(f"\n── {etype} ({spec['desc']}) — {total:,d} rows ──")
+
+                if dry_run:
+                    click.echo(f"  [dry-run] Would process {total:,d} rows")
+                    continue
+
+                t0 = time.time()
+                type_stats = {"embedded": 0, "skipped": 0, "errors": 0}
+                offset = 0
+
+                while offset < total:
+                    rows = await conn.fetch(
+                        spec["sql"], world_id, page_size, offset)
+                    if not rows:
+                        break
+
+                    # Process in sub-batches for embedding
+                    for i in range(0, len(rows), batch_size):
+                        batch = rows[i:i + batch_size]
+                        stats = await embed_entities(
+                            conn, world_id, etype, batch,
+                            spec["extract"], force=force)
+                        for k in type_stats:
+                            type_stats[k] += stats[k]
+
+                    offset += page_size
+
+                elapsed = time.time() - t0
+                click.echo(
+                    f"  Embedded: {type_stats['embedded']:,d}  "
+                    f"Skipped: {type_stats['skipped']:,d}  "
+                    f"Errors: {type_stats['errors']}  "
+                    f"({elapsed:.1f}s)")
+                for k in grand_total:
+                    grand_total[k] += type_stats[k]
+
+            # Build HNSW index after batch
+            if not dry_run and grand_total["embedded"] > 0:
+                click.echo("\n── Building vector index ──")
+                built = await build_vector_index(conn)
+                if built:
+                    click.echo("  HNSW index built successfully.")
+                else:
+                    click.echo("  Skipped (not enough rows).")
+
+        click.echo(f"\n── Total: embedded {grand_total['embedded']:,d}, "
+                   f"skipped {grand_total['skipped']:,d}, "
+                   f"errors {grand_total['errors']} ──")
+        await close_pool()
+
+    _run(_run_embed())
+
+
+@embed_group.command("status")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def embed_status(world_id):
+    """Show embedding counts per entity type and index status."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.embedding.pipeline import get_embed_stats
+
+    async def _run_status():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            stats = await get_embed_stats(conn, world_id)
+
+        click.echo(f"── Embeddings (world {world_id}) ──")
+        for row in stats["by_type"]:
+            click.echo(
+                f"  {row['entity_type']:20s} {row['count']:>8,d}  "
+                f"({row['oldest'].strftime('%Y-%m-%d')} — "
+                f"{row['newest'].strftime('%Y-%m-%d')})")
+        click.echo(f"  {'TOTAL':20s} {stats['total']:>8,d}")
+        click.echo(f"\n  Vector index (HNSW): "
+                   f"{'YES' if stats['has_vector_index'] else 'NO'}")
+        await close_pool()
+
+    _run(_run_status())
+
+
+# ── Stage 3.5: Fortress State Capture ──────────────────────────────────────
+
+@cli.group("state")
+def state_group():
+    """Fortress state capture — snapshots, threats, arcs, reports, deaths."""
+
+
+@state_group.command("status")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def state_status(world_id):
+    """Show Stage 3.5 table counts and latest data."""
+    from chronicler.db.connection import get_pool, close_pool
+
+    async def _go():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            tables = [
+                ('fortress_state_snapshots', 'tick'),
+                ('game_reports', 'game_tick'),
+                ('threat_tracking', 'tick'),
+                ('character_arcs', 'tick'),
+                ('environmental_state', 'tick'),
+                ('death_narratives', 'tick'),
+                ('session_markers', 'tick'),
+            ]
+            click.echo(f"── State Capture (world {world_id}) ──")
+            for table, tick_col in tables:
+                count = await conn.fetchval(
+                    f"SELECT COUNT(*) FROM {table} WHERE world_id = $1",
+                    world_id)
+                latest = await conn.fetchval(
+                    f"SELECT MAX({tick_col}) FROM {table} WHERE world_id = $1",
+                    world_id)
+                label = f"  {table:30s}"
+                if count > 0:
+                    click.echo(f"{label} {count:>8,d} rows  (latest tick: {latest})")
+                else:
+                    click.echo(f"{label} {'---':>8s}")
+
+            # Report classification coverage
+            total = await conn.fetchval(
+                "SELECT COUNT(*) FROM game_reports WHERE world_id = $1",
+                world_id)
+            classified = await conn.fetchval(
+                "SELECT COUNT(*) FROM game_reports WHERE world_id = $1 "
+                "AND category IS NOT NULL", world_id)
+            click.echo(f"\n  Report classification: {classified}/{total}"
+                       f" ({100*classified//max(total,1)}%)")
+
+            # Category breakdown
+            cats = await conn.fetch(
+                "SELECT category, COUNT(*) as cnt FROM game_reports "
+                "WHERE world_id = $1 AND category IS NOT NULL "
+                "GROUP BY category ORDER BY cnt DESC", world_id)
+            for c in cats:
+                click.echo(f"    {c['category']:15s} {c['cnt']:>6,d}")
+
+        await close_pool()
+
+    _run(_go())
+
+
+@state_group.command("classify")
+@click.option("--world-id", default=1, type=int, help="World ID")
+def state_classify(world_id):
+    """Classify unclassified game reports."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.dfhack.etl_state_capture import etl_classify_reports
+
+    async def _go():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            count = await etl_classify_reports(conn, world_id)
+            click.echo(f"Classified {count} reports for world {world_id}")
+        await close_pool()
+
+    _run(_go())

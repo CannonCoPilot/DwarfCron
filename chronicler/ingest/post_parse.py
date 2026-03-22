@@ -24,6 +24,7 @@ class PostParseProcessor:
         """Execute all processing steps in order. Returns step results."""
         results = {}
         results["step_1"] = await self.step_1_resolve_family_links()
+        results["step_1b"] = await self.step_1b_reconcile_position_dates()
         results["step_2"] = await self.step_2_resolve_position_assignments()
         results["step_3"] = await self.step_3_derive_supernatural_flags()
         results["step_4"] = await self.step_4_compute_site_ruin_status()
@@ -32,9 +33,11 @@ class PostParseProcessor:
         results["step_7"] = await self.step_7_calculate_scores()
         results["step_8"] = await self.step_8_build_event_entity_xref()
         results["step_9"] = await self.step_9_resolve_site_ownership_history()
+        results["step_9b"] = await self.step_9b_backfill_site_temporal_data()
         results["step_10"] = await self.step_10_materialize_hf_settlement_links()
         results["step_10b"] = await self.step_10b_populate_hf_whereabouts()
         results["step_11"] = await self.step_11_validate_referential_integrity()
+        results["step_12"] = await self.step_12_materialize_world_timeline()
         return results
 
     async def step_1_resolve_family_links(self) -> dict:
@@ -99,6 +102,138 @@ class PostParseProcessor:
         log.info("  Step 1 complete: %d inverse links inserted, %d spouse duplicates removed",
                  inserted, deduped)
         return {"inserted": inserted, "deduped": deduped}
+
+    async def step_1b_reconcile_position_dates(self) -> dict:
+        """Backfill NULL start_years and close stale single-holder overlaps.
+
+        Three sub-steps:
+        1. Backfill NULL start_year from 'add hf entity link' history events.
+        2. Apply end_year from 'remove hf entity link' events where active
+           rows have a matching removal event.
+        3. For single-holder positions (where historical succession is
+           sequential), close the older holder when a newer one exists.
+           Multi-holder positions (baron, count) are left untouched.
+        """
+        log.info("Step 1b: Reconciling position dates...")
+        wid = self.world_id
+        total = 0
+
+        # ── Sub-step 1: Backfill NULL start_year from appointment events ──
+        r = await self.conn.execute("""
+            UPDATE hf_position_links hpl
+            SET start_year = sub.year
+            FROM (
+                SELECT DISTINCT ON (hpl2.id)
+                    hpl2.id AS link_id,
+                    he.year
+                FROM hf_position_links hpl2
+                JOIN history_events he ON he.world_id = hpl2.world_id
+                    AND he.event_type = 'add hf entity link'
+                    AND he.entity_id_1 = hpl2.entity_id
+                    AND he.hf_id_1 = hpl2.hf_id
+                    AND he.details->>'position_id' = hpl2.position_id::text
+                WHERE hpl2.world_id = $1 AND hpl2.start_year IS NULL
+                ORDER BY hpl2.id, he.year DESC
+            ) sub
+            WHERE hpl.id = sub.link_id
+        """, wid)
+        backfilled = _count(r)
+        total += backfilled
+
+        # ── Sub-step 2: Apply end_year from removal events ──
+        r = await self.conn.execute("""
+            UPDATE hf_position_links hpl
+            SET end_year = sub.year
+            FROM (
+                SELECT DISTINCT ON (hpl2.id)
+                    hpl2.id AS link_id,
+                    he.year
+                FROM hf_position_links hpl2
+                JOIN history_events he ON he.world_id = hpl2.world_id
+                    AND he.event_type = 'remove hf entity link'
+                    AND he.entity_id_1 = hpl2.entity_id
+                    AND he.hf_id_1 = hpl2.hf_id
+                    AND he.details->>'position_id' = hpl2.position_id::text
+                    AND he.year >= hpl2.start_year
+                WHERE hpl2.world_id = $1 AND hpl2.end_year IS NULL
+                ORDER BY hpl2.id, he.year ASC
+            ) sub
+            WHERE hpl.id = sub.link_id
+        """, wid)
+        removed = _count(r)
+        total += removed
+
+        # ── Sub-step 3: Close stale single-holder overlaps ──
+        # For each (entity, position) with multiple active holders,
+        # check if historical data shows sequential succession (single-holder).
+        # If so, end the older holder at the newer holder's start_year.
+        # Skip positions where multiple holders are legitimate (baron/count pattern:
+        # historically overlapping tenures).
+        r = await self.conn.execute("""
+            WITH multi_active AS (
+                -- Positions with >1 active holder
+                SELECT entity_id, position_id
+                FROM hf_position_links
+                WHERE world_id = $1 AND end_year IS NULL
+                GROUP BY entity_id, position_id
+                HAVING COUNT(*) > 1
+            ),
+            has_historical_overlap AS (
+                -- Positions where ended holders overlapped (= multi-holder by nature)
+                SELECT DISTINCT hpl.entity_id, hpl.position_id
+                FROM hf_position_links hpl
+                JOIN hf_position_links hpl2 ON hpl2.world_id = hpl.world_id
+                    AND hpl2.entity_id = hpl.entity_id
+                    AND hpl2.position_id = hpl.position_id
+                    AND hpl2.id != hpl.id
+                    AND hpl2.start_year < COALESCE(hpl.end_year, 99999)
+                    AND COALESCE(hpl2.end_year, 99999) > hpl.start_year
+                WHERE hpl.world_id = $1 AND hpl.end_year IS NOT NULL
+                  AND hpl2.end_year IS NOT NULL
+            ),
+            single_holder_positions AS (
+                SELECT ma.entity_id, ma.position_id
+                FROM multi_active ma
+                LEFT JOIN has_historical_overlap ho
+                    ON ho.entity_id = ma.entity_id AND ho.position_id = ma.position_id
+                WHERE ho.entity_id IS NULL
+            ),
+            stale_rows AS (
+                -- For each single-holder position, find all active rows except the latest
+                SELECT hpl.id,
+                       (SELECT MIN(hpl2.start_year)
+                        FROM hf_position_links hpl2
+                        WHERE hpl2.world_id = hpl.world_id
+                          AND hpl2.entity_id = hpl.entity_id
+                          AND hpl2.position_id = hpl.position_id
+                          AND hpl2.end_year IS NULL
+                          AND hpl2.start_year > hpl.start_year) AS successor_start
+                FROM hf_position_links hpl
+                JOIN single_holder_positions shp
+                    ON shp.entity_id = hpl.entity_id AND shp.position_id = hpl.position_id
+                WHERE hpl.world_id = $1 AND hpl.end_year IS NULL
+                  AND EXISTS (
+                      SELECT 1 FROM hf_position_links hpl3
+                      WHERE hpl3.world_id = hpl.world_id
+                        AND hpl3.entity_id = hpl.entity_id
+                        AND hpl3.position_id = hpl.position_id
+                        AND hpl3.end_year IS NULL
+                        AND hpl3.start_year > hpl.start_year
+                  )
+            )
+            UPDATE hf_position_links hpl
+            SET end_year = sr.successor_start
+            FROM stale_rows sr
+            WHERE hpl.id = sr.id AND sr.successor_start IS NOT NULL
+        """, wid)
+        overlaps_fixed = _count(r)
+        total += overlaps_fixed
+
+        log.info("  Step 1b complete: %d start_years backfilled, "
+                 "%d end_years from removal events, %d single-holder overlaps fixed",
+                 backfilled, removed, overlaps_fixed)
+        return {"backfilled": backfilled, "removed": removed,
+                "overlaps_fixed": overlaps_fixed, "total": total}
 
     async def step_2_resolve_position_assignments(self) -> dict:
         """Resolve position names from entity_positions into HF details."""
@@ -529,10 +664,89 @@ class PostParseProcessor:
                 """, wid, eid, site_id, link_type, entry.get("year"))
                 esl_inserted += 1
 
-        log.info("  Step 9 complete: %d sites with ownership history, %s backfilled owner_entity_id, %d entity_site_links",
-                 updated, backfilled or 0, esl_inserted)
+        # Derive SG→site "governs" links from "created site" events
+        # entity_id_2 in these events is the site government; entity_id_1 is the civ
+        sg_governs = await self.conn.execute("""
+            INSERT INTO entity_site_links
+                (world_id, entity_id, site_id, link_type, start_year, link_strength, flags, details)
+            SELECT DISTINCT ON (he.world_id, he.entity_id_2, he.site_id)
+                   he.world_id, he.entity_id_2, he.site_id, 'governs', he.year, 100, '{}', '{}'
+            FROM history_events he
+            JOIN entities e2 ON e2.world_id = he.world_id AND e2.id = he.entity_id_2
+            WHERE he.world_id = $1
+              AND he.event_type = 'created site'
+              AND e2.type = 'sitegovernment'
+              AND he.site_id IS NOT NULL
+              AND he.entity_id_2 IS NOT NULL
+            ON CONFLICT (world_id, entity_id, site_id, link_type) DO NOTHING
+        """, wid)
+        sg_count = int(sg_governs.split()[-1]) if sg_governs else 0
+
+        log.info("  Step 9 complete: %d sites with ownership history, %s backfilled owner_entity_id, %d entity_site_links, %d SG governs links",
+                 updated, backfilled or 0, esl_inserted, sg_count)
         return {"sites_updated": updated, "owners_backfilled": backfilled or 0,
-                "entity_site_links": esl_inserted}
+                "entity_site_links": esl_inserted, "sg_governs_links": sg_count}
+
+    async def step_9b_backfill_site_temporal_data(self) -> dict:
+        """Backfill sites.founded_year and founder_entity_id from events.
+
+        Also derives destroyed_year (stored in details JSONB) from
+        'destroyed site' events for sites not subsequently reclaimed.
+        """
+        log.info("Step 9b: Backfilling site temporal data...")
+        wid = self.world_id
+
+        # Backfill founded_year from 'created site' events
+        r_founded = await self.conn.execute("""
+            UPDATE sites s
+            SET founded_year = sub.year,
+                founder_entity_id = COALESCE(s.founder_entity_id, sub.eid)
+            FROM (
+                SELECT he.site_id,
+                       MIN(he.year) AS year,
+                       MIN(COALESCE(he.entity_id_1, (he.details->>'civ_id')::int)) AS eid
+                FROM history_events he
+                WHERE he.world_id = $1
+                  AND he.event_type = 'created site'
+                  AND he.site_id IS NOT NULL
+                GROUP BY he.site_id
+            ) sub
+            WHERE s.id = sub.site_id
+              AND s.world_id = $1
+              AND s.founded_year IS NULL
+        """, wid)
+        founded_count = int(r_founded.split()[-1]) if r_founded else 0
+
+        # Derive destroyed_year into details JSONB for destroyed-and-not-reclaimed sites
+        r_destroyed = await self.conn.execute("""
+            UPDATE sites s
+            SET details = COALESCE(details, '{}'::jsonb) ||
+                          jsonb_build_object('destroyed_year', sub.year, 'destroyer_entity_id', sub.eid)
+            FROM (
+                SELECT he.site_id,
+                       MAX(he.year) AS year,
+                       MAX(COALESCE(he.entity_id_1, he.entity_id_2)) AS eid
+                FROM history_events he
+                WHERE he.world_id = $1
+                  AND he.event_type IN ('destroyed site', 'hf destroyed site')
+                  AND he.site_id IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM history_events re
+                      WHERE re.world_id = $1
+                        AND re.event_type = 'reclaim site'
+                        AND re.site_id = he.site_id
+                        AND re.year > he.year
+                  )
+                GROUP BY he.site_id
+            ) sub
+            WHERE s.id = sub.site_id
+              AND s.world_id = $1
+        """, wid)
+        destroyed_count = int(r_destroyed.split()[-1]) if r_destroyed else 0
+
+        log.info("  Step 9b complete: %d sites with founded_year, %d with destroyed_year",
+                 founded_count, destroyed_count)
+        return {"founded_backfilled": founded_count, "destroyed_backfilled": destroyed_count}
 
     async def step_10_materialize_hf_settlement_links(self) -> dict:
         """Materialize resident/former resident links from change-hf-state events.
@@ -784,6 +998,97 @@ class PostParseProcessor:
 
         return {"broken": issues, "broken_total": broken_total,
                 "total_refs": total_refs, "broken_pct": round(pct, 4)}
+
+    async def step_12_materialize_world_timeline(self) -> dict:
+        """Materialize year-by-year world timeline into worldgen_snapshots.
+
+        Computes cumulative HF population, site count, entity count, and
+        event count for each year of world history. Stores with
+        phase='historical_backfill' for the retrospective timeline viewer.
+        Idempotent: clears existing backfill rows before inserting.
+        """
+        log.info("Step 12: Materializing world timeline...")
+        wid = self.world_id
+
+        # Clear existing backfill data for idempotency
+        await self.conn.execute(
+            "DELETE FROM worldgen_snapshots WHERE world_id = $1 AND phase = 'historical_backfill'",
+            wid)
+
+        # Get max year
+        max_year = await self.conn.fetchval(
+            "SELECT MAX(year) FROM history_events WHERE world_id = $1", wid)
+        if not max_year or max_year <= 0:
+            log.info("  Step 12: no events found, skipping timeline")
+            return {"years": 0}
+
+        # Build yearly stats using window functions for cumulative sums
+        inserted = await self.conn.execute("""
+            WITH years AS (
+                SELECT generate_series(1, $2) AS y
+            ),
+            births_per_year AS (
+                SELECT birth_year AS y, COUNT(*) AS c
+                FROM historical_figures WHERE world_id = $1 AND birth_year > 0
+                GROUP BY birth_year
+            ),
+            deaths_per_year AS (
+                SELECT death_year AS y, COUNT(*) AS c
+                FROM historical_figures WHERE world_id = $1 AND death_year > 0
+                GROUP BY death_year
+            ),
+            sites_per_year AS (
+                SELECT founded_year AS y, COUNT(*) AS c
+                FROM sites WHERE world_id = $1 AND founded_year IS NOT NULL
+                GROUP BY founded_year
+            ),
+            events_per_year AS (
+                SELECT year AS y, COUNT(*) AS c
+                FROM history_events WHERE world_id = $1
+                GROUP BY year
+            ),
+            yearly AS (
+                SELECT
+                    yr.y,
+                    COALESCE(SUM(b.c) OVER (ORDER BY yr.y), 0)
+                      - COALESCE(SUM(d.c) OVER (ORDER BY yr.y), 0) AS living_hfs,
+                    COALESCE(SUM(b.c) OVER (ORDER BY yr.y), 0) AS total_born,
+                    COALESCE(SUM(d.c) OVER (ORDER BY yr.y), 0) AS total_died,
+                    COALESCE(SUM(s.c) OVER (ORDER BY yr.y), 0) AS cum_sites,
+                    COALESCE(SUM(e.c) OVER (ORDER BY yr.y), 0) AS cum_events,
+                    COALESCE(e.c, 0) AS events_this_year,
+                    COALESCE(b.c, 0) AS births_this_year,
+                    COALESCE(d.c, 0) AS deaths_this_year
+                FROM years yr
+                LEFT JOIN births_per_year b ON b.y = yr.y
+                LEFT JOIN deaths_per_year d ON d.y = yr.y
+                LEFT JOIN sites_per_year s ON s.y = yr.y
+                LEFT JOIN events_per_year e ON e.y = yr.y
+            )
+            INSERT INTO worldgen_snapshots
+                (world_id, phase, progress_pct, year, hf_count, site_count, event_count, data)
+            SELECT
+                $1,
+                'historical_backfill',
+                (y::float / $2 * 100),
+                y,
+                living_hfs,
+                cum_sites,
+                cum_events,
+                jsonb_build_object(
+                    'births', births_this_year,
+                    'deaths', deaths_this_year,
+                    'events_this_year', events_this_year,
+                    'total_born', total_born,
+                    'total_died', total_died
+                )
+            FROM yearly
+            ORDER BY y
+        """, wid, max_year)
+
+        row_count = int(inserted.split()[-1]) if inserted else 0
+        log.info("  Step 12 complete: %d year snapshots materialized", row_count)
+        return {"years": row_count}
 
 
 def _count(result: str) -> int:

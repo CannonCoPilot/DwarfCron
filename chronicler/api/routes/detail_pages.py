@@ -43,15 +43,59 @@ _STRUCT_ICONS = {
 _CAT_BADGE_CLASSES = {
     'noble': 'bg-amber-900/50 text-amber-400',
     'military': 'bg-red-900/50 text-red-400',
+    'justice': 'bg-purple-900/50 text-purple-400',
+    'medical': 'bg-emerald-900/50 text-emerald-400',
     'admin': 'bg-blue-900/50 text-blue-400',
     'other': 'bg-stone-800 text-stone-400',
 }
 templates.env.globals['struct_icon'] = lambda t: _STRUCT_ICONS.get((t or '').lower(), '\U0001f3e0')
 templates.env.globals['cat_badge_class'] = lambda c: _CAT_BADGE_CLASSES.get(c, _CAT_BADGE_CLASSES['other'])
+templates.env.filters['clean_race'] = lambda r: _clean_race(r) if r else '?'
 
 # Shared instances
 _linker = EntityLinkRenderer()
 _name_cache = EntityNameCache()
+
+# ── KH visibility gate ──────────────────────────────────────────────
+
+# Entity type mapping: route entity type → KH entity_type
+_KH_ENTITY_MAP = {
+    'hf': 'hf', 'entity': 'entity', 'site': 'site',
+    'region': 'region', 'artifact': 'artifact',
+}
+
+_KH_GATE_HTML = """
+<div class="flex flex-col items-center justify-center py-16 text-center">
+  <div class="text-stone-600 text-4xl mb-4">&#x1F32B;</div>
+  <h2 class="text-lg text-stone-400 mb-2">Beyond the Fortress's Knowledge</h2>
+  <p class="text-stone-500 text-sm max-w-md">
+    The dwarves of your fortress have no knowledge of this {entity_label}.
+    Disable the Knowledge Horizon toggle to view in omniscient mode.
+  </p>
+</div>
+"""
+
+_ENTITY_LABELS = {
+    'hf': 'historical figure', 'entity': 'civilization',
+    'site': 'site', 'region': 'region', 'artifact': 'artifact',
+}
+
+
+async def _kh_gate_check(
+    conn, world_id: int, entity_type: str, entity_id: int, kh: bool,
+) -> str | None:
+    """Return gate HTML if KH is enabled and entity is NOT visible. None otherwise."""
+    if not kh:
+        return None
+    visible = await conn.fetchval(
+        "SELECT visible FROM knowledge_horizon "
+        "WHERE world_id = $1 AND entity_type = $2 AND entity_id = $3",
+        world_id, _KH_ENTITY_MAP.get(entity_type, entity_type), entity_id,
+    )
+    if visible:
+        return None
+    label = _ENTITY_LABELS.get(entity_type, 'entity')
+    return _KH_GATE_HTML.format(entity_label=label)
 
 # Edge colors for relationship graphs (matches Graph tab styling in explorer.py)
 _GRAPH_EDGE_COLORS = {
@@ -91,6 +135,22 @@ _NODE_TYPE_RULES = [
     ('is_werebeast', 'werebeast', '#92400e'),
     ('is_ghost', 'ghost', '#9ca3af'),
 ]
+
+
+def _clean_race(race: str | None) -> str:
+    """Clean raw race tokens for display. Resolves HFEXP experiment races."""
+    if not race:
+        return "Unknown"
+    if race.startswith("HFEXP"):
+        _MAP = {"E_HUM": "Human", "E_ELF": "Elf", "E_DWF": "Dwarf",
+                "E_GOB": "Goblin", "E_KOB": "Kobold"}
+        parts = race.split()
+        if len(parts) > 1:
+            base = parts[-1].rstrip("0123456789")
+            if base in _MAP:
+                return _MAP[base]
+        return "Experiment"
+    return race.replace("_", " ").title()
 
 
 def _build_hf_node(gid: int, hf_map: dict, center_id: int) -> dict:
@@ -667,11 +727,16 @@ async def _get_world_info(conn, world_id: int) -> dict:
 @router.get("/explorer/hf/{hf_id}", response_class=HTMLResponse)
 async def hf_detail_page(hf_id: int, request: Request,
                          world_id: int = Query(None),
-                         partial: str = Query(None)):
+                         partial: str = Query(None),
+                         kh: bool = Query(False)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
+
+        gate = await _kh_gate_check(conn, world_id, 'hf', hf_id, kh)
+        if gate:
+            return HTMLResponse(gate)
 
         hf = await conn.fetchrow(
             "SELECT * FROM historical_figures WHERE world_id = $1 AND id = $2",
@@ -1074,6 +1139,18 @@ async def hf_detail_page(hf_id: int, request: Request,
             conn, world_id, hf_id, relationships, co_parents,
             entity_links=entity_links, site_links=site_links)
 
+        # Check if this HF is a live fortress unit
+        live_unit = await conn.fetchrow(
+            """
+            SELECT id, name, profession, details
+            FROM units
+            WHERE world_id = $1 AND hist_fig_id = $2 AND is_alive = true
+            LIMIT 1
+            """,
+            world_id, hf_id,
+        )
+        live_unit_id = live_unit["id"] if live_unit else None
+
     # Build type flags
     type_flags = []
     for flag, label in [
@@ -1148,6 +1225,7 @@ async def hf_detail_page(hf_id: int, request: Request,
         "graph_data_pedigree": graph_data_pedigree,
         "graph_data_career": graph_data_career,
         "graph_data_full": graph_data_full,
+        "live_unit_id": live_unit_id,
     })
 
 
@@ -1231,11 +1309,16 @@ async def hf_graph_data(hf_id: int, request: Request,
 
 @router.get("/explorer/entity/{entity_id}", response_class=HTMLResponse)
 async def entity_detail_page(entity_id: int, request: Request,
-                             world_id: int = Query(None)):
+                             world_id: int = Query(None),
+                             kh: bool = Query(False)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
+
+        gate = await _kh_gate_check(conn, world_id, 'entity', entity_id, kh)
+        if gate:
+            return HTMLResponse(gate)
 
         entity = await conn.fetchrow(
             "SELECT * FROM entities WHERE world_id = $1 AND id = $2",
@@ -1263,10 +1346,17 @@ async def entity_detail_page(entity_id: int, request: Request,
                 SENTIENCE_FILTER as _SF, SENTIENCE_JOIN as _SJ,
             )
             existing_hf_ids = {m["hf_id"] for m in members_data["members"]}
-            # Find sites owned by this SG
+            # Find sites governed by this SG (owner_entity_id OR entity_site_links)
             sg_site_ids = [
                 r["id"] for r in await conn.fetch(
-                    "SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = $2",
+                    """SELECT DISTINCT s.id FROM sites s
+                       LEFT JOIN entity_site_links esl
+                         ON esl.world_id = s.world_id AND esl.site_id = s.id
+                            AND esl.entity_id = $2
+                       WHERE s.world_id = $1
+                         AND (s.owner_entity_id = $2
+                              OR esl.link_type IN ('governs', 'founded', 'owner'))
+                    """,
                     world_id, entity_id,
                 )
             ]
@@ -1476,6 +1566,7 @@ async def entity_detail_page(entity_id: int, request: Request,
             LEFT JOIN entity_positions ep ON ep.world_id = p.world_id
                   AND ep.entity_id = p.entity_id AND ep.position_id = p.position_id
             WHERE p.world_id = $1 AND p.entity_id = $2
+              AND ep.name IS NOT NULL  -- exclude orphaned position IDs
               AND NOT (p.start_year IS NULL AND EXISTS (
                   SELECT 1 FROM hf_position_links p2
                   WHERE p2.world_id = p.world_id AND p2.hf_id = p.hf_id
@@ -1484,6 +1575,20 @@ async def entity_detail_page(entity_id: int, request: Request,
               ))
             ORDER BY ep.name ASC NULLS LAST, p.end_year DESC NULLS FIRST
         """, world_id, entity_id)
+
+        # Parent civilization (for site governments)
+        parent_civ = None
+        if is_site_government:
+            parent_row = await conn.fetchrow("""
+                SELECT e.id, e.name, e.type FROM entity_entity_links eel
+                JOIN entities e ON e.world_id = eel.world_id
+                    AND e.id = eel.target_entity_id
+                WHERE eel.world_id = $1 AND eel.source_entity_id = $2
+                  AND eel.link_type = 'PARENT'
+                LIMIT 1
+            """, world_id, entity_id)
+            if parent_row:
+                parent_civ = dict(parent_row)
 
         # Prev/Next
         prev_ent = await conn.fetchrow("""
@@ -1500,10 +1605,16 @@ async def entity_detail_page(entity_id: int, request: Request,
     etype = (entity.get('type') or '').lower()
     if 'civilization' in etype:
         badge_class = 'badge-civ'
+        entity_type_label = 'Civilization'
+    elif etype == 'sitegovernment':
+        badge_class = 'badge-type'
+        entity_type_label = 'Site Government'
     elif 'religion' in etype:
         badge_class = 'badge-religion'
+        entity_type_label = 'Religion'
     else:
         badge_class = 'badge-type'
+        entity_type_label = (entity.get('type') or 'Entity').replace('_', ' ').title()
 
     # Extract rich data from civ_data (may be sparse for non-civilizations)
     ruler = civ_data.get("ruler") if civ_data else None
@@ -1515,6 +1626,29 @@ async def entity_detail_page(entity_id: int, request: Request,
     site_govts = civ_data.get("site_govts", []) if civ_data else []
     civ_positions = civ_data.get("positions", []) if civ_data else []
     wars = civ_data.get("wars", []) if civ_data else []
+
+    # Bug fix: For SGs, use actual member count instead of site citizen count
+    if is_site_government:
+        citizens = civ_data.get("current_members", 0) if civ_data else 0
+
+    # Bug fix: For SGs, if no civ-level ruler (position_id 0), fall back to
+    # top administrative position holder (mayor > expedition leader > manager)
+    if not ruler and is_site_government and civ_positions:
+        _SG_RULER_PRIORITY = [
+            'mayor', 'expedition leader', 'manager', 'chief medical dwarf',
+            'militia commander', 'sheriff', 'captain of the guard',
+        ]
+        for pname in _SG_RULER_PRIORITY:
+            for p in civ_positions:
+                if (p.get("name") or '').lower() == pname and p.get("current_holder"):
+                    ruler = {
+                        "hf_id": p["current_holder"]["hf_id"],
+                        "name": p["current_holder"]["name"],
+                        "title": p.get("title") or p["name"],
+                    }
+                    break
+            if ruler:
+                break
 
     members = members_data.get("members", [])
     member_total = members_data.get("total", 0)
@@ -1536,7 +1670,10 @@ async def entity_detail_page(entity_id: int, request: Request,
         "world": world,
         "world_id": world_id,
         "badge_class": badge_class,
-        "leaders": [dict(l) for l in leaders],
+        "leaders": [
+            {**dict(l), "hf_race": _clean_race(l["hf_race"])}
+            for l in leaders
+        ],
         "ruler": ruler,
         "citizens": citizens,
         "df_population": df_population,
@@ -1550,6 +1687,9 @@ async def entity_detail_page(entity_id: int, request: Request,
         "member_counts": member_counts,
         "wars": wars,
         "sg_neerdowells": sg_neerdowells,
+        "entity_type_label": entity_type_label,
+        "parent_civ": parent_civ if is_site_government else None,
+        "is_site_government": is_site_government,
         "prev_entity": dict(prev_ent) if prev_ent else None,
         "next_entity": dict(next_ent) if next_ent else None,
         "linker": _linker,
@@ -1561,11 +1701,16 @@ async def entity_detail_page(entity_id: int, request: Request,
 
 @router.get("/explorer/site/{site_id}", response_class=HTMLResponse)
 async def site_detail_page(site_id: int, request: Request,
-                           world_id: int = Query(None)):
+                           world_id: int = Query(None),
+                           kh: bool = Query(False)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
+
+        gate = await _kh_gate_check(conn, world_id, 'site', site_id, kh)
+        if gate:
+            return HTMLResponse(gate)
 
         site = await conn.fetchrow(
             "SELECT * FROM sites WHERE world_id = $1 AND id = $2",
@@ -1578,26 +1723,98 @@ async def site_detail_page(site_id: int, request: Request,
         world = await _get_world_info(conn, world_id)
 
         # Structures (join entity for affiliation, HF for deity)
-        structures = await conn.fetch("""
+        structures_raw = await conn.fetch("""
             SELECT s.id, s.name, s.type, s.entity_id, s.details,
                    e.name AS entity_name, e.type AS entity_type,
-                   hf.name AS deity_name
+                   hf.name AS deity_name,
+                   hf.id AS deity_hf_id
             FROM structures s
             LEFT JOIN entities e ON e.world_id = s.world_id AND e.id = s.entity_id
             LEFT JOIN historical_figures hf
                 ON hf.world_id = s.world_id
-                AND hf.id = (s.details->>'deity_hf_id')::int
+                AND hf.id = COALESCE(
+                    (s.details->>'deity_hf_id')::int,
+                    (SELECT e2.worship_id FROM entities e2
+                     WHERE e2.world_id = s.world_id AND e2.id = s.entity_id
+                       AND e2.worship_id IS NOT NULL)
+                )
             WHERE s.world_id = $1 AND s.site_id = $2
             ORDER BY s.type, s.name
         """, world_id, site_id)
 
-        # Owner entity
+        # Enrich structures with attendants (living HFs at this site
+        # who are listed as structure inhabitants in the legends XML)
+        all_inhabitant_ids = set()
+        for s in structures_raw:
+            details = s['details'] or {}
+            if isinstance(details, dict):
+                for hf_id in details.get('inhabitants', []):
+                    all_inhabitant_ids.add(hf_id)
+
+        # Filter: alive + residing at this site (site link OR whereabouts)
+        attendant_map = {}  # hf_id -> {id, name}
+        if all_inhabitant_ids:
+            attendant_rows = await conn.fetch("""
+                SELECT DISTINCT hf.id, hf.name
+                FROM historical_figures hf
+                WHERE hf.world_id = $1
+                  AND hf.id = ANY($2)
+                  AND hf.death_year IS NULL
+                  AND (
+                    -- Has a current site link to this site
+                    EXISTS (
+                        SELECT 1 FROM hf_site_links hsl
+                        WHERE hsl.world_id = $1 AND hsl.hf_id = hf.id
+                          AND hsl.site_id = $3
+                          AND hsl.link_type NOT IN ('former resident')
+                    )
+                    -- OR whereabouts places them at this site
+                    OR (hf.whereabouts->>'site_id')::int = $3
+                  )
+            """, world_id, list(all_inhabitant_ids), site_id)
+            attendant_map = {r['id']: r['name'] for r in attendant_rows}
+
+        structures = []
+        for s in structures_raw:
+            d = dict(s)
+            details = d.get('details') or {}
+            if isinstance(details, dict):
+                d['name2'] = details.get('name2')
+                raw_ids = details.get('inhabitants', [])
+                d['attendants'] = [
+                    {'id': hf_id, 'name': attendant_map[hf_id]}
+                    for hf_id in raw_ids
+                    if hf_id in attendant_map
+                ]
+                d['attendant_count'] = len(d['attendants'])
+                d['total_listed'] = len(raw_ids)
+            else:
+                d['name2'] = None
+                d['attendants'] = []
+                d['attendant_count'] = 0
+                d['total_listed'] = 0
+            structures.append(d)
+
+        # Owner entity (civilization) and governing SG
         owner = None
         if site.get('owner_entity_id'):
             owner = await conn.fetchrow(
                 "SELECT id, name, type FROM entities WHERE world_id = $1 AND id = $2",
                 world_id, site['owner_entity_id'],
             )
+        # Find the site government (SG) that governs this site
+        site_government = await conn.fetchrow("""
+            SELECT e.id, e.name, e.type FROM entity_site_links esl
+            JOIN entities e ON e.world_id = esl.world_id AND e.id = esl.entity_id
+            WHERE esl.world_id = $1 AND esl.site_id = $2
+              AND esl.link_type IN ('governs', 'owner')
+              AND e.type = 'sitegovernment'
+            LIMIT 1
+        """, world_id, site_id)
+        if not site_government:
+            # Fallback: check if owner_entity_id itself is a site government
+            if owner and dict(owner).get('type') == 'sitegovernment':
+                site_government = owner
 
         # Ownership timeline from JSONB history
         ownership_timeline = []
@@ -1670,6 +1887,11 @@ async def site_detail_page(site_id: int, request: Request,
             SENTIENCE_FILTER, SENTIENCE_JOIN, fetch_site_residents_count,
         )
         owner_entity_id = site.get('owner_entity_id')
+        # Use the site government entity for SG membership / position checks,
+        # NOT the civilization. The civ owns many sites — its position holders
+        # (barons, counts etc.) are spread across sites and should only appear
+        # at *their* site, not every site the civ owns.
+        sg_id = dict(site_government)['id'] if site_government else None
         residents_raw = await conn.fetch(f"""
             SELECT * FROM (
                 SELECT DISTINCT ON (sub.hf_id)
@@ -1716,19 +1938,23 @@ async def site_detail_page(site_id: int, request: Request,
                     FROM hf_site_links hsl
                     WHERE hsl.world_id = $1 AND hsl.site_id = $2
                     UNION ALL
-                    -- Source 2: SG members (citizens via entity membership)
+                    -- Source 2: SG members (citizens via SG entity membership)
                     SELECT hel.hf_id, 'sg_member' AS link_type, 5 AS priority
-                    FROM entities sg
-                    JOIN hf_entity_links hel ON hel.world_id = sg.world_id
-                        AND hel.entity_id = sg.id AND hel.link_type = 'member'
-                    WHERE sg.world_id = $1 AND sg.id = COALESCE($3, -1)
-                        AND sg.type = 'sitegovernment'
+                    FROM hf_entity_links hel
+                    WHERE hel.world_id = $1
+                        AND hel.entity_id = COALESCE($4, -1)
+                        AND hel.link_type = 'member'
                     UNION ALL
-                    -- Source 3: position holders at governing entity
+                    -- Source 3: position holders at site government (valid positions only)
                     SELECT hpl.hf_id, 'position_holder' AS link_type, 0 AS priority
                     FROM hf_position_links hpl
-                    WHERE hpl.world_id = $1 AND hpl.entity_id = COALESCE($3, -1)
+                    WHERE hpl.world_id = $1 AND hpl.entity_id = COALESCE($4, -1)
                         AND hpl.end_year IS NULL
+                        AND EXISTS (
+                            SELECT 1 FROM entity_positions ep
+                            WHERE ep.world_id = $1 AND ep.entity_id = hpl.entity_id
+                              AND ep.position_id = hpl.position_id
+                        )
                     UNION ALL
                     -- Source 4: physical presence via whereabouts
                     SELECT hfw.id AS hf_id, 'whereabouts' AS link_type, 6 AS priority
@@ -1752,14 +1978,14 @@ async def site_detail_page(site_id: int, request: Request,
                     SELECT hel.link_type AS member_status
                     FROM hf_entity_links hel
                     WHERE hel.world_id = $1 AND hel.hf_id = sub.hf_id
-                      AND hel.entity_id = COALESCE($3, -1)
+                      AND hel.entity_id = COALESCE($4, -1)
                     ORDER BY CASE hel.link_type WHEN 'member' THEN 0 ELSE 1 END
                     LIMIT 1
                 ) mem ON true
                 ORDER BY sub.hf_id, sub.priority, sub.link_type
             ) deduped
             ORDER BY link_type, name
-        """, world_id, site_id, owner_entity_id)
+        """, world_id, site_id, owner_entity_id, sg_id)
         # Batch-fetch profession data (jobs, entity types, events)
         res_hf_ids = [r["hf_id"] for r in residents_raw]
         res_prof_data = await batch_fetch_profession_data(conn, world_id, res_hf_ids)
@@ -1771,6 +1997,7 @@ async def site_detail_page(site_id: int, request: Request,
             d = dict(r)
             d["profession"] = derive_profession(d, res_prof_data.get(d["hf_id"]))
             d["position_display"] = derive_position(res_positions.get(d["hf_id"]), viewing_entity_id=owner_entity_id)
+            d["race"] = _clean_race(d.get("race"))
             d.pop("skills", None)
             d.pop("details", None)
             residents.append(d)
@@ -1816,15 +2043,17 @@ async def site_detail_page(site_id: int, request: Request,
             if link_type == 'former resident':
                 continue
 
-            # Presence gate: if link is 'resident' (materialized from settler
-            # events), cross-check whereabouts. If whereabouts places HF at a
-            # different site, the resident link is stale — skip this HF.
-            if link_type == 'resident':
+            # Presence gate: cross-check whereabouts for links that may be stale.
+            # 'resident' links are materialized from settler events and may be
+            # outdated. 'position_holder' links are entity-wide and may place an
+            # HF at a site they've never visited. In both cases, if whereabouts
+            # places the HF at a different site, skip them here.
+            if link_type in ('resident', 'position_holder'):
                 whereabouts = r.get("whereabouts") or {}
                 if isinstance(whereabouts, dict):
                     wb_site = whereabouts.get("site_id")
                     if wb_site is not None and wb_site != site_id:
-                        continue  # HF has moved to a different site
+                        continue  # HF is physically at a different site
 
             # Priority 1: Ne'er-do-well
             ndw = neerdowell_info.get(hf_id)
@@ -1873,6 +2102,119 @@ async def site_detail_page(site_id: int, request: Request,
             r["population_type"] = "Visitor"
             visitor_count += 1
             denizens.append(r)
+
+        # ── Fortress denizens enrichment (live bridge data) ─────────────
+        # If this site is the active fortress, enrich denizens with live
+        # data from fortress_denizens and add any bridge-only entries.
+        is_active_fortress = False
+        live_denizen_count = 0
+        fortress_row = await conn.fetchrow(
+            "SELECT site_id FROM fortress_state WHERE world_id = $1 LIMIT 1",
+            world_id,
+        )
+        if fortress_row and fortress_row["site_id"] == site_id:
+            is_active_fortress = True
+            fd_rows = await conn.fetch("""
+                SELECT fd.hf_id, fd.unit_id, fd.name, fd.english_name,
+                       fd.race, fd.status AS live_status, fd.embark,
+                       fd.arrival_year, fd.arrival_tick,
+                       fd.departure_year, fd.departure_cause,
+                       fd.last_seen_tick, fd.narrative_value
+                FROM fortress_denizens fd
+                WHERE fd.world_id = $1
+            """, world_id)
+            # Build lookup by hf_id
+            fd_by_hf = {r["hf_id"]: dict(r) for r in fd_rows if r["hf_id"]}
+            fd_by_unit = {r["unit_id"]: dict(r) for r in fd_rows if r["unit_id"]}
+
+            # Enrich existing denizens that match by hf_id
+            existing_hf_ids = set()
+            for d in denizens + neerdowells:
+                hf_id = d.get("hf_id")
+                existing_hf_ids.add(hf_id)
+                fd = fd_by_hf.get(hf_id)
+                if fd:
+                    d["live_tracked"] = True
+                    d["live_status"] = fd["live_status"]
+                    d["embark"] = fd["embark"]
+                    d["arrival_year"] = fd["arrival_year"]
+                    d["unit_id"] = fd["unit_id"]
+                    d["narrative_value"] = fd["narrative_value"]
+                    live_denizen_count += 1
+
+            # Add fortress_denizens with hf_id NOT already in denizens list
+            # Skip departed/missing entries — they're no longer present
+            for fd in fd_rows:
+                if not fd["hf_id"] or fd["hf_id"] in existing_hf_ids:
+                    continue
+                # Skip denizens that have departed the fortress
+                if fd["departure_year"] is not None:
+                    continue
+                # Skip 'missing' status — unit no longer visible to bridge
+                if fd["live_status"] == "missing":
+                    continue
+                # Fetch HF record for display
+                hf = await conn.fetchrow(
+                    "SELECT * FROM historical_figures WHERE world_id = $1 AND id = $2",
+                    world_id, fd["hf_id"],
+                )
+                if not hf:
+                    continue
+                hf = dict(hf)
+                entry = {
+                    "hf_id": fd["hf_id"],
+                    "link_type": "fortress_denizen",
+                    "name": hf.get("name") or fd["name"],
+                    "race": hf.get("race") or fd["race"],
+                    "caste": hf.get("caste"),
+                    "birth_year": hf.get("birth_year"),
+                    "death_year": hf.get("death_year"),
+                    "is_vampire": hf.get("is_vampire"),
+                    "is_necromancer": hf.get("is_necromancer"),
+                    "is_werebeast": hf.get("is_werebeast"),
+                    "is_ghost": hf.get("is_ghost"),
+                    "is_deity": hf.get("is_deity"),
+                    "is_force": hf.get("is_force"),
+                    "whereabouts": hf.get("whereabouts"),
+                    "position_name": None,
+                    "member_status": None,
+                    "is_citizen": False,
+                    "citizen_reason": "live bridge",
+                    "resident_reason": "live bridge",
+                    "profession": "",
+                    "position_display": "",
+                    # Live data
+                    "live_tracked": True,
+                    "live_status": fd["live_status"],
+                    "embark": fd["embark"],
+                    "arrival_year": fd["arrival_year"],
+                    "unit_id": fd["unit_id"],
+                    "narrative_value": fd["narrative_value"],
+                }
+                existing_hf_ids.add(fd["hf_id"])
+                # Classify: if live_status is resident → Resident
+                if fd["live_status"] in ("resident", "visitor"):
+                    entry["population_type"] = "Resident"
+                    resident_count += 1
+                else:
+                    entry["population_type"] = "Visitor"
+                    visitor_count += 1
+                denizens.append(entry)
+                live_denizen_count += 1
+
+            # Enrich bridge-added entries with position data
+            bridge_hf_ids = [d["hf_id"] for d in denizens
+                             if d.get("link_type") == "fortress_denizen"
+                             and not d.get("position_display")]
+            if bridge_hf_ids:
+                bridge_positions = await batch_fetch_positions(
+                    conn, world_id, bridge_hf_ids,
+                    viewing_entity_id=owner_entity_id)
+                for d in denizens:
+                    if d.get("link_type") == "fortress_denizen" and d["hf_id"] in bridge_positions:
+                        d["position_display"] = derive_position(
+                            bridge_positions[d["hf_id"]],
+                            viewing_entity_id=owner_entity_id) or ""
 
         # Residents: living sentient HFs at this site
         residents_count = await fetch_site_residents_count(conn, world_id, site_id)
@@ -1931,6 +2273,7 @@ async def site_detail_page(site_id: int, request: Request,
         "is_ruin": is_ruin,
         "structures": [dict(s) for s in structures],
         "owner": dict(owner) if owner else None,
+        "site_government": dict(site_government) if site_government else None,
         "ownership_timeline": ownership_timeline,
         "denizens": denizens,
         "neerdowells": neerdowells,
@@ -1949,6 +2292,8 @@ async def site_detail_page(site_id: int, request: Request,
         "next_site": dict(next_site) if next_site else None,
         "linker": _linker,
         "calendar": DFCalendar,
+        "is_active_fortress": is_active_fortress,
+        "live_denizen_count": live_denizen_count,
     })
 
 
@@ -1956,11 +2301,16 @@ async def site_detail_page(site_id: int, request: Request,
 
 @router.get("/explorer/artifact/{artifact_id}", response_class=HTMLResponse)
 async def artifact_detail_page(artifact_id: int, request: Request,
-                               world_id: int = Query(None)):
+                               world_id: int = Query(None),
+                               kh: bool = Query(False)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
+
+        gate = await _kh_gate_check(conn, world_id, 'artifact', artifact_id, kh)
+        if gate:
+            return HTMLResponse(gate)
 
         artifact = await conn.fetchrow(
             "SELECT * FROM artifacts WHERE world_id = $1 AND id = $2",
@@ -2082,11 +2432,16 @@ async def artifact_detail_page(artifact_id: int, request: Request,
 
 @router.get("/explorer/region/{region_id}", response_class=HTMLResponse)
 async def region_detail_page(region_id: int, request: Request,
-                             world_id: int = Query(None)):
+                             world_id: int = Query(None),
+                             kh: bool = Query(False)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
+
+        gate = await _kh_gate_check(conn, world_id, 'region', region_id, kh)
+        if gate:
+            return HTMLResponse(gate)
 
         region = await conn.fetchrow(
             "SELECT * FROM regions WHERE world_id = $1 AND id = $2",
@@ -2237,15 +2592,12 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
         religion_entity_id = details.get('religion_entity_id') or structure.get('entity_id')
         if religion_entity_id:
             religion_entity = await conn.fetchrow(
-                "SELECT id, name, type, details FROM entities WHERE world_id = $1 AND id = $2",
+                "SELECT id, name, type, worship_id, details FROM entities WHERE world_id = $1 AND id = $2",
                 world_id, int(religion_entity_id),
             )
             if religion_entity and not deity_hf_id:
-                re_details = religion_entity['details'] or {}
-                if isinstance(re_details, str):
-                    import json as _json
-                    re_details = _json.loads(re_details)
-                deity_hf_id = re_details.get('histfig_id') or re_details.get('worship_hfid')
+                # worship_id column is the actual deity; histfig_id in details is just a member
+                deity_hf_id = religion_entity['worship_id']
 
         if deity_hf_id:
             deity = await conn.fetchrow(
@@ -2326,6 +2678,231 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
                 'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
             })
 
+        # Attendants: living HFs at this site who are listed as structure inhabitants
+        attendants = []
+        raw_inhabitant_ids = details.get('inhabitants', []) if isinstance(details, dict) else []
+        total_listed = len(raw_inhabitant_ids)
+        if raw_inhabitant_ids:
+            attendant_rows = await conn.fetch("""
+                SELECT DISTINCT hf.id, hf.name, hf.race, hf.caste, hf.associated_type
+                FROM historical_figures hf
+                WHERE hf.world_id = $1
+                  AND hf.id = ANY($2)
+                  AND hf.death_year IS NULL
+                  AND (
+                    EXISTS (
+                        SELECT 1 FROM hf_site_links hsl
+                        WHERE hsl.world_id = $1 AND hsl.hf_id = hf.id
+                          AND hsl.site_id = $3
+                          AND hsl.link_type NOT IN ('former resident')
+                    )
+                    OR (hf.whereabouts->>'site_id')::int = $3
+                  )
+                ORDER BY hf.name
+            """, world_id, raw_inhabitant_ids, site_id)
+            attendants = [dict(r) for r in attendant_rows]
+
+            att_ids = [a['id'] for a in attendants]
+
+            # Most recent event at this site for each attendant (full row for rendering)
+            latest_events = await conn.fetch("""
+                SELECT DISTINCT ON (hf_id) hf_id,
+                       id, year, seconds, event_type, details,
+                       hf_id_1, hf_id_2, site_id, region_id,
+                       entity_id_1, entity_id_2, artifact_id, structure_id
+                FROM (
+                    SELECT hf_id_1 AS hf_id, id, year, seconds, event_type, details,
+                           hf_id_1, hf_id_2, site_id, region_id,
+                           entity_id_1, entity_id_2, artifact_id, structure_id
+                    FROM history_events
+                    WHERE world_id = $1 AND site_id = $2
+                      AND hf_id_1 = ANY($3)
+                    UNION ALL
+                    SELECT hf_id_2 AS hf_id, id, year, seconds, event_type, details,
+                           hf_id_1, hf_id_2, site_id, region_id,
+                           entity_id_1, entity_id_2, artifact_id, structure_id
+                    FROM history_events
+                    WHERE world_id = $1 AND site_id = $2
+                      AND hf_id_2 = ANY($3)
+                ) sub
+                ORDER BY hf_id, year DESC, seconds DESC
+            """, world_id, site_id, att_ids)
+
+            # Resolve entity names for rendering event text
+            ev_refs = set()
+            for ev in latest_events:
+                merged = merge_columns_into_details(dict(ev))
+                from chronicler.explorer.perspective import ENTITY_REF_FIELDS
+                for field, etype in ENTITY_REF_FIELDS.items():
+                    val = merged.get(field)
+                    if val is not None:
+                        ev_refs.add((etype, int(val)))
+            ev_name_map = await _name_cache.batch_resolve(
+                conn, world_id, list(ev_refs)
+            )
+
+            # Render event text from each HF's perspective, then abbreviate
+            import re as _re
+            att_caste = {a['id']: a.get('caste') for a in attendants}
+            _site_name = dict(parent_site)['name'] if parent_site else ''
+            event_map = {}
+            for ev in latest_events:
+                ev_dict = dict(ev)
+                hf_id = ev_dict.pop('hf_id')
+                # Render from the HF's perspective so their name becomes a pronoun
+                hf_renderer = PerspectiveRenderer(
+                    _linker, world_id,
+                    perspective_caste=att_caste.get(hf_id),
+                )
+                raw_text = hf_renderer.render_event(
+                    ev_dict, 'hf', hf_id, ev_name_map
+                )
+                # Strip HTML tags for plain-text abbreviation
+                plain = _re.sub(r'<[^>]+>', '', raw_text)
+                # Remove leading pronoun (he/she/they/it + space)
+                plain = _re.sub(
+                    r'^(he|she|they|it|his|her|their|its)\s+',
+                    '', plain, flags=_re.IGNORECASE,
+                )
+                # Remove trailing " at/in <site_name>" or " at here"
+                if _site_name:
+                    plain = _re.sub(
+                        r'\s+(at|in)\s+(' + _re.escape(_site_name) + r'|here)\.?$',
+                        '', plain, flags=_re.IGNORECASE,
+                    )
+                else:
+                    plain = _re.sub(
+                        r'\s+(at|in)\s+here\.?$',
+                        '', plain, flags=_re.IGNORECASE,
+                    )
+                event_map[hf_id] = {
+                    'year': ev_dict['year'],
+                    'seconds': ev_dict['seconds'],
+                    'event_type': ev_dict['event_type'],
+                    'text': plain.strip(),
+                }
+
+            # ── Position cascade (5-tier waterfall) ──
+            # T1: Formal named position (hf_position_links, end_year IS NULL)
+            att_positions = await conn.fetch("""
+                SELECT pl.hf_id,
+                       COALESCE(ep.name, 'Position ' || pl.position_id) AS position_name,
+                       e.name AS entity_name,
+                       CASE WHEN ep.name IS NOT NULL THEN 0 ELSE 1 END AS name_rank
+                FROM hf_position_links pl
+                JOIN entities e ON e.world_id = pl.world_id AND e.id = pl.entity_id
+                LEFT JOIN entity_positions ep
+                    ON ep.world_id = pl.world_id
+                    AND ep.entity_id = pl.entity_id
+                    AND ep.position_id = pl.position_id
+                WHERE pl.world_id = $1
+                  AND pl.hf_id = ANY($2)
+                  AND pl.end_year IS NULL
+                ORDER BY pl.hf_id,
+                         CASE WHEN ep.name IS NOT NULL THEN 0 ELSE 1 END,
+                         pl.start_year DESC NULLS LAST
+            """, world_id, att_ids)
+            pos_t1 = {}
+            for r in att_positions:
+                if r['hf_id'] not in pos_t1:
+                    pos_t1[r['hf_id']] = {
+                        'position_name': r['position_name'],
+                        'position_entity': r['entity_name'],
+                        'position_tier': 'position',
+                    }
+
+            # T2: Most recent scholarly job (change hf job event)
+            latest_jobs = await conn.fetch("""
+                SELECT DISTINCT ON (hf_id_1) hf_id_1 AS hf_id,
+                       details->>'new_job' AS new_job, year
+                FROM history_events
+                WHERE world_id = $1
+                  AND event_type = 'change hf job'
+                  AND hf_id_1 = ANY($2)
+                  AND details->>'new_job' IS NOT NULL
+                  AND details->>'new_job' != 'standard'
+                ORDER BY hf_id_1, year DESC
+            """, world_id, att_ids)
+            job_map = {r['hf_id']: r for r in latest_jobs}
+
+            # T3: SG position — find site government entity
+            sg_entity = await conn.fetchrow("""
+                SELECT e.id, e.name FROM entity_site_links esl
+                JOIN entities e ON e.world_id = esl.world_id
+                    AND e.id = esl.entity_id
+                WHERE esl.world_id = $1 AND esl.site_id = $2
+                  AND esl.link_type IN ('governs', 'owner')
+                  AND e.type = 'sitegovernment'
+                LIMIT 1
+            """, world_id, site_id)
+            sg_positions = {}
+            if sg_entity:
+                sg_pos_rows = await conn.fetch("""
+                    SELECT pl.hf_id,
+                           COALESCE(ep.name, 'Position ' || pl.position_id)
+                               AS position_name
+                    FROM hf_position_links pl
+                    LEFT JOIN entity_positions ep
+                        ON ep.world_id = pl.world_id
+                        AND ep.entity_id = pl.entity_id
+                        AND ep.position_id = pl.position_id
+                    WHERE pl.world_id = $1
+                      AND pl.entity_id = $2
+                      AND pl.hf_id = ANY($3)
+                      AND pl.end_year IS NULL
+                    ORDER BY pl.hf_id,
+                             CASE WHEN ep.name IS NOT NULL THEN 0
+                                  ELSE 1 END,
+                             pl.start_year DESC NULLS LAST
+                """, world_id, sg_entity['id'], att_ids)
+                for r in sg_pos_rows:
+                    if r['hf_id'] not in sg_positions:
+                        sg_positions[r['hf_id']] = r['position_name']
+
+            # Assemble: cascade T1 → T2 → T3 → T4 (occupation link) → T5 (associated_type)
+            for a in attendants:
+                ev = event_map.get(a['id'])
+                if ev:
+                    a['last_event_type'] = ev['event_type']
+                    a['last_event_date'] = DFCalendar.format_short(
+                        ev['year'], ev['seconds']
+                    )
+                    a['last_event_text'] = ev['text']
+                    a['last_event_sort'] = (
+                        ev['year'] * 1000000 + (ev['seconds'] or 0)
+                    )
+
+                # T1: Formal position
+                t1 = pos_t1.get(a['id'])
+                if t1:
+                    a['position_name'] = t1['position_name']
+                    a['position_entity'] = t1['position_entity']
+                    a['position_tier'] = 'position'
+                    continue
+
+                # T2: Scholarly job from change_hf_job event
+                t2 = job_map.get(a['id'])
+                if t2 and t2['new_job']:
+                    a['position_name'] = t2['new_job'].replace('_', ' ')
+                    a['position_entity'] = None
+                    a['position_tier'] = 'job'
+                    continue
+
+                # T3: SG position
+                t3 = sg_positions.get(a['id'])
+                if t3:
+                    a['position_name'] = t3
+                    a['position_entity'] = sg_entity['name'] if sg_entity else None
+                    a['position_tier'] = 'sg'
+                    continue
+
+                # T4: associated_type (base DF profession)
+                at = a.get('associated_type')
+                if at and at.lower() != 'standard':
+                    a['position_name'] = at.replace('_', ' ')
+                    a['position_entity'] = None
+                    a['position_tier'] = 'profession'
+
     # Structure type badge class
     stype = (structure.get('type') or '').lower()
     STRUCTURE_BADGE_MAP = {
@@ -2349,6 +2926,11 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
             'start_year': ph['start_year'], 'end_year': ph['end_year'],
         })
 
+    # Avoid redundant Owner/Sect when they point to the same entity
+    show_religion = religion_entity and (
+        not owner_entity or religion_entity['id'] != owner_entity['id']
+    )
+
     return templates.TemplateResponse("structure_detail.html", {
         "request": request,
         "active": "explorer",
@@ -2362,12 +2944,14 @@ async def structure_detail_page(site_id: int, structure_id: int, request: Reques
         "parent_site": dict(parent_site) if parent_site else None,
         "owner_entity": dict(owner_entity) if owner_entity else None,
         "deity": dict(deity) if deity else None,
-        "religion_entity": dict(religion_entity) if religion_entity else None,
+        "religion_entity": dict(religion_entity) if show_religion else None,
         "positions": pos_map,
         "members": [dict(m) for m in members],
         "badge_class": badge_class,
         "events": rendered_events,
         "event_count": event_count,
+        "attendants": attendants,
+        "total_listed": total_listed,
         "linker": _linker,
         "calendar": DFCalendar,
     })
@@ -3833,23 +4417,24 @@ async def years_browser_page(request: Request, world_id: int = Query(None)):
 
 # ─── Global Search API ──────────────────────────────────────────────────────
 
+# (table, name_col, id_col, alt_name_col_or_None)
 SEARCH_TABLES = {
-    'hf': ('historical_figures', 'name', 'id'),
-    'entity': ('entities', 'name', 'id'),
-    'site': ('sites', 'name', 'id'),
-    'artifact': ('artifacts', 'name', 'id'),
-    'region': ('regions', 'name', 'id'),
-    'structure': ('structures', 'name', 'id'),
-    'written_content': ('written_contents', 'title', 'id'),
-    'event_collection': ('history_event_collections', 'name', 'id'),
+    'hf': ('historical_figures', 'name', 'id', None),
+    'entity': ('entities', 'name', 'id', None),
+    'site': ('sites', 'name', 'id', None),
+    'artifact': ('artifacts', 'name', 'id', None),
+    'region': ('regions', 'name', 'id', None),
+    'structure': ('structures', 'name', 'id', None),
+    'written_content': ('written_contents', 'title', 'id', None),
+    'event_collection': ('history_event_collections', 'name', 'id', None),
     # underground_regions has no name column — excluded from search
-    'landmass': ('landmasses', 'name', 'id'),
-    'mountain_peak': ('mountain_peaks', 'name', 'id'),
-    'river': ('rivers', 'name', 'id'),
-    'world_construction': ('world_constructions', 'name', 'id'),
-    'art_form': ('art_forms', 'name', 'id'),
-    'identity': ('identities', 'name', 'id'),
-    'era': ('historical_eras', 'name', 'name'),  # no id column — use name as identifier
+    'landmass': ('landmasses', 'name', 'id', None),
+    'mountain_peak': ('mountain_peaks', 'name', 'id', None),
+    'river': ('rivers', 'name', 'id', 'name_english'),
+    'world_construction': ('world_constructions', 'name', 'id', None),
+    'art_form': ('art_forms', 'name', 'id', None),
+    'identity': ('identities', 'name', 'id', None),
+    'era': ('historical_eras', 'name', 'name', None),  # no id column — use name as identifier
 }
 
 ENTITY_TYPE_PRIORITY = {
@@ -3887,17 +4472,40 @@ ENTITY_TYPE_URL = {
 }
 
 
+# KH view mapping: base table -> visible view (for KH-filtered search)
+_KH_VIEW_MAP = {
+    'historical_figures': 'visible_historical_figures',
+    'entities': 'visible_entities',
+    'sites': 'visible_sites',
+    'regions': 'visible_regions',
+    'artifacts': 'visible_artifacts',
+}
+
+
 @router.get("/api/search")
 async def global_search(request: Request, term: str = Query(..., min_length=2),
                          world_id: int = Query(None),
                          types: str = Query(None),
-                         limit: int = Query(50, ge=1, le=200)):
-    """Global search across all entity types with accent-insensitive matching."""
+                         limit: int = Query(50, ge=1, le=200),
+                         kh: bool = Query(False),
+                         semantic: bool = Query(False)):
+    """Global search across all entity types with accent-insensitive matching.
+
+    When kh=true, results are filtered through the Knowledge Horizon views,
+    showing only entities the fortress plausibly knows about.
+    When semantic=true, uses hybrid vector+keyword search via pgvector embeddings.
+    """
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         if not world_id:
             world_id = await _get_default_world_id(conn)
 
+    # ── Semantic search path ──────────────────────────────────────────
+    if semantic:
+        return await _semantic_search(pool, world_id, term, limit)
+
+    # ── Text search path (existing) ──────────────────────────────────
+    async with pool.acquire() as conn:
         search_types = types.split(',') if types else list(SEARCH_TABLES.keys())
         pattern = f"%{term}%"
         results = []
@@ -3905,17 +4513,39 @@ async def global_search(request: Request, term: str = Query(..., min_length=2),
         for entity_type in search_types:
             if entity_type not in SEARCH_TABLES:
                 continue
-            table, name_col, id_col = SEARCH_TABLES[entity_type]
+            table, name_col, id_col, alt_col = SEARCH_TABLES[entity_type]
 
-            order_clause = "name"
-            if table == 'historical_figures':
-                order_clause = "kill_count DESC NULLS LAST, name"
+            # Apply KH view mapping if enabled
+            if kh:
+                table = _KH_VIEW_MAP.get(table, table)
+
+            order_clause = f"t0.{name_col}"
+            if 'historical_figures' in table:
+                order_clause = f"t0.kill_count DESC NULLS LAST, t0.{name_col}"
+
+            # Build name match condition including alt_name column
+            name_cond = f"unaccent(COALESCE(t0.{name_col}, '')) ILIKE unaccent($2)"
+            alt_select = "NULL as alt_name"
+            if alt_col:
+                name_cond += f" OR unaccent(COALESCE(t0.{alt_col}, '')) ILIKE unaccent($2)"
+                alt_select = f"t0.{alt_col} as alt_name"
+
+            # For HFs, also search against linked unit native names
+            extra_join = ""
+            if entity_type == 'hf':
+                extra_join = (
+                    "LEFT JOIN units u_gs ON u_gs.hist_fig_id = t0.id "
+                    "AND u_gs.world_id = t0.world_id"
+                )
+                name_cond += " OR unaccent(COALESCE(u_gs.name, '')) ILIKE unaccent($2)"
+                alt_select = "u_gs.name as alt_name"
 
             rows = await conn.fetch(f"""
-                SELECT {id_col} as entity_id, {name_col} as name
-                FROM {table}
-                WHERE world_id = $1
-                  AND unaccent(COALESCE({name_col}, '')) ILIKE unaccent($2)
+                SELECT t0.{id_col} as entity_id, t0.{name_col} as name, {alt_select}
+                FROM {table} t0
+                {extra_join}
+                WHERE t0.world_id = $1
+                  AND ({name_cond})
                 ORDER BY {order_clause}
                 LIMIT $3
             """, world_id, pattern, min(limit, 20))
@@ -3926,6 +4556,7 @@ async def global_search(request: Request, term: str = Query(..., min_length=2),
                 results.append({
                     'id': eid,
                     'name': r['name'] or f"#{eid}",
+                    'alt_name': r.get('alt_name'),
                     'type': entity_type,
                     'type_display': ENTITY_TYPE_DISPLAY.get(entity_type, entity_type),
                     'url': url_template.format(id=eid) + f"?world_id={world_id}",
@@ -3940,11 +4571,83 @@ async def global_search(request: Request, term: str = Query(..., min_length=2),
         return results[:limit]
 
 
+# Entity name lookup tables for resolving hybrid search results
+_ENTITY_NAME_SQL = {
+    'hf': ('historical_figures', 'name', 'id'),
+    'entity': ('entities', 'name', 'id'),
+    'site': ('sites', 'name', 'id'),
+    'artifact': ('artifacts', 'name', 'id'),
+    'written_content': ('written_contents', 'title', 'id'),
+    'art_form': ('art_forms', 'name', 'id'),
+}
+
+
+async def _semantic_search(pool, world_id, query, limit):
+    """Hybrid vector+keyword search, resolving entity names for display."""
+    from chronicler.embedding.search import hybrid_search
+
+    try:
+        hits = await hybrid_search(pool, world_id, query, limit=limit)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Semantic search failed: %s", e)
+        return []
+
+    if not hits:
+        return []
+
+    # Batch-resolve entity names by type
+    entity_names = {}  # (type, id) → name
+    by_type = {}
+    for h in hits:
+        by_type.setdefault(h['entity_type'], set()).add(h['entity_id'])
+
+    async with pool.acquire() as conn:
+        for etype, eids in by_type.items():
+            if etype not in _ENTITY_NAME_SQL:
+                continue
+            table, name_col, id_col = _ENTITY_NAME_SQL[etype]
+            rows = await conn.fetch(f"""
+                SELECT {id_col} as eid, {name_col} as name
+                FROM {table}
+                WHERE world_id = $1 AND {id_col} = ANY($2::int[])
+            """, world_id, list(eids))
+            for r in rows:
+                entity_names[(etype, r['eid'])] = r['name']
+
+    # Build results in RRF-ranked order
+    seen = set()
+    results = []
+    for h in hits:
+        key = (h['entity_type'], h['entity_id'])
+        if key in seen:
+            continue
+        seen.add(key)
+        etype = h['entity_type']
+        eid = h['entity_id']
+        name = entity_names.get(key) or f"#{eid}"
+        url_template = ENTITY_TYPE_URL.get(etype, '')
+        if not url_template:
+            continue
+        results.append({
+            'id': eid,
+            'name': name,
+            'alt_name': None,
+            'type': etype,
+            'type_display': ENTITY_TYPE_DISPLAY.get(etype, etype),
+            'url': url_template.format(id=eid) + f"?world_id={world_id}",
+            'snippet': h.get('chunk_text', '')[:120],
+            'score': round(h.get('rrf_score', 0), 4),
+        })
+    return results[:limit]
+
+
 # ─── Popover API ────────────────────────────────────────────────────────────
 
 @router.get("/api/popover/{entity_type}/{entity_id}")
 async def entity_popover(entity_type: str, entity_id: int, request: Request,
-                          world_id: int = Query(None)):
+                          world_id: int = Query(None),
+                          site_id: int = Query(None)):
     """Mini summary for hover popovers."""
     pool = request.app.state.pool
     async with pool.acquire() as conn:
@@ -4039,25 +4742,50 @@ async def entity_popover(entity_type: str, entity_id: int, request: Request,
             }
 
         elif entity_type == 'structure':
-            row = await conn.fetchrow("""
-                SELECT st.id, st.name, st.type, st.site_id,
-                       si.name AS site_name
-                FROM structures st
-                LEFT JOIN sites si ON si.world_id = st.world_id AND si.id = st.site_id
-                WHERE st.world_id = $1 AND st.id = $2
-            """, world_id, entity_id)
+            if site_id:
+                row = await conn.fetchrow("""
+                    SELECT st.id, st.name, st.type, st.site_id, st.entity_id,
+                           st.details, si.name AS site_name,
+                           e.name AS entity_name, e.type AS entity_type,
+                           hf.name AS deity_name
+                    FROM structures st
+                    LEFT JOIN sites si ON si.world_id = st.world_id AND si.id = st.site_id
+                    LEFT JOIN entities e ON e.world_id = st.world_id AND e.id = st.entity_id
+                    LEFT JOIN historical_figures hf ON hf.world_id = st.world_id
+                        AND hf.id = (st.details->>'deity_hf_id')::int
+                    WHERE st.world_id = $1 AND st.site_id = $2 AND st.id = $3
+                """, world_id, site_id, entity_id)
+            else:
+                row = await conn.fetchrow("""
+                    SELECT st.id, st.name, st.type, st.site_id, st.entity_id,
+                           st.details, si.name AS site_name,
+                           e.name AS entity_name, e.type AS entity_type,
+                           hf.name AS deity_name
+                    FROM structures st
+                    LEFT JOIN sites si ON si.world_id = st.world_id AND si.id = st.site_id
+                    LEFT JOIN entities e ON e.world_id = st.world_id AND e.id = st.entity_id
+                    LEFT JOIN historical_figures hf ON hf.world_id = st.world_id
+                        AND hf.id = (st.details->>'deity_hf_id')::int
+                    WHERE st.world_id = $1 AND st.id = $2
+                """, world_id, entity_id)
             if not row:
                 return {"error": "not found"}
             r = dict(row)
-            return {
+            result = {
                 'type': 'structure', 'id': r['id'], 'name': r['name'],
                 'structure_type': r.get('type'), 'site': r.get('site_name'),
             }
+            if r.get('entity_name'):
+                result['affiliation'] = r['entity_name']
+                result['affiliation_type'] = r.get('entity_type')
+            if r.get('deity_name'):
+                result['deity'] = r['deity_name']
+            return result
 
         else:
             if entity_type not in SEARCH_TABLES:
                 return {"error": "unknown entity type"}
-            table, name_col, id_col = SEARCH_TABLES[entity_type]
+            table, name_col, id_col, _alt_col = SEARCH_TABLES[entity_type]
             row = await conn.fetchrow(f"""
                 SELECT {id_col} as entity_id, {name_col} as name FROM {table}
                 WHERE world_id = $1 AND {id_col} = $2
@@ -4204,3 +4932,30 @@ async def api_event_detail(event_id: int, request: Request,
         "details": dict(ev['details']) if ev['details'] else {},
         "enrichment": extract_enrichment_details(dict(ev), _linker, world_id, name_map),
     }
+
+
+# ── Knowledge Horizon Check API ────────────────────────────────────────
+
+
+@router.get("/api/kh/check/{entity_type}/{entity_id}")
+async def kh_check(entity_type: str, entity_id: int, request: Request,
+                   world_id: int = Query(1)):
+    """Check if an entity is visible within the Knowledge Horizon.
+
+    Returns {"visible": true/false, "reason": "..."}.
+    Used by the detail page fog-of-war banner.
+    """
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            SELECT visible, reason
+            FROM knowledge_horizon
+            WHERE world_id = $1 AND entity_type = $2 AND entity_id = $3
+            """,
+            world_id, entity_type, entity_id,
+        )
+        if row:
+            return {"visible": row["visible"], "reason": row["reason"]}
+        # If not in KH table at all, default to not visible
+        return {"visible": False, "reason": "Unknown to the fortress"}

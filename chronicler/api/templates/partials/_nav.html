@@ -2,17 +2,41 @@
 <nav class="border-b border-stone-800 bg-stone-950 px-6 py-2.5 flex items-center gap-8 flex-shrink-0">
   <a href="/" class="text-amber-400 font-bold text-lg tracking-wide hover:text-amber-300 transition-colors">The Chronicler</a>
   <div class="flex gap-5 text-sm">
+    <a href="/" class="{{ 'text-amber-400 font-bold' if active == 'home' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Home</a>
     <a href="/explorer" class="{{ 'text-amber-400 font-bold' if active == 'explorer' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Explorer</a>
     <a href="/monitoring" class="{{ 'text-amber-400 font-bold' if active == 'monitoring' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Monitoring</a>
+    <a href="/fortress" class="{{ 'text-amber-400 font-bold' if active == 'fortress' else 'text-stone-400 hover:text-stone-200' }} transition-colors">Fortress</a>
+    <a href="/worldgen" class="{{ 'text-amber-400 font-bold' if active == 'worldgen' else 'text-stone-400 hover:text-stone-200' }} transition-colors">World Timeline</a>
+  </div>
+
+  <!-- Knowledge Horizon Toggle -->
+  <div class="ml-auto flex items-center gap-3">
+    <label class="flex items-center gap-1.5 text-xs cursor-pointer select-none" title="Toggle Knowledge Horizon — limit view to what the fortress knows">
+      <span class="text-stone-500" id="kh-label">KH</span>
+      <div class="relative">
+        <input type="checkbox" id="kh-toggle" class="sr-only peer" onchange="toggleKH(this.checked)">
+        <div class="w-8 h-4 bg-stone-700 rounded-full peer-checked:bg-amber-600 transition-colors"></div>
+        <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-stone-400 rounded-full peer-checked:translate-x-4 peer-checked:bg-amber-200 transition-all"></div>
+      </div>
+    </label>
   </div>
 
   <!-- Global Search -->
-  <div class="ml-auto relative" id="global-search-container">
+  <div class="relative flex items-center gap-2" id="global-search-container">
     <input id="global-search-input" type="text" placeholder="Search entities..."
            class="bg-stone-900 border border-stone-700 rounded px-3 py-1 text-sm text-stone-300 w-64
                   placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
            autocomplete="off"
            oninput="debounceGlobalSearch()" onkeydown="handleGlobalSearchKey(event)">
+    <!-- Semantic Search Toggle -->
+    <label class="flex items-center gap-1 text-xs cursor-pointer select-none" title="Semantic search — find by meaning, not just name">
+      <div class="relative">
+        <input type="checkbox" id="semantic-toggle" class="sr-only peer" onchange="toggleSemantic(this.checked)">
+        <div class="w-8 h-4 bg-stone-700 rounded-full peer-checked:bg-violet-600 transition-colors"></div>
+        <div class="absolute left-0.5 top-0.5 w-3 h-3 bg-stone-400 rounded-full peer-checked:translate-x-4 peer-checked:bg-violet-200 transition-all"></div>
+      </div>
+      <span class="text-stone-500" id="semantic-label">AI</span>
+    </label>
     <div id="global-search-results"
          class="absolute top-full left-0 right-0 mt-1 bg-stone-900 border border-stone-700 rounded shadow-xl z-[100]
                 max-h-80 overflow-y-auto hidden"
@@ -31,6 +55,8 @@
   .gs-type-artifact { background: #a855f730; color: #a855f7; }
   .gs-type-region { background: #f9731630; color: #f97316; }
   .gs-type-default { background: #44403c; color: #d6d3d1; }
+  .gs-snippet { font-size: 0.65rem; color: #78716c; margin-top: 1px; line-height: 1.3; }
+  .gs-score { font-size: 0.55rem; color: #7c3aed; margin-left: auto; white-space: nowrap; }
 </style>
 
 <script>
@@ -39,9 +65,28 @@
   let gsActiveIdx = -1;
   let gsResults = [];
 
+  window._semanticEnabled = localStorage.getItem('semantic_enabled') === 'true';
+
+  window.toggleSemantic = function(enabled) {
+    window._semanticEnabled = enabled;
+    localStorage.setItem('semantic_enabled', enabled ? 'true' : 'false');
+    const label = document.getElementById('semantic-label');
+    if (label) label.className = enabled ? 'text-violet-400 font-bold' : 'text-stone-500';
+    const input = document.getElementById('global-search-input');
+    input.placeholder = enabled ? 'Semantic search (by meaning)...' : 'Search entities...';
+    // Re-run search with new mode
+    if (input.value.trim().length >= 2) doGlobalSearch();
+  };
+
+  // Initialize semantic toggle
+  (function() {
+    const t = document.getElementById('semantic-toggle');
+    if (t && window._semanticEnabled) { t.checked = true; toggleSemantic(true); }
+  })();
+
   window.debounceGlobalSearch = function() {
     clearTimeout(gsTimer);
-    gsTimer = setTimeout(doGlobalSearch, 200);
+    gsTimer = setTimeout(doGlobalSearch, window._semanticEnabled ? 500 : 200);
   };
 
   async function doGlobalSearch() {
@@ -50,8 +95,13 @@
     const term = input.value.trim();
     if (term.length < 2) { box.classList.add('hidden'); gsResults = []; return; }
 
+    const semantic = window._semanticEnabled ? '&semantic=true' : '';
     try {
-      const resp = await fetch('/api/search?term=' + encodeURIComponent(term) + '&limit=20');
+      if (window._semanticEnabled) {
+        box.innerHTML = '<div class="text-violet-400 text-xs px-3 py-3 text-center">Searching by meaning...</div>';
+        box.classList.remove('hidden');
+      }
+      const resp = await fetch('/api/search?term=' + encodeURIComponent(term) + '&limit=20' + semantic);
       if (!resp.ok) { box.classList.add('hidden'); return; }
       gsResults = await resp.json();
       gsActiveIdx = -1;
@@ -61,9 +111,14 @@
       } else {
         box.innerHTML = gsResults.map((r, i) => {
           const cls = 'gs-type-' + (['hf','entity','site','artifact','region'].includes(r.type) ? r.type : 'default');
-          return '<a href="' + r.url + '" class="gs-result" data-idx="' + i + '">'
+          const altHtml = r.alt_name ? ' <span class="text-stone-500 italic text-[10px]">' + escapeHtml(r.alt_name) + '</span>' : '';
+          const snippetHtml = r.snippet ? '<div class="gs-snippet">' + escapeHtml(r.snippet) + '</div>' : '';
+          const scoreHtml = r.score ? '<span class="gs-score">' + r.score.toFixed(3) + '</span>' : '';
+          return '<a href="' + r.url + '" class="gs-result" data-idx="' + i + '" style="flex-wrap:wrap;">'
             + '<span class="gs-type ' + cls + '">' + r.type_display + '</span>'
-            + '<span class="text-stone-300">' + escapeHtml(r.name) + '</span>'
+            + '<span class="text-stone-300">' + escapeHtml(r.name) + altHtml + '</span>'
+            + scoreHtml
+            + (snippetHtml ? '<div style="width:100%;padding-left:4px;">' + snippetHtml + '</div>' : '')
             + '</a>';
         }).join('');
       }
@@ -106,5 +161,41 @@
       document.getElementById('global-search-results').classList.add('hidden');
     }
   });
+})();
+
+// ── Knowledge Horizon Toggle ────────────────────────────────────────
+window._khEnabled = localStorage.getItem('kh_enabled') === 'true';
+
+function toggleKH(enabled) {
+  window._khEnabled = enabled;
+  localStorage.setItem('kh_enabled', enabled ? 'true' : 'false');
+  const label = document.getElementById('kh-label');
+  if (label) label.className = enabled ? 'text-amber-400 font-bold' : 'text-stone-500';
+}
+
+// Initialize toggle from stored state
+(function() {
+  const toggle = document.getElementById('kh-toggle');
+  if (toggle && window._khEnabled) {
+    toggle.checked = true;
+    toggleKH(true);
+  }
+})();
+
+// Override fetch to pass kh parameter to search and explorer calls
+(function() {
+  const origFetch = window.fetch;
+  window.fetch = function(url, ...args) {
+    if (typeof url === 'string' && window._khEnabled) {
+      // Add kh=true to search and explorer detail page fetches
+      if (url.startsWith('/api/search') || url.startsWith('/api/kh/') ||
+          url.startsWith('/api/popover/') ||
+          (url.startsWith('/explorer/') && url.includes('partial=1'))) {
+        const sep = url.includes('?') ? '&' : '?';
+        url = url + sep + 'kh=true';
+      }
+    }
+    return origFetch.call(this, url, ...args);
+  };
 })();
 </script>

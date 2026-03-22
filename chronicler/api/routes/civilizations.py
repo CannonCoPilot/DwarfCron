@@ -14,13 +14,22 @@ _NOBLE_KEYWORDS = frozenset([
     "king", "queen", "duke", "duchess", "baron", "baroness", "count", "countess",
     "lord", "lady", "monarch", "emperor", "empress", "consort", "prince", "princess",
 ])
+_JUSTICE_KEYWORDS = frozenset([
+    "sheriff", "hammerer", "executioner", "dungeon",
+])
+_JUSTICE_PHRASES = frozenset([
+    "captain of the guard", "dungeon master",
+])
+_MEDICAL_KEYWORDS = frozenset([
+    "medical", "doctor", "physician", "diagnostician",
+])
 _MILITARY_KEYWORDS = frozenset([
-    "general", "captain", "militia", "commander", "sheriff", "champion", "marshal",
-    "soldier", "guard", "war", "hammerer", "executioner",
+    "general", "captain", "militia", "commander", "champion", "marshal",
+    "soldier", "guard", "war",
 ])
 _ADMIN_KEYWORDS = frozenset([
-    "manager", "bookkeeper", "broker", "expedition", "mayor", "chief", "medical",
-    "administrator", "diplomat", "outpost", "liaison",
+    "manager", "bookkeeper", "broker", "expedition", "mayor", "chief",
+    "administrator", "diplomat", "outpost", "liaison", "messenger",
 ])
 _LORD_LADY = frozenset(["lord", "lady"])
 
@@ -28,9 +37,17 @@ _LORD_LADY = frozenset(["lord", "lady"])
 def _categorize_position(name: str | None) -> str:
     if not name:
         return "other"
-    words = set(name.lower().split())
+    lower = name.lower()
+    words = set(lower.split())
+    # Phrase matches first (most specific)
+    if any(p in lower for p in _JUSTICE_PHRASES):
+        return "justice"
     if words & _NOBLE_KEYWORDS:
         return "noble"
+    if words & _JUSTICE_KEYWORDS:
+        return "justice"
+    if words & _MEDICAL_KEYWORDS:
+        return "medical"
     if words & _MILITARY_KEYWORDS:
         return "military"
     if words & _ADMIN_KEYWORDS:
@@ -179,15 +196,24 @@ async def fetch_site_residents_batch(
               AND hsl.link_type != 'former resident'
               AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
             UNION
-            -- Citizen source 3: position holders
+            -- Citizen source 3: position holders at site government
+            -- Resolve the SG via entity_site_links (governs/owner + sitegovernment),
+            -- then include only valid positions where the HF is physically at this site.
             SELECT s.id AS site_id, hpl.hf_id
             FROM sites s
+            JOIN entity_site_links esl ON esl.world_id = s.world_id AND esl.site_id = s.id
+                AND esl.link_type IN ('governs', 'owner')
+            JOIN entities sg ON sg.world_id = s.world_id AND sg.id = esl.entity_id
+                AND sg.type = 'sitegovernment'
             JOIN hf_position_links hpl ON hpl.world_id = s.world_id
-                AND hpl.entity_id = s.owner_entity_id AND hpl.end_year IS NULL
+                AND hpl.entity_id = sg.id AND hpl.end_year IS NULL
+            JOIN entity_positions ep ON ep.world_id = hpl.world_id
+                AND ep.entity_id = hpl.entity_id AND ep.position_id = hpl.position_id
             JOIN historical_figures hf ON hf.world_id = $1 AND hf.id = hpl.hf_id
             {SENTIENCE_JOIN}
             WHERE s.world_id = $1 AND s.id = ANY($2::int[])
               AND hf.death_year IS NULL AND {SENTIENCE_FILTER}
+              AND COALESCE((hf.whereabouts->>'site_id')::int, s.id) = s.id
             UNION
             -- Physical presence: whereabouts
             SELECT (hf.whereabouts->>'site_id')::int AS site_id, hf.id AS hf_id
@@ -267,14 +293,24 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     civ_noble_sg_map: dict[int, dict] = {}
 
     if sg_ids:
-        # Sites owned by site govts
+        # Sites owned/governed by site govts (owner_entity_id OR entity_site_links)
         site_rows = await conn.fetch(
-            "SELECT id, name, type, owner_entity_id FROM sites "
-            "WHERE world_id = $1 AND owner_entity_id = ANY($2::int[]) ORDER BY name",
+            """SELECT DISTINCT ON (s.id) s.id, s.name, s.type,
+                      COALESCE(s.owner_entity_id, esl.entity_id) AS owner_entity_id,
+                      COALESCE(esl.entity_id, s.owner_entity_id) AS sg_entity_id
+               FROM sites s
+               LEFT JOIN entity_site_links esl
+                 ON esl.world_id = s.world_id AND esl.site_id = s.id
+                    AND esl.entity_id = ANY($2::int[])
+                    AND esl.link_type IN ('governs', 'founded', 'owner')
+               WHERE s.world_id = $1
+                 AND (s.owner_entity_id = ANY($2::int[]) OR esl.entity_id IS NOT NULL)
+               ORDER BY s.id, esl.entity_id NULLS LAST""",
             world_id, sg_ids,
         )
         for s in site_rows:
-            sg_sites[s["owner_entity_id"]] = {
+            sg_id = s["sg_entity_id"]
+            sg_sites[sg_id] = {
                 "id": s["id"], "name": s["name"], "type": s["type"],
             }
         site_ids = [s["id"] for s in site_rows]
@@ -286,8 +322,8 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
                 "WHERE world_id = $1 AND site_id = ANY($2::int[]) ORDER BY type",
                 world_id, site_ids,
             )
-            # Map site_id->owner_entity_id for grouping
-            site_to_sg = {s["id"]: s["owner_entity_id"] for s in site_rows}
+            # Map site_id->sg_entity_id for grouping
+            site_to_sg = {s["id"]: s["sg_entity_id"] for s in site_rows}
             for st in struct_rows:
                 sg_id = site_to_sg.get(st["site_id"])
                 if sg_id:
@@ -401,7 +437,13 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     all_site_ids = [s["id"] for s in (site_rows if sg_ids else [])]
     if not is_civ:
         direct_site_rows_for_residents = await conn.fetch(
-            "SELECT id FROM sites WHERE world_id = $1 AND owner_entity_id = $2",
+            """SELECT DISTINCT s.id FROM sites s
+               LEFT JOIN entity_site_links esl
+                 ON esl.world_id = s.world_id AND esl.site_id = s.id
+                    AND esl.entity_id = $2
+                    AND esl.link_type IN ('governs', 'founded', 'owner')
+               WHERE s.world_id = $1
+                 AND (s.owner_entity_id = $2 OR esl.entity_id IS NOT NULL)""",
             world_id, entity_id,
         )
         all_site_ids += [s["id"] for s in direct_site_rows_for_residents]
@@ -547,8 +589,14 @@ async def fetch_civilization_data(conn, world_id: int, entity_id: int) -> dict |
     direct_site_rows = []
     if not is_civ:
         direct_site_rows = await conn.fetch(
-            "SELECT id, name, type FROM sites "
-            "WHERE world_id = $1 AND owner_entity_id = $2 ORDER BY name",
+            """SELECT DISTINCT ON (s.id) s.id, s.name, s.type FROM sites s
+               LEFT JOIN entity_site_links esl
+                 ON esl.world_id = s.world_id AND esl.site_id = s.id
+                    AND esl.entity_id = $2
+                    AND esl.link_type IN ('governs', 'founded', 'owner')
+               WHERE s.world_id = $1
+                 AND (s.owner_entity_id = $2 OR esl.entity_id IS NOT NULL)
+               ORDER BY s.id""",
             world_id, entity_id,
         )
         if direct_site_rows:

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronicler — World Timeline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            stone: { 950: '#0f0e0d' },
+            parchment: '#d4c5a9',
+            ink: '#2c1810',
+            amber: { 400: '#f6b93b', 500: '#e2a72e', 600: '#c49122' },
+          },
+          fontFamily: {
+            chronicle: ['"Palatino Linotype"', 'Palatino', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0c0b0a; }
+    .section-card { background: #1c1917; border: 1px solid #292524; border-radius: 0.5rem; padding: 1rem; }
+    .section-title { color: #78716c; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .stat-badge { font-variant-numeric: tabular-nums; }
+    .ws-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .ws-connected { background: #22c55e; box-shadow: 0 0 4px #22c55e80; }
+    .ws-disconnected { background: #ef4444; }
+    .ws-connecting { background: #f6b93b; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .progress-bar { height: 1.5rem; background: #292524; border-radius: 0.75rem; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #f6b93b, #e2a72e); border-radius: 0.75rem; transition: width 1s ease; }
+    .phase-item { padding: 0.375rem 0.75rem; border-left: 3px solid #44403c; margin-bottom: 0.25rem; }
+    .phase-active { border-left-color: #f6b93b; background: #f6b93b10; }
+    .phase-done { border-left-color: #22c55e; }
+    .tab-btn { padding: 0.5rem 1rem; border-bottom: 2px solid transparent; cursor: pointer; }
+    .tab-btn.active { border-bottom-color: #f6b93b; color: #f6b93b; }
+    .tab-btn:hover { color: #d4c5a9; }
+    .year-marker { cursor: pointer; }
+    .year-marker:hover line { stroke: #f6b93b; stroke-width: 2; }
+    .chart-line { fill: none; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  </style>
+</head>
+<body class="text-stone-300 font-chronicle min-h-screen">
+
+  {% set active = "worldgen" %}
+  {% include "partials/_nav.html" %}
+
+  <!-- Main Content -->
+  <div class="max-w-5xl mx-auto p-6 space-y-6">
+
+    <!-- Title + World Selector -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl text-amber-400 font-bold">World Timeline</h1>
+      <div class="flex items-center gap-3">
+        <select id="world-select" onchange="switchWorld(this.value)"
+                class="bg-stone-800 border border-stone-600 text-stone-300 text-sm rounded px-3 py-1.5">
+          {% for w in worlds %}
+          <option value="{{ w.id }}" {% if w.id == world_id %}selected{% endif %}>
+            {{ w.name }} (ID {{ w.id }})
+          </option>
+          {% endfor %}
+        </select>
+        <!-- Tab switcher -->
+        <button class="tab-btn active" id="tab-timeline" onclick="switchTab('timeline')">Timeline</button>
+        <button class="tab-btn" id="tab-live" onclick="switchTab('live')">Live Monitor</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TIMELINE VIEW (primary)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div id="panel-timeline">
+
+      {% if has_timeline %}
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="summary-cards">
+        <div class="section-card text-center">
+          <div class="section-title">Peak Population</div>
+          <div class="text-xl text-parchment stat-badge" id="tl-peak-pop">-</div>
+          <div class="text-xs text-stone-500" id="tl-peak-year">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">Total Sites Founded</div>
+          <div class="text-xl text-parchment stat-badge" id="tl-total-sites">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">Total Events</div>
+          <div class="text-xl text-parchment stat-badge" id="tl-total-events">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">History Span</div>
+          <div class="text-xl text-parchment stat-badge" id="tl-span">-</div>
+        </div>
+      </div>
+
+      <!-- Growth Curves Chart -->
+      <div class="section-card mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="section-title mb-0">Population &amp; Growth</h2>
+          <div class="flex gap-4 text-xs">
+            <span class="flex items-center gap-1"><span style="color:#f6b93b">&#9632;</span> Living HFs</span>
+            <span class="flex items-center gap-1"><span style="color:#22c55e">&#9632;</span> Sites</span>
+            <span class="flex items-center gap-1"><span style="color:#60a5fa">&#9632;</span> Events/Year</span>
+          </div>
+        </div>
+        <div id="chart-container" style="height: 280px; position: relative;">
+          <svg id="timeline-chart" width="100%" height="100%" preserveAspectRatio="none">
+            <!-- Axes and lines drawn by JS -->
+          </svg>
+        </div>
+        <div class="text-center mt-1">
+          <span class="text-xs text-stone-500">Click a point on the chart to see details for that year</span>
+        </div>
+      </div>
+
+      <!-- Year Detail Panel -->
+      <div class="section-card mb-6" id="year-detail" style="display:none;">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-amber-400 font-bold">Year <span id="yd-year">-</span></h2>
+          <button onclick="document.getElementById('year-detail').style.display='none'"
+                  class="text-stone-500 hover:text-stone-300 text-sm">Close</button>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <div class="section-title">Living HFs</div>
+            <div class="text-lg text-parchment stat-badge" id="yd-living">-</div>
+          </div>
+          <div>
+            <div class="section-title">Active Sites</div>
+            <div class="text-lg text-parchment stat-badge" id="yd-sites">-</div>
+          </div>
+          <div>
+            <div class="section-title">Births / Deaths</div>
+            <div class="text-lg stat-badge"><span class="text-green-400" id="yd-births">-</span> / <span class="text-red-400" id="yd-deaths">-</span></div>
+          </div>
+          <div>
+            <div class="section-title">Events This Year</div>
+            <div class="text-lg text-parchment stat-badge" id="yd-events">-</div>
+          </div>
+        </div>
+        <!-- Active Wars -->
+        <div id="yd-wars-section" style="display:none;" class="mb-3">
+          <div class="section-title">Active Wars</div>
+          <div id="yd-wars" class="text-sm space-y-1"></div>
+        </div>
+        <!-- Top Event Types -->
+        <div class="mb-3">
+          <div class="section-title">Top Events</div>
+          <div id="yd-event-types" class="text-sm space-y-1"></div>
+        </div>
+        <!-- Top Civilizations -->
+        <div>
+          <div class="section-title">Top Civilizations</div>
+          <div id="yd-civs" class="text-sm space-y-1"></div>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="section-card text-center text-stone-600 py-8">
+        <p>No timeline data for this world.</p>
+        <p class="text-sm mt-2">Run <code class="text-amber-500">chronicler worldgen backfill --world-id {{ world_id }}</code> to generate it from Legends data.</p>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LIVE MONITOR VIEW (secondary)
+         ═══════════════════════════════════════════════════════════════ -->
+    <div id="panel-live" style="display:none;">
+
+      <!-- WebSocket status -->
+      <div class="flex items-center gap-2 text-xs text-stone-500 mb-4">
+        <span class="ws-dot ws-connecting" id="ws-indicator"></span>
+        <span id="ws-status">Connecting...</span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="section-card mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="section-title mb-0">Overall Progress</h2>
+          <span class="text-sm text-amber-400 stat-badge" id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between mt-1 text-xs text-stone-600">
+          <span>Phase: <span class="text-stone-400" id="current-phase">None</span></span>
+          <span>Year: <span class="text-stone-400 stat-badge" id="current-year">-</span></span>
+        </div>
+      </div>
+
+      <!-- Live Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div class="section-card text-center">
+          <div class="section-title">Historical Figures</div>
+          <div class="text-2xl text-parchment stat-badge" id="stat-figures">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">Events</div>
+          <div class="text-2xl text-parchment stat-badge" id="stat-events">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">Sites</div>
+          <div class="text-2xl text-parchment stat-badge" id="stat-sites">-</div>
+        </div>
+        <div class="section-card text-center">
+          <div class="section-title">Entities</div>
+          <div class="text-2xl text-parchment stat-badge" id="stat-entities">-</div>
+        </div>
+      </div>
+
+      <!-- Phase Timeline + Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="section-card">
+          <h2 class="section-title">Phase Timeline</h2>
+          <div id="phase-timeline"></div>
+        </div>
+        <div class="section-card">
+          <h2 class="section-title">Details</h2>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-stone-500">Rejects:</span><span class="stat-badge" id="detail-rejects">-</span></div>
+            <div class="flex justify-between"><span class="text-stone-500">Rivers:</span><span class="stat-badge" id="detail-rivers">-</span></div>
+            <div class="flex justify-between"><span class="text-stone-500">Regions:</span><span class="stat-badge" id="detail-regions">-</span></div>
+            <div class="flex justify-between"><span class="text-stone-500">Caves:</span><span id="detail-caves">-</span></div>
+            <div class="flex justify-between"><span class="text-stone-500">Megabeasts:</span><span id="detail-megabeasts">-</span></div>
+            <div class="flex justify-between"><span class="text-stone-500">World Size:</span><span class="stat-badge" id="detail-size">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+// ═══ State ═══
+let currentWorldId = {{ world_id or 0 }};
+let timelineData = null;
+
+// ═══ Tab switching ═══
+function switchTab(tab) {
+  document.getElementById('panel-timeline').style.display = tab === 'timeline' ? 'block' : 'none';
+  document.getElementById('panel-live').style.display = tab === 'live' ? 'block' : 'none';
+  document.getElementById('tab-timeline').className = 'tab-btn' + (tab === 'timeline' ? ' active' : '');
+  document.getElementById('tab-live').className = 'tab-btn' + (tab === 'live' ? ' active' : '');
+  if (tab === 'live' && !ws) connectWS();
+}
+
+function switchWorld(wid) {
+  window.location.href = '/worldgen?world_id=' + wid;
+}
+
+// ═══ Timeline Chart ═══
+async function loadTimeline() {
+  if (!currentWorldId) return;
+  try {
+    const resp = await fetch(`/api/world/${currentWorldId}/timeline`);
+    const data = await resp.json();
+    if (data.years && data.years.length > 0) {
+      timelineData = data.years;
+      renderChart(data.years);
+      updateSummaryCards(data.years);
+    }
+  } catch (e) {
+    console.error('Failed to load timeline:', e);
+  }
+}
+
+function renderChart(years) {
+  const svg = document.getElementById('timeline-chart');
+  const container = document.getElementById('chart-container');
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  const pad = { top: 20, right: 20, bottom: 30, left: 60 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  // Find max values for scaling
+  const maxHf = Math.max(...years.map(y => y.hf_count || 0));
+  const maxSites = Math.max(...years.map(y => y.site_count || 0));
+  const maxEvt = Math.max(...years.map(y => y.events_this_year || 0));
+  const maxYear = years.length;
+
+  const scaleX = i => pad.left + (i / (maxYear - 1)) * cw;
+  const scaleY = (v, max) => pad.top + ch - (v / (max || 1)) * ch;
+
+  // Build polyline points
+  const hfPoints = years.map((y, i) => `${scaleX(i)},${scaleY(y.hf_count || 0, maxHf)}`).join(' ');
+  const sitePoints = years.map((y, i) => `${scaleX(i)},${scaleY(y.site_count || 0, maxSites)}`).join(' ');
+  const evtPoints = years.map((y, i) => `${scaleX(i)},${scaleY(y.events_this_year || 0, maxEvt)}`).join(' ');
+
+  // Year labels
+  const labelInterval = maxYear <= 50 ? 10 : maxYear <= 150 ? 25 : 50;
+  let labels = '';
+  for (let i = 0; i < years.length; i++) {
+    if (years[i].year % labelInterval === 0 || i === 0 || i === years.length - 1) {
+      labels += `<text x="${scaleX(i)}" y="${H - 5}" fill="#78716c" font-size="10" text-anchor="middle">${years[i].year}</text>`;
+      labels += `<line x1="${scaleX(i)}" y1="${pad.top}" x2="${scaleX(i)}" y2="${pad.top + ch}" stroke="#292524" stroke-width="0.5"/>`;
+    }
+  }
+
+  // Y-axis labels for HF count
+  for (let v = 0; v <= maxHf; v += Math.ceil(maxHf / 4 / 1000) * 1000) {
+    const yy = scaleY(v, maxHf);
+    labels += `<text x="${pad.left - 5}" y="${yy + 4}" fill="#78716c" font-size="10" text-anchor="end">${(v/1000).toFixed(0)}k</text>`;
+    labels += `<line x1="${pad.left}" y1="${yy}" x2="${pad.left + cw}" y2="${yy}" stroke="#292524" stroke-width="0.5"/>`;
+  }
+
+  // Click targets (invisible rects per year)
+  let clickTargets = '';
+  const barW = Math.max(2, cw / years.length);
+  for (let i = 0; i < years.length; i++) {
+    clickTargets += `<rect x="${scaleX(i) - barW/2}" y="${pad.top}" width="${barW}" height="${ch}" fill="transparent" class="year-marker" onclick="showYearDetail(${years[i].year})"/>`;
+  }
+
+  svg.innerHTML = `
+    ${labels}
+    <polyline points="${hfPoints}" class="chart-line" stroke="#f6b93b" opacity="0.9"/>
+    <polyline points="${sitePoints}" class="chart-line" stroke="#22c55e" opacity="0.9"/>
+    <polyline points="${evtPoints}" class="chart-line" stroke="#60a5fa" opacity="0.6"/>
+    ${clickTargets}
+  `;
+}
+
+function updateSummaryCards(years) {
+  // Peak population
+  let peakPop = 0, peakYear = 0;
+  years.forEach(y => {
+    if ((y.hf_count || 0) > peakPop) { peakPop = y.hf_count; peakYear = y.year; }
+  });
+  document.getElementById('tl-peak-pop').textContent = fmt(peakPop);
+  document.getElementById('tl-peak-year').textContent = `Year ${peakYear}`;
+
+  const last = years[years.length - 1];
+  document.getElementById('tl-total-sites').textContent = fmt(last.site_count);
+  document.getElementById('tl-total-events').textContent = fmt(last.event_count);
+  document.getElementById('tl-span').textContent = `${years.length} years`;
+}
+
+// ═══ Year Detail ═══
+async function showYearDetail(year) {
+  const panel = document.getElementById('year-detail');
+  panel.style.display = 'block';
+  document.getElementById('yd-year').textContent = year;
+
+  try {
+    const resp = await fetch(`/api/world/${currentWorldId}/state?year=${year}`);
+    const d = await resp.json();
+
+    document.getElementById('yd-living').textContent = fmt(d.living_hfs);
+    document.getElementById('yd-sites').textContent = fmt(d.active_sites);
+    document.getElementById('yd-births').textContent = fmt(d.births);
+    document.getElementById('yd-deaths').textContent = fmt(d.deaths);
+    document.getElementById('yd-events').textContent = fmt(d.events_this_year);
+
+    // Wars
+    const warsEl = document.getElementById('yd-wars');
+    const warsSection = document.getElementById('yd-wars-section');
+    if (d.active_wars && d.active_wars.length > 0) {
+      warsSection.style.display = 'block';
+      warsEl.innerHTML = d.active_wars.map(w =>
+        `<div class="flex justify-between text-stone-400">
+          <span class="text-red-300">${w.name || 'Unnamed war'}</span>
+          <span class="text-stone-500">Y${w.start_year}–${w.end_year || 'ongoing'}</span>
+        </div>`
+      ).join('');
+    } else {
+      warsSection.style.display = 'none';
+    }
+
+    // Event types
+    document.getElementById('yd-event-types').innerHTML = (d.top_event_types || []).map(e =>
+      `<div class="flex justify-between"><span class="text-stone-400">${e.type}</span><span class="text-parchment stat-badge">${fmt(e.count)}</span></div>`
+    ).join('');
+
+    // Civilizations
+    document.getElementById('yd-civs').innerHTML = (d.top_civilizations || []).map(c =>
+      `<div class="flex justify-between"><span class="text-stone-400">${c.name} <span class="text-stone-600">(${c.race})</span></span><span class="text-parchment stat-badge">${c.site_count} sites</span></div>`
+    ).join('');
+
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    console.error('Failed to load year detail:', e);
+  }
+}
+
+// ═══ Live Monitor WebSocket ═══
+const PHASES = [
+  'Initializing', 'PreparingElevation', 'SettingTemperature',
+  'RunningRivers', 'FormingLakesAndMinerals', 'GrowingVegetation',
+  'VerifyingTerrain', 'ImportingWildlife', 'RecountingLegends',
+  'Finalizing', 'Done'
+];
+const PHASE_LABELS = {
+  'Initializing': 'Initializing', 'PreparingElevation': 'Preparing Elevation',
+  'SettingTemperature': 'Setting Temperature', 'RunningRivers': 'Running Rivers',
+  'FormingLakesAndMinerals': 'Forming Lakes & Minerals', 'GrowingVegetation': 'Growing Vegetation',
+  'VerifyingTerrain': 'Verifying Terrain', 'ImportingWildlife': 'Importing Wildlife',
+  'RecountingLegends': 'Recounting Legends', 'Finalizing': 'Finalizing', 'Done': 'Complete'
+};
+
+let ws = null, reconnectDelay = 1000;
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/ws/worldgen`);
+  ws.onopen = () => {
+    document.getElementById('ws-indicator').className = 'ws-dot ws-connected';
+    document.getElementById('ws-status').textContent = 'Connected';
+    reconnectDelay = 1000;
+  };
+  ws.onclose = () => {
+    document.getElementById('ws-indicator').className = 'ws-dot ws-disconnected';
+    document.getElementById('ws-status').textContent = 'Disconnected';
+    setTimeout(connectWS, reconnectDelay);
+    reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+  };
+  ws.onerror = () => ws.close();
+  ws.onmessage = (msg) => updateLiveDashboard(JSON.parse(msg.data));
+}
+
+function updateLiveDashboard(data) {
+  const state = data.state || 'None';
+  const pct = (data.progress_pct || 0).toFixed(1);
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('current-phase').textContent = PHASE_LABELS[state] || state;
+  document.getElementById('current-year').textContent = data.cur_year || '-';
+  document.getElementById('stat-figures').textContent = fmt(data.figure_count);
+  document.getElementById('stat-events').textContent = fmt(data.event_count);
+  document.getElementById('stat-sites').textContent = fmt(data.site_count);
+  document.getElementById('stat-entities').textContent = fmt(data.entity_count);
+  document.getElementById('detail-rejects').textContent = data.num_rejects || 0;
+  document.getElementById('detail-rivers').textContent = data.rivers_total ? `${data.rivers_cur || 0} / ${data.rivers_total}` : '-';
+  document.getElementById('detail-regions').textContent = fmt(data.region_count);
+  document.getElementById('detail-caves').textContent = data.placed_caves ? 'Placed' : 'Pending';
+  document.getElementById('detail-megabeasts').textContent = data.placed_megabeasts ? 'Placed' : 'Pending';
+  document.getElementById('detail-size').textContent = data.world_width ? `${data.world_width}x${data.world_height}` : '-';
+  updatePhaseTimeline(state);
+}
+
+function updatePhaseTimeline(currentState) {
+  const el = document.getElementById('phase-timeline');
+  const currentIdx = PHASES.indexOf(currentState);
+  el.innerHTML = PHASES.map((phase, idx) => {
+    let cls = 'phase-item text-sm';
+    let icon = '';
+    if (idx < currentIdx) { cls += ' phase-done text-green-400'; icon = '&#x2713; '; }
+    else if (idx === currentIdx) { cls += ' phase-active text-amber-400 font-bold'; icon = '&#x25B6; '; }
+    else { cls += ' text-stone-600'; icon = '&#x25CB; '; }
+    return `<div class="${cls}">${icon}${PHASE_LABELS[phase] || phase}</div>`;
+  }).join('');
+}
+
+function fmt(n) { return n != null ? Number(n).toLocaleString() : '-'; }
+
+// ═══ Handle resize ═══
+window.addEventListener('resize', () => { if (timelineData) renderChart(timelineData); });
+
+// ═══ Init ═══
+{% if has_timeline %}
+loadTimeline();
+{% endif %}
+</script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 {% extends "detail_base.html" %}
 
-{% block title %}{{ entity_name }} — Civilization — Chronicler{% endblock %}
+{% block title %}{{ entity_name }} — {{ entity_type_label }} — Chronicler{% endblock %}
 
 {% block breadcrumb %}
-<a href="/explorer?tab=civs">Civilizations</a>
+<a href="/explorer?tab=civs">{{ entity_type_label }}s</a>
 <span>›</span>
 <span class="text-stone-300 text-xs">{{ entity_name }}</span>
 {% endblock %}
@@ -63,8 +63,8 @@
     </div>
   </div>
   {% elif entity.type == 'sitegovernment' %}
-  {# Site Government: 2-column grid #}
-  <div class="grid grid-cols-2 gap-3 text-xs">
+  {# Site Government: 3-column grid, 2 rows #}
+  <div class="grid grid-cols-3 gap-3 text-xs">
     <div>
       <span class="text-stone-500">Race</span>
       <div class="text-stone-200 mt-0.5">{{ entity.race|default('Unknown', true)|title }}</div>
@@ -74,11 +74,11 @@
       <div class="text-stone-200 mt-0.5">{{ site_count }}</div>
     </div>
     <div>
-      <span class="text-stone-500">Citizens</span>
+      <span class="text-stone-500">Members</span>
       <div class="text-stone-200 mt-0.5">{{ "{:,}".format(citizens) }}</div>
     </div>
     <div>
-      <span class="text-stone-500">Ruler</span>
+      <span class="text-stone-500">Leader</span>
       <div class="mt-0.5">
         {% if ruler %}
           {{ linker.link('hf', ruler.hf_id, ruler.name, world_id)|safe }}
@@ -88,6 +88,12 @@
         {% endif %}
       </div>
     </div>
+    {% if parent_civ %}
+    <div class="col-span-2">
+      <span class="text-stone-500">Parent Civilization</span>
+      <div class="mt-0.5">{{ linker.link('entity', parent_civ.id, parent_civ.name, world_id)|safe }}</div>
+    </div>
+    {% endif %}
   </div>
   {% else %}
   {# Other (guild, religion, troupe): 2-column grid, Members label #}
@@ -283,7 +289,7 @@
               data-membership="{{ 'current' if m.link_type == 'member' or m.is_citizen or (m.link_type is string and m.link_type.startswith('citizen')) else 'former' }}"
               data-status="{{ 'alive' if m.is_alive else 'dead' }}">
             <td class="py-0.5 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
-            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|clean_race }}</td>
             <td class="py-0.5 pr-3 text-amber-400">{{ m.position_display|default(m.position_name|default('', true)|title, true) }}</td>
             <td class="py-0.5 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
             <td class="py-0.5 pr-3 text-stone-500">{{ m.link_type|default('', true)|title }}</td>
@@ -355,7 +361,7 @@
               data-sg-ndw-status="{{ 'alive' if m.is_alive else 'dead' }}"
               data-sg-ndw-threat="{{ m.threat_type }}">
             <td class="py-0.5 pr-3">{{ linker.link('hf', m.hf_id, m.name, world_id)|safe }}</td>
-            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|title }}</td>
+            <td class="py-0.5 pr-3 text-stone-400">{{ m.race|default('', true)|clean_race }}</td>
             <td class="py-0.5 pr-3"><span class="text-red-400">{{ m.threat_type }}</span></td>
             <td class="py-0.5 pr-3 text-stone-400 text-xs">{{ m.threat_basis }}</td>
             <td class="py-0.5 pr-3 text-stone-400">{{ m.profession|default('', true) }}</td>
