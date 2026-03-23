@@ -72,6 +72,7 @@
   {% if denizens %}<button class="detail-tab" id="dtab-denizens" onclick="switchDetailTab('denizens')">Denizens ({{ denizens|length }})</button>{% endif %}
   {% if neerdowells %}<button class="detail-tab" id="dtab-neerdowells" onclick="switchDetailTab('neerdowells')">Ne'er-do-wells ({{ neerdowells|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-history" onclick="switchDetailTab('history')">History ({{ event_count }})</button>
+  {% if is_active_fortress %}<button class="detail-tab" id="dtab-livedata" onclick="switchDetailTab('livedata')" style="color: #22c55e; border-color: #22c55e40;">Live Data ({{ live_unit_events|length }} events, {{ live_snapshots|length }} snapshots)</button>{% endif %}
   {% if ownership_timeline %}<button class="detail-tab" id="dtab-ownership" onclick="switchDetailTab('ownership')">Ownership ({{ ownership_timeline|length }})</button>{% endif %}
   <button class="detail-tab" id="dtab-properties" onclick="switchDetailTab('properties')">Properties</button>
 </div>
@@ -398,6 +399,296 @@
 </div>
 {% endif %}
 
+{# ══════════════════════════════════════════════════════════════════════ #}
+{# LIVE DATA TAB — All streamed fortress data in one place              #}
+{# ══════════════════════════════════════════════════════════════════════ #}
+{% if is_active_fortress %}
+<div id="dtab-content-livedata" class="tab-content">
+
+  {# ── Section 1: Fortress State Timeline (population/food/drink/wealth) ── #}
+  <div class="section-card mb-4">
+    <div class="section-title" style="color: #22c55e;">Fortress State Timeline ({{ live_snapshots|length }} snapshots)</div>
+    {% if live_snapshots %}
+    <div style="height: 220px; position: relative;">
+      <canvas id="live-timeline-chart"></canvas>
+    </div>
+    <div class="mt-3 max-h-[300px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">Year</th>
+            <th class="text-left pb-1">Season</th>
+            <th class="text-left pb-1">Tick</th>
+            <th class="text-right pb-1">Pop</th>
+            <th class="text-right pb-1">Military</th>
+            <th class="text-right pb-1">Food</th>
+            <th class="text-right pb-1">Drink</th>
+            <th class="text-right pb-1">Wealth</th>
+            <th class="text-left pb-1">Happiness</th>
+            <th class="text-left pb-1">Threats</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in live_snapshots %}
+          <tr class="border-b border-stone-800/30 {% if s.population <= 3 %}bg-red-900/20{% endif %}">
+            <td class="py-0.5 text-stone-400">{{ s.year }}</td>
+            <td class="py-0.5">{{ s.season }}</td>
+            <td class="py-0.5 text-stone-500 font-mono">{{ s.tick }}</td>
+            <td class="py-0.5 text-right {% if s.population <= 3 %}text-red-400 font-bold{% else %}text-emerald-400{% endif %}">{{ s.population }}</td>
+            <td class="py-0.5 text-right text-stone-400">{{ s.military_count or 0 }}</td>
+            <td class="py-0.5 text-right {% if s.food_stocks <= 10 %}text-red-400{% else %}text-amber-400{% endif %}">{{ s.food_stocks }}</td>
+            <td class="py-0.5 text-right {% if s.drink_stocks <= 0 %}text-red-400{% else %}text-sky-400{% endif %}">{{ s.drink_stocks }}</td>
+            <td class="py-0.5 text-right text-amber-400">{{ s.wealth or 0 }}</td>
+            <td class="py-0.5 text-stone-400">
+              {% if s.happiness_distribution %}
+                {% set hd = s.happiness_distribution if s.happiness_distribution is mapping else {} %}
+                {% if hd.get('ecstatic') %}<span class="text-emerald-300">☺{{ hd.ecstatic }}</span> {% endif %}
+                {% if hd.get('content') %}<span class="text-green-400">●{{ hd.content }}</span> {% endif %}
+                {% if hd.get('unhappy') %}<span class="text-amber-400">▼{{ hd.unhappy }}</span> {% endif %}
+                {% if hd.get('miserable') %}<span class="text-red-400">✖{{ hd.miserable }}</span> {% endif %}
+              {% endif %}
+            </td>
+            <td class="py-0.5 text-red-400 text-xs">
+              {% if s.threats and s.threats is mapping %}
+                {{ s.threats|tojson }}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No snapshots captured.</div>
+    {% endif %}
+  </div>
+
+  {# ── Section 2: Live Unit Events (deaths, ghosts, arrivals, etc.) ── #}
+  <div class="section-card mb-4">
+    <div class="section-title" style="color: #22c55e;">Live Unit Events ({{ live_unit_events|length }} events)</div>
+    {% if live_unit_events %}
+    {# Event type distribution #}
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      {% set event_types_seen = [] %}
+      {% for ev in live_unit_events %}
+        {% if ev.event_type not in event_types_seen %}
+          {% if event_types_seen.append(ev.event_type) %}{% endif %}
+        {% endif %}
+      {% endfor %}
+      {% for et in event_types_seen %}
+        {% set et_count = live_unit_events|selectattr('event_type', 'equalto', et)|list|length %}
+        <span class="inline-block text-[10px] px-1.5 py-0.5 rounded border
+          {% if et in ('DIED', 'GHOST') %}bg-red-900/30 text-red-400 border-red-800/50
+          {% elif et in ('ARRIVED', 'DEPARTED') %}bg-sky-900/30 text-sky-400 border-sky-800/50
+          {% elif et in ('PROFESSION_CHANGED', 'STRESS_SPIKE') %}bg-amber-900/30 text-amber-400 border-amber-800/50
+          {% else %}bg-stone-800/50 text-stone-400 border-stone-700/50{% endif %}">
+          {{ et }}: {{ et_count }}
+        </span>
+      {% endfor %}
+    </div>
+    <div class="max-h-[500px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">Year</th>
+            <th class="text-left pb-1">Tick</th>
+            <th class="text-left pb-1">Type</th>
+            <th class="text-left pb-1">Unit</th>
+            <th class="text-left pb-1">Details</th>
+            <th class="text-left pb-1">Detected</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ev in live_unit_events %}
+          <tr class="border-b border-stone-800/30
+            {% if ev.event_type in ('DIED', 'GHOST') %}bg-red-900/10
+            {% elif ev.event_type in ('ARRIVED',) %}bg-green-900/10
+            {% elif ev.event_type in ('DEPARTED',) %}bg-amber-900/10{% endif %}">
+            <td class="py-0.5 text-stone-400">{{ ev.game_year }}</td>
+            <td class="py-0.5 text-stone-500 font-mono">{{ ev.game_tick }}</td>
+            <td class="py-0.5">
+              <span class="
+                {% if ev.event_type in ('DIED', 'GHOST') %}text-red-400 font-bold
+                {% elif ev.event_type in ('ARRIVED',) %}text-green-400
+                {% elif ev.event_type in ('DEPARTED',) %}text-amber-400
+                {% elif ev.event_type in ('PROFESSION_CHANGED', 'STRESS_SPIKE') %}text-amber-300
+                {% elif ev.event_type in ('PREGNANCY_DETECTED',) %}text-pink-400
+                {% else %}text-stone-300{% endif %}">
+                {{ ev.event_type }}
+              </span>
+            </td>
+            <td class="py-0.5">
+              {% if ev.unit_name %}
+                <span class="text-stone-200">{{ ev.unit_name }}</span>
+                <span class="text-stone-600 text-[10px]">#{{ ev.unit_id }}</span>
+              {% elif ev.unit_id %}
+                <span class="text-stone-400">#{{ ev.unit_id }}</span>
+              {% endif %}
+              {% if ev.unit_race %}<span class="text-stone-600 text-[10px]">[{{ ev.unit_race }}]</span>{% endif %}
+            </td>
+            <td class="py-0.5 text-stone-400 max-w-[300px] truncate" title="{{ ev.new_value|tojson if ev.new_value else '' }}">
+              {% if ev.new_value %}
+                {% if ev.new_value is mapping %}
+                  {% for k, v in ev.new_value.items() %}
+                    <span class="text-stone-500">{{ k }}:</span> {{ v }}{{ ", " if not loop.last }}
+                  {% endfor %}
+                {% else %}
+                  {{ ev.new_value }}
+                {% endif %}
+              {% endif %}
+            </td>
+            <td class="py-0.5 text-stone-600 text-[10px]">{{ ev.detected_at[11:19] if ev.detected_at else '' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No unit events captured.</div>
+    {% endif %}
+  </div>
+
+  {# ── Section 3: All Fortress Denizens (full roster including dead/missing) ── #}
+  <div class="section-card mb-4">
+    <div class="section-title" style="color: #22c55e;">Complete Fortress Roster ({{ all_fortress_denizens|length }} total)</div>
+    {% if all_fortress_denizens %}
+    {% set fd_residents = all_fortress_denizens|selectattr('status', 'equalto', 'resident')|list %}
+    {% set fd_deceased = all_fortress_denizens|selectattr('status', 'equalto', 'deceased')|list %}
+    {% set fd_missing = all_fortress_denizens|selectattr('status', 'equalto', 'missing')|list %}
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400 border border-green-800/50">Resident: {{ fd_residents|length }}</span>
+      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/50">Deceased: {{ fd_deceased|length }}</span>
+      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-stone-800/50 text-stone-400 border border-stone-700/50">Missing: {{ fd_missing|length }}</span>
+    </div>
+    <div class="max-h-[500px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Race</th>
+            <th class="text-left pb-1">Status</th>
+            <th class="text-left pb-1">Embarker</th>
+            <th class="text-left pb-1">Arrived</th>
+            <th class="text-left pb-1">Departed</th>
+            <th class="text-left pb-1">Cause</th>
+            <th class="text-left pb-1">HF Link</th>
+            <th class="text-right pb-1">Narrative</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fd in all_fortress_denizens %}
+          <tr class="border-b border-stone-800/30
+            {% if fd.status == 'deceased' %}bg-red-900/10
+            {% elif fd.status == 'missing' %}bg-stone-800/20
+            {% elif fd.status == 'resident' %}bg-green-900/10{% endif %}">
+            <td class="py-0.5">
+              {% if fd.hf_id %}
+                {{ linker.link('hf', fd.hf_id, fd.english_name or fd.name, world_id)|safe }}
+              {% else %}
+                <span class="text-stone-300">{{ fd.english_name or fd.name }}</span>
+              {% endif %}
+              <span class="text-stone-600 text-[10px]">#{{ fd.unit_id }}</span>
+            </td>
+            <td class="py-0.5 text-stone-400">{{ fd.race|default('?', true)|lower }}</td>
+            <td class="py-0.5">
+              {% if fd.status == 'resident' %}<span class="text-green-400">{{ fd.status }}</span>
+              {% elif fd.status == 'deceased' %}<span class="text-red-400 font-bold">{{ fd.status }}</span>
+              {% else %}<span class="text-stone-500">{{ fd.status }}</span>{% endif %}
+            </td>
+            <td class="py-0.5">{% if fd.embark %}<span class="text-amber-400">Yes</span>{% endif %}</td>
+            <td class="py-0.5 text-stone-400">{% if fd.arrival_year %}Y{{ fd.arrival_year }} T{{ fd.arrival_tick }}{% endif %}</td>
+            <td class="py-0.5 text-stone-400">{% if fd.departure_year %}Y{{ fd.departure_year }} T{{ fd.departure_tick }}{% endif %}</td>
+            <td class="py-0.5 {% if fd.departure_cause %}text-red-400{% else %}text-stone-600{% endif %}">{{ fd.departure_cause or '' }}</td>
+            <td class="py-0.5 text-stone-500">{% if fd.hf_id %}HF#{{ fd.hf_id }}{% endif %}</td>
+            <td class="py-0.5 text-right text-amber-400">{% if fd.narrative_value %}{{ "%.1f"|format(fd.narrative_value) }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No fortress denizens tracked.</div>
+    {% endif %}
+  </div>
+
+  {# ── Section 4: All Live Units (full details dump) ── #}
+  <div class="section-card mb-4">
+    <div class="section-title" style="color: #22c55e;">All Live Units ({{ live_units|length }} tracked)</div>
+    {% if live_units %}
+    {% set alive_units = live_units|selectattr('is_alive')|list %}
+    {% set dead_units = live_units|rejectattr('is_alive')|list %}
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400 border border-green-800/50">Alive: {{ alive_units|length }}</span>
+      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/50">Dead: {{ dead_units|length }}</span>
+    </div>
+    <div class="max-h-[500px] overflow-y-auto ex-scroll">
+      <table class="w-full text-xs">
+        <thead class="sticky top-0 bg-stone-900">
+          <tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">ID</th>
+            <th class="text-left pb-1">Name</th>
+            <th class="text-left pb-1">Race/Caste</th>
+            <th class="text-left pb-1">Profession</th>
+            <th class="text-left pb-1">Alive</th>
+            <th class="text-left pb-1">Death Cause</th>
+            <th class="text-left pb-1">HF Link</th>
+            <th class="text-left pb-1">Stress</th>
+            <th class="text-left pb-1">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in live_units %}
+          {% set ud = u.details if u.details is mapping else {} %}
+          <tr class="border-b border-stone-800/30 {% if not u.is_alive %}bg-red-900/10{% endif %}">
+            <td class="py-0.5 font-mono text-stone-500">{{ u.id }}</td>
+            <td class="py-0.5">
+              {% if u.hist_fig_id %}
+                {{ linker.link('hf', u.hist_fig_id, u.english_name or u.name or ('Unit #' ~ u.id), world_id)|safe }}
+              {% else %}
+                <span class="text-stone-300">{{ u.english_name or u.name or ('Unit #' ~ u.id) }}</span>
+              {% endif %}
+            </td>
+            <td class="py-0.5 text-stone-400">{{ u.race|default('?', true)|lower }}{% if u.caste %}/{{ u.caste }}{% endif %}</td>
+            <td class="py-0.5 text-stone-400">{{ u.profession|default('', true) }}</td>
+            <td class="py-0.5">
+              {% if u.is_alive %}<span class="text-green-400">Yes</span>
+              {% else %}<span class="text-red-400">Dead</span>{% endif %}
+            </td>
+            <td class="py-0.5 text-red-400">{{ u.death_cause or '' }}</td>
+            <td class="py-0.5 text-stone-500">{% if u.hist_fig_id %}HF#{{ u.hist_fig_id }}{% endif %}</td>
+            <td class="py-0.5 {% if ud.get('stress', 0) > 50000 %}text-red-400 font-bold{% elif ud.get('stress', 0) > 10000 %}text-amber-400{% else %}text-green-400{% endif %}">
+              {{ ud.get('stress', '') }}
+            </td>
+            <td class="py-0.5">
+              {% if ud %}
+                <details class="inline">
+                  <summary class="text-stone-500 cursor-pointer text-[10px]">{{ ud.keys()|list|length }} fields</summary>
+                  <pre class="text-[10px] text-stone-400 bg-stone-950 p-1 rounded mt-1 max-h-32 overflow-auto">{{ ud|tojson(indent=1) }}</pre>
+                </details>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="text-stone-600 text-sm italic">No units tracked.</div>
+    {% endif %}
+  </div>
+
+  {# ── Section 5: Fortress State Records (raw fortress_state table) ── #}
+  <div class="section-card">
+    <div class="section-title" style="color: #22c55e;">Raw Fortress State Records</div>
+    <p class="text-stone-500 text-xs mb-2">Periodic captures from bridge get_fortress_state() — wealth, buildings, invasions, infiltrators.</p>
+    <div class="text-xs text-stone-400">
+      <a href="/api/watcher/status?world_id={{ world_id }}" target="_blank" class="text-sky-400 hover:underline">View full watcher status API →</a>
+    </div>
+  </div>
+
+</div>
+{% endif %}
+
 {# History Tab #}
 <div id="dtab-content-history" class="tab-content">
   <div class="section-card">
@@ -513,6 +804,40 @@
   }
 
   filterNdw();
+
+  // ── Live Data: Timeline Chart ──
+  {% if is_active_fortress and live_snapshots %}
+  const snapData = {{ live_snapshots|tojson }};
+  if (snapData.length > 0 && document.getElementById('live-timeline-chart')) {
+    const labels = snapData.map(s => `Y${s.year} ${s.season} T${s.tick}`);
+    const ctx = document.getElementById('live-timeline-chart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Population', data: snapData.map(s => s.population), borderColor: '#22c55e', backgroundColor: '#22c55e20', fill: true, tension: 0.3, pointRadius: 1 },
+          { label: 'Food', data: snapData.map(s => s.food_stocks), borderColor: '#f6b93b', backgroundColor: '#f6b93b10', fill: false, tension: 0.3, pointRadius: 0 },
+          { label: 'Drink', data: snapData.map(s => s.drink_stocks), borderColor: '#3b82f6', backgroundColor: '#3b82f610', fill: false, tension: 0.3, pointRadius: 0 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#a8a29e', font: { size: 10 } } } },
+        scales: {
+          x: { display: false },
+          y: { ticks: { color: '#78716c', font: { size: 10 } }, grid: { color: '#292524' } }
+        }
+      }
+    });
+  }
+  {% endif %}
 })();
 </script>
+{% endblock %}
+
+{% block extra_head %}
+{% if is_active_fortress %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% endif %}
 {% endblock %}

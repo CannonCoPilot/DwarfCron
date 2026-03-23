@@ -1842,7 +1842,7 @@ async def site_detail_page(site_id: int, request: Request,
                     'entity_type': ent['type'] if ent else None,
                 })
 
-        # Event count
+        # Event count (will be updated with live events after fortress check)
         event_count = await conn.fetchval("""
             SELECT count(*) FROM event_entity_xref
             WHERE world_id = $1 AND entity_type = 'site' AND entity_id = $2
@@ -2219,6 +2219,127 @@ async def site_detail_page(site_id: int, request: Request,
                             bridge_positions[d["hf_id"]],
                             viewing_entity_id=owner_entity_id) or ""
 
+        # ── Live data: snapshots, unit_events, units (for Live Data tab) ──
+        live_snapshots = []
+        live_unit_events = []
+        live_units = []
+        all_fortress_denizens = []
+        if is_active_fortress:
+            # Fortress state snapshots — full timeline
+            _snap_rows = await conn.fetch("""
+                SELECT tick, year, season, population, military_count,
+                       food_stocks, drink_stocks, wealth,
+                       happiness_distribution, threats, captured_at
+                FROM fortress_state_snapshots
+                WHERE world_id = $1
+                ORDER BY tick ASC
+            """, world_id)
+            live_snapshots = []
+            for r in _snap_rows:
+                d = dict(r)
+                d['captured_at'] = d['captured_at'].isoformat() if d.get('captured_at') else None
+                live_snapshots.append(d)
+
+            # Unit events — all types, most recent first
+            _ue_rows = await conn.fetch("""
+                SELECT ue.id, ue.unit_id, ue.event_type, ue.old_value,
+                       ue.new_value, ue.game_year, ue.game_tick,
+                       ue.detected_at,
+                       u.english_name AS unit_name, u.race AS unit_race,
+                       u.profession AS unit_profession
+                FROM unit_events ue
+                LEFT JOIN units u ON u.id = ue.unit_id AND u.world_id = ue.world_id
+                WHERE ue.world_id = $1
+                ORDER BY ue.game_tick DESC, ue.id DESC
+                LIMIT 500
+            """, world_id)
+            live_unit_events = []
+            for r in _ue_rows:
+                d = dict(r)
+                d['detected_at'] = d['detected_at'].isoformat() if d.get('detected_at') else None
+                live_unit_events.append(d)
+
+            # All units with full details
+            _unit_rows = await conn.fetch("""
+                SELECT id, name, english_name, race, caste, profession,
+                       is_alive, hist_fig_id, civ_id, birth_year,
+                       death_cause, details, last_synced_at
+                FROM units
+                WHERE world_id = $1
+                ORDER BY is_alive DESC, english_name, name
+            """, world_id)
+            live_units = []
+            for r in _unit_rows:
+                d = dict(r)
+                d['last_synced_at'] = d['last_synced_at'].isoformat() if d.get('last_synced_at') else None
+                live_units.append(d)
+
+            # ALL fortress denizens (including deceased/missing)
+            all_fortress_denizens = [dict(r) for r in await conn.fetch("""
+                SELECT fd.unit_id, fd.hf_id, fd.name, fd.english_name,
+                       fd.race, fd.status, fd.embark,
+                       fd.arrival_year, fd.arrival_tick,
+                       fd.departure_year, fd.departure_tick,
+                       fd.departure_cause, fd.narrative_value,
+                       fd.last_seen_tick, fd.details
+                FROM fortress_denizens fd
+                WHERE fd.world_id = $1
+                ORDER BY
+                    CASE fd.status
+                        WHEN 'resident' THEN 0
+                        WHEN 'deceased' THEN 1
+                        WHEN 'missing' THEN 2
+                        ELSE 3
+                    END,
+                    fd.name
+            """, world_id)]
+
+        # ── Merge live unit events into History tab ──────────────────
+        if is_active_fortress:
+            _live_hist = await conn.fetch("""
+                SELECT ue.event_type, ue.game_year, ue.game_tick,
+                       ue.new_value, ue.unit_id,
+                       u.english_name AS unit_name, u.race AS unit_race
+                FROM unit_events ue
+                LEFT JOIN units u ON u.id = ue.unit_id AND u.world_id = ue.world_id
+                WHERE ue.world_id = $1
+                  AND ue.event_type IN ('DIED', 'GHOST', 'ARRIVED', 'DEPARTED',
+                                        'PROFESSION_CHANGED', 'STRESS_SPIKE',
+                                        'PREGNANCY_DETECTED', 'syndrome_applied')
+                ORDER BY ue.game_tick ASC
+                LIMIT 200
+            """, world_id)
+            for ev in _live_hist:
+                unit_label = ev['unit_name'] or f"Unit #{ev['unit_id']}"
+                race_label = f" ({ev['unit_race']})" if ev['unit_race'] else ""
+                etype = ev['event_type']
+                if etype == 'DIED':
+                    text = f"<span class='text-red-400'>{unit_label}{race_label} died</span>"
+                elif etype == 'GHOST':
+                    text = f"<span class='text-purple-400'>The ghost of {unit_label} appeared</span>"
+                elif etype == 'ARRIVED':
+                    text = f"<span class='text-green-400'>{unit_label}{race_label} arrived at the fortress</span>"
+                elif etype == 'DEPARTED':
+                    text = f"<span class='text-amber-400'>{unit_label}{race_label} departed the fortress</span>"
+                elif etype == 'PROFESSION_CHANGED':
+                    text = f"{unit_label} changed profession"
+                elif etype == 'STRESS_SPIKE':
+                    text = f"<span class='text-red-300'>{unit_label} experienced a stress spike</span>"
+                elif etype == 'PREGNANCY_DETECTED':
+                    text = f"<span class='text-pink-400'>{unit_label} is pregnant</span>"
+                else:
+                    text = f"{unit_label}: {etype}"
+                rendered_events.append({
+                    'id': None,
+                    'year': ev['game_year'],
+                    'type': f"[LIVE] {etype}",
+                    'date_short': f"Y{ev['game_year']} T{ev['game_tick']}",
+                    'text': text,
+                    'enrichment': {},
+                })
+            rendered_events.sort(key=lambda e: (e['year'], e.get('date_short', '')))
+            event_count += len(_live_hist)
+
         # Residents: living sentient HFs at this site
         residents_count = await fetch_site_residents_count(conn, world_id, site_id)
 
@@ -2298,6 +2419,10 @@ async def site_detail_page(site_id: int, request: Request,
         "calendar": DFCalendar,
         "is_active_fortress": is_active_fortress,
         "live_denizen_count": live_denizen_count,
+        "live_snapshots": live_snapshots,
+        "live_unit_events": live_unit_events,
+        "live_units": live_units,
+        "all_fortress_denizens": all_fortress_denizens,
     })
 
 
