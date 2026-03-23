@@ -39,6 +39,7 @@ from chronicler.api.routes.demographics import router as demographics_router
 from chronicler.api.routes.deity_stats import router as deity_stats_router
 from chronicler.api.routes.live import router as live_router
 from chronicler.api.routes.narrative import router as narrative_router
+from chronicler.api.routes.watcher_ui import router as watcher_router
 
 app.include_router(storyteller_router, prefix="/api")
 app.include_router(world_router, prefix="/api")
@@ -54,6 +55,7 @@ app.include_router(demographics_router, prefix="/api")
 app.include_router(deity_stats_router, prefix="/api")
 app.include_router(live_router)  # /fortress, /ws/events at root; /api/live/* via explicit paths
 app.include_router(narrative_router, prefix="/api")  # Stage 3.6 narrative endpoints
+app.include_router(watcher_router)  # /watcher page + /api/watcher/* endpoints
 
 
 @app.get("/", response_class=HTMLResponse)
