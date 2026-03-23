@@ -425,7 +425,7 @@ async def denizen_detail(request: Request, unit_id: int, world_id: int = 1):
                 """
                 SELECT hl.link_type, hl.target_hf_id,
                        hf.name AS target_name, hf.race AS target_race,
-                       hf.is_alive AS target_alive
+                       (hf.death_year IS NULL) AS target_alive
                 FROM hf_links hl
                 LEFT JOIN historical_figures hf
                     ON hf.id = hl.target_hf_id AND hf.world_id = hl.world_id

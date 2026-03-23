@@ -562,6 +562,24 @@ local function get_unit_summary()
                 entry.family = family
             end
 
+            -- v11: Bridge-primary fields (resolved names, civ_id, labors)
+            entry.civ_id = u.civ_id
+            entry.english_name = dfhack.df2utf(dfhack.translation.translateName(u.name, true))
+            pcall(function()
+                local cr = df.creature_raw.find(u.race)
+                if cr then entry.race_name = cr.name[0] end
+            end)
+            entry.profession_name = dfhack.units.getProfessionName(u)
+            pcall(function()
+                local labs = {}
+                for li = 0, df.unit_labor.HAUL_ANIMALS do
+                    if u.status.labors[li] then
+                        table.insert(labs, li)
+                    end
+                end
+                if #labs > 0 then entry.labors = labs end
+            end)
+
             table.insert(dwarves, entry)
         end
     end

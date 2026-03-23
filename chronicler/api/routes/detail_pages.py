@@ -1818,7 +1818,10 @@ async def site_detail_page(site_id: int, request: Request,
 
         # Ownership timeline from JSONB history
         ownership_timeline = []
-        oh = (site.get('details') or {}).get('ownership_history', [])
+        _site_details = site.get('details') or {}
+        if not isinstance(_site_details, dict):
+            _site_details = {}
+        oh = _site_details.get('ownership_history', [])
         if oh:
             entity_ids = [e['entity_id'] for e in oh if e.get('entity_id')]
             entity_names = {}
@@ -2259,7 +2262,8 @@ async def site_detail_page(site_id: int, request: Request,
             ORDER BY id ASC LIMIT 1
         """, world_id, site_id)
 
-    is_ruin = site.get('details', {}).get('ruin') if site.get('details') else False
+    _sd = site.get('details')
+    is_ruin = _sd.get('ruin') if isinstance(_sd, dict) else False
 
     return templates.TemplateResponse("site_detail.html", {
         "request": request,

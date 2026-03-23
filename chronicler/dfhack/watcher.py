@@ -371,24 +371,92 @@ def _log_cycle(cycle: int, game_year: int | None, game_tick: int | None,
                  ev.get('new_value', ''))
 
 
+def _bridge_units_to_upsert(bridge_data: dict, race_map: dict) -> list[dict]:
+    """Convert bridge fortress_units to the dict format upsert_units() expects.
+
+    The bridge provides a superset of RPC data (stress, hunger, thirst,
+    decoded flags, squad membership, birth_year, sex, relationships, etc.).
+    This adapter maps field names to match the CDM units table schema.
+    """
+    summary = bridge_data.get('unit_summary', {})
+    raw = summary.get('fortress_units', [])
+    units = []
+    for bu in raw:
+        race_name = (bu.get('race_name')
+                     or race_map.get(bu.get('race', 0), str(bu.get('race', 0))))
+        profession = bu.get('profession_name') or str(bu.get('profession', 0))
+        hf_id = bu.get('hist_fig_id')
+        civ_id = bu.get('civ_id')
+
+        details = {
+            'english_name': bu.get('english_name'),
+            'caste': bu.get('caste'),
+            'gender': bu.get('sex'),
+            'stress': bu.get('stress'),
+            'longterm_stress': bu.get('longterm_stress'),
+            'focus': bu.get('focus'),
+            'combat_hardened': bu.get('combat_hardened'),
+            'mood': bu.get('mood'),
+            'has_mood': bu.get('has_mood', False),
+            'had_mood': bu.get('had_mood', False),
+            'ghostly': bu.get('ghostly', False),
+            'active_invader': bu.get('active_invader', False),
+            'is_citizen': bu.get('is_citizen', False),
+            'is_resident': bu.get('is_resident', False),
+            'is_visitor': bu.get('is_visitor', False),
+            'is_undead': bu.get('is_undead', False),
+            'is_sane': bu.get('is_sane', True),
+            'is_fort_controlled': bu.get('is_fort_controlled', False),
+            'hunger': bu.get('hunger'),
+            'thirst': bu.get('thirst'),
+            'squad_id': bu.get('squad_id'),
+            'soldier_mood': bu.get('soldier_mood'),
+            'relationships': bu.get('relationships', {}),
+            'family': bu.get('family'),
+            'cultural_identity': bu.get('cultural_identity'),
+            'labors': bu.get('labors', []),
+            'custom_profession': bu.get('custom_profession'),
+            'pregnancy_timer': bu.get('pregnancy_timer', 0),
+        }
+
+        units.append({
+            'id': bu.get('id', 0),
+            'name': bu.get('name', ''),
+            'race': bu.get('race', 0),
+            'race_name': race_name,
+            'profession': profession,
+            'pos_x': bu.get('pos_x'),
+            'pos_y': bu.get('pos_y'),
+            'pos_z': bu.get('pos_z'),
+            'is_alive': bu.get('is_alive', True),
+            'hist_fig_id': hf_id if hf_id and hf_id > 0 else None,
+            'civ_id': civ_id if civ_id and civ_id > 0 else None,
+            'birth_year': bu.get('birth_year'),
+            'sex': bu.get('sex'),
+            'death_cause': (str(bu['death_cause'])
+                            if bu.get('death_cause', -1) != -1 else None),
+            'details': details,
+        })
+    return units
+
+
 async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                      interval: float = 30.0, *,
                      bridge_host: str = '',
                      enable_reports: bool = False,
                      enable_enriched: bool = False,
+                     enable_rpc: bool = False,
                      probe_interval: float = 0):
     """Continuous polling loop. Runs until SIGINT/SIGTERM.
 
     Each cycle:
-    1. Fetch bridge data (game time + expanded sections)
-    2. Pull current units via core RPC with race names resolved
-    3. Optionally enrich units with RFR data (inventory, wounds, etc.)
+    1. Fetch bridge data (game time + expanded sections + units)
+    2. Convert bridge units to CDM format for DB upsert
+    3. Optionally pull units via RPC if --enable-rpc (lower latency)
     4. Detect changes vs previous cycle
     5. Upsert units + insert events + record snapshot (single txn)
-    6. Store expanded bridge sections (armies, buildings, etc.)
-    7. Optionally collect reports (RFR only)
-    8. Optionally capture world map (first cycle only, RFR only)
-    9. Wait for next interval (interruptible by shutdown signal)
+    6. Run expanded ETL, state capture, live ETL, embedding pipelines
+    7. Wait for next interval (interruptible by shutdown signal)
 
     Args:
         pool: asyncpg connection pool
@@ -397,83 +465,84 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
         bridge_host: Host for the Lua bridge HTTP server (empty = same as DFHACK_HOST)
         enable_reports: Collect game reports each cycle (RFR only)
         enable_enriched: Enrich units with RFR data each cycle (RFR only)
+        enable_rpc: Also connect to DFHack TCP RPC (opt-in, for lower latency)
         probe_interval: Store bridge sections every N seconds (0 = every cycle)
     """
     from chronicler.dfhack.reports import collect_reports
     from chronicler.dfhack.world_map import capture_world_map
 
     detector = ChangeDetector()
-    client = DFHackClient(DFHACK_HOST, DFHACK_PORT)
-    client.connect()
 
     # Resolve bridge host (default: same machine as DFHack)
     _bridge_host = bridge_host or BRIDGE_HOST or DFHACK_HOST
     _bridge_port = BRIDGE_PORT
 
-    # ── Data source negotiation ──────────────────────────────────────
-    # Try RFR first (best quality), then bridge (good), then core-only (minimal)
-    rfr_available = False
+    # ── Data source negotiation (bridge-primary) ─────────────────────
     bridge_available = False
+    rpc_available = False
+    rfr_available = False
+    client = None
 
-    # 1. Probe RFR (RemoteFortressReader plugin)
-    log.info("Probing RFR availability (5s timeout)...")
-    try:
-        wm_probe = client.get_world_map(timeout=5.0)
-        if wm_probe:
-            rfr_available = True
-            log.info("RFR available — game time: year %d, tick %d",
-                     wm_probe['cur_year'], wm_probe['cur_year_tick'])
-    except Exception:
-        pass
+    # 1. Probe the Lua bridge (primary transport)
+    log.info("Probing bridge at %s:%d...", _bridge_host, _bridge_port)
+    bridge_data = fetch_bridge_data(_bridge_host, _bridge_port)
+    if bridge_data:
+        bridge_available = True
+        yr, tk = get_game_time(bridge_data)
+        sections = [k for k in bridge_data.keys() if k not in
+                    ('cur_year', 'cur_year_tick', 'cur_season',
+                     'creature_raws', 'creature_count', 'timestamp',
+                     'bridge_version', 'errors')]
+        bver = get_bridge_version(bridge_data)
+        log.info("Bridge v%d available — year %s, tick %s, %d creatures, "
+                 "%d sections: %s",
+                 bver, yr, tk, bridge_data.get('creature_count', 0),
+                 len(sections), ', '.join(sections))
+    else:
+        log.error("Bridge unavailable at %s:%d — cannot start watcher. "
+                  "Ensure chronicler-bridge.lua is running and HTTP server "
+                  "is serving on the DF machine.", _bridge_host, _bridge_port)
+        return
 
-    # 2. If no RFR, probe the Lua bridge
-    bridge_data = None
-    if not rfr_available:
-        log.info("RFR unavailable. Probing bridge at %s:%d...",
-                 _bridge_host, _bridge_port)
-        bridge_data = fetch_bridge_data(_bridge_host, _bridge_port)
-        if bridge_data:
-            bridge_available = True
-            yr, tk = get_game_time(bridge_data)
-            sections = [k for k in bridge_data.keys() if k not in
-                        ('cur_year', 'cur_year_tick', 'cur_season',
-                         'creature_raws', 'creature_count', 'timestamp',
-                         'bridge_version', 'errors')]
-            bver = get_bridge_version(bridge_data)
-            log.info("Bridge v%d available — year %s, tick %s, %d creatures, "
-                     "%d sections: %s",
-                     bver, yr, tk, bridge_data.get('creature_count', 0),
-                     len(sections), ', '.join(sections))
-        else:
-            log.warning("Bridge unavailable at %s:%d — running without game "
-                        "time or creature raws. Set up chronicler-bridge.lua "
-                        "and PowerShell HTTP server for full data.",
-                        _bridge_host, _bridge_port)
+    # 2. Optionally probe DFHack RPC (opt-in via --enable-rpc)
+    if enable_rpc:
+        log.info("RPC enabled — probing DFHack at %s:%d...",
+                 DFHACK_HOST, DFHACK_PORT)
+        try:
+            client = DFHackClient(DFHACK_HOST, DFHACK_PORT)
+            client.connect()
+            rpc_available = True
+            log.info("DFHack RPC connected")
+            # Probe RFR if RPC works
+            try:
+                wm_probe = client.get_world_map(timeout=5.0)
+                if wm_probe:
+                    rfr_available = True
+                    log.info("RFR available — year %d, tick %d",
+                             wm_probe['cur_year'], wm_probe['cur_year_tick'])
+            except Exception:
+                pass
+        except (ConnectionError, OSError, TimeoutError) as e:
+            log.warning("DFHack RPC unavailable (%s) — using bridge-only mode", e)
+            client = None
 
-    if not rfr_available and not bridge_available:
-        # Force-disable RFR-dependent features
+    if not rpc_available:
         enable_reports = False
         enable_enriched = False
 
     # ── Build race map ───────────────────────────────────────────────
     race_map = {}
-    if rfr_available:
+    if rfr_available and client:
         race_map = client.get_creature_raws() or {}
-    elif bridge_available:
+    if not race_map and bridge_available:
         race_map = build_race_map(bridge_data)
 
     if race_map:
         log.info("Race map: %d creature types loaded (source: %s)",
                  len(race_map), "RFR" if rfr_available else "bridge")
     else:
-        # Fallback: label the player race (dwarves) via GetWorldInfo (core)
-        info = client.get_world_info()
-        player_race = info.get('race_id')
-        if player_race is not None:
-            race_map = {player_race: 'DWARF'}
-            log.info("Using minimal race map (race %d=DWARF only)", player_race)
-        else:
-            log.warning("Could not load creature raws — using numeric race IDs")
+        log.warning("Could not load creature raws — bridge unit names "
+                    "will be used directly")
 
     # ── Auto-update world name from bridge ──────────────────────────────
     if bridge_available and bridge_data:
@@ -514,63 +583,60 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
             extras = {}
             bd = None
 
-            # 1. Get game time + full bridge data (RFR > bridge > none)
+            # 1. Fetch bridge data (primary transport)
             game_year = None
             game_tick = None
-            if rfr_available:
-                world_map = client.get_world_map()
-                game_year = world_map['cur_year'] if world_map else None
-                game_tick = world_map['cur_year_tick'] if world_map else None
-            elif bridge_available:
-                bd = fetch_bridge_data(_bridge_host, _bridge_port)
-                if bd:
-                    bridge_failures = 0
-                    game_year, game_tick = get_game_time(bd)
-                    # Durable capture: append raw bridge data to JSONL log
-                    bridge_logger.append(bd, cycle, game_year, game_tick)
-                else:
-                    bridge_failures += 1
-                    if bridge_failures == 3:
-                        log.warning("Bridge failed 3 consecutive times — "
-                                    "continuing with core-only data. Check "
-                                    "HTTP server at %s:%d",
-                                    _bridge_host, _bridge_port)
-                    elif bridge_failures % 10 == 0:
-                        log.warning("Bridge failure streak: %d", bridge_failures)
+            bd = fetch_bridge_data(_bridge_host, _bridge_port)
+            if bd:
+                bridge_failures = 0
+                game_year, game_tick = get_game_time(bd)
+                bridge_logger.append(bd, cycle, game_year, game_tick)
+            else:
+                bridge_failures += 1
+                if bridge_failures == 3:
+                    log.warning("Bridge failed 3 consecutive times — "
+                                "check HTTP server at %s:%d",
+                                _bridge_host, _bridge_port)
+                elif bridge_failures % 10 == 0:
+                    log.warning("Bridge failure streak: %d", bridge_failures)
 
-            # 2. Pull current units (core method — may timeout under timestream)
-            try:
-                units = client.list_units(sane=True, skills=True, profession=True)
-            except (TimeoutError, OSError) as e:
-                log.warning("ListUnits RPC timeout (cycle %d): %s — "
-                            "using bridge units only", cycle, e)
-                # Fall back to bridge fortress_units if available
-                if bd:
-                    bridge_units = get_fortress_units(bd)
-                    units = []
-                    for bu in (bridge_units or []):
-                        units.append({
-                            'id': bu.get('id', 0),
-                            'name': bu.get('name', ''),
-                            'race': bu.get('race', 0),
-                            'race_name': 'DWARF',
-                            'profession': bu.get('profession', 0),
-                        })
-                else:
-                    log.warning("No fallback data — skipping cycle %d", cycle)
-                    try:
-                        await asyncio.wait_for(_shutdown.wait(),
-                                               timeout=interval)
-                        break
-                    except asyncio.TimeoutError:
-                        continue
+            # 1b. If RPC enabled, also get RFR game time (lower latency)
+            if rfr_available and client:
+                try:
+                    world_map = client.get_world_map()
+                    if world_map:
+                        game_year = world_map['cur_year']
+                        game_tick = world_map['cur_year_tick']
+                except Exception:
+                    pass
+
+            # 2. Get units — bridge primary, RPC opt-in
+            if rpc_available and client:
+                try:
+                    units = client.list_units(sane=True, skills=True,
+                                              profession=True)
+                except (TimeoutError, OSError) as e:
+                    log.warning("RPC list_units failed (cycle %d): %s — "
+                                "using bridge units", cycle, e)
+                    units = _bridge_units_to_upsert(bd, race_map) if bd else []
+            else:
+                units = _bridge_units_to_upsert(bd, race_map) if bd else []
+
+            if not units and not bd:
+                log.warning("No data available — skipping cycle %d", cycle)
+                try:
+                    await asyncio.wait_for(_shutdown.wait(),
+                                           timeout=interval)
+                    break
+                except asyncio.TimeoutError:
+                    continue
             for u in units:
                 if 'race_name' not in u:
                     u['race_name'] = race_map.get(u.get('race', 0),
                                                   str(u.get('race', 0)))
 
-            # 3. Optionally enrich units with RFR data
-            if enable_enriched:
+            # 3. Optionally enrich units with RFR data (RPC only)
+            if enable_enriched and client:
                 try:
                     enriched = client.get_enriched_units()
                     if enriched:
@@ -749,5 +815,6 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                 continue
     finally:
         bridge_logger.close()
-        client.close()
+        if client:
+            client.close()
         log.info("Watcher stopped after %d cycles", cycle)

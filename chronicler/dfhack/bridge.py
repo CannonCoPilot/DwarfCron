@@ -334,9 +334,15 @@ def merge_bridge_into_units(units: list[dict],
         bu = bridge_by_id.get(uid)
         if bu:
             # Promote key fields to top level (for column storage)
-            unit['birth_year'] = bu.get('birth_year')
-            unit['sex'] = bu.get('sex')
-            unit['death_cause'] = bu.get('death_cause')
+            # Only overwrite if not already set (bridge-primary adapter
+            # pre-cleans these fields; avoid re-introducing raw ints)
+            if 'birth_year' not in unit or unit['birth_year'] is None:
+                unit['birth_year'] = bu.get('birth_year')
+            if 'sex' not in unit or unit['sex'] is None:
+                unit['sex'] = bu.get('sex')
+            dc = bu.get('death_cause')
+            if dc is not None and dc != -1 and 'death_cause' not in unit:
+                unit['death_cause'] = str(dc)
 
             # Merge biographical fields into details
             details = unit.get('details', {})

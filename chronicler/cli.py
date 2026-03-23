@@ -271,7 +271,9 @@ def sync_live(world_id):
 @click.option("--enriched", is_flag=True, help="Enrich units with RFR data (inventory, wounds)")
 @click.option("--probe-interval", default=0.0, type=float,
               help="Run Lua probes every N seconds (0 = disabled)")
-def watch(world_id, interval, bridge_host, reports, enriched, probe_interval):
+@click.option("--enable-rpc", is_flag=True,
+              help="Also connect to DFHack TCP RPC (opt-in, for lower-latency unit data)")
+def watch(world_id, interval, bridge_host, reports, enriched, probe_interval, enable_rpc):
     """Continuously poll DFHack and log changes to the CDM."""
     import signal as sig
 
@@ -287,6 +289,8 @@ def watch(world_id, interval, bridge_host, reports, enriched, probe_interval):
         streams = []
         if bridge_host:
             streams.append(f"bridge@{bridge_host}")
+        if enable_rpc:
+            streams.append("rpc")
         if reports:
             streams.append("reports")
         if enriched:
@@ -302,6 +306,7 @@ def watch(world_id, interval, bridge_host, reports, enriched, probe_interval):
                              bridge_host=bridge_host,
                              enable_reports=reports,
                              enable_enriched=enriched,
+                             enable_rpc=enable_rpc,
                              probe_interval=probe_interval)
         finally:
             await close_pool()

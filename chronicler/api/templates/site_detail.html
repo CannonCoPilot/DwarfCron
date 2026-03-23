@@ -167,7 +167,7 @@
       {% endif %}
     </div>
     {% set filtered_details = {} %}
-    {% if site.details %}
+    {% if site.details and site.details is mapping %}
       {% for k, v in site.details.items() if k != 'ownership_history' %}
         {% if filtered_details.update({k: v}) %}{% endif %}
       {% endfor %}
