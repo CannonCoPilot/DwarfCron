@@ -47,7 +47,7 @@ class GameController:
 
     def __init__(self, host: str = "192.168.64.3",
                  ssh_key: str = "~/.ssh/df-vm",
-                 ssh_user: str = "administrator",
+                 ssh_user: str = "Jarvis",
                  ssh_timeout: int = 10):
         self._host = host
         self._ssh_key = ssh_key

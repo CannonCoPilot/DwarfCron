@@ -1253,10 +1253,18 @@ async def import_legends(
     conn: asyncpg.Connection,
     legends_path: str,
     legends_plus_path: str | None = None,
+    update_mode: bool = False,
+    existing_world_id: int | None = None,
 ) -> dict[str, int]:
     """Import legends XML files into the CDM.
 
-    Returns dict of table names → row counts inserted.
+    Args:
+        update_mode: If True, merge into existing world (no new world record,
+                     ON CONFLICT DO UPDATE for key tables). Never deletes.
+        existing_world_id: World ID to update. If None in update_mode,
+                          auto-detects from DB.
+
+    Returns dict of table names → row counts inserted/updated.
     """
     import json
     import xml.etree.ElementTree as ET
@@ -1278,12 +1286,33 @@ async def import_legends(
         world_name = plus_data["world_name"]
         world_alt_name = plus_data["world_alt_name"]
 
-    # ── Step 3: Create world record ───────────────────────────────────────
-    world_id = await conn.fetchval(
-        "INSERT INTO worlds (name, alt_name, import_path) VALUES ($1, $2, $3) RETURNING id",
-        world_name, world_alt_name, legends_path,
-    )
-    log.info("Created world %d: %s (%s)", world_id, world_name, world_alt_name)
+    # ── Step 3: Create or find world record ───────────────────────────────
+    if update_mode:
+        # In update mode, find existing world
+        if existing_world_id:
+            world_id = existing_world_id
+        else:
+            # Auto-detect: find world by name or use the most recent
+            world_id = None
+            if world_name:
+                world_id = await conn.fetchval(
+                    "SELECT id FROM worlds WHERE name = $1 ORDER BY id DESC LIMIT 1",
+                    world_name,
+                )
+            if not world_id:
+                world_id = await conn.fetchval(
+                    "SELECT id FROM worlds ORDER BY id DESC LIMIT 1",
+                )
+            if not world_id:
+                raise ValueError("No existing world found for update mode. "
+                                 "Run a fresh ingest first.")
+        log.info("UPDATE mode: merging into world %d (%s)", world_id, world_name)
+    else:
+        world_id = await conn.fetchval(
+            "INSERT INTO worlds (name, alt_name, import_path) VALUES ($1, $2, $3) RETURNING id",
+            world_name, world_alt_name, legends_path,
+        )
+        log.info("Created world %d: %s (%s)", world_id, world_name, world_alt_name)
 
     # Update world_id in plus_data tuples
     if plus_data:
@@ -1386,6 +1415,18 @@ async def import_legends(
     (hf_rows, hf_link_rows, hf_entity_link_rows, hf_site_link_rows,
      hf_position_link_rows, hf_rel_profile_rows, hf_vague_rel_rows,
      hf_intrigue_rows, hf_squad_link_rows) = _parse_historical_figures(root, world_id)
+    # In update mode, merge new HF data (deaths, new HFs born post-embark)
+    hf_conflict = (
+        "(world_id, id) DO UPDATE SET "
+        "death_year = COALESCE(EXCLUDED.death_year, historical_figures.death_year), "
+        "death_seconds = COALESCE(EXCLUDED.death_seconds, historical_figures.death_seconds), "
+        "death_cause = COALESCE(EXCLUDED.death_cause, historical_figures.death_cause), "
+        "kill_count = GREATEST(EXCLUDED.kill_count, historical_figures.kill_count), "
+        "event_count = GREATEST(EXCLUDED.event_count, historical_figures.event_count), "
+        "details = COALESCE(historical_figures.details, '{}'::jsonb) || "
+        "COALESCE(EXCLUDED.details, '{}'::jsonb)"
+        if update_mode else "(world_id, id) DO NOTHING"
+    )
     n = await _batch_insert(conn, "historical_figures",
         ["id", "world_id", "name", "race", "caste", "sex",
          "birth_year", "birth_seconds", "death_year", "death_seconds",
@@ -1395,7 +1436,7 @@ async def import_legends(
          "spheres", "goals", "skills", "holds_artifact",
          "active_interactions", "associated_type", "appeared",
          "first_ageless_year", "current_identity_id", "details"],
-        hf_rows)
+        hf_rows, on_conflict=hf_conflict)
     counts["historical_figures"] = n
     log.info("  historical_figures: %d", n)
 
@@ -1499,10 +1540,18 @@ async def import_legends(
 
     # Artifacts
     artifact_rows = _parse_artifacts(root, world_id)
+    art_conflict = (
+        "(world_id, id) DO UPDATE SET "
+        "holder_hf_id = COALESCE(EXCLUDED.holder_hf_id, artifacts.holder_hf_id), "
+        "site_id = COALESCE(EXCLUDED.site_id, artifacts.site_id), "
+        "details = COALESCE(artifacts.details, '{}'::jsonb) || "
+        "COALESCE(EXCLUDED.details, '{}'::jsonb)"
+        if update_mode else "(world_id, id) DO NOTHING"
+    )
     n = await _batch_insert(conn, "artifacts",
         ["id", "world_id", "name", "item_type", "item_subtype", "material",
          "creator_hf_id", "holder_hf_id", "site_id", "details"],
-        artifact_rows)
+        artifact_rows, on_conflict=art_conflict)
     counts["artifacts"] = n
     log.info("  artifacts: %d", n)
 

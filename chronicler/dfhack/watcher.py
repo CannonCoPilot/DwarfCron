@@ -30,6 +30,8 @@ from chronicler.dfhack.bridge import (
 )
 from chronicler.dfhack.etl_expanded import ingest_expanded
 from chronicler.dfhack.etl_state_capture import ingest_state_capture
+from chronicler.dfhack.file_writer import write_bridge_to_disk
+from chronicler.dfhack.live_etl import run_live_etl
 from chronicler.dfhack.client import DFHackClient
 from chronicler.dfhack.detector import ChangeDetector
 from chronicler.dfhack.sync import upsert_units, enrich_units
@@ -680,6 +682,20 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
                             extras['embedded'] = embed_count
                     except Exception as e:
                         log.debug("Live embedding failed: %s", e)
+
+                # 6b4. Stage 3 Live ETL: bridge → on-disk → Legends Tables
+                if bd and bridge_available:
+                    try:
+                        live_dir = write_bridge_to_disk(
+                            bd, world_id, cycle=cycle,
+                            game_year=game_year, game_tick=game_tick)
+                        legends_summary = await run_live_etl(
+                            conn, world_id, live_dir)
+                        active_legends = {k: v for k, v in legends_summary.items() if v}
+                        if active_legends:
+                            extras['legends_etl'] = active_legends
+                    except Exception as e:
+                        log.debug("Live ETL (Legends) failed: %s", e)
 
                 # 6c. Knowledge Horizon expansion (every 10 cycles)
                 if cycle % 10 == 0 and events:

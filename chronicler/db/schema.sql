@@ -1236,3 +1236,100 @@ JOIN event_entity_xref xref ON xref.world_id = he.world_id AND xref.event_id = h
 JOIN knowledge_horizon kh ON kh.world_id = xref.world_id
     AND kh.entity_type = xref.entity_type AND kh.entity_id = xref.entity_id
     AND kh.visible = TRUE;
+
+-- ── Stage 3.6: Narrative Data Layer ────────────────────────────────────
+
+-- 3.6.1: Events enriched with narrative metadata
+CREATE TABLE IF NOT EXISTS narrative_events (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    event_id        INT NOT NULL,
+    narrative_weight FLOAT DEFAULT 0,
+    drama_score     FLOAT DEFAULT 0,
+    irony_flags     JSONB,
+    emotional_tone  TEXT,
+    UNIQUE(world_id, event_id)
+);
+
+-- 3.6.2: Cause → effect relationships between events
+CREATE TABLE IF NOT EXISTS event_causal_links (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    cause_event_id  INT NOT NULL,
+    effect_event_id INT NOT NULL,
+    link_type       TEXT NOT NULL,
+    confidence      FLOAT DEFAULT 0.5,
+    UNIQUE(world_id, cause_event_id, effect_event_id)
+);
+
+-- 3.6.3: Detected story threads
+CREATE TABLE IF NOT EXISTS narrative_arcs (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    arc_type        TEXT NOT NULL,
+    title           TEXT,
+    start_tick      BIGINT NOT NULL,
+    end_tick        BIGINT,
+    key_events      JSONB NOT NULL,
+    characters      JSONB,
+    resolution      TEXT,
+    dramatic_weight FLOAT DEFAULT 0
+);
+
+-- 3.6.4: Pre-computed text summaries at multiple granularities
+CREATE TABLE IF NOT EXISTS event_summaries (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    scope           TEXT NOT NULL,
+    scope_id        INT,
+    granularity     TEXT NOT NULL,
+    summary_text    TEXT NOT NULL,
+    key_events      JSONB,
+    generated_at    TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(world_id, scope, scope_id, granularity)
+);
+
+-- 3.6.6: Pre-computed character profiles for key figures
+CREATE TABLE IF NOT EXISTS character_narratives (
+    id                SERIAL PRIMARY KEY,
+    world_id          INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    unit_id           INT,
+    hf_id             INT,
+    character_name    TEXT NOT NULL,
+    role_description  TEXT,
+    arc_summary       TEXT,
+    key_moments       JSONB,
+    personality_voice TEXT,
+    ironic_dimensions JSONB,
+    generated_at      TIMESTAMPTZ DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_char_narr_unique
+    ON character_narratives(world_id, COALESCE(unit_id, -1), COALESCE(hf_id, -1));
+
+-- 3.6.8: Temporally grouped related events
+CREATE TABLE IF NOT EXISTS event_clusters (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL REFERENCES worlds(id) ON DELETE CASCADE,
+    cluster_type    TEXT NOT NULL,
+    start_tick      BIGINT NOT NULL,
+    end_tick        BIGINT NOT NULL,
+    event_ids       JSONB NOT NULL,
+    summary         TEXT,
+    UNIQUE(world_id, cluster_type, start_tick)
+);
+
+-- Stage 3.6 indexes
+CREATE INDEX IF NOT EXISTS idx_narr_events_world
+    ON narrative_events(world_id, narrative_weight DESC);
+CREATE INDEX IF NOT EXISTS idx_causal_cause
+    ON event_causal_links(world_id, cause_event_id);
+CREATE INDEX IF NOT EXISTS idx_causal_effect
+    ON event_causal_links(world_id, effect_event_id);
+CREATE INDEX IF NOT EXISTS idx_arcs_world_type
+    ON narrative_arcs(world_id, arc_type);
+CREATE INDEX IF NOT EXISTS idx_summaries_scope
+    ON event_summaries(world_id, scope, scope_id);
+CREATE INDEX IF NOT EXISTS idx_char_narr_world
+    ON character_narratives(world_id);
+CREATE INDEX IF NOT EXISTS idx_clusters_world_type
+    ON event_clusters(world_id, cluster_type);

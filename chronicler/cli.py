@@ -185,22 +185,38 @@ def _resolve_legends_pair(
     default=None,
     help="Path to legends_plus.xml (default: auto-detect from legends dir)",
 )
-def ingest(legends_path, legends_plus_path):
+@click.option(
+    "--update", "update_mode", is_flag=True, default=False,
+    help="Diff mode: merge new/changed records into existing world (no DELETE)",
+)
+@click.option(
+    "--world-id", "world_id", type=int, default=None,
+    help="World ID for update mode (default: auto-detect from DB)",
+)
+def ingest(legends_path, legends_plus_path, update_mode, world_id):
     """Parse and import Dwarf Fortress legends XML into the database."""
     from chronicler.db.connection import get_pool, close_pool
     from chronicler.ingest.xml_parser import import_legends
 
     legends_path, legends_plus_path = _resolve_legends_pair(legends_path, legends_plus_path)
 
+    mode_label = "UPDATE (diff)" if update_mode else "FRESH"
+    click.echo(f"Mode:         {mode_label}")
     click.echo(f"Legends:      {legends_path}")
     click.echo(f"Legends Plus: {legends_plus_path or '(none)'}")
+    if world_id:
+        click.echo(f"World ID:     {world_id}")
 
     async def _run_ingest():
         pool = await get_pool()
         async with pool.acquire() as conn:
-            counts = await import_legends(conn, legends_path, legends_plus_path)
+            counts = await import_legends(
+                conn, legends_path, legends_plus_path,
+                update_mode=update_mode,
+                existing_world_id=world_id,
+            )
 
-        click.echo("\n── Ingestion Complete ──")
+        click.echo(f"\n── Ingestion Complete ({mode_label}) ──")
         total = 0
         for table, n in sorted(counts.items()):
             click.echo(f"  {table:40s} {n:>8,d}")
@@ -1117,9 +1133,24 @@ async def _ingest_bridge_cycle(bridge_data: dict, step_result: dict,
                 delta_detector=delta_detector,
             )
 
+            # ── Layer 4: Legends Table sync (live → core CDM) ────
+            legends_summary = {}
+            try:
+                from chronicler.dfhack.file_writer import write_bridge_to_disk
+                from chronicler.dfhack.live_etl import run_live_etl
+                live_dir = write_bridge_to_disk(
+                    bridge_data, world_id,
+                    game_year=game_year, game_tick=game_tick)
+                legends_summary = await run_live_etl(conn, world_id, live_dir)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).debug(
+                    "Legends ETL failed: %s", e)
+
         return {
             "stored": stored,
             "etl": etl_summary,
+            "legends": legends_summary,
         }
     finally:
         await close_pool()
@@ -1836,6 +1867,52 @@ def deaths(world_id, limit):
 @cli.group("narrative")
 def narrative_group():
     """Narrative data layer — LLM generation, scoring, context assembly."""
+
+
+@narrative_group.command("analyze")
+@click.option("--world-id", default=1, type=int, help="World ID")
+@click.option("--target", type=click.Choice(
+    ["all", "scores", "links", "arcs", "clusters"]),
+    default="all", help="What to analyze")
+@click.option("--force", is_flag=True, help="Re-analyze existing data")
+def narrative_analyze(world_id, target, force):
+    """Run narrative analysis pipeline (scoring, causal links, arcs, clusters)."""
+    from chronicler.db.connection import get_pool, close_pool
+    from chronicler.storyteller.narrative_scoring import score_events
+    from chronicler.storyteller.causal_linking import detect_causal_links
+    from chronicler.storyteller.arc_detection import detect_arcs, detect_clusters
+
+    async def _run_analyze():
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            results = {}
+            targets = [target] if target != "all" else [
+                "scores", "links", "arcs", "clusters"]
+
+            for t in targets:
+                click.echo(f"Analyzing {t}...")
+                if t == "scores":
+                    results[t] = await score_events(conn, world_id, force=force)
+                elif t == "links":
+                    results[t] = await detect_causal_links(
+                        conn, world_id, force=force)
+                elif t == "arcs":
+                    results[t] = await detect_arcs(conn, world_id, force=force)
+                elif t == "clusters":
+                    results[t] = await detect_clusters(
+                        conn, world_id, force=force)
+
+        click.echo("\n── Narrative Analysis Complete ──")
+        for name, summary in results.items():
+            if isinstance(summary, dict):
+                detail = ", ".join(f"{k}={v}" for k, v in summary.items()
+                                  if isinstance(v, (int, float)))
+                click.echo(f"  {name:20s} {detail}")
+            else:
+                click.echo(f"  {name:20s} {summary}")
+        await close_pool()
+
+    _run(_run_analyze())
 
 
 @narrative_group.command("generate")
