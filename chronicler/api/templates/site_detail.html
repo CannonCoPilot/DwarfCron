@@ -400,291 +400,336 @@
 {% endif %}
 
 {# ══════════════════════════════════════════════════════════════════════ #}
-{# LIVE DATA TAB — All streamed fortress data in one place              #}
+{# LIVE DATA TAB — Fortress Chronicle Dashboard                        #}
 {# ══════════════════════════════════════════════════════════════════════ #}
 {% if is_active_fortress %}
+<style>
+  .chronicle-card { background: linear-gradient(135deg, #1c1917 0%, #1a1512 100%); border: 1px solid #292524; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+  .chronicle-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .death-card { background: #1a0a0a; border: 1px solid #7f1d1d; border-radius: 0.5rem; padding: 0.75rem; }
+  .death-card:hover { border-color: #dc2626; }
+  .ghost-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #3b0764; color: #c084fc; border: 1px solid #6b21a8; }
+  .citizen-card { background: #0a1a0a; border: 1px solid #14532d; border-radius: 0.5rem; padding: 0.75rem; }
+  .stress-bar { height: 6px; border-radius: 3px; background: #292524; overflow: hidden; }
+  .stress-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .timeline-event { position: relative; padding-left: 2rem; padding-bottom: 1rem; border-left: 2px solid #292524; }
+  .timeline-event::before { content: ''; position: absolute; left: -5px; top: 0.35rem; width: 8px; height: 8px; border-radius: 50%; }
+  .timeline-event.ev-death::before { background: #dc2626; box-shadow: 0 0 8px #dc262680; }
+  .timeline-event.ev-ghost::before { background: #a855f7; box-shadow: 0 0 8px #a855f780; }
+  .timeline-event.ev-arrive::before { background: #22c55e; }
+  .timeline-event.ev-depart::before { background: #f59e0b; }
+  .timeline-event.ev-other::before { background: #78716c; }
+  .timeline-event:last-child { border-left-color: transparent; }
+  .stat-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 10px; border-radius: 999px; }
+</style>
 <div id="dtab-content-livedata" class="tab-content">
 
-  {# ── Section 1: Fortress State Timeline (population/food/drink/wealth) ── #}
-  <div class="section-card mb-4">
-    <div class="section-title" style="color: #22c55e;">Fortress State Timeline ({{ live_snapshots|length }} snapshots)</div>
+  {# ── SUMMARY BANNER ── #}
+  <div class="chronicle-card" style="border-color: #22c55e40; background: linear-gradient(135deg, #0a1a0a 0%, #1c1917 100%);">
+    <div class="chronicle-title" style="color: #22c55e;">
+      <span style="font-size: 1.2rem;">&#x2694;</span> Fortress Chronicle
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-stone-200">{{ live_snapshots|length }}</div>
+        <div class="text-[10px] text-stone-500 uppercase tracking-wider">Snapshots</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-red-400">{{ death_registry|length }}</div>
+        <div class="text-[10px] text-stone-500 uppercase tracking-wider">Fallen</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-purple-400">{{ ghost_sightings|length }}</div>
+        <div class="text-[10px] text-stone-500 uppercase tracking-wider">Hauntings</div>
+      </div>
+      <div class="text-center">
+        <div class="text-2xl font-bold text-emerald-400">{{ citizen_profiles|length }}</div>
+        <div class="text-[10px] text-stone-500 uppercase tracking-wider">Survivors</div>
+      </div>
+    </div>
     {% if live_snapshots %}
-    <div style="height: 220px; position: relative;">
+    {% set first_snap = live_snapshots[0] %}
+    {% set last_snap = live_snapshots[-1] %}
+    <div class="text-xs text-stone-400">
+      <span class="text-stone-500">Observed:</span> Y{{ first_snap.year }} {{ first_snap.season }} &rarr; Y{{ last_snap.year }} {{ last_snap.season }}
+      &nbsp;|&nbsp; <span class="text-stone-500">Population:</span> <span class="text-emerald-400">{{ first_snap.population }}</span> &rarr; <span class="{% if last_snap.population <= 3 %}text-red-400{% else %}text-emerald-400{% endif %}">{{ last_snap.population }}</span>
+      &nbsp;|&nbsp; <span class="text-stone-500">Wealth:</span> {{ first_snap.wealth }} &rarr; {{ last_snap.wealth }}
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── POPULATION & RESOURCES CHART ── #}
+  <div class="chronicle-card">
+    <div class="chronicle-title text-stone-300">
+      <span>&#x1F4C8;</span> Population &amp; Resources
+    </div>
+    {% if live_snapshots %}
+    <div style="height: 250px; position: relative;">
       <canvas id="live-timeline-chart"></canvas>
     </div>
-    <div class="mt-3 max-h-[300px] overflow-y-auto ex-scroll">
-      <table class="w-full text-xs">
-        <thead class="sticky top-0 bg-stone-900">
-          <tr class="text-stone-500 border-b border-stone-800">
-            <th class="text-left pb-1">Year</th>
-            <th class="text-left pb-1">Season</th>
-            <th class="text-left pb-1">Tick</th>
-            <th class="text-right pb-1">Pop</th>
-            <th class="text-right pb-1">Military</th>
-            <th class="text-right pb-1">Food</th>
-            <th class="text-right pb-1">Drink</th>
-            <th class="text-right pb-1">Wealth</th>
-            <th class="text-left pb-1">Happiness</th>
-            <th class="text-left pb-1">Threats</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in live_snapshots %}
-          <tr class="border-b border-stone-800/30 {% if s.population <= 3 %}bg-red-900/20{% endif %}">
-            <td class="py-0.5 text-stone-400">{{ s.year }}</td>
-            <td class="py-0.5">{{ s.season }}</td>
-            <td class="py-0.5 text-stone-500 font-mono">{{ s.tick }}</td>
-            <td class="py-0.5 text-right {% if s.population <= 3 %}text-red-400 font-bold{% else %}text-emerald-400{% endif %}">{{ s.population }}</td>
-            <td class="py-0.5 text-right text-stone-400">{{ s.military_count or 0 }}</td>
-            <td class="py-0.5 text-right {% if s.food_stocks <= 10 %}text-red-400{% else %}text-amber-400{% endif %}">{{ s.food_stocks }}</td>
-            <td class="py-0.5 text-right {% if s.drink_stocks <= 0 %}text-red-400{% else %}text-sky-400{% endif %}">{{ s.drink_stocks }}</td>
-            <td class="py-0.5 text-right text-amber-400">{{ s.wealth or 0 }}</td>
-            <td class="py-0.5 text-stone-400">
-              {% if s.happiness_distribution %}
-                {% set hd = s.happiness_distribution if s.happiness_distribution is mapping else {} %}
-                {% if hd.get('ecstatic') %}<span class="text-emerald-300">☺{{ hd.ecstatic }}</span> {% endif %}
-                {% if hd.get('content') %}<span class="text-green-400">●{{ hd.content }}</span> {% endif %}
-                {% if hd.get('unhappy') %}<span class="text-amber-400">▼{{ hd.unhappy }}</span> {% endif %}
-                {% if hd.get('miserable') %}<span class="text-red-400">✖{{ hd.miserable }}</span> {% endif %}
-              {% endif %}
-            </td>
-            <td class="py-0.5 text-red-400 text-xs">
-              {% if s.threats and s.threats is mapping %}
-                {{ s.threats|tojson }}
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-      <div class="text-stone-600 text-sm italic">No snapshots captured.</div>
     {% endif %}
   </div>
 
-  {# ── Section 2: Live Unit Events (deaths, ghosts, arrivals, etc.) ── #}
-  <div class="section-card mb-4">
-    <div class="section-title" style="color: #22c55e;">Live Unit Events ({{ live_unit_events|length }} events)</div>
-    {% if live_unit_events %}
-    {# Event type distribution #}
-    <div class="flex flex-wrap gap-1.5 mb-3">
-      {% set event_types_seen = [] %}
-      {% for ev in live_unit_events %}
-        {% if ev.event_type not in event_types_seen %}
-          {% if event_types_seen.append(ev.event_type) %}{% endif %}
+  {# ── THE FALLEN — Death Registry ── #}
+  {% if death_registry %}
+  <div class="chronicle-card" style="border-color: #7f1d1d40;">
+    <div class="chronicle-title text-red-400">
+      <span>&#x2620;</span> The Fallen ({{ death_registry|length }})
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {% for d in death_registry %}
+      <div class="death-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-sm font-medium">
+              {% if d.hf_id %}
+                {{ linker.link('hf', d.hf_id, d.name, world_id)|safe }}
+              {% else %}
+                <span class="text-stone-200">{{ d.name }}</span>
+              {% endif %}
+            </div>
+            <div class="text-[10px] text-stone-500 mt-0.5">
+              {{ d.race|lower }} {{ d.profession|lower }}
+              {% if d.embark %}&middot; <span class="text-amber-400">Embarker</span>{% endif %}
+            </div>
+          </div>
+          {% if d.ghost_count > 0 %}
+            <span class="ghost-badge" title="{{ d.ghost_count }} ghost appearances">&#x1F47B; {{ d.ghost_count }}</span>
+          {% endif %}
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2 text-[10px]">
+          <span class="stat-pill bg-red-900/40 text-red-300 border border-red-800/50">
+            Died Y{{ d.death_year }} T{{ d.death_tick }}
+          </span>
+          {% if d.death_cause and d.death_cause != 'unknown' %}
+          <span class="stat-pill bg-stone-800/60 text-stone-300 border border-stone-700/50">
+            {{ d.death_cause }}
+          </span>
+          {% endif %}
+          {% if d.stress_at_death is not none %}
+          <span class="stat-pill {% if d.stress_at_death > 50000 %}bg-red-900/40 text-red-300 border-red-800/50{% elif d.stress_at_death > 10000 %}bg-amber-900/40 text-amber-300 border-amber-800/50{% else %}bg-stone-800/60 text-stone-300 border-stone-700/50{% endif %}">
+            Stress: {{ "{:,}".format(d.stress_at_death) }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── NARRATIVE TIMELINE — Visual event chronicle ── #}
+  {% if narrative_events_sorted %}
+  <div class="chronicle-card">
+    <div class="chronicle-title text-stone-300">
+      <span>&#x1F4DC;</span> Event Chronicle ({{ narrative_events_sorted|length }} key events)
+    </div>
+    <div class="max-h-[600px] overflow-y-auto ex-scroll pl-2">
+      {% set prev_year = namespace(val=0) %}
+      {% for ev in narrative_events_sorted %}
+        {% if ev.game_year != prev_year.val %}
+          <div class="text-xs text-amber-400 font-bold mt-3 mb-1 -ml-2" style="letter-spacing: 0.1em;">&#x2014; YEAR {{ ev.game_year }} &#x2014;</div>
+          {% set prev_year.val = ev.game_year %}
         {% endif %}
-      {% endfor %}
-      {% for et in event_types_seen %}
-        {% set et_count = live_unit_events|selectattr('event_type', 'equalto', et)|list|length %}
-        <span class="inline-block text-[10px] px-1.5 py-0.5 rounded border
-          {% if et in ('DIED', 'GHOST') %}bg-red-900/30 text-red-400 border-red-800/50
-          {% elif et in ('ARRIVED', 'DEPARTED') %}bg-sky-900/30 text-sky-400 border-sky-800/50
-          {% elif et in ('PROFESSION_CHANGED', 'STRESS_SPIKE') %}bg-amber-900/30 text-amber-400 border-amber-800/50
-          {% else %}bg-stone-800/50 text-stone-400 border-stone-700/50{% endif %}">
-          {{ et }}: {{ et_count }}
-        </span>
-      {% endfor %}
-    </div>
-    <div class="max-h-[500px] overflow-y-auto ex-scroll">
-      <table class="w-full text-xs">
-        <thead class="sticky top-0 bg-stone-900">
-          <tr class="text-stone-500 border-b border-stone-800">
-            <th class="text-left pb-1">Year</th>
-            <th class="text-left pb-1">Tick</th>
-            <th class="text-left pb-1">Type</th>
-            <th class="text-left pb-1">Unit</th>
-            <th class="text-left pb-1">Details</th>
-            <th class="text-left pb-1">Detected</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ev in live_unit_events %}
-          <tr class="border-b border-stone-800/30
-            {% if ev.event_type in ('DIED', 'GHOST') %}bg-red-900/10
-            {% elif ev.event_type in ('ARRIVED',) %}bg-green-900/10
-            {% elif ev.event_type in ('DEPARTED',) %}bg-amber-900/10{% endif %}">
-            <td class="py-0.5 text-stone-400">{{ ev.game_year }}</td>
-            <td class="py-0.5 text-stone-500 font-mono">{{ ev.game_tick }}</td>
-            <td class="py-0.5">
-              <span class="
-                {% if ev.event_type in ('DIED', 'GHOST') %}text-red-400 font-bold
-                {% elif ev.event_type in ('ARRIVED',) %}text-green-400
-                {% elif ev.event_type in ('DEPARTED',) %}text-amber-400
-                {% elif ev.event_type in ('PROFESSION_CHANGED', 'STRESS_SPIKE') %}text-amber-300
-                {% elif ev.event_type in ('PREGNANCY_DETECTED',) %}text-pink-400
+        {% set ev_class = 'ev-other' %}
+        {% if ev.event_type == 'DIED' %}{% set ev_class = 'ev-death' %}
+        {% elif ev.event_type == 'GHOST' %}{% set ev_class = 'ev-ghost' %}
+        {% elif ev.event_type == 'ARRIVED' %}{% set ev_class = 'ev-arrive' %}
+        {% elif ev.event_type == 'DEPARTED' %}{% set ev_class = 'ev-depart' %}{% endif %}
+        <div class="timeline-event {{ ev_class }}">
+          <div class="flex items-start gap-2">
+            <span class="text-[10px] text-stone-600 font-mono w-14 shrink-0">T{{ ev.game_tick }}</span>
+            <div class="flex-1">
+              <span class="text-xs
+                {% if ev.event_type == 'DIED' %}text-red-400 font-bold
+                {% elif ev.event_type == 'GHOST' %}text-purple-400
+                {% elif ev.event_type == 'ARRIVED' %}text-green-400
+                {% elif ev.event_type == 'DEPARTED' %}text-amber-400
+                {% elif ev.event_type == 'PREGNANCY_DETECTED' %}text-pink-400
+                {% elif ev.event_type == 'STRESS_SPIKE' %}text-red-300
                 {% else %}text-stone-300{% endif %}">
-                {{ ev.event_type }}
+                {% if ev.event_type == 'DIED' %}&#x2620; {% elif ev.event_type == 'GHOST' %}&#x1F47B; {% elif ev.event_type == 'ARRIVED' %}&#x2B06; {% elif ev.event_type == 'DEPARTED' %}&#x2B07; {% elif ev.event_type == 'PREGNANCY_DETECTED' %}&#x1F476; {% endif %}
+                {{ ev.event_type|replace('_', ' ')|title }}
               </span>
-            </td>
-            <td class="py-0.5">
-              {% if ev.unit_name %}
-                <span class="text-stone-200">{{ ev.unit_name }}</span>
-                <span class="text-stone-600 text-[10px]">#{{ ev.unit_id }}</span>
-              {% elif ev.unit_id %}
-                <span class="text-stone-400">#{{ ev.unit_id }}</span>
-              {% endif %}
-              {% if ev.unit_race %}<span class="text-stone-600 text-[10px]">[{{ ev.unit_race }}]</span>{% endif %}
-            </td>
-            <td class="py-0.5 text-stone-400 max-w-[300px] truncate" title="{{ ev.new_value|tojson if ev.new_value else '' }}">
-              {% if ev.new_value %}
-                {% if ev.new_value is mapping %}
-                  {% for k, v in ev.new_value.items() %}
-                    <span class="text-stone-500">{{ k }}:</span> {{ v }}{{ ", " if not loop.last }}
-                  {% endfor %}
+              <span class="text-xs text-stone-200 ml-1">
+                {% set fd_lookup = all_fortress_denizens|selectattr('unit_id', 'equalto', ev.unit_id)|list %}
+                {% set hf_id_val = fd_lookup[0].hf_id if fd_lookup and fd_lookup[0].hf_id else None %}
+                {% if hf_id_val %}
+                  {{ linker.link('hf', hf_id_val, ev.unit_name or ('Unit #' ~ ev.unit_id), world_id)|safe }}
                 {% else %}
-                  {{ ev.new_value }}
+                  {{ ev.unit_name or ('Unit #' ~ ev.unit_id) }}
                 {% endif %}
-              {% endif %}
-            </td>
-            <td class="py-0.5 text-stone-600 text-[10px]">{{ ev.detected_at[11:19] if ev.detected_at else '' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+              </span>
+              {% if ev.unit_race %}<span class="text-stone-600 text-[10px]">[{{ ev.unit_race }}{% if ev.unit_profession %}/{{ ev.unit_profession }}{% endif %}]</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-    {% else %}
-      <div class="text-stone-600 text-sm italic">No unit events captured.</div>
-    {% endif %}
   </div>
+  {% endif %}
 
-  {# ── Section 3: All Fortress Denizens (full roster including dead/missing) ── #}
-  <div class="section-card mb-4">
-    <div class="section-title" style="color: #22c55e;">Complete Fortress Roster ({{ all_fortress_denizens|length }} total)</div>
-    {% if all_fortress_denizens %}
-    {% set fd_residents = all_fortress_denizens|selectattr('status', 'equalto', 'resident')|list %}
-    {% set fd_deceased = all_fortress_denizens|selectattr('status', 'equalto', 'deceased')|list %}
-    {% set fd_missing = all_fortress_denizens|selectattr('status', 'equalto', 'missing')|list %}
-    <div class="flex flex-wrap gap-1.5 mb-3">
-      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400 border border-green-800/50">Resident: {{ fd_residents|length }}</span>
-      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/50">Deceased: {{ fd_deceased|length }}</span>
-      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-stone-800/50 text-stone-400 border border-stone-700/50">Missing: {{ fd_missing|length }}</span>
+  {# ── SURVIVORS — Living Citizen Profiles ── #}
+  {% if citizen_profiles %}
+  <div class="chronicle-card" style="border-color: #14532d40;">
+    <div class="chronicle-title text-emerald-400">
+      <span>&#x1F9DD;</span> Survivors ({{ citizen_profiles|length }})
     </div>
-    <div class="max-h-[500px] overflow-y-auto ex-scroll">
-      <table class="w-full text-xs">
-        <thead class="sticky top-0 bg-stone-900">
-          <tr class="text-stone-500 border-b border-stone-800">
-            <th class="text-left pb-1">Name</th>
-            <th class="text-left pb-1">Race</th>
-            <th class="text-left pb-1">Status</th>
-            <th class="text-left pb-1">Embarker</th>
-            <th class="text-left pb-1">Arrived</th>
-            <th class="text-left pb-1">Departed</th>
-            <th class="text-left pb-1">Cause</th>
-            <th class="text-left pb-1">HF Link</th>
-            <th class="text-right pb-1">Narrative</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for fd in all_fortress_denizens %}
-          <tr class="border-b border-stone-800/30
-            {% if fd.status == 'deceased' %}bg-red-900/10
-            {% elif fd.status == 'missing' %}bg-stone-800/20
-            {% elif fd.status == 'resident' %}bg-green-900/10{% endif %}">
-            <td class="py-0.5">
-              {% if fd.hf_id %}
-                {{ linker.link('hf', fd.hf_id, fd.english_name or fd.name, world_id)|safe }}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {% for c in citizen_profiles %}
+      <div class="citizen-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-sm font-medium">
+              {% if c.hf_id %}
+                {{ linker.link('hf', c.hf_id, c.name, world_id)|safe }}
               {% else %}
-                <span class="text-stone-300">{{ fd.english_name or fd.name }}</span>
+                <span class="text-stone-200">{{ c.name }}</span>
               {% endif %}
-              <span class="text-stone-600 text-[10px]">#{{ fd.unit_id }}</span>
-            </td>
-            <td class="py-0.5 text-stone-400">{{ fd.race|default('?', true)|lower }}</td>
-            <td class="py-0.5">
-              {% if fd.status == 'resident' %}<span class="text-green-400">{{ fd.status }}</span>
-              {% elif fd.status == 'deceased' %}<span class="text-red-400 font-bold">{{ fd.status }}</span>
-              {% else %}<span class="text-stone-500">{{ fd.status }}</span>{% endif %}
-            </td>
-            <td class="py-0.5">{% if fd.embark %}<span class="text-amber-400">Yes</span>{% endif %}</td>
-            <td class="py-0.5 text-stone-400">{% if fd.arrival_year %}Y{{ fd.arrival_year }} T{{ fd.arrival_tick }}{% endif %}</td>
-            <td class="py-0.5 text-stone-400">{% if fd.departure_year %}Y{{ fd.departure_year }} T{{ fd.departure_tick }}{% endif %}</td>
-            <td class="py-0.5 {% if fd.departure_cause %}text-red-400{% else %}text-stone-600{% endif %}">{{ fd.departure_cause or '' }}</td>
-            <td class="py-0.5 text-stone-500">{% if fd.hf_id %}HF#{{ fd.hf_id }}{% endif %}</td>
-            <td class="py-0.5 text-right text-amber-400">{% if fd.narrative_value %}{{ "%.1f"|format(fd.narrative_value) }}{% endif %}</td>
-          </tr>
+            </div>
+            <div class="text-[10px] text-stone-500 mt-0.5">
+              {{ c.race|lower }} {{ c.profession|lower }}
+              {% if c.embark %}&middot; <span class="text-amber-400">Embarker</span>{% endif %}
+            </div>
+          </div>
+          <div class="text-right text-[10px]">
+            {% if c.combat_hardened > 0 %}<span class="text-red-400" title="Combat hardened: {{ c.combat_hardened }}">&#x2694; {{ c.combat_hardened }}</span>{% endif %}
+          </div>
+        </div>
+        {# Stress bar #}
+        <div class="mt-2">
+          <div class="flex justify-between text-[10px] mb-0.5">
+            <span class="text-stone-500">Stress</span>
+            <span class="{% if c.stress > 50000 %}text-red-400{% elif c.stress > 10000 %}text-amber-400{% else %}text-green-400{% endif %}">{{ "{:,}".format(c.stress) }}</span>
+          </div>
+          <div class="stress-bar">
+            {% set stress_pct = [[(c.stress / 100000 * 100)|int, 100]|min, 0]|max %}
+            <div class="stress-fill {% if c.stress > 50000 %}bg-red-500{% elif c.stress > 10000 %}bg-amber-500{% else %}bg-green-500{% endif %}" style="width: {{ stress_pct }}%"></div>
+          </div>
+        </div>
+        {# Vitals row #}
+        <div class="flex gap-3 mt-2 text-[10px]">
+          {% if c.hunger %}<span class="text-stone-400" title="Hunger">&#x1F37D; {{ c.hunger }}</span>{% endif %}
+          {% if c.thirst %}<span class="text-stone-400" title="Thirst">&#x1F4A7; {{ c.thirst }}</span>{% endif %}
+          {% if c.focus %}<span class="text-stone-400" title="Focus">&#x1F3AF; {{ c.focus }}</span>{% endif %}
+        </div>
+        {# Skills summary #}
+        {% if c.skills %}
+        <div class="mt-2 flex flex-wrap gap-1">
+          {% for sk in c.skills[:6] %}
+            {% if sk is mapping %}
+            <span class="text-[9px] px-1 py-0 rounded bg-stone-800 text-stone-400 border border-stone-700/50">
+              {{ sk.get('name', sk.get('id', '?')) }}: {{ sk.get('rating', sk.get('level', '?')) }}
+            </span>
+            {% endif %}
           {% endfor %}
-        </tbody>
-      </table>
+          {% if c.skills|length > 6 %}
+            <span class="text-[9px] text-stone-600">+{{ c.skills|length - 6 }} more</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
-    {% else %}
-      <div class="text-stone-600 text-sm italic">No fortress denizens tracked.</div>
-    {% endif %}
   </div>
+  {% endif %}
 
-  {# ── Section 4: All Live Units (full details dump) ── #}
-  <div class="section-card mb-4">
-    <div class="section-title" style="color: #22c55e;">All Live Units ({{ live_units|length }} tracked)</div>
-    {% if live_units %}
-    {% set alive_units = live_units|selectattr('is_alive')|list %}
-    {% set dead_units = live_units|rejectattr('is_alive')|list %}
-    <div class="flex flex-wrap gap-1.5 mb-3">
-      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400 border border-green-800/50">Alive: {{ alive_units|length }}</span>
-      <span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400 border border-red-800/50">Dead: {{ dead_units|length }}</span>
-    </div>
-    <div class="max-h-[500px] overflow-y-auto ex-scroll">
-      <table class="w-full text-xs">
-        <thead class="sticky top-0 bg-stone-900">
-          <tr class="text-stone-500 border-b border-stone-800">
-            <th class="text-left pb-1">ID</th>
-            <th class="text-left pb-1">Name</th>
-            <th class="text-left pb-1">Race/Caste</th>
-            <th class="text-left pb-1">Profession</th>
-            <th class="text-left pb-1">Alive</th>
-            <th class="text-left pb-1">Death Cause</th>
-            <th class="text-left pb-1">HF Link</th>
-            <th class="text-left pb-1">Stress</th>
-            <th class="text-left pb-1">Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for u in live_units %}
-          {% set ud = u.details if u.details is mapping else {} %}
-          <tr class="border-b border-stone-800/30 {% if not u.is_alive %}bg-red-900/10{% endif %}">
-            <td class="py-0.5 font-mono text-stone-500">{{ u.id }}</td>
-            <td class="py-0.5">
-              {% if u.hist_fig_id %}
-                {{ linker.link('hf', u.hist_fig_id, u.english_name or u.name or ('Unit #' ~ u.id), world_id)|safe }}
-              {% else %}
-                <span class="text-stone-300">{{ u.english_name or u.name or ('Unit #' ~ u.id) }}</span>
-              {% endif %}
-            </td>
-            <td class="py-0.5 text-stone-400">{{ u.race|default('?', true)|lower }}{% if u.caste %}/{{ u.caste }}{% endif %}</td>
-            <td class="py-0.5 text-stone-400">{{ u.profession|default('', true) }}</td>
-            <td class="py-0.5">
-              {% if u.is_alive %}<span class="text-green-400">Yes</span>
-              {% else %}<span class="text-red-400">Dead</span>{% endif %}
-            </td>
-            <td class="py-0.5 text-red-400">{{ u.death_cause or '' }}</td>
-            <td class="py-0.5 text-stone-500">{% if u.hist_fig_id %}HF#{{ u.hist_fig_id }}{% endif %}</td>
-            <td class="py-0.5 {% if ud.get('stress', 0) > 50000 %}text-red-400 font-bold{% elif ud.get('stress', 0) > 10000 %}text-amber-400{% else %}text-green-400{% endif %}">
-              {{ ud.get('stress', '') }}
-            </td>
-            <td class="py-0.5">
-              {% if ud %}
-                <details class="inline">
-                  <summary class="text-stone-500 cursor-pointer text-[10px]">{{ ud.keys()|list|length }} fields</summary>
-                  <pre class="text-[10px] text-stone-400 bg-stone-950 p-1 rounded mt-1 max-h-32 overflow-auto">{{ ud|tojson(indent=1) }}</pre>
-                </details>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-      <div class="text-stone-600 text-sm italic">No units tracked.</div>
-    {% endif %}
-  </div>
+  {# ── RAW DATA TABLES — Collapsible deep dive ── #}
+  <details class="chronicle-card" style="border-color: #44403c40;">
+    <summary class="chronicle-title text-stone-500 cursor-pointer">
+      <span>&#x1F50D;</span> Raw Data Tables ({{ all_fortress_denizens|length }} denizens, {{ live_units|length }} units, {{ live_unit_events|length }} events)
+    </summary>
 
-  {# ── Section 5: Fortress State Records (raw fortress_state table) ── #}
-  <div class="section-card">
-    <div class="section-title" style="color: #22c55e;">Raw Fortress State Records</div>
-    <p class="text-stone-500 text-xs mb-2">Periodic captures from bridge get_fortress_state() — wealth, buildings, invasions, infiltrators.</p>
-    <div class="text-xs text-stone-400">
-      <a href="/api/watcher/status?world_id={{ world_id }}" target="_blank" class="text-sky-400 hover:underline">View full watcher status API →</a>
+    {# Denizen roster table #}
+    <div class="mt-3 mb-4">
+      <div class="text-xs text-stone-400 font-medium mb-1">Fortress Denizens (all {{ all_fortress_denizens|length }})</div>
+      <div class="max-h-[300px] overflow-y-auto ex-scroll">
+        <table class="w-full text-[10px]">
+          <thead class="sticky top-0 bg-stone-900"><tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">Name</th><th class="text-left pb-1">Race</th><th class="text-left pb-1">Status</th>
+            <th class="text-left pb-1">Embarker</th><th class="text-left pb-1">Arrived</th><th class="text-left pb-1">Departed</th>
+            <th class="text-left pb-1">Cause</th><th class="text-left pb-1">HF</th><th class="text-right pb-1">Narrative</th>
+          </tr></thead>
+          <tbody>
+            {% for fd in all_fortress_denizens %}
+            <tr class="border-b border-stone-800/20 {% if fd.status == 'deceased' %}text-red-400/80{% elif fd.status == 'missing' %}text-stone-600{% endif %}">
+              <td class="py-0.5">{% if fd.hf_id %}{{ linker.link('hf', fd.hf_id, fd.english_name or fd.name, world_id)|safe }}{% else %}{{ fd.english_name or fd.name }}{% endif %}</td>
+              <td class="py-0.5 text-stone-500">{{ fd.race|default('?')|lower }}</td>
+              <td class="py-0.5">{{ fd.status }}</td>
+              <td class="py-0.5">{% if fd.embark %}Y{% endif %}</td>
+              <td class="py-0.5 text-stone-500">{% if fd.arrival_year %}Y{{ fd.arrival_year }}{% endif %}</td>
+              <td class="py-0.5 text-stone-500">{% if fd.departure_year %}Y{{ fd.departure_year }}{% endif %}</td>
+              <td class="py-0.5">{{ fd.departure_cause or '' }}</td>
+              <td class="py-0.5 text-stone-600">{% if fd.hf_id %}{{ fd.hf_id }}{% endif %}</td>
+              <td class="py-0.5 text-right text-stone-500">{% if fd.narrative_value %}{{ "%.1f"|format(fd.narrative_value) }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+
+    {# Units table #}
+    <div class="mb-4">
+      <div class="text-xs text-stone-400 font-medium mb-1">Live Units (all {{ live_units|length }})</div>
+      <div class="max-h-[300px] overflow-y-auto ex-scroll">
+        <table class="w-full text-[10px]">
+          <thead class="sticky top-0 bg-stone-900"><tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">ID</th><th class="text-left pb-1">Name</th><th class="text-left pb-1">Race</th>
+            <th class="text-left pb-1">Prof</th><th class="text-left pb-1">Alive</th><th class="text-left pb-1">HF</th>
+            <th class="text-left pb-1">Stress</th><th class="text-left pb-1">Details</th>
+          </tr></thead>
+          <tbody>
+            {% for u in live_units %}
+            {% set ud = u.details if u.details is mapping else {} %}
+            <tr class="border-b border-stone-800/20 {% if not u.is_alive %}text-stone-600{% endif %}">
+              <td class="py-0.5 font-mono">{{ u.id }}</td>
+              <td class="py-0.5">{% if u.hist_fig_id %}{{ linker.link('hf', u.hist_fig_id, u.english_name or u.name or ('Unit #' ~ u.id), world_id)|safe }}{% else %}{{ u.english_name or u.name or ('#' ~ u.id) }}{% endif %}</td>
+              <td class="py-0.5">{{ u.race|default('?')|lower }}</td>
+              <td class="py-0.5">{{ u.profession|default('') }}</td>
+              <td class="py-0.5">{% if u.is_alive %}Y{% else %}N{% endif %}</td>
+              <td class="py-0.5">{% if u.hist_fig_id %}{{ u.hist_fig_id }}{% endif %}</td>
+              <td class="py-0.5">{{ ud.get('stress', '') }}</td>
+              <td class="py-0.5"><details class="inline"><summary class="text-stone-600 cursor-pointer">+</summary><pre class="text-[9px] bg-stone-950 p-1 rounded mt-1 max-h-24 overflow-auto">{{ ud|tojson(indent=1) }}</pre></details></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# Snapshot table #}
+    <div>
+      <div class="text-xs text-stone-400 font-medium mb-1">State Snapshots (all {{ live_snapshots|length }})</div>
+      <div class="max-h-[300px] overflow-y-auto ex-scroll">
+        <table class="w-full text-[10px]">
+          <thead class="sticky top-0 bg-stone-900"><tr class="text-stone-500 border-b border-stone-800">
+            <th class="text-left pb-1">Year</th><th class="text-left pb-1">Season</th><th class="text-right pb-1">Pop</th>
+            <th class="text-right pb-1">Food</th><th class="text-right pb-1">Drink</th><th class="text-right pb-1">Wealth</th>
+            <th class="text-left pb-1">Happiness</th>
+          </tr></thead>
+          <tbody>
+            {% for s in live_snapshots %}
+            <tr class="border-b border-stone-800/20 {% if s.population <= 3 %}text-red-400{% endif %}">
+              <td class="py-0.5">{{ s.year }}</td><td class="py-0.5">{{ s.season }}</td>
+              <td class="py-0.5 text-right">{{ s.population }}</td>
+              <td class="py-0.5 text-right">{{ s.food_stocks }}</td>
+              <td class="py-0.5 text-right">{{ s.drink_stocks }}</td>
+              <td class="py-0.5 text-right">{{ s.wealth }}</td>
+              <td class="py-0.5">{% if s.happiness_distribution and s.happiness_distribution is mapping %}{% set hd = s.happiness_distribution %}{% if hd.get('content') %}c{{ hd.content }}{% endif %} {% if hd.get('unhappy') %}u{{ hd.unhappy }}{% endif %} {% if hd.get('miserable') %}m{{ hd.miserable }}{% endif %}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mt-3 text-xs text-stone-500">
+      <a href="/api/watcher/status?world_id={{ world_id }}" target="_blank" class="text-sky-400 hover:underline">View watcher API &rarr;</a>
+      &nbsp;|&nbsp;
+      <a href="/watcher" target="_blank" class="text-sky-400 hover:underline">Watcher Dashboard &rarr;</a>
+    </div>
+  </details>
 
 </div>
 {% endif %}

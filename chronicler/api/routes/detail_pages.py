@@ -2294,6 +2294,89 @@ async def site_detail_page(site_id: int, request: Request,
                     fd.name
             """, world_id)]
 
+        # ── Pre-computed structures for the Live Data dashboard ──
+        death_registry = []
+        ghost_sightings = []
+        citizen_profiles = []
+        narrative_events_sorted = []
+        if is_active_fortress:
+            # Build death registry: each dead dwarf with details
+            _unit_map = {u['id']: u for u in live_units}
+            _denizen_map = {d['unit_id']: d for d in all_fortress_denizens}
+            _events_by_unit = {}
+            for ev in live_unit_events:
+                _events_by_unit.setdefault(ev['unit_id'], []).append(ev)
+
+            for fd in all_fortress_denizens:
+                if fd['status'] != 'deceased':
+                    continue
+                unit = _unit_map.get(fd['unit_id'], {})
+                ud = unit.get('details', {}) if isinstance(unit.get('details'), dict) else {}
+                unit_events = _events_by_unit.get(fd['unit_id'], [])
+                death_events = [e for e in unit_events if e['event_type'] == 'DIED']
+                ghost_events = [e for e in unit_events if e['event_type'] == 'GHOST']
+                death_registry.append({
+                    'name': fd.get('english_name') or fd['name'],
+                    'race': fd.get('race', '?'),
+                    'profession': unit.get('profession', '?'),
+                    'hf_id': fd.get('hf_id'),
+                    'unit_id': fd['unit_id'],
+                    'embark': fd.get('embark', False),
+                    'death_year': death_events[0]['game_year'] if death_events else fd.get('departure_year'),
+                    'death_tick': death_events[0]['game_tick'] if death_events else fd.get('departure_tick'),
+                    'death_cause': unit.get('death_cause', fd.get('departure_cause', 'unknown')),
+                    'stress_at_death': ud.get('stress'),
+                    'ghost_count': len(ghost_events),
+                    'ghost_first_tick': ghost_events[0]['game_tick'] if ghost_events else None,
+                })
+            death_registry.sort(key=lambda d: d.get('death_tick') or 0)
+
+            # Ghost sightings
+            for ev in live_unit_events:
+                if ev['event_type'] != 'GHOST':
+                    continue
+                ghost_sightings.append({
+                    'name': ev.get('unit_name') or f"Unit #{ev['unit_id']}",
+                    'unit_id': ev['unit_id'],
+                    'hf_id': _denizen_map.get(ev['unit_id'], {}).get('hf_id'),
+                    'year': ev['game_year'],
+                    'tick': ev['game_tick'],
+                })
+
+            # Citizen profiles: living dwarves with stress/personality
+            for u in live_units:
+                if not u.get('is_alive') or u.get('race', '').lower() not in ('dwarf', 'human'):
+                    continue
+                ud = u.get('details', {}) if isinstance(u.get('details'), dict) else {}
+                fd = _denizen_map.get(u['id'], {})
+                citizen_profiles.append({
+                    'name': u.get('english_name') or u.get('name') or f"Unit #{u['id']}",
+                    'race': u.get('race', '?'),
+                    'profession': u.get('profession', '?'),
+                    'hf_id': u.get('hist_fig_id'),
+                    'unit_id': u['id'],
+                    'stress': ud.get('stress', 0),
+                    'hunger': ud.get('hunger', 0),
+                    'thirst': ud.get('thirst', 0),
+                    'focus': ud.get('focus', 0),
+                    'combat_hardened': ud.get('combat_hardened', 0),
+                    'embark': fd.get('embark', False),
+                    'relationships': ud.get('relationships', {}),
+                    'personality': ud.get('personality', {}),
+                    'skills': ud.get('skills', []),
+                    'emotions': ud.get('emotions', []),
+                    'cultural_identity': ud.get('cultural_identity'),
+                })
+            citizen_profiles.sort(key=lambda c: c.get('stress', 0), reverse=True)
+
+            # Narrative events: key events sorted chronologically
+            NARRATIVE_TYPES = {'DIED', 'GHOST', 'ARRIVED', 'DEPARTED',
+                              'STRESS_SPIKE', 'PREGNANCY_DETECTED', 'PROFESSION_CHANGED'}
+            for ev in live_unit_events:
+                if ev['event_type'] in NARRATIVE_TYPES:
+                    narrative_events_sorted.append(ev)
+            narrative_events_sorted.sort(key=lambda e: e.get('game_tick', 0))
+
         # ── Merge live unit events into History tab ──────────────────
         if is_active_fortress:
             _live_hist = await conn.fetch("""
@@ -2423,6 +2506,10 @@ async def site_detail_page(site_id: int, request: Request,
         "live_unit_events": live_unit_events,
         "live_units": live_units,
         "all_fortress_denizens": all_fortress_denizens,
+        "death_registry": death_registry,
+        "ghost_sightings": ghost_sightings,
+        "citizen_profiles": citizen_profiles,
+        "narrative_events_sorted": narrative_events_sorted,
     })
 
 
