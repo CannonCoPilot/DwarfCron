@@ -396,7 +396,11 @@ async def score_events(conn, world_id: int, force: bool = False) -> dict:
         )
 
         total_scored += len(batch)
-        offset += batch_size
+        # Only advance offset for force mode (stable result set).
+        # In incremental mode, inserted rows self-exclude via LEFT JOIN,
+        # so always re-query from offset 0.
+        if force:
+            offset += batch_size
         if total_scored % 50000 == 0:
             log.info("  Progress: %d events scored...", total_scored)
 
