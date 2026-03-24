@@ -278,6 +278,28 @@ async def _cleanup_lua_probes_count(conn: asyncpg.Connection, world_id: int,
     return int(result.split()[-1]) if result else 0
 
 
+async def _get_settler_hf_ids(
+    conn: asyncpg.Connection,
+    world_id: int,
+    site_id: int | None,
+) -> set[int]:
+    """Get HF IDs of true embark settlers from legends data.
+
+    Settlers are identified by 'change hf state' events with state='settler'
+    at the fortress site. This is the canonical DF legends record for founding.
+    """
+    if not site_id:
+        return set()
+    rows = await conn.fetch(
+        """SELECT hf_id_1 FROM history_events
+           WHERE world_id = $1 AND site_id = $2
+             AND event_type = 'change hf state'
+             AND details->>'state' = 'settler'""",
+        world_id, site_id,
+    )
+    return {r['hf_id_1'] for r in rows if r['hf_id_1']}
+
+
 async def _update_denizen_registry(
     conn: asyncpg.Connection,
     world_id: int,
@@ -285,28 +307,41 @@ async def _update_denizen_registry(
     cycle: int,
     game_year: int | None,
     game_tick: int | None,
+    site_id: int | None = None,
 ) -> None:
     """Update the fortress denizen registry from current unit data.
 
-    On the first cycle (no existing denizens), all units are marked as
-    embark dwarves. Subsequent cycles register new arrivals, detect
-    deaths and absences, and periodically recompute NVS.
+    On the first cycle (no existing denizens), embark status is determined
+    by cross-referencing with legends 'change hf state' settler events.
+    Subsequent cycles register new arrivals, detect deaths and absences,
+    and periodically recompute NVS.
     """
     is_first = not await has_denizens(conn, world_id)
+
+    # On first cycle, identify true settlers from legends data
+    settler_hf_ids = set()
+    if is_first:
+        settler_hf_ids = await _get_settler_hf_ids(conn, world_id, site_id)
 
     current_unit_ids = set()
     for u in units:
         uid = u['id']
         current_unit_ids.add(uid)
+        # Mark as embark only if this unit's HF is a true legends settler
+        hf_id = u.get('hist_fig_id')
+        is_embark = is_first and bool(hf_id and hf_id in settler_hf_ids)
         await register_denizen(
             conn, world_id, u,
-            is_embark=is_first,
+            is_embark=is_embark,
             game_year=game_year,
             game_tick=game_tick,
         )
 
     if is_first:
-        log.info("Denizen registry: %d embark dwarves registered", len(units))
+        embark_count = sum(1 for u in units
+                           if u.get('hist_fig_id') in settler_hf_ids)
+        log.info("Denizen registry: %d units registered (%d true settlers)",
+                 len(units), embark_count)
     else:
         # Detect deaths (is_alive=False transitions)
         deaths = await detect_deaths(
@@ -676,9 +711,12 @@ async def watch_loop(pool: asyncpg.Pool, world_id: int = 1,
 
                 # 5b. Denizen registry tracking
                 try:
+                    _site_id = (get_world_info(bd).get('site_id')
+                                if bd else None)
                     await _update_denizen_registry(
                         conn, world_id, units, cycle,
-                        game_year, game_tick)
+                        game_year, game_tick,
+                        site_id=_site_id)
                     extras['denizens'] = True
                 except Exception as e:
                     log.debug("Denizen tracking failed: %s", e)

@@ -623,16 +623,10 @@ async def arrival_sync(conn, world_id: int, live_dir: Path) -> int:
                     world_id, hf_id, fort_entity_id,
                 )
 
-            # Add site link
-            if site_id:
-                await conn.execute(
-                    """INSERT INTO hf_site_links
-                       (world_id, hf_id, site_id, link_type)
-                       VALUES ($1, $2, $3, 'home_site_realization_building')
-                       ON CONFLICT (world_id, hf_id, site_id, link_type)
-                       DO NOTHING""",
-                    world_id, hf_id, site_id,
-                )
+            # NOTE: We do NOT create hf_site_links here. Legends XML already
+            # provides proper site links (resident, occupation, seat of power)
+            # for HFs with legitimate relationships. Creating synthetic links
+            # pollutes citizen queries on entity detail pages.
 
             # Insert arrival event
             event_id = await _next_event_id_async(conn, world_id)

@@ -61,7 +61,7 @@ EVENT_TEMPLATES = {
     'add hf hf link': '{hfid} formed a relationship with {hfid_target}',
     'remove hf hf link': '{hfid} ended a relationship with {hfid_target}',
     'artifact created': '{hfid} created {artifact_id} at {site_id}',
-    'add hf site link': '{hfid} became associated with {site_id}',
+    'add hf site link': '{hfid} arrived at {site_id}',
     'hf recruited unit type for entity': '{hfid} recruited units for {civ_id}',
     'assume identity': '{hfid} assumed an identity',
     'knowledge discovered': '{hfid} discovered knowledge',
@@ -540,7 +540,9 @@ def merge_columns_into_details(event: dict) -> dict:
     """
     details = dict(event.get('details') or {})
     event_type = event.get('event_type') or event.get('type', '')
-    col_map = COLUMN_MAP_BY_EVENT.get(event_type, _DEFAULT_COLUMN_MAP)
+    col_map = (COLUMN_MAP_BY_EVENT.get(event_type)
+               or COLUMN_MAP_BY_EVENT.get(event_type.replace('_', ' '))
+               or _DEFAULT_COLUMN_MAP)
 
     for col in ENTITY_COLUMNS:
         val = event.get(col)
@@ -1038,7 +1040,10 @@ class PerspectiveRenderer:
                 return '{hfid} claimed {artifact_id} (' + escape(claim) + ')'
             return '{hfid} claimed {artifact_id}'
 
-        return EVENT_TEMPLATES.get(event_type)
+        # Try exact match, then with underscores→spaces (live events use
+        # underscores while legends templates use spaces)
+        return (EVENT_TEMPLATES.get(event_type)
+                or EVENT_TEMPLATES.get(event_type.replace('_', ' ')))
 
     # ── Custom renderer: hf does interaction ───────────────────────────────
     def _render_hf_does_interaction(self, details: dict, persp_type: str,

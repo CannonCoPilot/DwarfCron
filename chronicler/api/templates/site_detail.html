@@ -532,23 +532,26 @@
           {% set prev_year.val = ev.game_year %}
         {% endif %}
         {% set ev_class = 'ev-other' %}
-        {% if ev.event_type == 'DIED' %}{% set ev_class = 'ev-death' %}
+        {% if ev.event_type == 'DIED' or ev.event_type == 'scheduled_death' %}{% set ev_class = 'ev-death' %}
         {% elif ev.event_type == 'GHOST' %}{% set ev_class = 'ev-ghost' %}
         {% elif ev.event_type == 'ARRIVED' %}{% set ev_class = 'ev-arrive' %}
-        {% elif ev.event_type == 'DEPARTED' %}{% set ev_class = 'ev-depart' %}{% endif %}
+        {% elif ev.event_type == 'DEPARTED' %}{% set ev_class = 'ev-depart' %}
+        {% elif ev.event_type == 'INCIDENT' %}{% set ev_class = 'ev-death' %}{% endif %}
         <div class="timeline-event {{ ev_class }}">
           <div class="flex items-start gap-2">
             <span class="text-[10px] text-stone-600 font-mono w-14 shrink-0">T{{ ev.game_tick }}</span>
             <div class="flex-1">
               <span class="text-xs
-                {% if ev.event_type == 'DIED' %}text-red-400 font-bold
+                {% if ev.event_type in ('DIED', 'scheduled_death', 'INCIDENT') %}text-red-400 font-bold
                 {% elif ev.event_type == 'GHOST' %}text-purple-400
                 {% elif ev.event_type == 'ARRIVED' %}text-green-400
                 {% elif ev.event_type == 'DEPARTED' %}text-amber-400
-                {% elif ev.event_type == 'PREGNANCY_DETECTED' %}text-pink-400
+                {% elif ev.event_type in ('PREGNANCY_DETECTED', 'scheduled_pregnancy', 'scheduled_marriage') %}text-pink-400
                 {% elif ev.event_type == 'STRESS_SPIKE' %}text-red-300
+                {% elif ev.event_type == 'syndrome_applied' %}text-orange-300
+                {% elif ev.event_type == 'scheduled_grown_up' %}text-blue-300
                 {% else %}text-stone-300{% endif %}">
-                {% if ev.event_type == 'DIED' %}&#x2620; {% elif ev.event_type == 'GHOST' %}&#x1F47B; {% elif ev.event_type == 'ARRIVED' %}&#x2B06; {% elif ev.event_type == 'DEPARTED' %}&#x2B07; {% elif ev.event_type == 'PREGNANCY_DETECTED' %}&#x1F476; {% endif %}
+                {% if ev.event_type in ('DIED', 'scheduled_death') %}&#x2620; {% elif ev.event_type == 'INCIDENT' %}&#x2694; {% elif ev.event_type == 'GHOST' %}&#x1F47B; {% elif ev.event_type == 'ARRIVED' %}&#x2B06; {% elif ev.event_type == 'DEPARTED' %}&#x2B07; {% elif ev.event_type in ('PREGNANCY_DETECTED', 'scheduled_pregnancy') %}&#x1F476; {% elif ev.event_type == 'scheduled_marriage' %}&#x1F492; {% elif ev.event_type == 'syndrome_applied' %}&#x2623; {% elif ev.event_type == 'scheduled_grown_up' %}&#x2B50; {% endif %}
                 {{ ev.event_type|replace('_', ' ')|title }}
               </span>
               <span class="text-xs text-stone-200 ml-1">

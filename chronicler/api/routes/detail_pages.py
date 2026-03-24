@@ -950,11 +950,73 @@ async def hf_detail_page(hf_id: int, request: Request,
                     refs.add((etype, int(val)))
         name_map = await _name_cache.batch_resolve(conn, world_id, list(refs))
 
+        # ── Narrative scoring for events (must run before rendering) ──
+        narrative_scores = {}
+        if events_rows:
+            _ev_ids = [ev["id"] for ev in events_rows]
+            _score_rows = await conn.fetch("""
+                SELECT event_id, narrative_weight, drama_score,
+                       irony_flags, emotional_tone
+                FROM narrative_events
+                WHERE world_id = $1 AND event_id = ANY($2::int[])
+            """, world_id, _ev_ids)
+            for sr in _score_rows:
+                narrative_scores[sr["event_id"]] = {
+                    "weight": round(sr["narrative_weight"], 2) if sr["narrative_weight"] else None,
+                    "drama": sr["drama_score"],
+                    "irony": sr["irony_flags"],
+                    "tone": sr["emotional_tone"],
+                }
+
         # Render events with perspective (gender-aware pronouns)
         renderer = PerspectiveRenderer(_linker, world_id,
                                        perspective_caste=hf.get('caste'))
         rendered_events = []
         for ev in events_rows:
+            ev_dict = {
+                'id': ev['id'],
+                'year': ev['year'],
+                'seconds': ev['seconds'],
+                'type': ev['event_type'],
+                'date': DFCalendar.format_date(ev['year'], ev['seconds']),
+                'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
+                'text': renderer.render_event(dict(ev), 'hf', hf_id, name_map),
+                'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
+            }
+            # Attach narrative scoring if available
+            ns = narrative_scores.get(ev['id'])
+            if ns:
+                ev_dict['narrative'] = ns
+            rendered_events.append(ev_dict)
+
+        # Also include the live arrival event if not already in xref
+        live_event_ids = {ev['id'] for ev in rendered_events}
+        live_direct_events = await conn.fetch("""
+            SELECT e.id, e.year, e.seconds, e.event_type, e.details,
+                   e.hf_id_1, e.hf_id_2, e.site_id, e.region_id,
+                   e.entity_id_1, e.entity_id_2, e.artifact_id, e.structure_id
+            FROM history_events e
+            WHERE e.world_id = $1 AND e.source = 'live'
+              AND (e.hf_id_1 = $2 OR e.hf_id_2 = $2)
+              AND e.id NOT IN (SELECT unnest($3::int[]))
+            ORDER BY e.year, e.seconds
+        """, world_id, hf_id, list(live_event_ids) if live_event_ids else [0])
+        # Resolve names for live events (sites etc. not in legends xref)
+        if live_direct_events:
+            live_refs = set()
+            for ev in live_direct_events:
+                if ev['site_id']:
+                    live_refs.add(('site', int(ev['site_id'])))
+                if ev['hf_id_1']:
+                    live_refs.add(('hf', int(ev['hf_id_1'])))
+                if ev['hf_id_2']:
+                    live_refs.add(('hf', int(ev['hf_id_2'])))
+            if live_refs:
+                live_names = await _name_cache.batch_resolve(
+                    conn, world_id, list(live_refs))
+                name_map.update(live_names)
+
+        for ev in live_direct_events:
             rendered_events.append({
                 'id': ev['id'],
                 'year': ev['year'],
@@ -964,7 +1026,12 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'date_short': DFCalendar.format_short(ev['year'], ev['seconds']),
                 'text': renderer.render_event(dict(ev), 'hf', hf_id, name_map),
                 'enrichment': extract_enrichment_details(dict(ev), _linker, world_id, name_map),
+                'narrative': narrative_scores.get(ev['id']),
+                'source': 'live',
             })
+
+        # Re-sort all events by year, seconds
+        rendered_events.sort(key=lambda e: (e.get('year') or 0, e.get('seconds') or 0))
 
         # Primary entity name
         primary_entity = None
@@ -1139,17 +1206,583 @@ async def hf_detail_page(hf_id: int, request: Request,
             conn, world_id, hf_id, relationships, co_parents,
             entity_links=entity_links, site_links=site_links)
 
-        # Check if this HF is a live fortress unit
+        # Check if this HF is a fortress unit (alive OR dead/ghost)
         live_unit = await conn.fetchrow(
             """
-            SELECT id, name, profession, details
+            SELECT id, name, profession, is_alive, details
             FROM units
-            WHERE world_id = $1 AND hist_fig_id = $2 AND is_alive = true
+            WHERE world_id = $1 AND hist_fig_id = $2
             LIMIT 1
             """,
             world_id, hf_id,
         )
-        live_unit_id = live_unit["id"] if live_unit else None
+        live_unit_id = live_unit["id"] if live_unit and live_unit["is_alive"] else None
+        fortress_unit = dict(live_unit) if live_unit else None
+
+        # ── Enrichment 1: Unit details for dead/ghost units ──
+        # Parse unit details for template (stress, ghostly, combat_hardened, etc.)
+        unit_details = {}
+        if fortress_unit:
+            ud = fortress_unit.get("details") or {}
+            if isinstance(ud, str):
+                import json as _j
+                try:
+                    ud = _j.loads(ud)
+                except (ValueError, TypeError):
+                    ud = {}
+            unit_details = {
+                "stress": ud.get("stress"),
+                "longterm_stress": ud.get("longterm_stress"),
+                "focus": ud.get("focus"),
+                "ghostly": ud.get("ghostly", False),
+                "is_undead": ud.get("is_undead", False),
+                "is_sane": ud.get("is_sane"),
+                "is_citizen": ud.get("is_citizen", False),
+                "combat_hardened": ud.get("combat_hardened"),
+                "hunger": ud.get("hunger"),
+                "thirst": ud.get("thirst"),
+                "squad_id": ud.get("squad_id"),
+                "mood": ud.get("mood"),
+                "is_alive": fortress_unit.get("is_alive", False),
+                "unit_id": fortress_unit.get("id"),
+                "profession": fortress_unit.get("profession"),
+            }
+
+        # ── Enrichment 2: Unit events (DIED, GHOST, etc.) ──
+        unit_events_list = []
+        if fortress_unit:
+            unit_events_rows = await conn.fetch("""
+                SELECT event_type, old_value, new_value, game_year, game_tick
+                FROM unit_events
+                WHERE world_id = $1 AND unit_id = $2
+                ORDER BY game_year, game_tick
+            """, world_id, fortress_unit["id"])
+            for ue in unit_events_rows:
+                unit_events_list.append(dict(ue))
+
+        # ── Enrichment 3: Fortress denizen context ──
+        denizen_info = None
+        embark_companions = []
+        if fortress_unit:
+            denizen_info = await conn.fetchrow("""
+                SELECT status, embark, arrival_year, arrival_tick,
+                       departure_year, departure_tick, departure_cause,
+                       narrative_value
+                FROM fortress_denizens
+                WHERE world_id = $1 AND unit_id = $2
+                LIMIT 1
+            """, world_id, fortress_unit["id"])
+            denizen_info = dict(denizen_info) if denizen_info else None
+
+            # Find embark companions (same embark=true, dwarves only)
+            if denizen_info and denizen_info.get("embark"):
+                embark_rows = await conn.fetch("""
+                    SELECT fd.name, fd.english_name, fd.race, fd.hf_id,
+                           fd.status, fd.unit_id
+                    FROM fortress_denizens fd
+                    WHERE fd.world_id = $1 AND fd.embark = true
+                      AND fd.unit_id != $2
+                      AND LOWER(fd.race) = 'dwarf'
+                    ORDER BY fd.name
+                """, world_id, fortress_unit["id"])
+                embark_companions = [dict(r) for r in embark_rows]
+
+        # ── Enrichment 3b: Augment site_links with fortress site ──
+        # If HF was a fortress denizen but has no legends site link to the
+        # fortress, add a synthetic entry so Related Sites shows it.
+        if denizen_info:
+            fortress_site_row = await conn.fetchrow("""
+                SELECT DISTINCT he.site_id, s.name AS site_name, s.type AS site_type
+                FROM history_events he
+                JOIN sites s ON s.world_id = he.world_id AND s.id = he.site_id
+                WHERE he.world_id = $1 AND he.hf_id_1 = $2
+                  AND he.event_type = 'add_hf_site_link' AND he.source = 'live'
+                LIMIT 1
+            """, world_id, hf_id)
+            if fortress_site_row:
+                fsite_id = fortress_site_row['site_id']
+                # Only add if not already in site_links
+                existing_site_ids = {sl['site_id'] for sl in site_links}
+                if fsite_id not in existing_site_ids:
+                    denizen_link_type = 'fortress denizen'
+                    if denizen_info.get('embark'):
+                        denizen_link_type = 'founder'
+                    site_links = list(site_links) + [{
+                        'site_id': fsite_id,
+                        'link_type': denizen_link_type,
+                        'site_name': fortress_site_row['site_name'],
+                        'site_type': fortress_site_row['site_type'],
+                    }]
+
+        # ── Enrichment 4: Deity sphere context ──
+        # Enrich worshipped_deities with sphere data
+        worshipped_deities_enriched = []
+        for wd in worshipped_deities:
+            wd_copy = dict(wd)
+            deity_data = await conn.fetchrow("""
+                SELECT spheres, is_deity, is_force
+                FROM historical_figures
+                WHERE world_id = $1 AND id = $2
+            """, world_id, wd["target_hf_id"])
+            if deity_data:
+                wd_copy["spheres"] = deity_data["spheres"] or []
+                wd_copy["is_force"] = deity_data.get("is_force", False)
+            else:
+                wd_copy["spheres"] = []
+            worshipped_deities_enriched.append(wd_copy)
+
+        # ── Enrichment 5: Co-religionists ──
+        # Find other HFs at the fortress who share a religion
+        co_religionists = []
+        religion_entity_ids = [
+            el["entity_id"] for el in entity_links
+            if el["entity_type"] == "religion"
+        ]
+        if religion_entity_ids and fortress_unit:
+            co_rel_rows = await conn.fetch("""
+                SELECT DISTINCT hel.hf_id, hf.name, hf.race, hf.birth_year,
+                       hf.death_year, hf.is_ghost,
+                       e.name AS religion_name, e.id AS religion_id,
+                       u.is_alive AS unit_alive,
+                       u.details->>'ghostly' AS unit_ghostly,
+                       u.details->>'stress' AS unit_stress
+                FROM hf_entity_links hel
+                JOIN historical_figures hf ON hf.world_id = hel.world_id AND hf.id = hel.hf_id
+                JOIN entities e ON e.world_id = hel.world_id AND e.id = hel.entity_id
+                LEFT JOIN units u ON u.world_id = hf.world_id AND u.hist_fig_id = hf.id
+                WHERE hel.world_id = $1
+                  AND hel.entity_id = ANY($2::int[])
+                  AND hel.hf_id != $3
+                  AND hel.hf_id IN (
+                      SELECT hist_fig_id FROM units WHERE world_id = $1 AND hist_fig_id IS NOT NULL
+                  )
+                ORDER BY hf.name
+            """, world_id, religion_entity_ids, hf_id)
+            co_religionists = [dict(r) for r in co_rel_rows]
+
+        # ── Enrichment 6: Fortress state at time of death ──
+        death_fortress_state = None
+        if denizen_info and denizen_info.get("departure_cause") == "death":
+            death_tick = denizen_info.get("departure_tick")
+            death_year = denizen_info.get("departure_year")
+            if death_tick is not None and death_year is not None:
+                death_fortress_state = await conn.fetchrow("""
+                    SELECT tick, year, season, population, military_count,
+                           food_stocks, drink_stocks, wealth,
+                           happiness_distribution, threats
+                    FROM fortress_state_snapshots
+                    WHERE world_id = $1 AND year = $2
+                    ORDER BY ABS(tick - $3)
+                    LIMIT 1
+                """, world_id, death_year, death_tick)
+                death_fortress_state = dict(death_fortress_state) if death_fortress_state else None
+
+        # ── Enrichment 8: Skills from character_arcs (Career tab) ──
+        # character_arcs.skill_snapshot has detailed skill data even when
+        # historical_figures.skills is empty (post-embark HFs)
+        character_skills = []
+        if fortress_unit:
+            arc_row = await conn.fetchrow("""
+                SELECT skill_snapshot FROM character_arcs
+                WHERE world_id = $1 AND unit_id = $2
+                ORDER BY tick ASC LIMIT 1
+            """, world_id, fortress_unit["id"])
+            if arc_row and arc_row["skill_snapshot"]:
+                snap = arc_row["skill_snapshot"]
+                if isinstance(snap, str):
+                    import json as _j2
+                    try:
+                        snap = _j2.loads(snap)
+                    except (ValueError, TypeError):
+                        snap = {}
+                # DF skill ID -> name mapping (common skills)
+                _SKILL_NAMES = {
+                    0: "Mining", 1: "Woodcutting", 2: "Carpentry",
+                    3: "Detailstone", 4: "Masonry", 5: "Animal Training",
+                    6: "Animal Caretaking", 7: "Fishing", 8: "Butchery",
+                    9: "Tanning", 10: "Brewing", 11: "Cooking",
+                    12: "Cheese Making", 13: "Milking", 14: "Shearing",
+                    15: "Spinning", 16: "Weaving", 17: "Clothesmaking",
+                    18: "Leatherworking", 19: "Dyeing", 20: "Woodburning",
+                    21: "Lye Making", 22: "Stonecrafting", 23: "Bone Carving",
+                    24: "Glassmaking", 25: "Strand Extraction",
+                    26: "Pottery", 27: "Glazing", 28: "Pressing",
+                    29: "Beekeeping", 30: "Wax Working",
+                    31: "Gem Cutting", 32: "Diagnosing", 33: "Surgery",
+                    34: "Setting Bones", 35: "Suturing", 36: "Dressing Wounds",
+                    37: "Feeding Patients",
+                    38: "Recovering Wounded", 39: "Chemistry",
+                    40: "Siege Engineering", 41: "Siege Operating",
+                    42: "Crossbow", 43: "Metalsmithing",
+                    44: "Gem Setting", 45: "Appraising",
+                    46: "Mechanics", 47: "Engraving",
+                    54: "Plant Processing",
+                    58: "Item Hauling", 59: "Stone Hauling",
+                    60: "Food Hauling", 61: "Refuse Hauling",
+                    62: "Wood Hauling", 63: "Animal Hauling",
+                    69: "Architecture",
+                    70: "Building Construction",
+                    71: "Furnace Operating", 72: "Trade",
+                    77: "Wrestling", 78: "Axe", 79: "Sword",
+                    80: "Mace", 81: "Hammer", 82: "Spear",
+                    83: "Crossbow", 84: "Shield", 85: "Armor",
+                    86: "Swimming", 87: "Persuasion",
+                    88: "Negotiation", 89: "Judging Intent",
+                    90: "Record Keeping", 91: "Intimidation",
+                    92: "Concentration", 93: "Observation",
+                    94: "Leadership", 95: "Teaching",
+                    96: "Melee Combat", 97: "Ranged Combat",
+                    98: "Coordination", 99: "Balance",
+                    100: "Climbing", 101: "Dodging",
+                    103: "Crutch Walking",
+                    116: "Fighting", 117: "Biting",
+                    118: "Kicking", 119: "Striking",
+                    120: "Grappling", 121: "Dodging (Natural)",
+                    122: "Misc. Object Use",
+                }
+                _SKILL_RANKS = [
+                    (14, "Legendary+5"), (13, "Legendary+4"),
+                    (12, "Legendary+3"), (11, "Legendary+2"),
+                    (10, "Legendary+1"), (9, "Legendary"),
+                    (8, "Grand Master"), (7, "High Master"),
+                    (6, "Master"), (5, "Great"), (4, "Accomplished"),
+                    (3, "Proficient"), (2, "Skilled"),
+                    (1, "Competent"), (0, "Novice"),
+                ]
+                for sid_str, sdata in sorted(snap.items(), key=lambda x: -(x[1].get("xp", 0))):
+                    sid = int(sid_str)
+                    rating = sdata.get("rating", 0)
+                    xp = sdata.get("xp", 0)
+                    rank_name = "Dabbling"
+                    for threshold, rname in _SKILL_RANKS:
+                        if rating >= threshold:
+                            rank_name = rname
+                            break
+                    character_skills.append({
+                        "id": sid,
+                        "name": _SKILL_NAMES.get(sid, f"Skill {sid}"),
+                        "xp": xp,
+                        "rating": rating,
+                        "rank": rank_name,
+                    })
+
+        # ── Enrichment 9: Labors from unit details (Career tab) ──
+        assigned_labors = []
+        if unit_details:
+            ud_raw = fortress_unit.get("details") or {} if fortress_unit else {}
+            if isinstance(ud_raw, str):
+                import json as _j3
+                try:
+                    ud_raw = _j3.loads(ud_raw)
+                except (ValueError, TypeError):
+                    ud_raw = {}
+            labor_ids = ud_raw.get("labors", [])
+            _LABOR_NAMES = {
+                0: "Mining", 1: "Stone Hauling", 2: "Wood Hauling",
+                3: "Burial", 4: "Food Hauling", 5: "Refuse Hauling",
+                6: "Item Hauling", 7: "Furniture Hauling", 8: "Animal Hauling",
+            }
+            for lid in labor_ids:
+                assigned_labors.append({
+                    "id": lid,
+                    "name": _LABOR_NAMES.get(lid, f"Labor {lid}"),
+                })
+
+        # ── Enrichment 10: Death cascade (Events tab) ──
+        # Includes ALL fortress deaths/ghosts (including current HF)
+        death_cascade = []
+        if fortress_unit:
+            cascade_rows = await conn.fetch("""
+                SELECT ue.unit_id, ue.event_type, ue.game_year, ue.game_tick,
+                       u.english_name, u.profession, u.hist_fig_id
+                FROM unit_events ue
+                JOIN units u ON u.world_id = ue.world_id AND u.id = ue.unit_id
+                WHERE ue.world_id = $1
+                  AND ue.event_type IN ('DIED', 'GHOST')
+                ORDER BY ue.game_year, ue.game_tick
+            """, world_id)
+            seen = set()
+            for cr in cascade_rows:
+                key = (cr["unit_id"], cr["event_type"], cr["game_tick"])
+                if key not in seen:
+                    seen.add(key)
+                    death_cascade.append(dict(cr))
+
+        # ── Enrichment 11: Fortress highlight events (Overview tile) ──
+        # Top 5 narratively important events at the fortress + arrivals/departures
+        fortress_highlight_events = []
+        if denizen_info:
+            # Get fortress site_id from live events
+            _fsite = await conn.fetchval(
+                "SELECT site_id FROM history_events "
+                "WHERE world_id = $1 AND hf_id_1 = $2 "
+                "AND event_type = 'add_hf_site_link' AND source = 'live' LIMIT 1",
+                world_id, hf_id)
+            if _fsite:
+                # Arrivals and departures at the fortress
+                _arr_dep = await conn.fetch("""
+                    SELECT he.id, he.year, he.seconds, he.event_type,
+                           he.details->>'link_type' as link_type, he.source,
+                           ne.narrative_weight
+                    FROM history_events he
+                    LEFT JOIN narrative_events ne
+                      ON ne.world_id = he.world_id AND ne.event_id = he.id
+                    WHERE he.world_id = $1 AND he.site_id = $2
+                      AND he.hf_id_1 = $3
+                    ORDER BY he.year, he.seconds
+                """, world_id, _fsite, hf_id)
+                for r in _arr_dep:
+                    fortress_highlight_events.append({
+                        **dict(r), 'highlight': 'arrival/departure'})
+
+                # Top 5 by narrative score at the fortress (any HF)
+                # that are NOT already in arrivals
+                existing_ids = {e['id'] for e in fortress_highlight_events}
+                _top = await conn.fetch("""
+                    SELECT he.id, he.year, he.seconds, he.event_type,
+                           ne.narrative_weight, he.hf_id_1, he.source
+                    FROM narrative_events ne
+                    JOIN history_events he ON he.world_id = ne.world_id AND he.id = ne.event_id
+                    WHERE ne.world_id = $1 AND he.site_id = $2
+                      AND (he.hf_id_1 = $3 OR he.hf_id_2 = $3)
+                    ORDER BY ne.narrative_weight DESC NULLS LAST
+                    LIMIT 10
+                """, world_id, _fsite, hf_id)
+                added = 0
+                for r in _top:
+                    if r['id'] not in existing_ids and added < 5:
+                        fortress_highlight_events.append({
+                            **dict(r), 'highlight': 'narrative'})
+                        existing_ids.add(r['id'])
+                        added += 1
+                # Sort chronologically
+                fortress_highlight_events.sort(
+                    key=lambda e: (e.get('year', 0), e.get('seconds', 0)))
+
+        # ── Synthesize life events from non-event tables ──
+        def _synth(year, seconds, etype, text, source="synthesized"):
+            return {
+                'id': None, 'year': year, 'seconds': seconds,
+                'type': etype, 'text': text, 'enrichment': None,
+                'narrative': None, 'source': source,
+                'date': DFCalendar.format_date(year, seconds),
+                'date_short': DFCalendar.format_short(year, seconds),
+            }
+
+        # S1: Position appointments
+        for pl in position_links:
+            pl = dict(pl)
+            pname = pl.get('position_name') or 'Unknown Position'
+            ename = pl.get('entity_name') or 'Unknown Entity'
+            if pl.get('start_year'):
+                rendered_events.append(_synth(
+                    pl['start_year'], 0, 'appointment',
+                    f"Appointed <strong>{pname}</strong> of {ename}",
+                ))
+            if pl.get('end_year') and pl['end_year'] > 0:
+                rendered_events.append(_synth(
+                    pl['end_year'], 0, 'appointment_end',
+                    f"Ended tenure as <strong>{pname}</strong> of {ename}",
+                ))
+
+        # S2: Fortress founding (embark)
+        if denizen_info and denizen_info.get('embark'):
+            arr_year = denizen_info.get('arrival_year')
+            arr_tick = denizen_info.get('arrival_tick')
+            if arr_year:
+                fort_name = None
+                for sl in site_links:
+                    if sl.get('link_type') in ('resident', 'home_site_realization_building'):
+                        fort_name = sl.get('site_name')
+                        break
+                rendered_events.append(_synth(
+                    arr_year, arr_tick or 0, 'embark',
+                    f"Founded <strong>{fort_name or 'a fortress'}</strong> as part of the founding expedition",
+                ))
+
+        # S3: Unit events as timeline entries (ALL types, not just DIED/GHOST)
+        # Resolve fortress name for display — prioritize fortress-specific links
+        _fort_name = None
+        for sl in site_links:
+            if sl.get('link_type') in ('fortress denizen', 'founder'):
+                _fort_name = sl.get('site_name')
+                if _fort_name:
+                    break
+        if not _fort_name and denizen_info:
+            _fsite_row = await conn.fetchrow(
+                "SELECT s.name FROM sites s JOIN history_events he "
+                "ON he.world_id = s.world_id AND he.site_id = s.id "
+                "WHERE he.world_id = $1 AND he.hf_id_1 = $2 "
+                "AND he.event_type = 'add_hf_site_link' AND he.source = 'live' "
+                "LIMIT 1", world_id, hf_id)
+            if _fsite_row:
+                _fort_name = _fsite_row['name']
+
+        if unit_events_list:
+            _UE_TEMPLATES = {
+                'DIED': lambda: f"<strong>Died</strong> at <strong>{_fort_name or 'the fortress'}</strong>",
+                'GHOST': lambda: f"<strong>Rose as a ghost</strong>, haunting <strong>{_fort_name or 'the fortress'}</strong>",
+                'ARRIVED': lambda: f"Arrived at <strong>{_fort_name or 'the fortress'}</strong>",
+                'DEPARTED': lambda: f"Departed <strong>{_fort_name or 'the fortress'}</strong>",
+                'PROFESSION_CHANGED': lambda: "Changed profession",
+                'STRESS_SPIKE': lambda: "<strong>Experienced a stress spike</strong>",
+                'PREGNANCY_DETECTED': lambda: "Became pregnant",
+                'syndrome_applied': lambda: "Was afflicted by a syndrome",
+                'scheduled_death': lambda: f"<strong>Found dead</strong> at <strong>{_fort_name or 'the fortress'}</strong>",
+                'scheduled_grown_up': lambda: "Grew to adulthood",
+                'scheduled_marriage': lambda: "Married",
+                'scheduled_pregnancy': lambda: "Became pregnant",
+                'job_completed': lambda: "Completed a task",
+                'item_created': lambda: "Created an item",
+            }
+            # Aggregate job/item events to avoid spam (show count summary)
+            _job_count = sum(1 for ue in unit_events_list if ue['event_type'] == 'job_completed')
+            _item_count = sum(1 for ue in unit_events_list if ue['event_type'] == 'item_created')
+            _seen_agg = set()
+            for ue in unit_events_list:
+                evt = ue['event_type']
+                tick = ue.get('game_tick', 0)
+                year = ue.get('game_year', 0)
+                # Skip job/item spam — synthesize one summary each instead
+                if evt in ('job_completed', 'item_created'):
+                    if evt not in _seen_agg:
+                        _seen_agg.add(evt)
+                        count = _job_count if evt == 'job_completed' else _item_count
+                        rendered_events.append(_synth(year, tick, evt,
+                            f"Completed <strong>{count}</strong> tasks" if evt == 'job_completed'
+                            else f"Created <strong>{count}</strong> items",
+                            source='live'))
+                    continue
+                tmpl = _UE_TEMPLATES.get(evt)
+                if tmpl:
+                    rendered_events.append(_synth(year, tick, evt, tmpl(), source='live'))
+
+        # S3b: Incidents involving this HF's unit (combat, crime)
+        if fortress_unit:
+            import json as _json_hfinc
+            from pathlib import Path as _P_hfinc
+            _inc_p = _P_hfinc('/Users/nathanielcannon/Claude/Projects/DwarfCron/chronicler/data/live/incidents.json')
+            if _inc_p.exists():
+                try:
+                    _idata = _json_hfinc.loads(_inc_p.read_text())
+                    _unit_id = fortress_unit['id']
+                    _DCAUSE = {
+                        0: "old age", 1: "hunger", 2: "thirst", 3: "drowning",
+                        4: "suffocation", 5: "bleeding", 6: "infection",
+                        7: "murder", 8: "struck down", 9: "collision",
+                        10: "execution", 11: "burned", 12: "melted",
+                        13: "shot", 14: "cave-in", 15: "frozen",
+                        16: "trap", 17: "magma", 18: "spikes",
+                    }
+                    for inc in _idata.get('incidents', []):
+                        # Only include if this HF's unit is victim or criminal
+                        if inc.get('victim') != _unit_id and inc.get('criminal') != _unit_id:
+                            continue
+                        cause = _DCAUSE.get(inc.get('death_cause', -1), 'unknown cause')
+                        is_victim = inc.get('victim') == _unit_id
+                        # Look up the other party
+                        other_id = inc.get('criminal') if is_victim else inc.get('victim')
+                        other_name = ''
+                        if other_id and other_id > 0:
+                            other_unit = await conn.fetchrow(
+                                "SELECT english_name, name FROM units WHERE world_id = $1 AND id = $2",
+                                world_id, other_id)
+                            if other_unit:
+                                other_name = other_unit['english_name'] or other_unit['name']
+                        if is_victim:
+                            if other_name:
+                                text = f"Was <strong>killed by {other_name}</strong> ({cause}) at <strong>{_fort_name or 'the fortress'}</strong>"
+                            else:
+                                text = f"Was <strong>killed</strong> ({cause}) at <strong>{_fort_name or 'the fortress'}</strong>"
+                        else:
+                            if other_name:
+                                text = f"<strong>Killed {other_name}</strong> ({cause}) at <strong>{_fort_name or 'the fortress'}</strong>"
+                            else:
+                                text = f"<strong>Committed violence</strong> ({cause}) at <strong>{_fort_name or 'the fortress'}</strong>"
+                        rendered_events.append(_synth(
+                            inc.get('event_year', 0),
+                            inc.get('event_time', 0),
+                            'incident', text, source='live'))
+                except Exception:
+                    pass
+
+        # S4: Departure
+        if denizen_info and denizen_info.get('departure_year'):
+            dep_cause = denizen_info.get('departure_cause', 'unknown')
+            if dep_cause != 'death':
+                rendered_events.append(_synth(
+                    denizen_info['departure_year'],
+                    denizen_info.get('departure_tick', 0),
+                    'departure', f"Departed the fortress ({dep_cause})"))
+
+        # S5: Stress trajectory inflection points
+        if fortress_unit and hf.get('details'):
+            raw_details = hf['details']
+            if isinstance(raw_details, str):
+                import json as _js
+                try:
+                    raw_details = _js.loads(raw_details)
+                except (ValueError, TypeError):
+                    raw_details = []
+            if isinstance(raw_details, list) and len(raw_details) > 1:
+                import json as _js
+                prev_stress = None
+                stress_points = []
+                for i, snap in enumerate(raw_details):
+                    if isinstance(snap, str):
+                        try:
+                            snap = _js.loads(snap)
+                        except (ValueError, TypeError):
+                            continue
+                    if isinstance(snap, dict):
+                        s = snap.get('live_stress')
+                        if s is not None and s != prev_stress:
+                            stress_points.append((i, s))
+                            prev_stress = s
+                if stress_points and len(stress_points) > 1:
+                    total_snaps = len(raw_details)
+                    _arr_tick = (denizen_info.get('arrival_tick') or 0) if denizen_info else 0
+                    _dep_tick = (denizen_info.get('departure_tick') or 403000) if denizen_info else 403000
+                    _arr_year = (denizen_info.get('arrival_year') or 250) if denizen_info else 250
+                    _dep_year = (denizen_info.get('departure_year') or 252) if denizen_info else 252
+                    tick_range = _dep_tick - _arr_tick
+                    if _dep_year > _arr_year:
+                        tick_range += (_dep_year - _arr_year) * 403200
+                    # DF stress thresholds (from happiness_level mapping)
+                    _STRESS_LABELS = [
+                        (100000, "completely broken"),
+                        (50000, "haggard and drawn"),
+                        (25000, "very unhappy"),
+                        (10000, "unhappy"),
+                        (2500, "quite worried"),
+                        (500, "uneasy"),
+                        (100, "slightly stressed"),
+                        (0, "content"),
+                        (-100, "quite content"),
+                        (-25000, "happy"),
+                        (-100000, "ecstatic"),
+                    ]
+                    def _stress_label(val):
+                        for thresh, label in _STRESS_LABELS:
+                            if val >= thresh:
+                                return label
+                        return "ecstatic"
+                    prev_label = None
+                    for idx, stress_val in stress_points:
+                        label = _stress_label(stress_val)
+                        if label != prev_label and prev_label is not None:
+                            frac = idx / max(total_snaps, 1)
+                            approx_tick = int(_arr_tick + frac * tick_range)
+                            approx_year = _arr_year + (approx_tick // 403200)
+                            approx_tick_in_year = approx_tick % 403200
+                            rendered_events.append(_synth(
+                                approx_year, approx_tick_in_year, 'stress_change',
+                                f"Became <strong>{label}</strong> (stress: {stress_val})",
+                                source='synthesized'))
+                        prev_label = label
+
+        # Re-sort with synthesized events included
+        rendered_events.sort(key=lambda e: (e.get('year') or 0, e.get('seconds') or 0))
 
     # Build type flags
     type_flags = []
@@ -1161,7 +1794,11 @@ async def hf_detail_page(hf_id: int, request: Request,
         if hf.get(flag):
             type_flags.append(label)
 
+    # Legends death_year is authoritative, but necromancers/undead may have
+    # death_year=NULL in legends yet be deceased in the fortress (denizen data).
     alive = hf['death_year'] is None or hf['death_year'] == -1
+    if alive and denizen_info and denizen_info.get('status') == 'deceased':
+        alive = False
 
     # Pre-render death cause and age at death
     death_cause_rendered = DeathCauseRenderer.render_hf_cause(
@@ -1217,7 +1854,7 @@ async def hf_detail_page(hf_id: int, request: Request,
         "vague_relationships": vague_relationships,
         "family": family,
         "co_parents": [dict(cp) for cp in co_parents],
-        "worshipped_deities": worshipped_deities,
+        "worshipped_deities": worshipped_deities_enriched,
         "linker": _linker,
         "calendar": DFCalendar,
         "death_cause_rendered": death_cause_rendered,
@@ -1226,6 +1863,18 @@ async def hf_detail_page(hf_id: int, request: Request,
         "graph_data_career": graph_data_career,
         "graph_data_full": graph_data_full,
         "live_unit_id": live_unit_id,
+        # HF page enrichments
+        "fortress_unit": fortress_unit,
+        "unit_details": unit_details,
+        "unit_events": unit_events_list,
+        "denizen_info": denizen_info,
+        "embark_companions": embark_companions,
+        "co_religionists": co_religionists,
+        "death_fortress_state": death_fortress_state,
+        "character_skills": character_skills,
+        "assigned_labors": assigned_labors,
+        "death_cascade": death_cascade,
+        "fortress_highlight_events": fortress_highlight_events,
     })
 
 
@@ -1375,7 +2024,7 @@ async def entity_detail_page(entity_id: int, request: Request,
                     JOIN historical_figures hf ON hf.world_id = hsl.world_id AND hf.id = hsl.hf_id
                     {_SJ}
                     WHERE hsl.world_id = $1 AND hsl.site_id = ANY($2::int[])
-                      AND hsl.link_type NOT IN ('former resident')
+                      AND hsl.link_type IN ('resident', 'occupation', 'seat of power')
                       AND hf.death_year IS NULL AND {_SF}
                     ORDER BY hsl.hf_id
                 """, world_id, sg_site_ids)
@@ -2146,12 +2795,14 @@ async def site_detail_page(site_id: int, request: Request,
                     live_denizen_count += 1
 
             # Add fortress_denizens with hf_id NOT already in denizens list
-            # Skip departed/missing entries — they're no longer present
+            # Include deceased (they were part of the fortress story).
+            # Skip only those who departed alive or are missing.
             for fd in fd_rows:
                 if not fd["hf_id"] or fd["hf_id"] in existing_hf_ids:
                     continue
-                # Skip denizens that have departed the fortress
-                if fd["departure_year"] is not None:
+                # Skip denizens that departed alive (not death)
+                if (fd["departure_year"] is not None
+                        and fd.get("departure_cause") != "death"):
                     continue
                 # Skip 'missing' status — unit no longer visible to bridge
                 if fd["live_status"] == "missing":
@@ -2195,8 +2846,11 @@ async def site_detail_page(site_id: int, request: Request,
                     "narrative_value": fd["narrative_value"],
                 }
                 existing_hf_ids.add(fd["hf_id"])
-                # Classify: if live_status is resident → Resident
-                if fd["live_status"] in ("resident", "visitor"):
+                # Classify based on live status
+                if fd["live_status"] == "deceased":
+                    entry["population_type"] = "Deceased"
+                    entry["death_year"] = fd.get("departure_year")
+                elif fd["live_status"] in ("resident", "visitor"):
                     entry["population_type"] = "Resident"
                     resident_count += 1
                 else:
@@ -2369,13 +3023,76 @@ async def site_detail_page(site_id: int, request: Request,
                 })
             citizen_profiles.sort(key=lambda c: c.get('stress', 0), reverse=True)
 
-            # Narrative events: key events sorted chronologically
-            NARRATIVE_TYPES = {'DIED', 'GHOST', 'ARRIVED', 'DEPARTED',
-                              'STRESS_SPIKE', 'PREGNANCY_DETECTED', 'PROFESSION_CHANGED'}
+            # Narrative events: all meaningful unit events sorted chronologically
+            NARRATIVE_TYPES = {
+                'DIED', 'GHOST', 'ARRIVED', 'DEPARTED',
+                'STRESS_SPIKE', 'PREGNANCY_DETECTED', 'PROFESSION_CHANGED',
+                'syndrome_applied', 'scheduled_death', 'scheduled_grown_up',
+                'scheduled_marriage', 'scheduled_pregnancy',
+            }
             for ev in live_unit_events:
                 if ev['event_type'] in NARRATIVE_TYPES:
                     narrative_events_sorted.append(ev)
-            narrative_events_sorted.sort(key=lambda e: e.get('game_tick', 0))
+
+            # Add job/item creation summaries (aggregated per unit, not one-per-job)
+            _job_counts = {}
+            _item_counts = {}
+            for ev in live_unit_events:
+                if ev['event_type'] == 'job_completed':
+                    key = ev['unit_id']
+                    _job_counts[key] = _job_counts.get(key, 0) + 1
+                elif ev['event_type'] == 'item_created':
+                    key = ev['unit_id']
+                    _item_counts[key] = _item_counts.get(key, 0) + 1
+
+            # Add incident-based events (combat, crime, death causes)
+            import json as _json_inc
+            from pathlib import Path as _P_inc
+            _inc_path = _P_inc('chronicler/data/live/incidents.json')
+            if _inc_path.exists():
+                try:
+                    _inc_data = _json_inc.loads(_inc_path.read_text())
+                    _DEATH_CAUSES = {
+                        0: "old age", 1: "hunger", 2: "thirst", 3: "drowning",
+                        4: "suffocation", 5: "bleeding", 6: "infection",
+                        7: "murder", 8: "struck down", 9: "collision",
+                        10: "execution", 11: "burned", 12: "melted",
+                        13: "shot", 14: "cave-in", 15: "frozen",
+                        16: "trap", 17: "magma", 18: "spikes",
+                    }
+                    _unit_map_inc = {u['id']: u for u in live_units}
+                    for inc in _inc_data.get('incidents', []):
+                        victim_id = inc.get('victim')
+                        criminal_id = inc.get('criminal', -1)
+                        cause = _DEATH_CAUSES.get(inc.get('death_cause', -1), 'unknown cause')
+                        victim_unit = _unit_map_inc.get(victim_id, {})
+                        victim_name = (victim_unit.get('english_name')
+                                       or victim_unit.get('name')
+                                       or f'Unit #{victim_id}')
+                        criminal_unit = _unit_map_inc.get(criminal_id, {})
+                        criminal_name = (criminal_unit.get('english_name')
+                                         or criminal_unit.get('name') or '')
+
+                        text_parts = [victim_name]
+                        if criminal_name and criminal_id > 0:
+                            text_parts.append(f'killed by {criminal_name}')
+                        text_parts.append(f'({cause})')
+
+                        narrative_events_sorted.append({
+                            'event_type': 'INCIDENT',
+                            'game_year': inc.get('event_year', 0),
+                            'game_tick': inc.get('event_time', 0),
+                            'unit_id': victim_id,
+                            'unit_name': victim_name,
+                            'unit_race': victim_unit.get('race', ''),
+                            'unit_profession': victim_unit.get('profession', ''),
+                            'new_value': ' '.join(text_parts),
+                        })
+                except Exception:
+                    pass  # non-critical
+
+            narrative_events_sorted.sort(key=lambda e: (
+                e.get('game_year', 0), e.get('game_tick', 0)))
 
         # ── Merge live unit events into History tab ──────────────────
         if is_active_fortress:
@@ -2386,32 +3103,34 @@ async def site_detail_page(site_id: int, request: Request,
                 FROM unit_events ue
                 LEFT JOIN units u ON u.id = ue.unit_id AND u.world_id = ue.world_id
                 WHERE ue.world_id = $1
-                  AND ue.event_type IN ('DIED', 'GHOST', 'ARRIVED', 'DEPARTED',
-                                        'PROFESSION_CHANGED', 'STRESS_SPIKE',
-                                        'PREGNANCY_DETECTED', 'syndrome_applied')
                 ORDER BY ue.game_tick ASC
-                LIMIT 200
+                LIMIT 500
             """, world_id)
+            _TEXT_MAP = {
+                'DIED': lambda l, r: f"<span class='text-red-400'>{l}{r} died</span>",
+                'GHOST': lambda l, r: f"<span class='text-purple-400'>The ghost of {l} appeared</span>",
+                'ARRIVED': lambda l, r: f"<span class='text-green-400'>{l}{r} arrived at the fortress</span>",
+                'DEPARTED': lambda l, r: f"<span class='text-amber-400'>{l}{r} departed the fortress</span>",
+                'PROFESSION_CHANGED': lambda l, r: f"{l} changed profession",
+                'STRESS_SPIKE': lambda l, r: f"<span class='text-red-300'>{l} experienced a stress spike</span>",
+                'PREGNANCY_DETECTED': lambda l, r: f"<span class='text-pink-400'>{l} is pregnant</span>",
+                'syndrome_applied': lambda l, r: f"<span class='text-orange-300'>{l} was afflicted by a syndrome</span>",
+                'scheduled_death': lambda l, r: f"<span class='text-red-400'>{l}{r} was found dead</span>",
+                'scheduled_grown_up': lambda l, r: f"{l}{r} grew to adulthood",
+                'scheduled_marriage': lambda l, r: f"<span class='text-pink-300'>{l} married</span>",
+                'scheduled_pregnancy': lambda l, r: f"<span class='text-pink-400'>{l} became pregnant</span>",
+                'item_created': lambda l, r: f"{l} created an item",
+                'job_completed': lambda l, r: f"{l} completed a task",
+            }
             for ev in _live_hist:
                 unit_label = ev['unit_name'] or f"Unit #{ev['unit_id']}"
                 race_label = f" ({ev['unit_race']})" if ev['unit_race'] else ""
                 etype = ev['event_type']
-                if etype == 'DIED':
-                    text = f"<span class='text-red-400'>{unit_label}{race_label} died</span>"
-                elif etype == 'GHOST':
-                    text = f"<span class='text-purple-400'>The ghost of {unit_label} appeared</span>"
-                elif etype == 'ARRIVED':
-                    text = f"<span class='text-green-400'>{unit_label}{race_label} arrived at the fortress</span>"
-                elif etype == 'DEPARTED':
-                    text = f"<span class='text-amber-400'>{unit_label}{race_label} departed the fortress</span>"
-                elif etype == 'PROFESSION_CHANGED':
-                    text = f"{unit_label} changed profession"
-                elif etype == 'STRESS_SPIKE':
-                    text = f"<span class='text-red-300'>{unit_label} experienced a stress spike</span>"
-                elif etype == 'PREGNANCY_DETECTED':
-                    text = f"<span class='text-pink-400'>{unit_label} is pregnant</span>"
+                text_fn = _TEXT_MAP.get(etype)
+                if text_fn:
+                    text = text_fn(unit_label, race_label)
                 else:
-                    text = f"{unit_label}: {etype}"
+                    text = f"{unit_label}: {etype.replace('_', ' ')}"
                 rendered_events.append({
                     'id': None,
                     'year': ev['game_year'],
@@ -2420,6 +3139,46 @@ async def site_detail_page(site_id: int, request: Request,
                     'text': text,
                     'enrichment': {},
                 })
+
+            # Also merge reconstructed incident events
+            import json as _json_hist
+            from pathlib import Path as _P_hist
+            _inc_hist = _P_hist('chronicler/data/live/incidents.json')
+            if _inc_hist.exists():
+                try:
+                    _idata = _json_hist.loads(_inc_hist.read_text())
+                    _DCAUSE = {
+                        0: "old age", 1: "hunger", 2: "thirst", 3: "drowning",
+                        4: "suffocation", 5: "bleeding", 6: "infection",
+                        7: "murder", 8: "struck down", 9: "collision",
+                        10: "execution", 11: "burned", 12: "melted",
+                        13: "shot", 14: "cave-in", 15: "frozen",
+                        16: "trap", 17: "magma", 18: "spikes",
+                    }
+                    _umap = {u['id']: u for u in live_units}
+                    for inc in _idata.get('incidents', []):
+                        vid = inc.get('victim')
+                        cid = inc.get('criminal', -1)
+                        cause = _DCAUSE.get(inc.get('death_cause', -1), 'unknown')
+                        vu = _umap.get(vid, {})
+                        vname = vu.get('english_name') or vu.get('name') or f'Unit #{vid}'
+                        cu = _umap.get(cid, {})
+                        cname = cu.get('english_name') or cu.get('name') or ''
+                        parts = [f"<span class='text-red-400'>{vname}"]
+                        if cname and cid > 0:
+                            parts.append(f"killed by {cname}")
+                        parts.append(f"({cause})</span>")
+                        rendered_events.append({
+                            'id': None,
+                            'year': inc.get('event_year', 0),
+                            'type': '[LIVE] incident',
+                            'date_short': f"Y{inc.get('event_year', '?')} T{inc.get('event_time', '?')}",
+                            'text': ' '.join(parts),
+                            'enrichment': {},
+                        })
+                except Exception:
+                    pass
+
             rendered_events.sort(key=lambda e: (e['year'], e.get('date_short', '')))
             event_count += len(_live_hist)
 
