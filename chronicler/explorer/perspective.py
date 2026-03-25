@@ -545,7 +545,14 @@ def merge_columns_into_details(event: dict) -> dict:
     while templates expect DF XML field names (hfid, snatcher_hfid, etc.).
     This function maps columns back to their original template field names.
     """
-    details = dict(event.get('details') or {})
+    raw_details = event.get('details') or {}
+    if isinstance(raw_details, str):
+        import json
+        try:
+            raw_details = json.loads(raw_details)
+        except (json.JSONDecodeError, ValueError):
+            raw_details = {}
+    details = dict(raw_details) if isinstance(raw_details, dict) else {}
     event_type = event.get('event_type') or event.get('type', '')
     col_map = (COLUMN_MAP_BY_EVENT.get(event_type)
                or COLUMN_MAP_BY_EVENT.get(event_type.replace('_', ' '))

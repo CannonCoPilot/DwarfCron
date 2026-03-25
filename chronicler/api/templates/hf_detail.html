@@ -1142,7 +1142,7 @@
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top">
               {% set evsrc = ev.get('source', '') if ev.get is defined else '' %}
-              {% if ev.get('synthetic', false) if ev.get is defined else false %}
+              {% if ev.synthetic is defined and ev.synthetic %}
                 <span class="event-type-badge" style="background:#292524;border:1px dashed #a78bfa;color:#c4b5fd;">{{ ev.type|replace('_', ' ') }}</span>
               {% elif evsrc == 'synthesized' %}
                 <span class="event-type-badge" style="background:#292524;border:1px dashed #78716c;color:#d6d3d1;">{{ ev.type|replace('_', ' ') }}</span>

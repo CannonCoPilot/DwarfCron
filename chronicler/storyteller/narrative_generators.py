@@ -182,20 +182,20 @@ async def generate_battle_detail(
     attacker = await _resolve_entity(conn, world_id, battle['attacker_entity_id'])
     defender = await _resolve_entity(conn, world_id, battle['defender_entity_id'])
 
-    # Squad breakdown
-    a_races = bd.get('attacking_squad_race', [])
-    a_numbers = bd.get('attacking_squad_number', [])
-    a_deaths = bd.get('attacking_squad_deaths', [])
-    d_races = bd.get('defending_squad_race', [])
-    d_numbers = bd.get('defending_squad_number', [])
-    d_deaths = bd.get('defending_squad_deaths', [])
+    # Squad breakdown (values may be lists or single ints)
+    a_races = _ensure_list(bd.get('attacking_squad_race'))
+    a_numbers = _ensure_list(bd.get('attacking_squad_number'))
+    a_deaths = _ensure_list(bd.get('attacking_squad_deaths'))
+    d_races = _ensure_list(bd.get('defending_squad_race'))
+    d_numbers = _ensure_list(bd.get('defending_squad_number'))
+    d_deaths = _ensure_list(bd.get('defending_squad_deaths'))
 
     attacker_squads = _build_squad_summary(a_races, a_numbers, a_deaths)
     defender_squads = _build_squad_summary(d_races, d_numbers, d_deaths)
 
     # Notable HF participants (resolve names for top combatants)
-    attacking_hfids = bd.get('attacking_hfid', [])[:10]
-    defending_hfids = bd.get('defending_hfid', [])[:10]
+    attacking_hfids = _ensure_list(bd.get('attacking_hfid'))[:10]
+    defending_hfids = _ensure_list(bd.get('defending_hfid'))[:10]
 
     a_participants = await _resolve_hf_list(conn, world_id, attacking_hfids)
     d_participants = await _resolve_hf_list(conn, world_id, defending_hfids)
@@ -629,6 +629,15 @@ async def _resolve_hf_list(conn, world_id: int, hf_ids: list[int]) -> list[dict]
         ORDER BY COALESCE(prominence_score, 0) DESC
     """, world_id, hf_ids)
     return [dict(r) for r in rows]
+
+
+def _ensure_list(val) -> list:
+    """Normalize a value that may be a list, single value, or None to a list."""
+    if val is None:
+        return []
+    if isinstance(val, list):
+        return val
+    return [val]
 
 
 def _build_squad_summary(
