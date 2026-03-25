@@ -1,9 +1,14 @@
-"""Stage 3.6 Narrative API routes.
+"""Stage 3.6 + 4.2 Narrative API routes.
 
 Provides:
   GET /api/narrative/timeline — Unified fortress timeline
   GET /api/narrative/arcs — Detected narrative arcs
   GET /api/narrative/status — Narrative data layer statistics
+  GET /api/narrative/context — Assembled narrative context
+  GET /api/narrative/war/{war_id} — War narrative
+  GET /api/narrative/battle/{battle_id} — Battle detail
+  GET /api/narrative/civilization/{entity_id} — Civilization narrative
+  GET /api/narrative/biography/{hf_id} — Character biography
 """
 
 from fastapi import APIRouter, Query
@@ -160,3 +165,46 @@ async def narrative_context(
             target_id=target_id, year=year, token_budget=budget)
 
     return ctx.as_dict()
+
+
+# ── Stage 4.2: Narrative Generator Endpoints ────────────────────────────────
+
+
+@router.get("/narrative/war/{war_id}")
+async def war_narrative(war_id: int, world_id: int = Query(1)):
+    """Generate structured war narrative with battles, casualties, timeline."""
+    from chronicler.storyteller.narrative_generators import generate_war_narrative
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        return await generate_war_narrative(conn, world_id, war_id)
+
+
+@router.get("/narrative/battle/{battle_id}")
+async def battle_detail(battle_id: int, world_id: int = Query(1)):
+    """Generate detailed battle narrative with squads, participants, events."""
+    from chronicler.storyteller.narrative_generators import generate_battle_detail
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        return await generate_battle_detail(conn, world_id, battle_id)
+
+
+@router.get("/narrative/civilization/{entity_id}")
+async def civilization_narrative(entity_id: int, world_id: int = Query(1)):
+    """Generate civilization rise-and-fall narrative."""
+    from chronicler.storyteller.narrative_generators import generate_civilization_narrative
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        return await generate_civilization_narrative(conn, world_id, entity_id)
+
+
+@router.get("/narrative/biography/{hf_id}")
+async def character_biography(hf_id: int, world_id: int = Query(1)):
+    """Generate comprehensive character biography."""
+    from chronicler.storyteller.narrative_generators import generate_character_biography
+
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        return await generate_character_biography(conn, world_id, hf_id)
