@@ -15,7 +15,10 @@ from fastapi.templating import Jinja2Templates
 from chronicler.explorer.linking import EntityLinkRenderer, EntityNameCache
 from chronicler.explorer.calendar import DFCalendar
 from chronicler.explorer.death_cause import DeathCauseRenderer
-from chronicler.explorer.perspective import PerspectiveRenderer, merge_columns_into_details, extract_enrichment_details
+from chronicler.explorer.perspective import (
+    PerspectiveRenderer, merge_columns_into_details, extract_enrichment_details,
+    synthesize_artifact_claim_lost_events,
+)
 from chronicler.api.routes.civilizations import (
     fetch_civilization_data, fetch_civilization_members, _categorize_position,
 )
@@ -1030,8 +1033,51 @@ async def hf_detail_page(hf_id: int, request: Request,
                 'source': 'live',
             })
 
+        # ── GAP-2: Artifact claim chain synthesis ──────────────────────────
+        # Find artifacts this HF claimed, then check if later claims supersede
+        hf_claim_artifacts = await conn.fetch("""
+            SELECT DISTINCT (details->>'artifact_id')::int AS artifact_id
+            FROM history_events
+            WHERE world_id = $1 AND event_type = 'artifact_claim_formed'
+              AND hf_id_1 = $2
+        """, world_id, hf_id)
+        if hf_claim_artifacts:
+            artifact_ids = [r['artifact_id'] for r in hf_claim_artifacts]
+            all_claims = await conn.fetch("""
+                SELECT year, hf_id_1 AS hfid,
+                       (details->>'artifact_id')::int AS artifact_id
+                FROM history_events
+                WHERE world_id = $1 AND event_type = 'artifact_claim_formed'
+                  AND (details->>'artifact_id')::int = ANY($2::int[])
+                ORDER BY year
+            """, world_id, artifact_ids)
+            synthetic = synthesize_artifact_claim_lost_events(
+                hf_id, [dict(r) for r in all_claims])
+            for sev in synthetic:
+                rendered_events.append({
+                    'id': sev['id'],
+                    'year': sev['year'],
+                    'seconds': sev['seconds'],
+                    'type': sev['event_type'],
+                    'date': DFCalendar.format_date(sev['year'], sev['seconds']),
+                    'date_short': DFCalendar.format_short(sev['year'], sev['seconds']),
+                    'text': renderer.render_event(sev, 'hf', hf_id, name_map),
+                    'enrichment': {},
+                    'synthetic': True,
+                })
+
         # Re-sort all events by year, seconds
         rendered_events.sort(key=lambda e: (e.get('year') or 0, e.get('seconds') or 0))
+
+        # ── Temporal year headers ──────────────────────────────────────────
+        last_year = None
+        for ev in rendered_events:
+            year = ev.get('year')
+            if year is not None and year != last_year:
+                ev['year_header'] = year
+                last_year = year
+            else:
+                ev['year_header'] = None
 
         # Primary entity name
         primary_entity = None

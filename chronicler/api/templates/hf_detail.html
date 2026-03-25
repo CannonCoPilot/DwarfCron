@@ -1133,11 +1133,18 @@
         </thead>
         <tbody>
           {% for ev in events %}
+          {% if ev.year_header %}
+          <tr class="year-header-row">
+            <td colspan="5" class="pt-3 pb-1 text-xs uppercase tracking-wider text-stone-500 border-b border-stone-800">Year {{ ev.year_header }}</td>
+          </tr>
+          {% endif %}
           <tr class="event-row">
             <td class="py-1 event-year align-top">{{ ev.date_short }}</td>
             <td class="py-1 align-top">
               {% set evsrc = ev.get('source', '') if ev.get is defined else '' %}
-              {% if evsrc == 'synthesized' %}
+              {% if ev.get('synthetic', false) if ev.get is defined else false %}
+                <span class="event-type-badge" style="background:#292524;border:1px dashed #a78bfa;color:#c4b5fd;">{{ ev.type|replace('_', ' ') }}</span>
+              {% elif evsrc == 'synthesized' %}
                 <span class="event-type-badge" style="background:#292524;border:1px dashed #78716c;color:#d6d3d1;">{{ ev.type|replace('_', ' ') }}</span>
               {% elif evsrc == 'live' or ev.type in ('death', 'ghost', 'embark', 'appointment') %}
                 <span class="event-type-badge" style="background:rgba(34,197,94,0.15);border:1px solid #22c55e40;color:#86efac;">{{ ev.type|replace('_', ' ') }}</span>

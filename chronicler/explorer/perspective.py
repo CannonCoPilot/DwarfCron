@@ -134,6 +134,8 @@ EVENT_TEMPLATES = {
     # Military
     'squad vs squad': 'a squad battle occurred at {site_id}',
     'tactical situation': 'a tactical situation developed at {site_id}',
+    # ── Stage 4.1: Synthetic event templates ───────────────────────────────────
+    'artifact claim lost': '{hfid}\'s claim on {artifact_id} was superseded by {new_claimant_hfid}',
 }
 
 # ── DB column → template field mapping per event type ────────────────────────
@@ -457,6 +459,11 @@ COLUMN_MAP_BY_EVENT = {
     'tactical situation': {
         'site_id': 'site_id',
     },
+    # ── Stage 4.1: Synthetic event column maps ────────────────────────────────
+    'artifact claim lost': {
+        'hf_id_1': 'hfid', 'hf_id_2': 'new_claimant_hfid',
+        'artifact_id': 'artifact_id',
+    },
 }
 
 # DB columns that hold entity references
@@ -502,7 +509,7 @@ ENTITY_REF_FIELDS = {
     'modifier_hfid': 'hf', 'acquirer_hfid': 'hf', 'last_owner_hfid': 'hf',
     'persecutor_hfid': 'hf', 'leader_hfid': 'hf',
     'a_hfid': 'hf', 'a_tactician_hfid': 'hf', 'd_tactician_hfid': 'hf',
-    'lure_hfid': 'hf', 'plotter_hfid': 'hf',
+    'lure_hfid': 'hf', 'plotter_hfid': 'hf', 'new_claimant_hfid': 'hf',
     'convicter_enid': 'entity', 'persecutor_enid': 'entity',
     'target_enid': 'entity', 'destroyer_enid': 'entity',
     'arresting_enid': 'entity', 'payer_entity_id': 'entity',
@@ -1248,3 +1255,103 @@ class PerspectiveRenderer:
                 return cached
         type_label = entity_type.replace('_', ' ').title()
         return f"{type_label} #{entity_id}"
+
+
+class TemporalContextRenderer:
+    """Wraps PerspectiveRenderer to emit year headers between event groups.
+
+    Maintains _last_year state across calls. When an event's year differs from
+    the previous, a year-header span is prepended to the rendered output.
+
+    Instantiate once per page request (stateful; not thread-shared).
+    """
+
+    def __init__(self, perspective_renderer: PerspectiveRenderer):
+        self._renderer = perspective_renderer
+        self._last_year: int | None = None
+
+    def render_event(self, event: dict, persp_type: str, persp_id: int,
+                     name_cache: dict = None) -> dict:
+        """Render one event, adding a year_header key if the year changed.
+
+        Returns: dict with keys from the caller's event dict, plus:
+          - 'text': rendered HTML
+          - 'year_header': year int or None (only set on year boundary)
+        """
+        year = event.get('year')
+        year_header = None
+        if year is not None and year != self._last_year:
+            self._last_year = year
+            year_header = year
+
+        text = self._renderer.render_event(event, persp_type, persp_id, name_cache)
+        return {**event, 'text': text, 'year_header': year_header}
+
+    def reset(self):
+        """Reset year state (call between page sections if needed)."""
+        self._last_year = None
+
+
+def synthesize_artifact_claim_lost_events(
+    hf_id: int,
+    all_claims: list[dict],
+) -> list[dict]:
+    """Generate synthetic 'artifact claim lost' events for an HF.
+
+    Given ALL artifact_claim_formed events across ALL HFs for artifacts that
+    this HF has claimed, detect when a later claim by a DIFFERENT HF supersedes
+    this HF's claim. Returns a list of synthetic events to merge into the HF's
+    event timeline.
+
+    Args:
+        hf_id: The HF whose timeline we're rendering.
+        all_claims: Rows with keys: year, hfid (int), artifact_id (int).
+            Must include claims by other HFs for the same artifacts.
+
+    Returns:
+        List of synthetic event dicts with keys:
+          id, year, seconds, event_type, details, synthetic
+    """
+    # Group claims by artifact
+    by_artifact: dict[int, list[dict]] = {}
+    for claim in all_claims:
+        aid = int(claim['artifact_id'])
+        by_artifact.setdefault(aid, []).append(claim)
+
+    synthetic_events = []
+    for aid, claims in by_artifact.items():
+        # Sort by year
+        claims.sort(key=lambda c: c['year'])
+
+        # Find this HF's claims for this artifact
+        for i, claim in enumerate(claims):
+            if int(claim['hfid']) != hf_id:
+                continue
+            # Look for the NEXT claim by a different HF
+            for j in range(i + 1, len(claims)):
+                next_claim = claims[j]
+                next_hfid = int(next_claim['hfid'])
+                if next_hfid != hf_id:
+                    synthetic_events.append({
+                        'id': -(aid * 1000 + j),  # negative synthetic ID
+                        'year': next_claim['year'],
+                        'seconds': 0,
+                        'event_type': 'artifact claim lost',
+                        'details': {
+                            'hfid': hf_id,
+                            'artifact_id': aid,
+                            'new_claimant_hfid': next_hfid,
+                        },
+                        'hf_id_1': hf_id,
+                        'hf_id_2': next_hfid,
+                        'artifact_id': aid,
+                        'site_id': None,
+                        'region_id': None,
+                        'entity_id_1': None,
+                        'entity_id_2': None,
+                        'structure_id': None,
+                        'synthetic': True,
+                    })
+                    break  # only the first superseding claim matters
+
+    return synthetic_events
