@@ -26,6 +26,11 @@ LLM_MODEL = os.environ.get("CHRONICLER_LLM_MODEL", "qwen3-8b-nothink")
 LLM_TEMPERATURE = float(os.environ.get("CHRONICLER_LLM_TEMP", "0.8"))
 LLM_MAX_TOKENS = int(os.environ.get("CHRONICLER_LLM_MAX_TOKENS", "2048"))
 
+# Agentic storyteller settings
+STORYTELLER_MODE = os.environ.get("CHRONICLER_STORYTELLER_MODE", "hybrid")  # keyword|agentic|hybrid
+AGENTIC_MODEL = os.environ.get("CHRONICLER_AGENTIC_MODEL", "qwen3-32b-nothink")
+AGENTIC_MAX_ROUNDS = int(os.environ.get("CHRONICLER_AGENTIC_MAX_ROUNDS", "5"))
+
 # Paths
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 LEGENDS_DIR = os.path.join(DATA_DIR, "legends")

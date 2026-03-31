@@ -1,11 +1,14 @@
 """Async LLM streaming client via LiteLLM (OpenAI-compatible)."""
 
 import json
+import logging
 from typing import AsyncGenerator
 
 import httpx
 
 from chronicler.config import LITELLM_URL
+
+log = logging.getLogger(__name__)
 
 
 async def stream_completion(
@@ -47,3 +50,46 @@ async def stream_completion(
                         yield content
                 except (json.JSONDecodeError, KeyError, IndexError):
                     continue
+
+
+async def collect_with_tools(
+    messages: list[dict],
+    model: str = "qwen3-32b-nothink",
+    temperature: float = 0.8,
+    max_tokens: int = 4096,
+    tools: list[dict] | None = None,
+) -> tuple[str, list[dict]]:
+    """Collect a full LLM response, handling tool calls.
+
+    Unlike stream_completion which yields tokens, this collects the entire
+    response to check for tool_calls before returning.
+
+    Returns:
+        (content_text, tool_calls_list) where tool_calls_list may be empty.
+    """
+    payload: dict = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    if tools:
+        payload["tools"] = tools
+        payload["tool_choice"] = "auto"
+
+    async with httpx.AsyncClient(timeout=180.0) as client:
+        resp = await client.post(
+            f"{LITELLM_URL}/v1/chat/completions",
+            json=payload,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    choice = data.get("choices", [{}])[0]
+    message = choice.get("message", {})
+
+    content = message.get("content") or ""
+    tool_calls = message.get("tool_calls") or []
+
+    return content, tool_calls

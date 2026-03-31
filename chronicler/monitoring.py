@@ -32,6 +32,11 @@ class InteractionLog:
     status: str = "ok"
     error: str | None = None
 
+    # Agentic mode fields
+    mode: str = "keyword"  # "keyword" or "agentic"
+    sql_queries: list[dict] = field(default_factory=list)
+    sql_rounds: int = 0
+
     # Internal timing (monotonic nanoseconds)
     _t_start: float = 0.0
     _t_context_done: float = 0.0
@@ -69,6 +74,11 @@ class InteractionLog:
         self.tokens_streamed += 1
         self.response_chars += len(text)
 
+    def add_sql_query(self, query_info: dict) -> None:
+        """Record an agentic SQL query execution."""
+        self.sql_queries.append(query_info)
+        self.sql_rounds = len(self.sql_queries)
+
     def finish(self, status: str = "ok", error: str | None = None) -> None:
         """Mark the interaction complete."""
         self._t_finish = time.monotonic()
@@ -86,8 +96,20 @@ class InteractionLog:
         """INSERT this interaction's metrics into storyteller_log.
 
         Called after the SSE stream completes — zero user-facing latency.
+        Agentic fields (mode, sql_queries, sql_rounds) are stored in the
+        context_categories JSONB column as a nested object to avoid schema
+        migration.
         """
         import json
+
+        # Merge agentic data into context_categories for storage
+        categories_data: dict = dict(self.context_categories)
+        if self.mode == "agentic":
+            categories_data["_agentic"] = {
+                "mode": self.mode,
+                "sql_rounds": self.sql_rounds,
+                "sql_queries": self.sql_queries,
+            }
 
         try:
             async with pool.acquire() as conn:
@@ -116,7 +138,7 @@ class InteractionLog:
                     self.keywords,
                     self.context_records,
                     self.context_chars,
-                    json.dumps(self.context_categories),
+                    json.dumps(categories_data),
                     self.model,
                     self.temperature,
                     self.max_tokens,
