@@ -90,7 +90,7 @@ class InteractionLog:
         """Convert a monotonic interval to milliseconds."""
         if start == 0.0 or end == 0.0:
             return None
-        return int((end - start) * 1000)
+        return round((end - start) * 1000)
 
     async def flush(self, pool: asyncpg.Pool) -> None:
         """INSERT this interaction's metrics into storyteller_log.

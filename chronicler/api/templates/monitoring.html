@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chronicler — Monitoring</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -31,8 +32,8 @@
     .tbl-scroll::-webkit-scrollbar-track { background: #1c1917; }
     .tbl-scroll::-webkit-scrollbar-thumb { background: #44403c; border-radius: 3px; }
     .stat-badge { font-variant-numeric: tabular-nums; }
-    tr.detail-row { display: none; }
-    tr.detail-row.open { display: table-row; }
+    .mode-keyword { color: #a8a29e; }
+    .mode-agentic { color: #f6b93b; }
   </style>
 </head>
 <body class="text-stone-300 font-chronicle min-h-screen">
@@ -41,27 +42,43 @@
   {% include "partials/_nav.html" %}
 
   <!-- Sub-header -->
-  <div class="px-6 py-3 border-b border-stone-800">
-    <h2 class="text-stone-400 text-sm font-bold">LLM interaction logs &amp; performance metrics</h2>
+  <div class="px-6 py-3 border-b border-stone-800 flex items-center justify-between">
+    <h2 class="text-stone-400 text-sm font-bold">Storyteller Monitoring — LLM interactions, latency phases &amp; SQL exploration</h2>
+    <span class="text-stone-600 text-xs" id="refresh-timer">Auto-refresh: 30s</span>
   </div>
 
   <!-- Summary Cards -->
-  <div id="summary" class="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 py-5">
+  <div id="summary" class="grid grid-cols-2 md:grid-cols-5 gap-4 px-6 py-5">
     <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
       <div class="text-stone-500 text-xs uppercase tracking-wider">Total Queries</div>
       <div class="text-2xl font-bold text-amber-400 stat-badge mt-1" id="s-total">—</div>
+      <div class="text-xs text-stone-600 mt-1" id="s-today">—</div>
     </div>
     <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
       <div class="text-stone-500 text-xs uppercase tracking-wider">Avg TTFT</div>
       <div class="text-2xl font-bold text-stone-200 stat-badge mt-1" id="s-ttft">—</div>
     </div>
     <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
-      <div class="text-stone-500 text-xs uppercase tracking-wider">Avg Latency</div>
+      <div class="text-stone-500 text-xs uppercase tracking-wider">Avg Total Latency</div>
       <div class="text-2xl font-bold text-stone-200 stat-badge mt-1" id="s-latency">—</div>
     </div>
     <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
       <div class="text-stone-500 text-xs uppercase tracking-wider">Errors</div>
       <div class="text-2xl font-bold stat-badge mt-1" id="s-errors">—</div>
+    </div>
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <div class="text-stone-500 text-xs uppercase tracking-wider">By Mode</div>
+      <div class="text-sm mt-1 space-y-0.5" id="s-modes">—</div>
+    </div>
+  </div>
+
+  <!-- Latency Phase Chart -->
+  <div class="px-6 pb-5">
+    <div class="bg-stone-900 border border-stone-800 rounded-lg p-4">
+      <h3 class="text-stone-400 text-xs uppercase tracking-wider mb-3">Latency Phase Breakdown (last 200 interactions)</h3>
+      <div class="h-48">
+        <canvas id="latency-chart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -74,16 +91,18 @@
             <tr class="text-stone-500 text-xs uppercase tracking-wider border-b border-stone-800">
               <th class="px-4 py-3 text-left">Time</th>
               <th class="px-4 py-3 text-left">Query</th>
+              <th class="px-4 py-3 text-center">Mode</th>
               <th class="px-4 py-3 text-left">World</th>
               <th class="px-4 py-3 text-right">Context</th>
               <th class="px-4 py-3 text-right">Tokens</th>
               <th class="px-4 py-3 text-right">TTFT</th>
               <th class="px-4 py-3 text-right">Total</th>
+              <th class="px-4 py-3 text-right">SQL</th>
               <th class="px-4 py-3 text-center">Status</th>
             </tr>
           </thead>
           <tbody id="interactions-body" class="divide-y divide-stone-800">
-            <tr><td colspan="8" class="px-4 py-8 text-center text-stone-500">Loading...</td></tr>
+            <tr><td colspan="10" class="px-4 py-8 text-center text-stone-500">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -92,26 +111,91 @@
 
   <!-- Detail Modal -->
   <div id="detail-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="closeDetail(event)">
-    <div class="bg-stone-900 border border-stone-700 rounded-lg max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto tbl-scroll p-6" onclick="event.stopPropagation()">
+    <div class="bg-stone-900 border border-stone-700 rounded-lg max-w-3xl w-full mx-4 max-h-[85vh] overflow-y-auto tbl-scroll p-6" onclick="event.stopPropagation()">
       <div class="flex justify-between items-start mb-4">
         <h2 class="text-amber-400 font-bold">Interaction Detail</h2>
-        <button onclick="document.getElementById('detail-modal').classList.add('hidden');document.getElementById('detail-modal').classList.remove('flex')" class="text-stone-500 hover:text-stone-300">&times;</button>
+        <button onclick="document.getElementById('detail-modal').classList.add('hidden');document.getElementById('detail-modal').classList.remove('flex')" class="text-stone-500 hover:text-stone-300 text-xl">&times;</button>
       </div>
       <div id="detail-content" class="text-sm space-y-3 font-mono"></div>
     </div>
   </div>
 
 <script>
+let latencyChart = null;
+
 async function loadSummary() {
   try {
     const resp = await fetch('/api/monitoring/summary');
     const s = await resp.json();
     document.getElementById('s-total').textContent = (s.total || 0).toLocaleString();
+    document.getElementById('s-today').textContent = `${s.today || 0} today`;
     document.getElementById('s-ttft').textContent = s.avg_ttft_ms != null ? s.avg_ttft_ms + 'ms' : '—';
     document.getElementById('s-latency').textContent = s.avg_latency_ms != null ? s.avg_latency_ms + 'ms' : '—';
+
     const errEl = document.getElementById('s-errors');
     errEl.textContent = s.errors || 0;
-    errEl.className = errEl.className.replace(/text-\S+/g, '') + (s.errors > 0 ? ' text-red-400' : ' text-green-400');
+    errEl.className = 'text-2xl font-bold stat-badge mt-1 ' + (s.errors > 0 ? 'text-red-400' : 'text-green-400');
+
+    // Mode breakdown
+    const modesEl = document.getElementById('s-modes');
+    const modes = s.by_mode || {};
+    modesEl.innerHTML = Object.entries(modes).map(([mode, data]) =>
+      `<div><span class="mode-${mode}">${mode}</span>: <span class="text-stone-200">${data.count}</span> <span class="text-stone-600">(${data.avg_latency_ms || '—'}ms avg)</span></div>`
+    ).join('') || '<span class="text-stone-600">No data</span>';
+  } catch {}
+}
+
+async function loadLatencyChart() {
+  try {
+    const resp = await fetch('/api/monitoring/latency-distribution');
+    const data = await resp.json();
+    if (!data.length) return;
+
+    const labels = data.map((_, i) => i + 1).reverse();
+    const ctx_ms = data.map(d => d.context_latency_ms || 0).reverse();
+    const ttft_ms = data.map(d => d.first_token_ms || 0).reverse();
+    const llm_ms = data.map(d => Math.max(0, (d.llm_latency_ms || 0) - (d.first_token_ms || 0))).reverse();
+
+    const ctx = document.getElementById('latency-chart').getContext('2d');
+    if (latencyChart) latencyChart.destroy();
+
+    latencyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Context', data: ctx_ms, backgroundColor: '#78716c', stack: 'latency' },
+          { label: 'TTFT', data: ttft_ms, backgroundColor: '#f6b93b', stack: 'latency' },
+          { label: 'Streaming', data: llm_ms, backgroundColor: '#c49122', stack: 'latency' },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: '#a8a29e', font: { size: 11 } },
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw}ms`
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            display: false,
+          },
+          y: {
+            stacked: true,
+            ticks: { color: '#78716c', callback: v => v + 'ms' },
+            grid: { color: '#292524' }
+          }
+        }
+      }
+    });
   } catch {}
 }
 
@@ -121,23 +205,29 @@ async function loadInteractions() {
     const rows = await resp.json();
     const tbody = document.getElementById('interactions-body');
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-stone-500">No interactions logged yet. Ask the Chronicler something!</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-stone-500">No interactions logged yet. Ask the Chronicler something!</td></tr>';
       return;
     }
     tbody.innerHTML = rows.map(r => {
       const ts = new Date(r.timestamp).toLocaleTimeString();
-      const q = r.query.length > 60 ? r.query.slice(0, 57) + '...' : r.query;
+      const q = r.query.length > 50 ? r.query.slice(0, 47) + '...' : r.query;
       const st = r.status === 'ok'
         ? '<span class="text-green-400">ok</span>'
         : '<span class="text-red-400">err</span>';
+      const modeClass = r.mode === 'agentic' ? 'mode-agentic' : 'mode-keyword';
+      const sqlCol = r.sql_rounds > 0
+        ? `<span class="text-amber-400">${r.sql_rounds}</span>`
+        : '<span class="text-stone-600">—</span>';
       return `<tr class="hover:bg-stone-800/50 cursor-pointer" onclick="showDetail(${r.id})">
         <td class="px-4 py-2.5 text-stone-400 whitespace-nowrap stat-badge">${ts}</td>
         <td class="px-4 py-2.5 text-stone-200 max-w-xs truncate">${escapeHtml(q)}</td>
+        <td class="px-4 py-2.5 text-center"><span class="${modeClass} text-xs font-bold uppercase">${r.mode}</span></td>
         <td class="px-4 py-2.5 text-stone-400">${r.world_name || '—'}</td>
         <td class="px-4 py-2.5 text-right stat-badge">${r.context_records ?? '—'}</td>
         <td class="px-4 py-2.5 text-right stat-badge">${r.tokens_streamed ?? '—'}</td>
         <td class="px-4 py-2.5 text-right stat-badge">${r.first_token_ms != null ? r.first_token_ms + 'ms' : '—'}</td>
         <td class="px-4 py-2.5 text-right stat-badge">${r.total_latency_ms != null ? r.total_latency_ms + 'ms' : '—'}</td>
+        <td class="px-4 py-2.5 text-right stat-badge">${sqlCol}</td>
         <td class="px-4 py-2.5 text-center">${st}</td>
       </tr>`;
     }).join('');
@@ -148,33 +238,55 @@ async function showDetail(id) {
   const resp = await fetch('/api/monitoring/interactions/' + id);
   const d = await resp.json();
   const el = document.getElementById('detail-content');
+
   const fields = [
     ['Query', d.query],
+    ['Mode', `<span class="mode-${d.mode} font-bold uppercase">${d.mode}</span>`],
     ['World', `${d.world_name || '—'} (id: ${d.world_id})`],
     ['Keywords', (d.keywords || []).join(', ') || '—'],
     ['Model', d.model],
     ['Temperature', d.temperature],
     ['Max Tokens', d.max_tokens],
-    ['', ''],
+    ['sep'],
+    ['<span class="text-amber-400">Latency Phases</span>', ''],
+    ['  Context Build', d.context_latency_ms != null ? d.context_latency_ms + 'ms' : '—'],
+    ['  Time to First Token', d.first_token_ms != null ? d.first_token_ms + 'ms' : '—'],
+    ['  LLM Total', d.llm_latency_ms != null ? d.llm_latency_ms + 'ms' : '—'],
+    ['  Wall Time', d.total_latency_ms != null ? d.total_latency_ms + 'ms' : '—'],
+    ['sep'],
     ['Context Records', d.context_records],
     ['Context Chars', d.context_chars?.toLocaleString()],
-    ['Context Categories', JSON.stringify(d.context_categories)],
-    ['Context Latency', d.context_latency_ms != null ? d.context_latency_ms + 'ms' : '—'],
-    ['', ''],
-    ['TTFT', d.first_token_ms != null ? d.first_token_ms + 'ms' : '—'],
-    ['LLM Latency', d.llm_latency_ms != null ? d.llm_latency_ms + 'ms' : '—'],
-    ['Total Latency', d.total_latency_ms != null ? d.total_latency_ms + 'ms' : '—'],
     ['Tokens Streamed', d.tokens_streamed],
     ['Response Chars', d.response_chars?.toLocaleString()],
-    ['', ''],
-    ['Status', d.status],
+    ['sep'],
+    ['Status', d.status === 'ok' ? '<span class="text-green-400">ok</span>' : '<span class="text-red-400">' + d.status + '</span>'],
     ['Error', d.error || '—'],
     ['Timestamp', d.timestamp],
   ];
-  el.innerHTML = fields.map(([k, v]) =>
-    k === '' ? '<hr class="border-stone-700">'
-    : `<div class="flex justify-between"><span class="text-stone-500">${k}</span><span class="text-stone-200">${v ?? '—'}</span></div>`
-  ).join('');
+
+  let html = fields.map(f => {
+    if (f[0] === 'sep') return '<hr class="border-stone-700">';
+    return `<div class="flex justify-between gap-4"><span class="text-stone-500 shrink-0">${f[0]}</span><span class="text-stone-200 text-right">${f[1] ?? '—'}</span></div>`;
+  }).join('');
+
+  // SQL queries section for agentic mode
+  if (d.sql_queries && d.sql_queries.length > 0) {
+    html += '<hr class="border-stone-700">';
+    html += `<div class="text-amber-400 font-bold">SQL Queries (${d.sql_rounds} round${d.sql_rounds !== 1 ? 's' : ''})</div>`;
+    d.sql_queries.forEach((sq, i) => {
+      const errBadge = sq.error ? '<span class="text-red-400 text-xs ml-2">ERROR</span>' : '';
+      html += `<div class="bg-stone-800 rounded p-3 mt-2">
+        <div class="flex justify-between text-xs mb-1">
+          <span class="text-stone-500">Round ${i + 1}: ${escapeHtml(sq.purpose || '')}</span>
+          <span class="text-stone-400">${sq.duration_ms}ms · ${sq.row_count} rows${errBadge}</span>
+        </div>
+        <pre class="text-xs text-stone-300 whitespace-pre-wrap break-all">${escapeHtml(sq.sql || '')}</pre>
+        ${sq.error ? '<div class="text-red-400 text-xs mt-1">' + escapeHtml(sq.error) + '</div>' : ''}
+      </div>`;
+    });
+  }
+
+  el.innerHTML = html;
   const modal = document.getElementById('detail-modal');
   modal.classList.remove('hidden');
   modal.classList.add('flex');
@@ -196,7 +308,8 @@ function escapeHtml(str) {
 // Initial load + 30s refresh
 loadSummary();
 loadInteractions();
-setInterval(() => { loadSummary(); loadInteractions(); }, 30000);
+loadLatencyChart();
+setInterval(() => { loadSummary(); loadInteractions(); loadLatencyChart(); }, 30000);
 </script>
 </body>
 </html>

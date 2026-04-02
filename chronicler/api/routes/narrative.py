@@ -12,6 +12,7 @@ Provides:
 """
 
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 
 from chronicler.db.connection import get_pool
 
@@ -208,3 +209,137 @@ async def character_biography(hf_id: int, world_id: int = Query(1)):
     pool = await get_pool()
     async with pool.acquire() as conn:
         return await generate_character_biography(conn, world_id, hf_id)
+
+
+# ── Stage 4.5: AI Narrative Generator Endpoints ───────────────────────────────
+
+
+@router.get("/narrative/world-summary")
+async def world_summary(world_id: int = Query(1), force: bool = Query(False)):
+    """AI-generated world overview (cached, ~5s first generation)."""
+    from chronicler.storyteller.ai_generators import generate_world_summary
+
+    pool = await get_pool()
+    return await generate_world_summary(pool, world_id, force=force)
+
+
+@router.get("/narrative/obituary/{hf_id}")
+async def obituary(hf_id: int, world_id: int = Query(1), force: bool = Query(False)):
+    """AI-generated newspaper-style obituary for a dead HF."""
+    from chronicler.storyteller.ai_generators import generate_obituary
+
+    pool = await get_pool()
+    return await generate_obituary(pool, world_id, hf_id, force=force)
+
+
+@router.get("/narrative/year/{year}")
+async def year_in_history(year: int, world_id: int = Query(1), force: bool = Query(False)):
+    """AI-generated 'Year in History' newspaper-style summary."""
+    from chronicler.storyteller.ai_generators import generate_year_in_history
+
+    pool = await get_pool()
+    return await generate_year_in_history(pool, world_id, year, force=force)
+
+
+@router.get("/narrative/highlights")
+async def highlight_reel(
+    world_id: int = Query(1),
+    top_n: int = Query(20),
+    force: bool = Query(False),
+):
+    """AI-generated 'Greatest Moments' highlight reel."""
+    from chronicler.storyteller.ai_generators import generate_highlight_reel
+
+    pool = await get_pool()
+    return await generate_highlight_reel(pool, world_id, top_n=top_n, force=force)
+
+
+# ── Stage 4.6: Fortress Saga Generator Endpoints ─────────────────────────────
+
+
+@router.get("/narrative/saga/styles")
+async def saga_styles():
+    """List available narrative style presets."""
+    from chronicler.storyteller.saga_generator import list_styles
+
+    return list_styles()
+
+
+@router.get("/narrative/saga/plan")
+async def saga_plan(
+    world_id: int = Query(1),
+    site_id: int | None = Query(None),
+    style: str = Query("epic_saga"),
+):
+    """Plan a saga (chapter outline without generating content)."""
+    from chronicler.storyteller.saga_generator import plan_saga as _plan_saga
+
+    pool = await get_pool()
+    return await _plan_saga(pool, world_id, site_id, style)
+
+
+@router.get("/narrative/saga/generate")
+async def saga_generate(
+    world_id: int = Query(1),
+    site_id: int | None = Query(None),
+    style: str = Query("epic_saga"),
+    force: bool = Query(False),
+):
+    """Generate a complete multi-chapter fortress saga (may take 30-60s)."""
+    from chronicler.storyteller.saga_generator import generate_saga as _generate_saga
+
+    pool = await get_pool()
+    return await _generate_saga(pool, world_id, site_id, style, force)
+
+
+@router.get("/narrative/saga/chapter/{chapter_index}")
+async def saga_chapter_stream(
+    chapter_index: int,
+    world_id: int = Query(1),
+    site_id: int | None = Query(None),
+    style: str = Query("epic_saga"),
+):
+    """Stream a single saga chapter via SSE."""
+    import json as json_mod
+
+    from sse_starlette.sse import EventSourceResponse
+
+    from chronicler.storyteller.saga_generator import SagaGenerator
+
+    pool = await get_pool()
+    generator = SagaGenerator(pool)
+
+    async def event_gen():
+        async for token in generator.generate_chapter_stream(
+            world_id, chapter_index, site_id, style
+        ):
+            yield {"data": json_mod.dumps({"token": token})}
+        yield {"data": json_mod.dumps({"done": True})}
+
+    return EventSourceResponse(event_gen())
+
+
+# ── Stage 4.7: Narrative Quality & Tuning Endpoints ──────────────────────────
+
+
+class QualityCheckRequest(BaseModel):
+    text: str
+    world_id: int = 1
+
+
+@router.post("/narrative/quality/accuracy")
+async def check_accuracy(body: QualityCheckRequest):
+    """Check factual accuracy of narrative text against CDM data."""
+    from chronicler.storyteller.quality import check_accuracy as _check_accuracy
+
+    pool = await get_pool()
+    return await _check_accuracy(pool, body.text, body.world_id)
+
+
+@router.post("/narrative/quality/evaluate")
+async def evaluate_quality(body: QualityCheckRequest):
+    """Full quality evaluation (accuracy + structure + specificity)."""
+    from chronicler.storyteller.quality import evaluate_quality as _evaluate_quality
+
+    pool = await get_pool()
+    return await _evaluate_quality(pool, body.text, body.world_id)

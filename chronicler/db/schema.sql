@@ -786,6 +786,21 @@ CREATE TABLE IF NOT EXISTS storyteller_log (
 CREATE INDEX IF NOT EXISTS idx_storyteller_log_ts ON storyteller_log(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_storyteller_log_world ON storyteller_log(world_id);
 
+-- ── Narrative Cache (LLM-generated content) ─────────────────────────
+CREATE TABLE IF NOT EXISTS narrative_cache (
+    id              SERIAL PRIMARY KEY,
+    world_id        INT NOT NULL,
+    cache_type      TEXT NOT NULL,       -- 'world_summary', 'obituary', 'year_history', 'highlight_reel'
+    cache_key       TEXT NOT NULL,        -- type-specific key (e.g., hf_id, year, 'top20')
+    content         TEXT NOT NULL,
+    model           TEXT,
+    generated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ttl_hours       INT DEFAULT 168,     -- 7 days default
+    UNIQUE (world_id, cache_type, cache_key)
+);
+CREATE INDEX IF NOT EXISTS idx_narrative_cache_lookup
+    ON narrative_cache(world_id, cache_type, cache_key);
+
 -- ── Live Sync: Unit Events ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS unit_events (
     id              SERIAL PRIMARY KEY,
