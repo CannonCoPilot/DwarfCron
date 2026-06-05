@@ -12,7 +12,7 @@
 
 The core technical challenge: Dwarf Fortress generates some of the richest emergent narrative data in any simulation, but it's locked inside opaque binary state and XML dumps with no relational structure. Chronicler solves this with a full ETL pipeline that maps live memory, legends exports, and real-time game events into a unified Common Data Model, then layers semantic search and narrative intelligence on top.
 
-![Chronicler DFHack Workflow](docs/images/workflow.png)
+![Dwarf Fortress running with DFHack integration and live Claude Code session](docs/images/df-gameplay-live.png)
 
 ---
 
@@ -50,7 +50,11 @@ The engine then detects story arcs (siege defense, golden age, succession crisis
 | **Embedding** | Qwen3 2560-dim via MLX, content-hash deduplication | Semantic search across all entities |
 | **Explorer** | FastAPI + Jinja2, 151 HTML templates, 15 route modules | Web UI with calendar, entity browser, live view |
 
-![Pipeline Status](docs/images/workflow-status.png)
+![Live data architecture — from game memory through ETL to web explorer](docs/images/architecture-diagram.png)
+
+The web explorer provides faceted search across 48K+ historical figures, filterable by race, biological variant, and civilization:
+
+![Chronicler web explorer — entity browser with race facets](docs/images/chronicler-explorer.png)
 
 ---
 
