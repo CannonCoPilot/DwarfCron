@@ -1,166 +1,185 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-pgvector-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
-  <img src="https://img.shields.io/badge/AI-Embedding%20%2B%20LLM-blueviolet?style=for-the-badge" alt="AI"/>
-  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT"/>
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/DFHack-RPC%20%2B%20Lua-8B4513?style=for-the-badge" alt="DFHack">
+  <img src="https://img.shields.io/badge/pgvector-2560--dim-FF6F00?style=for-the-badge" alt="pgvector">
 </p>
 
-# Chronicler (DwarfCron)
+# Chronicler
 
-**An AI-powered living atlas and narrative engine that transforms 7.6 million years of simulated history into browsable, cross-linked, AI-narrated chronicles.**
+**An AI-powered living atlas for Dwarf Fortress.** Chronicler connects directly to a running game via DFHack, ingests live fortress state through Lua/Protobuf streaming, structures it into a 40+ table relational model, and uses LLMs to transform raw simulation data into browsable, cross-linked narrative histories.
 
-Chronicler connects to a running [Dwarf Fortress](https://www.bay12games.com/dwarves/) game via [DFHack](https://dfhack.org/), ingests its procedurally generated world data (XML legends exports + live in-game memory), maps it into a normalized relational schema, and serves a web UI for exploration, search, and AI-generated storytelling.
+The core technical challenge: Dwarf Fortress generates some of the richest emergent narrative data in any simulation, but it's locked inside opaque binary state and XML dumps with no relational structure. Chronicler solves this with a full ETL pipeline that maps live memory, legends exports, and real-time game events into a unified Common Data Model, then layers semantic search and narrative intelligence on top.
+
+![Chronicler DFHack Workflow](docs/images/workflow.png)
 
 ---
 
-## What Makes This Technically Interesting
+## Turning Simulated History Into Structured Knowledge
 
-This isn't a game mod — it's a **full-stack data engineering pipeline** that demonstrates:
+Dwarf Fortress worlds contain hundreds of thousands of interconnected events spanning centuries of simulated history: wars, migrations, artifact creation, political succession, and the daily lives of individual characters. The data engineering problem is substantial.
 
-### 1. Complex Data Modeling (CDM)
+**Common Data Model**: 40+ PostgreSQL tables with composite primary keys for multi-world support, covering geography, civilizations, historical figures, artifacts, events, military structures, and fortress state. The schema evolved through 16 migrations as new data sources came online.
 
-The game generates deeply interconnected historical data: civilizations, wars, artifacts, family trees, geological layers, building construction, and millions of events spanning thousands of simulated years. Chronicler normalizes this into a **40+ table PostgreSQL schema** with:
+**Live State Capture**: A Lua bridge script runs inside DFHack on 100-tick intervals, serializing 17 data sections (units, emotions, skills, squads, buildings, diplomacy, incidents, event collections) to JSON. A polling daemon detects meaningful changes -- arrivals, deaths, skill progressions, mood shifts -- and logs structured events to PostgreSQL in real time.
 
-- **Bidirectional relationship graphs** (parent-child, spouse, master-apprentice, killer-victim)
-- **Temporal event chains** with knowledge-horizon filtering (what did this character *actually know*?)
-- **Composite primary keys** across entity-event-relationship dimensions
-- **14 ETL functions** that map raw XML/Protobuf into the CDM
+**Narrative Scoring Engine**: Every historical event (473K+ in a typical world) receives a composite narrative weight:
 
 ```
-XML Legends Export ──► Parser ──► CDM Schema ──► PostgreSQL
-                                      │              │
-Live DFHack Memory ──► Bridge ──► ETL Pipeline    pgvector
-                                      │              │
-                                 Scoring Engine   Embeddings
-                                      │              │
-                                 Narrative Layer  Semantic Search
+narrative_weight = base_weight * character_importance * rarity_multiplier * irony_bonus
+drama_score = base_drama * escalation_factor
 ```
 
-### 2. Live Memory Streaming
+The engine then detects story arcs (siege defense, golden age, succession crisis, rise and fall) by clustering temporally and thematically related events, and builds 28K+ causal links between them.
 
-DFHack exposes the game's in-memory data structures via Lua/Protobuf RPC. Chronicler's bridge module:
+**Semantic Search**: Entity descriptions and narrative text are embedded using Qwen3 (2560-dim vectors) via pgvector, enabling natural-language queries across the generated corpus.
 
-- **Captures fortress state snapshots** (206 snapshots, 563 events, 76 units in validation)
-- **Streams unit status, building construction, combat events** in real-time
-- **Maps C++ memory structs** (personality traits, beliefs, emotions from `unit.status.current_soul`) into normalized database rows
-- **Handles schema evolution** across game versions without breaking live connections
-
-### 3. AI-Driven Narrative Generation
-
-Raw data becomes stories through a multi-stage pipeline:
-
-- **Importance scoring**: 473K events scored for narrative significance using configurable weights
-- **Arc detection**: 13K narrative arcs identified across character lifespans
-- **Link synthesis**: 28K cross-references between entities, events, and locations
-- **LLM generation**: Claude and local models produce character biographies, battle accounts, and civilization summaries
-- **Embedding pipeline**: pgvector-powered semantic search across the entire generated corpus (2560-dim Qwen3 embeddings)
-
-### 4. Web Explorer
-
-A FastAPI + Jinja2 web application with 151 HTML templates providing:
-
-- **World browser**: civilizations, sites, regions, underground layers
-- **Entity explorer**: historical figures with family trees, life events, relationships
-- **Artifact tracker**: creation, ownership chains, claim/transfer events
-- **Battle reconstructor**: combat events with participants, casualties, tactical context
-- **Calendar view**: seasonal event timelines across in-game years
-- **Semantic search**: natural-language queries against the embedded corpus
+**Knowledge Horizon**: A visibility masking system that limits what the explorer and storyteller can surface to what the fortress would plausibly know -- expanding dynamically as caravans arrive, wars are declared, and migrants bring news.
 
 ---
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────┐
-│                    Dwarf Fortress                     │
-│                  (UTM VM / Windows)                   │
-│                        │                              │
-│                   DFHack RPC                          │
-└────────────────────────┼─────────────────────────────┘
-                         │ SSH + Lua/Protobuf
-┌────────────────────────┼─────────────────────────────┐
-│                    Chronicler                          │
-│                        │                              │
-│  ┌─────────┐    ┌─────┴──────┐    ┌──────────────┐  │
-│  │  Ingest  │    │   Bridge    │    │   Explorer    │  │
-│  │  (XML)   │    │  (DFHack)   │    │  (FastAPI)    │  │
-│  └────┬─────┘    └─────┬──────┘    └──────┬───────┘  │
-│       │                │                   │          │
-│  ┌────┴────────────────┴───────────────────┤          │
-│  │           PostgreSQL + pgvector          │          │
-│  │     40+ tables │ 14 ETL functions        │          │
-│  │     CDM Schema │ Embedding index         │          │
-│  └─────────────────────────────────────────┘          │
-│                        │                              │
-│  ┌─────────────────────┴───────────────────┐          │
-│  │          Narrative Engine                │          │
-│  │  Scoring → Arcs → Links → LLM Gen       │          │
-│  └─────────────────────────────────────────┘          │
-└──────────────────────────────────────────────────────┘
-```
+| Layer | Components | Purpose |
+|-------|-----------|---------|
+| **Ingestion** | XML parser, DFHack RPC client, Lua bridge, Protobuf | Ingest legends exports and live game state |
+| **ETL** | 14 expanded ETL functions, change detector, denizen registry | Transform raw data into CDM tables |
+| **Storage** | PostgreSQL + pgvector, 16 SQL migrations | Relational model with vector similarity |
+| **Narrative** | Scoring engine, causal linker, arc detector, LLM generators | Score, link, cluster, and narrate events |
+| **Embedding** | Qwen3 2560-dim via MLX, content-hash deduplication | Semantic search across all entities |
+| **Explorer** | FastAPI + Jinja2, 151 HTML templates, 15 route modules | Web UI with calendar, entity browser, live view |
+
+![Pipeline Status](docs/images/workflow-status.png)
 
 ---
 
-## Data Scale
+## Key Capabilities
 
-| Metric | Value |
-|--------|-------|
-| Simulated history | ~7,600 years |
-| Historical figures | 50,000+ per world |
-| Events | 500,000+ per world |
-| Narrative arcs detected | 13,000+ |
-| Cross-reference links | 28,000+ |
-| Scored events | 473,000+ |
-| Database tables | 40+ |
-| ETL functions | 14 |
-| SQL migrations | 18 |
-| Web templates | 151 |
-| Python modules | 1,626 files |
+| Feature | Detail |
+|---------|--------|
+| Multi-world support | Composite `(world_id, id)` keys across all tables |
+| Live fortress monitoring | Polling daemon with configurable tick intervals |
+| Narrative arc detection | 8 arc types: siege defense, golden age, megabeast attack, succession crisis, and more |
+| Causal event linking | 5 link types: cascading death, invasion triggered, economic collapse, social cascade, military weakened |
+| LLM story generation | Hybrid keyword + agentic mode using local models (Qwen3-8B/32B) |
+| Knowledge Horizon | 3-phase visibility expansion with event-based revelation rules |
+| Diff-mode ingestion | Merge new legends exports without destroying existing data |
+| Semantic entity search | pgvector similarity queries across the full corpus |
 
 ---
 
-## Tech Stack
+<details>
+<summary><strong>Prerequisites</strong></summary>
 
-**Backend**: Python 3.11+, FastAPI, asyncpg, Click CLI  
-**Database**: PostgreSQL with pgvector (2560-dim embeddings), 18 migration files  
-**AI/ML**: Claude API, Qwen3 embeddings (MLX), narrative scoring algorithms  
-**Game Integration**: DFHack Lua/Protobuf RPC over SSH, XML legends parsing (lxml)  
-**Frontend**: Jinja2 templates, SSE for live updates  
-**Infrastructure**: Docker, UTM (Windows VM for DF), tmux automation  
+- Python 3.11+
+- PostgreSQL 15+ with the `vector` and `unaccent` extensions
+- A running Dwarf Fortress instance with [DFHack](https://docs.dfhack.org/)
+- (Optional) MLX embedding server for semantic search
+- (Optional) LiteLLM or compatible LLM endpoint for narrative generation
 
----
+</details>
 
-## Project Status
-
-| Phase | Name | Status |
-|-------|------|--------|
-| 1 | Data Foundation | **Complete** (64/64 tasks) |
-| 2 | Explorer Core | **Complete** (50/50 DoD) |
-| 3 | Live Integration | **Complete** (27/27 DoD) |
-| 4 | Narrative Engine | In Progress |
-| 5 | Visualization | Planned |
-| 6 | Advanced Components | Planned |
-| 7 | Polish & Production | Planned |
-
----
-
-## Quick Start
+<details>
+<summary><strong>Installation</strong></summary>
 
 ```bash
+# Clone and install
+git clone https://github.com/CannonCoPilot/DwarfCron.git
+cd DwarfCron
+python -m venv .venv
+source .venv/bin/activate
 pip install -e .
-chronicler serve --reload    # Web UI at http://localhost:8080
-chronicler ingest world.xml  # Import a legends export
+
+# Initialize database
+chronicler init-db
+
+# Ingest a legends export
+chronicler ingest --legends path/to/region-legends.xml
+
+# Launch the web explorer
+chronicler serve --reload
+```
+
+The web UI will be available at `http://localhost:8080`.
+
+</details>
+
+<details>
+<summary><strong>CLI Reference</strong></summary>
+
+```bash
+chronicler init-db                    # Create schema and run migrations
+chronicler worlds list                # Show all worlds with entity counts
+chronicler worlds delete --world-id N # Remove a world and all associated data
+chronicler ingest --legends DIR       # Parse and import legends XML
+chronicler ingest --update            # Diff-mode merge into existing world
+chronicler serve --reload             # Launch web UI with hot reload
+chronicler sync-live --world-id 1     # Pull live units from DFHack
+chronicler watch                      # Start the polling daemon
+chronicler embed --world-id 1         # Generate vector embeddings
+chronicler narrate --world-id 1       # Run the narrative scoring pipeline
+```
+
+</details>
+
+<details>
+<summary><strong>Live Bridge Setup</strong></summary>
+
+The DFHack bridge runs as a Lua script inside the game process, serializing fortress state to JSON on every 100-tick cycle:
+
+```
+# On the Dwarf Fortress machine (DFHack console):
+repeat --name chronicler --time 100 --timeUnits ticks --command [ chronicler-bridge ]
+
+# Start the HTTP server (PowerShell):
+Start-Process -NoNewWindow python -ArgumentList "-m http.server 8888"
+```
+
+Configure the connection in environment variables or `chronicler/config.py`:
+
+```bash
+export DFHACK_HOST=192.168.64.3
+export BRIDGE_PORT=8889
+```
+
+</details>
+
+---
+
+## Project Structure
+
+```
+chronicler/
+  api/            # FastAPI app, 15 route modules, 151 templates
+  db/             # Schema (1,350 lines), 16 migrations, connection pool
+  dfhack/         # RPC client, Lua bridge reader, watcher daemon
+    etl_expanded.py      # 14 ETL functions for live bridge data
+    etl_state_capture.py # Fortress snapshot + report classification
+    watcher.py           # Polling daemon with change detection
+  embedding/      # Chunking, MLX client, batch/incremental pipelines
+  explorer/       # Calendar view, perspective engine, death classification
+  ingest/         # XML parser, post-parse enrichment, validation
+  storyteller/    # Narrative scoring, causal linking, arc detection, LLM generation
+  kh.py           # Knowledge Horizon visibility engine
+tests/            # 19 test modules covering schema, narrative, embedding, validation
 ```
 
 ---
 
-## License
+## Technical Decisions
 
-MIT License
+**Why PostgreSQL over a document store?** The relational model matters here. Historical events reference figures, sites, entities, and artifacts through dense foreign key networks. Causal links and narrative arcs are fundamentally relational queries. pgvector adds vector similarity without a second database.
+
+**Why local LLMs?** Narrative generation runs against hundreds of thousands of events. Using local models (Qwen3 via LiteLLM) keeps per-world costs at zero while allowing rapid iteration on prompts and scoring weights.
+
+**Why a Lua bridge instead of pure RPC?** DFHack's RPC `CoreSuspend` is broken in recent builds -- it hangs when called from the RPC server thread. The Lua bridge runs on the console thread where suspension works correctly, providing access to game state that RPC alone cannot reach.
 
 ---
 
-<p align="center">
-  <em>Chronicler — because every dwarf's story deserves to be told.</em>
-</p>
+> [!NOTE]
+> Chronicler is under active development. Phases 1-3 (Data Foundation, Explorer Core, Live Integration) are complete. Phase 4 (Narrative Engine) is in progress.
+
+---
+
+<p align="center"><i>Chronicler -- turning emergent simulation into structured, searchable, narratable history.</i></p>
