@@ -237,7 +237,14 @@ def serve(host, port, reload):
     import uvicorn
 
     click.echo(f"Starting Chronicler at http://{host}:{port}")
-    uvicorn.run("chronicler.api.app:app", host=host, port=port, reload=reload)
+    if reload:
+        # --reload needs an import string so the reloader can re-import the app.
+        uvicorn.run("chronicler.api.app:app", host=host, port=port, reload=True)
+    else:
+        # A frozen build cannot resolve an import string, so pass the object.
+        from chronicler.api.app import app as fastapi_app
+
+        uvicorn.run(fastapi_app, host=host, port=port)
 
 
 @cli.command("sync-live")
