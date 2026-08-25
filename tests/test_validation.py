@@ -29,6 +29,46 @@ DB_DSN = f"postgresql://jarvis:{PG_PASSWORD}@localhost:5432/chronicler"
 # Chronicler API (web UI backend)
 API_BASE = "http://localhost:8080"
 
+
+# ── Precondition: the world under test must still exist ────────────────────
+# Every assertion below is ground truth for world 8 ("Thadar En", Likotkôn
+# fortress, screenshots of 2026-02-23). That world is NOT in the current
+# database — as of 2026-08-25 the only world is id 1, "Orid Zurko".
+#
+# These are skipped, not deleted and not rewritten to match whatever world
+# happens to be loaded. The ground truth is real and still valuable; it simply
+# has no subject right now. Re-ingest world 8 and the whole module runs again
+# with no code change.
+
+def _world_present(world_id: int) -> bool:
+    """True if world_id exists in the DB. False if absent or DB unreachable."""
+    async def _check() -> bool:
+        try:
+            conn = await asyncpg.connect(DB_DSN)
+        except Exception:
+            return False
+        try:
+            return await conn.fetchval(
+                "SELECT 1 FROM worlds WHERE id = $1", world_id
+            ) is not None
+        finally:
+            await conn.close()
+
+    try:
+        return asyncio.run(_check())
+    except Exception:
+        return False
+
+
+if not _world_present(WORLD_ID):
+    pytest.skip(
+        f"world_id={WORLD_ID} ({WORLD_NAME}) is not in the database — this "
+        f"module's ground truth comes from {FORTRESS_NAME} screenshots and has "
+        f"no subject to validate. Re-ingest that world to re-enable.",
+        allow_module_level=True,
+    )
+
+
 # ── Ground Truth from Screenshots ──────────────────────────────────────────
 
 # Citizens list from Screenshot 2 (1:35:51 PM) — 18 pop (16 visible + 2 off-screen)

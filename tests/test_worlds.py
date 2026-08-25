@@ -181,9 +181,13 @@ class TestDeleteAllWorlds:
         count, deleted = asyncio.run(delete_all_worlds(conn))
         assert count == 2
         assert deleted["worlds"] == 2
-        # Should have called execute 3x: DELETE FROM worlds + ALTER SEQUENCE
+        # delete_all_worlds uses TRUNCATE ... CASCADE, which is O(1) regardless of
+        # row count. It must NOT use `DELETE FROM worlds` — that is the known-bad
+        # path (row-by-row across 473K+ events). This assertion previously required
+        # the bad path and was inverted on 2026-08-25.
         calls = [str(c) for c in conn.execute.call_args_list]
-        assert any("DELETE FROM worlds" in c for c in calls)
+        assert any("TRUNCATE worlds CASCADE" in c for c in calls)
+        assert not any("DELETE FROM worlds" in c for c in calls)
         assert any("RESTART WITH 1" in c for c in calls)
 
 
@@ -330,27 +334,56 @@ class TestCascadeConstraints:
         yield c
         _loop.run_until_complete(c.close())
 
-    def test_all_fks_have_cascade(self, conn):
-        rows = _loop.run_until_complete(conn.fetch("""
-            SELECT tc.table_name, tc.constraint_name, rc.delete_rule
-            FROM information_schema.table_constraints tc
-            JOIN information_schema.referential_constraints rc
-                ON tc.constraint_name = rc.constraint_name
-            WHERE tc.constraint_type = 'FOREIGN KEY'
-            ORDER BY tc.table_name
-        """))
-        non_cascade = [
-            (r["table_name"], r["constraint_name"], r["delete_rule"])
-            for r in rows if r["delete_rule"] != "CASCADE"
-        ]
-        assert non_cascade == [], \
-            f"These FK constraints are missing ON DELETE CASCADE: {non_cascade}"
+    def test_direct_world_fks_have_cascade(self, conn):
+        """Every FK pointing AT worlds(id) must cascade.
 
-    def test_cascade_count_matches_schema(self, conn):
+        This is the invariant migrate_worlds_cascade.sql exists to guarantee:
+        `DELETE FROM worlds WHERE id = N` must clean up child rows by itself.
+
+        Scoped to *direct* references to worlds(id) on purpose. The previous
+        version asserted that EVERY foreign key in the database cascades, which
+        is wrong — composite FKs on cultural_identities, occupations and squads
+        point at child tables (sites, entities, historical_figures) and use
+        ON DELETE SET NULL deliberately: deleting a site should null the
+        reference, not destroy the occupation record. Those are reached
+        transitively when a world cascades.
+
+        This test caught a real defect on 2026-08-25: embeddings.world_id was
+        NO ACTION, so `DELETE FROM worlds WHERE id=1` failed outright. Fixed by
+        chronicler/db/migrate_embeddings_cascade.sql.
+        """
+        rows = _loop.run_until_complete(conn.fetch("""
+            SELECT cl.relname AS table_name, c.conname AS constraint_name,
+                   c.confdeltype::text AS del
+            FROM pg_constraint c
+            JOIN pg_class cl  ON cl.oid = c.conrelid
+            JOIN pg_class tgt ON tgt.oid = c.confrelid
+            WHERE c.contype = 'f' AND tgt.relname = 'worlds'
+            ORDER BY cl.relname
+        """))
+        assert rows, "No FKs reference worlds(id) — schema introspection failed"
+        non_cascade = [
+            (r["table_name"], r["constraint_name"], r["del"])
+            for r in rows if r["del"] != "c"
+        ]
+        assert non_cascade == [], (
+            "These FKs reference worlds(id) but do NOT cascade, so "
+            f"DELETE FROM worlds will fail: {non_cascade}"
+        )
+
+    def test_cascade_count_does_not_regress(self, conn):
+        """CASCADE constraint count must not drop below its known baseline.
+
+        Was `== 42`, the count when migrate_worlds_cascade.sql was written. The
+        schema has legitimately grown since (81 tables as of 2026-08-25, 80
+        CASCADE constraints), so an equality check fails on every new table and
+        tells you nothing. A floor still catches the case that matters: someone
+        dropping cascade behaviour off existing constraints.
+        """
         count = _loop.run_until_complete(conn.fetchval("""
             SELECT count(*) FROM information_schema.table_constraints tc
             JOIN information_schema.referential_constraints rc
                 ON tc.constraint_name = rc.constraint_name
             WHERE rc.delete_rule = 'CASCADE'
         """))
-        assert count == 42, f"Expected 42 CASCADE constraints, got {count}"
+        assert count >= 42, f"CASCADE constraints regressed below 42: got {count}"

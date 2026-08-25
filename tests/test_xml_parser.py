@@ -83,7 +83,7 @@ class TestBooleanFlags:
 
     def test_deity_detected(self):
         root = _xml(self.DEITY_XML)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         assert len(hfs) == 1
         hf = hfs[0]
         # Tuple indices: 12=is_deity, 13=is_force, 14=is_vampire,
@@ -100,26 +100,26 @@ class TestBooleanFlags:
 
     def test_vampire_detected(self):
         root = _xml(self.VAMPIRE_XML)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[14] is True, "is_vampire should be True"
         assert hf[12] is False, "is_deity should be False"
 
     def test_necromancer_detected(self):
         root = _xml(self.NECROMANCER_XML)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[15] is True, "is_necromancer should be True"
 
     def test_werebeast_detected(self):
         root = _xml(self.WEREBEAST_XML)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[16] is True, "is_werebeast should be True"
 
     def test_normal_figure_no_flags(self):
         root = _xml(self.NORMAL_XML)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[12] is False  # is_deity
         assert hf[14] is False  # is_vampire
@@ -169,7 +169,7 @@ class TestEventFieldMapping:
         row = rows[0]
         assert row[5] == 30  # hf_id_1
         assert row[11] == 7  # artifact_id
-        details = json.loads(row[13])
+        details = row[13]
         assert details["custom_field"] == "custom_value"
 
     def test_skip_values_produce_none(self):
@@ -195,7 +195,7 @@ class TestCompositePKs:
     def test_hf_tuple_has_world_id(self):
         xml = '<historical_figure><id>1</id><name>Test</name></historical_figure>'
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         assert hfs[0][0] == 1        # id
         assert hfs[0][1] == WORLD_ID  # world_id
 
@@ -216,7 +216,7 @@ class TestCompositePKs:
     def test_entity_tuple_has_world_id(self):
         xml = '<entities><entity><id>1</id><name>Test Civ</name><type>civilization</type></entity></entities>'
         root = _xml(xml)
-        rows = _parse_entities(root, WORLD_ID)
+        rows, *_ = _parse_entities(root, WORLD_ID)
         assert rows[0][0] == 1        # id
         assert rows[0][1] == WORLD_ID  # world_id
 
@@ -227,7 +227,7 @@ class TestCompositePKs:
         </historical_figure>
         """
         root = _xml(xml)
-        _, links, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        _, links, *_ = _parse_historical_figures(root, WORLD_ID)
         assert links[0][0] == WORLD_ID  # world_id
         assert links[0][1] == 1         # hf_id
         assert links[0][2] == 2         # target_hf_id
@@ -373,9 +373,9 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
-        goals = json.loads(hf[21])
+        goals = hf[21]
         assert goals == ["IMMORTALITY", "CRAFT_A_MASTERWORK"]
 
     def test_skills_parsed_to_json(self):
@@ -387,9 +387,9 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
-        skills = json.loads(hf[22])
+        skills = hf[22]
         assert len(skills) == 2
         assert skills[0]["name"] == "MINING"
         assert skills[0]["total_ip"] == 5000
@@ -404,7 +404,7 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[23] == [100, 200]  # holds_artifact INTEGER[]
 
@@ -417,7 +417,7 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         interactions = hf[24]  # active_interactions TEXT[]
         assert "DEITY_MAJOR_CURSE_VAMPIRISM" in interactions
@@ -432,9 +432,9 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
-        details = json.loads(hf[25])
+        details = hf[29]  # details JSONB (index 25 is associated_type)
         assert "SECRET_LIFE_AND_DEATH" in details["interaction_knowledge"]
 
     def test_normal_hf_expanded_fields_none(self):
@@ -445,7 +445,7 @@ class TestHFExpandedFields:
         </historical_figure>
         """
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
         hf = hfs[0]
         assert hf[20] is None  # spheres
         assert hf[21] is None  # goals
@@ -453,12 +453,16 @@ class TestHFExpandedFields:
         assert hf[23] is None  # holds_artifact (empty list → None)
         assert hf[24] is None  # active_interactions
 
-    def test_hf_tuple_length_is_26(self):
-        """Verify the expanded HF tuple is exactly 26 fields."""
+    def test_hf_tuple_length_is_30(self):
+        """Verify the expanded HF tuple is exactly 30 fields.
+
+        Field order is defined by the hf_rows.append() call in
+        chronicler/ingest/xml_parser.py — update both together.
+        """
         xml = '<historical_figure><id>1</id><name>T</name><race>D</race></historical_figure>'
         root = _xml(xml)
-        hfs, _, _, _, _ = _parse_historical_figures(root, WORLD_ID)
-        assert len(hfs[0]) == 26
+        hfs, *_ = _parse_historical_figures(root, WORLD_ID)
+        assert len(hfs[0]) == 30
 
 
 # ── Sites parsing ───────────────────────────────────────────────────────────
@@ -474,7 +478,7 @@ class TestSitesParsing:
         </site>
         """
         root = _xml(xml)
-        sites, structs = _parse_sites(root, WORLD_ID)
+        sites, structs, *_ = _parse_sites(root, WORLD_ID)
         assert len(sites) == 1
         site = sites[0]
         assert site[0] == 1            # id
@@ -499,7 +503,7 @@ class TestSitesParsing:
         </site>
         """
         root = _xml(xml)
-        sites, structs = _parse_sites(root, WORLD_ID)
+        sites, structs, *_ = _parse_sites(root, WORLD_ID)
         assert len(sites) == 1
         assert len(structs) == 2
         assert structs[0][0] == WORLD_ID  # world_id
@@ -512,7 +516,7 @@ class TestSitesParsing:
     def test_site_without_coords(self):
         xml = '<site><id>9</id><name>Lost</name><type>lair</type></site>'
         root = _xml(xml)
-        sites, _ = _parse_sites(root, WORLD_ID)
+        sites, *_ = _parse_sites(root, WORLD_ID)
         assert sites[0][4] is None  # coord_x
         assert sites[0][5] is None  # coord_y
 
@@ -576,9 +580,11 @@ class TestEntitiesParsing:
         </entities>
         """
         root = _xml(xml)
-        rows = _parse_entities(root, WORLD_ID)
+        rows, *_ = _parse_entities(root, WORLD_ID)
         assert len(rows) == 2
-        assert rows[0] == (1, WORLD_ID, "The Hazy Realms", "civilization", "DWARF", None)
+        # (id, world_id, name, type, race, worship_id, weapons, details)
+        assert rows[0] == (1, WORLD_ID, "The Hazy Realms", "civilization", "DWARF",
+                           None, None, None)
         assert rows[1][2] == "Goblin Empire"
 
     def test_entities_scoped_path(self):
@@ -592,14 +598,14 @@ class TestEntitiesParsing:
         </historical_event>
         """
         root = _xml(xml)
-        rows = _parse_entities(root, WORLD_ID)
+        rows, *_ = _parse_entities(root, WORLD_ID)
         assert len(rows) == 1
         assert rows[0][0] == 1
 
     def test_entity_skip_missing_id(self):
         xml = '<entities><entity><name>NoID</name></entity></entities>'
         root = _xml(xml)
-        rows = _parse_entities(root, WORLD_ID)
+        rows, *_ = _parse_entities(root, WORLD_ID)
         assert rows == []
 
 
@@ -666,7 +672,7 @@ class TestHFSubLinks:
         </historical_figure>
         """
         root = _xml(xml)
-        _, _, ent_links, _, _ = _parse_historical_figures(root, WORLD_ID)
+        _, _, ent_links, *_ = _parse_historical_figures(root, WORLD_ID)
         assert len(ent_links) == 1
         assert ent_links[0][0] == WORLD_ID  # world_id
         assert ent_links[0][1] == 20        # hf_id
@@ -683,7 +689,7 @@ class TestHFSubLinks:
         </historical_figure>
         """
         root = _xml(xml)
-        _, _, _, site_links, _ = _parse_historical_figures(root, WORLD_ID)
+        _, _, _, site_links, *_ = _parse_historical_figures(root, WORLD_ID)
         assert len(site_links) == 1
         assert site_links[0][2] == 10     # site_id
         assert site_links[0][3] == "home"
@@ -703,7 +709,7 @@ class TestHFSubLinks:
         </historical_figure>
         """
         root = _xml(xml)
-        _, _, _, _, pos_links = _parse_historical_figures(root, WORLD_ID)
+        _, _, _, _, pos_links, *_ = _parse_historical_figures(root, WORLD_ID)
         assert len(pos_links) == 2
         # Active position: end_year = None
         assert pos_links[0][4] == 150     # start_year
@@ -774,7 +780,7 @@ class TestLegendsPlus:
         """
         fp = self._write_plus(tmp_path, content)
         result = _parse_legends_plus(fp, WORLD_ID)
-        details = json.loads(result["art_forms"][0][5])
+        details = result["art_forms"][0][5]
         assert details["custom_prop"] == "fast_tempo"
 
     def test_rivers_synthetic_ids(self, tmp_path):

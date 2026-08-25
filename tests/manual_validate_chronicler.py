@@ -1,4 +1,20 @@
-"""End-to-end validation test suite for the Chronicler data pipeline.
+"""End-to-end validation script for the Chronicler data pipeline.
+
+NOT A PYTEST SUITE — run it directly:
+
+    .venv/bin/python tests/manual_validate_chronicler.py
+
+Renamed from `test_chronicler_validation.py` on 2026-08-25. It was never a pytest
+suite: its `test_*` functions take positional `(conn, report)` arguments and are
+driven by `main()` below. pytest collected them on the `test_` prefix, could not
+supply `conn`/`report` as fixtures, and reported 5 collection errors on every run
+— noise that masked real failures.
+
+🔴 **STALE GROUND TRUTH.** `WORLD_ID = 8` ("Thadar En") no longer exists in the
+database; as of 2026-08-25 the only world is id 1, "Orid Zurko". The screenshot-
+derived expectations below describe Likotkon fortress as of 2026-02-23 and cannot
+pass against the current DB. Re-baseline against a live world before trusting any
+result from this script.
 
 Tests data completeness, query resolution, and response quality across
 all layers: extraction → DB storage → context retrieval → LLM response.
