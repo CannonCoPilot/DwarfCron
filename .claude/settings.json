@@ -1,0 +1,104 @@
+{
+  "_comment": [
+    "Urist (W2, Dwarf Fortress Archon) loads THIS file, not Project_Aion's, because his cwd",
+    "is Projects/DwarfCron. Every hook path below is ABSOLUTE on purpose: $CLAUDE_PROJECT_DIR",
+    "resolves to this satellite repo, which has no .claude/hooks of its own, so a relative",
+    "path would silently register nothing.",
+    "",
+    "PostToolUse is NOT optional. Registering jicm-gate ONLY on UserPromptSubmit samples the",
+    "lane at prompt boundaries alone; a lane doing long tool-driven work then goes unsampled",
+    "between turns. Genie and Jacques ran that way for five days and Jacques went 0 -> 127K",
+    "in a single turn while JICM believed nothing had changed.",
+    "",
+    "jicm-stop.sh in the Stop block is the SIGNAL RAISER. Without it, pending_action",
+    "HALT_AFTER_RESPONSE is written every turn and nothing ever acts on it — the lane senses",
+    "correctly and never cycles. That was Protos' defect, hiding behind the missing gate.",
+    "",
+    "VERIFY BY BEHAVIOUR, NOT BY READING THIS FILE: a lane is registered when its gate log",
+    "shows PostToolUse samples > 0. Many prompt samples and zero tool samples means it is not.",
+    "Hook REGISTRATION is read at SESSION start, so a /clear is enough to pick it up; a running",
+    "session never will."
+  ],
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/scripts/jarvis-statusline-v9.sh"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/jicm-gate.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/prompt-timestamp.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/jicm-gate.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/jicm-precompact.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/jicm-stop.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/nathanielcannon/Claude/Project_Aion/.claude/hooks/insight-capture.js"
+          }
+        ]
+      }
+    ]
+  }
+}
