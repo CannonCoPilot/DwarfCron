@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 
 from .file_writer import (
-    read_dict_section, read_list_section, read_meta,
+    prev_is_comparable, read_dict_section, read_list_section, read_meta,
     read_prev_list_section,
 )
 
@@ -32,6 +32,26 @@ async def _next_event_id_async(conn, world_id: int) -> int:
     )
     # Live events start at 10M to never collide with legends XML IDs
     return max(row + 1, 10_000_000)
+
+
+#: What DF means by "no death cause". The bridge resolves the enum to a name
+#: where it can and falls back to the raw value, so this arrives as a string
+#: from one bridge version and as an integer from another.
+_NO_DEATH_CAUSE = {None, "", "-1", -1, "NONE", "none"}
+
+
+def _normalize_death_cause(value) -> str:
+    """The death cause as text, or "unknown".
+
+    ⚠️ `death_cause` is a TEXT column and the sentinel arrives as int -1 from
+    some bridge versions. The old guard compared against the string "-1"
+    only, so the integer went straight through to asyncpg, which refused the
+    whole statement: "invalid input for query argument $5: -1 (expected str,
+    got int)". One unrecorded cause then cost every death in that cycle.
+    """
+    if value in _NO_DEATH_CAUSE:
+        return "unknown"
+    return str(value)
 
 
 def _hf_id_from_unit(unit: dict) -> int | None:
@@ -53,6 +73,17 @@ async def death_sync(conn, world_id: int, live_dir: Path) -> int:
 
     Returns number of deaths synced.
     """
+    # ⚠️ Establish that `_prev` is THIS world's previous cycle before diffing
+    # against it. `_prev` outlives the process, so the first cycle after a
+    # restart otherwise diffs the new fortress against whichever one was left
+    # on disk -- and every unit of that one reads as departed, i.e. a death
+    # written for each. Measured live: a session opening on world 2 diffed
+    # against world 1's units.
+    if not prev_is_comparable(world_id, live_dir):
+        log.debug("death_sync: _prev is not this world's previous cycle; "
+                  "skipping change detection for one cycle")
+        return 0
+
     current_units = read_list_section("fortress_units", live_dir)
     prev_units = read_prev_list_section("fortress_units", live_dir)
     meta = read_meta(live_dir)
@@ -81,10 +112,7 @@ async def death_sync(conn, world_id: int, live_dir: Path) -> int:
             if existing is not None:
                 continue  # Already recorded
 
-            # Get death cause from the unit if available
-            death_cause = prev_unit.get("death_cause")
-            if not death_cause or death_cause == "-1":
-                death_cause = "unknown"
+            death_cause = _normalize_death_cause(prev_unit.get("death_cause"))
 
             # Update historical_figures
             await conn.execute(

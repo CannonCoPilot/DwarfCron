@@ -53,7 +53,18 @@ def _live_dir() -> Path:
 
 
 def rotate_previous(live_dir: Path) -> None:
-    """Move current cycle files to _prev/ for CDC diffing."""
+    """Move current cycle files to _prev/ for CDC diffing.
+
+    ⚠️ `_meta.json` is rotated TOO, which it did not used to be. Without it
+    `_prev` carried no provenance at all -- no world, no cycle -- so a CDC
+    consumer could not tell this session's previous cycle from a different
+    fortress left on disk by the last run. `_prev` outlives the process, and
+    the first cycle after a restart diffs against whatever was there.
+
+    The cost of that was not theoretical: with a stale `_prev` from another
+    world, every unit in it reads as departed, and `death_sync` writes a
+    death for each one. See `prev_is_comparable`.
+    """
     prev_dir = live_dir / "_prev"
     # Clear old _prev files
     for f in prev_dir.glob("*.json"):
@@ -61,8 +72,12 @@ def rotate_previous(live_dir: Path) -> None:
     # Move current files to _prev
     for f in live_dir.glob("*.json"):
         if f.name.startswith("_"):
-            continue  # skip _meta.json itself from rotation
+            continue
         shutil.copy2(f, prev_dir / f.name)
+    # ...and the metadata that says which world and cycle those files are.
+    meta = live_dir / "_meta.json"
+    if meta.exists():
+        shutil.copy2(meta, prev_dir / "_meta.json")
 
 
 def write_bridge_to_disk(
@@ -172,3 +187,40 @@ def read_meta(live_dir: Path | None = None) -> dict:
     if not f.exists():
         return {}
     return json.loads(f.read_text(encoding="utf-8"))
+
+
+def read_prev_meta(live_dir: Path | None = None) -> dict:
+    """Read the PREVIOUS cycle's metadata — which world and cycle it was."""
+    if live_dir is None:
+        live_dir = _live_dir()
+    f = live_dir / "_prev" / "_meta.json"
+    if not f.exists():
+        return {}
+    return json.loads(f.read_text(encoding="utf-8"))
+
+
+def prev_is_comparable(world_id: int, live_dir: Path | None = None) -> bool:
+    """Whether `_prev` may be diffed against the current cycle.
+
+    A change-detection diff is only meaningful between two consecutive cycles
+    of the SAME world. `_prev` survives process exit, so on the first cycle
+    after a restart it holds the last session's fortress -- possibly a
+    different world entirely. Diffing across that boundary does not produce a
+    few wrong rows, it reads the whole previous fortress as having died at
+    once.
+
+    Refuses when `_prev` has no metadata (written by a build before metadata
+    was rotated), names another world, or is not the immediately preceding
+    cycle. Missing one cycle of change detection costs a cycle; a false
+    comparison writes deaths that never happened.
+    """
+    prev = read_prev_meta(live_dir)
+    if not prev:
+        return False
+    if prev.get("world_id") != world_id:
+        return False
+    cur = read_meta(live_dir)
+    prev_cycle, cur_cycle = prev.get("cycle"), cur.get("cycle")
+    if not isinstance(prev_cycle, int) or not isinstance(cur_cycle, int):
+        return False
+    return cur_cycle - prev_cycle == 1
