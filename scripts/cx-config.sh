@@ -26,6 +26,15 @@ DF_DIR="${DF_DIR:-$CX_BOTTLE_DIR/drive_c/$DF_STEAM_REL}"
 DF_WIN_DIR="${DF_WIN_DIR:-C:\\Program Files (x86)\\Steam\\steamapps\\common\\Dwarf Fortress}"
 DF_EXE_NAME="${DF_EXE_NAME:-Dwarf Fortress.exe}"
 
+# ⚠️ SAVES ARE NOT IN THE INSTALL DIRECTORY. The Steam build writes them to the
+# Windows user profile -- %APPDATA%\Bay 12 Games\Dwarf Fortress\save -- so
+# `$DF_DIR/save` does not exist and never will. This cost a session: an empty
+# `$DF_DIR/save` reads exactly like "the fortress is gone" when in fact every
+# save was present the whole time. `load` never caught it because it drives the
+# menus by on-screen text and never touches a path.
+DF_USER_DIR="${DF_USER_DIR:-$CX_BOTTLE_DIR/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress}"
+DF_SAVE_DIR="${DF_SAVE_DIR:-$DF_USER_DIR/save}"
+
 # --- DFHack RPC -----------------------------------------------------------
 # ⚠️ 5000 is DFHack's default and is ALSO macOS ControlCenter's AirPlay
 # Receiver port. On this machine 5000 is taken, so the default here is not

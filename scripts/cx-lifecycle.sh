@@ -22,6 +22,10 @@
 #   cx-lifecycle.sh logs [n]     # tail DFHack's stderr.log
 #   cx-lifecycle.sh port         # print the port in use
 #   cx-lifecycle.sh bottles      # list CrossOver bottles
+#   cx-lifecycle.sh deploy-tool <dir>   # install a tool tree, subdirs intact
+#   cx-lifecycle.sh save-backup <region> [tag]  # copy ONE save aside (cheap)
+#   cx-lifecycle.sh save-restore <region.tag>
+#   cx-lifecycle.sh saves        # list saves and save backups
 #   cx-lifecycle.sh snapshot <n> # copy the bottle aside (CrossOver has no
 #   cx-lifecycle.sh restore <n>  #   qcow2 snapshots; a bottle IS the state)
 #   cx-lifecycle.sh snapshots
@@ -176,6 +180,69 @@ cmd_deploy() {
     log "deployed $(ls -1 "$dest"/*.lua | wc -l | tr -d ' ') script(s) to the bottle"
 }
 
+# Deploy an ARBITRARY tool tree, preserving subdirectories.
+#
+# ⚠️ `deploy` above is a flat `cp *.lua` from Chronicler's own directory. It
+# cannot install any tool that ships a `gui/` subfolder -- which is every
+# DFHack tool with a GUI entry point, including seasonal-wildlife, whose
+# launcher MUST live at `gui/seasonal-wildlife.lua` for `gui/<name>` to
+# resolve. Deploying that by hand is how it was done before, and a hand copy
+# is not reproducible and drifts silently.
+#
+#   deploy-tool <src-scripts-dir> [subpath ...]
+#   deploy-tool ~/Claude/Projects/seasonal-wildlife/scripts
+cmd_deploy_tool() {
+    local src="${1:-}"
+    [ -n "$src" ] || err "usage: deploy-tool <src-scripts-dir>"
+    [ -d "$src" ] || err "not a directory: $src"
+    local dest="$DF_DIR/dfhack-config/scripts"
+    mkdir -p "$dest"
+    # -R keeps the tree; the trailing /. copies CONTENTS, not the dir itself.
+    cp -R "$src/." "$dest/" || err "deploy-tool failed"
+    local n
+    n=$(cd "$src" && find . -name '*.lua' | wc -l | tr -d ' ')
+    log "deployed $n lua file(s) from $src (tree preserved)"
+    (cd "$src" && find . -name '*.lua' | sed 's|^\./|  |')
+}
+
+# Save-scoped backup. `snapshot` copies the whole 5.4 GB bottle and needs the
+# session stopped; that is right for "the rig broke" but far too heavy to run
+# before each destructive test. A DF save is a self-contained folder, so back
+# up just that -- and it can be taken with DF running, as long as DF is not
+# mid-write (i.e. not during its own save).
+SAVE_ROOT="$DF_SAVE_DIR"
+CX_SAVE_BACKUPS="${CX_SAVE_BACKUPS:-$CX_SNAPSHOT_DIR/saves}"
+
+cmd_save_backup() {
+    local region="${1:-}" tag="${2:-$(date +%Y%m%d-%H%M%S)}"
+    [ -n "$region" ] || err "usage: save-backup <region-folder> [tag]"
+    [ -d "$SAVE_ROOT/$region" ] || err "no such save: $SAVE_ROOT/$region"
+    mkdir -p "$CX_SAVE_BACKUPS"
+    local dest="$CX_SAVE_BACKUPS/$region.$tag"
+    [ -e "$dest" ] && err "backup already exists: $dest"
+    ditto "$SAVE_ROOT/$region" "$dest" || err "backup failed"
+    log "backed up $region -> $dest ($(du -sh "$dest" | cut -f1))"
+}
+
+cmd_save_restore() {
+    local name="${1:-}"
+    [ -n "$name" ] || err "usage: save-restore <region.tag>"
+    local src="$CX_SAVE_BACKUPS/$name"
+    [ -d "$src" ] || err "no such backup: $src"
+    is_running && err "stop the session first -- DF holds the save open"
+    local region="${name%%.*}"
+    rm -rf "$SAVE_ROOT/$region"
+    ditto "$src" "$SAVE_ROOT/$region" || err "restore failed"
+    log "restored $name -> $SAVE_ROOT/$region"
+}
+
+cmd_saves() {
+    echo "-- saves in the bottle --"
+    ls -1 "$SAVE_ROOT" 2>/dev/null || echo "(none)"
+    echo "-- save backups --"
+    ls -1 "$CX_SAVE_BACKUPS" 2>/dev/null || echo "(none)"
+}
+
 cmd_ui() { cmd_cmd chronicler-ui "$@"; }
 
 # Load a save by clicking through DF's menus.
@@ -248,6 +315,10 @@ case "${1:-status}" in
     load)      shift; cmd_load "$@" ;;
     ui)        shift; cmd_ui "$@" ;;
     deploy)    cmd_deploy ;;
+    deploy-tool) shift; cmd_deploy_tool "$@" ;;
+    save-backup) shift; cmd_save_backup "$@" ;;
+    save-restore) shift; cmd_save_restore "$@" ;;
+    saves)     cmd_saves ;;
     lua)       shift; cmd_lua "$@" ;;
     cmd)       shift; cmd_cmd "$@" ;;
     logs)      shift; cmd_logs "$@" ;;
