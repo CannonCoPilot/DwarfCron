@@ -327,6 +327,8 @@ ensure_title() {
     [ "$(ui_get screen)" = "viewscreen_titlest" ] && [ "$(ui_get titlemode)" = "MAIN_MENU" ]
 }
 
+CX_TICKS_PER_YEAR=403200   # DF year length; cur_year_tick wraps here
+
 cmd_state() { ui_state; }
 cmd_pause() { cmd_ui pause; }
 cmd_unpause() { cmd_ui unpause; }
@@ -385,10 +387,14 @@ cmd_step() {
     # DF runs ~100 ticks/s here, so a 1s poll overshoots small steps by ~100.
     # A quarter-second poll keeps the overshoot to a few dozen ticks; each poll
     # is one RPC round trip (~20 ms).
-    local i=0 last="$t0" stalled=0
+    # cur_year_tick RESETS to 0 at the new year (403,200 ticks), so a naive t1-t0 goes
+    # hugely negative and the loop waits out its whole timeout on a fort that is running
+    # perfectly. Seen 2026-09-16: "stepped -307819 ticks (401790 -> 93971) in 200s".
+    local i=0 last="$t0" stalled=0 delta=0
     while [ "$i" -lt $((secs * 4)) ]; do
         t1=$(ui_get tick)
-        [ $((t1 - t0)) -ge "$ticks" ] && break
+        delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
+        [ "$delta" -ge "$ticks" ] && break
         # a popup can be queued mid-step; notice a stall and clear it rather than
         # burning the whole timeout on a fort that has stopped moving
         if [ "$t1" = "$last" ]; then
@@ -407,7 +413,8 @@ cmd_step() {
     waited=$((i / 4))
     cmd_ui pause >/dev/null
     t1=$(ui_get tick)
-    log "stepped $((t1 - t0)) ticks ($t0 -> $t1) in ${waited}s"
+    delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
+    log "stepped $delta ticks ($t0 -> $t1) in ${waited}s"
 }
 
 # Load a save by folder name. The world list groups saves BY WORLD and shows
