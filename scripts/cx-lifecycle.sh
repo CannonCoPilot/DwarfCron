@@ -331,20 +331,77 @@ cmd_state() { ui_state; }
 cmd_pause() { cmd_ui pause; }
 cmd_unpause() { cmd_ui unpause; }
 
+# Drain queued popup messages. A popup sitting in world.status.popups HALTS the
+# simulation: DF keeps rendering at full fps, pause_state stays false, the focus
+# stays dwarfmode -- and cur_year_tick does not move. An unattended run therefore
+# reports "stepped 0 ticks" forever with every other signal saying healthy.
+# Seen 2026-09-16 at tick 216440, an outpost liaison and caravan arriving during
+# S1; clearing the queue resumed the fort instantly (326 ticks in 2s). Announcements
+# are lost, which is the right trade for an automated rig.
+# Prints the number drained, or nothing.
+drain_popups() {
+    cmd_lua 'local p = df.global.world.status.popups; local n = #p; while #p > 0 do p:erase(0) end; if n > 0 then print(n) end' 2>/dev/null | tr -d "\r"
+}
+cmd_popups() { local n; n=$(drain_popups); log "drained ${n:-0} queued popup(s)"; }
+
+# Simulation speed. In fortress mode a frame IS a tick, so enabler.fps is the tick rate
+# cap and raising it is the honest way to run a long trial -- the game logic is unchanged,
+# only how fast DF is allowed to iterate it. gfps is dropped alongside, because rendering
+# frames the rig never looks at just steals CPU from the simulation.
+#
+# ⚠️ NEVER set fps (or calculated_fps) to 0. It does not mean "uncapped" -- it freezes the
+# game permanently and the only way out is killing DF. The floor below is deliberate; use
+# the timestream plugin if you ever want sub-normal pacing.
+#
+#   cx-lifecycle.sh fps            # report caps and achieved rates
+#   cx-lifecycle.sh fps 1000 [10]  # set tick cap, and optionally the graphics cap
+cmd_fps() {
+    local want="${1:-}" g="${2:-}"
+    if [ -z "$want" ]; then
+        cmd_lua 'local e = df.global.enabler
+            print(("fps cap=%s achieved=%s | gfps cap=%s achieved=%s"):format(e.fps, e.calculated_fps, e.gfps, e.calculated_gfps))'
+        return 0
+    fi
+    case "$want" in (*[!0-9]*|"") err "fps must be a whole number (got '$want')";; esac
+    [ "$want" -lt 10 ] && err "refusing fps=$want: 0 freezes DF permanently and anything under 10 is indistinguishable from a hang"
+    if [ -n "$g" ]; then
+        case "$g" in (*[!0-9]*) err "gfps must be a whole number (got '$g')";; esac
+        [ "$g" -lt 1 ] && err "refusing gfps=$g"
+    fi
+    cmd_lua "local e = df.global.enabler
+        e.fps = $want
+        $( [ -n "$g" ] && echo "e.gfps = $g" )
+        print(('fps cap now %s, gfps cap now %s'):format(e.fps, e.gfps))"
+}
+
 # Run the fort for N ticks, then pause. Pausing is via df.global.pause_state,
 # which is honoured on the next frame; the loop reads the tick back rather
 # than trusting elapsed time, because DF's tick rate varies with load.
 cmd_step() {
-    local ticks="${1:-100}" secs="${2:-120}" t0 t1 waited=0
+    local ticks="${1:-100}" secs="${2:-120}" t0 t1 waited=0 drained
     t0=$(ui_get tick); [ -n "$t0" ] || err "no map loaded"
+    drained=$(drain_popups); [ -n "$drained" ] && log "drained $drained queued popup(s) before stepping"
     cmd_ui unpause >/dev/null
     # DF runs ~100 ticks/s here, so a 1s poll overshoots small steps by ~100.
     # A quarter-second poll keeps the overshoot to a few dozen ticks; each poll
     # is one RPC round trip (~20 ms).
-    local i=0
+    local i=0 last="$t0" stalled=0
     while [ "$i" -lt $((secs * 4)) ]; do
         t1=$(ui_get tick)
         [ $((t1 - t0)) -ge "$ticks" ] && break
+        # a popup can be queued mid-step; notice a stall and clear it rather than
+        # burning the whole timeout on a fort that has stopped moving
+        if [ "$t1" = "$last" ]; then
+            stalled=$((stalled + 1))
+            if [ "$stalled" -ge 20 ]; then
+                drained=$(drain_popups)
+                [ -n "$drained" ] && log "drained $drained queued popup(s) mid-step (fort had stalled at $t1)"
+                cmd_ui unpause >/dev/null
+                stalled=0
+            fi
+        else
+            stalled=0; last="$t1"
+        fi
         sleep 0.25; i=$((i + 1))
     done
     waited=$((i / 4))
@@ -514,6 +571,8 @@ case "${1:-status}" in
     status)    cmd_status ;;
     health)    cmd_health ;;
     load)      shift; cmd_load "$@" ;;
+    popups)    shift; cmd_popups "$@" ;;
+    fps)       shift; cmd_fps "$@" ;;
     state)     cmd_state ;;
     pause)     cmd_pause ;;
     unpause)   cmd_unpause ;;
