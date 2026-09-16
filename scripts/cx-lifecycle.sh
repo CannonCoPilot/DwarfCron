@@ -15,7 +15,17 @@
 #   cx-lifecycle.sh stop         # ask DF to quit, then reap the prefix
 #   cx-lifecycle.sh status       # running? which port? which DFHack?
 #   cx-lifecycle.sh health       # process + port + RPC handshake + Lua exec
-#   cx-lifecycle.sh load <folder># load a save, clicking through the menus
+#   cx-lifecycle.sh load <folder># load a save (any world, any number of saves)
+#   cx-lifecycle.sh state        # screen/focus/map/paused/year/tick/modal, one line
+#   cx-lifecycle.sh pause|unpause
+#   cx-lifecycle.sh step <ticks> # run the fort N ticks, then pause
+#   cx-lifecycle.sh save [name]  # manual named save (copy), or DFHack quicksave
+#   cx-lifecycle.sh title        # quit the fort WITHOUT saving, back to title
+#   cx-lifecycle.sh key <KEY..>  # feed interface keys (OPTIONS, SELECT, ...)
+#   cx-lifecycle.sh type <text>  # type into a text prompt
+#   cx-lifecycle.sh wait <text>  # block until <text> is drawn
+#   cx-lifecycle.sh screen [y0 y1]
+#   cx-lifecycle.sh save-delete <folder>
 #   cx-lifecycle.sh ui <args>    # drive the UI by on-screen text
 #   cx-lifecycle.sh lua <script> # run Lua in the running game
 #   cx-lifecycle.sh cmd <args>   # run a DFHack command
@@ -103,6 +113,12 @@ cmd_start() {
     while [ "$waited" -lt "$CX_START_TIMEOUT" ]; do
         if port_busy "$port" && [ "$(live_port)" = "$port" ]; then
             log "RPC listening on 127.0.0.1:$port after ${waited}s"
+    # The RPC listener comes up while DF is still on its splash screen
+    # (viewscreen_initial_prepst); the title -- and the first-run Welcome panel
+    # that returns on every cold start -- arrive several seconds later. Wait for
+    # the title before clearing the panel, or the check passes vacuously.
+    wait_state screen viewscreen_titlest 60 || log "WARNING: no title screen after 60s (state: $(ui_state))"
+    sleep 1; log "welcome modal: $(dismiss_modal)"
             echo "$port"
             return 0
         fi
@@ -251,34 +267,214 @@ cmd_ui() { cmd_cmd chronicler-ui "$@"; }
 # LAST one: "Continue active game" -> the world row -> the fortress row. The
 # labels carry the world and fort names, so they are matched on the folder and
 # on "Fortress" rather than on fixed strings.
+# ---------------------------------------------------------------- flows ----
+# Every in-game step is ONE atomic chronicler-ui call; the shell sequences and
+# polls between them. A Lua script over RPC runs with the core suspended, so it
+# can never wait for the screen to change -- see chronicler-ui.lua's header.
+
+ui_state()  { cmd_ui state 2>/dev/null | tr -d "\r"; }
+ui_get()    { ui_state | tr ' ' '\n' | sed -n "s/^$1=//p"; }   # ui_get map -> true/false
+
+# Poll until a label is drawn. Prints "x,y" and returns 0, or returns 1.
+wait_drawn() {
+    local label="$1" secs="${2:-15}" out
+    for _ in $(seq 1 "$secs"); do
+        out=$(cmd_ui find "$label" 2>/dev/null | tr -d "\r")
+        case "$out" in [0-9]*,[0-9]*) echo "$out"; return 0 ;; esac
+        sleep 1
+    done
+    return 1
+}
+
+# Poll until a state field has a value. wait_state map true 180
+wait_state() {
+    local field="$1" want="$2" secs="${3:-30}" waited=0
+    while [ "$waited" -lt "$secs" ]; do
+        [ "$(ui_get "$field")" = "$want" ] && return 0
+        sleep 2; waited=$((waited + 2))
+    done
+    return 1
+}
+
+click_when_drawn() {
+    local label="$1" secs="${2:-15}"
+    wait_drawn "$label" "$secs" >/dev/null || return 1
+    cmd_ui click "$label" >/dev/null 2>&1
+    sleep 1
+}
+
+# The first-run Welcome panel comes back on every cold start. Clear it before
+# any title-screen work; harmless when it is not there.
+dismiss_modal() { cmd_ui modal 2>/dev/null | tr -d "\r"; }
+
+# Get to the title screen from wherever we are. A loaded fort goes through the
+# Options menu and "Quit without saving" (plus its confirmation); the title
+# screen with a submenu open takes LEAVESCREEN back to the main menu.
+ensure_title() {
+    dismiss_modal >/dev/null
+    if [ "$(ui_get map)" = "true" ]; then
+        cmd_title || return 1
+    fi
+    # The title screen's own mode says how deep we are:
+    #   MAIN_MENU -> CONTINUE_ACTIVE_WORLD (world list) -> CONTINUE_ACTIVE (save list)
+    # LEAVESCREEN backs out ONE level per press, so loop until MAIN_MENU.
+    local i mode
+    for i in 1 2 3 4 5; do
+        mode=$(ui_get titlemode)
+        [ -z "$mode" ] || [ "$mode" = "MAIN_MENU" ] && break
+        cmd_ui key LEAVESCREEN >/dev/null 2>&1; sleep 1
+    done
+    [ "$(ui_get screen)" = "viewscreen_titlest" ] && [ "$(ui_get titlemode)" = "MAIN_MENU" ]
+}
+
+cmd_state() { ui_state; }
+cmd_pause() { cmd_ui pause; }
+cmd_unpause() { cmd_ui unpause; }
+
+# Run the fort for N ticks, then pause. Pausing is via df.global.pause_state,
+# which is honoured on the next frame; the loop reads the tick back rather
+# than trusting elapsed time, because DF's tick rate varies with load.
+cmd_step() {
+    local ticks="${1:-100}" secs="${2:-120}" t0 t1 waited=0
+    t0=$(ui_get tick); [ -n "$t0" ] || err "no map loaded"
+    cmd_ui unpause >/dev/null
+    # DF runs ~100 ticks/s here, so a 1s poll overshoots small steps by ~100.
+    # A quarter-second poll keeps the overshoot to a few dozen ticks; each poll
+    # is one RPC round trip (~20 ms).
+    local i=0
+    while [ "$i" -lt $((secs * 4)) ]; do
+        t1=$(ui_get tick)
+        [ $((t1 - t0)) -ge "$ticks" ] && break
+        sleep 0.25; i=$((i + 1))
+    done
+    waited=$((i / 4))
+    cmd_ui pause >/dev/null
+    t1=$(ui_get tick)
+    log "stepped $((t1 - t0)) ticks ($t0 -> $t1) in ${waited}s"
+}
+
+# Load a save by folder name. The world list groups saves BY WORLD and shows
+# only "Three saves" on the world row until it is clicked; each save then draws
+# as two rows -- "<fort>, Fortress" above "Folder: <name>". So: read which world
+# owns the folder from the title screen's own save headers, expand that world,
+# wait for the folder label, and click the row ABOVE it.
 cmd_load() {
     local folder="${1:-region1}"
     is_running || err "start the session first"
-    cmd_ui click "Continue active game" >/dev/null 2>&1
-    sleep 2
-    cmd_ui click "Folder: $folder" >/dev/null 2>&1
-    sleep 2
-    # The third screen names the fortress; click whatever row says "Fortress".
-    cmd_ui click "Fortress" >/dev/null 2>&1
-    log "clicked through to $folder; waiting for the map"
-    # ⚠️ Wait on dfhack.isMapLoaded(), NOT on the focus string. A focus of `dwarfmode*`
-    # is sufficient but not necessary: any DFHack ZScreen sitting on top (a tool window,
-    # an overlay) replaces it with its own focus path, so a fully-loaded fort reports
-    # e.g. `dfhack/lua/seasonal-wildlife` and this loop used to time out and call it a
-    # failed load. isMapLoaded is the actual question being asked.
+    ensure_title || err "could not reach the title screen (state: $(ui_state))"
+    click_when_drawn "Continue active game" || err "title screen never showed 'Continue active game'"
+    wait_state titlemode CONTINUE_ACTIVE_WORLD 15 || err "clicking 'Continue active game' did not open the world list (state: $(ui_state))"
+    # which world owns this folder? (tab-separated: SAVE folder world fort year)
+    local world; world=$(cmd_ui saves 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$folder" '$1=="SAVE" && $2==f {print $3; exit}')
+    [ -n "$world" ] || err "DF lists no save in folder '$folder' -- known: $(cmd_ui saves 2>/dev/null | awk -F'\t' '$1=="SAVE"{printf "%s ",$2}')"
+    click_when_drawn "World: $world" || err "world list never showed 'World: $world'"
+    wait_state titlemode CONTINUE_ACTIVE 15 || err "clicking the world row did not open its save list (state: $(ui_state))"
+    wait_drawn "Folder: $folder" >/dev/null || err "save list never showed 'Folder: $folder'"
+    cmd_ui clickrel "Folder: $folder" -1 "Fortress" >/dev/null 2>&1 || err "could not click the fortress row for $folder"
+    log "clicked through to $folder (world: $world); waiting for the map"
     local waited=0
     while [ "$waited" -lt "$CX_LOAD_TIMEOUT" ]; do
-        if [ "$(cmd_lua 'print(dfhack.isMapLoaded())' 2>/dev/null | tr -d "\r\n")" = "true" ]; then
-            log "loaded after ${waited}s ($(cmd_ui focus 2>/dev/null | tr -d "\r"))"
-            return 0
-        fi
+        [ "$(ui_get map)" = "true" ] && { log "loaded after ${waited}s ($(ui_state))"; return 0; }
         sleep 3; waited=$((waited + 3))
     done
-    err "no map after ${CX_LOAD_TIMEOUT}s (last screen: $(cmd_ui focus 2>/dev/null))"
+    err "no map after ${CX_LOAD_TIMEOUT}s (state: $(ui_state))"
 }
 
+# Save the loaded fort.
+#   save <name>   a MANUAL save via the Options menu -> new folder <name>. This
+#                 is a COPY; the folder you loaded from is untouched.
+#   save          DFHack `quicksave` -> an "autosave N" folder (DF keeps 3).
+# ⚠️ quicksave only completes while the game is UNPAUSED -- it sets
+# plotinfo.main.autosave_request and DF services that on the game loop.
+cmd_save() {
+    local name="${1:-}"
+    [ "$(ui_get map)" = "true" ] || err "no map loaded"
+    if [ -z "$name" ]; then
+        local was; was=$(ui_get paused)
+        local newest_before; newest_before=$(ls -t "$SAVE_ROOT" | grep '^autosave' | head -1)
+        local m0; m0=$(stat -f %m "$SAVE_ROOT/$newest_before/world.sav" 2>/dev/null || echo 0)
+        cmd_ui unpause >/dev/null
+        cmd_cmd quicksave >/dev/null 2>&1
+        local waited=0
+        while [ "$waited" -lt 60 ]; do
+            sleep 2; waited=$((waited + 2))
+            local newest; newest=$(ls -t "$SAVE_ROOT" | grep '^autosave' | head -1)
+            local m1; m1=$(stat -f %m "$SAVE_ROOT/$newest/world.sav" 2>/dev/null || echo 0)
+            [ "$m1" -gt "$m0" ] && { [ "$was" = "true" ] && cmd_ui pause >/dev/null; log "quicksaved -> $newest (${waited}s)"; return 0; }
+        done
+        [ "$was" = "true" ] && cmd_ui pause >/dev/null
+        err "quicksave did not write an autosave within 60s"
+    fi
+    [ -e "$SAVE_ROOT/$name" ] && err "save '$name' already exists -- DF would refuse the name"
+    cmd_ui key OPTIONS >/dev/null 2>&1
+    click_when_drawn "Save and continue playing" || err "Options menu never showed 'Save and continue playing'"
+    wait_drawn "name this manual" >/dev/null || err "no save-name prompt appeared"
+    cmd_ui type "$name" >/dev/null 2>&1
+    cmd_ui key SELECT >/dev/null 2>&1
+    local waited=0
+    while [ "$waited" -lt 90 ]; do
+        sleep 3; waited=$((waited + 3))
+        if [ -f "$SAVE_ROOT/$name/world.sav" ] && [ "$(ui_get focus)" = "dwarfmode/Default" ]; then
+            log "saved -> $name ($(du -sh "$SAVE_ROOT/$name" | cut -f1), ${waited}s)"; return 0
+        fi
+    done
+    err "manual save '$name' did not complete within 90s (state: $(ui_state))"
+}
+
+# Leave the fort WITHOUT saving and return to the title screen.
+# State-aware: it may be called with the Options menu already open, or with
+# the "Really quit?" confirmation already up (a previous attempt that stalled),
+# and must not assume it starts from the map.
+cmd_title() {
+    [ "$(ui_get map)" = "true" ] || { log "no map loaded; already out of the fort"; return 0; }
+    local i
+    for i in 1 2 3 4 5 6; do
+        if wait_drawn "Really quit" 1 >/dev/null; then
+            cmd_ui clicklast "Quit" >/dev/null 2>&1
+            break
+        elif wait_drawn "Quit without saving" 1 >/dev/null; then
+            cmd_ui click "Quit without saving" >/dev/null 2>&1
+        elif [ "$(ui_get focus)" = "dwarfmode/Default" ]; then
+            cmd_ui key OPTIONS >/dev/null 2>&1
+        else
+            # some other dwarfmode sub-screen: back out one level and retry
+            cmd_ui key LEAVESCREEN >/dev/null 2>&1
+        fi
+        sleep 1
+    done
+    wait_state map false 60 || err "still in the fort after quitting (state: $(ui_state))"
+    wait_state screen viewscreen_titlest 60 || err "map unloaded but not on the title screen (state: $(ui_state))"
+    log "back at the title screen"
+}
+
+cmd_save_delete() {
+    local name="${1:-}"; [ -n "$name" ] || err "usage: save-delete <folder>"
+    [ -d "$SAVE_ROOT/$name" ] || err "no such save: $name"
+    is_running && [ "$(ui_get map)" = "true" ] && err "leave the fort first (title) -- DF may hold the save open"
+    rm -rf "$SAVE_ROOT/$name" && log "deleted save $name"
+}
+
+cmd_key()    { cmd_ui key "$@"; }
+cmd_type()   { cmd_ui type "$@"; }
+cmd_wait()   { wait_drawn "$1" "${2:-15}" || err "'$1' not drawn within ${2:-15}s"; }
+cmd_screen() { cmd_ui screen "$@"; }
+
+
 cmd_lua() { "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --lua "$*"; }
-cmd_cmd() { "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --cmd "$@"; }
+# ⚠️ A script's Lua error does NOT come back over RPC -- DFHack writes it to
+# stderr.log and the call simply times out, so a crashing script is
+# indistinguishable from a slow one. Note the log's size before the call and
+# surface any traceback that lands after it.
+cmd_cmd() {
+    local logf="$DF_DIR/stderr.log" before=0
+    [ -f "$logf" ] && before=$(stat -f %z "$logf")
+    "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --cmd "$@"
+    local rc=$?
+    if [ -f "$logf" ]; then
+        tail -c +$((before + 1)) "$logf" | grep -B1 -A8 -iE "error|traceback" | grep -v "Client connection" | head -20 >&2
+    fi
+    return $rc
+}
 cmd_logs() { tail -"${1:-40}" "$DF_DIR/stderr.log"; }
 cmd_port() { live_port; }
 cmd_bottles() { ls -1 "$CX_BOTTLES_ROOT"; }
@@ -318,6 +514,17 @@ case "${1:-status}" in
     status)    cmd_status ;;
     health)    cmd_health ;;
     load)      shift; cmd_load "$@" ;;
+    state)     cmd_state ;;
+    pause)     cmd_pause ;;
+    unpause)   cmd_unpause ;;
+    step)      shift; cmd_step "$@" ;;
+    save)      shift; cmd_save "$@" ;;
+    title)     cmd_title ;;
+    key)       shift; cmd_key "$@" ;;
+    type)      shift; cmd_type "$@" ;;
+    wait)      shift; cmd_wait "$@" ;;
+    screen)    shift; cmd_screen "$@" ;;
+    save-delete) shift; cmd_save_delete "$@" ;;
     ui)        shift; cmd_ui "$@" ;;
     deploy)    cmd_deploy ;;
     deploy-tool) shift; cmd_deploy_tool "$@" ;;
