@@ -261,12 +261,17 @@ cmd_load() {
     # The third screen names the fortress; click whatever row says "Fortress".
     cmd_ui click "Fortress" >/dev/null 2>&1
     log "clicked through to $folder; waiting for the map"
+    # ⚠️ Wait on dfhack.isMapLoaded(), NOT on the focus string. A focus of `dwarfmode*`
+    # is sufficient but not necessary: any DFHack ZScreen sitting on top (a tool window,
+    # an overlay) replaces it with its own focus path, so a fully-loaded fort reports
+    # e.g. `dfhack/lua/seasonal-wildlife` and this loop used to time out and call it a
+    # failed load. isMapLoaded is the actual question being asked.
     local waited=0
     while [ "$waited" -lt "$CX_LOAD_TIMEOUT" ]; do
-        local focus; focus=$(cmd_ui focus 2>/dev/null | tr -d "\r")
-        case "$focus" in
-            dwarfmode*) log "loaded after ${waited}s ($focus)"; return 0 ;;
-        esac
+        if [ "$(cmd_lua 'print(dfhack.isMapLoaded())' 2>/dev/null | tr -d "\r\n")" = "true" ]; then
+            log "loaded after ${waited}s ($(cmd_ui focus 2>/dev/null | tr -d "\r"))"
+            return 0
+        fi
         sleep 3; waited=$((waited + 3))
     done
     err "no map after ${CX_LOAD_TIMEOUT}s (last screen: $(cmd_ui focus 2>/dev/null))"
