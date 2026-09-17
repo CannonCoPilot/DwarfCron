@@ -299,6 +299,9 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     on_arrival_min = int(arm.get("on_arrival_min_units", 1))
     on_arrival_done = False
     on_arrival_at = None
+    # a second batch applied `ticks` after on_arrival (the restore step of a loop)
+    after = arm.get("after_on_arrival") or {}
+    after_done = not after
     first_exit = None
 
     # 6. step and sample.
@@ -373,6 +376,11 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
             on_arrival_done = True
             on_arrival_at = stepped_total
             out.event(ctx, tick, abs_tick, "on_arrival_applied", "wave", " ".join(wave_ids))
+        if not after_done and on_arrival_at is not None and stepped_total - on_arrival_at >= int(after.get("ticks", 0)):
+            for m in after.get("do", []):
+                apply_manipulation(rig, out, ctx, tick, abs_tick, m)
+            after_done = True
+            out.event(ctx, tick, abs_tick, "after_on_arrival_applied", "restore", str(len(after.get("do", []))))
         # departures and deaths: a unit that was present and is not now
         for i, u in present.items():
             if i not in now_present:
