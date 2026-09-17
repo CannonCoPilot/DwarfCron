@@ -1,0 +1,97 @@
+{
+  "id": "E4-E9bc",
+  "title": "Accounting on one held surface group: death versus departure (E4), refund of a detached unit (E9b), and whether a written countdown is honoured (E9c)",
+  "fork": "kills F4, F9, F11",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "F4 A \u00b7 departure only",
+      "expects": "kill arm: the entry's quantity is flat across the death; zero arm: +1 at the walk-off"
+    },
+    {
+      "model": "F4 B \u00b7 both",
+      "expects": "kill arm: +1 at the death"
+    },
+    {
+      "model": "F9 A \u00b7 no refund for a detached unit",
+      "expects": "detach arm: entry flat when the released unit walks off; the shipped sweep's refund is correct"
+    },
+    {
+      "model": "F9 B \u00b7 refund regardless of flag",
+      "expects": "detach arm: +1 at the walk-off; the shipped sweep double-counts"
+    },
+    {
+      "model": "F11 A \u00b7 written countdown honoured",
+      "expects": "zero arm: the zeroed unit leaves within a few thousand ticks while siblings stay; raise arm: the raised unit outstays every sibling"
+    },
+    {
+      "model": "F11 B \u00b7 re-derived",
+      "expects": "zeroed and raised units leave with their siblings"
+    }
+  ],
+  "kill_criterion": "Each arm's control is its untouched siblings in the same wave. An arm whose wave had no sibling (a single-animal group) is reported but does not count. E9a's L6 says small entries move exactly one per unit; read the entry per sample, not only at the end.",
+  "culling": [
+    "drop a replicate on any liveness breach or a changed save folder",
+    "drop a replicate in which on_arrival never applied (no surface wave of the required size within budget)",
+    "the kill arm counts only if the killed unit is recorded dead (not departed)"
+  ],
+  "arms": [
+    {
+      "name": "kill",
+      "replicates": 3,
+      "tick_budget": 6000,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:kill {id0}"
+      ],
+      "stop_when": {
+        "ticks_after_first_exit": 1200
+      }
+    },
+    {
+      "name": "zero",
+      "replicates": 3,
+      "tick_budget": 20000,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:countdown {id0} 0"
+      ],
+      "stop_when": {
+        "ticks_after_first_exit": 1200
+      }
+    },
+    {
+      "name": "detach",
+      "replicates": 3,
+      "tick_budget": 60000,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release {id0}"
+      ],
+      "stop_when": {
+        "ticks_after_first_exit": 1200
+      }
+    },
+    {
+      "name": "raise",
+      "replicates": 3,
+      "tick_budget": 60000,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:countdown {id0} 55000"
+      ],
+      "stop_when": {
+        "min_ticks": 45000,
+        "arrived_all_departed": 1
+      }
+    }
+  ]
+}

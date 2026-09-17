@@ -1,0 +1,998 @@
+
+# E4-E9bc -- Accounting on one held surface group: death versus departure (E4), refund of a detached unit (E9b), and whether a written countdown is honoured (E9c)
+run 20260916-195701 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron d2fa9cd seasonal-wildlife 3fb2a20 fps cap 1000
+
+## Predictions (written before the run)
+- F4 A · departure only: kill arm: the entry's quantity is flat across the death; zero arm: +1 at the walk-off
+- F4 B · both: kill arm: +1 at the death
+- F9 A · no refund for a detached unit: detach arm: entry flat when the released unit walks off; the shipped sweep's refund is correct
+- F9 B · refund regardless of flag: detach arm: +1 at the walk-off; the shipped sweep double-counts
+- F11 A · written countdown honoured: zero arm: the zeroed unit leaves within a few thousand ticks while siblings stay; raise arm: the raised unit outstays every sibling
+- F11 B · re-derived: zeroed and raised units leave with their siblings
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+kill | 1 | True | None | 2142 | 176.6 | 29 | 0 | 1 | 1200 ticks after the first departure or death | 
+kill | 2 | True | None | 2137 | 186.5 | 23 | 0 | 1 | 1200 ticks after the first departure or death | 
+kill | 3 | True | None | 2105 | 210.3 | 36 | 0 | 1 | 1200 ticks after the first departure or death | 
+zero | 1 | True | None | 2889 | 249.4 | 17 | 1 | 0 | 1200 ticks after the first departure or death | 
+zero | 2 | True | None | 3174 | 217.2 | 40 | 1 | 0 | 1200 ticks after the first departure or death | 
+zero | 3 | True | None | 3457 | 236.3 | 30 | 1 | 2 | 1200 ticks after the first departure or death | 
+detach | 1 | True | None | 25289 | 244.9 | 19 | 4 | 0 | 1200 ticks after the first departure or death | 
+detach | 2 | True | None | 26782 | 251.9 | 30 | 5 | 0 | 1200 ticks after the first departure or death | 
+detach | 3 | True | None | 10437 | 213.2 | 39 | 0 | 1 | 1200 ticks after the first departure or death | 
+raise | 1 | True | None | 60085 | 239.8 | 65 | 49 | 2 |  | 
+raise | 2 | True | None | 60277 | 251.1 | 65 | 51 | 0 |  | 
+raise | 3 | True | None | 60013 | 218.5 | 84 | 69 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+detach | 1 | +387 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 4 | 22758,23318,24916,26581 | 23539 | departure/present
+detach | 1 | +387 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 23990 | - | present
+detach | 1 | +387 | DEMON_3 | 29,20,-1,43,-1,0 | 1 | 22670 | 24191 | departure
+detach | 1 | +387 | BIRD_SWALLOW_CAVE_GIANT | 29,20,-1,8,-1,18 | 1 | 27909 | - | present
+detach | 1 | +387 | OLM_GIANT | 29,21,-1,13,-1,13 | 1 | 27396 | - | present
+detach | 1 | +387 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 23777 | 24562 | departure
+detach | 1 | +387 | TROGLODYTE | 29,20,-1,13,-1,19 | 2 | 24228,26992 | - | present
+detach | 1 | +740 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 21883 | 24209 | departure
+detach | 1 | +740 | TROGLODYTE | 29,20,-1,13,-1,19 | 5 | 20162,20979,22575,25004,29227 | - | present
+detach | 1 | +1070 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 28290 | - | present
+detach | 1 | +1355 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 28886 | - | present
+detach | 2 | +448 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 21701 | 24850 | departure
+detach | 2 | +448 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 23435 | - | present
+detach | 2 | +448 | TROGLODYTE | 29,21,-1,13,-1,19 | 6 | 20620,21162,21626,25459,28321,29368 | - | present
+detach | 2 | +448 | DEMON_10 | 29,20,-1,43,-1,5 | 3 | 20296,23990,26409 | 20650 | departure/present
+detach | 2 | +448 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 27608 | - | present
+detach | 2 | +448 | GORLAK | 29,20,-1,8,-1,28 | 1 | 27301 | - | present
+detach | 2 | +448 | DEMON_13 | 29,20,-1,43,-1,4 | 5 | 21803,24204,25385,25935,29763 | 25639,26334 | departure/present
+detach | 2 | +832 | DEMON_10 | 29,20,-1,43,-1,5 | 2 | 20001,23440 | - | present
+detach | 2 | +832 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 22229 | 24466 | departure
+detach | 2 | +25298 | BADGER | 29,20,-1,-1,-1,82 | 3 | 21801,22693,26046 | - | present
+detach | 2 | +26430 | BADGER | 29,20,-1,-1,-1,82 | 3 | 21714,23515,29734 | - | present
+detach | 2 | +26782 | BADGER | 29,20,-1,-1,-1,82 | 3 | 21409,21620,28283 | - | present
+detach | 3 | +443 | COUGAR | 29,20,-1,-1,-1,79 | 1 | 25124 | - | present
+detach | 3 | +443 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 27209 | - | present
+detach | 3 | +443 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 1 | 25687 | - | present
+detach | 3 | +443 | DEMON_18 | 29,20,-1,43,-1,1 | 4 | 24764,25780,27852,29432 | - | present
+detach | 3 | +443 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 26741 | - | present
+detach | 3 | +443 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 20195 | - | present
+detach | 3 | +443 | CRUNDLE | 29,21,-1,13,-1,9 | 7 | 21024,21076,21556,21768,23739,23830,24293 | - | present
+detach | 3 | +850 | CRUNDLE | 29,21,-1,13,-1,9 | 2 | 22020,29606 | - | present
+detach | 3 | +850 | BADGER | 29,20,-1,-1,-1,82 | 11 | 21559,21818,22440,22619,23399,23995,25177,25986,26612,26622,29684 | 8344 | death/present
+detach | 3 | +1200 | CRUNDLE | 29,21,-1,13,-1,9 | 5 | 22857,23384,25754,28103,28436 | - | present
+detach | 3 | +1200 | BADGER | 29,20,-1,-1,-1,82 | 1 | 28854 | - | present
+detach | 3 | +2179 | CRUNDLE | 29,21,-1,13,-1,9 | 3 | 20614,26178,26675 | - | present
+detach | 3 | +2455 | CRUNDLE | 29,21,-1,13,-1,9 | 1 | 24253 | - | present
+kill | 1 | +362 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 10 | 19928,20650,21610,21689,21911,23543,24888,25147,25941,28418 | 362 | death/present
+kill | 1 | +362 | ELK_BIRD | 29,21,-1,8,-1,21 | 3 | 23513,24145,25822 | - | present
+kill | 1 | +362 | JABBERER | 29,20,-1,13,-1,21 | 1 | 23002 | - | present
+kill | 1 | +362 | DEMON_10 | 29,20,-1,43,-1,5 | 5 | 20510,20890,23069,27126,28336 | - | present
+kill | 1 | +362 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 21323,23403,28819,28909 | - | present
+kill | 1 | +724 | ELK_BIRD | 29,21,-1,8,-1,21 | 1 | 21988 | - | present
+kill | 1 | +724 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 22227 | - | present
+kill | 1 | +724 | TROLL | 29,20,-1,13,-1,32 | 1 | 25008 | - | present
+kill | 1 | +1078 | ELK_BIRD | 29,21,-1,8,-1,21 | 2 | 21207,21585 | - | present
+kill | 1 | +1078 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 27896 | - | present
+kill | 2 | +400 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 24229 | 267 | death
+kill | 2 | +400 | ELK_BIRD | 29,20,-1,8,-1,21 | 6 | 25395,25839,26306,27653,28018,29567 | - | present
+kill | 2 | +400 | TROLL | 29,20,-1,13,-1,32 | 1 | 20967 | - | present
+kill | 2 | +400 | DEMON_13 | 29,20,-1,43,-1,4 | 4 | 21108,21477,21888,25247 | - | present
+kill | 2 | +400 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 9 | 20031,20304,21117,21748,23541,23817,24831,25727,27023 | - | present
+kill | 2 | +400 | MANERA | 29,20,-1,13,-1,31 | 1 | 28939 | - | present
+kill | 2 | +1056 | ELK_BIRD | 29,20,-1,8,-1,21 | 1 | 20814 | - | present
+kill | 3 | +425 | BADGER | 29,20,-1,-1,-1,82 | 12 | 20137,20589,20912,21258,21861,24530,26603,27774,28018,29114,29464,29809 | 350 | death/present
+kill | 3 | +425 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 | 19958,20710,21105,22517,23414,23789,26685,27792 | - | present
+kill | 3 | +425 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 1 | 22215 | - | present
+kill | 3 | +425 | DEMON_4 | 29,20,-1,43,-1,6 | 3 | 26547,26649,28112 | - | present
+kill | 3 | +425 | ELK_BIRD | 29,20,-1,13,-1,25 | 5 | 23886,26318,29035,29461,29674 | - | present
+kill | 3 | +775 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 24766,24784 | - | present
+kill | 3 | +775 | ELK_BIRD | 29,20,-1,13,-1,25 | 5 | 21428,23453,23960,24763,28025 | - | present
+raise | 1 | +430 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 19993 | 57039 | departure
+raise | 1 | +430 | TROGLODYTE | 29,20,-1,8,-1,19 | 6 | 20214,23760,26581,27769,28809,28957 | 1524,23058,29566,30517,39869,42592 | death/departure
+raise | 1 | +430 | TROGLODYTE | 29,20,-1,13,-1,19 | 5 | 19895,19896,20035,21524,29617 | 20385,30020,30517,30517,30517 | departure
+raise | 1 | +430 | DEMON_19 | 28,20,-1,44,-1,0 | 4 | 22071,22499,25605,26960 | 23438,28346,28728,29164 | departure
+raise | 1 | +430 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 | 20819,28236,28525 | 30020,30517,30889 | departure
+raise | 1 | +828 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 20665 | 32206 | death
+raise | 1 | +29158 | DEMON_3 | 29,20,-1,43,-1,0 | 4 | 21310,24837,25982,26788 | 26159,26547,22165,28311 | departure
+raise | 1 | +30450 | RUTHERER | 29,20,-1,25,-1,19 | 3 | 20567,26725,28290 | 22215 | departure/present
+raise | 1 | +30947 | RUTHERER | 29,20,-1,25,-1,19 | 2 | 20654,21839 | 23368,25140 | departure
+raise | 1 | +30947 | CRUNDLE | 29,20,-1,13,-1,9 | 5 | 20882,22972,23603,28105,28188 | 21377,23726,28737,28737,24758 | departure
+raise | 1 | +31319 | RUTHERER | 29,20,-1,25,-1,19 | 1 | 25099 | 27952 | departure
+raise | 1 | +31319 | CRUNDLE | 29,20,-1,13,-1,9 | 8 | 22813,22949,24810,25884,26008,26232,28135,28163 | 28365,26471,23682,25812,26471,26854,27201 | departure/present
+raise | 1 | +31319 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 23271 | 26471 | departure
+raise | 1 | +31628 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 23534,26581,28679 | 24077,28056 | departure/present
+raise | 1 | +40643 | TROGLODYTE | 29,20,-1,8,-1,19 | 3 | 23393,25495,29581 | - | present
+raise | 1 | +41310 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 20559,22674,24905,27929,28300 | - | present
+raise | 1 | +43292 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 29278 | - | present
+raise | 1 | +55705 | DEMON_3 | 29,20,-1,43,-1,0 | 3 | 24219,25603,28122 | - | present
+raise | 1 | +56087 | DEMON_3 | 29,20,-1,43,-1,0 | 1 | 25830 | - | present
+raise | 1 | +57469 | DEMON_3 | 29,20,-1,43,-1,0 | 1 | 27407 | - | present
+raise | 1 | +57790 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 4 | 22140,24919,25874,29000 | - | present
+raise | 2 | +456 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 25895 | 55420 | departure
+raise | 2 | +456 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 2 | 24308,26602 | 25433,27844 | departure
+raise | 2 | +456 | DEMON_3 | 29,20,-1,43,-1,0 | 3 | 28412,28714,29881 | 29544,31285,32078 | departure
+raise | 2 | +456 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 23658,28586 | 31285,32513 | departure
+raise | 2 | +456 | CRUNDLE | 29,20,-1,13,-1,9 | 5 | 23477,24641,25126,28047,28199 | 27049,29185,30276,31285,31696 | departure
+raise | 2 | +892 | DEMON_3 | 29,20,-1,43,-1,0 | 2 | 20458,28458 | 32077,32839 | departure
+raise | 2 | +892 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 23467,24432,26615 | 31260,31642,32077 | departure
+raise | 2 | +892 | DEMON_4 | 29,20,-1,43,-1,6 | 1 | 25427 | 26272 | departure
+raise | 2 | +1287 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 26567,28225,29543 | 31682,32083,32083 | departure
+raise | 2 | +1674 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 25383,27102,29355 | 32057,32057,32482 | departure
+raise | 2 | +2411 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 22663,24108,24401 | 31745,32205,32205 | departure
+raise | 2 | +25889 | ELK_BIRD | 29,20,-1,8,-1,21 | 5 | 21255,21944,22814,26980,29525 | 22121,22998,23401,27677,29987 | departure
+raise | 2 | +26211 | ELK_BIRD | 29,20,-1,8,-1,21 | 1 | 21275 | 29665 | departure
+raise | 2 | +26856 | ELK_BIRD | 29,20,-1,8,-1,21 | 1 | 28558 | 29020 | departure
+raise | 2 | +27164 | ELK_BIRD | 29,20,-1,8,-1,21 | 2 | 21901,23887 | 28712,28712 | departure
+raise | 2 | +29641 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 3 | 25408,27059,29371 | 30297,26235 | departure/present
+raise | 2 | +32969 | DEMON_4 | 29,20,-1,43,-1,6 | 1 | 22443 | 24163 | departure
+raise | 2 | +32969 | WOMBAT | 29,20,-1,-1,-1,96 | 1 | 26844 | - | present
+raise | 2 | +33731 | DEMON_3 | 30,20,-1,43,-1,0 | 3 | 22967,26215,27893 | 24656 | departure/present
+raise | 2 | +34616 | SPIDER_CAVE_GIANT | 29,21,-1,13,-1,28 | 1 | 23566 | 23771 | departure
+raise | 2 | +34616 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 1 | 22990 | 23771 | departure
+raise | 2 | +55876 | DEMON_3 | 30,20,-1,43,-1,0 | 1 | 29107 | - | present
+raise | 2 | +55876 | TROLL | 29,20,-1,8,-1,27 | 1 | 24919 | - | present
+raise | 2 | +55876 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 25590,28593 | - | present
+raise | 2 | +55876 | KANGAROO | 29,20,-1,-1,-1,88 | 1 | 20752 | - | present
+raise | 2 | +56265 | TROGLODYTE | 29,20,-1,8,-1,19 | 3 | 21400,22551,26215 | - | present
+raise | 2 | +57980 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 20038 | - | present
+raise | 2 | +58387 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 29290 | - | present
+raise | 2 | +58387 | OLM_GIANT | 29,20,-1,13,-1,13 | 1 | 23536 | - | present
+raise | 2 | +58387 | VORACIOUS_CAVE_CRAWLER | 29,21,-1,13,-1,20 | 1 | 29533 | - | present
+raise | 2 | +59188 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 26841,29323 | - | present
+raise | 2 | +59188 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 19987,21810,28851 | - | present
+raise | 2 | +59938 | JABBERER | 29,20,-1,25,-1,18 | 1 | 21955 | - | present
+raise | 3 | +447 | WOMBAT | 29,20,-1,-1,-1,96 | 2 | 19623,22969 | 56074,23667 | departure
+raise | 3 | +447 | TROLL | 29,20,-1,8,-1,27 | 1 | 20150 | 20586 | departure
+raise | 3 | +447 | CRUNDLE | 29,20,-1,13,-1,9 | 5 | 20685,22073,24802,27676,28403 | 25952,26230,28070,29254,29553 | departure
+raise | 3 | +447 | DEMON_9 | 29,20,-1,43,-1,2 | 3 | 20795,25898,26443 | 21222,26769,27046 | departure
+raise | 3 | +447 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 20205,20551,25894,26561,29680 | 22465,27046,27479,30211,30531 | departure
+raise | 3 | +447 | DEMON_16 | 29,20,-1,43,-1,3 | 2 | 21439,22927 | 23667,26769 | departure
+raise | 3 | +858 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 23831,24658 | 29474,29474 | departure
+raise | 3 | +858 | DEMON_9 | 29,20,-1,43,-1,2 | 2 | 22915,25972 | 27068,27068 | departure
+raise | 3 | +858 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 25388,29140 | 30120,30693 | departure
+raise | 3 | +1218 | CRUNDLE | 29,20,-1,13,-1,9 | 7 | 21246,24236,24982,25425,26761,26772,27206 | 29440,29440,30058,30058,31355,31698,31698 | departure
+raise | 3 | +1556 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 22046,29510 | 31707,31707 | departure
+raise | 3 | +2211 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 28523,28619 | 31389,31389 | departure
+raise | 3 | +2523 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 21135,24190 | 31077,31420 | departure
+raise | 3 | +24114 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 5 | 20105,20998,22347,24594,26720 | 26838,25800,22760,21770,22760 | departure
+raise | 3 | +27216 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 1 | 20491 | 21356 | departure
+raise | 3 | +27926 | DEMON_4 | 29,20,-1,43,-1,6 | 5 | 19745,21557,21729,28694,28837 | 21988,29651,23026,19979 | departure/present
+raise | 3 | +29396 | MOLEMARIAN | 29,20,-1,25,-1,20 | 2 | 22253,22735 | 23661,24459 | departure
+raise | 3 | +30978 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 23634,25774,28603,28955,29952 | 25543,28680,29035 | departure/present
+raise | 3 | +31276 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 20821,22743 | 26301,22178 | departure
+raise | 3 | +32573 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 24226 | 27440 | departure
+raise | 3 | +33943 | TOAD_GIANT_CAVE | 29,20,-1,13,-1,10 | 1 | 24064 | 26070 | departure
+raise | 3 | +33943 | TROGLODYTE | 29,20,-1,13,-1,19 | 2 | 24223,24266 | 24618,25322 | departure
+raise | 3 | +34346 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 26339 | - | present
+raise | 3 | +34346 | TROGLODYTE | 29,20,-1,13,-1,19 | 1 | 26963 | - | present
+raise | 3 | +34735 | TROGLODYTE | 29,20,-1,13,-1,19 | 1 | 22476 | 23158 | departure
+raise | 3 | +37155 | TROGLODYTE | 29,20,-1,13,-1,19 | 1 | 26072 | - | present
+raise | 3 | +37491 | TROGLODYTE | 29,20,-1,13,-1,19 | 1 | 26726 | - | present
+raise | 3 | +42470 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 27440 | - | present
+raise | 3 | +51321 | BIRD_KAKAPO | 29,20,-1,-1,-1,55 | 1 | 21660 | - | present
+raise | 3 | +53057 | TROLL | 29,20,-1,25,-1,27 | 1 | 28348 | - | present
+raise | 3 | +54232 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 2 | 20679,21405 | - | present
+raise | 3 | +56521 | BADGER | 29,20,-1,-1,-1,82 | 8 | 21827,22570,23054,23407,23781,26305,26495,29743 | - | present
+raise | 3 | +56883 | BADGER | 29,20,-1,-1,-1,82 | 1 | 25595 | - | present
+raise | 3 | +57577 | DEMON_4 | 29,20,-1,43,-1,6 | 4 | 20767,20856,21425,29548 | - | present
+zero | 1 | +433 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 20716,22535 | 1190 | departure/present
+zero | 1 | +433 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 21606,27492,28089,28503,28722 | - | present
+zero | 1 | +433 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 29057 | - | present
+zero | 1 | +433 | DEMON_18 | 29,20,-1,43,-1,1 | 2 | 22729,25843 | - | present
+zero | 1 | +433 | TROLL | 29,20,-1,8,-1,27 | 1 | 23919 | - | present
+zero | 1 | +433 | TROLL | 29,20,-1,13,-1,32 | 1 | 28041 | - | present
+zero | 1 | +831 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 22977,24107,25596,26535 | - | present
+zero | 1 | +1623 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 20360 | - | present
+zero | 2 | +439 | BIRD_KAKAPO | 29,20,-1,-1,-1,55 | 1 | 23186 | 1412 | departure
+zero | 2 | +439 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 29271 | - | present
+zero | 2 | +439 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 1 | 23763 | - | present
+zero | 2 | +439 | DEMON_4 | 29,20,-1,43,-1,6 | 3 | 19841,26259,26452 | - | present
+zero | 2 | +439 | BADGER | 29,20,-1,-1,-1,82 | 11 | 20072,20114,20124,21921,23835,24752,25391,25959,26933,28095,28315 | - | present
+zero | 2 | +439 | ELK_BIRD | 29,20,-1,8,-1,21 | 5 | 20557,21717,26249,28572,29605 | - | present
+zero | 2 | +439 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 24879,27099,29812 | - | present
+zero | 2 | +812 | DEMON_4 | 29,20,-1,43,-1,6 | 1 | 24001 | - | present
+zero | 2 | +812 | ELK_BIRD | 29,20,-1,8,-1,21 | 1 | 28127 | - | present
+zero | 2 | +812 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 20482 | - | present
+zero | 2 | +1197 | ELK_BIRD | 29,20,-1,8,-1,21 | 1 | 28810 | - | present
+zero | 2 | +1197 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 21306,21649 | - | present
+zero | 2 | +1522 | CRUNDLE | 29,20,-1,13,-1,9 | 4 | 24193,25669,27773,28220 | - | present
+zero | 2 | +1851 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 20135,26830 | - | present
+zero | 2 | +2200 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 25261,29664 | - | present
+zero | 2 | +2511 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 26950 | - | present
+zero | 3 | +450 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20894,24365,25506 | 1557 | departure/present
+zero | 3 | +450 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 22092 | - | present
+zero | 3 | +450 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 1 | 22259 | - | present
+zero | 3 | +450 | DEMON_18 | 29,20,-1,43,-1,1 | 5 | 23332,23469,24095,25580,26623 | - | present
+zero | 3 | +450 | ELK_BIRD | 29,20,-1,8,-1,21 | 5 | 20138,22237,26939,28016,29105 | - | present
+zero | 3 | +450 | CRUNDLE | 29,20,-1,13,-1,9 | 6 | 23182,23749,23797,25051,27822,29829 | 443,443 | death/present
+zero | 3 | +450 | OLM_GIANT | 29,20,-1,13,-1,13 | 1 | 22105 | - | present
+zero | 3 | +893 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 24064,25600,29304 | - | present
+zero | 3 | +1656 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 22147,26129 | - | present
+zero | 3 | +2007 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 22428,28039,29484 | - | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+kill | 1 | unit 140 BIRD_RAVEN: 24888 -> 23108 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 149 ELK_BIRD: 23513 -> 21733 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 150 ELK_BIRD: 25822 -> 24042 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 155 JABBERER: 23002 -> 21221 over 1780 ticks (slope -1.001/tick)
+kill | 1 | unit 156 DEMON_10: 27126 -> 25346 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 157 DEMON_10: 28336 -> 26556 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 161 TROGLODYTE: 28819 -> 27039 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 162 TROGLODYTE: 28909 -> 27129 over 1780 ticks (slope -1.000/tick)
+kill | 1 | unit 152 ELK_BIRD: 21988 -> 20570 over 1418 ticks (slope -1.000/tick)
+kill | 1 | unit 165 TROGLODYTE: 22227 -> 20809 over 1418 ticks (slope -1.000/tick)
+kill | 1 | unit 167 TROLL: 25008 -> 23590 over 1418 ticks (slope -1.000/tick)
+kill | 1 | unit 153 ELK_BIRD: 21585 -> 20521 over 1064 ticks (slope -1.000/tick)
+kill | 1 | unit 154 ELK_BIRD: 21207 -> 20143 over 1064 ticks (slope -1.000/tick)
+kill | 1 | unit 166 TROGLODYTE: 27896 -> 26832 over 1064 ticks (slope -1.000/tick)
+kill | 2 | unit 140 ELK_BIRD: 27653 -> 25916 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 141 ELK_BIRD: 25839 -> 24102 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 147 TROLL: 20967 -> 19230 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 148 DEMON_13: 25247 -> 23510 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 149 DEMON_13: 21477 -> 19740 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 152 BIRD_RAVEN: 23541 -> 21804 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 153 BIRD_RAVEN: 21117 -> 19380 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 161 MANERA: 28939 -> 27202 over 1737 ticks (slope -1.000/tick)
+kill | 2 | unit 146 ELK_BIRD: 20814 -> 19733 over 1081 ticks (slope -1.000/tick)
+kill | 3 | unit 140 BADGER: 20137 -> 18456 over 1680 ticks (slope -1.001/tick)
+kill | 3 | unit 151 TROGLODYTE: 20710 -> 19030 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 152 TROGLODYTE: 23789 -> 22109 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 161 SPIDER_CAVE_GIANT: 22215 -> 20535 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 162 DEMON_4: 26547 -> 24867 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 173 DEMON_4: 26649 -> 24969 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 163 ELK_BIRD: 23886 -> 22205 over 1680 ticks (slope -1.001/tick)
+kill | 3 | unit 164 ELK_BIRD: 29035 -> 27355 over 1680 ticks (slope -1.000/tick)
+kill | 3 | unit 159 TROGLODYTE: 24784 -> 23454 over 1330 ticks (slope -1.000/tick)
+kill | 3 | unit 160 TROGLODYTE: 24766 -> 23436 over 1330 ticks (slope -1.000/tick)
+kill | 3 | unit 168 ELK_BIRD: 28025 -> 26695 over 1330 ticks (slope -1.000/tick)
+kill | 3 | unit 169 ELK_BIRD: 23960 -> 22630 over 1330 ticks (slope -1.000/tick)
+zero | 1 | unit 139 BIRD_RAVEN: 20716 -> 0 over 767 ticks (slope -27.009/tick)
+zero | 1 | unit 140 BIRD_RAVEN: 22535 -> 20079 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 141 TROGLODYTE: 28503 -> 26047 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 142 TROGLODYTE: 28722 -> 26266 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 150 VORACIOUS_CAVE_CRAWLER: 29057 -> 26601 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 151 DEMON_18: 25843 -> 23387 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 153 TROLL: 23919 -> 21463 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 154 TROLL: 28041 -> 25584 over 2456 ticks (slope -1.000/tick)
+zero | 1 | unit 146 TROGLODYTE: 25596 -> 23538 over 2058 ticks (slope -1.000/tick)
+zero | 1 | unit 155 BIRD_OWL_GREAT_HORNED: 20360 -> 19094 over 1266 ticks (slope -1.000/tick)
+zero | 2 | unit 139 BIRD_KAKAPO: 23186 -> 0 over 1083 ticks (slope -21.409/tick)
+zero | 2 | unit 140 OLM_GIANT: 29271 -> 26536 over 2735 ticks (slope -1.000/tick)
+zero | 2 | unit 141 SPIDER_CAVE_GIANT: 23763 -> 21028 over 2735 ticks (slope -1.000/tick)
+zero | 2 | unit 142 DEMON_4: 26259 -> 23524 over 2735 ticks (slope -1.000/tick)
+zero | 2 | unit 146 BADGER: 20072 -> 17337 over 2735 ticks (slope -1.000/tick)
+zero | 2 | unit 157 ELK_BIRD: 26249 -> 23514 over 2735 ticks (slope -1.000/tick)
+zero | 2 | unit 164 CRUNDLE: 24879 -> 22142 over 2735 ticks (slope -1.001/tick)
+zero | 2 | unit 145 DEMON_4: 24001 -> 21639 over 2362 ticks (slope -1.000/tick)
+zero | 2 | unit 162 ELK_BIRD: 28127 -> 25765 over 2362 ticks (slope -1.000/tick)
+zero | 2 | unit 167 CRUNDLE: 20482 -> 18120 over 2362 ticks (slope -1.000/tick)
+zero | 2 | unit 163 ELK_BIRD: 28810 -> 26833 over 1977 ticks (slope -1.000/tick)
+zero | 2 | unit 168 CRUNDLE: 21306 -> 19329 over 1977 ticks (slope -1.000/tick)
+zero | 2 | unit 170 CRUNDLE: 25669 -> 24017 over 1652 ticks (slope -1.000/tick)
+zero | 2 | unit 174 CRUNDLE: 20135 -> 18812 over 1323 ticks (slope -1.000/tick)
+zero | 2 | unit 176 CRUNDLE: 25261 -> 24287 over 974 ticks (slope -1.000/tick)
+zero | 2 | unit 178 CRUNDLE: 26950 -> 26287 over 663 ticks (slope -1.000/tick)
+zero | 3 | unit 139 KANGAROO: 25506 -> 0 over 1206 ticks (slope -21.149/tick)
+zero | 3 | unit 142 TOAD_GIANT_CAVE: 22092 -> 19085 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 143 SPIDER_CAVE_GIANT: 22259 -> 19252 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 144 DEMON_18: 24095 -> 21088 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 149 ELK_BIRD: 29105 -> 26097 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 155 CRUNDLE: 23182 -> 20175 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 169 OLM_GIANT: 22105 -> 19098 over 3007 ticks (slope -1.000/tick)
+zero | 3 | unit 161 CRUNDLE: 24064 -> 21499 over 2564 ticks (slope -1.000/tick)
+zero | 3 | unit 164 CRUNDLE: 26129 -> 24327 over 1801 ticks (slope -1.001/tick)
+zero | 3 | unit 166 CRUNDLE: 22428 -> 20978 over 1450 ticks (slope -1.000/tick)
+detach | 1 | unit 139 BIRD_RAVEN: 22758 -> 0 over 23158 ticks (slope -0.983/tick)
+detach | 1 | unit 143 OLM_GIANT: 23990 -> 0 over 24902 ticks (slope -0.963/tick)
+detach | 1 | unit 144 DEMON_3: 22670 -> 0 over 23827 ticks (slope -0.951/tick)
+detach | 1 | unit 145 BIRD_SWALLOW_CAVE_GIANT: 27909 -> 3007 over 24902 ticks (slope -1.000/tick)
+detach | 1 | unit 146 OLM_GIANT: 27396 -> 2494 over 24902 ticks (slope -1.000/tick)
+detach | 1 | unit 147 DEMON_9: 23777 -> 0 over 24191 ticks (slope -0.983/tick)
+detach | 1 | unit 151 TROGLODYTE: 26992 -> 2086 over 24902 ticks (slope -1.000/tick)
+detach | 1 | unit 148 DEMON_9: 21883 -> 0 over 23838 ticks (slope -0.918/tick)
+detach | 1 | unit 153 TROGLODYTE: 22575 -> 0 over 24549 ticks (slope -0.920/tick)
+detach | 1 | unit 149 DEMON_9: 28290 -> 4071 over 24219 ticks (slope -1.000/tick)
+detach | 1 | unit 150 DEMON_9: 28886 -> 4952 over 23934 ticks (slope -1.000/tick)
+detach | 2 | unit 139 SKUNK: 21701 -> 0 over 24473 ticks (slope -0.887/tick)
+detach | 2 | unit 140 TOAD_GIANT_CAVE: 23435 -> 0 over 26334 ticks (slope -0.890/tick)
+detach | 2 | unit 141 TROGLODYTE: 29368 -> 3032 over 26334 ticks (slope -1.000/tick)
+detach | 2 | unit 147 DEMON_10: 20296 -> 27 over 20266 ticks (slope -1.000/tick)
+detach | 2 | unit 152 BIRD_OWL_GREAT_HORNED: 27608 -> 1274 over 26334 ticks (slope -1.000/tick)
+detach | 2 | unit 153 GORLAK: 27301 -> 963 over 26334 ticks (slope -1.000/tick)
+detach | 2 | unit 154 DEMON_13: 25385 -> 125 over 25260 ticks (slope -1.000/tick)
+detach | 2 | unit 150 DEMON_10: 23440 -> 0 over 25950 ticks (slope -0.903/tick)
+detach | 2 | unit 159 SKUNK: 22229 -> 0 over 24089 ticks (slope -0.923/tick)
+detach | 2 | unit 160 BADGER: 21801 -> 20317 over 1484 ticks (slope -1.000/tick)
+detach | 2 | unit 163 BADGER: 23515 -> 23163 over 352 ticks (slope -1.000/tick)
+detach | 3 | unit 139 COUGAR: 25124 -> 15129 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 140 OLM_GIANT: 27209 -> 17215 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 141 CROCODILE_CAVE: 25687 -> 15693 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 142 DEMON_18: 25780 -> 15786 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 146 BIRD_OWL_GREAT_HORNED: 26741 -> 16747 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 147 TOAD_GIANT_CAVE: 20195 -> 10201 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 148 CRUNDLE: 23830 -> 13833 over 9994 ticks (slope -1.000/tick)
+detach | 3 | unit 155 CRUNDLE: 22020 -> 12433 over 9587 ticks (slope -1.000/tick)
+detach | 3 | unit 166 BADGER: 21818 -> 12228 over 9587 ticks (slope -1.000/tick)
+detach | 3 | unit 157 CRUNDLE: 28436 -> 19199 over 9237 ticks (slope -1.000/tick)
+detach | 3 | unit 177 BADGER: 28854 -> 19617 over 9237 ticks (slope -1.000/tick)
+detach | 3 | unit 162 CRUNDLE: 20614 -> 12356 over 8258 ticks (slope -1.000/tick)
+detach | 3 | unit 165 CRUNDLE: 24253 -> 16271 over 7982 ticks (slope -1.000/tick)
+raise | 1 | unit 139 BIRD_OWL_GREAT_HORNED: 19993 -> 0 over 56701 ticks (slope -0.353/tick)
+raise | 1 | unit 140 TROGLODYTE: 27769 -> 26599 over 1170 ticks (slope -1.000/tick)
+raise | 1 | unit 147 TROGLODYTE: 19895 -> 0 over 19997 ticks (slope -0.995/tick)
+raise | 1 | unit 152 DEMON_19: 22499 -> 0 over 23058 ticks (slope -0.976/tick)
+raise | 1 | unit 156 BIRD_EMU: 28525 -> 0 over 29566 ticks (slope -0.965/tick)
+raise | 1 | unit 146 TROGLODYTE: 20665 -> 0 over 31862 ticks (slope -0.649/tick)
+raise | 1 | unit 159 DEMON_3: 25982 -> 139 over 25843 ticks (slope -1.000/tick)
+raise | 1 | unit 163 RUTHERER: 26725 -> 0 over 29635 ticks (slope -0.902/tick)
+raise | 1 | unit 165 RUTHERER: 20654 -> 0 over 23041 ticks (slope -0.896/tick)
+raise | 1 | unit 169 CRUNDLE: 20882 -> 0 over 21063 ticks (slope -0.991/tick)
+raise | 1 | unit 168 RUTHERER: 25099 -> 0 over 27554 ticks (slope -0.911/tick)
+raise | 1 | unit 174 CRUNDLE: 28135 -> 180 over 27952 ticks (slope -1.000/tick)
+raise | 1 | unit 185 BIRD_OWL_GREAT_HORNED: 23271 -> 0 over 26150 ticks (slope -0.890/tick)
+raise | 1 | unit 176 CRUNDLE: 28679 -> 216 over 28457 ticks (slope -1.000/tick)
+raise | 1 | unit 186 TROGLODYTE: 25495 -> 6051 over 19442 ticks (slope -1.000/tick)
+raise | 1 | unit 189 TROGLODYTE: 22674 -> 3899 over 18775 ticks (slope -1.000/tick)
+raise | 1 | unit 194 TROGLODYTE: 29278 -> 12485 over 16793 ticks (slope -1.000/tick)
+raise | 1 | unit 195 DEMON_3: 24219 -> 19839 over 4380 ticks (slope -1.000/tick)
+raise | 1 | unit 199 DEMON_3: 25830 -> 21832 over 3998 ticks (slope -1.000/tick)
+raise | 1 | unit 198 DEMON_3: 27407 -> 24791 over 2616 ticks (slope -1.000/tick)
+raise | 1 | unit 200 BIRD_RAVEN: 25874 -> 23579 over 2295 ticks (slope -1.000/tick)
+raise | 2 | unit 139 PORCUPINE: 25895 -> 81 over 54915 ticks (slope -0.470/tick)
+raise | 2 | unit 140 CROCODILE_CAVE: 24308 -> 0 over 25106 ticks (slope -0.968/tick)
+raise | 2 | unit 141 DEMON_3: 28412 -> 0 over 29185 ticks (slope -0.974/tick)
+raise | 2 | unit 146 KANGAROO: 28586 -> 0 over 30951 ticks (slope -0.924/tick)
+raise | 2 | unit 149 CRUNDLE: 25126 -> 0 over 26708 ticks (slope -0.941/tick)
+raise | 2 | unit 144 DEMON_3: 20458 -> 0 over 31642 ticks (slope -0.647/tick)
+raise | 2 | unit 154 CRUNDLE: 23467 -> 0 over 30849 ticks (slope -0.761/tick)
+raise | 2 | unit 166 DEMON_4: 25427 -> 0 over 25964 ticks (slope -0.979/tick)
+raise | 2 | unit 157 CRUNDLE: 26567 -> 0 over 31247 ticks (slope -0.850/tick)
+raise | 2 | unit 160 CRUNDLE: 25383 -> 0 over 31696 ticks (slope -0.801/tick)
+raise | 2 | unit 163 CRUNDLE: 24108 -> 0 over 31320 ticks (slope -0.770/tick)
+raise | 2 | unit 167 ELK_BIRD: 21944 -> 211 over 21724 ticks (slope -1.000/tick)
+raise | 2 | unit 172 ELK_BIRD: 21275 -> 0 over 29160 ticks (slope -0.730/tick)
+raise | 2 | unit 173 ELK_BIRD: 28558 -> 43 over 28515 ticks (slope -1.000/tick)
+raise | 2 | unit 174 ELK_BIRD: 23887 -> 0 over 28207 ticks (slope -0.847/tick)
+raise | 2 | unit 176 BLIND_CAVE_OGRE: 27059 -> 0 over 30636 ticks (slope -0.883/tick)
+raise | 2 | unit 179 DEMON_4: 22443 -> 0 over 23719 ticks (slope -0.946/tick)
+raise | 2 | unit 180 WOMBAT: 26844 -> 0 over 27308 ticks (slope -0.983/tick)
+raise | 2 | unit 181 DEMON_3: 27893 -> 1347 over 26546 ticks (slope -1.000/tick)
+raise | 2 | unit 185 SPIDER_CAVE_GIANT: 23566 -> 198 over 23364 ticks (slope -1.000/tick)
+raise | 2 | unit 186 GREEN_DEVOURER: 22990 -> 0 over 23364 ticks (slope -0.984/tick)
+raise | 2 | unit 184 DEMON_3: 29107 -> 24706 over 4401 ticks (slope -1.000/tick)
+raise | 2 | unit 187 TROLL: 24919 -> 20517 over 4401 ticks (slope -1.000/tick)
+raise | 2 | unit 188 TROGLODYTE: 25590 -> 21189 over 4401 ticks (slope -1.000/tick)
+raise | 2 | unit 197 KANGAROO: 20752 -> 16350 over 4401 ticks (slope -1.000/tick)
+raise | 2 | unit 190 TROGLODYTE: 21400 -> 17388 over 4012 ticks (slope -1.000/tick)
+raise | 2 | unit 193 TROGLODYTE: 20038 -> 17741 over 2297 ticks (slope -1.000/tick)
+raise | 2 | unit 194 TROGLODYTE: 29290 -> 27400 over 1890 ticks (slope -1.000/tick)
+raise | 2 | unit 201 OLM_GIANT: 23536 -> 21646 over 1890 ticks (slope -1.000/tick)
+raise | 2 | unit 202 VORACIOUS_CAVE_CRAWLER: 29533 -> 27643 over 1890 ticks (slope -1.000/tick)
+raise | 2 | unit 195 TROGLODYTE: 29323 -> 28234 over 1089 ticks (slope -1.000/tick)
+raise | 2 | unit 198 KANGAROO: 28851 -> 27762 over 1089 ticks (slope -1.000/tick)
+raise | 2 | unit 203 JABBERER: 21955 -> 21616 over 339 ticks (slope -1.000/tick)
+raise | 3 | unit 139 WOMBAT: 19623 -> 0 over 55745 ticks (slope -0.352/tick)
+raise | 3 | unit 140 TROLL: 20150 -> 0 over 20275 ticks (slope -0.994/tick)
+raise | 3 | unit 141 CRUNDLE: 24802 -> 0 over 25642 ticks (slope -0.967/tick)
+raise | 3 | unit 161 DEMON_9: 20795 -> 0 over 20895 ticks (slope -0.995/tick)
+raise | 3 | unit 167 TROGLODYTE: 20205 -> 0 over 22178 ticks (slope -0.911/tick)
+raise | 3 | unit 174 DEMON_16: 22927 -> 0 over 23381 ticks (slope -0.981/tick)
+raise | 3 | unit 146 CRUNDLE: 24658 -> 0 over 29142 ticks (slope -0.846/tick)
+raise | 3 | unit 164 DEMON_9: 25972 -> 0 over 26635 ticks (slope -0.975/tick)
+raise | 3 | unit 172 TROGLODYTE: 25388 -> 0 over 29800 ticks (slope -0.852/tick)
+raise | 3 | unit 148 CRUNDLE: 24236 -> 0 over 29114 ticks (slope -0.832/tick)
+raise | 3 | unit 155 CRUNDLE: 22046 -> 0 over 31360 ticks (slope -0.703/tick)
+raise | 3 | unit 157 CRUNDLE: 28619 -> 0 over 31052 ticks (slope -0.922/tick)
+raise | 3 | unit 159 CRUNDLE: 24190 -> 0 over 30740 ticks (slope -0.787/tick)
+raise | 3 | unit 176 BIRD_RAVEN: 26720 -> 235 over 26485 ticks (slope -1.000/tick)
+raise | 3 | unit 178 BIRD_RAVEN: 20491 -> 0 over 20990 ticks (slope -0.976/tick)
+raise | 3 | unit 182 DEMON_4: 21729 -> 112 over 21617 ticks (slope -1.000/tick)
+raise | 3 | unit 187 MOLEMARIAN: 22253 -> 0 over 23328 ticks (slope -0.954/tick)
+raise | 3 | unit 189 TROGLODYTE: 29952 -> 915 over 29035 ticks (slope -1.000/tick)
+raise | 3 | unit 195 TROGLODYTE: 22743 -> 0 over 25945 ticks (slope -0.877/tick)
+raise | 3 | unit 194 TROGLODYTE: 24226 -> 0 over 27085 ticks (slope -0.894/tick)
+raise | 3 | unit 199 TOAD_GIANT_CAVE: 24064 -> 0 over 25715 ticks (slope -0.936/tick)
+raise | 3 | unit 200 TROGLODYTE: 24223 -> 0 over 24282 ticks (slope -0.998/tick)
+raise | 3 | unit 198 TROGLODYTE: 26339 -> 669 over 25667 ticks (slope -1.000/tick)
+raise | 3 | unit 201 TROGLODYTE: 26963 -> 1296 over 25667 ticks (slope -1.000/tick)
+raise | 3 | unit 204 TROGLODYTE: 22476 -> 0 over 22842 ticks (slope -0.984/tick)
+raise | 3 | unit 203 TROGLODYTE: 26072 -> 3210 over 22858 ticks (slope -1.000/tick)
+raise | 3 | unit 205 TROGLODYTE: 26726 -> 4204 over 22522 ticks (slope -1.000/tick)
+raise | 3 | unit 197 TROGLODYTE: 27440 -> 9896 over 17543 ticks (slope -1.000/tick)
+raise | 3 | unit 206 BIRD_KAKAPO: 21660 -> 12968 over 8692 ticks (slope -1.000/tick)
+raise | 3 | unit 207 TROLL: 28348 -> 21392 over 6956 ticks (slope -1.000/tick)
+raise | 3 | unit 208 BLIND_CAVE_OGRE: 21405 -> 15624 over 5781 ticks (slope -1.000/tick)
+raise | 3 | unit 210 BADGER: 26305 -> 22813 over 3492 ticks (slope -1.000/tick)
+raise | 3 | unit 213 BADGER: 25595 -> 22465 over 3130 ticks (slope -1.000/tick)
+raise | 3 | unit 220 DEMON_4: 21425 -> 18989 over 2436 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+kill | 1 | death | 139 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 332 -> 332
+kill | 2 | death | 139 | PORCUPINE | 29,20,-1,-1,-1,90 | 23 -> 23 -> 23
+kill | 3 | death | 139 | BADGER | 29,20,-1,-1,-1,82 | 4 -> 4 -> 4
+zero | 1 | departure | 139 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 340 -> 340
+zero | 2 | departure | 139 | BIRD_KAKAPO | 29,20,-1,-1,-1,55 | 15 -> 16 -> 16
+zero | 3 | death | 157 | CRUNDLE | 29,20,-1,13,-1,9 | 133 -> 133 -> 133
+zero | 3 | death | 158 | CRUNDLE | 29,20,-1,13,-1,9 | 133 -> 133 -> 133
+zero | 3 | departure | 139 | KANGAROO | 29,20,-1,-1,-1,88 | 17 -> 18 -> 18
+detach | 1 | departure | 139 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+detach | 1 | departure | 144 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+detach | 1 | departure | 147 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+detach | 1 | departure | 148 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+detach | 2 | departure | 147 | DEMON_10 | 29,20,-1,43,-1,5 | 10000001 -> 10000001 -> 10000001
+detach | 2 | departure | 139 | SKUNK | 29,20,-1,-1,-1,92 | 14 -> 16 -> 16
+detach | 2 | departure | 159 | SKUNK | 29,20,-1,-1,-1,92 | 14 -> 16 -> 16
+detach | 2 | departure | 154 | DEMON_13 | 29,20,-1,43,-1,4 | 10000001 -> 10000001 -> 10000001
+detach | 2 | departure | 155 | DEMON_13 | 29,20,-1,43,-1,4 | 10000001 -> 10000001 -> -
+detach | 3 | death | 169 | BADGER | 29,20,-1,-1,-1,82 | 5 -> 5 -> 5
+raise | 1 | death | 140 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 7 -> 7
+raise | 1 | departure | 147 | TROGLODYTE | 29,20,-1,13,-1,19 | 9 -> 10 -> 10
+raise | 1 | departure | 141 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 8 -> 8
+raise | 1 | departure | 152 | DEMON_19 | 28,20,-1,44,-1,0 | - -> - -> -
+raise | 1 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 26 -> 26
+raise | 1 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 29
+raise | 1 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 29
+raise | 1 | departure | 153 | DEMON_19 | 28,20,-1,44,-1,0 | - -> - -> -
+raise | 1 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 29 -> 30
+raise | 1 | departure | 154 | DEMON_19 | 28,20,-1,44,-1,0 | - -> - -> -
+raise | 1 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 29 -> 30 -> 32
+raise | 1 | departure | 155 | DEMON_19 | 28,20,-1,44,-1,0 | - -> - -> -
+raise | 1 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+raise | 1 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+raise | 1 | departure | 142 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 -> 9 -> 9
+raise | 1 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 32 -> 33 -> 33
+raise | 1 | departure | 148 | TROGLODYTE | 29,20,-1,13,-1,19 | 10 -> 11 -> 14
+raise | 1 | departure | 156 | BIRD_EMU | 29,20,-1,-1,-1,56 | 8 -> 9 -> 10
+raise | 1 | departure | 143 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 10 -> 10
+raise | 1 | departure | 149 | TROGLODYTE | 29,20,-1,13,-1,19 | 11 -> 14 -> 14
+raise | 1 | departure | 150 | TROGLODYTE | 29,20,-1,13,-1,19 | 11 -> 14 -> 14
+raise | 1 | departure | 151 | TROGLODYTE | 29,20,-1,13,-1,19 | 11 -> 14 -> 14
+raise | 1 | departure | 157 | BIRD_EMU | 29,20,-1,-1,-1,56 | 9 -> 10 -> 11
+raise | 1 | departure | 158 | BIRD_EMU | 29,20,-1,-1,-1,56 | 10 -> 11 -> 11
+raise | 1 | death | 146 | TROGLODYTE | 29,20,-1,8,-1,19 | 10 -> 10 -> 10
+raise | 1 | departure | 144 | TROGLODYTE | 29,20,-1,8,-1,19 | 10 -> 11 -> 2
+raise | 1 | departure | 145 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 -> 3 -> 3
+raise | 1 | departure | 161 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 1 | departure | 169 | CRUNDLE | 29,20,-1,13,-1,9 | 134 -> 135 -> 135
+raise | 1 | departure | 164 | RUTHERER | 29,20,-1,25,-1,19 | 11 -> 12 -> 12
+raise | 1 | departure | 165 | RUTHERER | 29,20,-1,25,-1,19 | 12 -> 13 -> 13
+raise | 1 | departure | 170 | CRUNDLE | 29,20,-1,13,-1,9 | 135 -> 136 -> 137
+raise | 1 | departure | 180 | CRUNDLE | 29,20,-1,13,-1,9 | 136 -> 137 -> 137
+raise | 1 | departure | 159 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 1 | departure | 160 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 1 | departure | 173 | CRUNDLE | 29,20,-1,13,-1,9 | 137 -> 139 -> 139
+raise | 1 | departure | 177 | CRUNDLE | 29,20,-1,13,-1,9 | 137 -> 139 -> 139
+raise | 1 | departure | 167 | RUTHERER | 29,20,-1,25,-1,19 | 13 -> 14 -> 14
+raise | 1 | departure | 181 | CRUNDLE | 29,20,-1,13,-1,9 | 139 -> 140 -> 140
+raise | 1 | departure | 139 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 15 -> 16 -> 17
+raise | 1 | departure | 162 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 1 | departure | 178 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 142 -> 143
+raise | 1 | departure | 182 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 142 -> 143
+raise | 1 | departure | 185 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 16 -> 17 -> 17
+raise | 1 | departure | 183 | CRUNDLE | 29,20,-1,13,-1,9 | 142 -> 143 -> 144
+raise | 1 | departure | 184 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 144 -> 144
+raise | 1 | departure | 168 | RUTHERER | 29,20,-1,25,-1,19 | 14 -> 15 -> 15
+raise | 1 | departure | 171 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 149 -> 149
+raise | 1 | departure | 172 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 149 -> 149
+raise | 1 | departure | 174 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 149 -> 149
+raise | 1 | departure | 179 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 149 -> 149
+raise | 2 | departure | 140 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 7 -> 8 -> 8
+raise | 2 | departure | 166 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 149 | CRUNDLE | 29,20,-1,13,-1,9 | 134 -> 135 -> 135
+raise | 2 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 27 -> 28 -> 29
+raise | 2 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 29 -> 30
+raise | 2 | departure | 148 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 8 -> 9 -> 9
+raise | 2 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 29 -> 30 -> 31
+raise | 2 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 31 -> 33
+raise | 2 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 33 -> 35
+raise | 2 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 33 -> 35
+raise | 2 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 35 -> 35
+raise | 2 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 35 -> 35
+raise | 2 | departure | 150 | CRUNDLE | 29,20,-1,13,-1,9 | 135 -> 136 -> 136
+raise | 2 | departure | 141 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 151 | CRUNDLE | 29,20,-1,13,-1,9 | 136 -> 137 -> 137
+raise | 2 | departure | 142 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 146 | KANGAROO | 29,20,-1,-1,-1,88 | 20 -> 21 -> 21
+raise | 2 | departure | 152 | CRUNDLE | 29,20,-1,13,-1,9 | 137 -> 138 -> 140
+raise | 2 | departure | 153 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 141
+raise | 2 | departure | 154 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 141
+raise | 2 | departure | 143 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 155 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 141 -> 143
+raise | 2 | departure | 144 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 147 | KANGAROO | 29,20,-1,-1,-1,88 | 21 -> 22 -> 22
+raise | 2 | departure | 156 | CRUNDLE | 29,20,-1,13,-1,9 | 141 -> 143 -> 145
+raise | 2 | departure | 157 | CRUNDLE | 29,20,-1,13,-1,9 | 141 -> 143 -> 145
+raise | 2 | departure | 158 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 145 -> 147
+raise | 2 | departure | 159 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 145 -> 147
+raise | 2 | departure | 145 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 160 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 147 -> 149
+raise | 2 | departure | 161 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 147 -> 149
+raise | 2 | departure | 162 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 149 -> 151
+raise | 2 | departure | 163 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 149 -> 151
+raise | 2 | departure | 164 | CRUNDLE | 29,20,-1,13,-1,9 | 149 -> 151 -> 151
+raise | 2 | departure | 165 | CRUNDLE | 29,20,-1,13,-1,9 | 149 -> 151 -> 151
+raise | 2 | departure | 167 | ELK_BIRD | 29,20,-1,8,-1,21 | 35 -> 36 -> 36
+raise | 2 | departure | 168 | ELK_BIRD | 29,20,-1,8,-1,21 | 36 -> 37 -> 38
+raise | 2 | departure | 169 | ELK_BIRD | 29,20,-1,8,-1,21 | 37 -> 38 -> 38
+raise | 2 | departure | 170 | ELK_BIRD | 29,20,-1,8,-1,21 | 38 -> 39 -> 39
+raise | 2 | departure | 139 | PORCUPINE | 29,20,-1,-1,-1,90 | 23 -> 24 -> 24
+raise | 2 | departure | 171 | ELK_BIRD | 29,20,-1,8,-1,21 | 39 -> 44 -> 44
+raise | 2 | departure | 172 | ELK_BIRD | 29,20,-1,8,-1,21 | 39 -> 44 -> 44
+raise | 2 | departure | 173 | ELK_BIRD | 29,20,-1,8,-1,21 | 39 -> 44 -> 44
+raise | 2 | departure | 174 | ELK_BIRD | 29,20,-1,8,-1,21 | 39 -> 44 -> 44
+raise | 2 | departure | 175 | ELK_BIRD | 29,20,-1,8,-1,21 | 39 -> 44 -> 44
+raise | 2 | departure | 178 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 3 -> 4 -> 4
+raise | 2 | departure | 179 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 2 | departure | 182 | DEMON_3 | 30,20,-1,43,-1,0 | - -> - -> -
+raise | 2 | departure | 185 | SPIDER_CAVE_GIANT | 29,21,-1,13,-1,28 | - -> - -> -
+raise | 2 | departure | 186 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 11 -> 12 -> 12
+raise | 2 | departure | 177 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 4 -> 5 -> 5
+raise | 3 | departure | 140 | TROLL | 29,20,-1,8,-1,27 | 5 -> 6 -> 6
+raise | 3 | departure | 161 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 167 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 -> 9 -> 9
+raise | 3 | departure | 166 | WOMBAT | 29,20,-1,-1,-1,96 | 12 -> 13 -> 13
+raise | 3 | departure | 174 | DEMON_16 | 29,20,-1,43,-1,3 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 141 | CRUNDLE | 29,20,-1,13,-1,9 | 131 -> 132 -> 133
+raise | 3 | departure | 142 | CRUNDLE | 29,20,-1,13,-1,9 | 132 -> 133 -> 133
+raise | 3 | departure | 162 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 175 | DEMON_16 | 29,20,-1,43,-1,3 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 163 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 168 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 10 -> 11
+raise | 3 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 27 -> 28
+raise | 3 | departure | 164 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 165 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 169 | TROGLODYTE | 29,20,-1,8,-1,19 | 10 -> 11 -> 11
+raise | 3 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 27 -> 28 -> 29
+raise | 3 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 29 -> 30
+raise | 3 | departure | 143 | CRUNDLE | 29,20,-1,13,-1,9 | 133 -> 134 -> 134
+raise | 3 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 29 -> 30 -> 32
+raise | 3 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+raise | 3 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+raise | 3 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 32 -> 33 -> 34
+raise | 3 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 34 -> 34
+raise | 3 | departure | 144 | CRUNDLE | 29,20,-1,13,-1,9 | 134 -> 135 -> 136
+raise | 3 | departure | 145 | CRUNDLE | 29,20,-1,13,-1,9 | 135 -> 136 -> 138
+raise | 3 | departure | 146 | CRUNDLE | 29,20,-1,13,-1,9 | 136 -> 138 -> 140
+raise | 3 | departure | 147 | CRUNDLE | 29,20,-1,13,-1,9 | 136 -> 138 -> 140
+raise | 3 | departure | 148 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 140
+raise | 3 | departure | 149 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 140
+raise | 3 | departure | 170 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 12 -> 4
+raise | 3 | departure | 171 | TROGLODYTE | 29,20,-1,8,-1,19 | 12 -> 4 -> 4
+raise | 3 | departure | 172 | TROGLODYTE | 29,20,-1,8,-1,19 | 12 -> 4 -> 4
+raise | 3 | departure | 150 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 142 -> 142
+raise | 3 | departure | 151 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 142 -> 142
+raise | 3 | departure | 173 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 -> 5 -> 5
+raise | 3 | departure | 152 | CRUNDLE | 29,20,-1,13,-1,9 | 142 -> 143 -> 145
+raise | 3 | departure | 153 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 145 -> 147
+raise | 3 | departure | 154 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 145 -> 147
+raise | 3 | departure | 155 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 147 -> 150
+raise | 3 | departure | 156 | CRUNDLE | 29,20,-1,13,-1,9 | 145 -> 147 -> 150
+raise | 3 | departure | 157 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 150 -> 151
+raise | 3 | departure | 158 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 150 -> 151
+raise | 3 | departure | 159 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 150 -> 151
+raise | 3 | departure | 160 | CRUNDLE | 29,20,-1,13,-1,9 | 150 -> 151 -> 151
+raise | 3 | departure | 180 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 179 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 181 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 186 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 178 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 177 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 182 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 176 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | - -> - -> -
+raise | 3 | departure | 184 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 134 | MAGMA_CRAB | 29,20,-1,34,-1,0 | 36 -> 37 -> 37
+raise | 3 | departure | 187 | MOLEMARIAN | 29,20,-1,25,-1,20 | 14 -> 15 -> 15
+raise | 3 | departure | 196 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 -> 6 -> 6
+raise | 3 | departure | 188 | MOLEMARIAN | 29,20,-1,25,-1,20 | 15 -> 16 -> 16
+raise | 3 | departure | 139 | WOMBAT | 29,20,-1,-1,-1,96 | 13 -> 14 -> 14
+raise | 3 | departure | 190 | TROGLODYTE | 29,20,-1,8,-1,19 | 6 -> 7 -> 7
+raise | 3 | departure | 135 | MAGMA_CRAB | 29,20,-1,34,-1,0 | 37 -> 38 -> 38
+raise | 3 | departure | 183 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+raise | 3 | departure | 195 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 8 -> 8
+raise | 3 | departure | 204 | TROGLODYTE | 29,20,-1,13,-1,19 | 8 -> 9 -> 9
+raise | 3 | departure | 200 | TROGLODYTE | 29,20,-1,13,-1,19 | 9 -> 10 -> 10
+raise | 3 | departure | 202 | TROGLODYTE | 29,20,-1,13,-1,19 | 10 -> 11 -> 11
+raise | 3 | departure | 191 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 -> 9 -> 11
+raise | 3 | departure | 193 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 11 -> -
+raise | 3 | departure | 194 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 11 -> -
+raise | 3 | departure | 199 | TOAD_GIANT_CAVE | 29,20,-1,13,-1,10 | 10 -> 11 -> -
+
+## Manipulations applied
+kill | 1 | +362 | probe:kill 139 | kill: blood_count=0 on 1 unit(s)
+kill | 1 | +362 | wave | 139 140 141 142 143 144 145 146 147 148
+kill | 2 | +400 | probe:kill 139 | kill: blood_count=0 on 1 unit(s)
+kill | 2 | +400 | wave | 139 152 153 154 155 156 157 158 159 160
+kill | 3 | +425 | probe:kill 139 | kill: blood_count=0 on 1 unit(s)
+kill | 3 | +425 | wave | 139 140 141 142 143 144 145 146 147 148 149 150
+zero | 1 | +433 | probe:countdown 139 0 | countdown 139 BIRD_RAVEN: 20716 -> 0
+zero | 1 | +433 | wave | 139 140
+zero | 2 | +439 | probe:countdown 139 0 | countdown 139 BIRD_KAKAPO: 23186 -> 0
+zero | 2 | +439 | wave | 139 146 147 148 149 150 151 152 153 154 155 156
+zero | 3 | +450 | probe:countdown 139 0 | countdown 139 KANGAROO: 25506 -> 0
+zero | 3 | +450 | wave | 139 140 141
+detach | 1 | +387 | probe:release 139 | released 1 unit(s) [139]
+detach | 1 | +387 | wave | 139 140 141 142
+detach | 2 | +448 | probe:release 139 | released 1 unit(s) [139]
+detach | 2 | +448 | wave | 139 152
+detach | 3 | +443 | probe:release 139 | released 1 unit(s) [139]
+detach | 3 | +443 | wave | 139 146
+raise | 1 | +430 | probe:countdown 139 55000 | countdown 139 BIRD_OWL_GREAT_HORNED: 19993 -> 55000
+raise | 1 | +430 | wave | 139 156 157 158
+raise | 2 | +456 | probe:countdown 139 55000 | countdown 139 PORCUPINE: 25895 -> 55000
+raise | 2 | +456 | wave | 139 146 147
+raise | 3 | +447 | probe:countdown 139 55000 | countdown 139 WOMBAT: 19623 -> 55000
+raise | 3 | +447 | wave | 139 166
+
+## Pool entries that changed between load and end of replicate (358; the second instrument)
+kill | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->235 max 241->241 discovered 0->1 extinct 0->0
+kill | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+kill | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->332 max 339->339 discovered 0->1 extinct 0->0
+kill | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+kill | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3282 max 3530->3530 discovered 0->1 extinct 0->0
+kill | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2107 max 3352->3352 discovered 0->1 extinct 0->0
+kill | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->329 max 331->331 discovered 0->1 extinct 0->0
+kill | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->379 max 381->381 discovered 0->1 extinct 0->0
+kill | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+kill | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->420 max 429->429 discovered 0->1 extinct 0->0
+kill | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->430 max 436->436 discovered 0->1 extinct 0->0
+kill | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+kill | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+kill | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->256 max 265->265 discovered 0->1 extinct 0->0
+kill | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->378 max 387->387 discovered 0->1 extinct 0->0
+kill | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+kill | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->325 max 331->331 discovered 0->1 extinct 0->0
+kill | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->241 max 257->257 discovered 0->1 extinct 0->0
+kill | 1 | idx 4785 | JABBERER ref6=29,20,-1,13,-1,21 quantity 21->20 max 21->21 discovered 0->1 extinct 0->0
+kill | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->291 max 313->313 discovered 0->1 extinct 0->0
+kill | 1 | idx 4796 | TROLL ref6=29,20,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+kill | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->292 max 336->336 discovered 0->1 extinct 0->0
+kill | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+kill | 1 | idx 4841 | DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+kill | 1 | idx 4956 | ELK_BIRD ref6=29,21,-1,8,-1,21 quantity 43->38 max 43->43 discovered 0->1 extinct 0->0
+kill | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+kill | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+kill | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+kill | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->333 max 339->339 discovered 0->1 extinct 0->0
+kill | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->331 max 334->334 discovered 0->1 extinct 0->0
+kill | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3451 max 3530->3530 discovered 0->1 extinct 0->0
+kill | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2489 max 3352->3352 discovered 0->1 extinct 0->0
+kill | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+kill | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+kill | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+kill | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+kill | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->421 max 429->429 discovered 0->1 extinct 0->0
+kill | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->426 max 436->436 discovered 0->1 extinct 0->0
+kill | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->398 max 403->403 discovered 0->1 extinct 0->0
+kill | 2 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->36 max 43->43 discovered 0->1 extinct 0->0
+kill | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->257 max 265->265 discovered 0->1 extinct 0->0
+kill | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->383 max 387->387 discovered 0->1 extinct 0->0
+kill | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->440 max 442->442 discovered 0->1 extinct 0->0
+kill | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->321 max 331->331 discovered 0->1 extinct 0->0
+kill | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->231 max 257->257 discovered 0->1 extinct 0->0
+kill | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->299 max 313->313 discovered 0->1 extinct 0->0
+kill | 2 | idx 4795 | MANERA ref6=29,20,-1,13,-1,31 quantity 27->27 max 27->27 discovered 0->1 extinct 0->0
+kill | 2 | idx 4796 | TROLL ref6=29,20,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+kill | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->26 max 33->33 discovered 1->1 extinct 0->0
+kill | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->285 max 336->336 discovered 0->1 extinct 0->0
+kill | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+kill | 2 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+kill | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+kill | 3 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+kill | 3 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+kill | 3 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+kill | 3 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->255 max 257->257 discovered 0->1 extinct 0->0
+kill | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3276 max 3530->3530 discovered 0->1 extinct 0->0
+kill | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2413 max 3352->3352 discovered 0->1 extinct 0->0
+kill | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->4 max 16->16 discovered 0->1 extinct 0->0
+kill | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+kill | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->425 max 429->429 discovered 0->1 extinct 0->0
+kill | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->427 max 436->436 discovered 0->1 extinct 0->0
+kill | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+kill | 3 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->4 max 14->14 discovered 0->1 extinct 0->0
+kill | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->253 max 265->265 discovered 0->1 extinct 0->0
+kill | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->380 max 387->387 discovered 0->1 extinct 0->0
+kill | 3 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+kill | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->321 max 331->331 discovered 0->1 extinct 0->0
+kill | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->242 max 257->257 discovered 0->1 extinct 0->0
+kill | 3 | idx 4789 | ELK_BIRD ref6=29,20,-1,13,-1,25 quantity 43->34 max 43->43 discovered 0->1 extinct 0->0
+kill | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->292 max 313->313 discovered 0->1 extinct 0->0
+kill | 3 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+kill | 3 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->26 max 33->33 discovered 1->1 extinct 0->0
+kill | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->285 max 336->336 discovered 0->1 extinct 0->0
+kill | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->344 max 421->421 discovered 0->1 extinct 0->0
+kill | 3 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+zero | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+zero | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+zero | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->340 max 339->339 discovered 0->1 extinct 0->0
+zero | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+zero | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->256 max 257->257 discovered 0->1 extinct 0->0
+zero | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->14 max 15->15 discovered 0->1 extinct 0->0
+zero | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3221 max 3530->3530 discovered 0->1 extinct 0->0
+zero | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2646 max 3352->3352 discovered 0->1 extinct 0->0
+zero | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+zero | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+zero | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->418 max 429->429 discovered 0->1 extinct 0->0
+zero | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->427 max 436->436 discovered 0->1 extinct 0->0
+zero | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->399 max 403->403 discovered 0->1 extinct 0->0
+zero | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->5 max 14->14 discovered 0->1 extinct 0->0
+zero | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->256 max 265->265 discovered 0->1 extinct 0->0
+zero | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->373 max 387->387 discovered 0->1 extinct 0->0
+zero | 1 | idx 4762 | TROLL ref6=29,20,-1,8,-1,27 quantity 5->4 max 5->5 discovered 0->1 extinct 0->0
+zero | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->313 max 331->331 discovered 0->1 extinct 0->0
+zero | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->229 max 257->257 discovered 0->1 extinct 0->0
+zero | 1 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+zero | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->293 max 313->313 discovered 0->1 extinct 0->0
+zero | 1 | idx 4796 | TROLL ref6=29,20,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+zero | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->268 max 336->336 discovered 0->1 extinct 0->0
+zero | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+zero | 1 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+zero | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+zero | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->213 max 216->216 discovered 0->1 extinct 0->0
+zero | 2 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+zero | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+zero | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->256 max 257->257 discovered 0->1 extinct 0->0
+zero | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3045 max 3530->3530 discovered 0->1 extinct 0->0
+zero | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2178 max 3352->3352 discovered 0->1 extinct 0->0
+zero | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->5 max 16->16 discovered 0->1 extinct 0->0
+zero | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+zero | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+zero | 2 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+zero | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->417 max 429->429 discovered 0->1 extinct 0->0
+zero | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->427 max 436->436 discovered 0->1 extinct 0->0
+zero | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->399 max 403->403 discovered 0->1 extinct 0->0
+zero | 2 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->37 max 43->43 discovered 0->1 extinct 0->0
+zero | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->250 max 265->265 discovered 0->1 extinct 0->0
+zero | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->378 max 387->387 discovered 0->1 extinct 0->0
+zero | 2 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->133 max 147->147 discovered 0->1 extinct 0->0
+zero | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->440 max 442->442 discovered 0->1 extinct 0->0
+zero | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->311 max 331->331 discovered 0->1 extinct 0->0
+zero | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->236 max 257->257 discovered 0->1 extinct 0->0
+zero | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->280 max 313->313 discovered 0->1 extinct 0->0
+zero | 2 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+zero | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->266 max 336->336 discovered 0->1 extinct 0->0
+zero | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+zero | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+zero | 2 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+zero | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->239 max 241->241 discovered 0->1 extinct 0->0
+zero | 3 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+zero | 3 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->332 max 334->334 discovered 0->1 extinct 0->0
+zero | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3086 max 3530->3530 discovered 0->1 extinct 0->0
+zero | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2174 max 3352->3352 discovered 0->1 extinct 0->0
+zero | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->329 max 331->331 discovered 0->1 extinct 0->0
+zero | 3 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+zero | 3 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->18 max 20->20 discovered 0->1 extinct 0->0
+zero | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->271 max 275->275 discovered 0->1 extinct 0->0
+zero | 3 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+zero | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->418 max 429->429 discovered 0->1 extinct 0->0
+zero | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->425 max 436->436 discovered 0->1 extinct 0->0
+zero | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->396 max 403->403 discovered 0->1 extinct 0->0
+zero | 3 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->39 max 43->43 discovered 0->1 extinct 0->0
+zero | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->255 max 265->265 discovered 0->1 extinct 0->0
+zero | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->373 max 387->387 discovered 0->1 extinct 0->0
+zero | 3 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->133 max 147->147 discovered 0->1 extinct 0->0
+zero | 3 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+zero | 3 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+zero | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->324 max 331->331 discovered 0->1 extinct 0->0
+zero | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->219 max 257->257 discovered 0->1 extinct 0->0
+zero | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->287 max 313->313 discovered 0->1 extinct 0->0
+zero | 3 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+zero | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->263 max 336->336 discovered 0->1 extinct 0->0
+zero | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+zero | 3 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->355 max 354->354 discovered 0->1 extinct 0->0
+detach | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+detach | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+detach | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->310 max 308->308 discovered 0->1 extinct 0->0
+detach | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->334 max 334->334 discovered 0->1 extinct 0->0
+detach | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->259 max 257->257 discovered 0->1 extinct 0->0
+detach | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3136 max 3530->3530 discovered 0->1 extinct 0->0
+detach | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+detach | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+detach | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->382 max 381->381 discovered 0->1 extinct 0->0
+detach | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->259 max 275->275 discovered 0->1 extinct 0->0
+detach | 1 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+detach | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->418 max 429->429 discovered 0->1 extinct 0->0
+detach | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->428 max 436->436 discovered 0->1 extinct 0->0
+detach | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->401 max 403->403 discovered 0->1 extinct 0->0
+detach | 1 | idx 4753 | BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->22 max 22->22 discovered 0->1 extinct 0->0
+detach | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->247 max 265->265 discovered 0->1 extinct 0->0
+detach | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->379 max 387->387 discovered 0->1 extinct 0->0
+detach | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+detach | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->323 max 331->331 discovered 0->1 extinct 0->0
+detach | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->221 max 257->257 discovered 0->1 extinct 0->0
+detach | 1 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->7 max 14->14 discovered 0->1 extinct 0->0
+detach | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->280 max 313->313 discovered 0->1 extinct 0->0
+detach | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->256 max 336->336 discovered 0->1 extinct 0->0
+detach | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+detach | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+detach | 1 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 1 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 1 | idx 4977 | OLM_GIANT ref6=29,21,-1,13,-1,13 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+detach | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->241 max 241->241 discovered 0->1 extinct 0->0
+detach | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->218 max 216->216 discovered 0->1 extinct 0->0
+detach | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->308 max 308->308 discovered 0->1 extinct 0->0
+detach | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->337 max 334->334 discovered 0->1 extinct 0->0
+detach | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+detach | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+detach | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->2456 max 3530->3530 discovered 0->1 extinct 0->0
+detach | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->12 max 3352->3352 discovered 0->1 extinct 0->0
+detach | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->7 max 16->16 discovered 0->1 extinct 0->0
+detach | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+detach | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+detach | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->16 max 15->15 discovered 0->1 extinct 0->0
+detach | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->261 max 275->275 discovered 0->1 extinct 0->0
+detach | 2 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+detach | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->420 max 429->429 discovered 0->1 extinct 0->0
+detach | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->430 max 436->436 discovered 0->1 extinct 0->0
+detach | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+detach | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->255 max 265->265 discovered 0->1 extinct 0->0
+detach | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->377 max 387->387 discovered 0->1 extinct 0->0
+detach | 2 | idx 4763 | GORLAK ref6=29,20,-1,8,-1,28 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+detach | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->442 max 442->442 discovered 0->1 extinct 0->0
+detach | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+detach | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->208 max 257->257 discovered 0->1 extinct 0->0
+detach | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->296 max 313->313 discovered 0->1 extinct 0->0
+detach | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->26 max 33->33 discovered 1->1 extinct 0->0
+detach | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->249 max 336->336 discovered 0->1 extinct 0->0
+detach | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+detach | 2 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 2 | idx 4841 | DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 2 | idx 4983 | TROGLODYTE ref6=29,21,-1,13,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+detach | 3 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+detach | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->240 max 241->241 discovered 0->1 extinct 0->0
+detach | 3 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+detach | 3 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->305 max 308->308 discovered 0->1 extinct 0->0
+detach | 3 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->334 max 334->334 discovered 0->1 extinct 0->0
+detach | 3 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->259 max 257->257 discovered 0->1 extinct 0->0
+detach | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3307 max 3530->3530 discovered 0->1 extinct 0->0
+detach | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->1144 max 3352->3352 discovered 0->1 extinct 0->0
+detach | 3 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->1 max 2->2 discovered 0->1 extinct 0->0
+detach | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->5 max 16->16 discovered 0->1 extinct 0->0
+detach | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+detach | 3 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->383 max 381->381 discovered 0->1 extinct 0->0
+detach | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->269 max 275->275 discovered 0->1 extinct 0->0
+detach | 3 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+detach | 3 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+detach | 3 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->231 max 231->231 discovered 0->1 extinct 0->0
+detach | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->420 max 429->429 discovered 0->1 extinct 0->0
+detach | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->425 max 436->436 discovered 0->1 extinct 0->0
+detach | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->399 max 403->403 discovered 0->1 extinct 0->0
+detach | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->253 max 265->265 discovered 0->1 extinct 0->0
+detach | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->377 max 387->387 discovered 0->1 extinct 0->0
+detach | 3 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+detach | 3 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->443 max 442->442 discovered 0->1 extinct 0->0
+detach | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->324 max 331->331 discovered 0->1 extinct 0->0
+detach | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->229 max 257->257 discovered 0->1 extinct 0->0
+detach | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->292 max 313->313 discovered 0->1 extinct 0->0
+detach | 3 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->26 max 33->33 discovered 1->1 extinct 0->0
+detach | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->267 max 336->336 discovered 0->1 extinct 0->0
+detach | 3 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+detach | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->348 max 421->421 discovered 0->1 extinct 0->0
+detach | 3 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+detach | 3 | idx 4973 | CRUNDLE ref6=29,21,-1,13,-1,9 quantity 147->131 max 147->147 discovered 0->1 extinct 0->0
+raise | 1 | idx 3533 | DEMON_19 ref6=28,20,-1,44,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->244 max 241->241 discovered 0->1 extinct 0->0
+raise | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->219 max 216->216 discovered 0->1 extinct 0->0
+raise | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->308 max 308->308 discovered 0->1 extinct 0->0
+raise | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->338 max 339->339 discovered 0->1 extinct 0->0
+raise | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+raise | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->334 max 334->334 discovered 0->1 extinct 0->0
+raise | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->260 max 257->257 discovered 0->1 extinct 0->0
+raise | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->17 max 15->15 discovered 0->1 extinct 0->0
+raise | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3359 max 3530->3530 discovered 0->1 extinct 0->0
+raise | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+raise | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+raise | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->382 max 381->381 discovered 0->1 extinct 0->0
+raise | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->231 max 275->275 discovered 0->1 extinct 0->0
+raise | 1 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->232 max 231->231 discovered 0->1 extinct 0->0
+raise | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+raise | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->438 max 436->436 discovered 0->1 extinct 0->0
+raise | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->405 max 403->403 discovered 0->1 extinct 0->0
+raise | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->3 max 14->14 discovered 0->1 extinct 0->0
+raise | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->261 max 265->265 discovered 0->1 extinct 0->0
+raise | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->393 max 387->387 discovered 0->1 extinct 0->0
+raise | 1 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->149 max 147->147 discovered 0->1 extinct 0->0
+raise | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->446 max 442->442 discovered 0->1 extinct 0->0
+raise | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->337 max 331->331 discovered 0->1 extinct 0->0
+raise | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->221 max 257->257 discovered 0->1 extinct 0->0
+raise | 1 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+raise | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->284 max 313->313 discovered 0->1 extinct 0->0
+raise | 1 | idx 4817 | RUTHERER ref6=29,20,-1,25,-1,19 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+raise | 1 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->33 max 33->33 discovered 1->1 extinct 0->0
+raise | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->258 max 336->336 discovered 0->1 extinct 0->0
+raise | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+raise | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+raise | 1 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->243 max 241->241 discovered 0->1 extinct 0->0
+raise | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+raise | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->309 max 308->308 discovered 0->1 extinct 0->0
+raise | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->337 max 334->334 discovered 0->1 extinct 0->0
+raise | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+raise | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3274 max 3530->3530 discovered 0->1 extinct 0->0
+raise | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+raise | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+raise | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->382 max 381->381 discovered 0->1 extinct 0->0
+raise | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->18 max 20->20 discovered 0->1 extinct 0->0
+raise | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->24 max 24->24 discovered 0->1 extinct 0->0
+raise | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+raise | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->231 max 275->275 discovered 0->1 extinct 0->0
+raise | 2 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+raise | 2 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->232 max 231->231 discovered 0->1 extinct 0->0
+raise | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->432 max 429->429 discovered 0->1 extinct 0->0
+raise | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->442 max 436->436 discovered 0->1 extinct 0->0
+raise | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->406 max 403->403 discovered 0->1 extinct 0->0
+raise | 2 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->6 max 14->14 discovered 0->1 extinct 0->0
+raise | 2 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->44 max 43->43 discovered 0->1 extinct 0->0
+raise | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->261 max 265->265 discovered 0->1 extinct 0->0
+raise | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->389 max 387->387 discovered 0->1 extinct 0->0
+raise | 2 | idx 4762 | TROLL ref6=29,20,-1,8,-1,27 quantity 5->4 max 5->5 discovered 0->1 extinct 0->0
+raise | 2 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->151 max 147->147 discovered 0->1 extinct 0->0
+raise | 2 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+raise | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+raise | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->335 max 331->331 discovered 0->1 extinct 0->0
+raise | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->232 max 257->257 discovered 0->1 extinct 0->0
+raise | 2 | idx 4787 | GREEN_DEVOURER ref6=29,20,-1,13,-1,23 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+raise | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->268 max 313->313 discovered 0->1 extinct 0->0
+raise | 2 | idx 4816 | JABBERER ref6=29,20,-1,25,-1,18 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+raise | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->35 max 33->33 discovered 1->1 extinct 0->0
+raise | 2 | idx 4824 | BLIND_CAVE_OGRE ref6=29,20,-1,25,-1,26 quantity 6->5 max 6->6 discovered 0->1 extinct 0->0
+raise | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->261 max 336->336 discovered 0->1 extinct 0->0
+raise | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+raise | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+raise | 2 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 2 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 2 | idx 4984 | VORACIOUS_CAVE_CRAWLER ref6=29,21,-1,13,-1,20 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+raise | 2 | idx 4992 | SPIDER_CAVE_GIANT ref6=29,21,-1,13,-1,28 quantity 3->3 max 3->3 discovered 0->1 extinct 0->0
+raise | 2 | idx 6080 | DEMON_3 ref6=30,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 3 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->360 max 354->354 discovered 0->1 extinct 0->0
+raise | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->242 max 241->241 discovered 0->1 extinct 0->0
+raise | 3 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+raise | 3 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->308 max 308->308 discovered 0->1 extinct 0->0
+raise | 3 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+raise | 3 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->336 max 334->334 discovered 0->1 extinct 0->0
+raise | 3 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->258 max 257->257 discovered 0->1 extinct 0->0
+raise | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3470 max 3530->3530 discovered 0->1 extinct 0->0
+raise | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+raise | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->6 max 16->16 discovered 0->1 extinct 0->0
+raise | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+raise | 3 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->383 max 381->381 discovered 0->1 extinct 0->0
+raise | 3 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+raise | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->240 max 275->275 discovered 0->1 extinct 0->0
+raise | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+raise | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->444 max 436->436 discovered 0->1 extinct 0->0
+raise | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+raise | 3 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->11 max 14->14 discovered 0->1 extinct 0->0
+raise | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->261 max 265->265 discovered 0->1 extinct 0->0
+raise | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->387 max 387->387 discovered 0->1 extinct 0->0
+raise | 3 | idx 4762 | TROLL ref6=29,20,-1,8,-1,27 quantity 5->6 max 5->5 discovered 0->1 extinct 0->0
+raise | 3 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->151 max 147->147 discovered 0->1 extinct 0->0
+raise | 3 | idx 4774 | TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+raise | 3 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->444 max 442->442 discovered 0->1 extinct 0->0
+raise | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->333 max 331->331 discovered 0->1 extinct 0->0
+raise | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->231 max 257->257 discovered 0->1 extinct 0->0
+raise | 3 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->11 max 14->14 discovered 0->1 extinct 0->0
+raise | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->273 max 313->313 discovered 0->1 extinct 0->0
+raise | 3 | idx 4818 | MOLEMARIAN ref6=29,20,-1,25,-1,20 quantity 15->16 max 15->15 discovered 0->1 extinct 0->0
+raise | 3 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->34 max 33->33 discovered 1->1 extinct 0->0
+raise | 3 | idx 4824 | BLIND_CAVE_OGRE ref6=29,20,-1,25,-1,26 quantity 6->4 max 6->6 discovered 0->1 extinct 0->0
+raise | 3 | idx 4825 | TROLL ref6=29,20,-1,25,-1,27 quantity 7->6 max 7->7 discovered 0->1 extinct 0->0
+raise | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->250 max 336->336 discovered 0->1 extinct 0->0
+raise | 3 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->38 max 38->38 discovered 1->1 extinct 0->0
+raise | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+raise | 3 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 3 | idx 4839 | DEMON_16 ref6=29,20,-1,43,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+raise | 3 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 156 rows; first few:
+kill | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+kill | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+kill | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+kill | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+kill | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+kill | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+kill | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+kill | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+
