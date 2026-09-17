@@ -28,6 +28,8 @@
 --                                  place n units of the pool entry via modtools/create-unit (locationType Any) at
 --                                  x,y,z or at the first watery map_edge surface tile, write the entry's six-field
 --                                  population reference onto each unit, debit the entry, countdown 25000, not held
+--   cx-probe gather [id ...]         teleport every wild LARGE_PREDATOR unit (or the listed ids) to within 3 tiles of
+--                                  the first wild non-predator SURFACE unit, so predator and prey actually meet
 --   cx-probe combat [since-id]       every wild unit's combat reports with id > since (unit, species, id, text)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
@@ -302,6 +304,40 @@ elseif cmd == 'spawn' then
     print(('spawn idx %d %s x%d at %d,%d,%d -> %s; entry quantity now %d'):format(
         idx, tok(p.race), #ids, pos.x, pos.y, pos.z, table.concat(ids, ' '), p.quantity))
 
+-- ----------------------------------------------------------------- gather --
+elseif cmd == 'gather' then
+    local ids = {}
+    for i = 2, #args do ids[tonumber(args[i])] = true end
+    local ws = wild_alive()
+    local target
+    for _, u in ipairs(ws) do
+        if not is_pred(u) and layer_of(u.animal.population) == 'surface' and not u.flags1.inactive then target = u; break end
+    end
+    if not target then qerror('gather: no wild non-predator surface unit to gather at') end
+    local n, moved = 0, {}
+    for _, u in ipairs(ws) do
+        if (next(ids) and ids[u.id]) or (not next(ids) and is_pred(u)) then
+            local placed = false
+            for r = 2, 6 do
+                for dx = -r, r do for dy = -r, r do
+                    if not placed and (math.abs(dx) == r or math.abs(dy) == r) then
+                        local pos = xyz2pos(target.pos.x + dx, target.pos.y + dy, target.pos.z)
+                        if dfhack.maps.isValidTilePos(pos) then
+                            local tt = dfhack.maps.getTileType(pos)
+                            local occ = dfhack.maps.getTileBlock(pos).occupancy[pos.x % 16][pos.y % 16]
+                            if tt and df.tiletype_shape.attrs[df.tiletype.attrs[tt].shape].walkable and not occ.unit then
+                                if dfhack.units.teleport(u, pos) then placed = true; n = n + 1; moved[#moved+1] = tostring(u.id) end
+                            end
+                        end
+                    end
+                end end
+                if placed then break end
+            end
+        end
+    end
+    print(('gather: moved %d predator(s) [%s] to within 6 tiles of unit %d %s at %d,%d,%d'):format(
+        n, table.concat(moved, ' '), target.id, tok(target.race), target.pos.x, target.pos.y, target.pos.z))
+
 -- ------------------------------------------------------------------- kill --
 -- Kill with no accounting of our own: blood to zero, the way DFHack's
 -- exterminate destroyUnit does, but WITHOUT its vanish_countdown failsafe, so
@@ -353,5 +389,5 @@ elseif cmd == 'roster' then
     end
 
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]|spawn <idx> <n> [x y z]')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]|spawn <idx> <n> [x y z]|gather [id..]')
 end
