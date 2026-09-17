@@ -1,0 +1,855 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260917-123933	aquatic	1	16801	2032801	baseline	wild_present	0
+20260917-123933	aquatic	1	16801	2032801	manipulation	local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('^SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c))	aquatic opened: 146 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 71
+20260917-123933	aquatic	1	16801	2032801	manipulation	probe:release surface	released 0 unit(s) [surface]
+20260917-123933	aquatic	1	17170	2033170	arrival	171	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=26388 vanish=0 flag_src=1 flag_nf=0 pos=9,26,58 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	172	BLIND_CAVE_OGRE caste=MALE ref6=4,28,-1,10,-1,12 layer=cavern countdown=28267 vanish=0 flag_src=1 flag_nf=0 pos=111,190,37 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	173	BLIND_CAVE_OGRE caste=MALE ref6=4,28,-1,10,-1,12 layer=cavern countdown=23229 vanish=0 flag_src=1 flag_nf=0 pos=103,191,37 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	174	BLIND_CAVE_OGRE caste=FEMALE ref6=4,28,-1,10,-1,12 layer=cavern countdown=21898 vanish=0 flag_src=1 flag_nf=0 pos=100,191,37 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	175	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=22489 vanish=0 flag_src=1 flag_nf=0 pos=8,151,19 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	176	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=23382 vanish=0 flag_src=1 flag_nf=0 pos=0,149,18 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	177	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=22406 vanish=0 flag_src=1 flag_nf=0 pos=2,148,18 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	178	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=27380 vanish=0 flag_src=1 flag_nf=0 pos=0,150,18 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	179	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=25062 vanish=0 flag_src=1 flag_nf=0 pos=0,152,18 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	180	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=29085 vanish=0 flag_src=1 flag_nf=0 pos=0,154,18 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	183	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=28457 vanish=0 flag_src=1 flag_nf=0 pos=190,105,0 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	184	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=26752 vanish=0 flag_src=1 flag_nf=0 pos=191,105,0 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	185	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=24667 vanish=0 flag_src=1 flag_nf=0 pos=191,102,0 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	186	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=27309 vanish=0 flag_src=1 flag_nf=0 pos=190,103,0 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	187	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=23504 vanish=0 flag_src=1 flag_nf=1 pos=104,190,93 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	188	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=20587 vanish=0 flag_src=1 flag_nf=1 pos=109,191,93 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	189	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=25980 vanish=0 flag_src=1 flag_nf=0 pos=182,120,57 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	190	MANERA caste=MALE ref6=4,28,-1,10,-1,14 layer=cavern countdown=26726 vanish=0 flag_src=1 flag_nf=0 pos=102,190,37 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	191	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=25292 vanish=0 flag_src=1 flag_nf=0 pos=108,0,10 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	192	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=20609 vanish=0 flag_src=1 flag_nf=0 pos=105,0,10 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	193	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=24119 vanish=0 flag_src=1 flag_nf=0 pos=107,0,10 listed_at=2033170
+20260917-123933	aquatic	1	17170	2033170	arrival	194	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=29905 vanish=0 flag_src=1 flag_nf=0 pos=106,0,10 listed_at=2033170
+20260917-123933	aquatic	1	17767	2033767	arrival	181	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=26359 vanish=0 flag_src=1 flag_nf=0 pos=0,152,18 listed_at=2033170
+20260917-123933	aquatic	1	17767	2033767	arrival	182	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=27449 vanish=0 flag_src=1 flag_nf=0 pos=0,151,18 listed_at=2033170
+20260917-123933	aquatic	1	18545	2034545	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	18545	2034545	every_applied	1	probe:release surface
+20260917-123933	aquatic	1	18814	2034814	arrival	195	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=27678 vanish=0 flag_src=1 flag_nf=1 pos=119,190,93 listed_at=2034814
+20260917-123933	aquatic	1	18814	2034814	arrival	196	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=28106 vanish=0 flag_src=1 flag_nf=1 pos=0,164,93 listed_at=2034814
+20260917-123933	aquatic	1	20288	2036288	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	20288	2036288	every_applied	2	probe:release surface
+20260917-123933	aquatic	1	20608	2036608	arrival	197	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=23454 vanish=0 flag_src=1 flag_nf=1 pos=120,191,93 listed_at=2036608
+20260917-123933	aquatic	1	21981	2037981	manipulation	probe:release surface	released 1 unit(s) [surface]
+20260917-123933	aquatic	1	21981	2037981	every_applied	3	probe:release surface
+20260917-123933	aquatic	1	22522	2038522	arrival	198	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=29817 vanish=0 flag_src=1 flag_nf=1 pos=118,0,93 listed_at=2038522
+20260917-123933	aquatic	1	22801	2038801	arrival	199	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=29299 vanish=0 flag_src=1 flag_nf=1 pos=116,1,93 listed_at=2038801
+20260917-123933	aquatic	1	23620	2039620	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	23620	2039620	every_applied	4	probe:release surface
+20260917-123933	aquatic	1	23945	2039945	arrival	200	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=22165 vanish=0 flag_src=1 flag_nf=1 pos=80,187,93 listed_at=2039945
+20260917-123933	aquatic	1	23945	2039945	arrival	201	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25509 vanish=0 flag_src=1 flag_nf=1 pos=1,153,93 listed_at=2039945
+20260917-123933	aquatic	1	25142	2041142	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	25142	2041142	every_applied	5	probe:release surface
+20260917-123933	aquatic	1	25500	2041500	arrival	202	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=26391 vanish=0 flag_src=1 flag_nf=1 pos=1,161,93 listed_at=2041500
+20260917-123933	aquatic	1	25962	2041962	arrival	203	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25670 vanish=0 flag_src=1 flag_nf=1 pos=118,1,93 listed_at=2041962
+20260917-123933	aquatic	1	26766	2042766	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	26766	2042766	every_applied	6	probe:release surface
+20260917-123933	aquatic	1	27110	2043110	arrival	204	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=26988 vanish=0 flag_src=1 flag_nf=1 pos=1,154,93 listed_at=2043110
+20260917-123933	aquatic	1	27110	2043110	arrival	205	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=22667 vanish=0 flag_src=1 flag_nf=0 pos=0,24,58 listed_at=2043110
+20260917-123933	aquatic	1	27110	2043110	death	171	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=16792 last_flag_src=1 arrived_at=2033170
+20260917-123933	aquatic	1	27427	2043427	arrival	206	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=25367 vanish=0 flag_src=1 flag_nf=1 pos=62,191,94 listed_at=2043427
+20260917-123933	aquatic	1	28563	2044563	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	28563	2044563	every_applied	7	probe:release surface
+20260917-123933	aquatic	1	28933	2044933	arrival	207	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=29553 vanish=0 flag_src=1 flag_nf=1 pos=115,190,93 listed_at=2044933
+20260917-123933	aquatic	1	29189	2045189	arrival	208	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=29740 vanish=0 flag_src=1 flag_nf=1 pos=44,189,94 listed_at=2045189
+20260917-123933	aquatic	1	29189	2045189	arrival	209	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=29105 vanish=0 flag_src=1 flag_nf=1 pos=44,190,94 listed_at=2045189
+20260917-123933	aquatic	1	29189	2045189	arrival	210	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=21003 vanish=0 flag_src=1 flag_nf=1 pos=48,191,94 listed_at=2045189
+20260917-123933	aquatic	1	29189	2045189	death	204	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=25165 last_flag_src=0 arrived_at=2043110
+20260917-123933	aquatic	1	30307	2046307	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260917-123933	aquatic	1	30307	2046307	every_applied	8	probe:release surface
+20260917-123933	aquatic	1	30650	2046650	arrival	211	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=20843 vanish=0 flag_src=1 flag_nf=1 pos=190,130,93 listed_at=2046650
+20260917-123933	aquatic	1	30650	2046650	arrival	212	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=28939 vanish=0 flag_src=1 flag_nf=1 pos=103,190,94 listed_at=2046650
+20260917-123933	aquatic	1	30650	2046650	arrival	213	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=29783 vanish=0 flag_src=1 flag_nf=1 pos=104,191,93 listed_at=2046650
+20260917-123933	aquatic	1	30650	2046650	arrival	214	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=29593 vanish=0 flag_src=1 flag_nf=1 pos=107,191,93 listed_at=2046650
+20260917-123933	aquatic	1	30650	2046650	death	196	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=16613 last_flag_src=0 arrived_at=2034814
+20260917-123933	aquatic	1	30650	2046650	death	197	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=13755 last_flag_src=0 arrived_at=2036608
+20260917-123933	aquatic	1	32100	2048100	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260917-123933	aquatic	1	32100	2048100	every_applied	9	probe:release surface
+20260917-123933	aquatic	1	32470	2048470	arrival	215	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27588 vanish=0 flag_src=1 flag_nf=1 pos=39,191,94 listed_at=2048470
+20260917-123933	aquatic	1	32470	2048470	arrival	216	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=20120 vanish=0 flag_src=1 flag_nf=1 pos=49,191,94 listed_at=2048470
+20260917-123933	aquatic	1	32470	2048470	death	207	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=26385 last_flag_src=0 arrived_at=2044933
+20260917-123933	aquatic	1	33914	2049914	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	33914	2049914	every_applied	10	probe:release surface
+20260917-123933	aquatic	1	34237	2050237	arrival	217	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25627 vanish=0 flag_src=1 flag_nf=1 pos=110,191,93 listed_at=2050237
+20260917-123933	aquatic	1	34237	2050237	death	195	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=12578 last_flag_src=0 arrived_at=2034814
+20260917-123933	aquatic	1	34571	2050571	arrival	218	SHARK_BLUE caste=FEMALE ref6=3,28,-1,-1,-1,10 layer=surface countdown=22093 vanish=0 flag_src=1 flag_nf=1 pos=182,165,92 listed_at=2050571
+20260917-123933	aquatic	1	34809	2050809	arrival	219	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=26040 vanish=0 flag_src=1 flag_nf=1 pos=191,114,93 listed_at=2050809
+20260917-123933	aquatic	1	34809	2050809	death	217	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=25293 last_flag_src=1 arrived_at=2050237
+20260917-123933	aquatic	1	35640	2051640	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	1	35640	2051640	every_applied	11	probe:release surface
+20260917-123933	aquatic	1	36010	2052010	arrival	220	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=22993 vanish=0 flag_src=1 flag_nf=1 pos=119,191,93 listed_at=2052010
+20260917-123933	aquatic	1	36010	2052010	arrival	221	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=20285 vanish=0 flag_src=1 flag_nf=1 pos=191,103,94 listed_at=2052010
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2166	SHARK_SPINY_DOGFISH ref6=3,27,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2167	SHARK_WOBBEGONG_SPOTTED ref6=3,27,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2168	SHARK_MAKO_SHORTFIN ref6=3,27,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2169	SHARK_BULL ref6=3,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2170	SHARK_REEF_BLACKTIP ref6=3,27,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2171	SHARK_REEF_WHITETIP ref6=3,27,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2172	SHARK_BLUE ref6=3,27,-1,-1,-1,10 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2173	SHARK_HAMMERHEAD ref6=3,27,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2174	SHARK_ANGEL ref6=3,27,-1,-1,-1,12 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2175	FISH_SKATE_COMMON ref6=3,27,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2176	FISH_RAY_MANTA ref6=3,27,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2177	FISH_STINGRAY ref6=3,27,-1,-1,-1,15 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2178	FISH_MILKFISH ref6=3,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2179	FISH_OPAH ref6=3,27,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2180	FISH_BLUEFISH ref6=3,27,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2181	FISH_SWORDFISH ref6=3,27,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2182	FISH_BARRACUDA_GREAT ref6=3,27,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2183	CRAB ref6=3,27,-1,-1,-1,23 quantity 441->52 max 441->441 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2190	SHARK_FRILL ref6=3,27,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2191	SHARK_MAKO_LONGFIN ref6=3,27,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2192	SHARK_GREAT_WHITE ref6=3,27,-1,-1,-1,59 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2194	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2195	SHARK_WHALE ref6=3,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2196	SHARK_TIGER ref6=3,27,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2197	FISH_COELACANTH ref6=3,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2198	FISH_GROUPER_GIANT ref6=3,27,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2199	FISH_MARLIN ref6=3,27,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2200	FISH_TUNA_BLUEFIN ref6=3,27,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2202	ORCA ref6=3,27,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2203	SPERM_WHALE ref6=3,27,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2293	SHARK_SPINY_DOGFISH ref6=3,28,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2294	SHARK_WOBBEGONG_SPOTTED ref6=3,28,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2295	SHARK_MAKO_SHORTFIN ref6=3,28,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2296	SHARK_BULL ref6=3,28,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2297	SHARK_REEF_BLACKTIP ref6=3,28,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2298	SHARK_REEF_WHITETIP ref6=3,28,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2299	SHARK_BLUE ref6=3,28,-1,-1,-1,10 quantity 22->49 max 22->22 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2300	SHARK_HAMMERHEAD ref6=3,28,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2301	SHARK_ANGEL ref6=3,28,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2302	FISH_SKATE_COMMON ref6=3,28,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2303	FISH_RAY_MANTA ref6=3,28,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2304	FISH_STINGRAY ref6=3,28,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2305	FISH_MILKFISH ref6=3,28,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2306	FISH_OPAH ref6=3,28,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2307	FISH_BLUEFISH ref6=3,28,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2308	FISH_SWORDFISH ref6=3,28,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2309	FISH_BARRACUDA_GREAT ref6=3,28,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2310	CRAB ref6=3,28,-1,-1,-1,23 quantity 437->36 max 437->437 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2311	Vermin:467 ref6=3,28,-1,-1,-1,28 quantity 315->315 max 315->315 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2312	Vermin:538 ref6=3,28,-1,-1,-1,30 quantity 309->305 max 309->309 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2313	Vermin:540 ref6=3,28,-1,-1,-1,31 quantity 187->187 max 187->187 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2314	Vermin:544 ref6=3,28,-1,-1,-1,34 quantity 394->390 max 394->394 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2315	Vermin:552 ref6=3,28,-1,-1,-1,37 quantity 192->186 max 192->192 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2317	SHARK_FRILL ref6=3,28,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2318	SHARK_MAKO_LONGFIN ref6=3,28,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2319	SHARK_GREAT_WHITE ref6=3,28,-1,-1,-1,59 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2320	Vermin:551 ref6=3,28,-1,-1,-1,63 quantity 234->236 max 234->234 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2321	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2322	SHARK_WHALE ref6=3,28,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2323	SHARK_TIGER ref6=3,28,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2324	FISH_COELACANTH ref6=3,28,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2325	FISH_GROUPER_GIANT ref6=3,28,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2326	FISH_MARLIN ref6=3,28,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2327	FISH_TUNA_BLUEFIN ref6=3,28,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2328	Vermin:446 ref6=3,28,-1,-1,-1,78 quantity 448->448 max 448->448 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2329	ORCA ref6=3,28,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2330	SPERM_WHALE ref6=3,28,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2331	Vermin:543 ref6=3,28,-1,-1,-1,86 quantity 226->210 max 226->226 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2332	Vermin:553 ref6=3,28,-1,-1,-1,88 quantity 99->100 max 99->99 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2411	MAGMA_CRAB ref6=3,28,-1,29,-1,0 quantity 19->15 max 19->19 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2423	SHARK_SPINY_DOGFISH ref6=3,29,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2424	SHARK_WOBBEGONG_SPOTTED ref6=3,29,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2425	SHARK_MAKO_SHORTFIN ref6=3,29,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2426	SHARK_BULL ref6=3,29,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2427	SHARK_REEF_BLACKTIP ref6=3,29,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2428	SHARK_REEF_WHITETIP ref6=3,29,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2429	SHARK_BLUE ref6=3,29,-1,-1,-1,10 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2430	SHARK_HAMMERHEAD ref6=3,29,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2431	SHARK_ANGEL ref6=3,29,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2432	FISH_SKATE_COMMON ref6=3,29,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2433	FISH_RAY_MANTA ref6=3,29,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2434	FISH_STINGRAY ref6=3,29,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2435	FISH_MILKFISH ref6=3,29,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2436	FISH_OPAH ref6=3,29,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2437	FISH_BLUEFISH ref6=3,29,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2438	FISH_SWORDFISH ref6=3,29,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2439	FISH_BARRACUDA_GREAT ref6=3,29,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2440	CRAB ref6=3,29,-1,-1,-1,23 quantity 434->52 max 434->434 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2447	SHARK_FRILL ref6=3,29,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2448	SHARK_MAKO_LONGFIN ref6=3,29,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2449	SHARK_GREAT_WHITE ref6=3,29,-1,-1,-1,59 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2451	BIRD_ALBATROSS ref6=3,29,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2452	SHARK_WHALE ref6=3,29,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2453	SHARK_TIGER ref6=3,29,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2454	FISH_COELACANTH ref6=3,29,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2455	FISH_GROUPER_GIANT ref6=3,29,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2456	FISH_MARLIN ref6=3,29,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2457	FISH_TUNA_BLUEFIN ref6=3,29,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2459	ORCA ref6=3,29,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	2460	SPERM_WHALE ref6=3,29,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3106	SHARK_SPINY_DOGFISH ref6=4,27,-1,-1,-1,2 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3107	SHARK_WOBBEGONG_SPOTTED ref6=4,27,-1,-1,-1,3 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3108	SHARK_MAKO_SHORTFIN ref6=4,27,-1,-1,-1,6 quantity 12->50 max 12->12 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3109	SHARK_BULL ref6=4,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3110	SHARK_REEF_BLACKTIP ref6=4,27,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3111	SHARK_REEF_WHITETIP ref6=4,27,-1,-1,-1,9 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3112	SHARK_BLUE ref6=4,27,-1,-1,-1,10 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3113	SHARK_HAMMERHEAD ref6=4,27,-1,-1,-1,11 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3114	SHARK_ANGEL ref6=4,27,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3115	FISH_SKATE_COMMON ref6=4,27,-1,-1,-1,13 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3116	FISH_RAY_MANTA ref6=4,27,-1,-1,-1,14 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3117	FISH_STINGRAY ref6=4,27,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3118	FISH_MILKFISH ref6=4,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3119	FISH_OPAH ref6=4,27,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3120	FISH_BLUEFISH ref6=4,27,-1,-1,-1,20 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3121	FISH_SWORDFISH ref6=4,27,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3122	FISH_BARRACUDA_GREAT ref6=4,27,-1,-1,-1,22 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3123	CRAB ref6=4,27,-1,-1,-1,23 quantity 421->53 max 421->421 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3130	SHARK_FRILL ref6=4,27,-1,-1,-1,51 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3131	SHARK_MAKO_LONGFIN ref6=4,27,-1,-1,-1,57 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3132	SHARK_GREAT_WHITE ref6=4,27,-1,-1,-1,59 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3134	BIRD_ALBATROSS ref6=4,27,-1,-1,-1,67 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3135	SHARK_WHALE ref6=4,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3136	SHARK_TIGER ref6=4,27,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3137	FISH_COELACANTH ref6=4,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3138	FISH_GROUPER_GIANT ref6=4,27,-1,-1,-1,72 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3139	FISH_MARLIN ref6=4,27,-1,-1,-1,73 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3140	FISH_TUNA_BLUEFIN ref6=4,27,-1,-1,-1,74 quantity 37->50 max 37->37 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3142	ORCA ref6=4,27,-1,-1,-1,80 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3143	SPERM_WHALE ref6=4,27,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3266	BIRD_EAGLE ref6=4,28,-1,-1,-1,33 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3267	Vermin:124 ref6=4,28,-1,-1,-1,34 quantity 299->299 max 299->299 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3276	Vermin:196 ref6=4,28,-1,-1,-1,43 quantity 2582->2469 max 2582->2582 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3279	Vermin:206 ref6=4,28,-1,-1,-1,46 quantity 302->301 max 302->302 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3281	ELEPHANT ref6=4,28,-1,-1,-1,48 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3282	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3284	Vermin:528 ref6=4,28,-1,-1,-1,51 quantity 421->422 max 421->421 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3285	WILD_BOAR ref6=4,28,-1,-1,-1,52 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3286	MONITOR_LIZARD ref6=4,28,-1,-1,-1,53 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3287	JACKAL ref6=4,28,-1,-1,-1,54 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3288	CRETACEOUS_CARNOTAURUS ref6=4,28,-1,-1,-1,55 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3292	CHEETAH ref6=4,28,-1,-1,-1,59 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3293	COUGAR ref6=4,28,-1,-1,-1,60 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3294	TIGER ref6=4,28,-1,-1,-1,61 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3295	LION ref6=4,28,-1,-1,-1,62 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3296	LEOPARD ref6=4,28,-1,-1,-1,63 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3297	DINGO ref6=4,28,-1,-1,-1,64 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3298	JAGUAR ref6=4,28,-1,-1,-1,65 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3299	HYENA ref6=4,28,-1,-1,-1,66 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3300	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3301	MONGOOSE ref6=4,28,-1,-1,-1,68 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3302	BONOBO ref6=4,28,-1,-1,-1,69 quantity 48->0 max 48->48 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3312	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 quantity 10->8 max 10->10 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3317	Vermin:616 ref6=4,28,-1,2,-1,14 quantity 352->350 max 352->352 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3318	Vermin:410 ref6=4,28,-1,2,-1,15 quantity 433->426 max 433->433 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3319	Vermin:621 ref6=4,28,-1,2,-1,16 quantity 421->408 max 421->421 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3327	Vermin:630 ref6=4,28,-1,2,-1,24 quantity 277->269 max 277->277 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3328	Vermin:623 ref6=4,28,-1,2,-1,25 quantity 230->218 max 230->230 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3329	TROLL ref6=4,28,-1,2,-1,26 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3338	Vermin:623 ref6=4,28,-1,10,-1,7 quantity 342->313 max 342->342 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3339	Vermin:616 ref6=4,28,-1,10,-1,8 quantity 344->339 max 344->344 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3340	Vermin:630 ref6=4,28,-1,10,-1,9 quantity 329->305 max 329->329 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3343	BLIND_CAVE_OGRE ref6=4,28,-1,10,-1,12 quantity 5->2 max 5->5 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3345	MANERA ref6=4,28,-1,10,-1,14 quantity 25->25 max 25->25 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3365	ELK_BIRD ref6=4,28,-1,22,-1,18 quantity 31->23 max 31->31 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3376	Vermin:419 ref6=4,28,-1,22,-1,29 quantity 345->269 max 345->345 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3382	Vermin:620 ref6=4,28,-1,29,-1,4 quantity 331->263 max 331->331 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3388	DEMON_14 ref6=4,28,-1,38,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3423	Vermin:196 ref6=4,29,-1,-1,-1,33 quantity 4296->4207 max 4296->4296 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3426	Vermin:206 ref6=4,29,-1,-1,-1,36 quantity 411->412 max 411->411 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3428	WILD_BOAR ref6=4,29,-1,-1,-1,38 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3429	ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3434	CROCODILE_SALTWATER ref6=4,29,-1,-1,-1,44 quantity 7->38 max 7->7 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3435	LEOPARD ref6=4,29,-1,-1,-1,45 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3436	DINGO ref6=4,29,-1,-1,-1,46 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3437	JAGUAR ref6=4,29,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3438	BIRD_EAGLE ref6=4,29,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3439	WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3440	BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3441	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3442	HONEY BADGER ref6=4,29,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3443	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	3446	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4119	SHARK_SPINY_DOGFISH ref6=5,27,-1,-1,-1,2 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4120	SHARK_WOBBEGONG_SPOTTED ref6=5,27,-1,-1,-1,3 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4121	SHARK_MAKO_SHORTFIN ref6=5,27,-1,-1,-1,6 quantity 12->50 max 12->12 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4122	SHARK_BULL ref6=5,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4123	SHARK_REEF_BLACKTIP ref6=5,27,-1,-1,-1,8 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4124	SHARK_REEF_WHITETIP ref6=5,27,-1,-1,-1,9 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4125	SHARK_BLUE ref6=5,27,-1,-1,-1,10 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4126	SHARK_HAMMERHEAD ref6=5,27,-1,-1,-1,11 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4127	SHARK_ANGEL ref6=5,27,-1,-1,-1,12 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4128	FISH_SKATE_COMMON ref6=5,27,-1,-1,-1,13 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4129	FISH_RAY_MANTA ref6=5,27,-1,-1,-1,14 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4130	FISH_STINGRAY ref6=5,27,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4131	FISH_MILKFISH ref6=5,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4132	FISH_OPAH ref6=5,27,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4133	FISH_BLUEFISH ref6=5,27,-1,-1,-1,20 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4134	FISH_SWORDFISH ref6=5,27,-1,-1,-1,21 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4135	FISH_BARRACUDA_GREAT ref6=5,27,-1,-1,-1,22 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4136	CRAB ref6=5,27,-1,-1,-1,23 quantity 408->51 max 408->408 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4143	SHARK_FRILL ref6=5,27,-1,-1,-1,51 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4144	SHARK_MAKO_LONGFIN ref6=5,27,-1,-1,-1,57 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4145	SHARK_GREAT_WHITE ref6=5,27,-1,-1,-1,59 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4147	BIRD_ALBATROSS ref6=5,27,-1,-1,-1,67 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4148	SHARK_WHALE ref6=5,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4149	SHARK_TIGER ref6=5,27,-1,-1,-1,69 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4150	FISH_COELACANTH ref6=5,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4151	FISH_GROUPER_GIANT ref6=5,27,-1,-1,-1,72 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4152	FISH_MARLIN ref6=5,27,-1,-1,-1,73 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4153	FISH_TUNA_BLUEFIN ref6=5,27,-1,-1,-1,74 quantity 36->50 max 36->36 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4155	ORCA ref6=5,27,-1,-1,-1,80 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4156	SPERM_WHALE ref6=5,27,-1,-1,-1,82 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4279	BIRD_EAGLE ref6=5,28,-1,-1,-1,33 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4294	ELEPHANT ref6=5,28,-1,-1,-1,48 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4295	GIANT TORTOISE ref6=5,28,-1,-1,-1,49 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4298	WILD_BOAR ref6=5,28,-1,-1,-1,52 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4299	MONITOR_LIZARD ref6=5,28,-1,-1,-1,53 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4300	JACKAL ref6=5,28,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4301	CRETACEOUS_CARNOTAURUS ref6=5,28,-1,-1,-1,55 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4305	CHEETAH ref6=5,28,-1,-1,-1,59 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4306	COUGAR ref6=5,28,-1,-1,-1,60 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4307	TIGER ref6=5,28,-1,-1,-1,61 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4308	LION ref6=5,28,-1,-1,-1,62 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4309	LEOPARD ref6=5,28,-1,-1,-1,63 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4310	DINGO ref6=5,28,-1,-1,-1,64 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4311	JAGUAR ref6=5,28,-1,-1,-1,65 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4312	HYENA ref6=5,28,-1,-1,-1,66 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4313	GRAY_LANGUR ref6=5,28,-1,-1,-1,67 quantity 44->0 max 44->44 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4314	MONGOOSE ref6=5,28,-1,-1,-1,68 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4315	BONOBO ref6=5,28,-1,-1,-1,69 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4446	BIRD_EAGLE ref6=5,29,-1,-1,-1,33 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4461	ELEPHANT ref6=5,29,-1,-1,-1,48 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4462	GIANT TORTOISE ref6=5,29,-1,-1,-1,49 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4465	WILD_BOAR ref6=5,29,-1,-1,-1,52 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4466	MONITOR_LIZARD ref6=5,29,-1,-1,-1,53 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4467	JACKAL ref6=5,29,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4468	CRETACEOUS_CARNOTAURUS ref6=5,29,-1,-1,-1,55 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4472	CHEETAH ref6=5,29,-1,-1,-1,59 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4473	COUGAR ref6=5,29,-1,-1,-1,60 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4474	TIGER ref6=5,29,-1,-1,-1,61 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4475	LION ref6=5,29,-1,-1,-1,62 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4476	LEOPARD ref6=5,29,-1,-1,-1,63 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4477	DINGO ref6=5,29,-1,-1,-1,64 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4478	JAGUAR ref6=5,29,-1,-1,-1,65 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4479	HYENA ref6=5,29,-1,-1,-1,66 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4480	GRAY_LANGUR ref6=5,29,-1,-1,-1,67 quantity 42->0 max 42->42 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4481	MONGOOSE ref6=5,29,-1,-1,-1,68 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	pool_delta	4482	BONOBO ref6=5,29,-1,-1,-1,69 quantity 44->0 max 44->44 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	1	36883	2052883	end	summary	{"arm": "aquatic", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 51, "departures": 0, "deaths": 7, "ticks": 20082, "wall_s": 103.9, "stop": null, "ticks_per_s": 193.3, "save_untouched": true}
+20260917-123933	aquatic	2	16801	2032801	baseline	wild_present	0
+20260917-123933	aquatic	2	16801	2032801	manipulation	local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('^SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c))	aquatic opened: 146 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 71
+20260917-123933	aquatic	2	16801	2032801	manipulation	probe:release surface	released 0 unit(s) [surface]
+20260917-123933	aquatic	2	17145	2033145	arrival	171	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=19858 vanish=0 flag_src=1 flag_nf=1 pos=66,187,93 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	172	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27241 vanish=0 flag_src=1 flag_nf=1 pos=65,191,94 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	173	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=22999 vanish=0 flag_src=1 flag_nf=1 pos=62,191,94 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	174	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=27988 vanish=0 flag_src=1 flag_nf=0 pos=190,70,57 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	175	REACHER caste=FEMALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=27134 vanish=0 flag_src=1 flag_nf=0 pos=187,60,35 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	176	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=27732 vanish=0 flag_src=1 flag_nf=0 pos=53,7,18 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	183	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=27918 vanish=0 flag_src=1 flag_nf=0 pos=3,114,11 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	184	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=28293 vanish=0 flag_src=1 flag_nf=0 pos=0,111,10 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	185	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=28468 vanish=0 flag_src=1 flag_nf=0 pos=0,110,10 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	188	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=22945 vanish=0 flag_src=1 flag_nf=0 pos=182,7,1 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	189	CROCODILE_CAVE caste=MALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=29156 vanish=0 flag_src=1 flag_nf=0 pos=8,187,56 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	190	TROLL caste=MALE ref6=3,28,-1,10,-1,11 layer=cavern countdown=21459 vanish=0 flag_src=1 flag_nf=0 pos=129,5,35 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	191	REACHER caste=MALE ref6=4,28,-1,22,-1,23 layer=cavern countdown=24598 vanish=0 flag_src=1 flag_nf=0 pos=20,2,20 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	192	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=23610 vanish=0 flag_src=1 flag_nf=0 pos=120,182,4 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	193	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=29171 vanish=0 flag_src=1 flag_nf=0 pos=120,184,2 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	194	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=21059 vanish=0 flag_src=1 flag_nf=0 pos=129,191,1 listed_at=2033145
+20260917-123933	aquatic	2	17145	2033145	arrival	195	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=26813 vanish=0 flag_src=1 flag_nf=0 pos=130,191,1 listed_at=2033145
+20260917-123933	aquatic	2	17446	2033446	arrival	177	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=21215 vanish=0 flag_src=1 flag_nf=0 pos=60,0,18 listed_at=2033145
+20260917-123933	aquatic	2	17446	2033446	arrival	178	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=21113 vanish=0 flag_src=1 flag_nf=0 pos=62,0,18 listed_at=2033145
+20260917-123933	aquatic	2	17446	2033446	arrival	179	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=20460 vanish=0 flag_src=1 flag_nf=0 pos=53,0,18 listed_at=2033145
+20260917-123933	aquatic	2	17446	2033446	arrival	186	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26060 vanish=0 flag_src=1 flag_nf=0 pos=0,110,10 listed_at=2033145
+20260917-123933	aquatic	2	17446	2033446	arrival	187	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=27261 vanish=0 flag_src=1 flag_nf=0 pos=0,108,10 listed_at=2033145
+20260917-123933	aquatic	2	17745	2033745	arrival	180	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=27068 vanish=0 flag_src=1 flag_nf=0 pos=57,0,18 listed_at=2033145
+20260917-123933	aquatic	2	17745	2033745	arrival	181	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=20902 vanish=0 flag_src=1 flag_nf=0 pos=56,1,18 listed_at=2033145
+20260917-123933	aquatic	2	17745	2033745	arrival	182	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=29328 vanish=0 flag_src=1 flag_nf=0 pos=58,0,18 listed_at=2033145
+20260917-123933	aquatic	2	18340	2034340	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	aquatic	2	18340	2034340	every_applied	1	probe:release surface
+20260917-123933	aquatic	2	18617	2034617	arrival	196	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=19930 vanish=0 flag_src=1 flag_nf=1 pos=190,124,93 listed_at=2034617
+20260917-123933	aquatic	2	18617	2034617	arrival	197	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=23629 vanish=0 flag_src=1 flag_nf=1 pos=11,190,93 listed_at=2034617
+20260917-123933	aquatic	2	18617	2034617	arrival	198	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=20986 vanish=0 flag_src=1 flag_nf=1 pos=17,191,94 listed_at=2034617
+20260917-123933	aquatic	2	20108	2036108	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	aquatic	2	20108	2036108	every_applied	2	probe:release surface
+20260917-123933	aquatic	2	20358	2036358	arrival	199	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25902 vanish=0 flag_src=1 flag_nf=1 pos=124,0,93 listed_at=2036358
+20260917-123933	aquatic	2	20358	2036358	death	189	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=26193 last_flag_src=1 arrived_at=2033145
+20260917-123933	aquatic	2	20645	2036645	arrival	200	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=23422 vanish=0 flag_src=1 flag_nf=0 pos=9,26,58 listed_at=2036358
+20260917-123933	aquatic	2	21029	2037029	arrival	201	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=29827 vanish=0 flag_src=1 flag_nf=1 pos=68,191,94 listed_at=2037029
+20260917-123933	aquatic	2	21029	2037029	arrival	202	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=24667 vanish=0 flag_src=1 flag_nf=1 pos=71,191,94 listed_at=2037029
+20260917-123933	aquatic	2	21413	2037413	arrival	203	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27390 vanish=0 flag_src=1 flag_nf=1 pos=67,190,94 listed_at=2037029
+20260917-123933	aquatic	2	21786	2037786	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260917-123933	aquatic	2	21786	2037786	every_applied	3	probe:release surface
+20260917-123933	aquatic	2	22045	2038045	arrival	204	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27802 vanish=0 flag_src=1 flag_nf=1 pos=93,191,94 listed_at=2038045
+20260917-123933	aquatic	2	22454	2038454	arrival	205	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=21633 vanish=0 flag_src=1 flag_nf=1 pos=133,0,93 listed_at=2038454
+20260917-123933	aquatic	2	23596	2039596	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	2	23596	2039596	every_applied	4	probe:release surface
+20260917-123933	aquatic	2	24379	2040379	arrival	206	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=28811 vanish=0 flag_src=1 flag_nf=1 pos=0,185,94 listed_at=2040379
+20260917-123933	aquatic	2	24379	2040379	arrival	207	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=27598 vanish=0 flag_src=1 flag_nf=1 pos=0,172,93 listed_at=2040379
+20260917-123933	aquatic	2	25402	2041402	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	2	25402	2041402	every_applied	5	probe:release surface
+20260917-123933	aquatic	2	25658	2041658	arrival	208	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=26929 vanish=0 flag_src=1 flag_nf=1 pos=190,109,93 listed_at=2041658
+20260917-123933	aquatic	2	26610	2042610	arrival	209	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25014 vanish=0 flag_src=1 flag_nf=1 pos=2,180,93 listed_at=2042267
+20260917-123933	aquatic	2	26918	2042918	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	2	26918	2042918	every_applied	6	probe:release surface
+20260917-123933	aquatic	2	27307	2043307	arrival	210	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27019 vanish=0 flag_src=1 flag_nf=1 pos=57,190,93 listed_at=2043307
+20260917-123933	aquatic	2	27307	2043307	arrival	211	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=28294 vanish=0 flag_src=1 flag_nf=1 pos=59,191,94 listed_at=2043307
+20260917-123933	aquatic	2	27307	2043307	arrival	212	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=27597 vanish=0 flag_src=1 flag_nf=1 pos=52,190,94 listed_at=2043307
+20260917-123933	aquatic	2	28525	2044525	arrival	213	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24603 vanish=0 flag_src=1 flag_nf=0 pos=34,0,38 listed_at=2044525
+20260917-123933	aquatic	2	28525	2044525	arrival	214	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=22267 vanish=0 flag_src=1 flag_nf=0 pos=33,0,38 listed_at=2044525
+20260917-123933	aquatic	2	28525	2044525	arrival	215	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23355 vanish=0 flag_src=1 flag_nf=0 pos=32,0,38 listed_at=2044525
+20260917-123933	aquatic	2	28525	2044525	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	aquatic	2	28525	2044525	every_applied	7	probe:release surface
+20260917-123933	aquatic	2	28525	2044525	death	175	REACHER ref6=3,28,-1,10,-1,13 last_countdown=16026 last_flag_src=1 arrived_at=2033145
+20260917-123933	aquatic	2	28869	2044869	arrival	216	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20092 vanish=0 flag_src=1 flag_nf=0 pos=33,0,38 listed_at=2044525
+20260917-123933	aquatic	2	28869	2044869	arrival	222	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=22115 vanish=0 flag_src=1 flag_nf=1 pos=0,184,94 listed_at=2044869
+20260917-123933	aquatic	2	28869	2044869	arrival	223	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=25974 vanish=0 flag_src=1 flag_nf=1 pos=0,186,94 listed_at=2044869
+20260917-123933	aquatic	2	29124	2045124	arrival	217	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=25394 vanish=0 flag_src=1 flag_nf=0 pos=34,0,38 listed_at=2044525
+20260917-123933	aquatic	2	29124	2045124	arrival	218	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=27823 vanish=0 flag_src=1 flag_nf=0 pos=32,0,38 listed_at=2044525
+20260917-123933	aquatic	2	29124	2045124	arrival	219	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23938 vanish=0 flag_src=1 flag_nf=0 pos=33,0,38 listed_at=2044525
+20260917-123933	aquatic	2	29124	2045124	arrival	220	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=28342 vanish=0 flag_src=1 flag_nf=0 pos=31,0,38 listed_at=2044525
+20260917-123933	aquatic	2	29124	2045124	arrival	224	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=21778 vanish=0 flag_src=1 flag_nf=1 pos=2,187,94 listed_at=2044869
+20260917-123933	aquatic	2	29484	2045484	arrival	221	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24536 vanish=0 flag_src=1 flag_nf=0 pos=33,0,38 listed_at=2044525
+20260917-123933	aquatic	2	30095	2046095	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	aquatic	2	30095	2046095	every_applied	8	probe:release surface
+20260917-123933	aquatic	2	31199	2047199	arrival	226	SHARK_BLUE caste=MALE ref6=3,28,-1,-1,-1,10 layer=surface countdown=23353 vanish=0 flag_src=1 flag_nf=1 pos=52,92,92 listed_at=2047199
+20260917-123933	aquatic	2	31774	2047774	manipulation	probe:release surface	released 1 unit(s) [surface]
+20260917-123933	aquatic	2	31774	2047774	every_applied	9	probe:release surface
+20260917-123933	aquatic	2	31774	2047774	death	206	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=21674 last_flag_src=0 arrived_at=2040379
+20260917-123933	aquatic	2	33198	2049198	arrival	227	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=28643 vanish=0 flag_src=1 flag_nf=1 pos=0,178,93 listed_at=2049198
+20260917-123933	aquatic	2	33198	2049198	arrival	228	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=23880 vanish=0 flag_src=1 flag_nf=1 pos=0,165,93 listed_at=2049198
+20260917-123933	aquatic	2	33511	2049511	manipulation	probe:release surface	released 1 unit(s) [surface]
+20260917-123933	aquatic	2	33511	2049511	every_applied	10	probe:release surface
+20260917-123933	aquatic	2	33511	2049511	death	227	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=28643 last_flag_src=1 arrived_at=2049198
+20260917-123933	aquatic	2	33865	2049865	arrival	229	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=24673 vanish=0 flag_src=1 flag_nf=1 pos=14,185,93 listed_at=2049865
+20260917-123933	aquatic	2	33865	2049865	death	228	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=23567 last_flag_src=1 arrived_at=2049198
+20260917-123933	aquatic	2	34240	2050240	arrival	230	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=27575 vanish=0 flag_src=1 flag_nf=1 pos=115,2,93 listed_at=2049865
+20260917-123933	aquatic	2	34240	2050240	death	209	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=17759 last_flag_src=0 arrived_at=2042610
+20260917-123933	aquatic	2	35302	2051302	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	aquatic	2	35302	2051302	every_applied	11	probe:release surface
+20260917-123933	aquatic	2	35730	2051730	arrival	231	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=22927 vanish=0 flag_src=1 flag_nf=1 pos=2,154,93 listed_at=2051730
+20260917-123933	aquatic	2	35730	2051730	arrival	232	CROCODILE_SALTWATER caste=MALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=25992 vanish=0 flag_src=1 flag_nf=1 pos=4,191,94 listed_at=2051730
+20260917-123933	aquatic	2	35730	2051730	arrival	233	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=20851 vanish=0 flag_src=1 flag_nf=1 pos=2,191,94 listed_at=2051730
+20260917-123933	aquatic	2	35730	2051730	arrival	234	CROCODILE_SALTWATER caste=FEMALE ref6=4,29,-1,-1,-1,44 layer=surface countdown=25665 vanish=0 flag_src=1 flag_nf=1 pos=1,191,94 listed_at=2051730
+20260917-123933	aquatic	2	37132	2053132	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260917-123933	aquatic	2	37132	2053132	every_applied	12	probe:release surface
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2166	SHARK_SPINY_DOGFISH ref6=3,27,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2167	SHARK_WOBBEGONG_SPOTTED ref6=3,27,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2168	SHARK_MAKO_SHORTFIN ref6=3,27,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2169	SHARK_BULL ref6=3,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2170	SHARK_REEF_BLACKTIP ref6=3,27,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2171	SHARK_REEF_WHITETIP ref6=3,27,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2172	SHARK_BLUE ref6=3,27,-1,-1,-1,10 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2173	SHARK_HAMMERHEAD ref6=3,27,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2174	SHARK_ANGEL ref6=3,27,-1,-1,-1,12 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2175	FISH_SKATE_COMMON ref6=3,27,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2176	FISH_RAY_MANTA ref6=3,27,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2177	FISH_STINGRAY ref6=3,27,-1,-1,-1,15 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2178	FISH_MILKFISH ref6=3,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2179	FISH_OPAH ref6=3,27,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2180	FISH_BLUEFISH ref6=3,27,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2181	FISH_SWORDFISH ref6=3,27,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2182	FISH_BARRACUDA_GREAT ref6=3,27,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2183	CRAB ref6=3,27,-1,-1,-1,23 quantity 441->52 max 441->441 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2190	SHARK_FRILL ref6=3,27,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2191	SHARK_MAKO_LONGFIN ref6=3,27,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2192	SHARK_GREAT_WHITE ref6=3,27,-1,-1,-1,59 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2194	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2195	SHARK_WHALE ref6=3,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2196	SHARK_TIGER ref6=3,27,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2197	FISH_COELACANTH ref6=3,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2198	FISH_GROUPER_GIANT ref6=3,27,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2199	FISH_MARLIN ref6=3,27,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2200	FISH_TUNA_BLUEFIN ref6=3,27,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2202	ORCA ref6=3,27,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2203	SPERM_WHALE ref6=3,27,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2293	SHARK_SPINY_DOGFISH ref6=3,28,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2294	SHARK_WOBBEGONG_SPOTTED ref6=3,28,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2295	SHARK_MAKO_SHORTFIN ref6=3,28,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2296	SHARK_BULL ref6=3,28,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2297	SHARK_REEF_BLACKTIP ref6=3,28,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2298	SHARK_REEF_WHITETIP ref6=3,28,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2299	SHARK_BLUE ref6=3,28,-1,-1,-1,10 quantity 22->49 max 22->22 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2300	SHARK_HAMMERHEAD ref6=3,28,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2301	SHARK_ANGEL ref6=3,28,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2302	FISH_SKATE_COMMON ref6=3,28,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2303	FISH_RAY_MANTA ref6=3,28,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2304	FISH_STINGRAY ref6=3,28,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2305	FISH_MILKFISH ref6=3,28,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2306	FISH_OPAH ref6=3,28,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2307	FISH_BLUEFISH ref6=3,28,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2308	FISH_SWORDFISH ref6=3,28,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2309	FISH_BARRACUDA_GREAT ref6=3,28,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2310	CRAB ref6=3,28,-1,-1,-1,23 quantity 437->39 max 437->437 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2311	Vermin:467 ref6=3,28,-1,-1,-1,28 quantity 315->315 max 315->315 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2312	Vermin:538 ref6=3,28,-1,-1,-1,30 quantity 309->307 max 309->309 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2313	Vermin:540 ref6=3,28,-1,-1,-1,31 quantity 187->185 max 187->187 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2314	Vermin:544 ref6=3,28,-1,-1,-1,34 quantity 394->393 max 394->394 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2315	Vermin:552 ref6=3,28,-1,-1,-1,37 quantity 192->192 max 192->192 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2316	Vermin:558 ref6=3,28,-1,-1,-1,40 quantity 246->241 max 246->246 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2317	SHARK_FRILL ref6=3,28,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2318	SHARK_MAKO_LONGFIN ref6=3,28,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2319	SHARK_GREAT_WHITE ref6=3,28,-1,-1,-1,59 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2320	Vermin:551 ref6=3,28,-1,-1,-1,63 quantity 234->235 max 234->234 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2321	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2322	SHARK_WHALE ref6=3,28,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2323	SHARK_TIGER ref6=3,28,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2324	FISH_COELACANTH ref6=3,28,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2325	FISH_GROUPER_GIANT ref6=3,28,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2326	FISH_MARLIN ref6=3,28,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2327	FISH_TUNA_BLUEFIN ref6=3,28,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2328	Vermin:446 ref6=3,28,-1,-1,-1,78 quantity 448->447 max 448->448 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2329	ORCA ref6=3,28,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2330	SPERM_WHALE ref6=3,28,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2331	Vermin:543 ref6=3,28,-1,-1,-1,86 quantity 226->220 max 226->226 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2332	Vermin:553 ref6=3,28,-1,-1,-1,88 quantity 99->99 max 99->99 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2363	TROGLODYTE ref6=3,28,-1,10,-1,2 quantity 15->6 max 15->15 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2372	TROLL ref6=3,28,-1,10,-1,11 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2374	REACHER ref6=3,28,-1,10,-1,13 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2411	MAGMA_CRAB ref6=3,28,-1,29,-1,0 quantity 19->14 max 19->19 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2423	SHARK_SPINY_DOGFISH ref6=3,29,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2424	SHARK_WOBBEGONG_SPOTTED ref6=3,29,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2425	SHARK_MAKO_SHORTFIN ref6=3,29,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2426	SHARK_BULL ref6=3,29,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2427	SHARK_REEF_BLACKTIP ref6=3,29,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2428	SHARK_REEF_WHITETIP ref6=3,29,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2429	SHARK_BLUE ref6=3,29,-1,-1,-1,10 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2430	SHARK_HAMMERHEAD ref6=3,29,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2431	SHARK_ANGEL ref6=3,29,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2432	FISH_SKATE_COMMON ref6=3,29,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2433	FISH_RAY_MANTA ref6=3,29,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2434	FISH_STINGRAY ref6=3,29,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2435	FISH_MILKFISH ref6=3,29,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2436	FISH_OPAH ref6=3,29,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2437	FISH_BLUEFISH ref6=3,29,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2438	FISH_SWORDFISH ref6=3,29,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2439	FISH_BARRACUDA_GREAT ref6=3,29,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2440	CRAB ref6=3,29,-1,-1,-1,23 quantity 434->52 max 434->434 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2447	SHARK_FRILL ref6=3,29,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2448	SHARK_MAKO_LONGFIN ref6=3,29,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2449	SHARK_GREAT_WHITE ref6=3,29,-1,-1,-1,59 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2451	BIRD_ALBATROSS ref6=3,29,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2452	SHARK_WHALE ref6=3,29,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2453	SHARK_TIGER ref6=3,29,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2454	FISH_COELACANTH ref6=3,29,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2455	FISH_GROUPER_GIANT ref6=3,29,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2456	FISH_MARLIN ref6=3,29,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2457	FISH_TUNA_BLUEFIN ref6=3,29,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2459	ORCA ref6=3,29,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	2460	SPERM_WHALE ref6=3,29,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3106	SHARK_SPINY_DOGFISH ref6=4,27,-1,-1,-1,2 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3107	SHARK_WOBBEGONG_SPOTTED ref6=4,27,-1,-1,-1,3 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3108	SHARK_MAKO_SHORTFIN ref6=4,27,-1,-1,-1,6 quantity 12->50 max 12->12 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3109	SHARK_BULL ref6=4,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3110	SHARK_REEF_BLACKTIP ref6=4,27,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3111	SHARK_REEF_WHITETIP ref6=4,27,-1,-1,-1,9 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3112	SHARK_BLUE ref6=4,27,-1,-1,-1,10 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3113	SHARK_HAMMERHEAD ref6=4,27,-1,-1,-1,11 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3114	SHARK_ANGEL ref6=4,27,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3115	FISH_SKATE_COMMON ref6=4,27,-1,-1,-1,13 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3116	FISH_RAY_MANTA ref6=4,27,-1,-1,-1,14 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3117	FISH_STINGRAY ref6=4,27,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3118	FISH_MILKFISH ref6=4,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3119	FISH_OPAH ref6=4,27,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3120	FISH_BLUEFISH ref6=4,27,-1,-1,-1,20 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3121	FISH_SWORDFISH ref6=4,27,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3122	FISH_BARRACUDA_GREAT ref6=4,27,-1,-1,-1,22 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3123	CRAB ref6=4,27,-1,-1,-1,23 quantity 421->52 max 421->421 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3130	SHARK_FRILL ref6=4,27,-1,-1,-1,51 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3131	SHARK_MAKO_LONGFIN ref6=4,27,-1,-1,-1,57 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3132	SHARK_GREAT_WHITE ref6=4,27,-1,-1,-1,59 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3134	BIRD_ALBATROSS ref6=4,27,-1,-1,-1,67 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3135	SHARK_WHALE ref6=4,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3136	SHARK_TIGER ref6=4,27,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3137	FISH_COELACANTH ref6=4,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3138	FISH_GROUPER_GIANT ref6=4,27,-1,-1,-1,72 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3139	FISH_MARLIN ref6=4,27,-1,-1,-1,73 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3140	FISH_TUNA_BLUEFIN ref6=4,27,-1,-1,-1,74 quantity 37->50 max 37->37 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3142	ORCA ref6=4,27,-1,-1,-1,80 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3143	SPERM_WHALE ref6=4,27,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3266	BIRD_EAGLE ref6=4,28,-1,-1,-1,33 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3273	Vermin:145 ref6=4,28,-1,-1,-1,40 quantity 4193->4110 max 4193->4193 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3276	Vermin:196 ref6=4,28,-1,-1,-1,43 quantity 2582->286 max 2582->2582 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3279	Vermin:206 ref6=4,28,-1,-1,-1,46 quantity 302->303 max 302->302 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3281	ELEPHANT ref6=4,28,-1,-1,-1,48 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3282	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3283	Vermin:485 ref6=4,28,-1,-1,-1,50 quantity 365->366 max 365->365 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3284	Vermin:528 ref6=4,28,-1,-1,-1,51 quantity 421->422 max 421->421 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3285	WILD_BOAR ref6=4,28,-1,-1,-1,52 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3286	MONITOR_LIZARD ref6=4,28,-1,-1,-1,53 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3287	JACKAL ref6=4,28,-1,-1,-1,54 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3288	CRETACEOUS_CARNOTAURUS ref6=4,28,-1,-1,-1,55 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3292	CHEETAH ref6=4,28,-1,-1,-1,59 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3293	COUGAR ref6=4,28,-1,-1,-1,60 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3294	TIGER ref6=4,28,-1,-1,-1,61 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3295	LION ref6=4,28,-1,-1,-1,62 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3296	LEOPARD ref6=4,28,-1,-1,-1,63 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3297	DINGO ref6=4,28,-1,-1,-1,64 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3298	JAGUAR ref6=4,28,-1,-1,-1,65 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3299	HYENA ref6=4,28,-1,-1,-1,66 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3300	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3301	MONGOOSE ref6=4,28,-1,-1,-1,68 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3302	BONOBO ref6=4,28,-1,-1,-1,69 quantity 48->0 max 48->48 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3312	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3316	Vermin:617 ref6=4,28,-1,2,-1,13 quantity 445->446 max 445->445 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3317	Vermin:616 ref6=4,28,-1,2,-1,14 quantity 352->348 max 352->352 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3318	Vermin:410 ref6=4,28,-1,2,-1,15 quantity 433->429 max 433->433 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3319	Vermin:621 ref6=4,28,-1,2,-1,16 quantity 421->414 max 421->421 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3327	Vermin:630 ref6=4,28,-1,2,-1,24 quantity 277->258 max 277->277 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3328	Vermin:623 ref6=4,28,-1,2,-1,25 quantity 230->219 max 230->230 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3329	TROLL ref6=4,28,-1,2,-1,26 quantity 8->6 max 8->8 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3338	Vermin:623 ref6=4,28,-1,10,-1,7 quantity 342->312 max 342->342 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3339	Vermin:616 ref6=4,28,-1,10,-1,8 quantity 344->337 max 344->344 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3340	Vermin:630 ref6=4,28,-1,10,-1,9 quantity 329->307 max 329->329 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3365	ELK_BIRD ref6=4,28,-1,22,-1,18 quantity 31->24 max 31->31 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3370	REACHER ref6=4,28,-1,22,-1,23 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3376	Vermin:419 ref6=4,28,-1,22,-1,29 quantity 345->268 max 345->345 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3382	Vermin:620 ref6=4,28,-1,29,-1,4 quantity 331->260 max 331->331 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3385	DEMON_4 ref6=4,28,-1,38,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3389	DEMON_2 ref6=4,28,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3428	WILD_BOAR ref6=4,29,-1,-1,-1,38 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3429	ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3434	CROCODILE_SALTWATER ref6=4,29,-1,-1,-1,44 quantity 7->31 max 7->7 discovered 0->1 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3435	LEOPARD ref6=4,29,-1,-1,-1,45 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3436	DINGO ref6=4,29,-1,-1,-1,46 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3437	JAGUAR ref6=4,29,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3438	BIRD_EAGLE ref6=4,29,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3439	WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3440	BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3441	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3442	HONEY BADGER ref6=4,29,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3443	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	3446	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4119	SHARK_SPINY_DOGFISH ref6=5,27,-1,-1,-1,2 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4120	SHARK_WOBBEGONG_SPOTTED ref6=5,27,-1,-1,-1,3 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4121	SHARK_MAKO_SHORTFIN ref6=5,27,-1,-1,-1,6 quantity 12->50 max 12->12 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4122	SHARK_BULL ref6=5,27,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4123	SHARK_REEF_BLACKTIP ref6=5,27,-1,-1,-1,8 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4124	SHARK_REEF_WHITETIP ref6=5,27,-1,-1,-1,9 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4125	SHARK_BLUE ref6=5,27,-1,-1,-1,10 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4126	SHARK_HAMMERHEAD ref6=5,27,-1,-1,-1,11 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4127	SHARK_ANGEL ref6=5,27,-1,-1,-1,12 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4128	FISH_SKATE_COMMON ref6=5,27,-1,-1,-1,13 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4129	FISH_RAY_MANTA ref6=5,27,-1,-1,-1,14 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4130	FISH_STINGRAY ref6=5,27,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4131	FISH_MILKFISH ref6=5,27,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4132	FISH_OPAH ref6=5,27,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4133	FISH_BLUEFISH ref6=5,27,-1,-1,-1,20 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4134	FISH_SWORDFISH ref6=5,27,-1,-1,-1,21 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4135	FISH_BARRACUDA_GREAT ref6=5,27,-1,-1,-1,22 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4136	CRAB ref6=5,27,-1,-1,-1,23 quantity 408->50 max 408->408 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4143	SHARK_FRILL ref6=5,27,-1,-1,-1,51 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4144	SHARK_MAKO_LONGFIN ref6=5,27,-1,-1,-1,57 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4145	SHARK_GREAT_WHITE ref6=5,27,-1,-1,-1,59 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4147	BIRD_ALBATROSS ref6=5,27,-1,-1,-1,67 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4148	SHARK_WHALE ref6=5,27,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4149	SHARK_TIGER ref6=5,27,-1,-1,-1,69 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4150	FISH_COELACANTH ref6=5,27,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4151	FISH_GROUPER_GIANT ref6=5,27,-1,-1,-1,72 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4152	FISH_MARLIN ref6=5,27,-1,-1,-1,73 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4153	FISH_TUNA_BLUEFIN ref6=5,27,-1,-1,-1,74 quantity 36->50 max 36->36 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4155	ORCA ref6=5,27,-1,-1,-1,80 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4156	SPERM_WHALE ref6=5,27,-1,-1,-1,82 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4279	BIRD_EAGLE ref6=5,28,-1,-1,-1,33 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4294	ELEPHANT ref6=5,28,-1,-1,-1,48 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4295	GIANT TORTOISE ref6=5,28,-1,-1,-1,49 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4298	WILD_BOAR ref6=5,28,-1,-1,-1,52 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4299	MONITOR_LIZARD ref6=5,28,-1,-1,-1,53 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4300	JACKAL ref6=5,28,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4301	CRETACEOUS_CARNOTAURUS ref6=5,28,-1,-1,-1,55 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4305	CHEETAH ref6=5,28,-1,-1,-1,59 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4306	COUGAR ref6=5,28,-1,-1,-1,60 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4307	TIGER ref6=5,28,-1,-1,-1,61 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4308	LION ref6=5,28,-1,-1,-1,62 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4309	LEOPARD ref6=5,28,-1,-1,-1,63 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4310	DINGO ref6=5,28,-1,-1,-1,64 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4311	JAGUAR ref6=5,28,-1,-1,-1,65 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4312	HYENA ref6=5,28,-1,-1,-1,66 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4313	GRAY_LANGUR ref6=5,28,-1,-1,-1,67 quantity 44->0 max 44->44 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4314	MONGOOSE ref6=5,28,-1,-1,-1,68 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4315	BONOBO ref6=5,28,-1,-1,-1,69 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4446	BIRD_EAGLE ref6=5,29,-1,-1,-1,33 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4461	ELEPHANT ref6=5,29,-1,-1,-1,48 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4462	GIANT TORTOISE ref6=5,29,-1,-1,-1,49 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4465	WILD_BOAR ref6=5,29,-1,-1,-1,52 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4466	MONITOR_LIZARD ref6=5,29,-1,-1,-1,53 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4467	JACKAL ref6=5,29,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4468	CRETACEOUS_CARNOTAURUS ref6=5,29,-1,-1,-1,55 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4472	CHEETAH ref6=5,29,-1,-1,-1,59 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4473	COUGAR ref6=5,29,-1,-1,-1,60 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4474	TIGER ref6=5,29,-1,-1,-1,61 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4475	LION ref6=5,29,-1,-1,-1,62 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4476	LEOPARD ref6=5,29,-1,-1,-1,63 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4477	DINGO ref6=5,29,-1,-1,-1,64 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4478	JAGUAR ref6=5,29,-1,-1,-1,65 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4479	HYENA ref6=5,29,-1,-1,-1,66 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4480	GRAY_LANGUR ref6=5,29,-1,-1,-1,67 quantity 42->0 max 42->42 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4481	MONGOOSE ref6=5,29,-1,-1,-1,68 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	pool_delta	4482	BONOBO ref6=5,29,-1,-1,-1,69 quantity 44->0 max 44->44 discovered 0->0 extinct 0->1
+20260917-123933	aquatic	2	37132	2053132	end	summary	{"arm": "aquatic", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 63, "departures": 0, "deaths": 6, "ticks": 20331, "wall_s": 107.5, "stop": null, "ticks_per_s": 189.2, "save_untouched": true}
+20260917-123933	natural	1	16801	2032801	baseline	wild_present	0
+20260917-123933	natural	1	16801	2032801	manipulation	probe:release surface	released 0 unit(s) [surface]
+20260917-123933	natural	1	17161	2033161	arrival	171	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28169 vanish=0 flag_src=1 flag_nf=1 pos=172,136,103 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	172	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22860 vanish=0 flag_src=1 flag_nf=1 pos=174,138,101 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	173	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24612 vanish=0 flag_src=1 flag_nf=1 pos=179,140,100 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	174	TOAD_GIANT_CAVE caste=MALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=25938 vanish=0 flag_src=1 flag_nf=0 pos=7,191,56 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	175	JABBERER caste=MALE ref6=4,28,-1,10,-1,6 layer=cavern countdown=20570 vanish=0 flag_src=1 flag_nf=0 pos=179,155,36 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	176	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=23526 vanish=0 flag_src=1 flag_nf=0 pos=11,4,20 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	177	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=25993 vanish=0 flag_src=1 flag_nf=0 pos=19,3,20 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	178	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=24798 vanish=0 flag_src=1 flag_nf=0 pos=11,4,20 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	179	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=21805 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	180	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=26270 vanish=0 flag_src=1 flag_nf=0 pos=22,1,20 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	183	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=20786 vanish=0 flag_src=1 flag_nf=0 pos=75,1,10 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	184	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26715 vanish=0 flag_src=1 flag_nf=0 pos=75,0,10 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	185	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=27445 vanish=0 flag_src=1 flag_nf=0 pos=73,0,10 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	186	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=19965 vanish=0 flag_src=1 flag_nf=0 pos=71,0,10 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	188	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=19973 vanish=0 flag_src=1 flag_nf=0 pos=0,157,4 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	189	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=27843 vanish=0 flag_src=1 flag_nf=0 pos=3,152,2 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	190	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=22061 vanish=0 flag_src=1 flag_nf=0 pos=3,152,3 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	191	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=29038 vanish=0 flag_src=1 flag_nf=0 pos=3,151,2 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	192	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=24452 vanish=0 flag_src=1 flag_nf=0 pos=0,155,2 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	193	TOAD_GIANT_CAVE caste=MALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=22534 vanish=0 flag_src=1 flag_nf=0 pos=191,121,57 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	194	BAT_GIANT caste=MALE ref6=4,28,-1,10,-1,4 layer=cavern countdown=28261 vanish=0 flag_src=1 flag_nf=0 pos=164,182,37 listed_at=2033161
+20260917-123933	natural	1	17161	2033161	arrival	195	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24744 vanish=0 flag_src=1 flag_nf=0 pos=3,21,19 listed_at=2033161
+20260917-123933	natural	1	17522	2033522	arrival	181	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=27753 vanish=0 flag_src=1 flag_nf=0 pos=21,1,20 listed_at=2033161
+20260917-123933	natural	1	17522	2033522	arrival	182	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=22803 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2033161
+20260917-123933	natural	1	17522	2033522	arrival	187	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26279 vanish=0 flag_src=1 flag_nf=0 pos=75,0,10 listed_at=2033161
+20260917-123933	natural	1	17897	2033897	arrival	196	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23761 vanish=0 flag_src=1 flag_nf=0 pos=19,27,19 listed_at=2033161
+20260917-123933	natural	1	17897	2033897	arrival	197	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23041 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2033161
+20260917-123933	natural	1	17897	2033897	death	194	BAT_GIANT ref6=4,28,-1,10,-1,4 last_countdown=27900 last_flag_src=1 arrived_at=2033161
+20260917-123933	natural	1	18218	2034218	arrival	198	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=22866 vanish=0 flag_src=1 flag_nf=0 pos=12,15,19 listed_at=2033161
+20260917-123933	natural	1	18218	2034218	arrival	199	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24058 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2033161
+20260917-123933	natural	1	18218	2034218	arrival	200	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24930 vanish=0 flag_src=1 flag_nf=0 pos=30,11,20 listed_at=2033161
+20260917-123933	natural	1	18218	2034218	arrival	201	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24556 vanish=0 flag_src=1 flag_nf=0 pos=23,0,20 listed_at=2033161
+20260917-123933	natural	1	18218	2034218	arrival	208	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=27332 vanish=0 flag_src=1 flag_nf=0 pos=31,182,35 listed_at=2034218
+20260917-123933	natural	1	18218	2034218	arrival	209	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23217 vanish=0 flag_src=1 flag_nf=0 pos=27,187,35 listed_at=2034218
+20260917-123933	natural	1	18218	2034218	arrival	210	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=27034 vanish=0 flag_src=1 flag_nf=0 pos=22,191,35 listed_at=2034218
+20260917-123933	natural	1	18544	2034544	arrival	202	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=22158 vanish=0 flag_src=1 flag_nf=0 pos=13,22,21 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	203	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=25557 vanish=0 flag_src=1 flag_nf=0 pos=9,27,19 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	204	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=26526 vanish=0 flag_src=1 flag_nf=0 pos=22,0,20 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	205	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=27403 vanish=0 flag_src=1 flag_nf=0 pos=32,12,21 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	206	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=27091 vanish=0 flag_src=1 flag_nf=0 pos=20,7,20 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	207	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24186 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2033161
+20260917-123933	natural	1	18544	2034544	arrival	211	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=27953 vanish=0 flag_src=1 flag_nf=0 pos=25,188,35 listed_at=2034218
+20260917-123933	natural	1	18544	2034544	arrival	212	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=26114 vanish=0 flag_src=1 flag_nf=0 pos=21,191,35 listed_at=2034218
+20260917-123933	natural	1	18544	2034544	arrival	213	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=27381 vanish=0 flag_src=1 flag_nf=0 pos=24,190,35 listed_at=2034218
+20260917-123933	natural	1	18544	2034544	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	natural	1	18544	2034544	every_applied	1	probe:release surface
+20260917-123933	natural	1	18850	2034850	arrival	214	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24359 vanish=0 flag_src=1 flag_nf=0 pos=21,191,35 listed_at=2034218
+20260917-123933	natural	1	18850	2034850	arrival	215	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=29086 vanish=0 flag_src=1 flag_nf=1 pos=176,128,103 listed_at=2034850
+20260917-123933	natural	1	18850	2034850	arrival	216	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23274 vanish=0 flag_src=1 flag_nf=1 pos=180,126,99 listed_at=2034850
+20260917-123933	natural	1	18850	2034850	arrival	217	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22274 vanish=0 flag_src=1 flag_nf=1 pos=183,123,96 listed_at=2034850
+20260917-123933	natural	1	18850	2034850	arrival	218	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23561 vanish=0 flag_src=1 flag_nf=1 pos=185,124,98 listed_at=2034850
+20260917-123933	natural	1	18850	2034850	arrival	219	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=20762 vanish=0 flag_src=1 flag_nf=1 pos=187,128,103 listed_at=2034850
+20260917-123933	natural	1	18850	2034850	death	197	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=22393 last_flag_src=1 arrived_at=2033897
+20260917-123933	natural	1	18850	2034850	death	198	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=22540 last_flag_src=1 arrived_at=2034218
+20260917-123933	natural	1	20133	2036133	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260917-123933	natural	1	20133	2036133	every_applied	2	probe:release surface
+20260917-123933	natural	1	20404	2036404	arrival	220	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=29058 vanish=0 flag_src=1 flag_nf=1 pos=184,80,101 listed_at=2036404
+20260917-123933	natural	1	20404	2036404	arrival	221	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23590 vanish=0 flag_src=1 flag_nf=1 pos=184,82,99 listed_at=2036404
+20260917-123933	natural	1	20404	2036404	arrival	222	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26368 vanish=0 flag_src=1 flag_nf=1 pos=189,79,98 listed_at=2036404
+20260917-123933	natural	1	20404	2036404	arrival	223	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24033 vanish=0 flag_src=1 flag_nf=1 pos=191,78,98 listed_at=2036404
+20260917-123933	natural	1	20696	2036696	arrival	224	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26649 vanish=0 flag_src=1 flag_nf=1 pos=186,72,99 listed_at=2036404
+20260917-123933	natural	1	20696	2036696	arrival	225	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28714 vanish=0 flag_src=1 flag_nf=1 pos=186,76,97 listed_at=2036404
+20260917-123933	natural	1	20696	2036696	arrival	226	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28653 vanish=0 flag_src=1 flag_nf=1 pos=186,82,99 listed_at=2036404
+20260917-123933	natural	1	21471	2037471	death	174	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=21877 last_flag_src=1 arrived_at=2033161
+20260917-123933	natural	1	21817	2037817	arrival	227	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=27737 vanish=0 flag_src=1 flag_nf=0 pos=106,190,59 listed_at=2037817
+20260917-123933	natural	1	21817	2037817	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260917-123933	natural	1	21817	2037817	every_applied	3	probe:release surface
+20260917-123933	natural	1	22097	2038097	arrival	228	BIRD_FALCON_PEREGRINE caste=MALE ref6=4,29,-1,-1,-1,51 layer=surface countdown=28046 vanish=0 flag_src=1 flag_nf=1 pos=97,189,102 listed_at=2038097
+20260917-123933	natural	1	22097	2038097	arrival	229	ANACONDA caste=FEMALE ref6=4,29,-1,-1,-1,39 layer=surface countdown=29516 vanish=0 flag_src=1 flag_nf=1 pos=1,183,94 listed_at=2038097
+20260917-123933	natural	1	23623	2039623	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	natural	1	23623	2039623	every_applied	4	probe:release surface
+20260917-123933	natural	1	23890	2039890	arrival	230	WATER_BUFFALO caste=FEMALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=22285 vanish=0 flag_src=1 flag_nf=1 pos=45,188,94 listed_at=2039890
+20260917-123933	natural	1	23890	2039890	arrival	231	WATER_BUFFALO caste=FEMALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=25574 vanish=0 flag_src=1 flag_nf=1 pos=44,190,94 listed_at=2039890
+20260917-123933	natural	1	23890	2039890	arrival	232	WATER_BUFFALO caste=FEMALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=20000 vanish=0 flag_src=1 flag_nf=1 pos=43,191,94 listed_at=2039890
+20260917-123933	natural	1	23890	2039890	arrival	233	WATER_BUFFALO caste=FEMALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=23242 vanish=0 flag_src=1 flag_nf=1 pos=44,191,94 listed_at=2039890
+20260917-123933	natural	1	23890	2039890	arrival	234	WATER_BUFFALO caste=MALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=26346 vanish=0 flag_src=1 flag_nf=1 pos=44,189,94 listed_at=2039890
+20260917-123933	natural	1	23890	2039890	arrival	235	WATER_BUFFALO caste=MALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=27483 vanish=0 flag_src=1 flag_nf=1 pos=40,191,94 listed_at=2039890
+20260917-123933	natural	1	25175	2041175	manipulation	probe:release surface	released 6 unit(s) [surface]
+20260917-123933	natural	1	25175	2041175	every_applied	5	probe:release surface
+20260917-123933	natural	1	25470	2041470	arrival	236	BIRD_OSPREY caste=FEMALE ref6=4,29,-1,-1,-1,50 layer=surface countdown=22121 vanish=0 flag_src=1 flag_nf=1 pos=87,182,96 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	237	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26602 vanish=0 flag_src=1 flag_nf=1 pos=168,188,97 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	238	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28834 vanish=0 flag_src=1 flag_nf=1 pos=164,189,100 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	239	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=29065 vanish=0 flag_src=1 flag_nf=1 pos=159,189,102 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	240	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=20183 vanish=0 flag_src=1 flag_nf=1 pos=156,190,100 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	241	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=20287 vanish=0 flag_src=1 flag_nf=1 pos=152,191,100 listed_at=2041470
+20260917-123933	natural	1	25470	2041470	arrival	242	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23373 vanish=0 flag_src=1 flag_nf=1 pos=153,191,100 listed_at=2041470
+20260917-123933	natural	1	26800	2042800	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260917-123933	natural	1	26800	2042800	every_applied	6	probe:release surface
+20260917-123933	natural	1	27130	2043130	arrival	243	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26978 vanish=0 flag_src=1 flag_nf=1 pos=9,102,104 listed_at=2043130
+20260917-123933	natural	1	27130	2043130	arrival	244	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23504 vanish=0 flag_src=1 flag_nf=1 pos=13,98,100 listed_at=2043130
+20260917-123933	natural	1	28490	2044490	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	natural	1	28490	2044490	every_applied	7	probe:release surface
+20260917-123933	natural	1	28747	2044747	arrival	245	BIRD_EAGLE caste=FEMALE ref6=4,28,-1,-1,-1,33 layer=surface countdown=26333 vanish=0 flag_src=1 flag_nf=1 pos=191,83,96 listed_at=2044747
+20260917-123933	natural	1	28747	2044747	arrival	246	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=27651 vanish=0 flag_src=1 flag_nf=1 pos=2,177,103 listed_at=2044747
+20260917-123933	natural	1	28747	2044747	arrival	247	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=24975 vanish=0 flag_src=1 flag_nf=1 pos=0,172,96 listed_at=2044747
+20260917-123933	natural	1	28747	2044747	arrival	248	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=23160 vanish=0 flag_src=1 flag_nf=1 pos=0,169,93 listed_at=2044747
+20260917-123933	natural	1	28747	2044747	arrival	249	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=23171 vanish=0 flag_src=1 flag_nf=1 pos=0,166,93 listed_at=2044747
+20260917-123933	natural	1	29013	2045013	arrival	250	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=20478 vanish=0 flag_src=1 flag_nf=1 pos=9,182,99 listed_at=2044747
+20260917-123933	natural	1	29013	2045013	arrival	251	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=29099 vanish=0 flag_src=1 flag_nf=1 pos=5,178,98 listed_at=2044747
+20260917-123933	natural	1	30058	2046058	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260917-123933	natural	1	30058	2046058	every_applied	8	probe:release surface
+20260917-123933	natural	1	30351	2046351	arrival	252	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25829 vanish=0 flag_src=1 flag_nf=1 pos=190,110,93 listed_at=2046351
+20260917-123933	natural	1	30351	2046351	arrival	253	LEOPARD caste=FEMALE ref6=4,28,-1,-1,-1,63 layer=surface countdown=20670 vanish=0 flag_src=1 flag_nf=1 pos=159,2,94 listed_at=2046351
+20260917-123933	natural	1	31691	2047691	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	natural	1	31691	2047691	every_applied	9	probe:release surface
+20260917-123933	natural	1	31926	2047926	arrival	254	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=28068 vanish=0 flag_src=1 flag_nf=1 pos=1,156,93 listed_at=2047926
+20260917-123933	natural	1	31926	2047926	arrival	255	MONGOOSE caste=MALE ref6=4,28,-1,-1,-1,68 layer=surface countdown=20200 vanish=0 flag_src=1 flag_nf=1 pos=188,61,94 listed_at=2047926
+20260917-123933	natural	1	33430	2049430	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260917-123933	natural	1	33430	2049430	every_applied	10	probe:release surface
+20260917-123933	natural	1	33688	2049688	arrival	256	CRAB caste=MALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=29038 vanish=0 flag_src=1 flag_nf=1 pos=0,159,93 listed_at=2049688
+20260917-123933	natural	1	33688	2049688	arrival	257	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=26892 vanish=0 flag_src=1 flag_nf=1 pos=123,2,95 listed_at=2049688
+20260917-123933	natural	1	33688	2049688	arrival	258	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=26661 vanish=0 flag_src=1 flag_nf=1 pos=120,1,93 listed_at=2049688
+20260917-123933	natural	1	33688	2049688	arrival	259	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=21475 vanish=0 flag_src=1 flag_nf=1 pos=118,0,93 listed_at=2049688
+20260917-123933	natural	1	34998	2050998	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260917-123933	natural	1	34998	2050998	every_applied	11	probe:release surface
+20260917-123933	natural	1	35237	2051237	arrival	260	WEASEL caste=FEMALE ref6=4,29,-1,-1,-1,49 layer=surface countdown=25149 vanish=0 flag_src=1 flag_nf=1 pos=131,188,93 listed_at=2051237
+20260917-123933	natural	1	35237	2051237	arrival	261	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=20062 vanish=0 flag_src=1 flag_nf=1 pos=0,155,107 listed_at=2051237
+20260917-123933	natural	1	35237	2051237	arrival	262	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=23733 vanish=0 flag_src=1 flag_nf=1 pos=0,156,104 listed_at=2051237
+20260917-123933	natural	1	36689	2052689	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260917-123933	natural	1	36689	2052689	every_applied	12	probe:release surface
+20260917-123933	natural	1	36925	2052925	arrival	263	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23580 vanish=0 flag_src=1 flag_nf=1 pos=176,5,97 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	arrival	264	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24201 vanish=0 flag_src=1 flag_nf=1 pos=172,3,101 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	arrival	265	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=27612 vanish=0 flag_src=1 flag_nf=1 pos=166,1,103 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	arrival	266	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28266 vanish=0 flag_src=1 flag_nf=1 pos=166,0,105 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	arrival	267	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=21437 vanish=0 flag_src=1 flag_nf=1 pos=165,0,104 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	arrival	268	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22600 vanish=0 flag_src=1 flag_nf=1 pos=164,0,105 listed_at=2052925
+20260917-123933	natural	1	36925	2052925	pool_delta	2194	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2310	CRAB ref6=3,28,-1,-1,-1,23 quantity 437->437 max 437->437 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2311	Vermin:467 ref6=3,28,-1,-1,-1,28 quantity 315->311 max 315->315 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2312	Vermin:538 ref6=3,28,-1,-1,-1,30 quantity 309->301 max 309->309 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2313	Vermin:540 ref6=3,28,-1,-1,-1,31 quantity 187->185 max 187->187 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2314	Vermin:544 ref6=3,28,-1,-1,-1,34 quantity 394->393 max 394->394 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2315	Vermin:552 ref6=3,28,-1,-1,-1,37 quantity 192->190 max 192->192 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2320	Vermin:551 ref6=3,28,-1,-1,-1,63 quantity 234->235 max 234->234 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2321	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 quantity 26->15 max 26->26 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2328	Vermin:446 ref6=3,28,-1,-1,-1,78 quantity 448->447 max 448->448 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2331	Vermin:543 ref6=3,28,-1,-1,-1,86 quantity 226->201 max 226->226 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2332	Vermin:553 ref6=3,28,-1,-1,-1,88 quantity 99->98 max 99->99 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2363	TROGLODYTE ref6=3,28,-1,10,-1,2 quantity 15->8 max 15->15 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	2411	MAGMA_CRAB ref6=3,28,-1,29,-1,0 quantity 19->14 max 19->19 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3264	Vermin:49 ref6=4,28,-1,-1,-1,31 quantity 402->403 max 402->402 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3266	BIRD_EAGLE ref6=4,28,-1,-1,-1,33 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3268	Vermin:130 ref6=4,28,-1,-1,-1,35 quantity 32->31 max 32->32 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3276	Vermin:196 ref6=4,28,-1,-1,-1,43 quantity 2582->1711 max 2582->2582 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3283	Vermin:485 ref6=4,28,-1,-1,-1,50 quantity 365->366 max 365->365 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3296	LEOPARD ref6=4,28,-1,-1,-1,63 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3301	MONGOOSE ref6=4,28,-1,-1,-1,68 quantity 18->17 max 18->18 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3314	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 quantity 12->9 max 12->12 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3317	Vermin:616 ref6=4,28,-1,2,-1,14 quantity 352->350 max 352->352 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3318	Vermin:410 ref6=4,28,-1,2,-1,15 quantity 433->433 max 433->433 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3319	Vermin:621 ref6=4,28,-1,2,-1,16 quantity 421->417 max 421->421 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3327	Vermin:630 ref6=4,28,-1,2,-1,24 quantity 277->254 max 277->277 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3328	Vermin:623 ref6=4,28,-1,2,-1,25 quantity 230->224 max 230->230 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3335	BAT_GIANT ref6=4,28,-1,10,-1,4 quantity 19->19 max 19->19 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3337	JABBERER ref6=4,28,-1,10,-1,6 quantity 28->27 max 28->28 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3338	Vermin:623 ref6=4,28,-1,10,-1,7 quantity 342->316 max 342->342 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3339	Vermin:616 ref6=4,28,-1,10,-1,8 quantity 344->334 max 344->344 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3340	Vermin:630 ref6=4,28,-1,10,-1,9 quantity 329->302 max 329->329 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3364	BUGBAT ref6=4,28,-1,22,-1,17 quantity 23->10 max 23->23 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3367	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 quantity 134->130 max 134->134 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3376	Vermin:419 ref6=4,28,-1,22,-1,29 quantity 345->267 max 345->345 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3382	Vermin:620 ref6=4,28,-1,29,-1,4 quantity 331->264 max 331->331 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3389	DEMON_2 ref6=4,28,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3429	ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3439	WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->24 max 25->25 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3440	BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->20 max 21->21 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3441	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->18 max 19->19 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	pool_delta	3446	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->10 max 16->16 discovered 0->1 extinct 0->0
+20260917-123933	natural	1	36925	2052925	end	summary	{"arm": "natural", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 98, "departures": 0, "deaths": 4, "ticks": 20124, "wall_s": 157.6, "stop": null, "ticks_per_s": 127.7, "save_untouched": true}
