@@ -1,0 +1,494 @@
+
+# E5-OCEAN -- Feature holds on OCEAN: close every surface entry, raise every feature entry to 200, release all holds, run 20,000 ticks; do feature-referenced units ever arrive
+run 20260916-223613 fort OCEAN backup OCEAN.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 4..4,30..31 seed 424242
+commits: DwarfCron e715cb3 seasonal-wildlife 6a5fd75 fps cap 1000
+
+## Predictions (written before the run)
+- F5 A · feature entries can produce arrivals: arm feature_only: new units whose six-tuple carries feature_idx >= 0
+- F5 B · data only: arm feature_only: nothing on the surface or water in 20,000 ticks; arm control: surface waves as usual
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+feature_only | 1 | True | None | 20289 | 189.9 | 35 | 1 | 3 |  | 
+feature_only | 2 | True | None | 20071 | 191.8 | 43 | 0 | 1 |  | 
+control | 1 | True | PASS | 20100 | 208.1 | 9 | 0 | 1 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+control | 1 | +446 | WEASEL | 4,31,-1,-1,-1,51 | 1 | 27591 | - | present
+control | 1 | +446 | OLM_GIANT | 4,30,-1,11,-1,12 | 1 | 27249 | - | present
+control | 1 | +446 | DRALTHA | 4,30,-1,11,-1,25 | 2 | 20589,24266 | - | present
+control | 1 | +784 | HUNGRY_HEAD | 4,30,-1,20,-1,20 | 3 | 25225,27484,27693 | - | present
+control | 1 | +1092 | HUNGRY_HEAD | 4,30,-1,20,-1,20 | 2 | 20942,24620 | - | present
+feature_only | 1 | +445 | WEASEL | 4,31,-1,-1,-1,51 | 1 | 27593 | - | present
+feature_only | 1 | +445 | OLM_GIANT | 4,30,-1,11,-1,12 | 1 | 27250 | - | present
+feature_only | 1 | +445 | TROLL | 4,30,-1,20,-1,26 | 1 | 24289 | - | present
+feature_only | 1 | +445 | DEMON_2 | 4,30,-1,38,-1,6 | 4 | 25157,25869,27596,29583 | - | present
+feature_only | 1 | +445 | OLM_GIANT | 3,31,-1,2,-1,10 | 1 | 26949 | - | present
+feature_only | 1 | +738 | HUNGRY_HEAD | 4,30,-1,20,-1,20 | 6 | 20904,21428,21863,23998,26737,29542 | 8423,8423 | death/present
+feature_only | 1 | +738 | GORLAK | 4,30,-1,2,-1,27 | 1 | 28149 | - | present
+feature_only | 1 | +1032 | CRUNDLE | 4,30,-1,11,-1,15 | 5 | 23507,26205,26481,29315,29452 | - | present
+feature_only | 1 | +1732 | CRUNDLE | 4,30,-1,11,-1,15 | 1 | 24103 | - | present
+feature_only | 1 | +1998 | CRUNDLE | 4,30,-1,11,-1,15 | 1 | 20774 | - | present
+feature_only | 1 | +2294 | CRUNDLE | 4,30,-1,11,-1,15 | 3 | 26209,27761,28593 | - | present
+feature_only | 1 | +2562 | CRUNDLE | 4,30,-1,11,-1,15 | 1 | 27985 | - | present
+feature_only | 1 | +2827 | CRUNDLE | 4,30,-1,11,-1,15 | 3 | 25036,25913,26378 | - | present
+feature_only | 1 | +3410 | CRUNDLE | 4,30,-1,11,-1,15 | 2 | 27790,28060 | - | present
+feature_only | 1 | +3410 | MAGMA_CRAB | 4,31,-1,29,-1,0 | 1 | 22205 | - | present
+feature_only | 1 | +3844 | CRUNDLE | 4,30,-1,11,-1,15 | 1 | 28283 | - | present
+feature_only | 1 | +7486 | MAGMA_CRAB | 4,31,-1,29,-1,0 | 2 | 24601,29012 | - | present
+feature_only | 2 | +427 | WEASEL | 4,31,-1,-1,-1,51 | 1 | 27611 | - | present
+feature_only | 2 | +427 | OLM_GIANT | 4,30,-1,11,-1,12 | 1 | 27268 | - | present
+feature_only | 2 | +427 | BIRD_SWALLOW_CAVE_GIANT | 4,30,-1,2,-1,18 | 1 | 24960 | - | present
+feature_only | 2 | +427 | DEMON_2 | 4,30,-1,38,-1,6 | 2 | 28932,29491 | - | present
+feature_only | 2 | +766 | DEMON_2 | 4,30,-1,38,-1,6 | 2 | 25618,26824 | - | present
+feature_only | 2 | +766 | TROLL | 4,30,-1,11,-1,31 | 1 | 21740 | - | present
+feature_only | 2 | +766 | REACHER | 3,31,-1,20,-1,27 | 1 | 22833 | 280 | death
+feature_only | 2 | +1046 | BIRD_SWALLOW_CAVE_GIANT | 4,30,-1,2,-1,18 | 1 | 21968 | - | present
+feature_only | 2 | +1443 | CRUNDLE | 4,30,-1,11,-1,15 | 11 | 20657,21009,21329,21969,22174,25493,25939,25956,27466,28913,29531 | - | present
+feature_only | 2 | +1443 | BUGBAT | 4,30,-1,20,-1,19 | 4 | 23178,23919,24650,27956 | - | present
+feature_only | 2 | +1703 | CRUNDLE | 4,30,-1,11,-1,15 | 7 | 20183,20961,23169,23200,23225,24147,26772 | - | present
+feature_only | 2 | +1703 | BUGBAT | 4,30,-1,20,-1,19 | 3 | 24332,24972,28913 | - | present
+feature_only | 2 | +2075 | BUGBAT | 4,30,-1,20,-1,19 | 4 | 21392,23110,23249,25488 | - | present
+feature_only | 2 | +2463 | BUGBAT | 4,30,-1,20,-1,19 | 1 | 26338 | - | present
+feature_only | 2 | +2463 | MAGMA_CRAB | 4,31,-1,29,-1,0 | 2 | 22698,28380 | - | present
+feature_only | 2 | +2875 | MAGMA_CRAB | 4,31,-1,29,-1,0 | 1 | 23127 | - | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+feature_only | 1 | unit 193 WEASEL: 27593 -> 7744 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 194 OLM_GIANT: 27250 -> 7406 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 195 TROLL: 24289 -> 4442 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 196 DEMON_2: 25157 -> 5313 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 197 DEMON_2: 25869 -> 6025 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 200 OLM_GIANT: 26949 -> 7105 over 19844 ticks (slope -1.000/tick)
+feature_only | 1 | unit 201 HUNGRY_HEAD: 26737 -> 18600 over 8136 ticks (slope -1.000/tick)
+feature_only | 1 | unit 202 HUNGRY_HEAD: 23998 -> 15862 over 8136 ticks (slope -1.000/tick)
+feature_only | 1 | unit 207 GORLAK: 28149 -> 8594 over 19551 ticks (slope -1.000/tick)
+feature_only | 1 | unit 208 CRUNDLE: 29452 -> 10191 over 19257 ticks (slope -1.000/tick)
+feature_only | 1 | unit 209 CRUNDLE: 26205 -> 6947 over 19257 ticks (slope -1.000/tick)
+feature_only | 1 | unit 213 CRUNDLE: 24103 -> 5545 over 18557 ticks (slope -1.000/tick)
+feature_only | 1 | unit 214 CRUNDLE: 20774 -> 2482 over 18291 ticks (slope -1.000/tick)
+feature_only | 1 | unit 215 CRUNDLE: 27761 -> 9765 over 17995 ticks (slope -1.000/tick)
+feature_only | 1 | unit 216 CRUNDLE: 28593 -> 10598 over 17995 ticks (slope -1.000/tick)
+feature_only | 1 | unit 218 CRUNDLE: 27985 -> 10258 over 17727 ticks (slope -1.000/tick)
+feature_only | 1 | unit 219 CRUNDLE: 26378 -> 8916 over 17462 ticks (slope -1.000/tick)
+feature_only | 1 | unit 220 CRUNDLE: 25913 -> 8451 over 17462 ticks (slope -1.000/tick)
+feature_only | 1 | unit 222 CRUNDLE: 28060 -> 11181 over 16879 ticks (slope -1.000/tick)
+feature_only | 1 | unit 223 CRUNDLE: 27790 -> 10911 over 16879 ticks (slope -1.000/tick)
+feature_only | 1 | unit 225 MAGMA_CRAB: 22205 -> 5326 over 16879 ticks (slope -1.000/tick)
+feature_only | 1 | unit 224 CRUNDLE: 28283 -> 11838 over 16445 ticks (slope -1.000/tick)
+feature_only | 1 | unit 226 MAGMA_CRAB: 29012 -> 16209 over 12803 ticks (slope -1.000/tick)
+feature_only | 1 | unit 227 MAGMA_CRAB: 24601 -> 11798 over 12803 ticks (slope -1.000/tick)
+feature_only | 2 | unit 193 WEASEL: 27611 -> 7966 over 19644 ticks (slope -1.000/tick)
+feature_only | 2 | unit 194 OLM_GIANT: 27268 -> 7624 over 19644 ticks (slope -1.000/tick)
+feature_only | 2 | unit 195 BIRD_SWALLOW_CAVE_GIANT: 24960 -> 5316 over 19644 ticks (slope -1.000/tick)
+feature_only | 2 | unit 196 DEMON_2: 28932 -> 9288 over 19644 ticks (slope -1.000/tick)
+feature_only | 2 | unit 197 DEMON_2: 29491 -> 9847 over 19644 ticks (slope -1.000/tick)
+feature_only | 2 | unit 198 DEMON_2: 25618 -> 6313 over 19305 ticks (slope -1.000/tick)
+feature_only | 2 | unit 199 DEMON_2: 26824 -> 7519 over 19305 ticks (slope -1.000/tick)
+feature_only | 2 | unit 200 TROLL: 21740 -> 2434 over 19305 ticks (slope -1.000/tick)
+feature_only | 2 | unit 202 BIRD_SWALLOW_CAVE_GIANT: 21968 -> 2943 over 19025 ticks (slope -1.000/tick)
+feature_only | 2 | unit 203 CRUNDLE: 21009 -> 2378 over 18628 ticks (slope -1.000/tick)
+feature_only | 2 | unit 204 CRUNDLE: 21969 -> 3341 over 18628 ticks (slope -1.000/tick)
+feature_only | 2 | unit 221 BUGBAT: 23178 -> 4550 over 18628 ticks (slope -1.000/tick)
+feature_only | 2 | unit 222 BUGBAT: 24650 -> 6022 over 18628 ticks (slope -1.000/tick)
+feature_only | 2 | unit 214 CRUNDLE: 20961 -> 2593 over 18368 ticks (slope -1.000/tick)
+feature_only | 2 | unit 215 CRUNDLE: 26772 -> 8404 over 18368 ticks (slope -1.000/tick)
+feature_only | 2 | unit 225 BUGBAT: 24332 -> 5964 over 18368 ticks (slope -1.000/tick)
+feature_only | 2 | unit 226 BUGBAT: 28913 -> 10545 over 18368 ticks (slope -1.000/tick)
+feature_only | 2 | unit 228 BUGBAT: 21392 -> 3396 over 17996 ticks (slope -1.000/tick)
+feature_only | 2 | unit 232 BUGBAT: 26338 -> 8730 over 17608 ticks (slope -1.000/tick)
+feature_only | 2 | unit 233 MAGMA_CRAB: 28380 -> 10772 over 17608 ticks (slope -1.000/tick)
+feature_only | 2 | unit 235 MAGMA_CRAB: 23127 -> 5931 over 17196 ticks (slope -1.000/tick)
+control | 1 | unit 193 WEASEL: 27591 -> 7928 over 19654 ticks (slope -1.000/tick)
+control | 1 | unit 194 OLM_GIANT: 27249 -> 7595 over 19654 ticks (slope -1.000/tick)
+control | 1 | unit 195 DRALTHA: 24266 -> 4609 over 19654 ticks (slope -1.000/tick)
+control | 1 | unit 197 HUNGRY_HEAD: 27693 -> 8377 over 19316 ticks (slope -1.000/tick)
+control | 1 | unit 200 HUNGRY_HEAD: 24620 -> 5612 over 19008 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+feature_only | 1 | death | 192 | REACHER | 3,31,-1,20,-1,27 | - -> - -> -
+feature_only | 1 | death | 201 | HUNGRY_HEAD | 4,30,-1,20,-1,20 | 94 -> 94 -> 94
+feature_only | 1 | death | 202 | HUNGRY_HEAD | 4,30,-1,20,-1,20 | 94 -> 94 -> 94
+feature_only | 1 | departure | 162 | TROLL | 3,31,-1,2,-1,26 | - -> - -> -
+feature_only | 2 | death | 201 | REACHER | 3,31,-1,20,-1,27 | - -> - -> -
+control | 1 | death | 192 | REACHER | 3,31,-1,20,-1,27 | - -> - -> -
+
+## Manipulations applied
+feature_only | 1 | +0 | local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local f,s=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.region_x>=x0-1 and r.region_x<=x1 and r.region_y>=y0-1 and r.region_y<=y1 and p.quantity_max<10000000 then if r.feature_idx>=0 then p.quantity=200; p.flags.extinct=false; f=f+1 elseif r.cave_id<0 then p.quantity=0; p.flags.extinct=true; s=s+1 end end end; print(('feature entries raised: %d, surface closed: %d'):format(f,s)) | feature entries raised: 7, surface closed: 143
+feature_only | 1 | +0 | probe:release all | released 14 unit(s) [all]
+feature_only | 2 | +0 | local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local f,s=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.region_x>=x0-1 and r.region_x<=x1 and r.region_y>=y0-1 and r.region_y<=y1 and p.quantity_max<10000000 then if r.feature_idx>=0 then p.quantity=200; p.flags.extinct=false; f=f+1 elseif r.cave_id<0 then p.quantity=0; p.flags.extinct=true; s=s+1 end end end; print(('feature entries raised: %d, surface closed: %d'):format(f,s)) | feature entries raised: 7, surface closed: 143
+feature_only | 2 | +0 | probe:release all | released 14 unit(s) [all]
+
+## Pool entries that changed between load and end of replicate (358; the second instrument)
+feature_only | 1 | idx 1933 | SHARK_SPINY_DOGFISH ref6=3,29,-1,-1,-1,2 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1934 | SHARK_WOBBEGONG_SPOTTED ref6=3,29,-1,-1,-1,3 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1935 | SHARK_MAKO_SHORTFIN ref6=3,29,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1936 | SHARK_BULL ref6=3,29,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1937 | SHARK_REEF_BLACKTIP ref6=3,29,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1938 | SHARK_REEF_WHITETIP ref6=3,29,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1939 | SHARK_BLUE ref6=3,29,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1940 | SHARK_HAMMERHEAD ref6=3,29,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1941 | SHARK_ANGEL ref6=3,29,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1942 | FISH_SKATE_COMMON ref6=3,29,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1943 | FISH_RAY_MANTA ref6=3,29,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1944 | FISH_STINGRAY ref6=3,29,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1945 | FISH_MILKFISH ref6=3,29,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1946 | FISH_OPAH ref6=3,29,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1947 | FISH_BLUEFISH ref6=3,29,-1,-1,-1,20 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1948 | FISH_SWORDFISH ref6=3,29,-1,-1,-1,21 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1949 | FISH_BARRACUDA_GREAT ref6=3,29,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1950 | CRAB ref6=3,29,-1,-1,-1,23 quantity 455->0 max 455->455 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1957 | SHARK_FRILL ref6=3,29,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1958 | SHARK_MAKO_LONGFIN ref6=3,29,-1,-1,-1,57 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1959 | SHARK_GREAT_WHITE ref6=3,29,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1961 | BIRD_ALBATROSS ref6=3,29,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1962 | SHARK_WHALE ref6=3,29,-1,-1,-1,68 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1963 | SHARK_TIGER ref6=3,29,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1964 | FISH_COELACANTH ref6=3,29,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1965 | FISH_GROUPER_GIANT ref6=3,29,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1966 | FISH_MARLIN ref6=3,29,-1,-1,-1,73 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1967 | FISH_TUNA_BLUEFIN ref6=3,29,-1,-1,-1,74 quantity 40->0 max 40->40 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1969 | ORCA ref6=3,29,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 1970 | SPERM_WHALE ref6=3,29,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2083 | SHARK_SPINY_DOGFISH ref6=3,30,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2084 | SHARK_WOBBEGONG_SPOTTED ref6=3,30,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2085 | SHARK_MAKO_SHORTFIN ref6=3,30,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2086 | SHARK_BULL ref6=3,30,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2087 | SHARK_REEF_BLACKTIP ref6=3,30,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2088 | SHARK_REEF_WHITETIP ref6=3,30,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2089 | SHARK_BLUE ref6=3,30,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2090 | SHARK_HAMMERHEAD ref6=3,30,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2091 | SHARK_ANGEL ref6=3,30,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2092 | FISH_SKATE_COMMON ref6=3,30,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2093 | FISH_RAY_MANTA ref6=3,30,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2094 | FISH_STINGRAY ref6=3,30,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2095 | FISH_MILKFISH ref6=3,30,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2096 | FISH_OPAH ref6=3,30,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2097 | FISH_BLUEFISH ref6=3,30,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2098 | FISH_SWORDFISH ref6=3,30,-1,-1,-1,21 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2099 | FISH_BARRACUDA_GREAT ref6=3,30,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2100 | CRAB ref6=3,30,-1,-1,-1,23 quantity 451->0 max 451->451 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2101 | SHARK_FRILL ref6=3,30,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2102 | SHARK_MAKO_LONGFIN ref6=3,30,-1,-1,-1,57 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2103 | SHARK_GREAT_WHITE ref6=3,30,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2104 | BIRD_ALBATROSS ref6=3,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2105 | SHARK_WHALE ref6=3,30,-1,-1,-1,68 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2106 | SHARK_TIGER ref6=3,30,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2107 | FISH_COELACANTH ref6=3,30,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2108 | FISH_GROUPER_GIANT ref6=3,30,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2109 | FISH_MARLIN ref6=3,30,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2110 | FISH_TUNA_BLUEFIN ref6=3,30,-1,-1,-1,74 quantity 40->0 max 40->40 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2111 | ORCA ref6=3,30,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2112 | SPERM_WHALE ref6=3,30,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2223 | SHARK_SPINY_DOGFISH ref6=3,31,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2224 | SHARK_WOBBEGONG_SPOTTED ref6=3,31,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2225 | SHARK_MAKO_SHORTFIN ref6=3,31,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2226 | SHARK_BULL ref6=3,31,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2227 | SHARK_REEF_BLACKTIP ref6=3,31,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2228 | SHARK_REEF_WHITETIP ref6=3,31,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2229 | SHARK_BLUE ref6=3,31,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2230 | SHARK_HAMMERHEAD ref6=3,31,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2231 | SHARK_ANGEL ref6=3,31,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2232 | FISH_SKATE_COMMON ref6=3,31,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2233 | FISH_RAY_MANTA ref6=3,31,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2234 | FISH_STINGRAY ref6=3,31,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2235 | FISH_MILKFISH ref6=3,31,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2236 | FISH_OPAH ref6=3,31,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2237 | FISH_BLUEFISH ref6=3,31,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2238 | FISH_SWORDFISH ref6=3,31,-1,-1,-1,21 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2239 | FISH_BARRACUDA_GREAT ref6=3,31,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2240 | SHARK_FRILL ref6=3,31,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2241 | SHARK_MAKO_LONGFIN ref6=3,31,-1,-1,-1,57 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2242 | SHARK_GREAT_WHITE ref6=3,31,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2243 | BIRD_ALBATROSS ref6=3,31,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2244 | SHARK_WHALE ref6=3,31,-1,-1,-1,68 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2245 | SHARK_TIGER ref6=3,31,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2246 | FISH_COELACANTH ref6=3,31,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2247 | FISH_GROUPER_GIANT ref6=3,31,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2248 | FISH_MARLIN ref6=3,31,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2249 | FISH_TUNA_BLUEFIN ref6=3,31,-1,-1,-1,74 quantity 39->0 max 39->39 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2250 | ORCA ref6=3,31,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2251 | SPERM_WHALE ref6=3,31,-1,-1,-1,82 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2262 | OLM_GIANT ref6=3,31,-1,2,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 2278 | TROLL ref6=3,31,-1,2,-1,26 quantity 7->8 max 8->8 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 2842 | WILD_BOAR ref6=4,29,-1,-1,-1,38 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2843 | ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2848 | CROCODILE_SALTWATER ref6=4,29,-1,-1,-1,44 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2849 | LEOPARD ref6=4,29,-1,-1,-1,45 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2850 | DINGO ref6=4,29,-1,-1,-1,46 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2851 | JAGUAR ref6=4,29,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2852 | BIRD_EAGLE ref6=4,29,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2853 | WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2854 | BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2855 | BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2856 | HONEY BADGER ref6=4,29,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2857 | BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2860 | WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2861 | PLATYPUS ref6=4,29,0,-1,-1,0 quantity 285->206 max 285->285 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2862 | RIVER OTTER ref6=4,29,0,-1,-1,1 quantity 225->206 max 225->225 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2863 | FISH_MILKFISH ref6=4,29,0,-1,-1,2 quantity 255->206 max 255->255 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2864 | HIPPO ref6=4,29,0,-1,-1,3 quantity 345->206 max 345->345 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2865 | FISH_STINGRAY ref6=4,29,0,-1,-1,4 quantity 390->206 max 390->390 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2866 | BIRD_OSPREY ref6=4,29,0,-1,-1,5 quantity 405->206 max 405->405 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2867 | CROCODILE_SALTWATER ref6=4,29,0,-1,-1,6 quantity 75->200 max 75->75 discovered 0->0 extinct 0->0
+feature_only | 1 | idx 2981 | SHARK_SPINY_DOGFISH ref6=4,30,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2982 | SHARK_WOBBEGONG_SPOTTED ref6=4,30,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2983 | SHARK_MAKO_SHORTFIN ref6=4,30,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2984 | SHARK_BULL ref6=4,30,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2985 | SHARK_REEF_BLACKTIP ref6=4,30,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2986 | SHARK_REEF_WHITETIP ref6=4,30,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2987 | SHARK_BLUE ref6=4,30,-1,-1,-1,10 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2988 | SHARK_HAMMERHEAD ref6=4,30,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2989 | SHARK_ANGEL ref6=4,30,-1,-1,-1,12 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2990 | FISH_SKATE_COMMON ref6=4,30,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2991 | FISH_RAY_MANTA ref6=4,30,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2992 | FISH_STINGRAY ref6=4,30,-1,-1,-1,15 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2993 | FISH_MILKFISH ref6=4,30,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2994 | FISH_OPAH ref6=4,30,-1,-1,-1,19 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2995 | FISH_BLUEFISH ref6=4,30,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2996 | FISH_SWORDFISH ref6=4,30,-1,-1,-1,21 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2997 | FISH_BARRACUDA_GREAT ref6=4,30,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2998 | CRAB ref6=4,30,-1,-1,-1,23 quantity 444->0 max 444->444 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 2999 | SHARK_FRILL ref6=4,30,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3000 | SHARK_MAKO_LONGFIN ref6=4,30,-1,-1,-1,57 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3001 | SHARK_GREAT_WHITE ref6=4,30,-1,-1,-1,59 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3002 | BIRD_ALBATROSS ref6=4,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3003 | SHARK_WHALE ref6=4,30,-1,-1,-1,68 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3004 | SHARK_TIGER ref6=4,30,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3005 | FISH_COELACANTH ref6=4,30,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3006 | FISH_GROUPER_GIANT ref6=4,30,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3007 | FISH_MARLIN ref6=4,30,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3008 | FISH_TUNA_BLUEFIN ref6=4,30,-1,-1,-1,74 quantity 39->0 max 39->39 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3009 | ORCA ref6=4,30,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3010 | SPERM_WHALE ref6=4,30,-1,-1,-1,82 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3025 | Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->353 max 355->355 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3026 | Vermin:410 ref6=4,30,-1,2,-1,15 quantity 436->430 max 438->438 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3027 | Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->421 max 425->425 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3035 | Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->265 max 280->280 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3036 | Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->224 max 232->232 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3038 | GORLAK ref6=4,30,-1,2,-1,27 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3054 | CRUNDLE ref6=4,30,-1,11,-1,15 quantity 116->101 max 116->116 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3057 | Vermin:617 ref6=4,30,-1,11,-1,18 quantity 212->212 max 212->212 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3058 | Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->247 max 256->256 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3059 | Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->168 max 188->188 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3066 | Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->131 max 151->151 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3067 | Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->164 max 185->185 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3095 | HUNGRY_HEAD ref6=4,30,-1,20,-1,20 quantity 99->95 max 99->99 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3101 | TROLL ref6=4,30,-1,20,-1,26 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3107 | Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->154 max 229->229 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3113 | Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->282 max 347->347 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3120 | DEMON_2 ref6=4,30,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+feature_only | 1 | idx 3153 | Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->404 max 408->408 discovered 1->1 extinct 0->0
+feature_only | 1 | idx 3154 | WILD_BOAR ref6=4,31,-1,-1,-1,39 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3159 | LEOPARD ref6=4,31,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3160 | DINGO ref6=4,31,-1,-1,-1,48 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3161 | JAGUAR ref6=4,31,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3162 | BIRD_EAGLE ref6=4,31,-1,-1,-1,50 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3163 | WEASEL ref6=4,31,-1,-1,-1,51 quantity 25->0 max 26->26 discovered 1->1 extinct 0->1
+feature_only | 1 | idx 3164 | BIRD_OSPREY ref6=4,31,-1,-1,-1,52 quantity 16->0 max 17->17 discovered 1->1 extinct 0->1
+feature_only | 1 | idx 3165 | BIRD_FALCON_PEREGRINE ref6=4,31,-1,-1,-1,53 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3166 | HONEY BADGER ref6=4,31,-1,-1,-1,54 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3167 | BIRD_STORK_WHITE ref6=4,31,-1,-1,-1,55 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3168 | CAPYBARA ref6=4,31,-1,-1,-1,56 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 1 | idx 3267 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 quantity 14->12 max 17->17 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 1933 | SHARK_SPINY_DOGFISH ref6=3,29,-1,-1,-1,2 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1934 | SHARK_WOBBEGONG_SPOTTED ref6=3,29,-1,-1,-1,3 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1935 | SHARK_MAKO_SHORTFIN ref6=3,29,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1936 | SHARK_BULL ref6=3,29,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1937 | SHARK_REEF_BLACKTIP ref6=3,29,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1938 | SHARK_REEF_WHITETIP ref6=3,29,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1939 | SHARK_BLUE ref6=3,29,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1940 | SHARK_HAMMERHEAD ref6=3,29,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1941 | SHARK_ANGEL ref6=3,29,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1942 | FISH_SKATE_COMMON ref6=3,29,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1943 | FISH_RAY_MANTA ref6=3,29,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1944 | FISH_STINGRAY ref6=3,29,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1945 | FISH_MILKFISH ref6=3,29,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1946 | FISH_OPAH ref6=3,29,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1947 | FISH_BLUEFISH ref6=3,29,-1,-1,-1,20 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1948 | FISH_SWORDFISH ref6=3,29,-1,-1,-1,21 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1949 | FISH_BARRACUDA_GREAT ref6=3,29,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1950 | CRAB ref6=3,29,-1,-1,-1,23 quantity 455->0 max 455->455 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1957 | SHARK_FRILL ref6=3,29,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1958 | SHARK_MAKO_LONGFIN ref6=3,29,-1,-1,-1,57 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1959 | SHARK_GREAT_WHITE ref6=3,29,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1961 | BIRD_ALBATROSS ref6=3,29,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1962 | SHARK_WHALE ref6=3,29,-1,-1,-1,68 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1963 | SHARK_TIGER ref6=3,29,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1964 | FISH_COELACANTH ref6=3,29,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1965 | FISH_GROUPER_GIANT ref6=3,29,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1966 | FISH_MARLIN ref6=3,29,-1,-1,-1,73 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1967 | FISH_TUNA_BLUEFIN ref6=3,29,-1,-1,-1,74 quantity 40->0 max 40->40 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1969 | ORCA ref6=3,29,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 1970 | SPERM_WHALE ref6=3,29,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2083 | SHARK_SPINY_DOGFISH ref6=3,30,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2084 | SHARK_WOBBEGONG_SPOTTED ref6=3,30,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2085 | SHARK_MAKO_SHORTFIN ref6=3,30,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2086 | SHARK_BULL ref6=3,30,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2087 | SHARK_REEF_BLACKTIP ref6=3,30,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2088 | SHARK_REEF_WHITETIP ref6=3,30,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2089 | SHARK_BLUE ref6=3,30,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2090 | SHARK_HAMMERHEAD ref6=3,30,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2091 | SHARK_ANGEL ref6=3,30,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2092 | FISH_SKATE_COMMON ref6=3,30,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2093 | FISH_RAY_MANTA ref6=3,30,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2094 | FISH_STINGRAY ref6=3,30,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2095 | FISH_MILKFISH ref6=3,30,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2096 | FISH_OPAH ref6=3,30,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2097 | FISH_BLUEFISH ref6=3,30,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2098 | FISH_SWORDFISH ref6=3,30,-1,-1,-1,21 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2099 | FISH_BARRACUDA_GREAT ref6=3,30,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2100 | CRAB ref6=3,30,-1,-1,-1,23 quantity 451->0 max 451->451 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2101 | SHARK_FRILL ref6=3,30,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2102 | SHARK_MAKO_LONGFIN ref6=3,30,-1,-1,-1,57 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2103 | SHARK_GREAT_WHITE ref6=3,30,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2104 | BIRD_ALBATROSS ref6=3,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2105 | SHARK_WHALE ref6=3,30,-1,-1,-1,68 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2106 | SHARK_TIGER ref6=3,30,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2107 | FISH_COELACANTH ref6=3,30,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2108 | FISH_GROUPER_GIANT ref6=3,30,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2109 | FISH_MARLIN ref6=3,30,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2110 | FISH_TUNA_BLUEFIN ref6=3,30,-1,-1,-1,74 quantity 40->0 max 40->40 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2111 | ORCA ref6=3,30,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2112 | SPERM_WHALE ref6=3,30,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2223 | SHARK_SPINY_DOGFISH ref6=3,31,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2224 | SHARK_WOBBEGONG_SPOTTED ref6=3,31,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2225 | SHARK_MAKO_SHORTFIN ref6=3,31,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2226 | SHARK_BULL ref6=3,31,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2227 | SHARK_REEF_BLACKTIP ref6=3,31,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2228 | SHARK_REEF_WHITETIP ref6=3,31,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2229 | SHARK_BLUE ref6=3,31,-1,-1,-1,10 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2230 | SHARK_HAMMERHEAD ref6=3,31,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2231 | SHARK_ANGEL ref6=3,31,-1,-1,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2232 | FISH_SKATE_COMMON ref6=3,31,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2233 | FISH_RAY_MANTA ref6=3,31,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2234 | FISH_STINGRAY ref6=3,31,-1,-1,-1,15 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2235 | FISH_MILKFISH ref6=3,31,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2236 | FISH_OPAH ref6=3,31,-1,-1,-1,19 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2237 | FISH_BLUEFISH ref6=3,31,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2238 | FISH_SWORDFISH ref6=3,31,-1,-1,-1,21 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2239 | FISH_BARRACUDA_GREAT ref6=3,31,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2240 | SHARK_FRILL ref6=3,31,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2241 | SHARK_MAKO_LONGFIN ref6=3,31,-1,-1,-1,57 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2242 | SHARK_GREAT_WHITE ref6=3,31,-1,-1,-1,59 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2243 | BIRD_ALBATROSS ref6=3,31,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2244 | SHARK_WHALE ref6=3,31,-1,-1,-1,68 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2245 | SHARK_TIGER ref6=3,31,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2246 | FISH_COELACANTH ref6=3,31,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2247 | FISH_GROUPER_GIANT ref6=3,31,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2248 | FISH_MARLIN ref6=3,31,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2249 | FISH_TUNA_BLUEFIN ref6=3,31,-1,-1,-1,74 quantity 39->0 max 39->39 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2250 | ORCA ref6=3,31,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2251 | SPERM_WHALE ref6=3,31,-1,-1,-1,82 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2278 | TROLL ref6=3,31,-1,2,-1,26 quantity 7->8 max 8->8 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 2343 | REACHER ref6=3,31,-1,20,-1,27 quantity 8->7 max 9->9 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 2842 | WILD_BOAR ref6=4,29,-1,-1,-1,38 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2843 | ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2848 | CROCODILE_SALTWATER ref6=4,29,-1,-1,-1,44 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2849 | LEOPARD ref6=4,29,-1,-1,-1,45 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2850 | DINGO ref6=4,29,-1,-1,-1,46 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2851 | JAGUAR ref6=4,29,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2852 | BIRD_EAGLE ref6=4,29,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2853 | WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2854 | BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2855 | BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2856 | HONEY BADGER ref6=4,29,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2857 | BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2860 | WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2861 | PLATYPUS ref6=4,29,0,-1,-1,0 quantity 285->206 max 285->285 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2862 | RIVER OTTER ref6=4,29,0,-1,-1,1 quantity 225->206 max 225->225 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2863 | FISH_MILKFISH ref6=4,29,0,-1,-1,2 quantity 255->206 max 255->255 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2864 | HIPPO ref6=4,29,0,-1,-1,3 quantity 345->206 max 345->345 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2865 | FISH_STINGRAY ref6=4,29,0,-1,-1,4 quantity 390->206 max 390->390 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2866 | BIRD_OSPREY ref6=4,29,0,-1,-1,5 quantity 405->206 max 405->405 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2867 | CROCODILE_SALTWATER ref6=4,29,0,-1,-1,6 quantity 75->200 max 75->75 discovered 0->0 extinct 0->0
+feature_only | 2 | idx 2981 | SHARK_SPINY_DOGFISH ref6=4,30,-1,-1,-1,2 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2982 | SHARK_WOBBEGONG_SPOTTED ref6=4,30,-1,-1,-1,3 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2983 | SHARK_MAKO_SHORTFIN ref6=4,30,-1,-1,-1,6 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2984 | SHARK_BULL ref6=4,30,-1,-1,-1,7 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2985 | SHARK_REEF_BLACKTIP ref6=4,30,-1,-1,-1,8 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2986 | SHARK_REEF_WHITETIP ref6=4,30,-1,-1,-1,9 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2987 | SHARK_BLUE ref6=4,30,-1,-1,-1,10 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2988 | SHARK_HAMMERHEAD ref6=4,30,-1,-1,-1,11 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2989 | SHARK_ANGEL ref6=4,30,-1,-1,-1,12 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2990 | FISH_SKATE_COMMON ref6=4,30,-1,-1,-1,13 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2991 | FISH_RAY_MANTA ref6=4,30,-1,-1,-1,14 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2992 | FISH_STINGRAY ref6=4,30,-1,-1,-1,15 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2993 | FISH_MILKFISH ref6=4,30,-1,-1,-1,17 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2994 | FISH_OPAH ref6=4,30,-1,-1,-1,19 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2995 | FISH_BLUEFISH ref6=4,30,-1,-1,-1,20 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2996 | FISH_SWORDFISH ref6=4,30,-1,-1,-1,21 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2997 | FISH_BARRACUDA_GREAT ref6=4,30,-1,-1,-1,22 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2998 | CRAB ref6=4,30,-1,-1,-1,23 quantity 444->0 max 444->444 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 2999 | SHARK_FRILL ref6=4,30,-1,-1,-1,51 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3000 | SHARK_MAKO_LONGFIN ref6=4,30,-1,-1,-1,57 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3001 | SHARK_GREAT_WHITE ref6=4,30,-1,-1,-1,59 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3002 | BIRD_ALBATROSS ref6=4,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3003 | SHARK_WHALE ref6=4,30,-1,-1,-1,68 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3004 | SHARK_TIGER ref6=4,30,-1,-1,-1,69 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3005 | FISH_COELACANTH ref6=4,30,-1,-1,-1,70 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3006 | FISH_GROUPER_GIANT ref6=4,30,-1,-1,-1,72 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3007 | FISH_MARLIN ref6=4,30,-1,-1,-1,73 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3008 | FISH_TUNA_BLUEFIN ref6=4,30,-1,-1,-1,74 quantity 39->0 max 39->39 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3009 | ORCA ref6=4,30,-1,-1,-1,80 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3010 | SPERM_WHALE ref6=4,30,-1,-1,-1,82 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3025 | Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->351 max 355->355 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3027 | Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->427 max 425->425 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3029 | BIRD_SWALLOW_CAVE_GIANT ref6=4,30,-1,2,-1,18 quantity 20->18 max 20->20 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3035 | Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->268 max 280->280 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3036 | Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->223 max 232->232 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3054 | CRUNDLE ref6=4,30,-1,11,-1,15 quantity 116->100 max 116->116 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3057 | Vermin:617 ref6=4,30,-1,11,-1,18 quantity 212->214 max 212->212 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3058 | Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->248 max 256->256 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3059 | Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->166 max 188->188 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3066 | Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->131 max 151->151 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3067 | Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->164 max 185->185 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3070 | TROLL ref6=4,30,-1,11,-1,31 quantity 6->6 max 6->6 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3094 | BUGBAT ref6=4,30,-1,20,-1,19 quantity 24->12 max 24->24 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3107 | Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->157 max 229->229 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3113 | Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->276 max 347->347 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3120 | DEMON_2 ref6=4,30,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+feature_only | 2 | idx 3153 | Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->402 max 408->408 discovered 1->1 extinct 0->0
+feature_only | 2 | idx 3154 | WILD_BOAR ref6=4,31,-1,-1,-1,39 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3159 | LEOPARD ref6=4,31,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3160 | DINGO ref6=4,31,-1,-1,-1,48 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3161 | JAGUAR ref6=4,31,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3162 | BIRD_EAGLE ref6=4,31,-1,-1,-1,50 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3163 | WEASEL ref6=4,31,-1,-1,-1,51 quantity 25->0 max 26->26 discovered 1->1 extinct 0->1
+feature_only | 2 | idx 3164 | BIRD_OSPREY ref6=4,31,-1,-1,-1,52 quantity 16->0 max 17->17 discovered 1->1 extinct 0->1
+feature_only | 2 | idx 3165 | BIRD_FALCON_PEREGRINE ref6=4,31,-1,-1,-1,53 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3166 | HONEY BADGER ref6=4,31,-1,-1,-1,54 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3167 | BIRD_STORK_WHITE ref6=4,31,-1,-1,-1,55 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3168 | CAPYBARA ref6=4,31,-1,-1,-1,56 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_only | 2 | idx 3267 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 quantity 14->11 max 17->17 discovered 1->1 extinct 0->0
+control | 1 | idx 3024 | Vermin:617 ref6=4,30,-1,2,-1,13 quantity 450->451 max 450->450 discovered 0->1 extinct 0->0
+control | 1 | idx 3025 | Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->354 max 355->355 discovered 0->1 extinct 0->0
+control | 1 | idx 3026 | Vermin:410 ref6=4,30,-1,2,-1,15 quantity 436->438 max 438->438 discovered 1->1 extinct 0->0
+control | 1 | idx 3027 | Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->411 max 425->425 discovered 0->1 extinct 0->0
+control | 1 | idx 3035 | Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->274 max 280->280 discovered 1->1 extinct 0->0
+control | 1 | idx 3036 | Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->224 max 232->232 discovered 0->1 extinct 0->0
+control | 1 | idx 3057 | Vermin:617 ref6=4,30,-1,11,-1,18 quantity 212->212 max 212->212 discovered 0->1 extinct 0->0
+control | 1 | idx 3058 | Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->254 max 256->256 discovered 0->1 extinct 0->0
+control | 1 | idx 3059 | Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->158 max 188->188 discovered 1->1 extinct 0->0
+control | 1 | idx 3064 | DRALTHA ref6=4,30,-1,11,-1,25 quantity 15->13 max 15->15 discovered 0->1 extinct 0->0
+control | 1 | idx 3066 | Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->127 max 151->151 discovered 0->1 extinct 0->0
+control | 1 | idx 3067 | Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->168 max 185->185 discovered 1->1 extinct 0->0
+control | 1 | idx 3095 | HUNGRY_HEAD ref6=4,30,-1,20,-1,20 quantity 99->96 max 99->99 discovered 0->1 extinct 0->0
+control | 1 | idx 3107 | Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->152 max 229->229 discovered 1->1 extinct 0->0
+control | 1 | idx 3113 | Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->277 max 347->347 discovered 1->1 extinct 0->0
+control | 1 | idx 3153 | Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->401 max 408->408 discovered 1->1 extinct 0->0
+control | 1 | idx 3163 | WEASEL ref6=4,31,-1,-1,-1,51 quantity 25->26 max 26->26 discovered 1->1 extinct 0->0
+
+## Units present at load (held group from the save), 36 rows; first few:
+feature_only | 1 | 162 | TROLL ref6=3,31,-1,2,-1,26 countdown=20176 flag_src=1
+feature_only | 1 | 163 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=23438 flag_src=1
+feature_only | 1 | 164 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=26233 flag_src=1
+feature_only | 1 | 165 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=20737 flag_src=1
+feature_only | 1 | 166 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=23517 flag_src=1
+feature_only | 1 | 167 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=22011 flag_src=1
+feature_only | 1 | 168 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=24557 flag_src=1
+feature_only | 1 | 169 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=29111 flag_src=1
+
