@@ -1,0 +1,91 @@
+{
+  "id": "E15",
+  "title": "F15, the large-stock debit rule. On CTRL, open exactly one species across the site tile and its ring, release the surface every 1,500 ticks for 20,000 ticks, and sample every entry every 200 ticks: does the debit per wave equal the wave size when the entry is large, and does the rule follow the entry's size or the species?",
+  "fork": "F15: raven entries at 339/354 debited 7/4/0/0 for waves of 10/10/2/4 in E9a; every entry under 30 debited exactly one per arrival",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 20000,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "A: exact debit, hidden by a growth or refund term",
+      "expects": "per-wave step in the entry equals the wave size on every arm; between waves the entry climbs back on large entries"
+    },
+    {
+      "model": "B: a different rule above some size",
+      "expects": "raven-natural and kangaroo-300 both debit less than the wave size; raven-30 and kangaroo-30 debit exactly"
+    },
+    {
+      "model": "C: a species (flier) rule, not a size rule",
+      "expects": "raven debits short at both 339 and 30; kangaroo debits exactly at both 300 and 30"
+    }
+  ],
+  "kill_criterion": "the 200-tick entry trace through each wave gives the step directly; four arms separate size from species",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "raven_natural",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,qs=0,0,{}; for i,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='BIRD_RAVEN') then p.flags.extinct=false; o=o+1; qs[#qs+1]=('idx%d@%d,%d=%d'):format(i,r.region_x,r.region_y,p.quantity) else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('kept %d (BIRD_RAVEN: %s); closed %d'):format(o, table.concat(qs,' '), c))",
+        "probe:release surface"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    },
+    {
+      "name": "raven_30",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,qs=0,0,{}; for i,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='BIRD_RAVEN') then p.quantity=30; p.flags.extinct=false; o=o+1; qs[#qs+1]=('idx%d@%d,%d=%d'):format(i,r.region_x,r.region_y,p.quantity) else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('kept %d (BIRD_RAVEN: %s); closed %d'):format(o, table.concat(qs,' '), c))",
+        "probe:release surface"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    },
+    {
+      "name": "kangaroo_300",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,qs=0,0,{}; for i,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='KANGAROO') then p.quantity=300; p.flags.extinct=false; o=o+1; qs[#qs+1]=('idx%d@%d,%d=%d'):format(i,r.region_x,r.region_y,p.quantity) else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('kept %d (KANGAROO: %s); closed %d'):format(o, table.concat(qs,' '), c))",
+        "probe:release surface"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    },
+    {
+      "name": "kangaroo_30",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,qs=0,0,{}; for i,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='KANGAROO') then p.quantity=30; p.flags.extinct=false; o=o+1; qs[#qs+1]=('idx%d@%d,%d=%d'):format(i,r.region_x,r.region_y,p.quantity) else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('kept %d (KANGAROO: %s); closed %d'):format(o, table.concat(qs,' '), c))",
+        "probe:release surface"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    }
+  ]
+}
