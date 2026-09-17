@@ -1,0 +1,35 @@
+{
+  "id": "E9a",
+  "title": "Residency, read: leave_countdown on arriving wild units, its initial value, its slope, and the tick they leave",
+  "fork": "measures L4 (how long a group stays); precondition for E9b, E9c, E10",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 60000,
+  "tool_must_be": {"enabled": 0, "groups_enabled": 0, "scheduled": 0},
+  "predictions": [
+    {"model": "countdown is a per-unit tick timer set at spawn",
+     "expects": "every member of a wave carries the same initial value at first sighting (to within one sample of 200 ticks); it falls by ~1 per tick; the unit is gone within a few thousand ticks of reaching 0"},
+    {"model": "countdown is per group or set lazily",
+     "expects": "members differ at first sighting, or the value does not fall linearly, or units leave while it is still far above 0"},
+    {"model": "the value is species-dependent",
+     "expects": "different species arriving in the same replicate carry different initial values"}
+  ],
+  "kill_criterion": "This arm is a measurement, not a kill. It fails as an instrument if the positive control fails: releasing the hold on the group present at load must bring a new wave within 4000 ticks (L1 says ~1500).",
+  "culling": [
+    "drop a replicate on any liveness breach (tick stalled, popup queue non-empty after a step, tool state changed, unit count insane)",
+    "drop a replicate whose save folder differs from the backup at the end",
+    "drop the arm if the positive control fails in two of three replicates",
+    "report initial countdowns only for units first seen within one sample of their arrival tick (all arrivals are, by construction)"
+  ],
+  "arms": [
+    {
+      "name": "read",
+      "replicates": 3,
+      "pre": ["probe:release surface"],
+      "control": {"arrivals_within_ticks": 4000, "arrivals_min": 1},
+      "stop_when": {"min_ticks": 6000, "arrived_all_departed": 1}
+    }
+  ]
+}

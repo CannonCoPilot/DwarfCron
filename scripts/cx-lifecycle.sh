@@ -27,6 +27,7 @@
 #   cx-lifecycle.sh screen [y0 y1]
 #   cx-lifecycle.sh save-delete <folder>
 #   cx-lifecycle.sh ui <args>    # drive the UI by on-screen text
+#   cx-lifecycle.sh probe <args> # cx-probe: clock|units|pops|tool|provenance|release|setq|countdown
 #   cx-lifecycle.sh lua <script> # run Lua in the running game
 #   cx-lifecycle.sh cmd <args>   # run a DFHack command
 #   cx-lifecycle.sh logs [n]     # tail DFHack's stderr.log
@@ -251,7 +252,12 @@ cmd_save_restore() {
     [ -n "$name" ] || err "usage: save-restore <region.tag>"
     local src="$CX_SAVE_BACKUPS/$name"
     [ -d "$src" ] || err "no such backup: $src"
-    is_running && err "stop the session first -- DF holds the save open"
+    # DF only holds a save open while a map is loaded; at the title screen the
+    # folder can be replaced in place, and the experiment runner does exactly
+    # that before every replicate (a restart per replicate would cost ~40 s).
+    if is_running && [ "$(ui_get map)" = "true" ]; then
+        err "leave the fort first (title) -- DF holds the save open while a map is loaded"
+    fi
     local region="${name%%.*}"
     rm -rf "$SAVE_ROOT/$region"
     ditto "$src" "$SAVE_ROOT/$region" || err "restore failed"
@@ -834,6 +840,7 @@ case "${1:-status}" in
     save-backup) shift; cmd_save_backup "$@" ;;
     save-restore) shift; cmd_save_restore "$@" ;;
     saves)     cmd_saves ;;
+    probe)     shift; cmd_cmd cx-probe "$@" ;;
     lua)       shift; cmd_lua "$@" ;;
     cmd)       shift; cmd_cmd "$@" ;;
     logs)      shift; cmd_logs "$@" ;;
