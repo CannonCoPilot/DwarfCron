@@ -253,7 +253,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     if st.get("map") == "true":
         rig.must("title")
     rig.must("save-restore", backup)
-    h_backup = prov["backup_sha256"]
+    h_backup = prov["backup_sha256"] if backup == man["backup"] else tree_hash(BACKUP_ROOT / backup)
     h_restored = tree_hash(SAVE_ROOT / fort)
     if h_restored != h_backup:
         raise RuntimeError(f"restored save does not match backup: {h_restored[:12]} vs {h_backup[:12]}")
