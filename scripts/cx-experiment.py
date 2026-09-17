@@ -222,6 +222,9 @@ def stop_rule_fires(rule: dict | None, stats: dict) -> str | None:
         return f"departures {stats['departures']} >= {rule['departures_min']}"
     if "arrived_all_departed" in rule and stats["arrivals"] > 0 and stats["arrived_present"] == 0:
         return "every arrived unit has left or died"
+    if "ticks_after_first_exit" in rule and stats.get("first_exit") is not None \
+            and stats["ticks"] - stats["first_exit"] >= rule["ticks_after_first_exit"]:
+        return f"{rule['ticks_after_first_exit']} ticks after the first departure or death"
     return None
 
 
@@ -282,9 +285,15 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     for u in present.values():
         out.event(ctx, tick, abs_tick, "present_at_start", u["id"], f"{u['species']} ref6={u['ref6']} countdown={u['countdown']} flag_src={u['flag_src']}")
 
-    # 5. manipulations.
+    # 5. manipulations at t0.
     for m in arm.get("pre", []):
         apply_manipulation(rig, out, ctx, tick, abs_tick, m)
+    # manipulations deferred to the first SURFACE wave of at least on_arrival_min_units
+    # units; {ids} = all their ids, {id0} {id1} ... = by index. Applied once.
+    on_arrival = list(arm.get("on_arrival", []))
+    on_arrival_min = int(arm.get("on_arrival_min_units", 1))
+    on_arrival_done = False
+    first_exit = None
 
     # 6. step and sample.
     control = arm.get("control") or man.get("control")
@@ -343,10 +352,23 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
                           f"vanish={u['vanish']} flag_src={u['flag_src']} flag_nf={u['flag_nf']} pos={u['x']},{u['y']},{u['z']}")
                 out.row(ctx, tick, abs_tick, i, "arrival_species", u["species"])
                 out.row(ctx, tick, abs_tick, i, "arrival_countdown", u["countdown"])
+        wave_ids = [i for i, u in now_present.items() if i in arrived and first_seen.get(i) == abs_tick and u["layer"] == "surface"]
+        if on_arrival and not on_arrival_done and len(wave_ids) >= on_arrival_min:
+            subst = {"ids": " ".join(wave_ids)}
+            subst.update({f"id{k}": v for k, v in enumerate(wave_ids)})
+            for m in on_arrival:
+                try:
+                    apply_manipulation(rig, out, ctx, tick, abs_tick, m.format(**subst))
+                except KeyError as e:
+                    out.log(f"  on_arrival skipped {m}: placeholder {e} not available with {len(wave_ids)} units")
+            on_arrival_done = True
+            out.event(ctx, tick, abs_tick, "on_arrival_applied", "wave", " ".join(wave_ids))
         # departures and deaths: a unit that was present and is not now
         for i, u in present.items():
             if i not in now_present:
                 rec = now.get(i)
+                if first_exit is None and u["layer"] == "surface":
+                    first_exit = stepped_total
                 if rec and rec["dead"] == "1":
                     summary["deaths"] += 1; kind = "death"
                 else:
@@ -363,7 +385,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         present = now_present
 
         stats = {"ticks": stepped_total, "arrivals": summary["arrivals"], "departures": summary["departures"],
-                 "arrived_present": sum(1 for i in arrived if i in present)}
+                 "arrived_present": sum(1 for i in arrived if i in present), "first_exit": first_exit}
         if control and control_met is None and stepped_total >= int(control.get("arrivals_within_ticks", 0)):
             control_met = summary["arrivals"] >= int(control.get("arrivals_min", 1))
             summary["control"] = "PASS" if control_met else "FAIL"
@@ -558,6 +580,29 @@ def cmd_report(a):
             printed += 1
             if printed > 40:
                 break
+    pops = read_tsv(run_dir / "pops.tsv")
+    if pops:
+        print("\n## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)")
+        print("arm | rep | event | unit | species | ref6 | quantity before -> at -> after")
+        byrep: dict[tuple, dict] = {}
+        for r in pops:
+            byrep.setdefault((r["arm"], r["rep"], r["ref6"]), {})[int(r["abs_tick"])] = r["quantity"]
+        for e in events:
+            if e["event"] not in ("departure", "death"):
+                continue
+            d = dict(kv.split("=", 1) for kv in e["detail"].split() if "=" in kv)
+            series = byrep.get((e["arm"], e["rep"], d.get("ref6")), {})
+            ticks = sorted(series)
+            t = int(e["abs_tick"])
+            before = [x for x in ticks if x < t]; after = [x for x in ticks if x > t]
+            q = lambda x: series[x] if x is not None else "-"
+            print(f"{e['arm']} | {e['rep']} | {e['event']} | {e['subject']} | {e['detail'].split()[0]} | {d.get('ref6')} | "
+                  f"{q(before[-1] if before else None)} -> {q(t) if t in series else '-'} -> {q(after[0] if after else None)}")
+    manips = [e for e in events if e["event"] in ("manipulation", "on_arrival_applied")]
+    if manips:
+        print("\n## Manipulations applied")
+        for e in manips:
+            print(f"{e['arm']} | {e['rep']} | +{int(e['abs_tick']) - starts.get((e['arm'], e['rep']), int(e['abs_tick']))} | {e['subject']} | {e['detail']}")
     deltas = [e for e in events if e["event"] == "pool_delta"]
     print(f"\n## Pool entries that changed between load and end of replicate ({len(deltas)}; the second instrument)")
     for e in deltas:

@@ -18,6 +18,7 @@
 --                                  write quantity (and optionally the extinct flag) on one pool entry
 --   cx-probe countdown <unit-id> <value>
 --                                  write leave_countdown on one unit
+--   cx-probe kill <unit-id> ...      blood_count = 0, no other accounting (dies on DF's own path)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
 -- It does NOT key on the roaming flag, so a released resident stays in the table (checked in
@@ -172,6 +173,20 @@ elseif cmd == 'countdown' then
     u.animal.leave_countdown = v
     print(('countdown %d %s: %d -> %d'):format(id, tok(u.race), before, u.animal.leave_countdown))
 
+-- ------------------------------------------------------------------- kill --
+-- Kill with no accounting of our own: blood to zero, the way DFHack's
+-- exterminate destroyUnit does, but WITHOUT its vanish_countdown failsafe, so
+-- the unit dies on DF's own death path rather than being removed by the timer.
+elseif cmd == 'kill' then
+    local n = 0
+    for i = 2, #args do
+        local u = df.unit.find(tonumber(args[i]))
+        if not u then qerror('no unit ' .. tostring(args[i])) end
+        u.body.blood_count = 0
+        n = n + 1
+    end
+    print(('kill: blood_count=0 on %d unit(s)'):format(n))
+
 else
-    qerror('usage: cx-probe clock|units|pops|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>')
 end
