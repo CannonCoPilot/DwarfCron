@@ -178,6 +178,8 @@ class Out:
         self.rows.write(f"{ctx['run']}\t{ctx['arm']}\t{ctx['rep']}\t{tick}\t{abs_tick}\t{subject}\t{metric}\t{value}\n")
 
     def event(self, ctx, tick, abs_tick, event, subject, detail):
+        detail = str(detail).replace("\t", " ").replace("\r", " ").replace("\n", " | ")
+        subject = str(subject).replace("\t", " ").replace("\n", " ")
         self.events.write(f"{ctx['run']}\t{ctx['arm']}\t{ctx['rep']}\t{tick}\t{abs_tick}\t{event}\t{subject}\t{detail}\n")
         self.events.flush()
 

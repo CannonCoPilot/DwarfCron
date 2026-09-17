@@ -1,0 +1,26 @@
+
+# E13 -- Cavern discovery: 20,000 ticks unrevealed, then reveal, then 20,000 more; cavern-sourced units and the discovered flag before and after
+run 20260916-221020 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 14a7bd7 seasonal-wildlife 6a5fd75 fps cap 1000
+
+## Predictions (written before the run)
+- F13 A · gated: no cavern-sourced arrivals until reveal flips discovered; arrivals after
+- F13 B · ungated: cavern-sourced units arrive before reveal (E9a already saw 21-30 cavern arrivals per replicate unrevealed)
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+reveal_at_20k | 1 | True | None | 40048 | 225.8 | 38 | 28 | 6 |  | 
+reveal_at_20k | 2 | True | None | 40182 | 230.8 | 40 | 19 | 2 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+Traceback (most recent call last):
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/cx-experiment.py", line 670, in <module>
+    main()
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/cx-experiment.py", line 666, in main
+    a.fn(a)
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/cx-experiment.py", line 577, in cmd_report
+    if e["event"] in ("departure", "death"):
+       ~^^^^^^^^^
+KeyError: 'event'
