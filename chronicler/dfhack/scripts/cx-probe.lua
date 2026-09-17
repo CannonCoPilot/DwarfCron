@@ -19,6 +19,11 @@
 --   cx-probe countdown <unit-id> <value>
 --                                  write leave_countdown on one unit
 --   cx-probe kill <unit-id> ...      blood_count = 0, no other accounting (dies on DF's own path)
+--   cx-probe rel                     DF's pairwise reaction cache (world.enemy_status_cache.rel_map) between
+--                                  every wild LARGE_PREDATOR unit and every other wild unit, tallied by species
+--   cx-probe edge                    plotinfo.map_edge surface entry tiles with tiletype and water depth
+--   cx-probe lever <opposed|crazed|relmap|agitated> [id ...]
+--                                  hostility lever on the listed units, or on every wild LARGE_PREDATOR unit
 --   cx-probe combat [since-id]       every wild unit's combat reports with id > since (unit, species, id, text)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
@@ -55,6 +60,19 @@ end
 local function b(v) return v and 1 or 0 end
 
 local function row(...) print(table.concat({...}, '\t')) end
+
+local function is_pred(u)
+    local cr = df.creature_raw.find(u.race)
+    local c = cr and cr.caste[u.caste]
+    return c and c.flags.LARGE_PREDATOR or false
+end
+local function wild_alive()
+    local t = {}
+    for _, u in ipairs(df.global.world.units.active) do
+        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then t[#t+1] = u end
+    end
+    return t
+end
 
 -- ------------------------------------------------------------------ clock --
 if cmd == 'clock' then
@@ -174,6 +192,77 @@ elseif cmd == 'countdown' then
     u.animal.leave_countdown = v
     print(('countdown %d %s: %d -> %d'):format(id, tok(u.race), before, u.animal.leave_countdown))
 
+-- -------------------------------------------------------------------- rel --
+elseif cmd == 'rel' then
+    local cache = df.global.world.enemy_status_cache
+    local tally, order = {}, {}
+    local ws = wild_alive()
+    for _, a in ipairs(ws) do
+        if is_pred(a) then
+            for _, bu in ipairs(ws) do
+                if bu.id ~= a.id then
+                    local sa, sb = a.enemy.enemy_status_slot, bu.enemy.enemy_status_slot
+                    local ab = (sa >= 0 and sb >= 0) and df.unit_reaction_type[cache.rel_map[sa][sb].ur] or 'NOSLOT'
+                    local ba = (sa >= 0 and sb >= 0) and df.unit_reaction_type[cache.rel_map[sb][sa].ur] or 'NOSLOT'
+                    local k = table.concat({tok(a.race), tok(bu.race), tostring(ab), tostring(ba)}, '\t')
+                    if not tally[k] then tally[k] = 0; order[#order+1] = k end
+                    tally[k] = tally[k] + 1
+                end
+            end
+        end
+    end
+    row('pred', 'other', 'pred_to_other', 'other_to_pred', 'pairs')
+    for _, k in ipairs(order) do row(k, tally[k]) end
+
+-- ------------------------------------------------------------------- edge --
+elseif cmd == 'edge' then
+    local me = df.global.plotinfo.map_edge
+    row('x', 'y', 'z', 'tiletype', 'water', 'liquid')
+    for i = 0, #me.surface_x - 1 do
+        local x, y, z = me.surface_x[i], me.surface_y[i], me.surface_z[i]
+        local tt = dfhack.maps.getTileType(x, y, z)
+        local d = dfhack.maps.getTileFlags(x, y, z)
+        row(x, y, z, tt and df.tiletype[tt] or '?', d and d.flow_size or '?',
+            d and (d.liquid_type and 'magma' or 'water') or '?')
+    end
+
+-- ------------------------------------------------------------------ lever --
+elseif cmd == 'lever' then
+    local which = args[2]
+    local ids = {}
+    for i = 3, #args do ids[tonumber(args[i])] = true end
+    local ws = wild_alive()
+    local preds, others = {}, {}
+    for _, u in ipairs(ws) do
+        if (next(ids) and ids[u.id]) or (not next(ids) and is_pred(u)) then preds[#preds+1] = u
+        else others[#others+1] = u end
+    end
+    local n = 0
+    if which == 'opposed' then
+        for _, u in ipairs(preds) do u.uwss_add_caste_flag.OPPOSED_TO_LIFE = true; n = n + 1 end
+    elseif which == 'crazed' then
+        for _, u in ipairs(preds) do u.uwss_add_caste_flag.CRAZED = true; n = n + 1 end
+    elseif which == 'agitated' then
+        for _, u in ipairs(preds) do u.flags4.agitated_wilderness_creature = true; n = n + 1 end
+    elseif which == 'relmap' then
+        local cache = df.global.world.enemy_status_cache
+        local v = df.unit_reaction_type.PREDATOR_OR_PREY
+        local noslot = 0
+        for _, a in ipairs(preds) do
+            for _, bu in ipairs(others) do
+                local sa, sb = a.enemy.enemy_status_slot, bu.enemy.enemy_status_slot
+                if sa >= 0 and sb >= 0 then
+                    cache.rel_map[sa][sb].ur = v; cache.rel_map[sb][sa].ur = v; n = n + 1
+                else noslot = noslot + 1 end
+            end
+        end
+        print(('lever relmap: PREDATOR_OR_PREY written on %d pair(s), %d pair(s) without a slot, %d predator(s) x %d other(s)'):format(n, noslot, #preds, #others))
+        return
+    else
+        qerror('lever: opposed|crazed|relmap|agitated')
+    end
+    print(('lever %s: set on %d unit(s) of %d predator(s) (%d other wild)'):format(which, n, #preds, #others))
+
 -- ------------------------------------------------------------------- kill --
 -- Kill with no accounting of our own: blood to zero, the way DFHack's
 -- exterminate destroyUnit does, but WITHOUT its vanish_countdown failsafe, so
@@ -225,5 +314,5 @@ elseif cmd == 'roster' then
     end
 
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]')
 end
