@@ -1,0 +1,142 @@
+{
+ "id": "E8",
+ "title": "Zero versus extinct: which stops a draw. Every surface entry on both draw tiles zeroed and flagged except emu, which is set per arm",
+ "fork": "kills F8",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 200,
+ "tick_budget": 8000,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "predictions": [
+  {
+   "model": "F8 A \u00b7 quantity decides",
+   "expects": "arm zero_clear: no surface arrival; arm fifty_flagged: emus arrive; arm fifty_clear: emus arrive"
+  },
+  {
+   "model": "F8 B \u00b7 the flag decides",
+   "expects": "arm zero_clear: emus arrive (against an empty entry); arm fifty_flagged: nothing"
+  },
+  {
+   "model": "exclusion works at all",
+   "expects": "no species other than emu arrives in any arm; if another does, the pool has an entry the manifest missed"
+  }
+ ],
+ "kill_criterion": "fifty_clear is the positive control and must produce emus within 8,000 ticks in at least two of three replicates or the arm design is void",
+ "culling": [
+  "drop a replicate on any breach or changed save",
+  "drop the run if fifty_clear fails its control twice"
+ ],
+ "arms": [
+  {
+   "name": "zero_clear",
+   "replicates": 3,
+   "pre": [
+    "probe:setq 3206 0 1",
+    "probe:setq 3188 0 0",
+    "probe:setq 3187 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3186 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3209 0 1",
+    "probe:setq 3210 0 1",
+    "probe:setq 3211 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4705 0 0",
+    "probe:setq 4704 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4726 0 1",
+    "probe:setq 4727 0 1",
+    "probe:setq 4728 0 1",
+    "probe:setq 4733 0 1",
+    "probe:setq 4729 0 1"
+   ]
+  },
+  {
+   "name": "fifty_flagged",
+   "replicates": 3,
+   "pre": [
+    "probe:setq 3206 0 1",
+    "probe:setq 3188 50 1",
+    "probe:setq 3187 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3186 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3209 0 1",
+    "probe:setq 3210 0 1",
+    "probe:setq 3211 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4705 50 1",
+    "probe:setq 4704 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4726 0 1",
+    "probe:setq 4727 0 1",
+    "probe:setq 4728 0 1",
+    "probe:setq 4733 0 1",
+    "probe:setq 4729 0 1"
+   ]
+  },
+  {
+   "name": "fifty_clear",
+   "replicates": 3,
+   "pre": [
+    "probe:setq 3206 0 1",
+    "probe:setq 3188 50 0",
+    "probe:setq 3187 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3186 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3209 0 1",
+    "probe:setq 3210 0 1",
+    "probe:setq 3211 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4705 50 0",
+    "probe:setq 4704 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4726 0 1",
+    "probe:setq 4727 0 1",
+    "probe:setq 4728 0 1",
+    "probe:setq 4733 0 1",
+    "probe:setq 4729 0 1"
+   ],
+   "control": {
+    "arrivals_within_ticks": 6000,
+    "arrivals_min": 1
+   }
+  }
+ ]
+}

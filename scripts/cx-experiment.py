@@ -289,7 +289,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     for m in arm.get("pre", []):
         apply_manipulation(rig, out, ctx, tick, abs_tick, m)
     # manipulations deferred to the first SURFACE wave of at least on_arrival_min_units
-    # units; {ids} = all their ids, {id0} {id1} ... = by index. Applied once.
+    # units; {ids} = all their ids, {id0} {id1} ... = by index, {ids_after1} / {ids_after2}
+    # = every id but the first one / two. Applied once.
     on_arrival = list(arm.get("on_arrival", []))
     on_arrival_min = int(arm.get("on_arrival_min_units", 1))
     on_arrival_done = False
@@ -354,7 +355,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
                 out.row(ctx, tick, abs_tick, i, "arrival_countdown", u["countdown"])
         wave_ids = [i for i, u in now_present.items() if i in arrived and first_seen.get(i) == abs_tick and u["layer"] == "surface"]
         if on_arrival and not on_arrival_done and len(wave_ids) >= on_arrival_min:
-            subst = {"ids": " ".join(wave_ids)}
+            subst = {"ids": " ".join(wave_ids), "ids_after1": " ".join(wave_ids[1:]), "ids_after2": " ".join(wave_ids[2:])}
             subst.update({f"id{k}": v for k, v in enumerate(wave_ids)})
             for m in on_arrival:
                 try:
