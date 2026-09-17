@@ -1,0 +1,99 @@
+{
+  "id": "E6",
+  "title": "Regeneration direction on CTRL: kangaroo 29,20 at twice its max, kangaroo 28,19 at zero, porcupine 29,20 at its max; everything else closed; one season sampled every 2,000 ticks",
+  "fork": "kills F6",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 2000,
+  "tick_budget": 100800,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "F6 A \u00b7 local growth",
+      "expects": "the doubled entry stalls or falls toward its max; the zeroed one climbs slowly; growth in steps of one at irregular intervals"
+    },
+    {
+      "model": "F6 B \u00b7 offload from the master",
+      "expects": "all three converge on the master figure in a few jumps; need_offload toggles"
+    }
+  ],
+  "kill_criterion": "arm flagged shows whether regeneration happens with the extinct flag set (the tool's closed state); arm open is the natural read with arrivals and departures subtracted by the report",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "flagged",
+      "replicates": 2,
+      "pre": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 0 1",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 0 1",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 0 1",
+        "probe:setq 3216 0 1",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 0 1",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 0 1",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 40 1",
+        "probe:setq 4727 24 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 0 1",
+        "probe:setq 4733 0 1"
+      ]
+    },
+    {
+      "name": "open",
+      "replicates": 2,
+      "pre": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 0 1",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 0 1",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 0",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 0 1",
+        "probe:setq 3216 0 1",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 0 1",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 0 1",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 40 0",
+        "probe:setq 4727 24 0",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 0 1",
+        "probe:setq 4733 0 1"
+      ]
+    }
+  ]
+}
