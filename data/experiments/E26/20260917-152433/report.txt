@@ -1,0 +1,509 @@
+
+# E26 -- Do river and lake FEATURE populations wave during play? E5 forced them for 20,000 ticks and drew none, yet every river/lake save holds feature-ref units spawned at embark (platypus on RIVER3; stingray, alligators, hippos on LAKE). Natural play, no manipulation, a full year on RIVER3 and a season on LAKE, plus a LAKE season with the surface deliberately held shut so only a feature gate could open.
+run 20260917-152433 fort RIVER3 backup RIVER3.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 19..19,24..24 seed 424242
+commits: DwarfCron f35ec33 seasonal-wildlife c12732d fps cap 1000
+
+## Predictions (written before the run)
+- feature entries wave in play on their own gate/timer: arm natural: at least one arrival with feature_idx >= 0 in a year on RIVER3; feature entries debited
+- feature entries spawn only at embark (or map load): no feature-ref arrival in any arm; the embark units age out and are never replaced
+- feature waves share the surface gate: arm surface_held (surface units kept held): no feature arrival; arm natural: feature arrivals only in gaps between surface groups
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+natural | 1 | False | None |  |  |  |  |  |  | exception: cx-lifecycle load RIVER3 failed rc=1
+[cx-lifecycle] ERROR: could not reach the title screen (state: screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=21)
+natural_lake | 1 | True | None | 101511 | 207.9 | 80 | 54 | 5 |  | 
+surface_held_lake | 1 | True | None | 101547 | 241.3 | 106 | 79 | 10 |  | 
+
+culled: [('natural', 1)]
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+natural_lake | 1 | +1264 | WEASEL | 13,28,-1,-1,-1,170 | 1 | 26382 | 91216 | death
+natural_lake | 1 | +1264 | CRUNDLE | 13,28,-1,14,-1,1 | 5 | 20151,24980,25471,27190,27904 | 26147,29419,30489,32707,32707 | departure
+natural_lake | 1 | +1264 | MAGMA_CRAB | 13,27,-1,32,-1,0 | 2 | 24165,26013 | - | present
+natural_lake | 1 | +1264 | DEMON_13 | 12,28,-1,41,-1,6 | 3 | 21323,25150,25915 | 27193,28268,28268 | departure
+natural_lake | 1 | +1264 | OLM_GIANT | 13,28,-1,2,-1,10 | 1 | 24317 | 26147 | departure
+natural_lake | 1 | +1264 | TROLL | 12,28,-1,23,-1,25 | 1 | 25051 | 24990 | death
+natural_lake | 1 | +1264 | SPIDER_CAVE_GIANT | 13,27,-1,22,-1,22 | 1 | 25247 | 26147 | departure
+natural_lake | 1 | +2338 | CRUNDLE | 13,28,-1,14,-1,1 | 8 | 19846,21206,24507,26596,27519,27934,28199,28965 | 31633,32802,32802,32802,32802,32802,33894,33894 | departure
+natural_lake | 1 | +3426 | CRUNDLE | 13,28,-1,14,-1,1 | 2 | 20768,26730 | 32806,32806 | departure
+natural_lake | 1 | +25195 | CROCODILE_CAVE | 13,28,-1,2,-1,9 | 1 | 20401 | 23140 | departure
+natural_lake | 1 | +27411 | AARDVARK | 13,28,-1,-1,-1,181 | 1 | 27009 | 28665 | departure
+natural_lake | 1 | +27411 | GORLAK | 13,28,-1,2,-1,27 | 1 | 26135 | 30822 | departure
+natural_lake | 1 | +28457 | GORLAK | 12,28,-1,23,-1,31 | 1 | 20129 | 23144 | departure
+natural_lake | 1 | +28457 | BLIND_CAVE_OGRE | 12,28,-1,23,-1,24 | 3 | 20194,22538,26509 | 21026,48780,48780 | departure
+natural_lake | 1 | +29532 | DEMON_13 | 12,28,-1,41,-1,6 | 4 | 22423,26647,27955,28160 | 23202,47705,48768,48768 | departure
+natural_lake | 1 | +37323 | REACHER | 12,27,-1,14,-1,14 | 1 | 24883 | 30947 | departure
+natural_lake | 1 | +37323 | JABBERER | 12,27,-1,14,-1,0 | 1 | 19525 | 20910 | departure
+natural_lake | 1 | +48335 | OLM_GIANT | 12,28,-1,2,-1,10 | 1 | 27145 | 29965 | departure
+natural_lake | 1 | +56076 | BIRD_EAGLE | 11,27,-1,-1,-1,103 | 1 | 21709 | 23349 | departure
+natural_lake | 1 | +58233 | TROGLODYTE | 12,27,-1,14,-1,3 | 5 | 21002,23516,28368,28998,29299 | 24490,29953,31064,31064,23361 | departure
+natural_lake | 1 | +58233 | TROLL | 13,28,-1,2,-1,26 | 1 | 20520 | 4582 | death
+natural_lake | 1 | +60427 | TROGLODYTE | 12,27,-1,14,-1,3 | 1 | 22787 | 24481 | departure
+natural_lake | 1 | +63908 | CROCODILE_CAVE | 13,28,-1,2,-1,9 | 1 | 21426 | 3307 | death
+natural_lake | 1 | +68270 | BIRD_SWALLOW_CAVE_GIANT | 12,28,-1,2,-1,18 | 1 | 19344 | 19916 | departure
+natural_lake | 1 | +78300 | CAVE_BLOB | 12,28,-1,23,-1,14 | 3 | 20752,25749,27697 | - | present
+natural_lake | 1 | +78300 | DEMON_15 | 12,28,-1,41,-1,4 | 5 | 21362,21603,23784,28441,28657 | 23211,22156 | departure/present
+natural_lake | 1 | +78300 | TOAD_GIANT_CAVE | 12,28,-1,2,-1,11 | 1 | 25928 | - | present
+natural_lake | 1 | +79425 | GIRAFFE | 13,28,-1,-1,-1,244 | 7 | 19169,19250,26981,27198,27864,28131,28612 | 19900,11958,22086 | death/departure/present
+natural_lake | 1 | +89297 | BLIND_CAVE_BEAR | 12,28,-1,2,-1,21 | 1 | 23951 | - | present
+natural_lake | 1 | +89297 | CRUNDLE | 12,27,-1,14,-1,1 | 8 | 20011,22009,23470,24043,24295,24474,27869,28735 | - | present
+natural_lake | 1 | +90336 | CRUNDLE | 12,27,-1,14,-1,1 | 7 | 19146,22770,24577,25328,25477,25920,26779 | - | present
+surface_held_lake | 1 | +1051 | AARDVARK | 13,28,-1,-1,-1,181 | 1 | 20880 | 22190 | departure
+surface_held_lake | 1 | +1051 | DEMON_14 | 12,28,-1,41,-1,1 | 5 | 19276,20889,22326,23324,24917 | 23274,27664,30962,30962,32073 | departure
+surface_held_lake | 1 | +1051 | CROCODILE_CAVE | 12,28,-1,2,-1,9 | 1 | 27911 | 33222 | departure
+surface_held_lake | 1 | +1051 | MAGMA_CRAB | 13,27,-1,32,-1,0 | 4 | 20420,23521,27498,27721 | - | present
+surface_held_lake | 1 | +1051 | ELK_BIRD | 13,27,-1,22,-1,18 | 6 | 20212,22467,24486,25971,26667,26983 | 28755,28755,28755,29814,30962,30962 | departure
+surface_held_lake | 1 | +1051 | BLIND_CAVE_OGRE | 12,28,-1,14,-1,11 | 2 | 26501,28868 | 29814,30962 | departure
+surface_held_lake | 1 | +2167 | ELK_BIRD | 13,27,-1,22,-1,18 | 3 | 19257,21799,26451 | 30957,30957,30957 | departure
+surface_held_lake | 1 | +23241 | WARTHOG | 13,28,-1,-1,-1,232 | 6 | 19911,20795,24319,24487,24768,24904 | 21038,26568,27633,27633,27633,27633 | departure
+surface_held_lake | 1 | +27598 | GIANT_EARTHWORM | 13,28,-1,2,-1,22 | 1 | 29488 | 30867 | departure
+surface_held_lake | 1 | +30865 | BUGBAT | 12,28,-1,14,-1,4 | 3 | 22258,25073,25290 | 23307,27600,29750 | departure
+surface_held_lake | 1 | +32013 | BUGBAT | 12,28,-1,14,-1,4 | 2 | 20364,24561 | 25385,24219 | departure
+surface_held_lake | 1 | +32013 | DEMON_15 | 12,28,-1,41,-1,4 | 1 | 28906 | 30968 | departure
+surface_held_lake | 1 | +33124 | BUGBAT | 12,28,-1,14,-1,4 | 2 | 24804,27525 | 28710,28710 | departure
+surface_held_lake | 1 | +33124 | DEMON_14 | 12,28,-1,41,-1,1 | 1 | 26192 | 26395 | departure
+surface_held_lake | 1 | +34273 | OLM_GIANT | 12,28,-1,2,-1,10 | 1 | 29356 | 30956 | death
+surface_held_lake | 1 | +34273 | CRUNDLE | 12,28,-1,23,-1,12 | 1 | 26280 | 29813 | departure
+surface_held_lake | 1 | +35329 | BUGBAT | 12,28,-1,14,-1,4 | 1 | 19934 | 20903 | departure
+surface_held_lake | 1 | +35329 | ELK_BIRD | 12,28,-1,23,-1,16 | 9 | 21160,22831,23194,23277,24431,26529,27203,27769,28191 | 22069,28757,28757,28757,29900,29900,29900,29900,27652 | death/departure
+surface_held_lake | 1 | +36411 | BUGBAT | 12,28,-1,14,-1,4 | 1 | 24064 | 38653 | departure
+surface_held_lake | 1 | +36411 | ELK_BIRD | 12,28,-1,23,-1,16 | 1 | 19086 | 26570 | departure
+surface_held_lake | 1 | +37526 | BUGBAT | 12,28,-1,14,-1,4 | 1 | 25677 | 37538 | departure
+surface_held_lake | 1 | +38636 | BUGBAT | 12,28,-1,14,-1,4 | 3 | 24498,27098,27833 | 39787,39787,43172 | departure
+surface_held_lake | 1 | +43191 | BUGBAT | 12,28,-1,14,-1,4 | 1 | 27952 | 42978 | departure
+surface_held_lake | 1 | +43191 | DEMON_14 | 12,28,-1,41,-1,1 | 2 | 20219,25997 | 42978,44109 | departure
+surface_held_lake | 1 | +43191 | CRUNDLE | 12,28,-1,23,-1,12 | 19 | 19842,19922,20315,20823,20872,21369,22466,22483,23270,23593,23877,23976,24050,24213,25194,25201,25931,26463,26891 | 45159,45159,3368,44109,42978,42978,42978,46255,46255,46255,46255,46255,45159,46255,46255,45159,48390,51721,51721 | death/departure
+surface_held_lake | 1 | +50874 | RHINOCEROS | 13,28,-1,-1,-1,241 | 4 | 24469,24768,24770,27197 | 25290,26402,28661,26402 | departure
+surface_held_lake | 1 | +59519 | TOAD_GIANT_CAVE | 12,28,-1,2,-1,11 | 1 | 21533 | 23379 | departure
+surface_held_lake | 1 | +66253 | CROCODILE_CAVE | 12,28,-1,2,-1,9 | 1 | 21912 | 23193 | departure
+surface_held_lake | 1 | +79535 | BIRD_OSPREY | 12,27,-1,-1,-1,6 | 1 | 27000 | - | present
+surface_held_lake | 1 | +81808 | REACHER | 12,27,-1,14,-1,14 | 1 | 26928 | 11970 | death
+surface_held_lake | 1 | +82898 | TOAD_GIANT_CAVE | 13,28,-1,2,-1,11 | 1 | 24966 | - | present
+surface_held_lake | 1 | +86169 | TROGLODYTE | 12,28,-1,14,-1,3 | 6 | 19709,20149,20799,22740,25938,28746 | - | present
+surface_held_lake | 1 | +86169 | DEMON_14 | 12,28,-1,41,-1,1 | 1 | 22006 | - | present
+surface_held_lake | 1 | +88350 | DEMON_4 | 12,28,-1,41,-1,2 | 4 | 23230,23405,28333,28607 | - | present
+surface_held_lake | 1 | +89446 | TOAD_GIANT_CAVE | 12,28,-1,2,-1,11 | 1 | 29357 | - | present
+surface_held_lake | 1 | +94912 | BUGBAT | 12,28,-1,23,-1,19 | 6 | 20052,20302,20670,20738,22301,26334 | - | present
+surface_held_lake | 1 | +95984 | BUGBAT | 12,28,-1,23,-1,19 | 1 | 21620 | - | present
+
+## Waves (52; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+natural_lake | 1 | +1264 | WEASEL | surface | 1 | 0 | 1 | 0
+natural_lake | 1 | +1264 | CRUNDLE | cavern | 15 | 15 | 0 | 0
+natural_lake | 1 | +1264 | MAGMA_CRAB | cavern | 2 | 0 | 0 | 2
+natural_lake | 1 | +1264 | DEMON_13 | cavern | 3 | 3 | 0 | 0
+natural_lake | 1 | +1264 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +1264 | TROLL | cavern | 1 | 0 | 1 | 0
+natural_lake | 1 | +1264 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +25195 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +27411 | AARDVARK | surface | 1 | 1 | 0 | 0
+natural_lake | 1 | +27411 | GORLAK | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +28457 | GORLAK | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +28457 | BLIND_CAVE_OGRE | cavern | 3 | 3 | 0 | 0
+natural_lake | 1 | +29532 | DEMON_13 | cavern | 4 | 4 | 0 | 0
+natural_lake | 1 | +37323 | REACHER | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +37323 | JABBERER | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +48335 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +56076 | BIRD_EAGLE | surface | 1 | 1 | 0 | 0
+natural_lake | 1 | +58233 | TROGLODYTE | cavern | 6 | 6 | 0 | 0
+natural_lake | 1 | +58233 | TROLL | cavern | 1 | 0 | 1 | 0
+natural_lake | 1 | +63908 | CROCODILE_CAVE | cavern | 1 | 0 | 1 | 0
+natural_lake | 1 | +68270 | BIRD_SWALLOW_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+natural_lake | 1 | +78300 | CAVE_BLOB | cavern | 3 | 0 | 0 | 3
+natural_lake | 1 | +78300 | DEMON_15 | cavern | 5 | 2 | 0 | 3
+natural_lake | 1 | +78300 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+natural_lake | 1 | +79425 | GIRAFFE | surface | 7 | 2 | 1 | 4
+natural_lake | 1 | +89297 | BLIND_CAVE_BEAR | cavern | 1 | 0 | 0 | 1
+natural_lake | 1 | +89297 | CRUNDLE | cavern | 15 | 0 | 0 | 15
+surface_held_lake | 1 | +1051 | AARDVARK | surface | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +1051 | DEMON_14 | cavern | 5 | 5 | 0 | 0
+surface_held_lake | 1 | +1051 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +1051 | MAGMA_CRAB | cavern | 4 | 0 | 0 | 4
+surface_held_lake | 1 | +1051 | ELK_BIRD | cavern | 9 | 9 | 0 | 0
+surface_held_lake | 1 | +1051 | BLIND_CAVE_OGRE | cavern | 2 | 2 | 0 | 0
+surface_held_lake | 1 | +23241 | WARTHOG | surface | 6 | 6 | 0 | 0
+surface_held_lake | 1 | +27598 | GIANT_EARTHWORM | cavern | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +30865 | BUGBAT | cavern | 14 | 14 | 0 | 0
+surface_held_lake | 1 | +32013 | DEMON_15 | cavern | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +33124 | DEMON_14 | cavern | 3 | 3 | 0 | 0
+surface_held_lake | 1 | +34273 | OLM_GIANT | cavern | 1 | 0 | 1 | 0
+surface_held_lake | 1 | +34273 | CRUNDLE | cavern | 20 | 13 | 7 | 0
+surface_held_lake | 1 | +35329 | ELK_BIRD | cavern | 10 | 9 | 1 | 0
+surface_held_lake | 1 | +50874 | RHINOCEROS | surface | 4 | 4 | 0 | 0
+surface_held_lake | 1 | +59519 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +66253 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+surface_held_lake | 1 | +79535 | BIRD_OSPREY | surface | 1 | 0 | 0 | 1
+surface_held_lake | 1 | +81808 | REACHER | cavern | 1 | 0 | 1 | 0
+surface_held_lake | 1 | +82898 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+surface_held_lake | 1 | +86169 | TROGLODYTE | cavern | 6 | 0 | 0 | 6
+surface_held_lake | 1 | +86169 | DEMON_14 | cavern | 1 | 0 | 0 | 1
+surface_held_lake | 1 | +88350 | DEMON_4 | cavern | 4 | 0 | 0 | 4
+surface_held_lake | 1 | +89446 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+surface_held_lake | 1 | +94912 | BUGBAT | cavern | 7 | 0 | 0 | 7
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+natural_lake | 1 | unit 180 WEASEL: 26382 -> 0 over 90119 ticks (slope -0.293/tick)
+natural_lake | 1 | unit 181 CRUNDLE: 24980 -> 0 over 24990 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 182 CRUNDLE: 27904 -> 0 over 28268 ticks (slope -0.987/tick)
+natural_lake | 1 | unit 196 MAGMA_CRAB: 24165 -> 0 over 100247 ticks (slope -0.241/tick)
+natural_lake | 1 | unit 197 MAGMA_CRAB: 26013 -> 0 over 100247 ticks (slope -0.259/tick)
+natural_lake | 1 | unit 198 DEMON_13: 25150 -> 0 over 26147 ticks (slope -0.962/tick)
+natural_lake | 1 | unit 199 DEMON_13: 21323 -> 0 over 27193 ticks (slope -0.784/tick)
+natural_lake | 1 | unit 201 OLM_GIANT: 24317 -> 0 over 24990 ticks (slope -0.973/tick)
+natural_lake | 1 | unit 202 TROLL: 25051 -> 1119 over 23931 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 203 SPIDER_CAVE_GIANT: 25247 -> 256 over 24990 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 186 CRUNDLE: 27519 -> 0 over 30456 ticks (slope -0.904/tick)
+natural_lake | 1 | unit 187 CRUNDLE: 19846 -> 0 over 31633 ticks (slope -0.627/tick)
+natural_lake | 1 | unit 194 CRUNDLE: 20768 -> 0 over 31714 ticks (slope -0.655/tick)
+natural_lake | 1 | unit 195 CRUNDLE: 26730 -> 0 over 31714 ticks (slope -0.843/tick)
+natural_lake | 1 | unit 204 CROCODILE_CAVE: 20401 -> 0 over 22078 ticks (slope -0.924/tick)
+natural_lake | 1 | unit 205 AARDVARK: 27009 -> 0 over 27571 ticks (slope -0.980/tick)
+natural_lake | 1 | unit 206 GORLAK: 26135 -> 0 over 29743 ticks (slope -0.879/tick)
+natural_lake | 1 | unit 207 GORLAK: 20129 -> 0 over 22070 ticks (slope -0.912/tick)
+natural_lake | 1 | unit 208 BLIND_CAVE_OGRE: 20194 -> 315 over 19878 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 209 BLIND_CAVE_OGRE: 26509 -> 0 over 47651 ticks (slope -0.556/tick)
+natural_lake | 1 | unit 211 DEMON_13: 22423 -> 348 over 22069 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 212 DEMON_13: 26647 -> 0 over 46576 ticks (slope -0.572/tick)
+natural_lake | 1 | unit 215 REACHER: 24883 -> 0 over 29892 ticks (slope -0.832/tick)
+natural_lake | 1 | unit 216 JABBERER: 19525 -> 0 over 19831 ticks (slope -0.985/tick)
+natural_lake | 1 | unit 217 OLM_GIANT: 27145 -> 0 over 28902 ticks (slope -0.939/tick)
+natural_lake | 1 | unit 218 BIRD_EAGLE: 21709 -> 0 over 22224 ticks (slope -0.977/tick)
+natural_lake | 1 | unit 219 TROGLODYTE: 23516 -> 154 over 23361 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 220 TROGLODYTE: 29299 -> 454 over 28844 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 225 TROLL: 20520 -> 17101 over 3419 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 223 TROGLODYTE: 22787 -> 0 over 23395 ticks (slope -0.974/tick)
+natural_lake | 1 | unit 226 CROCODILE_CAVE: 21426 -> 19146 over 2280 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 227 BIRD_SWALLOW_CAVE_GIANT: 19344 -> 537 over 18807 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 228 CAVE_BLOB: 27697 -> 4486 over 23211 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 229 CAVE_BLOB: 25749 -> 2538 over 23211 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 231 DEMON_15: 21603 -> 0 over 22156 ticks (slope -0.975/tick)
+natural_lake | 1 | unit 232 DEMON_15: 21362 -> 331 over 21025 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 236 TOAD_GIANT_CAVE: 25928 -> 2715 over 23211 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 237 GIRAFFE: 19250 -> 493 over 18752 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 238 GIRAFFE: 27864 -> 5774 over 22086 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 244 BLIND_CAVE_BEAR: 23951 -> 11736 over 12214 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 245 CRUNDLE: 24295 -> 12081 over 12214 ticks (slope -1.000/tick)
+natural_lake | 1 | unit 253 CRUNDLE: 19146 -> 7971 over 11175 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 180 AARDVARK: 20880 -> 0 over 21074 ticks (slope -0.991/tick)
+surface_held_lake | 1 | unit 181 DEMON_14: 22326 -> 136 over 22190 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 186 CROCODILE_CAVE: 27911 -> 0 over 32073 ticks (slope -0.870/tick)
+surface_held_lake | 1 | unit 187 MAGMA_CRAB: 23521 -> 0 over 100496 ticks (slope -0.234/tick)
+surface_held_lake | 1 | unit 191 ELK_BIRD: 25971 -> 0 over 27664 ticks (slope -0.939/tick)
+surface_held_lake | 1 | unit 200 BLIND_CAVE_OGRE: 28868 -> 113 over 28755 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 197 ELK_BIRD: 19257 -> 0 over 29846 ticks (slope -0.645/tick)
+surface_held_lake | 1 | unit 202 WARTHOG: 20795 -> 840 over 19950 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 208 GIANT_EARTHWORM: 29488 -> 0 over 29800 ticks (slope -0.990/tick)
+surface_held_lake | 1 | unit 209 BUGBAT: 22258 -> 42 over 22216 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 210 BUGBAT: 24561 -> 342 over 24219 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 223 DEMON_15: 28906 -> 0 over 29821 ticks (slope -0.969/tick)
+surface_held_lake | 1 | unit 213 BUGBAT: 24804 -> 0 over 27491 ticks (slope -0.902/tick)
+surface_held_lake | 1 | unit 224 DEMON_14: 26192 -> 851 over 25341 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 227 OLM_GIANT: 29356 -> 0 over 29813 ticks (slope -0.985/tick)
+surface_held_lake | 1 | unit 228 CRUNDLE: 26280 -> 0 over 28708 ticks (slope -0.915/tick)
+surface_held_lake | 1 | unit 216 BUGBAT: 19934 -> 77 over 19857 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 248 ELK_BIRD: 21160 -> 256 over 20903 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 217 BUGBAT: 24064 -> 0 over 37574 ticks (slope -0.640/tick)
+surface_held_lake | 1 | unit 257 ELK_BIRD: 19086 -> 0 over 25423 ticks (slope -0.751/tick)
+surface_held_lake | 1 | unit 218 BUGBAT: 25677 -> 0 over 36459 ticks (slope -0.704/tick)
+surface_held_lake | 1 | unit 219 BUGBAT: 27833 -> 0 over 38640 ticks (slope -0.720/tick)
+surface_held_lake | 1 | unit 222 BUGBAT: 27952 -> 0 over 41906 ticks (slope -0.667/tick)
+surface_held_lake | 1 | unit 225 DEMON_14: 20219 -> 0 over 41906 ticks (slope -0.482/tick)
+surface_held_lake | 1 | unit 229 CRUNDLE: 21369 -> 0 over 44109 ticks (slope -0.484/tick)
+surface_held_lake | 1 | unit 258 RHINOCEROS: 24770 -> 577 over 24190 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 262 TOAD_GIANT_CAVE: 21533 -> 0 over 22289 ticks (slope -0.966/tick)
+surface_held_lake | 1 | unit 263 CROCODILE_CAVE: 21912 -> 0 over 22097 ticks (slope -0.992/tick)
+surface_held_lake | 1 | unit 264 BIRD_OSPREY: 27000 -> 4988 over 22012 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 265 REACHER: 26928 -> 16064 over 10864 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 266 TOAD_GIANT_CAVE: 24966 -> 6316 over 18649 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 267 TROGLODYTE: 20149 -> 4770 over 15378 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 273 DEMON_14: 22006 -> 6628 over 15378 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 274 DEMON_4: 28607 -> 15410 over 13197 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 278 TOAD_GIANT_CAVE: 29357 -> 17255 over 12101 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 279 BUGBAT: 20738 -> 14103 over 6635 ticks (slope -1.000/tick)
+surface_held_lake | 1 | unit 284 BUGBAT: 21620 -> 16057 over 5563 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+natural_lake | 1 | departure | 179 | BIRD_SWALLOW_CAVE_GIANT | 12,28,-1,2,-1,18 | 19 -> 20 -> 20
+natural_lake | 1 | death | 202 | TROLL | 12,28,-1,23,-1,25 | 7 -> 7 -> 7
+natural_lake | 1 | departure | 178 | WEASEL | 13,28,-1,-1,-1,170 | 20 -> 21 -> 21
+natural_lake | 1 | departure | 181 | CRUNDLE | 13,28,-1,14,-1,1 | 118 -> 119 -> 119
+natural_lake | 1 | departure | 201 | OLM_GIANT | 13,28,-1,2,-1,10 | 8 -> 9 -> 9
+natural_lake | 1 | departure | 203 | SPIDER_CAVE_GIANT | 13,27,-1,22,-1,22 | 2 -> 3 -> 3
+natural_lake | 1 | departure | 198 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 199 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 200 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 182 | CRUNDLE | 13,28,-1,14,-1,1 | 119 -> 120 -> 121
+natural_lake | 1 | departure | 183 | CRUNDLE | 13,28,-1,14,-1,1 | 120 -> 121 -> 121
+natural_lake | 1 | departure | 184 | CRUNDLE | 13,28,-1,14,-1,1 | 121 -> 125 -> 130
+natural_lake | 1 | departure | 185 | CRUNDLE | 13,28,-1,14,-1,1 | 121 -> 125 -> 130
+natural_lake | 1 | departure | 186 | CRUNDLE | 13,28,-1,14,-1,1 | 121 -> 125 -> 130
+natural_lake | 1 | departure | 187 | CRUNDLE | 13,28,-1,14,-1,1 | 125 -> 130 -> 134
+natural_lake | 1 | departure | 188 | CRUNDLE | 13,28,-1,14,-1,1 | 125 -> 130 -> 134
+natural_lake | 1 | departure | 189 | CRUNDLE | 13,28,-1,14,-1,1 | 125 -> 130 -> 134
+natural_lake | 1 | departure | 190 | CRUNDLE | 13,28,-1,14,-1,1 | 125 -> 130 -> 134
+natural_lake | 1 | departure | 191 | CRUNDLE | 13,28,-1,14,-1,1 | 125 -> 130 -> 134
+natural_lake | 1 | departure | 165 | HIPPO | 13,28,0,-1,-1,5 | 294 -> 295 -> 295
+natural_lake | 1 | departure | 192 | CRUNDLE | 13,28,-1,14,-1,1 | 130 -> 134 -> 134
+natural_lake | 1 | departure | 193 | CRUNDLE | 13,28,-1,14,-1,1 | 130 -> 134 -> 134
+natural_lake | 1 | departure | 194 | CRUNDLE | 13,28,-1,14,-1,1 | 130 -> 134 -> 134
+natural_lake | 1 | departure | 195 | CRUNDLE | 13,28,-1,14,-1,1 | 130 -> 134 -> 134
+natural_lake | 1 | departure | 166 | HIPPO | 13,28,0,-1,-1,5 | 295 -> 296 -> 298
+natural_lake | 1 | departure | 167 | HIPPO | 13,28,0,-1,-1,5 | 296 -> 298 -> 298
+natural_lake | 1 | departure | 168 | HIPPO | 13,28,0,-1,-1,5 | 296 -> 298 -> 298
+natural_lake | 1 | departure | 204 | CROCODILE_CAVE | 13,28,-1,2,-1,9 | 8 -> 9 -> 9
+natural_lake | 1 | departure | 208 | BLIND_CAVE_OGRE | 12,28,-1,23,-1,24 | 5 -> 6 -> 6
+natural_lake | 1 | departure | 162 | FISH_STINGRAY | 13,28,0,-1,-1,6 | 350 -> 351 -> 351
+natural_lake | 1 | departure | 163 | ALLIGATOR | 13,28,0,-1,-1,4 | 140 -> 141 -> 141
+natural_lake | 1 | departure | 207 | GORLAK | 12,28,-1,23,-1,31 | 16 -> 17 -> 17
+natural_lake | 1 | departure | 211 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 205 | AARDVARK | 13,28,-1,-1,-1,181 | 6 -> 7 -> 7
+natural_lake | 1 | departure | 206 | GORLAK | 13,28,-1,2,-1,27 | 14 -> 15 -> 15
+natural_lake | 1 | departure | 216 | JABBERER | 12,27,-1,14,-1,0 | 19 -> 20 -> 20
+natural_lake | 1 | death | 225 | TROLL | 13,28,-1,2,-1,26 | 7 -> 7 -> 7
+natural_lake | 1 | death | 226 | CROCODILE_CAVE | 13,28,-1,2,-1,9 | 8 -> 8 -> 8
+natural_lake | 1 | departure | 215 | REACHER | 12,27,-1,14,-1,14 | 9 -> 10 -> 10
+natural_lake | 1 | departure | 209 | BLIND_CAVE_OGRE | 12,28,-1,23,-1,24 | 6 -> 8 -> 8
+natural_lake | 1 | departure | 210 | BLIND_CAVE_OGRE | 12,28,-1,23,-1,24 | 6 -> 8 -> 8
+natural_lake | 1 | departure | 212 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 213 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 214 | DEMON_13 | 12,28,-1,41,-1,6 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 217 | OLM_GIANT | 12,28,-1,2,-1,10 | 8 -> 9 -> 9
+natural_lake | 1 | departure | 218 | BIRD_EAGLE | 11,27,-1,-1,-1,103 | 20 -> 21 -> 21
+natural_lake | 1 | departure | 224 | TROGLODYTE | 12,27,-1,14,-1,3 | 13 -> 14 -> 15
+natural_lake | 1 | departure | 219 | TROGLODYTE | 12,27,-1,14,-1,3 | 14 -> 15 -> 15
+natural_lake | 1 | departure | 223 | TROGLODYTE | 12,27,-1,14,-1,3 | 15 -> 16 -> 16
+natural_lake | 1 | departure | 220 | TROGLODYTE | 12,27,-1,14,-1,3 | 16 -> 17 -> 19
+natural_lake | 1 | departure | 227 | BIRD_SWALLOW_CAVE_GIANT | 12,28,-1,2,-1,18 | 20 -> 21 -> 21
+natural_lake | 1 | departure | 221 | TROGLODYTE | 12,27,-1,14,-1,3 | 17 -> 19 -> 19
+natural_lake | 1 | departure | 222 | TROGLODYTE | 12,27,-1,14,-1,3 | 17 -> 19 -> 19
+natural_lake | 1 | death | 239 | GIRAFFE | 13,28,-1,-1,-1,244 | 4 -> 4 -> 4
+natural_lake | 1 | death | 180 | WEASEL | 13,28,-1,-1,-1,170 | 22 -> 22 -> 22
+natural_lake | 1 | departure | 237 | GIRAFFE | 13,28,-1,-1,-1,244 | 4 -> 5 -> 5
+natural_lake | 1 | departure | 232 | DEMON_15 | 12,28,-1,41,-1,4 | 10000001 -> 10000001 -> 10000001
+natural_lake | 1 | departure | 231 | DEMON_15 | 12,28,-1,41,-1,4 | 10000001 -> 10000001 -> -
+natural_lake | 1 | departure | 241 | GIRAFFE | 13,28,-1,-1,-1,244 | 5 -> 6 -> -
+surface_held_lake | 1 | departure | 180 | AARDVARK | 13,28,-1,-1,-1,181 | 7 -> 8 -> 8
+surface_held_lake | 1 | departure | 181 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 179 | BIRD_SWALLOW_CAVE_GIANT | 12,28,-1,2,-1,18 | 20 -> 21 -> 21
+surface_held_lake | 1 | departure | 182 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 162 | FISH_STINGRAY | 13,28,0,-1,-1,6 | 350 -> 351 -> 351
+surface_held_lake | 1 | departure | 191 | ELK_BIRD | 13,27,-1,22,-1,18 | 21 -> 24 -> 25
+surface_held_lake | 1 | departure | 192 | ELK_BIRD | 13,27,-1,22,-1,18 | 21 -> 24 -> 25
+surface_held_lake | 1 | departure | 193 | ELK_BIRD | 13,27,-1,22,-1,18 | 21 -> 24 -> 25
+surface_held_lake | 1 | departure | 194 | ELK_BIRD | 13,27,-1,22,-1,18 | 24 -> 25 -> 27
+surface_held_lake | 1 | departure | 200 | BLIND_CAVE_OGRE | 12,28,-1,14,-1,11 | 6 -> 7 -> 8
+surface_held_lake | 1 | departure | 165 | HIPPO | 13,28,0,-1,-1,5 | 294 -> 295 -> 295
+surface_held_lake | 1 | departure | 183 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 184 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 195 | ELK_BIRD | 13,27,-1,22,-1,18 | 25 -> 27 -> 30
+surface_held_lake | 1 | departure | 196 | ELK_BIRD | 13,27,-1,22,-1,18 | 25 -> 27 -> 30
+surface_held_lake | 1 | departure | 201 | BLIND_CAVE_OGRE | 12,28,-1,14,-1,11 | 7 -> 8 -> 8
+surface_held_lake | 1 | departure | 185 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 197 | ELK_BIRD | 13,27,-1,22,-1,18 | 27 -> 30 -> 30
+surface_held_lake | 1 | departure | 198 | ELK_BIRD | 13,27,-1,22,-1,18 | 27 -> 30 -> 30
+surface_held_lake | 1 | departure | 199 | ELK_BIRD | 13,27,-1,22,-1,18 | 27 -> 30 -> 30
+surface_held_lake | 1 | departure | 186 | CROCODILE_CAVE | 12,28,-1,2,-1,9 | 9 -> 10 -> 10
+surface_held_lake | 1 | departure | 202 | WARTHOG | 13,28,-1,-1,-1,232 | 3 -> 4 -> 4
+surface_held_lake | 1 | death | 231 | CRUNDLE | 12,28,-1,23,-1,12 | 115 -> 115 -> 115
+surface_held_lake | 1 | departure | 203 | WARTHOG | 13,28,-1,-1,-1,232 | 4 -> 5 -> 9
+surface_held_lake | 1 | departure | 204 | WARTHOG | 13,28,-1,-1,-1,232 | 5 -> 9 -> 9
+surface_held_lake | 1 | departure | 205 | WARTHOG | 13,28,-1,-1,-1,232 | 5 -> 9 -> 9
+surface_held_lake | 1 | departure | 206 | WARTHOG | 13,28,-1,-1,-1,232 | 5 -> 9 -> 9
+surface_held_lake | 1 | departure | 207 | WARTHOG | 13,28,-1,-1,-1,232 | 5 -> 9 -> 9
+surface_held_lake | 1 | departure | 209 | BUGBAT | 12,28,-1,14,-1,4 | 23 -> 24 -> 24
+surface_held_lake | 1 | departure | 215 | BUGBAT | 12,28,-1,14,-1,4 | 24 -> 26 -> 27
+surface_held_lake | 1 | departure | 216 | BUGBAT | 12,28,-1,14,-1,4 | 24 -> 26 -> 27
+surface_held_lake | 1 | departure | 210 | BUGBAT | 12,28,-1,14,-1,4 | 26 -> 27 -> 28
+surface_held_lake | 1 | departure | 248 | ELK_BIRD | 12,28,-1,23,-1,16 | 18 -> 19 -> 19
+surface_held_lake | 1 | departure | 166 | HIPPO | 13,28,0,-1,-1,5 | 295 -> 296 -> 296
+surface_held_lake | 1 | departure | 208 | GIANT_EARTHWORM | 13,28,-1,2,-1,22 | 14 -> 15 -> 15
+surface_held_lake | 1 | departure | 211 | BUGBAT | 12,28,-1,14,-1,4 | 27 -> 28 -> 28
+surface_held_lake | 1 | departure | 224 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 212 | BUGBAT | 12,28,-1,14,-1,4 | 28 -> 29 -> 31
+surface_held_lake | 1 | departure | 213 | BUGBAT | 12,28,-1,14,-1,4 | 29 -> 31 -> 31
+surface_held_lake | 1 | departure | 214 | BUGBAT | 12,28,-1,14,-1,4 | 29 -> 31 -> 31
+surface_held_lake | 1 | departure | 223 | DEMON_15 | 12,28,-1,41,-1,4 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | death | 256 | ELK_BIRD | 12,28,-1,23,-1,16 | 19 -> 20 -> 23
+surface_held_lake | 1 | departure | 257 | ELK_BIRD | 12,28,-1,23,-1,16 | 19 -> 20 -> 23
+surface_held_lake | 1 | departure | 228 | CRUNDLE | 12,28,-1,23,-1,12 | 117 -> 118 -> 118
+surface_held_lake | 1 | departure | 249 | ELK_BIRD | 12,28,-1,23,-1,16 | 20 -> 23 -> 27
+surface_held_lake | 1 | departure | 250 | ELK_BIRD | 12,28,-1,23,-1,16 | 20 -> 23 -> 27
+surface_held_lake | 1 | departure | 251 | ELK_BIRD | 12,28,-1,23,-1,16 | 20 -> 23 -> 27
+surface_held_lake | 1 | departure | 163 | ALLIGATOR | 13,28,0,-1,-1,4 | 140 -> 142 -> 142
+surface_held_lake | 1 | departure | 164 | ALLIGATOR | 13,28,0,-1,-1,4 | 140 -> 142 -> 142
+surface_held_lake | 1 | death | 227 | OLM_GIANT | 12,28,-1,2,-1,10 | 9 -> 9 -> 9
+surface_held_lake | 1 | departure | 252 | ELK_BIRD | 12,28,-1,23,-1,16 | 23 -> 27 -> 27
+surface_held_lake | 1 | departure | 253 | ELK_BIRD | 12,28,-1,23,-1,16 | 23 -> 27 -> 27
+surface_held_lake | 1 | departure | 254 | ELK_BIRD | 12,28,-1,23,-1,16 | 23 -> 27 -> 27
+surface_held_lake | 1 | departure | 255 | ELK_BIRD | 12,28,-1,23,-1,16 | 23 -> 27 -> 27
+surface_held_lake | 1 | departure | 167 | HIPPO | 13,28,0,-1,-1,5 | 296 -> 297 -> 297
+surface_held_lake | 1 | departure | 217 | BUGBAT | 12,28,-1,14,-1,4 | 32 -> 34 -> 34
+surface_held_lake | 1 | departure | 218 | BUGBAT | 12,28,-1,14,-1,4 | 32 -> 34 -> 34
+surface_held_lake | 1 | departure | 258 | RHINOCEROS | 13,28,-1,-1,-1,241 | 9 -> 11 -> 13
+surface_held_lake | 1 | departure | 259 | RHINOCEROS | 13,28,-1,-1,-1,241 | 11 -> 13 -> 13
+surface_held_lake | 1 | departure | 261 | RHINOCEROS | 13,28,-1,-1,-1,241 | 11 -> 13 -> 13
+surface_held_lake | 1 | departure | 168 | HIPPO | 13,28,0,-1,-1,5 | 297 -> 298 -> 298
+surface_held_lake | 1 | departure | 219 | BUGBAT | 12,28,-1,14,-1,4 | 34 -> 36 -> 36
+surface_held_lake | 1 | departure | 220 | BUGBAT | 12,28,-1,14,-1,4 | 34 -> 36 -> 36
+surface_held_lake | 1 | departure | 260 | RHINOCEROS | 13,28,-1,-1,-1,241 | 13 -> 14 -> 14
+surface_held_lake | 1 | departure | 221 | BUGBAT | 12,28,-1,14,-1,4 | 36 -> 37 -> 37
+surface_held_lake | 1 | departure | 262 | TOAD_GIANT_CAVE | 12,28,-1,2,-1,11 | 12 -> 13 -> 13
+surface_held_lake | 1 | departure | 222 | BUGBAT | 12,28,-1,14,-1,4 | 37 -> 38 -> 38
+surface_held_lake | 1 | departure | 225 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 233 | CRUNDLE | 12,28,-1,23,-1,12 | 121 -> 124 -> 125
+surface_held_lake | 1 | departure | 234 | CRUNDLE | 12,28,-1,23,-1,12 | 121 -> 124 -> 125
+surface_held_lake | 1 | departure | 235 | CRUNDLE | 12,28,-1,23,-1,12 | 121 -> 124 -> 125
+surface_held_lake | 1 | departure | 226 | DEMON_14 | 12,28,-1,41,-1,1 | 10000001 -> 10000001 -> 10000001
+surface_held_lake | 1 | departure | 232 | CRUNDLE | 12,28,-1,23,-1,12 | 124 -> 125 -> 127
+surface_held_lake | 1 | departure | 229 | CRUNDLE | 12,28,-1,23,-1,12 | 125 -> 127 -> 131
+surface_held_lake | 1 | departure | 230 | CRUNDLE | 12,28,-1,23,-1,12 | 125 -> 127 -> 131
+surface_held_lake | 1 | death | 241 | CRUNDLE | 12,28,-1,23,-1,12 | 125 -> 127 -> 131
+surface_held_lake | 1 | death | 244 | CRUNDLE | 12,28,-1,23,-1,12 | 125 -> 127 -> 131
+surface_held_lake | 1 | departure | 236 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | departure | 237 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | death | 238 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | death | 239 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | departure | 240 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | death | 242 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | departure | 243 | CRUNDLE | 12,28,-1,23,-1,12 | 127 -> 131 -> 131
+surface_held_lake | 1 | departure | 263 | CROCODILE_CAVE | 12,28,-1,2,-1,9 | 9 -> 10 -> 10
+surface_held_lake | 1 | departure | 245 | CRUNDLE | 12,28,-1,23,-1,12 | 131 -> 132 -> 133
+surface_held_lake | 1 | death | 265 | REACHER | 12,27,-1,14,-1,14 | 9 -> 9 -> 9
+surface_held_lake | 1 | departure | 246 | CRUNDLE | 12,28,-1,23,-1,12 | 133 -> 134 -> 134
+surface_held_lake | 1 | death | 247 | CRUNDLE | 12,28,-1,23,-1,12 | 133 -> 134 -> 134
+
+## Manipulations applied
+surface_held_lake | 1 | +0 | local n=0 for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and u.animal.population.feature_idx<0 and u.animal.population.cave_id<0 then u.animal.leave_countdown=400000; n=n+1 end end print('surface residents pinned: '..n) | surface residents pinned: 1
+
+## Pool entries that changed between load and end of replicate (116; the second instrument)
+natural_lake | 1 | idx 2974 | BIRD_EAGLE ref6=11,27,-1,-1,-1,103 quantity 21->21 max 21->21 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4140 | JABBERER ref6=12,27,-1,14,-1,0 quantity 20->20 max 20->20 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4141 | CRUNDLE ref6=12,27,-1,14,-1,1 quantity 135->122 max 135->135 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4143 | TROGLODYTE ref6=12,27,-1,14,-1,3 quantity 19->19 max 19->19 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4154 | REACHER ref6=12,27,-1,14,-1,14 quantity 10->10 max 10->10 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4199 | Vermin:508 ref6=12,28,-1,-1,-1,0 quantity 275->280 max 275->275 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4200 | Vermin:566 ref6=12,28,-1,-1,-1,1 quantity 271->275 max 272->272 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4205 | BIRD_OSPREY ref6=12,28,-1,-1,-1,6 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4209 | Vermin:570 ref6=12,28,-1,-1,-1,10 quantity 142->143 max 142->142 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4210 | Vermin:561 ref6=12,28,-1,-1,-1,11 quantity 212->214 max 213->213 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4211 | Vermin:537 ref6=12,28,-1,-1,-1,12 quantity 226->155 max 226->226 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4212 | Vermin:562 ref6=12,28,-1,-1,-1,13 quantity 279->280 max 279->279 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4234 | OLM_GIANT ref6=12,28,-1,2,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4235 | TOAD_GIANT_CAVE ref6=12,28,-1,2,-1,11 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4237 | Vermin:617 ref6=12,28,-1,2,-1,13 quantity 445->445 max 445->445 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4238 | Vermin:616 ref6=12,28,-1,2,-1,14 quantity 352->362 max 352->352 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4239 | Vermin:410 ref6=12,28,-1,2,-1,15 quantity 433->440 max 433->433 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4240 | Vermin:621 ref6=12,28,-1,2,-1,16 quantity 421->422 max 421->421 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4242 | BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 quantity 19->21 max 20->20 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4245 | BLIND_CAVE_BEAR ref6=12,28,-1,2,-1,21 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4248 | Vermin:630 ref6=12,28,-1,2,-1,24 quantity 277->264 max 277->277 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4249 | Vermin:623 ref6=12,28,-1,2,-1,25 quantity 230->201 max 230->230 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4259 | Vermin:623 ref6=12,28,-1,14,-1,7 quantity 240->160 max 243->243 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4260 | Vermin:630 ref6=12,28,-1,14,-1,8 quantity 255->182 max 257->257 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4261 | Vermin:616 ref6=12,28,-1,14,-1,9 quantity 406->408 max 406->406 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4282 | CAVE_BLOB ref6=12,28,-1,23,-1,14 quantity 408->405 max 408->408 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4292 | BLIND_CAVE_OGRE ref6=12,28,-1,23,-1,24 quantity 8->8 max 8->8 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4293 | TROLL ref6=12,28,-1,23,-1,25 quantity 8->8 max 8->8 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4298 | Vermin:419 ref6=12,28,-1,23,-1,30 quantity 232->173 max 232->232 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4299 | GORLAK ref6=12,28,-1,23,-1,31 quantity 16->17 max 16->16 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4304 | Vermin:620 ref6=12,28,-1,32,-1,4 quantity 401->325 max 404->404 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 4309 | DEMON_15 ref6=12,28,-1,41,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 4311 | DEMON_13 ref6=12,28,-1,41,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5321 | SPIDER_CAVE_GIANT ref6=13,27,-1,22,-1,22 quantity 3->3 max 3->3 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5330 | MAGMA_CRAB ref6=13,27,-1,32,-1,0 quantity 34->34 max 34->34 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5380 | Vermin:0 ref6=13,28,-1,-1,-1,78 quantity 364->365 max 364->364 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5382 | Vermin:49 ref6=13,28,-1,-1,-1,89 quantity 235->235 max 235->235 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5383 | Vermin:61 ref6=13,28,-1,-1,-1,92 quantity 122->123 max 122->122 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5386 | Vermin:118 ref6=13,28,-1,-1,-1,105 quantity 309->310 max 309->309 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5388 | Vermin:124 ref6=13,28,-1,-1,-1,107 quantity 350->351 max 350->350 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5389 | Vermin:130 ref6=13,28,-1,-1,-1,110 quantity 37->38 max 37->37 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5394 | Vermin:145 ref6=13,28,-1,-1,-1,118 quantity 3886->3923 max 3886->3886 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5397 | Vermin:196 ref6=13,28,-1,-1,-1,124 quantity 2716->1280 max 2716->2716 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5400 | Vermin:206 ref6=13,28,-1,-1,-1,128 quantity 321->323 max 321->321 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5406 | Vermin:517 ref6=13,28,-1,-1,-1,151 quantity 230->230 max 230->230 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5407 | Vermin:528 ref6=13,28,-1,-1,-1,153 quantity 326->327 max 326->326 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5410 | WEASEL ref6=13,28,-1,-1,-1,170 quantity 21->22 max 22->22 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 5413 | AARDVARK ref6=13,28,-1,-1,-1,181 quantity 7->7 max 7->7 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5425 | GIRAFFE ref6=13,28,-1,-1,-1,244 quantity 11->6 max 11->11 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5430 | ALLIGATOR ref6=13,28,0,-1,-1,4 quantity 138->141 max 140->140 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 5431 | HIPPO ref6=13,28,0,-1,-1,5 quantity 290->298 max 294->294 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 5432 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 quantity 349->351 max 350->350 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 5433 | Vermin:537 ref6=13,28,0,-1,-1,7 quantity 4060->4027 max 4060->4060 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5435 | Vermin:561 ref6=13,28,0,-1,-1,9 quantity 5025->5026 max 5026->5026 discovered 1->1 extinct 0->0
+natural_lake | 1 | idx 5446 | CROCODILE_CAVE ref6=13,28,-1,2,-1,9 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5447 | OLM_GIANT ref6=13,28,-1,2,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5463 | TROLL ref6=13,28,-1,2,-1,26 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5464 | GORLAK ref6=13,28,-1,2,-1,27 quantity 14->15 max 14->14 discovered 0->1 extinct 0->0
+natural_lake | 1 | idx 5466 | CRUNDLE ref6=13,28,-1,14,-1,1 quantity 129->134 max 129->129 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4093 | BIRD_OSPREY ref6=12,27,-1,-1,-1,6 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4154 | REACHER ref6=12,27,-1,14,-1,14 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4199 | Vermin:508 ref6=12,28,-1,-1,-1,0 quantity 275->278 max 275->275 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4200 | Vermin:566 ref6=12,28,-1,-1,-1,1 quantity 271->273 max 272->272 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4209 | Vermin:570 ref6=12,28,-1,-1,-1,10 quantity 142->144 max 142->142 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4210 | Vermin:561 ref6=12,28,-1,-1,-1,11 quantity 212->217 max 213->213 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4211 | Vermin:537 ref6=12,28,-1,-1,-1,12 quantity 226->151 max 226->226 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4212 | Vermin:562 ref6=12,28,-1,-1,-1,13 quantity 279->282 max 279->279 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4233 | CROCODILE_CAVE ref6=12,28,-1,2,-1,9 quantity 10->10 max 10->10 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4234 | OLM_GIANT ref6=12,28,-1,2,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4235 | TOAD_GIANT_CAVE ref6=12,28,-1,2,-1,11 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4237 | Vermin:617 ref6=12,28,-1,2,-1,13 quantity 445->445 max 445->445 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4238 | Vermin:616 ref6=12,28,-1,2,-1,14 quantity 352->354 max 352->352 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4239 | Vermin:410 ref6=12,28,-1,2,-1,15 quantity 433->435 max 433->433 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4240 | Vermin:621 ref6=12,28,-1,2,-1,16 quantity 421->423 max 421->421 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4242 | BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 quantity 19->21 max 20->20 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4248 | Vermin:630 ref6=12,28,-1,2,-1,24 quantity 277->261 max 277->277 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4249 | Vermin:623 ref6=12,28,-1,2,-1,25 quantity 230->224 max 230->230 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4255 | TROGLODYTE ref6=12,28,-1,14,-1,3 quantity 19->13 max 19->19 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4256 | BUGBAT ref6=12,28,-1,14,-1,4 quantity 35->38 max 35->35 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4259 | Vermin:623 ref6=12,28,-1,14,-1,7 quantity 240->142 max 243->243 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4260 | Vermin:630 ref6=12,28,-1,14,-1,8 quantity 255->142 max 257->257 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4261 | Vermin:616 ref6=12,28,-1,14,-1,9 quantity 406->411 max 406->406 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4263 | BLIND_CAVE_OGRE ref6=12,28,-1,14,-1,11 quantity 8->8 max 8->8 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4280 | CRUNDLE ref6=12,28,-1,23,-1,12 quantity 133->134 max 133->133 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4284 | ELK_BIRD ref6=12,28,-1,23,-1,16 quantity 28->28 max 28->28 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4287 | BUGBAT ref6=12,28,-1,23,-1,19 quantity 20->14 max 20->20 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4298 | Vermin:419 ref6=12,28,-1,23,-1,30 quantity 232->165 max 232->232 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4304 | Vermin:620 ref6=12,28,-1,32,-1,4 quantity 401->324 max 404->404 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 4306 | DEMON_14 ref6=12,28,-1,41,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4307 | DEMON_4 ref6=12,28,-1,41,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 4309 | DEMON_15 ref6=12,28,-1,41,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5317 | ELK_BIRD ref6=13,27,-1,22,-1,18 quantity 30->30 max 30->30 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5330 | MAGMA_CRAB ref6=13,27,-1,32,-1,0 quantity 34->34 max 34->34 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5380 | Vermin:0 ref6=13,28,-1,-1,-1,78 quantity 364->365 max 364->364 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5383 | Vermin:61 ref6=13,28,-1,-1,-1,92 quantity 122->123 max 122->122 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5386 | Vermin:118 ref6=13,28,-1,-1,-1,105 quantity 309->310 max 309->309 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5387 | Vermin:121 ref6=13,28,-1,-1,-1,106 quantity 409->410 max 409->409 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5388 | Vermin:124 ref6=13,28,-1,-1,-1,107 quantity 350->351 max 350->350 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5389 | Vermin:130 ref6=13,28,-1,-1,-1,110 quantity 37->38 max 37->37 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5397 | Vermin:196 ref6=13,28,-1,-1,-1,124 quantity 2716->1903 max 2716->2716 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5400 | Vermin:206 ref6=13,28,-1,-1,-1,128 quantity 321->321 max 321->321 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5404 | Vermin:485 ref6=13,28,-1,-1,-1,148 quantity 186->187 max 186->186 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5406 | Vermin:517 ref6=13,28,-1,-1,-1,151 quantity 230->231 max 230->230 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5407 | Vermin:528 ref6=13,28,-1,-1,-1,153 quantity 326->326 max 326->326 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5408 | Vermin:561 ref6=13,28,-1,-1,-1,158 quantity 217->218 max 217->217 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5410 | WEASEL ref6=13,28,-1,-1,-1,170 quantity 21->22 max 22->22 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 5413 | AARDVARK ref6=13,28,-1,-1,-1,181 quantity 7->8 max 7->7 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5423 | WARTHOG ref6=13,28,-1,-1,-1,232 quantity 8->9 max 8->8 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5424 | RHINOCEROS ref6=13,28,-1,-1,-1,241 quantity 13->14 max 13->13 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5430 | ALLIGATOR ref6=13,28,0,-1,-1,4 quantity 138->142 max 140->140 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 5431 | HIPPO ref6=13,28,0,-1,-1,5 quantity 290->298 max 294->294 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 5432 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 quantity 349->351 max 350->350 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 5433 | Vermin:537 ref6=13,28,0,-1,-1,7 quantity 4060->4028 max 4060->4060 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5435 | Vermin:561 ref6=13,28,0,-1,-1,9 quantity 5025->5027 max 5026->5026 discovered 1->1 extinct 0->0
+surface_held_lake | 1 | idx 5448 | TOAD_GIANT_CAVE ref6=13,28,-1,2,-1,11 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+surface_held_lake | 1 | idx 5459 | GIANT_EARTHWORM ref6=13,28,-1,2,-1,22 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 18 rows; first few:
+natural_lake | 1 | 162 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 countdown=29034 flag_src=1
+natural_lake | 1 | 163 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=22536 flag_src=1
+natural_lake | 1 | 164 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=25426 flag_src=1
+natural_lake | 1 | 165 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26786 flag_src=1
+natural_lake | 1 | 166 | HIPPO ref6=13,28,0,-1,-1,5 countdown=21196 flag_src=1
+natural_lake | 1 | 167 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26547 flag_src=1
+natural_lake | 1 | 168 | HIPPO ref6=13,28,0,-1,-1,5 countdown=27011 flag_src=1
+natural_lake | 1 | 178 | WEASEL ref6=13,28,-1,-1,-1,170 countdown=26718 flag_src=1
+
