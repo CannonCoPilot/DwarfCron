@@ -1,0 +1,191 @@
+{
+  "id": "E10",
+  "title": "Piggy-back predation, the full loop: prey arrive, release their hold, exclude the pool to wolf, cougar and dingo, wait, restore",
+  "fork": "kills P1 as a mechanism",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 30000,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "mechanism works",
+      "expects": "arm loop: a wolf, cougar or dingo wave within ~500 ticks of the release with the prey still present; arm no_exclude: a wave of a random species; arm no_release: nothing while two or more prey stay held"
+    },
+    {
+      "model": "exclusion window too short or draw cadence longer",
+      "expects": "arm loop: nothing within 3,000 ticks, then a random species after the restore"
+    },
+    {
+      "model": "predators never drawn",
+      "expects": "arm loop: nothing in 3,000 ticks and a random species after restore, in every replicate, while E8 showed emu draws under the same exclusion"
+    }
+  ],
+  "kill_criterion": "arm loop must produce a predator wave with prey present in at least three of five replicates; arm no_release must produce nothing before the restore in at least two of three",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "drop a replicate whose first surface wave had fewer than two units",
+    "report predator arrivals only if first listed before the restore"
+  ],
+  "arms": [
+    {
+      "name": "loop",
+      "replicates": 5,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release {ids}",
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 0 1",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 30 0",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 30 0",
+        "probe:setq 3216 30 0",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 0 1",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 30 0",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 0 1",
+        "probe:setq 4727 0 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 30 0",
+        "probe:setq 4733 30 0"
+      ],
+      "after_on_arrival": {
+        "ticks": 3000,
+        "do": [
+          "probe:setq 3186 354 0",
+          "probe:setq 3187 17 0",
+          "probe:setq 3188 11 0",
+          "probe:setq 3191 24 0",
+          "probe:setq 3192 16 0",
+          "probe:setq 3204 2 0",
+          "probe:setq 3205 21 0",
+          "probe:setq 3206 17 0",
+          "probe:setq 3209 21 0",
+          "probe:setq 3210 25 0",
+          "probe:setq 3211 16 0",
+          "probe:setq 3212 15 0",
+          "probe:setq 3215 14 0",
+          "probe:setq 3216 13 0",
+          "probe:setq 4703 339 0",
+          "probe:setq 4704 16 0",
+          "probe:setq 4705 11 0",
+          "probe:setq 4708 23 0",
+          "probe:setq 4709 15 0",
+          "probe:setq 4721 2 0",
+          "probe:setq 4722 20 0",
+          "probe:setq 4723 16 0",
+          "probe:setq 4726 20 0",
+          "probe:setq 4727 24 0",
+          "probe:setq 4728 15 0",
+          "probe:setq 4729 14 0",
+          "probe:setq 4732 13 0",
+          "probe:setq 4733 12 0"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 6000
+      }
+    },
+    {
+      "name": "no_exclude",
+      "replicates": 3,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release {ids}"
+      ],
+      "stop_when": {
+        "ticks_after_on_arrival": 6000
+      }
+    },
+    {
+      "name": "no_release",
+      "replicates": 3,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 0 1",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 30 0",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 30 0",
+        "probe:setq 3216 30 0",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 0 1",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 30 0",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 0 1",
+        "probe:setq 4727 0 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 30 0",
+        "probe:setq 4733 30 0"
+      ],
+      "after_on_arrival": {
+        "ticks": 3000,
+        "do": [
+          "probe:setq 3186 354 0",
+          "probe:setq 3187 17 0",
+          "probe:setq 3188 11 0",
+          "probe:setq 3191 24 0",
+          "probe:setq 3192 16 0",
+          "probe:setq 3204 2 0",
+          "probe:setq 3205 21 0",
+          "probe:setq 3206 17 0",
+          "probe:setq 3209 21 0",
+          "probe:setq 3210 25 0",
+          "probe:setq 3211 16 0",
+          "probe:setq 3212 15 0",
+          "probe:setq 3215 14 0",
+          "probe:setq 3216 13 0",
+          "probe:setq 4703 339 0",
+          "probe:setq 4704 16 0",
+          "probe:setq 4705 11 0",
+          "probe:setq 4708 23 0",
+          "probe:setq 4709 15 0",
+          "probe:setq 4721 2 0",
+          "probe:setq 4722 20 0",
+          "probe:setq 4723 16 0",
+          "probe:setq 4726 20 0",
+          "probe:setq 4727 24 0",
+          "probe:setq 4728 15 0",
+          "probe:setq 4729 14 0",
+          "probe:setq 4732 13 0",
+          "probe:setq 4733 12 0"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 6000
+      }
+    }
+  ]
+}
