@@ -32,6 +32,7 @@
 --   chronicler-ui findlast <text>        same, scanning from the bottom
 --   chronicler-ui click <text>           click the first match
 --   chronicler-ui clicklast <text>       click the last match
+--   chronicler-ui clickxy <x> <y>         click a screen tile coordinate (map clicks)
 --   chronicler-ui clickrel <anchor> <dy> <text>
 --                                        find <anchor>, go <dy> rows, click <text> on THAT row
 --   chronicler-ui key <KEY> [KEY ...]    feed interface keys (SELECT, OPTIONS, LEAVESCREEN, ...)
@@ -158,6 +159,14 @@ elseif cmd == 'click' or cmd == 'clicklast' then
     click_at(x, y)
     print('clicked ' .. x .. ',' .. y .. ' -- ' .. arg)
 
+elseif cmd == 'clickxy' then
+    -- click a screen TILE coordinate. Needed where the target is not text:
+    -- the world map on the embark screen (DF v50 places the embark rectangle
+    -- by a map click and has no interface key for it). Added 2026-09-16.
+    local x, y = tonumber(args[2]), tonumber(args[3])
+    if not x or not y then qerror('usage: chronicler-ui clickxy <x> <y>') end
+    click_at(x, y)
+    print(('clicked %d,%d'):format(x, y))
 elseif cmd == 'clickrel' then
     -- clickrel <anchor> <dy> <text>: the save list draws each entry as two rows
     -- ("Fort, Fortress" above "Folder: name"), so selecting a FOLDER means

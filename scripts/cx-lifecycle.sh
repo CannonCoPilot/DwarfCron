@@ -60,11 +60,17 @@ is_running() { [ -n "$(df_pids)" ]; }
 # than from config -- config says what we asked for, the socket says what we
 # got. They differ whenever the requested port was already taken.
 live_port() {
+    # The RPC port is fixed by dfhack-config (CX_PORT, 5555 here); ask for it
+    # directly first. Scanning wineserver's listeners was the old route, and on
+    # 53.16 the socket is no longer owned by a process named wineserver, so the
+    # scan came back empty and every wrapper call died with "connection
+    # closed" while a direct --port 5555 worked. Found 2026-09-16.
+    local want="${CX_PORT:-5555}"
+    if lsof -nP -iTCP:"$want" -sTCP:LISTEN >/dev/null 2>&1; then echo "$want"; return 0; fi
     # NR>1 skips lsof's header row -- without it every caller gets the
-    # literal string "NAME" as the port, which then fails deep inside the
-    # socket layer instead of here.
-    lsof -nP -iTCP -sTCP:LISTEN -a -c wineserver 2>/dev/null \
-        | awk 'NR>1 {print $9}' | sed 's/.*://' | head -1
+    # literal string "NAME" as the port.
+    lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null \
+        | awk 'NR>1 && ($1 ~ /wine|Dwarf/) {print $9}' | sed 's/.*://' | head -1
 }
 
 port_busy() { lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1; }
@@ -315,6 +321,10 @@ ensure_title() {
     if [ "$(ui_get map)" = "true" ]; then
         cmd_title || return 1
     fi
+    leave_site_screen
+    if [ "$(ui_get screen)" = "viewscreen_choose_game_typest" ]; then
+        cmd_ui click "Back to title menu" >/dev/null 2>&1; sleep 2
+    fi
     # The title screen's own mode says how deep we are:
     #   MAIN_MENU -> CONTINUE_ACTIVE_WORLD (world list) -> CONTINUE_ACTIVE (save list)
     # LEAVESCREEN backs out ONE level per press, so loop until MAIN_MENU.
@@ -328,6 +338,194 @@ ensure_title() {
 }
 
 CX_TICKS_PER_YEAR=403200   # DF year length; cur_year_tick wraps here
+
+# DF v50 puts several things behind an "Okay" button: the first-run Welcome,
+# the site-screen "On your own!" notice, the arrival announcement on a new
+# fort. Each one swallows the OPTIONS key until dismissed, and `dismiss_modal`
+# only knows the Welcome panel. Click any Okay that is drawn; harmless when none is.
+dismiss_okay() {
+    local i
+    for i in 1 2 3; do
+        cmd_ui find "Okay" 2>/dev/null | tr -d "\r" | grep -q '^[0-9]*,[0-9]*' || return 0
+        cmd_ui click "Okay" >/dev/null 2>&1; sleep 1
+    done
+}
+
+# ------------------------------------------------------------ worldgen ----
+# genworld <title> <seed> [preset-index] [end-year]
+#
+# Title -> Create new world -> Detail -> params -> Create world -> Keep world.
+# All four seeds are set to <seed>, so the same call makes the same world.
+# Preset 7 is SMALLER REGION (33x33), which generates in ~15s with a short
+# history; see cx-embark presets for the list. Prints the new world's folder.
+#
+# ⚠️ A rejection dialog ("MEDIUM ELEVATION REJECTION" etc.) means the preset's
+# terrain parameters do not fit its own size -- this happens when slot 0 is
+# edited in place without copying a matching preset first. `params` copies, so
+# a rejection now is a real one; the flow allows that rejection TYPE and logs
+# it, and aborts if a second different one appears. ABORT NOW drops all the way
+# to the title and the presets reload, so a failed run leaves nothing behind.
+cmd_genworld() {
+    local title="${1:-}" seed="${2:-}" preset="${3:-7}" endyr="${4:-5}"
+    [ -n "$title" ] && [ -n "$seed" ] || err "usage: genworld <title> <seed> [preset-index=7] [end-year=5]"
+    # ⚠️ DF reads the seed as a NUMBER. Two runs with text seeds WILDERPOP1 and
+    # WILDERPOP2 produced byte-identical worlds (both named Gomathkar); 424242
+    # produced a different one. A non-numeric seed is a silent seed of zero.
+    case "$seed" in (*[!0-9]*|"") err "seed must be a whole number (DF parses it as one; text seeds all collapse to zero)";; esac
+    is_running || err "start the session first"
+    ensure_title || err "could not reach the title screen"
+    local before; before=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | cut -f1 | sort)
+    click_when_drawn "Create new world" || err "title never showed 'Create new world'"
+    wait_state screen viewscreen_new_regionst 20 || err "Create new world did not open (state: $(ui_state))"
+    dismiss_okay
+    click_when_drawn "Detail" 10 || err "no 'Detail' button on the world screen"
+    sleep 1
+    cmd_cmd cx-embark params "$preset" "$title" "$seed" "$endyr" 2>&1 | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
+    click_when_drawn "Create world" 10 || err "no 'Create world' button"
+    local waited=0 allowed=""
+    while [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ]; do
+        sleep 3; waited=$((waited + 3))
+        if wait_drawn "Keep world and return to main menu" 1 >/dev/null; then
+            cmd_ui click "Keep world and return to main menu" >/dev/null 2>&1
+            break
+        fi
+        if wait_drawn "ALLOW THIS REJECTION TYPE" 1 >/dev/null; then
+            local kind; kind=$(cmd_ui screen 0 6 2>/dev/null | tr -d "\r" | grep -o '[A-Z][A-Z ]*REJECTION' | head -1)
+            [ -n "$allowed" ] && [ "$allowed" != "$kind" ] && err "second rejection type ($kind after $allowed); aborting worldgen"
+            allowed="$kind"; log "worldgen rejection: $kind -- allowing that type"
+            cmd_ui click "ALLOW THIS REJECTION TYPE" >/dev/null 2>&1
+        fi
+        [ "$(ui_get screen)" = "viewscreen_titlest" ] && err "dropped to the title during worldgen"
+    done
+    wait_state screen viewscreen_titlest 60 || err "did not return to the title after keeping the world"
+    local after; after=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | cut -f1 | sort)
+    local folder; folder=$(comm -13 <(echo "$before") <(echo "$after") | head -1)
+    [ -n "$folder" ] || err "no new world folder appeared (before: $(echo $before); after: $(echo $after))"
+    log "world '$title' seed=$seed -> folder $folder (${waited}s)"
+    echo "$folder"
+}
+
+# --------------------------------------------------------------- embark ----
+# embark <world-folder> <region-x> <region-y> <save-name> [size=4]
+#
+# Title -> Start new game in existing world -> the world -> Fortress -> site
+# screen -> centre the view on the tile -> Embark -> place by REAL pointer
+# clicks until the read-back matches -> Confirm -> Play now -> map -> save.
+#
+# The embark square is placed with its top-left at mid-level tile
+# (rx*16+6, ry*16+6), so a 4x4 sits wholly inside the region tile: one tile,
+# one biome, no neighbour bleeding in. The placement loop clicks the map
+# centre, reads where DF put the square, and moves the pointer by the
+# difference at 16 px per mid-level tile; two iterations is the norm.
+#
+# ⚠️ Map clicks are physical pointer events (cx-mouse.py), because DF resolves
+# a map click from the previous frame's hover. The flow refuses to click
+# unless DF is the frontmost application, so a stray click cannot land in
+# another window.
+CX_MAP_CENTER_PX="${CX_MAP_CENTER_PX:-961}"   # pixel under zoom_cent on this rig's 1920x1072 window
+CX_MAP_CENTER_PY="${CX_MAP_CENTER_PY:-552}"
+CX_MM_PX=16                                      # pixels per mid-level tile in the zoomed view
+
+df_frontmost() {
+    [ "$(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" = "Dwarf Fortress.exe" ]
+}
+
+# The site screen has no Back button. LEAVESCREEN opens a small dialog whose
+# "Return to title" is the exit; a second LEAVESCREEN closes that dialog again,
+# which is why blindly pressing it five times (ensure_title's loop) can end
+# either way. Press once, click the exit, wait for the title.
+leave_site_screen() {
+    [ "$(ui_get screen)" = "viewscreen_choose_start_sitest" ] || return 0
+    local i
+    for i in 1 2 3; do
+        cmd_ui key LEAVESCREEN >/dev/null 2>&1; sleep 1
+        if wait_drawn "Return to title" 2 >/dev/null; then
+            cmd_ui click "Return to title" >/dev/null 2>&1
+            wait_state screen viewscreen_titlest 30 && return 0
+        fi
+        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" key esc >/dev/null 2>&1; sleep 1
+        if wait_drawn "Return to title" 2 >/dev/null; then
+            cmd_ui click "Return to title" >/dev/null 2>&1
+            wait_state screen viewscreen_titlest 30 && return 0
+        fi
+    done
+    # ⚠️ The dialog does not reliably appear (seen 2026-09-16: it came up once
+    # and never again on the same screen). Nothing on the site screen is
+    # unsaved, so the honest exit is a restart: ~40s, and it always works.
+    log "site screen would not exit; restarting DF to get back to the title"
+    cmd_stop >/dev/null 2>&1; sleep 2
+    cmd_start >/dev/null 2>&1 || return 1
+    dismiss_modal >/dev/null
+    [ "$(ui_get screen)" = "viewscreen_titlest" ]
+}
+
+# Title -> world -> Fortress -> site screen, with the site-screen notice dismissed.
+open_site_screen() {
+    local world="$1"
+    ensure_title || err "could not reach the title screen"
+    local wname; wname=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$world" '$1==f {print $2; exit}')
+    [ -n "$wname" ] || err "DF lists no world in folder '$world'"
+    click_when_drawn "Start new game in existing world" || err "title never showed 'Start new game in existing world'"
+    click_when_drawn "World: $wname" || err "world list never showed 'World: $wname'"
+    wait_state screen viewscreen_choose_game_typest 90 || err "world did not load to the game-type screen (state: $(ui_state))"
+    click_when_drawn "Fortress" || err "no 'Fortress' choice"
+    wait_state screen viewscreen_choose_start_sitest 60 || err "no site screen (state: $(ui_state))"
+    dismiss_okay
+}
+
+# survey <world-folder> [biome-substring]
+# One TSV row per region tile of the world: biome, river/lake/site flags,
+# savagery, evilness, elevation, volcanism, and how many of the 8 neighbours
+# share the biome, carry a river, or are ocean. Returns to the title.
+cmd_survey() {
+    local world="${1:-}" filter="${2:-}"
+    [ -n "$world" ] || err "usage: survey <world-folder> [biome-substring]"
+    is_running || err "start the session first"
+    open_site_screen "$world"
+    cmd_cmd cx-embark survey $filter 2>/dev/null | tr -d "\r"
+    leave_site_screen || log "could not get back to the title after the survey (state: $(ui_state))"
+}
+
+# embark <world-folder> <region-x> <region-y> <save-name> [off-x=6] [off-y=6]
+# off-x/off-y place the 4x4's top-left within the region tile (0..15). The
+# default 6,6 keeps the square wholly inside one tile; 14,6 straddles the
+# tile to its east two-and-two, which is the even split the F2 experiment needs.
+cmd_embark() {
+    local world="${1:-}" rx="${2:-}" ry="${3:-}" name="${4:-}" ox="${5:-6}" oy="${6:-6}"
+    [ -n "$world" ] && [ -n "$rx" ] && [ -n "$ry" ] && [ -n "$name" ] || err "usage: embark <world-folder> <region-x> <region-y> <save-name> [off-x=6] [off-y=6]"
+    is_running || err "start the session first"
+    [ -e "$SAVE_ROOT/$name" ] && err "save '$name' already exists"
+    open_site_screen "$world"
+    cmd_cmd cx-embark center "$rx" "$ry" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
+    sleep 1
+    cmd_ui clicklast "Embark" >/dev/null 2>&1 || err "no Embark button"
+    sleep 1
+    local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" i rd mx my
+    for i in 1 2 3 4 5; do
+        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
+        df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer clicks"
+        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" click "$px" "$py" >/dev/null 2>&1
+        sleep 1
+        rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
+        mx=$(echo "$rd" | sed -n 's/.*mm_min=\([0-9-]*\),.*/\1/p'); my=$(echo "$rd" | sed -n 's/.*mm_min=[0-9-]*,\([0-9-]*\) .*/\1/p')
+        log "placement $i: click $px,$py -> $rd"
+        [ -n "$mx" ] && [ -n "$my" ] || err "could not read the placement (state: $(ui_state))"
+        if [ "$mx" = "$tx" ] && [ "$my" = "$ty" ]; then
+            case "$rd" in *confirm=true*) cmd_ui click "Confirm" >/dev/null 2>&1 ;; esac
+            break
+        fi
+        case "$rd" in *confirm=true*) cmd_ui click "Abort" >/dev/null 2>&1; sleep 1 ;; esac
+        px=$((px + (tx - mx) * CX_MM_PX)); py=$((py + (ty - my) * CX_MM_PX))
+        [ "$i" = 5 ] && err "placement did not converge on $tx,$ty (last $mx,$my)"
+    done
+    wait_state screen viewscreen_setupdwarfgamest 30 || err "Confirm did not open the preparation screen (state: $(ui_state))"
+    click_when_drawn "Play now!" || err "no 'Play now!' on the preparation screen"
+    wait_state map true "$CX_LOAD_TIMEOUT" || err "map never loaded (state: $(ui_state))"
+    sleep 2; dismiss_okay
+    cmd_ui pause >/dev/null
+    cmd_save "$name"
+    log "embarked: world $world tile $rx,$ry -> save $name ($(ui_state))"
+}
 
 cmd_state() { ui_state; }
 cmd_pause() { cmd_ui pause; }
@@ -470,6 +668,7 @@ cmd_save() {
         err "quicksave did not write an autosave within 60s"
     fi
     [ -e "$SAVE_ROOT/$name" ] && err "save '$name' already exists -- DF would refuse the name"
+    dismiss_okay
     cmd_ui key OPTIONS >/dev/null 2>&1
     click_when_drawn "Save and continue playing" || err "Options menu never showed 'Save and continue playing'"
     wait_drawn "name this manual" >/dev/null || err "no save-name prompt appeared"
@@ -579,6 +778,9 @@ case "${1:-status}" in
     health)    cmd_health ;;
     load)      shift; cmd_load "$@" ;;
     popups)    shift; cmd_popups "$@" ;;
+    genworld)  shift; cmd_genworld "$@" ;;
+    survey)    shift; cmd_survey "$@" ;;
+    embark)    shift; cmd_embark "$@" ;;
     fps)       shift; cmd_fps "$@" ;;
     state)     cmd_state ;;
     pause)     cmd_pause ;;
