@@ -498,10 +498,23 @@ cmd_embark() {
     open_site_screen "$world"
     cmd_cmd cx-embark center "$rx" "$ry" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
     sleep 1
-    cmd_ui clicklast "Embark" >/dev/null 2>&1 || err "no Embark button"
-    sleep 1
-    local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" i rd mx my
+    # Enter placement mode and PROVE it before any pointer click. The site-screen
+    # notice can appear after dismiss_okay ran, in which case the Embark click
+    # lands on the notice and choosing_embark stays false -- seen 2026-09-16,
+    # when the loop then chased a 0,0 read-back to pixel 20801,25512.
+    local rd i
+    for i in 1 2 3; do
+        dismiss_okay
+        cmd_ui clicklast "Embark" >/dev/null 2>&1
+        sleep 1
+        rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
+        case "$rd" in *choosing=true*) break;; esac
+        [ "$i" = 3 ] && err "Embark did not enter placement mode: $rd"
+    done
+    local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" mx my
     for i in 1 2 3 4 5; do
+        # never post a pointer event outside the DF window
+        { [ "$px" -ge 0 ] && [ "$px" -lt 1920 ] && [ "$py" -ge 0 ] && [ "$py" -lt 1072 ]; } || err "placement pixel $px,$py is off the window; refusing"
         "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
         df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer clicks"
         "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" click "$px" "$py" >/dev/null 2>&1
@@ -510,6 +523,7 @@ cmd_embark() {
         mx=$(echo "$rd" | sed -n 's/.*mm_min=\([0-9-]*\),.*/\1/p'); my=$(echo "$rd" | sed -n 's/.*mm_min=[0-9-]*,\([0-9-]*\) .*/\1/p')
         log "placement $i: click $px,$py -> $rd"
         [ -n "$mx" ] && [ -n "$my" ] || err "could not read the placement (state: $(ui_state))"
+        case "$rd" in *choosing=true*|*confirm=true*) ;; *) err "left placement mode unexpectedly: $rd";; esac
         if [ "$mx" = "$tx" ] && [ "$my" = "$ty" ]; then
             case "$rd" in *confirm=true*) cmd_ui click "Confirm" >/dev/null 2>&1 ;; esac
             break

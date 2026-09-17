@@ -103,7 +103,12 @@ elseif cmd == 'survey' then
         }
     end
     -- TSV, one row per tile: x y biome river lake site sav evil elev volc same8 nbr_river nbr_ocean
-    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean')
+    -- volcanoes: world_data.mountain_peaks carries every peak with an is_volcano flag
+    local volcano = {}
+    for _, pk in ipairs(wd.mountain_peaks) do
+        if flag(pk, 'is_volcano') then volcano[pk.pos.x .. ',' .. pk.pos.y] = true end
+    end
+    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean\tvolcano')
     for y = 0, H - 1 do
         for x = 0, W - 1 do
             local t = info(x, y)
@@ -119,9 +124,9 @@ elseif cmd == 'survey' then
                         end
                     end
                 end end
-                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
+                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
                     x, y, t.biome, t.river and 1 or 0, t.lake and 1 or 0, t.site and 1 or 0,
-                    t.sav, t.evil, t.elev, t.volc, same, riv, ocean))
+                    t.sav, t.evil, t.elev, t.volc, same, riv, ocean, volcano[x .. ',' .. y] and 1 or 0))
             end
         end
     end
