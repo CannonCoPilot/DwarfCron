@@ -1,0 +1,99 @@
+08:06:34 run E14-OCEAN 20260917-080634: Aquatic surface entries on OCEAN: open only fish, sharks, whales, otters, crocodiles and kin (surface tier) on the site and neighbour tiles, close every land entry, release surface holds only (cavern holds untouched), release surface every 1,500 ticks, 20,000 ticks; do aquatic units arrive, and where
+08:06:34   [rig] DF already running (pid 68651), port 5555
+08:06:34 == E14-OCEAN arm=aquatic rep=1 fort=OCEAN budget=20000 every=200
+08:06:34   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+08:06:34   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+08:07:21   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:07:21   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:07:21   [rig] drained 0 queued popup(s)
+08:07:23   baseline: 12 wild units on map, 165 pool entries, tick 16948 year 5
+08:07:23   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('^SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c)) -> aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+08:07:23   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:07:23   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+08:07:42   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:07:44   +  2117 ticks | wild  16 | arrivals   4 | departures   0 | deaths  0 | 164 t/s
+08:07:52   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:07:57   +  4198 ticks | wild  16 | arrivals   4 | departures   0 | deaths  0 | 158 t/s
+08:08:03   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:08:10   +  6177 ticks | wild  16 | arrivals   4 | departures   0 | deaths  0 | 157 t/s
+08:08:14   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:08:23   +  8093 ticks | wild  16 | arrivals   4 | departures   0 | deaths  0 | 159 t/s
+08:08:27   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:08:38   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:08:49   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:08:51   + 12075 ticks | wild  16 | arrivals   4 | departures   0 | deaths  0 | 169 t/s
+08:09:00   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:09:06   + 14195 ticks | wild  20 | arrivals   9 | departures   0 | deaths  1 | 141 t/s
+08:09:13   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:09:24   manipulation: probe:release surface -> released 1 unit(s) [surface]
+08:09:37   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:09:37   + 18182 ticks | wild  30 | arrivals  19 | departures   0 | deaths  1 | 132 t/s
+08:09:50   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:10:01   [rig] back at the title screen
+08:10:01   done: {"arm": "aquatic", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 19, "departures": 0, "deaths": 2, "ticks": 20209, "wall_s": 126.8, "stop": null, "ticks_per_s": 159.4, "save_untouched": true}
+08:10:01 == E14-OCEAN arm=aquatic rep=2 fort=OCEAN budget=20000 every=200
+08:10:02   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+08:10:02   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+08:10:50   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:10:50   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:10:50   [rig] drained 0 queued popup(s)
+08:10:52   baseline: 12 wild units on map, 165 pool entries, tick 16948 year 5
+08:10:52   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('^SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c)) -> aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+08:10:52   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:10:52   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+08:11:13   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:11:16   +  2057 ticks | wild  15 | arrivals   3 | departures   0 | deaths  0 | 160 t/s
+08:11:25   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:11:29   +  4100 ticks | wild  14 | arrivals   3 | departures   0 | deaths  1 | 231 t/s
+08:11:36   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:11:43   +  6148 ticks | wild  22 | arrivals  11 | departures   0 | deaths  1 | 181 t/s
+08:11:47   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:11:59   +  8158 ticks | wild  24 | arrivals  13 | departures   0 | deaths  1 | 132 t/s
+08:12:01   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:12:13   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:12:13   + 10000 ticks | wild  24 | arrivals  13 | departures   0 | deaths  1 | 153 t/s
+08:12:26   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:12:29   + 12060 ticks | wild  24 | arrivals  13 | departures   0 | deaths  1 | 126 t/s
+08:12:39   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:12:44   + 14127 ticks | wild  23 | arrivals  13 | departures   0 | deaths  2 | 177 t/s
+08:12:51   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:13:03   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:13:14   + 18012 ticks | wild  23 | arrivals  13 | departures   0 | deaths  2 | 142 t/s
+08:13:16   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:13:28   manipulation: probe:release surface -> released 0 unit(s) [surface]
+08:13:28   + 20006 ticks | wild  22 | arrivals  13 | departures   0 | deaths  3 | 146 t/s
+08:13:37   [rig] back at the title screen
+08:13:37   done: {"arm": "aquatic", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 13, "departures": 0, "deaths": 3, "ticks": 20006, "wall_s": 132.9, "stop": null, "ticks_per_s": 150.6, "save_untouched": true}
+08:13:37 == E14-OCEAN arm=natural rep=1 fort=OCEAN budget=20000 every=200
+08:13:38   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+08:13:38   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+08:14:24   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:14:24   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:14:24   [rig] drained 0 queued popup(s)
+08:14:26   baseline: 12 wild units on map, 165 pool entries, tick 16948 year 5
+08:14:26   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:14:26   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+08:14:47   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:14:49   +  2062 ticks | wild  33 | arrivals  21 | departures   0 | deaths  0 | 138 t/s
+08:14:58   manipulation: probe:release surface -> released 6 unit(s) [surface]
+08:15:05   +  4163 ticks | wild  46 | arrivals  34 | departures   0 | deaths  0 | 131 t/s
+08:15:13   manipulation: probe:release surface -> released 5 unit(s) [surface]
+08:15:26   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:15:42   manipulation: probe:release surface -> released 6 unit(s) [surface]
+08:15:58   manipulation: probe:release surface -> released 2 unit(s) [surface]
+08:16:14   manipulation: probe:release surface -> released 6 unit(s) [surface]
+08:16:18   + 12082 ticks | wild  68 | arrivals  56 | departures   0 | deaths  0 | 100 t/s
+08:16:29   manipulation: probe:release surface -> released 6 unit(s) [surface]
+08:16:37   + 14011 ticks | wild  78 | arrivals  66 | departures   0 | deaths  0 | 122 t/s
+08:16:44   manipulation: probe:release surface -> released 10 unit(s) [surface]
+08:17:01   manipulation: probe:release surface -> released 3 unit(s) [surface]
+08:17:17   manipulation: probe:release surface -> released 5 unit(s) [surface]
+08:17:19   + 18067 ticks | wild  94 | arrivals  82 | departures   0 | deaths  0 | 107 t/s
+08:17:33   manipulation: probe:release surface -> released 8 unit(s) [surface]
+08:17:41   + 20190 ticks | wild  96 | arrivals  84 | departures   0 | deaths  0 | 106 t/s
+08:17:50   [rig] back at the title screen
+08:17:50   done: {"arm": "natural", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 84, "departures": 0, "deaths": 0, "ticks": 20190, "wall_s": 169.4, "stop": null, "ticks_per_s": 119.2, "save_untouched": true}
+08:18:38   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:18:38   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:18:46   [rig] back at the title screen
+08:18:46 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E14-OCEAN/20260917-080634
