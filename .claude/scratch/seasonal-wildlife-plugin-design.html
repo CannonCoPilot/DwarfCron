@@ -91,7 +91,7 @@
 <div class="page">
 
   <header style="display:flex;flex-direction:column;gap:1rem">
-    <div class="eyebrow">Design report · rev 2<span>seasonal-wildlife v5.5 → v6</span><span>DF v0.53.16 · DFHack 53.16-r1.1</span><span>17 September 2026</span><span>W2:Urist</span></div>
+    <div class="eyebrow">Design report · rev 3<span>seasonal-wildlife v5.5 → v6</span><span>DF v0.53.16 · DFHack 53.16-r1.1</span><span>17 September 2026</span><span>W2:Urist</span></div>
     <h1>The Seasonal Wildlife Plugin</h1>
     <p class="standfirst">
       What the tool can be built to do now that the game's wildlife machine has been measured
@@ -131,9 +131,10 @@
         <tr><th scope="row">Who hunts whom</th><td><code>world.enemy_status_cache.rel_map[a][b].ur</code> written to <code>PREDATOR_OR_PREY</code> both ways: 19 of 19 prey killed. Unwritten, in a crowd of rival predators: 0 of 14, the predators fight each other as <code>STRANGER</code>s. DF fills the table itself on ~2 of 450 pairs.</td><td><span class="chip m">Measured</span></td><td>E11b, E11c</td></tr>
         <tr><th scope="row">Whether they meet</th><td>DF will not path a predator across the map to prey. Placed within six tiles, dingoes killed a wombat in ~1,600 ticks; left alone, cougar and wombats never came within 29 tiles in a whole season.</td><td><span class="chip m">Measured</span></td><td>E11, E11b</td></tr>
         <tr><th scope="row">Aquatic waves</th><td>Lake and ocean life are the water tile's ordinary surface entries and arrive as ordinary waves — hippos, milkfish, otter, a blue shark — <strong>when the map edge holds water</strong>. A dry coastal map never draws its ocean tile.</td><td><span class="chip m">Measured</span></td><td>E14 LAKE, OCEAN, OCEAN2</td></tr>
+        <tr><th scope="row">River waves</th><td>River and pool life lives in <em>feature</em> entries (<code>feature_idx ≥ 0</code>). Every river and lake save holds feature-ref units spawned <strong>at embark</strong> — two platypuses on RIVER3; a stingray, two alligators and four hippos on LAKE — held by the feature-category flag alone. E5's forced draw produced none in 20,000 ticks. Whether they wave again during play, and on what gate, is E26, running now.</td><td><span class="chip u">Reopened</span></td><td>E5, E26</td></tr>
         <tr><th scope="row">Cavern waves</th><td>Cavern entries wave unrevealed; <code>discovered</code> means "has spawned". Same gate, same accounting, its own flag category.</td><td><span class="chip m">Measured</span></td><td>E13</td></tr>
         <tr><th scope="row">Accounting</th><td>−1 per arrival, +1 per departure (DF refunds detached units itself), death never refunded, no regeneration within a season. Large entries debit exactly too: a 339-strong raven entry moved by exactly the wave size, thirteen of thirteen.</td><td><span class="chip m">Measured</span></td><td>E4, E9b, E6, E15</td></tr>
-        <tr><th scope="row">Placement</th><td><code>modtools/create-unit</code> reads <code>world.arena_spawn</code>, absent at 53.16-r1.1; dies for every creature. Fixed, it would place a unit DF does not count as wildlife.</td><td><span class="chip b">Blocked</span></td><td>E14c</td></tr>
+        <tr><th scope="row">Placement</th><td><code>modtools/create-unit</code> and <code>spawnunit</code> are tagged <em>unavailable</em> upstream because they read <code>world.arena_spawn</code>, which 53.x renamed. The data moved, it did not vanish: <code>world.arena</code> holds race, caste, count, tame and interaction, and <code>game.main_interface.arena_unit</code> holds the filter and cursor — exactly what <code>gui/sandbox</code>, which does work on 53.16, drives interactively. A headless rebuild is written (<code>cx-probe spawn2</code>, E30) and waits for the rig. The population reference still has to be written by hand for the unit to count as wildlife.</td><td><span class="chip u">Rebuild in test</span></td><td>E14c, E30</td></tr>
         <tr><th scope="row">Not levers</th><td><code>OPPOSED_TO_LIFE</code> quietens predators; <code>CRAZED</code> makes them fight each other and halted one replicate; agitation is DF's attack-the-fort state. River and pool feature entries never arrive.</td><td><span class="chip m">Measured</span></td><td>E11c, E5</td></tr>
       </tbody>
     </table></div>
@@ -146,7 +147,7 @@
       <thead><tr><th scope="col">Asked for</th><th scope="col">Answer</th><th scope="col">Rests on</th><th scope="col">Gap</th></tr></thead>
       <tbody>
         <tr><th scope="row">Realistic predator–prey relationships</th><td><strong>Yes.</strong> Three parts: the mass model decides <em>who could</em> take whom; the relation write decides <em>who does</em>; proximity decides <em>whether they meet</em>.</td><td>Brief §Predation, E11c, E11b</td><td>Relation write and nudge not built (v5.6)</td></tr>
-        <tr><th scope="row">Trigger, pre-load, set the table</th><td><strong>Yes.</strong> The piggy-back already puts predators on the map while their prey remain; the relation write arms them; sized packs size the encounter; the residency write keeps the prey there long enough.</td><td>E10 / v5.4, E11c, E12 / v5.5, E9c</td><td>Arming step not built</td></tr>
+        <tr><th scope="row">Trigger, pre-load, set the table</th><td><strong>Yes.</strong> The coupling already puts predators on the map while their prey remain; the relation write arms them; sized packs size the encounter; the residency write keeps the prey there long enough.</td><td>E10 / v5.4, E11c, E12 / v5.5, E9c</td><td>Arming step not built</td></tr>
         <tr><th scope="row">A variety of wave arrival patterns</th><td><strong>Yes.</strong> Gate + exclusion + a cadence give any pattern: steady, burst, trickle, dawn-of-season, predator-follows-prey.</td><td>E1, E8, v5.5 scheduler</td><td>Pattern library not built (v5.9)</td></tr>
         <tr><th scope="row">Seasonal cycling</th><td><strong>Shipped.</strong> A full year on region1: zero out-of-season arrivals, entries snapping at the boundaries.</td><td>S1 on v5.4</td><td>Partial presence (a curve, not a step) untested</td></tr>
         <tr><th scope="row">Standing herds</th><td><strong>Yes.</strong> Raise the countdown. A herd held a season is one write per unit and a refund when dismissed.</td><td>E9c</td><td>Not built; stuck-resident detection needed alongside (v5.7)</td></tr>
@@ -194,7 +195,7 @@
         <text x="354" y="104" fill="var(--ink-faint)">  seasons → quantities</text>
         <text x="354" y="134">groups job · 300 ticks</text>
         <text x="354" y="152" fill="var(--ink-faint)">  quota, gaps, pattern, release</text>
-        <text x="354" y="182">piggy-back → arm</text>
+        <text x="354" y="182">coupling → arm</text>
         <text x="354" y="200" fill="var(--ink-faint)">  exclude, pack, nudge, relate</text>
         <text x="354" y="230">herds · hold / dismiss</text>
         <text x="354" y="248" fill="var(--ink-faint)">  countdown, stuck sweep</text>
@@ -235,18 +236,20 @@
      rel_map[p][q].ur = rel_map[q][p].ur = PREDATOR_OR_PREY
      <span class="dim">never for a unit with civ_id ≠ −1, never for two BENIGN castes</span>
 <span class="lit">7</span> record the pairs in site config; rewrite them after a load <span class="dim">(cache is unsaved)</span>
-<span class="lit">8</span> ledger: "piggyback WOMBAT → 7 DINGO (pack 7), nudged at +3,000, 14 pairs related"</div>
+<span class="lit">8</span> ledger: "coupling WOMBAT → 7 DINGO (pack 7), nudged at +3,000, 14 pairs related"</div>
   </section>
 
   <section>
     <h2>4 · Decisions that are the product's, not the measurement's</h2>
     <div class="qa">
-      <div><h4>Should the tool move animals?</h4><p>Without a nudge, predator and prey on a 4×4 embark usually expire without meeting (E11). With one, they meet. Three policies: (a) teleport on arrival, deterministic and visibly artificial at the edge; (b) nudge only after the groups have stayed far apart, gentler; (c) never, and accept that most pairings are a tableau. Recommendation: <strong>(b)</strong>, default N = 40 tiles for M = 3,000 ticks, exposed as "Nudge predators toward prey", off until E18 has measured how it looks.</p></div>
-      <div><h4>Should the ecology switch default on?</h4><p>No. It changes what the player sees in a way the vanilla game rarely does on its own. Default <strong>off</strong>; the biome presets may turn it on for savage biomes, where the vanilla experience already includes wildlife violence.</p></div>
-      <div><h4>What does "predation" mean in the window?</h4><p>Exactly what was measured: <em>a predator beside prey, related in DF's table, will attack it.</em> The food-web tab says so and names the two writes. It never says or implies that DF hunts unaided across the map.</p></div>
-      <div><h4>When is a cavern layer managed?</h4><p>When the player has seen it: any of its entries carries <code>discovered</code>, or a tile in it is revealed. Before that the layer is shown locked with the count of species waiting. Opt-in overrides.</p></div>
+      <div><h4>Does the tool move animals?</h4><p><strong>Yes — the nudge is on by default.</strong> Without it, predator and prey on a 4×4 embark usually expire without meeting (E11). Policy (b): when a coupled pair has stayed more than N tiles apart for M ticks, the predators are moved to walkable tiles within R of the prey. Defaults N = 40, M = 3,000, R = 6, all exposed as "Nudge predators toward prey"; E18 tunes them.</p></div>
+      <div><h4>Does the ecology switch default on?</h4><p><strong>Yes.</strong> The point of the tool is an ecology; a player who wants a tableau turns it off. Presets may soften it per biome (fewer couplings on a calm temperate embark, more on a savage one) but the switch itself starts on.</p></div>
+      <div><h4>Whom may a predator attack?</h4><p>Any wildlife prey, and <strong>any animal that is not the fort's own</strong>: a caravan's reindeer and pack animals, a visitor's mount, an invader's war beast. The relation write pairs wild predators with those units too. Fort livestock is excluded by default behind a toggle ("Predators may take livestock"), because a wolf in the pasture is a different game than a wolf at the caravan. E22 measures the caravan case first, and if it breaks something the pairing narrows.</p></div>
+      <div><h4>What does "predation" mean in the window?</h4><p>Exactly what was measured: <em>a predator beside prey, related in DF's table, will attack it.</em> The food-web tab says so and names the two writes. It never implies that DF hunts unaided across the map.</p></div>
+      <div><h4>When is a cavern layer managed?</h4><p>When the player has found it: any of its entries carries <code>discovered</code>, or a tile in it is revealed. Until then the layer is hidden entirely — not locked, hidden, so nothing about the caverns is spoiled. <strong>On the rig every test reveals all three layers and manages all three</strong>, so the code that hides them in play is exercised at full load.</p></div>
       <div><h4>What if the map has no water at its edge?</h4><p>The water layer is marked <strong>dormant</strong> at load, with the reason in the window and the roster still visible. OCEAN taught this: a coastal fort can hold 28 shark entries and never draw one.</p></div>
-      <div><h4>Vermin?</h4><p>Out of the ecology switch entirely; rotated and curated as today.</p></div>
+      <div><h4>Vermin?</h4><p><strong>Their own panel.</strong> Vermin are pool entries too; players want to forbid mosquitoes and keep fireflies, and vermin have seasons that make sense (insects from spring to autumn, none under snow, rats all year). Rotated and curated in the Vermin tab; excluded from the ecology switch. E27 checks that a zeroed vermin entry actually stops the vermin.</p></div>
+      <div><h4>Per-layer quotas?</h4><p><strong>A player setting.</strong> "About two land groups and two water groups" is <code>max_concurrent</code> per layer with a gap range, on the Patterns tab, with the preset supplying the first values.</p></div>
     </div>
   </section>
 
@@ -254,12 +257,13 @@
     <h2>5 · Work packages, in the order they should ship</h2>
     <p>Each ends with a deployable version and a rig manifest that passes with the save byte-identical afterwards. Numbering is the build order; it matters.</p>
     <ol class="steps">
-      <li><span class="v">v5.6</span><div><h3>Ecology switch</h3><p><code>groups ecology on|off</code>, default off. Adds steps 5–8 of the arming sequence to the piggy-back. Slot guard for the 500-slot table; wildlife×wildlife pairs only; pairs persisted and rewritten after load.</p><p class="test">Gate: T4 manifest on CTRL — ecology on, one prey wave then piggy-back, ≥1 prey death within 5,000 ticks in 3 of 3; ecology off, 0 of 3 (E11c's no-lever arm is the control). Blocked by E16, E17, E22.</p></div></li>
-      <li><span class="v">v5.7</span><div><h3>Standing herds, turnover, stuck sweep</h3><p><code>groups hold &lt;token&gt; &lt;days&gt;</code> raises the countdown on a resident group; <code>groups dismiss &lt;token&gt;</code> zeroes it and DF refunds. The stuck sweep nudges a resident at countdown 0 that has not left in 6,000 ticks toward the nearest edge, or releases it to DF's own path. <code>fix/wildlife</code> cannot see unflagged units; this is ours.</p><p class="test">Gate: T5 — a herd held a season, dismissed, refund exact, no stuck unit at year end. Blocked by E19.</p></div></li>
+      <li><span class="v">v5.6</span><div><h3>Ecology switch</h3><p><code>groups ecology on|off</code>, default off. Adds steps 5–8 of the arming sequence to the coupling. Slot guard for the 500-slot table; wildlife×wildlife pairs only; pairs persisted and rewritten after load.</p><p class="test">Gate: T4 manifest on CTRL — ecology on, one prey wave then coupling, ≥1 prey death within 5,000 ticks in 3 of 3; ecology off, 0 of 3 (E11c's no-lever arm is the control). Blocked by E16, E17, E22.</p></div></li>
+      <li><span class="v">v5.7</span><div><h3>Herds, packs, turnover, stuck sweep</h3><p><code>groups hold &lt;token&gt; &lt;days&gt;</code> raises the countdown on a resident group; <code>groups dismiss &lt;token&gt;</code> zeroes it and DF refunds. <strong>Cohesion</strong>: herd and pack species are labelled from the raws (§5a) and their groups are kept together by whichever lever E28 proves — a shared station (<code>idle_area</code> + threshold) or a leader (<code>following</code> + <code>follow_distance</code>) — with a centroid nudge as the fallback. The stuck sweep moves a resident at countdown 0 that has not left in 6,000 ticks toward the nearest edge, or releases it to DF's own path; <code>fix/wildlife</code> cannot see unflagged units, so this is ours.</p><p class="test">Gate: T5 — a herd held a season, dismissed, refund exact, no stuck unit at year end; a pack of seven stays within 12 tiles of its centroid for 90% of samples. Blocked by E19, E28.</p></div></li>
       <li><span class="v">v5.8</span><div><h3>Water and cavern rotation</h3><p>The roster tick and groups job run per layer with per-layer quota and gaps. Wet-edge detection at load; dormant layers say why. Cavern layers managed on visibility or opt-in. Cavern raids (units with <code>invasion_id ≥ 0</code>) excluded from every count.</p><p class="test">Gate: T6 on LAKE and OCEAN2 (a year, per-layer checker), T7 on CTRL caverns. Blocked by E20, E21, E25.</p></div></li>
-      <li><span class="v">v5.9</span><div><h3>Arrival patterns and quotas</h3><p>Pattern library on the scheduler — steady, burst, trickle, dawn, follow — and "about 2 land + 2 water" as <code>max_concurrent</code> per layer. <em>Follow</em> scales predator probability by prey biomass on the map, the brief's rule, now worth having because the switch makes it matter.</p><p class="test">Gate: T8 — a season under each pattern; <code>waves.tsv</code> distributions differ as designed. Blocked by E24.</p></div></li>
-      <li><span class="v">v6.0</span><div><h3>The window</h3><p>Layer selector on every tab. Biome presets at first run (roster targets, pattern, ecology default, from the embark's biome family and savagery). Ecology tab with the switch, the nudge policy, pack size, and the live list of related pairs with their cache reading. Live-tab hotkeys for piggy-back, pack, hold, dismiss, next wave. Ledger tab. Undo ring for roster edits. Overlay links between predator and prey groups.</p><p class="test">Gate: the T5 user stories — a player does each thing end to end without the console.</p></div></li>
-      <li><span class="v">publish</span><div><h3>A remote and a submission</h3><p>The repo has never had a remote. Push it; write the DFHack script-pack submission; file the <code>create-unit</code> defect upstream while at it.</p></div></li>
+      <li><span class="v">v5.9</span><div><h3>Arrival patterns, quotas, and the Vermin panel</h3><p>Pattern library on the scheduler — steady, burst, trickle, dawn, follow — and <code>max_concurrent</code> per layer as a player setting with the preset supplying first values. <em>Follow</em> scales predator probability by prey biomass on the map. The Vermin tab: allow/block by vermin family, seasonal defaults (insects spring–autumn, none under snow in freezing biomes, rodents all year), abundance; excluded from the ecology switch.</p><p class="test">Gate: T8 — a season under each pattern; <code>waves.tsv</code> distributions differ as designed; a blocked vermin family produces no vermin for a season. Blocked by E24, E27.</p></div></li>
+      <li><span class="v">v6.0</span><div><h3>The window</h3><p>Layer selector on every tab. Biome presets at first run (roster targets, pattern, ecology default, from the embark's biome family and savagery). Ecology tab with the switch, the nudge policy, pack size, and the live list of related pairs with their cache reading. Live-tab hotkeys for coupling, pack, hold, dismiss, next wave. Ledger tab. Undo ring for roster edits. Overlay links between predator and prey groups.</p><p class="test">Gate: the T5 user stories — a player does each thing end to end without the console.</p></div></li>
+      <li><span class="v">v6.1</span><div><h3>Cavern pressure and raids</h3><p>DF's own cavern raids (agitated cavern dwellers) are governed by world settings many players turn off. This module reimplements the shape on the tool's own machinery, opt-in: a <em>pressure</em> score per cavern layer rises with the player's activity there (dwarves present, trees cut, fishing, mining) and decays; pressure raises that layer's coupling and pack size, and above a threshold arms an arriving pack against the fort by the lever E29 proves — DF's <code>flags4.agitated_wilderness_creature</code> (the flag <code>gui/sandbox</code> sets for a hostile disposition) or the reaction relation to citizens. Nothing here touches DF's invasion machinery; a raid is a wild pack that has been made angry, which is what a cavern raid is.</p><p class="test">Gate: T9 — a season of cavern activity on CTRL (all layers revealed on the rig), pressure climbs, one armed pack reaches the fort perimeter; with the module off, none. Blocked by E29.</p></div></li>
+      <li><span class="v">publish</span><div><h3>A remote and a submission</h3><p>The repo now has one: <code>github.com/CannonCoPilot/seasonal-wildlife</code>, private until v6.0. Write the DFHack script-pack submission; file the <code>create-unit</code> / <code>spawnunit</code> rename defect upstream with the working route from E30.</p></div></li>
     </ol>
   </section>
 
@@ -269,8 +273,8 @@
     <div class="scroll"><table>
       <thead><tr><th scope="col">Arrival</th><th scope="col">Its path</th><th scope="col">Shared with wildlife?</th><th scope="col">Rule for the tool</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Wildlife</th><td>Wilderpop path: <code>plotinfo.border</code> tile list, <code>wilderpop_enter</code>, the gate flag <code>flags2.roaming_wilderness_population_source</code>.</td><td>—</td><td>Everything the tool writes is scoped by <code>isWildlife</code>: <code>population_idx ≥ 0</code>, not merchant, not forest, not fort-controlled.</td></tr>
-        <tr><th scope="row">Caravans</th><td><code>plotinfo.caravans</code> (<code>caravan_state</code>); units carry <code>flags1.merchant</code>; pack animals belong to the civ.</td><td>No flag, no pool entry. The gate neither blocks nor triggers them.</td><td>Never relate a pair with <code>civ_id ≠ −1</code>. <span class="chip u">E22</span> whether a nudged pack near a caravan attacks it on DF's own <code>STRANGER</code> logic.</td></tr>
+        <tr><th scope="row">Wildlife</th><td>Wilderpop path: <code>plotinfo.border</code> tile list, <code>wilderpop_enter</code>, the gate flag <code>flags2.roaming_wilderness_population_source</code>.</td><td>—</td><td>Every pool and gate write is scoped by <code>isWildlife</code>. The relation write reaches further: wild predator × any non-fort animal (livestock behind a toggle).</td></tr>
+        <tr><th scope="row">Caravans</th><td><code>plotinfo.caravans</code> (<code>caravan_state</code>); units carry <code>flags1.merchant</code>; pack animals belong to the civ.</td><td>No flag, no pool entry. The gate neither blocks nor triggers them.</td><td><strong>In scope, deliberately.</strong> A wolf pack may take the caravan's reindeer: the relation write pairs wild predators with any animal that is not the fort's own. <span class="chip u">E22</span> measures what that does to the caravan and the merchants first; if it breaks trade it narrows to pack animals only, or comes out.</td></tr>
         <tr><th scope="row">Migrants, diplomats</th><td>Civ-timed; <code>flags1.diplomat</code>.</td><td>No.</td><td>Nothing, beyond the popup halt below.</td></tr>
         <tr><th scope="row">Visitors</th><td><code>flags2.visitor</code>, <code>visitor_uninvited</code>.</td><td>No.</td><td>Excluded by scope. No known interaction.</td></tr>
         <tr><th scope="row">Sieges and raids</th><td><code>plotinfo.invasions</code>; units carry <code>invasion_id</code>, <code>flags1.active_invader</code> / <code>marauder</code>. Cavern raids (troglodytes, cave crocodiles) are invasions too, agitation-driven.</td><td>No — but cavern raiders <em>look</em> like cavern wildlife.</td><td>Exclude <code>invasion_id ≥ 0</code> from every cavern count. Released predators will treat invaders as <code>STRANGER</code>s; that is DF's behaviour, unchanged. <span class="chip u">E23</span> whether closing entries during a window alters an agitated wave.</td></tr>
@@ -283,7 +287,7 @@
 
   <section>
     <h2>7 · Experiments before implementation</h2>
-    <p>Ten manifests, each a rig job of an hour or less, ordered by the work package they unblock. Every one names its prediction before it runs.</p>
+    <p>Fifteen manifests, each a rig job of an hour or less, ordered by the work package they unblock. Every one names its prediction before it runs.</p>
     <div class="scroll"><table>
       <thead><tr><th scope="col">ID</th><th scope="col">Question</th><th scope="col">Design</th><th scope="col">Unblocks</th></tr></thead>
       <tbody>
@@ -294,30 +298,235 @@
         <tr><th scope="row">E19</th><td>A herd held a season: grazing, breeding, starving, anything odd above 60,000?</td><td>Hold a kangaroo group 100,800 ticks; sample hunger, wounds, positions.</td><td>v5.7</td></tr>
         <tr><th scope="row">E20</th><td>Aquatic rotation for a year on OCEAN2; do fish leave the map or die in place?</td><td>S1-style checker on the water layer.</td><td>v5.8</td></tr>
         <tr><th scope="row">E21</th><td>Three cavern layers rotated independently; does a held cavern group gate the surface?</td><td>CTRL, per-layer roster, a season.</td><td>v5.8</td></tr>
-        <tr><th scope="row">E22</th><td>A caravan on the map during an armed window</td><td>Time a piggy-back to the caravan season; count merchant and pack-animal combat.</td><td>v5.6 safety</td></tr>
+        <tr><th scope="row">E22</th><td>A caravan on the map during an armed window</td><td>Time a coupling to the caravan season; count merchant and pack-animal combat.</td><td>v5.6 safety</td></tr>
         <tr><th scope="row">E23</th><td>Agitated waves and cavern raids under a closed pool</td><td>MAGMA (savage 71): close all entries for a window during high agitation; compare agitated arrivals.</td><td>v5.8 safety</td></tr>
         <tr><th scope="row">E24</th><td>Does quantity change wave <em>frequency</em>, or only eligibility?</td><td>Ramp one species 10 → 30 → 60 against a fixed partner; count waves per species.</td><td>v5.9, seasonal curves</td></tr>
         <tr><th scope="row">E25</th><td>Wet-edge detector across the fort set</td><td>OCEAN2, OCEAN, LAKE, CTRL, RIVER3 through the detector; expect live, dormant, live, dormant, dormant.</td><td>v5.8</td></tr>
+        <tr><th scope="row">E26</th><td>Do river and lake <em>feature</em> populations wave during play, and on what gate?</td><td>RIVER3 a full year and LAKE a season, no manipulation; LAKE a season with every surface resident pinned so only a feature gate could open. Count feature-ref arrivals against the surface hold. <strong>Running.</strong></td><td>v5.8 river layer</td></tr>
+        <tr><th scope="row">E27</th><td>Does zeroing a vermin entry stop that vermin?</td><td>CTRL: zero flies and mosquitoes, a season; count vermin spawns by race (<code>world.vermin</code>) against a control season.</td><td>v5.9 Vermin panel</td></tr>
+        <tr><th scope="row">E28</th><td>Which lever keeps a group together?</td><td>A pack of seven dingoes, three arms: shared <code>idle_area</code> + threshold 8; <code>following</code> a leader with <code>follow_distance</code> 4; centroid nudge every 1,500 ticks. Measure mean distance to centroid per sample; control: untouched pack.</td><td>v5.7 cohesion</td></tr>
+        <tr><th scope="row">E29</th><td>What makes a wild pack attack the fort?</td><td>CTRL with a walled dwarf party outside: arms <code>flags4.agitated_wilderness_creature</code>; relation <code>LIVING_MUST_BE_KILLED</code> or <code>ENEMY_FIGHTER</code> to citizens; control. Measure approach distance and combat with citizens.</td><td>v6.1 raids</td></tr>
+        <tr><th scope="row">E30</th><td>Does the 53.x arena route place a unit headlessly?</td><td><code>cx-probe spawn2</code>: <code>world.arena</code> + <code>arena_unit</code>, <code>ARENA_CREATE_CREATURE</code> then <code>SELECT</code>; then the population reference written; check <code>isWildlife</code>, countdown, departure refund.</td><td>Direct placement, if ever wanted</td></tr>
       </tbody>
     </table></div>
   </section>
 
   <section>
-    <h2>8 · The window, sketched in its own medium</h2>
+    <h2>8 · First run on a new fort — how the roster builds itself</h2>
+    <p>The player embarks, enables the tool, and should see a sensible ecology without touching a
+    setting. The builder runs once at first load per fort (and again on request), layer by layer,
+    and writes one ledger line per decision so every choice can be read and reversed.</p>
+    <div class="scroll"><table>
+      <thead><tr><th scope="col">Step</th><th scope="col">Land</th><th scope="col">Lake / ocean</th><th scope="col">River</th><th scope="col">Cavern 1–3</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1 Detect</th><td>Biomes from the site tiles and their block-biome neighbours; savagery, alignment, temperature band.</td><td>A lake or ocean tile among the draw tiles <em>and</em> water at the map edge (else dormant).</td><td>A river feature on the map; gate rule from E26.</td><td>Layers present (0–3); each hidden until found; on the rig, revealed.</td></tr>
+        <tr><th scope="row">2 Enumerate</th><td colspan="4">The embark subset: every pool entry whose reference matches the layer, classified into ecology classes (NATURAL managed; MEGA/NIGHT/GENERATED shown, locked; MYTHIC/UNLIVING opt-in), with trophic role, adult mass, pack range and biome tokens read from the raws.</td></tr>
+        <tr><th scope="row">3 Web</th><td colspan="4">The mass model builds edges within the layer (<code>take ≥ need</code>, preference near 0.4× predator mass); a curated riparian list adds cross-layer edges for bears, herons, otters, crocodiles; waterfowl bridge land and water.</td></tr>
+        <tr><th scope="row">4 Preset</th><td>Targets by biome family: temperate forest prey 3 / predator 2 / bird 2 / vermin 2; savanna prey 4 / predator 2; tundra prey 2 / predator 1; savage biomes +1 predator and coupling stronger.</td><td>Fish 2 / large aquatic 1 / amphibious 1; sharks only on ocean.</td><td>Otter, beaver, turtles: 2; large reptile 1 in warm biomes.</td><td>Per layer: prey 2 / predator 1 / vermin 1, grown with pressure (v6.1).</td></tr>
+        <tr><th scope="row">5 Seasons</th><td>Climate-range terciles from the raws' biome tokens; fliers weighted to spring–summer in temperate bands, year-round in tropical; large herbivores year-round; predators co-aligned to their prey.</td><td>Spawning runs in spring; freeze-out in winter where the biome freezes; ocean does not freeze.</td><td>As lake, plus a late-summer low.</td><td>Aseasonal: rotation by <em>epoch</em> (a slow roster shuffle every 2–4 seasons) instead of by season.</td></tr>
+        <tr><th scope="row">6 Pattern &amp; quota</th><td>steady; 2 concurrent; predators <em>follow</em> prey.</td><td>trickle; 2 concurrent.</td><td>trickle; 1.</td><td>steady; 1 per layer; burst under pressure.</td></tr>
+        <tr><th scope="row">7 Ecology</th><td colspan="4">Coupling on, nudge on, pack size from the raws; every pair written at coupling time; vermin excluded. The ledger records the whole build so "why is there a cougar" has an answer.</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Everything in rows 2–3 exists in the tool today (classification, mass model, fill natural prey/predators, co-align, matrix assign). Rows 1, 4, 6 and 7 are the new pieces: detection, presets as data, per-layer patterns, and the switch.</p>
+  </section>
+
+  <section>
+    <h2>9 · Herds and packs</h2>
+    <p>In vanilla play a wave arrives together and then scatters; a "pack" is a coincidence of
+    arrival, not a behaviour. The tool can label which species should hold together and then
+    hold them.</p>
+    <h3>Auto-labelling from the raws</h3>
+    <div class="scroll"><table>
+      <thead><tr><th scope="col">Label</th><th scope="col">Rule</th><th scope="col">Examples on the test forts</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Herd</th><td>Not a predator; <code>CLUSTER_NUMBER</code> maximum ≥ 3; <code>GRAZER</code> or a herbivore diet; <code>BENIGN</code>.</td><td>Kangaroo 3, emu 2–10, water buffalo, elk, hippo 3–7</td></tr>
+        <tr><th scope="row">Pack</th><td><code>LARGE_PREDATOR</code> or <code>CARNIVORE</code>; cluster maximum ≥ 3.</td><td>Dingo 3–12, wolf 3–7, badger 4–12</td></tr>
+        <tr><th scope="row">Solitary</th><td>Cluster maximum ≤ 2.</td><td>Cougar 1, porcupine 1, bobcat 1</td></tr>
+        <tr><th scope="row">Flock</th><td><code>FLIER</code>; cluster maximum ≥ 3.</td><td>Raven 6, albatross 5</td></tr>
+        <tr><th scope="row">School</th><td><code>AQUATIC</code>; cluster maximum ≥ 3.</td><td>Milkfish 3–7</td></tr>
+      </tbody>
+    </table></div>
+    <p>The label is a default the player can override per species, and it is shown with its reason.</p>
+    <h3>Holding them together — three candidate levers, one experiment</h3>
+    <ul class="plain">
+      <li><strong>Shared station.</strong> Every unit carries <code>idle_area</code> (a coordinate, "station"), <code>idle_area_threshold</code> (default 3) and <code>idle_area_type</code>. Wild units wander under <code>WildernessCuriousWander</code>. Writing the group's centroid into every member's station with a threshold of 8–12 may keep the wander within a radius. Cheapest if it works.</li>
+      <li><strong>A leader.</strong> <code>unit.following</code> (a unit pointer) and <code>follow_distance</code> are what pets use to trail their owners. Point every member at one leader with a distance of 4; the leader wanders, the pack trails. Reads well on screen if DF honours it for wild units.</li>
+      <li><strong>Centroid nudge.</strong> Every 1,500 ticks, teleport any member more than R from the centroid to a walkable tile within R. Certain to work (E11b's gather is this), least natural.</li>
+    </ul>
+    <p>E28 runs all three against an untouched pack and measures mean distance to centroid per sample. Herd cohesion also makes coupling sharper: a nudged pack meets a herd, not a lone animal.</p>
+  </section>
+
+  <section>
+    <h2>10 · Vermin</h2>
+    <p>Vermin are pool entries of type <code>Vermin</code> alongside the animals, and the same
+    quantity lever should apply (E27 confirms). The Vermin tab groups them by family — biting
+    insects, crawling insects, fireflies and butterflies, rodents, snails and worms, fish vermin —
+    with allow/block per family and per species, seasonal defaults that follow the biome's
+    freezing months, and abundance. Vermin never enter the ecology switch, the coupling, or the
+    biomass pyramid; they stay a curated background.</p>
+  </section>
+
+  <section>
+    <h2>11 · Cavern pressure and raids</h2>
+    <p>Two things are true: cavern layers are the same wildlife machine as the surface (E13), and
+    DF's own cavern raids are a separate invasion system that many players disable. The module
+    proposed in v6.1 builds raids out of wildlife instead: a pressure score per layer that the
+    player's activity raises and time decays; more and larger cavern couplings as it climbs; and,
+    above a threshold, an arriving pack armed against the fort by whichever lever E29 proves.
+    Because it is wildlife, everything else the tool knows applies — the roster, the seasons,
+    the ledger — and turning the module off returns the caverns to a quiet ecology. It never
+    touches <code>plotinfo.invasions</code>; a raid is an angry pack.</p>
+  </section>
+
+  <section>
+    <h2>12 · The window, every view</h2>
+    <p>DFHack's window is a text grid: sixteen colours, box glyphs, and the creature's own sprite in graphics mode. Each view below is one tab or one drill-down; the layer selector sits on every one. Hotkeys are the letters in the column headers.</p>
+
+    <h3>Overview — what the map holds now</h3>
+    <div class="grid"><span class="dim">┌─ seasonal-wildlife ─── </span><span class="lit">Land</span><span class="dim"> · </span><span class="wa">Water</span><span class="dim"> · Caverns 1 ─── </span><span class="lit">Overview</span><span class="dim">  Roster  Seasons  Food web  Ecology  Herds  Vermin  Patterns  Ledger ─┐</span>
+<span class="dim">│</span>  Late Spring, day 14 · year 5                           tool <span class="lit">on</span> · coupling <span class="lit">on</span> · nudge <span class="lit">on</span>
+<span class="dim">│</span>
+<span class="dim">│</span>  On the map               land            water           cavern 1
+<span class="dim">│</span>  groups                   <span class="lit">2</span> of 2         <span class="wa">1</span> of 2         <span class="dim">0 of 1</span>
+<span class="dim">│</span>                           KANGAROO ×3     HIPPO ×4        <span class="dim">next wave in ~4 days</span>
+<span class="dim">│</span>                           DINGO ×7 <span class="hot">↔ coupled</span>
+<span class="dim">│</span>  biomass prey : pred      8.4 : 1  <span class="lit">ok</span>   —               —
+<span class="dim">│</span>  in season now            9 species       4 species       6 species
+<span class="dim">│</span>  next boundary            Summer in 14 days: +raven +emu  −wombat
+<span class="dim">│</span>
+<span class="dim">│</span>  <span class="dim">Recent</span>  day 12  coupling KANGAROO → 7 DINGO (pack 7), 21 pairs related, nudged at +3,000
+<span class="dim">│</span>          day 9   HIPPO ×4 arrived (water)
+<span class="dim">└──────────────────────────────────────────────────────────────────────────────────────────┘</span></div>
+
+    <h3>Roster — the layer's species, with the reason for each</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Roster · Land</span>   filter: <span class="dim">[all]</span> V view C cat B biome N season / search
+<span class="dim">│</span>  a  species            class   role      mass   pack   seasons   abund  on map   why
+<span class="dim">│</span>  <span class="lit">✓</span>  KANGAROO           natural prey      90k    3      ·SU·AU·    50     3        preset: temperate prey
+<span class="dim">│</span>  <span class="lit">✓</span>  DINGO              natural predator  20k    3–12   SP·SU·AU·  50     7 <span class="hot">↔</span>     fill natural predators of KANGAROO
+<span class="dim">│</span>  <span class="lit">✓</span>  BIRD_RAVEN         natural bird       1.2k  6      ·SU·       50     —        matrix: flier, temperate
+<span class="dim">│</span>  <span class="dim">·</span>  COUGAR             natural predator  60k    1      ·SU·AU·WI  —      —        <span class="dim">blocked by you, day 3</span>
+<span class="dim">│</span>  <span class="dim">⊘</span>  CRETACEOUS_CARNOT  mythic  predator  170k   1      —          —      —        <span class="dim">class MYTHIC (opt-in)</span>
+<span class="dim">│</span>  <span class="dim">Enter</span> details · <span class="dim">Space</span> allow/block · <span class="dim">+/-</span> abundance · <span class="dim">S U A W</span> seasons · <span class="dim">Z</span> undo</div>
+
+    <h3>Species detail — one animal, every control</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">DINGO</span>  <span class="dim">creature_dingo · natural · predator · pack</span>                     <span class="dim">[sprite]</span>
+<span class="dim">│</span>  mass 20,000   pack 3–12 (raw)  <span class="lit">override [7]</span>   biomes SHRUBLAND_TEMPERATE …   in embark: 2 entries (29,20 · 28,19)
+<span class="dim">│</span>  allowed <span class="lit">[yes]</span>   abundance <span class="lit">[50]</span> ──●────   seasons  SP <span class="lit">[x]</span>  SU <span class="lit">[x]</span>  AU <span class="lit">[x]</span>  WI <span class="dim">[ ]</span>
+<span class="dim">│</span>  eats      KANGAROO ✓  WOMBAT ✓  PORCUPINE ✓  EMU ✓   <span class="dim">(mass model; edit with E)</span>
+<span class="dim">│</span>  eaten by  —
+<span class="dim">│</span>  behaviour cohesion <span class="lit">[pack]</span>   coupling <span class="lit">[on]</span>   may take livestock <span class="dim">[off]</span>
+<span class="dim">│</span>  now       7 on the map since day 12, coupled to KANGAROO, 21 pairs related, last nudge day 14
+<span class="dim">│</span>  history   waves 4 · kills 2 · departures 1 · deaths 0        <span class="dim">Q</span> hold group  <span class="dim">X</span> dismiss group  <span class="dim">W</span> next wave now</div>
+
+    <h3>Seasons — the grid, per layer</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Seasons · Land</span>          Spring   Summer   Autumn   Winter      <span class="dim">M</span> matrix assign  <span class="dim">O</span> co-align  <span class="dim">R</span> reset
+<span class="dim">│</span>  prey     KANGAROO         <span class="dim">-</span>        <span class="lit">X</span>        <span class="lit">X</span>        <span class="dim">-</span>
+<span class="dim">│</span>           WOMBAT           <span class="lit">X</span>        <span class="lit">X</span>        <span class="dim">-</span>        <span class="dim">-</span>
+<span class="dim">│</span>  predator DINGO            <span class="lit">X</span>        <span class="lit">X</span>        <span class="lit">X</span>        <span class="dim">-</span>          <span class="dim">co-aligned to KANGAROO, WOMBAT</span>
+<span class="dim">│</span>  bird     BIRD_RAVEN       <span class="dim">-</span>        <span class="lit">X</span>        <span class="dim">-</span>        <span class="dim">-</span>
+<span class="dim">│</span>  vermin   FLY              <span class="lit">X</span>        <span class="lit">X</span>        <span class="lit">X</span>        <span class="dim">-</span>          <span class="dim">(Vermin tab)</span>
+<span class="dim">│</span>  species in season          6        9        7        3     <span class="hot">⚠ winter has no predator</span></div>
+
+    <h3>Food web — configured, as a graph</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Food web · Land · all seasons</span>            <span class="dim">G</span> graph / pyramid   <span class="dim">N</span> season   <span class="dim">L</span> layers side by side
+<span class="dim">│</span>
+<span class="dim">│</span>        <span class="hot">COUGAR</span> ─────────┐            <span class="hot">DINGO ×7</span> ═══════╗
+<span class="dim">│</span>                          ▼                             ║
+<span class="dim">│</span>        BIRD_EMU      KANGAROO ◄══════════════════════════╝        <span class="dim">══ live pair (related)</span>
+<span class="dim">│</span>           ▲              ▲                                        <span class="dim">── configured edge</span>
+<span class="dim">│</span>           └──── <span class="hot">WOLF</span> ─────┘ ─────► WOMBAT ◄──── <span class="hot">BADGER</span>
+<span class="dim">│</span>                                       │
+<span class="dim">│</span>                                    PORCUPINE            <span class="dim">vermin: FLY RAT (not drawn)</span>
+<span class="dim">│</span>  prey biomass 8.4× predator   <span class="lit">ok</span>       unlinked: BIRD_KAKAPO   <span class="dim">Enter</span> on a node opens the species</div>
+
+    <h3>Food web — by season, four pyramids</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Food web · Land · by season</span>
+<span class="dim">│</span>        Spring            Summer             Autumn            Winter
+<span class="dim">│</span>        <span class="hot">DINGO</span>             <span class="hot">DINGO COUGAR</span>       <span class="hot">DINGO COUGAR</span>      <span class="hot">—</span>
+<span class="dim">│</span>     WOMBAT  KAKAPO     KANGAROO WOMBAT     KANGAROO EMU       WOMBAT
+<span class="dim">│</span>   RAVEN               RAVEN EMU          RAVEN              KAKAPO
+<span class="dim">│</span>  FLY RAT              FLY RAT MOSQ       FLY RAT            RAT
+<span class="dim">│</span>  ratio  6.1  <span class="lit">ok</span>      9.0  <span class="lit">ok</span>            7.7  <span class="lit">ok</span>            <span class="hot">no predator</span>
+<span class="dim">│</span>  <span class="dim">changes:</span>            +KANGAROO +EMU     −WOMBAT −KAKAPO    −DINGO −COUGAR −RAVEN</div>
+
+    <h3>Food web — by layer, side by side</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Food web · all layers · Summer</span>
+<span class="dim">│</span>     <span class="lit">Land</span>                     <span class="wa">Water</span>                    <span class="dim">Cavern 1</span>
+<span class="dim">│</span>     <span class="hot">DINGO COUGAR</span>             <span class="hot">CROCODILE_SALTWATER</span>      <span class="hot">CAVE_CROCODILE</span>
+<span class="dim">│</span>     KANGAROO WOMBAT   ┈┈┈┈►  HIPPO  MILKFISH          CRUNDLE
+<span class="dim">│</span>     RAVEN EMU                CRAB                     OLM
+<span class="dim">│</span>     <span class="dim">bridge: BEAR ⇢ MILKFISH · OSPREY ⇢ MILKFISH (riparian edges, dashed)</span></div>
+
+    <h3>Live — groups on the map, with the map</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Live · all layers</span>     <span class="dim">overlay: on</span>   <span class="dim">P</span> coupling  <span class="dim">K</span> pack  <span class="dim">Q</span> hold  <span class="dim">X</span> dismiss  <span class="dim">W</span> next wave  <span class="dim">F</span> follow on map
+<span class="dim">│</span>  group           layer   n   arrived  countdown   state       position     cohesion
+<span class="dim">│</span>  KANGAROO        land    3   day 12   26,100      resident    112,40       herd 6 tiles
+<span class="dim">│</span>  DINGO           land    7   day 12   24,800      <span class="hot">coupled→KANGAROO</span> 118,44  pack 4 tiles
+<span class="dim">│</span>  HIPPO           water   4   day 9    21,000      held        3,150 <span class="wa">~</span>     herd 9 tiles
+<span class="dim">│</span>  BIRD_RAVEN      land    8   day 2    <span class="hot">0 · stuck</span>  gated       191,60 z145  <span class="dim">sweep in 1,200 t</span>
+<span class="dim">│</span>  <span class="dim">Enter</span> centres the map on the group; the overlay marks each group's tiles in its layer colour and draws coupled pairs as a line</div>
+
+    <h3>Herds &amp; packs</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Herds · Land</span>      cohesion lever <span class="lit">[station]</span> <span class="dim">(E28)</span>   radius herd <span class="lit">[10]</span>  pack <span class="lit">[6]</span>  flock <span class="lit">[14]</span>
+<span class="dim">│</span>  species        label     reason                                  override
+<span class="dim">│</span>  KANGAROO       herd      grazer, pack 3, benign                  <span class="dim">—</span>
+<span class="dim">│</span>  DINGO          pack      LARGE_PREDATOR, pack 3–12               <span class="dim">—</span>
+<span class="dim">│</span>  COUGAR         solitary  pack 1                                  <span class="dim">—</span>
+<span class="dim">│</span>  BIRD_RAVEN     flock     flier, pack 6                           <span class="dim">—</span>
+<span class="dim">│</span>  standing herds  KANGAROO held until Autumn day 1 (28 days)   <span class="dim">Q</span> hold  <span class="dim">X</span> dismiss (DF refunds)</div>
+
+    <h3>Vermin</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Vermin · Land</span>            family              allow   seasons          abund
+<span class="dim">│</span>  <span class="dim">▸</span> biting insects           MOSQUITO FLY         <span class="dim">no</span>    —                —        <span class="dim">blocked by you</span>
+<span class="dim">│</span>  <span class="dim">▸</span> fireflies &amp; butterflies  FIREFLY MONARCH      <span class="lit">yes</span>   SU·AU            50
+<span class="dim">│</span>  <span class="dim">▸</span> rodents                  RAT HAMSTER          <span class="lit">yes</span>   SP·SU·AU·WI      50
+<span class="dim">│</span>  <span class="dim">▸</span> snails &amp; worms           SNAIL WORM           <span class="lit">yes</span>   SP·SU·AU         30
+<span class="dim">│</span>  <span class="dim">▸</span> fish vermin              (water layer)        <span class="wa">yes</span>   SP·SU·AU·WI      50
+<span class="dim">│</span>  <span class="dim">freezing biome: no insects in Winter (preset) · vermin never enter the ecology switch</span></div>
+
+    <h3>Patterns &amp; quotas — per layer</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Patterns</span>            land            water           cavern 1        cavern 2
+<span class="dim">│</span>  concurrent groups   <span class="lit">[2]</span>             <span class="lit">[2]</span>             <span class="lit">[1]</span>             <span class="dim">hidden</span>
+<span class="dim">│</span>  gap between waves   <span class="lit">[5–20] days</span>     <span class="lit">[8–30]</span>          <span class="lit">[10–40]</span>
+<span class="dim">│</span>  pattern             <span class="lit">[steady]</span>        <span class="lit">[trickle]</span>       <span class="lit">[steady]</span>        <span class="dim">steady · burst · trickle · dawn · follow</span>
+<span class="dim">│</span>  coupling            <span class="lit">[on]</span>            <span class="lit">[on]</span>            <span class="lit">[on]</span>
+<span class="dim">│</span>  nudge after         <span class="lit">[40 tiles / 3,000 t]</span>              radius <span class="lit">[6]</span>
+<span class="dim">│</span>  pack size           <span class="lit">[raw]</span>           <span class="lit">[raw]</span>           <span class="lit">[raw]</span>
+<span class="dim">│</span>  cavern pressure     —               —               <span class="lit">[on]</span> 0.3 ▁▂▃      <span class="dim">(v6.1)</span>
+<span class="dim">│</span>  water layer         <span class="wa">live · 4 edges wet</span>              <span class="dim">preset: Temperate shrubland, savagery 33 · </span><span class="dim">R</span><span class="dim"> re-apply preset</span></div>
+
+    <h3>Caverns — hidden until found</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Caverns</span>
+<span class="dim">│</span>  Cavern 1   <span class="lit">found day 41</span>   managed   6 species in roster   1 group on the map   pressure 0.3
+<span class="dim">│</span>  Cavern 2   <span class="dim">not yet found</span>  <span class="dim">(nothing shown until your dwarves reach it)</span>
+<span class="dim">│</span>  Cavern 3   <span class="dim">not yet found</span>
+<span class="dim">│</span>  <span class="dim">rotation by epoch: next roster shuffle in 2 seasons</span></div>
+
+    <h3>Ledger — every write, and why</h3>
+    <div class="grid"><span class="dim">│</span>  <span class="lit">Ledger</span>   <span class="dim">filter: all layers · all kinds</span>                                        <span class="dim">Z</span> undo last roster edit
+<span class="dim">│</span>  y5 Spring 14   coupling   KANGAROO → 7 DINGO (pack 7), 21 pairs related, nudged at +3,000
+<span class="dim">│</span>  y5 Spring 12   wave       KANGAROO ×3 (land, 29,20), entry 36 → 33
+<span class="dim">│</span>  y5 Spring 9    wave       HIPPO ×4 (water, 12,28), entry 30 → 26
+<span class="dim">│</span>  y5 Spring 3    you        blocked COUGAR
+<span class="dim">│</span>  y5 Spring 1    season     Spring roster applied: 6 in, 3 out
+<span class="dim">│</span>  y5 Spring 1    build      first run: temperate shrubland preset, 38 species classified, 14 edges, water layer live</div>
+    <p class="note">Presets live behind one line on the Patterns tab and one on first run; a player who never opens the window still gets the build. Everything above the Ledger is reversible from the Ledger.</p>
+  </section>
     <p>DFHack's window is a text grid, sixteen colours, box glyphs, and — reachable from Lua — the creature's own sprite in graphics mode. This is what the Ecology tab looks like in that grid.</p>
     <div class="grid"><span class="dim">┌─ seasonal-wildlife ── </span>Land<span class="dim"> · </span><span class="wa">Water</span><span class="dim"> · </span>Caverns<span class="dim"> ─── Roster  Set roster  Seasons  Food web  </span><span class="lit">Ecology</span><span class="dim">  Live  Ledger ─┐</span>
 <span class="dim">│</span>
 <span class="dim">│</span>  Ecology switch          <span class="lit">[on]</span>   E    Nudge predators toward prey  <span class="lit">[after 40 tiles / 3,000 t]</span>  N
-<span class="dim">│</span>  Piggy-back              <span class="lit">[on]</span>   P    Pack size                    <span class="lit">[5]</span>                          K
+<span class="dim">│</span>  Coupling              <span class="lit">[on]</span>   P    Pack size                    <span class="lit">[5]</span>                          K
 <span class="dim">│</span>
 <span class="dim">│</span>  Active pairs                                   relation          since     distance
 <span class="dim">│</span>  <span class="hot">DINGO ×7</span>  →  WOMBAT ×2                       PREDATOR_OR_PREY  day 4     6 tiles
 <span class="dim">│</span>  <span class="hot">COUGAR ×1</span> →  PORCUPINE ×1                    PREDATOR_OR_PREY  day 9     31 tiles  <span class="dim">nudge in 1,200 t</span>
 <span class="dim">│</span>
 <span class="dim">│</span>  Ledger (last 3)
-<span class="dim">│</span>  <span class="dim">day 4 </span> piggyback WOMBAT → 7 DINGO (pack 5, drew 7 from the raw), 14 pairs related
+<span class="dim">│</span>  <span class="dim">day 4 </span> coupling WOMBAT → 7 DINGO (pack 5, drew 7 from the raw), 14 pairs related
 <span class="dim">│</span>  <span class="dim">day 6 </span> restored 24 entries, raws restored
-<span class="dim">│</span>  <span class="dim">day 9 </span> piggyback PORCUPINE → 1 COUGAR, 1 pair related
+<span class="dim">│</span>  <span class="dim">day 9 </span> coupling PORCUPINE → 1 COUGAR, 1 pair related
 <span class="dim">│</span>
 <span class="dim">│</span>  <span class="dim">Predators beside prey and related in DF's table will attack it. DF does not hunt across the map unaided.</span>
 <span class="dim">└──────────────────────────────────────────────────────────────────────────────────────────────┘</span></div>
@@ -325,13 +534,14 @@
   </section>
 
   <section>
-    <h2>9 · What was consolidated to write this</h2>
+    <h2>13 · What was consolidated to write this</h2>
     <ul class="plain">
       <li><em>Two Layers, Many Groups</em> (design brief, 16 September): the layer model, the resident-groups scheduler, the mass-based predation rule, the ecology classes, and the experimental regimen. Its facet-1 unknown (do water spawns happen at all) is now answered: yes, through a wet edge.</li>
       <li><em>The Wildlife Ledger</em> (16 September): the two-tier engine model and the viability ledger against 53.16-r1.1. Still correct; add-new is live.</li>
       <li><em>The Wilderpop Model</em> rev 15: the measurements this design stands on.</li>
       <li>In the repo: <code>PLAN.md</code> rewritten as v6 (this order of work, the capability map, the experiment queue); <code>HANDOFF.md</code> status, decisions and open items brought to 17 September; <code>RESEARCH-NOTES.md</code> §9, the measured mechanics on one page; <code>STATE.md</code> addenda 20–25.</li>
       <li><em>The Fortress Docket</em> rev 4: the ship-first verdict restated on the measurements.</li>
+      <li>Decisions taken 17 September, afternoon: coupling is the name; ecology and nudge on by default; caravan animals are fair prey; vermin get a panel; per-layer quotas are a player setting; caverns hidden until found, all revealed on the rig; a cavern-raid module is in scope; the repo is at <code>CannonCoPilot/seasonal-wildlife</code>.</li>
     </ul>
   </section>
 
