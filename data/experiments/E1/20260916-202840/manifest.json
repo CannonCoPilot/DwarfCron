@@ -1,0 +1,53 @@
+{
+  "id": "E1",
+  "title": "Hold granularity: after the first wave, keep exactly two held units, or exactly one, and count new surface waves over 10,000 ticks",
+  "fork": "kills F1 (B versus C)",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 12000,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "F1 B \u00b7 any held surface unit blocks",
+      "expects": "no new surface wave in either arm while the held units stay (their countdowns are 20,000+)"
+    },
+    {
+      "model": "F1 C \u00b7 the gate opens at one held unit",
+      "expects": "arm one: a wave within ~1,500 ticks of the release; arm two: nothing"
+    },
+    {
+      "model": "F1 A \u00b7 per entry",
+      "expects": "a wave from another entry in both arms"
+    }
+  ],
+  "kill_criterion": "arm one must differ from arm two in at least two of three replicate pairs; a wave in both kills B and C, a wave in neither kills A and C",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "drop a replicate whose first wave had fewer than three surface units (no release possible)",
+    "drop a replicate in which a held unit left before the budget ended"
+  ],
+  "arms": [
+    {
+      "name": "two",
+      "replicates": 3,
+      "on_arrival_min_units": 3,
+      "on_arrival": [
+        "probe:release {ids_after2}"
+      ]
+    },
+    {
+      "name": "one",
+      "replicates": 3,
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release {ids_after1}"
+      ]
+    }
+  ]
+}

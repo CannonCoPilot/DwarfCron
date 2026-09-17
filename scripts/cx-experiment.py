@@ -222,6 +222,9 @@ def stop_rule_fires(rule: dict | None, stats: dict) -> str | None:
         return f"departures {stats['departures']} >= {rule['departures_min']}"
     if "arrived_all_departed" in rule and stats["arrivals"] > 0 and stats["arrived_present"] == 0:
         return "every arrived unit has left or died"
+    if "ticks_after_on_arrival" in rule and stats.get("on_arrival_at") is not None \
+            and stats["ticks"] - stats["on_arrival_at"] >= rule["ticks_after_on_arrival"]:
+        return f"{rule['ticks_after_on_arrival']} ticks after the on_arrival manipulation"
     if "ticks_after_first_exit" in rule and stats.get("first_exit") is not None \
             and stats["ticks"] - stats["first_exit"] >= rule["ticks_after_first_exit"]:
         return f"{rule['ticks_after_first_exit']} ticks after the first departure or death"
@@ -278,6 +281,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         out.row(ctx, tick, abs_tick, "clock", k, v)
     present = {u["id"]: u for u in units if u["wild"] == "1" and u["dead"] == "0" and u["inactive"] == "0"}
     ever_present = set(present.keys())          # every id that has ever been on the map here
+    first_listed: dict[str, int] = {u["id"]: t_start for u in units}   # a unit is listed inactive for a sample before it is present
     arrived: dict[str, dict] = {}                # id -> record at first sighting
     first_seen: dict[str, int] = {}
     out.log(f"  baseline: {len(present)} wild units on map, {len(pops)} pool entries, tick {tick} year {clock['year']}")
@@ -294,6 +298,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     on_arrival = list(arm.get("on_arrival", []))
     on_arrival_min = int(arm.get("on_arrival_min_units", 1))
     on_arrival_done = False
+    on_arrival_at = None
     first_exit = None
 
     # 6. step and sample.
@@ -340,6 +345,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         out.wide(out.pops, "_pop_head", ctx, tick, abs_tick, pops)
 
         now = {u["id"]: u for u in units}
+        for i in now:
+            first_listed.setdefault(i, abs_tick)
         now_present = {i: u for i, u in now.items() if u["wild"] == "1" and u["dead"] == "0" and u["inactive"] == "0"}
         # arrivals: a wild unit id that has never been PRESENT before. (Not "never seen":
         # a unit can be listed inactive for a sample before it is on the map, and E9a
@@ -350,7 +357,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
                 summary["arrivals"] += 1
                 out.event(ctx, tick, abs_tick, "arrival", i,
                           f"{u['species']} caste={u['caste']} ref6={u['ref6']} layer={u['layer']} countdown={u['countdown']} "
-                          f"vanish={u['vanish']} flag_src={u['flag_src']} flag_nf={u['flag_nf']} pos={u['x']},{u['y']},{u['z']}")
+                          f"vanish={u['vanish']} flag_src={u['flag_src']} flag_nf={u['flag_nf']} pos={u['x']},{u['y']},{u['z']} "
+                          f"listed_at={first_listed.get(i, abs_tick)}")
                 out.row(ctx, tick, abs_tick, i, "arrival_species", u["species"])
                 out.row(ctx, tick, abs_tick, i, "arrival_countdown", u["countdown"])
         wave_ids = [i for i, u in now_present.items() if i in arrived and first_seen.get(i) == abs_tick and u["layer"] == "surface"]
@@ -363,6 +371,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
                 except KeyError as e:
                     out.log(f"  on_arrival skipped {m}: placeholder {e} not available with {len(wave_ids)} units")
             on_arrival_done = True
+            on_arrival_at = stepped_total
             out.event(ctx, tick, abs_tick, "on_arrival_applied", "wave", " ".join(wave_ids))
         # departures and deaths: a unit that was present and is not now
         for i, u in present.items():
@@ -386,7 +395,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         present = now_present
 
         stats = {"ticks": stepped_total, "arrivals": summary["arrivals"], "departures": summary["departures"],
-                 "arrived_present": sum(1 for i in arrived if i in present), "first_exit": first_exit}
+                 "arrived_present": sum(1 for i in arrived if i in present), "first_exit": first_exit,
+                 "on_arrival_at": on_arrival_at}
         if control and control_met is None and stepped_total >= int(control.get("arrivals_within_ticks", 0)):
             control_met = summary["arrivals"] >= int(control.get("arrivals_min", 1))
             summary["control"] = "PASS" if control_met else "FAIL"
