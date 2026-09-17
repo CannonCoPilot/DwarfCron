@@ -263,13 +263,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     rig.must("popups")
     rig.must("fps", fps, 10)
 
-    # 3. the tool must be in the state the manifest demands.
-    tool = rig.probe("tool")[0]
-    want = man.get("tool_must_be", {"enabled": 0, "groups_enabled": 0, "scheduled": 0})
-    bad = {k: tool.get(k) for k, v in want.items() if str(tool.get(k)) != str(v)}
-    if bad:
-        raise RuntimeError(f"seasonal-wildlife state {tool} violates tool_must_be {want}: {bad}")
-    out.log(f"  tool state ok: {tool}")
+    # 3. (the tool-state assertion runs after the t0 manipulations, which may enable it)
 
     # 4. baseline.
     clock = rig.probe("clock")[0]
@@ -296,6 +290,21 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     # 5. manipulations at t0.
     for m in arm.get("pre", []):
         apply_manipulation(rig, out, ctx, tick, abs_tick, m)
+    # the tool must now be in the state the manifest demands, and stay there
+    tool = rig.probe("tool")[0]
+    want = man.get("tool_must_be", {"enabled": 0, "groups_enabled": 0, "scheduled": 0})
+    bad = {k: tool.get(k) for k, v in want.items() if str(tool.get(k)) != str(v)}
+    if bad:
+        raise RuntimeError(f"seasonal-wildlife state {tool} violates tool_must_be {want}: {bad}")
+    out.log(f"  tool state ok: {tool}")
+    if man.get("roster"):
+        roster = rig.probe("roster")
+        with open(out.dir / "roster.tsv", "a") as fh:
+            if fh.tell() == 0:
+                fh.write("run\tarm\trep\ttoken\tseasons\tallowed\n")
+            for r in roster:
+                fh.write(f"{ctx['run']}\t{ctx['arm']}\t{ctx['rep']}\t{r['token']}\t{r['seasons']}\t{r['allowed']}\n")
+        out.log(f"  roster: {len(roster)} assigned tokens")
     # manipulations deferred to the first SURFACE wave of at least on_arrival_min_units
     # units; {ids} = all their ids, {id0} {id1} ... = by index, {ids_after1} / {ids_after2}
     # = every id but the first one / two. Applied once.

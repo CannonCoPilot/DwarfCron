@@ -208,6 +208,22 @@ elseif cmd == 'combat' then
         end
     end
 
+-- ----------------------------------------------------------------- roster --
+-- seasonal-wildlife's persisted roster: one row per assigned token with its seasons
+-- (0 spring, 1 summer, 2 autumn, 3 winter) and whether it is allowed.
+elseif cmd == 'roster' then
+    local cfg = dfhack.persistent.getSiteData('seasonal-wildlife/config', nil) or {}
+    row('token', 'seasons', 'allowed')
+    for tokn, arr in pairs(cfg.assign or {}) do
+        if type(arr) == 'table' and #arr > 0 then
+            local ss = {}
+            for _, v in ipairs(arr) do ss[#ss+1] = tostring(v) end
+            table.sort(ss)
+            local allowed = cfg.allow and cfg.allow[tokn]
+            row(tokn, table.concat(ss, ','), allowed == nil and '?' or b(allowed))
+        end
+    end
+
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster')
 end
