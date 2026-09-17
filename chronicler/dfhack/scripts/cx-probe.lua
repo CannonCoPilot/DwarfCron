@@ -31,6 +31,11 @@
 --                                  population reference onto each unit, debit the entry, countdown 25000, not held
 --   cx-probe gather [id ...]         teleport every wild LARGE_PREDATOR unit (or the listed ids) to within 3 tiles of
 --                                  the first wild non-predator SURFACE unit, so predator and prey actually meet
+--   cx-probe spawn2 <CREATURE_ID> <n> <x> <y> <z> [pop-idx]
+--                                  53.x placement through DF's own arena creature UI (the route gui/sandbox
+--                                  uses): world.arena + game.main_interface.arena_unit, ARENA_CREATE_CREATURE,
+--                                  then SELECT. Optional pop-idx writes that entry's population reference and
+--                                  debits it so the unit counts as wildlife. EXPERIMENTAL: keys are guessed.
 --   cx-probe combat [since-id]       every wild unit's combat reports with id > since (unit, species, id, text)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
@@ -362,6 +367,60 @@ elseif cmd == 'gather' then
     print(('gather: moved %d predator(s) [%s] to within 6 tiles of unit %d %s at %d,%d,%d'):format(
         n, table.concat(moved, ' '), target.id, tok(target.race), target.pos.x, target.pos.y, target.pos.z))
 
+-- ----------------------------------------------------------------- spawn2 --
+elseif cmd == 'spawn2' then
+    local cid, n = args[2], tonumber(args[3]) or 1
+    local pos = {x = tonumber(args[4]), y = tonumber(args[5]), z = tonumber(args[6])}
+    local pidx = tonumber(args[7])
+    local race
+    for i, cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id == cid then race = i break end end
+    if not race then qerror('spawn2: no creature ' .. tostring(cid)) end
+    local gui = require('gui')
+    local arena, au = df.global.world.arena, df.global.game.main_interface.arena_unit
+    -- one-entry lists, as sandbox's init_arena builds them but for our race only
+    arena.race:resize(0); arena.caste:resize(0); arena.creature_cnt:resize(0)
+    local cr = df.creature_raw.find(race)
+    arena.creature_cnt:insert('#', 0)
+    for c = 0, #cr.caste - 1 do arena.race:insert('#', race); arena.caste:insert('#', c) end
+    arena.last_race, arena.last_caste = -1, -1
+    arena.tame = false; arena.interaction = -1
+    au.race = 0; au.caste = 0; au.filter = ''; au.editing_filter = false
+    au.races_filtered:resize(0); au.races_all:resize(0); au.castes_filtered:resize(0); au.castes_all:resize(0)
+    local first = df.global.unit_next_id
+    local vs = dfhack.gui.getCurViewscreen(true)
+    local old_gt, old_cursor = df.global.gametype, copyall(df.global.cursor)
+    df.global.cursor.x, df.global.cursor.y, df.global.cursor.z = pos.x, pos.y, pos.z
+    df.global.gametype = df.game_type.DWARF_ARENA
+    local ok, err = pcall(function()
+        for i = 1, n do
+            au.open = false
+            gui.simulateInput(vs, 'ARENA_CREATE_CREATURE')
+            au.race = 0; au.caste = 0
+            gui.simulateInput(vs, 'SELECT')
+        end
+    end)
+    df.global.gametype = old_gt
+    df.global.cursor:assign(old_cursor)
+    au.open = false
+    local made = {}
+    for id = first, df.global.unit_next_id - 1 do local u = df.unit.find(id); if u then made[#made+1] = u end end
+    local p = pidx and df.global.world.populations.all[pidx]
+    local ids = {}
+    for _, u in ipairs(made) do
+        if p then
+            local r, ap = p.population, u.animal.population
+            ap.region_x, ap.region_y = r.region_x, r.region_y
+            ap.feature_idx, ap.cave_id, ap.site_id, ap.population_idx = r.feature_idx, r.cave_id, r.site_id, r.population_idx
+        end
+        u.animal.leave_countdown = 25000
+        u.flags2.roaming_wilderness_population_source = false
+        u.flags2.roaming_wilderness_population_source_not_a_map_feature = false
+        ids[#ids+1] = ('%d:%s@%d,%d,%d'):format(u.id, dfhack.units.isWildlife(u) and 'wild' or 'NOTWILD', u.pos.x, u.pos.y, u.pos.z)
+    end
+    if p then p.quantity = math.max(0, p.quantity - #made) end
+    print(('spawn2 %s x%d requested at %d,%d,%d -> made %d [%s]%s'):format(cid, n, pos.x, pos.y, pos.z, #made,
+        table.concat(ids, ' '), ok and '' or (' ERROR ' .. tostring(err))))
+
 -- ------------------------------------------------------------------- kill --
 -- Kill with no accounting of our own: blood to zero, the way DFHack's
 -- exterminate destroyUnit does, but WITHOUT its vanish_countdown failsafe, so
@@ -413,5 +472,5 @@ elseif cmd == 'roster' then
     end
 
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]|spawn <idx> <n> [x y z]|gather [id..]')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]|spawn <idx> <n> [x y z]|spawn2 <CREATURE_ID> <n> <x> <y> <z> [pop-idx]|gather [id..]')
 end
