@@ -274,17 +274,38 @@ elseif cmd == 'spawn' then
     local idx, n = tonumber(args[2]), tonumber(args[3]) or 1
     local p = df.global.world.populations.all[idx]
     if not p then qerror('no pool entry ' .. tostring(idx)) end
+    -- ⚠️ BLOCKED UPSTREAM on DFHack 53.16-r1.1: modtools/create-unit.lua:164 reads
+    -- df.global.world.arena_spawn, a field this build's df-structures does not define, so
+    -- EVERY create-unit call dies there -- nothing to do with the creature or the tile.
+    -- Checked 17 September 2026. E14-OCEAN2 made this route unnecessary anyway: aquatic
+    -- entries produce ordinary waves when the map has water at its edge.
+    if not pcall(function() return df.global.world.arena_spawn end) then
+        qerror('spawn: modtools/create-unit is broken on this DFHack build (world.arena_spawn '
+            .. 'is missing from df-structures but create-unit.lua:164 reads it). No placement route.')
+    end
     local pos
     if args[4] then
         pos = {x = tonumber(args[4]), y = tonumber(args[5]), z = tonumber(args[6])}
     else
-        local me = df.global.plotinfo.map_edge
-        for i = 0, #me.surface_x - 1 do
-            local x, y, z = me.surface_x[i], me.surface_y[i], me.surface_z[i]
-            local d = dfhack.maps.getTileFlags(x, y, z)
-            if d and d.flow_size >= 4 and not d.liquid_type then pos = {x = x, y = y, z = z}; break end
+        -- map_edge.surface_* lists LAND entry tiles only (measured on LAKE: 127 tiles, all
+        -- land), so it is useless for water. Scan the map itself for a submerged tile.
+        local m = df.global.world.map
+        for x = 0, m.x_count - 1, 4 do
+            for y = 0, m.y_count - 1, 4 do
+                for z = m.z_count - 1, 0, -1 do
+                    local d = dfhack.maps.getTileFlags(x, y, z)
+                    if d and d.flow_size >= 4 and not d.liquid_type then pos = {x = x, y = y, z = z}; break end
+                    local tt = dfhack.maps.getTileType(x, y, z)
+                    if tt then
+                        local bs = df.tiletype_shape.attrs[df.tiletype.attrs[tt].shape].basic_shape
+                        if bs ~= df.tiletype_shape_basic.Open and bs ~= df.tiletype_shape_basic.None then break end
+                    end
+                end
+                if pos then break end
+            end
+            if pos then break end
         end
-        if not pos then qerror('spawn: no watery map_edge surface tile; give x y z') end
+        if not pos then qerror('spawn: no water on this map; give x y z') end
     end
     local cu = reqscript('modtools/create-unit')
     local made = cu.createUnit(tok(p.race), nil, pos, {offset_x = 0, offset_y = 0, offset_z = 0}, 'Any',
