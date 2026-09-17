@@ -1,0 +1,152 @@
+{
+ "id": "E3",
+ "title": "Constant-sum split on CTRL: kangaroo and porcupine share 600 between them, everything else closed; release every 1,500 ticks and count waves by species",
+ "fork": "kills F3",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 200,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "tick_budget": 24000,
+ "predictions": [
+  {
+   "model": "F3 A \u00b7 weighted by quantity",
+   "expects": "wave shares near 50/50, 83/17 and 17/83 across the three arms"
+  },
+  {
+   "model": "F3 B \u00b7 stock is eligibility only",
+   "expects": "wave shares flat across the arms"
+  }
+ ],
+ "kill_criterion": "the 500/100 and 100/500 arms must reverse each other; a flat share in both kills A",
+ "culling": [
+  "drop a replicate on any breach or changed save",
+  "count waves, not animals; count only waves first listed after the first release"
+ ],
+ "arms": [
+  {
+   "name": "even",
+   "replicates": 2,
+   "pre": [
+    "probe:setq 3186 0 1",
+    "probe:setq 3187 0 1",
+    "probe:setq 3188 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3206 0 1",
+    "probe:setq 3209 300 0",
+    "probe:setq 3210 300 0",
+    "probe:setq 3211 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4704 0 1",
+    "probe:setq 4705 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4726 300 0",
+    "probe:setq 4727 300 0",
+    "probe:setq 4728 0 1",
+    "probe:setq 4729 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4733 0 1"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface"
+    ]
+   }
+  },
+  {
+   "name": "kangaroo_heavy",
+   "replicates": 2,
+   "pre": [
+    "probe:setq 3186 0 1",
+    "probe:setq 3187 0 1",
+    "probe:setq 3188 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3206 0 1",
+    "probe:setq 3209 500 0",
+    "probe:setq 3210 100 0",
+    "probe:setq 3211 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4704 0 1",
+    "probe:setq 4705 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4726 500 0",
+    "probe:setq 4727 100 0",
+    "probe:setq 4728 0 1",
+    "probe:setq 4729 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4733 0 1"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface"
+    ]
+   }
+  },
+  {
+   "name": "porcupine_heavy",
+   "replicates": 2,
+   "pre": [
+    "probe:setq 3186 0 1",
+    "probe:setq 3187 0 1",
+    "probe:setq 3188 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3204 0 1",
+    "probe:setq 3205 0 1",
+    "probe:setq 3206 0 1",
+    "probe:setq 3209 100 0",
+    "probe:setq 3210 500 0",
+    "probe:setq 3211 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 3215 0 1",
+    "probe:setq 3216 0 1",
+    "probe:setq 4703 0 1",
+    "probe:setq 4704 0 1",
+    "probe:setq 4705 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4721 0 1",
+    "probe:setq 4722 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4726 100 0",
+    "probe:setq 4727 500 0",
+    "probe:setq 4728 0 1",
+    "probe:setq 4729 0 1",
+    "probe:setq 4732 0 1",
+    "probe:setq 4733 0 1"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface"
+    ]
+   }
+  }
+ ]
+}

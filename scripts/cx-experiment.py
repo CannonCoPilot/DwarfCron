@@ -306,6 +306,10 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     after_done = not after
     first_exit = None
     combat_since = -1
+    # a repeating manipulation: every `ticks`, run `do` (a release cadence for a census)
+    every = arm.get("every") or {}
+    every_next = int(every.get("ticks", 0)) if every else None
+    every_count = 0
     want_combat = bool(man.get("combat") or arm.get("combat"))
 
     # 6. step and sample.
@@ -386,6 +390,12 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
             on_arrival_done = True
             on_arrival_at = stepped_total
             out.event(ctx, tick, abs_tick, "on_arrival_applied", "wave", " ".join(wave_ids))
+        if every and every_next is not None and stepped_total >= every_next and every_count < int(every.get("max", 10**9)):
+            for m in every.get("do", []):
+                apply_manipulation(rig, out, ctx, tick, abs_tick, m)
+            every_count += 1
+            every_next = stepped_total + int(every["ticks"])
+            out.event(ctx, tick, abs_tick, "every_applied", str(every_count), " ".join(every.get("do", [])))
         if not after_done and on_arrival_at is not None and stepped_total - on_arrival_at >= int(after.get("ticks", 0)):
             for m in after.get("do", []):
                 apply_manipulation(rig, out, ctx, tick, abs_tick, m)

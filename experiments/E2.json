@@ -1,0 +1,46 @@
+{
+ "id": "E2",
+ "title": "Source census on SPLIT: release every surface hold every 1,500 ticks and record the tile in each wave's six-tuple and where it entered",
+ "fork": "kills F2 (A weighted, B positional, C site tile plus block-biome tile)",
+ "fort": "SPLIT",
+ "backup": "SPLIT.preverify",
+ "fps": 1000,
+ "sample_every": 200,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "tick_budget": 24000,
+ "predictions": [
+  {
+   "model": "F2 B \u00b7 positional",
+   "expects": "each wave's tile matches the half of the map edge it entered from"
+  },
+  {
+   "model": "F2 C \u00b7 candidate set, flat",
+   "expects": "waves spread across the site's two tiles and their block-biome tile(s) without regard to the entry edge or quantity"
+  },
+  {
+   "model": "F2 A \u00b7 weighted",
+   "expects": "tile shares follow the tiles' quantity shares"
+  }
+ ],
+ "kill_criterion": "at least twelve surface waves per replicate; a wave whose tile disagrees with its entry edge kills B",
+ "culling": [
+  "drop a replicate on any breach or changed save",
+  "count only waves first listed after the first release"
+ ],
+ "arms": [
+  {
+   "name": "census",
+   "replicates": 3,
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface"
+    ]
+   }
+  }
+ ]
+}
