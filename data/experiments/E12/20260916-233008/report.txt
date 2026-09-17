@@ -1,0 +1,934 @@
+
+# E12 -- Sized waves: emu's cluster_number written to 7,7 or 2,2 before the draw, pool closed to emu on both tiles; count the wave
+run 20260916-233008 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 64d5f2f seasonal-wildlife 64c255d fps cap 1000
+
+## Predictions (written before the run)
+- F12 A · read at draw: exactly 7 emus in arm seven, exactly 2 in arm two; the untouched arm in emu's usual range (E8 saw 2 to 8)
+- F12 B · cached at load: all three arms in the usual range
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+seven | 1 | True | None | 1690 | 123.5 | 18 | 0 | 0 | arrivals 18 >= 1 | 
+seven | 2 | True | None | 1770 | 125.7 | 22 | 0 | 0 | arrivals 22 >= 1 | 
+seven | 3 | True | None | 1644 | 132.5 | 13 | 0 | 0 | arrivals 13 >= 1 | 
+two | 1 | True | None | 1832 | 128.1 | 16 | 0 | 0 | arrivals 16 >= 1 | 
+two | 2 | True | None | 1843 | 123.9 | 28 | 0 | 0 | arrivals 28 >= 1 | 
+two | 3 | True | None | 1770 | 127.9 | 12 | 0 | 0 | arrivals 12 >= 1 | 
+untouched | 1 | True | None | 1612 | 116.4 | 39 | 0 | 0 | arrivals 39 >= 1 | 
+untouched | 2 | True | None | 1692 | 132.3 | 21 | 0 | 0 | arrivals 21 >= 1 | 
+untouched | 3 | True | None | 1668 | 114.2 | 30 | 0 | 2 | arrivals 30 >= 1 | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+seven | 1 | +310 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 | 20118,20478,21029,21464,25515,27307,28223 | - | present
+seven | 1 | +310 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 20913,22302,22719,25022,29861 | - | present
+seven | 1 | +310 | TROLL | 29,20,-1,13,-1,32 | 1 | 28324 | - | present
+seven | 1 | +310 | DEMON_10 | 29,20,-1,43,-1,5 | 1 | 25875 | - | present
+seven | 1 | +310 | BLIND_CAVE_OGRE | 29,20,-1,13,-1,29 | 2 | 27429,29672 | - | present
+seven | 1 | +310 | DEMON_3 | 29,20,-1,43,-1,0 | 2 | 26570,28542 | - | present
+seven | 2 | +296 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 29166 | - | present
+seven | 2 | +296 | BLIND_CAVE_OGRE | 29,20,-1,13,-1,29 | 1 | 29088 | - | present
+seven | 2 | +296 | DEMON_4 | 29,20,-1,43,-1,6 | 5 | 20192,23037,23288,25262,27570 | - | present
+seven | 2 | +296 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 21221 | - | present
+seven | 2 | +296 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 | 23319,24234,24809,26549,27758,29121,29865 | - | present
+seven | 2 | +296 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 21322,22046,22227,22638,28836 | - | present
+seven | 2 | +709 | BIRD_SWALLOW_CAVE_GIANT | 29,20,-1,8,-1,18 | 1 | 21309 | - | present
+seven | 2 | +709 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 28861 | - | present
+seven | 3 | +364 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 24291 | - | present
+seven | 3 | +364 | GORLAK | 29,21,-1,13,-1,33 | 1 | 20908 | - | present
+seven | 3 | +364 | DEMON_18 | 29,20,-1,43,-1,1 | 2 | 21774,27468 | - | present
+seven | 3 | +364 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 | 19883,21291,23176,24464,24736,28459,29377 | - | present
+seven | 3 | +364 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 1 | 21489 | - | present
+seven | 3 | +364 | OLM_GIANT | 29,20,-1,13,-1,13 | 1 | 29079 | - | present
+two | 1 | +331 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 | 27200,29616 | - | present
+two | 1 | +331 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 21505,23984,27820,28811 | - | present
+two | 1 | +331 | DEMON_13 | 29,20,-1,43,-1,4 | 1 | 26169 | - | present
+two | 1 | +331 | JABBERER | 29,21,-1,13,-1,21 | 1 | 28083 | - | present
+two | 1 | +331 | DEMON_1 | 28,20,-1,44,-1,3 | 3 | 21077,21921,27927 | - | present
+two | 1 | +634 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 20308,23334,25433,25532 | - | present
+two | 1 | +634 | TOAD_GIANT_CAVE | 29,20,-1,13,-1,10 | 1 | 27581 | - | present
+two | 2 | +336 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 | 22324,27230 | - | present
+two | 2 | +336 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 27238,27791 | - | present
+two | 2 | +336 | GORLAK | 29,21,-1,13,-1,33 | 1 | 25232 | - | present
+two | 2 | +336 | DEMON_3 | 29,20,-1,43,-1,0 | 1 | 22128 | - | present
+two | 2 | +336 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 21892,26301 | - | present
+two | 2 | +336 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 27992 | - | present
+two | 2 | +694 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 26682,27302,28468,29726 | - | present
+two | 2 | +694 | DEMON_3 | 29,20,-1,43,-1,0 | 2 | 23248,25323 | - | present
+two | 2 | +694 | CRUNDLE | 29,20,-1,13,-1,9 | 4 | 21838,27712,28649,29778 | - | present
+two | 2 | +1055 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 29218 | - | present
+two | 2 | +1472 | CRUNDLE | 29,20,-1,13,-1,9 | 8 | 20973,20994,22732,22906,23134,23329,27088,28920 | - | present
+two | 3 | +285 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 | 21084,26593 | - | present
+two | 3 | +285 | GIANT_EARTHWORM | 29,20,-1,8,-1,24 | 1 | 24766 | - | present
+two | 3 | +285 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 24591 | - | present
+two | 3 | +285 | DEMON_13 | 29,20,-1,43,-1,4 | 2 | 19815,26030 | - | present
+two | 3 | +285 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 1 | 29838 | - | present
+two | 3 | +285 | DEMON_18 | 29,20,-1,43,-1,1 | 3 | 24434,24453,28799 | - | present
+two | 3 | +285 | BLIND_CAVE_OGRE | 29,20,-1,13,-1,29 | 2 | 26338,27065 | - | present
+untouched | 1 | +270 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 1 | 26001 | - | present
+untouched | 1 | +270 | DEMON_12 | 28,20,-1,44,-1,4 | 3 | 21560,26443,29006 | - | present
+untouched | 1 | +270 | BIRD_EMU | 29,20,-1,-1,-1,56 | 9 | 19910,21598,23351,23422,24055,25934,26396,28266,29610 | - | present
+untouched | 1 | +270 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 20198,23595,28227,29669,29873 | - | present
+untouched | 1 | +270 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 23512 | - | present
+untouched | 1 | +270 | DEMON_4 | 29,20,-1,43,-1,6 | 4 | 20642,21471,21891,28070 | - | present
+untouched | 1 | +270 | TROGLODYTE | 29,20,-1,13,-1,19 | 5 | 22009,22708,23548,24054,24815 | - | present
+untouched | 1 | +618 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 28189,29534 | - | present
+untouched | 1 | +988 | TROGLODYTE | 29,20,-1,8,-1,19 | 3 | 19921,22925,24579 | - | present
+untouched | 1 | +988 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 21330,25100 | - | present
+untouched | 1 | +1299 | CRUNDLE | 29,20,-1,13,-1,9 | 3 | 20965,23546,28335 | - | present
+untouched | 1 | +1612 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 25107 | - | present
+untouched | 2 | +336 | BIRD_EMU | 29,20,-1,-1,-1,56 | 5 | 20535,23559,25816,26525,26590 | - | present
+untouched | 2 | +336 | BIRD_SWALLOW_CAVE_GIANT | 29,20,-1,8,-1,18 | 1 | 25774 | - | present
+untouched | 2 | +336 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 1 | 23162 | - | present
+untouched | 2 | +336 | DEMON_4 | 29,20,-1,43,-1,6 | 1 | 25744 | - | present
+untouched | 2 | +336 | ELK_BIRD | 29,20,-1,8,-1,21 | 4 | 22930,24103,25525,26463 | - | present
+untouched | 2 | +336 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 1 | 21473 | - | present
+untouched | 2 | +336 | DEMON_13 | 29,20,-1,43,-1,4 | 4 | 20527,22425,25706,26235 | - | present
+untouched | 2 | +760 | ELK_BIRD | 29,20,-1,8,-1,21 | 4 | 22787,26504,27707,28202 | - | present
+untouched | 3 | +308 | GIANT_EARTHWORM | 29,20,-1,8,-1,24 | 2 | 27314,29310 | 1009 | death/present
+untouched | 3 | +308 | JABBERER | 29,21,-1,13,-1,21 | 1 | 23634 | - | present
+untouched | 3 | +308 | DEMON_3 | 29,20,-1,43,-1,0 | 4 | 24603,27206,27662,27907 | - | present
+untouched | 3 | +308 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 23070 | - | present
+untouched | 3 | +308 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 | 24648,25177,29314 | - | present
+untouched | 3 | +635 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 20130,27362 | 292 | death/present
+untouched | 3 | +635 | CRUNDLE | 29,20,-1,13,-1,9 | 5 | 21529,22905,24187,27319,28724 | - | present
+untouched | 3 | +635 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 | 20440,23300,29351 | - | present
+untouched | 3 | +927 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 22258,27685 | - | present
+untouched | 3 | +927 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 20755,27013 | - | present
+untouched | 3 | +1317 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 21094,27517 | - | present
+untouched | 3 | +1317 | CRUNDLE | 29,20,-1,13,-1,9 | 1 | 26812 | - | present
+untouched | 3 | +1668 | CRUNDLE | 29,20,-1,13,-1,9 | 2 | 22076,26572 | - | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+seven | 1 | unit 139 BIRD_EMU: 28223 -> 26843 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 140 BIRD_EMU: 25515 -> 24135 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 146 TROGLODYTE: 25022 -> 23642 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 147 TROGLODYTE: 20913 -> 19533 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 151 TROLL: 28324 -> 26944 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 152 DEMON_10: 25875 -> 24495 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 153 BLIND_CAVE_OGRE: 29672 -> 28292 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 154 BLIND_CAVE_OGRE: 27429 -> 26049 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 155 DEMON_3: 28542 -> 27162 over 1380 ticks (slope -1.000/tick)
+seven | 1 | unit 156 DEMON_3: 26570 -> 25190 over 1380 ticks (slope -1.000/tick)
+seven | 2 | unit 139 OLM_GIANT: 29166 -> 27692 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 140 BLIND_CAVE_OGRE: 29088 -> 27614 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 141 DEMON_4: 20192 -> 18718 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 142 DEMON_4: 25262 -> 23788 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 147 VORACIOUS_CAVE_CRAWLER: 21221 -> 19747 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 148 BIRD_EMU: 29865 -> 28391 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 149 BIRD_EMU: 29121 -> 27647 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 155 TROGLODYTE: 22638 -> 21164 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 156 TROGLODYTE: 21322 -> 19848 over 1474 ticks (slope -1.000/tick)
+seven | 2 | unit 146 BIRD_SWALLOW_CAVE_GIANT: 21309 -> 20248 over 1061 ticks (slope -1.000/tick)
+seven | 2 | unit 160 TROGLODYTE: 28861 -> 27800 over 1061 ticks (slope -1.000/tick)
+seven | 3 | unit 139 OLM_GIANT: 24291 -> 23011 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 140 GORLAK: 20908 -> 19628 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 141 DEMON_18: 21774 -> 20494 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 142 DEMON_18: 27468 -> 26188 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 143 BIRD_EMU: 19883 -> 18603 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 144 BIRD_EMU: 24464 -> 23184 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 150 CROCODILE_CAVE: 21489 -> 20209 over 1280 ticks (slope -1.000/tick)
+seven | 3 | unit 151 OLM_GIANT: 29079 -> 27799 over 1280 ticks (slope -1.000/tick)
+two | 1 | unit 139 BIRD_EMU: 27200 -> 25699 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 140 BIRD_EMU: 29616 -> 28115 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 141 TROGLODYTE: 28811 -> 27309 over 1501 ticks (slope -1.001/tick)
+two | 1 | unit 142 TROGLODYTE: 27820 -> 26319 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 150 DEMON_13: 26169 -> 24668 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 151 JABBERER: 28083 -> 26582 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 152 DEMON_1: 21077 -> 19576 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 153 DEMON_1: 27927 -> 26426 over 1501 ticks (slope -1.000/tick)
+two | 1 | unit 145 TROGLODYTE: 25532 -> 24334 over 1198 ticks (slope -1.000/tick)
+two | 1 | unit 146 TROGLODYTE: 23334 -> 22136 over 1198 ticks (slope -1.000/tick)
+two | 1 | unit 155 TOAD_GIANT_CAVE: 27581 -> 26383 over 1198 ticks (slope -1.000/tick)
+two | 2 | unit 139 BIRD_EMU: 22324 -> 20816 over 1507 ticks (slope -1.001/tick)
+two | 2 | unit 141 TROGLODYTE: 27238 -> 25731 over 1507 ticks (slope -1.000/tick)
+two | 2 | unit 147 GORLAK: 25232 -> 23725 over 1507 ticks (slope -1.000/tick)
+two | 2 | unit 148 DEMON_3: 22128 -> 20621 over 1507 ticks (slope -1.000/tick)
+two | 2 | unit 151 CRUNDLE: 26301 -> 24794 over 1507 ticks (slope -1.000/tick)
+two | 2 | unit 166 DEMON_9: 27992 -> 26485 over 1507 ticks (slope -1.000/tick)
+two | 2 | unit 143 TROGLODYTE: 27302 -> 26153 over 1149 ticks (slope -1.000/tick)
+two | 2 | unit 149 DEMON_3: 23248 -> 22099 over 1149 ticks (slope -1.000/tick)
+two | 2 | unit 153 CRUNDLE: 27712 -> 26563 over 1149 ticks (slope -1.000/tick)
+two | 2 | unit 157 CRUNDLE: 29218 -> 28430 over 788 ticks (slope -1.000/tick)
+two | 2 | unit 158 CRUNDLE: 23134 -> 22763 over 371 ticks (slope -1.000/tick)
+two | 3 | unit 139 BIRD_EMU: 26593 -> 25108 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 141 GIANT_EARTHWORM: 24766 -> 23281 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 142 VORACIOUS_CAVE_CRAWLER: 24591 -> 23106 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 143 DEMON_13: 19815 -> 18330 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 145 CROCODILE_CAVE: 29838 -> 28353 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 146 DEMON_18: 28799 -> 27314 over 1485 ticks (slope -1.000/tick)
+two | 3 | unit 149 BLIND_CAVE_OGRE: 27065 -> 25580 over 1485 ticks (slope -1.000/tick)
+untouched | 1 | unit 139 CROCODILE_CAVE: 26001 -> 24659 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 140 DEMON_12: 26443 -> 25101 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 143 BIRD_EMU: 26396 -> 25054 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 152 TROGLODYTE: 23595 -> 22253 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 160 CRUNDLE: 23512 -> 22170 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 179 DEMON_4: 28070 -> 26728 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 183 TROGLODYTE: 22009 -> 20667 over 1342 ticks (slope -1.000/tick)
+untouched | 1 | unit 161 CRUNDLE: 28189 -> 27195 over 994 ticks (slope -1.000/tick)
+untouched | 1 | unit 157 TROGLODYTE: 22925 -> 22301 over 624 ticks (slope -1.000/tick)
+untouched | 1 | unit 163 CRUNDLE: 25100 -> 24476 over 624 ticks (slope -1.000/tick)
+untouched | 1 | unit 165 CRUNDLE: 23546 -> 23233 over 313 ticks (slope -1.000/tick)
+untouched | 2 | unit 139 BIRD_EMU: 20535 -> 19179 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 144 BIRD_SWALLOW_CAVE_GIANT: 25774 -> 24418 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 145 SPIDER_CAVE_GIANT: 23162 -> 21806 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 146 DEMON_4: 25744 -> 24388 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 147 ELK_BIRD: 22930 -> 21574 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 155 CROCODILE_CAVE: 21473 -> 20117 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 156 DEMON_13: 22425 -> 21069 over 1356 ticks (slope -1.000/tick)
+untouched | 2 | unit 151 ELK_BIRD: 22787 -> 21855 over 932 ticks (slope -1.000/tick)
+untouched | 3 | unit 139 GIANT_EARTHWORM: 27314 -> 26695 over 619 ticks (slope -1.000/tick)
+untouched | 3 | unit 140 JABBERER: 23634 -> 22274 over 1360 ticks (slope -1.000/tick)
+untouched | 3 | unit 141 DEMON_3: 27907 -> 26547 over 1360 ticks (slope -1.000/tick)
+untouched | 3 | unit 155 CRUNDLE: 23070 -> 21710 over 1360 ticks (slope -1.000/tick)
+untouched | 3 | unit 171 BIRD_EMU: 24648 -> 23288 over 1360 ticks (slope -1.000/tick)
+untouched | 3 | unit 146 TROGLODYTE: 27362 -> 26328 over 1033 ticks (slope -1.001/tick)
+untouched | 3 | unit 156 CRUNDLE: 24187 -> 23154 over 1033 ticks (slope -1.000/tick)
+untouched | 3 | unit 174 BIRD_EMU: 23300 -> 22267 over 1033 ticks (slope -1.000/tick)
+untouched | 3 | unit 147 TROGLODYTE: 22258 -> 21517 over 741 ticks (slope -1.000/tick)
+untouched | 3 | unit 161 CRUNDLE: 27013 -> 26272 over 741 ticks (slope -1.000/tick)
+untouched | 3 | unit 149 TROGLODYTE: 27517 -> 27166 over 351 ticks (slope -1.000/tick)
+untouched | 3 | unit 163 CRUNDLE: 26812 -> 26461 over 351 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+untouched | 3 | death | 145 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 -> 4 -> 4
+untouched | 3 | death | 139 | GIANT_EARTHWORM | 29,20,-1,8,-1,24 | 24 -> 24 -> 24
+
+## Manipulations applied
+seven | 1 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 1 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 1 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+seven | 1 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+seven | 1 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=7; cr.cluster_number[1]=7; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 7,7
+seven | 2 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 2 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 2 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+seven | 2 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+seven | 2 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=7; cr.cluster_number[1]=7; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 7,7
+seven | 3 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 3 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+seven | 3 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+seven | 3 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+seven | 3 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=7; cr.cluster_number[1]=7; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 7,7
+two | 1 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 1 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+two | 1 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 1 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+two | 1 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+two | 1 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=2; cr.cluster_number[1]=2; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 2,2
+two | 2 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 2 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+two | 2 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 2 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+two | 2 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+two | 2 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=2; cr.cluster_number[1]=2; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 2,2
+two | 3 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 3 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+two | 3 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+two | 3 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+two | 3 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+two | 3 | +0 | local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=2; cr.cluster_number[1]=2; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1])) | BIRD_EMU cluster_number 10,2 -> 2,2
+untouched | 1 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 1 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 1 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+untouched | 1 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 2 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 2 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+untouched | 2 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3186 0 1 | setq 3186 BIRD_RAVEN: quantity 354 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3187 0 1 | setq 3187 BIRD_KAKAPO: quantity 17 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3188 50 0 | setq 3188 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 3 | +0 | probe:setq 3191 0 1 | setq 3191 BIRD_KESTREL: quantity 24 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3192 0 1 | setq 3192 BIRD_OWL_GREAT_HORNED: quantity 16 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3204 0 1 | setq 3204 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3205 0 1 | setq 3205 GROUNDHOG: quantity 21 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3206 0 1 | setq 3206 BADGER: quantity 17 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3209 0 1 | setq 3209 KANGAROO: quantity 21 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3210 0 1 | setq 3210 PORCUPINE: quantity 25 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3211 0 1 | setq 3211 SKUNK: quantity 16 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3212 0 1 | setq 3212 WOMBAT: quantity 15 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3215 0 1 | setq 3215 DINGO: quantity 14 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 3216 0 1 | setq 3216 WOLF: quantity 13 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4703 0 1 | setq 4703 BIRD_RAVEN: quantity 339 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4704 0 1 | setq 4704 BIRD_KAKAPO: quantity 16 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4705 50 0 | setq 4705 BIRD_EMU: quantity 11 -> 50 extinct=0
+untouched | 3 | +0 | probe:setq 4708 0 1 | setq 4708 BIRD_KESTREL: quantity 23 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4709 0 1 | setq 4709 BIRD_OWL_GREAT_HORNED: quantity 15 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4721 0 1 | setq 4721 COUGAR: quantity 2 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4722 0 1 | setq 4722 GROUNDHOG: quantity 20 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4723 0 1 | setq 4723 BADGER: quantity 16 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4726 0 1 | setq 4726 KANGAROO: quantity 20 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4727 0 1 | setq 4727 PORCUPINE: quantity 24 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4728 0 1 | setq 4728 SKUNK: quantity 15 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4729 0 1 | setq 4729 WOMBAT: quantity 14 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4732 0 1 | setq 4732 DINGO: quantity 13 -> 0 extinct=1
+untouched | 3 | +0 | probe:setq 4733 0 1 | setq 4733 WOLF: quantity 12 -> 0 extinct=1
+
+## Pool entries that changed between load and end of replicate (463; the second instrument)
+seven | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+seven | 1 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 1 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+seven | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 1 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 1 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 1 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 1 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 1 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+seven | 1 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 1 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 1 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 1 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+seven | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+seven | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+seven | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+seven | 1 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->43 max 11->11 discovered 0->1 extinct 0->0
+seven | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->331 max 334->334 discovered 0->1 extinct 0->0
+seven | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->256 max 257->257 discovered 0->1 extinct 0->0
+seven | 1 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+seven | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3256 max 3530->3530 discovered 0->1 extinct 0->0
+seven | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2968 max 3352->3352 discovered 0->1 extinct 0->0
+seven | 1 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 1 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 1 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+seven | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+seven | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 1 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 1 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 1 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 1 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+seven | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->435 max 436->436 discovered 0->1 extinct 0->0
+seven | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->402 max 403->403 discovered 0->1 extinct 0->0
+seven | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->9 max 14->14 discovered 0->1 extinct 0->0
+seven | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->260 max 265->265 discovered 0->1 extinct 0->0
+seven | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->379 max 387->387 discovered 0->1 extinct 0->0
+seven | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->323 max 331->331 discovered 0->1 extinct 0->0
+seven | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->239 max 257->257 discovered 0->1 extinct 0->0
+seven | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->297 max 313->313 discovered 0->1 extinct 0->0
+seven | 1 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->2 max 4->4 discovered 0->1 extinct 0->0
+seven | 1 | idx 4796 | TROLL ref6=29,20,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+seven | 1 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->26 max 33->33 discovered 1->1 extinct 0->0
+seven | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->296 max 336->336 discovered 0->1 extinct 0->0
+seven | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+seven | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->351 max 421->421 discovered 0->1 extinct 0->0
+seven | 1 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+seven | 1 | idx 4841 | DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+seven | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+seven | 2 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 2 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+seven | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 2 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 2 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 2 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 2 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 2 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+seven | 2 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 2 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 2 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 2 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+seven | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+seven | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+seven | 2 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 2 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->43 max 11->11 discovered 0->1 extinct 0->0
+seven | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->332 max 334->334 discovered 0->1 extinct 0->0
+seven | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->256 max 257->257 discovered 0->1 extinct 0->0
+seven | 2 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+seven | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3060 max 3530->3530 discovered 0->1 extinct 0->0
+seven | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2663 max 3352->3352 discovered 0->1 extinct 0->0
+seven | 2 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->329 max 331->331 discovered 0->1 extinct 0->0
+seven | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 2 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 2 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+seven | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+seven | 2 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+seven | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->421 max 429->429 discovered 0->1 extinct 0->0
+seven | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+seven | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+seven | 2 | idx 4753 | BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->22 max 22->22 discovered 0->1 extinct 0->0
+seven | 2 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+seven | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->256 max 265->265 discovered 0->1 extinct 0->0
+seven | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->382 max 387->387 discovered 0->1 extinct 0->0
+seven | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->326 max 331->331 discovered 0->1 extinct 0->0
+seven | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->244 max 257->257 discovered 0->1 extinct 0->0
+seven | 2 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+seven | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->301 max 313->313 discovered 0->1 extinct 0->0
+seven | 2 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+seven | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->302 max 336->336 discovered 0->1 extinct 0->0
+seven | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->347 max 421->421 discovered 0->1 extinct 0->0
+seven | 2 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+seven | 3 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+seven | 3 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 3 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+seven | 3 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 3 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 3 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 3 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 3 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+seven | 3 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+seven | 3 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+seven | 3 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 3 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 3 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 3 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->236 max 241->241 discovered 0->1 extinct 0->0
+seven | 3 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+seven | 3 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+seven | 3 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 3 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->43 max 11->11 discovered 0->1 extinct 0->0
+seven | 3 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+seven | 3 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3195 max 3530->3530 discovered 0->1 extinct 0->0
+seven | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2293 max 3352->3352 discovered 0->1 extinct 0->0
+seven | 3 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+seven | 3 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+seven | 3 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->379 max 381->381 discovered 0->1 extinct 0->0
+seven | 3 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+seven | 3 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+seven | 3 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+seven | 3 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+seven | 3 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+seven | 3 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+seven | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+seven | 3 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+seven | 3 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+seven | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->425 max 429->429 discovered 0->1 extinct 0->0
+seven | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+seven | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+seven | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->260 max 265->265 discovered 0->1 extinct 0->0
+seven | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->385 max 387->387 discovered 0->1 extinct 0->0
+seven | 3 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+seven | 3 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+seven | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+seven | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->246 max 257->257 discovered 0->1 extinct 0->0
+seven | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->297 max 313->313 discovered 0->1 extinct 0->0
+seven | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->307 max 336->336 discovered 0->1 extinct 0->0
+seven | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->362 max 421->421 discovered 0->1 extinct 0->0
+seven | 3 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+seven | 3 | idx 4997 | GORLAK ref6=29,21,-1,13,-1,33 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+two | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+two | 1 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 1 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+two | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 1 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 1 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 1 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 1 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 1 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+two | 1 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 1 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 1 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 1 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 1 | idx 3536 | DEMON_1 ref6=28,20,-1,44,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+two | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+two | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+two | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+two | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+two | 1 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->48 max 11->11 discovered 0->1 extinct 0->0
+two | 1 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+two | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3045 max 3530->3530 discovered 0->1 extinct 0->0
+two | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2209 max 3352->3352 discovered 0->1 extinct 0->0
+two | 1 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 1 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 1 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+two | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 1 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 1 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 1 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 1 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+two | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->275 max 275->275 discovered 0->1 extinct 0->0
+two | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->425 max 429->429 discovered 0->1 extinct 0->0
+two | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->429 max 436->436 discovered 0->1 extinct 0->0
+two | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+two | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->6 max 14->14 discovered 0->1 extinct 0->0
+two | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->261 max 265->265 discovered 0->1 extinct 0->0
+two | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->383 max 387->387 discovered 0->1 extinct 0->0
+two | 1 | idx 4774 | TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+two | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->326 max 331->331 discovered 0->1 extinct 0->0
+two | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->238 max 257->257 discovered 0->1 extinct 0->0
+two | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->300 max 313->313 discovered 0->1 extinct 0->0
+two | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->291 max 336->336 discovered 0->1 extinct 0->0
+two | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->345 max 421->421 discovered 0->1 extinct 0->0
+two | 1 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+two | 1 | idx 4985 | JABBERER ref6=29,21,-1,13,-1,21 quantity 21->20 max 21->21 discovered 0->1 extinct 0->0
+two | 1 | idx 4997 | GORLAK ref6=29,21,-1,13,-1,33 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+two | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+two | 2 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 2 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+two | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 2 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 2 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 2 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 2 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 2 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+two | 2 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 2 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 2 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 2 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+two | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+two | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+two | 2 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 2 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->48 max 11->11 discovered 0->1 extinct 0->0
+two | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->332 max 334->334 discovered 0->1 extinct 0->0
+two | 2 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+two | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2713 max 3352->3352 discovered 0->1 extinct 0->0
+two | 2 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+two | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 2 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 2 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+two | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+two | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->425 max 429->429 discovered 0->1 extinct 0->0
+two | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+two | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->402 max 403->403 discovered 0->1 extinct 0->0
+two | 2 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+two | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->261 max 265->265 discovered 0->1 extinct 0->0
+two | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->382 max 387->387 discovered 0->1 extinct 0->0
+two | 2 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->133 max 147->147 discovered 0->1 extinct 0->0
+two | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+two | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->321 max 331->331 discovered 0->1 extinct 0->0
+two | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->239 max 257->257 discovered 0->1 extinct 0->0
+two | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->301 max 313->313 discovered 0->1 extinct 0->0
+two | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->282 max 336->336 discovered 0->1 extinct 0->0
+two | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+two | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->345 max 421->421 discovered 0->1 extinct 0->0
+two | 2 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+two | 2 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+two | 2 | idx 4997 | GORLAK ref6=29,21,-1,13,-1,33 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+two | 3 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+two | 3 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 3 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+two | 3 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 3 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 3 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 3 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 3 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+two | 3 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+two | 3 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+two | 3 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 3 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 3 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 3 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+two | 3 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->215 max 216->216 discovered 0->1 extinct 0->0
+two | 3 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+two | 3 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+two | 3 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 3 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->48 max 11->11 discovered 0->1 extinct 0->0
+two | 3 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+two | 3 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->2845 max 3530->3530 discovered 0->1 extinct 0->0
+two | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2891 max 3352->3352 discovered 0->1 extinct 0->0
+two | 3 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+two | 3 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+two | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+two | 3 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+two | 3 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+two | 3 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+two | 3 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+two | 3 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+two | 3 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+two | 3 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+two | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+two | 3 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+two | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->420 max 429->429 discovered 0->1 extinct 0->0
+two | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->434 max 436->436 discovered 0->1 extinct 0->0
+two | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+two | 3 | idx 4759 | GIANT_EARTHWORM ref6=29,20,-1,8,-1,24 quantity 26->25 max 26->26 discovered 0->1 extinct 0->0
+two | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->259 max 265->265 discovered 0->1 extinct 0->0
+two | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->379 max 387->387 discovered 0->1 extinct 0->0
+two | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->325 max 331->331 discovered 0->1 extinct 0->0
+two | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->242 max 257->257 discovered 0->1 extinct 0->0
+two | 3 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+two | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->298 max 313->313 discovered 0->1 extinct 0->0
+two | 3 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->2 max 4->4 discovered 0->1 extinct 0->0
+two | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->296 max 336->336 discovered 0->1 extinct 0->0
+two | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->348 max 421->421 discovered 0->1 extinct 0->0
+two | 3 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+two | 3 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+untouched | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 1 | idx 3537 | DEMON_12 ref6=28,20,-1,44,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->238 max 241->241 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->214 max 216->216 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->308 max 308->308 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->41 max 11->11 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3106 max 3530->3530 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2246 max 3352->3352 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->329 max 331->331 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+untouched | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->425 max 429->429 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->431 max 436->436 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->6 max 14->14 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->259 max 265->265 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->377 max 387->387 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->129 max 147->147 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->324 max 331->331 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->244 max 257->257 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->10 max 14->14 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->305 max 313->313 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->309 max 336->336 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->349 max 421->421 discovered 0->1 extinct 0->0
+untouched | 1 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+untouched | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 2 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->236 max 241->241 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->214 max 216->216 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->45 max 11->11 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->256 max 257->257 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3236 max 3530->3530 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->3078 max 3352->3352 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->329 max 331->331 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+untouched | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->274 max 275->275 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->420 max 429->429 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->430 max 436->436 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4753 | BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->21 max 22->22 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->35 max 43->43 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->259 max 265->265 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->381 max 387->387 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->325 max 331->331 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->242 max 257->257 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->300 max 313->313 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->304 max 336->336 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->351 max 421->421 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 2 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 3 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+untouched | 3 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3204 | COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3215 | DINGO ref6=28,19,-1,-1,-1,100 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 3 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->44 max 11->11 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->255 max 257->257 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3271 max 3530->3530 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2373 max 3352->3352 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4721 | COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+untouched | 3 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->426 max 429->429 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->398 max 403->403 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->4 max 14->14 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4759 | GIANT_EARTHWORM ref6=29,20,-1,8,-1,24 quantity 26->24 max 26->26 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->258 max 265->265 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->376 max 387->387 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->132 max 147->147 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->325 max 331->331 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->236 max 257->257 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->304 max 313->313 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->299 max 336->336 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->346 max 421->421 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+untouched | 3 | idx 4985 | JABBERER ref6=29,21,-1,13,-1,21 quantity 21->20 max 21->21 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 117 rows; first few:
+seven | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+seven | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+seven | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+seven | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+seven | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+seven | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+seven | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+seven | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+

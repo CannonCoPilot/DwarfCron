@@ -1,0 +1,148 @@
+{
+  "id": "E12",
+  "title": "Sized waves: emu's cluster_number written to 7,7 or 2,2 before the draw, pool closed to emu on both tiles; count the wave",
+  "fork": "kills F12",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 4000,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "F12 A \u00b7 read at draw",
+      "expects": "exactly 7 emus in arm seven, exactly 2 in arm two; the untouched arm in emu's usual range (E8 saw 2 to 8)"
+    },
+    {
+      "model": "F12 B \u00b7 cached at load",
+      "expects": "all three arms in the usual range"
+    }
+  ],
+  "kill_criterion": "arm seven must give exactly seven in at least two of three replicates to keep A",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "count only the first emu wave, by first-listed tick"
+  ],
+  "arms": [
+    {
+      "name": "seven",
+      "replicates": 3,
+      "pre": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 50 0",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 0 1",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 0 1",
+        "probe:setq 3216 0 1",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 50 0",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 0 1",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 0 1",
+        "probe:setq 4727 0 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 0 1",
+        "probe:setq 4733 0 1",
+        "local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=7; cr.cluster_number[1]=7; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1]))"
+      ],
+      "stop_when": {
+        "min_ticks": 1500,
+        "arrivals_min": 1
+      }
+    },
+    {
+      "name": "two",
+      "replicates": 3,
+      "pre": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 50 0",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 0 1",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 0 1",
+        "probe:setq 3216 0 1",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 50 0",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 0 1",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 0 1",
+        "probe:setq 4727 0 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 0 1",
+        "probe:setq 4733 0 1",
+        "local cr; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='BIRD_EMU' then cr=c end end; local b0,b1=cr.cluster_number[0],cr.cluster_number[1]; cr.cluster_number[0]=2; cr.cluster_number[1]=2; print(('BIRD_EMU cluster_number %d,%d -> %d,%d'):format(b0,b1,cr.cluster_number[0],cr.cluster_number[1]))"
+      ],
+      "stop_when": {
+        "min_ticks": 1500,
+        "arrivals_min": 1
+      }
+    },
+    {
+      "name": "untouched",
+      "replicates": 3,
+      "pre": [
+        "probe:setq 3186 0 1",
+        "probe:setq 3187 0 1",
+        "probe:setq 3188 50 0",
+        "probe:setq 3191 0 1",
+        "probe:setq 3192 0 1",
+        "probe:setq 3204 0 1",
+        "probe:setq 3205 0 1",
+        "probe:setq 3206 0 1",
+        "probe:setq 3209 0 1",
+        "probe:setq 3210 0 1",
+        "probe:setq 3211 0 1",
+        "probe:setq 3212 0 1",
+        "probe:setq 3215 0 1",
+        "probe:setq 3216 0 1",
+        "probe:setq 4703 0 1",
+        "probe:setq 4704 0 1",
+        "probe:setq 4705 50 0",
+        "probe:setq 4708 0 1",
+        "probe:setq 4709 0 1",
+        "probe:setq 4721 0 1",
+        "probe:setq 4722 0 1",
+        "probe:setq 4723 0 1",
+        "probe:setq 4726 0 1",
+        "probe:setq 4727 0 1",
+        "probe:setq 4728 0 1",
+        "probe:setq 4729 0 1",
+        "probe:setq 4732 0 1",
+        "probe:setq 4733 0 1"
+      ],
+      "stop_when": {
+        "min_ticks": 1500,
+        "arrivals_min": 1
+      }
+    }
+  ]
+}
