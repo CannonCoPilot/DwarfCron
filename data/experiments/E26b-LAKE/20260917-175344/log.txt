@@ -1,0 +1,152 @@
+17:53:44 run E26b-LAKE 20260917-175344: River creatures, and only river creatures, allowed to spawn on LAKE. Every non-vermin creature carrying a RIVER biome token in the vanilla raws (19 species; LAKE holds the tropical ten in its river feature entries) is opened at 50 on every tile in every layer; every other Animal entry on the site and its ring, surface, cavern, underworld and feature alike, is closed (the first pass left the unbounded underworld entries open and twelve demons tripped the stop rule); every hold in every layer released, and released again every 1500 ticks. Edge water at every z, the map's feature list and map_edge's fields are logged first. Any arrival at all is a river creature. Runs to 100,800 ticks or six arrivals.
+17:53:44   [rig] DF already running (pid 33717), port 5555
+17:53:44 == E26b-LAKE arm=river_only rep=1 fort=LAKE budget=100800 every=1000
+17:53:45   [rig] restored LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/LAKE
+17:53:45   restored LAKE.preverify -> LAKE sha256 76631d44449e
+17:54:16   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+17:54:16   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+17:54:16   [rig] drained 0 queued popup(s)
+17:54:18   baseline: 9 wild units on map, 912 pool entries, tick 16883 year 5
+17:54:25   manipulation: local n,zs,minz,maxz=0,{},999,-1; local d=df.global.world.map; local W,H=d.x_count,d.y_count; for z=0,d.z_count-1 do local cnt=0; for x=0,W-1 do for _,y in ipairs({0,H-1}) do local b=dfhack.maps.getTileBlock(x,y,z); if b then local des=b.designation[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type then cnt=cnt+1 end end end end; for y=0,H-1 do for _,x in ipairs({0,W-1}) do local b=dfhack.maps.getTileBlock(x,y,z); if b then local des=b.designation[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type then cnt=cnt+1 end end end end; if cnt>0 then n=n+cnt; zs[#zs+1]=z..':'..cnt; if z<minz then minz=z end; if z>maxz then maxz=z end end end; print(('edge water: %d edge tiles with water>=4 across z %d..%d [%s]'):format(n, minz, maxz, table.concat(zs,' '))) -> edge water: 895 edge tiles with water>=4 across z 48..94 [48:16 81:29 92:104 93:128 94:618]
+17:54:25   manipulation: local out={}; local ok,err=pcall(function() for i,f in ipairs(df.global.world.features.map_features) do out[#out+1]=i..':'..tostring(f._type) end end); print('map_features:', ok and table.concat(out,' ') or ('err '..tostring(err))); local me={}; for k,v in pairs(df.global.plotinfo.map_edge) do local n; pcall(function() n=#v end); me[#me+1]=tostring(k)..'='..tostring(n or v) end; print('map_edge fields:', table.concat(me,' ')) -> map_features:	0:<type: feature_init_subterranean_from_layerst> 1:<type: feature_init_subterranean_from_layerst> 2:<type: feature_init_subterranean_from_layerst> 3:<type: feature_init_magma_core_from_layerst> 4:<type: feature_init_underworld_from_layerst> 5:<type: feature_init_subterranean_from_layerst> 6:<type: feature_init_deep_special_tubest> 7:<type: feature_init_deep_special_tubest> 8:<type: feature_init_outdoor_riverst> 9:<type: feature_init_deep_special_tubest> 10:<type: feature_init_deep_special_tubest> 11:<type: feature_init_cavest>
+map_edge fields:	layer_x=5 surface_x=127 layer_y=5 surface_y=127 layer_z=5 surface_z=127
+17:54:25   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+176	191	95	GrassDryFloor3	0	water
+177	191	95	GrassDryFloor2	0	water
+178	191	95	GrassDryFloor2	0	water
+179	191	95	StoneFloor4	0	water
+180	191	95	StonePebbles3	0	water
+181	191	95	GrassDryFloor1	0	water
+182	191	95	GrassDryFloor4	0	water
+183	191	95	GrassDryFloor4	0	water
+184	191	95	GrassDryFloor1	0	water
+185	191	95	GrassDryFloor2	0	water
+186	191	95	GrassDryFloor4	0	water
+187	191	95	GrassDryFloor2	0	water
+188	191	95	GrassDryFloor3	0	water
+189	191	95	GrassDryFloor1	0	water
+190	191	95	StonePebbles2	0	water
+191	191	95	GrassDryFloor2	0	water
+191	80	95	GrassDryFloor2	0	water
+191	81	95	GrassDryFloor4	0	water
+191	82	95	GrassDryFloor3	0	water
+191	83	95	GrassDryFloor2	0	water
+191	84	95	GrassDryFloor1	0	water
+191	85	95	Shrub	0	water
+191	86	95	GrassDryFloor4	0	water
+191	87	95	GrassDryFloor3	0	water
+191	88	95	GrassDryFloor1	0	water
+191	89	95	GrassDryFloor3	0	water
+191	90	95	GrassDryFloor1	0	water
+191	91	95	GrassDryFloor4	0	water
+191	92	95	GrassDryFloor2	0	water
+191	93	95	GrassDryFloor2	0	water
+191	94	95	GrassDryFloor3	0	water
+191	95	95	GrassDryFloor2	0	water
+191	96	95	GrassDryFloor4	0	water
+191	97	95	GrassDryFloor3	0	water
+191	98	95	GrassDryFloor3	0	water
+191	99	95	StonePebbles1	0	water
+191	100	95	GrassDryFloor3	0	water
+191	101	95	GrassDryFloor3	0	water
+191	102	95	GrassDryFloor4	0	water
+191	103	95	StonePebbles3	0	water
+191	104	95	Shrub	0	water
+191	105	95	GrassDryFloor1	0	water
+191	106	95	GrassDryFloor4	0	water
+191	107	95	StonePebbles4	0	water
+191	108	95	GrassDryFloor1	0	water
+191	109	95	GrassDryFloor4	0	water
+191	110	95	GrassDryFloor2	0	water
+191	111	95	StoneBoulder	0	water
+191	112	95	GrassDryFloor2	0	water
+191	113	95	GrassDryFloor2	0	water
+191	114	95	GrassDryFloor1	0	water
+191	115	95	GrassDryFloor1	0	water
+191	116	95	GrassDryFloor4	0	water
+191	117	95	GrassDryFloor2	0	water
+191	118	95	GrassDryFloor4	0	water
+191	119	95	GrassDryFloor4	0	water
+191	120	95	GrassDryFloor4	0	water
+191	121	95	GrassDryFloor1	0	water
+191	122	95	GrassDryFloor4	0	water
+191	123	95	GrassDryFloor1	0	water
+191	124	95	GrassDryFloor3	0	water
+191	125	95	GrassDryFloor1	0	water
+191	126	95	GrassDryFloor2	0	water
+191	127	95	GrassDryFloor2	0	water
+191	128	95	GrassDryFloor1	0	water
+191	129	95	GrassDryFloor1	0	water
+191	130	95	GrassDryFloor3	0	water
+191	131	95	GrassDryFloor1	0	water
+191	132	95	Shrub	0	water
+191	133	95	GrassDryFloor1	0	water
+191	134	95	GrassDryFloor4	0	water
+191	135	95	GrassDryFloor1	0	water
+191	136	95	GrassDryFloor4	0	water
+191	137	95	GrassDryFloor3	0	water
+191	138	95	GrassDryFloor2	0	water
+191	139	95	GrassDryFloor4	0	water
+191	140	95	GrassDryFloor2	0	water
+191	141	95	GrassDryFloor4	0	water
+191	142	95	GrassDryFloor1	0	water
+191	143	95	GrassDryFloor4	0	water
+191	144	95	GrassDryFloor2	0	water
+191	145	95	GrassDryFloor4	0	water
+191	146	95	GrassDryFloor1	0	water
+191	147	95	GrassDryFloor3	0	water
+191	148	95	GrassDryFloor4	0	water
+191	149	95	GrassDryFloor2	0	water
+191	150	95	StonePebbles1	0	water
+191	151	95	GrassDryFloor1	0	water
+191	152	95	GrassDryFloor1	0	water
+191	153	95	GrassDryFloor3	0	water
+191	154	95	GrassDryFloor4	0	water
+191	155	95	GrassDryFloor1	0	water
+191	156	95	GrassDryFloor3	0	water
+191	157	95	GrassDryFloor1	0	water
+191	158	95	GrassDryFloor2	0	water
+191	159	95	GrassDryFloor2	0	water
+191	160	95	GrassDryFloor2	0	water
+191	161	95	GrassDryFloor3	0	water
+191	162	95	StoneFloor1	0	water
+191	163	95	GrassDryFloor3	0	water
+191	164	95	GrassDryFloor1	0	water
+191	165	95	GrassDryFloor1	0	water
+191	166	95	GrassDryFloor3	0	water
+191	167	95	StonePebbles2	0	water
+191	168	95	GrassDryFloor2	0	water
+191	169	95	GrassDryFloor1	0	water
+191	170	95	GrassDryFloor3	0	water
+191	171	95	GrassDryFloor2	0	water
+191	172	95	GrassDryFloor4	0	water
+191	173	95	GrassDryFloor3	0	water
+191	174	95	GrassDryFloor2	0	water
+191	175	95	StoneFloor3	0	water
+191	176	95	Shrub	0	water
+191	177	95	GrassDryFloor3	0	water
+191	178	95	GrassDryFloor2	0	water
+191	179	95	StoneFloor4	0	water
+191	180	95	GrassDryFloor1	0	water
+191	181	95	GrassDryFloor2	0	water
+191	182	95	GrassDryFloor4	0	water
+191	183	95	GrassDryFloor3	0	water
+191	184	95	GrassDryFloor2	0	water
+191	185	95	StonePebbles2	0	water
+191	186	95	GrassDryFloor2	0	water
+191	187	95	GrassDryFloor2	0	water
+191	188	95	GrassDryFloor3	0	water
+191	189	95	SoilFloor1	0	water
+191	190	95	GrassDryFloor4	0	water
+17:54:26   manipulation: local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u)) -> river whitelist: 329 river-species entries open (>=50, any tile, any layer); 807 non-river entries on site+ring closed (surface, cavern, feature alike); 3337 entries beyond the ring left alone; 84 of the closed were unbounded (underworld) entries
+17:54:26   manipulation: probe:release all -> released 9 unit(s) [all]
+17:54:26   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+17:54:37   manipulation: probe:release all -> released 2 unit(s) [all]
+17:54:44   manipulation: probe:release all -> released 2 unit(s) [all]
+17:54:48   stop rule: arrivals 6 >= 6
+17:54:57   [rig] back at the title screen
+17:54:57   done: {"arm": "river_only", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 6, "departures": 0, "deaths": 0, "ticks": 5755, "wall_s": 19.0, "stop": "arrivals 6 >= 6", "ticks_per_s": 302.2, "save_untouched": true}
+17:55:29   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+17:55:29   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+17:55:37   [rig] back at the title screen
+17:55:37 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E26b-LAKE/20260917-175344

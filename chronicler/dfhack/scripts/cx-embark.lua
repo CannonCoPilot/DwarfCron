@@ -84,6 +84,25 @@ elseif cmd == 'params' then
     print(('params: slot 0 <- preset %d (%s), %d fields, %dx%d, seed=%s, end_year=%d'):format(
         idx, src.title, copied, dst.dim_x, dst.dim_y, seed, dst.end_year))
 
+elseif cmd == 'rivers' then
+    -- one row per river tile: x y biome sav elev up down left right through (through = enters one side and leaves the opposite)
+    need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    local wd = df.global.world.world_data
+    local W, H = wd.world_width, wd.world_height
+    print('x\ty\tbiome\tsav\telev\tup\tdown\tleft\tright\tthrough\tsite')
+    for y = 0, H - 1 do
+        for x = 0, W - 1 do
+            local ok, e = pcall(dfhack.maps.getRegionBiome, x, y)
+            if ok and e and (flag(e, 'has_river') or flag(e, 'is_brook') or flag(e, 'temp_river')) then
+                local u, d, l, r = flag(e, 'river_up'), flag(e, 'river_down'), flag(e, 'river_left'), flag(e, 'river_right')
+                local through = (u and d) and 'NS' or ((l and r) and 'EW' or '')
+                local ok2, bt = pcall(dfhack.maps.getBiomeType, x, y)
+                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%d'):format(x, y, (ok2 and bt and df.biome_type[bt]) or '?', e.savagery, e.elevation,
+                    u and 1 or 0, d and 1 or 0, l and 1 or 0, r and 1 or 0, through, flag(e, 'has_site') and 1 or 0))
+            end
+        end
+    end
+
 elseif cmd == 'survey' then
     local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
     local filter = args[2]

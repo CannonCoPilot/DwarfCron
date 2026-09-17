@@ -492,6 +492,15 @@ open_site_screen() {
 # One TSV row per region tile of the world: biome, river/lake/site flags,
 # savagery, evilness, elevation, volcanism, and how many of the 8 neighbours
 # share the biome, carry a river, or are ocean. Returns to the title.
+cmd_rivers() {
+    local world="${1:-}"
+    [ -n "$world" ] || err "usage: rivers <world-folder>"
+    is_running || err "start the session first"
+    open_site_screen "$world"
+    cmd_cmd cx-embark rivers 2>/dev/null | tr -d "\r"
+    leave_site_screen || log "could not get back to the title after the river survey (state: $(ui_state))"
+}
+
 cmd_survey() {
     local world="${1:-}" filter="${2:-}"
     [ -n "$world" ] || err "usage: survey <world-folder> [biome-substring]"
@@ -820,6 +829,7 @@ case "${1:-status}" in
     popups)    shift; cmd_popups "$@" ;;
     genworld)  shift; cmd_genworld "$@" ;;
     survey)    shift; cmd_survey "$@" ;;
+    rivers)    shift; cmd_rivers "$@" ;;
     facts)     shift; cmd_facts "$@" ;;
     embark)    shift; cmd_embark "$@" ;;
     fps)       shift; cmd_fps "$@" ;;
