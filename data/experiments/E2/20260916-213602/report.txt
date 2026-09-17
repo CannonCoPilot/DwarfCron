@@ -1,0 +1,385 @@
+
+# E2 -- Source census on SPLIT: release every surface hold every 1,500 ticks and record the tile in each wave's six-tuple and where it entered
+run 20260916-213602 fort SPLIT backup SPLIT.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 23..24,14..14 seed WILDERPOP1
+commits: DwarfCron 891fc20 seasonal-wildlife 5fb133b fps cap 1000
+
+## Predictions (written before the run)
+- F2 B · positional: each wave's tile matches the half of the map edge it entered from
+- F2 C · candidate set, flat: waves spread across the site's two tiles and their block-biome tile(s) without regard to the entry edge or quantity
+- F2 A · weighted: tile shares follow the tiles' quantity shares
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+census | 1 | True | None | 24144 | 171.1 | 75 | 0 | 2 |  | 
+census | 2 | True | None | 24035 | 171.5 | 79 | 1 | 4 |  | 
+census | 3 | True | None | 24237 | 145.7 | 73 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+census | 1 | +386 | BIRD_EMU | 23,14,-1,-1,-1,56 | 9 | 20693,20777,21559,21753,24497,25055,25127,25370,25881 | - | present
+census | 1 | +386 | DEMON_19 | 23,14,-1,40,-1,4 | 3 | 20922,26551,27135 | - | present
+census | 1 | +729 | IMP_FIRE | 23,14,-1,34,-1,1 | 4 | 21039,21812,22466,22770 | - | present
+census | 1 | +1933 | GROUNDHOG | 23,14,-1,-1,-1,80 | 4 | 20970,22545,27329,27388 | - | present
+census | 1 | +3475 | BIRD_EMU | 23,14,-1,-1,-1,56 | 8 | 21978,23652,24962,25829,26422,27548,28992,29950 | - | present
+census | 1 | +4984 | WOMBAT | 23,14,-1,-1,-1,96 | 1 | 22156 | - | present
+census | 1 | +4984 | KANGAROO | 24,14,-1,-1,-1,88 | 3 | 26040,28696,29777 | - | present
+census | 1 | +6660 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 5 | 23019,23491,26481,26996,29284 | - | present
+census | 1 | +6992 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 1 | 27738 | - | present
+census | 1 | +8366 | BIRD_OWL_GREAT_HORNED | 23,14,-1,-1,-1,61 | 1 | 21392 | - | present
+census | 1 | +8366 | SKUNK | 23,14,-1,-1,-1,92 | 1 | 24229 | - | present
+census | 1 | +9998 | WOMBAT | 23,14,-1,-1,-1,96 | 1 | 23521 | - | present
+census | 1 | +9998 | BIRD_OWL_GREAT_HORNED | 23,14,-1,-1,-1,61 | 1 | 29627 | - | present
+census | 1 | +11646 | WOMBAT | 23,14,-1,-1,-1,96 | 1 | 21196 | - | present
+census | 1 | +11646 | PORCUPINE | 23,14,-1,-1,-1,90 | 1 | 24912 | - | present
+census | 1 | +13479 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 22470 | - | present
+census | 1 | +13479 | BIRD_OSPREY | 22,13,-1,-1,-1,4 | 1 | 29380 | - | present
+census | 1 | +15252 | BIRD_KESTREL | 23,14,-1,-1,-1,60 | 1 | 22803 | 735 | death
+census | 1 | +15252 | BIRD_OSPREY | 22,13,-1,-1,-1,4 | 1 | 28896 | - | present
+census | 1 | +15987 | BIRD_ALBATROSS | 22,13,-1,-1,-1,5 | 1 | 24558 | - | present
+census | 1 | +17015 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 7 | 22266,23955,24775,27113,27449,27924,29212 | - | present
+census | 1 | +18634 | BIRD_OWL_GREAT_HORNED | 23,14,-1,-1,-1,61 | 1 | 23003 | - | present
+census | 1 | +18634 | KANGAROO | 23,14,-1,-1,-1,88 | 3 | 23398,25294,29864 | - | present
+census | 1 | +20269 | WOMBAT | 24,14,-1,-1,-1,96 | 1 | 22228 | - | present
+census | 1 | +20269 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 1 | 25011 | 2096 | death
+census | 1 | +20538 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 4 | 21605,22312,24691,28909 | - | present
+census | 1 | +21850 | BIRD_OSPREY | 22,13,-1,-1,-1,4 | 1 | 27347 | - | present
+census | 1 | +21850 | KANGAROO | 23,14,-1,-1,-1,88 | 2 | 21643,28833 | - | present
+census | 1 | +23563 | BADGER | 23,14,-1,-1,-1,82 | 6 | 20620,21034,25211,26001,26101,29172 | - | present
+census | 2 | +459 | KANGAROO | 23,14,-1,-1,-1,88 | 3 | 19714,23256,29337 | - | present
+census | 2 | +796 | MAGMA_CRAB | 23,14,-1,34,-1,0 | 3 | 23474,28961,29349 | - | present
+census | 2 | +796 | DEMON_19 | 23,14,-1,40,-1,4 | 2 | 22796,29037 | - | present
+census | 2 | +2090 | WOMBAT | 23,14,-1,-1,-1,96 | 1 | 27853 | - | present
+census | 2 | +2090 | BADGER | 23,14,-1,-1,-1,82 | 11 | 20815,22450,22928,23545,24693,25569,26087,28698,28798,28813,29581 | 20042 | death/present
+census | 2 | +3539 | BIRD_OWL_GREAT_HORNED | 24,14,-1,-1,-1,61 | 1 | 20964 | - | present
+census | 2 | +3539 | BIRD_OSPREY | 22,13,-1,-1,-1,4 | 1 | 21582 | - | present
+census | 2 | +5328 | GROUNDHOG | 23,14,-1,-1,-1,80 | 1 | 25776 | - | present
+census | 2 | +5328 | PORCUPINE | 23,14,-1,-1,-1,90 | 1 | 28681 | - | present
+census | 2 | +7030 | BIRD_KESTREL | 23,14,-1,-1,-1,60 | 1 | 22434 | - | present
+census | 2 | +7030 | BIRD_OSPREY | 22,13,-1,-1,-1,4 | 1 | 22935 | - | present
+census | 2 | +8734 | BIRD_EMU | 23,14,-1,-1,-1,56 | 2 | 19959,22913 | - | present
+census | 2 | +8734 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 28857 | 1462 | death
+census | 2 | +9149 | BIRD_EMU | 23,14,-1,-1,-1,56 | 5 | 20797,23685,23887,25141,25877 | - | present
+census | 2 | +10454 | BIRD_RAVEN | 24,14,-1,-1,-1,53 | 2 | 21791,21810 | - | present
+census | 2 | +11974 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 24436 | - | present
+census | 2 | +11974 | GROUNDHOG | 23,14,-1,-1,-1,80 | 3 | 22125,23588,25914 | - | present
+census | 2 | +12348 | GROUNDHOG | 23,14,-1,-1,-1,80 | 1 | 21017 | - | present
+census | 2 | +13605 | BIRD_KESTREL | 24,14,-1,-1,-1,60 | 1 | 28161 | - | present
+census | 2 | +13605 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 23982 | 1842 | death
+census | 2 | +15447 | PORCUPINE | 23,14,-1,-1,-1,90 | 1 | 28510 | - | present
+census | 2 | +15447 | GROUNDHOG | 23,14,-1,-1,-1,80 | 3 | 21401,23873,29202 | 6153 | death/present
+census | 2 | +17149 | BIRD_RAVEN | 24,14,-1,-1,-1,53 | 10 | 20868,21471,22735,23178,25980,26063,26335,27279,28096,28244 | - | present
+census | 2 | +18698 | DINGO | 23,14,-1,-1,-1,100 | 6 | 20690,22976,24007,24477,25686,26754 | - | present
+census | 2 | +20257 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 21783 | - | present
+census | 2 | +20257 | SKUNK | 23,14,-1,-1,-1,92 | 1 | 19953 | - | present
+census | 2 | +21889 | BIRD_OSPREY | 23,13,-1,-1,-1,4 | 1 | 25255 | - | present
+census | 2 | +21889 | BIRD_EMU | 23,14,-1,-1,-1,56 | 8 | 20464,20942,22497,23612,25579,28235,28635,29322 | - | present
+census | 2 | +23206 | OLM_GIANT | 22,14,-1,4,-1,8 | 1 | 25153 | - | present
+census | 2 | +23529 | KANGAROO | 23,14,-1,-1,-1,88 | 4 | 20442,21530,21941,23889 | - | present
+census | 3 | +421 | KANGAROO | 23,14,-1,-1,-1,88 | 2 | 21870,24720 | - | present
+census | 3 | +1149 | DEMON_19 | 23,14,-1,40,-1,4 | 2 | 23446,24275 | - | present
+census | 3 | +2137 | KANGAROO | 23,14,-1,-1,-1,88 | 2 | 21497,23893 | - | present
+census | 3 | +3511 | MAGMA_CRAB | 22,14,-1,34,-1,0 | 4 | 20663,21031,25426,28994 | - | present
+census | 3 | +3917 | GROUNDHOG | 23,14,-1,-1,-1,80 | 2 | 22311,27891 | - | present
+census | 3 | +4760 | MAGMA_CRAB | 22,14,-1,34,-1,0 | 1 | 29314 | - | present
+census | 3 | +5291 | KANGAROO | 24,14,-1,-1,-1,88 | 2 | 27484,28714 | - | present
+census | 3 | +6980 | PORCUPINE | 23,14,-1,-1,-1,90 | 1 | 22435 | - | present
+census | 3 | +6980 | BIRD_ALBATROSS | 23,13,-1,-1,-1,5 | 5 | 21348,22462,23824,26116,28325 | - | present
+census | 3 | +8680 | BIRD_ALBATROSS | 23,13,-1,-1,-1,5 | 1 | 29178 | - | present
+census | 3 | +8680 | GROUNDHOG | 24,14,-1,-1,-1,80 | 2 | 21853,21980 | - | present
+census | 3 | +10226 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 7 | 22336,22416,22715,23168,25063,27772,29678 | - | present
+census | 3 | +10575 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 1 | 25139 | - | present
+census | 3 | +11922 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 8 | 21262,21599,22894,23499,26142,27757,28982,29042 | - | present
+census | 3 | +13498 | SKUNK | 23,14,-1,-1,-1,92 | 1 | 24501 | - | present
+census | 3 | +13498 | BIRD_KESTREL | 23,14,-1,-1,-1,60 | 1 | 26017 | - | present
+census | 3 | +15146 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 6 | 23855,24883,25758,26575,28627,28635 | - | present
+census | 3 | +16848 | BIRD_RAVEN | 24,14,-1,-1,-1,53 | 7 | 19982,22776,23343,24476,26141,27146,28336 | - | present
+census | 3 | +18536 | BIRD_EMU | 23,14,-1,-1,-1,56 | 5 | 22118,24107,25872,26936,29494 | - | present
+census | 3 | +20203 | BIRD_EMU | 23,14,-1,-1,-1,56 | 2 | 23296,23453 | - | present
+census | 3 | +22005 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 21063 | - | present
+census | 3 | +22005 | BIRD_RAVEN | 24,14,-1,-1,-1,53 | 8 | 20476,21143,21833,23588,25890,26136,28585,29843 | - | present
+census | 3 | +23484 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 1 | 22462 | - | present
+census | 3 | +23484 | BIRD_OSPREY | 23,13,-1,-1,-1,4 | 1 | 29042 | - | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+census | 1 | unit 159 BIRD_EMU: 21559 -> 0 over 23758 ticks (slope -0.907/tick)
+census | 1 | unit 160 BIRD_EMU: 25127 -> 1369 over 23758 ticks (slope -1.000/tick)
+census | 1 | unit 168 DEMON_19: 26551 -> 2793 over 23758 ticks (slope -1.000/tick)
+census | 1 | unit 169 DEMON_19: 27135 -> 3377 over 23758 ticks (slope -1.000/tick)
+census | 1 | unit 171 IMP_FIRE: 21039 -> 0 over 23415 ticks (slope -0.899/tick)
+census | 1 | unit 172 IMP_FIRE: 22466 -> 0 over 23415 ticks (slope -0.959/tick)
+census | 1 | unit 175 GROUNDHOG: 22545 -> 331 over 22211 ticks (slope -1.000/tick)
+census | 1 | unit 176 GROUNDHOG: 20970 -> 0 over 22211 ticks (slope -0.944/tick)
+census | 1 | unit 179 BIRD_EMU: 21978 -> 1307 over 20669 ticks (slope -1.000/tick)
+census | 1 | unit 180 BIRD_EMU: 25829 -> 5160 over 20669 ticks (slope -1.000/tick)
+census | 1 | unit 187 WOMBAT: 22156 -> 2995 over 19160 ticks (slope -1.000/tick)
+census | 1 | unit 188 KANGAROO: 26040 -> 6879 over 19160 ticks (slope -1.000/tick)
+census | 1 | unit 189 KANGAROO: 29777 -> 10617 over 19160 ticks (slope -1.000/tick)
+census | 1 | unit 191 BIRD_RAVEN: 23491 -> 6007 over 17484 ticks (slope -1.000/tick)
+census | 1 | unit 192 BIRD_RAVEN: 23019 -> 5535 over 17484 ticks (slope -1.000/tick)
+census | 1 | unit 196 BIRD_RAVEN: 27738 -> 10586 over 17152 ticks (slope -1.000/tick)
+census | 1 | unit 197 BIRD_OWL_GREAT_HORNED: 21392 -> 5614 over 15778 ticks (slope -1.000/tick)
+census | 1 | unit 198 SKUNK: 24229 -> 8450 over 15778 ticks (slope -1.000/tick)
+census | 1 | unit 199 WOMBAT: 23521 -> 9375 over 14146 ticks (slope -1.000/tick)
+census | 1 | unit 200 BIRD_OWL_GREAT_HORNED: 29627 -> 15481 over 14146 ticks (slope -1.000/tick)
+census | 1 | unit 201 WOMBAT: 21196 -> 8698 over 12498 ticks (slope -1.000/tick)
+census | 1 | unit 202 PORCUPINE: 24912 -> 12414 over 12498 ticks (slope -1.000/tick)
+census | 1 | unit 203 BIRD_KAKAPO: 22470 -> 11804 over 10665 ticks (slope -1.000/tick)
+census | 1 | unit 204 BIRD_OSPREY: 29380 -> 18715 over 10665 ticks (slope -1.000/tick)
+census | 1 | unit 205 BIRD_KESTREL: 22803 -> 22455 over 348 ticks (slope -1.000/tick)
+census | 1 | unit 206 BIRD_OSPREY: 28896 -> 20004 over 8892 ticks (slope -1.000/tick)
+census | 1 | unit 207 BIRD_ALBATROSS: 24558 -> 16401 over 8157 ticks (slope -1.000/tick)
+census | 1 | unit 208 BIRD_RAVEN: 24775 -> 17646 over 7129 ticks (slope -1.000/tick)
+census | 1 | unit 209 BIRD_RAVEN: 29212 -> 22083 over 7129 ticks (slope -1.000/tick)
+census | 1 | unit 215 BIRD_OWL_GREAT_HORNED: 23003 -> 17493 over 5510 ticks (slope -1.000/tick)
+census | 1 | unit 216 KANGAROO: 29864 -> 24354 over 5510 ticks (slope -1.000/tick)
+census | 1 | unit 217 KANGAROO: 25294 -> 19784 over 5510 ticks (slope -1.000/tick)
+census | 1 | unit 219 WOMBAT: 22228 -> 18353 over 3875 ticks (slope -1.000/tick)
+census | 1 | unit 220 BIRD_RAVEN: 25011 -> 23190 over 1821 ticks (slope -1.000/tick)
+census | 1 | unit 221 BIRD_RAVEN: 22312 -> 18706 over 3606 ticks (slope -1.000/tick)
+census | 1 | unit 222 BIRD_RAVEN: 24691 -> 21085 over 3606 ticks (slope -1.000/tick)
+census | 1 | unit 225 BIRD_OSPREY: 27347 -> 25053 over 2294 ticks (slope -1.000/tick)
+census | 1 | unit 226 KANGAROO: 21643 -> 19349 over 2294 ticks (slope -1.000/tick)
+census | 1 | unit 227 KANGAROO: 28833 -> 26539 over 2294 ticks (slope -1.000/tick)
+census | 1 | unit 228 BADGER: 25211 -> 24629 over 581 ticks (slope -1.002/tick)
+census | 1 | unit 229 BADGER: 21034 -> 20453 over 581 ticks (slope -1.000/tick)
+census | 2 | unit 159 KANGAROO: 23256 -> 0 over 23576 ticks (slope -0.986/tick)
+census | 2 | unit 162 MAGMA_CRAB: 23474 -> 235 over 23239 ticks (slope -1.000/tick)
+census | 2 | unit 165 DEMON_19: 29037 -> 5798 over 23239 ticks (slope -1.000/tick)
+census | 2 | unit 167 WOMBAT: 27853 -> 5906 over 21945 ticks (slope -1.000/tick)
+census | 2 | unit 168 BADGER: 28798 -> 6849 over 21945 ticks (slope -1.000/tick)
+census | 2 | unit 179 BIRD_OWL_GREAT_HORNED: 20964 -> 468 over 20496 ticks (slope -1.000/tick)
+census | 2 | unit 180 BIRD_OSPREY: 21582 -> 1086 over 20496 ticks (slope -1.000/tick)
+census | 2 | unit 181 GROUNDHOG: 25776 -> 7069 over 18707 ticks (slope -1.000/tick)
+census | 2 | unit 182 PORCUPINE: 28681 -> 9973 over 18707 ticks (slope -1.000/tick)
+census | 2 | unit 183 BIRD_KESTREL: 22434 -> 5429 over 17005 ticks (slope -1.000/tick)
+census | 2 | unit 184 BIRD_OSPREY: 22935 -> 5930 over 17005 ticks (slope -1.000/tick)
+census | 2 | unit 185 BIRD_EMU: 22913 -> 7611 over 15301 ticks (slope -1.000/tick)
+census | 2 | unit 192 BIRD_KAKAPO: 28857 -> 27787 over 1070 ticks (slope -1.000/tick)
+census | 2 | unit 187 BIRD_EMU: 20797 -> 5911 over 14886 ticks (slope -1.000/tick)
+census | 2 | unit 193 BIRD_RAVEN: 21791 -> 8210 over 13581 ticks (slope -1.000/tick)
+census | 2 | unit 195 BIRD_KAKAPO: 24436 -> 12373 over 12061 ticks (slope -1.000/tick)
+census | 2 | unit 196 GROUNDHOG: 25914 -> 13853 over 12061 ticks (slope -1.000/tick)
+census | 2 | unit 199 GROUNDHOG: 21017 -> 9330 over 11687 ticks (slope -1.000/tick)
+census | 2 | unit 200 BIRD_KESTREL: 28161 -> 17731 over 10430 ticks (slope -1.000/tick)
+census | 2 | unit 201 BIRD_KAKAPO: 23982 -> 22488 over 1494 ticks (slope -1.000/tick)
+census | 2 | unit 202 PORCUPINE: 28510 -> 19922 over 8588 ticks (slope -1.000/tick)
+census | 2 | unit 203 GROUNDHOG: 29202 -> 20614 over 8588 ticks (slope -1.000/tick)
+census | 2 | unit 206 BIRD_RAVEN: 22735 -> 15849 over 6886 ticks (slope -1.000/tick)
+census | 2 | unit 216 DINGO: 26754 -> 21417 over 5337 ticks (slope -1.000/tick)
+census | 2 | unit 222 BIRD_KAKAPO: 21783 -> 18005 over 3778 ticks (slope -1.000/tick)
+census | 2 | unit 223 SKUNK: 19953 -> 16175 over 3778 ticks (slope -1.000/tick)
+census | 2 | unit 224 BIRD_OSPREY: 25255 -> 23109 over 2146 ticks (slope -1.000/tick)
+census | 2 | unit 225 BIRD_EMU: 29322 -> 27175 over 2146 ticks (slope -1.000/tick)
+census | 2 | unit 233 OLM_GIANT: 25153 -> 24324 over 829 ticks (slope -1.000/tick)
+census | 2 | unit 234 KANGAROO: 21941 -> 21435 over 506 ticks (slope -1.000/tick)
+census | 3 | unit 159 KANGAROO: 24720 -> 903 over 23816 ticks (slope -1.000/tick)
+census | 3 | unit 161 DEMON_19: 23446 -> 358 over 23088 ticks (slope -1.000/tick)
+census | 3 | unit 163 KANGAROO: 23893 -> 1790 over 22100 ticks (slope -1.000/tick)
+census | 3 | unit 165 MAGMA_CRAB: 25426 -> 4700 over 20726 ticks (slope -1.000/tick)
+census | 3 | unit 170 GROUNDHOG: 22311 -> 1989 over 20320 ticks (slope -1.000/tick)
+census | 3 | unit 169 MAGMA_CRAB: 29314 -> 9837 over 19477 ticks (slope -1.000/tick)
+census | 3 | unit 172 KANGAROO: 27484 -> 8537 over 18946 ticks (slope -1.000/tick)
+census | 3 | unit 174 PORCUPINE: 22435 -> 5177 over 17257 ticks (slope -1.000/tick)
+census | 3 | unit 175 BIRD_ALBATROSS: 26116 -> 8859 over 17257 ticks (slope -1.000/tick)
+census | 3 | unit 180 BIRD_ALBATROSS: 29178 -> 13621 over 15557 ticks (slope -1.000/tick)
+census | 3 | unit 181 GROUNDHOG: 21980 -> 6422 over 15557 ticks (slope -1.000/tick)
+census | 3 | unit 183 BIRD_RAVEN: 22336 -> 8325 over 14011 ticks (slope -1.000/tick)
+census | 3 | unit 190 BIRD_RAVEN: 25139 -> 11477 over 13662 ticks (slope -1.000/tick)
+census | 3 | unit 191 BIRD_RAVEN: 27757 -> 15442 over 12315 ticks (slope -1.000/tick)
+census | 3 | unit 199 SKUNK: 24501 -> 13762 over 10739 ticks (slope -1.000/tick)
+census | 3 | unit 200 BIRD_KESTREL: 26017 -> 15278 over 10739 ticks (slope -1.000/tick)
+census | 3 | unit 201 BIRD_RAVEN: 23855 -> 14764 over 9091 ticks (slope -1.000/tick)
+census | 3 | unit 207 BIRD_RAVEN: 24476 -> 17087 over 7389 ticks (slope -1.000/tick)
+census | 3 | unit 214 BIRD_EMU: 26936 -> 21235 over 5701 ticks (slope -1.000/tick)
+census | 3 | unit 219 BIRD_EMU: 23296 -> 19262 over 4034 ticks (slope -1.000/tick)
+census | 3 | unit 221 BIRD_KAKAPO: 21063 -> 18831 over 2232 ticks (slope -1.000/tick)
+census | 3 | unit 222 BIRD_RAVEN: 29843 -> 27611 over 2232 ticks (slope -1.000/tick)
+census | 3 | unit 230 BIRD_KAKAPO: 22462 -> 21709 over 753 ticks (slope -1.000/tick)
+census | 3 | unit 231 BIRD_OSPREY: 29042 -> 28289 over 753 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+census | 1 | death | 205 | BIRD_KESTREL | 23,14,-1,-1,-1,60 | 25 -> 25 -> 25
+census | 1 | death | 220 | BIRD_RAVEN | 23,14,-1,-1,-1,53 | 381 -> 381 -> 381
+census | 2 | death | 192 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 17 -> 17 -> 17
+census | 2 | death | 201 | BIRD_KAKAPO | 23,14,-1,-1,-1,55 | 15 -> 15 -> 15
+census | 2 | death | 205 | GROUNDHOG | 23,14,-1,-1,-1,80 | 15 -> 15 -> 15
+census | 2 | death | 175 | BADGER | 23,14,-1,-1,-1,82 | 7 -> 7 -> 7
+census | 2 | departure | 154 | OLM_GIANT | 24,14,-1,4,-1,8 | 13 -> 14 -> 14
+
+## Manipulations applied
+census | 1 | +1635 | probe:release surface | released 10 unit(s) [surface]
+census | 1 | +3197 | probe:release surface | released 4 unit(s) [surface]
+census | 1 | +4699 | probe:release surface | released 8 unit(s) [surface]
+census | 1 | +6372 | probe:release surface | released 4 unit(s) [surface]
+census | 1 | +8028 | probe:release surface | released 6 unit(s) [surface]
+census | 1 | +9658 | probe:release surface | released 2 unit(s) [surface]
+census | 1 | +11278 | probe:release surface | released 2 unit(s) [surface]
+census | 1 | +13125 | probe:release surface | released 2 unit(s) [surface]
+census | 1 | +14870 | probe:release surface | released 2 unit(s) [surface]
+census | 1 | +16696 | probe:release surface | released 2 unit(s) [surface]
+census | 1 | +18368 | probe:release surface | released 7 unit(s) [surface]
+census | 1 | +20009 | probe:release surface | released 4 unit(s) [surface]
+census | 1 | +21600 | probe:release surface | released 6 unit(s) [surface]
+census | 1 | +23269 | probe:release surface | released 3 unit(s) [surface]
+census | 2 | +1761 | probe:release surface | released 4 unit(s) [surface]
+census | 2 | +3272 | probe:release surface | released 12 unit(s) [surface]
+census | 2 | +5014 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +6764 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +8482 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +10196 | probe:release surface | released 7 unit(s) [surface]
+census | 2 | +11713 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +13327 | probe:release surface | released 5 unit(s) [surface]
+census | 2 | +15099 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +16800 | probe:release surface | released 4 unit(s) [surface]
+census | 2 | +18445 | probe:release surface | released 10 unit(s) [surface]
+census | 2 | +19998 | probe:release surface | released 6 unit(s) [surface]
+census | 2 | +21600 | probe:release surface | released 2 unit(s) [surface]
+census | 2 | +23206 | probe:release surface | released 9 unit(s) [surface]
+census | 3 | +1800 | probe:release surface | released 3 unit(s) [surface]
+census | 3 | +3511 | probe:release surface | released 2 unit(s) [surface]
+census | 3 | +5017 | probe:release surface | released 2 unit(s) [surface]
+census | 3 | +6571 | probe:release surface | released 2 unit(s) [surface]
+census | 3 | +8236 | probe:release surface | released 6 unit(s) [surface]
+census | 3 | +9942 | probe:release surface | released 3 unit(s) [surface]
+census | 3 | +11568 | probe:release surface | released 8 unit(s) [surface]
+census | 3 | +13241 | probe:release surface | released 8 unit(s) [surface]
+census | 3 | +14832 | probe:release surface | released 2 unit(s) [surface]
+census | 3 | +16585 | probe:release surface | released 6 unit(s) [surface]
+census | 3 | +18244 | probe:release surface | released 7 unit(s) [surface]
+census | 3 | +19978 | probe:release surface | released 5 unit(s) [surface]
+census | 3 | +21701 | probe:release surface | released 2 unit(s) [surface]
+census | 3 | +23256 | probe:release surface | released 9 unit(s) [surface]
+
+## Pool entries that changed between load and end of replicate (119; the second instrument)
+census | 1 | idx 2554 | BIRD_OSPREY ref6=22,13,-1,-1,-1,4 quantity 26->24 max 26->26 discovered 0->1 extinct 0->0
+census | 1 | idx 2555 | BIRD_ALBATROSS ref6=22,13,-1,-1,-1,5 quantity 28->27 max 28->28 discovered 0->1 extinct 0->0
+census | 1 | idx 3915 | Vermin:0 ref6=23,14,-1,-1,-1,49 quantity 279->274 max 279->279 discovered 0->1 extinct 0->0
+census | 1 | idx 3916 | Vermin:5 ref6=23,14,-1,-1,-1,50 quantity 251->249 max 251->251 discovered 0->1 extinct 0->0
+census | 1 | idx 3917 | Vermin:8 ref6=23,14,-1,-1,-1,51 quantity 357->358 max 357->357 discovered 0->1 extinct 0->0
+census | 1 | idx 3918 | BIRD_RAVEN ref6=23,14,-1,-1,-1,53 quantity 393->381 max 393->393 discovered 0->1 extinct 0->0
+census | 1 | idx 3919 | BIRD_KAKAPO ref6=23,14,-1,-1,-1,55 quantity 18->17 max 18->18 discovered 0->1 extinct 0->0
+census | 1 | idx 3920 | BIRD_EMU ref6=23,14,-1,-1,-1,56 quantity 12->0 max 12->12 discovered 0->1 extinct 0->0
+census | 1 | idx 3921 | Vermin:91 ref6=23,14,-1,-1,-1,58 quantity 388->386 max 388->388 discovered 0->1 extinct 0->0
+census | 1 | idx 3922 | Vermin:94 ref6=23,14,-1,-1,-1,59 quantity 297->298 max 297->297 discovered 0->1 extinct 0->0
+census | 1 | idx 3923 | BIRD_KESTREL ref6=23,14,-1,-1,-1,60 quantity 26->25 max 26->26 discovered 0->1 extinct 0->0
+census | 1 | idx 3924 | BIRD_OWL_GREAT_HORNED ref6=23,14,-1,-1,-1,61 quantity 16->13 max 17->17 discovered 1->1 extinct 0->0
+census | 1 | idx 3929 | Vermin:145 ref6=23,14,-1,-1,-1,68 quantity 3989->3576 max 4091->4091 discovered 1->1 extinct 0->0
+census | 1 | idx 3932 | Vermin:196 ref6=23,14,-1,-1,-1,73 quantity 3885->0 max 3885->3885 discovered 0->1 extinct 0->0
+census | 1 | idx 3937 | GROUNDHOG ref6=23,14,-1,-1,-1,80 quantity 23->19 max 23->23 discovered 0->1 extinct 0->0
+census | 1 | idx 3938 | BADGER ref6=23,14,-1,-1,-1,82 quantity 18->12 max 18->18 discovered 0->1 extinct 0->0
+census | 1 | idx 3939 | Vermin:517 ref6=23,14,-1,-1,-1,86 quantity 384->384 max 384->384 discovered 0->1 extinct 0->0
+census | 1 | idx 3940 | Vermin:528 ref6=23,14,-1,-1,-1,87 quantity 441->442 max 441->441 discovered 0->1 extinct 0->0
+census | 1 | idx 3941 | KANGAROO ref6=23,14,-1,-1,-1,88 quantity 23->18 max 23->23 discovered 0->1 extinct 0->0
+census | 1 | idx 3942 | PORCUPINE ref6=23,14,-1,-1,-1,90 quantity 27->27 max 27->27 discovered 0->1 extinct 0->0
+census | 1 | idx 3943 | SKUNK ref6=23,14,-1,-1,-1,92 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+census | 1 | idx 3944 | WOMBAT ref6=23,14,-1,-1,-1,96 quantity 17->14 max 17->17 discovered 0->1 extinct 0->0
+census | 1 | idx 3949 | Vermin:514 ref6=23,14,-1,-1,-1,103 quantity 319->310 max 319->319 discovered 0->1 extinct 0->0
+census | 1 | idx 3962 | Vermin:617 ref6=23,14,-1,4,-1,12 quantity 309->308 max 309->309 discovered 0->1 extinct 0->0
+census | 1 | idx 3964 | Vermin:621 ref6=23,14,-1,4,-1,14 quantity 314->308 max 316->316 discovered 1->1 extinct 0->0
+census | 1 | idx 3965 | Vermin:410 ref6=23,14,-1,4,-1,15 quantity 324->318 max 327->327 discovered 1->1 extinct 0->0
+census | 1 | idx 3966 | Vermin:616 ref6=23,14,-1,4,-1,16 quantity 235->234 max 236->236 discovered 1->1 extinct 0->0
+census | 1 | idx 3974 | Vermin:630 ref6=23,14,-1,4,-1,24 quantity 458->452 max 458->458 discovered 0->1 extinct 0->0
+census | 1 | idx 3975 | Vermin:623 ref6=23,14,-1,4,-1,25 quantity 307->292 max 307->307 discovered 0->1 extinct 0->0
+census | 1 | idx 3993 | Vermin:617 ref6=23,14,-1,13,-1,15 quantity 434->435 max 434->434 discovered 0->1 extinct 0->0
+census | 1 | idx 3995 | Vermin:616 ref6=23,14,-1,13,-1,17 quantity 324->319 max 325->325 discovered 1->1 extinct 0->0
+census | 1 | idx 3996 | Vermin:410 ref6=23,14,-1,13,-1,18 quantity 253->222 max 253->253 discovered 0->1 extinct 0->0
+census | 1 | idx 4004 | Vermin:623 ref6=23,14,-1,13,-1,26 quantity 306->277 max 307->307 discovered 1->1 extinct 0->0
+census | 1 | idx 4043 | Vermin:419 ref6=23,14,-1,25,-1,31 quantity 333->251 max 336->336 discovered 1->1 extinct 0->0
+census | 1 | idx 4046 | IMP_FIRE ref6=23,14,-1,34,-1,1 quantity 27->23 max 27->27 discovered 0->1 extinct 0->0
+census | 1 | idx 4049 | Vermin:620 ref6=23,14,-1,34,-1,4 quantity 416->341 max 421->421 discovered 1->1 extinct 0->0
+census | 1 | idx 4054 | DEMON_19 ref6=23,14,-1,40,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+census | 1 | idx 5152 | KANGAROO ref6=24,14,-1,-1,-1,88 quantity 23->20 max 23->23 discovered 0->1 extinct 0->0
+census | 1 | idx 5155 | WOMBAT ref6=24,14,-1,-1,-1,96 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+census | 2 | idx 2554 | BIRD_OSPREY ref6=22,13,-1,-1,-1,4 quantity 26->24 max 26->26 discovered 0->1 extinct 0->0
+census | 2 | idx 2775 | OLM_GIANT ref6=22,14,-1,4,-1,8 quantity 15->14 max 15->15 discovered 0->1 extinct 0->0
+census | 2 | idx 3710 | BIRD_OSPREY ref6=23,13,-1,-1,-1,4 quantity 25->24 max 25->25 discovered 0->1 extinct 0->0
+census | 2 | idx 3915 | Vermin:0 ref6=23,14,-1,-1,-1,49 quantity 279->278 max 279->279 discovered 0->1 extinct 0->0
+census | 2 | idx 3916 | Vermin:5 ref6=23,14,-1,-1,-1,50 quantity 251->250 max 251->251 discovered 0->1 extinct 0->0
+census | 2 | idx 3919 | BIRD_KAKAPO ref6=23,14,-1,-1,-1,55 quantity 18->14 max 18->18 discovered 0->1 extinct 0->0
+census | 2 | idx 3920 | BIRD_EMU ref6=23,14,-1,-1,-1,56 quantity 12->0 max 12->12 discovered 0->1 extinct 0->0
+census | 2 | idx 3921 | Vermin:91 ref6=23,14,-1,-1,-1,58 quantity 388->389 max 388->388 discovered 0->1 extinct 0->0
+census | 2 | idx 3922 | Vermin:94 ref6=23,14,-1,-1,-1,59 quantity 297->295 max 297->297 discovered 0->1 extinct 0->0
+census | 2 | idx 3923 | BIRD_KESTREL ref6=23,14,-1,-1,-1,60 quantity 26->25 max 26->26 discovered 0->1 extinct 0->0
+census | 2 | idx 3929 | Vermin:145 ref6=23,14,-1,-1,-1,68 quantity 3989->3905 max 4091->4091 discovered 1->1 extinct 0->0
+census | 2 | idx 3932 | Vermin:196 ref6=23,14,-1,-1,-1,73 quantity 3885->12 max 3885->3885 discovered 0->1 extinct 0->0
+census | 2 | idx 3937 | GROUNDHOG ref6=23,14,-1,-1,-1,80 quantity 23->15 max 23->23 discovered 0->1 extinct 0->0
+census | 2 | idx 3938 | BADGER ref6=23,14,-1,-1,-1,82 quantity 18->7 max 18->18 discovered 0->1 extinct 0->0
+census | 2 | idx 3939 | Vermin:517 ref6=23,14,-1,-1,-1,86 quantity 384->385 max 384->384 discovered 0->1 extinct 0->0
+census | 2 | idx 3940 | Vermin:528 ref6=23,14,-1,-1,-1,87 quantity 441->441 max 441->441 discovered 0->1 extinct 0->0
+census | 2 | idx 3941 | KANGAROO ref6=23,14,-1,-1,-1,88 quantity 23->16 max 23->23 discovered 0->1 extinct 0->0
+census | 2 | idx 3942 | PORCUPINE ref6=23,14,-1,-1,-1,90 quantity 27->26 max 27->27 discovered 0->1 extinct 0->0
+census | 2 | idx 3943 | SKUNK ref6=23,14,-1,-1,-1,92 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+census | 2 | idx 3944 | WOMBAT ref6=23,14,-1,-1,-1,96 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+census | 2 | idx 3947 | DINGO ref6=23,14,-1,-1,-1,100 quantity 15->9 max 15->15 discovered 0->1 extinct 0->0
+census | 2 | idx 3949 | Vermin:514 ref6=23,14,-1,-1,-1,103 quantity 319->314 max 319->319 discovered 0->1 extinct 0->0
+census | 2 | idx 3962 | Vermin:617 ref6=23,14,-1,4,-1,12 quantity 309->310 max 309->309 discovered 0->1 extinct 0->0
+census | 2 | idx 3964 | Vermin:621 ref6=23,14,-1,4,-1,14 quantity 314->308 max 316->316 discovered 1->1 extinct 0->0
+census | 2 | idx 3965 | Vermin:410 ref6=23,14,-1,4,-1,15 quantity 324->320 max 327->327 discovered 1->1 extinct 0->0
+census | 2 | idx 3966 | Vermin:616 ref6=23,14,-1,4,-1,16 quantity 235->231 max 236->236 discovered 1->1 extinct 0->0
+census | 2 | idx 3974 | Vermin:630 ref6=23,14,-1,4,-1,24 quantity 458->452 max 458->458 discovered 0->1 extinct 0->0
+census | 2 | idx 3975 | Vermin:623 ref6=23,14,-1,4,-1,25 quantity 307->294 max 307->307 discovered 0->1 extinct 0->0
+census | 2 | idx 3995 | Vermin:616 ref6=23,14,-1,13,-1,17 quantity 324->317 max 325->325 discovered 1->1 extinct 0->0
+census | 2 | idx 3996 | Vermin:410 ref6=23,14,-1,13,-1,18 quantity 253->219 max 253->253 discovered 0->1 extinct 0->0
+census | 2 | idx 4004 | Vermin:623 ref6=23,14,-1,13,-1,26 quantity 306->277 max 307->307 discovered 1->1 extinct 0->0
+census | 2 | idx 4043 | Vermin:419 ref6=23,14,-1,25,-1,31 quantity 333->248 max 336->336 discovered 1->1 extinct 0->0
+census | 2 | idx 4045 | MAGMA_CRAB ref6=23,14,-1,34,-1,0 quantity 38->35 max 38->38 discovered 0->1 extinct 0->0
+census | 2 | idx 4049 | Vermin:620 ref6=23,14,-1,34,-1,4 quantity 416->341 max 421->421 discovered 1->1 extinct 0->0
+census | 2 | idx 4054 | DEMON_19 ref6=23,14,-1,40,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+census | 2 | idx 5129 | BIRD_RAVEN ref6=24,14,-1,-1,-1,53 quantity 384->375 max 384->384 discovered 0->1 extinct 0->0
+census | 2 | idx 5134 | BIRD_KESTREL ref6=24,14,-1,-1,-1,60 quantity 26->25 max 26->26 discovered 0->1 extinct 0->0
+census | 2 | idx 5135 | BIRD_OWL_GREAT_HORNED ref6=24,14,-1,-1,-1,61 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+census | 2 | idx 5140 | Vermin:145 ref6=24,14,-1,-1,-1,68 quantity 4002->3868 max 4002->4002 discovered 0->1 extinct 0->0
+census | 2 | idx 5169 | OLM_GIANT ref6=24,14,-1,4,-1,8 quantity 13->14 max 14->14 discovered 1->1 extinct 0->0
+census | 3 | idx 2862 | MAGMA_CRAB ref6=22,14,-1,34,-1,0 quantity 39->36 max 39->39 discovered 0->1 extinct 0->0
+census | 3 | idx 3710 | BIRD_OSPREY ref6=23,13,-1,-1,-1,4 quantity 25->24 max 25->25 discovered 0->1 extinct 0->0
+census | 3 | idx 3711 | BIRD_ALBATROSS ref6=23,13,-1,-1,-1,5 quantity 28->23 max 28->28 discovered 0->1 extinct 0->0
+census | 3 | idx 3915 | Vermin:0 ref6=23,14,-1,-1,-1,49 quantity 279->279 max 279->279 discovered 0->1 extinct 0->0
+census | 3 | idx 3916 | Vermin:5 ref6=23,14,-1,-1,-1,50 quantity 251->252 max 251->251 discovered 0->1 extinct 0->0
+census | 3 | idx 3917 | Vermin:8 ref6=23,14,-1,-1,-1,51 quantity 357->357 max 357->357 discovered 0->1 extinct 0->0
+census | 3 | idx 3918 | BIRD_RAVEN ref6=23,14,-1,-1,-1,53 quantity 393->374 max 393->393 discovered 0->1 extinct 0->0
+census | 3 | idx 3919 | BIRD_KAKAPO ref6=23,14,-1,-1,-1,55 quantity 18->16 max 18->18 discovered 0->1 extinct 0->0
+census | 3 | idx 3920 | BIRD_EMU ref6=23,14,-1,-1,-1,56 quantity 12->5 max 12->12 discovered 0->1 extinct 0->0
+census | 3 | idx 3921 | Vermin:91 ref6=23,14,-1,-1,-1,58 quantity 388->389 max 388->388 discovered 0->1 extinct 0->0
+census | 3 | idx 3922 | Vermin:94 ref6=23,14,-1,-1,-1,59 quantity 297->296 max 297->297 discovered 0->1 extinct 0->0
+census | 3 | idx 3923 | BIRD_KESTREL ref6=23,14,-1,-1,-1,60 quantity 26->26 max 26->26 discovered 0->1 extinct 0->0
+census | 3 | idx 3924 | BIRD_OWL_GREAT_HORNED ref6=23,14,-1,-1,-1,61 quantity 16->17 max 17->17 discovered 1->1 extinct 0->0
+census | 3 | idx 3929 | Vermin:145 ref6=23,14,-1,-1,-1,68 quantity 3989->3223 max 4091->4091 discovered 1->1 extinct 0->0
+census | 3 | idx 3932 | Vermin:196 ref6=23,14,-1,-1,-1,73 quantity 3885->0 max 3885->3885 discovered 0->1 extinct 0->0
+census | 3 | idx 3937 | GROUNDHOG ref6=23,14,-1,-1,-1,80 quantity 23->22 max 23->23 discovered 0->1 extinct 0->0
+census | 3 | idx 3939 | Vermin:517 ref6=23,14,-1,-1,-1,86 quantity 384->383 max 384->384 discovered 0->1 extinct 0->0
+census | 3 | idx 3940 | Vermin:528 ref6=23,14,-1,-1,-1,87 quantity 441->438 max 441->441 discovered 0->1 extinct 0->0
+census | 3 | idx 3941 | KANGAROO ref6=23,14,-1,-1,-1,88 quantity 23->19 max 23->23 discovered 0->1 extinct 0->0
+census | 3 | idx 3942 | PORCUPINE ref6=23,14,-1,-1,-1,90 quantity 27->26 max 27->27 discovered 0->1 extinct 0->0
+census | 3 | idx 3943 | SKUNK ref6=23,14,-1,-1,-1,92 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+census | 3 | idx 3949 | Vermin:514 ref6=23,14,-1,-1,-1,103 quantity 319->313 max 319->319 discovered 0->1 extinct 0->0
+census | 3 | idx 3961 | TOAD_GIANT_CAVE ref6=23,14,-1,4,-1,11 quantity 15->16 max 16->16 discovered 1->1 extinct 0->0
+census | 3 | idx 3962 | Vermin:617 ref6=23,14,-1,4,-1,12 quantity 309->310 max 309->309 discovered 0->1 extinct 0->0
+census | 3 | idx 3964 | Vermin:621 ref6=23,14,-1,4,-1,14 quantity 314->316 max 316->316 discovered 1->1 extinct 0->0
+census | 3 | idx 3965 | Vermin:410 ref6=23,14,-1,4,-1,15 quantity 324->318 max 327->327 discovered 1->1 extinct 0->0
+census | 3 | idx 3966 | Vermin:616 ref6=23,14,-1,4,-1,16 quantity 235->228 max 236->236 discovered 1->1 extinct 0->0
+census | 3 | idx 3974 | Vermin:630 ref6=23,14,-1,4,-1,24 quantity 458->437 max 458->458 discovered 0->1 extinct 0->0
+census | 3 | idx 3975 | Vermin:623 ref6=23,14,-1,4,-1,25 quantity 307->298 max 307->307 discovered 0->1 extinct 0->0
+census | 3 | idx 3995 | Vermin:616 ref6=23,14,-1,13,-1,17 quantity 324->321 max 325->325 discovered 1->1 extinct 0->0
+census | 3 | idx 3996 | Vermin:410 ref6=23,14,-1,13,-1,18 quantity 253->227 max 253->253 discovered 0->1 extinct 0->0
+census | 3 | idx 4004 | Vermin:623 ref6=23,14,-1,13,-1,26 quantity 306->274 max 307->307 discovered 1->1 extinct 0->0
+census | 3 | idx 4043 | Vermin:419 ref6=23,14,-1,25,-1,31 quantity 333->244 max 336->336 discovered 1->1 extinct 0->0
+census | 3 | idx 4049 | Vermin:620 ref6=23,14,-1,34,-1,4 quantity 416->341 max 421->421 discovered 1->1 extinct 0->0
+census | 3 | idx 4054 | DEMON_19 ref6=23,14,-1,40,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+census | 3 | idx 5129 | BIRD_RAVEN ref6=24,14,-1,-1,-1,53 quantity 384->372 max 384->384 discovered 0->1 extinct 0->0
+census | 3 | idx 5148 | GROUNDHOG ref6=24,14,-1,-1,-1,80 quantity 23->22 max 23->23 discovered 0->1 extinct 0->0
+census | 3 | idx 5152 | KANGAROO ref6=24,14,-1,-1,-1,88 quantity 23->22 max 23->23 discovered 0->1 extinct 0->0
+census | 3 | idx 5169 | OLM_GIANT ref6=24,14,-1,4,-1,8 quantity 13->14 max 14->14 discovered 1->1 extinct 0->0
+census | 3 | idx 5249 | BLIND_CAVE_OGRE ref6=24,14,-1,25,-1,26 quantity 4->6 max 6->6 discovered 1->1 extinct 0->0
+
+## Units present at load (held group from the save), 78 rows; first few:
+census | 1 | 133 | TOAD_GIANT_CAVE ref6=23,14,-1,4,-1,11 countdown=20954 flag_src=1
+census | 1 | 134 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=26563 flag_src=1
+census | 1 | 135 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=22227 flag_src=1
+census | 1 | 136 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=29363 flag_src=1
+census | 1 | 137 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=20580 flag_src=1
+census | 1 | 138 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=25900 flag_src=1
+census | 1 | 139 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=27509 flag_src=1
+census | 1 | 140 | CREEPING_EYE ref6=24,14,-1,25,-1,25 countdown=23430 flag_src=1
+
