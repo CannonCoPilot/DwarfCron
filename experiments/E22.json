@@ -1,0 +1,96 @@
+{
+ "id": "E22",
+ "title": "A caravan on the map while the ecology levers are armed. CTRL, predators and small prey both open; a dwarven caravan FORCED with DFHack `force Caravan MOUNTAIN` as soon as the first wild wave is on the map. Lever arm: 1,500 ticks later the predators are gathered to the prey and PREDATOR_OR_PREY written, then every 1,500 ticks (what the v5.6 ecology switch will do). Control arm: same caravan, no lever. Every 1,500 ticks: caravan state (active caravans, merchant and pack-animal counts and deaths), predator combat reports, popups drained. 30,000 ticks after the force.",
+ "fork": "v5.6 safety: do armed predators attack merchants or their animals; does the caravan's arrival or the depot halt the scheduler (F7). Forced, not waited for (user, 17 Sep).",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1500,
+ "tick_budget": 60000,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "predictions": [
+  {
+   "model": "the relation is pairwise between wild units only",
+   "expects": "merchants and pack animals never appear in a predator's combat reports in either arm; caravan animal deaths are zero"
+  },
+  {
+   "model": "armed predators are generally hostile",
+   "expects": "the lever arm shows merchant or pack-animal combat and deaths the control does not"
+  },
+  {
+   "model": "force is ignored or the caravan never reaches the map",
+   "expects": "caravan active=0 or merchants=0 for the whole run in both arms; E22 needs a different trigger or fort"
+  }
+ ],
+ "kill_criterion": "a pack-animal or merchant death in the lever arm the control lacks is the positive; equal zeros in both arms with the caravan present clears the lever",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "control",
+   "replicates": 2,
+   "pre": [
+    "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU' or id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU COUGAR DINGO WOLF); closed %d'):format(o,c))",
+    "probe:release surface"
+   ],
+   "on_arrival_min_units": 1,
+   "on_arrival": [
+    "probe:release surface",
+    "local ok,err=pcall(dfhack.run_command,'force','Caravan','MOUNTAIN'); print('force Caravan MOUNTAIN ->', tostring(ok), tostring(err), 'caravans now', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface",
+     "probe:rel",
+     "local c=df.global.plotinfo.caravans; local m,md,a,ad=0,0,0,0; for _,u in ipairs(df.global.world.units.all) do if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dfhack.units.isDead(u) then ad=ad+1 end else m=m+1; if dfhack.units.isDead(u) then md=md+1 end end end end; local ents={}; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents[#ents+1]=(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('caravan: active=%d [%s] merchants=%d dead=%d animals=%d dead=%d season=%d tick=%d'):format(#c, table.concat(ents,' '), m, md, a, ad, df.global.cur_season, df.global.cur_year_tick))"
+    ]
+   },
+   "stop_when": {
+    "ticks_after_on_arrival": 30000
+   }
+  },
+  {
+   "name": "lever",
+   "replicates": 2,
+   "pre": [
+    "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU' or id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU COUGAR DINGO WOLF); closed %d'):format(o,c))",
+    "probe:release surface"
+   ],
+   "on_arrival_min_units": 1,
+   "on_arrival": [
+    "probe:release surface",
+    "local ok,err=pcall(dfhack.run_command,'force','Caravan','MOUNTAIN'); print('force Caravan MOUNTAIN ->', tostring(ok), tostring(err), 'caravans now', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)"
+   ],
+   "after_on_arrival": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface",
+     "probe:gather",
+     "probe:lever relmap",
+     "probe:rel",
+     "local c=df.global.plotinfo.caravans; local m,md,a,ad=0,0,0,0; for _,u in ipairs(df.global.world.units.all) do if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dfhack.units.isDead(u) then ad=ad+1 end else m=m+1; if dfhack.units.isDead(u) then md=md+1 end end end end; local ents={}; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents[#ents+1]=(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('caravan: active=%d [%s] merchants=%d dead=%d animals=%d dead=%d season=%d tick=%d'):format(#c, table.concat(ents,' '), m, md, a, ad, df.global.cur_season, df.global.cur_year_tick))"
+    ]
+   },
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release surface",
+     "probe:gather",
+     "probe:lever relmap",
+     "probe:rel",
+     "local c=df.global.plotinfo.caravans; local m,md,a,ad=0,0,0,0; for _,u in ipairs(df.global.world.units.all) do if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dfhack.units.isDead(u) then ad=ad+1 end else m=m+1; if dfhack.units.isDead(u) then md=md+1 end end end end; local ents={}; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents[#ents+1]=(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('caravan: active=%d [%s] merchants=%d dead=%d animals=%d dead=%d season=%d tick=%d'):format(#c, table.concat(ents,' '), m, md, a, ad, df.global.cur_season, df.global.cur_year_tick))"
+    ]
+   },
+   "stop_when": {
+    "ticks_after_on_arrival": 30000
+   }
+  }
+ ]
+}

@@ -23,6 +23,8 @@
 --   cx-probe rel                     DF's pairwise reaction cache (world.enemy_status_cache.rel_map) between
 --                                  every wild LARGE_PREDATOR unit and every other wild unit, tallied by species
 --   cx-probe edge                    plotinfo.map_edge surface entry tiles with tiletype and water depth
+--   cx-probe relrow                  one row per wild alive unit: id, species, slot, and how many PREDATOR_OR_PREY
+--                                  entries its rel_map row and column hold against ANY slot (stale-slot detector)
 --   cx-probe lever <opposed|crazed|relmap|agitated> [id ...]
 --                                  hostility lever on the listed units, or on every wild LARGE_PREDATOR unit
 --   cx-probe spawn <pop-idx> <n> [x y z]
@@ -227,6 +229,24 @@ elseif cmd == 'rel' then
     end
     row('pred', 'other', 'pred_to_other', 'other_to_pred', 'pairs')
     for _, k in ipairs(order) do row(k, tally[k]) end
+
+-- ----------------------------------------------------------------- relrow --
+elseif cmd == 'relrow' then
+    local cache = df.global.world.enemy_status_cache
+    local v = df.unit_reaction_type.PREDATOR_OR_PREY
+    local nslots = #cache.rel_map
+    row('id', 'species', 'pred', 'slot', 'row_pp', 'col_pp', 'arrived_tick')
+    for _, u in ipairs(wild_alive()) do
+        local s = u.enemy.enemy_status_slot
+        local rp, cp = 0, 0
+        if s >= 0 and s < nslots then
+            for j = 0, nslots - 1 do
+                if cache.rel_map[s][j].ur == v then rp = rp + 1 end
+                if cache.rel_map[j][s].ur == v then cp = cp + 1 end
+            end
+        end
+        row(u.id, tok(u.race), b(is_pred(u)), s, rp, cp, u.animal and u.animal.leave_countdown or -1)
+    end
 
 -- ------------------------------------------------------------------- edge --
 elseif cmd == 'edge' then
