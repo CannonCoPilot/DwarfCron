@@ -24,6 +24,10 @@
 --   cx-probe edge                    plotinfo.map_edge surface entry tiles with tiletype and water depth
 --   cx-probe lever <opposed|crazed|relmap|agitated> [id ...]
 --                                  hostility lever on the listed units, or on every wild LARGE_PREDATOR unit
+--   cx-probe spawn <pop-idx> <n> [x y z]
+--                                  place n units of the pool entry via modtools/create-unit (locationType Any) at
+--                                  x,y,z or at the first watery map_edge surface tile, write the entry's six-field
+--                                  population reference onto each unit, debit the entry, countdown 25000, not held
 --   cx-probe combat [since-id]       every wild unit's combat reports with id > since (unit, species, id, text)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
@@ -263,6 +267,41 @@ elseif cmd == 'lever' then
     end
     print(('lever %s: set on %d unit(s) of %d predator(s) (%d other wild)'):format(which, n, #preds, #others))
 
+-- ------------------------------------------------------------------ spawn --
+elseif cmd == 'spawn' then
+    local idx, n = tonumber(args[2]), tonumber(args[3]) or 1
+    local p = df.global.world.populations.all[idx]
+    if not p then qerror('no pool entry ' .. tostring(idx)) end
+    local pos
+    if args[4] then
+        pos = {x = tonumber(args[4]), y = tonumber(args[5]), z = tonumber(args[6])}
+    else
+        local me = df.global.plotinfo.map_edge
+        for i = 0, #me.surface_x - 1 do
+            local x, y, z = me.surface_x[i], me.surface_y[i], me.surface_z[i]
+            local d = dfhack.maps.getTileFlags(x, y, z)
+            if d and d.flow_size >= 4 and not d.liquid_type then pos = {x = x, y = y, z = z}; break end
+        end
+        if not pos then qerror('spawn: no watery map_edge surface tile; give x y z') end
+    end
+    local cu = reqscript('modtools/create-unit')
+    local made = cu.createUnit(tok(p.race), nil, pos, {offset_x = 0, offset_y = 0, offset_z = 0}, 'Any',
+        nil, false, nil, nil, nil, nil, nil, n)
+    local r = p.population
+    local ids = {}
+    for _, u in ipairs(made or {}) do
+        local ap = u.animal.population
+        ap.region_x, ap.region_y = r.region_x, r.region_y
+        ap.feature_idx, ap.cave_id, ap.site_id, ap.population_idx = r.feature_idx, r.cave_id, r.site_id, r.population_idx
+        u.animal.leave_countdown = 25000
+        u.flags2.roaming_wilderness_population_source = false
+        u.flags2.roaming_wilderness_population_source_not_a_map_feature = false
+        ids[#ids+1] = ('%d:%s'):format(u.id, dfhack.units.isWildlife(u) and 'wild' or 'NOTWILD')
+    end
+    p.quantity = math.max(0, p.quantity - #ids)
+    print(('spawn idx %d %s x%d at %d,%d,%d -> %s; entry quantity now %d'):format(
+        idx, tok(p.race), #ids, pos.x, pos.y, pos.z, table.concat(ids, ' '), p.quantity))
+
 -- ------------------------------------------------------------------- kill --
 -- Kill with no accounting of our own: blood to zero, the way DFHack's
 -- exterminate destroyUnit does, but WITHOUT its vanish_countdown failsafe, so
@@ -314,5 +353,5 @@ elseif cmd == 'roster' then
     end
 
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]|roster|rel|edge|lever <opposed|crazed|relmap|agitated> [id..]|spawn <idx> <n> [x y z]')
 end
