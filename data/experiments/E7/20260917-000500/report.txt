@@ -1,0 +1,11 @@
+# E7 -- Halt cause (kills F7). Run by hand 2026-09-17 00:05 on CTRL, DF 53.16 / DFHack 53.16-r1.1, fps cap 1000.
+Per replicate: load CTRL; insert one synthetic df.popup_message into world.status.popups; unpause (no drain);
+read cur_year_tick at +6 s and +12 s; drain the queue; unpause; read again at +6 s and +12 s; quit without saving.
+
+rep | popups queued | ticks in 6 s with popup queued | pause_state | ticks in 6 s after drain
+1   | 1             | 0                              | 0 (running) | 1410
+2   | 1             | 0                              | 0 (running) | 1367
+3   | 1             | 0                              | 0 (running) | 1655
+
+Verdict: F7 Model A -- ANY queued popup halts the simulation while pause_state reads running. 3/3.
+The step verb's pre-step and mid-step drains are the right defence for an unattended rig.
