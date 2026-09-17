@@ -1,0 +1,42 @@
+{
+ "id": "E13",
+ "title": "Cavern discovery: 20,000 ticks unrevealed, then reveal, then 20,000 more; cavern-sourced units and the discovered flag before and after",
+ "fork": "kills F13",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 200,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "tick_budget": 40000,
+ "predictions": [
+  {
+   "model": "F13 A \u00b7 gated",
+   "expects": "no cavern-sourced arrivals until reveal flips discovered; arrivals after"
+  },
+  {
+   "model": "F13 B \u00b7 ungated",
+   "expects": "cavern-sourced units arrive before reveal (E9a already saw 21-30 cavern arrivals per replicate unrevealed)"
+  }
+ ],
+ "kill_criterion": "cavern arrivals in the first 20,000 ticks kill A; surface waves must continue throughout",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "reveal_at_20k",
+   "replicates": 2,
+   "every": {
+    "ticks": 20000,
+    "max": 1,
+    "do": [
+     "dfhack.run_command('reveal'); print('revealed')"
+    ]
+   }
+  }
+ ]
+}
