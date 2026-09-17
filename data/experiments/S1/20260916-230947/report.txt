@@ -1,0 +1,394 @@
+
+# S1 -- Season regression on region1 under seasonal-wildlife v5.4: the saved roster, rotation enabled, one full year; no out-of-season arrival, the unassigned control untouched, the scheduler firing at each boundary
+run 20260916-230947 fort region1 backup region1.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Universe of Vision site 52 tiles 9..9,6..6 seed aPxPvglvJ5TNXSBuxBDG
+commits: DwarfCron ef23d24 seasonal-wildlife 64c255d fps cap 1000
+
+## Predictions (written before the run)
+- v5.4 regresses nothing: zero arrivals of an assigned species outside its seasons across the year; COUGAR (unassigned) quantity moves only by DF's own spawn and return; in-season entries snap at each of the three boundaries
+- v5.3's second tile set broke the hold: an out-of-season arrival carrying the block-biome tile 8,5 in its six-tuple
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+year | 1 | True | None | 407094 | 367.0 | 143 | 130 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+year | 1 | +5318 | DINGO | 9,6,-1,-1,-1,59 | 3 | 15799,20980,23522 | 31370,31370,31370 | departure
+year | 1 | +5318 | ELK_BIRD | 9,6,-1,2,-1,18 | 1 | 22266 | 31370 | departure
+year | 1 | +5318 | DEMON_20 | 9,6,-1,18,-1,2 | 2 | 16563,24337 | 20833,26038 | departure
+year | 1 | +5318 | IMP_FIRE | 8,6,-1,14,-1,1 | 1 | 20352 | 62838 | departure
+year | 1 | +26151 | BLIND_CAVE_OGRE | 8,6,-1,4,-1,34 | 2 | 21483,26785 | 26328,52241 | departure
+year | 1 | +26151 | GORLAK | 9,6,-1,11,-1,32 | 1 | 27311 | 31505 | departure
+year | 1 | +31356 | DEMON_12 | 9,6,-1,18,-1,0 | 2 | 22387,24703 | 26300,36800 | departure
+year | 1 | +36688 | TROGLODYTE | 9,6,-1,2,-1,22 | 6 | 18068,18106,19201,20420,20444,22722 | 26157,31468,31468,31468,31468,36615 | departure
+year | 1 | +36688 | ECHIDNA | 9,6,-1,-1,-1,50 | 1 | 18544 | 20968 | departure
+year | 1 | +57656 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 8 | 19152,20295,20446,20921,21044,23630,26261,28246 | 25929,20736,20736,25929,25929,31128,31128,31128 | departure
+year | 1 | +57656 | ECHIDNA | 9,6,-1,-1,-1,50 | 1 | 27835 | 31128 | departure
+year | 1 | +68156 | DEMON_18 | 9,6,-1,18,-1,5 | 5 | 19779,19994,23413,25903,26523 | 30967,20628,30967,25755,20628 | departure
+year | 1 | +68156 | MAGMA_CRAB | 8,6,-1,14,-1,0 | 1 | 29056 | 62152 | departure
+year | 1 | +73303 | MAGMA_CRAB | 8,6,-1,14,-1,0 | 1 | 15336 | 93651 | departure
+year | 1 | +73303 | TOAD_GIANT_CAVE | 9,6,-1,2,-1,9 | 1 | 15289 | 20608 | departure
+year | 1 | +78392 | VORACIOUS_CAVE_CRAWLER | 9,6,-1,6,-1,23 | 1 | 20819 | 25910 | departure
+year | 1 | +88784 | BIRD_RAVEN | 8,5,-1,-1,-1,59 | 3 | 20675,21948,22135 | 26050,78170,78170 | departure
+year | 1 | +88784 | BUGBAT | 9,6,-1,11,-1,17 | 7 | 20484,21782,22317,24318,25136,25505,26590 | 26050,78170,78170,83292,78170,78170,88377 | departure
+year | 1 | +93911 | BUGBAT | 9,6,-1,11,-1,17 | 3 | 18148,19725,25001 | 73043,83250,83250 | departure
+year | 1 | +93911 | OLM_GIANT | 9,6,-1,2,-1,10 | 1 | 16814 | 20923 | departure
+year | 1 | +99123 | DEMON_12 | 9,6,-1,18,-1,0 | 4 | 17571,22829,25000,25392 | 25935,78038,78038,83155 | departure
+year | 1 | +104302 | OLM_GIANT | 9,6,-1,6,-1,16 | 1 | 22375 | 26006 | departure
+year | 1 | +114834 | GORLAK | 9,6,-1,2,-1,26 | 1 | 28005 | 31258 | departure
+year | 1 | +130308 | BAT_GIANT | 9,6,-1,6,-1,27 | 1 | 21100 | 26136 | departure
+year | 1 | +146092 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 1 | 23489 | 25984 | departure
+year | 1 | +156444 | OLM_GIANT | 9,6,-1,6,-1,16 | 1 | 18023 | 30910 | departure
+year | 1 | +166954 | BIRD_RAVEN | 9,6,-1,-1,-1,28 | 9 | 19386,19715,22520,23453,23617,24511,24934,26067,26410 | 20400 | departure/present
+year | 1 | +166954 | MAGMA_CRAB | 9,6,-1,14,-1,0 | 2 | 22405,26315 | 30635,35771 | departure
+year | 1 | +172076 | TROGLODYTE | 9,6,-1,2,-1,22 | 4 | 19992,23931,24403,26132 | 20370,30649,30649,30649 | departure
+year | 1 | +177161 | TROGLODYTE | 9,6,-1,2,-1,22 | 3 | 16213,25194,26539 | 25564,30764,30764 | departure
+year | 1 | +177161 | ELK_BIRD | 8,6,-1,11,-1,19 | 10 | 16061,16909,17506,17742,17827,18071,20027,22225,24720,25725 | 20428,30764,30764,30764,30764,30764,30764,30764,30764,30764 | departure
+year | 1 | +182278 | DEMON_12 | 9,6,-1,18,-1,0 | 3 | 16066,20798,25149 | 20447,25647,25647 | departure
+year | 1 | +187354 | OLM_GIANT | 9,6,-1,6,-1,16 | 1 | 23367 | 25746 | departure
+year | 1 | +202725 | IMP_FIRE | 8,6,-1,14,-1,1 | 3 | 21349,21522,25881 | 41074,35940,35940 | departure
+year | 1 | +207925 | BAT_GIANT | 8,6,-1,0,-1,20 | 1 | 18145 | 25626 | departure
+year | 1 | +207925 | CAVE_BLOB | 9,6,-1,11,-1,13 | 3 | 21053,22522,27333 | 25626,30740,30740 | departure
+year | 1 | +207925 | DEMON_20 | 9,6,-1,18,-1,2 | 4 | 20548,21054,22982,27460 | 25626,30740,30740,30740 | departure
+year | 1 | +213100 | CAVE_BLOB | 9,6,-1,11,-1,13 | 1 | 18292 | 25565 | departure
+year | 1 | +213100 | DEMON_20 | 9,6,-1,18,-1,2 | 1 | 24645 | 25565 | departure
+year | 1 | +218221 | CROCODILE_CAVE | 8,6,-1,4,-1,15 | 1 | 24224 | 30767 | departure
+year | 1 | +233551 | GORLAK | 9,6,-1,2,-1,26 | 1 | 20614 | 25649 | departure
+year | 1 | +238665 | DEMON_1 | 9,6,-1,18,-1,1 | 3 | 23607,25354,29121 | 30833 | departure/present
+year | 1 | +243799 | JABBERER | 9,6,-1,11,-1,18 | 1 | 19416 | 25699 | departure
+year | 1 | +243799 | IMP_FIRE | 9,6,-1,14,-1,1 | 3 | 17632,22804,23737 | 61414 | departure/present
+year | 1 | +248988 | CROCODILE_CAVE | 9,6,-1,6,-1,15 | 1 | 22202 | 25572 | departure
+year | 1 | +259200 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 1 | 22431 | 25561 | departure
+year | 1 | +269498 | CRUNDLE | 9,6,-1,11,-1,12 | 7 | 15945,16478,17575,20284,26450,26985,27010 | 20354 | departure/present
+year | 1 | +274560 | CRUNDLE | 9,6,-1,11,-1,12 | 2 | 18899,25011 | - | present
+year | 1 | +274560 | POND_GRABBER | 8,6,-1,4,-1,14 | 1 | 21321 | 25484 | departure
+year | 1 | +284761 | CRUNDLE | 9,6,-1,11,-1,12 | 4 | 20810,23404,24286,24863 | - | present
+year | 1 | +284761 | ELK_BIRD | 9,6,-1,2,-1,18 | 1 | 19784 | 20452 | departure
+year | 1 | +289852 | CRUNDLE | 9,6,-1,11,-1,12 | 4 | 18533,23403,26350,26591 | - | present
+year | 1 | +289852 | POND_GRABBER | 8,6,-1,4,-1,14 | 3 | 21890,24497,24539 | - | present
+year | 1 | +305213 | ELK_BIRD | 9,6,-1,2,-1,18 | 1 | 23215 | 25592 | departure
+year | 1 | +330805 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 1 | 25849 | 30629 | departure
+year | 1 | +361434 | DRALTHA | 9,6,-1,2,-1,21 | 1 | 18377 | 25333 | departure
+year | 1 | +386767 | TOAD_GIANT_CAVE | 9,6,-1,2,-1,9 | 1 | 16947 | 20327 | departure
+year | 1 | +407094 | TROLL | 9,6,-1,2,-1,25 | 1 | 27358 | - | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+year | 1 | unit 181 DINGO: 20980 -> 0 over 26038 ticks (slope -0.806/tick)
+year | 1 | unit 182 DINGO: 15799 -> 0 over 26038 ticks (slope -0.607/tick)
+year | 1 | unit 189 ELK_BIRD: 22266 -> 0 over 26038 ticks (slope -0.855/tick)
+year | 1 | unit 192 DEMON_20: 16563 -> 983 over 15580 ticks (slope -1.000/tick)
+year | 1 | unit 193 DEMON_20: 24337 -> 3504 over 20833 ticks (slope -1.000/tick)
+year | 1 | unit 197 IMP_FIRE: 20352 -> 0 over 57527 ticks (slope -0.354/tick)
+year | 1 | unit 198 BLIND_CAVE_OGRE: 21483 -> 459 over 21023 ticks (slope -1.000/tick)
+year | 1 | unit 199 BLIND_CAVE_OGRE: 26785 -> 0 over 47152 ticks (slope -0.568/tick)
+year | 1 | unit 200 GORLAK: 27311 -> 981 over 26328 ticks (slope -1.000/tick)
+year | 1 | unit 201 DEMON_12: 22387 -> 1263 over 21123 ticks (slope -1.000/tick)
+year | 1 | unit 202 DEMON_12: 24703 -> 0 over 31489 ticks (slope -0.784/tick)
+year | 1 | unit 203 TROGLODYTE: 20420 -> 0 over 20968 ticks (slope -0.974/tick)
+year | 1 | unit 204 TROGLODYTE: 18068 -> 0 over 26157 ticks (slope -0.691/tick)
+year | 1 | unit 209 ECHIDNA: 18544 -> 2753 over 15791 ticks (slope -1.000/tick)
+year | 1 | unit 210 HUNGRY_HEAD: 20446 -> 0 over 20736 ticks (slope -0.986/tick)
+year | 1 | unit 211 HUNGRY_HEAD: 19152 -> 3505 over 15647 ticks (slope -1.000/tick)
+year | 1 | unit 218 ECHIDNA: 27835 -> 1903 over 25929 ticks (slope -1.000/tick)
+year | 1 | unit 219 DEMON_18: 25903 -> 148 over 25755 ticks (slope -1.000/tick)
+year | 1 | unit 220 DEMON_18: 19994 -> 4565 over 15429 ticks (slope -1.000/tick)
+year | 1 | unit 224 MAGMA_CRAB: 29056 -> 0 over 56902 ticks (slope -0.511/tick)
+year | 1 | unit 225 MAGMA_CRAB: 15336 -> 0 over 88488 ticks (slope -0.173/tick)
+year | 1 | unit 226 TOAD_GIANT_CAVE: 15289 -> 0 over 15481 ticks (slope -0.988/tick)
+year | 1 | unit 227 VORACIOUS_CAVE_CRAWLER: 20819 -> 88 over 20731 ticks (slope -1.000/tick)
+year | 1 | unit 228 BIRD_RAVEN: 22135 -> 1344 over 20791 ticks (slope -1.000/tick)
+year | 1 | unit 229 BIRD_RAVEN: 21948 -> 0 over 73007 ticks (slope -0.301/tick)
+year | 1 | unit 231 BUGBAT: 25505 -> 4714 over 20791 ticks (slope -1.000/tick)
+year | 1 | unit 232 BUGBAT: 22317 -> 0 over 73007 ticks (slope -0.306/tick)
+year | 1 | unit 237 BUGBAT: 19725 -> 0 over 67880 ticks (slope -0.291/tick)
+year | 1 | unit 239 BUGBAT: 18148 -> 0 over 78165 ticks (slope -0.232/tick)
+year | 1 | unit 241 OLM_GIANT: 16814 -> 1150 over 15664 ticks (slope -1.000/tick)
+year | 1 | unit 242 DEMON_12: 25392 -> 4596 over 20794 ticks (slope -1.000/tick)
+year | 1 | unit 243 DEMON_12: 17571 -> 0 over 72953 ticks (slope -0.241/tick)
+year | 1 | unit 246 OLM_GIANT: 22375 -> 1619 over 20756 ticks (slope -1.000/tick)
+year | 1 | unit 247 GORLAK: 28005 -> 2028 over 25976 ticks (slope -1.000/tick)
+year | 1 | unit 248 BAT_GIANT: 21100 -> 174 over 20926 ticks (slope -1.000/tick)
+year | 1 | unit 249 CROCODILE_CAVE: 23489 -> 2627 over 20862 ticks (slope -1.000/tick)
+year | 1 | unit 258 OLM_GIANT: 18023 -> 0 over 25834 ticks (slope -0.698/tick)
+year | 1 | unit 259 BIRD_RAVEN: 19715 -> 4391 over 15324 ticks (slope -1.000/tick)
+year | 1 | unit 260 BIRD_RAVEN: 24934 -> 0 over 240140 ticks (slope -0.104/tick)
+year | 1 | unit 268 MAGMA_CRAB: 26315 -> 823 over 25492 ticks (slope -1.000/tick)
+year | 1 | unit 269 MAGMA_CRAB: 22405 -> 0 over 30635 ticks (slope -0.731/tick)
+year | 1 | unit 270 TROGLODYTE: 19992 -> 4714 over 15278 ticks (slope -1.000/tick)
+year | 1 | unit 274 TROGLODYTE: 16213 -> 0 over 20428 ticks (slope -0.794/tick)
+year | 1 | unit 277 ELK_BIRD: 18071 -> 2782 over 15285 ticks (slope -1.000/tick)
+year | 1 | unit 287 DEMON_12: 16066 -> 753 over 15311 ticks (slope -1.000/tick)
+year | 1 | unit 290 OLM_GIANT: 23367 -> 2796 over 20571 ticks (slope -1.000/tick)
+year | 1 | unit 299 IMP_FIRE: 21522 -> 0 over 35940 ticks (slope -0.599/tick)
+year | 1 | unit 303 BAT_GIANT: 18145 -> 0 over 20462 ticks (slope -0.887/tick)
+year | 1 | unit 304 CAVE_BLOB: 21053 -> 591 over 20462 ticks (slope -1.000/tick)
+year | 1 | unit 308 DEMON_20: 20548 -> 84 over 20462 ticks (slope -1.000/tick)
+year | 1 | unit 307 CAVE_BLOB: 18292 -> 0 over 20451 ticks (slope -0.894/tick)
+year | 1 | unit 312 DEMON_20: 24645 -> 4194 over 20451 ticks (slope -1.000/tick)
+year | 1 | unit 313 CROCODILE_CAVE: 24224 -> 0 over 25578 ticks (slope -0.947/tick)
+year | 1 | unit 324 GORLAK: 20614 -> 100 over 20513 ticks (slope -1.000/tick)
+year | 1 | unit 325 DEMON_1: 25354 -> 0 over 25734 ticks (slope -0.985/tick)
+year | 1 | unit 328 JABBERER: 19416 -> 0 over 20600 ticks (slope -0.943/tick)
+year | 1 | unit 329 IMP_FIRE: 22804 -> 0 over 56245 ticks (slope -0.405/tick)
+year | 1 | unit 332 CROCODILE_CAVE: 22202 -> 1692 over 20510 ticks (slope -1.000/tick)
+year | 1 | unit 333 CROCODILE_CAVE: 22431 -> 1943 over 20488 ticks (slope -1.000/tick)
+year | 1 | unit 334 CRUNDLE: 16478 -> 1215 over 15263 ticks (slope -1.000/tick)
+year | 1 | unit 341 CRUNDLE: 18899 -> 0 over 132534 ticks (slope -0.143/tick)
+year | 1 | unit 351 POND_GRABBER: 21321 -> 927 over 20394 ticks (slope -1.000/tick)
+year | 1 | unit 343 CRUNDLE: 20810 -> 0 over 122333 ticks (slope -0.170/tick)
+year | 1 | unit 356 ELK_BIRD: 19784 -> 4501 over 15283 ticks (slope -1.000/tick)
+year | 1 | unit 347 CRUNDLE: 18533 -> 0 over 117242 ticks (slope -0.158/tick)
+year | 1 | unit 352 POND_GRABBER: 21890 -> 0 over 117242 ticks (slope -0.187/tick)
+year | 1 | unit 361 ELK_BIRD: 23215 -> 2778 over 20433 ticks (slope -1.000/tick)
+year | 1 | unit 366 CROCODILE_CAVE: 25849 -> 287 over 25562 ticks (slope -1.000/tick)
+year | 1 | unit 367 DRALTHA: 18377 -> 0 over 20290 ticks (slope -0.906/tick)
+year | 1 | unit 371 TOAD_GIANT_CAVE: 16947 -> 1712 over 15235 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+year | 1 | departure | 172 | CROCODILE_CAVE | 8,6,-1,4,-1,15 | - -> - -> -
+year | 1 | departure | 184 | ELK_BIRD | 9,6,-1,2,-1,18 | 31 -> 32 -> 35
+year | 1 | departure | 190 | SPIDER_CAVE_GIANT | 8,6,-1,11,-1,24 | - -> - -> -
+year | 1 | departure | 191 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 192 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 173 | DINGO | 9,6,-1,-1,-1,59 | 100 -> 103 -> 111
+year | 1 | departure | 174 | DINGO | 9,6,-1,-1,-1,59 | 100 -> 103 -> 111
+year | 1 | departure | 175 | DINGO | 9,6,-1,-1,-1,59 | 100 -> 103 -> 111
+year | 1 | departure | 185 | ELK_BIRD | 9,6,-1,2,-1,18 | 32 -> 35 -> 37
+year | 1 | departure | 186 | ELK_BIRD | 9,6,-1,2,-1,18 | 32 -> 35 -> 37
+year | 1 | departure | 187 | ELK_BIRD | 9,6,-1,2,-1,18 | 32 -> 35 -> 37
+year | 1 | departure | 193 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 194 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 176 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 177 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 178 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 179 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 180 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 181 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 182 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 183 | DINGO | 9,6,-1,-1,-1,59 | 103 -> 111 -> 111
+year | 1 | departure | 188 | ELK_BIRD | 9,6,-1,2,-1,18 | 35 -> 37 -> 37
+year | 1 | departure | 189 | ELK_BIRD | 9,6,-1,2,-1,18 | 35 -> 37 -> 37
+year | 1 | departure | 198 | BLIND_CAVE_OGRE | 8,6,-1,4,-1,34 | - -> - -> -
+year | 1 | departure | 200 | GORLAK | 9,6,-1,11,-1,32 | 13 -> 14 -> 14
+year | 1 | departure | 201 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 209 | ECHIDNA | 9,6,-1,-1,-1,50 | 100 -> 100 -> 100
+year | 1 | departure | 195 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 196 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 203 | TROGLODYTE | 9,6,-1,2,-1,22 | 15 -> 16 -> 20
+year | 1 | departure | 197 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 202 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 204 | TROGLODYTE | 9,6,-1,2,-1,22 | 16 -> 20 -> 21
+year | 1 | departure | 205 | TROGLODYTE | 9,6,-1,2,-1,22 | 16 -> 20 -> 21
+year | 1 | departure | 206 | TROGLODYTE | 9,6,-1,2,-1,22 | 16 -> 20 -> 21
+year | 1 | departure | 207 | TROGLODYTE | 9,6,-1,2,-1,22 | 16 -> 20 -> 21
+year | 1 | departure | 208 | TROGLODYTE | 9,6,-1,2,-1,22 | 20 -> 21 -> 21
+year | 1 | departure | 199 | BLIND_CAVE_OGRE | 8,6,-1,4,-1,34 | - -> - -> -
+year | 1 | departure | 211 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 103 -> 106 -> 109
+year | 1 | departure | 212 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 103 -> 106 -> 109
+year | 1 | departure | 210 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 106 -> 109 -> 112
+year | 1 | departure | 213 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 106 -> 109 -> 112
+year | 1 | departure | 214 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 106 -> 109 -> 112
+year | 1 | departure | 215 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 109 -> 112 -> 112
+year | 1 | departure | 216 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 109 -> 112 -> 112
+year | 1 | departure | 217 | HUNGRY_HEAD | 9,6,-1,11,-1,22 | 109 -> 112 -> 112
+year | 1 | departure | 218 | ECHIDNA | 9,6,-1,-1,-1,50 | 100 -> 101 -> 101
+year | 1 | departure | 220 | DEMON_18 | 9,6,-1,18,-1,5 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 223 | DEMON_18 | 9,6,-1,18,-1,5 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 222 | DEMON_18 | 9,6,-1,18,-1,5 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 226 | TOAD_GIANT_CAVE | 9,6,-1,2,-1,9 | 18 -> 19 -> 19
+year | 1 | departure | 219 | DEMON_18 | 9,6,-1,18,-1,5 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 221 | DEMON_18 | 9,6,-1,18,-1,5 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 227 | VORACIOUS_CAVE_CRAWLER | 9,6,-1,6,-1,23 | 17 -> 18 -> 18
+year | 1 | departure | 228 | BIRD_RAVEN | 8,5,-1,-1,-1,59 | - -> - -> -
+year | 1 | departure | 231 | BUGBAT | 9,6,-1,11,-1,17 | 19 -> 20 -> 20
+year | 1 | departure | 241 | OLM_GIANT | 9,6,-1,2,-1,10 | 14 -> 15 -> 15
+year | 1 | departure | 242 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 224 | MAGMA_CRAB | 8,6,-1,14,-1,0 | - -> - -> -
+year | 1 | departure | 246 | OLM_GIANT | 9,6,-1,6,-1,16 | 16 -> 17 -> 17
+year | 1 | departure | 247 | GORLAK | 9,6,-1,2,-1,26 | 14 -> 15 -> 15
+year | 1 | departure | 248 | BAT_GIANT | 9,6,-1,6,-1,27 | 10 -> 11 -> 11
+year | 1 | departure | 225 | MAGMA_CRAB | 8,6,-1,14,-1,0 | - -> - -> -
+year | 1 | departure | 229 | BIRD_RAVEN | 8,5,-1,-1,-1,59 | - -> - -> -
+year | 1 | departure | 230 | BIRD_RAVEN | 8,5,-1,-1,-1,59 | - -> - -> -
+year | 1 | departure | 232 | BUGBAT | 9,6,-1,11,-1,17 | 21 -> 26 -> 27
+year | 1 | departure | 233 | BUGBAT | 9,6,-1,11,-1,17 | 21 -> 26 -> 27
+year | 1 | departure | 235 | BUGBAT | 9,6,-1,11,-1,17 | 21 -> 26 -> 27
+year | 1 | departure | 236 | BUGBAT | 9,6,-1,11,-1,17 | 21 -> 26 -> 27
+year | 1 | departure | 237 | BUGBAT | 9,6,-1,11,-1,17 | 21 -> 26 -> 27
+year | 1 | departure | 234 | BUGBAT | 9,6,-1,11,-1,17 | 26 -> 27 -> 30
+year | 1 | departure | 249 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 11 -> 12 -> 12
+year | 1 | departure | 238 | BUGBAT | 9,6,-1,11,-1,17 | 27 -> 30 -> 30
+year | 1 | departure | 239 | BUGBAT | 9,6,-1,11,-1,17 | 27 -> 30 -> 30
+year | 1 | departure | 240 | BUGBAT | 9,6,-1,11,-1,17 | 27 -> 30 -> 30
+year | 1 | departure | 243 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 244 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 245 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 258 | OLM_GIANT | 9,6,-1,6,-1,16 | 16 -> 16 -> 16
+year | 1 | departure | 259 | BIRD_RAVEN | 9,6,-1,-1,-1,28 | 103 -> 102 -> 102
+year | 1 | departure | 270 | TROGLODYTE | 9,6,-1,2,-1,22 | 14 -> 15 -> 15
+year | 1 | departure | 268 | MAGMA_CRAB | 9,6,-1,14,-1,0 | 24 -> 25 -> 26
+year | 1 | departure | 277 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 269 | MAGMA_CRAB | 9,6,-1,14,-1,0 | 25 -> 26 -> 26
+year | 1 | departure | 271 | TROGLODYTE | 9,6,-1,2,-1,22 | 15 -> 19 -> 21
+year | 1 | departure | 272 | TROGLODYTE | 9,6,-1,2,-1,22 | 15 -> 19 -> 21
+year | 1 | departure | 273 | TROGLODYTE | 9,6,-1,2,-1,22 | 15 -> 19 -> 21
+year | 1 | departure | 274 | TROGLODYTE | 9,6,-1,2,-1,22 | 15 -> 19 -> 21
+year | 1 | departure | 287 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 275 | TROGLODYTE | 9,6,-1,2,-1,22 | 19 -> 21 -> 21
+year | 1 | departure | 276 | TROGLODYTE | 9,6,-1,2,-1,22 | 19 -> 21 -> 21
+year | 1 | departure | 278 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 279 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 280 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 281 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 282 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 283 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 284 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 285 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 286 | ELK_BIRD | 8,6,-1,11,-1,19 | - -> - -> -
+year | 1 | departure | 288 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 289 | DEMON_12 | 9,6,-1,18,-1,0 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 290 | OLM_GIANT | 9,6,-1,6,-1,16 | 16 -> 17 -> 17
+year | 1 | departure | 303 | BAT_GIANT | 8,6,-1,0,-1,20 | - -> - -> -
+year | 1 | departure | 304 | CAVE_BLOB | 9,6,-1,11,-1,13 | 412 -> 413 -> 416
+year | 1 | departure | 308 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 300 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 301 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 305 | CAVE_BLOB | 9,6,-1,11,-1,13 | 413 -> 416 -> 416
+year | 1 | departure | 306 | CAVE_BLOB | 9,6,-1,11,-1,13 | 413 -> 416 -> 416
+year | 1 | departure | 307 | CAVE_BLOB | 9,6,-1,11,-1,13 | 413 -> 416 -> 416
+year | 1 | departure | 309 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 310 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 311 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 312 | DEMON_20 | 9,6,-1,18,-1,2 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 299 | IMP_FIRE | 8,6,-1,14,-1,1 | - -> - -> -
+year | 1 | departure | 313 | CROCODILE_CAVE | 8,6,-1,4,-1,15 | - -> - -> -
+year | 1 | departure | 324 | GORLAK | 9,6,-1,2,-1,26 | 14 -> 15 -> 15
+year | 1 | departure | 325 | DEMON_1 | 9,6,-1,18,-1,1 | 10000001 -> 10000001 -> 10000001
+year | 1 | departure | 328 | JABBERER | 9,6,-1,11,-1,18 | 27 -> 28 -> 28
+year | 1 | departure | 332 | CROCODILE_CAVE | 9,6,-1,6,-1,15 | 11 -> 12 -> 12
+year | 1 | departure | 333 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 11 -> 12 -> 12
+year | 1 | departure | 334 | CRUNDLE | 9,6,-1,11,-1,12 | 238 -> 241 -> 243
+year | 1 | departure | 351 | POND_GRABBER | 8,6,-1,4,-1,14 | - -> - -> -
+year | 1 | departure | 329 | IMP_FIRE | 9,6,-1,14,-1,1 | 11 -> 12 -> 12
+year | 1 | departure | 356 | ELK_BIRD | 9,6,-1,2,-1,18 | 32 -> 28 -> 28
+year | 1 | departure | 361 | ELK_BIRD | 9,6,-1,2,-1,18 | 28 -> 29 -> 29
+year | 1 | departure | 366 | CROCODILE_CAVE | 9,6,-1,2,-1,7 | 11 -> 12 -> 12
+year | 1 | departure | 367 | DRALTHA | 9,6,-1,2,-1,21 | 16 -> 17 -> 17
+year | 1 | departure | 371 | TOAD_GIANT_CAVE | 9,6,-1,2,-1,9 | 18 -> 19 -> -
+
+## Manipulations applied
+year | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.assign['COUGAR']=nil; cfg.allow['COUGAR']=nil; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; COUGAR unassigned control; rotation enabled'):format(n,a,f,act)) | roster: allowed 38 assigned 38 thin 0 applied 35; COUGAR unassigned control; rotation enabled
+
+## Pool entries that changed between load and end of replicate (99; the second instrument)
+year | 1 | idx 2786 | Vermin:0 ref6=8,5,-1,-1,-1,53 quantity 176->103 max 176->176 discovered 0->0 extinct 0->0
+year | 1 | idx 2787 | Vermin:5 ref6=8,5,-1,-1,-1,54 quantity 275->0 max 275->275 discovered 0->0 extinct 0->0
+year | 1 | idx 2788 | Vermin:8 ref6=8,5,-1,-1,-1,55 quantity 267->0 max 267->267 discovered 0->0 extinct 0->0
+year | 1 | idx 2789 | BIRD_FALCON_PEREGRINE ref6=8,5,-1,-1,-1,57 quantity 19->100 max 19->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2790 | BIRD_KIWI ref6=8,5,-1,-1,-1,58 quantity 11->0 max 11->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2791 | BIRD_RAVEN ref6=8,5,-1,-1,-1,59 quantity 179->103 max 179->179 discovered 0->1 extinct 0->0
+year | 1 | idx 2792 | Vermin:49 ref6=8,5,-1,-1,-1,60 quantity 165->103 max 165->165 discovered 0->0 extinct 0->0
+year | 1 | idx 2793 | BIRD_OWL_BARN ref6=8,5,-1,-1,-1,62 quantity 19->100 max 19->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2794 | BIRD_KAKAPO ref6=8,5,-1,-1,-1,63 quantity 10->0 max 10->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2795 | Vermin:79 ref6=8,5,-1,-1,-1,64 quantity 250->103 max 250->250 discovered 0->0 extinct 0->0
+year | 1 | idx 2796 | BIRD_EMU ref6=8,5,-1,-1,-1,65 quantity 12->0 max 12->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2797 | Vermin:91 ref6=8,5,-1,-1,-1,67 quantity 166->0 max 166->166 discovered 0->0 extinct 0->0
+year | 1 | idx 2798 | Vermin:121 ref6=8,5,-1,-1,-1,68 quantity 328->103 max 328->328 discovered 0->0 extinct 0->0
+year | 1 | idx 2799 | Vermin:124 ref6=8,5,-1,-1,-1,69 quantity 326->103 max 326->326 discovered 0->0 extinct 0->0
+year | 1 | idx 2800 | Vermin:130 ref6=8,5,-1,-1,-1,70 quantity 23->100 max 23->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2805 | Vermin:145 ref6=8,5,-1,-1,-1,75 quantity 3039->103 max 3039->3039 discovered 0->0 extinct 0->0
+year | 1 | idx 2808 | Vermin:196 ref6=8,5,-1,-1,-1,79 quantity 2207->103 max 2207->2207 discovered 0->0 extinct 0->0
+year | 1 | idx 2809 | Vermin:199 ref6=8,5,-1,-1,-1,80 quantity 324->103 max 324->324 discovered 0->0 extinct 0->0
+year | 1 | idx 2812 | Vermin:206 ref6=8,5,-1,-1,-1,83 quantity 233->103 max 233->233 discovered 0->0 extinct 0->0
+year | 1 | idx 2813 | Vermin:209 ref6=8,5,-1,-1,-1,84 quantity 251->103 max 251->251 discovered 0->0 extinct 0->0
+year | 1 | idx 2816 | Vermin:479 ref6=8,5,-1,-1,-1,88 quantity 173->103 max 173->173 discovered 0->0 extinct 0->0
+year | 1 | idx 2817 | Vermin:482 ref6=8,5,-1,-1,-1,89 quantity 201->103 max 201->201 discovered 0->0 extinct 0->0
+year | 1 | idx 2818 | Vermin:514 ref6=8,5,-1,-1,-1,90 quantity 294->103 max 294->294 discovered 0->0 extinct 0->0
+year | 1 | idx 2819 | Vermin:528 ref6=8,5,-1,-1,-1,91 quantity 312->103 max 312->312 discovered 0->0 extinct 0->0
+year | 1 | idx 2820 | KANGAROO ref6=8,5,-1,-1,-1,92 quantity 11->100 max 11->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2821 | ECHIDNA ref6=8,5,-1,-1,-1,93 quantity 17->100 max 17->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2822 | KINGSNAKE ref6=8,5,-1,-1,-1,94 quantity 6->100 max 6->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2823 | RATTLESNAKE ref6=8,5,-1,-1,-1,96 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2824 | WOMBAT ref6=8,5,-1,-1,-1,97 quantity 9->0 max 9->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2825 | OPOSSUM ref6=8,5,-1,-1,-1,98 quantity 17->0 max 17->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2828 | WOLF ref6=8,5,-1,-1,-1,101 quantity 9->0 max 9->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2829 | DINGO ref6=8,5,-1,-1,-1,102 quantity 11->100 max 11->100 discovered 0->0 extinct 0->0
+year | 1 | idx 2830 | CRETACEOUS_CARNOTAURUS ref6=8,5,-1,-1,-1,103 quantity 5->100 max 5->100 discovered 0->0 extinct 0->0
+year | 1 | idx 3060 | BAT_GIANT ref6=8,6,-1,0,-1,20 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+year | 1 | idx 3081 | POND_GRABBER ref6=8,6,-1,4,-1,14 quantity 18->14 max 18->18 discovered 0->1 extinct 0->0
+year | 1 | idx 3082 | CROCODILE_CAVE ref6=8,6,-1,4,-1,15 quantity 10->11 max 11->11 discovered 1->1 extinct 0->0
+year | 1 | idx 3101 | BLIND_CAVE_OGRE ref6=8,6,-1,4,-1,34 quantity 6->7 max 6->6 discovered 0->1 extinct 0->0
+year | 1 | idx 3123 | ELK_BIRD ref6=8,6,-1,11,-1,19 quantity 41->41 max 41->41 discovered 0->1 extinct 0->0
+year | 1 | idx 3128 | SPIDER_CAVE_GIANT ref6=8,6,-1,11,-1,24 quantity 2->3 max 3->3 discovered 1->1 extinct 0->0
+year | 1 | idx 3137 | MAGMA_CRAB ref6=8,6,-1,14,-1,0 quantity 28->29 max 28->28 discovered 0->1 extinct 0->0
+year | 1 | idx 3138 | IMP_FIRE ref6=8,6,-1,14,-1,1 quantity 11->15 max 15->15 discovered 1->1 extinct 0->0
+year | 1 | idx 4182 | Vermin:0 ref6=9,6,-1,-1,-1,25 quantity 294->98 max 295->295 discovered 1->1 extinct 0->0
+year | 1 | idx 4183 | Vermin:8 ref6=9,6,-1,-1,-1,26 quantity 415->0 max 415->415 discovered 0->1 extinct 0->0
+year | 1 | idx 4184 | BIRD_FALCON_PEREGRINE ref6=9,6,-1,-1,-1,27 quantity 30->100 max 30->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4185 | BIRD_RAVEN ref6=9,6,-1,-1,-1,28 quantity 398->103 max 398->398 discovered 0->1 extinct 0->0
+year | 1 | idx 4186 | Vermin:49 ref6=9,6,-1,-1,-1,29 quantity 288->101 max 288->288 discovered 0->1 extinct 0->0
+year | 1 | idx 4187 | BIRD_KAKAPO ref6=9,6,-1,-1,-1,30 quantity 23->0 max 23->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4188 | Vermin:79 ref6=9,6,-1,-1,-1,31 quantity 258->100 max 258->258 discovered 0->1 extinct 0->0
+year | 1 | idx 4189 | BIRD_EMU ref6=9,6,-1,-1,-1,32 quantity 29->0 max 29->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4193 | Vermin:145 ref6=9,6,-1,-1,-1,38 quantity 3494->0 max 3752->3752 discovered 1->1 extinct 0->0
+year | 1 | idx 4196 | Vermin:196 ref6=9,6,-1,-1,-1,41 quantity 3359->0 max 3557->3557 discovered 1->1 extinct 0->0
+year | 1 | idx 4200 | Vermin:528 ref6=9,6,-1,-1,-1,48 quantity 494->98 max 494->494 discovered 0->1 extinct 0->0
+year | 1 | idx 4201 | Vermin:534 ref6=9,6,-1,-1,-1,49 quantity 309->0 max 309->309 discovered 0->1 extinct 0->0
+year | 1 | idx 4202 | ECHIDNA ref6=9,6,-1,-1,-1,50 quantity 19->100 max 19->100 discovered 0->1 extinct 0->0
+year | 1 | idx 4203 | COATI ref6=9,6,-1,-1,-1,51 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4208 | BEAR_BLACK ref6=9,6,-1,-1,-1,56 quantity 3->0 max 3->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4209 | WOLF ref6=9,6,-1,-1,-1,57 quantity 13->0 max 13->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4210 | BEAR_GRIZZLY ref6=9,6,-1,-1,-1,58 quantity 2->0 max 2->100 discovered 0->0 extinct 0->0
+year | 1 | idx 4211 | DINGO ref6=9,6,-1,-1,-1,59 quantity 9->100 max 20->100 discovered 1->1 extinct 0->0
+year | 1 | idx 4219 | Vermin:542 ref6=9,6,0,-1,-1,7 quantity 6720->6721 max 6720->6720 discovered 0->1 extinct 0->0
+year | 1 | idx 4220 | Vermin:539 ref6=9,6,0,-1,-1,8 quantity 10320->10327 max 10320->10320 discovered 0->1 extinct 0->0
+year | 1 | idx 4221 | Vermin:537 ref6=9,6,0,-1,-1,9 quantity 7296->6964 max 7296->7296 discovered 0->1 extinct 0->0
+year | 1 | idx 4222 | Vermin:549 ref6=9,6,0,-1,-1,10 quantity 10800->10801 max 10800->10800 discovered 0->1 extinct 0->0
+year | 1 | idx 4230 | CROCODILE_CAVE ref6=9,6,-1,2,-1,7 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+year | 1 | idx 4232 | TOAD_GIANT_CAVE ref6=9,6,-1,2,-1,9 quantity 19->19 max 19->19 discovered 0->1 extinct 0->0
+year | 1 | idx 4233 | OLM_GIANT ref6=9,6,-1,2,-1,10 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+year | 1 | idx 4234 | Vermin:617 ref6=9,6,-1,2,-1,11 quantity 290->292 max 290->290 discovered 0->1 extinct 0->0
+year | 1 | idx 4236 | Vermin:621 ref6=9,6,-1,2,-1,13 quantity 418->422 max 418->418 discovered 0->1 extinct 0->0
+year | 1 | idx 4237 | Vermin:410 ref6=9,6,-1,2,-1,14 quantity 456->464 max 457->457 discovered 1->1 extinct 0->0
+year | 1 | idx 4238 | Vermin:616 ref6=9,6,-1,2,-1,15 quantity 465->470 max 465->465 discovered 0->1 extinct 0->0
+year | 1 | idx 4241 | ELK_BIRD ref6=9,6,-1,2,-1,18 quantity 31->30 max 37->37 discovered 1->1 extinct 0->0
+year | 1 | idx 4244 | DRALTHA ref6=9,6,-1,2,-1,21 quantity 20->17 max 20->20 discovered 0->1 extinct 0->0
+year | 1 | idx 4245 | TROGLODYTE ref6=9,6,-1,2,-1,22 quantity 21->21 max 21->21 discovered 0->1 extinct 0->0
+year | 1 | idx 4246 | Vermin:623 ref6=9,6,-1,2,-1,23 quantity 419->417 max 419->419 discovered 0->1 extinct 0->0
+year | 1 | idx 4247 | Vermin:630 ref6=9,6,-1,2,-1,24 quantity 435->435 max 435->435 discovered 0->1 extinct 0->0
+year | 1 | idx 4248 | TROLL ref6=9,6,-1,2,-1,25 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+year | 1 | idx 4249 | GORLAK ref6=9,6,-1,2,-1,26 quantity 14->15 max 14->14 discovered 0->1 extinct 0->0
+year | 1 | idx 4265 | CROCODILE_CAVE ref6=9,6,-1,6,-1,15 quantity 11->12 max 11->11 discovered 0->1 extinct 0->0
+year | 1 | idx 4266 | OLM_GIANT ref6=9,6,-1,6,-1,16 quantity 16->17 max 16->16 discovered 0->1 extinct 0->0
+year | 1 | idx 4269 | Vermin:617 ref6=9,6,-1,6,-1,19 quantity 360->363 max 360->360 discovered 0->1 extinct 0->0
+year | 1 | idx 4270 | Vermin:616 ref6=9,6,-1,6,-1,20 quantity 458->465 max 458->458 discovered 0->1 extinct 0->0
+year | 1 | idx 4271 | Vermin:621 ref6=9,6,-1,6,-1,21 quantity 472->480 max 474->474 discovered 1->1 extinct 0->0
+year | 1 | idx 4273 | VORACIOUS_CAVE_CRAWLER ref6=9,6,-1,6,-1,23 quantity 18->18 max 18->18 discovered 0->1 extinct 0->0
+year | 1 | idx 4277 | BAT_GIANT ref6=9,6,-1,6,-1,27 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+year | 1 | idx 4279 | Vermin:630 ref6=9,6,-1,6,-1,29 quantity 291->291 max 291->291 discovered 0->1 extinct 0->0
+year | 1 | idx 4281 | Vermin:623 ref6=9,6,-1,6,-1,31 quantity 276->275 max 276->276 discovered 0->1 extinct 0->0
+year | 1 | idx 4300 | CRUNDLE ref6=9,6,-1,11,-1,12 quantity 251->251 max 251->251 discovered 0->1 extinct 0->0
+year | 1 | idx 4301 | CAVE_BLOB ref6=9,6,-1,11,-1,13 quantity 416->416 max 416->416 discovered 0->1 extinct 0->0
+year | 1 | idx 4305 | BUGBAT ref6=9,6,-1,11,-1,17 quantity 28->30 max 28->28 discovered 0->1 extinct 0->0
+year | 1 | idx 4306 | JABBERER ref6=9,6,-1,11,-1,18 quantity 27->28 max 27->27 discovered 0->1 extinct 0->0
+year | 1 | idx 4310 | HUNGRY_HEAD ref6=9,6,-1,11,-1,22 quantity 109->112 max 109->109 discovered 0->1 extinct 0->0
+year | 1 | idx 4319 | Vermin:419 ref6=9,6,-1,11,-1,31 quantity 402->326 max 405->405 discovered 1->1 extinct 0->0
+year | 1 | idx 4320 | GORLAK ref6=9,6,-1,11,-1,32 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+year | 1 | idx 4321 | MAGMA_CRAB ref6=9,6,-1,14,-1,0 quantity 26->26 max 26->26 discovered 0->1 extinct 0->0
+year | 1 | idx 4322 | IMP_FIRE ref6=9,6,-1,14,-1,1 quantity 14->12 max 14->14 discovered 0->1 extinct 0->0
+year | 1 | idx 4325 | Vermin:620 ref6=9,6,-1,14,-1,4 quantity 223->187 max 229->229 discovered 1->1 extinct 0->0
+year | 1 | idx 4326 | DEMON_12 ref6=9,6,-1,18,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+year | 1 | idx 4327 | DEMON_1 ref6=9,6,-1,18,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+year | 1 | idx 4331 | DEMON_18 ref6=9,6,-1,18,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 19 rows; first few:
+year | 1 | 172 | CROCODILE_CAVE ref6=8,6,-1,4,-1,15 countdown=21088 flag_src=1
+year | 1 | 173 | DINGO ref6=9,6,-1,-1,-1,59 countdown=28834 flag_src=1
+year | 1 | 174 | DINGO ref6=9,6,-1,-1,-1,59 countdown=23402 flag_src=1
+year | 1 | 175 | DINGO ref6=9,6,-1,-1,-1,59 countdown=28803 flag_src=1
+year | 1 | 176 | DINGO ref6=9,6,-1,-1,-1,59 countdown=22660 flag_src=1
+year | 1 | 177 | DINGO ref6=9,6,-1,-1,-1,59 countdown=27367 flag_src=1
+year | 1 | 178 | DINGO ref6=9,6,-1,-1,-1,59 countdown=24154 flag_src=1
+year | 1 | 179 | DINGO ref6=9,6,-1,-1,-1,59 countdown=26567 flag_src=1
+

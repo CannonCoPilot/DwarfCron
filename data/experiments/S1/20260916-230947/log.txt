@@ -1,0 +1,26 @@
+23:09:47 run S1 20260916-230947: Season regression on region1 under seasonal-wildlife v5.4: the saved roster, rotation enabled, one full year; no out-of-season arrival, the unassigned control untouched, the scheduler firing at each boundary
+23:09:48   [rig] DF already running (pid 68651), port 5555
+23:09:48 == S1 arm=year rep=1 fort=region1 budget=404000 every=5000
+23:09:48   [rig] restored region1.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/region1
+23:09:48   restored region1.preverify -> region1 sha256 610d5ddc27e0
+23:10:15   [rig] clicked through to region1 (world: Slozgo X gu); waiting for the map
+23:10:15   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=50 tick=16979 season=0 units=44)
+23:10:15   [rig] drained 0 queued popup(s)
+23:10:16   baseline: 19 wild units on map, 80 pool entries, tick 16979 year 50
+23:10:16   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.assign['COUGAR']=nil; cfg.allow['COUGAR']=nil; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; COUGAR unassigned control; rotation enabled'):format(n,a,f,act)) -> roster: allowed 38 assigned 38 thin 0 applied 35; COUGAR unassigned control; rotation enabled
+23:10:17   tool state ok: {'enabled': '1', 'groups_enabled': '0', 'scheduled': '1', 'initialized': '1'}
+23:10:17   roster: 37 assigned tokens
+23:12:06   + 52479 ticks | wild  14 | arrivals  19 | departures  24 | deaths  0 | 542 t/s
+23:13:55   +104302 ticks | wild  21 | arrivals  56 | departures  54 | deaths  0 | 471 t/s
+23:15:33   +151234 ticks | wild  17 | arrivals  59 | departures  61 | deaths  0 | 466 t/s
+23:18:02   +202725 ticks | wild  25 | arrivals  95 | departures  89 | deaths  0 | 222 t/s
+23:20:38   +254064 ticks | wild  17 | arrivals 115 | departures 117 | deaths  0 | 328 t/s
+23:23:02   +300044 ticks | wild  33 | arrivals 138 | departures 124 | deaths  0 | 329 t/s
+23:25:54   +351238 ticks | wild  32 | arrivals 140 | departures 127 | deaths  0 | 301 t/s
+23:28:58   +402002 ticks | wild  32 | arrivals 142 | departures 129 | deaths  0 | 290 t/s
+23:29:26   [rig] back at the title screen
+23:29:26   done: {"arm": "year", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 143, "departures": 130, "deaths": 0, "ticks": 407094, "wall_s": 1109.4, "stop": null, "ticks_per_s": 367.0, "save_untouched": true}
+23:30:00   [rig] clicked through to region1 (world: Slozgo X gu); waiting for the map
+23:30:00   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=50 tick=16979 season=0 units=44)
+23:30:08   [rig] back at the title screen
+23:30:08 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/S1/20260916-230947
