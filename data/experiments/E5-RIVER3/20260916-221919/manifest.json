@@ -1,0 +1,48 @@
+{
+  "id": "E5-RIVER3",
+  "title": "Feature holds on RIVER3: close every surface entry, raise every feature entry to 200, release all holds, run 20,000 ticks; do feature-referenced units ever arrive",
+  "fork": "kills F5, F14",
+  "fort": "RIVER3",
+  "backup": "RIVER3.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "tick_budget": 20000,
+  "predictions": [
+    {
+      "model": "F5 A \u00b7 feature entries can produce arrivals",
+      "expects": "arm feature_only: new units whose six-tuple carries feature_idx >= 0"
+    },
+    {
+      "model": "F5 B \u00b7 data only",
+      "expects": "arm feature_only: nothing on the surface or water in 20,000 ticks; arm control: surface waves as usual"
+    }
+  ],
+  "kill_criterion": "a feature-referenced arrival in any replicate kills B; the control arm must show surface waves or the fort is not comparable",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "a fort with zero feature entries (OCEAN) tests F14 by its control arm only"
+  ],
+  "arms": [
+    {
+      "name": "feature_only",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local f,s=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.region_x>=x0-1 and r.region_x<=x1 and r.region_y>=y0-1 and r.region_y<=y1 and p.quantity_max<10000000 then if r.feature_idx>=0 then p.quantity=200; p.flags.extinct=false; f=f+1 elseif r.cave_id<0 then p.quantity=0; p.flags.extinct=true; s=s+1 end end end; print(('feature entries raised: %d, surface closed: %d'):format(f,s))",
+        "probe:release all"
+      ]
+    },
+    {
+      "name": "control",
+      "replicates": 1,
+      "control": {
+        "arrivals_within_ticks": 6000,
+        "arrivals_min": 1
+      }
+    }
+  ]
+}
