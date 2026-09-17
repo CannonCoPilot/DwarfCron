@@ -19,6 +19,7 @@
 --   cx-probe countdown <unit-id> <value>
 --                                  write leave_countdown on one unit
 --   cx-probe kill <unit-id> ...      blood_count = 0, no other accounting (dies on DF's own path)
+--   cx-probe combat [since-id]       every wild unit's combat reports with id > since (unit, species, id, text)
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
 -- It does NOT key on the roaming flag, so a released resident stays in the table (checked in
@@ -187,6 +188,26 @@ elseif cmd == 'kill' then
     end
     print(('kill: blood_count=0 on %d unit(s)'):format(n))
 
+-- ----------------------------------------------------------------- combat --
+-- Every wild unit's own combat log (unit.reports.log.Combat holds report ids),
+-- for reports with id > since. One row per (unit, report).
+elseif cmd == 'combat' then
+    local since = tonumber(args[2]) or -1
+    row('unit', 'species', 'report', 'year', 'time', 'text')
+    for _, u in ipairs(df.global.world.units.all) do
+        if u.animal.population.population_idx >= 0 then
+            local log = u.reports.log[df.unit_report_type.Combat]
+            for _, rid in ipairs(log) do
+                if rid > since then
+                    local r = df.report.find(rid)
+                    if r then
+                        row(u.id, tok(u.race), rid, r.year, r.time, (r.text:gsub('[\t\r\n]', ' ')))
+                    end
+                end
+            end
+        end
+    end
+
 else
-    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>')
+    qerror('usage: cx-probe clock|units|pops [all]|tool|provenance|release [surface|all|id..]|setq <idx> <q> [extinct]|countdown <id> <v>|kill <id..>|combat [since-report-id]')
 end

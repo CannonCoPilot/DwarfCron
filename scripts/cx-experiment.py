@@ -159,6 +159,7 @@ class Out:
         # the WHOLE pool (every region tile DF loaded), once at the start and once at the
         # end of each replicate: the second instrument for "which tile was debited"
         self.pops_all = open(run_dir / "pops_all.tsv", "a")
+        self.combat = open(run_dir / "combat.tsv", "a")
         if self.rows.tell() == 0:
             self.rows.write("run\tarm\trep\ttick\tabs_tick\tsubject\tmetric\tvalue\n")
         if self.events.tell() == 0:
@@ -166,6 +167,7 @@ class Out:
         self._unit_head = None
         self._pop_head = None
         self._pops_all_head = None
+        self._combat_head = None
 
     def log(self, msg: str):
         line = f"{dt.datetime.now():%H:%M:%S} {msg}"
@@ -191,7 +193,7 @@ class Out:
             fh.write(f"{ctx['run']}\t{ctx['arm']}\t{ctx['rep']}\t{tick}\t{abs_tick}\t" + "\t".join(r.get(k, "") for k in head) + "\n")
 
     def flush(self):
-        for fh in (self.rows, self.events, self.units, self.pops, self.pops_all, self._log):
+        for fh in (self.rows, self.events, self.units, self.pops, self.pops_all, self.combat, self._log):
             fh.flush()
 
 
@@ -303,6 +305,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     after = arm.get("after_on_arrival") or {}
     after_done = not after
     first_exit = None
+    combat_since = -1
+    want_combat = bool(man.get("combat") or arm.get("combat"))
 
     # 6. step and sample.
     control = arm.get("control") or man.get("control")
@@ -346,6 +350,12 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         pops = rig.probe("pops")
         out.wide(out.units, "_unit_head", ctx, tick, abs_tick, units)
         out.wide(out.pops, "_pop_head", ctx, tick, abs_tick, pops)
+        if want_combat:
+            reps_ = rig.probe("combat", combat_since)
+            if reps_:
+                out.wide(out.combat, "_combat_head", ctx, tick, abs_tick, reps_)
+                combat_since = max(int(r["report"]) for r in reps_)
+                summary["combat_reports"] = summary.get("combat_reports", 0) + len(reps_)
 
         now = {u["id"]: u for u in units}
         for i in now:

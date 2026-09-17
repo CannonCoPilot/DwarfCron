@@ -1,0 +1,115 @@
+{
+ "id": "E11",
+ "title": "Do they hunt? Predators piggy-backed onto a prey group and left with it for 20,000 ticks, against the prey group alone",
+ "fork": "kills F10",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 200,
+ "tick_budget": 26000,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "predictions": [
+  {
+   "model": "F10 A \u00b7 they hunt",
+   "expects": "arm both: prey deaths and combat reports naming a dingo, wolf or cougar and a prey species, well above arm alone"
+  },
+  {
+   "model": "F10 B \u00b7 co-presence only",
+   "expects": "no difference in prey deaths; combat reports, if any, are incidental"
+  }
+ ],
+ "kill_criterion": "prey deaths in arm both must exceed arm alone in at least two of three replicate pairs, with at least one combat report naming a predator and a prey species; otherwise the food web is a tableau and the tool must say so",
+ "culling": [
+  "drop a replicate on any breach or changed save",
+  "drop a replicate whose first surface wave had fewer than two units",
+  "drop a 'both' replicate in which no predator arrived within 3,000 ticks of the release"
+ ],
+ "arms": [
+  {
+   "name": "both",
+   "replicates": 3,
+   "on_arrival_min_units": 2,
+   "on_arrival": [
+    "probe:release {ids}",
+    "probe:setq 3186 0 1",
+    "probe:setq 3187 0 1",
+    "probe:setq 3188 0 1",
+    "probe:setq 3191 0 1",
+    "probe:setq 3192 0 1",
+    "probe:setq 3204 30 0",
+    "probe:setq 3205 0 1",
+    "probe:setq 3206 0 1",
+    "probe:setq 3209 0 1",
+    "probe:setq 3210 0 1",
+    "probe:setq 3211 0 1",
+    "probe:setq 3212 0 1",
+    "probe:setq 3215 30 0",
+    "probe:setq 3216 30 0",
+    "probe:setq 4703 0 1",
+    "probe:setq 4704 0 1",
+    "probe:setq 4705 0 1",
+    "probe:setq 4708 0 1",
+    "probe:setq 4709 0 1",
+    "probe:setq 4721 30 0",
+    "probe:setq 4722 0 1",
+    "probe:setq 4723 0 1",
+    "probe:setq 4726 0 1",
+    "probe:setq 4727 0 1",
+    "probe:setq 4728 0 1",
+    "probe:setq 4729 0 1",
+    "probe:setq 4732 30 0",
+    "probe:setq 4733 30 0"
+   ],
+   "after_on_arrival": {
+    "ticks": 3000,
+    "do": [
+     "probe:setq 3186 354 0",
+     "probe:setq 3187 17 0",
+     "probe:setq 3188 11 0",
+     "probe:setq 3191 24 0",
+     "probe:setq 3192 16 0",
+     "probe:setq 3204 2 0",
+     "probe:setq 3205 21 0",
+     "probe:setq 3206 17 0",
+     "probe:setq 3209 21 0",
+     "probe:setq 3210 25 0",
+     "probe:setq 3211 16 0",
+     "probe:setq 3212 15 0",
+     "probe:setq 3215 14 0",
+     "probe:setq 3216 13 0",
+     "probe:setq 4703 339 0",
+     "probe:setq 4704 16 0",
+     "probe:setq 4705 11 0",
+     "probe:setq 4708 23 0",
+     "probe:setq 4709 15 0",
+     "probe:setq 4721 2 0",
+     "probe:setq 4722 20 0",
+     "probe:setq 4723 16 0",
+     "probe:setq 4726 20 0",
+     "probe:setq 4727 24 0",
+     "probe:setq 4728 15 0",
+     "probe:setq 4729 14 0",
+     "probe:setq 4732 13 0",
+     "probe:setq 4733 12 0"
+    ]
+   },
+   "stop_when": {
+    "ticks_after_on_arrival": 20000
+   }
+  },
+  {
+   "name": "alone",
+   "replicates": 3,
+   "on_arrival_min_units": 2,
+   "on_arrival": [],
+   "stop_when": {
+    "ticks_after_on_arrival": 20000
+   }
+  }
+ ]
+}
