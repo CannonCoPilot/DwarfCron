@@ -170,6 +170,47 @@ elseif cmd == 'worlds' then
         print(('%s\t%s'):format(r.filename_noext, (r.display_name:gsub('[\128-\255]', ' '))))
     end
 
+elseif cmd == 'facts' then
+    -- Everything a fort manifest needs, read from the loaded fort's own records.
+    if not dfhack.isMapLoaded() then qerror('facts needs a loaded fort') end
+    local site = df.world_site.find(df.global.plotinfo.site_id)
+    local x0, x1 = math.floor(site.global_min_x / 16), math.floor(site.global_max_x / 16)
+    local y0, y1 = math.floor(site.global_min_y / 16), math.floor(site.global_max_y / 16)
+    local tiles = {}
+    for rx = x0, x1 do for ry = y0, y1 do
+        local ok, bt = pcall(dfhack.maps.getBiomeType, rx, ry)
+        local ok2, e = pcall(dfhack.maps.getRegionBiome, rx, ry)
+        tiles[#tiles+1] = ('%d,%d %s sav=%s evil=%s'):format(rx, ry, ok and bt and df.biome_type[bt] or '?',
+            ok2 and e and e.savagery or '?', ok2 and e and e.evilness or '?')
+    end end
+    print('site\t' .. site.id .. '\tpos ' .. site.pos.x .. ',' .. site.pos.y .. '\tmm ' .. site.global_min_x .. '..' .. site.global_max_x .. ' x ' .. site.global_min_y .. '..' .. site.global_max_y)
+    print('tiles\t' .. table.concat(tiles, ' | '))
+    -- edge ownership: each mid-level column/row of the site is 48 map tiles; a
+    -- map edge is owned by whichever region tile its mid-level tiles fall in
+    local edge = {}
+    local function own(mmx, mmy) local k = math.floor(mmx / 16) .. ',' .. math.floor(mmy / 16); edge[k] = (edge[k] or 0) + 1 end
+    for mmx = site.global_min_x, site.global_max_x do own(mmx, site.global_min_y); own(mmx, site.global_max_y) end
+    for mmy = site.global_min_y, site.global_max_y do own(site.global_min_x, mmy); own(site.global_max_x, mmy) end
+    local el = {}; for k, n in pairs(edge) do el[#el+1] = k .. '=' .. n end; table.sort(el)
+    print('edge_mm\t' .. table.concat(el, ' '))
+    local feats = {}
+    for _, f in ipairs(df.global.world.features.map_features) do local t = tostring(f._type):gsub('<type: feature_init_', ''):gsub('st>', ''); feats[t] = (feats[t] or 0) + 1 end
+    local fl = {}; for k, v in pairs(feats) do fl[#fl+1] = k .. 'x' .. v end; table.sort(fl)
+    print('features\t' .. (#fl > 0 and table.concat(fl, ' ') or 'none'))
+    local land, water, cave, innum = 0, 0, 0, 0
+    for _, p in ipairs(df.global.world.populations.all) do
+        local r = p.population
+        if r.region_x >= x0 and r.region_x <= x1 and r.region_y >= y0 and r.region_y <= y1 then
+            if p.quantity >= 10000001 then innum = innum + 1
+            elseif r.feature_idx >= 0 then water = water + 1 elseif r.cave_id >= 0 then cave = cave + 1 else land = land + 1 end
+        end
+    end
+    print(('populations\tsurface=%d feature=%d cavern=%d innumerable=%d'):format(land, water, cave, innum))
+    local wild = 0
+    for _, u in ipairs(df.global.world.units.active) do if u.flags2.roaming_wilderness_population_source then wild = wild + 1 end end
+    print(('units\tactive=%d wild_gated=%d'):format(#df.global.world.units.active, wild))
+    print(('clock\tyear=%d tick=%d season=%d'):format(df.global.cur_year, df.global.cur_year_tick, df.global.cur_season))
+
 else
-    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | survey [filter] | center <rx> <ry> | read | worlds]])
+    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | survey [filter] | center <rx> <ry> | read | worlds | facts]])
 end

@@ -343,11 +343,20 @@ CX_TICKS_PER_YEAR=403200   # DF year length; cur_year_tick wraps here
 # the site-screen "On your own!" notice, the arrival announcement on a new
 # fort. Each one swallows the OPTIONS key until dismissed, and `dismiss_modal`
 # only knows the Welcome panel. Click any Okay that is drawn; harmless when none is.
+# Known dismissers, in the order they are tried. "Skip tutorial" is the
+# "Quick start and short tutorial?" prompt DF shows on the site screen of a
+# world that has not had a fort yet (seen 2026-09-16 on region6; region4 showed
+# "On your own!" instead).
 dismiss_okay() {
-    local i
-    for i in 1 2 3; do
-        cmd_ui find "Okay" 2>/dev/null | tr -d "\r" | grep -q '^[0-9]*,[0-9]*' || return 0
-        cmd_ui click "Okay" >/dev/null 2>&1; sleep 1
+    local i label found
+    for i in 1 2 3 4; do
+        found=""
+        for label in "Okay" "Skip tutorial"; do
+            if cmd_ui find "$label" 2>/dev/null | tr -d "\r" | grep -q '^[0-9]*,[0-9]*'; then
+                cmd_ui click "$label" >/dev/null 2>&1; sleep 1; found=1; break
+            fi
+        done
+        [ -n "$found" ] || return 0
     done
 }
 
@@ -484,6 +493,17 @@ cmd_survey() {
     open_site_screen "$world"
     cmd_cmd cx-embark survey $filter 2>/dev/null | tr -d "\r"
     leave_site_screen || log "could not get back to the title after the survey (state: $(ui_state))"
+}
+
+# facts [save]   load <save> if given, print the fort's site record, tiles,
+# edge ownership, features, population counts per layer, and clock, then leave.
+cmd_facts() {
+    local save="${1:-}"
+    if [ -n "$save" ]; then cmd_load "$save" >/dev/null 2>&1 || err "could not load $save"; fi
+    [ "$(ui_get map)" = "true" ] || err "no map loaded"
+    dismiss_okay
+    "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --timeout 120 --cmd cx-embark facts 2>&1 | tr -d "\r"
+    [ -n "$save" ] && cmd_title >/dev/null 2>&1
 }
 
 # embark <world-folder> <region-x> <region-y> <save-name> [off-x=6] [off-y=6]
@@ -794,6 +814,7 @@ case "${1:-status}" in
     popups)    shift; cmd_popups "$@" ;;
     genworld)  shift; cmd_genworld "$@" ;;
     survey)    shift; cmd_survey "$@" ;;
+    facts)     shift; cmd_facts "$@" ;;
     embark)    shift; cmd_embark "$@" ;;
     fps)       shift; cmd_fps "$@" ;;
     state)     cmd_state ;;
