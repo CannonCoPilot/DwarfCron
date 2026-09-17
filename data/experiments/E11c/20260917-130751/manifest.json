@@ -1,0 +1,171 @@
+{
+  "id": "E11c",
+  "title": "Clean hostility-lever test. Same pairing as E11b (small prey first, cougar/dingo/wolf piggy-backed on) but the whole surface is released at every cycle so the gate can never stay shut, predators are gathered beside prey AND the lever is reapplied every 1,500 ticks so every predator that ever arrives gets it. Arms: no lever, OPPOSED_TO_LIFE, CRAZED, rel_map PREDATOR_OR_PREY; 3 replicates each; 15,000 ticks after the predators open.",
+  "fork": "E11b follow-up: in 3 of 8 E11b replicates no predator arrived because stragglers of a double wave stayed held (7 units flag_src=1 for the whole run) and the lever fired once, on nobody. Do the levers add kills over proximity alone?",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 45000,
+  "combat": true,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "proximity is the whole story",
+      "expects": "all four arms kill at similar rates; rel reads PREDATOR_OR_PREY/DANGEROUS_ANIMAL in every arm"
+    },
+    {
+      "model": "levers raise aggression",
+      "expects": "crazed and/or opposed arms kill more, faster, or attack prey the no-lever arm ignores (emus)"
+    },
+    {
+      "model": "the cache write is inert",
+      "expects": "relmap arm matches the no-lever arm and DF overwrites the written value by the next rel read"
+    }
+  ],
+  "kill_criterion": "a lever arm that kills where the no-lever arm does not, with the same species pairing, is the positive; equal kills across arms closes the levers as redundant",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "drop a replicate whose first wave is not a small-prey species"
+  ],
+  "arms": [
+    {
+      "name": "size",
+      "replicates": 3,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))"
+      ],
+      "after_on_arrival": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:rel"
+        ]
+      },
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:rel"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 15000
+      }
+    },
+    {
+      "name": "opposed",
+      "replicates": 3,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))"
+      ],
+      "after_on_arrival": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever opposed",
+          "probe:rel"
+        ]
+      },
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever opposed",
+          "probe:rel"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 15000
+      }
+    },
+    {
+      "name": "crazed",
+      "replicates": 3,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))"
+      ],
+      "after_on_arrival": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever crazed",
+          "probe:rel"
+        ]
+      },
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever crazed",
+          "probe:rel"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 15000
+      }
+    },
+    {
+      "name": "relmap",
+      "replicates": 3,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))"
+      ],
+      "after_on_arrival": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel"
+        ]
+      },
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 15000
+      }
+    }
+  ]
+}
