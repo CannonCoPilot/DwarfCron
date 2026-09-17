@@ -8,7 +8,8 @@
 --   cx-probe clock                 year, tick, season, paused, fps caps and achieved, unit and popup counts
 --   cx-probe units                 one row per wild unit in world.units.all (dead and departed included,
 --                                  flagged), with its six-field population reference and countdowns
---   cx-probe pops [all]            one row per Animal entry on the site's tiles (the draw pool); `all` = every entry
+--   cx-probe pops [all]            one row per Animal entry on the site's tiles and their one-tile ring (the draw
+--                                  pool incl. block-biome neighbours); `all` = every entry
 --   cx-probe tool                  seasonal-wildlife's persisted config and whether its tick is scheduled
 --   cx-probe provenance            DF/DFHack versions, world, site, region tiles, seed if readable
 --   cx-probe release [surface|all|<id> ...]
@@ -123,7 +124,9 @@ elseif cmd == 'pops' then
         'discovered', 'extinct', 'already_removed', 'need_offload')
     for i, p in ipairs(df.global.world.populations.all) do
         local r = p.population
-        local on_site = r.region_x >= x0 and r.region_x <= x1 and r.region_y >= y0 and r.region_y <= y1
+        -- one-tile ring, not just the site tiles: E9a/E2 showed the block-biome neighbour
+        -- (28,19 on CTRL) is a draw source too, and F15's big raven entry lives there
+        local on_site = r.region_x >= x0 - 1 and r.region_x <= x1 + 1 and r.region_y >= y0 - 1 and r.region_y <= y1 + 1
         if all or (on_site and p.type == df.world_population_type.Animal) then
             local sp = p.type == df.world_population_type.Animal and tok(p.race) or (df.world_population_type[p.type] .. ':' .. tostring(p.race))
             row(i, sp, df.world_population_type[p.type], layer_of(r), ref6(r),
