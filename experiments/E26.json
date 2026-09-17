@@ -1,0 +1,57 @@
+{
+ "id": "E26",
+ "title": "Do river and lake FEATURE populations wave during play? E5 forced them for 20,000 ticks and drew none, yet every river/lake save holds feature-ref units spawned at embark (platypus on RIVER3; stingray, alligators, hippos on LAKE). Natural play, no manipulation, a full year on RIVER3 and a season on LAKE, plus a LAKE season with the surface deliberately held shut so only a feature gate could open.",
+ "fork": "F5 reopened: feature entries spawn at embark; do they wave again, on what gate, and what do they do on the map",
+ "fort": "RIVER3",
+ "backup": "RIVER3.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 100800,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "predictions": [
+  {
+   "model": "feature entries wave in play on their own gate/timer",
+   "expects": "arm natural: at least one arrival with feature_idx >= 0 in a year on RIVER3; feature entries debited"
+  },
+  {
+   "model": "feature entries spawn only at embark (or map load)",
+   "expects": "no feature-ref arrival in any arm; the embark units age out and are never replaced"
+  },
+  {
+   "model": "feature waves share the surface gate",
+   "expects": "arm surface_held (surface units kept held): no feature arrival; arm natural: feature arrivals only in gaps between surface groups"
+  }
+ ],
+ "kill_criterion": "one feature-ref arrival during play settles existence; its timing against the surface hold decides the gate",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "natural",
+   "replicates": 1,
+   "pre": [],
+   "tick_budget": 403200
+  },
+  {
+   "name": "natural_lake",
+   "fort": "LAKE",
+   "backup": "LAKE.preverify",
+   "replicates": 1,
+   "pre": []
+  },
+  {
+   "name": "surface_held_lake",
+   "fort": "LAKE",
+   "backup": "LAKE.preverify",
+   "replicates": 1,
+   "pre": [
+    "local n=0 for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and u.animal.population.feature_idx<0 and u.animal.population.cave_id<0 then u.animal.leave_countdown=400000; n=n+1 end end print('surface residents pinned: '..n)"
+   ]
+  }
+ ]
+}

@@ -237,7 +237,8 @@ def stop_rule_fires(rule: dict | None, stats: dict) -> str | None:
 
 def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: str, prov: dict) -> dict:
     ctx = {"run": run_id, "arm": arm["name"], "rep": rep}
-    fort, backup = man["fort"], man["backup"]
+    # an arm may name its own fort (E26 runs RIVER3 and LAKE arms in one manifest)
+    fort, backup = arm.get("fort", man["fort"]), arm.get("backup", man["backup"])
     sample_every = int(arm.get("sample_every", man.get("sample_every", 200)))
     budget = int(arm.get("tick_budget", man.get("tick_budget", 20000)))
     fps = int(man.get("fps", 1000))
