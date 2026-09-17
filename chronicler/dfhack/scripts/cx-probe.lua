@@ -67,10 +67,10 @@ local function b(v) return v and 1 or 0 end
 
 local function row(...) print(table.concat({...}, '\t')) end
 
-local function is_pred(u)
+local function is_pred(u)  -- SURFACE large predators only: cavern troglodytes and cave crocodiles carry the flag too
     local cr = df.creature_raw.find(u.race)
     local c = cr and cr.caste[u.caste]
-    return c and c.flags.LARGE_PREDATOR or false
+    return (c and c.flags.LARGE_PREDATOR and layer_of(u.animal.population) == 'surface') or false
 end
 local function wild_alive()
     local t = {}
