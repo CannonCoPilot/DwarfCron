@@ -1,0 +1,53 @@
+08:00:28 run E14-OCEAN 20260917-080028: Aquatic surface entries on OCEAN: open only fish, sharks, whales, otters, crocodiles and kin (surface tier) on the site and neighbour tiles, close every land entry, release all holds, release every 1,500 ticks, 20,000 ticks; do aquatic units arrive, and where
+08:00:28   [rig] DF already running (pid 68651), port 5555
+08:00:28 == E14-OCEAN arm=aquatic rep=1 fort=OCEAN budget=20000 every=200
+08:00:28   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+08:00:28   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+08:01:12   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:01:12   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:01:12   [rig] drained 0 queued popup(s)
+08:01:13   baseline: 12 wild units on map, 165 pool entries, tick 16948 year 5
+08:01:14   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c)) -> aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+08:01:14   manipulation: probe:release all -> released 14 unit(s) [all]
+08:01:14   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+08:01:30   manipulation: probe:release all -> released 28 unit(s) [all]
+08:01:39   manipulation: probe:release all -> released 16 unit(s) [all]
+08:01:45   +  4176 ticks | wild  71 | arrivals  70 | departures   0 | deaths 11 | 204 t/s
+08:01:49   manipulation: probe:release all -> released 28 unit(s) [all]
+08:01:58   +  6064 ticks | wild  92 | arrivals  93 | departures   0 | deaths 13 | 172 t/s
+08:02:00   manipulation: probe:release all -> released 30 unit(s) [all]
+08:02:10   manipulation: probe:release all -> released 20 unit(s) [all]
+08:02:21   manipulation: probe:release all -> released 6 unit(s) [all]
+08:02:25   + 10117 ticks | wild 131 | arrivals 140 | departures   0 | deaths 21 | 158 t/s
+08:02:34   manipulation: probe:release all -> released 13 unit(s) [all]
+08:02:45   manipulation: probe:release all -> released 25 unit(s) [all]
+08:02:53   + 14185 ticks | wild 178 | arrivals 188 | departures   0 | deaths 22 | 166 t/s
+08:02:55   manipulation: probe:release all -> released 27 unit(s) [all]
+08:03:09   manipulation: probe:release all -> released 19 unit(s) [all]
+08:03:09   + 16123 ticks | wild 202 | arrivals 221 | departures   0 | deaths 31 | 142 t/s
+08:03:22   manipulation: probe:release all -> released 9 unit(s) [all]
+08:03:24   + 18044 ticks | wild 205 | arrivals 238 | departures   0 | deaths 45 | 173 t/s
+08:03:32   manipulation: probe:release all -> released 14 unit(s) [all]
+08:03:39   + 20164 ticks | wild 217 | arrivals 254 | departures   0 | deaths 49 | 155 t/s
+08:03:48   [rig] back at the title screen
+08:03:48   done: {"arm": "aquatic", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 254, "departures": 0, "deaths": 49, "ticks": 20164, "wall_s": 122.6, "stop": null, "ticks_per_s": 164.4, "save_untouched": true}
+08:03:48 == E14-OCEAN arm=aquatic rep=2 fort=OCEAN budget=20000 every=200
+08:03:48   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+08:03:48   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+08:04:35   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+08:04:35   [rig] loaded after 18s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+08:04:35   [rig] drained 0 queued popup(s)
+08:04:37   baseline: 12 wild units on map, 165 pool entries, tick 16948 year 5
+08:04:38   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c)) -> aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+08:04:38   manipulation: probe:release all -> released 14 unit(s) [all]
+08:04:38   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+08:04:56   manipulation: probe:release all -> released 30 unit(s) [all]
+08:05:00   +  2152 ticks | wild  52 | arrivals  40 | departures   0 | deaths  0 | 145 t/s
+08:05:08   manipulation: probe:release all -> released 27 unit(s) [all]
+08:05:15   +  4086 ticks | wild  76 | arrivals  65 | departures   0 | deaths  1 | 160 t/s
+08:05:22   manipulation: probe:release all -> released 18 unit(s) [all]
+08:05:31   +  6061 ticks | wild  99 | arrivals  89 | departures   0 | deaths  2 | 124 t/s
+08:05:35   manipulation: probe:release all -> released 12 unit(s) [all]
+08:05:49   manipulation: probe:release all -> released 13 unit(s) [all]
+08:06:02   manipulation: probe:release all -> released 29 unit(s) [all]
+08:06:05   + 10012 ticks | wild 133 | arrivals 126 | departures   0 | deaths  5 | 135 t/s

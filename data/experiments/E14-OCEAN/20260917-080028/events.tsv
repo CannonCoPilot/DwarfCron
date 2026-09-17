@@ -1,0 +1,777 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260917-080028	aquatic	1	16948	2032948	baseline	wild_present	12
+20260917-080028	aquatic	1	16948	2032948	present_at_start	162	TROLL ref6=3,31,-1,2,-1,26 countdown=20176 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	163	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=23438 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	164	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=26233 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	165	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=20737 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	166	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=23517 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	167	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=22011 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	168	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=24557 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	169	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=29111 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	170	JABBERER ref6=4,31,-1,20,-1,21 countdown=23165 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	181	CROCODILE_CAVE ref6=4,30,-1,2,-1,9 countdown=29107 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	191	BIRD_OSPREY ref6=4,31,-1,-1,-1,52 countdown=29212 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	present_at_start	192	REACHER ref6=3,31,-1,20,-1,27 countdown=23612 flag_src=1
+20260917-080028	aquatic	1	16948	2032948	manipulation	local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c))	aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+20260917-080028	aquatic	1	16948	2032948	manipulation	probe:release all	released 14 unit(s) [all]
+20260917-080028	aquatic	1	17250	2033250	arrival	193	WEASEL caste=MALE ref6=4,31,-1,-1,-1,51 layer=surface countdown=27736 vanish=0 flag_src=0 flag_nf=0 pos=179,81,91 listed_at=2032948
+20260917-080028	aquatic	1	17250	2033250	arrival	194	OLM_GIANT caste=FEMALE ref6=4,30,-1,11,-1,12 layer=cavern countdown=27393 vanish=0 flag_src=0 flag_nf=0 pos=190,152,38 listed_at=2032948
+20260917-080028	aquatic	1	17543	2033543	arrival	195	OLM_GIANT caste=FEMALE ref6=3,31,-1,2,-1,10 layer=cavern countdown=26621 vanish=0 flag_src=1 flag_nf=0 pos=8,190,55 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	196	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=28535 vanish=0 flag_src=1 flag_nf=0 pos=18,163,29 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	197	PLUMP_HELMET_MAN caste=MALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=22610 vanish=0 flag_src=1 flag_nf=0 pos=7,172,29 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	198	PLUMP_HELMET_MAN caste=MALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=21979 vanish=0 flag_src=1 flag_nf=0 pos=6,169,29 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	199	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=25428 vanish=0 flag_src=1 flag_nf=0 pos=5,171,29 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	200	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=22371 vanish=0 flag_src=1 flag_nf=0 pos=2,168,29 listed_at=2033543
+20260917-080028	aquatic	1	17948	2033948	arrival	201	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=3,31,-1,2,-1,18 layer=cavern countdown=23479 vanish=0 flag_src=1 flag_nf=0 pos=157,184,62 listed_at=2033948
+20260917-080028	aquatic	1	17948	2033948	arrival	202	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=22264 vanish=0 flag_src=1 flag_nf=0 pos=177,3,3 listed_at=2033948
+20260917-080028	aquatic	1	17948	2033948	arrival	203	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=23870 vanish=0 flag_src=1 flag_nf=0 pos=187,0,0 listed_at=2033948
+20260917-080028	aquatic	1	17948	2033948	arrival	204	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=23407 vanish=0 flag_src=1 flag_nf=0 pos=184,0,0 listed_at=2033948
+20260917-080028	aquatic	1	18247	2034247	arrival	205	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=27057 vanish=0 flag_src=1 flag_nf=0 pos=76,185,36 listed_at=2034247
+20260917-080028	aquatic	1	18247	2034247	arrival	206	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=29218 vanish=0 flag_src=1 flag_nf=0 pos=70,190,36 listed_at=2034247
+20260917-080028	aquatic	1	18247	2034247	arrival	207	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22666 vanish=0 flag_src=1 flag_nf=0 pos=69,191,36 listed_at=2034247
+20260917-080028	aquatic	1	18480	2034480	manipulation	probe:release all	released 28 unit(s) [all]
+20260917-080028	aquatic	1	18480	2034480	every_applied	1	probe:release all
+20260917-080028	aquatic	1	18833	2034833	arrival	208	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25039 vanish=0 flag_src=0 flag_nf=0 pos=69,191,36 listed_at=2034247
+20260917-080028	aquatic	1	18833	2034833	arrival	209	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=29493 vanish=0 flag_src=0 flag_nf=0 pos=67,191,36 listed_at=2034247
+20260917-080028	aquatic	1	18833	2034833	arrival	210	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21275 vanish=0 flag_src=0 flag_nf=0 pos=70,191,36 listed_at=2034247
+20260917-080028	aquatic	1	18833	2034833	arrival	211	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=29768 vanish=0 flag_src=0 flag_nf=0 pos=71,191,36 listed_at=2034247
+20260917-080028	aquatic	1	18833	2034833	arrival	223	POND_GRABBER caste=DEFAULT ref6=4,30,-1,2,-1,8 layer=cavern countdown=21936 vanish=0 flag_src=1 flag_nf=0 pos=0,122,53 listed_at=2034833
+20260917-080028	aquatic	1	18833	2034833	arrival	224	POND_GRABBER caste=DEFAULT ref6=4,30,-1,2,-1,8 layer=cavern countdown=26571 vanish=0 flag_src=1 flag_nf=0 pos=0,117,53 listed_at=2034833
+20260917-080028	aquatic	1	18833	2034833	arrival	226	OLM_GIANT caste=MALE ref6=4,30,-1,11,-1,12 layer=cavern countdown=20381 vanish=0 flag_src=1 flag_nf=0 pos=0,13,35 listed_at=2034833
+20260917-080028	aquatic	1	19148	2035148	arrival	212	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=24042 vanish=0 flag_src=0 flag_nf=0 pos=69,191,36 listed_at=2034247
+20260917-080028	aquatic	1	19148	2035148	arrival	213	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23933 vanish=0 flag_src=0 flag_nf=0 pos=70,191,36 listed_at=2034247
+20260917-080028	aquatic	1	19148	2035148	arrival	225	POND_GRABBER caste=DEFAULT ref6=4,30,-1,2,-1,8 layer=cavern countdown=27041 vanish=0 flag_src=1 flag_nf=0 pos=0,117,53 listed_at=2034833
+20260917-080028	aquatic	1	19473	2035473	arrival	214	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25839 vanish=0 flag_src=0 flag_nf=0 pos=69,191,36 listed_at=2034247
+20260917-080028	aquatic	1	19473	2035473	arrival	215	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=27782 vanish=0 flag_src=0 flag_nf=0 pos=71,191,36 listed_at=2034247
+20260917-080028	aquatic	1	19473	2035473	arrival	227	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=23049 vanish=0 flag_src=1 flag_nf=0 pos=68,191,36 listed_at=2035473
+20260917-080028	aquatic	1	19473	2035473	arrival	228	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=22016 vanish=0 flag_src=1 flag_nf=0 pos=66,190,36 listed_at=2035473
+20260917-080028	aquatic	1	19473	2035473	arrival	229	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=28798 vanish=0 flag_src=1 flag_nf=0 pos=73,190,36 listed_at=2035473
+20260917-080028	aquatic	1	19473	2035473	arrival	235	JABBERER caste=FEMALE ref6=4,30,-1,20,-1,21 layer=cavern countdown=25751 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2035473
+20260917-080028	aquatic	1	19473	2035473	death	213	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23933 last_flag_src=0 arrived_at=2035148
+20260917-080028	aquatic	1	19777	2035777	arrival	217	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=26256 vanish=0 flag_src=0 flag_nf=0 pos=70,190,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	218	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23281 vanish=0 flag_src=0 flag_nf=0 pos=66,188,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	219	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=27080 vanish=0 flag_src=0 flag_nf=0 pos=69,190,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	220	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=20863 vanish=0 flag_src=0 flag_nf=0 pos=73,173,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	221	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21625 vanish=0 flag_src=0 flag_nf=0 pos=70,190,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	222	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23654 vanish=0 flag_src=0 flag_nf=0 pos=71,190,36 listed_at=2034247
+20260917-080028	aquatic	1	19777	2035777	arrival	230	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=24699 vanish=0 flag_src=1 flag_nf=0 pos=65,188,36 listed_at=2035473
+20260917-080028	aquatic	1	19777	2035777	arrival	231	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=25582 vanish=0 flag_src=1 flag_nf=0 pos=71,190,36 listed_at=2035473
+20260917-080028	aquatic	1	19777	2035777	arrival	232	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=20252 vanish=0 flag_src=1 flag_nf=0 pos=71,191,36 listed_at=2035473
+20260917-080028	aquatic	1	19777	2035777	arrival	233	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=27612 vanish=0 flag_src=1 flag_nf=0 pos=70,191,36 listed_at=2035473
+20260917-080028	aquatic	1	19777	2035777	arrival	234	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=28623 vanish=0 flag_src=1 flag_nf=0 pos=67,191,36 listed_at=2035473
+20260917-080028	aquatic	1	19777	2035777	arrival	236	DEMON_15 caste=MALE ref6=5,30,-1,38,-1,0 layer=cavern countdown=24307 vanish=0 flag_src=1 flag_nf=0 pos=186,169,3 listed_at=2035777
+20260917-080028	aquatic	1	19777	2035777	arrival	237	DEMON_15 caste=MALE ref6=5,30,-1,38,-1,0 layer=cavern countdown=24998 vanish=0 flag_src=1 flag_nf=0 pos=188,168,3 listed_at=2035777
+20260917-080028	aquatic	1	19777	2035777	arrival	238	DEMON_15 caste=FEMALE ref6=5,30,-1,38,-1,0 layer=cavern countdown=19815 vanish=0 flag_src=1 flag_nf=0 pos=191,163,3 listed_at=2035777
+20260917-080028	aquatic	1	19777	2035777	death	210	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=20635 last_flag_src=0 arrived_at=2034833
+20260917-080028	aquatic	1	19777	2035777	death	211	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=29128 last_flag_src=0 arrived_at=2034833
+20260917-080028	aquatic	1	19777	2035777	death	212	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23717 last_flag_src=0 arrived_at=2035148
+20260917-080028	aquatic	1	19777	2035777	death	214	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=25839 last_flag_src=0 arrived_at=2035473
+20260917-080028	aquatic	1	20117	2036117	manipulation	probe:release all	released 16 unit(s) [all]
+20260917-080028	aquatic	1	20117	2036117	every_applied	2	probe:release all
+20260917-080028	aquatic	1	20117	2036117	death	217	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=26256 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20117	2036117	death	218	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23281 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20117	2036117	death	219	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=27080 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20117	2036117	death	221	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=21625 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20117	2036117	death	222	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23654 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20419	2036419	arrival	239	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=24624 vanish=0 flag_src=1 flag_nf=0 pos=182,83,56 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	240	HUNGRY_HEAD caste=MALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=26401 vanish=0 flag_src=1 flag_nf=0 pos=4,18,32 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	241	HUNGRY_HEAD caste=FEMALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=25432 vanish=0 flag_src=1 flag_nf=0 pos=0,20,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	242	HUNGRY_HEAD caste=FEMALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=28317 vanish=0 flag_src=1 flag_nf=0 pos=0,19,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	243	HUNGRY_HEAD caste=MALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=28678 vanish=0 flag_src=1 flag_nf=0 pos=0,19,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	244	HUNGRY_HEAD caste=FEMALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=28187 vanish=0 flag_src=1 flag_nf=0 pos=0,21,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	245	HUNGRY_HEAD caste=FEMALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=22239 vanish=0 flag_src=1 flag_nf=0 pos=0,14,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	246	HUNGRY_HEAD caste=MALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=22452 vanish=0 flag_src=1 flag_nf=0 pos=0,14,29 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	249	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=27179 vanish=0 flag_src=1 flag_nf=0 pos=89,189,1 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	250	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=26340 vanish=0 flag_src=1 flag_nf=0 pos=95,184,2 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	arrival	251	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=24809 vanish=0 flag_src=1 flag_nf=0 pos=0,155,55 listed_at=2036419
+20260917-080028	aquatic	1	20419	2036419	death	220	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=20523 last_flag_src=0 arrived_at=2035777
+20260917-080028	aquatic	1	20748	2036748	arrival	252	TROLL caste=MALE ref6=4,30,-1,11,-1,31 layer=cavern countdown=24575 vanish=0 flag_src=1 flag_nf=0 pos=10,0,38 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	247	HUNGRY_HEAD caste=MALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=23608 vanish=0 flag_src=1 flag_nf=0 pos=0,14,29 listed_at=2036419
+20260917-080028	aquatic	1	21124	2037124	arrival	253	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=25809 vanish=0 flag_src=1 flag_nf=0 pos=177,37,36 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	254	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=27090 vanish=0 flag_src=1 flag_nf=0 pos=183,44,36 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	255	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=25449 vanish=0 flag_src=1 flag_nf=0 pos=184,44,36 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	256	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=26235 vanish=0 flag_src=1 flag_nf=0 pos=191,39,35 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	257	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=25996 vanish=0 flag_src=1 flag_nf=0 pos=191,41,35 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	258	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=27390 vanish=0 flag_src=1 flag_nf=0 pos=191,44,35 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	259	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=21742 vanish=0 flag_src=1 flag_nf=0 pos=189,44,35 listed_at=2036748
+20260917-080028	aquatic	1	21124	2037124	arrival	262	MAGMA_CRAB caste=MALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=27112 vanish=0 flag_src=1 flag_nf=0 pos=34,191,16 listed_at=2037124
+20260917-080028	aquatic	1	21124	2037124	arrival	263	MAGMA_CRAB caste=FEMALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=28447 vanish=0 flag_src=1 flag_nf=0 pos=32,191,16 listed_at=2037124
+20260917-080028	aquatic	1	21124	2037124	arrival	264	MAGMA_CRAB caste=MALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=24734 vanish=0 flag_src=1 flag_nf=0 pos=33,191,16 listed_at=2037124
+20260917-080028	aquatic	1	21124	2037124	arrival	265	MAGMA_CRAB caste=FEMALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=25697 vanish=0 flag_src=1 flag_nf=0 pos=30,191,16 listed_at=2037124
+20260917-080028	aquatic	1	21124	2037124	arrival	266	MAGMA_CRAB caste=FEMALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=29791 vanish=0 flag_src=1 flag_nf=0 pos=28,191,16 listed_at=2037124
+20260917-080028	aquatic	1	21462	2037462	arrival	248	HUNGRY_HEAD caste=MALE ref6=4,30,-1,20,-1,20 layer=cavern countdown=26307 vanish=0 flag_src=1 flag_nf=0 pos=4,18,33 listed_at=2036419
+20260917-080028	aquatic	1	21462	2037462	arrival	260	TROGLODYTE caste=MALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=22966 vanish=0 flag_src=1 flag_nf=0 pos=191,41,35 listed_at=2036748
+20260917-080028	aquatic	1	21462	2037462	arrival	261	TROGLODYTE caste=FEMALE ref6=4,30,-1,11,-1,26 layer=cavern countdown=20631 vanish=0 flag_src=1 flag_nf=0 pos=188,44,35 listed_at=2036748
+20260917-080028	aquatic	1	21724	2037724	manipulation	probe:release all	released 28 unit(s) [all]
+20260917-080028	aquatic	1	21724	2037724	every_applied	3	probe:release all
+20260917-080028	aquatic	1	22013	2038013	arrival	267	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=21541 vanish=0 flag_src=1 flag_nf=0 pos=62,6,0 listed_at=2038013
+20260917-080028	aquatic	1	22013	2038013	arrival	268	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=19934 vanish=0 flag_src=1 flag_nf=0 pos=72,0,2 listed_at=2038013
+20260917-080028	aquatic	1	22013	2038013	arrival	269	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=27040 vanish=0 flag_src=1 flag_nf=0 pos=70,0,2 listed_at=2038013
+20260917-080028	aquatic	1	22013	2038013	arrival	270	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=24147 vanish=0 flag_src=1 flag_nf=0 pos=73,0,2 listed_at=2038013
+20260917-080028	aquatic	1	22013	2038013	arrival	271	TROLL caste=MALE ref6=4,30,-1,11,-1,31 layer=cavern countdown=27716 vanish=0 flag_src=1 flag_nf=0 pos=15,0,38 listed_at=2038013
+20260917-080028	aquatic	1	22381	2038381	arrival	272	CROCODILE_CAVE caste=MALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=28774 vanish=0 flag_src=1 flag_nf=0 pos=191,122,57 listed_at=2038381
+20260917-080028	aquatic	1	22381	2038381	arrival	273	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=27983 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2038381
+20260917-080028	aquatic	1	22381	2038381	arrival	274	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=23094 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2038381
+20260917-080028	aquatic	1	22707	2038707	arrival	275	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29484 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2038381
+20260917-080028	aquatic	1	22707	2038707	arrival	288	TROLL caste=FEMALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=24145 vanish=0 flag_src=1 flag_nf=0 pos=180,149,61 listed_at=2038707
+20260917-080028	aquatic	1	22707	2038707	arrival	289	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=26358 vanish=0 flag_src=1 flag_nf=0 pos=169,0,35 listed_at=2038707
+20260917-080028	aquatic	1	22707	2038707	arrival	290	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21405 vanish=0 flag_src=1 flag_nf=0 pos=167,0,35 listed_at=2038707
+20260917-080028	aquatic	1	23012	2039012	arrival	276	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=21084 vanish=0 flag_src=1 flag_nf=0 pos=17,7,29 listed_at=2038381
+20260917-080028	aquatic	1	23012	2039012	arrival	277	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=22618 vanish=0 flag_src=1 flag_nf=0 pos=12,6,29 listed_at=2038381
+20260917-080028	aquatic	1	23012	2039012	arrival	278	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29381 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23012	2039012	arrival	279	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=28264 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23012	2039012	arrival	293	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23811 vanish=0 flag_src=1 flag_nf=0 pos=168,6,35 listed_at=2038707
+20260917-080028	aquatic	1	23012	2039012	arrival	294	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23859 vanish=0 flag_src=1 flag_nf=0 pos=169,1,35 listed_at=2038707
+20260917-080028	aquatic	1	23012	2039012	arrival	295	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22964 vanish=0 flag_src=1 flag_nf=0 pos=165,3,35 listed_at=2038707
+20260917-080028	aquatic	1	23012	2039012	arrival	296	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=28157 vanish=0 flag_src=1 flag_nf=0 pos=173,2,35 listed_at=2038707
+20260917-080028	aquatic	1	23012	2039012	death	289	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=26358 last_flag_src=1 arrived_at=2038707
+20260917-080028	aquatic	1	23012	2039012	death	290	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=21405 last_flag_src=1 arrived_at=2038707
+20260917-080028	aquatic	1	23270	2039270	arrival	280	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29043 vanish=0 flag_src=1 flag_nf=0 pos=11,2,29 listed_at=2038381
+20260917-080028	aquatic	1	23270	2039270	arrival	281	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=27901 vanish=0 flag_src=1 flag_nf=0 pos=10,2,29 listed_at=2038381
+20260917-080028	aquatic	1	23270	2039270	arrival	282	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=28845 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23270	2039270	arrival	283	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=24784 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23270	2039270	arrival	297	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=20155 vanish=0 flag_src=1 flag_nf=0 pos=169,2,35 listed_at=2038707
+20260917-080028	aquatic	1	23270	2039270	arrival	300	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22080 vanish=0 flag_src=1 flag_nf=0 pos=158,10,35 listed_at=2038707
+20260917-080028	aquatic	1	23270	2039270	arrival	301	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23750 vanish=0 flag_src=1 flag_nf=0 pos=171,0,35 listed_at=2038707
+20260917-080028	aquatic	1	23270	2039270	arrival	302	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=28006 vanish=0 flag_src=1 flag_nf=0 pos=172,0,35 listed_at=2038707
+20260917-080028	aquatic	1	23270	2039270	manipulation	probe:release all	released 30 unit(s) [all]
+20260917-080028	aquatic	1	23270	2039270	every_applied	4	probe:release all
+20260917-080028	aquatic	1	23270	2039270	death	294	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23859 last_flag_src=1 arrived_at=2039012
+20260917-080028	aquatic	1	23270	2039270	death	296	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=28157 last_flag_src=1 arrived_at=2039012
+20260917-080028	aquatic	1	23599	2039599	arrival	284	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=26157 vanish=0 flag_src=0 flag_nf=0 pos=11,2,30 listed_at=2038381
+20260917-080028	aquatic	1	23599	2039599	arrival	285	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=27350 vanish=0 flag_src=0 flag_nf=0 pos=13,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23599	2039599	arrival	286	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=22710 vanish=0 flag_src=0 flag_nf=0 pos=11,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23599	2039599	arrival	287	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=21112 vanish=0 flag_src=0 flag_nf=0 pos=12,0,29 listed_at=2038381
+20260917-080028	aquatic	1	23599	2039599	arrival	303	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22463 vanish=0 flag_src=0 flag_nf=0 pos=175,6,35 listed_at=2038707
+20260917-080028	aquatic	1	23599	2039599	arrival	304	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=24588 vanish=0 flag_src=0 flag_nf=0 pos=171,0,35 listed_at=2038707
+20260917-080028	aquatic	1	23599	2039599	arrival	305	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=22602 vanish=0 flag_src=1 flag_nf=0 pos=183,5,59 listed_at=2039599
+20260917-080028	aquatic	1	23599	2039599	arrival	306	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=25118 vanish=0 flag_src=1 flag_nf=0 pos=0,120,53 listed_at=2039599
+20260917-080028	aquatic	1	23599	2039599	death	293	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23553 last_flag_src=1 arrived_at=2039012
+20260917-080028	aquatic	1	23599	2039599	death	297	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=20155 last_flag_src=1 arrived_at=2039270
+20260917-080028	aquatic	1	23599	2039599	death	301	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=23750 last_flag_src=1 arrived_at=2039270
+20260917-080028	aquatic	1	23599	2039599	death	302	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=28006 last_flag_src=1 arrived_at=2039270
+20260917-080028	aquatic	1	23896	2039896	arrival	307	DEMON_15 caste=MALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=25741 vanish=0 flag_src=1 flag_nf=0 pos=103,190,4 listed_at=2039896
+20260917-080028	aquatic	1	23896	2039896	arrival	308	DEMON_15 caste=FEMALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=28937 vanish=0 flag_src=1 flag_nf=0 pos=106,191,4 listed_at=2039896
+20260917-080028	aquatic	1	23896	2039896	death	280	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=28714 last_flag_src=0 arrived_at=2039270
+20260917-080028	aquatic	1	24252	2040252	arrival	309	DEMON_15 caste=MALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=26456 vanish=0 flag_src=1 flag_nf=0 pos=107,186,4 listed_at=2039896
+20260917-080028	aquatic	1	24252	2040252	arrival	310	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24246 vanish=0 flag_src=1 flag_nf=0 pos=165,9,29 listed_at=2040252
+20260917-080028	aquatic	1	24252	2040252	arrival	311	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24941 vanish=0 flag_src=1 flag_nf=0 pos=165,5,29 listed_at=2040252
+20260917-080028	aquatic	1	24252	2040252	arrival	312	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23669 vanish=0 flag_src=1 flag_nf=0 pos=162,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24252	2040252	arrival	313	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=27690 vanish=0 flag_src=1 flag_nf=0 pos=163,2,29 listed_at=2040252
+20260917-080028	aquatic	1	24252	2040252	death	295	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=22080 last_flag_src=0 arrived_at=2039012
+20260917-080028	aquatic	1	24588	2040588	arrival	314	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21659 vanish=0 flag_src=1 flag_nf=0 pos=164,6,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	315	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23475 vanish=0 flag_src=1 flag_nf=0 pos=164,5,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	316	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=27017 vanish=0 flag_src=1 flag_nf=0 pos=164,4,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	317	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24421 vanish=0 flag_src=1 flag_nf=0 pos=166,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	318	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25085 vanish=0 flag_src=1 flag_nf=0 pos=165,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	319	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=22536 vanish=0 flag_src=1 flag_nf=0 pos=167,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	320	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=27878 vanish=0 flag_src=1 flag_nf=0 pos=164,1,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	321	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21412 vanish=0 flag_src=1 flag_nf=0 pos=164,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24588	2040588	arrival	322	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25130 vanish=0 flag_src=1 flag_nf=0 pos=162,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24944	2040944	arrival	323	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=29412 vanish=0 flag_src=1 flag_nf=0 pos=164,0,29 listed_at=2040252
+20260917-080028	aquatic	1	24944	2040944	manipulation	probe:release all	released 20 unit(s) [all]
+20260917-080028	aquatic	1	24944	2040944	every_applied	5	probe:release all
+20260917-080028	aquatic	1	25267	2041267	arrival	324	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24949 vanish=0 flag_src=0 flag_nf=0 pos=162,0,29 listed_at=2040252
+20260917-080028	aquatic	1	25267	2041267	arrival	325	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=19959 vanish=0 flag_src=1 flag_nf=0 pos=10,4,1 listed_at=2041267
+20260917-080028	aquatic	1	25267	2041267	arrival	326	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=23483 vanish=0 flag_src=1 flag_nf=0 pos=6,0,0 listed_at=2041267
+20260917-080028	aquatic	1	25584	2041584	arrival	327	BLIND_CAVE_OGRE caste=FEMALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=28772 vanish=0 flag_src=1 flag_nf=0 pos=10,191,33 listed_at=2041584
+20260917-080028	aquatic	1	25584	2041584	arrival	328	BLIND_CAVE_OGRE caste=MALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=28167 vanish=0 flag_src=1 flag_nf=0 pos=12,191,33 listed_at=2041584
+20260917-080028	aquatic	1	25584	2041584	arrival	329	BLIND_CAVE_OGRE caste=FEMALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=21195 vanish=0 flag_src=1 flag_nf=0 pos=11,189,33 listed_at=2041584
+20260917-080028	aquatic	1	26502	2042502	arrival	330	CRAB caste=MALE ref6=3,29,-1,-1,-1,23 layer=surface countdown=23282 vanish=0 flag_src=1 flag_nf=1 pos=0,49,93 listed_at=2042502
+20260917-080028	aquatic	1	26502	2042502	manipulation	probe:release all	released 6 unit(s) [all]
+20260917-080028	aquatic	1	26502	2042502	every_applied	6	probe:release all
+20260917-080028	aquatic	1	26781	2042781	arrival	331	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=25514 vanish=0 flag_src=1 flag_nf=0 pos=184,159,60 listed_at=2042781
+20260917-080028	aquatic	1	26781	2042781	arrival	332	DEMON_19 caste=DEFAULT ref6=4,30,-1,38,-1,4 layer=cavern countdown=21801 vanish=0 flag_src=1 flag_nf=0 pos=5,167,0 listed_at=2042781
+20260917-080028	aquatic	1	26781	2042781	arrival	333	DEMON_19 caste=DEFAULT ref6=4,30,-1,38,-1,4 layer=cavern countdown=20724 vanish=0 flag_src=1 flag_nf=0 pos=0,158,0 listed_at=2042781
+20260917-080028	aquatic	1	26781	2042781	arrival	334	DEMON_19 caste=DEFAULT ref6=4,30,-1,38,-1,4 layer=cavern countdown=23407 vanish=0 flag_src=1 flag_nf=0 pos=0,159,0 listed_at=2042781
+20260917-080028	aquatic	1	26781	2042781	arrival	335	DEMON_19 caste=DEFAULT ref6=4,30,-1,38,-1,4 layer=cavern countdown=25025 vanish=0 flag_src=1 flag_nf=0 pos=0,161,0 listed_at=2042781
+20260917-080028	aquatic	1	27065	2043065	arrival	336	DEMON_19 caste=DEFAULT ref6=4,30,-1,38,-1,4 layer=cavern countdown=27518 vanish=0 flag_src=1 flag_nf=0 pos=0,161,0 listed_at=2042781
+20260917-080028	aquatic	1	27065	2043065	arrival	337	DEMON_13 caste=DEFAULT ref6=4,30,-1,38,-1,3 layer=cavern countdown=22508 vanish=0 flag_src=1 flag_nf=0 pos=12,139,0 listed_at=2042781
+20260917-080028	aquatic	1	27374	2043374	arrival	338	DEMON_13 caste=DEFAULT ref6=4,30,-1,38,-1,3 layer=cavern countdown=21911 vanish=0 flag_src=1 flag_nf=0 pos=0,158,0 listed_at=2042781
+20260917-080028	aquatic	1	27374	2043374	arrival	339	HELMET_SNAKE caste=MALE ref6=4,30,-1,11,-1,21 layer=cavern countdown=23822 vanish=0 flag_src=1 flag_nf=0 pos=73,188,36 listed_at=2043065
+20260917-080028	aquatic	1	27374	2043374	arrival	340	TOAD_GIANT_CAVE caste=FEMALE ref6=4,30,-1,2,-1,11 layer=cavern countdown=20002 vanish=0 flag_src=1 flag_nf=0 pos=189,151,60 listed_at=2043374
+20260917-080028	aquatic	1	27374	2043374	arrival	341	BLIND_CAVE_OGRE caste=MALE ref6=4,30,-1,20,-1,28 layer=cavern countdown=28655 vanish=0 flag_src=1 flag_nf=0 pos=3,118,25 listed_at=2043374
+20260917-080028	aquatic	1	27374	2043374	arrival	342	BLIND_CAVE_OGRE caste=FEMALE ref6=4,30,-1,20,-1,28 layer=cavern countdown=22397 vanish=0 flag_src=1 flag_nf=0 pos=0,120,25 listed_at=2043374
+20260917-080028	aquatic	1	27374	2043374	arrival	343	BLIND_CAVE_OGRE caste=MALE ref6=4,30,-1,20,-1,28 layer=cavern countdown=29489 vanish=0 flag_src=1 flag_nf=0 pos=0,122,25 listed_at=2043374
+20260917-080028	aquatic	1	27958	2043958	arrival	344	TROLL caste=FEMALE ref6=4,30,-1,11,-1,31 layer=cavern countdown=25537 vanish=0 flag_src=1 flag_nf=0 pos=68,191,36 listed_at=2043958
+20260917-080028	aquatic	1	27958	2043958	death	340	TOAD_GIANT_CAVE ref6=4,30,-1,2,-1,11 last_countdown=19712 last_flag_src=1 arrived_at=2043374
+20260917-080028	aquatic	1	28273	2044273	manipulation	probe:release all	released 13 unit(s) [all]
+20260917-080028	aquatic	1	28273	2044273	every_applied	7	probe:release all
+20260917-080028	aquatic	1	28584	2044584	arrival	345	DEMON_2 caste=DEFAULT ref6=4,31,-1,38,-1,6 layer=cavern countdown=24567 vanish=0 flag_src=1 flag_nf=0 pos=72,189,0 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	346	DEMON_2 caste=DEFAULT ref6=4,31,-1,38,-1,6 layer=cavern countdown=22231 vanish=0 flag_src=1 flag_nf=0 pos=66,191,0 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	347	DEMON_2 caste=DEFAULT ref6=4,31,-1,38,-1,6 layer=cavern countdown=21089 vanish=0 flag_src=1 flag_nf=0 pos=64,191,0 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	348	DEMON_2 caste=DEFAULT ref6=4,31,-1,38,-1,6 layer=cavern countdown=20583 vanish=0 flag_src=1 flag_nf=0 pos=67,191,0 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	350	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=22080 vanish=0 flag_src=1 flag_nf=0 pos=4,178,30 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	351	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25809 vanish=0 flag_src=1 flag_nf=0 pos=0,174,29 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	352	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24275 vanish=0 flag_src=1 flag_nf=0 pos=0,175,29 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	353	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24654 vanish=0 flag_src=1 flag_nf=0 pos=1,171,29 listed_at=2044584
+20260917-080028	aquatic	1	28584	2044584	arrival	354	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=22446 vanish=0 flag_src=1 flag_nf=0 pos=0,171,29 listed_at=2044584
+20260917-080028	aquatic	1	28930	2044930	arrival	355	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=29031 vanish=0 flag_src=1 flag_nf=0 pos=0,169,29 listed_at=2044584
+20260917-080028	aquatic	1	28930	2044930	arrival	368	TROLL caste=MALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=20341 vanish=0 flag_src=1 flag_nf=0 pos=191,155,60 listed_at=2044930
+20260917-080028	aquatic	1	29207	2045207	arrival	356	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24027 vanish=0 flag_src=1 flag_nf=0 pos=0,175,29 listed_at=2044584
+20260917-080028	aquatic	1	29207	2045207	arrival	357	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24056 vanish=0 flag_src=1 flag_nf=0 pos=0,170,29 listed_at=2044584
+20260917-080028	aquatic	1	29207	2045207	arrival	358	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24578 vanish=0 flag_src=1 flag_nf=0 pos=0,167,29 listed_at=2044584
+20260917-080028	aquatic	1	29207	2045207	arrival	359	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21377 vanish=0 flag_src=1 flag_nf=0 pos=0,172,29 listed_at=2044584
+20260917-080028	aquatic	1	29553	2045553	arrival	360	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=19980 vanish=0 flag_src=1 flag_nf=0 pos=0,167,29 listed_at=2044584
+20260917-080028	aquatic	1	29553	2045553	arrival	361	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=29492 vanish=0 flag_src=1 flag_nf=0 pos=0,168,29 listed_at=2044584
+20260917-080028	aquatic	1	29553	2045553	arrival	362	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24174 vanish=0 flag_src=1 flag_nf=0 pos=2,169,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	363	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25995 vanish=0 flag_src=1 flag_nf=0 pos=1,168,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	364	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21671 vanish=0 flag_src=1 flag_nf=0 pos=2,166,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	365	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25644 vanish=0 flag_src=1 flag_nf=0 pos=1,167,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	366	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23320 vanish=0 flag_src=1 flag_nf=0 pos=3,171,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	367	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=28856 vanish=0 flag_src=1 flag_nf=0 pos=0,171,29 listed_at=2044584
+20260917-080028	aquatic	1	29864	2045864	arrival	369	TROLL caste=MALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=25952 vanish=0 flag_src=1 flag_nf=0 pos=191,8,56 listed_at=2045864
+20260917-080028	aquatic	1	29864	2045864	manipulation	probe:release all	released 25 unit(s) [all]
+20260917-080028	aquatic	1	29864	2045864	every_applied	8	probe:release all
+20260917-080028	aquatic	1	30171	2046171	arrival	370	BLIND_CAVE_OGRE caste=FEMALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=19954 vanish=0 flag_src=1 flag_nf=0 pos=174,4,35 listed_at=2046171
+20260917-080028	aquatic	1	30171	2046171	arrival	371	BLIND_CAVE_OGRE caste=MALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=25854 vanish=0 flag_src=1 flag_nf=0 pos=172,0,35 listed_at=2046171
+20260917-080028	aquatic	1	30171	2046171	arrival	372	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=24053 vanish=0 flag_src=1 flag_nf=0 pos=9,191,33 listed_at=2046171
+20260917-080028	aquatic	1	30171	2046171	arrival	373	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=25032 vanish=0 flag_src=1 flag_nf=0 pos=12,191,33 listed_at=2046171
+20260917-080028	aquatic	1	30171	2046171	arrival	391	BLIND_CAVE_BEAR caste=FEMALE ref6=3,31,-1,2,-1,21 layer=cavern countdown=29793 vanish=0 flag_src=1 flag_nf=0 pos=159,191,58 listed_at=2046171
+20260917-080028	aquatic	1	30171	2046171	arrival	392	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=25026 vanish=0 flag_src=1 flag_nf=0 pos=191,111,57 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	374	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=29115 vanish=0 flag_src=1 flag_nf=0 pos=18,182,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	375	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=21132 vanish=0 flag_src=1 flag_nf=0 pos=12,187,32 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	376	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=29663 vanish=0 flag_src=1 flag_nf=0 pos=9,190,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	377	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=25191 vanish=0 flag_src=1 flag_nf=0 pos=10,190,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	378	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=25312 vanish=0 flag_src=1 flag_nf=0 pos=9,189,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	379	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=22573 vanish=0 flag_src=1 flag_nf=0 pos=10,189,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	380	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=28145 vanish=0 flag_src=1 flag_nf=0 pos=11,191,33 listed_at=2046171
+20260917-080028	aquatic	1	30845	2046845	arrival	393	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=24665 vanish=0 flag_src=1 flag_nf=0 pos=141,2,2 listed_at=2046845
+20260917-080028	aquatic	1	30845	2046845	arrival	394	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=22238 vanish=0 flag_src=1 flag_nf=0 pos=139,0,0 listed_at=2046845
+20260917-080028	aquatic	1	30845	2046845	arrival	395	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=27855 vanish=0 flag_src=1 flag_nf=0 pos=139,0,0 listed_at=2046845
+20260917-080028	aquatic	1	30845	2046845	arrival	396	DEMON_14 caste=DEFAULT ref6=4,29,-1,38,-1,5 layer=cavern countdown=19730 vanish=0 flag_src=1 flag_nf=0 pos=136,0,1 listed_at=2046845
+20260917-080028	aquatic	1	31469	2047469	manipulation	probe:release all	released 27 unit(s) [all]
+20260917-080028	aquatic	1	31469	2047469	every_applied	9	probe:release all
+20260917-080028	aquatic	1	31770	2047770	arrival	381	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=27162 vanish=0 flag_src=0 flag_nf=0 pos=19,183,33 listed_at=2046171
+20260917-080028	aquatic	1	31770	2047770	arrival	382	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=28233 vanish=0 flag_src=0 flag_nf=0 pos=13,185,32 listed_at=2046171
+20260917-080028	aquatic	1	31770	2047770	arrival	383	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=23210 vanish=0 flag_src=0 flag_nf=0 pos=11,191,33 listed_at=2046171
+20260917-080028	aquatic	1	31770	2047770	arrival	384	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=21181 vanish=0 flag_src=0 flag_nf=0 pos=15,191,33 listed_at=2046171
+20260917-080028	aquatic	1	31770	2047770	arrival	397	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=24253 vanish=0 flag_src=1 flag_nf=0 pos=14,164,29 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	398	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=27867 vanish=0 flag_src=1 flag_nf=0 pos=13,160,30 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	399	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=25389 vanish=0 flag_src=1 flag_nf=0 pos=9,153,30 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	400	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=23993 vanish=0 flag_src=1 flag_nf=0 pos=0,171,29 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	401	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29701 vanish=0 flag_src=1 flag_nf=0 pos=0,168,29 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	402	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=20507 vanish=0 flag_src=1 flag_nf=0 pos=0,174,29 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	411	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=23062 vanish=0 flag_src=1 flag_nf=0 pos=103,191,4 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	412	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=28021 vanish=0 flag_src=1 flag_nf=0 pos=101,191,4 listed_at=2047770
+20260917-080028	aquatic	1	31770	2047770	arrival	413	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=23394 vanish=0 flag_src=1 flag_nf=0 pos=104,191,4 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	385	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=26937 vanish=0 flag_src=0 flag_nf=0 pos=12,191,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	386	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=22427 vanish=0 flag_src=0 flag_nf=0 pos=10,191,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	387	CRUNDLE caste=FEMALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=22270 vanish=0 flag_src=0 flag_nf=0 pos=9,191,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	388	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=28328 vanish=0 flag_src=0 flag_nf=0 pos=11,189,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	389	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=24765 vanish=0 flag_src=0 flag_nf=0 pos=13,190,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	390	CRUNDLE caste=MALE ref6=3,31,-1,20,-1,12 layer=cavern countdown=24406 vanish=0 flag_src=0 flag_nf=0 pos=13,191,33 listed_at=2046171
+20260917-080028	aquatic	1	32034	2048034	arrival	403	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=21434 vanish=0 flag_src=1 flag_nf=0 pos=19,158,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	404	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=24613 vanish=0 flag_src=1 flag_nf=0 pos=11,151,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	405	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=22023 vanish=0 flag_src=1 flag_nf=0 pos=11,162,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	406	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=24278 vanish=0 flag_src=1 flag_nf=0 pos=0,165,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	407	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=25592 vanish=0 flag_src=1 flag_nf=0 pos=28,146,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	408	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=20672 vanish=0 flag_src=1 flag_nf=0 pos=4,162,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	409	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=27632 vanish=0 flag_src=1 flag_nf=0 pos=13,159,30 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	410	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=28911 vanish=0 flag_src=1 flag_nf=0 pos=1,161,29 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	414	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=22933 vanish=0 flag_src=1 flag_nf=0 pos=102,189,4 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	arrival	415	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=29819 vanish=0 flag_src=1 flag_nf=0 pos=104,191,4 listed_at=2047770
+20260917-080028	aquatic	1	32034	2048034	death	367	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=26950 last_flag_src=0 arrived_at=2045864
+20260917-080028	aquatic	1	32034	2048034	death	398	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=27867 last_flag_src=1 arrived_at=2047770
+20260917-080028	aquatic	1	32034	2048034	death	402	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=20507 last_flag_src=1 arrived_at=2047770
+20260917-080028	aquatic	1	32274	2048274	arrival	416	TROLL caste=FEMALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=21771 vanish=0 flag_src=1 flag_nf=0 pos=182,109,58 listed_at=2048034
+20260917-080028	aquatic	1	32274	2048274	arrival	417	CROCODILE_CAVE caste=MALE ref6=4,30,-1,11,-1,14 layer=cavern countdown=22591 vanish=0 flag_src=1 flag_nf=0 pos=168,0,35 listed_at=2048274
+20260917-080028	aquatic	1	32274	2048274	death	254	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=16180 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	32510	2048510	arrival	418	OLM_GIANT caste=MALE ref6=4,30,-1,2,-1,10 layer=cavern countdown=23617 vanish=0 flag_src=1 flag_nf=0 pos=0,157,55 listed_at=2048510
+20260917-080028	aquatic	1	32760	2048760	arrival	419	VORACIOUS_CAVE_CRAWLER caste=FEMALE ref6=4,30,-1,11,-1,24 layer=cavern countdown=22016 vanish=0 flag_src=1 flag_nf=0 pos=174,5,35 listed_at=2048760
+20260917-080028	aquatic	1	32760	2048760	death	386	CRUNDLE ref6=3,31,-1,20,-1,12 last_countdown=21951 last_flag_src=0 arrived_at=2048034
+20260917-080028	aquatic	1	32760	2048760	death	400	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=23253 last_flag_src=1 arrived_at=2047770
+20260917-080028	aquatic	1	33071	2049071	manipulation	probe:release all	released 19 unit(s) [all]
+20260917-080028	aquatic	1	33071	2049071	every_applied	10	probe:release all
+20260917-080028	aquatic	1	33071	2049071	death	259	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=10106 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	33071	2049071	death	260	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=11668 last_flag_src=0 arrived_at=2037462
+20260917-080028	aquatic	1	33071	2049071	death	401	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=28711 last_flag_src=1 arrived_at=2047770
+20260917-080028	aquatic	1	33361	2049361	arrival	420	BLIND_CAVE_OGRE caste=FEMALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=26931 vanish=0 flag_src=1 flag_nf=0 pos=66,187,36 listed_at=2049361
+20260917-080028	aquatic	1	33361	2049361	arrival	421	BLIND_CAVE_OGRE caste=FEMALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=26024 vanish=0 flag_src=1 flag_nf=0 pos=71,191,36 listed_at=2049361
+20260917-080028	aquatic	1	33361	2049361	death	410	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=27874 last_flag_src=1 arrived_at=2048034
+20260917-080028	aquatic	1	33361	2049361	death	419	VORACIOUS_CAVE_CRAWLER ref6=4,30,-1,11,-1,24 last_countdown=21705 last_flag_src=1 arrived_at=2048760
+20260917-080028	aquatic	1	33621	2049621	arrival	422	OLM_GIANT caste=MALE ref6=4,30,-1,2,-1,10 layer=cavern countdown=22514 vanish=0 flag_src=1 flag_nf=0 pos=191,107,57 listed_at=2049621
+20260917-080028	aquatic	1	33621	2049621	arrival	423	BLIND_CAVE_OGRE caste=FEMALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=23868 vanish=0 flag_src=1 flag_nf=0 pos=13,191,33 listed_at=2049621
+20260917-080028	aquatic	1	33865	2049865	arrival	424	BLIND_CAVE_OGRE caste=MALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=29240 vanish=0 flag_src=1 flag_nf=0 pos=12,189,33 listed_at=2049621
+20260917-080028	aquatic	1	33865	2049865	arrival	425	BLIND_CAVE_OGRE caste=MALE ref6=3,31,-1,20,-1,28 layer=cavern countdown=22632 vanish=0 flag_src=1 flag_nf=0 pos=11,191,33 listed_at=2049621
+20260917-080028	aquatic	1	33865	2049865	arrival	426	TOAD_GIANT_CAVE caste=MALE ref6=4,30,-1,2,-1,11 layer=cavern countdown=25004 vanish=0 flag_src=1 flag_nf=0 pos=0,162,55 listed_at=2049865
+20260917-080028	aquatic	1	33865	2049865	arrival	427	DEMON_1 caste=DEFAULT ref6=4,31,-1,38,-1,1 layer=cavern countdown=26194 vanish=0 flag_src=1 flag_nf=0 pos=9,191,0 listed_at=2049865
+20260917-080028	aquatic	1	33865	2049865	death	360	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=15912 last_flag_src=0 arrived_at=2045553
+20260917-080028	aquatic	1	33865	2049865	death	418	OLM_GIANT ref6=4,30,-1,2,-1,10 last_countdown=22506 last_flag_src=0 arrived_at=2048510
+20260917-080028	aquatic	1	34109	2050109	arrival	428	DEMON_1 caste=DEFAULT ref6=4,29,-1,38,-1,1 layer=cavern countdown=24816 vanish=0 flag_src=1 flag_nf=0 pos=191,75,2 listed_at=2050109
+20260917-080028	aquatic	1	34109	2050109	death	366	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=19319 last_flag_src=0 arrived_at=2045864
+20260917-080028	aquatic	1	34109	2050109	death	406	BUGBAT ref6=4,30,-1,20,-1,19 last_countdown=22447 last_flag_src=0 arrived_at=2048034
+20260917-080028	aquatic	1	34109	2050109	death	426	TOAD_GIANT_CAVE ref6=4,30,-1,2,-1,11 last_countdown=25004 last_flag_src=1 arrived_at=2049865
+20260917-080028	aquatic	1	34407	2050407	death	352	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=18750 last_flag_src=0 arrived_at=2044584
+20260917-080028	aquatic	1	34407	2050407	death	389	CRUNDLE ref6=3,31,-1,20,-1,12 last_countdown=22690 last_flag_src=0 arrived_at=2048034
+20260917-080028	aquatic	1	34661	2050661	manipulation	probe:release all	released 9 unit(s) [all]
+20260917-080028	aquatic	1	34661	2050661	every_applied	11	probe:release all
+20260917-080028	aquatic	1	34661	2050661	death	258	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=14107 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	34661	2050661	death	351	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=19986 last_flag_src=0 arrived_at=2044584
+20260917-080028	aquatic	1	34661	2050661	death	375	CRUNDLE ref6=3,31,-1,20,-1,12 last_countdown=17570 last_flag_src=0 arrived_at=2046845
+20260917-080028	aquatic	1	34992	2050992	arrival	429	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=21729 vanish=0 flag_src=0 flag_nf=0 pos=164,177,62 listed_at=2050661
+20260917-080028	aquatic	1	34992	2050992	arrival	430	OLM_GIANT caste=MALE ref6=4,30,-1,2,-1,10 layer=cavern countdown=23358 vanish=0 flag_src=1 flag_nf=0 pos=188,154,60 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	431	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=22048 vanish=0 flag_src=1 flag_nf=0 pos=7,16,4 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	432	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=26084 vanish=0 flag_src=1 flag_nf=0 pos=8,14,4 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	433	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=20084 vanish=0 flag_src=1 flag_nf=0 pos=1,16,0 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	434	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=26795 vanish=0 flag_src=1 flag_nf=0 pos=0,17,0 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	435	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=23018 vanish=0 flag_src=1 flag_nf=0 pos=0,18,0 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	arrival	436	JABBERER caste=FEMALE ref6=4,30,-1,20,-1,21 layer=cavern countdown=24994 vanish=0 flag_src=1 flag_nf=0 pos=191,151,23 listed_at=2050992
+20260917-080028	aquatic	1	34992	2050992	death	255	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=11912 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	34992	2050992	death	355	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=23299 last_flag_src=0 arrived_at=2044930
+20260917-080028	aquatic	1	35290	2051290	arrival	437	TOAD_GIANT_CAVE caste=MALE ref6=3,31,-1,2,-1,11 layer=cavern countdown=28493 vanish=0 flag_src=1 flag_nf=0 pos=5,191,55 listed_at=2051290
+20260917-080028	aquatic	1	35589	2051589	death	256	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=12069 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	35935	2051935	arrival	438	OLM_GIANT caste=MALE ref6=4,30,-1,11,-1,12 layer=cavern countdown=28678 vanish=0 flag_src=1 flag_nf=0 pos=70,190,36 listed_at=2051935
+20260917-080028	aquatic	1	35935	2051935	death	253	TROGLODYTE ref6=4,30,-1,11,-1,26 last_countdown=11344 last_flag_src=0 arrived_at=2037124
+20260917-080028	aquatic	1	36278	2052278	arrival	439	PLUMP_HELMET_MAN caste=MALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=26830 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2052278
+20260917-080028	aquatic	1	36278	2052278	arrival	440	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=21813 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2052278
+20260917-080028	aquatic	1	36278	2052278	manipulation	probe:release all	released 14 unit(s) [all]
+20260917-080028	aquatic	1	36278	2052278	every_applied	12	probe:release all
+20260917-080028	aquatic	1	36278	2052278	death	361	CRUNDLE ref6=4,30,-1,20,-1,12 last_countdown=23110 last_flag_src=0 arrived_at=2045553
+20260917-080028	aquatic	1	36560	2052560	arrival	441	PLUMP_HELMET_MAN caste=MALE ref6=4,30,-1,20,-1,14 layer=cavern countdown=26849 vanish=0 flag_src=0 flag_nf=0 pos=13,0,29 listed_at=2052278
+20260917-080028	aquatic	1	36560	2052560	arrival	444	REACHER caste=MALE ref6=4,30,-1,11,-1,34 layer=cavern countdown=26998 vanish=0 flag_src=1 flag_nf=0 pos=76,188,36 listed_at=2052560
+20260917-080028	aquatic	1	36560	2052560	arrival	445	TOAD_GIANT_CAVE caste=MALE ref6=3,31,-1,2,-1,11 layer=cavern countdown=26395 vanish=0 flag_src=1 flag_nf=0 pos=119,191,53 listed_at=2052560
+20260917-080028	aquatic	1	36834	2052834	arrival	446	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=23997 vanish=0 flag_src=1 flag_nf=0 pos=0,124,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	arrival	447	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=29472 vanish=0 flag_src=1 flag_nf=0 pos=0,123,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	arrival	448	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=29435 vanish=0 flag_src=1 flag_nf=0 pos=5,122,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	arrival	449	ELK_BIRD caste=MALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=21829 vanish=0 flag_src=1 flag_nf=0 pos=0,120,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	arrival	450	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=22895 vanish=0 flag_src=1 flag_nf=0 pos=0,119,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	arrival	451	ELK_BIRD caste=MALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=27935 vanish=0 flag_src=1 flag_nf=0 pos=0,122,25 listed_at=2052834
+20260917-080028	aquatic	1	36834	2052834	death	444	REACHER ref6=4,30,-1,11,-1,34 last_countdown=26998 last_flag_src=1 arrived_at=2052560
+20260917-080028	aquatic	1	37112	2053112	arrival	452	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=28984 vanish=0 flag_src=1 flag_nf=0 pos=5,122,25 listed_at=2052834
+20260917-080028	aquatic	1	37112	2053112	arrival	453	ELK_BIRD caste=FEMALE ref6=4,30,-1,20,-1,22 layer=cavern countdown=22261 vanish=0 flag_src=1 flag_nf=0 pos=0,119,25 listed_at=2052834
+20260917-080028	aquatic	1	37112	2053112	arrival	454	OLM_GIANT caste=MALE ref6=3,31,-1,2,-1,10 layer=cavern countdown=24851 vanish=0 flag_src=1 flag_nf=0 pos=11,190,55 listed_at=2052834
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1933	SHARK_SPINY_DOGFISH ref6=3,29,-1,-1,-1,2 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1934	SHARK_WOBBEGONG_SPOTTED ref6=3,29,-1,-1,-1,3 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1935	SHARK_MAKO_SHORTFIN ref6=3,29,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1936	SHARK_BULL ref6=3,29,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1937	SHARK_REEF_BLACKTIP ref6=3,29,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1938	SHARK_REEF_WHITETIP ref6=3,29,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1939	SHARK_BLUE ref6=3,29,-1,-1,-1,10 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1940	SHARK_HAMMERHEAD ref6=3,29,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1941	SHARK_ANGEL ref6=3,29,-1,-1,-1,12 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1942	FISH_SKATE_COMMON ref6=3,29,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1943	FISH_RAY_MANTA ref6=3,29,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1944	FISH_STINGRAY ref6=3,29,-1,-1,-1,15 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1945	FISH_MILKFISH ref6=3,29,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1946	FISH_OPAH ref6=3,29,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1947	FISH_BLUEFISH ref6=3,29,-1,-1,-1,20 quantity 17->50 max 17->17 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1948	FISH_SWORDFISH ref6=3,29,-1,-1,-1,21 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1949	FISH_BARRACUDA_GREAT ref6=3,29,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1950	CRAB ref6=3,29,-1,-1,-1,23 quantity 455->51 max 455->455 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1957	SHARK_FRILL ref6=3,29,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1958	SHARK_MAKO_LONGFIN ref6=3,29,-1,-1,-1,57 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1959	SHARK_GREAT_WHITE ref6=3,29,-1,-1,-1,59 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1961	BIRD_ALBATROSS ref6=3,29,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1962	SHARK_WHALE ref6=3,29,-1,-1,-1,68 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1963	SHARK_TIGER ref6=3,29,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1964	FISH_COELACANTH ref6=3,29,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1965	FISH_GROUPER_GIANT ref6=3,29,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1966	FISH_MARLIN ref6=3,29,-1,-1,-1,73 quantity 26->50 max 26->26 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1967	FISH_TUNA_BLUEFIN ref6=3,29,-1,-1,-1,74 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1969	ORCA ref6=3,29,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	1970	SPERM_WHALE ref6=3,29,-1,-1,-1,82 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2083	SHARK_SPINY_DOGFISH ref6=3,30,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2084	SHARK_WOBBEGONG_SPOTTED ref6=3,30,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2085	SHARK_MAKO_SHORTFIN ref6=3,30,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2086	SHARK_BULL ref6=3,30,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2087	SHARK_REEF_BLACKTIP ref6=3,30,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2088	SHARK_REEF_WHITETIP ref6=3,30,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2089	SHARK_BLUE ref6=3,30,-1,-1,-1,10 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2090	SHARK_HAMMERHEAD ref6=3,30,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2091	SHARK_ANGEL ref6=3,30,-1,-1,-1,12 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2092	FISH_SKATE_COMMON ref6=3,30,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2093	FISH_RAY_MANTA ref6=3,30,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2094	FISH_STINGRAY ref6=3,30,-1,-1,-1,15 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2095	FISH_MILKFISH ref6=3,30,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2096	FISH_OPAH ref6=3,30,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2097	FISH_BLUEFISH ref6=3,30,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2098	FISH_SWORDFISH ref6=3,30,-1,-1,-1,21 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2099	FISH_BARRACUDA_GREAT ref6=3,30,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2100	CRAB ref6=3,30,-1,-1,-1,23 quantity 451->52 max 451->451 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2101	SHARK_FRILL ref6=3,30,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2102	SHARK_MAKO_LONGFIN ref6=3,30,-1,-1,-1,57 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2103	SHARK_GREAT_WHITE ref6=3,30,-1,-1,-1,59 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2104	BIRD_ALBATROSS ref6=3,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2105	SHARK_WHALE ref6=3,30,-1,-1,-1,68 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2106	SHARK_TIGER ref6=3,30,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2107	FISH_COELACANTH ref6=3,30,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2108	FISH_GROUPER_GIANT ref6=3,30,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2109	FISH_MARLIN ref6=3,30,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2110	FISH_TUNA_BLUEFIN ref6=3,30,-1,-1,-1,74 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2111	ORCA ref6=3,30,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2112	SPERM_WHALE ref6=3,30,-1,-1,-1,82 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2223	SHARK_SPINY_DOGFISH ref6=3,31,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2224	SHARK_WOBBEGONG_SPOTTED ref6=3,31,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2225	SHARK_MAKO_SHORTFIN ref6=3,31,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2226	SHARK_BULL ref6=3,31,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2227	SHARK_REEF_BLACKTIP ref6=3,31,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2228	SHARK_REEF_WHITETIP ref6=3,31,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2229	SHARK_BLUE ref6=3,31,-1,-1,-1,10 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2230	SHARK_HAMMERHEAD ref6=3,31,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2231	SHARK_ANGEL ref6=3,31,-1,-1,-1,12 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2232	FISH_SKATE_COMMON ref6=3,31,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2233	FISH_RAY_MANTA ref6=3,31,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2234	FISH_STINGRAY ref6=3,31,-1,-1,-1,15 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2235	FISH_MILKFISH ref6=3,31,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2236	FISH_OPAH ref6=3,31,-1,-1,-1,19 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2237	FISH_BLUEFISH ref6=3,31,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2238	FISH_SWORDFISH ref6=3,31,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2239	FISH_BARRACUDA_GREAT ref6=3,31,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2240	SHARK_FRILL ref6=3,31,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2241	SHARK_MAKO_LONGFIN ref6=3,31,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2242	SHARK_GREAT_WHITE ref6=3,31,-1,-1,-1,59 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2243	BIRD_ALBATROSS ref6=3,31,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2244	SHARK_WHALE ref6=3,31,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2245	SHARK_TIGER ref6=3,31,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2246	FISH_COELACANTH ref6=3,31,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2247	FISH_GROUPER_GIANT ref6=3,31,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2248	FISH_MARLIN ref6=3,31,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2249	FISH_TUNA_BLUEFIN ref6=3,31,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2250	ORCA ref6=3,31,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2251	SPERM_WHALE ref6=3,31,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2262	OLM_GIANT ref6=3,31,-1,2,-1,10 quantity 9->7 max 9->9 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2263	TOAD_GIANT_CAVE ref6=3,31,-1,2,-1,11 quantity 13->11 max 13->13 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2270	BIRD_SWALLOW_CAVE_GIANT ref6=3,31,-1,2,-1,18 quantity 20->20 max 20->20 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2273	BLIND_CAVE_BEAR ref6=3,31,-1,2,-1,21 quantity 18->18 max 18->18 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2328	CRUNDLE ref6=3,31,-1,20,-1,12 quantity 170->152 max 170->170 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2343	REACHER ref6=3,31,-1,20,-1,27 quantity 8->9 max 9->9 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2344	BLIND_CAVE_OGRE ref6=3,31,-1,20,-1,28 quantity 6->0 max 6->6 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2395	WILD_BOAR ref6=3,32,-1,-1,-1,39 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2400	LEOPARD ref6=3,32,-1,-1,-1,47 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2401	DINGO ref6=3,32,-1,-1,-1,48 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2402	JAGUAR ref6=3,32,-1,-1,-1,49 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2403	BIRD_EAGLE ref6=3,32,-1,-1,-1,50 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2404	WEASEL ref6=3,32,-1,-1,-1,51 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2405	BIRD_OSPREY ref6=3,32,-1,-1,-1,52 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2406	BIRD_FALCON_PEREGRINE ref6=3,32,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2407	HONEY BADGER ref6=3,32,-1,-1,-1,54 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2408	BIRD_STORK_WHITE ref6=3,32,-1,-1,-1,55 quantity 28->0 max 28->28 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2409	CAPYBARA ref6=3,32,-1,-1,-1,56 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2842	WILD_BOAR ref6=4,29,-1,-1,-1,38 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2843	ANACONDA ref6=4,29,-1,-1,-1,39 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2848	CROCODILE_SALTWATER ref6=4,29,-1,-1,-1,44 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2849	LEOPARD ref6=4,29,-1,-1,-1,45 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2850	DINGO ref6=4,29,-1,-1,-1,46 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2851	JAGUAR ref6=4,29,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2852	BIRD_EAGLE ref6=4,29,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2853	WEASEL ref6=4,29,-1,-1,-1,49 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2854	BIRD_OSPREY ref6=4,29,-1,-1,-1,50 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2855	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2856	HONEY BADGER ref6=4,29,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2857	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2860	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2975	DEMON_1 ref6=4,29,-1,38,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2976	DEMON_4 ref6=4,29,-1,38,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2979	DEMON_14 ref6=4,29,-1,38,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2981	SHARK_SPINY_DOGFISH ref6=4,30,-1,-1,-1,2 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2982	SHARK_WOBBEGONG_SPOTTED ref6=4,30,-1,-1,-1,3 quantity 24->50 max 24->24 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2983	SHARK_MAKO_SHORTFIN ref6=4,30,-1,-1,-1,6 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2984	SHARK_BULL ref6=4,30,-1,-1,-1,7 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2985	SHARK_REEF_BLACKTIP ref6=4,30,-1,-1,-1,8 quantity 7->50 max 7->7 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2986	SHARK_REEF_WHITETIP ref6=4,30,-1,-1,-1,9 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2987	SHARK_BLUE ref6=4,30,-1,-1,-1,10 quantity 22->50 max 22->22 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2988	SHARK_HAMMERHEAD ref6=4,30,-1,-1,-1,11 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2989	SHARK_ANGEL ref6=4,30,-1,-1,-1,12 quantity 14->50 max 14->14 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2990	FISH_SKATE_COMMON ref6=4,30,-1,-1,-1,13 quantity 20->50 max 20->20 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2991	FISH_RAY_MANTA ref6=4,30,-1,-1,-1,14 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2992	FISH_STINGRAY ref6=4,30,-1,-1,-1,15 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2993	FISH_MILKFISH ref6=4,30,-1,-1,-1,17 quantity 6->50 max 6->6 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2994	FISH_OPAH ref6=4,30,-1,-1,-1,19 quantity 13->50 max 13->13 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2995	FISH_BLUEFISH ref6=4,30,-1,-1,-1,20 quantity 16->50 max 16->16 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2996	FISH_SWORDFISH ref6=4,30,-1,-1,-1,21 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2997	FISH_BARRACUDA_GREAT ref6=4,30,-1,-1,-1,22 quantity 11->50 max 11->11 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2998	CRAB ref6=4,30,-1,-1,-1,23 quantity 444->51 max 444->444 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	2999	SHARK_FRILL ref6=4,30,-1,-1,-1,51 quantity 18->50 max 18->18 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3000	SHARK_MAKO_LONGFIN ref6=4,30,-1,-1,-1,57 quantity 23->50 max 23->23 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3001	SHARK_GREAT_WHITE ref6=4,30,-1,-1,-1,59 quantity 21->50 max 21->21 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3002	BIRD_ALBATROSS ref6=4,30,-1,-1,-1,67 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3003	SHARK_WHALE ref6=4,30,-1,-1,-1,68 quantity 10->50 max 10->10 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3004	SHARK_TIGER ref6=4,30,-1,-1,-1,69 quantity 8->50 max 8->8 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3005	FISH_COELACANTH ref6=4,30,-1,-1,-1,70 quantity 5->50 max 5->5 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3006	FISH_GROUPER_GIANT ref6=4,30,-1,-1,-1,72 quantity 9->50 max 9->9 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3007	FISH_MARLIN ref6=4,30,-1,-1,-1,73 quantity 25->50 max 25->25 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3008	FISH_TUNA_BLUEFIN ref6=4,30,-1,-1,-1,74 quantity 39->50 max 39->39 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3009	ORCA ref6=4,30,-1,-1,-1,80 quantity 19->50 max 19->19 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3010	SPERM_WHALE ref6=4,30,-1,-1,-1,82 quantity 15->50 max 15->15 discovered 0->0 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3019	POND_GRABBER ref6=4,30,-1,2,-1,8 quantity 19->16 max 19->19 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3020	CROCODILE_CAVE ref6=4,30,-1,2,-1,9 quantity 9->5 max 10->10 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3021	OLM_GIANT ref6=4,30,-1,2,-1,10 quantity 9->6 max 9->9 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3022	TOAD_GIANT_CAVE ref6=4,30,-1,2,-1,11 quantity 13->11 max 13->13 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3024	Vermin:617 ref6=4,30,-1,2,-1,13 quantity 450->451 max 450->450 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3025	Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->355 max 355->355 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3026	Vermin:410 ref6=4,30,-1,2,-1,15 quantity 436->439 max 438->438 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3027	Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->421 max 425->425 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3029	BIRD_SWALLOW_CAVE_GIANT ref6=4,30,-1,2,-1,18 quantity 20->18 max 20->20 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3035	Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->273 max 280->280 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3036	Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->223 max 232->232 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3037	TROLL ref6=4,30,-1,2,-1,26 quantity 8->4 max 8->8 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3053	CROCODILE_CAVE ref6=4,30,-1,11,-1,14 quantity 6->5 max 6->6 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3054	CRUNDLE ref6=4,30,-1,11,-1,15 quantity 116->84 max 116->116 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3057	Vermin:617 ref6=4,30,-1,11,-1,18 quantity 212->211 max 212->212 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3058	Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->249 max 256->256 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3059	Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->170 max 188->188 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3060	HELMET_SNAKE ref6=4,30,-1,11,-1,21 quantity 7->6 max 7->7 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3063	VORACIOUS_CAVE_CRAWLER ref6=4,30,-1,11,-1,24 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3065	TROGLODYTE ref6=4,30,-1,11,-1,26 quantity 10->0 max 10->10 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3066	Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->135 max 151->151 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3067	Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->161 max 185->185 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3070	TROLL ref6=4,30,-1,11,-1,31 quantity 6->3 max 6->6 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3072	BLIND_CAVE_OGRE ref6=4,30,-1,11,-1,33 quantity 3->0 max 3->3 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3073	REACHER ref6=4,30,-1,11,-1,34 quantity 6->5 max 6->6 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3087	CRUNDLE ref6=4,30,-1,20,-1,12 quantity 157->126 max 157->157 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3089	PLUMP_HELMET_MAN ref6=4,30,-1,20,-1,14 quantity 11->1 max 11->11 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3094	BUGBAT ref6=4,30,-1,20,-1,19 quantity 24->0 max 24->24 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3095	HUNGRY_HEAD ref6=4,30,-1,20,-1,20 quantity 99->92 max 99->99 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3096	JABBERER ref6=4,30,-1,20,-1,21 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3097	ELK_BIRD ref6=4,30,-1,20,-1,22 quantity 17->9 max 17->17 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3103	BLIND_CAVE_OGRE ref6=4,30,-1,20,-1,28 quantity 5->2 max 5->5 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3107	Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->157 max 229->229 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3113	Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->274 max 347->347 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3115	DEMON_1 ref6=4,30,-1,38,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3117	DEMON_13 ref6=4,30,-1,38,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3118	DEMON_19 ref6=4,30,-1,38,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3120	DEMON_2 ref6=4,30,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3153	Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->399 max 408->408 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3154	WILD_BOAR ref6=4,31,-1,-1,-1,39 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3159	LEOPARD ref6=4,31,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3160	DINGO ref6=4,31,-1,-1,-1,48 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3161	JAGUAR ref6=4,31,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3162	BIRD_EAGLE ref6=4,31,-1,-1,-1,50 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3163	WEASEL ref6=4,31,-1,-1,-1,51 quantity 25->0 max 26->26 discovered 1->1 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3164	BIRD_OSPREY ref6=4,31,-1,-1,-1,52 quantity 16->0 max 17->17 discovered 1->1 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3165	BIRD_FALCON_PEREGRINE ref6=4,31,-1,-1,-1,53 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3166	HONEY BADGER ref6=4,31,-1,-1,-1,54 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3167	BIRD_STORK_WHITE ref6=4,31,-1,-1,-1,55 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3168	CAPYBARA ref6=4,31,-1,-1,-1,56 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3267	MAGMA_CRAB ref6=4,31,-1,29,-1,0 quantity 14->10 max 17->17 discovered 1->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3273	DEMON_1 ref6=4,31,-1,38,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3278	DEMON_2 ref6=4,31,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3312	WILD_BOAR ref6=4,32,-1,-1,-1,39 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3317	LEOPARD ref6=4,32,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3318	DINGO ref6=4,32,-1,-1,-1,48 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3319	JAGUAR ref6=4,32,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3320	BIRD_EAGLE ref6=4,32,-1,-1,-1,50 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3321	WEASEL ref6=4,32,-1,-1,-1,51 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3322	BIRD_OSPREY ref6=4,32,-1,-1,-1,52 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3323	BIRD_FALCON_PEREGRINE ref6=4,32,-1,-1,-1,53 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3324	HONEY BADGER ref6=4,32,-1,-1,-1,54 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3325	BIRD_STORK_WHITE ref6=4,32,-1,-1,-1,55 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3326	CAPYBARA ref6=4,32,-1,-1,-1,56 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3764	BIRD_EAGLE ref6=5,29,-1,-1,-1,33 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3779	ELEPHANT ref6=5,29,-1,-1,-1,48 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3780	GIANT TORTOISE ref6=5,29,-1,-1,-1,49 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3783	WILD_BOAR ref6=5,29,-1,-1,-1,52 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3784	MONITOR_LIZARD ref6=5,29,-1,-1,-1,53 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3785	JACKAL ref6=5,29,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3786	CRETACEOUS_CARNOTAURUS ref6=5,29,-1,-1,-1,55 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3790	CHEETAH ref6=5,29,-1,-1,-1,59 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3791	COUGAR ref6=5,29,-1,-1,-1,60 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3792	TIGER ref6=5,29,-1,-1,-1,61 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3793	LION ref6=5,29,-1,-1,-1,62 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3794	LEOPARD ref6=5,29,-1,-1,-1,63 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3795	DINGO ref6=5,29,-1,-1,-1,64 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3796	JAGUAR ref6=5,29,-1,-1,-1,65 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3797	HYENA ref6=5,29,-1,-1,-1,66 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3798	GRAY_LANGUR ref6=5,29,-1,-1,-1,67 quantity 42->0 max 42->42 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3799	MONGOOSE ref6=5,29,-1,-1,-1,68 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3800	BONOBO ref6=5,29,-1,-1,-1,69 quantity 44->0 max 44->44 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3951	WILD_BOAR ref6=5,30,-1,-1,-1,39 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3956	LEOPARD ref6=5,30,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3957	DINGO ref6=5,30,-1,-1,-1,48 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3958	JAGUAR ref6=5,30,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3959	BIRD_EAGLE ref6=5,30,-1,-1,-1,50 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3960	WEASEL ref6=5,30,-1,-1,-1,51 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3961	BIRD_OSPREY ref6=5,30,-1,-1,-1,52 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3962	BIRD_FALCON_PEREGRINE ref6=5,30,-1,-1,-1,53 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3963	HONEY BADGER ref6=5,30,-1,-1,-1,54 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3964	BIRD_STORK_WHITE ref6=5,30,-1,-1,-1,55 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	3965	CAPYBARA ref6=5,30,-1,-1,-1,56 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4075	DEMON_15 ref6=5,30,-1,38,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4115	WILD_BOAR ref6=5,31,-1,-1,-1,39 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4120	LEOPARD ref6=5,31,-1,-1,-1,47 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4121	DINGO ref6=5,31,-1,-1,-1,48 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4122	JAGUAR ref6=5,31,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4123	BIRD_EAGLE ref6=5,31,-1,-1,-1,50 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4124	WEASEL ref6=5,31,-1,-1,-1,51 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4125	BIRD_OSPREY ref6=5,31,-1,-1,-1,52 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4126	BIRD_FALCON_PEREGRINE ref6=5,31,-1,-1,-1,53 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4127	HONEY BADGER ref6=5,31,-1,-1,-1,54 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4128	BIRD_STORK_WHITE ref6=5,31,-1,-1,-1,55 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4129	CAPYBARA ref6=5,31,-1,-1,-1,56 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4279	WILD_BOAR ref6=5,32,-1,-1,-1,39 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4284	LEOPARD ref6=5,32,-1,-1,-1,47 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4285	DINGO ref6=5,32,-1,-1,-1,48 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4286	JAGUAR ref6=5,32,-1,-1,-1,49 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4287	BIRD_EAGLE ref6=5,32,-1,-1,-1,50 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4288	WEASEL ref6=5,32,-1,-1,-1,51 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4289	BIRD_OSPREY ref6=5,32,-1,-1,-1,52 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4290	BIRD_FALCON_PEREGRINE ref6=5,32,-1,-1,-1,53 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4291	HONEY BADGER ref6=5,32,-1,-1,-1,54 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4292	BIRD_STORK_WHITE ref6=5,32,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	pool_delta	4293	CAPYBARA ref6=5,32,-1,-1,-1,56 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-080028	aquatic	1	37112	2053112	end	summary	{"arm": "aquatic", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 254, "departures": 0, "deaths": 49, "ticks": 20164, "wall_s": 122.6, "stop": null, "ticks_per_s": 164.4, "save_untouched": true}
+20260917-080028	aquatic	2	16948	2032948	baseline	wild_present	12
+20260917-080028	aquatic	2	16948	2032948	present_at_start	162	TROLL ref6=3,31,-1,2,-1,26 countdown=20176 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	163	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=23438 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	164	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=26233 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	165	MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=20737 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	166	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=23517 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	167	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=22011 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	168	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=24557 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	169	DEMON_15 ref6=4,30,-1,38,-1,0 countdown=29111 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	170	JABBERER ref6=4,31,-1,20,-1,21 countdown=23165 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	181	CROCODILE_CAVE ref6=4,30,-1,2,-1,9 countdown=29107 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	191	BIRD_OSPREY ref6=4,31,-1,-1,-1,52 countdown=29212 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	present_at_start	192	REACHER ref6=3,31,-1,20,-1,27 countdown=23612 flag_src=1
+20260917-080028	aquatic	2	16948	2032948	manipulation	local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c))	aquatic opened: 116 entries (CRAB CROCODILE_SALTWATER FISH_BARRACUDA_GREAT FISH_BLUEFISH FISH_COELACANTH FISH_GROUPER_GIANT FISH_MARLIN FISH_MILKFISH FISH_OPAH FISH_RAY_MANTA FISH_SKATE_COMMON FISH_STINGRAY FISH_SWORDFISH FISH_TUNA_BLUEFIN ORCA SHARK_ANGEL SHARK_BLUE SHARK_BULL SHARK_FRILL SHARK_GREAT_WHITE SHARK_HAMMERHEAD SHARK_MAKO_LONGFIN SHARK_MAKO_SHORTFIN SHARK_REEF_BLACKTIP SHARK_REEF_WHITETIP SHARK_SPINY_DOGFISH SHARK_TIGER SHARK_WHALE SHARK_WOBBEGONG_SPOTTED SPERM_WHALE); closed: 100
+20260917-080028	aquatic	2	16948	2032948	manipulation	probe:release all	released 14 unit(s) [all]
+20260917-080028	aquatic	2	17279	2033279	arrival	193	WEASEL caste=MALE ref6=4,31,-1,-1,-1,51 layer=surface countdown=27707 vanish=0 flag_src=0 flag_nf=0 pos=189,96,91 listed_at=2032948
+20260917-080028	aquatic	2	17279	2033279	arrival	194	OLM_GIANT caste=FEMALE ref6=4,30,-1,11,-1,12 layer=cavern countdown=27364 vanish=0 flag_src=0 flag_nf=0 pos=191,152,38 listed_at=2032948
+20260917-080028	aquatic	2	17279	2033279	arrival	195	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=28917 vanish=0 flag_src=1 flag_nf=0 pos=8,4,1 listed_at=2033279
+20260917-080028	aquatic	2	17279	2033279	arrival	196	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=25321 vanish=0 flag_src=1 flag_nf=0 pos=10,0,1 listed_at=2033279
+20260917-080028	aquatic	2	17601	2033601	arrival	197	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=25985 vanish=0 flag_src=1 flag_nf=0 pos=8,9,3 listed_at=2033279
+20260917-080028	aquatic	2	17601	2033601	arrival	198	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=23859 vanish=0 flag_src=1 flag_nf=0 pos=10,0,1 listed_at=2033279
+20260917-080028	aquatic	2	17601	2033601	arrival	199	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=20492 vanish=0 flag_src=1 flag_nf=0 pos=14,0,1 listed_at=2033279
+20260917-080028	aquatic	2	17601	2033601	arrival	200	CROCODILE_CAVE caste=MALE ref6=4,30,-1,11,-1,14 layer=cavern countdown=20189 vanish=0 flag_src=1 flag_nf=0 pos=0,12,34 listed_at=2033601
+20260917-080028	aquatic	2	17601	2033601	arrival	201	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21935 vanish=0 flag_src=1 flag_nf=0 pos=66,191,36 listed_at=2033601
+20260917-080028	aquatic	2	17881	2033881	arrival	202	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=26003 vanish=0 flag_src=1 flag_nf=0 pos=69,183,36 listed_at=2033601
+20260917-080028	aquatic	2	17881	2033881	arrival	203	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23698 vanish=0 flag_src=1 flag_nf=0 pos=67,191,36 listed_at=2033601
+20260917-080028	aquatic	2	17881	2033881	arrival	204	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22324 vanish=0 flag_src=1 flag_nf=0 pos=70,191,36 listed_at=2033601
+20260917-080028	aquatic	2	17881	2033881	arrival	205	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=29016 vanish=0 flag_src=1 flag_nf=0 pos=68,191,36 listed_at=2033601
+20260917-080028	aquatic	2	17881	2033881	arrival	218	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29374 vanish=0 flag_src=1 flag_nf=0 pos=191,70,29 listed_at=2033881
+20260917-080028	aquatic	2	17881	2033881	arrival	219	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=25256 vanish=0 flag_src=1 flag_nf=0 pos=190,69,29 listed_at=2033881
+20260917-080028	aquatic	2	17881	2033881	arrival	220	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=26847 vanish=0 flag_src=1 flag_nf=0 pos=191,64,29 listed_at=2033881
+20260917-080028	aquatic	2	17881	2033881	arrival	221	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=20862 vanish=0 flag_src=1 flag_nf=0 pos=191,61,29 listed_at=2033881
+20260917-080028	aquatic	2	17881	2033881	arrival	222	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=28638 vanish=0 flag_src=1 flag_nf=0 pos=191,59,29 listed_at=2033881
+20260917-080028	aquatic	2	17881	2033881	arrival	223	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=27942 vanish=0 flag_src=1 flag_nf=0 pos=8,165,59 listed_at=2033881
+20260917-080028	aquatic	2	18236	2034236	arrival	224	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=24821 vanish=0 flag_src=1 flag_nf=0 pos=191,111,57 listed_at=2034236
+20260917-080028	aquatic	2	18488	2034488	arrival	206	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25446 vanish=0 flag_src=1 flag_nf=0 pos=66,187,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	arrival	207	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=24902 vanish=0 flag_src=1 flag_nf=0 pos=69,189,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	arrival	208	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21184 vanish=0 flag_src=1 flag_nf=0 pos=68,189,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	arrival	209	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21899 vanish=0 flag_src=1 flag_nf=0 pos=71,191,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	arrival	210	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21719 vanish=0 flag_src=1 flag_nf=0 pos=68,191,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	arrival	211	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=21221 vanish=0 flag_src=1 flag_nf=0 pos=69,191,36 listed_at=2033601
+20260917-080028	aquatic	2	18488	2034488	manipulation	probe:release all	released 30 unit(s) [all]
+20260917-080028	aquatic	2	18488	2034488	every_applied	1	probe:release all
+20260917-080028	aquatic	2	18831	2034831	arrival	212	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25846 vanish=0 flag_src=0 flag_nf=0 pos=71,191,36 listed_at=2033601
+20260917-080028	aquatic	2	18831	2034831	arrival	213	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25622 vanish=0 flag_src=0 flag_nf=0 pos=69,191,36 listed_at=2033601
+20260917-080028	aquatic	2	18831	2034831	arrival	225	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=24597 vanish=0 flag_src=1 flag_nf=0 pos=191,111,57 listed_at=2034831
+20260917-080028	aquatic	2	18831	2034831	arrival	226	DEMON_14 caste=DEFAULT ref6=4,31,-1,38,-1,5 layer=cavern countdown=20521 vanish=0 flag_src=1 flag_nf=0 pos=5,187,0 listed_at=2034831
+20260917-080028	aquatic	2	18831	2034831	arrival	227	DEMON_14 caste=DEFAULT ref6=4,31,-1,38,-1,5 layer=cavern countdown=27611 vanish=0 flag_src=1 flag_nf=0 pos=7,191,0 listed_at=2034831
+20260917-080028	aquatic	2	18831	2034831	arrival	228	VORACIOUS_CAVE_CRAWLER caste=MALE ref6=4,30,-1,20,-1,18 layer=cavern countdown=24723 vanish=0 flag_src=1 flag_nf=0 pos=0,166,29 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	229	TROLL caste=FEMALE ref6=4,30,-1,11,-1,31 layer=cavern countdown=21665 vanish=0 flag_src=1 flag_nf=0 pos=10,3,38 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	230	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25045 vanish=0 flag_src=1 flag_nf=0 pos=188,152,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	231	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23784 vanish=0 flag_src=1 flag_nf=0 pos=184,157,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	232	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21847 vanish=0 flag_src=1 flag_nf=0 pos=189,153,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	233	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21289 vanish=0 flag_src=1 flag_nf=0 pos=189,150,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	234	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25933 vanish=0 flag_src=1 flag_nf=0 pos=191,149,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	235	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=28015 vanish=0 flag_src=1 flag_nf=0 pos=191,147,23 listed_at=2034831
+20260917-080028	aquatic	2	19100	2035100	arrival	250	CROCODILE_CAVE caste=MALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=28800 vanish=0 flag_src=1 flag_nf=0 pos=187,9,56 listed_at=2035100
+20260917-080028	aquatic	2	19445	2035445	arrival	214	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=28492 vanish=0 flag_src=0 flag_nf=0 pos=66,188,36 listed_at=2033601
+20260917-080028	aquatic	2	19445	2035445	arrival	215	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=23522 vanish=0 flag_src=0 flag_nf=0 pos=67,191,36 listed_at=2033601
+20260917-080028	aquatic	2	19445	2035445	arrival	216	CRUNDLE caste=MALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=22749 vanish=0 flag_src=0 flag_nf=0 pos=68,191,36 listed_at=2033601
+20260917-080028	aquatic	2	19445	2035445	arrival	236	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=19851 vanish=0 flag_src=1 flag_nf=0 pos=191,149,23 listed_at=2034831
+20260917-080028	aquatic	2	19445	2035445	arrival	237	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=20370 vanish=0 flag_src=1 flag_nf=0 pos=191,152,23 listed_at=2034831
+20260917-080028	aquatic	2	19445	2035445	arrival	238	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=26825 vanish=0 flag_src=1 flag_nf=0 pos=191,154,23 listed_at=2034831
+20260917-080028	aquatic	2	19695	2035695	arrival	217	CRUNDLE caste=FEMALE ref6=4,30,-1,11,-1,15 layer=cavern countdown=25122 vanish=0 flag_src=0 flag_nf=0 pos=69,191,36 listed_at=2033601
+20260917-080028	aquatic	2	19695	2035695	arrival	239	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=26075 vanish=0 flag_src=1 flag_nf=0 pos=191,147,23 listed_at=2034831
+20260917-080028	aquatic	2	19695	2035695	arrival	240	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=22098 vanish=0 flag_src=1 flag_nf=0 pos=190,150,23 listed_at=2034831
+20260917-080028	aquatic	2	19695	2035695	arrival	241	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=20116 vanish=0 flag_src=1 flag_nf=0 pos=191,149,23 listed_at=2034831
+20260917-080028	aquatic	2	19695	2035695	arrival	251	MAGMA_CRAB caste=FEMALE ref6=4,31,-1,29,-1,0 layer=cavern countdown=21056 vanish=0 flag_src=1 flag_nf=0 pos=29,189,18 listed_at=2035445
+20260917-080028	aquatic	2	19961	2035961	death	170	JABBERER ref6=4,31,-1,20,-1,21 last_countdown=20418 last_flag_src=0 arrived_at=pre
+20260917-080028	aquatic	2	20250	2036250	manipulation	probe:release all	released 27 unit(s) [all]
+20260917-080028	aquatic	2	20250	2036250	every_applied	2	probe:release all
+20260917-080028	aquatic	2	20480	2036480	arrival	242	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25618 vanish=0 flag_src=0 flag_nf=0 pos=191,152,23 listed_at=2034831
+20260917-080028	aquatic	2	20480	2036480	arrival	243	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=22449 vanish=0 flag_src=0 flag_nf=0 pos=190,153,23 listed_at=2034831
+20260917-080028	aquatic	2	20480	2036480	arrival	244	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25556 vanish=0 flag_src=0 flag_nf=0 pos=191,148,23 listed_at=2034831
+20260917-080028	aquatic	2	20480	2036480	arrival	245	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=19876 vanish=0 flag_src=0 flag_nf=0 pos=191,149,23 listed_at=2034831
+20260917-080028	aquatic	2	20480	2036480	arrival	252	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,11,-1,14 layer=cavern countdown=22831 vanish=0 flag_src=1 flag_nf=0 pos=191,42,35 listed_at=2036480
+20260917-080028	aquatic	2	20735	2036735	arrival	253	GORLAK caste=FEMALE ref6=4,30,-1,11,-1,35 layer=cavern countdown=23583 vanish=0 flag_src=1 flag_nf=0 pos=68,190,36 listed_at=2036735
+20260917-080028	aquatic	2	20735	2036735	arrival	254	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=26334 vanish=0 flag_src=1 flag_nf=0 pos=5,117,1 listed_at=2036735
+20260917-080028	aquatic	2	20735	2036735	arrival	255	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=26544 vanish=0 flag_src=1 flag_nf=0 pos=1,115,1 listed_at=2036735
+20260917-080028	aquatic	2	20735	2036735	arrival	256	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=24070 vanish=0 flag_src=1 flag_nf=0 pos=0,118,1 listed_at=2036735
+20260917-080028	aquatic	2	20735	2036735	arrival	257	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=27344 vanish=0 flag_src=1 flag_nf=0 pos=0,119,1 listed_at=2036735
+20260917-080028	aquatic	2	20735	2036735	arrival	258	DEMON_1 caste=DEFAULT ref6=4,30,-1,38,-1,1 layer=cavern countdown=28460 vanish=0 flag_src=1 flag_nf=0 pos=0,116,1 listed_at=2036735
+20260917-080028	aquatic	2	21034	2037034	arrival	259	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=26323 vanish=0 flag_src=1 flag_nf=0 pos=179,60,29 listed_at=2036735
+20260917-080028	aquatic	2	21034	2037034	arrival	260	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=26181 vanish=0 flag_src=1 flag_nf=0 pos=187,60,29 listed_at=2036735
+20260917-080028	aquatic	2	21034	2037034	arrival	269	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=28309 vanish=0 flag_src=1 flag_nf=0 pos=0,23,52 listed_at=2037034
+20260917-080028	aquatic	2	21307	2037307	arrival	261	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=19980 vanish=0 flag_src=1 flag_nf=0 pos=191,59,29 listed_at=2036735
+20260917-080028	aquatic	2	21307	2037307	arrival	262	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=19928 vanish=0 flag_src=1 flag_nf=0 pos=191,64,29 listed_at=2036735
+20260917-080028	aquatic	2	21646	2037646	arrival	263	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=20376 vanish=0 flag_src=1 flag_nf=0 pos=191,59,29 listed_at=2036735
+20260917-080028	aquatic	2	21646	2037646	arrival	264	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=29491 vanish=0 flag_src=1 flag_nf=0 pos=190,61,29 listed_at=2036735
+20260917-080028	aquatic	2	21924	2037924	arrival	265	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=20515 vanish=0 flag_src=1 flag_nf=0 pos=191,59,29 listed_at=2036735
+20260917-080028	aquatic	2	21924	2037924	arrival	266	BUGBAT caste=MALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=23803 vanish=0 flag_src=1 flag_nf=0 pos=191,63,29 listed_at=2036735
+20260917-080028	aquatic	2	21924	2037924	manipulation	probe:release all	released 18 unit(s) [all]
+20260917-080028	aquatic	2	21924	2037924	every_applied	3	probe:release all
+20260917-080028	aquatic	2	22160	2038160	arrival	246	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23594 vanish=0 flag_src=0 flag_nf=0 pos=191,148,23 listed_at=2034831
+20260917-080028	aquatic	2	22160	2038160	arrival	247	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23806 vanish=0 flag_src=0 flag_nf=0 pos=191,147,23 listed_at=2034831
+20260917-080028	aquatic	2	22160	2038160	arrival	267	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=26258 vanish=0 flag_src=0 flag_nf=0 pos=191,63,29 listed_at=2036735
+20260917-080028	aquatic	2	22160	2038160	arrival	268	BUGBAT caste=FEMALE ref6=4,30,-1,20,-1,19 layer=cavern countdown=21411 vanish=0 flag_src=0 flag_nf=0 pos=191,59,29 listed_at=2036735
+20260917-080028	aquatic	2	22160	2038160	arrival	270	HELMET_SNAKE caste=FEMALE ref6=4,30,-1,11,-1,21 layer=cavern countdown=23073 vanish=0 flag_src=1 flag_nf=0 pos=15,0,38 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	271	DEMON_14 caste=DEFAULT ref6=4,30,-1,38,-1,5 layer=cavern countdown=21209 vanish=0 flag_src=1 flag_nf=0 pos=3,28,2 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	272	DEMON_14 caste=DEFAULT ref6=4,30,-1,38,-1,5 layer=cavern countdown=22864 vanish=0 flag_src=1 flag_nf=0 pos=0,19,0 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	273	DEMON_15 caste=FEMALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=29427 vanish=0 flag_src=1 flag_nf=0 pos=0,77,2 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	274	DEMON_15 caste=FEMALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=26336 vanish=0 flag_src=1 flag_nf=0 pos=0,69,2 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	275	DEMON_15 caste=FEMALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=25994 vanish=0 flag_src=1 flag_nf=0 pos=0,68,2 listed_at=2038160
+20260917-080028	aquatic	2	22160	2038160	arrival	276	DEMON_15 caste=MALE ref6=4,30,-1,38,-1,0 layer=cavern countdown=21727 vanish=0 flag_src=1 flag_nf=0 pos=0,70,2 listed_at=2038160
+20260917-080028	aquatic	2	22441	2038441	arrival	277	VORACIOUS_CAVE_CRAWLER caste=FEMALE ref6=4,30,-1,11,-1,24 layer=cavern countdown=23465 vanish=0 flag_src=1 flag_nf=0 pos=68,190,36 listed_at=2038441
+20260917-080028	aquatic	2	22772	2038772	arrival	248	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=26249 vanish=0 flag_src=0 flag_nf=0 pos=187,149,24 listed_at=2034831
+20260917-080028	aquatic	2	22772	2038772	arrival	249	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21517 vanish=0 flag_src=0 flag_nf=0 pos=191,147,23 listed_at=2034831
+20260917-080028	aquatic	2	22772	2038772	arrival	278	TROLL caste=FEMALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=20891 vanish=0 flag_src=1 flag_nf=0 pos=191,9,56 listed_at=2038441
+20260917-080028	aquatic	2	22772	2038772	arrival	279	TROLL caste=FEMALE ref6=3,31,-1,20,-1,26 layer=cavern countdown=27523 vanish=0 flag_src=1 flag_nf=0 pos=14,188,33 listed_at=2038441
+20260917-080028	aquatic	2	22772	2038772	arrival	280	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=26313 vanish=0 flag_src=1 flag_nf=0 pos=190,21,57 listed_at=2038772
+20260917-080028	aquatic	2	22772	2038772	death	253	GORLAK ref6=4,30,-1,11,-1,35 last_countdown=21877 last_flag_src=0 arrived_at=2036735
+20260917-080028	aquatic	2	23009	2039009	arrival	281	VORACIOUS_CAVE_CRAWLER caste=FEMALE ref6=4,30,-1,20,-1,18 layer=cavern countdown=20625 vanish=0 flag_src=1 flag_nf=0 pos=0,123,25 listed_at=2039009
+20260917-080028	aquatic	2	23549	2039549	manipulation	probe:release all	released 12 unit(s) [all]
+20260917-080028	aquatic	2	23549	2039549	every_applied	4	probe:release all
+20260917-080028	aquatic	2	23549	2039549	death	209	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=17100 last_flag_src=0 arrived_at=2034488
+20260917-080028	aquatic	2	23549	2039549	death	210	CRUNDLE ref6=4,30,-1,11,-1,15 last_countdown=16920 last_flag_src=0 arrived_at=2034488
+20260917-080028	aquatic	2	23815	2039815	arrival	282	CROCODILE_CAVE caste=FEMALE ref6=4,30,-1,2,-1,9 layer=cavern countdown=27887 vanish=0 flag_src=1 flag_nf=0 pos=191,153,60 listed_at=2039815
+20260917-080028	aquatic	2	24089	2040089	arrival	283	HUNGRY_HEAD caste=MALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=29736 vanish=0 flag_src=1 flag_nf=0 pos=14,190,33 listed_at=2040089
+20260917-080028	aquatic	2	24089	2040089	arrival	284	HUNGRY_HEAD caste=FEMALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=28368 vanish=0 flag_src=1 flag_nf=0 pos=13,191,33 listed_at=2040089
+20260917-080028	aquatic	2	24089	2040089	arrival	285	HUNGRY_HEAD caste=MALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=20315 vanish=0 flag_src=1 flag_nf=0 pos=14,191,33 listed_at=2040089
+20260917-080028	aquatic	2	24089	2040089	arrival	289	DEMON_19 caste=DEFAULT ref6=4,29,-1,38,-1,4 layer=cavern countdown=22243 vanish=0 flag_src=1 flag_nf=0 pos=182,118,2 listed_at=2040089
+20260917-080028	aquatic	2	24089	2040089	arrival	290	DEMON_19 caste=DEFAULT ref6=4,29,-1,38,-1,4 layer=cavern countdown=28589 vanish=0 flag_src=1 flag_nf=0 pos=191,123,3 listed_at=2040089
+20260917-080028	aquatic	2	24320	2040320	arrival	286	HUNGRY_HEAD caste=MALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=20929 vanish=0 flag_src=1 flag_nf=0 pos=13,191,33 listed_at=2040089
+20260917-080028	aquatic	2	24320	2040320	arrival	287	HUNGRY_HEAD caste=MALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=25967 vanish=0 flag_src=1 flag_nf=0 pos=14,191,33 listed_at=2040089
+20260917-080028	aquatic	2	24320	2040320	arrival	288	HUNGRY_HEAD caste=FEMALE ref6=3,31,-1,20,-1,20 layer=cavern countdown=23998 vanish=0 flag_src=1 flag_nf=0 pos=13,190,33 listed_at=2040089
+20260917-080028	aquatic	2	24320	2040320	arrival	291	TROLL caste=FEMALE ref6=4,30,-1,2,-1,26 layer=cavern countdown=24051 vanish=0 flag_src=1 flag_nf=0 pos=190,160,60 listed_at=2040320
+20260917-080028	aquatic	2	24320	2040320	arrival	292	BLIND_CAVE_OGRE caste=MALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=21772 vanish=0 flag_src=1 flag_nf=0 pos=170,2,35 listed_at=2040320
+20260917-080028	aquatic	2	24320	2040320	arrival	293	BLIND_CAVE_OGRE caste=FEMALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=28004 vanish=0 flag_src=1 flag_nf=0 pos=167,0,35 listed_at=2040320
+20260917-080028	aquatic	2	24320	2040320	death	277	VORACIOUS_CAVE_CRAWLER ref6=4,30,-1,11,-1,24 last_countdown=21817 last_flag_src=0 arrived_at=2038441
+20260917-080028	aquatic	2	24643	2040643	arrival	294	BLIND_CAVE_OGRE caste=MALE ref6=4,30,-1,11,-1,33 layer=cavern countdown=20253 vanish=0 flag_src=1 flag_nf=0 pos=167,0,35 listed_at=2040320
+20260917-080028	aquatic	2	25156	2041156	manipulation	probe:release all	released 13 unit(s) [all]
+20260917-080028	aquatic	2	25156	2041156	every_applied	5	probe:release all
+20260917-080028	aquatic	2	25679	2041679	arrival	295	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,30,-1,2,-1,18 layer=cavern countdown=23815 vanish=0 flag_src=1 flag_nf=0 pos=184,81,58 listed_at=2041679
+20260917-080028	aquatic	2	25679	2041679	arrival	296	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=28218 vanish=0 flag_src=1 flag_nf=0 pos=13,7,29 listed_at=2041679
+20260917-080028	aquatic	2	25679	2041679	arrival	297	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=24785 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2041679
+20260917-080028	aquatic	2	25679	2041679	arrival	314	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=28841 vanish=0 flag_src=1 flag_nf=0 pos=73,0,2 listed_at=2041679
+20260917-080028	aquatic	2	25679	2041679	arrival	315	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=21091 vanish=0 flag_src=1 flag_nf=0 pos=74,0,2 listed_at=2041679
+20260917-080028	aquatic	2	25975	2041975	arrival	298	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=29121 vanish=0 flag_src=1 flag_nf=0 pos=11,10,29 listed_at=2041679
+20260917-080028	aquatic	2	25975	2041975	arrival	299	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23367 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2041679
+20260917-080028	aquatic	2	25975	2041975	arrival	316	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=24008 vanish=0 flag_src=1 flag_nf=0 pos=76,2,2 listed_at=2041679
+20260917-080028	aquatic	2	25975	2041975	arrival	317	DEMON_4 caste=DEFAULT ref6=4,29,-1,38,-1,2 layer=cavern countdown=20203 vanish=0 flag_src=1 flag_nf=0 pos=73,0,2 listed_at=2041679
+20260917-080028	aquatic	2	25975	2041975	arrival	318	PLUMP_HELMET_MAN caste=MALE ref6=4,30,-1,11,-1,16 layer=cavern countdown=23147 vanish=0 flag_src=1 flag_nf=0 pos=185,40,35 listed_at=2041975
+20260917-080028	aquatic	2	25975	2041975	arrival	319	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,11,-1,16 layer=cavern countdown=22987 vanish=0 flag_src=1 flag_nf=0 pos=188,41,35 listed_at=2041975
+20260917-080028	aquatic	2	25975	2041975	arrival	320	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,11,-1,16 layer=cavern countdown=20603 vanish=0 flag_src=1 flag_nf=0 pos=189,45,35 listed_at=2041975
+20260917-080028	aquatic	2	25975	2041975	arrival	321	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,11,-1,16 layer=cavern countdown=27668 vanish=0 flag_src=1 flag_nf=0 pos=191,43,35 listed_at=2041975
+20260917-080028	aquatic	2	25975	2041975	arrival	322	PLUMP_HELMET_MAN caste=FEMALE ref6=4,30,-1,11,-1,16 layer=cavern countdown=26981 vanish=0 flag_src=1 flag_nf=0 pos=191,44,35 listed_at=2041975
+20260917-080028	aquatic	2	25975	2041975	arrival	323	GORLAK caste=FEMALE ref6=4,30,-1,2,-1,27 layer=cavern countdown=25074 vanish=0 flag_src=1 flag_nf=0 pos=191,9,56 listed_at=2041975
+20260917-080028	aquatic	2	26241	2042241	arrival	300	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25719 vanish=0 flag_src=1 flag_nf=0 pos=12,0,29 listed_at=2041679
+20260917-080028	aquatic	2	26241	2042241	arrival	301	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=20503 vanish=0 flag_src=1 flag_nf=0 pos=10,2,29 listed_at=2041679
+20260917-080028	aquatic	2	26476	2042476	arrival	302	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=25583 vanish=0 flag_src=1 flag_nf=0 pos=13,0,29 listed_at=2041679
+20260917-080028	aquatic	2	26476	2042476	arrival	303	CRUNDLE caste=FEMALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=19810 vanish=0 flag_src=1 flag_nf=0 pos=11,0,29 listed_at=2041679
+20260917-080028	aquatic	2	26713	2042713	manipulation	probe:release all	released 29 unit(s) [all]
+20260917-080028	aquatic	2	26713	2042713	every_applied	6	probe:release all
+20260917-080028	aquatic	2	26960	2042960	arrival	324	JABBERER caste=FEMALE ref6=4,30,-1,20,-1,21 layer=cavern countdown=29037 vanish=0 flag_src=1 flag_nf=0 pos=186,153,23 listed_at=2042960
+20260917-080028	aquatic	2	26960	2042960	arrival	325	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=21114 vanish=0 flag_src=1 flag_nf=0 pos=0,68,2 listed_at=2042960
+20260917-080028	aquatic	2	26960	2042960	arrival	326	DEMON_2 caste=DEFAULT ref6=4,30,-1,38,-1,6 layer=cavern countdown=24419 vanish=0 flag_src=1 flag_nf=0 pos=0,67,2 listed_at=2042960
+20260917-080028	aquatic	2	26960	2042960	arrival	327	CROCODILE_CAVE caste=MALE ref6=4,30,-1,11,-1,14 layer=cavern countdown=21548 vanish=0 flag_src=1 flag_nf=0 pos=68,191,36 listed_at=2042960
+20260917-080028	aquatic	2	26960	2042960	arrival	328	REACHER caste=MALE ref6=4,30,-1,20,-1,27 layer=cavern countdown=25062 vanish=0 flag_src=1 flag_nf=0 pos=0,16,29 listed_at=2042960
+20260917-080028	aquatic	2	27282	2043282	arrival	304	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=23666 vanish=0 flag_src=0 flag_nf=0 pos=14,1,29 listed_at=2041679
+20260917-080028	aquatic	2	27282	2043282	arrival	305	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=21918 vanish=0 flag_src=0 flag_nf=0 pos=12,0,29 listed_at=2041679
+20260917-080028	aquatic	2	27282	2043282	arrival	306	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=26855 vanish=0 flag_src=0 flag_nf=0 pos=13,0,29 listed_at=2041679
+20260917-080028	aquatic	2	27282	2043282	arrival	307	CRUNDLE caste=MALE ref6=4,30,-1,20,-1,12 layer=cavern countdown=28556 vanish=0 flag_src=0 flag_nf=0 pos=11,0,29 listed_at=2041679
+20260917-080028	aquatic	2	27282	2043282	arrival	329	TOAD_GIANT_CAVE caste=MALE ref6=4,30,-1,11,-1,11 layer=cavern countdown=21914 vanish=0 flag_src=1 flag_nf=0 pos=189,42,35 listed_at=2043282
+20260917-080028	aquatic	2	27282	2043282	death	291	TROLL ref6=4,30,-1,2,-1,26 last_countdown=21411 last_flag_src=0 arrived_at=2040320

@@ -1,0 +1,62 @@
+{
+  "id": "E14-OCEAN",
+  "title": "Aquatic surface entries on OCEAN: open only fish, sharks, whales, otters, crocodiles and kin (surface tier) on the site and neighbour tiles, close every land entry, release all holds, release every 1,500 ticks, 20,000 ticks; do aquatic units arrive, and where",
+  "fork": "F14 follow-up: can aquatic surface entries produce waves",
+  "fort": "OCEAN",
+  "backup": "OCEAN.preverify",
+  "fps": 1000,
+  "sample_every": 200,
+  "tick_budget": 20000,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "aquatic surface entries spawn like any other",
+      "expects": "arm aquatic: fish/shark/crocodile units arrive at the water edge within 450 ticks of each release"
+    },
+    {
+      "model": "aquatic entries are data only, like feature entries",
+      "expects": "arm aquatic: nothing in 20,000 ticks while the natural arm produces land waves"
+    },
+    {
+      "model": "aquatic waves need a water map edge",
+      "expects": "OCEAN (two rows of ocean tiles on the edge) produces them and LAKE (lake tile with land around) does not, or vice versa"
+    }
+  ],
+  "kill_criterion": "any aquatic arrival in arm aquatic settles it; the natural arm must show waves or the fort is not comparable",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "aquatic",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,names=0,0,{}; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local aq = id:match('^FISH_') or id:match('^SHARK_') or id:match('WHALE') or id=='ORCA' or id:match('OTTER') or id:match('CROCODILE') or id=='ALLIGATOR' or id:match('HIPPO') or id:match('PLATYPUS') or id:match('TURTLE') or id=='BEAVER' or id:match('SEAL') or id=='CRAB' or id:match('DOLPHIN') or id:match('MANATEE') or id:match('WALRUS'); if aq then p.quantity=50; p.flags.extinct=false; o=o+1; names[id]=true else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; local l={}; for k in pairs(names) do l[#l+1]=k end; table.sort(l); print(('aquatic opened: %d entries (%s); closed: %d'):format(o, table.concat(l,' '), c))",
+        "probe:release all"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release all"
+        ]
+      }
+    },
+    {
+      "name": "natural",
+      "replicates": 1,
+      "pre": [
+        "probe:release all"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release all"
+        ]
+      }
+    }
+  ]
+}

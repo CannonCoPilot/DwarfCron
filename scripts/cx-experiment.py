@@ -591,7 +591,8 @@ def cmd_report(a):
         d = dict(kv.split("=", 1) for kv in e["detail"].split() if "=" in kv)
         species = e["detail"].split()[0]
         key = (e["arm"], e["rep"], e["abs_tick"], species, d.get("ref6"))
-        g = groups.setdefault(key, {"n": 0, "countdowns": [], "ids": []})
+        g = groups.setdefault(key, {"n": 0, "countdowns": [], "ids": [], "layer": d.get("layer", ""),
+                                    "listed_at": d.get("listed_at", e["abs_tick"])})
         g["n"] += 1; g["countdowns"].append(d.get("countdown")); g["ids"].append(e["subject"])
     starts = {}
     for e in events:
@@ -610,6 +611,35 @@ def cmd_report(a):
         cd = sorted(set(g["countdowns"]), key=lambda x: int(x) if x and x.lstrip('-').isdigit() else 0)
         mark = "" if (arm, rep) in valid else " (culled)"
         print(f"{arm} | {rep} | +{int(abs_t) - t0} | {species} | {ref6} | {g['n']} | {','.join(cd)} | {','.join(rel) or '-'} | {'/'.join(sorted(set(outs)))}{mark}")
+
+    # waves.tsv: one row per wave, keyed on the tick the units were FIRST LISTED (stragglers that
+    # became present a sample later are folded into the wave they were listed with), with layer,
+    # size, countdown range and fate. This is the per-wave summary the report used to need awk for.
+    waves: dict[tuple, dict] = {}
+    for (arm, rep, abs_t, species, ref6), g in groups.items():
+        wk = (arm, rep, g["listed_at"], species, ref6)
+        w = waves.setdefault(wk, {"layer": g["layer"], "n": 0, "first_present": int(abs_t), "countdowns": [], "ids": []})
+        w["n"] += g["n"]; w["countdowns"] += [int(c) for c in g["countdowns"] if c and c.lstrip('-').isdigit()]
+        w["ids"] += g["ids"]; w["first_present"] = min(w["first_present"], int(abs_t))
+    with open(run_dir / "waves.tsv", "w") as fh:
+        fh.write("arm\trep\tlisted_rel\tfirst_present_rel\tspecies\tref6\tlayer\tn\tcountdown_min\tcountdown_max\tdeparted\tdied\tpresent\tdeparted_rel_min\tdeparted_rel_max\tvalid\n")
+        for (arm, rep, listed, species, ref6), w in sorted(waves.items(), key=lambda kv: (kv[0][0], int(kv[0][1]), int(kv[0][2]))):
+            t0 = starts.get((arm, rep), int(listed))
+            fates = [dep.get((arm, rep, i)) for i in w["ids"]]
+            deps = [at - int(listed) for f in fates if f and f[0] == "departure" for at in [f[1]]]
+            died = sum(1 for f in fates if f and f[0] == "death")
+            fh.write("\t".join(str(x) for x in [
+                arm, rep, int(listed) - t0, w["first_present"] - t0, species, ref6, w["layer"], w["n"],
+                min(w["countdowns"]) if w["countdowns"] else "", max(w["countdowns"]) if w["countdowns"] else "",
+                len(deps), died, w["n"] - len(deps) - died,
+                min(deps) if deps else "", max(deps) if deps else "", (arm, rep) in valid]) + "\n")
+    print(f"\n## Waves ({len(waves)}; per-wave summary written to waves.tsv, keyed on first-listed tick)")
+    print("arm | rep | listed | species | layer | n | departed | died | present")
+    for (arm, rep, listed, species, ref6), w in sorted(waves.items(), key=lambda kv: (kv[0][0], int(kv[0][1]), int(kv[0][2]))):
+        t0 = starts.get((arm, rep), int(listed))
+        fates = [dep.get((arm, rep, i)) for i in w["ids"]]
+        nd = sum(1 for f in fates if f and f[0] == "departure"); nk = sum(1 for f in fates if f and f[0] == "death")
+        print(f"{arm} | {rep} | +{int(listed) - t0} | {species} | {w['layer']} | {w['n']} | {nd} | {nk} | {w['n'] - nd - nk}")
 
     # countdown slope: for arrived units, first and last countdown reading with ticks between
     print("\n## Countdown behaviour per arrived unit (first reading -> last reading over ticks)")
