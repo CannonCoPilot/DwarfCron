@@ -1,0 +1,998 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260918-000329	water	1	16801	2032801	baseline	wild_present	0
+20260918-000329	water	1	16801	2032801	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=false; cfg.layers.water=true; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local n,w=0,0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1; if e.layer=='water' then w=w+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=false; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local parts={}; for k,v in pairs(cfg.assign) do if k:sub(1,6)=='water:' then parts[#parts+1]=k..'='..table.concat(v,'') end end; table.sort(parts); print(('roster: water layer only — %d allowed (%d water), %d assigned, %d thin, %d applied; groups off; rotation enabled | %s'):format(n,w,a,f,act,table.concat(parts,' ')))	roster: water layer only — 10 allowed (10 water), 10 assigned, 0 thin, 7 applied; groups off; rotation enabled | water:BIRD_OSPREY=23 water:CROCODILE_SALTWATER=0123 water:FISH_GUPPY=0123 water:FISH_LUNGFISH=01 water:FISH_MILKFISH=01 water:FISH_STINGRAY=01 water:HIPPO=01 water:MUSSEL=23 water:PLATYPUS=23 water:RIVER OTTER=0123
+20260918-000329	water	1	16801	2032801	manipulation	local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','status'); print((out or ''):gsub('\n',' | '):sub(1,600))	Biomes: MARSH_TROPICAL_SALTWATER, OCEAN_TROPICAL, SHRUBLAND_TROPICAL | Layers: water | Embark subset (what can actually come to THIS fort): |   water  BIRD_OSPREY            bird      small  M=200     G=1   [MAR.TRO.SAL] season=AuWi |   water  CROCODILE_SALTWATER    predator  large  M=80000   G=2   [MAR.TRO.SAL] season=All |   water  FISH_GUPPY             vermin    small  M=20      G=1   [MAR.TRO.SAL] season=All |   water  FISH_LUNGFISH          vermin    small  M=20      G=1   [MAR.TRO.SAL] season=SpSu |   water  FISH_MILKFISH          prey      small  M=1000    G=5   [MAR.TRO.SAL] season=Sp
+20260918-000329	water	1	21880	2037880	arrival	171	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=24452 vanish=0 flag_src=1 flag_nf=1 pos=165,170,103 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	172	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=22260 vanish=0 flag_src=1 flag_nf=1 pos=164,169,98 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	173	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=24472 vanish=0 flag_src=1 flag_nf=1 pos=164,169,97 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	174	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=21656 vanish=0 flag_src=1 flag_nf=1 pos=159,169,94 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	175	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=22712 vanish=0 flag_src=1 flag_nf=1 pos=155,169,96 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	176	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=16261 vanish=0 flag_src=1 flag_nf=1 pos=150,169,97 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	177	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=20553 vanish=0 flag_src=1 flag_nf=1 pos=146,168,96 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	178	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=20025 vanish=0 flag_src=1 flag_nf=1 pos=146,174,102 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	179	TROLL caste=FEMALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=23286 vanish=0 flag_src=1 flag_nf=0 pos=0,82,58 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	180	REACHER caste=FEMALE ref6=4,28,-1,10,-1,13 layer=cavern countdown=21342 vanish=0 flag_src=1 flag_nf=0 pos=133,153,38 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	181	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=17406 vanish=0 flag_src=1 flag_nf=0 pos=19,31,19 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	182	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=19221 vanish=0 flag_src=1 flag_nf=0 pos=20,28,19 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	183	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=22242 vanish=0 flag_src=1 flag_nf=0 pos=22,22,19 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	184	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=16775 vanish=0 flag_src=1 flag_nf=0 pos=22,15,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	185	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=21791 vanish=0 flag_src=1 flag_nf=0 pos=20,7,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	186	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=18128 vanish=0 flag_src=1 flag_nf=0 pos=21,9,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	187	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=18203 vanish=0 flag_src=1 flag_nf=0 pos=18,6,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	188	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=25137 vanish=0 flag_src=1 flag_nf=0 pos=16,3,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	189	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=27600 vanish=0 flag_src=1 flag_nf=0 pos=20,1,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	190	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=21981 vanish=0 flag_src=1 flag_nf=0 pos=24,1,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	191	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=21041 vanish=0 flag_src=1 flag_nf=0 pos=24,0,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	192	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=19957 vanish=0 flag_src=1 flag_nf=0 pos=22,1,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	193	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=20955 vanish=0 flag_src=1 flag_nf=0 pos=22,0,20 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	200	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=21970 vanish=0 flag_src=1 flag_nf=0 pos=17,85,2 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	201	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=17330 vanish=0 flag_src=1 flag_nf=0 pos=50,128,2 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	202	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=24612 vanish=0 flag_src=1 flag_nf=0 pos=28,106,4 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	203	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=17361 vanish=0 flag_src=1 flag_nf=0 pos=7,150,2 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	204	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=19004 vanish=0 flag_src=1 flag_nf=0 pos=101,6,58 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	205	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24977 vanish=0 flag_src=1 flag_nf=0 pos=112,153,38 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	206	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=22924 vanish=0 flag_src=1 flag_nf=0 pos=103,155,38 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	207	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17279 vanish=0 flag_src=1 flag_nf=0 pos=65,156,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	208	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=18001 vanish=0 flag_src=1 flag_nf=0 pos=60,150,35 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	209	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=16334 vanish=0 flag_src=1 flag_nf=0 pos=62,146,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	210	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17642 vanish=0 flag_src=1 flag_nf=0 pos=49,151,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	211	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20975 vanish=0 flag_src=1 flag_nf=0 pos=64,154,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	212	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=16202 vanish=0 flag_src=1 flag_nf=0 pos=51,153,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	213	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=16492 vanish=0 flag_src=1 flag_nf=0 pos=54,154,36 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	214	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=18250 vanish=0 flag_src=1 flag_nf=0 pos=60,154,35 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	215	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=18440 vanish=0 flag_src=1 flag_nf=0 pos=158,68,11 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	216	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=19548 vanish=0 flag_src=1 flag_nf=0 pos=157,80,13 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	217	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=22062 vanish=0 flag_src=1 flag_nf=0 pos=158,84,13 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	218	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=23205 vanish=0 flag_src=1 flag_nf=0 pos=6,190,11 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	219	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=21646 vanish=0 flag_src=1 flag_nf=0 pos=3,186,10 listed_at=2037880
+20260918-000329	water	1	21880	2037880	arrival	220	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=21673 vanish=0 flag_src=1 flag_nf=0 pos=4,182,10 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	194	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=21227 vanish=0 flag_src=1 flag_nf=0 pos=12,18,19 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	195	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=24051 vanish=0 flag_src=1 flag_nf=0 pos=12,13,20 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	196	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=23090 vanish=0 flag_src=1 flag_nf=0 pos=13,8,20 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	197	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=20014 vanish=0 flag_src=1 flag_nf=0 pos=15,4,20 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	198	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=21453 vanish=0 flag_src=1 flag_nf=0 pos=20,2,20 listed_at=2037880
+20260918-000329	water	1	26978	2042978	arrival	199	CREEPING_EYE caste=DEFAULT ref6=4,28,-1,22,-1,26 layer=cavern countdown=22164 vanish=0 flag_src=1 flag_nf=0 pos=23,0,20 listed_at=2037880
+20260918-000329	water	1	32090	2048090	arrival	221	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=23933 vanish=0 flag_src=1 flag_nf=0 pos=12,97,55 listed_at=2048090
+20260918-000329	water	1	32090	2048090	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 26
+20260918-000329	water	1	32090	2048090	every_applied	1	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	32090	2048090	death	179	TROLL ref6=4,28,-1,2,-1,26 last_countdown=18188 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	37146	2053146	arrival	222	GORLAK caste=FEMALE ref6=4,28,-1,2,-1,27 layer=cavern countdown=19114 vanish=0 flag_src=1 flag_nf=0 pos=16,139,60 listed_at=2053146
+20260918-000329	water	1	37146	2053146	death	204	TROLL ref6=4,28,-1,2,-1,26 last_countdown=8793 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	42373	2058373	arrival	223	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=27590 vanish=0 flag_src=1 flag_nf=0 pos=3,68,58 listed_at=2058373
+20260918-000329	water	1	42373	2058373	departure	181	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=2140 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	42373	2058373	departure	182	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=3955 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	42373	2058373	death	221	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=18877 last_flag_src=1 arrived_at=2048090
+20260918-000329	water	1	47415	2063415	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 39
+20260918-000329	water	1	47415	2063415	every_applied	2	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	47415	2063415	departure	171	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=3959 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	180	REACHER ref6=4,28,-1,10,-1,13 last_countdown=795 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	183	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=1749 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	200	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=1477 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	201	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	205	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=4483 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	47415	2063415	departure	215	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	arrival	224	DEMON_13 caste=DEFAULT ref6=4,28,-1,38,-1,3 layer=cavern countdown=24541 vanish=0 flag_src=1 flag_nf=0 pos=159,50,1 listed_at=2068546
+20260918-000329	water	1	52546	2068546	arrival	225	DEMON_13 caste=DEFAULT ref6=4,28,-1,38,-1,3 layer=cavern countdown=16041 vanish=0 flag_src=1 flag_nf=0 pos=189,101,0 listed_at=2068546
+20260918-000329	water	1	52546	2068546	arrival	226	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23416 vanish=0 flag_src=1 flag_nf=0 pos=2,25,37 listed_at=2068546
+20260918-000329	water	1	52546	2068546	arrival	227	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=25963 vanish=0 flag_src=1 flag_nf=0 pos=0,23,37 listed_at=2068546
+20260918-000329	water	1	52546	2068546	arrival	230	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20042 vanish=0 flag_src=1 flag_nf=0 pos=0,24,37 listed_at=2068546
+20260918-000329	water	1	52546	2068546	arrival	231	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=29345 vanish=0 flag_src=1 flag_nf=0 pos=3,17,37 listed_at=2068546
+20260918-000329	water	1	52546	2068546	departure	184	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	185	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	186	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	187	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	188	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	189	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=2065 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	190	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	191	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	202	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	203	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	206	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	207	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	208	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	209	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	210	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	211	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	212	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	213	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	52546	2068546	departure	214	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	57628	2073628	arrival	228	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24108 vanish=0 flag_src=1 flag_nf=0 pos=24,69,56 listed_at=2068546
+20260918-000329	water	1	57628	2073628	arrival	229	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17240 vanish=0 flag_src=1 flag_nf=0 pos=11,81,58 listed_at=2068546
+20260918-000329	water	1	57628	2073628	arrival	232	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=18260 vanish=0 flag_src=1 flag_nf=0 pos=10,81,58 listed_at=2068546
+20260918-000329	water	1	57628	2073628	arrival	233	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=22147 vanish=0 flag_src=1 flag_nf=0 pos=153,190,57 listed_at=2073628
+20260918-000329	water	1	57628	2073628	arrival	234	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=21816 vanish=0 flag_src=1 flag_nf=0 pos=52,4,18 listed_at=2073628
+20260918-000329	water	1	57628	2073628	arrival	235	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=27811 vanish=0 flag_src=1 flag_nf=0 pos=57,5,18 listed_at=2073628
+20260918-000329	water	1	57628	2073628	arrival	236	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=22592 vanish=0 flag_src=1 flag_nf=0 pos=63,0,20 listed_at=2073628
+20260918-000329	water	1	57628	2073628	arrival	237	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=26419 vanish=0 flag_src=1 flag_nf=0 pos=59,0,20 listed_at=2073628
+20260918-000329	water	1	57628	2073628	arrival	238	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=26895 vanish=0 flag_src=1 flag_nf=0 pos=89,9,20 listed_at=2073628
+20260918-000329	water	1	57628	2073628	departure	192	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	57628	2073628	departure	193	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	57628	2073628	departure	194	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	57628	2073628	departure	195	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	57628	2073628	departure	196	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	57628	2073628	departure	197	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	57628	2073628	departure	198	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	57628	2073628	departure	222	GORLAK ref6=4,28,-1,2,-1,27 last_countdown=3712 last_flag_src=1 arrived_at=2053146
+20260918-000329	water	1	62668	2078668	arrival	239	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=24749 vanish=0 flag_src=1 flag_nf=1 pos=166,81,107 listed_at=2078668
+20260918-000329	water	1	62668	2078668	arrival	240	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=24817 vanish=0 flag_src=1 flag_nf=1 pos=168,155,104 listed_at=2078668
+20260918-000329	water	1	62668	2078668	arrival	241	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=27008 vanish=0 flag_src=1 flag_nf=1 pos=85,175,106 listed_at=2078668
+20260918-000329	water	1	62668	2078668	arrival	242	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=26000 vanish=0 flag_src=1 flag_nf=1 pos=178,163,93 listed_at=2078668
+20260918-000329	water	1	62668	2078668	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 52
+20260918-000329	water	1	62668	2078668	every_applied	3	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	62668	2078668	departure	172	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	173	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	174	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	175	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	176	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	177	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	62668	2078668	departure	199	CREEPING_EYE ref6=4,28,-1,22,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2042978
+20260918-000329	water	1	67748	2083748	arrival	243	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=22678 vanish=0 flag_src=1 flag_nf=0 pos=31,178,57 listed_at=2083748
+20260918-000329	water	1	67748	2083748	departure	178	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	67748	2083748	death	229	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=12200 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	67748	2083748	death	230	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=9920 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	67748	2083748	death	233	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=17107 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	72779	2088779	arrival	244	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=22396 vanish=0 flag_src=1 flag_nf=0 pos=26,131,1 listed_at=2088779
+20260918-000329	water	1	72779	2088779	arrival	245	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=17701 vanish=0 flag_src=1 flag_nf=0 pos=160,3,55 listed_at=2088779
+20260918-000329	water	1	72779	2088779	arrival	246	OLM_GIANT caste=MALE ref6=4,28,-1,2,-1,10 layer=cavern countdown=23967 vanish=0 flag_src=1 flag_nf=0 pos=128,6,57 listed_at=2088779
+20260918-000329	water	1	72779	2088779	departure	223	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=2213 last_flag_src=1 arrived_at=2058373
+20260918-000329	water	1	72779	2088779	departure	225	DEMON_13 ref6=4,28,-1,38,-1,3 last_countdown=837 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	72779	2088779	death	243	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=22678 last_flag_src=1 arrived_at=2083748
+20260918-000329	water	1	77835	2093835	arrival	247	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=24976 vanish=0 flag_src=1 flag_nf=0 pos=18,68,2 listed_at=2093835
+20260918-000329	water	1	77835	2093835	arrival	248	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=22347 vanish=0 flag_src=1 flag_nf=0 pos=9,63,2 listed_at=2093835
+20260918-000329	water	1	77835	2093835	arrival	249	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=20665 vanish=0 flag_src=1 flag_nf=0 pos=9,94,0 listed_at=2093835
+20260918-000329	water	1	77835	2093835	arrival	250	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=19924 vanish=0 flag_src=1 flag_nf=0 pos=28,77,0 listed_at=2093835
+20260918-000329	water	1	77835	2093835	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 64
+20260918-000329	water	1	77835	2093835	every_applied	4	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	77835	2093835	departure	224	DEMON_13 ref6=4,28,-1,38,-1,3 last_countdown=4300 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	77835	2093835	departure	226	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=3180 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	77835	2093835	death	228	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=8951 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	77835	2093835	death	232	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=3108 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	82912	2098912	arrival	251	GREEN_DEVOURER caste=FEMALE ref6=4,28,-1,10,-1,1 layer=cavern countdown=26986 vanish=0 flag_src=1 flag_nf=0 pos=128,149,38 listed_at=2098912
+20260918-000329	water	1	82912	2098912	departure	227	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=672 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	82912	2098912	departure	234	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=1609 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	82912	2098912	departure	236	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=2385 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	88186	2104186	arrival	252	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=21112 vanish=0 flag_src=1 flag_nf=0 pos=29,106,20 listed_at=2104186
+20260918-000329	water	1	88186	2104186	arrival	253	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=21637 vanish=0 flag_src=1 flag_nf=0 pos=28,61,18 listed_at=2104186
+20260918-000329	water	1	88186	2104186	arrival	254	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=21336 vanish=0 flag_src=1 flag_nf=0 pos=27,63,18 listed_at=2104186
+20260918-000329	water	1	88186	2104186	departure	235	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=2527 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	88186	2104186	departure	237	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=1135 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	88186	2104186	departure	238	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=1611 last_flag_src=1 arrived_at=2073628
+20260918-000329	water	1	88186	2104186	departure	240	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=4573 last_flag_src=1 arrived_at=2078668
+20260918-000329	water	1	93294	2109294	arrival	255	TOAD_GIANT_CAVE caste=MALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=25611 vanish=0 flag_src=1 flag_nf=0 pos=116,18,57 listed_at=2109294
+20260918-000329	water	1	93294	2109294	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 77
+20260918-000329	water	1	93294	2109294	every_applied	5	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	93294	2109294	departure	216	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	93294	2109294	departure	242	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=482 last_flag_src=1 arrived_at=2078668
+20260918-000329	water	1	93294	2109294	departure	245	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=2294 last_flag_src=1 arrived_at=2088779
+20260918-000329	water	1	98474	2114474	arrival	256	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=20014 vanish=0 flag_src=1 flag_nf=1 pos=131,66,95 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	257	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26189 vanish=0 flag_src=1 flag_nf=1 pos=25,135,97 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	258	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=18580 vanish=0 flag_src=1 flag_nf=1 pos=71,110,95 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	259	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23166 vanish=0 flag_src=1 flag_nf=1 pos=107,11,108 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	260	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23810 vanish=0 flag_src=1 flag_nf=1 pos=104,8,98 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	261	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24250 vanish=0 flag_src=1 flag_nf=1 pos=175,170,101 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	262	GORLAK caste=MALE ref6=4,28,-1,2,-1,27 layer=cavern countdown=20978 vanish=0 flag_src=1 flag_nf=0 pos=137,16,56 listed_at=2114474
+20260918-000329	water	1	98474	2114474	arrival	263	SPIDER_CAVE_GIANT caste=FEMALE ref6=3,28,-1,10,-1,10 layer=cavern countdown=24235 vanish=0 flag_src=1 flag_nf=0 pos=160,2,36 listed_at=2114474
+20260918-000329	water	1	98474	2114474	departure	231	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2068546
+20260918-000329	water	1	98474	2114474	departure	239	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2078668
+20260918-000329	water	1	98474	2114474	departure	241	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2078668
+20260918-000329	water	1	98474	2114474	departure	244	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=1878 last_flag_src=1 arrived_at=2088779
+20260918-000329	water	1	98474	2114474	death	246	OLM_GIANT ref6=4,28,-1,2,-1,10 last_countdown=3452 last_flag_src=1 arrived_at=2088779
+20260918-000329	water	1	98474	2114474	departure	250	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=4460 last_flag_src=1 arrived_at=2093835
+20260918-000329	water	1	103577	2119577	arrival	264	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=20433 vanish=0 flag_src=1 flag_nf=0 pos=137,169,2 listed_at=2119577
+20260918-000329	water	1	103577	2119577	arrival	265	DEMON_15 caste=MALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=17558 vanish=0 flag_src=1 flag_nf=0 pos=127,146,2 listed_at=2119577
+20260918-000329	water	1	103577	2119577	arrival	266	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=17577 vanish=0 flag_src=1 flag_nf=0 pos=160,184,1 listed_at=2119577
+20260918-000329	water	1	103577	2119577	arrival	267	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=25634 vanish=0 flag_src=1 flag_nf=0 pos=159,125,2 listed_at=2119577
+20260918-000329	water	1	103577	2119577	arrival	268	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=27052 vanish=0 flag_src=1 flag_nf=0 pos=160,168,2 listed_at=2119577
+20260918-000329	water	1	103577	2119577	departure	217	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	103577	2119577	departure	218	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	103577	2119577	departure	247	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=4336 last_flag_src=1 arrived_at=2093835
+20260918-000329	water	1	103577	2119577	departure	248	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=1703 last_flag_src=1 arrived_at=2093835
+20260918-000329	water	1	103577	2119577	departure	249	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=22 last_flag_src=1 arrived_at=2093835
+20260918-000329	water	1	108664	2124664	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 90
+20260918-000329	water	1	108664	2124664	every_applied	6	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	113776	2129776	arrival	269	JABBERER caste=FEMALE ref6=3,28,-1,10,-1,6 layer=cavern countdown=23194 vanish=0 flag_src=1 flag_nf=0 pos=23,190,35 listed_at=2129776
+20260918-000329	water	1	113776	2129776	departure	251	GREEN_DEVOURER ref6=4,28,-1,10,-1,1 last_countdown=1232 last_flag_src=1 arrived_at=2098912
+20260918-000329	water	1	113776	2129776	departure	252	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=631 last_flag_src=1 arrived_at=2104186
+20260918-000329	water	1	118959	2134959	arrival	270	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=24400 vanish=0 flag_src=1 flag_nf=0 pos=164,190,13 listed_at=2134959
+20260918-000329	water	1	118959	2134959	arrival	271	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26242 vanish=0 flag_src=1 flag_nf=0 pos=147,169,11 listed_at=2134959
+20260918-000329	water	1	118959	2134959	arrival	272	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=20590 vanish=0 flag_src=1 flag_nf=0 pos=165,151,10 listed_at=2134959
+20260918-000329	water	1	118959	2134959	arrival	273	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=18858 vanish=0 flag_src=1 flag_nf=0 pos=168,188,13 listed_at=2134959
+20260918-000329	water	1	118959	2134959	arrival	274	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=22856 vanish=0 flag_src=1 flag_nf=0 pos=152,175,12 listed_at=2134959
+20260918-000329	water	1	118959	2134959	departure	219	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	118959	2134959	departure	258	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=3278 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	124074	2140074	arrival	275	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=19666 vanish=0 flag_src=1 flag_nf=0 pos=15,108,56 listed_at=2140074
+20260918-000329	water	1	124074	2140074	arrival	276	HONEY BADGER caste=FEMALE ref6=4,29,-1,-1,-1,52 layer=surface countdown=27643 vanish=0 flag_src=1 flag_nf=1 pos=13,154,93 listed_at=2140074
+20260918-000329	water	1	124074	2140074	arrival	277	TROLL caste=MALE ref6=4,28,-1,10,-1,11 layer=cavern countdown=26930 vanish=0 flag_src=1 flag_nf=0 pos=190,187,34 listed_at=2140074
+20260918-000329	water	1	124074	2140074	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 103
+20260918-000329	water	1	124074	2140074	every_applied	7	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	124074	2140074	departure	255	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2109294
+20260918-000329	water	1	124074	2140074	departure	256	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	124074	2140074	departure	259	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=2681 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	124074	2140074	departure	260	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=3325 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	124074	2140074	departure	263	SPIDER_CAVE_GIANT ref6=3,28,-1,10,-1,10 last_countdown=3748 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	124074	2140074	departure	265	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=2172 last_flag_src=1 arrived_at=2119577
+20260918-000329	water	1	124074	2140074	departure	266	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=2191 last_flag_src=1 arrived_at=2119577
+20260918-000329	water	1	129185	2145185	arrival	278	ELK_BIRD caste=FEMALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=23390 vanish=0 flag_src=1 flag_nf=0 pos=31,153,21 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	279	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=21058 vanish=0 flag_src=1 flag_nf=0 pos=12,95,20 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	280	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=25163 vanish=0 flag_src=1 flag_nf=0 pos=37,161,18 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	281	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=24818 vanish=0 flag_src=1 flag_nf=0 pos=65,128,20 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	282	ELK_BIRD caste=MALE ref6=4,28,-1,22,-1,18 layer=cavern countdown=18997 vanish=0 flag_src=1 flag_nf=0 pos=64,156,19 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	283	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=26941 vanish=0 flag_src=1 flag_nf=1 pos=81,30,106 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	284	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=22967 vanish=0 flag_src=1 flag_nf=1 pos=93,32,107 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	285	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=28598 vanish=0 flag_src=1 flag_nf=1 pos=116,53,101 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	286	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=28191 vanish=0 flag_src=1 flag_nf=1 pos=168,13,105 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	287	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=19822 vanish=0 flag_src=1 flag_nf=1 pos=79,7,104 listed_at=2145185
+20260918-000329	water	1	129185	2145185	arrival	288	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=23333 vanish=0 flag_src=1 flag_nf=1 pos=97,24,102 listed_at=2145185
+20260918-000329	water	1	129185	2145185	departure	253	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2104186
+20260918-000329	water	1	129185	2145185	departure	254	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2104186
+20260918-000329	water	1	129185	2145185	departure	257	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=589 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	129185	2145185	departure	261	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	129185	2145185	departure	264	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2119577
+20260918-000329	water	1	134306	2150306	arrival	289	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=15220 vanish=0 flag_src=1 flag_nf=0 pos=60,32,4 listed_at=2150306
+20260918-000329	water	1	134306	2150306	arrival	290	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=21715 vanish=0 flag_src=1 flag_nf=0 pos=63,72,3 listed_at=2150306
+20260918-000329	water	1	134306	2150306	arrival	291	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=23110 vanish=0 flag_src=1 flag_nf=0 pos=188,46,0 listed_at=2150306
+20260918-000329	water	1	134306	2150306	arrival	292	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=18818 vanish=0 flag_src=1 flag_nf=0 pos=97,81,4 listed_at=2150306
+20260918-000329	water	1	134306	2150306	arrival	293	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=24927 vanish=0 flag_src=1 flag_nf=0 pos=115,53,4 listed_at=2150306
+20260918-000329	water	1	134306	2150306	arrival	294	CROCODILE_CAVE caste=MALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=18304 vanish=0 flag_src=1 flag_nf=0 pos=22,67,56 listed_at=2150306
+20260918-000329	water	1	134306	2150306	departure	262	GORLAK ref6=4,28,-1,2,-1,27 last_countdown=0 last_flag_src=1 arrived_at=2114474
+20260918-000329	water	1	134306	2150306	departure	267	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=19 last_flag_src=1 arrived_at=2119577
+20260918-000329	water	1	134306	2150306	departure	268	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=1438 last_flag_src=1 arrived_at=2119577
+20260918-000329	water	1	139433	2155433	arrival	295	REACHER caste=MALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=28267 vanish=0 flag_src=1 flag_nf=0 pos=175,28,37 listed_at=2155433
+20260918-000329	water	1	139433	2155433	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 116
+20260918-000329	water	1	139433	2155433	every_applied	8	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	139433	2155433	death	277	TROLL ref6=4,28,-1,10,-1,11 last_countdown=16697 last_flag_src=1 arrived_at=2140074
+20260918-000329	water	1	144553	2160553	arrival	296	TROLL caste=MALE ref6=4,28,-1,10,-1,11 layer=cavern countdown=27655 vanish=0 flag_src=1 flag_nf=0 pos=164,164,35 listed_at=2160553
+20260918-000329	water	1	144553	2160553	arrival	297	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=22486 vanish=0 flag_src=1 flag_nf=0 pos=6,78,58 listed_at=2160553
+20260918-000329	water	1	144553	2160553	departure	269	JABBERER ref6=3,28,-1,10,-1,6 last_countdown=0 last_flag_src=1 arrived_at=2129776
+20260918-000329	water	1	144553	2160553	departure	275	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=4307 last_flag_src=1 arrived_at=2140074
+20260918-000329	water	1	154797	2170797	arrival	298	TROLL caste=FEMALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=24562 vanish=0 flag_src=1 flag_nf=0 pos=165,121,57 listed_at=2170797
+20260918-000329	water	1	154797	2170797	arrival	299	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=21798 vanish=0 flag_src=1 flag_nf=0 pos=119,8,19 listed_at=2170797
+20260918-000329	water	1	154797	2170797	arrival	300	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=24405 vanish=0 flag_src=1 flag_nf=0 pos=105,22,19 listed_at=2170797
+20260918-000329	water	1	154797	2170797	arrival	301	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=27997 vanish=0 flag_src=1 flag_nf=0 pos=92,14,19 listed_at=2170797
+20260918-000329	water	1	154797	2170797	arrival	302	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=28027 vanish=0 flag_src=1 flag_nf=0 pos=119,10,20 listed_at=2170797
+20260918-000329	water	1	154797	2170797	arrival	303	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=29354 vanish=0 flag_src=1 flag_nf=0 pos=102,15,21 listed_at=2170797
+20260918-000329	water	1	154797	2170797	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 128
+20260918-000329	water	1	154797	2170797	every_applied	9	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	154797	2170797	departure	273	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2134959
+20260918-000329	water	1	154797	2170797	departure	276	HONEY BADGER ref6=4,29,-1,-1,-1,52 last_countdown=2007 last_flag_src=1 arrived_at=2140074
+20260918-000329	water	1	154797	2170797	departure	278	ELK_BIRD ref6=4,28,-1,22,-1,18 last_countdown=2875 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	279	ELK_BIRD ref6=4,28,-1,22,-1,18 last_countdown=547 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	280	ELK_BIRD ref6=4,28,-1,22,-1,18 last_countdown=4651 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	281	ELK_BIRD ref6=4,28,-1,22,-1,18 last_countdown=4304 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	282	ELK_BIRD ref6=4,28,-1,22,-1,18 last_countdown=0 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	287	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	288	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=2822 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	154797	2170797	departure	292	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=3428 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	154797	2170797	death	294	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=2914 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	159938	2175938	arrival	304	WATER_BUFFALO caste=MALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=22803 vanish=0 flag_src=1 flag_nf=1 pos=67,191,94 listed_at=2175938
+20260918-000329	water	1	159938	2175938	arrival	305	WATER_BUFFALO caste=MALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=25049 vanish=0 flag_src=1 flag_nf=1 pos=72,183,93 listed_at=2175938
+20260918-000329	water	1	159938	2175938	arrival	306	WATER_BUFFALO caste=MALE ref6=4,29,-1,-1,-1,56 layer=surface countdown=28079 vanish=0 flag_src=1 flag_nf=1 pos=74,182,94 listed_at=2175938
+20260918-000329	water	1	159938	2175938	arrival	307	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=26877 vanish=0 flag_src=1 flag_nf=0 pos=75,8,3 listed_at=2175938
+20260918-000329	water	1	159938	2175938	arrival	308	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=21195 vanish=0 flag_src=1 flag_nf=0 pos=117,32,3 listed_at=2175938
+20260918-000329	water	1	159938	2175938	departure	220	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2037880
+20260918-000329	water	1	159938	2175938	departure	283	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=1329 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	159938	2175938	departure	284	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	159938	2175938	departure	285	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=2986 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	159938	2175938	departure	286	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=2579 last_flag_src=1 arrived_at=2145185
+20260918-000329	water	1	159938	2175938	departure	289	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=0 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	159938	2175938	departure	290	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=1224 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	159938	2175938	departure	291	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=2619 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	159938	2175938	departure	293	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=4436 last_flag_src=1 arrived_at=2150306
+20260918-000329	water	1	170121	2186121	arrival	321	CROCODILE_CAVE caste=MALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=26961 vanish=0 flag_src=1 flag_nf=0 pos=102,30,59 listed_at=2186121
+20260918-000329	water	1	170121	2186121	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 141
+20260918-000329	water	1	170121	2186121	every_applied	10	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	170121	2186121	departure	271	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2134959
+20260918-000329	water	1	170121	2186121	departure	297	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=2044 last_flag_src=1 arrived_at=2160553
+20260918-000329	water	1	175197	2191197	arrival	322	TROGLODYTE caste=FEMALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=17393 vanish=0 flag_src=1 flag_nf=0 pos=54,144,36 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	323	TROGLODYTE caste=FEMALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=18685 vanish=0 flag_src=1 flag_nf=0 pos=141,131,35 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	324	TROGLODYTE caste=MALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=22335 vanish=0 flag_src=1 flag_nf=0 pos=132,128,35 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	325	TROGLODYTE caste=MALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=25445 vanish=0 flag_src=1 flag_nf=0 pos=118,169,42 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	326	TROGLODYTE caste=MALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=20974 vanish=0 flag_src=1 flag_nf=0 pos=99,157,38 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	327	TROGLODYTE caste=FEMALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=18285 vanish=0 flag_src=1 flag_nf=0 pos=96,122,35 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	328	TROGLODYTE caste=FEMALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=24719 vanish=0 flag_src=1 flag_nf=0 pos=64,125,35 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	329	TROGLODYTE caste=FEMALE ref6=4,28,-1,10,-1,2 layer=cavern countdown=24468 vanish=0 flag_src=1 flag_nf=0 pos=131,149,38 listed_at=2191197
+20260918-000329	water	1	175197	2191197	arrival	330	OLM_GIANT caste=MALE ref6=4,28,-1,2,-1,10 layer=cavern countdown=19581 vanish=0 flag_src=1 flag_nf=0 pos=19,60,56 listed_at=2191197
+20260918-000329	water	1	175197	2191197	departure	295	REACHER ref6=3,28,-1,10,-1,13 last_countdown=0 last_flag_src=1 arrived_at=2155433
+20260918-000329	water	1	175197	2191197	death	298	TROLL ref6=4,28,-1,2,-1,26 last_countdown=9233 last_flag_src=1 arrived_at=2170797
+20260918-000329	water	1	180223	2196223	departure	270	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2134959
+20260918-000329	water	1	180223	2196223	departure	296	TROLL ref6=4,28,-1,10,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2160553
+20260918-000329	water	1	180223	2196223	departure	299	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=1398 last_flag_src=1 arrived_at=2170797
+20260918-000329	water	1	180223	2196223	departure	300	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=4005 last_flag_src=1 arrived_at=2170797
+20260918-000329	water	1	185322	2201322	arrival	331	MAGMA_CRAB caste=MALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=19054 vanish=0 flag_src=1 flag_nf=0 pos=9,55,12 listed_at=2201322
+20260918-000329	water	1	185322	2201322	arrival	332	MAGMA_CRAB caste=FEMALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=18351 vanish=0 flag_src=1 flag_nf=0 pos=59,36,12 listed_at=2201322
+20260918-000329	water	1	185322	2201322	arrival	333	MAGMA_CRAB caste=FEMALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=16478 vanish=0 flag_src=1 flag_nf=0 pos=34,38,12 listed_at=2201322
+20260918-000329	water	1	185322	2201322	arrival	334	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=18670 vanish=0 flag_src=1 flag_nf=0 pos=45,84,4 listed_at=2201322
+20260918-000329	water	1	185322	2201322	arrival	335	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=24188 vanish=0 flag_src=1 flag_nf=0 pos=9,106,4 listed_at=2201322
+20260918-000329	water	1	185322	2201322	arrival	336	BLIND_CAVE_OGRE caste=MALE ref6=4,28,-1,22,-1,27 layer=cavern countdown=26154 vanish=0 flag_src=1 flag_nf=0 pos=22,0,20 listed_at=2201322
+20260918-000329	water	1	185322	2201322	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 154
+20260918-000329	water	1	185322	2201322	every_applied	11	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	185322	2201322	departure	272	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2134959
+20260918-000329	water	1	185322	2201322	departure	301	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=2571 last_flag_src=1 arrived_at=2170797
+20260918-000329	water	1	185322	2201322	departure	303	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=3928 last_flag_src=1 arrived_at=2170797
+20260918-000329	water	1	185322	2201322	departure	304	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 last_countdown=2517 last_flag_src=1 arrived_at=2175938
+20260918-000329	water	1	185322	2201322	departure	308	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=910 last_flag_src=1 arrived_at=2175938
+20260918-000329	water	1	190370	2206370	arrival	337	BLIND_CAVE_OGRE caste=MALE ref6=4,28,-1,22,-1,27 layer=cavern countdown=18170 vanish=0 flag_src=1 flag_nf=0 pos=46,30,18 listed_at=2201322
+20260918-000329	water	1	190370	2206370	arrival	338	BLIND_CAVE_OGRE caste=MALE ref6=4,28,-1,22,-1,27 layer=cavern countdown=17054 vanish=0 flag_src=1 flag_nf=0 pos=27,38,18 listed_at=2201322
+20260918-000329	water	1	190370	2206370	arrival	339	BIRD_FALCON_PEREGRINE caste=MALE ref6=4,29,-1,-1,-1,51 layer=surface countdown=23501 vanish=0 flag_src=1 flag_nf=1 pos=46,72,108 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	340	GIANT_EARTHWORM caste=DEFAULT ref6=4,28,-1,2,-1,22 layer=cavern countdown=17748 vanish=0 flag_src=1 flag_nf=0 pos=167,181,57 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	341	WILD_BOAR caste=FEMALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=23863 vanish=0 flag_src=1 flag_nf=1 pos=130,188,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	342	WILD_BOAR caste=MALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=26887 vanish=0 flag_src=1 flag_nf=1 pos=111,166,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	343	WILD_BOAR caste=MALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=21283 vanish=0 flag_src=1 flag_nf=1 pos=110,164,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	344	WILD_BOAR caste=FEMALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=26720 vanish=0 flag_src=1 flag_nf=1 pos=92,182,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	345	WILD_BOAR caste=FEMALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=21050 vanish=0 flag_src=1 flag_nf=1 pos=77,169,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	346	WILD_BOAR caste=MALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=28542 vanish=0 flag_src=1 flag_nf=1 pos=70,179,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	347	WILD_BOAR caste=FEMALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=22870 vanish=0 flag_src=1 flag_nf=1 pos=77,178,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	arrival	348	WILD_BOAR caste=MALE ref6=4,29,-1,-1,-1,38 layer=surface countdown=28724 vanish=0 flag_src=1 flag_nf=1 pos=84,178,93 listed_at=2206370
+20260918-000329	water	1	190370	2206370	departure	274	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2134959
+20260918-000329	water	1	190370	2206370	departure	305	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 last_countdown=0 last_flag_src=1 arrived_at=2175938
+20260918-000329	water	1	190370	2206370	departure	306	WATER_BUFFALO ref6=4,29,-1,-1,-1,56 last_countdown=2693 last_flag_src=1 arrived_at=2175938
+20260918-000329	water	1	190370	2206370	departure	307	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=1493 last_flag_src=1 arrived_at=2175938
+20260918-000329	water	1	190370	2206370	death	321	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=11760 last_flag_src=1 arrived_at=2186121
+20260918-000329	water	1	195440	2211440	arrival	349	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=24811 vanish=0 flag_src=1 flag_nf=0 pos=153,182,57 listed_at=2211440
+20260918-000329	water	1	195440	2211440	departure	323	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=3510 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	195440	2211440	departure	327	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=3108 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	195440	2211440	departure	330	OLM_GIANT ref6=4,28,-1,2,-1,10 last_countdown=4408 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	200588	2216588	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 167
+20260918-000329	water	1	200588	2216588	every_applied	12	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	200588	2216588	departure	322	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	200588	2216588	departure	324	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=2092 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	200588	2216588	departure	326	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=728 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	205697	2221697	arrival	350	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20691 vanish=0 flag_src=1 flag_nf=0 pos=34,69,36 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	351	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=19903 vanish=0 flag_src=1 flag_nf=0 pos=21,190,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	352	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=25615 vanish=0 flag_src=1 flag_nf=0 pos=25,190,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	353	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23993 vanish=0 flag_src=1 flag_nf=0 pos=23,190,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	354	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=21993 vanish=0 flag_src=1 flag_nf=0 pos=25,189,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	355	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24647 vanish=0 flag_src=1 flag_nf=0 pos=19,190,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	356	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20153 vanish=0 flag_src=1 flag_nf=0 pos=26,190,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	357	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17534 vanish=0 flag_src=1 flag_nf=0 pos=23,191,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	358	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23668 vanish=0 flag_src=1 flag_nf=0 pos=21,191,35 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	359	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=19568 vanish=0 flag_src=1 flag_nf=0 pos=149,15,1 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	360	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=20749 vanish=0 flag_src=1 flag_nf=0 pos=191,12,0 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	361	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=25131 vanish=0 flag_src=1 flag_nf=0 pos=191,16,0 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	362	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=22077 vanish=0 flag_src=1 flag_nf=0 pos=190,16,0 listed_at=2221697
+20260918-000329	water	1	205697	2221697	arrival	363	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=22785 vanish=0 flag_src=1 flag_nf=0 pos=189,17,0 listed_at=2221697
+20260918-000329	water	1	205697	2221697	departure	325	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=54 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	205697	2221697	departure	328	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	205697	2221697	departure	329	TROGLODYTE ref6=4,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2191197
+20260918-000329	water	1	205697	2221697	departure	333	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=1212 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	205697	2221697	departure	334	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=3404 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	210800	2226800	departure	335	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=3813 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	210800	2226800	popups_drained	step	[cx-lifecycle] drained 1 queued popup(s) mid-step (fort had stalled at 214990)
+20260918-000329	water	1	215947	2231947	arrival	364	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=18838 vanish=0 flag_src=1 flag_nf=0 pos=68,86,58 listed_at=2231947
+20260918-000329	water	1	215947	2231947	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 179
+20260918-000329	water	1	215947	2231947	every_applied	13	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	215947	2231947	departure	336	BLIND_CAVE_OGRE ref6=4,28,-1,22,-1,27 last_countdown=675 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	215947	2231947	departure	338	BLIND_CAVE_OGRE ref6=4,28,-1,22,-1,27 last_countdown=0 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	215947	2231947	departure	339	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 last_countdown=3071 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	215947	2231947	departure	340	GIANT_EARTHWORM ref6=4,28,-1,2,-1,22 last_countdown=0 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	215947	2231947	departure	341	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=3429 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	215947	2231947	departure	343	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=853 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	215947	2231947	departure	345	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=617 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	arrival	373	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=18307 vanish=0 flag_src=1 flag_nf=0 pos=191,27,19 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	374	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=18747 vanish=0 flag_src=1 flag_nf=0 pos=190,23,18 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	375	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=27592 vanish=0 flag_src=1 flag_nf=0 pos=191,26,18 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	377	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=20786 vanish=0 flag_src=1 flag_nf=0 pos=191,25,18 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	378	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=20410 vanish=0 flag_src=1 flag_nf=1 pos=24,135,101 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	379	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23732 vanish=0 flag_src=1 flag_nf=1 pos=0,182,99 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	380	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=21167 vanish=0 flag_src=1 flag_nf=1 pos=0,184,99 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	382	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=27818 vanish=0 flag_src=1 flag_nf=1 pos=0,177,99 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	384	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=28065 vanish=0 flag_src=1 flag_nf=1 pos=0,181,99 listed_at=2237156
+20260918-000329	water	1	221156	2237156	arrival	386	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=25440 vanish=0 flag_src=1 flag_nf=0 pos=147,9,56 listed_at=2237156
+20260918-000329	water	1	221156	2237156	departure	337	BLIND_CAVE_OGRE ref6=4,28,-1,22,-1,27 last_countdown=0 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	342	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=1309 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	344	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=1138 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	346	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=2963 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	347	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=0 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	348	WILD_BOAR ref6=4,29,-1,-1,-1,38 last_countdown=3147 last_flag_src=1 arrived_at=2206370
+20260918-000329	water	1	221156	2237156	departure	349	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=4304 last_flag_src=1 arrived_at=2211440
+20260918-000329	water	1	226204	2242204	arrival	376	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=17052 vanish=0 flag_src=1 flag_nf=0 pos=188,27,18 listed_at=2237156
+20260918-000329	water	1	226204	2242204	departure	351	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=4444 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	226204	2242204	departure	359	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=4106 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	arrival	387	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=21786 vanish=0 flag_src=1 flag_nf=0 pos=8,114,10 listed_at=2247264
+20260918-000329	water	1	231264	2247264	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 192
+20260918-000329	water	1	231264	2247264	every_applied	14	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	231264	2247264	departure	331	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	231264	2247264	departure	350	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=182 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	353	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=3486 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	354	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=1485 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	356	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	357	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	358	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=3161 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	361	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=4624 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	362	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=1570 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	231264	2247264	departure	363	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=2278 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	236387	2252387	arrival	390	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=22847 vanish=0 flag_src=1 flag_nf=0 pos=121,52,3 listed_at=2252387
+20260918-000329	water	1	236387	2252387	arrival	393	BAT_GIANT caste=MALE ref6=3,28,-1,10,-1,4 layer=cavern countdown=22162 vanish=0 flag_src=1 flag_nf=0 pos=187,114,37 listed_at=2252387
+20260918-000329	water	1	236387	2252387	arrival	394	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24408 vanish=0 flag_src=1 flag_nf=0 pos=168,108,35 listed_at=2252387
+20260918-000329	water	1	236387	2252387	arrival	399	GIANT_EARTHWORM caste=DEFAULT ref6=4,28,-1,2,-1,22 layer=cavern countdown=28234 vanish=0 flag_src=1 flag_nf=0 pos=103,7,58 listed_at=2252387
+20260918-000329	water	1	236387	2252387	departure	352	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=47 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	236387	2252387	departure	355	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	236387	2252387	departure	364	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=3521 last_flag_src=1 arrived_at=2231947
+20260918-000329	water	1	241500	2257500	arrival	400	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=24877 vanish=0 flag_src=1 flag_nf=0 pos=13,88,0 listed_at=2257500
+20260918-000329	water	1	241500	2257500	departure	360	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=0 last_flag_src=1 arrived_at=2221697
+20260918-000329	water	1	241500	2257500	departure	373	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=3076 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	246540	2262540	arrival	403	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=21933 vanish=0 flag_src=1 flag_nf=0 pos=181,53,9 listed_at=2262540
+20260918-000329	water	1	246540	2262540	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 205
+20260918-000329	water	1	246540	2262540	every_applied	15	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	1	246540	2262540	departure	332	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2201322
+20260918-000329	water	1	246540	2262540	departure	378	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=66 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	251718	2267718	arrival	381	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23704 vanish=0 flag_src=1 flag_nf=1 pos=10,191,96 listed_at=2237156
+20260918-000329	water	1	251718	2267718	arrival	383	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=27920 vanish=0 flag_src=1 flag_nf=1 pos=51,186,99 listed_at=2237156
+20260918-000329	water	1	251718	2267718	arrival	385	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22483 vanish=0 flag_src=1 flag_nf=1 pos=58,165,97 listed_at=2237156
+20260918-000329	water	1	251718	2267718	arrival	388	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=20717 vanish=0 flag_src=1 flag_nf=0 pos=0,108,10 listed_at=2247264
+20260918-000329	water	1	251718	2267718	arrival	389	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=21609 vanish=0 flag_src=1 flag_nf=0 pos=0,107,10 listed_at=2247264
+20260918-000329	water	1	251718	2267718	arrival	391	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=19377 vanish=0 flag_src=1 flag_nf=0 pos=0,18,2 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	392	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=23496 vanish=0 flag_src=1 flag_nf=0 pos=0,19,2 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	395	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=25621 vanish=0 flag_src=1 flag_nf=0 pos=167,3,37 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	396	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=21122 vanish=0 flag_src=1 flag_nf=0 pos=166,2,37 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	397	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23123 vanish=0 flag_src=1 flag_nf=0 pos=168,0,37 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	398	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=19008 vanish=0 flag_src=1 flag_nf=0 pos=170,0,37 listed_at=2252387
+20260918-000329	water	1	251718	2267718	arrival	401	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=23442 vanish=0 flag_src=1 flag_nf=0 pos=0,108,0 listed_at=2257500
+20260918-000329	water	1	251718	2267718	arrival	402	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=25207 vanish=0 flag_src=1 flag_nf=0 pos=1,110,0 listed_at=2257500
+20260918-000329	water	1	251718	2267718	arrival	404	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=19104 vanish=0 flag_src=1 flag_nf=0 pos=191,61,12 listed_at=2262540
+20260918-000329	water	1	251718	2267718	arrival	406	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=19571 vanish=0 flag_src=1 flag_nf=0 pos=191,59,12 listed_at=2262540
+20260918-000329	water	1	251718	2267718	arrival	407	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=20838 vanish=0 flag_src=1 flag_nf=0 pos=191,62,12 listed_at=2262540
+20260918-000329	water	1	251718	2267718	arrival	408	GORLAK caste=MALE ref6=4,28,-1,2,-1,27 layer=cavern countdown=23831 vanish=0 flag_src=1 flag_nf=0 pos=30,46,56 listed_at=2267718
+20260918-000329	water	1	251718	2267718	arrival	409	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23118 vanish=0 flag_src=1 flag_nf=1 pos=181,176,104 listed_at=2267718
+20260918-000329	water	1	251718	2267718	arrival	410	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=21492 vanish=0 flag_src=1 flag_nf=1 pos=191,134,98 listed_at=2267718
+20260918-000329	water	1	251718	2267718	arrival	411	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23715 vanish=0 flag_src=1 flag_nf=1 pos=191,131,98 listed_at=2267718
+20260918-000329	water	1	251718	2267718	departure	376	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=0 last_flag_src=1 arrived_at=2242204
+20260918-000329	water	1	251718	2267718	departure	379	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	251718	2267718	departure	380	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	251718	2267718	departure	382	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=2434 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	251718	2267718	departure	384	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=2681 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	251718	2267718	departure	386	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=56 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	1	256914	2272914	departure	375	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=0 last_flag_src=1 arrived_at=2237156
+20260918-000329	water	2	16801	2032801	baseline	wild_present	0
+20260918-000329	water	2	16801	2032801	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=false; cfg.layers.water=true; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local n,w=0,0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1; if e.layer=='water' then w=w+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=false; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local parts={}; for k,v in pairs(cfg.assign) do if k:sub(1,6)=='water:' then parts[#parts+1]=k..'='..table.concat(v,'') end end; table.sort(parts); print(('roster: water layer only — %d allowed (%d water), %d assigned, %d thin, %d applied; groups off; rotation enabled | %s'):format(n,w,a,f,act,table.concat(parts,' ')))	roster: water layer only — 10 allowed (10 water), 10 assigned, 0 thin, 7 applied; groups off; rotation enabled | water:BIRD_OSPREY=23 water:CROCODILE_SALTWATER=0123 water:FISH_GUPPY=0123 water:FISH_LUNGFISH=01 water:FISH_MILKFISH=01 water:FISH_STINGRAY=01 water:HIPPO=01 water:MUSSEL=23 water:PLATYPUS=23 water:RIVER OTTER=0123
+20260918-000329	water	2	16801	2032801	manipulation	local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','status'); print((out or ''):gsub('\n',' | '):sub(1,600))	Biomes: MARSH_TROPICAL_SALTWATER, OCEAN_TROPICAL, SHRUBLAND_TROPICAL | Layers: water | Embark subset (what can actually come to THIS fort): |   water  BIRD_OSPREY            bird      small  M=200     G=1   [MAR.TRO.SAL] season=AuWi |   water  CROCODILE_SALTWATER    predator  large  M=80000   G=2   [MAR.TRO.SAL] season=All |   water  FISH_GUPPY             vermin    small  M=20      G=1   [MAR.TRO.SAL] season=All |   water  FISH_LUNGFISH          vermin    small  M=20      G=1   [MAR.TRO.SAL] season=SpSu |   water  FISH_MILKFISH          prey      small  M=1000    G=5   [MAR.TRO.SAL] season=Sp
+20260918-000329	water	2	22000	2038000	arrival	171	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=23052 vanish=0 flag_src=1 flag_nf=1 pos=115,27,93 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	172	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=16875 vanish=0 flag_src=1 flag_nf=1 pos=124,22,93 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	173	GIANT TORTOISE caste=MALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=24418 vanish=0 flag_src=1 flag_nf=1 pos=126,26,93 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	174	GIANT TORTOISE caste=MALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=15550 vanish=0 flag_src=1 flag_nf=1 pos=132,26,93 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	175	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=21196 vanish=0 flag_src=1 flag_nf=1 pos=137,24,93 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	176	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=23966 vanish=0 flag_src=1 flag_nf=1 pos=145,22,94 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	177	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=22559 vanish=0 flag_src=1 flag_nf=1 pos=150,25,94 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	178	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=22354 vanish=0 flag_src=1 flag_nf=1 pos=155,27,94 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	179	GIANT TORTOISE caste=FEMALE ref6=4,28,-1,-1,-1,49 layer=surface countdown=16504 vanish=0 flag_src=1 flag_nf=1 pos=158,27,94 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	180	HELMET_SNAKE caste=FEMALE ref6=3,28,-1,10,-1,3 layer=cavern countdown=24601 vanish=0 flag_src=1 flag_nf=0 pos=24,4,38 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	181	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=22353 vanish=0 flag_src=1 flag_nf=0 pos=65,114,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	182	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19677 vanish=0 flag_src=1 flag_nf=0 pos=60,115,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	183	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19073 vanish=0 flag_src=1 flag_nf=0 pos=59,115,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	184	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=21027 vanish=0 flag_src=1 flag_nf=0 pos=64,117,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	185	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=23041 vanish=0 flag_src=1 flag_nf=0 pos=72,119,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	186	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=24942 vanish=0 flag_src=1 flag_nf=0 pos=71,115,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	187	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19688 vanish=0 flag_src=1 flag_nf=0 pos=58,104,18 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	188	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=25143 vanish=0 flag_src=1 flag_nf=0 pos=50,105,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	189	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=25408 vanish=0 flag_src=1 flag_nf=0 pos=49,104,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	190	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=18636 vanish=0 flag_src=1 flag_nf=0 pos=25,102,20 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	191	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=21523 vanish=0 flag_src=1 flag_nf=0 pos=26,100,20 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	192	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=18481 vanish=0 flag_src=1 flag_nf=0 pos=19,89,20 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	193	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=20097 vanish=0 flag_src=1 flag_nf=0 pos=15,80,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	194	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=18012 vanish=0 flag_src=1 flag_nf=0 pos=16,78,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	195	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=25845 vanish=0 flag_src=1 flag_nf=0 pos=7,71,18 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	196	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19229 vanish=0 flag_src=1 flag_nf=0 pos=0,72,18 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	197	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17056 vanish=0 flag_src=1 flag_nf=0 pos=13,76,19 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	198	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19704 vanish=0 flag_src=1 flag_nf=0 pos=3,83,18 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	199	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=23168 vanish=0 flag_src=1 flag_nf=0 pos=1,77,18 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	200	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=19959 vanish=0 flag_src=1 flag_nf=0 pos=151,148,3 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	201	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=16971 vanish=0 flag_src=1 flag_nf=0 pos=180,138,1 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	202	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=19117 vanish=0 flag_src=1 flag_nf=0 pos=166,171,4 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	203	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=18841 vanish=0 flag_src=1 flag_nf=0 pos=153,182,59 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	204	BAT_GIANT caste=FEMALE ref6=3,28,-1,10,-1,4 layer=cavern countdown=15192 vanish=0 flag_src=1 flag_nf=0 pos=106,52,35 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	206	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=22561 vanish=0 flag_src=1 flag_nf=0 pos=112,51,12 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	207	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=23133 vanish=0 flag_src=1 flag_nf=0 pos=87,116,11 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	208	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=23545 vanish=0 flag_src=1 flag_nf=0 pos=94,121,13 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	209	IMP_FIRE caste=DEFAULT ref6=3,28,-1,29,-1,1 layer=cavern countdown=22418 vanish=0 flag_src=1 flag_nf=0 pos=98,126,13 listed_at=2038000
+20260918-000329	water	2	22000	2038000	arrival	210	OLM_GIANT caste=MALE ref6=4,28,-1,2,-1,10 layer=cavern countdown=26043 vanish=0 flag_src=1 flag_nf=0 pos=0,185,57 listed_at=2038000
+20260918-000329	water	2	32335	2048335	arrival	211	OLM_GIANT caste=FEMALE ref6=4,28,-1,2,-1,10 layer=cavern countdown=25459 vanish=0 flag_src=1 flag_nf=0 pos=191,24,57 listed_at=2048335
+20260918-000329	water	2	32335	2048335	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 26
+20260918-000329	water	2	32335	2048335	every_applied	1	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	32335	2048335	death	210	OLM_GIANT ref6=4,28,-1,2,-1,10 last_countdown=20791 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	42681	2058681	arrival	212	BAT_GIANT caste=FEMALE ref6=3,28,-1,10,-1,4 layer=cavern countdown=15053 vanish=0 flag_src=1 flag_nf=0 pos=35,154,36 listed_at=2058681
+20260918-000329	water	2	42681	2058681	arrival	213	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=24402 vanish=0 flag_src=1 flag_nf=0 pos=31,112,56 listed_at=2058681
+20260918-000329	water	2	42681	2058681	departure	203	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=3375 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	42681	2058681	departure	204	BAT_GIANT ref6=3,28,-1,10,-1,4 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	arrival	214	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=20007 vanish=0 flag_src=1 flag_nf=0 pos=136,167,2 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	215	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=26187 vanish=0 flag_src=1 flag_nf=0 pos=126,29,58 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	216	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=26465 vanish=0 flag_src=1 flag_nf=0 pos=7,53,3 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	217	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=23047 vanish=0 flag_src=1 flag_nf=0 pos=0,15,2 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	218	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=21957 vanish=0 flag_src=1 flag_nf=0 pos=3,17,2 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	219	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=24887 vanish=0 flag_src=1 flag_nf=0 pos=2,17,2 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	220	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=25441 vanish=0 flag_src=1 flag_nf=0 pos=0,19,2 listed_at=2063867
+20260918-000329	water	2	47867	2063867	arrival	221	REACHER caste=MALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=20269 vanish=0 flag_src=1 flag_nf=0 pos=167,2,37 listed_at=2063867
+20260918-000329	water	2	47867	2063867	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 39
+20260918-000329	water	2	47867	2063867	every_applied	2	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	47867	2063867	departure	171	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=2371 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	180	HELMET_SNAKE ref6=3,28,-1,10,-1,3 last_countdown=3920 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	181	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1668 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	182	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	183	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	184	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=346 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	185	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=2360 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	200	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	201	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	202	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	207	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=2451 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	208	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=2864 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	departure	209	IMP_FIRE ref6=3,28,-1,29,-1,1 last_countdown=1737 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	47867	2063867	death	213	TROLL ref6=4,28,-1,2,-1,26 last_countdown=24402 last_flag_src=1 arrived_at=2058681
+20260918-000329	water	2	53086	2069086	arrival	222	MAGMA_CRAB caste=MALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=19076 vanish=0 flag_src=1 flag_nf=0 pos=8,56,11 listed_at=2069086
+20260918-000329	water	2	53086	2069086	arrival	223	CRETACEOUS_CARNOTAURUS caste=MALE ref6=4,28,-1,-1,-1,55 layer=surface countdown=26458 vanish=0 flag_src=1 flag_nf=1 pos=185,58,94 listed_at=2069086
+20260918-000329	water	2	53086	2069086	arrival	224	BIRD_EAGLE caste=MALE ref6=4,29,-1,-1,-1,48 layer=surface countdown=25609 vanish=0 flag_src=1 flag_nf=1 pos=78,174,106 listed_at=2069086
+20260918-000329	water	2	53086	2069086	departure	172	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	173	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	174	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	175	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	176	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	177	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	178	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	179	GIANT TORTOISE ref6=4,28,-1,-1,-1,49 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	186	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	187	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	188	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	189	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	190	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	191	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	53086	2069086	departure	192	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	arrival	225	REACHER caste=FEMALE ref6=4,28,-1,22,-1,23 layer=cavern countdown=23685 vanish=0 flag_src=1 flag_nf=0 pos=188,185,19 listed_at=2074263
+20260918-000329	water	2	58263	2074263	arrival	226	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=20308 vanish=0 flag_src=1 flag_nf=0 pos=115,8,61 listed_at=2074263
+20260918-000329	water	2	58263	2074263	departure	193	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	194	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	195	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	196	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	197	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	198	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	58263	2074263	departure	211	OLM_GIANT ref6=4,28,-1,2,-1,10 last_countdown=4708 last_flag_src=1 arrived_at=2048335
+20260918-000329	water	2	63467	2079467	arrival	227	BLIND_CAVE_OGRE caste=MALE ref6=3,28,-1,10,-1,12 layer=cavern countdown=19342 vanish=0 flag_src=1 flag_nf=0 pos=152,8,35 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	228	BLIND_CAVE_OGRE caste=MALE ref6=3,28,-1,10,-1,12 layer=cavern countdown=21855 vanish=0 flag_src=1 flag_nf=0 pos=139,13,34 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	229	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17472 vanish=0 flag_src=1 flag_nf=0 pos=89,168,19 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	230	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23880 vanish=0 flag_src=1 flag_nf=0 pos=89,125,20 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	231	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17954 vanish=0 flag_src=1 flag_nf=0 pos=16,179,21 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	232	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=19374 vanish=0 flag_src=1 flag_nf=0 pos=85,157,20 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	233	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=20417 vanish=0 flag_src=1 flag_nf=0 pos=33,159,20 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	234	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=24047 vanish=0 flag_src=1 flag_nf=0 pos=51,158,18 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	235	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23127 vanish=0 flag_src=1 flag_nf=0 pos=87,180,18 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	236	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=26592 vanish=0 flag_src=1 flag_nf=0 pos=40,181,19 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	237	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23702 vanish=0 flag_src=1 flag_nf=0 pos=79,143,21 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	238	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=18498 vanish=0 flag_src=1 flag_nf=0 pos=60,126,21 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	239	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17883 vanish=0 flag_src=1 flag_nf=0 pos=96,128,20 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	240	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=19709 vanish=0 flag_src=1 flag_nf=0 pos=85,181,18 listed_at=2079467
+20260918-000329	water	2	63467	2079467	arrival	241	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17545 vanish=0 flag_src=1 flag_nf=0 pos=27,163,20 listed_at=2079467
+20260918-000329	water	2	63467	2079467	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 52
+20260918-000329	water	2	63467	2079467	every_applied	3	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	63467	2079467	departure	199	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	63467	2079467	departure	212	BAT_GIANT ref6=3,28,-1,10,-1,4 last_countdown=0 last_flag_src=1 arrived_at=2058681
+20260918-000329	water	2	68717	2084717	departure	214	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=4407 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	73802	2089802	departure	217	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=2195 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	73802	2089802	departure	218	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=1104 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	73802	2089802	departure	220	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=4589 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	73802	2089802	departure	221	REACHER ref6=3,28,-1,10,-1,13 last_countdown=0 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	78935	2094935	arrival	242	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=25213 vanish=0 flag_src=1 flag_nf=0 pos=49,174,3 listed_at=2094935
+20260918-000329	water	2	78935	2094935	arrival	243	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=20451 vanish=0 flag_src=1 flag_nf=0 pos=102,59,1 listed_at=2094935
+20260918-000329	water	2	78935	2094935	arrival	244	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=22831 vanish=0 flag_src=1 flag_nf=0 pos=93,151,0 listed_at=2094935
+20260918-000329	water	2	78935	2094935	arrival	245	DEMON_2 caste=DEFAULT ref6=4,28,-1,38,-1,6 layer=cavern countdown=23205 vanish=0 flag_src=1 flag_nf=0 pos=135,57,2 listed_at=2094935
+20260918-000329	water	2	78935	2094935	arrival	246	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=19817 vanish=0 flag_src=1 flag_nf=0 pos=9,105,58 listed_at=2094935
+20260918-000329	water	2	78935	2094935	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 65
+20260918-000329	water	2	78935	2094935	every_applied	4	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	78935	2094935	departure	215	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=252 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	78935	2094935	departure	216	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=527 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	78935	2094935	departure	219	DEMON_19 ref6=4,28,-1,38,-1,4 last_countdown=0 last_flag_src=1 arrived_at=2063867
+20260918-000329	water	2	84001	2100001	arrival	247	GORLAK caste=MALE ref6=4,28,-1,2,-1,27 layer=cavern countdown=19126 vanish=0 flag_src=1 flag_nf=0 pos=5,182,57 listed_at=2100001
+20260918-000329	water	2	84001	2100001	arrival	248	JAGUAR caste=FEMALE ref6=4,29,-1,-1,-1,47 layer=surface countdown=25785 vanish=0 flag_src=1 flag_nf=1 pos=30,184,93 listed_at=2100001
+20260918-000329	water	2	84001	2100001	arrival	249	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26440 vanish=0 flag_src=1 flag_nf=1 pos=139,138,96 listed_at=2100001
+20260918-000329	water	2	84001	2100001	arrival	250	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=26428 vanish=0 flag_src=1 flag_nf=1 pos=191,161,108 listed_at=2100001
+20260918-000329	water	2	84001	2100001	arrival	251	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22620 vanish=0 flag_src=1 flag_nf=1 pos=1,16,101 listed_at=2100001
+20260918-000329	water	2	84001	2100001	arrival	252	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=25503 vanish=0 flag_src=1 flag_nf=1 pos=132,155,94 listed_at=2100001
+20260918-000329	water	2	84001	2100001	departure	223	CRETACEOUS_CARNOTAURUS ref6=4,28,-1,-1,-1,55 last_countdown=608 last_flag_src=1 arrived_at=2069086
+20260918-000329	water	2	84001	2100001	departure	224	BIRD_EAGLE ref6=4,29,-1,-1,-1,48 last_countdown=0 last_flag_src=1 arrived_at=2069086
+20260918-000329	water	2	84001	2100001	departure	226	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=0 last_flag_src=1 arrived_at=2074263
+20260918-000329	water	2	84001	2100001	departure	229	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=2004 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	84001	2100001	departure	232	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=3906 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	84001	2100001	departure	241	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=2077 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	arrival	253	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=24800 vanish=0 flag_src=1 flag_nf=0 pos=12,138,11 listed_at=2105289
+20260918-000329	water	2	89289	2105289	arrival	254	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26439 vanish=0 flag_src=1 flag_nf=0 pos=26,129,11 listed_at=2105289
+20260918-000329	water	2	89289	2105289	arrival	255	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=17045 vanish=0 flag_src=1 flag_nf=0 pos=20,66,11 listed_at=2105289
+20260918-000329	water	2	89289	2105289	arrival	256	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=18647 vanish=0 flag_src=1 flag_nf=0 pos=32,121,10 listed_at=2105289
+20260918-000329	water	2	89289	2105289	arrival	257	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=20300 vanish=0 flag_src=1 flag_nf=0 pos=26,127,12 listed_at=2105289
+20260918-000329	water	2	89289	2105289	arrival	258	BAT_GIANT caste=FEMALE ref6=3,28,-1,10,-1,4 layer=cavern countdown=23340 vanish=0 flag_src=1 flag_nf=0 pos=186,56,39 listed_at=2105289
+20260918-000329	water	2	89289	2105289	departure	206	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2038000
+20260918-000329	water	2	89289	2105289	departure	222	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2069086
+20260918-000329	water	2	89289	2105289	departure	225	REACHER ref6=4,28,-1,22,-1,23 last_countdown=0 last_flag_src=1 arrived_at=2074263
+20260918-000329	water	2	89289	2105289	departure	228	BLIND_CAVE_OGRE ref6=3,28,-1,10,-1,12 last_countdown=1318 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	231	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	233	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	235	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=2593 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	237	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=3168 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	238	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	239	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	89289	2105289	departure	240	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	94403	2110403	arrival	259	SPIDER_CAVE_GIANT caste=MALE ref6=4,28,-1,22,-1,22 layer=cavern countdown=15788 vanish=0 flag_src=1 flag_nf=0 pos=9,66,18 listed_at=2110403
+20260918-000329	water	2	94403	2110403	arrival	260	GORLAK caste=MALE ref6=4,28,-1,22,-1,30 layer=cavern countdown=19968 vanish=0 flag_src=1 flag_nf=0 pos=149,75,18 listed_at=2110403
+20260918-000329	water	2	94403	2110403	arrival	261	TROLL caste=FEMALE ref6=3,28,-1,10,-1,11 layer=cavern countdown=26478 vanish=0 flag_src=1 flag_nf=0 pos=95,165,38 listed_at=2110403
+20260918-000329	water	2	94403	2110403	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 0 day 78
+20260918-000329	water	2	94403	2110403	every_applied	5	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	94403	2110403	departure	227	BLIND_CAVE_OGRE ref6=3,28,-1,10,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	94403	2110403	departure	230	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	94403	2110403	departure	234	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=0 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	94403	2110403	departure	236	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=770 last_flag_src=1 arrived_at=2079467
+20260918-000329	water	2	104635	2120635	arrival	262	BLIND_CAVE_BEAR caste=MALE ref6=4,28,-1,2,-1,21 layer=cavern countdown=26972 vanish=0 flag_src=1 flag_nf=0 pos=2,22,58 listed_at=2120635
+20260918-000329	water	2	104635	2120635	arrival	263	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=20528 vanish=0 flag_src=1 flag_nf=0 pos=38,114,3 listed_at=2120635
+20260918-000329	water	2	104635	2120635	arrival	264	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=18457 vanish=0 flag_src=1 flag_nf=0 pos=2,89,3 listed_at=2120635
+20260918-000329	water	2	104635	2120635	arrival	265	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=22198 vanish=0 flag_src=1 flag_nf=0 pos=35,122,4 listed_at=2120635
+20260918-000329	water	2	104635	2120635	arrival	266	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=24459 vanish=0 flag_src=1 flag_nf=0 pos=41,105,1 listed_at=2120635
+20260918-000329	water	2	104635	2120635	arrival	267	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=26671 vanish=0 flag_src=1 flag_nf=0 pos=0,115,4 listed_at=2120635
+20260918-000329	water	2	104635	2120635	departure	243	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=0 last_flag_src=1 arrived_at=2094935
+20260918-000329	water	2	104635	2120635	departure	244	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=2238 last_flag_src=1 arrived_at=2094935
+20260918-000329	water	2	104635	2120635	departure	245	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=2612 last_flag_src=1 arrived_at=2094935
+20260918-000329	water	2	104635	2120635	departure	246	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=0 last_flag_src=1 arrived_at=2094935
+20260918-000329	water	2	109903	2125903	arrival	268	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=18985 vanish=0 flag_src=1 flag_nf=0 pos=153,133,56 listed_at=2125903
+20260918-000329	water	2	109903	2125903	arrival	269	REACHER caste=FEMALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=16705 vanish=0 flag_src=1 flag_nf=0 pos=7,129,37 listed_at=2125903
+20260918-000329	water	2	109903	2125903	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 91
+20260918-000329	water	2	109903	2125903	every_applied	6	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	109903	2125903	departure	242	DEMON_2 ref6=4,28,-1,38,-1,6 last_countdown=0 last_flag_src=1 arrived_at=2094935
+20260918-000329	water	2	109903	2125903	death	247	GORLAK ref6=4,28,-1,2,-1,27 last_countdown=0 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	109903	2125903	departure	256	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=3301 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	109903	2125903	death	261	TROLL ref6=3,28,-1,10,-1,11 last_countdown=16245 last_flag_src=1 arrived_at=2110403
+20260918-000329	water	2	115034	2131034	arrival	270	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17070 vanish=0 flag_src=1 flag_nf=0 pos=175,57,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	271	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=18307 vanish=0 flag_src=1 flag_nf=0 pos=144,34,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	272	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=24782 vanish=0 flag_src=1 flag_nf=0 pos=136,28,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	273	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=15631 vanish=0 flag_src=1 flag_nf=0 pos=181,46,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	274	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=24168 vanish=0 flag_src=1 flag_nf=0 pos=155,50,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	275	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19857 vanish=0 flag_src=1 flag_nf=0 pos=151,23,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	276	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=20019 vanish=0 flag_src=1 flag_nf=0 pos=119,49,21 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	277	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=16644 vanish=0 flag_src=1 flag_nf=0 pos=137,30,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	278	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17757 vanish=0 flag_src=1 flag_nf=0 pos=148,52,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	279	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=16018 vanish=0 flag_src=1 flag_nf=0 pos=189,68,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	280	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17045 vanish=0 flag_src=1 flag_nf=0 pos=97,26,20 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	281	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=25728 vanish=0 flag_src=1 flag_nf=0 pos=127,20,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	282	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17551 vanish=0 flag_src=1 flag_nf=0 pos=107,45,21 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	283	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=21716 vanish=0 flag_src=1 flag_nf=0 pos=191,66,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	284	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19805 vanish=0 flag_src=1 flag_nf=0 pos=131,24,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	285	CRUNDLE caste=MALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=17122 vanish=0 flag_src=1 flag_nf=0 pos=126,26,18 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	286	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=19546 vanish=0 flag_src=1 flag_nf=0 pos=137,53,19 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	287	CRUNDLE caste=FEMALE ref6=4,28,-1,22,-1,12 layer=cavern countdown=22298 vanish=0 flag_src=1 flag_nf=0 pos=157,75,19 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	288	BIRD_EAGLE caste=FEMALE ref6=4,28,-1,-1,-1,33 layer=surface countdown=25413 vanish=0 flag_src=1 flag_nf=1 pos=6,45,98 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	289	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=19737 vanish=0 flag_src=1 flag_nf=0 pos=83,40,34 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	290	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=23716 vanish=0 flag_src=1 flag_nf=0 pos=75,15,40 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	291	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20263 vanish=0 flag_src=1 flag_nf=0 pos=67,3,39 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	292	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20448 vanish=0 flag_src=1 flag_nf=0 pos=108,8,36 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	293	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=26847 vanish=0 flag_src=1 flag_nf=0 pos=70,17,39 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	294	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=28324 vanish=0 flag_src=1 flag_nf=0 pos=68,4,39 listed_at=2131034
+20260918-000329	water	2	115034	2131034	arrival	295	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=22665 vanish=0 flag_src=1 flag_nf=1 pos=113,8,93 listed_at=2131034
+20260918-000329	water	2	115034	2131034	departure	248	JAGUAR ref6=4,29,-1,-1,-1,47 last_countdown=0 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	115034	2131034	departure	249	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=538 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	115034	2131034	departure	250	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=526 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	115034	2131034	departure	251	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	115034	2131034	departure	252	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2100001
+20260918-000329	water	2	115034	2131034	departure	255	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	115034	2131034	departure	257	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	115034	2131034	departure	258	BAT_GIANT ref6=3,28,-1,10,-1,4 last_countdown=2726 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	115034	2131034	departure	259	SPIDER_CAVE_GIANT ref6=4,28,-1,22,-1,22 last_countdown=285 last_flag_src=1 arrived_at=2110403
+20260918-000329	water	2	120279	2136279	departure	260	GORLAK ref6=4,28,-1,22,-1,30 last_countdown=0 last_flag_src=1 arrived_at=2110403
+20260918-000329	water	2	125521	2141521	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 104
+20260918-000329	water	2	125521	2141521	every_applied	7	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	125521	2141521	departure	264	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=2813 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	130610	2146610	departure	263	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	130610	2146610	departure	265	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=1312 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	130610	2146610	death	269	REACHER ref6=3,28,-1,10,-1,13 last_countdown=1084 last_flag_src=1 arrived_at=2125903
+20260918-000329	water	2	135935	2151935	arrival	296	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=23168 vanish=0 flag_src=1 flag_nf=0 pos=110,111,2 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	297	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=18101 vanish=0 flag_src=1 flag_nf=0 pos=2,76,1 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	298	DEMON_15 caste=MALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=25379 vanish=0 flag_src=1 flag_nf=0 pos=1,73,1 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	299	DEMON_15 caste=MALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=21617 vanish=0 flag_src=1 flag_nf=0 pos=2,73,1 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	300	CROCODILE_CAVE caste=FEMALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=22391 vanish=0 flag_src=1 flag_nf=0 pos=27,184,57 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	302	MAGMA_CRAB caste=FEMALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26102 vanish=0 flag_src=1 flag_nf=0 pos=164,37,9 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	303	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=26193 vanish=0 flag_src=1 flag_nf=0 pos=191,16,11 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	304	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=21743 vanish=0 flag_src=1 flag_nf=0 pos=191,19,11 listed_at=2151935
+20260918-000329	water	2	135935	2151935	arrival	305	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=24476 vanish=0 flag_src=1 flag_nf=0 pos=180,185,57 listed_at=2151935
+20260918-000329	water	2	135935	2151935	departure	253	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	135935	2151935	departure	262	BLIND_CAVE_BEAR ref6=4,28,-1,2,-1,21 last_countdown=994 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	135935	2151935	departure	266	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	135935	2151935	departure	267	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=696 last_flag_src=1 arrived_at=2120635
+20260918-000329	water	2	135935	2151935	departure	268	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=0 last_flag_src=1 arrived_at=2125903
+20260918-000329	water	2	135935	2151935	departure	270	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1493 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	271	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=2730 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	273	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=53 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	277	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1067 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	278	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=2178 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	279	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=442 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	280	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1467 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	282	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1975 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	284	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=4224 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	285	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1546 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	286	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=3968 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	289	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=4158 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	135935	2151935	departure	292	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=4872 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	arrival	306	GORLAK caste=FEMALE ref6=4,28,-1,2,-1,27 layer=cavern countdown=25836 vanish=0 flag_src=1 flag_nf=0 pos=82,177,57 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	321	BIRD_STORK_WHITE caste=FEMALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=23103 vanish=0 flag_src=1 flag_nf=1 pos=24,170,103 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	322	BIRD_STORK_WHITE caste=MALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=23344 vanish=0 flag_src=1 flag_nf=1 pos=16,189,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	323	BIRD_STORK_WHITE caste=FEMALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=18936 vanish=0 flag_src=1 flag_nf=1 pos=22,191,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	324	BIRD_STORK_WHITE caste=FEMALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=24538 vanish=0 flag_src=1 flag_nf=1 pos=20,191,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	325	BIRD_STORK_WHITE caste=MALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=19796 vanish=0 flag_src=1 flag_nf=1 pos=25,190,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	326	BIRD_STORK_WHITE caste=MALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=24531 vanish=0 flag_src=1 flag_nf=1 pos=23,191,95 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	327	BIRD_STORK_WHITE caste=MALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=24041 vanish=0 flag_src=1 flag_nf=1 pos=24,191,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	328	BIRD_STORK_WHITE caste=FEMALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=22299 vanish=0 flag_src=1 flag_nf=1 pos=21,191,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	329	BIRD_STORK_WHITE caste=MALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=25386 vanish=0 flag_src=1 flag_nf=1 pos=20,191,95 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	330	BIRD_STORK_WHITE caste=FEMALE ref6=4,29,-1,-1,-1,53 layer=surface countdown=24935 vanish=0 flag_src=1 flag_nf=1 pos=23,191,94 listed_at=2157103
+20260918-000329	water	2	141103	2157103	arrival	331	TROLL caste=FEMALE ref6=4,28,-1,22,-1,25 layer=cavern countdown=21815 vanish=0 flag_src=1 flag_nf=0 pos=190,68,18 listed_at=2157103
+20260918-000329	water	2	141103	2157103	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 117
+20260918-000329	water	2	141103	2157103	every_applied	8	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	141103	2157103	departure	272	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=3879 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	274	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=3267 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	275	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	276	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	281	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=4826 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	283	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=812 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	287	CRUNDLE ref6=4,28,-1,22,-1,12 last_countdown=1396 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	290	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=2815 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	291	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	departure	295	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=1764 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	141103	2157103	death	300	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=22391 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	146192	2162192	arrival	332	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=23885 vanish=0 flag_src=1 flag_nf=0 pos=133,129,19 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	333	RUTHERER caste=FEMALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=16339 vanish=0 flag_src=1 flag_nf=0 pos=191,174,20 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	334	RUTHERER caste=FEMALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=24183 vanish=0 flag_src=1 flag_nf=0 pos=190,171,20 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	335	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=21339 vanish=0 flag_src=1 flag_nf=0 pos=191,172,20 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	336	RUTHERER caste=FEMALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=25557 vanish=0 flag_src=1 flag_nf=0 pos=191,173,20 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	337	SPIDER_CAVE_GIANT caste=FEMALE ref6=3,28,-1,10,-1,10 layer=cavern countdown=23821 vanish=0 flag_src=1 flag_nf=0 pos=15,154,35 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	338	BLIND_CAVE_OGRE caste=FEMALE ref6=3,28,-1,10,-1,12 layer=cavern countdown=26625 vanish=0 flag_src=1 flag_nf=0 pos=189,25,37 listed_at=2162192
+20260918-000329	water	2	146192	2162192	arrival	339	BLIND_CAVE_OGRE caste=FEMALE ref6=3,28,-1,10,-1,12 layer=cavern countdown=26593 vanish=0 flag_src=1 flag_nf=0 pos=118,11,36 listed_at=2162192
+20260918-000329	water	2	146192	2162192	departure	288	BIRD_EAGLE ref6=4,28,-1,-1,-1,33 last_countdown=0 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	146192	2162192	departure	293	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=775 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	146192	2162192	departure	294	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=2254 last_flag_src=1 arrived_at=2131034
+20260918-000329	water	2	151254	2167254	arrival	340	GIANT_EARTHWORM caste=DEFAULT ref6=4,28,-1,2,-1,22 layer=cavern countdown=19986 vanish=0 flag_src=1 flag_nf=0 pos=122,172,59 listed_at=2167254
+20260918-000329	water	2	151254	2167254	departure	254	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2105289
+20260918-000329	water	2	151254	2167254	death	306	GORLAK ref6=4,28,-1,2,-1,27 last_countdown=20747 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	156386	2172386	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 130
+20260918-000329	water	2	156386	2172386	every_applied	9	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	156386	2172386	departure	297	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=2781 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	161613	2177613	arrival	341	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=18985 vanish=0 flag_src=1 flag_nf=0 pos=46,15,0 listed_at=2177613
+20260918-000329	water	2	161613	2177613	arrival	342	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=17989 vanish=0 flag_src=1 flag_nf=0 pos=116,2,3 listed_at=2177613
+20260918-000329	water	2	161613	2177613	arrival	343	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=22005 vanish=0 flag_src=1 flag_nf=0 pos=107,0,3 listed_at=2177613
+20260918-000329	water	2	161613	2177613	departure	296	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=2717 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	161613	2177613	departure	298	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=4925 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	161613	2177613	departure	299	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=1165 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	161613	2177613	departure	325	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=4513 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	166728	2182728	arrival	344	TROLL caste=FEMALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=25511 vanish=0 flag_src=1 flag_nf=0 pos=134,175,58 listed_at=2182728
+20260918-000329	water	2	166728	2182728	arrival	345	GRAY_LANGUR caste=FEMALE ref6=4,28,-1,-1,-1,67 layer=surface countdown=24025 vanish=0 flag_src=1 flag_nf=1 pos=160,76,94 listed_at=2182728
+20260918-000329	water	2	166728	2182728	arrival	346	GRAY_LANGUR caste=FEMALE ref6=4,28,-1,-1,-1,67 layer=surface countdown=23284 vanish=0 flag_src=1 flag_nf=1 pos=164,82,94 listed_at=2182728
+20260918-000329	water	2	166728	2182728	arrival	347	GRAY_LANGUR caste=MALE ref6=4,28,-1,-1,-1,67 layer=surface countdown=23713 vanish=0 flag_src=1 flag_nf=1 pos=160,73,94 listed_at=2182728
+20260918-000329	water	2	166728	2182728	arrival	348	GRAY_LANGUR caste=FEMALE ref6=4,28,-1,-1,-1,67 layer=surface countdown=25580 vanish=0 flag_src=1 flag_nf=1 pos=161,80,94 listed_at=2182728
+20260918-000329	water	2	166728	2182728	arrival	349	GRAY_LANGUR caste=FEMALE ref6=4,28,-1,-1,-1,67 layer=surface countdown=26842 vanish=0 flag_src=1 flag_nf=1 pos=168,70,94 listed_at=2182728
+20260918-000329	water	2	166728	2182728	departure	305	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	166728	2182728	departure	321	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=2593 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	166728	2182728	departure	322	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=2834 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	166728	2182728	departure	331	TROLL ref6=4,28,-1,22,-1,25 last_countdown=1301 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	171832	2187832	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 143
+20260918-000329	water	2	171832	2187832	every_applied	10	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	171832	2187832	departure	304	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	171832	2187832	departure	324	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	171832	2187832	death	345	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 last_countdown=24025 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	171832	2187832	death	346	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 last_countdown=23284 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	171832	2187832	death	347	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 last_countdown=23713 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	171832	2187832	death	348	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 last_countdown=25580 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	171832	2187832	death	349	GRAY_LANGUR ref6=4,28,-1,-1,-1,67 last_countdown=26842 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	177049	2193049	arrival	350	REACHER caste=FEMALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=23541 vanish=0 flag_src=1 flag_nf=0 pos=39,171,36 listed_at=2193049
+20260918-000329	water	2	177049	2193049	arrival	351	GIANT_EARTHWORM caste=DEFAULT ref6=4,28,-1,2,-1,22 layer=cavern countdown=18816 vanish=0 flag_src=1 flag_nf=0 pos=178,113,57 listed_at=2193049
+20260918-000329	water	2	177049	2193049	departure	332	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	177049	2193049	departure	337	SPIDER_CAVE_GIANT ref6=3,28,-1,10,-1,10 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	177049	2193049	departure	338	BLIND_CAVE_OGRE ref6=3,28,-1,10,-1,12 last_countdown=985 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	177049	2193049	departure	340	GIANT_EARTHWORM ref6=4,28,-1,2,-1,22 last_countdown=0 last_flag_src=1 arrived_at=2167254
+20260918-000329	water	2	182135	2198135	arrival	352	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=16477 vanish=0 flag_src=1 flag_nf=0 pos=64,150,11 listed_at=2198135
+20260918-000329	water	2	182135	2198135	arrival	353	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=17833 vanish=0 flag_src=1 flag_nf=0 pos=55,191,11 listed_at=2198135
+20260918-000329	water	2	182135	2198135	arrival	354	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=16573 vanish=0 flag_src=1 flag_nf=0 pos=56,191,11 listed_at=2198135
+20260918-000329	water	2	182135	2198135	arrival	356	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=22649 vanish=0 flag_src=1 flag_nf=0 pos=18,96,0 listed_at=2198135
+20260918-000329	water	2	182135	2198135	arrival	357	DEMON_15 caste=MALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=25899 vanish=0 flag_src=1 flag_nf=0 pos=0,73,1 listed_at=2198135
+20260918-000329	water	2	182135	2198135	arrival	358	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=29058 vanish=0 flag_src=1 flag_nf=0 pos=2,73,1 listed_at=2198135
+20260918-000329	water	2	182135	2198135	departure	302	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	182135	2198135	departure	341	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=3549 last_flag_src=1 arrived_at=2177613
+20260918-000329	water	2	182135	2198135	departure	342	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=2553 last_flag_src=1 arrived_at=2177613
+20260918-000329	water	2	187258	2203258	arrival	359	DEMON_15 caste=FEMALE ref6=4,28,-1,38,-1,0 layer=cavern countdown=22637 vanish=0 flag_src=1 flag_nf=0 pos=2,76,1 listed_at=2198135
+20260918-000329	water	2	187258	2203258	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 1 day 156
+20260918-000329	water	2	187258	2203258	every_applied	11	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	187258	2203258	departure	343	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=1483 last_flag_src=1 arrived_at=2177613
+20260918-000329	water	2	192323	2208323	departure	326	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	197545	2213545	arrival	361	TOAD_GIANT_CAVE caste=MALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=19895 vanish=0 flag_src=1 flag_nf=0 pos=8,103,57 listed_at=2213545
+20260918-000329	water	2	197545	2213545	departure	303	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2151935
+20260918-000329	water	2	197545	2213545	departure	323	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	197545	2213545	departure	344	TROLL ref6=4,28,-1,2,-1,26 last_countdown=0 last_flag_src=1 arrived_at=2182728
+20260918-000329	water	2	202650	2218650	arrival	362	CRAB caste=FEMALE ref6=3,28,-1,-1,-1,23 layer=surface countdown=25431 vanish=0 flag_src=1 flag_nf=1 pos=0,167,93 listed_at=2218650
+20260918-000329	water	2	202650	2218650	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 168
+20260918-000329	water	2	202650	2218650	every_applied	12	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	202650	2218650	departure	327	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	202650	2218650	departure	328	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	202650	2218650	departure	329	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	207775	2223775	arrival	363	BAT_GIANT caste=MALE ref6=3,28,-1,10,-1,4 layer=cavern countdown=21860 vanish=0 flag_src=1 flag_nf=0 pos=130,126,37 listed_at=2223775
+20260918-000329	water	2	207775	2223775	departure	350	REACHER ref6=3,28,-1,10,-1,13 last_countdown=0 last_flag_src=1 arrived_at=2193049
+20260918-000329	water	2	207775	2223775	departure	356	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=2132 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	207775	2223775	popups_drained	step	[cx-lifecycle] drained 1 queued popup(s) mid-step (fort had stalled at 212150)
+20260918-000329	water	2	218255	2234255	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 181
+20260918-000329	water	2	218255	2234255	every_applied	13	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	223401	2239401	arrival	372	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=4,28,-1,2,-1,18 layer=cavern countdown=21328 vanish=0 flag_src=1 flag_nf=0 pos=83,48,61 listed_at=2239401
+20260918-000329	water	2	223401	2239401	departure	361	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2213545
+20260918-000329	water	2	228549	2244549	departure	352	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	233777	2249777	arrival	374	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=18598 vanish=0 flag_src=1 flag_nf=1 pos=55,153,107 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	375	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=25439 vanish=0 flag_src=1 flag_nf=1 pos=13,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	376	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=17160 vanish=0 flag_src=1 flag_nf=1 pos=12,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	377	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=25171 vanish=0 flag_src=1 flag_nf=1 pos=19,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	378	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24970 vanish=0 flag_src=1 flag_nf=1 pos=20,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	380	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=19506 vanish=0 flag_src=1 flag_nf=1 pos=16,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	381	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24743 vanish=0 flag_src=1 flag_nf=1 pos=16,191,100 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	384	REACHER caste=FEMALE ref6=4,28,-1,10,-1,13 layer=cavern countdown=21633 vanish=0 flag_src=1 flag_nf=0 pos=94,146,38 listed_at=2249777
+20260918-000329	water	2	233777	2249777	arrival	385	TOAD_GIANT_CAVE caste=FEMALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=24543 vanish=0 flag_src=1 flag_nf=0 pos=110,186,61 listed_at=2249777
+20260918-000329	water	2	233777	2249777	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 194
+20260918-000329	water	2	233777	2249777	every_applied	14	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	233777	2249777	departure	351	GIANT_EARTHWORM ref6=4,28,-1,2,-1,22 last_countdown=0 last_flag_src=1 arrived_at=2193049
+20260918-000329	water	2	233777	2249777	departure	362	CRAB ref6=3,28,-1,-1,-1,23 last_countdown=0 last_flag_src=1 arrived_at=2218650
+20260918-000329	water	2	233777	2249777	departure	363	BAT_GIANT ref6=3,28,-1,10,-1,4 last_countdown=1086 last_flag_src=1 arrived_at=2223775
+20260918-000329	water	2	238930	2254930	arrival	386	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=25096 vanish=0 flag_src=1 flag_nf=0 pos=8,187,20 listed_at=2254930
+20260918-000329	water	2	238930	2254930	departure	330	BIRD_STORK_WHITE ref6=4,29,-1,-1,-1,53 last_countdown=0 last_flag_src=1 arrived_at=2157103
+20260918-000329	water	2	238930	2254930	departure	333	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	238930	2254930	departure	334	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	238930	2254930	departure	335	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	238930	2254930	popups_drained	step	[cx-lifecycle] drained 1 queued popup(s) mid-step (fort had stalled at 239310)
+20260918-000329	water	2	243989	2259989	arrival	379	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=21268 vanish=0 flag_src=1 flag_nf=1 pos=27,152,100 listed_at=2249777
+20260918-000329	water	2	243989	2259989	arrival	382	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=23459 vanish=0 flag_src=1 flag_nf=1 pos=56,36,102 listed_at=2249777
+20260918-000329	water	2	243989	2259989	arrival	383	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=22584 vanish=0 flag_src=1 flag_nf=1 pos=52,34,101 listed_at=2249777
+20260918-000329	water	2	243989	2259989	arrival	387	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=22646 vanish=0 flag_src=1 flag_nf=0 pos=15,191,21 listed_at=2254930
+20260918-000329	water	2	243989	2259989	arrival	388	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=22973 vanish=0 flag_src=1 flag_nf=0 pos=19,190,21 listed_at=2254930
+20260918-000329	water	2	243989	2259989	arrival	389	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=21117 vanish=0 flag_src=1 flag_nf=0 pos=20,190,21 listed_at=2254930
+20260918-000329	water	2	243989	2259989	arrival	390	RUTHERER caste=MALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=19924 vanish=0 flag_src=1 flag_nf=0 pos=16,190,21 listed_at=2254930
+20260918-000329	water	2	243989	2259989	arrival	391	RUTHERER caste=FEMALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=16584 vanish=0 flag_src=1 flag_nf=0 pos=17,190,21 listed_at=2254930
+20260918-000329	water	2	243989	2259989	arrival	392	RUTHERER caste=FEMALE ref6=4,28,-1,22,-1,16 layer=cavern countdown=23107 vanish=0 flag_src=1 flag_nf=0 pos=17,191,21 listed_at=2254930
+20260918-000329	water	2	249145	2265145	arrival	355	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=19841 vanish=0 flag_src=1 flag_nf=0 pos=101,166,11 listed_at=2198135
+20260918-000329	water	2	249145	2265145	arrival	393	MAGMA_CRAB caste=FEMALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=19988 vanish=0 flag_src=1 flag_nf=0 pos=16,3,10 listed_at=2265145
+20260918-000329	water	2	249145	2265145	arrival	394	MAGMA_CRAB caste=MALE ref6=4,27,-1,29,-1,0 layer=cavern countdown=16295 vanish=0 flag_src=1 flag_nf=0 pos=9,0,10 listed_at=2265145
+20260918-000329	water	2	249145	2265145	arrival	395	HELMET_SNAKE caste=MALE ref6=3,28,-1,10,-1,3 layer=cavern countdown=26678 vanish=0 flag_src=1 flag_nf=0 pos=30,80,36 listed_at=2265145
+20260918-000329	water	2	249145	2265145	arrival	396	CROCODILE_CAVE caste=MALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=17685 vanish=0 flag_src=1 flag_nf=0 pos=164,139,57 listed_at=2265145
+20260918-000329	water	2	249145	2265145	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 207
+20260918-000329	water	2	249145	2265145	every_applied	15	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	249145	2265145	departure	336	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	249145	2265145	departure	339	BLIND_CAVE_OGRE ref6=3,28,-1,10,-1,12 last_countdown=0 last_flag_src=1 arrived_at=2162192
+20260918-000329	water	2	249145	2265145	departure	353	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	249145	2265145	departure	354	MAGMA_CRAB ref6=3,28,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	249145	2265145	departure	357	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	249145	2265145	departure	372	BIRD_SWALLOW_CAVE_GIANT ref6=4,28,-1,2,-1,18 last_countdown=740 last_flag_src=1 arrived_at=2239401
+20260918-000329	water	2	249145	2265145	popups_drained	step	[cx-lifecycle] drained 1 queued popup(s) mid-step (fort had stalled at 253710)
+20260918-000329	water	2	254338	2270338	arrival	397	DEMON_14 caste=DEFAULT ref6=4,28,-1,38,-1,5 layer=cavern countdown=27618 vanish=0 flag_src=1 flag_nf=0 pos=61,181,1 listed_at=2270338
+20260918-000329	water	2	254338	2270338	departure	358	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2198135
+20260918-000329	water	2	254338	2270338	departure	376	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=1792 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	259550	2275550	arrival	401	REACHER caste=FEMALE ref6=3,28,-1,10,-1,13 layer=cavern countdown=28344 vanish=0 flag_src=1 flag_nf=0 pos=11,142,35 listed_at=2275550
+20260918-000329	water	2	259550	2275550	departure	374	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	259550	2275550	departure	380	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	259550	2275550	departure	384	REACHER ref6=4,28,-1,10,-1,13 last_countdown=1071 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	264823	2280823	arrival	402	TOAD_GIANT_CAVE caste=MALE ref6=4,28,-1,2,-1,11 layer=cavern countdown=20659 vanish=0 flag_src=1 flag_nf=0 pos=150,139,56 listed_at=2280823
+20260918-000329	water	2	264823	2280823	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 220
+20260918-000329	water	2	264823	2280823	every_applied	16	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	264823	2280823	departure	375	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	264823	2280823	departure	377	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	264823	2280823	departure	378	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	264823	2280823	departure	381	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	264823	2280823	departure	385	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2249777
+20260918-000329	water	2	270085	2286085	arrival	403	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=23594 vanish=0 flag_src=1 flag_nf=0 pos=164,122,1 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	404	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=20703 vanish=0 flag_src=1 flag_nf=0 pos=129,191,1 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	405	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=17694 vanish=0 flag_src=1 flag_nf=0 pos=131,191,1 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	407	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=18029 vanish=0 flag_src=1 flag_nf=0 pos=132,191,1 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	408	HONEY BADGER caste=FEMALE ref6=4,29,-1,-1,-1,52 layer=surface countdown=19527 vanish=0 flag_src=1 flag_nf=1 pos=47,183,93 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	409	OLM_GIANT caste=MALE ref6=4,28,-1,2,-1,10 layer=cavern countdown=21152 vanish=0 flag_src=1 flag_nf=0 pos=191,23,57 listed_at=2286085
+20260918-000329	water	2	270085	2286085	arrival	410	BIRD_FALCON_PEREGRINE caste=FEMALE ref6=4,29,-1,-1,-1,51 layer=surface countdown=27788 vanish=0 flag_src=1 flag_nf=1 pos=176,88,104 listed_at=2286085
+20260918-000329	water	2	270085	2286085	departure	359	DEMON_15 ref6=4,28,-1,38,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2203258
+20260918-000329	water	2	270085	2286085	departure	379	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=434 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	382	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=2625 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	383	BIRD_ALBATROSS ref6=3,27,-1,-1,-1,67 last_countdown=1750 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	386	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2254930
+20260918-000329	water	2	270085	2286085	departure	387	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=1812 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	389	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=283 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	390	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	270085	2286085	departure	396	CROCODILE_CAVE ref6=4,28,-1,2,-1,9 last_countdown=2007 last_flag_src=1 arrived_at=2265145
+20260918-000329	water	2	275335	2291335	arrival	406	DEMON_1 caste=DEFAULT ref6=4,28,-1,38,-1,1 layer=cavern countdown=25980 vanish=0 flag_src=1 flag_nf=0 pos=14,184,1 listed_at=2286085
+20260918-000329	water	2	275335	2291335	arrival	411	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=21343 vanish=0 flag_src=1 flag_nf=0 pos=177,60,20 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	412	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=17451 vanish=0 flag_src=1 flag_nf=0 pos=188,24,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	413	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=17294 vanish=0 flag_src=1 flag_nf=0 pos=190,24,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	414	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=24158 vanish=0 flag_src=1 flag_nf=0 pos=191,22,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	415	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=18381 vanish=0 flag_src=1 flag_nf=0 pos=188,22,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	416	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=24152 vanish=0 flag_src=1 flag_nf=0 pos=191,23,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	417	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=22108 vanish=0 flag_src=1 flag_nf=0 pos=188,25,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	418	HUNGRY_HEAD caste=FEMALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=26003 vanish=0 flag_src=1 flag_nf=0 pos=191,24,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	arrival	419	HUNGRY_HEAD caste=MALE ref6=4,28,-1,22,-1,20 layer=cavern countdown=19774 vanish=0 flag_src=1 flag_nf=0 pos=189,23,18 listed_at=2291335
+20260918-000329	water	2	275335	2291335	departure	391	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	275335	2291335	departure	392	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	275335	2291335	departure	394	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2265145
+20260918-000329	water	2	280525	2296525	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 233
+20260918-000329	water	2	280525	2296525	every_applied	17	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	285671	2301671	arrival	420	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17352 vanish=0 flag_src=1 flag_nf=0 pos=104,79,34 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	422	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17096 vanish=0 flag_src=1 flag_nf=0 pos=182,23,18 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	423	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=20853 vanish=0 flag_src=1 flag_nf=0 pos=182,24,18 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	424	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24196 vanish=0 flag_src=1 flag_nf=0 pos=179,27,18 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	425	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=24480 vanish=0 flag_src=1 flag_nf=0 pos=157,34,18 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	426	TROGLODYTE caste=MALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=25797 vanish=0 flag_src=1 flag_nf=0 pos=122,27,18 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	427	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17267 vanish=0 flag_src=1 flag_nf=0 pos=98,19,19 listed_at=2301671
+20260918-000329	water	2	285671	2301671	arrival	428	TROGLODYTE caste=FEMALE ref6=3,28,-1,10,-1,2 layer=cavern countdown=17626 vanish=0 flag_src=1 flag_nf=0 pos=79,35,20 listed_at=2301671
+20260918-000329	water	2	285671	2301671	departure	388	RUTHERER ref6=4,28,-1,22,-1,16 last_countdown=0 last_flag_src=1 arrived_at=2259989
+20260918-000329	water	2	285671	2301671	departure	395	HELMET_SNAKE ref6=3,28,-1,10,-1,3 last_countdown=0 last_flag_src=1 arrived_at=2265145
+20260918-000329	water	2	290821	2306821	arrival	429	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=19107 vanish=0 flag_src=1 flag_nf=1 pos=48,175,106 listed_at=2306821
+20260918-000329	water	2	290821	2306821	arrival	430	BIRD_ALBATROSS caste=MALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=20298 vanish=0 flag_src=1 flag_nf=1 pos=3,177,93 listed_at=2306821
+20260918-000329	water	2	290821	2306821	arrival	431	BIRD_ALBATROSS caste=FEMALE ref6=3,28,-1,-1,-1,67 layer=surface countdown=22804 vanish=0 flag_src=1 flag_nf=1 pos=2,174,93 listed_at=2306821
+20260918-000329	water	2	290821	2306821	departure	397	DEMON_14 ref6=4,28,-1,38,-1,5 last_countdown=0 last_flag_src=1 arrived_at=2270338
+20260918-000329	water	2	290821	2306821	departure	401	REACHER ref6=3,28,-1,10,-1,13 last_countdown=2223 last_flag_src=1 arrived_at=2275550
+20260918-000329	water	2	290821	2306821	departure	405	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=2108 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	290821	2306821	departure	407	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=2443 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	290821	2306821	departure	408	HONEY BADGER ref6=4,29,-1,-1,-1,52 last_countdown=3935 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	290821	2306821	death	411	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=11007 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	290821	2306821	death	413	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=6958 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	290821	2306821	death	414	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=13822 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	290821	2306821	death	415	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=8045 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	290821	2306821	death	416	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=13816 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	295927	2311927	arrival	433	TROLL caste=MALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=27204 vanish=0 flag_src=1 flag_nf=0 pos=134,158,57 listed_at=2311927
+20260918-000329	water	2	295927	2311927	arrival	434	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=25670 vanish=0 flag_src=1 flag_nf=0 pos=21,188,2 listed_at=2311927
+20260918-000329	water	2	295927	2311927	arrival	435	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=19683 vanish=0 flag_src=1 flag_nf=0 pos=0,157,2 listed_at=2311927
+20260918-000329	water	2	295927	2311927	arrival	436	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=22511 vanish=0 flag_src=1 flag_nf=0 pos=1,156,2 listed_at=2311927
+20260918-000329	water	2	295927	2311927	arrival	437	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=23823 vanish=0 flag_src=1 flag_nf=0 pos=0,153,2 listed_at=2311927
+20260918-000329	water	2	295927	2311927	arrival	438	DEMON_4 caste=DEFAULT ref6=4,28,-1,38,-1,2 layer=cavern countdown=25844 vanish=0 flag_src=1 flag_nf=0 pos=1,158,2 listed_at=2311927
+20260918-000329	water	2	295927	2311927	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 2 day 246
+20260918-000329	water	2	295927	2311927	every_applied	18	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	295927	2311927	departure	403	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=2858 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	295927	2311927	departure	404	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=0 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	295927	2311927	departure	409	OLM_GIANT ref6=4,28,-1,2,-1,10 last_countdown=416 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	301017	2317017	arrival	439	TROLL caste=FEMALE ref6=4,28,-1,2,-1,26 layer=cavern countdown=20775 vanish=0 flag_src=1 flag_nf=0 pos=178,104,58 listed_at=2317017
+20260918-000329	water	2	301017	2317017	arrival	440	GIANT_EARTHWORM caste=DEFAULT ref6=4,28,-1,2,-1,22 layer=cavern countdown=22643 vanish=0 flag_src=1 flag_nf=0 pos=10,179,57 listed_at=2317017
+20260918-000329	water	2	301017	2317017	departure	402	TOAD_GIANT_CAVE ref6=4,28,-1,2,-1,11 last_countdown=0 last_flag_src=1 arrived_at=2280823
+20260918-000329	water	2	301017	2317017	departure	417	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=1516 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	301017	2317017	death	425	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=14223 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	301017	2317017	death	433	TROLL ref6=4,28,-1,2,-1,26 last_countdown=27204 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	306088	2322088	arrival	441	TROLL caste=MALE ref6=4,28,-1,22,-1,25 layer=cavern countdown=22627 vanish=0 flag_src=1 flag_nf=0 pos=79,0,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	442	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=18682 vanish=0 flag_src=1 flag_nf=0 pos=104,47,22 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	443	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=19270 vanish=0 flag_src=1 flag_nf=0 pos=191,26,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	444	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=16601 vanish=0 flag_src=1 flag_nf=0 pos=191,24,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	445	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=21989 vanish=0 flag_src=1 flag_nf=0 pos=188,22,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	446	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17390 vanish=0 flag_src=1 flag_nf=0 pos=189,23,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	447	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=21378 vanish=0 flag_src=1 flag_nf=0 pos=191,22,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	448	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23538 vanish=0 flag_src=1 flag_nf=0 pos=190,22,19 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	449	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=22395 vanish=0 flag_src=1 flag_nf=0 pos=188,21,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	450	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=18683 vanish=0 flag_src=1 flag_nf=0 pos=191,22,19 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	451	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=23914 vanish=0 flag_src=1 flag_nf=0 pos=191,23,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	452	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=22074 vanish=0 flag_src=1 flag_nf=0 pos=191,22,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	453	BUGBAT caste=MALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=26472 vanish=0 flag_src=1 flag_nf=0 pos=190,20,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	arrival	454	BUGBAT caste=FEMALE ref6=4,28,-1,22,-1,17 layer=cavern countdown=17794 vanish=0 flag_src=1 flag_nf=0 pos=189,22,18 listed_at=2322088
+20260918-000329	water	2	306088	2322088	departure	406	DEMON_1 ref6=4,28,-1,38,-1,1 last_countdown=298 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	306088	2322088	departure	410	BIRD_FALCON_PEREGRINE ref6=4,29,-1,-1,-1,51 last_countdown=0 last_flag_src=1 arrived_at=2286085
+20260918-000329	water	2	306088	2322088	departure	412	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=0 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	306088	2322088	departure	418	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=320 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	306088	2322088	departure	419	HUNGRY_HEAD ref6=4,28,-1,22,-1,20 last_countdown=0 last_flag_src=1 arrived_at=2291335
+20260918-000329	water	2	306088	2322088	departure	422	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=1740 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	311256	2327256	arrival	455	CROCODILE_CAVE caste=MALE ref6=4,28,-1,2,-1,9 layer=cavern countdown=25052 vanish=0 flag_src=1 flag_nf=0 pos=191,23,57 listed_at=2327256
+20260918-000329	water	2	311256	2327256	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 3 day 259
+20260918-000329	water	2	311256	2327256	every_applied	19	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	311256	2327256	departure	420	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	311256	2327256	departure	423	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=436 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	311256	2327256	departure	429	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=3840 last_flag_src=1 arrived_at=2306821
+20260918-000329	water	2	311256	2327256	death	439	TROLL ref6=4,28,-1,2,-1,26 last_countdown=15702 last_flag_src=1 arrived_at=2317017
+20260918-000329	water	2	316498	2332498	arrival	456	GORLAK caste=FEMALE ref6=4,28,-1,10,-1,15 layer=cavern countdown=17961 vanish=0 flag_src=1 flag_nf=0 pos=184,187,36 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	457	ANACONDA caste=FEMALE ref6=4,29,-1,-1,-1,39 layer=surface countdown=17568 vanish=0 flag_src=1 flag_nf=1 pos=71,180,93 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	458	TROLL caste=FEMALE ref6=4,28,-1,10,-1,11 layer=cavern countdown=26042 vanish=0 flag_src=1 flag_nf=0 pos=120,51,34 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	459	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24148 vanish=0 flag_src=1 flag_nf=1 pos=191,137,108 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	460	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=25955 vanish=0 flag_src=1 flag_nf=1 pos=172,0,109 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	461	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=24189 vanish=0 flag_src=1 flag_nf=1 pos=173,0,109 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	462	BIRD_ALBATROSS caste=MALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=19035 vanish=0 flag_src=1 flag_nf=1 pos=167,0,109 listed_at=2332498
+20260918-000329	water	2	316498	2332498	arrival	463	BIRD_ALBATROSS caste=FEMALE ref6=3,27,-1,-1,-1,67 layer=surface countdown=19729 vanish=0 flag_src=1 flag_nf=1 pos=174,0,109 listed_at=2332498
+20260918-000329	water	2	316498	2332498	departure	424	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	316498	2332498	departure	426	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=212 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	316498	2332498	departure	427	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	316498	2332498	departure	428	TROGLODYTE ref6=3,28,-1,10,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2301671
+20260918-000329	water	2	316498	2332498	departure	430	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=0 last_flag_src=1 arrived_at=2306821
+20260918-000329	water	2	316498	2332498	departure	431	BIRD_ALBATROSS ref6=3,28,-1,-1,-1,67 last_countdown=2369 last_flag_src=1 arrived_at=2306821
+20260918-000329	water	2	316498	2332498	departure	435	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=4354 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	321650	2337650	arrival	464	MAGMA_CRAB caste=MALE ref6=3,28,-1,29,-1,0 layer=cavern countdown=25403 vanish=0 flag_src=1 flag_nf=0 pos=104,180,12 listed_at=2337650
+20260918-000329	water	2	321650	2337650	departure	393	MAGMA_CRAB ref6=4,27,-1,29,-1,0 last_countdown=0 last_flag_src=1 arrived_at=2265145
+20260918-000329	water	2	321650	2337650	departure	436	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=1940 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	326824	2342824	arrival	465	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=19811 vanish=0 flag_src=1 flag_nf=0 pos=138,130,0 listed_at=2342824
+20260918-000329	water	2	326824	2342824	arrival	466	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=24883 vanish=0 flag_src=1 flag_nf=0 pos=190,166,0 listed_at=2342824
+20260918-000329	water	2	326824	2342824	arrival	467	DEMON_19 caste=DEFAULT ref6=4,28,-1,38,-1,4 layer=cavern countdown=18013 vanish=0 flag_src=1 flag_nf=0 pos=191,165,0 listed_at=2342824
+20260918-000329	water	2	326824	2342824	manipulation	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))	e20 water units: 0 [] season 3 day 272
+20260918-000329	water	2	326824	2342824	every_applied	20	local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))
+20260918-000329	water	2	326824	2342824	departure	434	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	326824	2342824	departure	437	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=0 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	326824	2342824	departure	438	DEMON_4 ref6=4,28,-1,38,-1,2 last_countdown=121 last_flag_src=1 arrived_at=2311927
+20260918-000329	water	2	326824	2342824	departure	440	GIANT_EARTHWORM ref6=4,28,-1,2,-1,22 last_countdown=2010 last_flag_src=1 arrived_at=2317017
+20260918-000329	water	2	326824	2342824	departure	442	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=3120 last_flag_src=1 arrived_at=2322088
+20260918-000329	water	2	326824	2342824	departure	443	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=3708 last_flag_src=1 arrived_at=2322088
+20260918-000329	water	2	326824	2342824	departure	444	BUGBAT ref6=4,28,-1,22,-1,17 last_countdown=1039 last_flag_src=1 arrived_at=2322088

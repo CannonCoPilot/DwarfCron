@@ -1,0 +1,1969 @@
+23:46:03 run E25-OCEAN2 20260917-234603: Wet-edge detector on OCEAN2: count map-edge surface tiles carrying water and those at depth 4 or more, and the live feature entries; expected live.
+23:46:03   [rig] DF already running (pid 50930), port 5555
+23:46:03 == E25-OCEAN2 arm=edge rep=1 fort=OCEAN2 budget=1000 every=1000
+23:46:04   [rig] restored OCEAN2.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN2
+23:46:04   restored OCEAN2.preverify -> OCEAN2 sha256 819fd7951ebd
+23:47:12   [rig] clicked through to OCEAN2 (world: Udon Alu); waiting for the map
+23:47:12   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=27)
+23:47:12   [rig] drained 0 queued popup(s)
+23:47:14   baseline: 0 wild units on map, 754 pool entries, tick 16801 year 5
+23:47:14   manipulation: local me=df.global.plotinfo.map_edge; local wet,tot,deep=0,0,0; for i=0,#me.surface_x-1 do local x,y,z=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then wet=wet+1; if d.flow_size>=4 then deep=deep+1 end end end; local fe=0; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; print(('e25 edge: %d edge tiles, %d wet, %d deep (>=4/7); %d live feature entries -> %s'):format(tot,wet,deep,fe, (deep>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge' or 'DORMANT: no feature entries'))) -> e25 edge: 210 edge tiles, 0 wet, 0 deep (>=4/7); 103 live feature entries -> DORMANT: no deep wet edge
+23:47:14   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+112	0	93	StoneFloor4	0	water
+113	0	93	StoneFloor2	0	water
+114	0	93	StoneFloor3	0	water
+115	0	93	StoneFloor4	0	water
+116	0	93	StoneFloor3	0	water
+117	0	93	StoneFloor2	0	water
+118	0	93	StoneFloor3	0	water
+119	0	93	StoneFloor4	0	water
+120	0	93	StoneFloor3	0	water
+121	0	93	StoneFloor4	0	water
+122	0	93	StoneFloor2	0	water
+123	0	93	StoneFloor3	0	water
+124	0	93	StoneFloor4	0	water
+125	0	93	StoneFloor4	0	water
+126	0	93	StoneFloor3	0	water
+127	0	93	StoneFloor3	0	water
+128	0	93	StoneFloor4	0	water
+129	0	93	StoneFloor3	0	water
+130	0	93	StoneBoulder	0	water
+131	0	93	StoneFloor2	0	water
+132	0	93	GrassDryFloor1	0	water
+133	0	93	GrassDryFloor1	0	water
+134	0	93	GrassDryFloor3	0	water
+135	0	93	GrassDryRamp	0	water
+136	0	94	GrassDryFloor2	0	water
+137	0	94	GrassDryFloor1	0	water
+138	0	94	GrassDryFloor2	0	water
+139	0	94	GrassDryFloor2	0	water
+140	0	94	GrassDryFloor2	0	water
+141	0	94	GrassDryFloor1	0	water
+142	0	94	StonePebbles4	0	water
+143	0	94	GrassDryFloor4	0	water
+144	0	94	GrassDryFloor4	0	water
+145	0	94	GrassDryFloor1	0	water
+146	0	94	GrassDryFloor1	0	water
+147	0	94	GrassDryFloor2	0	water
+148	0	94	StonePebbles1	0	water
+149	0	94	GrassDryFloor1	0	water
+150	0	94	GrassDryFloor3	0	water
+151	0	94	GrassDryFloor3	0	water
+152	0	94	GrassDryFloor2	0	water
+153	0	94	GrassDryFloor2	0	water
+154	0	94	GrassDryFloor2	0	water
+155	0	94	GrassDryFloor1	0	water
+156	0	94	GrassDryFloor1	0	water
+157	0	94	GrassDryFloor4	0	water
+158	0	94	GrassDryFloor1	0	water
+159	0	94	GrassDryFloor1	0	water
+160	0	94	GrassDryFloor3	0	water
+161	0	94	GrassDryFloor2	0	water
+162	0	94	GrassDryFloor2	0	water
+163	0	94	GrassDryFloor4	0	water
+164	0	94	GrassDryFloor2	0	water
+165	0	94	GrassDryFloor2	0	water
+166	0	94	GrassDryFloor3	0	water
+167	0	94	GrassDryFloor4	0	water
+168	0	94	GrassDryFloor1	0	water
+169	0	94	GrassDryFloor4	0	water
+170	0	94	GrassDryFloor4	0	water
+171	0	94	GrassDryFloor1	0	water
+172	0	94	GrassDryFloor4	0	water
+173	0	94	GrassDryFloor2	0	water
+174	0	94	GrassDryFloor2	0	water
+175	0	94	GrassDryFloor3	0	water
+176	0	94	GrassDryFloor1	0	water
+177	0	94	StonePebbles2	0	water
+178	0	94	StoneFloor1	0	water
+179	0	94	GrassDryFloor1	0	water
+180	0	94	GrassDryFloor1	0	water
+181	0	94	Shrub	0	water
+182	0	94	GrassDryFloor4	0	water
+183	0	94	GrassDryFloor3	0	water
+184	0	94	GrassDryFloor3	0	water
+185	0	94	GrassDryFloor4	0	water
+186	0	94	GrassDryFloor4	0	water
+187	0	94	GrassDryFloor3	0	water
+188	0	94	Shrub	0	water
+189	0	94	GrassDryFloor1	0	water
+190	0	94	StonePebbles2	0	water
+191	0	94	GrassDryFloor1	0	water
+191	1	94	GrassDryFloor1	0	water
+191	2	94	GrassDryFloor1	0	water
+191	3	94	GrassDryFloor2	0	water
+191	4	94	GrassDryFloor2	0	water
+191	5	94	StonePebbles3	0	water
+191	6	94	GrassDryFloor3	0	water
+191	7	94	StonePebbles3	0	water
+191	8	94	GrassDryFloor4	0	water
+191	9	94	GrassDryFloor2	0	water
+191	10	94	GrassDryFloor2	0	water
+191	11	94	StonePebbles2	0	water
+191	12	94	Shrub	0	water
+191	13	94	GrassDryFloor1	0	water
+191	14	94	GrassDryFloor4	0	water
+191	15	94	GrassDryFloor3	0	water
+191	16	94	GrassDryFloor1	0	water
+191	17	94	GrassDryFloor1	0	water
+191	18	94	GrassDryFloor2	0	water
+191	19	94	GrassDryFloor1	0	water
+191	20	94	GrassDryFloor3	0	water
+191	21	94	GrassDryFloor4	0	water
+191	22	94	GrassDryFloor4	0	water
+191	23	94	GrassDryFloor3	0	water
+191	24	94	GrassDryFloor2	0	water
+191	25	94	GrassDryFloor2	0	water
+191	26	94	GrassDryFloor3	0	water
+191	27	94	GrassDryFloor2	0	water
+191	28	94	GrassDryFloor2	0	water
+191	29	94	GrassDryFloor4	0	water
+191	30	94	GrassDryFloor4	0	water
+191	31	94	GrassDryFloor3	0	water
+191	32	94	GrassDryFloor2	0	water
+191	33	94	GrassDryFloor3	0	water
+191	34	94	GrassDryFloor3	0	water
+191	35	94	GrassDryFloor4	0	water
+191	36	94	Shrub	0	water
+191	37	94	GrassDryFloor3	0	water
+191	38	94	GrassDryFloor1	0	water
+191	39	94	GrassDryFloor2	0	water
+191	40	94	GrassDryFloor3	0	water
+191	41	94	GrassDryFloor4	0	water
+191	42	94	StoneFloor3	0	water
+191	43	94	GrassDryFloor3	0	water
+191	44	94	GrassDryFloor3	0	water
+191	45	94	GrassDryFloor1	0	water
+191	46	94	GrassDryFloor2	0	water
+191	47	94	GrassDryFloor1	0	water
+191	48	94	GrassDryFloor2	0	water
+191	49	94	GrassDryFloor4	0	water
+191	50	94	GrassDryFloor1	0	water
+191	51	94	GrassDryFloor2	0	water
+191	52	94	GrassDryFloor1	0	water
+191	53	94	GrassDryFloor3	0	water
+191	54	94	GrassDryFloor1	0	water
+191	55	94	GrassDryFloor2	0	water
+191	56	94	StonePebbles2	0	water
+191	57	94	GrassDryFloor1	0	water
+191	58	94	StoneFloor4	0	water
+191	59	94	GrassDryFloor4	0	water
+191	60	94	GrassDryFloor3	0	water
+191	61	94	GrassDryFloor1	0	water
+191	62	94	GrassDryFloor1	0	water
+191	63	94	GrassDryFloor1	0	water
+191	64	94	GrassDryFloor4	0	water
+191	65	94	GrassDryFloor2	0	water
+191	66	94	GrassDryFloor3	0	water
+191	67	94	GrassDryFloor3	0	water
+191	68	94	GrassDryFloor2	0	water
+191	69	94	GrassDryFloor2	0	water
+191	70	94	GrassDryFloor4	0	water
+191	71	94	GrassDryFloor1	0	water
+191	72	94	GrassDryFloor2	0	water
+191	73	94	GrassDryFloor1	0	water
+191	74	94	GrassDryFloor3	0	water
+191	75	94	GrassDryFloor3	0	water
+191	76	94	GrassDryFloor2	0	water
+191	77	94	GrassDryFloor4	0	water
+191	78	94	GrassDryFloor3	0	water
+191	79	94	GrassDryFloor1	0	water
+191	80	94	GrassDryFloor4	0	water
+191	81	94	GrassDryFloor2	0	water
+191	82	94	GrassDryFloor3	0	water
+191	83	94	GrassDryFloor3	0	water
+191	84	94	GrassDryFloor4	0	water
+191	85	94	GrassDryFloor4	0	water
+191	86	94	StoneFloor4	0	water
+191	87	94	GrassDryFloor4	0	water
+191	88	94	GrassDryFloor3	0	water
+191	89	94	GrassDryFloor3	0	water
+191	90	94	GrassDryFloor4	0	water
+191	91	94	GrassDryFloor4	0	water
+191	92	94	GrassDryFloor2	0	water
+191	93	94	StonePebbles3	0	water
+191	94	94	GrassDryFloor2	0	water
+191	95	94	GrassDryFloor1	0	water
+191	96	94	GrassDryFloor4	0	water
+191	97	94	StonePebbles4	0	water
+191	98	94	GrassDryFloor1	0	water
+191	99	94	GrassDryFloor3	0	water
+191	100	94	GrassDryFloor2	0	water
+191	101	94	GrassDryFloor2	0	water
+191	102	94	GrassDryFloor1	0	water
+191	103	94	GrassDryFloor4	0	water
+191	104	93	GrassDryRamp	0	water
+191	105	93	GrassDryRamp	0	water
+191	106	93	GrassDryFloor4	0	water
+191	107	93	StoneFloor4	0	water
+191	108	93	StoneFloor3	0	water
+191	109	93	StoneBoulder	0	water
+191	110	93	StoneFloor3	0	water
+191	111	93	StoneFloor3	0	water
+191	112	93	StoneFloor1	0	water
+191	113	93	StoneFloor2	0	water
+191	114	93	StoneFloor3	0	water
+191	115	93	StoneFloor3	0	water
+191	116	93	StoneFloor2	0	water
+191	117	93	StoneFloor4	0	water
+191	118	93	StoneFloor2	0	water
+191	119	93	StoneBoulder	0	water
+191	120	93	StoneFloor3	0	water
+191	121	93	StoneFloor2	0	water
+191	122	93	Driftwood	0	water
+191	123	93	StoneFloor1	0	water
+191	124	93	StoneFloor1	0	water
+191	125	93	StoneFloor2	0	water
+191	126	93	StoneFloor1	0	water
+191	127	93	StoneFloor2	0	water
+191	128	93	StoneFloor1	0	water
+191	129	93	StoneBoulder	0	water
+191	130	93	StoneFloor2	0	water
+23:47:14   REPLICATE FAILED: seasonal-wildlife state {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'} violates tool_must_be {'enabled': 1}: {'enabled': '0'}
+23:47:23   [rig] back at the title screen
+23:48:32   [rig] clicked through to OCEAN2 (world: Udon Alu); waiting for the map
+23:48:32   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=27)
+23:48:40   [rig] back at the title screen
+23:48:40 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN2/20260917-234603
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN2/20260917-234603
+
+# E25-OCEAN2 -- Wet-edge detector on OCEAN2: count map-edge surface tiles carrying water and those at depth 4 or more, and the live feature entries; expected live.
+run 20260917-234603 fort OCEAN2 backup OCEAN2.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 4..4,28..28 seed 424242
+commits: DwarfCron a825136 seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: live
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | False | None |  |  |  |  |  |  | exception: seasonal-wildlife state {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'} violates tool_must_be {'enabled': 1}: {'enabled': '0'}
+
+culled: [('edge', 1)]
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+
+## Waves (0; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local me=df.global.plotinfo.map_edge; local wet,tot,deep=0,0,0; for i=0,#me.surface_x-1 do local x,y,z=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then wet=wet+1; if d.flow_size>=4 then deep=deep+1 end end end; local fe=0; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; print(('e25 edge: %d edge tiles, %d wet, %d deep (>=4/7); %d live feature entries -> %s'):format(tot,wet,deep,fe, (deep>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge' or 'DORMANT: no feature entries'))) | e25 edge: 210 edge tiles, 0 wet, 0 deep (>=4/7); 103 live feature entries -> DORMANT: no deep wet edge
+edge | 1 | +0 | probe:edge | x y z tiletype water liquid | 112 0 93 StoneFloor4 0 water | 113 0 93 StoneFloor2 0 water | 114 0 93 StoneFloor3 0 water | 115 0 93 StoneFloor4 0 water | 116 0 93 StoneFloor3 0 water | 117 0 93 StoneFloor2 0 water | 118 0 93 StoneFloor3 0 water | 119 0 93 StoneFloor4 0 water | 120 0 93 StoneFloor3 0 water | 121 0 93 StoneFloor4 0 water | 122 0 93 StoneFloor2 0 water | 123 0 93 StoneFloor3 0 water | 124 0 93 StoneFloor4 0 water | 125 0 93 StoneFloor4 0 water | 126 0 93 StoneFloor3 0 water | 127 0 93 StoneFloor3 0 water | 128 0 93 StoneFloor4 0 water | 129 0 93 StoneFloor3 0 water | 130 0 93 StoneBoulder 0 water | 131 0 93 StoneFloor2 0 water | 132 0 93 GrassDryFloor1 0 water | 133 0 93 GrassDryFloor1 0 water | 134 0 93 GrassDryFloor3 0 water | 135 0 93 GrassDryRamp 0 water | 136 0 94 GrassDryFloor2 0 water | 137 0 94 GrassDryFloor1 0 water | 138 0 94 GrassDryFloor2 0 water | 139 0 94 GrassDryFloor2 0 water | 140 0 94 GrassDryFloor2 0 water | 141 0 94 GrassDryFloor1 0 water | 142 0 94 StonePebbles4 0 water | 143 0 94 GrassDryFloor4 0 water | 144 0 94 GrassDryFloor4 0 water | 145 0 94 GrassDryFloor1 0 water | 146 0 94 GrassDryFloor1 0 water | 147 0 94 GrassDryFloor2 0 water | 148 0 94 StonePebbles1 0 water | 149 0 94 GrassDryFloor1 0 water | 150 0 94 GrassDryFloor3 0 water | 151 0 94 GrassDryFloor3 0 water | 152 0 94 GrassDryFloor2 0 water | 153 0 94 GrassDryFloor2 0 water | 154 0 94 GrassDryFloor2 0 water | 155 0 94 GrassDryFloor1 0 water | 156 0 94 GrassDryFloor1 0 water | 157 0 94 GrassDryFloor4 0 water | 158 0 94 GrassDryFloor1 0 water | 159 0 94 GrassDryFloor1 0 water | 160 0 94 GrassDryFloor3 0 water | 161 0 94 GrassDryFloor2 0 water | 162 0 94 GrassDryFloor2 0 water | 163 0 94 GrassDryFloor4 0 water | 164 0 94 GrassDryFloor2 0 water | 165 0 94 GrassDryFloor2 0 water | 166 0 94 GrassDryFloor3 0 water | 167 0 94 GrassDryFloor4 0 water | 168 0 94 GrassDryFloor1 0 water | 169 0 94 GrassDryFloor4 0 water | 170 0 94 GrassDryFloor4 0 water | 171 0 94 GrassDryFloor1 0 water | 172 0 94 GrassDryFloor4 0 water | 173 0 94 GrassDryFloor2 0 water | 174 0 94 GrassDryFloor2 0 water | 175 0 94 GrassDryFloor3 0 water | 176 0 94 GrassDryFloor1 0 water | 177 0 94 StonePebbles2 0 water | 178 0 94 StoneFloor1 0 water | 179 0 94 GrassDryFloor1 0 water | 180 0 94 GrassDryFloor1 0 water | 181 0 94 Shrub 0 water | 182 0 94 GrassDryFloor4 0 water | 183 0 94 GrassDryFloor3 0 water | 184 0 94 GrassDryFloor3 0 water | 185 0 94 GrassDryFloor4 0 water | 186 0 94 GrassDryFloor4 0 water | 187 0 94 GrassDryFloor3 0 water | 188 0 94 Shrub 0 water | 189 0 94 GrassDryFloor1 0 water | 190 0 94 StonePebbles2 0 water | 191 0 94 GrassDryFloor1 0 water | 191 1 94 GrassDryFloor1 0 water | 191 2 94 GrassDryFloor1 0 water | 191 3 94 GrassDryFloor2 0 water | 191 4 94 GrassDryFloor2 0 water | 191 5 94 StonePebbles3 0 water | 191 6 94 GrassDryFloor3 0 water | 191 7 94 StonePebbles3 0 water | 191 8 94 GrassDryFloor4 0 water | 191 9 94 GrassDryFloor2 0 water | 191 10 94 GrassDryFloor2 0 water | 191 11 94 StonePebbles2 0 water | 191 12 94 Shrub 0 water | 191 13 94 GrassDryFloor1 0 water | 191 14 94 GrassDryFloor4 0 water | 191 15 94 GrassDryFloor3 0 water | 191 16 94 GrassDryFloor1 0 water | 191 17 94 GrassDryFloor1 0 water | 191 18 94 GrassDryFloor2 0 water | 191 19 94 GrassDryFloor1 0 water | 191 20 94 GrassDryFloor3 0 water | 191 21 94 GrassDryFloor4 0 water | 191 22 94 GrassDryFloor4 0 water | 191 23 94 GrassDryFloor3 0 water | 191 24 94 GrassDryFloor2 0 water | 191 25 94 GrassDryFloor2 0 water | 191 26 94 GrassDryFloor3 0 water | 191 27 94 GrassDryFloor2 0 water | 191 28 94 GrassDryFloor2 0 water | 191 29 94 GrassDryFloor4 0 water | 191 30 94 GrassDryFloor4 0 water | 191 31 94 GrassDryFloor3 0 water | 191 32 94 GrassDryFloor2 0 water | 191 33 94 GrassDryFloor3 0 water | 191 34 94 GrassDryFloor3 0 water | 191 35 94 GrassDryFloor4 0 water | 191 36 94 Shrub 0 water | 191 37 94 GrassDryFloor3 0 water | 191 38 94 GrassDryFloor1 0 water | 191 39 94 GrassDryFloor2 0 water | 191 40 94 GrassDryFloor3 0 water | 191 41 94 GrassDryFloor4 0 water | 191 42 94 StoneFloor3 0 water | 191 43 94 GrassDryFloor3 0 water | 191 44 94 GrassDryFloor3 0 water | 191 45 94 GrassDryFloor1 0 water | 191 46 94 GrassDryFloor2 0 water | 191 47 94 GrassDryFloor1 0 water | 191 48 94 GrassDryFloor2 0 water | 191 49 94 GrassDryFloor4 0 water | 191 50 94 GrassDryFloor1 0 water | 191 51 94 GrassDryFloor2 0 water | 191 52 94 GrassDryFloor1 0 water | 191 53 94 GrassDryFloor3 0 water | 191 54 94 GrassDryFloor1 0 water | 191 55 94 GrassDryFloor2 0 water | 191 56 94 StonePebbles2 0 water | 191 57 94 GrassDryFloor1 0 water | 191 58 94 StoneFloor4 0 water | 191 59 94 GrassDryFloor4 0 water | 191 60 94 GrassDryFloor3 0 water | 191 61 94 GrassDryFloor1 0 water | 191 62 94 GrassDryFloor1 0 water | 191 63 94 GrassDryFloor1 0 water | 191 64 94 GrassDryFloor4 0 water | 191 65 94 GrassDryFloor2 0 water | 191 66 94 GrassDryFloor3 0 water | 191 67 94 GrassDryFloor3 0 water | 191 68 94 GrassDryFloor2 0 water | 191 69 94 GrassDryFloor2 0 water | 191 70 94 GrassDryFloor4 0 water | 191 71 94 GrassDryFloor1 0 water | 191 72 94 GrassDryFloor2 0 water | 191 73 94 GrassDryFloor1 0 water | 191 74 94 GrassDryFloor3 0 water | 191 75 94 GrassDryFloor3 0 water | 191 76 94 GrassDryFloor2 0 water | 191 77 94 GrassDryFloor4 0 water | 191 78 94 GrassDryFloor3 0 water | 191 79 94 GrassDryFloor1 0 water | 191 80 94 GrassDryFloor4 0 water | 191 81 94 GrassDryFloor2 0 water | 191 82 94 GrassDryFloor3 0 water | 191 83 94 GrassDryFloor3 0 water | 191 84 94 GrassDryFloor4 0 water | 191 85 94 GrassDryFloor4 0 water | 191 86 94 StoneFloor4 0 water | 191 87 94 GrassDryFloor4 0 water | 191 88 94 GrassDryFloor3 0 water | 191 89 94 GrassDryFloor3 0 water | 191 90 94 GrassDryFloor4 0 water | 191 91 94 GrassDryFloor4 0 water | 191 92 94 GrassDryFloor2 0 water | 191 93 94 StonePebbles3 0 water | 191 94 94 GrassDryFloor2 0 water | 191 95 94 GrassDryFloor1 0 water | 191 96 94 GrassDryFloor4 0 water | 191 97 94 StonePebbles4 0 water | 191 98 94 GrassDryFloor1 0 water | 191 99 94 GrassDryFloor3 0 water | 191 100 94 GrassDryFloor2 0 water | 191 101 94 GrassDryFloor2 0 water | 191 102 94 GrassDryFloor1 0 water | 191 103 94 GrassDryFloor4 0 water | 191 104 93 GrassDryRamp 0 water | 191 105 93 GrassDryRamp 0 water | 191 106 93 GrassDryFloor4 0 water | 191 107 93 StoneFloor4 0 water | 191 108 93 StoneFloor3 0 water | 191 109 93 StoneBoulder 0 water | 191 110 93 StoneFloor3 0 water | 191 111 93 StoneFloor3 0 water | 191 112 93 StoneFloor1 0 water | 191 113 93 StoneFloor2 0 water | 191 114 93 StoneFloor3 0 water | 191 115 93 StoneFloor3 0 water | 191 116 93 StoneFloor2 0 water | 191 117 93 StoneFloor4 0 water | 191 118 93 StoneFloor2 0 water | 191 119 93 StoneBoulder 0 water | 191 120 93 StoneFloor3 0 water | 191 121 93 StoneFloor2 0 water | 191 122 93 Driftwood 0 water | 191 123 93 StoneFloor1 0 water | 191 124 93 StoneFloor1 0 water | 191 125 93 StoneFloor2 0 water | 191 126 93 StoneFloor1 0 water | 191 127 93 StoneFloor2 0 water | 191 128 93 StoneFloor1 0 water | 191 129 93 StoneBoulder 0 water | 191 130 93 StoneFloor2 0 water
+
+## Pool entries that changed between load and end of replicate (0; the second instrument)
+
+23:48:40 run E25-OCEAN 20260917-234840: Wet-edge detector on OCEAN: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected dormant.
+23:48:40   [rig] DF already running (pid 50930), port 5555
+23:48:40 == E25-OCEAN arm=edge rep=1 fort=OCEAN budget=1000 every=1000
+23:48:40   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+23:48:40   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+23:49:49   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+23:49:49   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+23:49:50   [rig] drained 0 queued popup(s)
+23:49:51   baseline: 12 wild units on map, 990 pool entries, tick 16948 year 5
+23:49:53   manipulation: local me=df.global.plotinfo.map_edge; local wet,tot,deep,wetxy=0,0,0,0; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; local hit=false; for z=math.max(0,sz-40),math.min(df.global.world.map.z_count-1,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then wet=wet+1; hit=true; if d.flow_size>=4 then deep=deep+1 end end end; if hit then wetxy=wetxy+1 end end; local fe=0; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; print(('e25 edge: %d edge columns, %d with water at any z (%d wet tiles, %d deep >=4/7); %d live feature entries -> %s'):format(tot,wetxy,wet,deep,fe, (deep>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge' or 'DORMANT: no feature entries'))) -> e25 edge: 764 edge columns, 73 with water at any z (73 wet tiles, 73 deep >=4/7); 106 live feature entries -> LIVE
+23:49:53   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+0	0	91	GrassDryFloor2	0	water
+0	191	91	StonePebbles3	0	water
+1	0	91	StoneFloor2	0	water
+1	191	91	Shrub	0	water
+2	0	91	GrassDryFloor4	0	water
+2	191	91	GrassDryFloor1	0	water
+3	0	91	GrassDryFloor1	0	water
+3	191	91	Shrub	0	water
+4	0	91	GrassDryFloor1	0	water
+4	191	91	GrassDryFloor4	0	water
+5	0	91	GrassDryFloor3	0	water
+5	191	91	GrassDryFloor4	0	water
+6	0	91	GrassDryFloor1	0	water
+6	191	91	GrassDryFloor2	0	water
+7	0	91	GrassDryFloor3	0	water
+7	191	91	GrassDryFloor2	0	water
+8	0	91	GrassDryFloor4	0	water
+8	191	91	Shrub	0	water
+9	0	91	GrassDryFloor3	0	water
+9	191	91	GrassDryFloor1	0	water
+10	0	91	GrassDryFloor2	0	water
+10	191	91	Shrub	0	water
+11	0	91	GrassDryFloor1	0	water
+11	191	91	GrassDryFloor4	0	water
+12	0	91	GrassDryFloor1	0	water
+12	191	91	GrassDryFloor1	0	water
+13	0	91	GrassDryFloor4	0	water
+13	191	91	GrassDryFloor2	0	water
+14	0	91	GrassDryFloor2	0	water
+14	191	91	GrassDryFloor2	0	water
+15	0	91	GrassDryFloor3	0	water
+15	191	91	GrassDryRamp	0	water
+16	0	91	GrassDryFloor3	0	water
+16	191	92	GrassDryFloor4	0	water
+17	0	91	GrassDryFloor3	0	water
+17	191	92	GrassDryFloor4	0	water
+18	0	91	GrassDryFloor2	0	water
+18	191	92	GrassDryFloor2	0	water
+19	0	91	Shrub	0	water
+19	191	92	Shrub	0	water
+20	0	91	GrassDryFloor1	0	water
+20	191	92	GrassDryFloor2	0	water
+21	0	91	GrassDryFloor1	0	water
+21	191	92	GrassDryFloor4	0	water
+22	0	91	Shrub	0	water
+22	191	92	GrassDryFloor1	0	water
+23	0	91	GrassDryFloor1	0	water
+23	191	92	GrassDryFloor4	0	water
+24	0	91	GrassDryFloor2	0	water
+24	191	92	GrassDryFloor1	0	water
+25	0	91	GrassDryFloor2	0	water
+25	191	92	GrassDryFloor3	0	water
+26	0	91	GrassDryFloor4	0	water
+26	191	92	GrassDryFloor4	0	water
+27	0	91	GrassDryFloor4	0	water
+27	191	92	StonePebbles3	0	water
+28	0	91	GrassDryFloor4	0	water
+28	191	92	GrassDryFloor2	0	water
+29	0	91	GrassDryFloor4	0	water
+29	191	92	GrassDryFloor4	0	water
+30	0	91	GrassDryFloor2	0	water
+30	191	92	GrassDryFloor2	0	water
+31	0	91	GrassDryFloor1	0	water
+31	191	92	GrassDryFloor4	0	water
+32	0	91	GrassDryFloor3	0	water
+32	191	92	GrassDryFloor1	0	water
+33	0	91	GrassDryFloor1	0	water
+33	191	92	GrassDryFloor3	0	water
+34	0	91	GrassDryFloor3	0	water
+34	191	92	GrassDryFloor4	0	water
+35	0	91	GrassDryFloor4	0	water
+35	191	92	GrassDryFloor4	0	water
+36	0	91	GrassDryFloor1	0	water
+36	191	92	GrassDryFloor2	0	water
+37	0	91	GrassDryFloor2	0	water
+37	191	92	GrassDryFloor4	0	water
+38	0	91	GrassDryFloor2	0	water
+38	191	92	GrassDryFloor2	0	water
+39	0	91	GrassDryFloor1	0	water
+39	191	92	GrassDryFloor4	0	water
+40	0	91	GrassDryFloor4	0	water
+40	191	92	GrassDryFloor2	0	water
+41	0	91	Shrub	0	water
+41	191	92	GrassDryFloor4	0	water
+42	0	91	GrassDryFloor1	0	water
+42	191	92	GrassDryFloor3	0	water
+43	0	91	GrassDryFloor2	0	water
+43	191	92	GrassDryFloor4	0	water
+44	0	91	GrassDryFloor1	0	water
+44	191	92	GrassDryFloor2	0	water
+45	0	91	GrassDryFloor1	0	water
+45	191	92	GrassDryFloor2	0	water
+46	0	91	Shrub	0	water
+46	191	92	StoneBoulder	0	water
+47	0	91	GrassDryFloor2	0	water
+47	191	92	GrassDryFloor3	0	water
+48	0	91	GrassDryFloor1	0	water
+48	191	92	GrassDryFloor2	0	water
+49	0	91	Shrub	0	water
+49	191	92	GrassDryFloor1	0	water
+50	0	91	GrassDryFloor2	0	water
+50	191	92	GrassDryFloor3	0	water
+51	0	91	GrassDryFloor3	0	water
+51	191	92	GrassDryFloor4	0	water
+52	0	91	GrassDryFloor2	0	water
+52	191	92	GrassDryFloor1	0	water
+53	0	91	GrassDryFloor1	0	water
+53	191	92	GrassDryFloor1	0	water
+54	0	91	GrassDryFloor4	0	water
+54	191	92	Shrub	0	water
+55	0	91	GrassDryFloor2	0	water
+55	191	92	GrassDryFloor4	0	water
+56	0	91	GrassDryFloor1	0	water
+56	191	92	StoneFloor1	0	water
+57	0	91	GrassDryFloor4	0	water
+57	191	92	GrassDryFloor4	0	water
+58	0	91	GrassDryFloor1	0	water
+58	191	92	GrassDryFloor4	0	water
+59	0	91	GrassDryFloor4	0	water
+59	191	92	GrassDryFloor3	0	water
+60	0	91	GrassDryFloor4	0	water
+60	191	92	GrassDryFloor4	0	water
+61	0	91	GrassDryFloor2	0	water
+61	191	92	GrassDryFloor2	0	water
+62	0	91	GrassDryFloor4	0	water
+62	191	92	StonePebbles4	0	water
+63	0	91	GrassDryFloor4	0	water
+63	191	92	GrassDryFloor2	0	water
+64	0	91	GrassDryFloor3	0	water
+64	191	92	GrassDryFloor4	0	water
+65	0	91	StonePebbles1	0	water
+65	191	92	GrassDryFloor4	0	water
+66	0	91	GrassDryFloor2	0	water
+66	191	92	GrassDryFloor2	0	water
+67	0	91	GrassDryFloor1	0	water
+67	191	92	Shrub	0	water
+68	0	91	GrassDryFloor4	0	water
+68	191	92	StoneFloor4	0	water
+69	0	91	GrassDryFloor2	0	water
+69	191	92	GrassDryFloor3	0	water
+70	0	91	GrassDryFloor3	0	water
+70	191	92	GrassDryFloor1	0	water
+71	0	91	GrassDryFloor4	0	water
+71	191	92	GrassDryFloor3	0	water
+72	0	91	GrassDryFloor3	0	water
+72	191	92	GrassDryFloor3	0	water
+73	0	91	GrassDryFloor3	0	water
+73	191	92	GrassDryFloor4	0	water
+74	0	91	GrassDryFloor1	0	water
+74	191	92	GrassDryFloor4	0	water
+75	0	91	Shrub	0	water
+75	191	92	GrassDryFloor4	0	water
+76	0	91	GrassDryFloor1	0	water
+76	191	92	GrassDryFloor2	0	water
+77	0	91	GrassDryFloor3	0	water
+77	191	92	GrassDryFloor4	0	water
+78	0	91	GrassDryFloor2	0	water
+78	191	92	GrassDryFloor2	0	water
+79	0	91	GrassDryFloor2	0	water
+79	191	92	GrassDryFloor4	0	water
+80	0	91	GrassDryFloor4	0	water
+80	191	91	GrassDryRamp	0	water
+81	0	91	GrassDryFloor3	0	water
+81	191	91	GrassDryFloor1	0	water
+82	0	91	GrassDryFloor4	0	water
+82	191	91	GrassDryFloor3	0	water
+83	0	91	StoneFloor1	0	water
+83	191	91	GrassDryFloor2	0	water
+84	0	91	GrassDryFloor4	0	water
+84	191	91	GrassDryFloor3	0	water
+85	0	91	GrassDryFloor4	0	water
+85	191	91	GrassDryFloor3	0	water
+86	0	91	GrassDryFloor2	0	water
+86	191	91	GrassDryFloor2	0	water
+87	0	91	GrassDryFloor2	0	water
+87	191	91	GrassDryFloor4	0	water
+88	0	91	SoilFloor4	0	water
+88	191	91	StonePebbles1	0	water
+89	0	91	Shrub	0	water
+89	191	91	SoilFloor4	0	water
+90	0	91	GrassDryFloor1	0	water
+90	191	91	GrassDryFloor3	0	water
+91	0	91	GrassDryFloor3	0	water
+91	191	91	GrassDryFloor4	0	water
+92	0	91	GrassDryFloor3	0	water
+92	191	91	GrassDryFloor4	0	water
+93	0	91	GrassDryFloor4	0	water
+93	191	91	Shrub	0	water
+94	0	91	GrassDryFloor4	0	water
+94	191	91	GrassDryFloor2	0	water
+95	0	91	GrassDryFloor4	0	water
+95	191	91	Shrub	0	water
+96	0	91	GrassDryFloor2	0	water
+96	191	91	GrassDryFloor1	0	water
+97	0	91	GrassDryFloor2	0	water
+97	191	91	StonePebbles4	0	water
+98	0	91	GrassDryFloor1	0	water
+98	191	91	GrassDryFloor1	0	water
+99	0	91	GrassDryFloor2	0	water
+99	191	91	StoneFloor2	0	water
+100	0	91	GrassDryFloor2	0	water
+100	191	91	GrassDryFloor4	0	water
+101	0	91	GrassDryFloor4	0	water
+101	191	91	StonePebbles2	0	water
+102	0	91	GrassDryFloor2	0	water
+102	191	91	GrassDryFloor4	0	water
+103	0	91	GrassDryFloor2	0	water
+103	191	91	GrassDryFloor1	0	water
+104	0	91	StonePebbles1	0	water
+104	191	91	GrassDryFloor2	0	water
+105	0	91	GrassDryFloor3	0	water
+105	191	91	GrassDryFloor3	0	water
+106	0	91	StoneFloor2	0	water
+106	191	91	GrassDryFloor1	0	water
+107	0	91	GrassDryFloor4	0	water
+107	191	91	GrassDryFloor1	0	water
+108	0	91	GrassDryFloor2	0	water
+108	191	91	StoneFloor3	0	water
+109	0	91	GrassDryFloor2	0	water
+109	191	91	GrassDryFloor3	0	water
+110	0	91	GrassDryFloor2	0	water
+110	191	91	GrassDryFloor4	0	water
+111	0	91	GrassDryFloor4	0	water
+111	191	91	GrassDryRamp	0	water
+112	0	91	GrassDryFloor2	0	water
+112	191	92	GrassDryFloor1	0	water
+113	0	91	GrassDryFloor2	0	water
+113	191	92	GrassDryFloor1	0	water
+114	0	91	GrassDryFloor1	0	water
+114	191	92	StoneFloor1	0	water
+115	0	91	GrassDryFloor4	0	water
+115	191	92	GrassDryFloor4	0	water
+116	0	91	StonePebbles1	0	water
+116	191	92	GrassDryFloor4	0	water
+117	0	91	GrassDryFloor4	0	water
+117	191	92	GrassDryFloor2	0	water
+118	0	91	GrassDryFloor4	0	water
+118	191	92	GrassDryFloor2	0	water
+119	0	91	GrassDryFloor1	0	water
+119	191	92	GrassDryFloor1	0	water
+120	0	91	GrassDryFloor4	0	water
+120	191	92	GrassDryFloor2	0	water
+121	0	91	GrassDryFloor3	0	water
+121	191	92	StonePebbles2	0	water
+122	0	91	Shrub	0	water
+122	191	92	GrassDryFloor1	0	water
+123	0	91	Shrub	0	water
+123	191	92	GrassDryFloor4	0	water
+124	0	91	GrassDryFloor3	0	water
+124	191	92	GrassDryFloor3	0	water
+125	0	91	GrassDryFloor2	0	water
+125	191	92	StoneFloor4	0	water
+126	0	91	Shrub	0	water
+126	191	92	GrassDryFloor2	0	water
+127	0	91	GrassDryFloor4	0	water
+127	191	92	GrassDryFloor3	0	water
+128	0	91	GrassDryFloor3	0	water
+128	191	92	GrassDryFloor2	0	water
+129	0	91	GrassDryFloor1	0	water
+129	191	92	GrassDryFloor1	0	water
+130	0	91	GrassDryFloor4	0	water
+130	191	92	GrassDryFloor3	0	water
+131	0	91	GrassDryFloor4	0	water
+131	191	92	GrassDryFloor4	0	water
+132	0	91	GrassDryFloor1	0	water
+132	191	92	GrassDryFloor4	0	water
+133	0	91	GrassDryFloor2	0	water
+133	191	92	StoneFloor1	0	water
+134	0	91	GrassDryFloor4	0	water
+134	191	92	GrassDryFloor1	0	water
+135	0	91	GrassDryFloor3	0	water
+135	191	92	GrassDryFloor4	0	water
+136	0	91	GrassDryFloor1	0	water
+136	191	92	GrassDryFloor1	0	water
+137	0	91	GrassDryFloor3	0	water
+137	191	92	GrassDryFloor3	0	water
+138	0	91	GrassDryFloor2	0	water
+138	191	92	GrassDryFloor1	0	water
+139	0	91	GrassDryFloor3	0	water
+139	191	92	GrassDryFloor4	0	water
+140	0	91	GrassDryFloor3	0	water
+140	191	92	Shrub	0	water
+141	0	91	GrassDryFloor4	0	water
+141	191	92	GrassDryFloor1	0	water
+142	0	91	GrassDryFloor1	0	water
+142	191	92	GrassDryFloor4	0	water
+143	0	91	GrassDryFloor4	0	water
+143	191	92	GrassDryFloor1	0	water
+144	0	91	SoilFloor2	0	water
+144	191	92	GrassDryFloor4	0	water
+145	0	91	StoneBoulder	0	water
+145	191	92	GrassDryFloor4	0	water
+146	0	91	GrassDryFloor2	0	water
+146	191	92	GrassDryFloor4	0	water
+147	0	91	GrassDryFloor2	0	water
+147	191	92	GrassDryFloor4	0	water
+148	0	91	GrassDryFloor1	0	water
+148	191	92	StoneFloor4	0	water
+149	0	91	GrassDryFloor3	0	water
+149	191	92	GrassDryFloor4	0	water
+150	0	91	GrassDryFloor4	0	water
+150	191	92	GrassDryFloor1	0	water
+151	0	91	GrassDryFloor3	0	water
+151	191	92	GrassDryFloor4	0	water
+152	0	91	GrassDryFloor4	0	water
+152	191	92	GrassDryFloor1	0	water
+153	0	91	GrassDryFloor3	0	water
+153	191	92	GrassDryFloor2	0	water
+154	0	91	GrassDryFloor1	0	water
+154	191	92	GrassDryFloor2	0	water
+155	0	91	GrassDryFloor4	0	water
+155	191	92	GrassDryFloor2	0	water
+156	0	91	GrassDryFloor2	0	water
+156	191	92	GrassDryFloor4	0	water
+157	0	91	GrassDryFloor4	0	water
+157	191	92	GrassDryFloor1	0	water
+158	0	91	GrassDryFloor2	0	water
+158	191	92	GrassDryFloor4	0	water
+159	0	91	Shrub	0	water
+159	191	92	GrassDryFloor2	0	water
+160	0	91	GrassDryFloor1	0	water
+160	191	92	GrassDryFloor3	0	water
+161	0	91	StoneBoulder	0	water
+161	191	92	GrassDryFloor2	0	water
+162	0	91	GrassDryFloor1	0	water
+162	191	92	GrassDryFloor4	0	water
+163	0	91	GrassDryFloor4	0	water
+163	191	92	GrassDryFloor2	0	water
+164	0	91	GrassDryFloor1	0	water
+164	191	92	GrassDryFloor2	0	water
+165	0	91	GrassDryFloor1	0	water
+165	191	92	GrassDryFloor1	0	water
+166	0	91	GrassDryFloor2	0	water
+166	191	92	GrassDryFloor2	0	water
+167	0	91	Shrub	0	water
+167	191	92	GrassDryFloor2	0	water
+168	0	91	Shrub	0	water
+168	191	92	GrassDryFloor1	0	water
+169	0	91	GrassDryFloor3	0	water
+169	191	92	GrassDryFloor1	0	water
+170	0	91	GrassDryFloor2	0	water
+170	191	92	GrassDryFloor1	0	water
+171	0	91	GrassDryFloor3	0	water
+171	191	92	GrassDryFloor1	0	water
+172	0	91	GrassDryFloor2	0	water
+172	191	92	Shrub	0	water
+173	0	91	GrassDryFloor3	0	water
+173	191	92	GrassDryFloor2	0	water
+174	0	91	GrassDryFloor2	0	water
+174	191	92	GrassDryFloor4	0	water
+175	0	91	GrassDryFloor2	0	water
+175	191	92	GrassDryFloor2	0	water
+176	0	91	GrassDryFloor1	0	water
+176	191	92	GrassDryFloor4	0	water
+177	0	91	GrassDryFloor3	0	water
+177	191	92	GrassDryFloor1	0	water
+178	0	91	GrassDryFloor3	0	water
+178	191	92	GrassDryFloor4	0	water
+179	0	91	GrassDryFloor3	0	water
+179	191	92	GrassDryFloor1	0	water
+180	0	91	GrassDryFloor1	0	water
+180	191	92	GrassDryFloor2	0	water
+181	0	91	GrassDryFloor2	0	water
+181	191	92	GrassDryFloor1	0	water
+182	0	91	GrassDryFloor1	0	water
+182	191	92	GrassDryFloor2	0	water
+183	0	91	Shrub	0	water
+183	191	92	GrassDryFloor3	0	water
+184	0	91	GrassDryFloor4	0	water
+184	191	92	GrassDryFloor1	0	water
+185	0	91	StoneFloor4	0	water
+185	191	92	GrassDryFloor4	0	water
+186	0	91	GrassDryFloor1	0	water
+186	191	92	GrassDryFloor4	0	water
+187	0	91	GrassDryFloor2	0	water
+187	191	92	GrassDryFloor3	0	water
+188	0	91	GrassDryFloor4	0	water
+188	191	92	GrassDryFloor4	0	water
+189	0	91	GrassDryFloor1	0	water
+189	191	92	StoneFloor4	0	water
+190	0	91	GrassDryFloor2	0	water
+190	191	92	GrassDryFloor3	0	water
+191	0	91	GrassDryFloor1	0	water
+191	191	92	GrassDryFloor4	0	water
+0	1	91	GrassDryFloor1	0	water
+191	1	91	GrassDryFloor1	0	water
+0	2	91	GrassDryFloor1	0	water
+191	2	91	GrassDryFloor3	0	water
+0	3	91	GrassDryFloor1	0	water
+191	3	91	GrassDryFloor2	0	water
+0	4	91	GrassDryFloor1	0	water
+191	4	91	StonePebbles1	0	water
+0	5	91	GrassDryFloor2	0	water
+191	5	91	GrassDryFloor4	0	water
+0	6	91	GrassDryFloor2	0	water
+191	6	91	GrassDryFloor4	0	water
+0	7	91	GrassDryFloor1	0	water
+191	7	91	GrassDryFloor4	0	water
+0	8	91	GrassDryFloor1	0	water
+191	8	91	GrassDryFloor4	0	water
+0	9	91	Shrub	0	water
+191	9	91	GrassDryFloor4	0	water
+0	10	91	GrassDryFloor4	0	water
+191	10	91	GrassDryFloor3	0	water
+0	11	91	GrassDryFloor4	0	water
+191	11	91	GrassDryFloor3	0	water
+0	12	91	GrassDryFloor1	0	water
+191	12	91	GrassDryFloor4	0	water
+0	13	91	StoneFloor2	0	water
+191	13	91	GrassDryFloor2	0	water
+0	14	91	GrassDryFloor1	0	water
+191	14	91	GrassDryFloor3	0	water
+0	15	91	GrassDryFloor4	0	water
+191	15	91	GrassDryFloor2	0	water
+0	16	91	GrassDryFloor3	0	water
+191	16	91	Shrub	0	water
+0	17	91	GrassDryFloor3	0	water
+191	17	91	GrassDryFloor2	0	water
+0	18	91	GrassDryFloor4	0	water
+191	18	91	GrassDryFloor2	0	water
+0	19	91	GrassDryFloor3	0	water
+191	19	91	GrassDryFloor4	0	water
+0	20	91	GrassDryFloor4	0	water
+191	20	91	StonePebbles1	0	water
+0	21	91	GrassDryFloor2	0	water
+191	21	91	GrassDryFloor2	0	water
+0	22	91	GrassDryFloor1	0	water
+191	22	91	GrassDryFloor3	0	water
+0	23	91	GrassDryFloor2	0	water
+191	23	91	GrassDryFloor4	0	water
+0	24	91	GrassDryFloor4	0	water
+191	24	91	GrassDryFloor1	0	water
+0	25	91	GrassDryFloor3	0	water
+191	25	91	GrassDryFloor2	0	water
+0	26	91	GrassDryFloor4	0	water
+191	26	91	GrassDryFloor4	0	water
+0	27	91	GrassDryFloor3	0	water
+191	27	91	GrassDryFloor2	0	water
+0	28	91	GrassDryFloor1	0	water
+191	28	91	GrassDryFloor4	0	water
+0	29	91	GrassDryFloor2	0	water
+191	29	91	GrassDryFloor2	0	water
+0	30	91	GrassDryFloor4	0	water
+191	30	91	GrassDryFloor2	0	water
+0	31	91	StonePebbles2	0	water
+191	31	91	GrassDryFloor3	0	water
+0	32	91	GrassDryFloor3	0	water
+191	32	91	GrassDryFloor4	0	water
+0	33	91	GrassDryFloor1	0	water
+191	33	91	GrassDryFloor4	0	water
+0	34	91	StonePebbles2	0	water
+191	34	91	Shrub	0	water
+0	35	91	GrassDryFloor2	0	water
+191	35	91	GrassDryFloor4	0	water
+0	36	91	GrassDryFloor1	0	water
+191	36	91	SoilFloor4	0	water
+0	37	91	GrassDryFloor4	0	water
+191	37	91	GrassDryFloor4	0	water
+0	38	91	GrassDryFloor2	0	water
+191	38	91	GrassDryFloor2	0	water
+0	39	91	GrassDryFloor4	0	water
+191	39	91	GrassDryFloor4	0	water
+0	40	91	GrassDryFloor1	0	water
+191	40	91	GrassDryFloor4	0	water
+0	41	91	Shrub	0	water
+191	41	91	GrassDryFloor2	0	water
+0	42	91	GrassDryFloor3	0	water
+191	42	91	SoilFloor1	0	water
+0	43	91	GrassDryFloor2	0	water
+191	43	91	GrassDryFloor3	0	water
+0	44	91	GrassDryFloor3	0	water
+191	44	91	GrassDryFloor2	0	water
+0	45	91	GrassDryFloor4	0	water
+191	45	91	GrassDryFloor1	0	water
+0	46	91	GrassDryFloor3	0	water
+191	46	91	GrassDryFloor4	0	water
+0	47	91	Shrub	0	water
+191	47	91	StonePebbles3	0	water
+0	48	91	GrassDryFloor4	0	water
+191	48	91	GrassDryFloor4	0	water
+0	49	91	GrassDryFloor1	0	water
+191	49	91	GrassDryFloor3	0	water
+0	50	91	GrassDryFloor3	0	water
+191	50	91	GrassDryFloor2	0	water
+0	51	91	GrassDryFloor2	0	water
+191	51	91	GrassDryFloor4	0	water
+0	52	91	Shrub	0	water
+191	52	91	GrassDryFloor1	0	water
+0	53	91	GrassDryFloor1	0	water
+191	53	91	GrassDryFloor1	0	water
+0	54	91	GrassDryFloor2	0	water
+191	54	91	GrassDryFloor3	0	water
+0	55	91	GrassDryFloor3	0	water
+191	55	91	GrassDryFloor1	0	water
+0	56	91	GrassDryFloor2	0	water
+191	56	91	GrassDryFloor1	0	water
+0	57	91	GrassDryFloor3	0	water
+191	57	91	StoneFloor4	0	water
+0	58	91	GrassDryFloor3	0	water
+191	58	91	GrassDryFloor1	0	water
+0	59	91	GrassDryFloor3	0	water
+191	59	91	GrassDryFloor1	0	water
+0	60	91	GrassDryFloor2	0	water
+191	60	91	GrassDryFloor3	0	water
+0	61	91	GrassDryFloor2	0	water
+191	61	91	GrassDryFloor1	0	water
+0	62	91	GrassDryFloor2	0	water
+191	62	91	GrassDryFloor4	0	water
+0	63	91	GrassDryFloor3	0	water
+191	63	91	GrassDryFloor2	0	water
+0	64	91	GrassDryFloor1	0	water
+191	64	91	GrassDryFloor4	0	water
+0	65	91	StoneFloor4	0	water
+191	65	91	GrassDryFloor3	0	water
+0	66	91	GrassDryFloor4	0	water
+191	66	91	GrassDryFloor1	0	water
+0	67	91	GrassDryFloor3	0	water
+191	67	91	GrassDryFloor4	0	water
+0	68	91	GrassDryFloor3	0	water
+191	68	91	GrassDryFloor4	0	water
+0	69	91	GrassDryFloor3	0	water
+191	69	91	GrassDryFloor1	0	water
+0	70	91	GrassDryFloor2	0	water
+191	70	91	GrassDryFloor4	0	water
+0	71	91	GrassDryFloor2	0	water
+191	71	91	StonePebbles1	0	water
+0	72	91	GrassDryFloor2	0	water
+191	72	91	Shrub	0	water
+0	73	91	GrassDryFloor2	0	water
+191	73	91	GrassDryFloor1	0	water
+0	74	91	GrassDryFloor4	0	water
+191	74	91	GrassDryFloor2	0	water
+0	75	91	GrassDryFloor1	0	water
+191	75	91	GrassDryFloor1	0	water
+0	76	91	Shrub	0	water
+191	76	91	GrassDryFloor2	0	water
+0	77	91	GrassDryFloor1	0	water
+191	77	91	GrassDryFloor4	0	water
+0	78	91	GrassDryFloor3	0	water
+191	78	91	GrassDryFloor2	0	water
+0	79	91	GrassDryFloor4	0	water
+191	79	91	GrassDryFloor3	0	water
+0	80	91	GrassDryFloor4	0	water
+191	80	91	GrassDryFloor4	0	water
+0	81	91	GrassDryFloor2	0	water
+191	81	91	GrassDryFloor2	0	water
+0	82	91	GrassDryFloor3	0	water
+191	82	91	GrassDryFloor3	0	water
+0	83	91	GrassDryFloor3	0	water
+191	83	91	StonePebbles1	0	water
+0	84	91	StonePebbles1	0	water
+191	84	91	GrassDryFloor1	0	water
+0	85	91	GrassDryFloor1	0	water
+191	85	91	GrassDryFloor3	0	water
+0	86	91	GrassDryFloor2	0	water
+191	86	91	GrassDryFloor3	0	water
+0	87	91	GrassDryFloor3	0	water
+191	87	91	StoneFloor2	0	water
+0	88	91	GrassDryFloor3	0	water
+191	88	91	StonePebbles3	0	water
+0	89	91	GrassDryFloor2	0	water
+191	89	91	GrassDryFloor3	0	water
+0	90	91	GrassDryFloor3	0	water
+191	90	91	GrassDryFloor3	0	water
+0	91	91	GrassDryFloor4	0	water
+191	91	91	GrassDryFloor1	0	water
+0	92	91	Shrub	0	water
+191	92	91	GrassDryFloor2	0	water
+0	93	91	GrassDryFloor4	0	water
+191	93	91	GrassDryFloor4	0	water
+0	94	91	GrassDryFloor4	0	water
+191	94	91	GrassDryFloor2	0	water
+0	95	91	GrassDryFloor4	0	water
+191	95	91	GrassDryFloor1	0	water
+0	96	91	GrassDryFloor1	0	water
+191	96	91	GrassDryFloor4	0	water
+0	97	91	GrassDryFloor4	0	water
+191	97	91	GrassDryFloor2	0	water
+0	98	91	GrassDryFloor2	0	water
+191	98	91	GrassDryFloor2	0	water
+0	99	91	GrassDryFloor3	0	water
+191	99	91	GrassDryFloor2	0	water
+0	100	91	GrassDryFloor1	0	water
+191	100	91	GrassDryFloor1	0	water
+0	101	91	GrassDryFloor4	0	water
+191	101	91	GrassDryFloor1	0	water
+0	102	91	SoilFloor2	0	water
+191	102	91	GrassDryFloor2	0	water
+0	103	91	GrassDryFloor4	0	water
+191	103	91	GrassDryFloor2	0	water
+0	104	91	GrassDryFloor3	0	water
+191	104	91	StonePebbles2	0	water
+0	105	91	GrassDryFloor1	0	water
+191	105	91	GrassDryFloor2	0	water
+0	106	91	GrassDryFloor2	0	water
+191	106	91	GrassDryFloor3	0	water
+0	107	91	GrassDryFloor3	0	water
+191	107	91	GrassDryFloor4	0	water
+0	108	91	StoneFloor3	0	water
+191	108	91	GrassDryFloor4	0	water
+0	109	91	GrassDryFloor1	0	water
+191	109	91	GrassDryFloor3	0	water
+0	110	91	Shrub	0	water
+191	110	91	GrassDryFloor2	0	water
+0	111	91	GrassDryFloor2	0	water
+191	111	91	GrassDryFloor4	0	water
+0	112	91	GrassDryFloor1	0	water
+191	112	91	GrassDryFloor2	0	water
+0	113	91	GrassDryFloor4	0	water
+191	113	91	GrassDryFloor2	0	water
+0	114	91	GrassDryFloor3	0	water
+191	114	91	GrassDryFloor3	0	water
+0	115	91	GrassDryFloor3	0	water
+191	115	91	StonePebbles2	0	water
+0	116	91	GrassDryFloor1	0	water
+191	116	91	GrassDryFloor2	0	water
+0	117	91	GrassDryFloor4	0	water
+191	117	91	GrassDryFloor2	0	water
+0	118	91	GrassDryFloor1	0	water
+191	118	91	GrassDryFloor3	0	water
+0	119	91	GrassDryFloor4	0	water
+191	119	91	GrassDryFloor3	0	water
+0	120	91	GrassDryFloor1	0	water
+191	120	91	GrassDryFloor2	0	water
+0	121	91	GrassDryFloor2	0	water
+191	121	91	GrassDryFloor3	0	water
+0	122	91	GrassDryFloor4	0	water
+191	122	91	GrassDryFloor1	0	water
+0	123	91	GrassDryFloor4	0	water
+191	123	91	GrassDryFloor3	0	water
+0	124	91	Shrub	0	water
+191	124	91	GrassDryFloor4	0	water
+0	125	91	GrassDryFloor4	0	water
+191	125	91	GrassDryFloor3	0	water
+0	126	91	GrassDryFloor3	0	water
+191	126	91	StonePebbles4	0	water
+0	127	91	GrassDryFloor4	0	water
+191	127	91	GrassDryFloor1	0	water
+0	128	91	GrassDryFloor2	0	water
+191	128	91	GrassDryFloor4	0	water
+0	129	91	GrassDryFloor1	0	water
+191	129	91	SoilFloor1	0	water
+0	130	91	GrassDryFloor2	0	water
+191	130	91	StoneFloor3	0	water
+0	131	91	Shrub	0	water
+191	131	91	GrassDryFloor3	0	water
+0	132	91	GrassDryFloor1	0	water
+191	132	91	GrassDryFloor4	0	water
+0	133	91	GrassDryFloor2	0	water
+191	133	91	GrassDryFloor2	0	water
+0	134	91	GrassDryFloor1	0	water
+191	134	91	GrassDryFloor3	0	water
+0	135	91	GrassDryFloor3	0	water
+191	135	91	GrassDryFloor3	0	water
+0	136	91	GrassDryFloor4	0	water
+191	136	91	StonePebbles4	0	water
+0	137	91	GrassDryFloor2	0	water
+191	137	91	Shrub	0	water
+0	138	91	GrassDryFloor4	0	water
+191	138	91	GrassDryFloor2	0	water
+0	139	91	StonePebbles2	0	water
+191	139	91	GrassDryFloor1	0	water
+0	140	91	StoneFloor1	0	water
+191	140	91	GrassDryFloor4	0	water
+0	141	91	GrassDryFloor3	0	water
+191	141	91	GrassDryFloor4	0	water
+0	142	91	StoneFloor4	0	water
+191	142	91	GrassDryFloor2	0	water
+0	143	91	GrassDryFloor2	0	water
+191	143	91	GrassDryFloor4	0	water
+0	144	91	GrassDryFloor2	0	water
+191	144	91	Shrub	0	water
+0	145	91	GrassDryFloor3	0	water
+191	145	91	Shrub	0	water
+0	146	91	GrassDryFloor1	0	water
+191	146	91	GrassDryFloor1	0	water
+0	147	91	StonePebbles1	0	water
+191	147	91	GrassDryFloor2	0	water
+0	148	91	GrassDryFloor2	0	water
+191	148	91	GrassDryFloor4	0	water
+0	149	91	GrassDryFloor3	0	water
+191	149	91	GrassDryFloor3	0	water
+0	150	91	GrassDryFloor3	0	water
+191	150	91	GrassDryFloor3	0	water
+0	151	91	GrassDryFloor4	0	water
+191	151	91	GrassDryFloor2	0	water
+0	152	91	GrassDryFloor3	0	water
+191	152	91	GrassDryFloor1	0	water
+0	153	91	StoneFloor3	0	water
+191	153	91	GrassDryFloor3	0	water
+0	154	91	GrassDryFloor3	0	water
+191	154	91	GrassDryFloor4	0	water
+0	155	91	GrassDryFloor2	0	water
+191	155	91	GrassDryFloor3	0	water
+0	156	91	GrassDryFloor4	0	water
+191	156	91	StonePebbles3	0	water
+0	157	91	GrassDryFloor3	0	water
+191	157	91	GrassDryFloor3	0	water
+0	158	91	Shrub	0	water
+191	158	91	GrassDryFloor4	0	water
+0	159	91	GrassDryFloor2	0	water
+191	159	91	GrassDryRamp	0	water
+0	160	91	GrassDryFloor2	0	water
+191	160	92	GrassDryFloor1	0	water
+0	161	91	GrassDryFloor4	0	water
+191	161	92	GrassDryFloor2	0	water
+0	162	91	GrassDryFloor1	0	water
+191	162	92	StonePebbles4	0	water
+0	163	91	StonePebbles2	0	water
+191	163	92	GrassDryFloor1	0	water
+0	164	91	GrassDryFloor1	0	water
+191	164	92	GrassDryFloor1	0	water
+0	165	91	Shrub	0	water
+191	165	92	GrassDryFloor2	0	water
+0	166	91	GrassDryFloor3	0	water
+191	166	92	GrassDryFloor2	0	water
+0	167	91	StoneFloor1	0	water
+191	167	92	GrassDryFloor1	0	water
+0	168	91	GrassDryFloor2	0	water
+191	168	92	GrassDryFloor3	0	water
+0	169	91	GrassDryFloor4	0	water
+191	169	92	GrassDryFloor2	0	water
+0	170	91	GrassDryFloor2	0	water
+191	170	92	GrassDryFloor2	0	water
+0	171	91	GrassDryFloor3	0	water
+191	171	92	GrassDryFloor4	0	water
+0	172	91	GrassDryFloor3	0	water
+191	172	92	GrassDryFloor3	0	water
+0	173	91	GrassDryFloor4	0	water
+191	173	92	GrassDryFloor2	0	water
+0	174	91	StonePebbles4	0	water
+191	174	92	GrassDryFloor2	0	water
+0	175	91	GrassDryFloor1	0	water
+191	175	92	Shrub	0	water
+0	176	91	GrassDryFloor3	0	water
+191	176	92	GrassDryFloor4	0	water
+0	177	91	GrassDryFloor3	0	water
+191	177	92	StonePebbles2	0	water
+0	178	91	GrassDryFloor2	0	water
+191	178	92	GrassDryFloor2	0	water
+0	179	91	GrassDryFloor2	0	water
+191	179	92	GrassDryFloor1	0	water
+0	180	91	GrassDryFloor3	0	water
+191	180	92	GrassDryFloor2	0	water
+0	181	91	GrassDryFloor3	0	water
+191	181	92	GrassDryFloor3	0	water
+0	182	91	GrassDryFloor3	0	water
+191	182	92	GrassDryFloor3	0	water
+0	183	91	GrassDryFloor4	0	water
+191	183	92	GrassDryFloor3	0	water
+0	184	91	GrassDryFloor3	0	water
+191	184	92	GrassDryFloor2	0	water
+0	185	91	GrassDryFloor2	0	water
+191	185	92	GrassDryFloor2	0	water
+0	186	91	GrassDryFloor1	0	water
+191	186	92	GrassDryFloor3	0	water
+0	187	91	GrassDryFloor2	0	water
+191	187	92	GrassDryFloor4	0	water
+0	188	91	GrassDryFloor4	0	water
+191	188	92	GrassDryFloor1	0	water
+0	189	91	GrassDryFloor4	0	water
+191	189	92	GrassDryFloor2	0	water
+0	190	91	GrassDryFloor4	0	water
+191	190	92	GrassDryFloor3	0	water
+23:49:53   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+23:50:21   [rig] back at the title screen
+23:50:21   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 2, "departures": 0, "deaths": 0, "ticks": 1093, "wall_s": 18.5, "stop": null, "ticks_per_s": 59.2, "save_untouched": true}
+23:51:32   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+23:51:32   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+23:51:40   [rig] back at the title screen
+23:51:40 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN/20260917-234840
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN/20260917-234840
+
+# E25-OCEAN -- Wet-edge detector on OCEAN: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected dormant.
+run 20260917-234840 fort OCEAN backup OCEAN.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 4..4,30..31 seed 424242
+commits: DwarfCron f0eae2f seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1093 | 59.2 | 2 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1093 | WEASEL | 4,31,-1,-1,-1,51 | 1 | 26943 | - | present
+edge | 1 | +1093 | OLM_GIANT | 4,30,-1,11,-1,12 | 1 | 26602 | - | present
+
+## Waves (2; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +0 | WEASEL | surface | 1 | 0 | 0 | 1
+edge | 1 | +0 | OLM_GIANT | cavern | 1 | 0 | 0 | 1
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local me=df.global.plotinfo.map_edge; local wet,tot,deep,wetxy=0,0,0,0; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; local hit=false; for z=math.max(0,sz-40),math.min(df.global.world.map.z_count-1,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then wet=wet+1; hit=true; if d.flow_size>=4 then deep=deep+1 end end end; if hit then wetxy=wetxy+1 end end; local fe=0; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; print(('e25 edge: %d edge columns, %d with water at any z (%d wet tiles, %d deep >=4/7); %d live feature entries -> %s'):format(tot,wetxy,wet,deep,fe, (deep>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge' or 'DORMANT: no feature entries'))) | e25 edge: 764 edge columns, 73 with water at any z (73 wet tiles, 73 deep >=4/7); 106 live feature entries -> LIVE
+edge | 1 | +0 | probe:edge | x y z tiletype water liquid | 0 0 91 GrassDryFloor2 0 water | 0 191 91 StonePebbles3 0 water | 1 0 91 StoneFloor2 0 water | 1 191 91 Shrub 0 water | 2 0 91 GrassDryFloor4 0 water | 2 191 91 GrassDryFloor1 0 water | 3 0 91 GrassDryFloor1 0 water | 3 191 91 Shrub 0 water | 4 0 91 GrassDryFloor1 0 water | 4 191 91 GrassDryFloor4 0 water | 5 0 91 GrassDryFloor3 0 water | 5 191 91 GrassDryFloor4 0 water | 6 0 91 GrassDryFloor1 0 water | 6 191 91 GrassDryFloor2 0 water | 7 0 91 GrassDryFloor3 0 water | 7 191 91 GrassDryFloor2 0 water | 8 0 91 GrassDryFloor4 0 water | 8 191 91 Shrub 0 water | 9 0 91 GrassDryFloor3 0 water | 9 191 91 GrassDryFloor1 0 water | 10 0 91 GrassDryFloor2 0 water | 10 191 91 Shrub 0 water | 11 0 91 GrassDryFloor1 0 water | 11 191 91 GrassDryFloor4 0 water | 12 0 91 GrassDryFloor1 0 water | 12 191 91 GrassDryFloor1 0 water | 13 0 91 GrassDryFloor4 0 water | 13 191 91 GrassDryFloor2 0 water | 14 0 91 GrassDryFloor2 0 water | 14 191 91 GrassDryFloor2 0 water | 15 0 91 GrassDryFloor3 0 water | 15 191 91 GrassDryRamp 0 water | 16 0 91 GrassDryFloor3 0 water | 16 191 92 GrassDryFloor4 0 water | 17 0 91 GrassDryFloor3 0 water | 17 191 92 GrassDryFloor4 0 water | 18 0 91 GrassDryFloor2 0 water | 18 191 92 GrassDryFloor2 0 water | 19 0 91 Shrub 0 water | 19 191 92 Shrub 0 water | 20 0 91 GrassDryFloor1 0 water | 20 191 92 GrassDryFloor2 0 water | 21 0 91 GrassDryFloor1 0 water | 21 191 92 GrassDryFloor4 0 water | 22 0 91 Shrub 0 water | 22 191 92 GrassDryFloor1 0 water | 23 0 91 GrassDryFloor1 0 water | 23 191 92 GrassDryFloor4 0 water | 24 0 91 GrassDryFloor2 0 water | 24 191 92 GrassDryFloor1 0 water | 25 0 91 GrassDryFloor2 0 water | 25 191 92 GrassDryFloor3 0 water | 26 0 91 GrassDryFloor4 0 water | 26 191 92 GrassDryFloor4 0 water | 27 0 91 GrassDryFloor4 0 water | 27 191 92 StonePebbles3 0 water | 28 0 91 GrassDryFloor4 0 water | 28 191 92 GrassDryFloor2 0 water | 29 0 91 GrassDryFloor4 0 water | 29 191 92 GrassDryFloor4 0 water | 30 0 91 GrassDryFloor2 0 water | 30 191 92 GrassDryFloor2 0 water | 31 0 91 GrassDryFloor1 0 water | 31 191 92 GrassDryFloor4 0 water | 32 0 91 GrassDryFloor3 0 water | 32 191 92 GrassDryFloor1 0 water | 33 0 91 GrassDryFloor1 0 water | 33 191 92 GrassDryFloor3 0 water | 34 0 91 GrassDryFloor3 0 water | 34 191 92 GrassDryFloor4 0 water | 35 0 91 GrassDryFloor4 0 water | 35 191 92 GrassDryFloor4 0 water | 36 0 91 GrassDryFloor1 0 water | 36 191 92 GrassDryFloor2 0 water | 37 0 91 GrassDryFloor2 0 water | 37 191 92 GrassDryFloor4 0 water | 38 0 91 GrassDryFloor2 0 water | 38 191 92 GrassDryFloor2 0 water | 39 0 91 GrassDryFloor1 0 water | 39 191 92 GrassDryFloor4 0 water | 40 0 91 GrassDryFloor4 0 water | 40 191 92 GrassDryFloor2 0 water | 41 0 91 Shrub 0 water | 41 191 92 GrassDryFloor4 0 water | 42 0 91 GrassDryFloor1 0 water | 42 191 92 GrassDryFloor3 0 water | 43 0 91 GrassDryFloor2 0 water | 43 191 92 GrassDryFloor4 0 water | 44 0 91 GrassDryFloor1 0 water | 44 191 92 GrassDryFloor2 0 water | 45 0 91 GrassDryFloor1 0 water | 45 191 92 GrassDryFloor2 0 water | 46 0 91 Shrub 0 water | 46 191 92 StoneBoulder 0 water | 47 0 91 GrassDryFloor2 0 water | 47 191 92 GrassDryFloor3 0 water | 48 0 91 GrassDryFloor1 0 water | 48 191 92 GrassDryFloor2 0 water | 49 0 91 Shrub 0 water | 49 191 92 GrassDryFloor1 0 water | 50 0 91 GrassDryFloor2 0 water | 50 191 92 GrassDryFloor3 0 water | 51 0 91 GrassDryFloor3 0 water | 51 191 92 GrassDryFloor4 0 water | 52 0 91 GrassDryFloor2 0 water | 52 191 92 GrassDryFloor1 0 water | 53 0 91 GrassDryFloor1 0 water | 53 191 92 GrassDryFloor1 0 water | 54 0 91 GrassDryFloor4 0 water | 54 191 92 Shrub 0 water | 55 0 91 GrassDryFloor2 0 water | 55 191 92 GrassDryFloor4 0 water | 56 0 91 GrassDryFloor1 0 water | 56 191 92 StoneFloor1 0 water | 57 0 91 GrassDryFloor4 0 water | 57 191 92 GrassDryFloor4 0 water | 58 0 91 GrassDryFloor1 0 water | 58 191 92 GrassDryFloor4 0 water | 59 0 91 GrassDryFloor4 0 water | 59 191 92 GrassDryFloor3 0 water | 60 0 91 GrassDryFloor4 0 water | 60 191 92 GrassDryFloor4 0 water | 61 0 91 GrassDryFloor2 0 water | 61 191 92 GrassDryFloor2 0 water | 62 0 91 GrassDryFloor4 0 water | 62 191 92 StonePebbles4 0 water | 63 0 91 GrassDryFloor4 0 water | 63 191 92 GrassDryFloor2 0 water | 64 0 91 GrassDryFloor3 0 water | 64 191 92 GrassDryFloor4 0 water | 65 0 91 StonePebbles1 0 water | 65 191 92 GrassDryFloor4 0 water | 66 0 91 GrassDryFloor2 0 water | 66 191 92 GrassDryFloor2 0 water | 67 0 91 GrassDryFloor1 0 water | 67 191 92 Shrub 0 water | 68 0 91 GrassDryFloor4 0 water | 68 191 92 StoneFloor4 0 water | 69 0 91 GrassDryFloor2 0 water | 69 191 92 GrassDryFloor3 0 water | 70 0 91 GrassDryFloor3 0 water | 70 191 92 GrassDryFloor1 0 water | 71 0 91 GrassDryFloor4 0 water | 71 191 92 GrassDryFloor3 0 water | 72 0 91 GrassDryFloor3 0 water | 72 191 92 GrassDryFloor3 0 water | 73 0 91 GrassDryFloor3 0 water | 73 191 92 GrassDryFloor4 0 water | 74 0 91 GrassDryFloor1 0 water | 74 191 92 GrassDryFloor4 0 water | 75 0 91 Shrub 0 water | 75 191 92 GrassDryFloor4 0 water | 76 0 91 GrassDryFloor1 0 water | 76 191 92 GrassDryFloor2 0 water | 77 0 91 GrassDryFloor3 0 water | 77 191 92 GrassDryFloor4 0 water | 78 0 91 GrassDryFloor2 0 water | 78 191 92 GrassDryFloor2 0 water | 79 0 91 GrassDryFloor2 0 water | 79 191 92 GrassDryFloor4 0 water | 80 0 91 GrassDryFloor4 0 water | 80 191 91 GrassDryRamp 0 water | 81 0 91 GrassDryFloor3 0 water | 81 191 91 GrassDryFloor1 0 water | 82 0 91 GrassDryFloor4 0 water | 82 191 91 GrassDryFloor3 0 water | 83 0 91 StoneFloor1 0 water | 83 191 91 GrassDryFloor2 0 water | 84 0 91 GrassDryFloor4 0 water | 84 191 91 GrassDryFloor3 0 water | 85 0 91 GrassDryFloor4 0 water | 85 191 91 GrassDryFloor3 0 water | 86 0 91 GrassDryFloor2 0 water | 86 191 91 GrassDryFloor2 0 water | 87 0 91 GrassDryFloor2 0 water | 87 191 91 GrassDryFloor4 0 water | 88 0 91 SoilFloor4 0 water | 88 191 91 StonePebbles1 0 water | 89 0 91 Shrub 0 water | 89 191 91 SoilFloor4 0 water | 90 0 91 GrassDryFloor1 0 water | 90 191 91 GrassDryFloor3 0 water | 91 0 91 GrassDryFloor3 0 water | 91 191 91 GrassDryFloor4 0 water | 92 0 91 GrassDryFloor3 0 water | 92 191 91 GrassDryFloor4 0 water | 93 0 91 GrassDryFloor4 0 water | 93 191 91 Shrub 0 water | 94 0 91 GrassDryFloor4 0 water | 94 191 91 GrassDryFloor2 0 water | 95 0 91 GrassDryFloor4 0 water | 95 191 91 Shrub 0 water | 96 0 91 GrassDryFloor2 0 water | 96 191 91 GrassDryFloor1 0 water | 97 0 91 GrassDryFloor2 0 water | 97 191 91 StonePebbles4 0 water | 98 0 91 GrassDryFloor1 0 water | 98 191 91 GrassDryFloor1 0 water | 99 0 91 GrassDryFloor2 0 water | 99 191 91 StoneFloor2 0 water | 100 0 91 GrassDryFloor2 0 water | 100 191 91 GrassDryFloor4 0 water | 101 0 91 GrassDryFloor4 0 water | 101 191 91 StonePebbles2 0 water | 102 0 91 GrassDryFloor2 0 water | 102 191 91 GrassDryFloor4 0 water | 103 0 91 GrassDryFloor2 0 water | 103 191 91 GrassDryFloor1 0 water | 104 0 91 StonePebbles1 0 water | 104 191 91 GrassDryFloor2 0 water | 105 0 91 GrassDryFloor3 0 water | 105 191 91 GrassDryFloor3 0 water | 106 0 91 StoneFloor2 0 water | 106 191 91 GrassDryFloor1 0 water | 107 0 91 GrassDryFloor4 0 water | 107 191 91 GrassDryFloor1 0 water | 108 0 91 GrassDryFloor2 0 water | 108 191 91 StoneFloor3 0 water | 109 0 91 GrassDryFloor2 0 water | 109 191 91 GrassDryFloor3 0 water | 110 0 91 GrassDryFloor2 0 water | 110 191 91 GrassDryFloor4 0 water | 111 0 91 GrassDryFloor4 0 water | 111 191 91 GrassDryRamp 0 water | 112 0 91 GrassDryFloor2 0 water | 112 191 92 GrassDryFloor1 0 water | 113 0 91 GrassDryFloor2 0 water | 113 191 92 GrassDryFloor1 0 water | 114 0 91 GrassDryFloor1 0 water | 114 191 92 StoneFloor1 0 water | 115 0 91 GrassDryFloor4 0 water | 115 191 92 GrassDryFloor4 0 water | 116 0 91 StonePebbles1 0 water | 116 191 92 GrassDryFloor4 0 water | 117 0 91 GrassDryFloor4 0 water | 117 191 92 GrassDryFloor2 0 water | 118 0 91 GrassDryFloor4 0 water | 118 191 92 GrassDryFloor2 0 water | 119 0 91 GrassDryFloor1 0 water | 119 191 92 GrassDryFloor1 0 water | 120 0 91 GrassDryFloor4 0 water | 120 191 92 GrassDryFloor2 0 water | 121 0 91 GrassDryFloor3 0 water | 121 191 92 StonePebbles2 0 water | 122 0 91 Shrub 0 water | 122 191 92 GrassDryFloor1 0 water | 123 0 91 Shrub 0 water | 123 191 92 GrassDryFloor4 0 water | 124 0 91 GrassDryFloor3 0 water | 124 191 92 GrassDryFloor3 0 water | 125 0 91 GrassDryFloor2 0 water | 125 191 92 StoneFloor4 0 water | 126 0 91 Shrub 0 water | 126 191 92 GrassDryFloor2 0 water | 127 0 91 GrassDryFloor4 0 water | 127 191 92 GrassDryFloor3 0 water | 128 0 91 GrassDryFloor3 0 water | 128 191 92 GrassDryFloor2 0 water | 129 0 91 GrassDryFloor1 0 water | 129 191 92 GrassDryFloor1 0 water | 130 0 91 GrassDryFloor4 0 water | 130 191 92 GrassDryFloor3 0 water | 131 0 91 GrassDryFloor4 0 water | 131 191 92 GrassDryFloor4 0 water | 132 0 91 GrassDryFloor1 0 water | 132 191 92 GrassDryFloor4 0 water | 133 0 91 GrassDryFloor2 0 water | 133 191 92 StoneFloor1 0 water | 134 0 91 GrassDryFloor4 0 water | 134 191 92 GrassDryFloor1 0 water | 135 0 91 GrassDryFloor3 0 water | 135 191 92 GrassDryFloor4 0 water | 136 0 91 GrassDryFloor1 0 water | 136 191 92 GrassDryFloor1 0 water | 137 0 91 GrassDryFloor3 0 water | 137 191 92 GrassDryFloor3 0 water | 138 0 91 GrassDryFloor2 0 water | 138 191 92 GrassDryFloor1 0 water | 139 0 91 GrassDryFloor3 0 water | 139 191 92 GrassDryFloor4 0 water | 140 0 91 GrassDryFloor3 0 water | 140 191 92 Shrub 0 water | 141 0 91 GrassDryFloor4 0 water | 141 191 92 GrassDryFloor1 0 water | 142 0 91 GrassDryFloor1 0 water | 142 191 92 GrassDryFloor4 0 water | 143 0 91 GrassDryFloor4 0 water | 143 191 92 GrassDryFloor1 0 water | 144 0 91 SoilFloor2 0 water | 144 191 92 GrassDryFloor4 0 water | 145 0 91 StoneBoulder 0 water | 145 191 92 GrassDryFloor4 0 water | 146 0 91 GrassDryFloor2 0 water | 146 191 92 GrassDryFloor4 0 water | 147 0 91 GrassDryFloor2 0 water | 147 191 92 GrassDryFloor4 0 water | 148 0 91 GrassDryFloor1 0 water | 148 191 92 StoneFloor4 0 water | 149 0 91 GrassDryFloor3 0 water | 149 191 92 GrassDryFloor4 0 water | 150 0 91 GrassDryFloor4 0 water | 150 191 92 GrassDryFloor1 0 water | 151 0 91 GrassDryFloor3 0 water | 151 191 92 GrassDryFloor4 0 water | 152 0 91 GrassDryFloor4 0 water | 152 191 92 GrassDryFloor1 0 water | 153 0 91 GrassDryFloor3 0 water | 153 191 92 GrassDryFloor2 0 water | 154 0 91 GrassDryFloor1 0 water | 154 191 92 GrassDryFloor2 0 water | 155 0 91 GrassDryFloor4 0 water | 155 191 92 GrassDryFloor2 0 water | 156 0 91 GrassDryFloor2 0 water | 156 191 92 GrassDryFloor4 0 water | 157 0 91 GrassDryFloor4 0 water | 157 191 92 GrassDryFloor1 0 water | 158 0 91 GrassDryFloor2 0 water | 158 191 92 GrassDryFloor4 0 water | 159 0 91 Shrub 0 water | 159 191 92 GrassDryFloor2 0 water | 160 0 91 GrassDryFloor1 0 water | 160 191 92 GrassDryFloor3 0 water | 161 0 91 StoneBoulder 0 water | 161 191 92 GrassDryFloor2 0 water | 162 0 91 GrassDryFloor1 0 water | 162 191 92 GrassDryFloor4 0 water | 163 0 91 GrassDryFloor4 0 water | 163 191 92 GrassDryFloor2 0 water | 164 0 91 GrassDryFloor1 0 water | 164 191 92 GrassDryFloor2 0 water | 165 0 91 GrassDryFloor1 0 water | 165 191 92 GrassDryFloor1 0 water | 166 0 91 GrassDryFloor2 0 water | 166 191 92 GrassDryFloor2 0 water | 167 0 91 Shrub 0 water | 167 191 92 GrassDryFloor2 0 water | 168 0 91 Shrub 0 water | 168 191 92 GrassDryFloor1 0 water | 169 0 91 GrassDryFloor3 0 water | 169 191 92 GrassDryFloor1 0 water | 170 0 91 GrassDryFloor2 0 water | 170 191 92 GrassDryFloor1 0 water | 171 0 91 GrassDryFloor3 0 water | 171 191 92 GrassDryFloor1 0 water | 172 0 91 GrassDryFloor2 0 water | 172 191 92 Shrub 0 water | 173 0 91 GrassDryFloor3 0 water | 173 191 92 GrassDryFloor2 0 water | 174 0 91 GrassDryFloor2 0 water | 174 191 92 GrassDryFloor4 0 water | 175 0 91 GrassDryFloor2 0 water | 175 191 92 GrassDryFloor2 0 water | 176 0 91 GrassDryFloor1 0 water | 176 191 92 GrassDryFloor4 0 water | 177 0 91 GrassDryFloor3 0 water | 177 191 92 GrassDryFloor1 0 water | 178 0 91 GrassDryFloor3 0 water | 178 191 92 GrassDryFloor4 0 water | 179 0 91 GrassDryFloor3 0 water | 179 191 92 GrassDryFloor1 0 water | 180 0 91 GrassDryFloor1 0 water | 180 191 92 GrassDryFloor2 0 water | 181 0 91 GrassDryFloor2 0 water | 181 191 92 GrassDryFloor1 0 water | 182 0 91 GrassDryFloor1 0 water | 182 191 92 GrassDryFloor2 0 water | 183 0 91 Shrub 0 water | 183 191 92 GrassDryFloor3 0 water | 184 0 91 GrassDryFloor4 0 water | 184 191 92 GrassDryFloor1 0 water | 185 0 91 StoneFloor4 0 water | 185 191 92 GrassDryFloor4 0 water | 186 0 91 GrassDryFloor1 0 water | 186 191 92 GrassDryFloor4 0 water | 187 0 91 GrassDryFloor2 0 water | 187 191 92 GrassDryFloor3 0 water | 188 0 91 GrassDryFloor4 0 water | 188 191 92 GrassDryFloor4 0 water | 189 0 91 GrassDryFloor1 0 water | 189 191 92 StoneFloor4 0 water | 190 0 91 GrassDryFloor2 0 water | 190 191 92 GrassDryFloor3 0 water | 191 0 91 GrassDryFloor1 0 water | 191 191 92 GrassDryFloor4 0 water | 0 1 91 GrassDryFloor1 0 water | 191 1 91 GrassDryFloor1 0 water | 0 2 91 GrassDryFloor1 0 water | 191 2 91 GrassDryFloor3 0 water | 0 3 91 GrassDryFloor1 0 water | 191 3 91 GrassDryFloor2 0 water | 0 4 91 GrassDryFloor1 0 water | 191 4 91 StonePebbles1 0 water | 0 5 91 GrassDryFloor2 0 water | 191 5 91 GrassDryFloor4 0 water | 0 6 91 GrassDryFloor2 0 water | 191 6 91 GrassDryFloor4 0 water | 0 7 91 GrassDryFloor1 0 water | 191 7 91 GrassDryFloor4 0 water | 0 8 91 GrassDryFloor1 0 water | 191 8 91 GrassDryFloor4 0 water | 0 9 91 Shrub 0 water | 191 9 91 GrassDryFloor4 0 water | 0 10 91 GrassDryFloor4 0 water | 191 10 91 GrassDryFloor3 0 water | 0 11 91 GrassDryFloor4 0 water | 191 11 91 GrassDryFloor3 0 water | 0 12 91 GrassDryFloor1 0 water | 191 12 91 GrassDryFloor4 0 water | 0 13 91 StoneFloor2 0 water | 191 13 91 GrassDryFloor2 0 water | 0 14 91 GrassDryFloor1 0 water | 191 14 91 GrassDryFloor3 0 water | 0 15 91 GrassDryFloor4 0 water | 191 15 91 GrassDryFloor2 0 water | 0 16 91 GrassDryFloor3 0 water | 191 16 91 Shrub 0 water | 0 17 91 GrassDryFloor3 0 water | 191 17 91 GrassDryFloor2 0 water | 0 18 91 GrassDryFloor4 0 water | 191 18 91 GrassDryFloor2 0 water | 0 19 91 GrassDryFloor3 0 water | 191 19 91 GrassDryFloor4 0 water | 0 20 91 GrassDryFloor4 0 water | 191 20 91 StonePebbles1 0 water | 0 21 91 GrassDryFloor2 0 water | 191 21 91 GrassDryFloor2 0 water | 0 22 91 GrassDryFloor1 0 water | 191 22 91 GrassDryFloor3 0 water | 0 23 91 GrassDryFloor2 0 water | 191 23 91 GrassDryFloor4 0 water | 0 24 91 GrassDryFloor4 0 water | 191 24 91 GrassDryFloor1 0 water | 0 25 91 GrassDryFloor3 0 water | 191 25 91 GrassDryFloor2 0 water | 0 26 91 GrassDryFloor4 0 water | 191 26 91 GrassDryFloor4 0 water | 0 27 91 GrassDryFloor3 0 water | 191 27 91 GrassDryFloor2 0 water | 0 28 91 GrassDryFloor1 0 water | 191 28 91 GrassDryFloor4 0 water | 0 29 91 GrassDryFloor2 0 water | 191 29 91 GrassDryFloor2 0 water | 0 30 91 GrassDryFloor4 0 water | 191 30 91 GrassDryFloor2 0 water | 0 31 91 StonePebbles2 0 water | 191 31 91 GrassDryFloor3 0 water | 0 32 91 GrassDryFloor3 0 water | 191 32 91 GrassDryFloor4 0 water | 0 33 91 GrassDryFloor1 0 water | 191 33 91 GrassDryFloor4 0 water | 0 34 91 StonePebbles2 0 water | 191 34 91 Shrub 0 water | 0 35 91 GrassDryFloor2 0 water | 191 35 91 GrassDryFloor4 0 water | 0 36 91 GrassDryFloor1 0 water | 191 36 91 SoilFloor4 0 water | 0 37 91 GrassDryFloor4 0 water | 191 37 91 GrassDryFloor4 0 water | 0 38 91 GrassDryFloor2 0 water | 191 38 91 GrassDryFloor2 0 water | 0 39 91 GrassDryFloor4 0 water | 191 39 91 GrassDryFloor4 0 water | 0 40 91 GrassDryFloor1 0 water | 191 40 91 GrassDryFloor4 0 water | 0 41 91 Shrub 0 water | 191 41 91 GrassDryFloor2 0 water | 0 42 91 GrassDryFloor3 0 water | 191 42 91 SoilFloor1 0 water | 0 43 91 GrassDryFloor2 0 water | 191 43 91 GrassDryFloor3 0 water | 0 44 91 GrassDryFloor3 0 water | 191 44 91 GrassDryFloor2 0 water | 0 45 91 GrassDryFloor4 0 water | 191 45 91 GrassDryFloor1 0 water | 0 46 91 GrassDryFloor3 0 water | 191 46 91 GrassDryFloor4 0 water | 0 47 91 Shrub 0 water | 191 47 91 StonePebbles3 0 water | 0 48 91 GrassDryFloor4 0 water | 191 48 91 GrassDryFloor4 0 water | 0 49 91 GrassDryFloor1 0 water | 191 49 91 GrassDryFloor3 0 water | 0 50 91 GrassDryFloor3 0 water | 191 50 91 GrassDryFloor2 0 water | 0 51 91 GrassDryFloor2 0 water | 191 51 91 GrassDryFloor4 0 water | 0 52 91 Shrub 0 water | 191 52 91 GrassDryFloor1 0 water | 0 53 91 GrassDryFloor1 0 water | 191 53 91 GrassDryFloor1 0 water | 0 54 91 GrassDryFloor2 0 water | 191 54 91 GrassDryFloor3 0 water | 0 55 91 GrassDryFloor3 0 water | 191 55 91 GrassDryFloor1 0 water | 0 56 91 GrassDryFloor2 0 water | 191 56 91 GrassDryFloor1 0 water | 0 57 91 GrassDryFloor3 0 water | 191 57 91 StoneFloor4 0 water | 0 58 91 GrassDryFloor3 0 water | 191 58 91 GrassDryFloor1 0 water | 0 59 91 GrassDryFloor3 0 water | 191 59 91 GrassDryFloor1 0 water | 0 60 91 GrassDryFloor2 0 water | 191 60 91 GrassDryFloor3 0 water | 0 61 91 GrassDryFloor2 0 water | 191 61 91 GrassDryFloor1 0 water | 0 62 91 GrassDryFloor2 0 water | 191 62 91 GrassDryFloor4 0 water | 0 63 91 GrassDryFloor3 0 water | 191 63 91 GrassDryFloor2 0 water | 0 64 91 GrassDryFloor1 0 water | 191 64 91 GrassDryFloor4 0 water | 0 65 91 StoneFloor4 0 water | 191 65 91 GrassDryFloor3 0 water | 0 66 91 GrassDryFloor4 0 water | 191 66 91 GrassDryFloor1 0 water | 0 67 91 GrassDryFloor3 0 water | 191 67 91 GrassDryFloor4 0 water | 0 68 91 GrassDryFloor3 0 water | 191 68 91 GrassDryFloor4 0 water | 0 69 91 GrassDryFloor3 0 water | 191 69 91 GrassDryFloor1 0 water | 0 70 91 GrassDryFloor2 0 water | 191 70 91 GrassDryFloor4 0 water | 0 71 91 GrassDryFloor2 0 water | 191 71 91 StonePebbles1 0 water | 0 72 91 GrassDryFloor2 0 water | 191 72 91 Shrub 0 water | 0 73 91 GrassDryFloor2 0 water | 191 73 91 GrassDryFloor1 0 water | 0 74 91 GrassDryFloor4 0 water | 191 74 91 GrassDryFloor2 0 water | 0 75 91 GrassDryFloor1 0 water | 191 75 91 GrassDryFloor1 0 water | 0 76 91 Shrub 0 water | 191 76 91 GrassDryFloor2 0 water | 0 77 91 GrassDryFloor1 0 water | 191 77 91 GrassDryFloor4 0 water | 0 78 91 GrassDryFloor3 0 water | 191 78 91 GrassDryFloor2 0 water | 0 79 91 GrassDryFloor4 0 water | 191 79 91 GrassDryFloor3 0 water | 0 80 91 GrassDryFloor4 0 water | 191 80 91 GrassDryFloor4 0 water | 0 81 91 GrassDryFloor2 0 water | 191 81 91 GrassDryFloor2 0 water | 0 82 91 GrassDryFloor3 0 water | 191 82 91 GrassDryFloor3 0 water | 0 83 91 GrassDryFloor3 0 water | 191 83 91 StonePebbles1 0 water | 0 84 91 StonePebbles1 0 water | 191 84 91 GrassDryFloor1 0 water | 0 85 91 GrassDryFloor1 0 water | 191 85 91 GrassDryFloor3 0 water | 0 86 91 GrassDryFloor2 0 water | 191 86 91 GrassDryFloor3 0 water | 0 87 91 GrassDryFloor3 0 water | 191 87 91 StoneFloor2 0 water | 0 88 91 GrassDryFloor3 0 water | 191 88 91 StonePebbles3 0 water | 0 89 91 GrassDryFloor2 0 water | 191 89 91 GrassDryFloor3 0 water | 0 90 91 GrassDryFloor3 0 water | 191 90 91 GrassDryFloor3 0 water | 0 91 91 GrassDryFloor4 0 water | 191 91 91 GrassDryFloor1 0 water | 0 92 91 Shrub 0 water | 191 92 91 GrassDryFloor2 0 water | 0 93 91 GrassDryFloor4 0 water | 191 93 91 GrassDryFloor4 0 water | 0 94 91 GrassDryFloor4 0 water | 191 94 91 GrassDryFloor2 0 water | 0 95 91 GrassDryFloor4 0 water | 191 95 91 GrassDryFloor1 0 water | 0 96 91 GrassDryFloor1 0 water | 191 96 91 GrassDryFloor4 0 water | 0 97 91 GrassDryFloor4 0 water | 191 97 91 GrassDryFloor2 0 water | 0 98 91 GrassDryFloor2 0 water | 191 98 91 GrassDryFloor2 0 water | 0 99 91 GrassDryFloor3 0 water | 191 99 91 GrassDryFloor2 0 water | 0 100 91 GrassDryFloor1 0 water | 191 100 91 GrassDryFloor1 0 water | 0 101 91 GrassDryFloor4 0 water | 191 101 91 GrassDryFloor1 0 water | 0 102 91 SoilFloor2 0 water | 191 102 91 GrassDryFloor2 0 water | 0 103 91 GrassDryFloor4 0 water | 191 103 91 GrassDryFloor2 0 water | 0 104 91 GrassDryFloor3 0 water | 191 104 91 StonePebbles2 0 water | 0 105 91 GrassDryFloor1 0 water | 191 105 91 GrassDryFloor2 0 water | 0 106 91 GrassDryFloor2 0 water | 191 106 91 GrassDryFloor3 0 water | 0 107 91 GrassDryFloor3 0 water | 191 107 91 GrassDryFloor4 0 water | 0 108 91 StoneFloor3 0 water | 191 108 91 GrassDryFloor4 0 water | 0 109 91 GrassDryFloor1 0 water | 191 109 91 GrassDryFloor3 0 water | 0 110 91 Shrub 0 water | 191 110 91 GrassDryFloor2 0 water | 0 111 91 GrassDryFloor2 0 water | 191 111 91 GrassDryFloor4 0 water | 0 112 91 GrassDryFloor1 0 water | 191 112 91 GrassDryFloor2 0 water | 0 113 91 GrassDryFloor4 0 water | 191 113 91 GrassDryFloor2 0 water | 0 114 91 GrassDryFloor3 0 water | 191 114 91 GrassDryFloor3 0 water | 0 115 91 GrassDryFloor3 0 water | 191 115 91 StonePebbles2 0 water | 0 116 91 GrassDryFloor1 0 water | 191 116 91 GrassDryFloor2 0 water | 0 117 91 GrassDryFloor4 0 water | 191 117 91 GrassDryFloor2 0 water | 0 118 91 GrassDryFloor1 0 water | 191 118 91 GrassDryFloor3 0 water | 0 119 91 GrassDryFloor4 0 water | 191 119 91 GrassDryFloor3 0 water | 0 120 91 GrassDryFloor1 0 water | 191 120 91 GrassDryFloor2 0 water | 0 121 91 GrassDryFloor2 0 water | 191 121 91 GrassDryFloor3 0 water | 0 122 91 GrassDryFloor4 0 water | 191 122 91 GrassDryFloor1 0 water | 0 123 91 GrassDryFloor4 0 water | 191 123 91 GrassDryFloor3 0 water | 0 124 91 Shrub 0 water | 191 124 91 GrassDryFloor4 0 water | 0 125 91 GrassDryFloor4 0 water | 191 125 91 GrassDryFloor3 0 water | 0 126 91 GrassDryFloor3 0 water | 191 126 91 StonePebbles4 0 water | 0 127 91 GrassDryFloor4 0 water | 191 127 91 GrassDryFloor1 0 water | 0 128 91 GrassDryFloor2 0 water | 191 128 91 GrassDryFloor4 0 water | 0 129 91 GrassDryFloor1 0 water | 191 129 91 SoilFloor1 0 water | 0 130 91 GrassDryFloor2 0 water | 191 130 91 StoneFloor3 0 water | 0 131 91 Shrub 0 water | 191 131 91 GrassDryFloor3 0 water | 0 132 91 GrassDryFloor1 0 water | 191 132 91 GrassDryFloor4 0 water | 0 133 91 GrassDryFloor2 0 water | 191 133 91 GrassDryFloor2 0 water | 0 134 91 GrassDryFloor1 0 water | 191 134 91 GrassDryFloor3 0 water | 0 135 91 GrassDryFloor3 0 water | 191 135 91 GrassDryFloor3 0 water | 0 136 91 GrassDryFloor4 0 water | 191 136 91 StonePebbles4 0 water | 0 137 91 GrassDryFloor2 0 water | 191 137 91 Shrub 0 water | 0 138 91 GrassDryFloor4 0 water | 191 138 91 GrassDryFloor2 0 water | 0 139 91 StonePebbles2 0 water | 191 139 91 GrassDryFloor1 0 water | 0 140 91 StoneFloor1 0 water | 191 140 91 GrassDryFloor4 0 water | 0 141 91 GrassDryFloor3 0 water | 191 141 91 GrassDryFloor4 0 water | 0 142 91 StoneFloor4 0 water | 191 142 91 GrassDryFloor2 0 water | 0 143 91 GrassDryFloor2 0 water | 191 143 91 GrassDryFloor4 0 water | 0 144 91 GrassDryFloor2 0 water | 191 144 91 Shrub 0 water | 0 145 91 GrassDryFloor3 0 water | 191 145 91 Shrub 0 water | 0 146 91 GrassDryFloor1 0 water | 191 146 91 GrassDryFloor1 0 water | 0 147 91 StonePebbles1 0 water | 191 147 91 GrassDryFloor2 0 water | 0 148 91 GrassDryFloor2 0 water | 191 148 91 GrassDryFloor4 0 water | 0 149 91 GrassDryFloor3 0 water | 191 149 91 GrassDryFloor3 0 water | 0 150 91 GrassDryFloor3 0 water | 191 150 91 GrassDryFloor3 0 water | 0 151 91 GrassDryFloor4 0 water | 191 151 91 GrassDryFloor2 0 water | 0 152 91 GrassDryFloor3 0 water | 191 152 91 GrassDryFloor1 0 water | 0 153 91 StoneFloor3 0 water | 191 153 91 GrassDryFloor3 0 water | 0 154 91 GrassDryFloor3 0 water | 191 154 91 GrassDryFloor4 0 water | 0 155 91 GrassDryFloor2 0 water | 191 155 91 GrassDryFloor3 0 water | 0 156 91 GrassDryFloor4 0 water | 191 156 91 StonePebbles3 0 water | 0 157 91 GrassDryFloor3 0 water | 191 157 91 GrassDryFloor3 0 water | 0 158 91 Shrub 0 water | 191 158 91 GrassDryFloor4 0 water | 0 159 91 GrassDryFloor2 0 water | 191 159 91 GrassDryRamp 0 water | 0 160 91 GrassDryFloor2 0 water | 191 160 92 GrassDryFloor1 0 water | 0 161 91 GrassDryFloor4 0 water | 191 161 92 GrassDryFloor2 0 water | 0 162 91 GrassDryFloor1 0 water | 191 162 92 StonePebbles4 0 water | 0 163 91 StonePebbles2 0 water | 191 163 92 GrassDryFloor1 0 water | 0 164 91 GrassDryFloor1 0 water | 191 164 92 GrassDryFloor1 0 water | 0 165 91 Shrub 0 water | 191 165 92 GrassDryFloor2 0 water | 0 166 91 GrassDryFloor3 0 water | 191 166 92 GrassDryFloor2 0 water | 0 167 91 StoneFloor1 0 water | 191 167 92 GrassDryFloor1 0 water | 0 168 91 GrassDryFloor2 0 water | 191 168 92 GrassDryFloor3 0 water | 0 169 91 GrassDryFloor4 0 water | 191 169 92 GrassDryFloor2 0 water | 0 170 91 GrassDryFloor2 0 water | 191 170 92 GrassDryFloor2 0 water | 0 171 91 GrassDryFloor3 0 water | 191 171 92 GrassDryFloor4 0 water | 0 172 91 GrassDryFloor3 0 water | 191 172 92 GrassDryFloor3 0 water | 0 173 91 GrassDryFloor4 0 water | 191 173 92 GrassDryFloor2 0 water | 0 174 91 StonePebbles4 0 water | 191 174 92 GrassDryFloor2 0 water | 0 175 91 GrassDryFloor1 0 water | 191 175 92 Shrub 0 water | 0 176 91 GrassDryFloor3 0 water | 191 176 92 GrassDryFloor4 0 water | 0 177 91 GrassDryFloor3 0 water | 191 177 92 StonePebbles2 0 water | 0 178 91 GrassDryFloor2 0 water | 191 178 92 GrassDryFloor2 0 water | 0 179 91 GrassDryFloor2 0 water | 191 179 92 GrassDryFloor1 0 water | 0 180 91 GrassDryFloor3 0 water | 191 180 92 GrassDryFloor2 0 water | 0 181 91 GrassDryFloor3 0 water | 191 181 92 GrassDryFloor3 0 water | 0 182 91 GrassDryFloor3 0 water | 191 182 92 GrassDryFloor3 0 water | 0 183 91 GrassDryFloor4 0 water | 191 183 92 GrassDryFloor3 0 water | 0 184 91 GrassDryFloor3 0 water | 191 184 92 GrassDryFloor2 0 water | 0 185 91 GrassDryFloor2 0 water | 191 185 92 GrassDryFloor2 0 water | 0 186 91 GrassDryFloor1 0 water | 191 186 92 GrassDryFloor3 0 water | 0 187 91 GrassDryFloor2 0 water | 191 187 92 GrassDryFloor4 0 water | 0 188 91 GrassDryFloor4 0 water | 191 188 92 GrassDryFloor1 0 water | 0 189 91 GrassDryFloor4 0 water | 191 189 92 GrassDryFloor2 0 water | 0 190 91 GrassDryFloor4 0 water | 191 190 92 GrassDryFloor3 0 water
+
+## Pool entries that changed between load and end of replicate (13; the second instrument)
+edge | 1 | idx 3025 | Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->354 max 355->355 discovered 0->1 extinct 0->0
+edge | 1 | idx 3026 | Vermin:410 ref6=4,30,-1,2,-1,15 quantity 436->433 max 438->438 discovered 1->1 extinct 0->0
+edge | 1 | idx 3027 | Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->419 max 425->425 discovered 0->1 extinct 0->0
+edge | 1 | idx 3035 | Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->277 max 280->280 discovered 1->1 extinct 0->0
+edge | 1 | idx 3036 | Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->230 max 232->232 discovered 0->1 extinct 0->0
+edge | 1 | idx 3058 | Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->255 max 256->256 discovered 0->1 extinct 0->0
+edge | 1 | idx 3059 | Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->181 max 188->188 discovered 1->1 extinct 0->0
+edge | 1 | idx 3066 | Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->148 max 151->151 discovered 0->1 extinct 0->0
+edge | 1 | idx 3067 | Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->181 max 185->185 discovered 1->1 extinct 0->0
+edge | 1 | idx 3107 | Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->207 max 229->229 discovered 1->1 extinct 0->0
+edge | 1 | idx 3113 | Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->300 max 347->347 discovered 1->1 extinct 0->0
+edge | 1 | idx 3153 | Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->401 max 408->408 discovered 1->1 extinct 0->0
+edge | 1 | idx 3164 | BIRD_OSPREY ref6=4,31,-1,-1,-1,52 quantity 16->17 max 17->17 discovered 1->1 extinct 0->0
+
+## Units present at load (held group from the save), 12 rows; first few:
+edge | 1 | 162 | TROLL ref6=3,31,-1,2,-1,26 countdown=20176 flag_src=1
+edge | 1 | 163 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=23438 flag_src=1
+edge | 1 | 164 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=26233 flag_src=1
+edge | 1 | 165 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=20737 flag_src=1
+edge | 1 | 166 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=23517 flag_src=1
+edge | 1 | 167 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=22011 flag_src=1
+edge | 1 | 168 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=24557 flag_src=1
+edge | 1 | 169 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=29111 flag_src=1
+
+23:51:40 run E25-LAKE 20260917-235140: Wet-edge detector on LAKE: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected live.
+23:51:40   [rig] DF already running (pid 50930), port 5555
+23:51:40 == E25-LAKE arm=edge rep=1 fort=LAKE budget=1000 every=1000
+23:51:41   [rig] restored LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/LAKE
+23:51:41   restored LAKE.preverify -> LAKE sha256 76631d44449e
+23:52:49   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+23:52:49   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+23:52:50   [rig] drained 0 queued popup(s)
+23:52:51   baseline: 9 wild units on map, 912 pool entries, tick 16883 year 5
+23:52:52   manipulation: local me=df.global.plotinfo.map_edge; local tot,hist,fe=0,{},0; local zmax=df.global.world.map.z_count-1; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; for z=math.max(0,sz-40),math.min(zmax,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then local off=sz-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1 end end end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('z-%d:%d/%d'):format(o,hist[o][1],hist[o][2]); if o<=3 then near=near+hist[o][2] end end; print(('e25 edge: %d edge columns; water by depth below the surface z (wet/deep): %s; deep within 3 levels of the surface: %d; %d live feature entries -> %s'):format(tot, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge near the surface' or 'DORMANT: no feature entries'))) -> e25 edge: 127 edge columns; water by depth below the surface z (wet/deep): none; deep within 3 levels of the surface: 0; 308 live feature entries -> DORMANT: no deep wet edge near the surface
+23:52:52   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+176	191	95	GrassDryFloor3	0	water
+177	191	95	GrassDryFloor2	0	water
+178	191	95	GrassDryFloor2	0	water
+179	191	95	StoneFloor4	0	water
+180	191	95	StonePebbles3	0	water
+181	191	95	GrassDryFloor1	0	water
+182	191	95	GrassDryFloor4	0	water
+183	191	95	GrassDryFloor4	0	water
+184	191	95	GrassDryFloor1	0	water
+185	191	95	GrassDryFloor2	0	water
+186	191	95	GrassDryFloor4	0	water
+187	191	95	GrassDryFloor2	0	water
+188	191	95	GrassDryFloor3	0	water
+189	191	95	GrassDryFloor1	0	water
+190	191	95	StonePebbles2	0	water
+191	191	95	GrassDryFloor2	0	water
+191	80	95	GrassDryFloor2	0	water
+191	81	95	GrassDryFloor4	0	water
+191	82	95	GrassDryFloor3	0	water
+191	83	95	GrassDryFloor2	0	water
+191	84	95	GrassDryFloor1	0	water
+191	85	95	Shrub	0	water
+191	86	95	GrassDryFloor4	0	water
+191	87	95	GrassDryFloor3	0	water
+191	88	95	GrassDryFloor1	0	water
+191	89	95	GrassDryFloor3	0	water
+191	90	95	GrassDryFloor1	0	water
+191	91	95	GrassDryFloor4	0	water
+191	92	95	GrassDryFloor2	0	water
+191	93	95	GrassDryFloor2	0	water
+191	94	95	GrassDryFloor3	0	water
+191	95	95	GrassDryFloor2	0	water
+191	96	95	GrassDryFloor4	0	water
+191	97	95	GrassDryFloor3	0	water
+191	98	95	GrassDryFloor3	0	water
+191	99	95	StonePebbles1	0	water
+191	100	95	GrassDryFloor3	0	water
+191	101	95	GrassDryFloor3	0	water
+191	102	95	GrassDryFloor4	0	water
+191	103	95	StonePebbles3	0	water
+191	104	95	Shrub	0	water
+191	105	95	GrassDryFloor1	0	water
+191	106	95	GrassDryFloor4	0	water
+191	107	95	StonePebbles4	0	water
+191	108	95	GrassDryFloor1	0	water
+191	109	95	GrassDryFloor4	0	water
+191	110	95	GrassDryFloor2	0	water
+191	111	95	StoneBoulder	0	water
+191	112	95	GrassDryFloor2	0	water
+191	113	95	GrassDryFloor2	0	water
+191	114	95	GrassDryFloor1	0	water
+191	115	95	GrassDryFloor1	0	water
+191	116	95	GrassDryFloor4	0	water
+191	117	95	GrassDryFloor2	0	water
+191	118	95	GrassDryFloor4	0	water
+191	119	95	GrassDryFloor4	0	water
+191	120	95	GrassDryFloor4	0	water
+191	121	95	GrassDryFloor1	0	water
+191	122	95	GrassDryFloor4	0	water
+191	123	95	GrassDryFloor1	0	water
+191	124	95	GrassDryFloor3	0	water
+191	125	95	GrassDryFloor1	0	water
+191	126	95	GrassDryFloor2	0	water
+191	127	95	GrassDryFloor2	0	water
+191	128	95	GrassDryFloor1	0	water
+191	129	95	GrassDryFloor1	0	water
+191	130	95	GrassDryFloor3	0	water
+191	131	95	GrassDryFloor1	0	water
+191	132	95	Shrub	0	water
+191	133	95	GrassDryFloor1	0	water
+191	134	95	GrassDryFloor4	0	water
+191	135	95	GrassDryFloor1	0	water
+191	136	95	GrassDryFloor4	0	water
+191	137	95	GrassDryFloor3	0	water
+191	138	95	GrassDryFloor2	0	water
+191	139	95	GrassDryFloor4	0	water
+191	140	95	GrassDryFloor2	0	water
+191	141	95	GrassDryFloor4	0	water
+191	142	95	GrassDryFloor1	0	water
+191	143	95	GrassDryFloor4	0	water
+191	144	95	GrassDryFloor2	0	water
+191	145	95	GrassDryFloor4	0	water
+191	146	95	GrassDryFloor1	0	water
+191	147	95	GrassDryFloor3	0	water
+191	148	95	GrassDryFloor4	0	water
+191	149	95	GrassDryFloor2	0	water
+191	150	95	StonePebbles1	0	water
+191	151	95	GrassDryFloor1	0	water
+191	152	95	GrassDryFloor1	0	water
+191	153	95	GrassDryFloor3	0	water
+191	154	95	GrassDryFloor4	0	water
+191	155	95	GrassDryFloor1	0	water
+191	156	95	GrassDryFloor3	0	water
+191	157	95	GrassDryFloor1	0	water
+191	158	95	GrassDryFloor2	0	water
+191	159	95	GrassDryFloor2	0	water
+191	160	95	GrassDryFloor2	0	water
+191	161	95	GrassDryFloor3	0	water
+191	162	95	StoneFloor1	0	water
+191	163	95	GrassDryFloor3	0	water
+191	164	95	GrassDryFloor1	0	water
+191	165	95	GrassDryFloor1	0	water
+191	166	95	GrassDryFloor3	0	water
+191	167	95	StonePebbles2	0	water
+191	168	95	GrassDryFloor2	0	water
+191	169	95	GrassDryFloor1	0	water
+191	170	95	GrassDryFloor3	0	water
+191	171	95	GrassDryFloor2	0	water
+191	172	95	GrassDryFloor4	0	water
+191	173	95	GrassDryFloor3	0	water
+191	174	95	GrassDryFloor2	0	water
+191	175	95	StoneFloor3	0	water
+191	176	95	Shrub	0	water
+191	177	95	GrassDryFloor3	0	water
+191	178	95	GrassDryFloor2	0	water
+191	179	95	StoneFloor4	0	water
+191	180	95	GrassDryFloor1	0	water
+191	181	95	GrassDryFloor2	0	water
+191	182	95	GrassDryFloor4	0	water
+191	183	95	GrassDryFloor3	0	water
+191	184	95	GrassDryFloor2	0	water
+191	185	95	StonePebbles2	0	water
+191	186	95	GrassDryFloor2	0	water
+191	187	95	GrassDryFloor2	0	water
+191	188	95	GrassDryFloor3	0	water
+191	189	95	SoilFloor1	0	water
+191	190	95	GrassDryFloor4	0	water
+23:52:52   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+23:53:20   [rig] back at the title screen
+23:53:20   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 21, "departures": 0, "deaths": 0, "ticks": 1141, "wall_s": 18.0, "stop": null, "ticks_per_s": 63.3, "save_untouched": true}
+23:54:31   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+23:54:31   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+23:54:39   [rig] back at the title screen
+23:54:39 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-LAKE/20260917-235140
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-LAKE/20260917-235140
+
+# E25-LAKE -- Wet-edge detector on LAKE: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected live.
+run 20260917-235140 fort LAKE backup LAKE.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 12..13,28..28 seed 424242
+commits: DwarfCron f003ff0 seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: live
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1141 | 63.3 | 21 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1141 | MONITOR_LIZARD | 13,28,-1,-1,-1,177 | 1 | 27437 | - | present
+edge | 1 | +1141 | BUGBAT | 12,28,-1,14,-1,4 | 10 | 19100,20454,21584,23814,24286,24439,27106,28009,28522,28626 | - | present
+edge | 1 | +1141 | DEMON_9 | 12,28,-1,41,-1,5 | 3 | 19900,21699,27777 | - | present
+edge | 1 | +1141 | TROLL | 13,27,-1,22,-1,25 | 1 | 23126 | - | present
+edge | 1 | +1141 | TROLL | 13,28,-1,2,-1,26 | 1 | 28454 | - | present
+edge | 1 | +1141 | BUGBAT | 12,28,-1,23,-1,19 | 5 | 20935,24073,25656,26210,26822 | - | present
+
+## Waves (6; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1141 | MONITOR_LIZARD | surface | 1 | 0 | 0 | 1
+edge | 1 | +1141 | BUGBAT | cavern | 10 | 0 | 0 | 10
+edge | 1 | +1141 | DEMON_9 | cavern | 3 | 0 | 0 | 3
+edge | 1 | +1141 | TROLL | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1141 | TROLL | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1141 | BUGBAT | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local me=df.global.plotinfo.map_edge; local tot,hist,fe=0,{},0; local zmax=df.global.world.map.z_count-1; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; for z=math.max(0,sz-40),math.min(zmax,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then local off=sz-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1 end end end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('z-%d:%d/%d'):format(o,hist[o][1],hist[o][2]); if o<=3 then near=near+hist[o][2] end end; print(('e25 edge: %d edge columns; water by depth below the surface z (wet/deep): %s; deep within 3 levels of the surface: %d; %d live feature entries -> %s'):format(tot, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge near the surface' or 'DORMANT: no feature entries'))) | e25 edge: 127 edge columns; water by depth below the surface z (wet/deep): none; deep within 3 levels of the surface: 0; 308 live feature entries -> DORMANT: no deep wet edge near the surface
+edge | 1 | +0 | probe:edge | x y z tiletype water liquid | 176 191 95 GrassDryFloor3 0 water | 177 191 95 GrassDryFloor2 0 water | 178 191 95 GrassDryFloor2 0 water | 179 191 95 StoneFloor4 0 water | 180 191 95 StonePebbles3 0 water | 181 191 95 GrassDryFloor1 0 water | 182 191 95 GrassDryFloor4 0 water | 183 191 95 GrassDryFloor4 0 water | 184 191 95 GrassDryFloor1 0 water | 185 191 95 GrassDryFloor2 0 water | 186 191 95 GrassDryFloor4 0 water | 187 191 95 GrassDryFloor2 0 water | 188 191 95 GrassDryFloor3 0 water | 189 191 95 GrassDryFloor1 0 water | 190 191 95 StonePebbles2 0 water | 191 191 95 GrassDryFloor2 0 water | 191 80 95 GrassDryFloor2 0 water | 191 81 95 GrassDryFloor4 0 water | 191 82 95 GrassDryFloor3 0 water | 191 83 95 GrassDryFloor2 0 water | 191 84 95 GrassDryFloor1 0 water | 191 85 95 Shrub 0 water | 191 86 95 GrassDryFloor4 0 water | 191 87 95 GrassDryFloor3 0 water | 191 88 95 GrassDryFloor1 0 water | 191 89 95 GrassDryFloor3 0 water | 191 90 95 GrassDryFloor1 0 water | 191 91 95 GrassDryFloor4 0 water | 191 92 95 GrassDryFloor2 0 water | 191 93 95 GrassDryFloor2 0 water | 191 94 95 GrassDryFloor3 0 water | 191 95 95 GrassDryFloor2 0 water | 191 96 95 GrassDryFloor4 0 water | 191 97 95 GrassDryFloor3 0 water | 191 98 95 GrassDryFloor3 0 water | 191 99 95 StonePebbles1 0 water | 191 100 95 GrassDryFloor3 0 water | 191 101 95 GrassDryFloor3 0 water | 191 102 95 GrassDryFloor4 0 water | 191 103 95 StonePebbles3 0 water | 191 104 95 Shrub 0 water | 191 105 95 GrassDryFloor1 0 water | 191 106 95 GrassDryFloor4 0 water | 191 107 95 StonePebbles4 0 water | 191 108 95 GrassDryFloor1 0 water | 191 109 95 GrassDryFloor4 0 water | 191 110 95 GrassDryFloor2 0 water | 191 111 95 StoneBoulder 0 water | 191 112 95 GrassDryFloor2 0 water | 191 113 95 GrassDryFloor2 0 water | 191 114 95 GrassDryFloor1 0 water | 191 115 95 GrassDryFloor1 0 water | 191 116 95 GrassDryFloor4 0 water | 191 117 95 GrassDryFloor2 0 water | 191 118 95 GrassDryFloor4 0 water | 191 119 95 GrassDryFloor4 0 water | 191 120 95 GrassDryFloor4 0 water | 191 121 95 GrassDryFloor1 0 water | 191 122 95 GrassDryFloor4 0 water | 191 123 95 GrassDryFloor1 0 water | 191 124 95 GrassDryFloor3 0 water | 191 125 95 GrassDryFloor1 0 water | 191 126 95 GrassDryFloor2 0 water | 191 127 95 GrassDryFloor2 0 water | 191 128 95 GrassDryFloor1 0 water | 191 129 95 GrassDryFloor1 0 water | 191 130 95 GrassDryFloor3 0 water | 191 131 95 GrassDryFloor1 0 water | 191 132 95 Shrub 0 water | 191 133 95 GrassDryFloor1 0 water | 191 134 95 GrassDryFloor4 0 water | 191 135 95 GrassDryFloor1 0 water | 191 136 95 GrassDryFloor4 0 water | 191 137 95 GrassDryFloor3 0 water | 191 138 95 GrassDryFloor2 0 water | 191 139 95 GrassDryFloor4 0 water | 191 140 95 GrassDryFloor2 0 water | 191 141 95 GrassDryFloor4 0 water | 191 142 95 GrassDryFloor1 0 water | 191 143 95 GrassDryFloor4 0 water | 191 144 95 GrassDryFloor2 0 water | 191 145 95 GrassDryFloor4 0 water | 191 146 95 GrassDryFloor1 0 water | 191 147 95 GrassDryFloor3 0 water | 191 148 95 GrassDryFloor4 0 water | 191 149 95 GrassDryFloor2 0 water | 191 150 95 StonePebbles1 0 water | 191 151 95 GrassDryFloor1 0 water | 191 152 95 GrassDryFloor1 0 water | 191 153 95 GrassDryFloor3 0 water | 191 154 95 GrassDryFloor4 0 water | 191 155 95 GrassDryFloor1 0 water | 191 156 95 GrassDryFloor3 0 water | 191 157 95 GrassDryFloor1 0 water | 191 158 95 GrassDryFloor2 0 water | 191 159 95 GrassDryFloor2 0 water | 191 160 95 GrassDryFloor2 0 water | 191 161 95 GrassDryFloor3 0 water | 191 162 95 StoneFloor1 0 water | 191 163 95 GrassDryFloor3 0 water | 191 164 95 GrassDryFloor1 0 water | 191 165 95 GrassDryFloor1 0 water | 191 166 95 GrassDryFloor3 0 water | 191 167 95 StonePebbles2 0 water | 191 168 95 GrassDryFloor2 0 water | 191 169 95 GrassDryFloor1 0 water | 191 170 95 GrassDryFloor3 0 water | 191 171 95 GrassDryFloor2 0 water | 191 172 95 GrassDryFloor4 0 water | 191 173 95 GrassDryFloor3 0 water | 191 174 95 GrassDryFloor2 0 water | 191 175 95 StoneFloor3 0 water | 191 176 95 Shrub 0 water | 191 177 95 GrassDryFloor3 0 water | 191 178 95 GrassDryFloor2 0 water | 191 179 95 StoneFloor4 0 water | 191 180 95 GrassDryFloor1 0 water | 191 181 95 GrassDryFloor2 0 water | 191 182 95 GrassDryFloor4 0 water | 191 183 95 GrassDryFloor3 0 water | 191 184 95 GrassDryFloor2 0 water | 191 185 95 StonePebbles2 0 water | 191 186 95 GrassDryFloor2 0 water | 191 187 95 GrassDryFloor2 0 water | 191 188 95 GrassDryFloor3 0 water | 191 189 95 SoilFloor1 0 water | 191 190 95 GrassDryFloor4 0 water
+
+## Pool entries that changed between load and end of replicate (27; the second instrument)
+edge | 1 | idx 4199 | Vermin:508 ref6=12,28,-1,-1,-1,0 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+edge | 1 | idx 4200 | Vermin:566 ref6=12,28,-1,-1,-1,1 quantity 271->272 max 272->272 discovered 1->1 extinct 0->0
+edge | 1 | idx 4209 | Vermin:570 ref6=12,28,-1,-1,-1,10 quantity 142->140 max 142->142 discovered 0->1 extinct 0->0
+edge | 1 | idx 4210 | Vermin:561 ref6=12,28,-1,-1,-1,11 quantity 212->207 max 213->213 discovered 1->1 extinct 0->0
+edge | 1 | idx 4212 | Vermin:562 ref6=12,28,-1,-1,-1,13 quantity 279->278 max 279->279 discovered 0->1 extinct 0->0
+edge | 1 | idx 4238 | Vermin:616 ref6=12,28,-1,2,-1,14 quantity 352->347 max 352->352 discovered 0->1 extinct 0->0
+edge | 1 | idx 4239 | Vermin:410 ref6=12,28,-1,2,-1,15 quantity 433->426 max 433->433 discovered 0->1 extinct 0->0
+edge | 1 | idx 4240 | Vermin:621 ref6=12,28,-1,2,-1,16 quantity 421->416 max 421->421 discovered 0->1 extinct 0->0
+edge | 1 | idx 4242 | BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 quantity 19->20 max 20->20 discovered 1->1 extinct 0->0
+edge | 1 | idx 4248 | Vermin:630 ref6=12,28,-1,2,-1,24 quantity 277->274 max 277->277 discovered 0->1 extinct 0->0
+edge | 1 | idx 4249 | Vermin:623 ref6=12,28,-1,2,-1,25 quantity 230->227 max 230->230 discovered 0->1 extinct 0->0
+edge | 1 | idx 4256 | BUGBAT ref6=12,28,-1,14,-1,4 quantity 35->26 max 35->35 discovered 0->1 extinct 0->0
+edge | 1 | idx 4259 | Vermin:623 ref6=12,28,-1,14,-1,7 quantity 240->228 max 243->243 discovered 1->1 extinct 0->0
+edge | 1 | idx 4260 | Vermin:630 ref6=12,28,-1,14,-1,8 quantity 255->245 max 257->257 discovered 1->1 extinct 0->0
+edge | 1 | idx 4261 | Vermin:616 ref6=12,28,-1,14,-1,9 quantity 406->401 max 406->406 discovered 0->1 extinct 0->0
+edge | 1 | idx 4287 | BUGBAT ref6=12,28,-1,23,-1,19 quantity 20->9 max 20->20 discovered 0->1 extinct 0->0
+edge | 1 | idx 4298 | Vermin:419 ref6=12,28,-1,23,-1,30 quantity 232->213 max 232->232 discovered 0->1 extinct 0->0
+edge | 1 | idx 4304 | Vermin:620 ref6=12,28,-1,32,-1,4 quantity 401->365 max 404->404 discovered 1->1 extinct 0->0
+edge | 1 | idx 4310 | DEMON_9 ref6=12,28,-1,41,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 5324 | TROLL ref6=13,27,-1,22,-1,25 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+edge | 1 | idx 5384 | Vermin:79 ref6=13,28,-1,-1,-1,94 quantity 406->405 max 406->406 discovered 0->1 extinct 0->0
+edge | 1 | idx 5412 | MONITOR_LIZARD ref6=13,28,-1,-1,-1,177 quantity 3->2 max 3->3 discovered 0->1 extinct 0->0
+edge | 1 | idx 5430 | ALLIGATOR ref6=13,28,0,-1,-1,4 quantity 138->139 max 140->140 discovered 1->1 extinct 0->0
+edge | 1 | idx 5431 | HIPPO ref6=13,28,0,-1,-1,5 quantity 290->292 max 294->294 discovered 1->1 extinct 0->0
+edge | 1 | idx 5432 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 quantity 349->350 max 350->350 discovered 1->1 extinct 0->0
+edge | 1 | idx 5435 | Vermin:561 ref6=13,28,0,-1,-1,9 quantity 5025->5023 max 5026->5026 discovered 1->1 extinct 0->0
+edge | 1 | idx 5463 | TROLL ref6=13,28,-1,2,-1,26 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 9 rows; first few:
+edge | 1 | 162 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 countdown=29034 flag_src=1
+edge | 1 | 163 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=22536 flag_src=1
+edge | 1 | 164 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=25426 flag_src=1
+edge | 1 | 165 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26786 flag_src=1
+edge | 1 | 166 | HIPPO ref6=13,28,0,-1,-1,5 countdown=21196 flag_src=1
+edge | 1 | 167 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26547 flag_src=1
+edge | 1 | 168 | HIPPO ref6=13,28,0,-1,-1,5 countdown=27011 flag_src=1
+edge | 1 | 178 | WEASEL ref6=13,28,-1,-1,-1,170 countdown=26718 flag_src=1
+
+23:54:39 run E25-CTRL 20260917-235439: Wet-edge detector on CTRL: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+23:54:39   [rig] DF already running (pid 50930), port 5555
+23:54:39 == E25-CTRL arm=edge rep=1 fort=CTRL budget=1000 every=1000
+23:54:39   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+23:54:39   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+23:55:59   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+23:55:59   [rig] loaded after 24s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+23:55:59   [rig] drained 0 queued popup(s)
+23:56:01   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+23:56:10   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe={},{},0,0; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local d=dfhack.maps.getTileFlags(xyz2pos(c[1],c[2],z)); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; print(('e25 edge: perimeter %d columns, %d with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): %s; deep within -6..+1 of it: %d; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep water on the perimeter near the surface' or 'DORMANT: no feature entries'))) -> e25 edge: perimeter 764 columns, 165 with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): -65:10/10 -66:15/15 -74:30/30 -75:18/18 -79:126/126 -80:89/89; deep within -6..+1 of it: 0; 147 live feature entries -> DORMANT: no deep water on the perimeter near the surface
+23:56:10   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+23:56:38   +     2 ticks | wild  13 | arrivals   0 | departures   0 | deaths  0 | 0 t/s
+23:56:58   [rig] back at the title screen
+23:56:58   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 23, "departures": 0, "deaths": 0, "ticks": 1021, "wall_s": 37.0, "stop": null, "ticks_per_s": 27.6, "save_untouched": true}
+23:58:27   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+23:58:27   [rig] loaded after 27s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+23:58:36   [rig] back at the title screen
+23:58:36 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-CTRL/20260917-235439
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-CTRL/20260917-235439
+
+# E25-CTRL -- Wet-edge detector on CTRL: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260917-235439 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 829843c seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1021 | 27.6 | 23 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1021 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 10 | 19889,20603,20813,20842,20865,21433,22930,23299,23382,28640 | - | present
+edge | 1 | +1021 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 20443 | - | present
+edge | 1 | +1021 | TROGLODYTE | 29,20,-1,13,-1,19 | 8 | 19495,20508,20721,21136,21992,25161,25803,25933 | - | present
+edge | 1 | +1021 | DEMON_12 | 28,20,-1,44,-1,4 | 1 | 25469 | - | present
+edge | 1 | +1021 | OLM_GIANT | 29,21,-1,8,-1,9 | 1 | 28767 | - | present
+edge | 1 | +1021 | DEMON_9 | 30,20,-1,43,-1,2 | 2 | 20831,25254 | - | present
+
+## Waves (6; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1021 | BIRD_RAVEN | surface | 10 | 0 | 0 | 10
+edge | 1 | +1021 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1021 | TROGLODYTE | cavern | 8 | 0 | 0 | 8
+edge | 1 | +1021 | DEMON_12 | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1021 | OLM_GIANT | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1021 | DEMON_9 | cavern | 2 | 0 | 0 | 2
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe={},{},0,0; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local d=dfhack.maps.getTileFlags(xyz2pos(c[1],c[2],z)); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; print(('e25 edge: perimeter %d columns, %d with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): %s; deep within -6..+1 of it: %d; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep water on the perimeter near the surface' or 'DORMANT: no feature entries'))) | e25 edge: perimeter 764 columns, 165 with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): -65:10/10 -66:15/15 -74:30/30 -75:18/18 -79:126/126 -80:89/89; deep within -6..+1 of it: 0; 147 live feature entries -> DORMANT: no deep water on the perimeter near the surface
+
+## Pool entries that changed between load and end of replicate (22; the second instrument)
+edge | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->347 max 354->354 discovered 0->1 extinct 0->0
+edge | 1 | idx 3537 | DEMON_12 ref6=28,20,-1,44,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->241 max 241->241 discovered 0->1 extinct 0->0
+edge | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->214 max 216->216 discovered 0->1 extinct 0->0
+edge | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3021 max 3530->3530 discovered 0->1 extinct 0->0
+edge | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->3063 max 3352->3352 discovered 0->1 extinct 0->0
+edge | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+edge | 1 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+edge | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+edge | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->435 max 436->436 discovered 0->1 extinct 0->0
+edge | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->400 max 403->403 discovered 0->1 extinct 0->0
+edge | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->262 max 265->265 discovered 0->1 extinct 0->0
+edge | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->384 max 387->387 discovered 0->1 extinct 0->0
+edge | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->440 max 442->442 discovered 0->1 extinct 0->0
+edge | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->326 max 331->331 discovered 0->1 extinct 0->0
+edge | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->252 max 257->257 discovered 0->1 extinct 0->0
+edge | 1 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->6 max 14->14 discovered 0->1 extinct 0->0
+edge | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->309 max 313->313 discovered 0->1 extinct 0->0
+edge | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->317 max 336->336 discovered 0->1 extinct 0->0
+edge | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->375 max 421->421 discovered 0->1 extinct 0->0
+edge | 1 | idx 4944 | OLM_GIANT ref6=29,21,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+edge | 1 | idx 6082 | DEMON_9 ref6=30,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 13 rows; first few:
+edge | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+edge | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+edge | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+edge | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+edge | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+edge | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+edge | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+edge | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+
+23:58:36 run E25-RIVER3 20260917-235836: Wet-edge detector on RIVER3: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+23:58:36   [rig] DF already running (pid 50930), port 5555
+23:58:36 == E25-RIVER3 arm=edge rep=1 fort=RIVER3 budget=1000 every=1000
+23:58:36   [rig] restored RIVER3.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/RIVER3
+23:58:36   restored RIVER3.preverify -> RIVER3 sha256 a6e181ec539f
+00:00:30   [rig] clicked through to RIVER3 (world: Udon Alu); waiting for the map
+00:00:30   [rig] loaded after 36s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=21)
+00:00:31   [rig] drained 0 queued popup(s)
+00:00:35   baseline: 3 wild units on map, 683 pool entries, tick 16801 year 5
+00:00:43   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe={},{},0,0; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local d=dfhack.maps.getTileFlags(xyz2pos(c[1],c[2],z)); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; print(('e25 edge: perimeter %d columns, %d with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): %s; deep within -6..+1 of it: %d; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep water on the perimeter near the surface' or 'DORMANT: no feature entries'))) -> e25 edge: perimeter 764 columns, 25 with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): -5:8/8 -21:17/17; deep within -6..+1 of it: 8; 245 live feature entries -> LIVE
+00:00:43   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+00:01:10   +     2 ticks | wild   3 | arrivals   0 | departures   0 | deaths  0 | 0 t/s
+00:01:33   [rig] back at the title screen
+00:01:33   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 17, "departures": 0, "deaths": 0, "ticks": 1090, "wall_s": 37.3, "stop": null, "ticks_per_s": 29.3, "save_untouched": true}
+00:03:20   [rig] clicked through to RIVER3 (world: Udon Alu); waiting for the map
+00:03:20   [rig] loaded after 33s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=21)
+00:03:29   [rig] back at the title screen
+00:03:29 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-RIVER3/20260917-235836
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-RIVER3/20260917-235836
+
+# E25-RIVER3 -- Wet-edge detector on RIVER3: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260917-235836 fort RIVER3 backup RIVER3.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 19..19,24..24 seed 424242
+commits: DwarfCron 829843c seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1090 | 29.3 | 17 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1090 | ECHIDNA | 20,24,-1,-1,-1,162 | 1 | 22385 | - | present
+edge | 1 | +1090 | CROCODILE_CAVE | 18,25,-1,2,-1,9 | 1 | 24021 | - | present
+edge | 1 | +1090 | REACHER | 19,25,-1,14,-1,14 | 2 | 25145,26755 | - | present
+edge | 1 | +1090 | BLIND_CAVE_OGRE | 18,25,-1,22,-1,27 | 1 | 21198 | - | present
+edge | 1 | +1090 | DEMON_17 | 19,24,-1,40,-1,4 | 2 | 28275,28978 | - | present
+edge | 1 | +1090 | CROCODILE_CAVE | 19,24,-1,7,-1,9 | 1 | 28714 | - | present
+edge | 1 | +1090 | RUTHERER | 18,25,-1,22,-1,16 | 5 | 20082,21365,21820,25456,28566 | - | present
+edge | 1 | +1090 | MAGMA_CRAB | 19,25,-1,32,-1,0 | 4 | 21431,24580,26682,28189 | - | present
+
+## Waves (8; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1090 | ECHIDNA | surface | 1 | 0 | 0 | 1
+edge | 1 | +1090 | CROCODILE_CAVE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1090 | REACHER | cavern | 2 | 0 | 0 | 2
+edge | 1 | +1090 | BLIND_CAVE_OGRE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1090 | DEMON_17 | cavern | 2 | 0 | 0 | 2
+edge | 1 | +1090 | CROCODILE_CAVE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1090 | RUTHERER | cavern | 5 | 0 | 0 | 5
+edge | 1 | +1090 | MAGMA_CRAB | cavern | 4 | 0 | 0 | 4
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe={},{},0,0; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local d=dfhack.maps.getTileFlags(xyz2pos(c[1],c[2],z)); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; print(('e25 edge: perimeter %d columns, %d with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): %s; deep within -6..+1 of it: %d; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep water on the perimeter near the surface' or 'DORMANT: no feature entries'))) | e25 edge: perimeter 764 columns, 25 with deep water (>=4/7) at some z; by z relative to the highest land-entry surface z (wet/deep): -5:8/8 -21:17/17; deep within -6..+1 of it: 8; 245 live feature entries -> LIVE
+
+## Pool entries that changed between load and end of replicate (28; the second instrument)
+edge | 1 | idx 3405 | CROCODILE_CAVE ref6=18,25,-1,2,-1,9 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+edge | 1 | idx 3456 | RUTHERER ref6=18,25,-1,22,-1,16 quantity 18->13 max 18->18 discovered 0->1 extinct 0->0
+edge | 1 | idx 3467 | BLIND_CAVE_OGRE ref6=18,25,-1,22,-1,27 quantity 4->4 max 4->4 discovered 0->1 extinct 0->0
+edge | 1 | idx 4373 | Vermin:0 ref6=19,24,-1,-1,-1,78 quantity 354->352 max 354->354 discovered 0->1 extinct 0->0
+edge | 1 | idx 4375 | Vermin:5 ref6=19,24,-1,-1,-1,80 quantity 195->194 max 195->195 discovered 0->1 extinct 0->0
+edge | 1 | idx 4379 | Vermin:79 ref6=19,24,-1,-1,-1,94 quantity 394->393 max 394->394 discovered 0->1 extinct 0->0
+edge | 1 | idx 4381 | Vermin:91 ref6=19,24,-1,-1,-1,99 quantity 163->161 max 163->163 discovered 0->1 extinct 0->0
+edge | 1 | idx 4386 | Vermin:130 ref6=19,24,-1,-1,-1,110 quantity 36->36 max 36->36 discovered 0->1 extinct 0->0
+edge | 1 | idx 4391 | Vermin:145 ref6=19,24,-1,-1,-1,118 quantity 3775->3671 max 3775->3775 discovered 0->1 extinct 0->0
+edge | 1 | idx 4395 | Vermin:196 ref6=19,24,-1,-1,-1,124 quantity 2638->2457 max 2638->2638 discovered 0->1 extinct 0->0
+edge | 1 | idx 4402 | Vermin:514 ref6=19,24,-1,-1,-1,150 quantity 311->310 max 311->311 discovered 0->1 extinct 0->0
+edge | 1 | idx 4404 | Vermin:528 ref6=19,24,-1,-1,-1,153 quantity 317->316 max 317->317 discovered 0->1 extinct 0->0
+edge | 1 | idx 4405 | Vermin:531 ref6=19,24,-1,-1,-1,155 quantity 179->178 max 179->179 discovered 0->1 extinct 0->0
+edge | 1 | idx 4424 | PLATYPUS ref6=19,24,0,-1,-1,6 quantity 306->308 max 308->308 discovered 1->1 extinct 0->0
+edge | 1 | idx 4427 | Vermin:561 ref6=19,24,0,-1,-1,9 quantity 3333->3325 max 3333->3333 discovered 0->1 extinct 0->0
+edge | 1 | idx 4438 | CROCODILE_CAVE ref6=19,24,-1,7,-1,9 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+edge | 1 | idx 4443 | Vermin:621 ref6=19,24,-1,7,-1,14 quantity 293->293 max 293->293 discovered 0->1 extinct 0->0
+edge | 1 | idx 4445 | Vermin:410 ref6=19,24,-1,7,-1,16 quantity 280->279 max 280->280 discovered 0->1 extinct 0->0
+edge | 1 | idx 4453 | Vermin:630 ref6=19,24,-1,7,-1,24 quantity 296->293 max 296->296 discovered 0->1 extinct 0->0
+edge | 1 | idx 4464 | Vermin:623 ref6=19,24,-1,14,-1,7 quantity 239->228 max 239->239 discovered 0->1 extinct 0->0
+edge | 1 | idx 4465 | Vermin:630 ref6=19,24,-1,14,-1,8 quantity 253->247 max 253->253 discovered 0->1 extinct 0->0
+edge | 1 | idx 4466 | Vermin:616 ref6=19,24,-1,14,-1,9 quantity 399->396 max 399->399 discovered 0->1 extinct 0->0
+edge | 1 | idx 4502 | Vermin:419 ref6=19,24,-1,22,-1,29 quantity 336->313 max 336->336 discovered 0->1 extinct 0->0
+edge | 1 | idx 4508 | Vermin:620 ref6=19,24,-1,32,-1,4 quantity 404->367 max 404->404 discovered 0->1 extinct 0->0
+edge | 1 | idx 4513 | DEMON_17 ref6=19,24,-1,40,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 4653 | REACHER ref6=19,25,-1,14,-1,14 quantity 10->8 max 10->10 discovered 0->1 extinct 0->0
+edge | 1 | idx 4687 | MAGMA_CRAB ref6=19,25,-1,32,-1,0 quantity 35->31 max 35->35 discovered 0->1 extinct 0->0
+edge | 1 | idx 5719 | ECHIDNA ref6=20,24,-1,-1,-1,162 quantity 7->6 max 7->7 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 3 rows; first few:
+edge | 1 | 162 | PLATYPUS ref6=19,24,0,-1,-1,6 countdown=29926 flag_src=1
+edge | 1 | 163 | PLATYPUS ref6=19,24,0,-1,-1,6 countdown=28399 flag_src=1
+edge | 1 | 164 | BIRD_EAGLE ref6=19,24,-1,-1,-1,103 countdown=21835 flag_src=1
+
+01:05:52 run E25-OCEAN2 20260918-010552: Wet-edge detector on OCEAN2: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+01:05:52   [rig] DF already running (pid 47318), port 5555
+01:05:52 == E25-OCEAN2 arm=edge rep=1 fort=OCEAN2 budget=1000 every=1000
+01:05:53   [rig] restored OCEAN2.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN2
+01:05:53   restored OCEAN2.preverify -> OCEAN2 sha256 819fd7951ebd
+01:06:09   [rig] clicked through to OCEAN2 (world: Udon Alu); waiting for the map
+01:06:09   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=27)
+01:06:09   [rig] drained 0 queued popup(s)
+01:06:10   baseline: 0 wild units on map, 754 pool entries, tick 16801 year 5
+01:06:18   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) -> e25 edge: perimeter 764 columns, 396 with deep water at some z; by z relative to the land-entry surface (wet/deep): -2:377/377 -3:211/211 -39:42/42; deep within -6..+1: 588, of which in an ocean or lake biome: 588 [OCEAN_TROPICAL=588]; 103 live feature entries -> LIVE
+01:06:18   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+01:06:32   [rig] back at the title screen
+01:06:32   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 31, "departures": 0, "deaths": 0, "ticks": 1210, "wall_s": 3.8, "stop": null, "ticks_per_s": 316.1, "save_untouched": true}
+01:06:47   [rig] clicked through to OCEAN2 (world: Udon Alu); waiting for the map
+01:06:47   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=27)
+01:06:55   [rig] back at the title screen
+01:06:55 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN2/20260918-010552
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN2/20260918-010552
+
+# E25-OCEAN2 -- Wet-edge detector on OCEAN2: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260918-010552 fort OCEAN2 backup OCEAN2.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 4..4,28..28 seed 424242
+commits: DwarfCron 0bdd50e seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: live
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1210 | 316.1 | 31 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1210 | BIRD_EAGLE | 4,28,-1,-1,-1,33 | 1 | 26609 | - | present
+edge | 1 | +1210 | OLM_GIANT | 4,28,-1,2,-1,10 | 2 | 25083,26942 | - | present
+edge | 1 | +1210 | REACHER | 3,28,-1,10,-1,13 | 1 | 22315 | - | present
+edge | 1 | +1210 | RUTHERER | 4,28,-1,22,-1,16 | 7 | 21533,21991,23729,25105,26835,27169,27919 | - | present
+edge | 1 | +1210 | DEMON_2 | 4,28,-1,38,-1,6 | 4 | 19061,25262,26476,28780 | - | present
+edge | 1 | +1210 | JACKAL | 4,28,-1,-1,-1,54 | 1 | 25785 | - | present
+edge | 1 | +1210 | TROGLODYTE | 3,28,-1,10,-1,2 | 9 | 21132,21448,21658,22799,23069,23109,23860,24222,28017 | - | present
+edge | 1 | +1210 | TROLL | 4,28,-1,22,-1,25 | 1 | 21979 | - | present
+edge | 1 | +1210 | MAGMA_CRAB | 4,27,-1,29,-1,0 | 5 | 22671,23994,26301,27865,28838 | - | present
+
+## Waves (9; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1210 | BIRD_EAGLE | surface | 1 | 0 | 0 | 1
+edge | 1 | +1210 | OLM_GIANT | cavern | 2 | 0 | 0 | 2
+edge | 1 | +1210 | REACHER | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1210 | RUTHERER | cavern | 7 | 0 | 0 | 7
+edge | 1 | +1210 | DEMON_2 | cavern | 4 | 0 | 0 | 4
+edge | 1 | +1210 | JACKAL | surface | 1 | 0 | 0 | 1
+edge | 1 | +1210 | TROGLODYTE | cavern | 9 | 0 | 0 | 9
+edge | 1 | +1210 | TROLL | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1210 | MAGMA_CRAB | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) | e25 edge: perimeter 764 columns, 396 with deep water at some z; by z relative to the land-entry surface (wet/deep): -2:377/377 -3:211/211 -39:42/42; deep within -6..+1: 588, of which in an ocean or lake biome: 588 [OCEAN_TROPICAL=588]; 103 live feature entries -> LIVE
+
+## Pool entries that changed between load and end of replicate (27; the second instrument)
+edge | 1 | idx 2313 | Vermin:540 ref6=3,28,-1,-1,-1,31 quantity 187->186 max 187->187 discovered 0->1 extinct 0->0
+edge | 1 | idx 2314 | Vermin:544 ref6=3,28,-1,-1,-1,34 quantity 394->393 max 394->394 discovered 0->1 extinct 0->0
+edge | 1 | idx 2315 | Vermin:552 ref6=3,28,-1,-1,-1,37 quantity 192->190 max 192->192 discovered 0->1 extinct 0->0
+edge | 1 | idx 2320 | Vermin:551 ref6=3,28,-1,-1,-1,63 quantity 234->234 max 234->234 discovered 0->1 extinct 0->0
+edge | 1 | idx 2331 | Vermin:543 ref6=3,28,-1,-1,-1,86 quantity 226->221 max 226->226 discovered 0->1 extinct 0->0
+edge | 1 | idx 2332 | Vermin:553 ref6=3,28,-1,-1,-1,88 quantity 99->98 max 99->99 discovered 0->1 extinct 0->0
+edge | 1 | idx 2363 | TROGLODYTE ref6=3,28,-1,10,-1,2 quantity 15->6 max 15->15 discovered 0->1 extinct 0->0
+edge | 1 | idx 2374 | REACHER ref6=3,28,-1,10,-1,13 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+edge | 1 | idx 3221 | MAGMA_CRAB ref6=4,27,-1,29,-1,0 quantity 17->12 max 17->17 discovered 0->1 extinct 0->0
+edge | 1 | idx 3266 | BIRD_EAGLE ref6=4,28,-1,-1,-1,33 quantity 17->16 max 17->17 discovered 0->1 extinct 0->0
+edge | 1 | idx 3268 | Vermin:130 ref6=4,28,-1,-1,-1,35 quantity 32->31 max 32->32 discovered 0->1 extinct 0->0
+edge | 1 | idx 3287 | JACKAL ref6=4,28,-1,-1,-1,54 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+edge | 1 | idx 3313 | OLM_GIANT ref6=4,28,-1,2,-1,10 quantity 9->7 max 9->9 discovered 0->1 extinct 0->0
+edge | 1 | idx 3316 | Vermin:617 ref6=4,28,-1,2,-1,13 quantity 445->445 max 445->445 discovered 0->1 extinct 0->0
+edge | 1 | idx 3317 | Vermin:616 ref6=4,28,-1,2,-1,14 quantity 352->349 max 352->352 discovered 0->1 extinct 0->0
+edge | 1 | idx 3318 | Vermin:410 ref6=4,28,-1,2,-1,15 quantity 433->428 max 433->433 discovered 0->1 extinct 0->0
+edge | 1 | idx 3319 | Vermin:621 ref6=4,28,-1,2,-1,16 quantity 421->416 max 421->421 discovered 0->1 extinct 0->0
+edge | 1 | idx 3327 | Vermin:630 ref6=4,28,-1,2,-1,24 quantity 277->272 max 277->277 discovered 0->1 extinct 0->0
+edge | 1 | idx 3328 | Vermin:623 ref6=4,28,-1,2,-1,25 quantity 230->223 max 230->230 discovered 0->1 extinct 0->0
+edge | 1 | idx 3338 | Vermin:623 ref6=4,28,-1,10,-1,7 quantity 342->334 max 342->342 discovered 0->1 extinct 0->0
+edge | 1 | idx 3339 | Vermin:616 ref6=4,28,-1,10,-1,8 quantity 344->343 max 344->344 discovered 0->1 extinct 0->0
+edge | 1 | idx 3340 | Vermin:630 ref6=4,28,-1,10,-1,9 quantity 329->322 max 329->329 discovered 0->1 extinct 0->0
+edge | 1 | idx 3363 | RUTHERER ref6=4,28,-1,22,-1,16 quantity 18->11 max 18->18 discovered 0->1 extinct 0->0
+edge | 1 | idx 3372 | TROLL ref6=4,28,-1,22,-1,25 quantity 8->7 max 8->8 discovered 0->1 extinct 0->0
+edge | 1 | idx 3376 | Vermin:419 ref6=4,28,-1,22,-1,29 quantity 345->323 max 345->345 discovered 0->1 extinct 0->0
+edge | 1 | idx 3382 | Vermin:620 ref6=4,28,-1,29,-1,4 quantity 331->286 max 331->331 discovered 0->1 extinct 0->0
+edge | 1 | idx 3389 | DEMON_2 ref6=4,28,-1,38,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+
+01:06:55 run E25-OCEAN 20260918-010655: Wet-edge detector on OCEAN: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+01:06:56   [rig] DF already running (pid 47318), port 5555
+01:06:56 == E25-OCEAN arm=edge rep=1 fort=OCEAN budget=1000 every=1000
+01:06:56   [rig] restored OCEAN.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/OCEAN
+01:06:56   restored OCEAN.preverify -> OCEAN sha256 0d514f990f46
+01:07:12   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+01:07:12   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+01:07:12   [rig] drained 0 queued popup(s)
+01:07:13   baseline: 12 wild units on map, 990 pool entries, tick 16948 year 5
+01:07:21   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) -> e25 edge: perimeter 764 columns, 116 with deep water at some z; by z relative to the land-entry surface (wet/deep): -39:73/73 -49:15/15 -57:32/32 -58:19/19; deep within -6..+1: 0, of which in an ocean or lake biome: 0 []; 106 live feature entries -> DORMANT: no deep water near the surface
+01:07:21   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+01:07:34   [rig] back at the title screen
+01:07:34   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 3, "departures": 0, "deaths": 0, "ticks": 1210, "wall_s": 3.9, "stop": null, "ticks_per_s": 313.7, "save_untouched": true}
+01:07:50   [rig] clicked through to OCEAN (world: Udon Alu); waiting for the map
+01:07:50   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16948 season=0 units=51)
+01:07:59   [rig] back at the title screen
+01:07:59 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN/20260918-010655
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-OCEAN/20260918-010655
+
+# E25-OCEAN -- Wet-edge detector on OCEAN: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260918-010655 fort OCEAN backup OCEAN.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 4..4,30..31 seed 424242
+commits: DwarfCron 0bdd50e seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1210 | 313.7 | 3 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1210 | WEASEL | 4,31,-1,-1,-1,51 | 1 | 26828 | - | present
+edge | 1 | +1210 | OLM_GIANT | 4,30,-1,11,-1,12 | 2 | 23365,26485 | - | present
+
+## Waves (2; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +0 | WEASEL | surface | 1 | 0 | 0 | 1
+edge | 1 | +0 | OLM_GIANT | cavern | 2 | 0 | 0 | 2
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) | e25 edge: perimeter 764 columns, 116 with deep water at some z; by z relative to the land-entry surface (wet/deep): -39:73/73 -49:15/15 -57:32/32 -58:19/19; deep within -6..+1: 0, of which in an ocean or lake biome: 0 []; 106 live feature entries -> DORMANT: no deep water near the surface
+
+## Pool entries that changed between load and end of replicate (15; the second instrument)
+edge | 1 | idx 3020 | CROCODILE_CAVE ref6=4,30,-1,2,-1,9 quantity 9->10 max 10->10 discovered 1->1 extinct 0->0
+edge | 1 | idx 3025 | Vermin:616 ref6=4,30,-1,2,-1,14 quantity 355->351 max 355->355 discovered 0->1 extinct 0->0
+edge | 1 | idx 3026 | Vermin:410 ref6=4,30,-1,2,-1,15 quantity 436->431 max 438->438 discovered 1->1 extinct 0->0
+edge | 1 | idx 3027 | Vermin:621 ref6=4,30,-1,2,-1,16 quantity 425->416 max 425->425 discovered 0->1 extinct 0->0
+edge | 1 | idx 3035 | Vermin:630 ref6=4,30,-1,2,-1,24 quantity 278->271 max 280->280 discovered 1->1 extinct 0->0
+edge | 1 | idx 3036 | Vermin:623 ref6=4,30,-1,2,-1,25 quantity 232->230 max 232->232 discovered 0->1 extinct 0->0
+edge | 1 | idx 3051 | OLM_GIANT ref6=4,30,-1,11,-1,12 quantity 8->7 max 9->9 discovered 1->1 extinct 0->0
+edge | 1 | idx 3058 | Vermin:616 ref6=4,30,-1,11,-1,19 quantity 256->254 max 256->256 discovered 0->1 extinct 0->0
+edge | 1 | idx 3059 | Vermin:410 ref6=4,30,-1,11,-1,20 quantity 187->181 max 188->188 discovered 1->1 extinct 0->0
+edge | 1 | idx 3066 | Vermin:630 ref6=4,30,-1,11,-1,27 quantity 151->145 max 151->151 discovered 0->1 extinct 0->0
+edge | 1 | idx 3067 | Vermin:623 ref6=4,30,-1,11,-1,28 quantity 184->180 max 185->185 discovered 1->1 extinct 0->0
+edge | 1 | idx 3107 | Vermin:419 ref6=4,30,-1,20,-1,32 quantity 225->209 max 229->229 discovered 1->1 extinct 0->0
+edge | 1 | idx 3113 | Vermin:620 ref6=4,30,-1,29,-1,4 quantity 340->302 max 347->347 discovered 1->1 extinct 0->0
+edge | 1 | idx 3153 | Vermin:528 ref6=4,31,-1,-1,-1,38 quantity 407->401 max 408->408 discovered 1->1 extinct 0->0
+edge | 1 | idx 3163 | WEASEL ref6=4,31,-1,-1,-1,51 quantity 25->26 max 26->26 discovered 1->1 extinct 0->0
+
+## Units present at load (held group from the save), 12 rows; first few:
+edge | 1 | 162 | TROLL ref6=3,31,-1,2,-1,26 countdown=20176 flag_src=1
+edge | 1 | 163 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=23438 flag_src=1
+edge | 1 | 164 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=26233 flag_src=1
+edge | 1 | 165 | MAGMA_CRAB ref6=4,31,-1,29,-1,0 countdown=20737 flag_src=1
+edge | 1 | 166 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=23517 flag_src=1
+edge | 1 | 167 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=22011 flag_src=1
+edge | 1 | 168 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=24557 flag_src=1
+edge | 1 | 169 | DEMON_15 ref6=4,30,-1,38,-1,0 countdown=29111 flag_src=1
+
+01:07:59 run E25-LAKE 20260918-010759: Wet-edge detector on LAKE: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+01:07:59   [rig] DF already running (pid 47318), port 5555
+01:07:59 == E25-LAKE arm=edge rep=1 fort=LAKE budget=1000 every=1000
+01:07:59   [rig] restored LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/LAKE
+01:07:59   restored LAKE.preverify -> LAKE sha256 76631d44449e
+01:08:15   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+01:08:15   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+01:08:16   [rig] drained 0 queued popup(s)
+01:08:17   baseline: 9 wild units on map, 912 pool entries, tick 16883 year 5
+01:08:26   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) -> e25 edge: perimeter 764 columns, 616 with deep water at some z; by z relative to the land-entry surface (wet/deep): -1:616/616 -2:127/127 -3:103/103 -14:29/29 -47:16/16; deep within -6..+1: 846, of which in an ocean or lake biome: 846 [LAKE_TROPICAL_FRESHWATER=846]; 308 live feature entries -> LIVE
+01:08:26   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+01:08:38   [rig] back at the title screen
+01:08:38   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 17, "departures": 0, "deaths": 0, "ticks": 1119, "wall_s": 3.2, "stop": null, "ticks_per_s": 346.1, "save_untouched": true}
+01:08:54   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+01:08:54   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+01:09:03   [rig] back at the title screen
+01:09:03 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-LAKE/20260918-010759
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-LAKE/20260918-010759
+
+# E25-LAKE -- Wet-edge detector on LAKE: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260918-010759 fort LAKE backup LAKE.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 12..13,28..28 seed 424242
+commits: DwarfCron 0bdd50e seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: live
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1119 | 346.1 | 17 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1119 | BIRD_EAGLE | 13,28,-1,-1,-1,103 | 1 | 28202 | - | present
+edge | 1 | +1119 | TROGLODYTE | 13,28,-1,14,-1,3 | 6 | 20902,21820,25349,25371,27081,29383 | - | present
+edge | 1 | +1119 | REACHER | 12,28,-1,23,-1,26 | 1 | 20294 | - | present
+edge | 1 | +1119 | BIRD_SWALLOW_CAVE_GIANT | 12,28,-1,2,-1,18 | 1 | 22927 | - | present
+edge | 1 | +1119 | IMP_FIRE | 13,27,-1,32,-1,1 | 4 | 22213,22860,26062,26815 | - | present
+edge | 1 | +1119 | DEMON_14 | 12,28,-1,41,-1,1 | 4 | 19969,24270,24891,29557 | - | present
+
+## Waves (6; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1119 | BIRD_EAGLE | surface | 1 | 0 | 0 | 1
+edge | 1 | +1119 | TROGLODYTE | cavern | 6 | 0 | 0 | 6
+edge | 1 | +1119 | REACHER | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1119 | BIRD_SWALLOW_CAVE_GIANT | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1119 | IMP_FIRE | cavern | 4 | 0 | 0 | 4
+edge | 1 | +1119 | DEMON_14 | cavern | 4 | 0 | 0 | 4
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) | e25 edge: perimeter 764 columns, 616 with deep water at some z; by z relative to the land-entry surface (wet/deep): -1:616/616 -2:127/127 -3:103/103 -14:29/29 -47:16/16; deep within -6..+1: 846, of which in an ocean or lake biome: 846 [LAKE_TROPICAL_FRESHWATER=846]; 308 live feature entries -> LIVE
+
+## Pool entries that changed between load and end of replicate (27; the second instrument)
+edge | 1 | idx 4199 | Vermin:508 ref6=12,28,-1,-1,-1,0 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+edge | 1 | idx 4200 | Vermin:566 ref6=12,28,-1,-1,-1,1 quantity 271->272 max 272->272 discovered 1->1 extinct 0->0
+edge | 1 | idx 4209 | Vermin:570 ref6=12,28,-1,-1,-1,10 quantity 142->141 max 142->142 discovered 0->1 extinct 0->0
+edge | 1 | idx 4210 | Vermin:561 ref6=12,28,-1,-1,-1,11 quantity 212->208 max 213->213 discovered 1->1 extinct 0->0
+edge | 1 | idx 4212 | Vermin:562 ref6=12,28,-1,-1,-1,13 quantity 279->277 max 279->279 discovered 0->1 extinct 0->0
+edge | 1 | idx 4237 | Vermin:617 ref6=12,28,-1,2,-1,13 quantity 445->445 max 445->445 discovered 0->1 extinct 0->0
+edge | 1 | idx 4239 | Vermin:410 ref6=12,28,-1,2,-1,15 quantity 433->426 max 433->433 discovered 0->1 extinct 0->0
+edge | 1 | idx 4240 | Vermin:621 ref6=12,28,-1,2,-1,16 quantity 421->416 max 421->421 discovered 0->1 extinct 0->0
+edge | 1 | idx 4242 | BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 quantity 19->18 max 20->20 discovered 1->1 extinct 0->0
+edge | 1 | idx 4248 | Vermin:630 ref6=12,28,-1,2,-1,24 quantity 277->269 max 277->277 discovered 0->1 extinct 0->0
+edge | 1 | idx 4249 | Vermin:623 ref6=12,28,-1,2,-1,25 quantity 230->225 max 230->230 discovered 0->1 extinct 0->0
+edge | 1 | idx 4259 | Vermin:623 ref6=12,28,-1,14,-1,7 quantity 240->231 max 243->243 discovered 1->1 extinct 0->0
+edge | 1 | idx 4260 | Vermin:630 ref6=12,28,-1,14,-1,8 quantity 255->242 max 257->257 discovered 1->1 extinct 0->0
+edge | 1 | idx 4261 | Vermin:616 ref6=12,28,-1,14,-1,9 quantity 406->404 max 406->406 discovered 0->1 extinct 0->0
+edge | 1 | idx 4294 | REACHER ref6=12,28,-1,23,-1,26 quantity 13->12 max 13->13 discovered 0->1 extinct 0->0
+edge | 1 | idx 4298 | Vermin:419 ref6=12,28,-1,23,-1,30 quantity 232->224 max 232->232 discovered 0->1 extinct 0->0
+edge | 1 | idx 4304 | Vermin:620 ref6=12,28,-1,32,-1,4 quantity 401->368 max 404->404 discovered 1->1 extinct 0->0
+edge | 1 | idx 4306 | DEMON_14 ref6=12,28,-1,41,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 5331 | IMP_FIRE ref6=13,27,-1,32,-1,1 quantity 21->17 max 21->21 discovered 0->1 extinct 0->0
+edge | 1 | idx 5385 | BIRD_EAGLE ref6=13,28,-1,-1,-1,103 quantity 20->19 max 20->20 discovered 0->1 extinct 0->0
+edge | 1 | idx 5397 | Vermin:196 ref6=13,28,-1,-1,-1,124 quantity 2716->2549 max 2716->2716 discovered 0->1 extinct 0->0
+edge | 1 | idx 5404 | Vermin:485 ref6=13,28,-1,-1,-1,148 quantity 186->185 max 186->186 discovered 0->1 extinct 0->0
+edge | 1 | idx 5430 | ALLIGATOR ref6=13,28,0,-1,-1,4 quantity 138->139 max 140->140 discovered 1->1 extinct 0->0
+edge | 1 | idx 5431 | HIPPO ref6=13,28,0,-1,-1,5 quantity 290->292 max 294->294 discovered 1->1 extinct 0->0
+edge | 1 | idx 5432 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 quantity 349->350 max 350->350 discovered 1->1 extinct 0->0
+edge | 1 | idx 5435 | Vermin:561 ref6=13,28,0,-1,-1,9 quantity 5025->5024 max 5026->5026 discovered 1->1 extinct 0->0
+edge | 1 | idx 5468 | TROGLODYTE ref6=13,28,-1,14,-1,3 quantity 18->8 max 18->18 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 9 rows; first few:
+edge | 1 | 162 | FISH_STINGRAY ref6=13,28,0,-1,-1,6 countdown=29034 flag_src=1
+edge | 1 | 163 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=22536 flag_src=1
+edge | 1 | 164 | ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=25426 flag_src=1
+edge | 1 | 165 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26786 flag_src=1
+edge | 1 | 166 | HIPPO ref6=13,28,0,-1,-1,5 countdown=21196 flag_src=1
+edge | 1 | 167 | HIPPO ref6=13,28,0,-1,-1,5 countdown=26547 flag_src=1
+edge | 1 | 168 | HIPPO ref6=13,28,0,-1,-1,5 countdown=27011 flag_src=1
+edge | 1 | 178 | WEASEL ref6=13,28,-1,-1,-1,170 countdown=26718 flag_src=1
+
+01:09:03 run E25-CTRL 20260918-010903: Wet-edge detector on CTRL: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+01:09:03   [rig] DF already running (pid 47318), port 5555
+01:09:03 == E25-CTRL arm=edge rep=1 fort=CTRL budget=1000 every=1000
+01:09:03   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+01:09:03   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+01:09:19   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+01:09:19   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+01:09:20   [rig] drained 0 queued popup(s)
+01:09:21   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+01:09:30   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) -> e25 edge: perimeter 764 columns, 165 with deep water at some z; by z relative to the land-entry surface (wet/deep): -65:10/10 -66:15/15 -74:30/30 -75:18/18 -79:126/126 -80:89/89; deep within -6..+1: 0, of which in an ocean or lake biome: 0 []; 147 live feature entries -> DORMANT: no deep water near the surface
+01:09:30   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+01:09:44   [rig] back at the title screen
+01:09:44   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 14, "departures": 0, "deaths": 0, "ticks": 1299, "wall_s": 4.3, "stop": null, "ticks_per_s": 302.4, "save_untouched": true}
+01:10:00   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+01:10:00   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+01:10:08   [rig] back at the title screen
+01:10:08 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-CTRL/20260918-010903
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-CTRL/20260918-010903
+
+# E25-CTRL -- Wet-edge detector on CTRL: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260918-010903 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 0bdd50e seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1299 | 302.4 | 14 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1299 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 21676 | - | present
+edge | 1 | +1299 | BLIND_CAVE_OGRE | 29,20,-1,13,-1,29 | 1 | 21556 | - | present
+edge | 1 | +1299 | DEMON_13 | 29,20,-1,43,-1,4 | 4 | 18796,19191,20335,25370 | - | present
+edge | 1 | +1299 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 18917 | - | present
+edge | 1 | +1299 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 1 | 24121 | - | present
+edge | 1 | +1299 | GORLAK | 29,21,-1,13,-1,33 | 1 | 23993 | - | present
+edge | 1 | +1299 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 20628,21518,24442,29099,29168 | - | present
+
+## Waves (7; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1299 | PORCUPINE | surface | 1 | 0 | 0 | 1
+edge | 1 | +1299 | BLIND_CAVE_OGRE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1299 | DEMON_13 | cavern | 4 | 0 | 0 | 4
+edge | 1 | +1299 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+edge | 1 | +1299 | CROCODILE_CAVE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1299 | GORLAK | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1299 | TROGLODYTE | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) | e25 edge: perimeter 764 columns, 165 with deep water at some z; by z relative to the land-entry surface (wet/deep): -65:10/10 -66:15/15 -74:30/30 -75:18/18 -79:126/126 -80:89/89; deep within -6..+1: 0, of which in an ocean or lake biome: 0 []; 147 live feature entries -> DORMANT: no deep water near the surface
+
+## Pool entries that changed between load and end of replicate (23; the second instrument)
+edge | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+edge | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+edge | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+edge | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3053 max 3530->3530 discovered 0->1 extinct 0->0
+edge | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2757 max 3352->3352 discovered 0->1 extinct 0->0
+edge | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+edge | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+edge | 1 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+edge | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->423 max 429->429 discovered 0->1 extinct 0->0
+edge | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->431 max 436->436 discovered 0->1 extinct 0->0
+edge | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->401 max 403->403 discovered 0->1 extinct 0->0
+edge | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->9 max 14->14 discovered 0->1 extinct 0->0
+edge | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->262 max 265->265 discovered 0->1 extinct 0->0
+edge | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->383 max 387->387 discovered 0->1 extinct 0->0
+edge | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+edge | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->245 max 257->257 discovered 0->1 extinct 0->0
+edge | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->301 max 313->313 discovered 0->1 extinct 0->0
+edge | 1 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+edge | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->303 max 336->336 discovered 0->1 extinct 0->0
+edge | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+edge | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->369 max 421->421 discovered 0->1 extinct 0->0
+edge | 1 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 4997 | GORLAK ref6=29,21,-1,13,-1,33 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 13 rows; first few:
+edge | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+edge | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+edge | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+edge | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+edge | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+edge | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+edge | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+edge | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+
+01:10:08 run E25-RIVER3 20260918-011008: Wet-edge detector on RIVER3: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+01:10:08   [rig] DF already running (pid 47318), port 5555
+01:10:08 == E25-RIVER3 arm=edge rep=1 fort=RIVER3 budget=1000 every=1000
+01:10:09   [rig] restored RIVER3.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/RIVER3
+01:10:09   restored RIVER3.preverify -> RIVER3 sha256 a6e181ec539f
+01:10:25   [rig] clicked through to RIVER3 (world: Udon Alu); waiting for the map
+01:10:25   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=21)
+01:10:25   [rig] drained 0 queued popup(s)
+01:10:26   baseline: 3 wild units on map, 683 pool entries, tick 16801 year 5
+01:10:34   manipulation: local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) -> e25 edge: perimeter 764 columns, 25 with deep water at some z; by z relative to the land-entry surface (wet/deep): -5:8/8 -21:17/17; deep within -6..+1: 8, of which in an ocean or lake biome: 0 [SHRUBLAND_TEMPERATE=8]; 245 live feature entries -> DORMANT: wet edge is a river, no waves (E26)
+01:10:34   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+01:10:47   [rig] back at the title screen
+01:10:47   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 29, "departures": 0, "deaths": 0, "ticks": 1200, "wall_s": 3.6, "stop": null, "ticks_per_s": 329.5, "save_untouched": true}
+01:11:03   [rig] clicked through to RIVER3 (world: Udon Alu); waiting for the map
+01:11:03   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=21)
+01:11:11   [rig] back at the title screen
+01:11:11 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-RIVER3/20260918-011008
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-RIVER3/20260918-011008
+
+# E25-RIVER3 -- Wet-edge detector on RIVER3: scan the map's whole perimeter at every z for water, report it by depth relative to the land-entry surface, count live feature entries; the game's map_edge list is land-entry tiles only and never holds water.
+run 20260918-011008 fort RIVER3 backup RIVER3.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 19..19,24..24 seed 424242
+commits: DwarfCron 0bdd50e seasonal-wildlife 7f61251 fps cap 1000
+
+## Predictions (written before the run)
+- detector: dormant
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+edge | 1 | True | None | 1200 | 329.5 | 29 | 0 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+edge | 1 | +1200 | BIRD_EAGLE | 18,23,-1,-1,-1,103 | 1 | 18965 | - | present
+edge | 1 | +1200 | CRUNDLE | 19,25,-1,14,-1,1 | 10 | 19229,19745,20574,21028,23244,23616,24743,26123,28232,28722 | - | present
+edge | 1 | +1200 | CAVE_BLOB | 19,24,-1,22,-1,11 | 2 | 23627,26058 | - | present
+edge | 1 | +1200 | DEMON_2 | 19,24,-1,40,-1,1 | 1 | 26233 | - | present
+edge | 1 | +1200 | CROCODILE_CAVE | 18,25,-1,2,-1,9 | 1 | 22130 | - | present
+edge | 1 | +1200 | RUTHERER | 18,25,-1,22,-1,16 | 7 | 24640,26232,27292,27386,27913,28574,28639 | - | present
+edge | 1 | +1200 | MAGMA_CRAB | 19,25,-1,32,-1,0 | 2 | 19993,21537 | - | present
+edge | 1 | +1200 | DEMON_3 | 19,24,-1,40,-1,2 | 5 | 20074,21416,24554,24814,27892 | - | present
+
+## Waves (8; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+edge | 1 | +1200 | BIRD_EAGLE | surface | 1 | 0 | 0 | 1
+edge | 1 | +1200 | CRUNDLE | cavern | 10 | 0 | 0 | 10
+edge | 1 | +1200 | CAVE_BLOB | cavern | 2 | 0 | 0 | 2
+edge | 1 | +1200 | DEMON_2 | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1200 | CROCODILE_CAVE | cavern | 1 | 0 | 0 | 1
+edge | 1 | +1200 | RUTHERER | cavern | 7 | 0 | 0 | 7
+edge | 1 | +1200 | MAGMA_CRAB | cavern | 2 | 0 | 0 | 2
+edge | 1 | +1200 | DEMON_3 | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+
+## Manipulations applied
+edge | 1 | +0 | local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries')))) | e25 edge: perimeter 764 columns, 25 with deep water at some z; by z relative to the land-entry surface (wet/deep): -5:8/8 -21:17/17; deep within -6..+1: 8, of which in an ocean or lake biome: 0 [SHRUBLAND_TEMPERATE=8]; 245 live feature entries -> DORMANT: wet edge is a river, no waves (E26)
+
+## Pool entries that changed between load and end of replicate (29; the second instrument)
+edge | 1 | idx 2986 | BIRD_EAGLE ref6=18,23,-1,-1,-1,103 quantity 21->21 max 21->21 discovered 0->1 extinct 0->0
+edge | 1 | idx 3405 | CROCODILE_CAVE ref6=18,25,-1,2,-1,9 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+edge | 1 | idx 3422 | TROLL ref6=18,25,-1,2,-1,26 quantity 8->6 max 8->8 discovered 0->1 extinct 0->0
+edge | 1 | idx 3456 | RUTHERER ref6=18,25,-1,22,-1,16 quantity 18->11 max 18->18 discovered 0->1 extinct 0->0
+edge | 1 | idx 4373 | Vermin:0 ref6=19,24,-1,-1,-1,78 quantity 354->352 max 354->354 discovered 0->1 extinct 0->0
+edge | 1 | idx 4375 | Vermin:5 ref6=19,24,-1,-1,-1,80 quantity 195->193 max 195->195 discovered 0->1 extinct 0->0
+edge | 1 | idx 4381 | Vermin:91 ref6=19,24,-1,-1,-1,99 quantity 163->162 max 163->163 discovered 0->1 extinct 0->0
+edge | 1 | idx 4391 | Vermin:145 ref6=19,24,-1,-1,-1,118 quantity 3775->3568 max 3775->3775 discovered 0->1 extinct 0->0
+edge | 1 | idx 4392 | Vermin:148 ref6=19,24,-1,-1,-1,119 quantity 349->348 max 349->349 discovered 0->1 extinct 0->0
+edge | 1 | idx 4402 | Vermin:514 ref6=19,24,-1,-1,-1,150 quantity 311->310 max 311->311 discovered 0->1 extinct 0->0
+edge | 1 | idx 4404 | Vermin:528 ref6=19,24,-1,-1,-1,153 quantity 317->317 max 317->317 discovered 0->1 extinct 0->0
+edge | 1 | idx 4406 | Vermin:561 ref6=19,24,-1,-1,-1,158 quantity 211->209 max 211->211 discovered 0->1 extinct 0->0
+edge | 1 | idx 4424 | PLATYPUS ref6=19,24,0,-1,-1,6 quantity 306->308 max 308->308 discovered 1->1 extinct 0->0
+edge | 1 | idx 4427 | Vermin:561 ref6=19,24,0,-1,-1,9 quantity 3333->3328 max 3333->3333 discovered 0->1 extinct 0->0
+edge | 1 | idx 4443 | Vermin:621 ref6=19,24,-1,7,-1,14 quantity 293->291 max 293->293 discovered 0->1 extinct 0->0
+edge | 1 | idx 4444 | Vermin:616 ref6=19,24,-1,7,-1,15 quantity 285->283 max 285->285 discovered 0->1 extinct 0->0
+edge | 1 | idx 4453 | Vermin:630 ref6=19,24,-1,7,-1,24 quantity 296->294 max 296->296 discovered 0->1 extinct 0->0
+edge | 1 | idx 4454 | Vermin:623 ref6=19,24,-1,7,-1,25 quantity 414->411 max 414->414 discovered 0->1 extinct 0->0
+edge | 1 | idx 4464 | Vermin:623 ref6=19,24,-1,14,-1,7 quantity 239->228 max 239->239 discovered 0->1 extinct 0->0
+edge | 1 | idx 4465 | Vermin:630 ref6=19,24,-1,14,-1,8 quantity 253->246 max 253->253 discovered 0->1 extinct 0->0
+edge | 1 | idx 4466 | Vermin:616 ref6=19,24,-1,14,-1,9 quantity 399->392 max 399->399 discovered 0->1 extinct 0->0
+edge | 1 | idx 4484 | CAVE_BLOB ref6=19,24,-1,22,-1,11 quantity 337->335 max 337->337 discovered 0->1 extinct 0->0
+edge | 1 | idx 4502 | Vermin:419 ref6=19,24,-1,22,-1,29 quantity 336->311 max 336->336 discovered 0->1 extinct 0->0
+edge | 1 | idx 4508 | Vermin:620 ref6=19,24,-1,32,-1,4 quantity 404->362 max 404->404 discovered 0->1 extinct 0->0
+edge | 1 | idx 4510 | DEMON_2 ref6=19,24,-1,40,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 4511 | DEMON_3 ref6=19,24,-1,40,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+edge | 1 | idx 4640 | CRUNDLE ref6=19,25,-1,14,-1,1 quantity 131->112 max 131->131 discovered 0->1 extinct 0->0
+edge | 1 | idx 4687 | MAGMA_CRAB ref6=19,25,-1,32,-1,0 quantity 35->33 max 35->35 discovered 0->1 extinct 0->0
+edge | 1 | idx 5715 | Vermin:561 ref6=20,24,-1,-1,-1,158 quantity 199->198 max 199->199 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 3 rows; first few:
+edge | 1 | 162 | PLATYPUS ref6=19,24,0,-1,-1,6 countdown=29926 flag_src=1
+edge | 1 | 163 | PLATYPUS ref6=19,24,0,-1,-1,6 countdown=28399 flag_src=1
+edge | 1 | 164 | BIRD_EAGLE ref6=19,24,-1,-1,-1,103 countdown=21835 flag_src=1
+

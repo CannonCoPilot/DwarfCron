@@ -1,0 +1,54 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260918-010903	edge	1	16800	823200	baseline	wild_present	13
+20260918-010903	edge	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260918-010903	edge	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260918-010903	edge	1	16800	823200	manipulation	local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries'))))	e25 edge: perimeter 764 columns, 165 with deep water at some z; by z relative to the land-entry surface (wet/deep): -65:10/10 -66:15/15 -74:30/30 -75:18/18 -79:126/126 -80:89/89; deep within -6..+1: 0, of which in an ocean or lake biome: 0 []; 147 live feature entries -> DORMANT: no deep water near the surface
+20260918-010903	edge	1	18099	824499	arrival	139	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=21676 vanish=0 flag_src=1 flag_nf=1 pos=26,59,104 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	140	BLIND_CAVE_OGRE caste=MALE ref6=29,20,-1,13,-1,29 layer=cavern countdown=21556 vanish=0 flag_src=1 flag_nf=0 pos=175,41,29 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	141	DEMON_13 caste=DEFAULT ref6=29,20,-1,43,-1,4 layer=cavern countdown=18796 vanish=0 flag_src=1 flag_nf=0 pos=102,178,8 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	142	DEMON_13 caste=DEFAULT ref6=29,20,-1,43,-1,4 layer=cavern countdown=25370 vanish=0 flag_src=1 flag_nf=0 pos=69,177,8 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	143	DEMON_13 caste=DEFAULT ref6=29,20,-1,43,-1,4 layer=cavern countdown=19191 vanish=0 flag_src=1 flag_nf=0 pos=69,177,8 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	144	DEMON_13 caste=DEFAULT ref6=29,20,-1,43,-1,4 layer=cavern countdown=20335 vanish=0 flag_src=1 flag_nf=0 pos=69,177,8 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	145	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=18917 vanish=0 flag_src=1 flag_nf=1 pos=187,0,115 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	146	CROCODILE_CAVE caste=MALE ref6=29,20,-1,8,-1,10 layer=cavern countdown=24121 vanish=0 flag_src=1 flag_nf=0 pos=101,183,52 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	147	GORLAK caste=MALE ref6=29,21,-1,13,-1,33 layer=cavern countdown=23993 vanish=0 flag_src=1 flag_nf=0 pos=4,169,31 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	148	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=20628 vanish=0 flag_src=1 flag_nf=0 pos=0,173,52 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	149	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=21518 vanish=0 flag_src=1 flag_nf=0 pos=5,168,52 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	150	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=29168 vanish=0 flag_src=1 flag_nf=0 pos=5,184,54 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	151	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=29099 vanish=0 flag_src=1 flag_nf=0 pos=24,189,58 listed_at=824499
+20260918-010903	edge	1	18099	824499	arrival	152	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=24442 vanish=0 flag_src=1 flag_nf=0 pos=26,191,58 listed_at=824499
+20260918-010903	edge	1	18099	824499	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4700	Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->237 max 241->241 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->306 max 308->308 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3053 max 3530->3530 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->2757 max 3352->3352 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4727	PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4745	CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->423 max 429->429 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->431 max 436->436 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->401 max 403->403 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4754	TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->9 max 14->14 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4760	Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->262 max 265->265 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->383 max 387->387 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->245 max 257->257 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4790	Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->301 max 313->313 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4793	BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->303 max 336->336 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4831	MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->34 max 38->38 discovered 1->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->369 max 421->421 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4840	DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	pool_delta	4997	GORLAK ref6=29,21,-1,13,-1,33 quantity 11->10 max 11->11 discovered 0->1 extinct 0->0
+20260918-010903	edge	1	18099	824499	end	summary	{"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 14, "departures": 0, "deaths": 0, "ticks": 1299, "wall_s": 4.3, "stop": null, "ticks_per_s": 302.4, "save_untouched": true}

@@ -1,0 +1,145 @@
+23:51:40 run E25-LAKE 20260917-235140: Wet-edge detector on LAKE: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected live.
+23:51:40   [rig] DF already running (pid 50930), port 5555
+23:51:40 == E25-LAKE arm=edge rep=1 fort=LAKE budget=1000 every=1000
+23:51:41   [rig] restored LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/LAKE
+23:51:41   restored LAKE.preverify -> LAKE sha256 76631d44449e
+23:52:49   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+23:52:49   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+23:52:50   [rig] drained 0 queued popup(s)
+23:52:51   baseline: 9 wild units on map, 912 pool entries, tick 16883 year 5
+23:52:52   manipulation: local me=df.global.plotinfo.map_edge; local tot,hist,fe=0,{},0; local zmax=df.global.world.map.z_count-1; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; for z=math.max(0,sz-40),math.min(zmax,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then local off=sz-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1 end end end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('z-%d:%d/%d'):format(o,hist[o][1],hist[o][2]); if o<=3 then near=near+hist[o][2] end end; print(('e25 edge: %d edge columns; water by depth below the surface z (wet/deep): %s; deep within 3 levels of the surface: %d; %d live feature entries -> %s'):format(tot, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge near the surface' or 'DORMANT: no feature entries'))) -> e25 edge: 127 edge columns; water by depth below the surface z (wet/deep): none; deep within 3 levels of the surface: 0; 308 live feature entries -> DORMANT: no deep wet edge near the surface
+23:52:52   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+176	191	95	GrassDryFloor3	0	water
+177	191	95	GrassDryFloor2	0	water
+178	191	95	GrassDryFloor2	0	water
+179	191	95	StoneFloor4	0	water
+180	191	95	StonePebbles3	0	water
+181	191	95	GrassDryFloor1	0	water
+182	191	95	GrassDryFloor4	0	water
+183	191	95	GrassDryFloor4	0	water
+184	191	95	GrassDryFloor1	0	water
+185	191	95	GrassDryFloor2	0	water
+186	191	95	GrassDryFloor4	0	water
+187	191	95	GrassDryFloor2	0	water
+188	191	95	GrassDryFloor3	0	water
+189	191	95	GrassDryFloor1	0	water
+190	191	95	StonePebbles2	0	water
+191	191	95	GrassDryFloor2	0	water
+191	80	95	GrassDryFloor2	0	water
+191	81	95	GrassDryFloor4	0	water
+191	82	95	GrassDryFloor3	0	water
+191	83	95	GrassDryFloor2	0	water
+191	84	95	GrassDryFloor1	0	water
+191	85	95	Shrub	0	water
+191	86	95	GrassDryFloor4	0	water
+191	87	95	GrassDryFloor3	0	water
+191	88	95	GrassDryFloor1	0	water
+191	89	95	GrassDryFloor3	0	water
+191	90	95	GrassDryFloor1	0	water
+191	91	95	GrassDryFloor4	0	water
+191	92	95	GrassDryFloor2	0	water
+191	93	95	GrassDryFloor2	0	water
+191	94	95	GrassDryFloor3	0	water
+191	95	95	GrassDryFloor2	0	water
+191	96	95	GrassDryFloor4	0	water
+191	97	95	GrassDryFloor3	0	water
+191	98	95	GrassDryFloor3	0	water
+191	99	95	StonePebbles1	0	water
+191	100	95	GrassDryFloor3	0	water
+191	101	95	GrassDryFloor3	0	water
+191	102	95	GrassDryFloor4	0	water
+191	103	95	StonePebbles3	0	water
+191	104	95	Shrub	0	water
+191	105	95	GrassDryFloor1	0	water
+191	106	95	GrassDryFloor4	0	water
+191	107	95	StonePebbles4	0	water
+191	108	95	GrassDryFloor1	0	water
+191	109	95	GrassDryFloor4	0	water
+191	110	95	GrassDryFloor2	0	water
+191	111	95	StoneBoulder	0	water
+191	112	95	GrassDryFloor2	0	water
+191	113	95	GrassDryFloor2	0	water
+191	114	95	GrassDryFloor1	0	water
+191	115	95	GrassDryFloor1	0	water
+191	116	95	GrassDryFloor4	0	water
+191	117	95	GrassDryFloor2	0	water
+191	118	95	GrassDryFloor4	0	water
+191	119	95	GrassDryFloor4	0	water
+191	120	95	GrassDryFloor4	0	water
+191	121	95	GrassDryFloor1	0	water
+191	122	95	GrassDryFloor4	0	water
+191	123	95	GrassDryFloor1	0	water
+191	124	95	GrassDryFloor3	0	water
+191	125	95	GrassDryFloor1	0	water
+191	126	95	GrassDryFloor2	0	water
+191	127	95	GrassDryFloor2	0	water
+191	128	95	GrassDryFloor1	0	water
+191	129	95	GrassDryFloor1	0	water
+191	130	95	GrassDryFloor3	0	water
+191	131	95	GrassDryFloor1	0	water
+191	132	95	Shrub	0	water
+191	133	95	GrassDryFloor1	0	water
+191	134	95	GrassDryFloor4	0	water
+191	135	95	GrassDryFloor1	0	water
+191	136	95	GrassDryFloor4	0	water
+191	137	95	GrassDryFloor3	0	water
+191	138	95	GrassDryFloor2	0	water
+191	139	95	GrassDryFloor4	0	water
+191	140	95	GrassDryFloor2	0	water
+191	141	95	GrassDryFloor4	0	water
+191	142	95	GrassDryFloor1	0	water
+191	143	95	GrassDryFloor4	0	water
+191	144	95	GrassDryFloor2	0	water
+191	145	95	GrassDryFloor4	0	water
+191	146	95	GrassDryFloor1	0	water
+191	147	95	GrassDryFloor3	0	water
+191	148	95	GrassDryFloor4	0	water
+191	149	95	GrassDryFloor2	0	water
+191	150	95	StonePebbles1	0	water
+191	151	95	GrassDryFloor1	0	water
+191	152	95	GrassDryFloor1	0	water
+191	153	95	GrassDryFloor3	0	water
+191	154	95	GrassDryFloor4	0	water
+191	155	95	GrassDryFloor1	0	water
+191	156	95	GrassDryFloor3	0	water
+191	157	95	GrassDryFloor1	0	water
+191	158	95	GrassDryFloor2	0	water
+191	159	95	GrassDryFloor2	0	water
+191	160	95	GrassDryFloor2	0	water
+191	161	95	GrassDryFloor3	0	water
+191	162	95	StoneFloor1	0	water
+191	163	95	GrassDryFloor3	0	water
+191	164	95	GrassDryFloor1	0	water
+191	165	95	GrassDryFloor1	0	water
+191	166	95	GrassDryFloor3	0	water
+191	167	95	StonePebbles2	0	water
+191	168	95	GrassDryFloor2	0	water
+191	169	95	GrassDryFloor1	0	water
+191	170	95	GrassDryFloor3	0	water
+191	171	95	GrassDryFloor2	0	water
+191	172	95	GrassDryFloor4	0	water
+191	173	95	GrassDryFloor3	0	water
+191	174	95	GrassDryFloor2	0	water
+191	175	95	StoneFloor3	0	water
+191	176	95	Shrub	0	water
+191	177	95	GrassDryFloor3	0	water
+191	178	95	GrassDryFloor2	0	water
+191	179	95	StoneFloor4	0	water
+191	180	95	GrassDryFloor1	0	water
+191	181	95	GrassDryFloor2	0	water
+191	182	95	GrassDryFloor4	0	water
+191	183	95	GrassDryFloor3	0	water
+191	184	95	GrassDryFloor2	0	water
+191	185	95	StonePebbles2	0	water
+191	186	95	GrassDryFloor2	0	water
+191	187	95	GrassDryFloor2	0	water
+191	188	95	GrassDryFloor3	0	water
+191	189	95	SoilFloor1	0	water
+191	190	95	GrassDryFloor4	0	water
+23:52:52   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+23:53:20   [rig] back at the title screen
+23:53:20   done: {"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 21, "departures": 0, "deaths": 0, "ticks": 1141, "wall_s": 18.0, "stop": null, "ticks_per_s": 63.3, "save_untouched": true}
+23:54:31   [rig] clicked through to LAKE (world: Udon Alu); waiting for the map
+23:54:31   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16883 season=0 units=36)
+23:54:39   [rig] back at the title screen
+23:54:39 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E25-LAKE/20260917-235140

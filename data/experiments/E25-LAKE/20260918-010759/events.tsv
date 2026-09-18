@@ -1,0 +1,57 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260918-010759	edge	1	16883	2032883	baseline	wild_present	9
+20260918-010759	edge	1	16883	2032883	present_at_start	162	FISH_STINGRAY ref6=13,28,0,-1,-1,6 countdown=29034 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	163	ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=22536 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	164	ALLIGATOR ref6=13,28,0,-1,-1,4 countdown=25426 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	165	HIPPO ref6=13,28,0,-1,-1,5 countdown=26786 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	166	HIPPO ref6=13,28,0,-1,-1,5 countdown=21196 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	167	HIPPO ref6=13,28,0,-1,-1,5 countdown=26547 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	168	HIPPO ref6=13,28,0,-1,-1,5 countdown=27011 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	178	WEASEL ref6=13,28,-1,-1,-1,170 countdown=26718 flag_src=1
+20260918-010759	edge	1	16883	2032883	present_at_start	179	BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 countdown=24060 flag_src=1
+20260918-010759	edge	1	16883	2032883	manipulation	local W,H,Z=df.global.world.map.x_count,df.global.world.map.y_count,df.global.world.map.z_count; local me=df.global.plotinfo.map_edge; local szmax=0; for i=0,#me.surface_z-1 do if me.surface_z[i]>szmax then szmax=me.surface_z[i] end end; local cols,hist,wetcols,fe,bio={},{},0,0,{}; for x=0,W-1 do cols[#cols+1]={x,0}; cols[#cols+1]={x,H-1} end; for y=1,H-2 do cols[#cols+1]={0,y}; cols[#cols+1]={W-1,y} end; for _,c in ipairs(cols) do local hit=false; for z=0,Z-1 do local pos=xyz2pos(c[1],c[2],z); local d=dfhack.maps.getTileFlags(pos); if d and d.flow_size>0 and not d.liquid_type then local off=szmax-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1; hit=true; if off>=-1 and off<=6 then local rx,ry=dfhack.maps.getTileBiomeRgn(pos); local bt=rx and df.biome_type[dfhack.maps.getBiomeType(rx,ry)] or '?'; bio[bt]=(bio[bt] or 0)+1 end end end end; if hit then wetcols=wetcols+1 end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('%+d:%d/%d'):format(-o,hist[o][1],hist[o][2]); if o>=-1 and o<=6 then near=near+hist[o][2] end end; local bparts,sea={},0; for b,n in pairs(bio) do bparts[#bparts+1]=b..'='..n; if b:find('OCEAN') or b:find('LAKE') then sea=sea+n end end; table.sort(bparts); print(('e25 edge: perimeter %d columns, %d with deep water at some z; by z relative to the land-entry surface (wet/deep): %s; deep within -6..+1: %d, of which in an ocean or lake biome: %d [%s]; %d live feature entries -> %s'):format(#cols, wetcols, #parts>0 and table.concat(parts,' ') or 'none', near, sea, table.concat(bparts,' '), fe, (sea>0 and fe>0) and 'LIVE' or (near>0 and 'DORMANT: wet edge is a river, no waves (E26)' or (fe>0 and 'DORMANT: no deep water near the surface' or 'DORMANT: no feature entries'))))	e25 edge: perimeter 764 columns, 616 with deep water at some z; by z relative to the land-entry surface (wet/deep): -1:616/616 -2:127/127 -3:103/103 -14:29/29 -47:16/16; deep within -6..+1: 846, of which in an ocean or lake biome: 846 [LAKE_TROPICAL_FRESHWATER=846]; 308 live feature entries -> LIVE
+20260918-010759	edge	1	18002	2034002	arrival	180	BIRD_EAGLE caste=MALE ref6=13,28,-1,-1,-1,103 layer=surface countdown=28202 vanish=0 flag_src=1 flag_nf=1 pos=165,100,102 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	181	TROGLODYTE caste=MALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=25371 vanish=0 flag_src=1 flag_nf=0 pos=183,132,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	182	TROGLODYTE caste=MALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=27081 vanish=0 flag_src=1 flag_nf=0 pos=191,129,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	183	TROGLODYTE caste=FEMALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=20902 vanish=0 flag_src=1 flag_nf=0 pos=190,124,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	184	TROGLODYTE caste=FEMALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=21820 vanish=0 flag_src=1 flag_nf=0 pos=191,125,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	185	TROGLODYTE caste=FEMALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=25349 vanish=0 flag_src=1 flag_nf=0 pos=191,122,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	186	TROGLODYTE caste=FEMALE ref6=13,28,-1,14,-1,3 layer=cavern countdown=29383 vanish=0 flag_src=1 flag_nf=0 pos=191,120,79 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	191	REACHER caste=FEMALE ref6=12,28,-1,23,-1,26 layer=cavern countdown=20294 vanish=0 flag_src=1 flag_nf=0 pos=65,190,52 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	192	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=12,28,-1,2,-1,18 layer=cavern countdown=22927 vanish=0 flag_src=1 flag_nf=0 pos=106,167,82 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	193	IMP_FIRE caste=DEFAULT ref6=13,27,-1,32,-1,1 layer=cavern countdown=22213 vanish=0 flag_src=1 flag_nf=0 pos=191,61,38 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	194	IMP_FIRE caste=DEFAULT ref6=13,27,-1,32,-1,1 layer=cavern countdown=26815 vanish=0 flag_src=1 flag_nf=0 pos=191,60,38 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	195	IMP_FIRE caste=DEFAULT ref6=13,27,-1,32,-1,1 layer=cavern countdown=26062 vanish=0 flag_src=1 flag_nf=0 pos=191,58,38 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	196	IMP_FIRE caste=DEFAULT ref6=13,27,-1,32,-1,1 layer=cavern countdown=22860 vanish=0 flag_src=1 flag_nf=0 pos=191,62,38 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	197	DEMON_14 caste=DEFAULT ref6=12,28,-1,41,-1,1 layer=cavern countdown=24891 vanish=0 flag_src=1 flag_nf=0 pos=189,184,4 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	198	DEMON_14 caste=DEFAULT ref6=12,28,-1,41,-1,1 layer=cavern countdown=29557 vanish=0 flag_src=1 flag_nf=0 pos=191,182,4 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	199	DEMON_14 caste=DEFAULT ref6=12,28,-1,41,-1,1 layer=cavern countdown=24270 vanish=0 flag_src=1 flag_nf=0 pos=191,176,4 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	arrival	200	DEMON_14 caste=DEFAULT ref6=12,28,-1,41,-1,1 layer=cavern countdown=19969 vanish=0 flag_src=1 flag_nf=0 pos=191,177,4 listed_at=2034002
+20260918-010759	edge	1	18002	2034002	pool_delta	4199	Vermin:508 ref6=12,28,-1,-1,-1,0 quantity 275->273 max 275->275 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4200	Vermin:566 ref6=12,28,-1,-1,-1,1 quantity 271->272 max 272->272 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4209	Vermin:570 ref6=12,28,-1,-1,-1,10 quantity 142->141 max 142->142 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4210	Vermin:561 ref6=12,28,-1,-1,-1,11 quantity 212->208 max 213->213 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4212	Vermin:562 ref6=12,28,-1,-1,-1,13 quantity 279->277 max 279->279 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4237	Vermin:617 ref6=12,28,-1,2,-1,13 quantity 445->445 max 445->445 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4239	Vermin:410 ref6=12,28,-1,2,-1,15 quantity 433->426 max 433->433 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4240	Vermin:621 ref6=12,28,-1,2,-1,16 quantity 421->416 max 421->421 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4242	BIRD_SWALLOW_CAVE_GIANT ref6=12,28,-1,2,-1,18 quantity 19->18 max 20->20 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4248	Vermin:630 ref6=12,28,-1,2,-1,24 quantity 277->269 max 277->277 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4249	Vermin:623 ref6=12,28,-1,2,-1,25 quantity 230->225 max 230->230 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4259	Vermin:623 ref6=12,28,-1,14,-1,7 quantity 240->231 max 243->243 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4260	Vermin:630 ref6=12,28,-1,14,-1,8 quantity 255->242 max 257->257 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4261	Vermin:616 ref6=12,28,-1,14,-1,9 quantity 406->404 max 406->406 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4294	REACHER ref6=12,28,-1,23,-1,26 quantity 13->12 max 13->13 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4298	Vermin:419 ref6=12,28,-1,23,-1,30 quantity 232->224 max 232->232 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4304	Vermin:620 ref6=12,28,-1,32,-1,4 quantity 401->368 max 404->404 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	4306	DEMON_14 ref6=12,28,-1,41,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5331	IMP_FIRE ref6=13,27,-1,32,-1,1 quantity 21->17 max 21->21 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5385	BIRD_EAGLE ref6=13,28,-1,-1,-1,103 quantity 20->19 max 20->20 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5397	Vermin:196 ref6=13,28,-1,-1,-1,124 quantity 2716->2549 max 2716->2716 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5404	Vermin:485 ref6=13,28,-1,-1,-1,148 quantity 186->185 max 186->186 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5430	ALLIGATOR ref6=13,28,0,-1,-1,4 quantity 138->139 max 140->140 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5431	HIPPO ref6=13,28,0,-1,-1,5 quantity 290->292 max 294->294 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5432	FISH_STINGRAY ref6=13,28,0,-1,-1,6 quantity 349->350 max 350->350 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5435	Vermin:561 ref6=13,28,0,-1,-1,9 quantity 5025->5024 max 5026->5026 discovered 1->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	pool_delta	5468	TROGLODYTE ref6=13,28,-1,14,-1,3 quantity 18->8 max 18->18 discovered 0->1 extinct 0->0
+20260918-010759	edge	1	18002	2034002	end	summary	{"arm": "edge", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 17, "departures": 0, "deaths": 0, "ticks": 1119, "wall_s": 3.2, "stop": null, "ticks_per_s": 346.1, "save_untouched": true}

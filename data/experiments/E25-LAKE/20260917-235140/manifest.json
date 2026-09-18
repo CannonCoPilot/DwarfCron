@@ -1,0 +1,32 @@
+{
+  "id": "E25-LAKE",
+  "title": "Wet-edge detector on LAKE: scan every map-edge column from forty levels below its surface to three above for water and those at depth 4 or more, and the live feature entries; expected live.",
+  "fork": "v5.8 wet-edge detection at load: a layer is live only when a deep wet edge exists and feature entries have stock.",
+  "fort": "LAKE",
+  "backup": "LAKE.preverify",
+  "fps": 1000,
+  "sample_every": 1000,
+  "tick_budget": 1000,
+  "combat": false,
+  "tool_must_be": {},
+  "predictions": [
+    {
+      "model": "detector",
+      "expects": "live"
+    }
+  ],
+  "kill_criterion": "five of five as expected",
+  "culling": [
+    "drop on breach"
+  ],
+  "arms": [
+    {
+      "name": "edge",
+      "replicates": 1,
+      "pre": [
+        "local me=df.global.plotinfo.map_edge; local tot,hist,fe=0,{},0; local zmax=df.global.world.map.z_count-1; for i=0,#me.surface_x-1 do local x,y,sz=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; for z=math.max(0,sz-40),math.min(zmax,sz+3) do local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then local off=sz-z; hist[off]=hist[off] or {0,0}; hist[off][1]=hist[off][1]+1; if d.flow_size>=4 then hist[off][2]=hist[off][2]+1 end end end end; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; local offs={}; for o in pairs(hist) do offs[#offs+1]=o end; table.sort(offs); local parts={}; local near=0; for _,o in ipairs(offs) do parts[#parts+1]=('z-%d:%d/%d'):format(o,hist[o][1],hist[o][2]); if o<=3 then near=near+hist[o][2] end end; print(('e25 edge: %d edge columns; water by depth below the surface z (wet/deep): %s; deep within 3 levels of the surface: %d; %d live feature entries -> %s'):format(tot, #parts>0 and table.concat(parts,' ') or 'none', near, fe, (near>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge near the surface' or 'DORMANT: no feature entries')))",
+        "probe:edge"
+      ]
+    }
+  ]
+}
