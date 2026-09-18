@@ -1,0 +1,50 @@
+{
+ "id": "E26d",
+ "title": "Register the river in the wildlife entry list. On RIVER4 plotinfo.map_edge's surface entry list (396 tiles, z94-96, none with water) stops at the river banks and skips the nine river tiles that touch the map edge. Same river-only whitelist on the site pool as E26b, plus every river-water edge tile appended to map_edge.surface_x/y/z. A season, stopping at four arrivals.",
+ "fork": "Selection versus placement (user's note, 17 Sep): if aquatic species come once the river has entry tiles, placement was the block and the tool registers river edge tiles as a lever; if nothing comes, selection never reaches feature entries.",
+ "fort": "RIVER4",
+ "backup": "RIVER4.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 100800,
+ "tool_must_be": {
+  "enabled": 0,
+  "groups_enabled": 0,
+  "scheduled": 0
+ },
+ "predictions": [
+  {
+   "model": "placement is the block",
+   "expects": "river-species arrivals at the registered river tiles within the season"
+  },
+  {
+   "model": "selection is the block",
+   "expects": "nothing arrives"
+  }
+ ],
+ "kill_criterion": "one river-species arrival with a fresh countdown and no mother settles it",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "river_edge_registered",
+   "replicates": 1,
+   "pre": [
+    "local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u))",
+    "local me=df.global.plotinfo.map_edge; local d=df.global.world.map; local W,H=d.x_count,d.y_count; local before=#me.surface_x; local n=0; local function try(x,y,z) local b=dfhack.maps.getTileBlock(x,y,z); if not b then return end; local des=b.designation[x%16][y%16]; local tt=b.tiletype[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type and df.tiletype.attrs[tt].material==df.tiletype_material.RIVER then me.surface_x:insert('#',x); me.surface_y:insert('#',y); me.surface_z:insert('#',z); n=n+1 end end; for z=0,d.z_count-1 do for x=0,W-1 do try(x,0,z); try(x,H-1,z) end; for y=1,H-2 do try(0,y,z); try(W-1,y,z) end end; print(('map_edge: %d river-water edge tiles appended to the surface entry list (%d -> %d)'):format(n, before, #me.surface_x))",
+    "probe:edge",
+    "probe:release all"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "probe:release all"
+    ]
+   },
+   "stop_when": {
+    "arrivals_min": 4
+   }
+  }
+ ]
+}
