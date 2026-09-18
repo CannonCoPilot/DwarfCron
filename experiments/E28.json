@@ -1,0 +1,100 @@
+{
+ "id": "E28",
+ "title": "Which lever keeps a pack together? CTRL with only dingo, kangaroo and wombat allowed, coupling on with packs of seven and ecology off: the first prey group's coupling brings a dingo pack of seven. Four arms, applied every 1,500 ticks to every wild dingo: control (nothing); a shared station (idle_area at the pack's first centroid, threshold 8, WildernessRoamer); a leader (the lowest-id dingo, the rest following it at distance 4 as PACK_LEADER); a centroid nudge (any dingo more than 8 tiles from the centroid teleported to within 4 of it). Mean Chebyshev distance to the centroid per sample, from units.tsv, is the measure. Thirty thousand ticks, two replicates each.",
+ "fork": "v5.7 cohesion: station, leader or nudge. Cheapest lever that holds a pack within ~8 tiles without stuck units wins; if none beats control, packs are DF's own and the tool only labels them.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 30000,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "groups_enabled": 1,
+  "scheduled": 1
+ },
+ "predictions": [
+  {
+   "model": "station holds",
+   "expects": "the station arm's mean distance stays under 8 while control drifts past 20 as the pack forages"
+  },
+  {
+   "model": "leader holds",
+   "expects": "followers stay within ~4 of the leader; mean distance under 6; the leader itself wanders"
+  },
+  {
+   "model": "nudge holds",
+   "expects": "mean distance saw-tooths: rises between passes, falls at each; never above ~15 at a sample"
+  },
+  {
+   "model": "DF ignores wild station and following",
+   "expects": "station and leader arms look like control; only the nudge differs"
+  }
+ ],
+ "kill_criterion": "an arm whose mean distance is below control's in both replicates and has no unit stuck (same tile for 5,000 ticks) is a candidate lever; the cheapest candidate ships in v5.7",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "control",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local keep={DINGO=true,KANGAROO=true,WOMBAT=true}; local n=0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark then cfg.allow[e.key]=keep[e.token] or false; if keep[e.token] then cfg.assign[e.token]={0,1,2,3}; n=n+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=7; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: dingo, kangaroo, wombat only (%d allowed, %d applied); groups on, coupling on, pack 7, ecology OFF; rotation enabled'):format(n,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ds={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and df.creature_raw.find(u.race).creature_id=='DINGO' then ds[#ds+1]=u end end; table.sort(ds,function(a,b) return a.id<b.id end); local cx,cy=0,0; for _,u in ipairs(ds) do cx=cx+u.pos.x; cy=cy+u.pos.y end; if #ds>0 then cx,cy=cx/#ds,cy/#ds end; local md=0; for _,u in ipairs(ds) do md=md+math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy)) end; if #ds>0 then md=md/#ds end; print(('e28 control: %d dingoes, centroid %.1f,%.1f, mean dist %.2f'):format(#ds,cx,cy,md))"
+    ]
+   }
+  },
+  {
+   "name": "station",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local keep={DINGO=true,KANGAROO=true,WOMBAT=true}; local n=0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark then cfg.allow[e.key]=keep[e.token] or false; if keep[e.token] then cfg.assign[e.token]={0,1,2,3}; n=n+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=7; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: dingo, kangaroo, wombat only (%d allowed, %d applied); groups on, coupling on, pack 7, ecology OFF; rotation enabled'):format(n,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ds={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and df.creature_raw.find(u.race).creature_id=='DINGO' then ds[#ds+1]=u end end; table.sort(ds,function(a,b) return a.id<b.id end); local cx,cy=0,0; for _,u in ipairs(ds) do cx=cx+u.pos.x; cy=cy+u.pos.y end; if #ds>0 then cx,cy=cx/#ds,cy/#ds end; local md=0; for _,u in ipairs(ds) do md=md+math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy)) end; if #ds>0 then md=md/#ds end; local S=dfhack.persistent.getSiteData('e28_station',{}); if #ds>0 and not S.x then S.x,S.y,S.z=math.floor(cx),math.floor(cy),ds[1].pos.z; dfhack.persistent.saveSiteData('e28_station',S) end; for _,u in ipairs(ds) do u.idle_area.x=S.x; u.idle_area.y=S.y; u.idle_area.z=S.z; u.idle_area_threshold=8; u.idle_area_type=df.unit_station_type.WildernessRoamer end; print(('e28 station: %d dingoes, station %s, threshold 8, centroid %.1f,%.1f, mean dist %.2f'):format(#ds, S.x and (S.x..','..S.y..','..S.z) or '-', cx,cy,md))"
+    ]
+   }
+  },
+  {
+   "name": "leader",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local keep={DINGO=true,KANGAROO=true,WOMBAT=true}; local n=0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark then cfg.allow[e.key]=keep[e.token] or false; if keep[e.token] then cfg.assign[e.token]={0,1,2,3}; n=n+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=7; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: dingo, kangaroo, wombat only (%d allowed, %d applied); groups on, coupling on, pack 7, ecology OFF; rotation enabled'):format(n,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ds={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and df.creature_raw.find(u.race).creature_id=='DINGO' then ds[#ds+1]=u end end; table.sort(ds,function(a,b) return a.id<b.id end); local cx,cy=0,0; for _,u in ipairs(ds) do cx=cx+u.pos.x; cy=cy+u.pos.y end; if #ds>0 then cx,cy=cx/#ds,cy/#ds end; local md=0; for _,u in ipairs(ds) do md=md+math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy)) end; if #ds>0 then md=md/#ds end; local ld=ds[1]; local nf=0; for i=2,#ds do local u=ds[i]; u.following=ld; u.owner_type=df.unit_owner_type.PACK_LEADER; u.follow_distance=4; nf=nf+1 end; print(('e28 leader: %d dingoes, leader %s, %d following at distance 4, centroid %.1f,%.1f, mean dist %.2f'):format(#ds, ld and ld.id or '-', nf, cx,cy,md))"
+    ]
+   }
+  },
+  {
+   "name": "nudge",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local keep={DINGO=true,KANGAROO=true,WOMBAT=true}; local n=0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark then cfg.allow[e.key]=keep[e.token] or false; if keep[e.token] then cfg.assign[e.token]={0,1,2,3}; n=n+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=7; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: dingo, kangaroo, wombat only (%d allowed, %d applied); groups on, coupling on, pack 7, ecology OFF; rotation enabled'):format(n,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 1500,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ds={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and df.creature_raw.find(u.race).creature_id=='DINGO' then ds[#ds+1]=u end end; table.sort(ds,function(a,b) return a.id<b.id end); local cx,cy=0,0; for _,u in ipairs(ds) do cx=cx+u.pos.x; cy=cy+u.pos.y end; if #ds>0 then cx,cy=cx/#ds,cy/#ds end; local md=0; for _,u in ipairs(ds) do md=md+math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy)) end; if #ds>0 then md=md/#ds end; local moved=0; for _,u in ipairs(ds) do if math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy))>8 then local done=false; for r=1,4 do for dx=-r,r do for dy=-r,r do if not done and (math.abs(dx)==r or math.abs(dy)==r) then local pos=xyz2pos(math.floor(cx)+dx,math.floor(cy)+dy,u.pos.z); if dfhack.maps.isValidTilePos(pos) then local tt=dfhack.maps.getTileType(pos); local blk=dfhack.maps.getTileBlock(pos); local occ=blk and blk.occupancy[pos.x%16][pos.y%16]; if tt and occ and df.tiletype_shape.attrs[df.tiletype.attrs[tt].shape].walkable and not occ.unit then if dfhack.units.teleport(u,pos) then done=true; moved=moved+1 end end end end end end end end end; print(('e28 nudge: %d dingoes, %d moved to within 4 of the centroid, centroid %.1f,%.1f, mean dist %.2f'):format(#ds,moved,cx,cy,md))"
+    ]
+   }
+  }
+ ]
+}
