@@ -689,7 +689,7 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
     <p>Each is built to kill one side of a fork. Each has a positive control. Each is replicated
     from a restored save. Arrivals are always identified by new unit ids and attributed by the
     six-tuple the unit carries; entry quantities are recorded as a second instrument, never the
-    first. The E9 to E13 series is new in this revision and is where the design goal is tested.</p>
+    first. Blocks are in E-number order; an experiment moves here from section 8 when it has run, and its row there is removed.</p>
 
     <div class="exp"><div class="exp-head"><span class="eid">E1</span><h3>Hold granularity</h3><span class="kills">done rev 8 · F1 = C</span></div>
       <div class="exp-body"><dl class="kv">
@@ -700,7 +700,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Release X; a wave must arrive within ~1,500 ticks.</dd>
         <dt>Replicates</dt><dd>Three, different X each time. Fort: single-biome control.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E2</span><h3>Source census</h3><span class="kills">done rev 11 · Model D</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>Count edge tiles by owning region with <code>getTileBiomeRgn</code> along all four edges. Default quantities.</dd>
@@ -710,7 +709,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>The census. Requires the even-split fort; on region1 the models may be inseparable.</dd>
         <dt>Replicates</dt><dd>Three, each ~20,000 ticks. Fort: two-tile even split.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E3</span><h3>Constant-sum split</h3><span class="kills">done rev 11 · F3 = B</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>Two drawable species in the source tile. Nothing else touched.</dd>
@@ -720,7 +718,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>The reversal arm.</dd>
         <dt>Replicates</dt><dd>Three per arm, ~12 waves each. Fort: single-biome control.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E4</span><h3>Death versus departure</h3><span class="kills">done rev 7 · F4 = A</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>A held group with a known six-tuple and recorded quantity.</dd>
@@ -730,7 +727,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Arm 2 controls arm 1.</dd>
         <dt>Replicates</dt><dd>Three per arm. Under five minutes each.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E5</span><h3>Feature holds, one feature per fort</h3><span class="kills">done rev 12 · F5 = B</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>One fort per feature type in the program. First list every unit with <code>feature_idx ≥ 0</code> or <code>cave_id ≥ 0</code>: an existing feature hold explains a null on its own.</dd>
@@ -740,7 +736,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Restore surface entries; surface waves must resume.</dd>
         <dt>Replicates</dt><dd>Three per fort. Depends on E1's answer for the category rule.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E6</span><h3>Regeneration direction</h3><span class="kills">done rev 13 · none in a season</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>Three entries of one species.</dd>
@@ -750,7 +745,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>An untouched entry of another species for the background rate.</dd>
         <dt>Replicates</dt><dd>Three seasons, under twenty minutes.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E7</span><h3>Halt cause</h3><span class="kills">done rev 13 · F7 = A</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Manipulation</dt><dd>Push a synthetic popup at an arbitrary tick on a quiet fort.</dd>
@@ -759,7 +753,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Clear the queue; tick resumes.</dd>
         <dt>Replicates</dt><dd>Three. Two minutes each.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E8</span><h3>Zero versus extinct</h3><span class="kills">done rev 8 · both gate</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>One drawable species alone in the source tile; every other entry zeroed and flagged.</dd>
@@ -769,7 +762,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Arm 3 must produce arrivals.</dd>
         <dt>Replicates</dt><dd>Three per arm. Fort: single-biome control.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E9</span><h3>Residency: read it, then write it</h3><span class="kills">kills F9, F11 · measures L4</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>a · Read</dt><dd>On every wave over three replicates, sample <code>leave_countdown</code> on each new unit at first sighting and every 200 ticks after. Record species, group size, initial value, and tick of departure.</dd>
@@ -781,7 +773,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Untouched siblings in the same group for both b and c.</dd>
         <dt>Replicates</dt><dd>Three each. Fort: single-biome control.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E10</span><h3>Coupling predation, the full loop</h3><span class="kills">done rev 9 · P1 works, 5/5</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>A prey species and a predator species both drawable in the source tile, chosen from E9a to have prey residency well above 3,000 ticks. Prey wave arrives naturally.</dd>
@@ -791,7 +782,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Arm 3 is the negative control for the hold; arm 2 for exclusion.</dd>
         <dt>Replicates</dt><dd>Five for arm 1, three for the others. Fort: single-biome control, then repeated on the even-split fort to see whether the tile lottery breaks it.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E11</span><h3>Do they hunt?</h3><span class="kills">done rev 10 · superseded by E11b</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>From E10's successful state, or by construction: a wolf pack and an elk herd co-present as residents.</dd>
@@ -801,35 +791,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Control</dt><dd>Arm 2 gives the background death rate.</dd>
         <dt>Replicates</dt><dd>Three per arm. Fort: single-biome control.</dd>
       </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E12</span><h3>Sized waves</h3><span class="kills">done rev 13 · F12 = A</span></div>
-      <div class="exp-body"><dl class="kv">
-        <dt>Manipulation</dt><dd>Set one species' <code>cluster_number</code> to {7,7}, force a wave by exclusion, count the arrivals, restore the raw. Arm 2 at {2,2}.</dd>
-        <dt>Predicts</dt><dd>Read at draw: exactly 7 then exactly 2. Cached: the species' usual range both times.</dd>
-        <dt>Control</dt><dd>An unedited species forced the same way must arrive in its usual range.</dd>
-        <dt>Replicates</dt><dd>Three per arm.</dd>
-      </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E13</span><h3>Cavern discovery</h3><span class="kills">done rev 12 · F13 = B</span></div>
-      <div class="exp-body"><dl class="kv">
-        <dt>Setup</dt><dd>A fort that has never breached a cavern. Read <code>discovered</code> on every cavern entry; count units with <code>cave_id ≥ 0</code>.</dd>
-        <dt>Manipulation</dt><dd>Run 20,000 ticks unrevealed. Then <code>reveal</code> (never <code>hell</code> while unpaused), run 20,000 more.</dd>
-        <dt>Measure</dt><dd>Cavern-sourced units and the flag, before and after.</dd>
-        <dt>Predicts</dt><dd>Gated: no cavern units until the flag flips. Ungated: units present before reveal, merely hidden.</dd>
-        <dt>Control</dt><dd>Surface waves must continue throughout.</dd>
-        <dt>Replicates</dt><dd>Three. Fort: single-biome control, unbreached.</dd>
-      </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E14</span><h3>Can aquatic entries wave?</h3><span class="kills">done rev 14 · yes, on a wet map</span></div>
-      <div class="exp-body"><dl class="kv">
-        <dt>Setup</dt><dd>OCEAN and LAKE, then OCEAN2. Every aquatic surface entry on the site and neighbour tiles opened to 50; every land entry zeroed and flagged extinct.</dd>
-        <dt>Manipulation</dt><dd>Release <em>surface</em> holds only, every 1,500 ticks, for 20,000 ticks. A first attempt released every hold, which freed the cavern holds too and buried the surface signal under 252 cavern arrivals — that run is kept and labelled as the flawed first attempt.</dd>
-        <dt>Measure</dt><dd>Species, layer and six-tuple of each arrival; entry quantity at start and end, so a draw with no arrival is still visible as a debit.</dd>
-        <dt>Predicts</dt><dd>Entries are data only: nothing arrives and nothing is debited. Entries are live: arrivals with exact debits, as land entries behave.</dd>
-        <dt>Control</dt><dd>A natural arm on the untouched pool must produce waves, or the fort is not comparable.</dd>
-        <dt>Result</dt><dd>LAKE: 6 hippos, 5 milkfish, 1 otter, debited exactly. OCEAN: nothing, and no shark entry ever debited — that map has no water. OCEAN2: <code>SHARK_BLUE</code> in 2 of 2, entry 50 → 49. <strong>Edge water is the gate.</strong></dd>
-      </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E11b</span><h3>Do they hunt, when they actually meet?</h3><span class="kills">done rev 14 · F10 = A, they do</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>CTRL. Small prey only — porcupine 9,000, echidna 10,000, badger 15,000, wombat 25,000, emu 35,000 — opened at 30 and released, then cougar, dingo and wolf opened at 30 and couplinged on, so the pairing respects the size rule E11 violated (dingo 20,000 against kangaroo 90,000).</dd>
@@ -839,7 +800,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Result</dt><dd>The no-lever arm killed. Levers added nothing measurable — but each fired once and three of eight replicates had no predator on the map at that moment, so they need a rerun that reapplies at every gather.</dd>
         <dt>Replicates</dt><dd>Two per arm, 12,000 ticks after the predators open.</dd>
       </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E11c</span><h3>Do the hostility levers add anything to proximity?</h3><span class="kills">done rev 15 · the cache is the lever</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>E11b's pairing (small prey first, cougar / dingo / wolf couplinged on), with the two design faults removed: the <em>whole surface</em> is released at every cycle so stragglers of a double wave can never hold the gate shut, and the lever is reapplied at every cycle so every predator that ever arrives gets it.</dd>
@@ -849,7 +809,31 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Replicates</dt><dd>Three per arm, 15,000 ticks after the predators open.</dd>
         <dt>Result</dt><dd>Prey deaths over prey on the map, valid replicates: no lever <strong>0 / 14</strong>; <code>OPPOSED_TO_LIFE</code> 2 / 13; <code>CRAZED</code> 2 / 15 (one of three replicates culled, tick halted); <code>PREDATOR_OR_PREY</code> <strong>19 / 19</strong>. Predator-on-predator combat 4,718 / 472 / 3,602 / 3,789 reports; combat touching prey 4 / 79 / 197 / 1,986. The written relation is honoured and decisive. E11b's no-lever kill is reconciled: a single dingo pack with no rivals, on which DF set the relation itself.</dd>
       </dl></div></div>
-
+    <div class="exp"><div class="exp-head"><span class="eid">E12</span><h3>Sized waves</h3><span class="kills">done rev 13 · F12 = A</span></div>
+      <div class="exp-body"><dl class="kv">
+        <dt>Manipulation</dt><dd>Set one species' <code>cluster_number</code> to {7,7}, force a wave by exclusion, count the arrivals, restore the raw. Arm 2 at {2,2}.</dd>
+        <dt>Predicts</dt><dd>Read at draw: exactly 7 then exactly 2. Cached: the species' usual range both times.</dd>
+        <dt>Control</dt><dd>An unedited species forced the same way must arrive in its usual range.</dd>
+        <dt>Replicates</dt><dd>Three per arm.</dd>
+      </dl></div></div>
+    <div class="exp"><div class="exp-head"><span class="eid">E13</span><h3>Cavern discovery</h3><span class="kills">done rev 12 · F13 = B</span></div>
+      <div class="exp-body"><dl class="kv">
+        <dt>Setup</dt><dd>A fort that has never breached a cavern. Read <code>discovered</code> on every cavern entry; count units with <code>cave_id ≥ 0</code>.</dd>
+        <dt>Manipulation</dt><dd>Run 20,000 ticks unrevealed. Then <code>reveal</code> (never <code>hell</code> while unpaused), run 20,000 more.</dd>
+        <dt>Measure</dt><dd>Cavern-sourced units and the flag, before and after.</dd>
+        <dt>Predicts</dt><dd>Gated: no cavern units until the flag flips. Ungated: units present before reveal, merely hidden.</dd>
+        <dt>Control</dt><dd>Surface waves must continue throughout.</dd>
+        <dt>Replicates</dt><dd>Three. Fort: single-biome control, unbreached.</dd>
+      </dl></div></div>
+    <div class="exp"><div class="exp-head"><span class="eid">E14</span><h3>Can aquatic entries wave?</h3><span class="kills">done rev 14 · yes, on a wet map</span></div>
+      <div class="exp-body"><dl class="kv">
+        <dt>Setup</dt><dd>OCEAN and LAKE, then OCEAN2. Every aquatic surface entry on the site and neighbour tiles opened to 50; every land entry zeroed and flagged extinct.</dd>
+        <dt>Manipulation</dt><dd>Release <em>surface</em> holds only, every 1,500 ticks, for 20,000 ticks. A first attempt released every hold, which freed the cavern holds too and buried the surface signal under 252 cavern arrivals — that run is kept and labelled as the flawed first attempt.</dd>
+        <dt>Measure</dt><dd>Species, layer and six-tuple of each arrival; entry quantity at start and end, so a draw with no arrival is still visible as a debit.</dd>
+        <dt>Predicts</dt><dd>Entries are data only: nothing arrives and nothing is debited. Entries are live: arrivals with exact debits, as land entries behave.</dd>
+        <dt>Control</dt><dd>A natural arm on the untouched pool must produce waves, or the fort is not comparable.</dd>
+        <dt>Result</dt><dd>LAKE: 6 hippos, 5 milkfish, 1 otter, debited exactly. OCEAN: nothing, and no shark entry ever debited — that map has no water. OCEAN2: <code>SHARK_BLUE</code> in 2 of 2, entry 50 → 49. <strong>Edge water is the gate.</strong></dd>
+      </dl></div></div>
     <div class="exp"><div class="exp-head"><span class="eid">E15</span><h3>Large-stock debit rule</h3><span class="kills">done rev 16 · F15 = A, exact at every size</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd>CTRL. Exactly one species open across the site tile and its one-tile ring; everything else zeroed and flagged. Four arms: raven at its natural 336–354, raven pinned to 30, kangaroo pinned to 300, kangaroo at 30 — so size and species separate.</dd>
@@ -859,7 +843,17 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Result</dt><dd><strong>A.</strong> 27/27, 16/16, 24/24, 15/15. Four floor cases: an entry at 2–7 produced a wave of 3–10 and clamped to zero — the wave follows the raw, not the stock.</dd>
         <dt>Replicates</dt><dd>Two per arm.</dd>
       </dl></div></div>
-
+    <div class="exp"><div class="exp-head"><span class="eid">E16</span><h3>What happens to a written relation</h3><span class="kills">done rev 18 · holds through the calendar · a load clears it · units shed sporadically · cells leak</span></div>
+      <div class="exp-body"><dl class="kv">
+        <dt>Why</dt><dd>E11c made the reaction cache the predation switch. The tool has to know how often to write it: once, on a cadence, after a load.</dd>
+        <dt>Setup</dt><dd>By hand: <code>PREDATOR_OR_PREY</code> written both ways between two wild units on CTRL, quicksaved, reloaded, read. Harness (run 20260917-164801): small prey open, predators open on their arrival, the relation written once 1,500 ticks later on 6 predators × 30 slotted partners, predators <em>not</em> gathered so pairs live to be read; <code>rel</code> and the new per-unit <code>relrow</code> (row and column counts against every slot) every 2,000 ticks for 90,000 ticks.</dd>
+        <dt>Result</dt><dd><strong>No decay.</strong> Predators 160–164 held 27 partners flat from tick 23,000 until they departed at 42,000; the three missing were wiped units, not decay. <strong>A load clears everything:</strong> at load every wild unit's slot is −1, six hundred ticks later the pair holds new slots (340, 341) and reads <code>WE_ARE_SAME_RACE_WILDERNESS_ANIMALS</code>. <strong>A few units shed their relations at once:</strong> 4 of 36 had row and column zeroed within 4,000 ticks of the write, then nothing more; not combat (dingo 159's first report came 22,000 ticks after its wipe). <strong>Departed cells persist and newcomers inherit them:</strong> arriving wolves and dingoes came in with 1–17 <code>PREDATOR_OR_PREY</code> cells already set against their slot. Rep 2 wrote nothing: its one predator had no slot 1,500 ticks after arriving, so slots are assigned lazily. <strong>E16b</strong> (run 20260917-184547) pinned every wild unit's countdown to 250,000 after the write and crossed the boundary at tick 100,800: wolves 166 and 168 held 25 pairs flat from tick 72,000 to 111,573, through the boundary without a flicker. <strong>The calendar does nothing to the cache.</strong> Three of the five pinned wolves shed their whole row mid-run, at 37,000, 42,000 and 72,000 ticks, none of it combat (wolf 167 never fought), so the per-unit reset is sporadic and lifelong, not an early effect; a 1,500-tick rewrite absorbs it.</dd>
+      </dl></div></div>
+    <div class="exp"><div class="exp-head"><span class="eid">E17</span><h3>Prey arriving after the write</h3><span class="kills">done rev 18 · DF never fills the new pairs</span></div>
+      <div class="exp-body"><dl class="kv">
+        <dt>Setup</dt><dd>Run 20260917-170435, CTRL. Small prey A open; predators open on A's arrival; 3,000 ticks later the predators gathered to the prey and the relation written once, then prey B (kangaroo, skunk, groundhog) opened and everything else closed. <em>once</em>: no further writes. <em>rewrite</em>: the lever reapplied every 1,500 ticks. Both arms gathered every 1,500 ticks. Three replicates each, 24,000 ticks after the predators opened, all six valid, saves untouched.</dd>
+        <dt>Result</dt><dd><table><thead><tr><th>arm</th><th>predators</th><th>B arrived</th><th>B died</th><th>pred→B pairs holding the relation</th><th>combat reports naming a B animal</th></tr></thead><tbody><tr><td>once</td><td class="n">19</td><td class="n">106</td><td class="n"><strong>2</strong></td><td class="n">3 of 630</td><td class="n">70</td></tr><tr><td>rewrite</td><td class="n">14</td><td class="n">113</td><td class="n"><strong>21</strong></td><td class="n">373 of 389</td><td class="n">3,419</td></tr></tbody></table><strong>A pair that did not exist at the write is never covered.</strong> DF added the relation to 3 pairs in 630 on its own, the sparse rate E11c saw. The tool writes on every arrival, which a 1,500-tick cadence does.</dd>
+      </dl></div></div>
     <div class="exp"><div class="exp-head"><span class="eid">E26</span><h3>Do river and lake feature populations wave during play?</h3><span class="kills">done rev 17 · F5 = B in play too · ledger live</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Why reopened</dt><dd>F5 was closed on E5's forced draw (20,000 ticks, nothing). But every river and lake save holds feature-ref units spawned <em>at embark</em> — two platypuses on RIVER3; a stingray, two alligators and four hippos on LAKE — held by the feature-category flag alone. Feature entries are live ledgers too: on LAKE over a season the hippo entry rose 290 → 298 as those units left.</dd>
@@ -868,20 +862,6 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>Predicts</dt><dd>Feature entries wave on their own gate: a feature-ref arrival in the year, ideally while the surface is held. Embark-only: none, ever. Shared gate: feature arrivals only in surface gaps.</dd>
         <dt>Result</dt><dd><strong>Nothing waves.</strong> RIVER3 natural for a year (run 20260917-160100, <span class="num">404,101</span> ticks, save byte-identical): <span class="num">166</span> arrivals, 145 cavern and 21 surface, <strong>none with a feature index</strong>. LAKE natural for a season: 80 arrivals, none feature. LAKE with the surface held shut: no surface wave and no feature wave. The embark units left on their countdowns (both platypuses at tick 47,738) and were never replaced. <strong>Model B, for play as well as for the forced draw: river and lake animal life is on the map only because embark put it there.</strong><br><br>The feature ledger is live in two ways. Within about 10,000 ticks of load an entry below its max tops back up to max before any unit leaves (platypus 306/308 → 308 by tick 17,956, reconfirmed live; LAKE hippo 290/294 → 292 → 294, alligator 138/140 → 140, stingray 349/350 → 350). Then each departing embark unit refunds one on its exact departure tick (platypus 308 → 310 at 47,738; LAKE hippo 294 → 298 on the four hippo departure ticks, alligator +1 each, stingray +1, both arms). The embark debit is undone twice and the entry ends above max by the embark count.<br><br>Feature <em>vermin</em> entries are a different animal and do spawn in play: as vermin swarm objects in the river tiles (10 lungfish swarms at z73–78 in 10,173 ticks; 14 water swarms in 10,039 on a reload), debiting one per swarm and refunding on despawn (lungfish 3333 → 3335, clown loach 4499 → 4498 in 10k ticks). Those are the fish a player sees in a river. They are not units and never touch the wildlife machinery. The mussel entry fell 5005 → 4701 over the year with no fishing labour at load; open (E31a).</dd>
       </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E16</span><h3>What happens to a written relation</h3><span class="kills">done rev 18 · holds through the calendar · a load clears it · units shed sporadically · cells leak</span></div>
-      <div class="exp-body"><dl class="kv">
-        <dt>Why</dt><dd>E11c made the reaction cache the predation switch. The tool has to know how often to write it: once, on a cadence, after a load.</dd>
-        <dt>Setup</dt><dd>By hand: <code>PREDATOR_OR_PREY</code> written both ways between two wild units on CTRL, quicksaved, reloaded, read. Harness (run 20260917-164801): small prey open, predators open on their arrival, the relation written once 1,500 ticks later on 6 predators × 30 slotted partners, predators <em>not</em> gathered so pairs live to be read; <code>rel</code> and the new per-unit <code>relrow</code> (row and column counts against every slot) every 2,000 ticks for 90,000 ticks.</dd>
-        <dt>Result</dt><dd><strong>No decay.</strong> Predators 160–164 held 27 partners flat from tick 23,000 until they departed at 42,000; the three missing were wiped units, not decay. <strong>A load clears everything:</strong> at load every wild unit's slot is −1, six hundred ticks later the pair holds new slots (340, 341) and reads <code>WE_ARE_SAME_RACE_WILDERNESS_ANIMALS</code>. <strong>A few units shed their relations at once:</strong> 4 of 36 had row and column zeroed within 4,000 ticks of the write, then nothing more; not combat (dingo 159's first report came 22,000 ticks after its wipe). <strong>Departed cells persist and newcomers inherit them:</strong> arriving wolves and dingoes came in with 1–17 <code>PREDATOR_OR_PREY</code> cells already set against their slot. Rep 2 wrote nothing: its one predator had no slot 1,500 ticks after arriving, so slots are assigned lazily. <strong>E16b</strong> (run 20260917-184547) pinned every wild unit's countdown to 250,000 after the write and crossed the boundary at tick 100,800: wolves 166 and 168 held 25 pairs flat from tick 72,000 to 111,573, through the boundary without a flicker. <strong>The calendar does nothing to the cache.</strong> Three of the five pinned wolves shed their whole row mid-run, at 37,000, 42,000 and 72,000 ticks, none of it combat (wolf 167 never fought), so the per-unit reset is sporadic and lifelong, not an early effect; a 1,500-tick rewrite absorbs it.</dd>
-      </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E17</span><h3>Prey arriving after the write</h3><span class="kills">done rev 18 · DF never fills the new pairs</span></div>
-      <div class="exp-body"><dl class="kv">
-        <dt>Setup</dt><dd>Run 20260917-170435, CTRL. Small prey A open; predators open on A's arrival; 3,000 ticks later the predators gathered to the prey and the relation written once, then prey B (kangaroo, skunk, groundhog) opened and everything else closed. <em>once</em>: no further writes. <em>rewrite</em>: the lever reapplied every 1,500 ticks. Both arms gathered every 1,500 ticks. Three replicates each, 24,000 ticks after the predators opened, all six valid, saves untouched.</dd>
-        <dt>Result</dt><dd><table><thead><tr><th>arm</th><th>predators</th><th>B arrived</th><th>B died</th><th>pred→B pairs holding the relation</th><th>combat reports naming a B animal</th></tr></thead><tbody><tr><td>once</td><td class="n">19</td><td class="n">106</td><td class="n"><strong>2</strong></td><td class="n">3 of 630</td><td class="n">70</td></tr><tr><td>rewrite</td><td class="n">14</td><td class="n">113</td><td class="n"><strong>21</strong></td><td class="n">373 of 389</td><td class="n">3,419</td></tr></tbody></table><strong>A pair that did not exist at the write is never covered.</strong> DF added the relation to 3 pairs in 630 on its own, the sparse rate E11c saw. The tool writes on every arrival, which a 1,500-tick cadence does.</dd>
-      </dl></div></div>
-
     <div class="exp"><div class="exp-head"><span class="eid">E26b–e</span><h3>Only river creatures allowed; then every door tried</h3><span class="kills">done rev 18 · zero arrivals in every arm · F5 closed with the mechanism</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Precondition</dt><dd>Proof of water from the map blocks (section 6): RIVER3 has a real river on two edges, clipping a corner twenty levels down; LAKE has a lake on all four edges and no river entry; RIVER4 was built on region tile 16,23 with a 960-tile river at surface level from the west edge to the east edge.</dd>
@@ -891,8 +871,7 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <dt>E26e</dt><dd>Only the ten land-capable river species (osprey, hippo, otter, alligator, platypus, saltwater crocodile, beaver, mink, two snapping turtles), which any land entry tile can place, a season (run 20260917-184029): <span class="num">0</span>.</dd>
         <dt>Result</dt><dd><strong>DF reads feature entries exactly once, at embark.</strong> It seeds generously (22 animals on RIVER4, 7 on LAKE, 2 on RIVER3), the seed breeds (live birth, mother id set), fish at countdown zero linger 150,000+ ticks, and vermin fish keep spawning as swarms. Nothing arrives after, whatever the stock, the world-level count, the entry list, or the species' ability to walk in. The tool takes over the seeding: place from the feature entries at the river's edge tiles, on the seasonal cadence and quota, against the live ledger, and rotate the lingerers out.</dd>
       </dl></div></div>
-
-    <div class="exp"><div class="exp-head"><span class="eid">E14c</span><h3>Place a unit directly</h3><span class="kills">rev 14 blocked · rev 17 rebuilt and working (E30)</span></div>
+    <div class="exp"><div class="exp-head"><span class="eid">E30</span><h3>Place a unit directly (begun as E14c)</h3><span class="kills">rev 14 blocked · rev 17 rebuilt and working (E30)</span></div>
       <div class="exp-body"><dl class="kv">
         <dt>Setup</dt><dd><code>Units::isWildlife</code> requires <code>animal.population.population_idx ≥ 0</code>, and <code>modtools/create-unit</code> sets it to −1, so a spawned unit is never wildlife. <code>cx-probe spawn</code> creates the unit, then writes the pool entry's six-field reference onto it and debits the entry.</dd>
         <dt>Blocked by</dt><dd><code>create-unit.lua:164</code> reads <code>df.global.world.arena_spawn</code>, a field absent from DFHack 53.16-r1.1's structures. Every call dies there, for every creature. Tried with three blue sharks at a verified water tile on OCEAN2.</dd>
@@ -972,13 +951,10 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
 
   <section>
     <h2>8 · The programme ahead</h2>
-    <p>What has run is in section 5 and the forks in section 4. This is the queue that gates each package of the design report, in the order the packages ship: E16, E17, E22 for the ecology switch; E19, E28 (and E18) for herds and packs; E20, E21, E25 for the water and cavern layers; E24, E27 for patterns, quotas and vermin; E29 and E23 for cavern pressure. Every manifest names its prediction before it runs; each is a rig job of an hour or less. Forced events (<code>force</code>, <code>migrants-now</code>) are used wherever an event would otherwise be waited for.</p>
+    <p>What has run is in section 5 and the forks in section 4. This is the queue that gates each package of the design report, listed by number; the packages ship in this order: E22 for the ecology switch (E16, E17 done, section 5); E18, E19, E28 for herds and packs; E20, E21, E25 for the water and cavern layers; E24, E27 for patterns, quotas and vermin; E29 and E23 for cavern pressure. Every manifest names its prediction before it runs; each is a rig job of an hour or less. Forced events (<code>force</code>, <code>migrants-now</code>) are used wherever an event would otherwise be waited for.</p>
     <div class="scroll"><table>
       <thead><tr><th scope="col">ID</th><th scope="col">Question</th><th scope="col">Design and result</th><th scope="col">Unblocks</th></tr></thead>
       <tbody>
-        <tr><th scope="row">E15</th><td>Large-entry debit rule</td><td>One species open across the ring at 339, 30, 300, 30; 200-tick entry trace through every wave. <strong>Done: exact, 82 of 82</strong>; at the floor the wave follows the raw and the entry clamps to zero.</td><td>Abundance display — closed</td></tr>
-        <tr><th scope="row">E16</th><td>Does a written relation survive a save/load, a season boundary, the predator leaving?</td><td><strong>Done</strong> (run 20260917-164801 and a by-hand save/load). No decay while both units live: five predators held every pair flat for 20,000 ticks until they departed. A load clears the cache and every slot number. About one unit in nine sheds its whole row and column within a few thousand ticks of the write, unrelated to combat. Departed units' cells persist and newcomers inherit them through slot reuse. One replicate wrote nothing: its predator had no slot yet 1,500 ticks after arriving. Boundary: no pair lived to see it; E16b.</td><td>v5.6 rewrite policy — set</td></tr>
-        <tr><th scope="row">E17</th><td>Prey arriving <em>after</em> the write: does DF fill the new pairs, or must the tool?</td><td><strong>Done</strong> (run 20260917-170435, six valid replicates). Write once: 106 late prey arrived, 2 died, predator→prey rows read NONE or STRANGER, DF added the relation to 3 pairs in 630. Rewrite every 1,500 ticks, with fewer predators: 113 arrived, 21 died, 373 of 389 pairs held, combat on late prey 3,419 reports against 70. The tool writes on every arrival.</td><td>v5.6 cadence — set</td></tr>
         <tr><th scope="row">E18</th><td>Nudge policy (b): threshold vs kill latency, and how it looks</td><td>N ∈ {20, 40, 80}, M ∈ {1,500, 3,000}; unit tracks over time.</td><td>v5.6 default</td></tr>
         <tr><th scope="row">E19</th><td>A herd held a season: grazing, breeding, starving, anything odd above 60,000?</td><td>Hold a kangaroo group 100,800 ticks; sample hunger, wounds, positions.</td><td>v5.7</td></tr>
         <tr><th scope="row">E20</th><td>Aquatic rotation for a year on OCEAN2; do fish leave the map or die in place?</td><td>S1-style checker on the water layer.</td><td>v5.8</td></tr>
@@ -987,13 +963,9 @@ creature_raw.population_number[2]   <span class="dim">Bay12 var_s_POPULATION {ma
         <tr><th scope="row">E23</th><td>Agitated waves and cavern raids under a closed pool</td><td>MAGMA (savage 71): close all entries for a window during high agitation; compare agitated arrivals. Needs a raid trigger: <code>force</code> has no siege event on 53.16-r1.1.</td><td>v6.1 safety</td></tr>
         <tr><th scope="row">E24</th><td>Does quantity change wave <em>frequency</em>, or only eligibility?</td><td>Ramp one species 10 → 30 → 60 against a fixed partner; count waves per species.</td><td>v5.9, seasonal curves</td></tr>
         <tr><th scope="row">E25</th><td>Wet-edge detector across the fort set</td><td>OCEAN2, OCEAN, LAKE, CTRL, RIVER3 through the detector; expect live, dormant, live, dormant, dormant.</td><td>v5.8</td></tr>
-        <tr><th scope="row">E26</th><td>Do river and lake <em>feature</em> populations wave during play, and on what gate?</td><td>RIVER3 a full year and LAKE a season, natural play; LAKE a season with every surface resident pinned. <strong>Done: zero feature-ref arrivals in 606,000 ticks.</strong> The feature ledger is live (top-up to max after load, one refund per departing unit on its departure tick); feature vermin spawn as swarms outside the wildlife machinery. Not yet the clean test: see E26b.</td><td>v5.8 river placement, pending E26b</td></tr>
         <tr><th scope="row">E27</th><td>Does zeroing a vermin entry stop that vermin?</td><td>CTRL: zero flies and mosquitoes, a season; count vermin spawns by race (<code>world.vermin</code>) against a control season.</td><td>v5.9 Vermin panel</td></tr>
         <tr><th scope="row">E28</th><td>Which lever keeps a group together?</td><td>A pack of seven dingoes, three arms: shared <code>idle_area</code> + threshold 8; <code>following</code> a leader with <code>follow_distance</code> 4; centroid nudge every 1,500 ticks. Measure mean distance to centroid per sample; control: untouched pack.</td><td>v5.7 cohesion</td></tr>
         <tr><th scope="row">E29</th><td>What makes a wild pack attack the fort?</td><td>CTRL with a walled dwarf party outside: arms <code>flags4.agitated_wilderness_creature</code>; relation <code>LIVING_MUST_BE_KILLED</code> or <code>ENEMY_FIGHTER</code> to citizens; control. Measure approach distance and combat with citizens.</td><td>v6.1 raids</td></tr>
-        <tr><th scope="row">E30</th><td>Does the 53.x arena route place a unit headlessly?</td><td><strong>Done.</strong> <code>ARENA_CREATE_CREATURE</code> → row click → <em>Create</em> → physical map click placed a kangaroo at 96,96,104; reference written, <code>isWildlife</code> true, walked 30 tiles in 2,123 ticks, countdown 25,000 → 22,877 exactly. Keyboard-only <code>SELECT</code> creates nothing.</td><td>Direct placement — available to the rig, not to players</td></tr>
-              <tr><th scope="row">E16b</th><td>E16 across the season boundary</td><td><strong>Done.</strong> Countdowns pinned; two wolves held 25 pairs flat from tick 72,000 through 100,800 to 111,573. The calendar does not touch the cache. Three of five pinned wolves shed their rows mid-run, none in combat.</td><td>v5.6 rewrite policy — confirmed</td></tr>
-        <tr><th scope="row">E26b–e</th><td>Only river creatures allowed; then every door tried</td><td><strong>Done.</strong> Zero arrivals in every arm: a year each on RIVER3 and RIVER4 with the 19 river species alone (two carp born on RIVER4); the feature's world-level counts raised; the river's edge tiles registered in <code>map_edge</code>; only the land-capable species eligible. DF seeds a river once, at embark; the tool seeds after.</td><td>F5 closed; v5.8 river placement</td></tr>
         <tr><th scope="row">E31</th><td>Two loose ends from E26</td><td>(a) The mussel feature-vermin entry fell 5005 → 4701 across a year with no fishing labour at load: what draws it. (b) Does the post-load top-up also cover a feature debit the tool makes by placement.</td><td>v5.8 river placement</td></tr>
       </tbody>
     </table></div>
