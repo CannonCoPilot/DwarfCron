@@ -99,7 +99,7 @@ if cmd == 'clock' then
 -- ------------------------------------------------------------------ units --
 elseif cmd == 'units' then
     row('id', 'species', 'caste', 'x', 'y', 'z', 'ref6', 'layer', 'countdown', 'vanish',
-        'flag_src', 'flag_nf', 'dead', 'inactive', 'civ', 'tame', 'wild')
+        'flag_src', 'flag_nf', 'dead', 'inactive', 'civ', 'tame', 'wild', 'mother')
     for _, u in ipairs(df.global.world.units.all) do
         local wild = dfhack.units.isWildlife(u)
         -- keep everything with a population reference; the runner filters on `wild`
@@ -110,7 +110,8 @@ elseif cmd == 'units' then
                 b(u.flags2.roaming_wilderness_population_source),
                 b(u.flags2.roaming_wilderness_population_source_not_a_map_feature),
                 b(dfhack.units.isDead(u)),
-                b(u.flags1.inactive), u.civ_id, b(u.flags1.tame), b(wild))
+                b(u.flags1.inactive), u.civ_id, b(u.flags1.tame), b(wild),
+                u.relationship_ids[df.unit_relationship_type.Mother])
         end
     end
 
