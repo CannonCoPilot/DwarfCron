@@ -12,14 +12,13 @@ for r in csv.DictReader(open(f"{run_dir}/roster.tsv"), delimiter="\t"):
     roster[int(r["rep"])][r["token"]] = set(int(x) for x in r["seasons"].split(",") if x != "")
 arr = defaultdict(list); deaths = defaultdict(dict)
 for r in csv.DictReader(open(f"{run_dir}/events.tsv"), delimiter="\t"):
-    rep = int(r["rep"]); m = re.search(r"ref6=(-?\d+),(-?\d+),(-?\d+),(-?\d+)", r["detail"])
-    water = m and int(m.group(4)) >= 0
+    rep = int(r["rep"]); m = re.search(r"layer=(\w+)", r["detail"])
+    water = bool(m) and m.group(1) in ("feature", "water")
     if r["event"] == "arrival" and water: arr[rep].append((int(r["abs_tick"]), r["detail"].split()[0], r["subject"]))
     if r["event"] == "death" and water: deaths[rep][r["subject"]] = int(r["abs_tick"])
 seen = defaultdict(lambda: defaultdict(list))   # rep -> id -> [(abs_tick, species, inactive)]
 for r in csv.DictReader(open(f"{run_dir}/units.tsv"), delimiter="\t"):
-    m = re.match(r"(-?\d+),(-?\d+),(-?\d+),(-?\d+)", r["ref6"])
-    if not (m and int(m.group(4)) >= 0) or r["wild"] != "1": continue
+    if r["layer"] not in ("feature", "water") or r["wild"] != "1": continue
     seen[int(r["rep"])][r["id"]].append((int(r["abs_tick"]), r["species"], r["inactive"] == "1", r["dead"] == "1"))
 print(f"run {run_dir}")
 for rep in sorted(set(roster) | set(arr)):

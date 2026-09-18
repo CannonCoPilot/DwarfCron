@@ -649,6 +649,21 @@ cmd_step() {
             if [ "$stalled" -ge 20 ]; then
                 drained=$(drain_popups)
                 [ -n "$drained" ] && log "drained $drained queued popup(s) mid-step (fort had stalled at $t1)"
+                # A screen other than the map freezes the simulation whatever pause_state says.
+                # Seen 2026-09-18 on OCEAN2: both E20 replicates died with the focus on
+                # dwarfmode/Options and the tick frozen, burning the whole 400 s timeout.
+                # LEAVESCREEN backs out one level per press; three is enough for any menu
+                # the rig can land in, and it is a no-op on the map itself.
+                local foc; foc=$(cmd_ui focus 2>/dev/null | tr -d '\r')
+                case "$foc" in
+                    dwarfmode/Default|"") : ;;
+                    *)  log "focus was $foc mid-step; backing out to the map"
+                        for _ in 1 2 3; do
+                            cmd_ui key LEAVESCREEN >/dev/null 2>&1; sleep 0.5
+                            foc=$(cmd_ui focus 2>/dev/null | tr -d '\r')
+                            [ "$foc" = "dwarfmode/Default" ] && break
+                        done ;;
+                esac
                 cmd_ui unpause >/dev/null
                 stalled=0
             fi

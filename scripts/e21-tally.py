@@ -12,14 +12,14 @@ for r in csv.DictReader(open(f"{run_dir}/roster.tsv"), delimiter="\t"):
 surf = defaultdict(lambda: defaultdict(int)); cav = defaultdict(lambda: defaultdict(int)); present = defaultdict(dict); oos = defaultdict(list)
 for r in csv.DictReader(open(f"{run_dir}/events.tsv"), delimiter="\t"):
     rep = int(r["rep"]); t = int(r["tick"]); b = t // 10000
-    m = re.search(r"ref6=(-?\d+),(-?\d+),(-?\d+),(-?\d+),(-?\d+)", r["detail"])
+    m = re.search(r"layer=(\w+)", r["detail"])
     if r["event"] == "arrival" and m:
         sp = r["detail"].split()[0]; s = (int(r["abs_tick"]) % YEAR) // SEASON
-        if int(m.group(5)) >= 0:
+        if m.group(1) == "cavern":
             cav[rep][b] += 1
-            ks = [k for k in roster[rep] if k.startswith("cavern") and k.endswith(":" + sp)]
+            ks = [k for k in roster[rep] if k.endswith(":" + sp) or k == sp]
             if ks and s not in roster[rep][ks[0]]: oos[rep].append((t, sp, s))
-        elif int(m.group(4)) < 0: surf[rep][b] += 1
+        elif m.group(1) == "surface": surf[rep][b] += 1
     mm = re.search(r"e21 layers: (.*?) \|", r["detail"])
     if mm:
         c = sum(int(x) for x in re.findall(r"cavern\d*=(\d+)", mm.group(1)))
