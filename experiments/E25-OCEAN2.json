@@ -1,0 +1,34 @@
+{
+ "id": "E25-OCEAN2",
+ "title": "Wet-edge detector on OCEAN2: count map-edge surface tiles carrying water and those at depth 4 or more, and the live feature entries; expected live.",
+ "fork": "v5.8 wet-edge detection at load: a layer is live only when a deep wet edge exists and feature entries have stock.",
+ "fort": "OCEAN2",
+ "backup": "OCEAN2.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 1000,
+ "combat": false,
+ "tool_must_be": {
+  "enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "detector",
+   "expects": "live"
+  }
+ ],
+ "kill_criterion": "five of five as expected",
+ "culling": [
+  "drop on breach"
+ ],
+ "arms": [
+  {
+   "name": "edge",
+   "replicates": 1,
+   "pre": [
+    "local me=df.global.plotinfo.map_edge; local wet,tot,deep=0,0,0; for i=0,#me.surface_x-1 do local x,y,z=me.surface_x[i],me.surface_y[i],me.surface_z[i]; tot=tot+1; local d=dfhack.maps.getTileFlags(x,y,z); if d and d.flow_size>0 and not d.liquid_type then wet=wet+1; if d.flow_size>=4 then deep=deep+1 end end end; local fe=0; for _,p in ipairs(df.global.world.populations.all) do if p.type==df.world_population_type.Animal and p.population.feature_idx>=0 and p.quantity>0 then fe=fe+1 end end; print(('e25 edge: %d edge tiles, %d wet, %d deep (>=4/7); %d live feature entries -> %s'):format(tot,wet,deep,fe, (deep>0 and fe>0) and 'LIVE' or (fe>0 and 'DORMANT: no deep wet edge' or 'DORMANT: no feature entries')))",
+    "probe:edge"
+   ]
+  }
+ ]
+}
