@@ -673,6 +673,12 @@ cmd_load() {
     local folder="${1:-region1}"
     is_running || err "start the session first"
     ensure_title || err "could not reach the title screen (state: $(ui_state))"
+    # a previous load can leave the title in its Continue submenu (titlemode CONTINUE_ACTIVE*); back out to the main menu first
+    local tries=0
+    while [ "$(ui_get titlemode)" != "MAIN_MENU" ] && [ "$tries" -lt 4 ]; do
+        cmd_ui key LEAVESCREEN >/dev/null 2>&1; sleep 1; tries=$((tries + 1))
+    done
+    [ "$(ui_get titlemode)" = "MAIN_MENU" ] || err "title is stuck in $(ui_get titlemode); could not back out to the main menu"
     click_when_drawn "Continue active game" || err "title screen never showed 'Continue active game'"
     wait_state titlemode CONTINUE_ACTIVE_WORLD 15 || err "clicking 'Continue active game' did not open the world list (state: $(ui_state))"
     # which world owns this folder? (tab-separated: SAVE folder world fort year)
