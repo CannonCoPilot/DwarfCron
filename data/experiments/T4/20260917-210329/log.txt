@@ -1,0 +1,861 @@
+21:03:29 run T4 20260917-210329: v5.6 gate. CTRL with seasonal-wildlife enabled and a roster applied the way a first run does (matrix assignment; cougar, dingo, wolf and the small prey allowed in every season), resident groups and migratory coupling on with packs of five, ecology on versus off. No harness manipulation of the pool or the units: the tool does everything. Sixty thousand ticks. Ecology on should kill prey beside the coupled predators (E11c: 19 of 19 with the relation written, 0 of 14 without); ecology off should look like E11c's no-lever arm.
+21:03:29   [rig] DF already running (pid 50930), port 5555
+21:03:29 == T4 arm=ecology_on rep=1 fort=CTRL budget=60000 every=1000
+21:03:30   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:03:30   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:04:02   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:04:02   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:04:02   [rig] drained 0 queued popup(s)
+21:04:04   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:04:04   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology true; rotation enabled
+21:04:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: on  last write day 14: 0 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 1, nudges 0; livestock safe | 	2
+21:04:04   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:04:25   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 2) |   BIRD_KESTREL x1 resident (day 2) |   WOLF x4 gated (day 1) |   WOLF x1 gated (day 1) | ecology: on  last write day 16: 5 predator(s) x 2 target(s), 0 pair(s) written, 10 without a slot, 0 nudged, 0 slot(s) cleared; total writes 3, nudges 0; livestock safe | 	6
+21:04:25   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOMBAT	NOSLOT	NOSLOT	5
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:04:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 5) |   BIRD_KESTREL x1 resident (day 5) |   WOLF x4 gated (day 4) |   WOLF x1 gated (day 4) | ecology: on  last write day 19: 5 predator(s) x 2 target(s), 5 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 5, nudges 5; livestock safe | 	6
+21:04:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:04:53   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 8) |   WOLF x4 gated (day 7) |   WOLF x1 gated (day 7) | ecology: on  last write day 21: 5 predator(s) x 2 target(s), 5 pair(s) written, 5 without a slot, 3 nudged, 0 slot(s) cleared; total writes 7, nudges 8; livestock safe | 	5
+21:04:53   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:04:53   + 10313 ticks | wild  38 | arrivals  26 | departures   0 | deaths  1 | 310 t/s
+21:05:07   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 11) |   WOLF x4 gated (day 10) |   WOLF x1 gated (day 10) | ecology: on  last write day 25: 5 predator(s) x 1 target(s), 5 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 10, nudges 9; livestock safe | 	5
+21:05:07   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:05:20   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 13) |   WOLF x4 gated (day 13) |   WOLF x1 gated (day 12) | ecology: on  last write day 27: 5 predator(s) x 1 target(s), 5 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 12, nudges 9; livestock safe | 	5
+21:05:20   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:05:34   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 16) |   WOLF x4 gated (day 16) |   WOLF x1 gated (day 15) | ecology: on  last write day 30: 5 predator(s) x 1 target(s), 5 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 14, nudges 11; livestock safe | 	5
+21:05:34   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	TROGLODYTE	NONE	NONE	45
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	25
+WOLF	DEMON_12	NONE	NONE	25
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:05:34   + 20449 ticks | wild  38 | arrivals  26 | departures   0 | deaths  1 | 286 t/s
+21:05:47   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 19) |   WOLF x4 gated (day 18) |   WOLF x1 gated (day 18) | ecology: on  last write day 32: 5 predator(s) x 1 target(s), 5 pair(s) written, 0 without a slot, 3 nudged, 0 slot(s) cleared; total writes 16, nudges 15; livestock safe | 	5
+21:05:48   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	TROGLODYTE	NONE	NONE	40
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	15
+WOLF	DEMON_12	NONE	NONE	15
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:01   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_KESTREL x1 resident (day 22) |   WOLF x4 gated (day 21) |   WOLF x1 gated (day 21) | ecology: on  last write day 36: 5 predator(s) x 1 target(s), 5 pair(s) written, 0 without a slot, 3 nudged, 0 slot(s) cleared; total writes 19, nudges 18; livestock safe | 	5
+21:06:01   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_KESTREL	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	5
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	15
+WOLF	DEMON_12	NONE	NONE	15
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:14   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 24) |   WOLF x1 gated (day 24) |   BIRD_RAVEN x4 gated (day 2) | ecology: on  last write day 39: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 21, nudges 18; livestock safe | 	5
+21:06:15   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	5
+WOLF	PLUMP_HELMET_MAN	NONE	NONE	15
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:15   + 30580 ticks | wild  24 | arrivals  36 | departures  24 | deaths  1 | 317 t/s
+21:06:27   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 27) |   WOLF x1 gated (day 26) |   BIRD_RAVEN x4 gated (day 4) | ecology: on  last write day 41: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 23, nudges 18; livestock safe | 	5
+21:06:28   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	65
+WOLF	TROGLODYTE	NOSLOT	NOSLOT	5
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:41   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 30) |   WOLF x1 gated (day 29) |   BIRD_RAVEN x4 gated (day 7) | ecology: on  last write day 44: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 25, nudges 18; livestock safe | 	5
+21:06:41   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	65
+WOLF	TROGLODYTE	NOSLOT	NOSLOT	5
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:56   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 32) |   WOLF x1 gated (day 32) |   BIRD_RAVEN x4 gated (day 10) | ecology: on  last write day 47: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 1 nudged, 0 slot(s) cleared; total writes 28, nudges 19; livestock safe | 	5
+21:06:56   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	70
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:06:56   + 40633 ticks | wild  34 | arrivals  50 | departures  28 | deaths  1 | 279 t/s
+21:07:09   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 35) |   WOLF x1 gated (day 35) |   BIRD_RAVEN x4 gated (day 13) | ecology: on  last write day 50: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 30, nudges 19; livestock safe | 	5
+21:07:09   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	70
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:07:23   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 38) |   WOLF x1 gated (day 38) |   BIRD_RAVEN x4 gated (day 16) | ecology: on  last write day 52: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 32, nudges 19; livestock safe | 	5
+21:07:24   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+WOLF	TROGLODYTE	NONE	NONE	70
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:07:37   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 41) |   WOLF x1 gated (day 41) |   BIRD_RAVEN x4 gated (day 19) | ecology: on  last write day 55: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 1 nudged, 0 slot(s) cleared; total writes 34, nudges 20; livestock safe | 	5
+21:07:37   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_13	NONE	NONE	10
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	TROGLODYTE	NONE	NONE	70
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:07:37   + 50857 ticks | wild  33 | arrivals  50 | departures  29 | deaths  1 | 278 t/s
+21:07:51   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 44) |   WOLF x1 gated (day 43) |   BIRD_RAVEN x4 gated (day 21) | ecology: on  last write day 59: 5 predator(s) x 4 target(s), 20 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 37, nudges 20; livestock safe | 	5
+21:07:51   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	20
+WOLF	JABBERER	NOSLOT	NOSLOT	5
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	DEMON_13	NONE	NONE	5
+WOLF	TROGLODYTE	NONE	NONE	60
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:08:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 47) |   WOLF x1 gated (day 46) |   BIRD_RAVEN x3 gated (day 24) | ecology: on  last write day 61: 5 predator(s) x 3 target(s), 15 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 39, nudges 20; livestock safe | 	5
+21:08:05   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	DEMON_13	NONE	NONE	5
+WOLF	TROGLODYTE	NONE	NONE	60
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:08:17   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=1  coupling=on (1 done) |   WOLF x4 resident (day 49) |   WOLF x1 gated (day 49) |   BIRD_RAVEN x3 gated (day 27) | ecology: on  last write day 64: 5 predator(s) x 3 target(s), 15 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 41, nudges 20; livestock safe | 	5
+21:08:18   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+WOLF	FLESH_BALL	NOSLOT	NOSLOT	10
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	DEMON_13	NONE	NONE	5
+WOLF	TROGLODYTE	NONE	NONE	60
+WOLF	WOLF	NONE	NONE	8
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:08:27   [rig] back at the title screen
+21:08:27   done: {"arm": "ecology_on", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 51, "departures": 34, "deaths": 1, "ticks": 61053, "wall_s": 223.3, "stop": null, "combat_reports": 55, "ticks_per_s": 273.4, "save_untouched": true}
+21:08:27 == T4 arm=ecology_on rep=2 fort=CTRL budget=60000 every=1000
+21:08:27   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:08:27   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:09:01   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:09:01   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:09:01   [rig] drained 0 queued popup(s)
+21:09:02   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:09:03   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology true; rotation enabled
+21:09:03   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: on  last write day 14: 0 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 1, nudges 0; livestock safe | 	2
+21:09:03   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:09:23   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 2) |   KANGAROO x3 resident (day 2) |   COUGAR x3 gated (day 1) |   COUGAR x2 gated (day 1) | ecology: on  last write day 16: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 3, nudges 0; livestock safe | 	6
+21:09:23   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:09:36   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 5) |   KANGAROO x3 resident (day 5) |   COUGAR x3 gated (day 4) |   COUGAR x2 gated (day 4) | ecology: on  last write day 19: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 2 nudged, 0 slot(s) cleared; total writes 5, nudges 5; livestock safe | 	6
+21:09:36   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	18
+COUGAR	COUGAR	NONE	NONE	2
+21:09:48   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 8) |   KANGAROO x3 resident (day 8) |   COUGAR x3 gated (day 7) |   COUGAR x2 gated (day 7) | ecology: on  last write day 21: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 3 nudged, 0 slot(s) cleared; total writes 7, nudges 8; livestock safe | 	6
+21:09:48   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	18
+COUGAR	COUGAR	NONE	NONE	2
+21:09:48   + 10263 ticks | wild  33 | arrivals  20 | departures   0 | deaths  0 | 319 t/s
+21:10:02   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 11) |   KANGAROO x3 resident (day 11) |   COUGAR x3 gated (day 10) |   COUGAR x2 gated (day 9) | ecology: on  last write day 25: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 1 nudged, 0 slot(s) cleared; total writes 10, nudges 10; livestock safe | 	6
+21:10:02   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	18
+COUGAR	COUGAR	NONE	NONE	2
+21:10:16   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 14) |   KANGAROO x3 resident (day 14) |   COUGAR x3 gated (day 13) |   COUGAR x2 gated (day 12) | ecology: on  last write day 27: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 12, nudges 10; livestock safe | 	6
+21:10:16   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:10:30   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 17) |   KANGAROO x3 resident (day 17) |   COUGAR x3 gated (day 16) |   COUGAR x2 gated (day 15) | ecology: on  last write day 30: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 14, nudges 10; livestock safe | 	6
+21:10:30   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	10
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:10:30   + 20709 ticks | wild  33 | arrivals  20 | departures   0 | deaths  0 | 305 t/s
+21:10:43   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 19) |   KANGAROO x3 resident (day 19) |   COUGAR x3 gated (day 18) |   COUGAR x2 gated (day 18) | ecology: on  last write day 34: 5 predator(s) x 4 target(s), 15 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 17, nudges 10; livestock safe | 	6
+21:10:43   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	40
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	WOMBAT	NOSLOT	NOSLOT	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:10:56   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=1  coupling=on (1 done) |   KANGAROO x3 resident (day 22) |   COUGAR x3 gated (day 21) |   COUGAR x2 gated (day 21) | ecology: on  last write day 36: 5 predator(s) x 3 target(s), 15 pair(s) written, 0 without a slot, 2 nudged, 0 slot(s) cleared; total writes 19, nudges 12; livestock safe | 	5
+21:10:56   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	ELK_BIRD	NONE	NONE	35
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+COUGAR	TROGLODYTE	NONE	NONE	30
+COUGAR	DEMON_16	NONE	NONE	15
+COUGAR	KANGAROO	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:11:08   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=4  coupling=on (1 done) |   COUGAR x3 resident (day 24) |   COUGAR x2 gated (day 24) | ecology: on  last write day 39: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 21, nudges 15; livestock safe | 	4
+21:11:08   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	CRUNDLE	NONE	NONE	40
+COUGAR	CRUNDLE	NOSLOT	NOSLOT	50
+COUGAR	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+COUGAR	MAGMA_CRAB	NONE	NONE	25
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+COUGAR	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+COUGAR	DEMON_16	NONE	NONE	10
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+COUGAR	COUGAR	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:11:21   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (1 done, pool closed for WOMBAT) |   COUGAR x1 gated (day 27) |   WOMBAT x1 resident (day 0) | ecology: on  last write day 41: 3 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 2 slot(s) cleared; total writes 23, nudges 15; livestock safe | 	4
+21:11:21   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+COUGAR	CRUNDLE	NONE	NONE	12
+COUGAR	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	1
+COUGAR	MAGMA_CRAB	NONE	NONE	5
+COUGAR	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	1
+COUGAR	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	1
+COUGAR	DEMON_13	NOSLOT	NOSLOT	5
+COUGAR	DEMON_9	NOSLOT	NOSLOT	5
+COUGAR	CRUNDLE	NOSLOT	NOSLOT	6
+COUGAR	OLM_GIANT	NOSLOT	NOSLOT	1
+COUGAR	WOMBAT	NOSLOT	NOSLOT	1
+21:11:35   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 3) |   DINGO x1 gated (day 2) |   BIRD_OWL_GREAT_HORNED x1 gated (day 2) |   DINGO x3 gated (day 2) |   DINGO x1 gated (day 1) | ecology: on  last write day 45: 5 predator(s) x 2 target(s), 5 pair(s) written, 5 without a slot, 0 nudged, 0 slot(s) cleared; total writes 26, nudges 16; livestock safe | 	7
+21:11:35   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	90
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	20
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	NONE	NONE	6
+DINGO	DINGO	NONE	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	1
+DINGO	BIRD_OWL_GREAT_HORNED	NONE	NONE	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	NONE	1
+21:11:44   + 40128 ticks | wild  44 | arrivals  59 | departures  28 | deaths  0 | 261 t/s
+21:11:49   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 5) |   DINGO x1 gated (day 5) |   BIRD_OWL_GREAT_HORNED x1 gated (day 4) |   DINGO x3 gated (day 4) |   DINGO x1 gated (day 4) | ecology: on  last write day 47: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 28, nudges 17; livestock safe | 	7
+21:11:49   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	90
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+DINGO	BIRD_OWL_GREAT_HORNED	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+21:12:03   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 8) |   DINGO x1 gated (day 7) |   BIRD_OWL_GREAT_HORNED x1 gated (day 7) |   DINGO x3 gated (day 7) |   DINGO x1 gated (day 7) | ecology: on  last write day 50: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 5 nudged, 0 slot(s) cleared; total writes 30, nudges 22; livestock safe | 	7
+21:12:03   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	90
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	20
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+DINGO	BIRD_OWL_GREAT_HORNED	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+21:12:17   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 11) |   DINGO x1 gated (day 10) |   BIRD_OWL_GREAT_HORNED x1 gated (day 10) |   DINGO x3 gated (day 10) |   DINGO x1 gated (day 10) | ecology: on  last write day 52: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 32, nudges 22; livestock safe | 	7
+21:12:17   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	90
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	20
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+DINGO	BIRD_OWL_GREAT_HORNED	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+21:12:32   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 14) |   DINGO x1 gated (day 13) |   BIRD_OWL_GREAT_HORNED x1 gated (day 13) |   DINGO x3 gated (day 13) |   DINGO x1 gated (day 12) | ecology: on  last write day 56: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 35, nudges 26; livestock safe | 	7
+21:12:32   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	90
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	20
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+DINGO	BIRD_OWL_GREAT_HORNED	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+21:12:46   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 16) |   DINGO x1 gated (day 15) |   BIRD_OWL_GREAT_HORNED x1 gated (day 15) |   DINGO x3 gated (day 15) |   DINGO x1 gated (day 15) | ecology: on  last write day 59: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 37, nudges 26; livestock safe | 	7
+21:12:46   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	70
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	MAGMA_CRAB	NONE	NONE	20
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	5
+DINGO	BLIND_CAVE_OGRE	NOSLOT	NOSLOT	5
+DINGO	DEMON_13	NONE	NONE	25
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	5
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+DINGO	BIRD_OWL_GREAT_HORNED	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+21:12:59   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 19) |   DINGO x3 gated (day 18) |   DINGO x1 gated (day 18) | ecology: on  last write day 61: 4 predator(s) x 2 target(s), 8 pair(s) written, 0 without a slot, 4 nudged, 1 slot(s) cleared; total writes 39, nudges 30; livestock safe | 	5
+21:12:59   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	52
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	8
+DINGO	MAGMA_CRAB	NONE	NONE	16
+DINGO	BIRD_SWALLOW_CAVE_GIANT	NOSLOT	NOSLOT	4
+DINGO	DEMON_13	NONE	NONE	20
+DINGO	DEMON_9	NONE	NONE	20
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	4
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+DINGO	WOMBAT	NONE	NONE	1
+21:13:12   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (2 done) |   WOMBAT x1 resident (day 22) |   DINGO x3 gated (day 21) |   DINGO x1 gated (day 21) | ecology: on  last write day 64: 4 predator(s) x 1 target(s), 4 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 41, nudges 30; livestock safe | 	5
+21:13:12   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	CRUNDLE	NONE	NONE	32
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	4
+DINGO	TROLL	NOSLOT	NOSLOT	4
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	4
+DINGO	MAGMA_CRAB	NONE	NONE	16
+DINGO	DEMON_13	NONE	NONE	16
+DINGO	DEMON_9	NONE	NONE	20
+DINGO	OLM_GIANT	NOSLOT	NOSLOT	4
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	4
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:13:21   [rig] back at the title screen
+21:13:21   done: {"arm": "ecology_on", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 62, "departures": 44, "deaths": 1, "ticks": 61049, "wall_s": 220.3, "stop": null, "combat_reports": 90, "ticks_per_s": 277.1, "save_untouched": true}
+21:13:21 == T4 arm=ecology_on rep=3 fort=CTRL budget=60000 every=1000
+21:13:22   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:13:22   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:13:56   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:13:56   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:13:56   [rig] drained 0 queued popup(s)
+21:13:58   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:13:58   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology true; rotation enabled
+21:13:58   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: on  last write day 14: 0 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 1, nudges 0; livestock safe | 	2
+21:13:58   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:14:18   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 2) |   PORCUPINE x1 gated (day 2) |   DINGO x5 gated (day 2) | ecology: on  last write day 16: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 3, nudges 0; livestock safe | 	5
+21:14:19   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:14:31   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 5) |   PORCUPINE x1 gated (day 5) |   DINGO x5 gated (day 5) | ecology: on  last write day 19: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 5, nudges 5; livestock safe | 	5
+21:14:31   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:14:44   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 8) |   PORCUPINE x1 gated (day 8) |   DINGO x5 gated (day 8) | ecology: on  last write day 21: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 7, nudges 5; livestock safe | 	5
+21:14:44   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:14:44   + 10284 ticks | wild  36 | arrivals  23 | departures   0 | deaths  0 | 300 t/s
+21:14:58   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 11) |   PORCUPINE x1 gated (day 11) |   DINGO x5 gated (day 11) | ecology: on  last write day 25: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 1 nudged, 0 slot(s) cleared; total writes 10, nudges 6; livestock safe | 	5
+21:14:58   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:15:11   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 14) |   PORCUPINE x1 gated (day 14) |   DINGO x5 gated (day 13) | ecology: on  last write day 27: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 1 nudged, 0 slot(s) cleared; total writes 12, nudges 10; livestock safe | 	5
+21:15:11   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:15:24   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 17) |   PORCUPINE x1 gated (day 17) |   DINGO x5 gated (day 16) | ecology: on  last write day 30: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 1 nudged, 0 slot(s) cleared; total writes 14, nudges 12; livestock safe | 	5
+21:15:24   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:15:24   + 20723 ticks | wild  36 | arrivals  23 | departures   0 | deaths  0 | 295 t/s
+21:15:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 19) |   PORCUPINE x1 gated (day 19) |   DINGO x5 gated (day 19) | ecology: on  last write day 34: 5 predator(s) x 2 target(s), 10 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 17, nudges 16; livestock safe | 	5
+21:15:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	85
+DINGO	MAGMA_CRAB	NONE	NONE	25
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	VORACIOUS_CAVE_CRAWLER	NOSLOT	NOSLOT	5
+DINGO	DEMON_9	NONE	NONE	25
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+DINGO	GREEN_DEVOURER	NOSLOT	NOSLOT	5
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:15:52   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (1 done) |   WOMBAT x1 resident (day 22) |   PORCUPINE x1 gated (day 22) |   DINGO x4 gated (day 22) | ecology: on  last write day 36: 4 predator(s) x 2 target(s), 8 pair(s) written, 0 without a slot, 1 nudged, 1 slot(s) cleared; total writes 19, nudges 20; livestock safe | 	5
+21:15:52   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	ELK_BIRD	NONE	NONE	64
+DINGO	MAGMA_CRAB	NONE	NONE	20
+DINGO	WOMBAT	PREDATOR_OR_PREY	PREDATOR_OR_PREY	4
+DINGO	VORACIOUS_CAVE_CRAWLER	NONE	NONE	4
+DINGO	DEMON_9	NONE	NONE	8
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	4
+DINGO	TOAD_GIANT_CAVE	NONE	NONE	4
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+21:16:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=2  coupling=on (1 done) |   DINGO x3 gated (day 25) | ecology: on  last write day 39: 3 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 2 slot(s) cleared; total writes 21, nudges 21; livestock safe | 	3
+21:16:04   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	PLUMP_HELMET_MAN	NONE	NONE	9
+DINGO	JABBERER	NOSLOT	NOSLOT	6
+DINGO	DEMON_13	NONE	NONE	6
+DINGO	GIANT_EARTHWORM	NOSLOT	NOSLOT	3
+DINGO	MAGMA_CRAB	NONE	NONE	15
+DINGO	CROCODILE_CAVE	NOSLOT	NOSLOT	3
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	6
+21:16:04   + 30829 ticks | wild  17 | arrivals  33 | departures  28 | deaths  1 | 361 t/s
+21:16:16   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=2  coupling=on (1 done) |   DINGO x2 gated (day 28) | ecology: on  last write day 41: 3 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 23, nudges 21; livestock safe | 	3
+21:16:16   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+DINGO	PLUMP_HELMET_MAN	NONE	NONE	6
+DINGO	JABBERER	NOSLOT	NOSLOT	4
+DINGO	DEMON_13	NONE	NONE	4
+DINGO	GIANT_EARTHWORM	NOSLOT	NOSLOT	2
+DINGO	MAGMA_CRAB	NONE	NONE	10
+DINGO	CROCODILE_CAVE	NOSLOT	NOSLOT	2
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	2
+21:16:29   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 2) |   BADGER x3 gated (day 2) | ecology: on  last write day 45: 0 predator(s) x 10 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 1 slot(s) cleared; total writes 26, nudges 22; livestock safe | 	4
+21:16:30   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:16:38   + 40070 ticks | wild  24 | arrivals  44 | departures  29 | deaths  4 | 298 t/s
+21:16:42   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 5) |   BADGER x3 gated (day 5) | ecology: on  last write day 47: 0 predator(s) x 10 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 28, nudges 22; livestock safe | 	4
+21:16:42   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:16:55   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 8) |   BADGER x3 gated (day 8) | ecology: on  last write day 50: 0 predator(s) x 10 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 30, nudges 22; livestock safe | 	4
+21:16:55   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:17:07   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 11) |   BADGER x3 gated (day 11) | ecology: on  last write day 54: 0 predator(s) x 10 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 33, nudges 22; livestock safe | 	4
+21:17:07   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:17:15   + 50271 ticks | wild  23 | arrivals  44 | departures  30 | deaths  4 | 319 t/s
+21:17:19   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 14) |   BADGER x3 gated (day 13) | ecology: on  last write day 56: 0 predator(s) x 10 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 35, nudges 22; livestock safe | 	4
+21:17:19   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:17:33   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=2  coupling=on (1 done) |   BADGER x7 gated (day 16) |   BADGER x2 gated (day 16) | ecology: on  last write day 59: 0 predator(s) x 9 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 37, nudges 22; livestock safe | 	4
+21:17:33   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:17:47   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=3  coupling=on (1 done) |   BADGER x5 resident (day 19) |   BADGER x2 gated (day 19) | ecology: on  last write day 61: 0 predator(s) x 8 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 1 slot(s) cleared; total writes 39, nudges 22; livestock safe | 	4
+21:17:47   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:17:57   + 60578 ticks | wild  54 | arrivals  89 | departures  42 | deaths  6 | 241 t/s
+21:18:06   [rig] back at the title screen
+21:18:06   done: {"arm": "ecology_on", "rep": 3, "valid": true, "breaches": [], "control": null, "arrivals": 89, "departures": 42, "deaths": 6, "ticks": 60578, "wall_s": 210.2, "stop": null, "combat_reports": 184, "ticks_per_s": 288.1, "save_untouched": true}
+21:18:06 == T4 arm=ecology_off rep=1 fort=CTRL budget=60000 every=1000
+21:18:07   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:18:07   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:18:42   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:18:42   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:18:42   [rig] drained 0 queued popup(s)
+21:18:44   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:18:44   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(false))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology false; rotation enabled
+21:18:44   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: off | 	2
+21:18:44   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:19:06   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 2) |   BIRD_OWL_GREAT_HORNED x1 gated (day 2) |   BIRD_RAVEN x8 gated (day 2) | ecology: off | 	5
+21:19:06   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:19:18   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 5) |   BIRD_OWL_GREAT_HORNED x1 gated (day 5) |   BIRD_RAVEN x8 gated (day 5) | ecology: off | 	5
+21:19:19   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:19:32   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 8) |   BIRD_OWL_GREAT_HORNED x1 gated (day 8) |   BIRD_RAVEN x8 gated (day 8) | ecology: off | 	5
+21:19:32   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:19:32   + 10498 ticks | wild  33 | arrivals  20 | departures   0 | deaths  0 | 301 t/s
+21:19:45   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 11) |   BIRD_OWL_GREAT_HORNED x1 gated (day 11) |   BIRD_RAVEN x8 gated (day 11) | ecology: off | 	5
+21:19:45   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:19:58   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 14) |   BIRD_OWL_GREAT_HORNED x1 gated (day 14) |   BIRD_RAVEN x8 gated (day 13) | ecology: off | 	5
+21:19:58   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:20:11   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 16) |   BIRD_OWL_GREAT_HORNED x1 gated (day 16) |   BIRD_RAVEN x8 gated (day 16) | ecology: off | 	5
+21:20:11   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:20:11   + 20455 ticks | wild  33 | arrivals  20 | departures   0 | deaths  0 | 288 t/s
+21:20:25   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=1 departed=0  coupling=on (0 done) |   BIRD_OWL_GREAT_HORNED x1 resident (day 19) |   BIRD_OWL_GREAT_HORNED x1 gated (day 19) |   BIRD_RAVEN x8 gated (day 19) | ecology: off | 	5
+21:20:25   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:20:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=1  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 22) |   BIRD_RAVEN x5 gated (day 2) | ecology: off | 	4
+21:20:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:20:52   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 gated (day 5) |   BIRD_RAVEN x3 gated (day 0) | ecology: off | 	4
+21:20:52   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:20:52   + 30802 ticks | wild  35 | arrivals  48 | departures  25 | deaths  1 | 280 t/s
+21:21:08   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 7) |   BIRD_RAVEN x3 gated (day 3) | ecology: off | 	4
+21:21:08   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:21:24   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 10) |   BIRD_RAVEN x3 gated (day 6) | ecology: off | 	4
+21:21:24   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:21:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 13) |   BIRD_RAVEN x3 gated (day 9) | ecology: off | 	4
+21:21:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:21:39   + 40806 ticks | wild  39 | arrivals  55 | departures  27 | deaths  2 | 255 t/s
+21:21:55   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 16) |   BIRD_RAVEN x3 resident (day 11) |   BADGER x5 gated (day 2) |   BADGER x2 gated (day 1) | ecology: off | 	6
+21:21:55   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:22:12   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=6  coupling=on (0 done) |   BIRD_RAVEN x5 resident (day 19) |   BIRD_RAVEN x3 resident (day 14) |   BADGER x5 gated (day 5) |   BADGER x2 gated (day 4) | ecology: off | 	6
+21:22:12   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:22:28   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (0 done) |   BIRD_RAVEN x4 resident (day 21) |   BIRD_RAVEN x3 resident (day 17) |   BADGER x5 gated (day 7) |   BADGER x2 gated (day 7) | ecology: off | 	6
+21:22:28   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:22:28   + 50791 ticks | wild  43 | arrivals  62 | departures  30 | deaths  2 | 226 t/s
+21:22:44   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=9  coupling=on (0 done) |   BIRD_RAVEN x2 resident (day 24) |   BIRD_RAVEN x3 resident (day 20) |   BADGER x5 gated (day 10) |   BADGER x2 gated (day 10) | ecology: off | 	6
+21:22:44   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:22:57   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=12  coupling=on (0 done) |   BIRD_RAVEN x2 resident (day 23) |   BADGER x5 gated (day 13) |   BADGER x2 gated (day 13) | ecology: off | 	5
+21:22:58   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:23:10   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=14  coupling=on (0 done) |   BADGER x5 resident (day 16) |   BADGER x2 gated (day 15) | ecology: off | 	4
+21:23:10   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:23:10   + 60788 ticks | wild  31 | arrivals  68 | departures  48 | deaths  2 | 307 t/s
+21:23:20   [rig] back at the title screen
+21:23:20   done: {"arm": "ecology_off", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 68, "departures": 48, "deaths": 2, "ticks": 60788, "wall_s": 238.0, "stop": null, "combat_reports": 45, "ticks_per_s": 255.5, "save_untouched": true}
+21:23:20 == T4 arm=ecology_off rep=2 fort=CTRL budget=60000 every=1000
+21:23:20   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:23:20   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:23:57   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:23:57   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:23:57   [rig] drained 0 queued popup(s)
+21:23:59   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:23:59   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(false))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology false; rotation enabled
+21:23:59   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: off | 	2
+21:23:59   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:24:22   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 2) |   BIRD_EMU x3 resident (day 2) |   BIRD_EMU x2 gated (day 2) |   BADGER x5 gated (day 2) |   BIRD_EMU x3 resident (day 2) |   BIRD_EMU x1 gated (day 1) |   BIRD_EMU x1 gated (day 1) | ecology: off | 	9
+21:24:22   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:24:36   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 5) |   BIRD_EMU x3 resident (day 5) |   BIRD_EMU x2 gated (day 5) |   BADGER x5 gated (day 5) |   BIRD_EMU x3 resident (day 4) |   BIRD_EMU x1 gated (day 4) |   BIRD_EMU x1 gated (day 4) | ecology: off | 	9
+21:24:36   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:24:50   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 8) |   BIRD_EMU x3 resident (day 8) |   BIRD_EMU x2 gated (day 7) |   BADGER x5 gated (day 7) |   BIRD_EMU x3 resident (day 7) |   BIRD_EMU x1 gated (day 7) |   BIRD_EMU x1 gated (day 7) | ecology: off | 	9
+21:24:50   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:24:50   + 10059 ticks | wild  51 | arrivals  38 | departures   0 | deaths  0 | 278 t/s
+21:25:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 11) |   BIRD_EMU x3 resident (day 11) |   BIRD_EMU x2 gated (day 10) |   BADGER x5 gated (day 10) |   BIRD_EMU x3 resident (day 10) |   BIRD_EMU x1 gated (day 10) |   BIRD_EMU x1 gated (day 10) | ecology: off | 	9
+21:25:04   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:25:19   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 13) |   BIRD_EMU x3 resident (day 13) |   BIRD_EMU x2 gated (day 13) |   BADGER x5 gated (day 13) |   BIRD_EMU x3 resident (day 13) |   BIRD_EMU x1 gated (day 13) |   BIRD_EMU x1 gated (day 12) | ecology: off | 	9
+21:25:19   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:25:33   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 16) |   BIRD_EMU x3 resident (day 16) |   BIRD_EMU x2 gated (day 16) |   BADGER x5 gated (day 16) |   BIRD_EMU x3 resident (day 16) |   BIRD_EMU x1 gated (day 16) |   BIRD_EMU x1 gated (day 15) | ecology: off | 	9
+21:25:33   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:25:33   + 20457 ticks | wild  51 | arrivals  38 | departures   0 | deaths  0 | 268 t/s
+21:25:47   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 19) |   BIRD_EMU x3 resident (day 19) |   BIRD_EMU x2 gated (day 19) |   BADGER x5 gated (day 19) |   BIRD_EMU x3 resident (day 19) |   BIRD_EMU x1 gated (day 18) |   BIRD_EMU x1 gated (day 18) | ecology: off | 	9
+21:25:48   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:02   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=1  coupling=on (2 done) |   BIRD_KESTREL x1 gated (day 22) |   BIRD_EMU x2 resident (day 22) |   BIRD_EMU x2 gated (day 22) |   BADGER x3 gated (day 22) |   BIRD_EMU x3 resident (day 21) |   BIRD_EMU x1 gated (day 21) |   BIRD_EMU x1 gated (day 21) | ecology: off | 	9
+21:26:02   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:15   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=1  coupling=on (2 done) |   BIRD_EMU x2 resident (day 25) |   BIRD_EMU x2 gated (day 24) |   BIRD_EMU x3 resident (day 24) |   BIRD_EMU x1 gated (day 24) |   BIRD_EMU x1 gated (day 24) | ecology: off | 	7
+21:26:15   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:15   + 30483 ticks | wild  28 | arrivals  43 | departures  28 | deaths  0 | 311 t/s
+21:26:28   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=3  coupling=on (2 done) |   BIRD_EMU x2 gated (day 27) |   BIRD_EMU x3 resident (day 27) |   BIRD_EMU x1 gated (day 27) |   BIRD_EMU x1 gated (day 26) | ecology: off | 	6
+21:26:28   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:42   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=3  coupling=on (2 done) |   BIRD_EMU x2 gated (day 30) |   BIRD_EMU x3 resident (day 30) |   BIRD_EMU x1 gated (day 30) |   BIRD_EMU x1 gated (day 29) | ecology: off | 	6
+21:26:42   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:56   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=3  coupling=on (2 done) |   BIRD_EMU x2 gated (day 33) |   BIRD_EMU x3 resident (day 33) |   BIRD_EMU x1 gated (day 32) |   BIRD_EMU x1 gated (day 32) | ecology: off | 	6
+21:26:56   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:26:56   + 40685 ticks | wild  42 | arrivals  68 | departures  39 | deaths  0 | 266 t/s
+21:27:09   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=3  coupling=on (2 done) |   BIRD_EMU x3 resident (day 35) |   BIRD_EMU x1 gated (day 35) |   BIRD_EMU x1 gated (day 35) | ecology: off | 	5
+21:27:10   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:27:24   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=4  coupling=on (2 done) |   BIRD_EMU x2 resident (day 38) |   BIRD_EMU x1 gated (day 38) |   BIRD_EMU x1 gated (day 38) | ecology: off | 	5
+21:27:24   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:27:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=4  coupling=on (2 done) |   BIRD_EMU x2 resident (day 41) |   BIRD_EMU x1 gated (day 41) |   BIRD_EMU x1 gated (day 41) | ecology: off | 	5
+21:27:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:27:39   + 50715 ticks | wild  43 | arrivals  73 | departures  43 | deaths  0 | 261 t/s
+21:27:53   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=5  coupling=on (2 done) |   BIRD_EMU x1 resident (day 44) |   BIRD_EMU x1 gated (day 44) |   BIRD_EMU x1 gated (day 43) | ecology: off | 	5
+21:27:53   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:28:06   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=5  coupling=on (2 done) |   BIRD_EMU x1 resident (day 47) |   BIRD_EMU x1 gated (day 47) |   BIRD_EMU x1 gated (day 46) | ecology: off | 	5
+21:28:06   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:28:19   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=7  coupling=on (3 done) |   SKUNK x1 resident (day 0) |   BIRD_OWL_GREAT_HORNED x1 gated (day 0) |   BADGER x5 gated (day 0) | ecology: off | 	5
+21:28:19   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:28:19   + 60952 ticks | wild  31 | arrivals  83 | departures  65 | deaths  0 | 261 t/s
+21:28:28   [rig] back at the title screen
+21:28:28   done: {"arm": "ecology_off", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 83, "departures": 65, "deaths": 0, "ticks": 60952, "wall_s": 233.0, "stop": null, "ticks_per_s": 261.6, "save_untouched": true}
+21:28:28 == T4 arm=ecology_off rep=3 fort=CTRL budget=60000 every=1000
+21:28:28   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:28:28   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:29:06   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:29:06   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:29:06   [rig] drained 0 queued popup(s)
+21:29:08   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:29:08   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(false))) -> roster: allowed 24 assigned 24 thin 0 applied 40; predators and prey in every season; groups on, coupling on, pack 5, ecology false; rotation enabled
+21:29:08   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done) | ecology: off | 	2
+21:29:08   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+21:29:33   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 2) |   KANGAROO x4 resident (day 2) |   WOLF x5 gated (day 2) | ecology: off | 	5
+21:29:33   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	25
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NOSLOT	NOSLOT	5
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	20
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+21:29:48   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 5) |   KANGAROO x4 resident (day 4) |   WOLF x5 gated (day 4) | ecology: off | 	5
+21:29:48   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NOSLOT	NOSLOT	5
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	20
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:30:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 7) |   KANGAROO x4 resident (day 7) |   WOLF x5 gated (day 7) | ecology: off | 	5
+21:30:04   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NOSLOT	NOSLOT	5
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	18
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	2
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:30:09   + 10958 ticks | wild  51 | arrivals  38 | departures   0 | deaths  0 | 245 t/s
+21:30:20   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 10) |   KANGAROO x4 resident (day 10) |   WOLF x5 gated (day 10) | ecology: off | 	5
+21:30:20   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NONE	NONE	5
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	18
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	2
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:30:36   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 13) |   KANGAROO x4 resident (day 13) |   WOLF x5 gated (day 12) | ecology: off | 	5
+21:30:36   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NONE	NONE	5
+WOLF	DEMON_15	NOSLOT	NOSLOT	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	18
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	2
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:30:52   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 16) |   KANGAROO x4 resident (day 15) |   WOLF x5 gated (day 15) | ecology: off | 	5
+21:30:52   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NONE	NONE	5
+WOLF	DEMON_15	NONE	NONE	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	14
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	KANGAROO	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	3
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	3
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:30:58   + 20936 ticks | wild  51 | arrivals  38 | departures   0 | deaths  0 | 229 t/s
+21:31:09   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=0  coupling=on (1 done) |   BIRD_RAVEN x5 resident (day 19) |   KANGAROO x4 resident (day 18) |   WOLF x5 gated (day 18) | ecology: off | 	5
+21:31:09   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	40
+WOLF	MAGMA_CRAB	NONE	NONE	25
+WOLF	BIRD_RAVEN	NONE	NONE	12
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	5
+WOLF	CROCODILE_CAVE	NONE	NONE	5
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	5
+WOLF	DEMON_16	NONE	NONE	15
+WOLF	CRUNDLE	NONE	NONE	85
+WOLF	KANGAROO	NONE	NONE	12
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	11
+WOLF	KANGAROO	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	2
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	1
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	BIRD_RAVEN	NONE	PREDATOR_OR_PREY	1
+21:31:24   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=2 departed=3  coupling=on (1 done) |   BIRD_RAVEN x3 resident (day 21) |   KANGAROO x3 resident (day 21) |   WOLF x4 gated (day 21) | ecology: off | 	5
+21:31:24   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	NONE	NONE	32
+WOLF	MAGMA_CRAB	NONE	NONE	20
+WOLF	BIRD_RAVEN	DANGEROUS_ANIMAL	NONE	8
+WOLF	BIRD_RAVEN	NONE	NONE	4
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	4
+WOLF	CROCODILE_CAVE	NONE	NONE	4
+WOLF	BIRD_SWALLOW_CAVE_GIANT	NONE	NONE	4
+WOLF	DEMON_16	NONE	NONE	12
+WOLF	CRUNDLE	NONE	NONE	68
+WOLF	KANGAROO	NONE	NONE	9
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	KANGAROO	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	2
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	1
+21:31:39   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=6  coupling=on (1 done) |   KANGAROO x3 resident (day 24) |   WOLF x4 resident (day 24) |   BIRD_RAVEN x2 gated (day 0) | ecology: off | 	5
+21:31:39   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	NONE	NONE	8
+WOLF	ELK_BIRD	NONE	NONE	20
+WOLF	MAGMA_CRAB	NONE	NONE	20
+WOLF	TROLL	NOSLOT	NOSLOT	4
+WOLF	TOAD_GIANT_CAVE	NONE	NONE	4
+WOLF	CROCODILE_CAVE	NONE	NONE	4
+WOLF	DEMON_16	NONE	NONE	12
+WOLF	CRUNDLE	NONE	NONE	36
+WOLF	KANGAROO	NONE	NONE	10
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	KANGAROO	DANGEROUS_ANIMAL	PREDATOR_OR_PREY	1
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	1
+21:31:43   + 30880 ticks | wild  28 | arrivals  41 | departures  26 | deaths  0 | 304 t/s
+21:31:51   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=3 departed=8  coupling=on (1 done) |   KANGAROO x1 resident (day 27) |   WOLF x4 resident (day 26) |   BIRD_RAVEN x2 gated (day 3) | ecology: off | 	5
+21:31:51   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	BIRD_RAVEN	NONE	NONE	8
+WOLF	ELK_BIRD	NONE	NONE	20
+WOLF	CAVE_BLOB	NONE	NONE	20
+WOLF	BLIND_CAVE_OGRE	NONE	NONE	8
+WOLF	MAGMA_CRAB	NONE	NONE	20
+WOLF	TROLL	NOSLOT	NOSLOT	4
+WOLF	ELK_BIRD	NOSLOT	NOSLOT	4
+WOLF	DEMON_16	NONE	NONE	12
+WOLF	KANGAROO	NONE	NONE	3
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	KANGAROO	NONE	PREDATOR_OR_PREY	1
+21:32:05   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=13  coupling=on (1 done) |   BIRD_RAVEN x2 resident (day 6) |   BIRD_RAVEN x2 gated (day 0) | ecology: off | 	4
+21:32:05   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:32:18   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=13  coupling=on (1 done) |   BIRD_RAVEN x2 resident (day 8) |   BIRD_RAVEN x2 gated (day 2) | ecology: off | 	4
+21:32:18   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:32:18   + 40053 ticks | wild  26 | arrivals  60 | departures  47 | deaths  0 | 284 t/s
+21:32:31   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=4 departed=13  coupling=on (1 done) |   BIRD_RAVEN x2 resident (day 11) |   BIRD_RAVEN x2 gated (day 5) | ecology: off | 	4
+21:32:31   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:32:44   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=13  coupling=on (1 done) |   BIRD_RAVEN x2 resident (day 14) |   BIRD_RAVEN x2 resident (day 8) |   BIRD_RAVEN x3 gated (day 0) | ecology: off | 	5
+21:32:44   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:32:57   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=13  coupling=on (1 done) |   BIRD_RAVEN x2 resident (day 17) |   BIRD_RAVEN x2 resident (day 11) |   BIRD_RAVEN x3 gated (day 3) | ecology: off | 	5
+21:32:57   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:32:57   + 50272 ticks | wild  28 | arrivals  63 | departures  48 | deaths  0 | 286 t/s
+21:33:10   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=14  coupling=on (1 done) |   BIRD_RAVEN x1 resident (day 20) |   BIRD_RAVEN x2 resident (day 14) |   BIRD_RAVEN x3 gated (day 6) | ecology: off | 	5
+21:33:10   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:33:22   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=14  coupling=on (1 done) |   BIRD_RAVEN x1 resident (day 23) |   BIRD_RAVEN x2 resident (day 17) |   BIRD_RAVEN x3 gated (day 9) | ecology: off | 	5
+21:33:22   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:33:34   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\n',' | ')) -> resident groups: on  max=3  gap=5-20 days  detached=5 departed=16  coupling=on (1 done) |   BIRD_RAVEN x1 resident (day 19) |   BIRD_RAVEN x3 gated (day 11) | ecology: off | 	4
+21:33:34   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+21:33:34   + 60582 ticks | wild  23 | arrivals  72 | departures  61 | deaths  1 | 308 t/s
+21:33:43   [rig] back at the title screen
+21:33:43   done: {"arm": "ecology_off", "rep": 3, "valid": true, "breaches": [], "control": null, "arrivals": 72, "departures": 61, "deaths": 1, "ticks": 60582, "wall_s": 239.1, "stop": null, "combat_reports": 35, "ticks_per_s": 253.4, "save_untouched": true}
+21:34:22   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:34:22   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:34:30   [rig] back at the title screen
+21:34:30 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/T4/20260917-210329
