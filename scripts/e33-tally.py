@@ -8,12 +8,13 @@ import csv, glob, re, sys
 from collections import defaultdict
 run_dir = sys.argv[1] if len(sys.argv) > 1 else sorted(glob.glob("data/experiments/E33/*"))[-1]
 LINE = re.compile(r"e33 water: (\d+) on map \[([^\]]*)\] target (\S+) -> placed (\d+) \[([^\]]*)\](?: — ([^;]*?))? season (\d+) day (\d+)")
-counts = defaultdict(list); placed = defaultdict(int); whys = defaultdict(set); last_mix = {}
+counts = defaultdict(list); post = defaultdict(list); placed = defaultdict(int); whys = defaultdict(set); last_mix = {}
 for r in csv.DictReader(open(f"{run_dir}/events.tsv"), delimiter="\t"):
     m = LINE.search(r["detail"])
     if not m: continue
     k = (r["arm"], int(r["rep"]))
-    counts[k].append(int(m.group(1))); placed[k] += int(m.group(4)); last_mix[k] = m.group(2)
+    counts[k].append(int(m.group(1))); post[k].append(int(m.group(1)) + int(m.group(4)))
+    placed[k] += int(m.group(4)); last_mix[k] = m.group(2)
     if m.group(6): whys[k].add(m.group(6).strip())
 # pool debit for water entries
 debit = defaultdict(dict)
@@ -26,10 +27,10 @@ try:
         else: d[1] = int(r["quantity"])
 except (FileNotFoundError, KeyError): pass
 print(f"run {run_dir}")
-print("arm\trep\tsamples\tmin\tmean\tmax\tshare>=12\tplaced_total\tfinal mix")
+print("arm\trep\tsamples\tpre:min/mean/max\tpost:min/mean\tnever_empty\tplaced\tfinal mix")
 for k in sorted(counts, key=lambda x: (x[0] != "placed", x[0], x[1])):
-    c = counts[k]; share = sum(1 for v in c if v >= 12) / len(c)
-    print(f"{k[0]}\t{k[1]}\t{len(c)}\t{min(c)}\t{sum(c)/len(c):.1f}\t{max(c)}\t{share:.0%}\t{placed[k]}\t{last_mix[k][:70]}")
+    c = counts[k]; q = post[k]
+    print(f"{k[0]}\t{k[1]}\t{len(c)}\t{min(c)}/{sum(c)/len(c):.1f}/{max(c)}\t{min(q)}/{sum(q)/len(q):.1f}\t{min(c) > 0}\t{placed[k]}\t{last_mix[k][:60]}")
     if whys[k]: print(f"   placement was refused: {sorted(whys[k])}")
     if debit.get(k):
         moved = {s: (a, b) for s, (a, b) in debit[k].items() if a is not None and b is not None and a != b}
