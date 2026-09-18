@@ -1,0 +1,47 @@
+{
+  "id": "T6",
+  "title": "v5.8 gate on LAKE: all three layers managed at once for a full year with everything v5.6-v5.8 ships turned on \u2014 seasonal rotation, resident groups, migratory coupling with packs of five, leader cohesion, the ecology switch, and the water job stocking to twelve every 5,000 ticks behind the wet-edge detector. 404,000 ticks, two replicates. Every 5,000 ticks the wild units are counted per layer with the citizen count, the water status and the groups status. Pass: the water layer never empties and sits near its target, the surface and cavern layers keep arriving, no out-of-season arrival, the fort survives, and the save is byte-identical.",
+  "fork": "Does v5.8 hold a three-layer map for a year with every earlier feature live, or do the layers fight each other.",
+  "fort": "LAKE",
+  "backup": "LAKE.preverify",
+  "fps": 1000,
+  "sample_every": 5000,
+  "tick_budget": 404000,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 1
+  },
+  "predictions": [
+    {
+      "model": "v5.8 holds",
+      "expects": "water near twelve all year, surface and cavern arrivals continuing, citizens alive, no out-of-season arrival, save byte-identical"
+    },
+    {
+      "model": "the layers fight",
+      "expects": "water stocking starves the surface gate, or the ecology switch kills the placed fish, or the fort dies"
+    }
+  ],
+  "kill_criterion": "a year on all three layers with the water layer held, the other two still arriving and the fort alive, in 2 of 2, ships v5.8",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "all_layers",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=true; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.groups.cohesion=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.water.target=12; cfg.water.cadence=5000; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: all three layers \u2014 %d assigned, %d thin, %d applied; groups on, coupling on, cohesion on, ecology on, water stocking on (target 12/5000t); rotation enabled'):format(a,f,act))",
+        "local by={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; local L=(r.cave_id>=0) and 'cavern' or ((r.feature_idx>=0) and 'water' or 'surface'); by[L]=(by[L] or 0)+1 end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local ok,w=pcall(dfhack.run_command_silent,'seasonal-wildlife','water'); local ok2,g=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print(('t6 layers: surface=%d water=%d cavern=%d citizens=%d season=%d day=%d | %s | %s'):format(by.surface or 0, by.water or 0, by.cavern or 0, cz, df.global.cur_season, math.floor(df.global.cur_year_tick/1200), ((w or ''):gsub('\\n',' ')):sub(1,200), ((g or ''):gsub('\\n',' | ')):sub(1,260)))"
+      ],
+      "every": {
+        "ticks": 5000,
+        "do": [
+          "local by={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; local L=(r.cave_id>=0) and 'cavern' or ((r.feature_idx>=0) and 'water' or 'surface'); by[L]=(by[L] or 0)+1 end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local ok,w=pcall(dfhack.run_command_silent,'seasonal-wildlife','water'); local ok2,g=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print(('t6 layers: surface=%d water=%d cavern=%d citizens=%d season=%d day=%d | %s | %s'):format(by.surface or 0, by.water or 0, by.cavern or 0, cz, df.global.cur_season, math.floor(df.global.cur_year_tick/1200), ((w or ''):gsub('\\n',' ')):sub(1,200), ((g or ''):gsub('\\n',' | ')):sub(1,260)))"
+        ]
+      }
+    }
+  ]
+}

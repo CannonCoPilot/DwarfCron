@@ -11,7 +11,9 @@ four versions, so it is scored here.
     scripts/t6-tally.py [run_dir]     (default: the newest data/experiments/T6/*)
 
 Sources, all written by cx-experiment.py:
-  waves.tsv   one row per arrival: listed_rel (ticks since the replicate began), species, layer
+  events.tsv  one 'arrival' row per unit, with the absolute tick and the unit's countdown
+              -- preferred, because it is exact, per-unit, and written as the run goes
+  waves.tsv   one row per wave, written only when the whole run ends (the fallback)
   roster.tsv  the seasons each key was assigned, per replicate
   units.tsv   every wild unit at every sample, with its layer
   events.tsv  the baseline row carries the replicate's opening tick
@@ -56,13 +58,43 @@ def season_of(abs_tick):
     return (abs_tick % TICKS_PER_YEAR) // TICKS_PER_SEASON
 
 
+def arrivals_for(run, waves):
+    """One row per arriving unit: {arm, rep, abs, species, layer, countdown, n}.
+
+    events.tsv is preferred: it carries the absolute tick and the unit's own countdown, one
+    row per unit, and it is written as the run goes -- so a replicate can be scored while the
+    next one is still running. waves.tsv only lands when the whole run ends.
+    """
+    out = []
+    for e in read(run, 'events.tsv'):
+        if e['event'] != 'arrival':
+            continue
+        d = e['detail'].split()
+        kv = dict(p.split('=', 1) for p in d[1:] if '=' in p)
+        out.append(dict(arm=e['arm'], rep=e['rep'], abs=int(e['abs_tick']), species=d[0],
+                        layer=kv.get('layer', 'surface'), countdown=kv.get('countdown'), n=1))
+    if out:
+        return out, 'events.tsv'
+    base = {}
+    for e in read(run, 'events.tsv'):
+        if e['event'] == 'baseline':
+            base[(e['arm'], e['rep'])] = int(e['abs_tick'])
+    for w in waves:
+        b = base.get((w['arm'], w['rep']))
+        if b is None:
+            continue
+        out.append(dict(arm=w['arm'], rep=w['rep'], abs=b + int(w['listed_rel']), species=w['species'],
+                        layer=w['layer'], countdown=w['countdown_min'], n=int(w['n'] or 1)))
+    return out, 'waves.tsv'
+
+
 def placed_at(w, first_abs, countdown):
     """A water placement carries our own leave countdown, so its age at first sight dates
     it exactly. Returns the absolute tick it was placed, or None for a layer DF waves."""
     if w['layer'] != 'feature':
         return None
     try:
-        age = countdown - int(w['countdown_min'])
+        age = countdown - int(w['countdown'])
     except (TypeError, ValueError):
         return None
     return first_abs - age if 0 < age < countdown else None
@@ -78,9 +110,10 @@ def tally(run: Path):
             if 'cfg.water.countdown=' in cmd:
                 countdown = int(cmd.split('cfg.water.countdown=')[1].split(';')[0].strip())
     waves, roster = read(run, 'waves.tsv'), read(run, 'roster.tsv')
+    arrivals_all, arr_src = arrivals_for(run, waves)
     units, events = read(run, 'units.tsv'), read(run, 'events.tsv')
-    if not waves:
-        sys.exit(f'{run}: no waves.tsv — the run produced no arrivals table')
+    if not arrivals_all:
+        sys.exit(f'{run}: no arrivals recorded in events.tsv or waves.tsv')
 
     # the tick each replicate opened at, so a relative arrival becomes an absolute one
     base = {}
@@ -127,16 +160,16 @@ def tally(run: Path):
         b, rost = base[key], seasons.get(key, {})
         # --- criterion 5: arrivals against the roster's seasons
         offenders, boundary, arrivals = collections.Counter(), collections.Counter(), 0
-        for w in waves:
+        for w in arrivals_all:
             if (w['arm'], w['rep']) != key:
                 continue
-            n = int(w['n'] or 1)
+            n = w['n']
             arrivals += n
             rk = KEY_PREFIX.get(w['layer'], '') + w['species']
             want = rost.get(rk)
             if not want:
                 continue                       # unassigned: unrestricted by design
-            first = b + int(w['listed_rel'])
+            first = w['abs']
             s = season_of(first)
             if s in want:
                 continue
@@ -167,14 +200,15 @@ def tally(run: Path):
                              layers=layers, xcheck=xcheck,
                              citizens=(cz[0], cz[-1]) if cz else (None, None),
                              samples=len(sampled.get(key, [])))
-    return verdicts
+    return verdicts, arr_src
 
 
 def main():
     arg = sys.argv[1] if len(sys.argv) > 1 else None
     run = Path(arg) if arg else max((ROOT / 'data/experiments/T6').glob('*'), key=lambda p: p.name)
-    print(f'T6 — {run.name}\n')
-    v = tally(run)
+    print(f'T6 — {run.name}')
+    v, src = tally(run)
+    print(f'(arrivals read from {src})\n')
     gate = True
     for (arm, rep), d in sorted(v.items()):
         water, surf, cav = d['layers']['feature'], d['layers']['surface'], d['layers']['cavern']
