@@ -1,0 +1,65 @@
+{
+  "id": "E33",
+  "title": "Can placement alone keep a water layer alive? LAKE, only the water layer managed and rotation enabled, groups and ecology off. The placed arm tops the map up to twelve feature-layer wild animals every 5,000 ticks, drawing only from water entries that are stocked and in season, through the tool's own headless placement (addendum 47: dfhack.units.create plus a population reference, no menu and no pointer). The control arm places nothing and only counts. One season, 100,800 ticks, two replicates each. E20 is the wider control: a full year of the same roster with no placement gave zero water arrivals and an empty layer by midsummer.",
+  "fork": "v5.8's water mechanism: is a placement cadence enough to hold a stocked, seasonal water population, and what does it cost the pool ledger.",
+  "fort": "LAKE",
+  "backup": "LAKE.preverify",
+  "fps": 1000,
+  "sample_every": 1000,
+  "tick_budget": 100800,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 0
+  },
+  "predictions": [
+    {
+      "model": "placement holds the layer",
+      "expects": "the placed arm sits at or near twelve water animals for the whole season while the control falls toward zero; the entries debit by roughly the number placed; no citizen dies of it"
+    },
+    {
+      "model": "placed animals do not persist",
+      "expects": "the placed count falls back between top-ups faster than countdowns explain, or placed units vanish from the active list"
+    },
+    {
+      "model": "placement fights the game",
+      "expects": "a Lua error, a stalled tick, a save that is no longer byte-identical, or placed units drowning or beaching"
+    }
+  ],
+  "kill_criterion": "the placed arm holding a water population a season in 2 of 2, with the ledger debited and the control at or near zero, ships placement as v5.8's water mechanism",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "placed",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=false; cfg.layers.water=true; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local w=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; if e.layer=='water' then w=w+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=false; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: water layer only \u2014 %d water species allowed, %d assigned, %d thin, %d applied; groups off; rotation enabled'):format(w,a,f,act))",
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local TARGET=12; local on={}; local n=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and u.animal.population.feature_idx>=0 then n=n+1; local t=df.creature_raw.find(u.race).creature_id; on[t]=(on[t] or 0)+1 end end; local want=TARGET-n; local placed,why=0,nil; local names={}; if want>0 then local season=df.global.cur_season; local cands={}; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and pop.type==df.world_population_type.Animal and pop.population.feature_idx>=0 and pop.quantity>0 then local key='water:'..cr.creature_id; local seasons=cfg.assign[key]; local ok=false; if seasons then for _,s in ipairs(seasons) do if s==season then ok=true end end end; if ok and (cfg.allow[key]~=false) then cands[#cands+1]=pop end end end; if #cands==0 then why='no in-season stocked water entry' else local i=1; while want>0 and #cands>0 do local pent=cands[((i-1)%#cands)+1]; local ids,w2=sw.placeFromEntry(cfg,pent,1); if #ids>0 then placed=placed+#ids; want=want-#ids; local t=df.creature_raw.find(pent.race).creature_id; names[#names+1]=t else why=w2; table.remove(cands,((i-1)%#cands)+1) end; i=i+1; if i>200 then break end end end end; local parts={}; for t,c in pairs(on) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e33 water: %d on map [%s] target %d -> placed %d [%s]%s season %d day %d'):format(n, table.concat(parts,' '), TARGET, placed, table.concat(names,','), why and (' \u2014 '..why) or '', df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 5000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local TARGET=12; local on={}; local n=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and u.animal.population.feature_idx>=0 then n=n+1; local t=df.creature_raw.find(u.race).creature_id; on[t]=(on[t] or 0)+1 end end; local want=TARGET-n; local placed,why=0,nil; local names={}; if want>0 then local season=df.global.cur_season; local cands={}; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and pop.type==df.world_population_type.Animal and pop.population.feature_idx>=0 and pop.quantity>0 then local key='water:'..cr.creature_id; local seasons=cfg.assign[key]; local ok=false; if seasons then for _,s in ipairs(seasons) do if s==season then ok=true end end end; if ok and (cfg.allow[key]~=false) then cands[#cands+1]=pop end end end; if #cands==0 then why='no in-season stocked water entry' else local i=1; while want>0 and #cands>0 do local pent=cands[((i-1)%#cands)+1]; local ids,w2=sw.placeFromEntry(cfg,pent,1); if #ids>0 then placed=placed+#ids; want=want-#ids; local t=df.creature_raw.find(pent.race).creature_id; names[#names+1]=t else why=w2; table.remove(cands,((i-1)%#cands)+1) end; i=i+1; if i>200 then break end end end end; local parts={}; for t,c in pairs(on) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e33 water: %d on map [%s] target %d -> placed %d [%s]%s season %d day %d'):format(n, table.concat(parts,' '), TARGET, placed, table.concat(names,','), why and (' \u2014 '..why) or '', df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "control",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=false; cfg.layers.water=true; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local w=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; if e.layer=='water' then w=w+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=false; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: water layer only \u2014 %d water species allowed, %d assigned, %d thin, %d applied; groups off; rotation enabled'):format(w,a,f,act))",
+        "local n=0; local on={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and u.animal.population.feature_idx>=0 then n=n+1; local t=df.creature_raw.find(u.race).creature_id; on[t]=(on[t] or 0)+1 end end; local parts={}; for t,c in pairs(on) do parts[#parts+1]=t..'x'..c end; table.sort(parts); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e33 water: %d on map [%s] target - -> placed 0 [] season %d day %d; citizens %d'):format(n, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200), cz))"
+      ],
+      "every": {
+        "ticks": 5000,
+        "do": [
+          "local n=0; local on={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive and u.animal.population.feature_idx>=0 then n=n+1; local t=df.creature_raw.find(u.race).creature_id; on[t]=(on[t] or 0)+1 end end; local parts={}; for t,c in pairs(on) do parts[#parts+1]=t..'x'..c end; table.sort(parts); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e33 water: %d on map [%s] target - -> placed 0 [] season %d day %d; citizens %d'):format(n, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200), cz))"
+        ]
+      }
+    }
+  ]
+}
