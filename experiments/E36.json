@@ -1,0 +1,63 @@
+{
+ "id": "E36",
+ "title": "Is FREQUENCY a comparative weight or an independent probability? The wiki calls it 'a comparative number', and E34 hinted at it — when seven suppressed species were restored, the OTHER cavern species fell 39 to 0 and 27 to 12 while an untouched control's held steady, which looks like crowding. The mix cannot separate the models: a ratio of independent probabilities tracks the frequency ratio too. So both arms hold the SAME 4:1 ratio at very different absolute levels — TROGLODYTE and ELK_BIRD at 100 and 25 against 4 and 1 — with every other species left at its natural frequency. NOTHING is zeroed: E35's first attempt isolated the pair by zeroing 81 species and hit the CREEPY_CRAWLER freeze (addendum 54). A season, two replicates each, tool disabled, cavern counts excluding the magma sea and underworld.",
+ "fork": "Does cavern arrival volume depend on the absolute frequencies or only on their ratio — that is, can frequency compose an ecosystem rather than only switch a species off.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 3000,
+ "tick_budget": 100800,
+ "combat": false,
+ "roster": true,
+ "tool_must_be": {
+  "enabled": 0
+ },
+ "predictions": [
+  {
+   "model": "comparative — a shared spawn budget",
+   "expects": "the two species' SHARE of cavern arrivals rises sharply in the high arm at the expense of everything else, while total cavern arrivals stay about the same in both arms"
+  },
+  {
+   "model": "independent probability per species",
+   "expects": "the two species' own counts scale with their frequencies (roughly 25-fold between arms) while the other species' counts are unaffected, so the total rises in the high arm"
+  },
+  {
+   "model": "neither cleanly",
+   "expects": "the two species' counts do not track their frequencies; frequency is not a proportional lever at all"
+  }
+ ],
+ "kill_criterion": "unchanged totals with a shifted share makes frequency a comparative weight and an ecosystem-composition lever; totals rising with the absolute level makes it an independent per-species probability",
+ "culling": [
+  "drop a replicate on any changed save"
+ ],
+ "arms": [
+  {
+   "name": "high_4to1",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='TROGLODYTE' then cr.frequency=100; n=n+1 elseif cr.creature_id=='ELK_BIRD' then cr.frequency=25; n=n+1 end end; print(('e36: TROGLODYTE=100 ELK_BIRD=25 (ratio 4:1, sum 125); %d set, every other species left at its natural frequency'):format(n))",
+    "local function f(t) for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id==t then return cr.frequency end end return -1 end; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1 else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e36: caverns=%d deep=%d citizens=%d trog=%d elk=%d day=%d'):format(cav,deep,cz,f('TROGLODYTE'),f('ELK_BIRD'),math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local function f(t) for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id==t then return cr.frequency end end return -1 end; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1 else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e36: caverns=%d deep=%d citizens=%d trog=%d elk=%d day=%d'):format(cav,deep,cz,f('TROGLODYTE'),f('ELK_BIRD'),math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "low_4to1",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='TROGLODYTE' then cr.frequency=4; n=n+1 elseif cr.creature_id=='ELK_BIRD' then cr.frequency=1; n=n+1 end end; print(('e36: TROGLODYTE=4 ELK_BIRD=1 (ratio 4:1, sum 5); %d set, every other species left at its natural frequency'):format(n))",
+    "local function f(t) for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id==t then return cr.frequency end end return -1 end; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1 else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e36: caverns=%d deep=%d citizens=%d trog=%d elk=%d day=%d'):format(cav,deep,cz,f('TROGLODYTE'),f('ELK_BIRD'),math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local function f(t) for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id==t then return cr.frequency end end return -1 end; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1 else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e36: caverns=%d deep=%d citizens=%d trog=%d elk=%d day=%d'):format(cav,deep,cz,f('TROGLODYTE'),f('ELK_BIRD'),math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  }
+ ]
+}

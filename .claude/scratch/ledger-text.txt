@@ -1,0 +1,198 @@
+ The Wildlife Ledger 
+Project report seasonal-wildlife v5 16 September 2026 · rev 3 W2:Urist 
+## The Wildlife Ledger 
+ Every approach this tool rests on, first re-checked against DFHack 53.16-r1.1 ,
+ then run inside a live fortress on the CrossOver rig. Six bugs found, six
+ fixed, and the one thing the notes said nobody could do — put a new species into a running
+ fort without a reload — turned out to work, and is now what the tool does.
+Nine of the ten release checks now have in-game evidence, the engine is exported so the rig can assert them without a human, and add-new is live. What remains is presentation: does the window draw, do the hotkeys fire. 
+ The first in-game run could not start — a caste flag renamed at 53.x killed the tool on
+ load. Once it ran, it found what parse-clean code hides: two region resolvers that returned
+ nil for every input, a food web with no prey for any large predator, and an add-new design
+ that wrote to the world but never to the fort. Every one of those is fixed and re-verified
+ on the pristine save, which was left byte-identical to its backup.
+## What it is meant to do 
+ Dwarf Fortress fixes each region's creature roster at worldgen and never changes it.
+ A glacier embark gets its handful of arctic animals for the rest of the fort's life.
+ The tool gives the player live control over that roster from a DFHack window:
+ Rotate by season — arctic creatures present in winter, absent in summer, as an approximation of migration. 
+ Curate — allow or block individual creatures, fill a category to a target count, filter by biome, category, season, or aquatic. 
+ Shape a food web — a predator/prey matrix that can pull in a creature's natural partners and co-align them to the same seasons, with a trophic pyramid view. 
+ Abundance — scale how many of a creature exist, where 50 is the untouched default and 100 is double. 
+ All of it live, with no save-reload — with exactly one exception, which is the most
+ important thing in this report and gets its own section below.
+## The engine model 
+ This is the crux, and it is where our earlier confusion lived. There are
+ two population layers , they are easy to conflate, and the tool's entire
+ safety story depends on knowing which one you are touching. The model was corrected twice
+ during development; the code now matches it.
+world.world_data.regions[i].population[j]  — world_population (regionpopst) 
+ The worldgen master list , per world-region. Fields count_min 
+ and count_max . This is the durable record of what the world decided lives
+ where. Writing here changes the world; it does not change the fort you are standing in.
+ ↓ DF copies master → live once, at map load only. There is no live path back down. 
+df.global.world.populations.all  — local_population (wilderpopst) 
+ The runtime working set for the whole loaded civ region — not a
+ per-embark list. Fields quantity , quantity_max ,
+ flags.extinct , and a population back-reference to its master
+ entry. This is the live lever , and editing it is proven safe because
+ DFHack's own region-pops has always done exactly that.
+ So seasonal rotation is a quantity edit: in season, a weight-scaled quantity;
+ out of season, zero, with flags.extinct toggled and quantity_max 
+ raised so the new value is not clamped. The embark subset — the creatures the tool
+ will actually touch — is derived, not stored: entries whose region back-reference matches a
+ region sampled from the map, that are surface-only
+ ( feature_idx == -1 and cave_id == -1 ), and that are countable.
+ -- the live edit, once per creature per day 
+pop.quantity = floor(in_season_qty * weight/50) -- 50 = default, 100 = 2x, 0 = muted 
+pop.quantity_max = max(pop.quantity_max, pop.quantity) -- or the game clamps it back 
+pop.flags.extinct = (pop.quantity == 0)
+ -- and the tool never spawns anything itself: 
+ dfhack.run ('fix/wildlife') -- release the one wild group DF allows on-map 
+ dfhack.run ('force', 'Wildlife') -- ask DF's own spawner for a new wave 
+ That last point matters more than it looks. The tool never creates a unit. 
+ It edits numbers and lets DF's native frequency-weighted spawner do the spawning — so the
+ broken modtools/create-unit and the whole missing-spawn-primitive problem
+ sit next to this project, not inside it. Nothing here is blocked by them.
+## Viability ledger 
+ Every load-bearing assumption, with its verdict and where the verdict comes from. The
+ research notes were written against DFHack 50.x/51.x; the rig runs 53.15-r2 and the
+ repository is at 53.16-r1.1. Everything structural still holds — which is
+ the single most reassuring result of this pass.
+ Structures and APIs · re-read at 53.16-r1.1, not recalled 
+ Assumption Verdict Evidence 
+ local_population fields: quantity, quantity_max, flags, population ref 
+ holds 
+ df.wilderpop.xml — all fields present, names unchanged 
+ world_population : count_min / count_max 
+ holds 
+ df.regionpop.xml:14–23 
+ world_population_ref back-ref resolution (region_x/y, feature_idx, cave_id, population_idx) 
+ holds 
+ df.regionpop.xml:36–46 
+ region-pops edits live quantity and only ever edits existing entries 
+ holds 
+ scripts/region-pops.lua — read in full 
+ fix/wildlife exists; one wild group on-map at a time 
+ holds 
+ scripts/fix/wildlife.lua ships at HEAD 
+ Biome detection via getTileBiomeRgn / getBiomeType 
+ holds 
+ LuaApi.cpp:2738–2871 — all three still bound 
+ Eligibility is creature_raw.flags['BIOME_'..name] ; no biomes vector 
+ holds 
+ df.d_basics.xml biome_type enum intact 
+ Per-fort persistence via getSiteData / saveSiteData 
+ holds 
+ library/lua/dfhack.lua:811,817 
+ cluster_number / population_number exist and are editable 
+ holds, unused 
+ df.creature.xml:1507–08 — we decided not to edit these 
+ No built-in shuffle in DFHack Lua 
+ holds 
+ confirmed; Fisher-Yates implemented in v3.2 
+ Live insertion of a local_population is unsupported 
+ holds — nobody does it 
+ 1,323 files across 6 corpora; see below 
+ Behaviour · observed in a running fort, 16 September 2026 
+ Claim Verdict Evidence 
+ Rotation changes live quantities by season pass WOLF in-season → 100 (= qtyFor), KANGAROO out → 0, control untouched; inverted on swap 
+ Roster reads the real embark, not the civ region pass 38 creatures from 8,064 entries; regions 8,5 + 9,6 
+ Reset restores a master-derived baseline pass WOLF snapshot 6 ∈ master midpoints {209, 6}, live was {9, 13} — after fixing masterEntryFor 
+ Fill-to-N reaches target without the shuffle crash pass 7 → 10 → 5 → unchanged; first run of the v3.2 fix 
+ Cardinals classify as bird ; aquatics detected pass after the AQUATIC_UNDERSWIM fix: 307/1,039 aquatic 
+ Add-new puts a species into the running fort pass live entry + forced wave → 6 badgers on pristine region1; guards refuse DRAGON, INNUM, present, no-biome 
+ Food web pairs every predator with real prey pass 0 of 9 preyless (was 6 of 9) after the size-ladder fix 
+ Force produces a wave pass fix/wildlife + force Wildlife + 600 ticks → units arrive 
+ Window, grid, pyramid render; hotkeys fire untested presentation only — needs a human at the screen 
+ One row in the structural table also changed: caste flags AQUATIC and
+ UNDERSWIM do not exist at 53.x — they merged into
+ AQUATIC_UNDERSWIM . That was the fatal first-run bug, and
+ hasCasteFlag now survives any future rename instead of dying on it.
+## The one thing nobody had done — done 
+ The notes said adding a species needed a save-reload, because DF copies master entries
+ into the live set at map load. Both halves were wrong. Check 10 wrote the
+ master, saved, reloaded — and found the master rows present and zero live entries for
+ them. The live set is persisted , built once at embark; a master row added later is
+ part of the world and never part of the fort. Reload could never have worked.
+ So the "fragile, unsupported" route was tried instead: construct the
+ local_population directly, with a back-reference to the master row just
+ written. DF accepted it, and force Wildlife drew a wave from it —
+ 12 badgers on one fort, 6 on another , each debiting the entry's
+ quantity exactly. addNewSpecies now does both writes. No reload.
+ It is still true that no other script does this. The corpus search stands:
+ searched for populations.all:insert · local_population:new · df.local_population 
+DFHack scripts 421 files 2 touch populations.all 0 insert 
+DFHack plugins 256 files 0 0 insert 
+dfhack-commands 204 files 0 0 insert 
+dfhack-scripts-robob27 365 files 0 0 insert 
+eld-dfhack-scripts 47 files 0 0 insert 
+myDFHackScripts 30 files 0 0 insert 
+ ───────── 
+ 1,323 files region-pops · fix/wildlife nobody inserts 
+ Two files in the entire collection touch the live population vector, and both only edit
+ entries already there. The fear in the notes — that an entry without a valid master
+ back-reference is fragile — was the right fear, and the answer is to write the master row
+ first and point at it. That is what the tool does now.
+## What the season grid looks like 
+ For orientation, this is the tool's Phase 2 season grid as it will render — the allowed
+ in-embark roster against the four seasons. A glacier embark, rotating its roster so the
+ map is not simply empty for three seasons of the year.
+ Set-roster tab · S / U / A / W toggle the selected row · example roster 
+ Creature Cat 
+ Sp Su 
+ Au Wi 
+ POLAR_BEAR predator – – X X 
+ WALRUS prey – X X – 
+ ARCTIC_FOX predator X – X X 
+ ARCTIC_HARE prey X X X – 
+ PTARMIGAN bird X X – – 
+ REINDEER prey X X X X 
+ Arctic fox in every season but summer, hare present whenever the fox is, and the bear
+ arriving for the cold half — that co-alignment of predator to prey is what the food-web
+ matrix produces, and what the pyramid view visualises. Example data, not a live reading.
+## Rev 3 — the brief's order of work, run to the end 
+Everything in the design brief Two Layers, Many Groups was built, run on the rig against region1 and committed as v5 ( 9e49fdf ). The short form: 
+ Concurrent groups are a feature. DF's one-group rule is per source; detaching the oldest gated group brings the next wave in ~1,500 ticks. The resident-groups scheduler holds up to three at once and refunds a resident only when it leaves the map. G3: 36,000 ticks, cap reached and held, 8 refunded, no crash. 
+ Water arrivals are unproven. 48,000 ticks with a river and only water life at 200 produced none. The water layer ships as data — regional numbers, seasons, the food web — with the warning in USAGE. 
+ The founding bullet has now been watched. S1: 208,276 ticks across two season flips. The scheduler fired at both, the control species moved only by DF's own hand, and one species came back out of season because DF refunds a departing group into an entry we had zeroed. The tool now re-pins out-of-season entries daily. 
+ Mass-based predation: 9 of 9 on real raws. No embark predator is preyless any more. 
+ Three more bugs the dry tests never saw. #df.biome_type is 0 (every animal locked as unclassified); the creature icon sheet is all zeros (sprites come from the layer set); closing the window saved a stale config over the live one. All fixed. 
+ The matrix had no signal, and now it does. Summer came out almost empty because the season matrix scored only the biomes a creature shares with the embark — and on a single-climate map those are identical for every creature, so there was nothing to assign from. It now reads each creature's whole climate range across all 51 biomes and cuts the roster into terciles within the embark's own pool: wolf and the bears take autumn and winter, kangaroo and sparrow take spring and summer, ravens and falcons stay all year. Region1 went from 2 of 38 tokens in Summer to a balanced 26 · 26 · 25 · 25. 
+ Waves are drawn from one region, not from the embark. Testing whether the tool can bias what arrives: a species boosted to 500 against everything else at 5 never arrived once in ten rounds and was never debited, while a species boosted identically did arrive and was debited. The difference is which region its entry sits in — one species with entries in both regions had only one of them drawn from. Quantity is the pool and is debited per animal, but only in the region DF actually draws from. 
+ Still open. The repo has no remote. 
+## The verification pass 
+ This is the release gate, and it is one sitting at the rig. Run against a
+ duplicated save — non-negotiable, because Add-new writes to the region
+ master. Each line below is an observable, not a feeling.
+ Launcher and help Deploy both files to dfhack-config/scripts/ , keeping the gui/ subfolder. help seasonal-wildlife prints the docstring; gui/seasonal-wildlife opens the window. 
+ Roster reads the real embark The creature list matches what this biome actually has. If it shows the whole civ region, the region back-reference filter is wrong — that is the highest-value early signal. 
+ Add-new tallies move Switch to the Add-new view and toggle allow; the header category counts change. This was a Phase 1 bug fix that has never been seen working. 
+ Force produces a wave, twice Press Force; a wildlife group appears. Press it again; a new group appears rather than nothing — that is the clear-then-force fix doing its job. 
+ Fill category to N Set a target that requires both adding and removing members. It reaches the target and does not raise attempt to call a nil value (global 'shuffle') . This is the v3.2 fix's first run. 
+ Reset is pristine Reset returns the ab column to 50 and quantities to the master-derived midpoint — not to whatever the fort happened to hold when the tool first ran. 
+ Classification spot-check Cardinals read as bird , not vermin. The aquatic filter lists fish and otters. Both are heuristics and the size floor is permissive, so expect to tune. 
+ Phase 2 surfaces Ctrl+S opens the Set-roster tab; targets cycle; Fill-to-targets hits them; Y and D only ever add allows, never block; grid S/U/A/W updates the Roster SEASON column; co-align extends a partner's seasons; the pyramid renders for a single season. 
+ Season boundary — the real test Let the fort cross into the next season with the scheduler enabled and confirm out-of-season creatures stop appearing. Everything else is UI; this is the feature. 
+ Add-new, last and on the backup Enter a min-max, save, reload, and confirm the new species appears in the live set. Destructive and reload-gated — do it after everything else passes. 
+ There is no CI path for this and there will not be one: DFHack Lua only runs inside a
+ loaded game. Parse gates catch syntax; only a fort catches behaviour. That is a permanent
+ property of the project, not a gap to close.
+## Decisions already made 
+ Recorded so they are not relitigated. Each was settled deliberately during development.
+ Closed decisions · reopen only with a reason 
+ Question Decision Why 
+ Small birds are vermin in DF Reclassify in our matrix only Changing the game's creature type would affect hunting, trapping and spawning 
+ Wave size ( cluster_number ) Do not edit Leave vanilla group sizes; abundance is the intended lever 
+ Marsupials Curated token list, plus modded CREATURE_CLASS Vanilla has no marsupial flag and creature_class is unreliable 
+ Live add-new Reversed 16 Sep: write master row, then live entry pointing at it Reload never surfaced the species; the direct write works and DF spawns from it 
+ Per-cell mouse toggling in the grid Keyboard S/U/A/W instead Widget limitation: token activation fires on hotkey, not per-cell click 
+## Sequence 
+ Done. The pass ran; six bugs found and fixed; nine of ten checks have in-game evidence; the insertion experiment succeeded and became the feature. 
+ Next: a human at the screen. Open gui/seasonal-wildlife on the rig and walk the three tabs — the only claims left unverified are that things draw and hotkeys fire. 
+ Review the two judgement calls. Predators eating down the size ladder, and the engine's guards on add-new (megabeasts refused, INNUMERABLE refused). Both are defensible; neither is dictated by the raws. 
+ Give it a git remote and publish. Nine commits today, still no remote. Ship the two .lua files with their layout, the README, and the backup warning. 
+ Then the community post — with a verification log behind it, and the "no reload" result as the headline. 
+Sources: ~/Claude/Projects/seasonal-wildlife at 9e49fdf (v5, no remote) — STATE addenda 3–7, RESEARCH-NOTES as corrected, and the script; DFHack 53.15-r2 on the CrossOver rig against fortress Nokimast (region1, year 50); df-structures 3bfa5aa5 . 
+Every behavioural verdict was observed in a running game on a backed-up save, with every edit discarded unsaved; region1 was byte-identical to its backup afterwards. Two earlier claims in this report were withdrawn on evidence: that Reset read the master midpoint (it did not until 16 Sep), and that add-new needed a reload (it never worked that way). 
+ 

@@ -1,0 +1,215 @@
+ Two Layers, Many Groups 
+Design brief seasonal-wildlife 16 September 2026 W2:Urist 
+## Two Layers, Many Groups 
+ Four questions about where the tool goes next — aquatic ecosystems, concurrent wildlife
+ groups, a predation model that is not a size ladder, and what to do with creatures that
+ are not natural — answered against what the game actually exposes, followed by an honest
+ audit of the four founding bullets and a testing regimen sized to the claims.
+Three probes this evening reshaped the plan more than the questions did. Aquatic life is already a separate layer in DF's data; the map already holds six wild groups at once; and every size judgement the food web has ever made was based on an age, not a volume. 
+ Each of those is a fact read from the live fort, not an inference, and each one is below with
+ its evidence. The consequence is that facet 1 is mostly a matter of stopping the tool from
+ ignoring data it already has, facet 2 is about controlling a gate that DF applies per source
+ rather than globally, and the predation question has to be answered on real numbers because
+ the ones the tool was using were wrong.
+## What the game exposes — the facts this brief stands on 
+ Populations are layered by their back-reference 
+ Every live population entry carries {region_x, region_y, feature_idx, cave_id, site_id} .
+ Surface land life has feature_idx=-1, cave_id=-1 . River and lake life has
+ feature_idx ≥ 0 — on region1: BEAVER 650, ALLIGATOR SNAPPING TURTLE 672, both
+ countable. Cavern life has cave_id ≥ 0 . The deep layers hold INNUMERABLE demons.
+ managedPop currently admits only the first case, so every aquatic entry
+ is invisible to the tool today . 
+ "One wildlife group at a time" is per source, not per map 
+ Live on region1 right now: ELK_BIRD×6, DINGO×11, CROCODILE_CAVE×1, SPIDER_CAVE_GIANT×1,
+ IMP_FIRE×4, DEMON_20×3 — six groups from at least four sources. The gate DF applies is
+ "no new wave from a source while a unit still carries
+ flags2.roaming_wilderness_population_source for it". fix/wildlife 
+ clears that flag ( detach ) and a new wave follows; the detached animals stay. 
+ Body sizes were being read as ages 
+ adultSize read caste.body_size_day — the ages {0, 336, 672} at
+ which sizes are reached — not caste.body_size . Wolf, elk, bobcat and grizzly
+ all reported 672. Fixed; real volumes: bobcat 800, wolf 4,000, elk 30,000, grizzly 20,000,
+ carnotaurus 170,000. Across 964 vanilla creatures: p25 1,500 · p50 5,850 · p75 30,000 ·
+ p90 200,000. 
+ Group size is a raw the tool can edit 
+ creature_raw.cluster_number is {MAX, MIN} per wave: wolf 3–7, dingo 3–12,
+ badger 4–12, grizzly 1, bobcat 1, mosquito 100–200. It is runtime-editable and creature-wide;
+ raws are reloaded from disk each load, so an override must be re-applied on map load. 
+ Real creature icons are reachable from Lua 
+ creature_raw.graphics.creature_texture_sheet_icon_texpos exists per creature and
+ dfhack.screen.paintTile(pen, x, y, ch, texpos) paints a texture in a widget. In
+ graphics mode the roster can show the actual animal; in text mode it falls back to a glyph. 
+## Facet 1 — Aquatic as a parallel layer 
+ The data model already has layers; the tool flattened them. The design is to make the
+ layer a first-class key rather than a filter.
+LAND · feat=-1 cave=-1 
+What the tool manages now. Surface animals, vermin, birds. 
+WATER · feat≥0 
+Rivers, lakes, ocean shelf. Fish, turtles, beavers, otters, alligators. Countable; seasonal (spawning runs, freeze). 
+CAVERN · cave=0..2 
+Three cavern layers. Same mechanics; later, behind its own opt-in. 
+DEEP · INNUMERABLE 
+Magma sea, the layer beneath. Never managed. Shown, locked. 
+ Engine. Every pool entry and config key becomes (layer, token) . managedPop(pop, regionSet, layer) admits the entry whose back-reference matches the layer. Allow, weight, assign, snapshot are all per layer; a beaver in the river and a beaver on the bank are two entries and can have two seasons. 
+ Two food webs, one bridge. eats already refuses cross-layer pairs. Keep that as the default and add an explicit riparian edge set for predators that hunt across the boundary — bears, herons, otters, crocodiles — declared by a small curated list plus any creature whose raws carry both a land and a water BIOME_ flag. Waterfowl are the natural bridge species: fliers with aquatic flags appear in both webs. 
+ Seasons for water. Same grid, same S/U/A/W, different defaults: spawning runs in spring, freeze-out in winter for temperate freshwater (quantity → 0 when the biome is a freezing one and the season is winter — derivable from the region's temperature data). Ocean shelves do not freeze. 
+ GUI. A layer selector at the top of every tab (Land / Water / Caverns), not a filter value buried in a cycle. The pyramid draws one pyramid per layer side by side; the riparian edges draw as dashed links between them. 
+ Unknown, must be tested first. Whether force Wildlife triggers water spawns at all, and whether DF spawns water life from a population entry into river tiles the way it spawns land life at the map edge. That is experiment W1 in the regimen and it gates the whole facet — it is cheap and it comes before any UI work. 
+## Facet 2 — Birds and bears at once 
+ The gate is a flag on the units, and DFHack already knows how to clear it. The design
+ is a resident-groups scheduler that manages the gate deliberately instead of
+ letting DF hold it until the group wanders off.
+ -- resident groups: run every N days (jittered), per layer 
+groups = tracked arrivals: { unit_ids, source_key, arrived_tick, size }
+if #groups < cfg.max_concurrent[layer] (default 3)
+ and jitter(cfg.wave_gap_days = 5..20) elapsed then
+ oldest = the group longest on map
+ detach(oldest) -- clear roaming flag; animals stay; gate opens 
+ request_wave(layer) -- DF picks from quantities, weighted 
+ record the new arrivals as a group
+end
+ -- bookkeeping DF no longer does for detached animals: 
+on unit death / leaving map for a tracked id -> refund +1 to its source quantity 
+ Why detach and not leave. Pushing leave_countdown down makes the old group walk off; detaching lets it stay while the next arrives. The user asked for overlap, so detach is primary and a gentle countdown nudge is the pressure valve when the map gets crowded. 
+ Organic timing. Wave gaps drawn from a range, not a constant; birds and vermin weighted toward dawn-of-season; predator arrival probability scaled by prey biomass currently on the map (so wolves tend to follow elk rather than precede them). Nothing here is randomness for its own sake — each rule is a thing a player would recognise as ecology. 
+ The refund matters. When DF detaches a group it stops refunding the population on departure, so unmanaged detaching slowly drains the regional counts. The tracked-ids sweep restores exactly that accounting. This is the difference between "force Wildlife on a timer" and a feature. 
+ Unknowns. Whether DF caps total wild units on a map; how it behaves with 4–5 concurrent surface groups over a season; whether detached animals still path off-map on their own. Experiments G1–G3. 
+## Predation — mass and numbers, not a ladder 
+ The size ladder was a placeholder that happened to fix six preyless predators. The real
+ question — can these predators take that prey — has two inputs the raws
+ supply directly: adult volume and group size. A wolf pack takes an elk; a lone bobcat takes
+ a lone beaver or settles for vermin. Both fall out of one rule.
+M = adult volume -- caste.body_size, last entry 
+G = group size -- midpoint of cluster_number, ≥1 
+k = 1.5 if LARGE_PREDATOR or AMBUSHPREDATOR, else 1.0
+take = M_pred × G_pred 0.75 × k -- pack effort, diminishing per member 
+need = M_prey × (0.6 if prey solitary else 0.9) -- herds are harder 
+can_hunt = take ≥ need
+preference = exp(−(ln(M_prey / (0.4·M_pred)))² / 2σ²), σ ≈ 1.2
+ -- predators prefer prey near 0.4× their own mass; 
+ -- vermin stay reachable but weakly preferred 
+ worked on real raws: 
+WOLF 4,000 × 5 0.75 × 1.5 = 20,000 vs ELK 30,000×0.9 = 27,000 ✗ pack of 5 ; ✓ at pack of 7 (26,700)... borderline, as it should be
+BOBCAT 800 × 1 × 1.0 = 800 vs BEAVER 2,000×0.6 = 1,200 ✗ — takes vermin, a kit, not a lone adult
+DINGO 2,000 × 7 0.75 × 1.5 = 12,900 vs KANGAROO 9,000×0.9 = 8,100 ✓ 
+ The ladder becomes emergent. Large-eats-small is what the rule produces for solitary predators; it is no longer asserted. The constants are tunable in config and shown in the pyramid tooltip, so a user who thinks bobcats should take beavers can say so with a number rather than an argument. 
+ Relative numbers. Ecology's rule of thumb is roughly a tenfold biomass drop per trophic level. "Fill natural prey" should target Σ(qty × M) prey ≥ 8× Σ(qty × M) predators per layer, and the pyramid should draw the actual ratio and colour it — the number a user actually needs is "is there enough to eat", not "is there a pair". 
+ Group size is the second lever, and it is untreated today. Abundance scales how many exist; cluster_number scales how many arrive together. A per-creature "group size" override (re-applied on map load, because raws reload) is what makes "a pack of wolves" versus "one wolf" a user decision. 
+## Megabeasts, magic, mods — ecology classes 
+ Blocking by a single flag was a guard, not a policy. The policy is a small set of
+ ecology classes derived from flags DF itself needs, with management opt-in per
+ class and cross-class food-web edges off by default.
+ Ecology classes · derived from creature and caste flags 
+ Class Derived from Default Why 
+ NATURAL none of the below; has BIOME flags and a body size managed Everything the tool exists for 
+ MEGA MEGABEAST · SEMIMEGABEAST · TITAN shown, locked Arrive by world events, not by regional quantity; managing the count would not change the behaviour a player sees 
+ NIGHT NIGHT_CREATURE_* shown, locked Tied to curses and historical figures 
+ MYTHIC FANCIFUL, GOOD/EVIL alignment-only opt-in Unicorns and dragons are natural to their biome; a user may want them in the web 
+ GENERATED creature_raw.flags.GENERATED (demons, forgotten beasts, titans, angels) never Procedural, unique per world, INNUMERABLE or HF-driven; nothing to manage 
+ UNLIVING NOT_LIVING, or NO_EAT + NO_DRINK + no GRAZER/CARNIVORE opt-in Constructs and undead have no trophic role; may still have seasons a user wants 
+ UNCLASSIFIED a modded creature missing BIOME flags or body size review list Surface it with the heuristic's reasons and let the user assign a class; persist the override 
+ Modded creatures classify to the extent DF can use them. The heuristic reads only what a raw must supply for DF to spawn the creature at all — biome flags, body size, caste behaviour flags, creature_class strings. A mod that gives DF enough to work gives the tool enough to classify. What it cannot classify it lists, with the reasons, and the user's answer is saved. 
+ Non-natural behaviour is preserved by construction. The tool never touches units, never touches INNUMERABLE entries, never touches cave or deep layers unless that layer is enabled, and never auto-pairs across classes. A demon's behaviour cannot break because no line of the tool addresses a demon. 
+ Add-new respects the class. Refusal is by class with an opt-in, not by one flag — so a user who enables MYTHIC can add unicorns to a good forest, and a dragon remains refused unless MEGA is also enabled. 
+## The four bullets — what is not fully treated 
+ Bullet Implemented Not treated, in implementation or plan 
+ Rotate by season Binary in/out per season by quantity edit; daily scheduler; verified on one boundary by forcing No partial presence (a curve into and out of season, not a step). No migration direction or arrival timing. Never observed across a real season boundary during play. Water and cavern layers not rotated at all. 
+ Curate Allow/block, fill-to-N, biome/category/season/aquatic filters Fill-to-N picks at random rather than by ecological fit. No "why is this a predator" explanation. No undo or history. Aquatic is a filter value, not a layer. No search by class or flag. 
+ Shape a food web Static category×size rules; fill partners; co-align; pyramid drawn from config Rules are not mass-based (and were computed on ages until today). Web is not built from in-game state — it shows what was configured, not what is on the map or in the region. No seasonal diff. Co-align is greedy and never explains a change. 
+ Abundance Linear weight on quantity; 50 = default Quantity is a frequency weight for DF's spawner and a pool size, not group size — group size is cluster_number and is untouched. quantity_max semantics untreated. Regional regeneration (DF breeding the count back) untreated, so abundance may drift under play. 
+## The food web — how sophisticated it is, and what it should show 
+ Today it is a rule table evaluated per pair when the pool rebuilds, with a pyramid drawn
+ from the resulting config. It is not dynamic in any interesting sense: it does not know
+ what is on the map, what the region holds this instant, or what changes at the next
+ season. Three views would make it honest:
+ Configured — what exists now, drawn from the mass model rather than the ladder, per layer. 
+ Live — units currently on the map (with their group and arrival day) over regional quantities, as biomass per trophic level. This is the view that answers "is there enough to eat this winter" and it is entirely computable from populations.all and units.active . 
+ Seasonal — four narrow pyramids side by side, differences highlighted. The point of a seasonal tool is to see the seasons. 
+Realistically useful, in order: the live biomass ratio with a warning; the seasonal diff; sprites on rows. A full interactive graph is possible in the text grid but would be work for its own sake. 
+## Rendering — how far the DFHack window can go 
+ The grid is the medium. 16 colours, per-token foreground/background pens, box-drawing glyphs, and — verified reachable — the creature's own sprite via paintTile with its sheet-icon texpos. Rows in the roster can carry the real animal; the pyramid can be built from icons with biomass bars beside them. 
+ Custom drawing through a widget's onRenderBody allows anything the grid can hold: a season ring, stacked bars, a sparkline of arrivals per day. Widgets that exist at 53.16 and are not yet used here: RangeSlider (abundance and season windows), Scrollbar , TextArea . 
+ An overlay on the map via the overlay framework: mark each wild group's position and source layer directly on the fortress view. That is the "visually informative" move — the ecology shown where it happens. 
+ Bounds. No vector graphics, no sub-cell positioning, sprites only in graphics mode (text mode falls back to a glyph), and every frame is repainted from Lua so heavy views need throttling. 
+Hotkeys: not needed for testing — the rig drives the exported engine headlessly. Deferred. 
+## Long-term behaviour — what has and has not been tested 
+ Every wave observed so far was forced. Nothing has been watched across a real season
+ boundary during unpaused play, and nothing has run for a year. A season is 100,800 ticks;
+ the rig steps ~100 ticks a second, so a season is about 17 minutes and a year about 68.
+ That is a nightly job, not an obstacle — and it is the only thing that can validate the
+ first bullet.
+## Experimental regimen 
+## Principles 
+ Predict before running. Every experiment names its expected observation and the number it will read, in a file, before the rig starts. A result that matches is evidence; a result that surprises is the point. 
+ One variable, one control. The tool's effect is only visible against an untouched species in the same run — the COUGAR control in Check 9 is the pattern. 
+ Instrument defects are logged separately from subject defects. Today's session found six in the tool and five in the rig; conflating them is how a slow RPC gets recorded as a crashing script. 
+ Backup, run in memory, discard, diff. Save-scoped backup first; quit without saving; byte-diff the save against the backup after. No exceptions, and the diff is part of the result. 
+ Three sources for any claim about the fort. Structure read, on-screen text, and a second independent read (a count of units, a file on disk). 
+ Everything is a script. The rig runs it, the log is JSON with commit hashes for the tool, the rig, and DFHack. 
+ Tiers · what runs, how often, what it proves 
+ Tier Runs Cadence Proves 
+ T0 static luac, luacheck, and a structure audit: every df field the tool touches asserted present in df-structures at the target DFHack version every commit · seconds The tool loads and its assumptions still hold 
+ T1 headless engine The exported engine on a loaded fort, in memory — checks 2–8 as they exist now, plus the guards every commit · ~3 min Logic; no GUI, no time 
+ T2 forced scenario Forced waves under controlled quantities; add-new then spawn; detach then spawn daily · ~10 min DF honours the tool's writes 
+ T3 longitudinal Unpaused season crossings with probes at each boundary; a full year; concurrent-group runs nightly · 1–2 h The tool works under play, not only under force 
+ T4 conditions matrix Embarks across the biome/savagery/alignment matrix; mods on and off; fresh and aged forts; 53.15 and 53.16 weekly Behaviour generalises beyond region1 
+ T5 user stories Each story below, end to end, as a player would do it per release It does what it is for 
+## Named experiments that gate the two facets 
+ W1 — with only BEAVER at quantity 200 in the river entry, does force Wildlife put a beaver in the river? If no, does any water spawn ever occur unforced over a season? Gates facet 1. 
+ G1 — detach the current surface group, request a wave: two groups present? G2 — repeat to five groups: does DF cap, crash, or stall? G3 — over a season with the scheduler on, do quantities drift without the refund sweep, and hold with it? Gates facet 2. 
+ P1 — mass model against the six preyless predators and against BOBCAT/BEAVER and WOLF/ELK: does it reproduce the intended verdicts on real raws? 
+ S1 — a fort crossing Spring→Summer→Autumn→Winter unpaused with a four-season roster: at each boundary, which races arrive by the roaming flag? This is the first bullet's only real test. 
+## Results — run on the rig, 16 September 2026 (seasonal-wildlife 9e49fdf , v5) 
+ Experiment Verdict What happened 
+ W1 Unproven River present, surface zeroed, gate clear, water entries at 200: 48,000 ticks and zero water-sourced arrivals. Facet 1 ships as a data layer (numbers, seasons, food web); whether DF ever draws a wave from a water entry is still open. 
+ G1 / G2 Feature Detaching the oldest gated surface group brings the next wave within ~1,500 ticks every round; five rounds gave 24 wild units of five species on the map at once. No cap, no stall, no crash. The gate is per source , not per map. 
+ G3 Pass 36,000 ticks with the scheduler on (max 3, gap 2–4 days): groups reached and held the cap, two gated and one resident coexisting; residents refunded only as they left (0 → 2 → 8), never on a death. One entry sat at 101/100 — DF's own refund of a gated bird, not the tool's. 
+ P1 9 / 9 Seven wolves take an elk, five is borderline; a lone bobcat cannot take an adult beaver and settles for vermin; no peer-eating; prey eats nothing. Cross-layer edges only for aquatic predators and carnivorous fliers. 0 of 9 embark predators preyless. 
+ S1 (rerun) Pass A full year, 16,979 to 399,138, all four seasons and three boundaries, 107 probes. No out-of-season arrival anywhere, every season carrying a real roster, and the unassigned control species reading the same two numbers in all 107 probes. The run also wedged for 97 minutes on a queued caravan popup — a rig defect, not a fort or tool one: a queued popup halts the simulation while DF renders at 99 fps with the pause flag clear, so every signal reads healthy. The harness drains popups now. 
+ S1 (first run) Pass, after a fix 208,276 ticks, Spring→Summer→Autumn. The scheduler fired at both boundaries and the COUGAR control moved only by DF's own spawn/return. One species came back out of season: a dingo group on the map at the flip walked off, DF refunded it to the entry we had zeroed, and a new dingo wave arrived in midsummer. The tool now re-pins out-of-season entries every day between flips. 
+Three defects fell out of the run that no dry test had caught: #df.biome_type is 0 under DFHack's enum wrapper (every animal classed unclassified and locked), the creature icon sheet is all zeros (sprites live in the layer set), and closing the window saved its stale config over the live one. All fixed in v5; STATE.md addendum 7 has the detail. 
+S1 also exposed a design gap that ran deeper than it first looked: Summer came out almost empty (2 of 38 tokens) because the season matrix scored only the biomes a creature shares with the embark, and on a single-climate map those are the same for every creature — the matrix had no signal to assign from at all. Seasons now come from each creature's whole climate range across all 51 biomes, cut into terciles within the embark's own pool rather than against fixed thresholds, because vanilla's biome lists skew hot. Region1 went from 2 tokens in Summer to a balanced 26 · 26 · 25 · 25, with wolf and the bears in autumn and winter, kangaroo and sparrow in spring and summer, and the generalists year-round. A fourth defect fell out alongside it: the launcher called show_gui() at the top level, and DFHack reqscripts every module script on world load, so the scan itself opened the window — the unreproducible "window on top after a map load" open since Addendum 5. 
+## What decides which species a wave brings — G4/G5 
+The organic-timing rules proposed above (birds early, predators following prey) need the
+ tool to influence what DF sends. It cannot call a spawn, so the only candidate lever
+ is the regional quantity. Two arms, the gate cleared each round so every round is an
+ independent draw: 
+ Boost a species that had not been arriving. Wombat set to 500 against
+ every other entry at 5, ten rounds: zero wombats , and its entry was never
+ debited — it read exactly 500 at every probe. 
+ Boost one that had been arriving. Emu set the same way: arrivals rose
+ from 8 to 16 while everything else declined, and its entry was debited,
+ 500 to 496. 
+The difference is not the species but the region the entry belongs to .
+ This embark spans two, and every species that ever arrived has an entry in one of them;
+ wombat has an entry only in the other. Emu has both, both were set to 500, and only one was
+ debited while the other sat untouched — a within-species control. So DF draws surface waves
+ from a single region's entries; quantity there is the pool and is debited per animal; and
+ quantity anywhere else changes the data and nothing else. Biasing what arrives is therefore
+ buildable, but only by writing the region DF actually draws from, which
+ managedPop does not currently distinguish. 
+## User stories with pass criteria 
+ Story Setup Passes when 
+ Migrating caribou Tundra embark, caribou assigned Autumn+Winter only Over a year, caribou arrivals occur only in those seasons; none in Summer 
+ No more elk birds Block ELK_BIRD, everything else default Zero elk-bird arrivals over a year; other prey arrivals unchanged versus control run 
+ Make my river alive Temperate river, water layer enabled, three species allowed Water arrivals observed; freeze-out in Winter; land roster unaffected 
+ Penguins on my glacier Glacier embark, add-new PENGUIN via the GUI Appears in Current immediately; arrives within two forced waves; persists across save/load 
+ Bears, but rare Grizzly abundance 10 Arrival frequency over a year ≈ one fifth of control; group size unchanged 
+ Modded dragons stay wild A mod adding a MYTHIC creature; MYTHIC not opted in Listed, locked; never allowed, filled, or paired; its own behaviour unchanged 
+ Birds and bears together Concurrent groups = 3 At some instant, a bird group and a large-predator group both on the map with their flags tracked; counts reconcile after both leave 
+## Edge cases to hunt deliberately 
+A config referencing a species removed by a mod change; a corrupt or truncated config; integer keys in JSON. 
+A fort straddling four regions; a region with zero eligible creatures; a single-biome world; an ocean-only coast. 
+INNUMERABLE and cave entries adjacent to managed ones; a species present as Vermin in one region and Animal in another. 
+Save, load, and the scheduler re-arming; DFHack version drift (the AQUATIC rename is the model); a fort aged 50 years versus a fresh embark. 
+The tool's window open during a season boundary; the window opening unbidden on load (observed, unreproduced). 
+## Order of work — all six done, 16 September 2026 
+✅ W1 and G1–G2 on the rig — two evenings — because they decide whether facets 1 and 2 are features or research. 
+✅ Layer key in the engine and the mass model (P1). Both are engine-only and land in T1 the same day. 
+✅ S1 as the first nightly run, on the current tool, before any new feature — the founding bullet has never been watched. 
+✅ Resident-groups scheduler with the refund sweep (G3 nightly). 
+✅ Ecology classes and the review list; add-new by class. 
+✅ Live and seasonal web views, sprites, the map overlay. 
+Facts read live from fortress Nokimast (region1, year 50) on DF v0.53.15 / DFHack 53.15-r2, and from df-structures 3bfa5aa5 and DFHack 53.16-r1.1 sources, 16 September 2026. Body-size figures are this world's raws. 
+The predation constants are proposals to be tuned by P1, not results. Everything marked as an unknown is an experiment in the regimen, not an assumption in the design. 
+ 

@@ -1,0 +1,302 @@
+<title>The Wildlife Backlog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#E8EBEF; --card:#F3F5F8; --sunk:#DBE0E7; --rule:#C2CAD4; --rule-soft:#D3D9E1;
+    --ink:#141821; --ink-mid:#48515F; --ink-faint:#6F7886;
+    --accent:#2C4C7C; --accent-deep:#1D3557; --accent-wash:#DCE4F0;
+    --measured:#1A6B54; --measured-wash:#D8E8E1;
+    --inferred:#8A6014; --inferred-wash:#F2E7CF;
+    --assumed:#9B3B2F; --assumed-wash:#F2DFDA;
+    --measure:68ch;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --paper:#0E1218; --card:#161B23; --sunk:#1F2630; --rule:#2C3542; --rule-soft:#232B36;
+    --ink:#E3E8EF; --ink-mid:#A6B0BE; --ink-faint:#78828F;
+    --accent:#7FA3D8; --accent-deep:#A8C3E8; --accent-wash:#16202E;
+    --measured:#63C2A3; --measured-wash:#10201B;
+    --inferred:#D7AC5E; --inferred-wash:#241E10;
+    --assumed:#E08A78; --assumed-wash:#261512;
+  }}
+  :root[data-theme="dark"]{
+    --paper:#0E1218; --card:#161B23; --sunk:#1F2630; --rule:#2C3542; --rule-soft:#232B36;
+    --ink:#E3E8EF; --ink-mid:#A6B0BE; --ink-faint:#78828F;
+    --accent:#7FA3D8; --accent-deep:#A8C3E8; --accent-wash:#16202E;
+    --measured:#63C2A3; --measured-wash:#10201B;
+    --inferred:#D7AC5E; --inferred-wash:#241E10;
+    --assumed:#E08A78; --assumed-wash:#261512;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:min(var(--measure), calc(100vw - 3rem)); margin:0 auto; padding:3.5rem 0 6rem;}
+
+  .eyebrow{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-faint); display:flex; flex-wrap:wrap; gap:.9rem;
+    padding-bottom:.9rem; border-bottom:1px solid var(--rule);
+  }
+  h1{
+    font-family:"IBM Plex Serif",Georgia,serif; font-weight:700;
+    font-size:clamp(2rem,5vw,2.9rem); line-height:1.12; letter-spacing:-.015em;
+    text-wrap:balance; margin:1.6rem 0 .8rem;
+  }
+  .standfirst{font-size:1.06rem; color:var(--ink-mid); margin:0 0 2.4rem; text-wrap:pretty;}
+
+  .decided{
+    background:var(--accent-wash); border-left:3px solid var(--accent);
+    padding:1.1rem 1.3rem; margin:0 0 3rem;
+    display:flex; flex-direction:column; gap:.5rem;
+  }
+  .decided .tag{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-deep);
+  }
+  .decided p{margin:0; color:var(--ink);}
+
+  h2{
+    font-family:"IBM Plex Serif",Georgia,serif; font-weight:600;
+    font-size:1.5rem; letter-spacing:-.01em; margin:3.2rem 0 .4rem; text-wrap:balance;
+  }
+  .lede{color:var(--ink-mid); margin:0 0 1.8rem; font-size:.97rem;}
+
+  .items{display:flex; flex-direction:column; gap:2rem;}
+  .item{
+    border-left:3px solid var(--grade,var(--rule));
+    padding-left:1.15rem;
+    display:flex; flex-direction:column; gap:.65rem;
+  }
+  .item-head{display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap;}
+  .chip{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--grade,var(--ink-faint)); background:var(--grade-wash,var(--sunk));
+    padding:.16rem .5rem; white-space:nowrap;
+  }
+  h3{
+    font-family:"IBM Plex Serif",Georgia,serif; font-weight:600;
+    font-size:1.13rem; margin:0; letter-spacing:-.005em; text-wrap:balance;
+  }
+  .claim{margin:0; color:var(--ink); font-size:1rem;}
+  dl{margin:.2rem 0 0; display:flex; flex-direction:column; gap:.55rem;}
+  dt{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint);
+  }
+  dd{margin:.1rem 0 0; color:var(--ink-mid); font-size:.95rem;}
+  dd strong{color:var(--ink); font-weight:600;}
+  code{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    font-size:.87em; background:var(--sunk); padding:.06em .32em; color:var(--ink);
+  }
+  .grade-measured{--grade:var(--measured); --grade-wash:var(--measured-wash);}
+  .grade-inferred{--grade:var(--inferred); --grade-wash:var(--inferred-wash);}
+  .grade-assumed{--grade:var(--assumed); --grade-wash:var(--assumed-wash);}
+
+  footer{
+    margin-top:4.5rem; padding-top:1.4rem; border-top:1px solid var(--rule);
+    color:var(--ink-faint); font-size:.86rem; display:flex; flex-direction:column; gap:.5rem;
+  }
+  a{color:var(--accent); text-underline-offset:.18em;}
+  a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">
+    <span>Backlog</span><span>seasonal-wildlife</span><span>beyond v6.1</span>
+    <span>18 September 2026</span><span>W2:Urist</span>
+  </div>
+
+  <h1>The Wildlife Backlog</h1>
+  <p class="standfirst">Thirteen candidates for versions after the planned run ends at v6.1. Each one says what is already measured, so the next planning pass can tell the items that are ready to build from the ones that still need a rig night or a decision. Nothing here is scheduled.</p>
+
+  <div class="decided">
+    <span class="tag">Decided · applies now</span>
+    <p><strong>A managed cavern raid is an <em>irruption</em>.</strong> The word "raid" belongs to Dwarf Fortress's own invasion machinery, which this tool never touches; what the tool does is raise pressure on a cavern layer until a wave arrives angry. Irruption is the ecological term for exactly that — a population surging out of its usual range — and it keeps the tool's vocabulary honest about what it is doing. The v6.1 package is renamed <strong>Cavern pressure and irruptions</strong>, and the term carries through the plugin's console, its guide and both reports.</p>
+  </div>
+
+  <div class="decided">
+    <span class="tag">Changed by measurement · 18 September</span>
+    <p><strong>The cavern layer was never actually managed, and the lever that reaches it is the raws.</strong> Everything the tool does to a population entry — the seasonal roster, the per-layer ceiling, the whole cavern design — was written against a mechanism that does not operate underground. Measured directly: with the tool switched off and all 109 managed local entries held at zero for 12,071 ticks, and separately all 914 cave master entries, the entries stayed at zero and cavern life kept arriving at full rate. <strong>Zeroing a cavern entry does not gate a cavern wave.</strong> <code>creature_raw.frequency</code> does, totally and reversibly. Two consequences land here: the per-layer cavern ceiling has to be rebuilt on that lever rather than on entry quantity, and <em>v6.1 irruptions cannot work as described above</em> — raising pressure by opening entries does nothing down there, so the package needs redesigning around frequency before it is planned further. A second correction came with it: half of what the tool counted as cavern wildlife was the <strong>magma sea and the underworld</strong> — magma crabs and demons kilometres below an untroubled fort — which is now excluded from the count.</p>
+  </div>
+
+  <h2>The answer is already in hand</h2>
+  <p class="lede">Five items where the measurement exists and the remaining work is code. These could be picked up in any version.</p>
+
+  <div class="items">
+
+    <div class="item grade-measured">
+      <div class="item-head"><span class="chip">Measured</span><h3>Frequency as the balance lever</h3></div>
+      <p class="claim">Use each creature's <code>FREQUENCY</code> to tune how often it is drawn, instead of only opening and closing entries.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>The token does two separate jobs: it places a species' distribution epicentre on the world map, and it sets the odds at a wave draw — the game picks a species from the region's list, then rolls a d100 against its frequency. That second role is why armed predators are scarce on the rig: a dingo is <code>FREQUENCY:5</code> and fails nineteen rolls in twenty, which is most of why E18's packs arrived late and why only one large-predator group holds a map at a time. The tool already rewrites a raw in memory and restores it — that is how <strong>pack sizes</strong> have worked since v5.5.</dd>
+        <dt>Measured, 18 September 2026 — and it is stronger than we thought</dt>
+        <dd>The experiment happened, and frequency turned out to be the lever the <em>cavern</em> layer needs, not just a surface refinement. <strong>E34:</strong> seven common cavern species set to frequency 0 produced <strong>zero arrivals</strong> across two suppressed half-seasons, while 27 and 39 other cavern animals arrived beside them; restored at the half-way tick they came straight back (28 and 15); and an untouched control had those same species arriving freely in the same window (29 and 43), which rules out a timing effect. So an in-memory frequency change <em>is</em> read at the draw, exactly as <code>cluster_number</code> is. A raw edit also cannot outlive the world — set, unload, reload, and the originals read back — so a crash cannot leave a player's world altered.</dd>
+        <dt>⚠️ One creature will freeze the game, and the fix is trivial</dt>
+        <dd><strong>Never write frequency 0. Write 1.</strong> Zeroing <code>CREEPY_CRAWLER</code> — on its own, with nothing else touched — freezes Dwarf Fortress silently and unrecoverably: no crash, no log entry, the game log stops growing and the process has to be killed. It is the only creature in the raws carrying <code>VERMIN_ROTTER</code> with any underground range; the other four rotters are surface-only. Removing the last underground rotter is what breaks it, not the number of species suppressed — thirteen assorted cavern species can be zeroed with no effect at all. Setting that same creature to <strong>1</strong> instead of 0 runs at full speed, and 1 against a typical 50 or 100 is suppression for every practical purpose. The rule costs nothing and removes the whole class of hazard without needing to know which creature is load-bearing on a given world.</dd>
+        <dt>What it would take</dt>
+        <dd>A per-species frequency override in the roster, written at the same moment as the cluster size and restored with the pool, never writing a bare zero. Still open before a <em>balance</em> rule can be written: whether frequency is an independent per-species probability or a <strong>comparative weight</strong> competing for a shared spawn budget — the wiki says comparative, and E34 hinted at it, since the other cavern species fell 39 → 0 and 27 → 12 across the restore while the control's held steady. If it is comparative, raising one species quietly lowers every other, and a roster sets proportions rather than rates.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-measured">
+      <div class="item-head"><span class="chip">Measured</span><h3>Population number needs no adjustment</h3></div>
+      <p class="claim">The tool is already editing exactly this number; only the wording around it is wrong.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>The token sets how many of a creature live in <em>each world-map tile of the region</em>, not how many may ever visit a fortress. That regional stock is precisely what the tool's quantity control writes, and E15 showed the game debits it exactly, at every size, when it draws a wave. So there is nothing to compensate for.</dd>
+        <dt>What it would take</dt>
+        <dd>Wording, not code. The roster should say <strong>regional stock</strong> where it now implies a per-fort budget, so a player reading "quantity 100" understands it as the region's herd rather than a hundred animals queued to visit.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-measured">
+      <div class="item-head"><span class="chip">Measured</span><h3>Solitary, pack or herd for every creature</h3></div>
+      <p class="claim">Scan the whole creature list once and publish the grouping table, with overrides.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>v5.7 already labels a group from its flags — a flier is a flock, a <code>LARGE_PREDATOR</code> caste a pack, anything else a herd — and T5 proved the raws' cluster size is <em>not</em> a safe gate: a cougar is <code>CLUSTER_NUMBER:1:1</code> yet the coupling had made a pack of six, which went unled until the rule stopped deferring to the raws. The full token reference, all 377 of them, is already in the repository.</dd>
+        <dt>What it would take</dt>
+        <dd>One pass over every creature combining cluster size, population number and the behaviour flags, emitted as a reviewable table with a per-species override — the same shape the ecology classes already use for their unclassified review list.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-measured">
+      <div class="item-head"><span class="chip">Measured</span><h3>The largest male leads</h3></div>
+      <p class="claim">Pick a group's leader by body size and sex rather than by the lowest unit id.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>E28 settled that a leader is the lever that holds a group together — mean spread of five tiles against ten untouched, with the pack still roaming as far — and the current rule picks the lowest id purely because it is stable and re-picks cleanly when the leader leaves. Body size already sits on the caste, and the tool reads it as <code>adultSize</code> for the predation model.</dd>
+        <dt>What it would take</dt>
+        <dd>A comparator, plus a tie-break for groups that are all female or single-caste, and a re-pick rule that does not thrash when two animals are the same size. Small, and it would make the choice visible in the status line.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-measured">
+      <div class="item-head"><span class="chip">Measured</span><h3>Concurrency from the size of the embark</h3></div>
+      <p class="claim">Let the number of groups on the map scale with the map, rather than sitting at three.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>The cap is a fixed three today. The proposal — the square root of the embark's tile count, plus one — gives five on a four-by-four, three on a two-by-two and seven on a six-by-six, which is the right direction. The site's tile bounds are already read at load for biome detection. E21 matters here: one scheduler serves the surface and cavern layers without starving either, so raising the cap is a question of density, not fairness.</dd>
+        <dt>What it would take</dt>
+        <dd>One expression and a player override, plus a re-read when the cap changes mid-game. Worth a season on a large embark to see whether the fort's frame rate minds.</dd>
+      </dl>
+    </div>
+
+  </div>
+
+  <h2>One experiment away</h2>
+  <p class="lede">Four items where a specific, designed test would settle the question. Each names the test.</p>
+
+  <div class="items">
+
+    <div class="item grade-inferred">
+      <div class="item-head"><span class="chip">Needs a test</span><h3>Deep water is a property of the map, not the species</h3></div>
+      <p class="claim">Keep deep-ocean creatures rare unless the embark actually has deep tiles.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>The split cannot key off biome: the raws carry only <code>OCEAN_ARCTIC</code>, <code>OCEAN_TEMPERATE</code> and <code>OCEAN_TROPICAL</code>, with no deep or shallow variant. It has to key off the map, and E25 already measures the thing that matters — water depth relative to the land-entry surface. Two ocean forts differ sharply on it: one has open water two to three levels below the surface, the other's nearest deep water is thirty-nine levels down, which is why the detector calls the second dormant.</dd>
+        <dt>The test</dt>
+        <dd>Classify each ocean species by the depth of water it is found in at embark across the ocean and lake forts, then gate the deep ones on the map holding deep tiles at all. The survey is a single pass; the gate is then a filter on the roster.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-inferred">
+      <div class="item-head"><span class="chip">Needs a test</span><h3>Migrants are not broken</h3></div>
+      <p class="claim">The forcing triggers do nothing useful; the migration itself works.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>E22 found that <code>force Migrants</code> twice and <code>migrants-now</code> twice all returned success and not one migrant reached the map in 36,000 ticks, with the population stuck at seven. That looked like a broken feature. T6 then ran the lake fort for a full year without touching any trigger and the fort grew from <strong>seven citizens to eighteen</strong>. So migration is healthy and arrives on the game's own schedule; what fails is the forcing, inside a trial window.</dd>
+        <dt>The test</dt>
+        <dd>A narrower question now: what does the trigger actually schedule, and is there a wealth or population gate in front of it. Run a fort a year with the trigger and a year without, and compare when waves land rather than whether they land.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-inferred">
+      <div class="item-head"><span class="chip">Needs a test</span><h3>Birds already perch</h3></div>
+      <p class="claim">Before adding a lever, find out whether more perching is even wanted.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>This one is measured in the opposite direction from the way it was asked. Ravens sit still for five to twenty thousand ticks in every arm of E28, T4b and T5 — so consistently that the v5.7 stuck sweep had to exempt fliers outright, or it would have spent the season dragging perched birds out of trees.</dd>
+        <dt>The test</dt>
+        <dd>Sample the perched fraction by species across a season and see what it really is. Only then decide whether a lever is wanted, and whether the complaint is about time perched or about where they perch.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-inferred">
+      <div class="item-head"><span class="chip">Needs a test</span><h3>The creature that showed as <code>r2</code> and <code>r4</code></h3></div>
+      <p class="claim">Identify it, then decide whether it matters.</p>
+      <dl>
+        <dt>What we know</dt>
+        <dd>Nothing in the run data names it. The rig reads the screen by glyph, and a lowercase <code>r</code> is the game's rodent tile, so the likely reading is a rodent-class creature appearing in groups of two and four — which would make the digits a group count, not part of a name.</dd>
+        <dt>The test</dt>
+        <dd>Cheap and opportunistic: the next time it appears, probe the units on the map and match the glyph against each creature's tile in the raws. No dedicated run needed.</dd>
+      </dl>
+    </div>
+
+  </div>
+
+  <h2>Open questions</h2>
+  <p class="lede">Four items that need a decision or a mechanism before any test would mean anything. These are the expensive ones.</p>
+
+  <div class="items">
+
+    <div class="item grade-assumed">
+      <div class="item-head"><span class="chip">Open</span><h3>Grouping creatures by where on Earth they belong</h3></div>
+      <p class="claim">Marsupials with marsupials, old world with old world — and arctic never with antarctic.</p>
+      <dl>
+        <dt>Why it is hard</dt>
+        <dd>The game's raws carry no continent, realm or hemisphere token. Biome tokens describe climate, not geography, which is why a temperate forest in one corner of a world is indistinguishable from one on the far side. The arctic-versus-antarctic case is the sharpest: there is only <code>OCEAN_ARCTIC</code>, and no southern equivalent at all, so the distinction the request asks for does not exist in the data to be read out of it.</dd>
+        <dt>The routes</dt>
+        <dd>Three, none cheap. Creature classes carry some signal. Name and clade heuristics carry a little more, and the tool already does clade detection for its ecology classes. The honest route is probably a <strong>curated realm table shipped with the tool</strong>, which makes this a content project rather than a code one — hundreds of species assigned by hand, then a roster filter that prefers within-realm partners. Worth scoping before committing.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-assumed">
+      <div class="item-head"><span class="chip">Open</span><h3>Quieting animal-on-animal combat</h3></div>
+      <p class="claim">Keep the fights in the log, out of the player's face.</p>
+      <dl>
+        <dt>Why it is hard</dt>
+        <dd>The game's announcement configuration filters by <em>event type</em>, not by who is fighting. Every combat line is written as <code>[COMBAT_*:A_D:UCR]</code>, where the first flag sends it to the on-screen log and the second ties it to the unit combat report. There is no participant filter anywhere in that file, so no edit to it can separate two dingoes from a dwarf and a dingo.</dd>
+        <dt>The routes</dt>
+        <dd>A tool-side filter is the only way: read the reports the game is accumulating and suppress those whose participants are all non-citizens, leaving the game's own log file untouched. That is mechanically possible and needs a decision first — suppressing reports means a player loses the record on screen, and a wildlife kill near the fort is sometimes exactly what they wanted to see.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-assumed">
+      <div class="item-head"><span class="chip">Open</span><h3>A record of who eats whom, over time</h3></div>
+      <p class="claim">Turn the fights into a species-interaction history the player can look at.</p>
+      <dl>
+        <dt>Why it is hard</dt>
+        <dd>Not technically hard — the rig already does most of it. Every experiment writes a combat table naming the attacker, the victim and the text, and the tally that attributes a kill to its killer was written for T4 and reused for every run since. The game also writes its own log continuously, which is the source a shipped tool would have to parse instead.</dd>
+        <dt>The routes</dt>
+        <dd>A parser for the combat lines, a rolling tally per species pair, and somewhere to show it. The real question is where it belongs: this is the most product-shaped item on the list and it wants the window that v6.0 builds, so it should follow rather than lead. It also pairs naturally with the item above — the same filter that decides what to quiet decides what to count.</dd>
+      </dl>
+    </div>
+
+    <div class="item grade-assumed">
+      <div class="item-head"><span class="chip">Open</span><h3>Placement is even; survival is not</h3></div>
+      <p class="claim">The one debt the water layer shipped with, carried here so it is not lost.</p>
+      <dl>
+        <dt>Why it is hard</dt>
+        <dd>The water job places round-robin, one animal per species in turn, and E33 showed that still drifts: tigerfish finished as five of eleven in both replicates of a season. Even placement does not produce an even lake, because the species do not survive at the same rate, and nothing in the placement rule can see that.</dd>
+        <dt>The routes</dt>
+        <dd>Weight the next placement by what is actually swimming rather than by what was last placed — a stocking target per species instead of one target for the layer. That needs a view on what the right balance <em>is</em>, which is really the same question the geographic grouping above asks, one layer down.</dd>
+      </dl>
+    </div>
+
+  </div>
+
+  <footer>
+    <div>Companion to <em>The Wilderpop Model</em> (the measurements) and <em>The Seasonal Wildlife Plugin</em> (the design). Every measurement cited here is recorded in one of those two, or in the plugin's own state log as a numbered addendum.</div>
+    <div>Nothing on this page is scheduled. The planned run is v5.6 through v6.1; these are what comes after, or what gets folded in when a version happens to pass nearby.</div>
+  </footer>
+</div>

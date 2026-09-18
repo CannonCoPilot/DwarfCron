@@ -1,0 +1,427 @@
+ The Fortress Docket 
+ Prioritisation report Revised 16 September 2026 · rev 3 W2:Urist 
+## The Fortress Docket 
+ Forty-six Dwarf Fortress repositories now sit local and current — twenty of them cloned
+ in this pass, from names that were only ever mentioned in our own documents. Alongside
+ them, a full read of DFHack at 53.16-r1.1 against the 53.15-r2 
+ build our rig actually runs. The census changed four of the five items on the mod docket,
+ and found a script pack that already solved a blocker we have written down as open.
+Ship seasonal-wildlife first. It is built, unpublished, and answers a 1,200-vote demand that a named community developer is actively trying to solve. 
+ It is 1,212 lines of working Lua sitting in ~/Claude/Projects/seasonal-wildlife 
+ with no git remote — it has never been published anywhere. Its only
+ blocker was in-game verification on a live fort, which this week's CrossOver rig now does
+ in twelve seconds. That is the shortest distance between work already done and work that
+ lands.
+ This pass sharpened the claim rather than weakening it. The tool rotates the roster an
+ embark already has; adding a species that is not native to it still needs a reload, and
+ reading the upstream script confirms nothing else can do that either. Ship the rotation —
+ it is real and nobody else has it — and treat the insertion problem as the separate, named
+ piece of work it turns out to be.
+## Why the mod lane is open now 
+ Until this week a DFHack mod could not be iterated here: testing meant a Windows VM, an
+ SSH hop and a human clicking through DF's menus. The rig built this session removes all
+ three. That is the precondition for everything in Group A below, and it is why the
+ grouping you asked for splits cleanly.
+ $ cx-lifecycle.sh start → live RPC in 3.5s 
+ $ cx-lifecycle.sh load region1 → fortress loaded, 12s 
+ $ cx-lifecycle.sh deploy → cp, not scp — the bottle is a macOS path 
+ $ cx-lifecycle.sh ui click ... → drive DF's own menus by on-screen text 
+ DF also runs at its own 99 fps cap under CrossOver, so nothing here is compromised by
+ emulation. A mod written in the morning can be exercised against a real fort by lunch.
+## Group A — Mods 
+ Small, self-contained DFHack Lua. Each is days of work, not weeks, and each addresses a
+ request the community has made in writing. Ranked by demand × readiness , not by
+ difficulty.
+ 1 
+## Seasonal wildlife — break the 7-species limit 
+ 1,212 lines already written 1.2K votes · 865 for change approach validated 
+ Every region carries only seven creature types per niche, chosen at worldgen and
+ fixed forever. Our tool rotates the roster by season, curates species per
+ creature, fills categories to a target count, and models a predator/prey food web —
+ all live, without a save-reload. Phase 1 is done; Phase 2 (set-roster tab, season
+ grid, food-web pyramid) is planned and specified.
+ On Reddit, raedyohed is independently attempting the same thing —
+ appending to world_data.regions[i].population so the game's native
+ frequency-weighted spawner draws from a bigger pool — and wrote
+ "Perfectly happy if anyone else beats me to it." 
+ Amended — the tool is narrower than this entry claimed, and the reason is worth knowing 
+ The upstream script is region-pops , not regions-pop , and
+ reading it confirms the limit exactly: it enumerates
+ world.populations.all and then only scales or offsets the
+ count on records that are already there. It has no path that creates one.
+ Our own tool hits the same wall from the other side. Line 51 of
+ seasonal-wildlife.lua records it as already tested — "live insertion
+ of a local_population is unsupported in DFHack — verified" — so the tool
+ rotates the roster the embark already has , live, and
+ addNewSpecies needs a save-reload. That is a real and shippable feature,
+ but it is not yet the thing raedyohed is asking for. Both tools stop at the same
+ missing primitive: constructing a df::local_population 
+ ( wilderpopst ) and pushing it onto world.populations.all .
+ Solving that one primitive is the whole prize, and it is what should be timeboxed
+ first — before Phase 2's UI work, which does not depend on it.
+ Update, 16 September — verified in a running fort, and the limit is gone 
+ The tool ran against the live fortress on the rig. Six bugs found and fixed, nine
+ of ten checks now have in-game evidence, and the missing primitive above is solved:
+ writing the master row and then a live entry pointing at it puts a new species into
+ a running fort — DF's own spawner drew 12 badgers from one such entry. Add-new is
+ live, no reload. This is now exactly what raedyohed is asking for. Full account in
+ the Wildlife Ledger.
+~/Claude/Projects/seasonal-wildlife @ 9e49fdf (v5, no remote; layers, resident groups, ecology classes, live/seasons tabs — rig-verified 16 Sep) · r/dwarffortress 1ut4t9k 
+ 2 
+## Pulled punches — cap damage in friendly brawls 
+ implementation given by DFHack's lead permission granted 
+ Tavern brawls are intentional — alcohol causes erratic behaviour, and violent
+ dwarves start fights. The problem is that they do not pull their punches: a strong
+ dwarf caves a friend's skull during what should be a scuffle.
+ Putnam3145 answered exactly how to fix it: intercept attacks with
+ the onAction event in putnam_events , check whether attacker
+ and defender are both from your civilisation, and reduce the action's
+ attack_velocity if so. He also wrote "you're allowed" to
+ reuse his code.
+ Amended — onAction is not a DFHack hook, and DF has a better lever anyway 
+ onAction appears nowhere in DFHack: not in EventManager ,
+ not in eventful , not in any script. It belongs to Putnam's own
+ putnam_events mod. Core DFHack's nearest equivalent,
+ eventful.onUnitAttack , fires with a wound already in hand —
+ too late to pull anything.
+ But reading the struct suggests we do not need his hook. An attack sits in
+ unit.actions as unit_action_data_attack with
+ timer1 ( time_to_strike ) still counting down — a real
+ pre-strike window a tick handler can find. And beside
+ attack_velocity , the same struct carries DF's own intent flags:
+ lightly_tap , whose Bay12 name is NO_LETHAL_INTENT ,
+ and sparring_hit . Setting the flag DF already uses for a pulled punch
+ is a truer fix than scaling a velocity, and it needs no third-party mod. Treat this
+ as a strong lead, not a proven one: the flag semantics are read off the structure
+ names and must be confirmed against a live brawl on the rig.
+r/dwarffortress 1vhrokf · comment p2er2zu · df.unit.xml § unit_action_data_attack @ 53.16-r1.1 
+ 3 
+## Mode-switch preservation — retire and unretire without losing the fort 
+ 8-year-old spec, still unsolved recurring request 
+ Switching between fortress and adventure mode is the feature players most want to
+ combine, and retiring a fort silently destroys: hauling routes and quantum
+ stockpiles, pasture assignments, manager orders, bedroom and furniture assignments,
+ bins, and caged creatures. DFHack's orders export covers manager orders
+ and nothing else.
+ A tool that snapshots the rest before retirement and restores it after would make
+ the loop usable. The 2018 thread enumerates precisely what breaks — it is a
+ requirements document someone else already wrote.
+ Amended — two of these are already solved, and both plugins are on our rig 
+ preserve-rooms records a citizen's bedroom, office, dining room and
+ tomb when they leave the map, suspends the zones so nobody else claims them, and
+ reassigns them on return — and separately keeps noble rooms attached to the
+ role rather than the person. preserve-tombs holds tomb
+ assignments through death. Both ship in DFHack and both are present in our
+ 53.15-r2 install right now.
+ So the item shrinks to what nothing covers: hauling routes and quantum stockpiles,
+ pasture assignments, bins, caged creatures, and squad and burrow membership.
+ Smaller scope, and a clearer pitch — the remaining gap next to two plugins that
+ already prove the pattern works.
+r/dwarffortress adbhoc · and 1wbtwze for the demand · preserve-rooms , preserve-tombs verified installed 
+ 4 
+## Adventure-mode fort actions — advfort is already rewritten 
+ upstream is broken a working replacement exists now cloned 
+ gui/advfort lets an adventurer build and craft, and it does not
+ currently work. Reviving it is the difference between adventure mode as a combat
+ demo and adventure mode as the RPG players keep asking for.
+ Amended — this is finished work, not a starting point 
+ magnus-ISU/dfhack-commands is not a fork with a patch in it. It
+ contains adv/fort.lua : 4,313 lines , a ground-up
+ reimplementation dated 11 August 2026 that duplicates advfort's job logic —
+ choosers, predicates, item matching, workshop handling — internally, and
+ deleted gui/advfort from the tree rather than patching it. Its
+ redesign plan names the nine user-reported bugs it was written to kill and argues
+ they all trace to three structural decisions in the original.
+ Recommend we stop treating this as something to build. Run it on the rig, and if it
+ holds up, the useful contribution is helping it upstream — not writing a third one.
+r/dwarffortress 1wbtwze · GitRepos/dfhack-commands @ 0486139, advfort-redesign-plan.md 
+ 5 
+## The long tail — squad ammo, stockpile filters, orphaned equipment 
+ most-cited annoyances 
+ Three recurring complaints, each a plausible small tool. Squad ammo 
+ assignment is broken, so marksdwarves train with the wrong bolts or cannot fire.
+ Stockpile filters cannot separate by quality, or empty from full
+ containers, or glazed from unglazed. Orphaned equipment gets stuck
+ assigned to nobody and is invisible except in the custom assignment menu — the only
+ workaround is melting it.
+r/dwarffortress 1w997ue 
+ 6 
+## Dwarf Therapist on demand — generate the memory layout, don't hunt for it 
+ the rig already does the hard half blocks us today 
+ Dwarf Therapist needs a memory layout .ini matched to the exact DF
+ build. Its repository ships 86 Windows layouts, and the newest is
+ v0.53.03 — its last commit, in November 2025, is
+ literally "Add memory layouts for 53.03" . Our rig runs
+ 0.53.15. There is no shipped layout for the version we play, which is why
+ installing it is failure-prone: the fix is to generate one, and that step is
+ undocumented in the places people look.
+ DFHack already ships the generator — devel/export-dt-ini writes the ini
+ from a running game, and Dwarf Therapist carries its own copy of the same script. So
+ the whole job is an orchestration our rig can already mostly perform: start DF with
+ DFHack, run the exporter, name the output by DF version and distribution
+ ( steam / itch / classic ), drop it into
+ share/memory_layouts/windows/ , and launch Therapist against it —
+ verifying the layout is complete rather than silently partial, which is the failure
+ the exporter's own complete flag is there to catch.
+ Worth doing for its own sake, and it doubles as a template: "install a DF companion
+ tool, generate what it needs, verify it, report" is the shape of a lot of future
+ work.
+repos/Dwarf-Therapist @ 9d3e241a · share/memory_layouts/windows (86 files, newest v0.53.03) · scripts/devel/export-dt-ini.lua 
+## Group B — Big projects 
+ Systems work, measured in months. The ranking here is driven by one fact from the repo
+ review: Chronicler now has two direct competitors , and that should change
+ what we build rather than whether we build it.
+ 1 
+## Chronicler — close Phase 4, then pick a defensible edge 
+ both blockers now cleared two competitors shipped 
+ Phase 4 was recorded as code complete but not signed off on two counts: 43
+ stale failing tests, and no packaged executable. Both are now closed
+ ( 2347210 and 0bb68fa ). M4 is signable this
+ week — that is a stroke of the pen, not a sprint.
+ The harder question is positioning. Dwarfipedia generates
+ Wikipedia-style pages for every entity in a world using LLM prose — Chronicler's
+ narrative thesis, already shipped. LegendsViewer-Next is an
+ actively-developed legends browser that covers the exploration half. What neither
+ has is live fortress state : the 33-section bridge, the change detector, the
+ denizen registry, the Knowledge Horizon. That is the edge worth leaning into, and
+ the legends-browsing work is the part most at risk of being redundant.
+ Three places where DFHack already does work the bridge is doing by hand.
+ RemoteFortressReader exposes thirty-eight RPC methods and is
+ installed on our rig; Chronicler calls exactly one of them
+ ( GetWorldMapNew , in world_map.py ) while
+ chronicler-bridge.lua carries 2,041 lines that write a JSON file to
+ disk for Python to pick up. GetUnitList , GetItemList ,
+ GetBuildingDefList , GetReports , GetBlockList 
+ and GetCreatureRaws are already-typed protobuf equivalents of sections
+ we serialise ourselves. export-world-map writes
+ region, site, river and elevation data as CSV and GDAL .vrt — a
+ GIS-grade atlas substrate we are not using. And the overlay 
+ framework would put Chronicler's readouts inside DF's own viewport instead of
+ beside it.
+ None of this is free: RFR's schema is its own, the bridge's 33 sections do not map
+ one-to-one, and export-world-map is absent from our
+ 53.15-r2 build. The recommendation is a measured spike on the unit and
+ item sections — where the overlap is largest and the protobuf is already
+ generated — not a rewrite.
+Project_Aion/projects/chronicler/progress · DwarfCron @ ca53c7c · remotefortressreader.cpp lines 251–288 
+ 2 
+## A renderer on the bridge we already have 
+ three independent attempts this month we own a state serialiser 
+ Three separate people are building views onto live DF state right now: a
+ Godot renderer using a forked DFHack, dwarf-eye 
+ (Rust, Minecraft-style voxels via RemoteFortressReader), and DF in
+ Doom , which dumps state into WADs. All three are solving the same first
+ problem — getting game state out — which is the problem Chronicler's bridge already
+ solved and has in production.
+ The Godot author has not released, and commenters are asking for it to be merged
+ into Stonesense. The interesting move is not competing with those renderers but
+ making our bridge the thing they read from.
+r/dwarffortress 1wac6t2, 1w8bm4z · GitRepos/dwarf-eye 
+ 3 
+## Multiplayer — watch, do not build 
+ two mature projects already 
+ multi-dwarf streams the game's real rendered pixels to browsers
+ with per-viewer cameras and HUDs, updated for DF 53.16 last month.
+ dwarf-with-friends ships Windows and Linux betas. This space is
+ genuinely contested and neither project is stalled. Recommend we track both and
+ spend nothing here unless a specific gap appears.
+GitRepos/multi-dwarf @ 11ea5b1 · GitRepos/dwarf-with-friends @ 241b8d7 
+ 4 
+## LLM-assisted binary work — a capability to note, not a project yet 
+ newly demonstrated 
+ A widely-shared thread documents frontier models autonomously reverse-engineering
+ closed-source game binaries — including removing a decade-old hardcoded 60 FPS
+ assumption from a game with no source. DF is closed-source, and DFHack's structure
+ work already does much of what that would buy us. Worth filing as a capability that
+ has changed, against the day something needs a fix DFHack cannot reach.
+r/singularity 1wc2eqb 
+## The repo collection 
+ Forty-six repositories, all local, all fetched and fast-forwarded today. Twenty were
+ cloned in this pass: every Dwarf Fortress repository named anywhere in our own project
+ documents had its URL extracted and checked, and the ones that had only ever been cited
+ are now on disk. Nothing was overwritten — the refresh is fast-forward-only and reports
+ rather than discards.
+ Grouped by the job each one does, because that is how they get reached for. Rows marked
+ ours are our own work. New means cloned in this pass.
+ Engine and structures — the ground truth everything else reads 
+ Repo What it is State 
+ dfhack-latest DFHack develop . The working tree. scripts , stonesense and library/xml submodules were uninitialised and are now checked out. 53.16-r1.1 · submodules fixed 
+ df-structures The memory layout. Every claim in this report about a DF struct was checked here, not remembered. 3bfa5aa5 
+ dfhack-53.10-r1 Pinned release tree — the version the UTM VM runs. detached, correct 
+ dfhack-0.50.13-r1.1 Pinned release tree, pre-Steam-era reference. detached, correct 
+ dfhack-0.47.05-r8 Pinned release tree, the last classic-DF line. detached, correct 
+ df_misc DFHack's own scratch repo — offset-hunting scripts, IDA databases, reverse-engineering notes. new · 8be5f95 
+ dfhack-build-env Dockerised cross-compile toolchains for building DFHack plugins. new · stale 2023 
+ Remote API clients — the layer Chronicler's bridge sits on 
+ Repo What it is State 
+ dfhack-remote Rust crate, actively maintained. The best-kept client for the RPC surface; what dwarf-eye is built on. new · v0.12, Mar 2026 
+ dfhack-client-python The Python RPC client Chronicler's own client wraps. 2021 
+ dfhack-mcp Exposes DFHack to a model over HTTP. Six endpoints, 151 lines — a sketch, but the right sketch. new · Jul 2025 
+ DFHackRPC Older standalone Python client, DFHack 0.44 era. Useful as a protocol reference. new · 2019 
+ dfhack-remote-alexchandel Browser-side JavaScript bindings over RFR via WebSockets. new · 2021 
+ Script packs — where working Lua to read and borrow lives 
+ Repo What it is State 
+ dfhack-commands The find of this pass. 203 Lua scripts for DF 0.53.x plus the "High Adventure" content-mod suite. Holds the advfort rewrite, a worldgen driver, and honest BROKEN_FEATURES.md notes. new · 15 Sep 2026 
+ myDFHackScripts Small personal tool collection, current for the Steam era. Mar 2026 
+ dfhack-scripts-robob27 Fork of DFHack's script repo at the 2023 line. A before-picture for the Great Reorg. new · 2023 
+ eld-dfhack-scripts 47 Lua scripts, DFHack 43.x. Archival; the author warns they may not run. new · 2023 
+ seasonal-wildlife Season-rotating wildlife roster with curation, a mass-based food web, ecology classes, a water/cavern layer key and concurrent resident groups. v5, ~2,050 lines, every brief experiment run on the rig (STATE addendum 7). no remote 
+ Legends and history — the half of Chronicler with company 
+ Repo What it is State 
+ LegendsViewer-Next Actively developed legends browser, cross-platform, Steam-era. The serious incumbent. 6 Sep 2026 
+ Dwarfipedia A wiki page per entity, prose written by an LLM over legends data. Chronicler's narrative thesis, shipped. Aug 2026 
+ LegendsViewer The legacy C# original. Its own README now points at Next. new · retired 
+ LegendsBrowser2 Go rewrite of Legends Browser, targeting DF 0.47. Jun 2025 
+ LegendsBrowser The Java original. Historical reference. 2020 
+ weblegends A web server inside DF, serving live world history over HTTP. Architecturally the closest thing to our bridge. 2022 
+ df-narrator legends.xml to a Markdown lore document, sized for a model's context. Feb 2026 · dirty 
+ df-sites-analyzer Same author as df-narrator; ranks and profiles sites from legends.xml. new · Feb 2026 
+ DwarvenSurveyor Renders a world map from exported legends XML. 2024 
+ Renderers and viewers — everyone solving "get the state out" 
+ Repo What it is State 
+ dwarf-eye Rust, Minecraft-style voxel view of a live map over RFR. 8 Sep 2026 
+ armok-vision The ancestor. Unity 3D realtime visualiser over RFR — the project RFR's API was shaped around. Dormant, but it is the reference implementation. new · 2023 
+ multi-dwarf Browser multiplayer; streams real rendered pixels with per-viewer cameras and HUDs. Aug 2026 
+ dwarf-with-friends Browser multiplayer with Windows and Linux betas. Jul 2026 
+ df-smooth-movement Tweened movement, synced icons, free camera. Now upstreamed — see the scan below. Aug 2026 · superseded 
+ df-ai A DFHack plugin that plays the fort by itself. Stalled at 0.44, but the only full autonomous-overseer design in the collection. 2022 
+ Raws, mods and launchers — the modding-side toolchain 
+ Repo What it is State 
+ dfraw_parser Maintained Rust raws-to-JSON parser. Turns creature, plant and material raws into searchable structured data — directly useful to seasonal-wildlife's curation layer. new · Apr 2026 
+ PyDwarf Python raws mod manager with a real scripting API. Python 2.7 and long dormant, but the most thought-through raws-manipulation design here. new · 2021 
+ ModHearth Mod manager for Steam DF that speaks to both DFHack and Workshop mods. 2024 
+ DF-Modloader A working mockup of a mod loader, kept for its design notes. 2021 
+ DF-BAMM Automated graphics-raw merging across heavily modded raws. new · 2015 
+ python-lnp PyLNP, the classic third-party launcher and settings manager. new · 2015 
+ Nexus-Mod-Manager General-purpose mod manager, kept as a packaging and distribution reference. 15 Sep 2026 
+ DwarfGenManager Batch script that generates many worlds and files them by in-game name. Crude, but it is prior art for the worldgen automation we need. new · 2020 
+ Fortress inspection, and the macOS rig question 
+ Repo What it is State 
+ Dwarf-Therapist The labour and attribute manager. Vendored under DwarfCron/repos . Nov 2025 
+ DwarfFortressLogger Housekeeping: despite the name this is a Dwarf Therapist fork under our own account — a duplicate of the vendored copy. Either give it a purpose or retire it. duplicate 
+ dwarf-fortress-macos Steam DF + DFHack on Apple Silicon under plain Wine, with no Windows Steam client — because the client crash-loops under Wine. The nearest published alternative to our CrossOver rig. new · 13 Sep 2026 
+ mac-dwarf DF in a browser on a Mac via Apple container under Rosetta, bound to localhost. new · Aug 2026 
+ Whisky The SwiftUI Wine front-end. Its README now carries a maintenance notice — no longer actively maintained. new · retired 
+ DwarfCron / Chronicler Our own: 38,001 lines of Python, the 33-section bridge, the denizen registry, the Knowledge Horizon. ca53c7c 
+ Housekeeping carried forward: the three pinned DFHack trees are detached at release tags,
+ which is correct and was left alone. df-narrator and the vendored
+ dfhack have uncommitted local changes and were skipped rather than touched —
+ both are zero commits behind, so nothing is waiting on them. DwarfFortressLogger 
+ is the one entry that should probably go away.
+## The DFHack scan 
+ The rig runs 53.15-r2 ; the repository is at 53.16-r1.1 .
+ Three releases of drift, verified from the shipped binary rather than from notes —
+ dfhack.dll carries the string 53.15-r2 and nothing later.
+ installed DF 0.53.15 · DFHack 53.15-r2 · 75 plugins · 163 scripts
+ repository DF 53.16 · DFHack 53.16-r1.1 · 99 plugins · 332 scripts
+ drift 53.15-r3 → 53.16-r1 → 53.16-r1.1
+ missing on the rig smooth-movement · export-world-map · map-render
+ new Lua API dfhack.screen.paintMapPortTile / readMapPortTile 
+ The drift itself is mostly small fixes, but it carries two things worth having.
+ paintMapPortTile and readMapPortTile , added in
+ 53.15-r3 , let a script write onto DF's own world and region map
+ view — the most direct route to a living atlas that lives inside the game rather
+ than beside it. And smooth-movement has been merged into DFHack proper, which
+ retires the standalone plugin for anyone on the current build.
+## What the scan turned up that we did not know 
+ A 
+## modtools/create-unit is broken, and the fix is mostly a rename 
+ three sources agree upstream contribution 
+ create-unit still reads df.global.world.arena_spawn and
+ still calls the keybinding D_LOOK_ARENA_CREATURE . Neither exists any
+ more: the struct is now world.arena of type arenast , and
+ the keybinding is gone from the structures entirely. The script was last touched in
+ February 2025, for the Great Reorg, and the structures moved out from under it.
+ The cause is dated precisely. df-structures commit a3759522 ,
+ "Apply Toady names to the bottom of world" — 9 January 2023 ,
+ by Quietust — renamed <compound name='arena_spawn'> to
+ name='arena' . A naming cleanup, not a DF change: the binary and its
+ memory layout are untouched, only DFHack's label for the field moved. The script was
+ never updated, and there is no compatibility alias anywhere in DFHack.
+ It has been reported. DFHack issue #2856 , "create-unit error:
+ Cannot read field world.arena_spawn: not found" , was opened
+ 9 February 2023 — one month after the rename — and is
+ still open , with a stack trace pointing at line 164. So this is a
+ known, unowned, two-and-a-half-year-old regression, not something we discovered.
+ What it affects: create-unit itself,
+ spawnunit which wraps it, and any mod that calls either — the "High
+ Adventure" warlocks mod in dfhack-commands does. There is no other
+ supported way to put a creature on the map.
+ Whose fix, and does it survive future releases? It is DFHack's, and
+ the maintainers have already said what they want: issue #4619 ,
+ "expose and use DF's create unit function" , lists five steps. The first two
+ are done — Units::create wraps DF's own
+ unitst_more_convenient_create and is exposed as
+ dfhack.units.create . Steps three to five — document it, port
+ create-unit onto it, update spawnunit — are not. So the
+ sanctioned fix is a rewrite onto a stable entry point, not a patch to the arena
+ path, and that is durable: it stops depending on a viewscreen and a keybinding that
+ can move again. Do not carry this as a local patch —
+ hack/scripts is overwritten on every DFHack update. Upstream it or
+ don't do it.
+ One caution that makes this more interesting than a chore.
+ dfhack-commands already tried step four and found the gap: calling
+ dfhack.units.create yields a unit object that is
+ not a properly working in-play creature . The real unsolved question is what
+ else a unit needs after creation — and that is the same missing primitive the
+ wildlife work runs into.
+df-structures a3759522 (2023-01-09) · DFHack issues #2856, #4619 · Units.cpp:1004 · scripts/modtools/create-unit.lua:164,180,293 
+ B 
+## A route around the worldgen blocker — and a correction about which blocker 
+ 393 lines, working our architecture, confirmed 
+ Amended — an earlier revision of this entry conflated two separate things 
+ Live worldgen telemetry is not broken and never was. 
+ worldgen-bridge.lua polls df.global.world.worldgen_status 
+ every 30 frames and writes snapshots for the Python ingester; Stage 3.2 of the
+ roadmap has it complete since 20 March 2026 , dashboard included. The
+ struct is still present at 53.16-r1.1 , so nothing is at risk there.
+ The "Known broken" note is about something else entirely: -gen ,
+ DF's headless worldgen flag , writes a save/regionN that DF's
+ own menus will not list. That is about the save artifact , not about
+ reading memory.
+ fort/gen-world.lua does not fix -gen , and does not touch
+ telemetry. It sidesteps the problem by never using -gen :
+ it drives DF's interactive worldgen screens — writing
+ viewscreen_new_regionst 's own fields for anything DF exposes as data,
+ feeding a synthetic _MOUSE_L only at buttons with no data equivalent —
+ so DF creates the save through its normal flow and can therefore list it. Its
+ embark step then returns to the title screen and loads that world back,
+ which is the proof the save is real.
+ One correction from running it: embark cannot work as written, and
+ not because of pixel coordinates. A Lua script over RPC executes with the core
+ suspended, so a script that clicks through five screens never sees any of them
+ change. Multi-step flows have to be sequenced from outside, one atomic step per
+ call — which is how our rig now does it.
+ The second value here is architectural. That hybrid is
+ our chronicler-ui.lua design, arrived at independently —
+ data where DF exposes it, clicks on found on-screen labels where it does not. Two
+ people reaching the same architecture after rejecting the alternatives is the best
+ evidence we have that it is right. It also documents a trap we have not hit: DF's
+ first-run "Welcome to Dwarf Fortress" panel is modal, swallows fed input, and nothing
+ dismisses it programmatically — and it warns of a free(): invalid pointer 
+ abort at export_region that killed several of its author's sessions.
+chronicler CLAUDE.md "Known broken" · roadmap Stage 3.2 · GitRepos/dfhack-commands/dfhack/fort/gen-world.lua 
+ C 
+## Tools already installed that overlap things we planned to build 
+ present on the rig 
+ preserve-rooms and preserve-tombs take a bite out of the
+ mode-switch item above. pet-uncapper already manipulates breeding
+ thresholds and pregnancy timing — the closest working precedent for
+ seasonal-wildlife's population work, and worth reading before Phase 2.
+ spectate does automated camera following with name-and-job tooltip
+ overlays, which is most of a narrator's presentation layer.
+ exportlegends hooks DF's own Export XML button and emits the
+ extended data that external tools depend on — Chronicler already consumes both
+ halves, which is one thing this audit confirms we got right.
+verified against hack/plugins in the CrossOver bottle 
+## Suggested sequence 
+ This week. Sign off Chronicler M4 — the evidence is already in git. Then publish seasonal-wildlife : give it a remote, run Phase 1 verification against the live fort on the rig, and post it into the thread that is asking for it. Publishing does not wait on the species-insertion problem; the rotation feature stands on its own. 
+ Read before building — this is new, and it is the highest-value hour on the list. dfhack-commands has 203 scripts, an advfort rewrite, and a worldgen driver for a blocker we have recorded as open. Run fort/gen-world.lua on the rig before writing any more worldgen automation of our own. 
+ Then timebox one primitive. Inserting a local_population into world.populations.all . It is the single thing standing between seasonal-wildlife and the request that actually has 865 votes behind it, and both our tool and the upstream script stop at exactly this line. 
+ Good first contribution. Take DFHack issue #4619 — port modtools/create-unit onto dfhack.units.create , closing #2856 on the way. Open since 2023, unowned, maintainer-specified, and it forces us to answer the "what makes a created unit real" question that the wildlife work needs anyway. 
+ Cheap and unblocking. Automate the Dwarf Therapist layout export. No shipped layout exists for the DF we run, so Therapist is unusable on the rig today, and the generator already ships with DFHack. 
+ Then decide, before building more. Whether Chronicler's legends-browsing half is still worth investment now that two projects cover it, or whether live state and the Knowledge Horizon become the whole product. The RFR spike informs this: if the bridge gets cheaper, live state gets more defensible. 
+ Standing. Track multi-dwarf and dwarf-with-friends. Do not start a third multiplayer project. Pulled punches drops down the list — the implementation is better than we thought, but it is no longer the only shovel-ready thing. 
+ Sources are the forty-six repositories themselves, DFHack at 53.16-r1.1 and the 53.15-r2 build installed in the CrossOver bottle, the project spaces on this machine, and ten community threads read 15 September 2026. 
+ Repo state verified by fast-forward-only update; no local work was discarded. Version claims are taken from the shipped binary and from df-structures , not from documentation — three status documents were found stale in the process, and the corrections are marked in place above. 
+ 
