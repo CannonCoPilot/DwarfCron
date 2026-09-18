@@ -1,0 +1,67 @@
+{
+  "id": "E16b",
+  "title": "E16 across the season boundary with the written pairs kept on the map. Same write-once design as E16, but right after the write every wild unit's leave_countdown is pinned to 250,000 so predators and partners are still present at tick 100,800 and beyond. Rel and relrow every 2,000 ticks; no rewrites; predators not gathered.",
+  "fork": "E16 rep 1 could not test the boundary: every written pair had departed by tick 48,000. Does the calendar touch the cache at all?",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 500,
+  "tick_budget": 130000,
+  "combat": true,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "the cache is process memory, untouched by the calendar",
+      "expects": "each untouched predator's row_pp holds flat through tick 100,800 and to the end"
+    },
+    {
+      "model": "a boundary rebuild",
+      "expects": "row_pp drops to zero for every unit at the first sample after 100,800"
+    }
+  ],
+  "kill_criterion": "a drop at the boundary on units that were stable before it kills model 1",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "drop a replicate whose first wave is not a small-prey species"
+  ],
+  "arms": [
+    {
+      "name": "pinned",
+      "replicates": 1,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))"
+      ],
+      "after_on_arrival": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:lever relmap",
+          "local n=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then u.animal.leave_countdown=250000; n=n+1 end end; print(('pinned leave_countdown=250000 on %d wild unit(s) at tick %d'):format(n, df.global.cur_year_tick))",
+          "probe:rel",
+          "probe:relrow"
+        ]
+      },
+      "every": {
+        "ticks": 2000,
+        "do": [
+          "probe:release surface",
+          "probe:rel",
+          "probe:relrow"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 95000
+      }
+    }
+  ]
+}
