@@ -1,6 +1,6 @@
 {
  "id": "E19",
- "title": "A herd held a season. CTRL with only kangaroo allowed, the tool's groups on so the wave present at load is detached, coupling off; every 3,000 ticks every wild kangaroo's leave countdown is raised to 100,000 so the herd cannot leave, and its hunger, thirst, stored fat, wound count, position and current job are printed. 100,800 ticks, a full season. Does a held herd graze, breed, starve, fight, stand still, or do anything odd past sixty thousand ticks?",
+ "title": "A herd held a season. CTRL with every other land species assigned to all seasons and disallowed (the tool zeroes only assigned entries; the first run left them at default stock and no kangaroo came), the tool's groups on so the wave present at load is detached, coupling off; every 3,000 ticks every wild kangaroo's leave countdown is raised to 100,000 so the herd cannot leave, and its hunger, thirst, stored fat, wound count, position and current job are printed. 100,800 ticks, a full season. Does a held herd graze, breed, starve, fight, stand still, or do anything odd past sixty thousand ticks?",
  "fork": "v5.7 hold: whether a season-long hold is safe for the animals and the map, and what the stuck sweep must look for.",
  "fort": "CTRL",
  "backup": "CTRL.preverify",
@@ -39,7 +39,7 @@
    "name": "held",
    "replicates": 2,
    "pre": [
-    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark then cfg.allow[e.key]=(e.token=='KANGAROO'); if e.token=='KANGAROO' then cfg.assign[e.token]={0,1,2,3}; n=n+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: kangaroo only (%d allowed, %d applied); groups on (to detach the wave on the map at load), coupling off, ecology off; rotation enabled'):format(n,act))"
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n,z=0,0; for _,e in ipairs(pool) do if e.layer=='land' and e.inEmbark and not e.locked then cfg.assign[e.token]={0,1,2,3}; if e.token=='KANGAROO' then cfg.allow[e.key]=true; n=n+1 else cfg.allow[e.key]=false; z=z+1 end end end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: kangaroo only — %d allowed in every season, %d other land species assigned and disallowed (quantity 0), %d applied; groups on, coupling off, ecology off; rotation enabled'):format(n,z,act))"
    ],
    "every": {
     "ticks": 3000,
