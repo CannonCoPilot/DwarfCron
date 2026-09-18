@@ -1,6 +1,6 @@
 {
  "id": "T4",
- "title": "v5.6 gate. CTRL with seasonal-wildlife enabled and its own spring roster, resident groups and migratory coupling on, ecology on versus off. No harness manipulation of the pool or the units: the tool does everything. Sixty thousand ticks. Ecology on should kill prey beside the coupled predators (E11c: 19 of 19 with the relation written, 0 of 14 without); ecology off should look like E11c's no-lever arm.",
+ "title": "v5.6 gate. CTRL with seasonal-wildlife enabled and a roster applied the way a first run does (matrix assignment; cougar, dingo, wolf and the small prey allowed in every season), resident groups and migratory coupling on with packs of five, ecology on versus off. No harness manipulation of the pool or the units: the tool does everything. Sixty thousand ticks. Ecology on should kill prey beside the coupled predators (E11c: 19 of 19 with the relation written, 0 of 14 without); ecology off should look like E11c's no-lever arm.",
  "fork": "Does the shipped v5.6 do what the rig's lever did: relation written on the cadence, departed slots cleared, predators nudged to prey.",
  "fort": "CTRL",
  "backup": "CTRL.preverify",
@@ -32,11 +32,8 @@
    "name": "ecology_on",
    "replicates": 3,
    "pre": [
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','enable'); print('seasonal-wildlife enable ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','on'); print('seasonal-wildlife groups on ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','coupling','on'); print('seasonal-wildlife groups coupling on ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','ecology','on'); print('seasonal-wildlife groups ecology on ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups'); print('seasonal-wildlife groups ->', tostring(ok), tostring(err))"
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true)))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
    ],
    "every": {
     "ticks": 3000,
@@ -50,11 +47,8 @@
    "name": "ecology_off",
    "replicates": 3,
    "pre": [
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','enable'); print('seasonal-wildlife enable ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','on'); print('seasonal-wildlife groups on ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','coupling','on'); print('seasonal-wildlife groups coupling on ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','ecology','off'); print('seasonal-wildlife groups ecology off ->', tostring(ok), tostring(err))",
-    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups'); print('seasonal-wildlife groups ->', tostring(ok), tostring(err))"
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(false)))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
    ],
    "every": {
     "ticks": 3000,
