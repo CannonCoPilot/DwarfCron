@@ -28,7 +28,7 @@ for rep in sorted(ev):
     stuck = set(); run = defaultdict(lambda: (None, 0))
     for t in ticks:
         for uid, v in pos[rep][t].items():
-            if v[4] != "1" or v[5] != "surface": continue
+            if v[4] != "1" or v[5] != "surface" or v[0].startswith("BIRD_"): continue   # fliers perch in trees for days
             last, n = run[uid]; run[uid] = (v[1:4], n + 1 if v[1:4] == last else 1)
             if run[uid][1] >= 5: stuck.add((uid, v[0]))
     # first armed pack spread: the first single species with 4+ wild members at once, followed by id
