@@ -1,0 +1,65 @@
+{
+ "id": "E29",
+ "title": "What makes a wild pack approach and attack a fortress? This is v6.1's safety question: an irruption that cannot be aimed is a hazard rather than a feature. One arm sets flags4.agitated_wilderness_creature on every wild land unit; the control leaves them alone. Sampled every 3,000 ticks for how many wild units sit within fifteen tiles of the dwarves' centroid, how many carry the agitated flag, and what combat is logged. A season on CTRL, two replicates each. The fort may well die in the agitated arm — that is a result, not a failure.",
+ "fork": "Is the agitated flag alone enough to turn wildlife on a fort, and can it be measured before it is shipped.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 3000,
+ "tick_budget": 100800,
+ "combat": true,
+ "roster": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1,
+  "groups_enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "the flag is the switch",
+   "expects": "agitated units close on the dwarves and combat reports involving citizens appear, where the control has none"
+  },
+  {
+   "model": "the flag needs a relation too",
+   "expects": "agitated units behave no differently; approach distance and citizen combat match the control"
+  },
+  {
+   "model": "the flag decays",
+   "expects": "the agitated count falls back toward zero over the season without the tool re-applying it"
+  }
+ ],
+ "kill_criterion": "citizen-involving combat in the agitated arm and none in the control, 2 of 2, makes the flag v6.1's lever",
+ "culling": [
+  "drop a replicate on any changed save"
+ ],
+ "arms": [
+  {
+   "name": "agitated",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local k=0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then local ok=pcall(function() u.flags4.agitated_wilderness_creature=true end); if ok then k=k+1 end end end; print(('e29: %d units flagged — every wild land unit flagged AGITATED; %d assigned'):format(k,a))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,near=0,0; local cx,cy,cz,n=0,0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cx=cx+u.pos.x; cy=cy+u.pos.y; cz=cz+u.pos.z; n=n+1 end end; if n>0 then cx=math.floor(cx/n); cy=math.floor(cy/n); cz=math.floor(cz/n) end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end; if n>0 and math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy))<=15 then near=near+1 end end end; print(('e29: wild_land=%d agitated=%d within15_of_dwarves=%d citizens=%d day=%d'):format(by.land,agit,near,n,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,near=0,0; local cx,cy,cz,n=0,0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cx=cx+u.pos.x; cy=cy+u.pos.y; cz=cz+u.pos.z; n=n+1 end end; if n>0 then cx=math.floor(cx/n); cy=math.floor(cy/n); cz=math.floor(cz/n) end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end; if n>0 and math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy))<=15 then near=near+1 end end end; print(('e29: wild_land=%d agitated=%d within15_of_dwarves=%d citizens=%d day=%d'):format(by.land,agit,near,n,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "control",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local k=0; print(('e29: %d units flagged — control, nothing flagged; %d assigned'):format(k,a))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,near=0,0; local cx,cy,cz,n=0,0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cx=cx+u.pos.x; cy=cy+u.pos.y; cz=cz+u.pos.z; n=n+1 end end; if n>0 then cx=math.floor(cx/n); cy=math.floor(cy/n); cz=math.floor(cz/n) end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end; if n>0 and math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy))<=15 then near=near+1 end end end; print(('e29: wild_land=%d agitated=%d within15_of_dwarves=%d citizens=%d day=%d'):format(by.land,agit,near,n,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,near=0,0; local cx,cy,cz,n=0,0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cx=cx+u.pos.x; cy=cy+u.pos.y; cz=cz+u.pos.z; n=n+1 end end; if n>0 then cx=math.floor(cx/n); cy=math.floor(cy/n); cz=math.floor(cz/n) end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end; if n>0 and math.max(math.abs(u.pos.x-cx),math.abs(u.pos.y-cy))<=15 then near=near+1 end end end; print(('e29: wild_land=%d agitated=%d within15_of_dwarves=%d citizens=%d day=%d'):format(by.land,agit,near,n,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  }
+ ]
+}
