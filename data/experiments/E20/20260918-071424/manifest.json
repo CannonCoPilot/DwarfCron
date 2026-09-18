@@ -1,0 +1,53 @@
+{
+  "id": "E20",
+  "title": "Aquatic rotation for a year on LAKE (E25: a live lake edge). Only the water layer managed: every in-embark water entry allowed and assigned by the matrix, groups, coupling and ecology off, rotation enabled. 404,000 ticks (a year), two replicates. Every 15,000 ticks the wild feature-layer units are counted by species and the fort's living citizens are counted. Questions: does an assigned water species ever arrive outside its seasons; when a species goes out of season, do its fish leave the map or die in place. Moved here from OCEAN2, where the seven-dwarf fort was wiped out by the map's own saltwater crocodiles three seasons into the year, twice, ending the game.",
+  "fork": "v5.8 water rotation: is the land rotation's zero-out-of-season result true of the water layer, and what happens to the animals already on the map at a boundary.",
+  "fort": "LAKE",
+  "backup": "LAKE.preverify",
+  "fps": 1000,
+  "sample_every": 5000,
+  "tick_budget": 404000,
+  "roster": true,
+  "combat": false,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 0
+  },
+  "predictions": [
+    {
+      "model": "water rotates like land",
+      "expects": "zero out-of-season water arrivals; out-of-season fish linger (E26: 150k+) and leave on their own countdown, none die of the boundary"
+    },
+    {
+      "model": "the feature ledger fights the roster",
+      "expects": "an out-of-season water arrival, or in-season entries not refilled after the boundary"
+    },
+    {
+      "model": "the lake fort also dies",
+      "expects": "the citizen count falls to zero and the run ends on the settlement-crumbled screen, as OCEAN2 did"
+    }
+  ],
+  "kill_criterion": "zero out-of-season water arrivals in 2 of 2 clears v5.8's water rotation; the fate of the animals at a boundary sets the water layer's release rule",
+  "culling": [
+    "drop the replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "water",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=false; cfg.layers.water=true; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local n,w=0,0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1; if e.layer=='water' then w=w+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=false; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local parts={}; for k,v in pairs(cfg.assign) do if k:sub(1,6)=='water:' then parts[#parts+1]=k..'='..table.concat(v,'') end end; table.sort(parts); print(('roster: water layer only \u2014 %d allowed (%d water), %d assigned, %d thin, %d applied; groups off; rotation enabled | %s'):format(n,w,a,f,act,table.concat(parts,' ')))",
+        "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','status'); print((out or ''):gsub('\\n',' | '):sub(1,600))",
+        "local cz,dead=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then if dfhack.units.isDead(u) then dead=dead+1 else cz=cz+1 end end end; print(('e20 fort: %d living citizens, %d dead on map, year %d season %d day %d'):format(cz,dead,df.global.cur_year,df.global.cur_season,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 15000,
+        "do": [
+          "local n,fe={},0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and u.animal.population.feature_idx>=0 then fe=fe+1; local t=df.creature_raw.find(u.race).creature_id; n[t]=(n[t] or 0)+1 end end; local parts={}; for t,c in pairs(n) do parts[#parts+1]=t..'x'..c end; table.sort(parts); print(('e20 water units: %d [%s] season %d day %d'):format(fe, table.concat(parts,' '), df.global.cur_season, math.floor(df.global.cur_year_tick/1200)))",
+          "local cz,dead=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then if dfhack.units.isDead(u) then dead=dead+1 else cz=cz+1 end end end; print(('e20 fort: %d living citizens, %d dead on map, year %d season %d day %d'):format(cz,dead,df.global.cur_year,df.global.cur_season,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}
