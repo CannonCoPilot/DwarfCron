@@ -1,0 +1,51 @@
+{
+ "id": "T7b",
+ "title": "The cavern ceiling's full cycle on CTRL: the same season as T7 but with the quota at twenty-five, a value the population crosses in BOTH directions. T7 showed the ceiling closing and staying closed — CTRL's caverns hold about sixteen residents who never leave, so at fifteen the layer never fell back under the cap and the reopen branch never ran in a live game. At twenty-five it should start open, admit a wave that overshoots to the high thirties or beyond, close, decay to the high teens, reopen, and admit another. 100,800 ticks, two replicates, sampled every 3,000 ticks.",
+ "fork": "Does the ceiling complete a cycle in a live game — close, release, and admit again — or only close.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 3000,
+ "tick_budget": 100800,
+ "combat": true,
+ "roster": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1,
+  "groups_enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "the ceiling cycles",
+   "expects": "at least one closed->open transition per replicate, followed by fresh cavern arrivals; the layer oscillates around twenty-five instead of decaying past it"
+  },
+  {
+   "model": "the ceiling is a one-way door",
+   "expects": "it closes once and never reads open again, even as the layer decays well below twenty-five"
+  },
+  {
+   "model": "reopening does not restore arrivals",
+   "expects": "entries reopen but no cavern wave follows — the quantity is not what gates a cavern wave after all"
+  }
+ ],
+ "kill_criterion": "a closed->open transition followed by fresh cavern arrivals, in 2 of 2, with no out-of-season cavern arrival and every save byte-identical, ships the per-layer quota",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "ceiling_25",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n,c=0,0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1; if e.layer~='land' then c=c+1 end end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=25; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: land + cavern — %d allowed (%d cavern), %d assigned, %d thin, %d applied; groups on, coupling off, ecology off; cavern ceiling 25'):format(n,c,a,f,act))",
+    "local ok,sw=pcall(reqscript,'seasonal-wildlife'); local by; if ok and sw.WILD then by=sw.WILD.countByLayer() else by={land=0,water=0,cavern=0}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; local L=(r.cave_id>=0) and 'cavern' or ((r.feature_idx>=0) and 'water' or 'land'); by[L]=by[L]+1 end end end; local inv=0; for _,u in ipairs(df.global.world.units.active) do local o,v=pcall(function() return u.invasion_id end); if o and v and v>=0 then inv=inv+1 end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local o2,q=pcall(dfhack.run_command_silent,'seasonal-wildlife','quota'); print(('t7 layers: land=%d water=%d cavern=%d invaders=%d citizens=%d season=%d day=%d | %s'):format(by.land,by.water,by.cavern,inv,cz,df.global.cur_season,math.floor(df.global.cur_year_tick/1200),((q or ''):gsub('\\n',' | ')):sub(1,240)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,sw=pcall(reqscript,'seasonal-wildlife'); local by; if ok and sw.WILD then by=sw.WILD.countByLayer() else by={land=0,water=0,cavern=0}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; local L=(r.cave_id>=0) and 'cavern' or ((r.feature_idx>=0) and 'water' or 'land'); by[L]=by[L]+1 end end end; local inv=0; for _,u in ipairs(df.global.world.units.active) do local o,v=pcall(function() return u.invasion_id end); if o and v and v>=0 then inv=inv+1 end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local o2,q=pcall(dfhack.run_command_silent,'seasonal-wildlife','quota'); print(('t7 layers: land=%d water=%d cavern=%d invaders=%d citizens=%d season=%d day=%d | %s'):format(by.land,by.water,by.cavern,inv,cz,df.global.cur_season,math.floor(df.global.cur_year_tick/1200),((q or ''):gsub('\\n',' | ')):sub(1,240)))"
+    ]
+   }
+  }
+ ]
+}
