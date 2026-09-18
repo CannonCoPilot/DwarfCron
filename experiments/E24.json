@@ -1,0 +1,64 @@
+{
+ "id": "E24",
+ "title": "Does entry quantity set how MUCH surface life a fort sees, or only which species are eligible? E36 showed that on the cavern layer frequency divides a fixed spawn budget rather than setting volume — a 25-fold cut moved one pair to zero while the total held. The same discriminator is applied here to the surface layer's own lever: the roster is run at in_season_qty 200 against 20, a tenfold difference in every managed land entry, same species, same seasons. If total surface arrivals scale with it, the abundance slider sets volume; if they hold, it only gates. A season, two replicates each.",
+ "fork": "Is the abundance slider a volume control or only an eligibility gate.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 3000,
+ "tick_budget": 100800,
+ "combat": false,
+ "roster": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1
+ },
+ "predictions": [
+  {
+   "model": "quantity sets volume",
+   "expects": "total surface arrivals rise clearly with in_season_qty — roughly with the tenfold difference, or at least unmistakably"
+  },
+  {
+   "model": "quantity only gates (a shared budget, as the caverns have)",
+   "expects": "total surface arrivals are about the same in both arms; the pool numbers differ tenfold and the map does not"
+  },
+  {
+   "model": "quantity matters only near zero",
+   "expects": "no difference between 20 and 200, but both far above what a zeroed roster gives — the lever is on/off with a wide flat middle"
+  }
+ ],
+ "kill_criterion": "a clear difference in total surface arrivals between the arms, 2 of 2, makes abundance a volume control; no difference makes it an eligibility gate and the GUI slider needs rewording",
+ "culling": [
+  "drop a replicate on any changed save"
+ ],
+ "arms": [
+  {
+   "name": "qty_200",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; cfg.in_season_qty=200; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e24: in_season_qty=200 — %d allowed, %d assigned, %d entries activated'):format(n,a,act))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local q=0,0; local rs=sw.getEmbarkRegions(); for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and sw.layerOf(pop)=='land' then q=q+pop.quantity end end; print(('e24: land=%d water=%d cavern=%d deep=%d citizens=%d land_pool_qty=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,q,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local q=0,0; local rs=sw.getEmbarkRegions(); for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and sw.layerOf(pop)=='land' then q=q+pop.quantity end end; print(('e24: land=%d water=%d cavern=%d deep=%d citizens=%d land_pool_qty=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,q,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "qty_20",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; cfg.in_season_qty=20; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e24: in_season_qty=20 — %d allowed, %d assigned, %d entries activated'):format(n,a,act))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local q=0,0; local rs=sw.getEmbarkRegions(); for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and sw.layerOf(pop)=='land' then q=q+pop.quantity end end; print(('e24: land=%d water=%d cavern=%d deep=%d citizens=%d land_pool_qty=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,q,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local q=0,0; local rs=sw.getEmbarkRegions(); for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and sw.layerOf(pop)=='land' then q=q+pop.quantity end end; print(('e24: land=%d water=%d cavern=%d deep=%d citizens=%d land_pool_qty=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,q,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  }
+ ]
+}

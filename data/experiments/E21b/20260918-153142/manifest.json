@@ -1,0 +1,63 @@
+{
+  "id": "E21b",
+  "title": "The cavern seasonal test E21 was believed to have passed. E21 reported zero out-of-season cavern arrivals and concluded the rotation holds underground \u2014 but 68 of its 70 cavern token-rows carried all four seasons, so almost nothing COULD have arrived out of season and the criterion never tested the gate. T7 then showed entry quantity gates nothing underground at all. So this runs the same question on the lever that works: five common cavern species held at frequency 1 (out of season) against the same five at 100 (in season), same fort, same window, tool disabled. Never writes a bare zero \u2014 addendum 54. A season, two replicates each.",
+  "fork": "Does a frequency-based roster actually keep an out-of-season cavern species off the map, which is what cavern seasonal rotation would depend on.",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": false,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 0
+  },
+  "predictions": [
+    {
+      "model": "frequency 1 is an effective out-of-season gate",
+      "expects": "near-zero arrivals of the five in the out-of-season arm and clear arrivals in the in-season arm, with total cavern life similar in both"
+    },
+    {
+      "model": "frequency 1 leaks",
+      "expects": "the five still arrive out of season, just less often \u2014 then a roster needs a stronger gate than 1, and the zero that would give it is unsafe"
+    },
+    {
+      "model": "no difference",
+      "expects": "the five arrive equally in both arms; frequency does not gate arrivals on the scale a season needs"
+    }
+  ],
+  "kill_criterion": "near-zero out-of-season arrivals against clear in-season ones, 2 of 2, makes frequency 1 a usable seasonal gate for the cavern layer",
+  "culling": [
+    "drop a replicate on any changed save"
+  ],
+  "arms": [
+    {
+      "name": "out_of_season",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if want[cr.creature_id] then cr.frequency=1; n=n+1 end end; print(('e21b: %d restricted cavern species set to frequency 1 \u2014 OUT OF SEASON (frequency 1, never 0)'):format(n))",
+        "local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep,mine=0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1; local c=df.creature_raw.find(u.race); if c and want[c.creature_id] then mine=mine+1 end else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e21b: caverns=%d (restricted %d) deep=%d citizens=%d day=%d'):format(cav,mine,deep,cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep,mine=0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1; local c=df.creature_raw.find(u.race); if c and want[c.creature_id] then mine=mine+1 end else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e21b: caverns=%d (restricted %d) deep=%d citizens=%d day=%d'):format(cav,mine,deep,cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "in_season",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if want[cr.creature_id] then cr.frequency=100; n=n+1 end end; print(('e21b: %d restricted cavern species set to frequency 100 \u2014 IN SEASON (frequency 100)'):format(n))",
+        "local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep,mine=0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1; local c=df.creature_raw.find(u.race); if c and want[c.creature_id] then mine=mine+1 end else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e21b: caverns=%d (restricted %d) deep=%d citizens=%d day=%d'):format(cav,mine,deep,cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local want={[\"CRUNDLE\"]=1,[\"ELK_BIRD\"]=1,[\"TROGLODYTE\"]=1,[\"BIRD_SWALLOW_CAVE_GIANT\"]=1,[\"CROCODILE_CAVE\"]=1}; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep,mine=0,0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1; local c=df.creature_raw.find(u.race); if c and want[c.creature_id] then mine=mine+1 end else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e21b: caverns=%d (restricted %d) deep=%d citizens=%d day=%d'):format(cav,mine,deep,cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}
