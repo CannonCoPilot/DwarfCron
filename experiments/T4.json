@@ -1,0 +1,68 @@
+{
+ "id": "T4",
+ "title": "v5.6 gate. CTRL with seasonal-wildlife enabled and its own spring roster, resident groups and migratory coupling on, ecology on versus off. No harness manipulation of the pool or the units: the tool does everything. Sixty thousand ticks. Ecology on should kill prey beside the coupled predators (E11c: 19 of 19 with the relation written, 0 of 14 without); ecology off should look like E11c's no-lever arm.",
+ "fork": "Does the shipped v5.6 do what the rig's lever did: relation written on the cadence, departed slots cleared, predators nudged to prey.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 60000,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "groups_enabled": 1,
+  "scheduled": 1
+ },
+ "predictions": [
+  {
+   "model": "v5.6 works",
+   "expects": "ecology on: at least one wild prey death within the run in 3 of 3; ecology off: 0 of 3 (predator-on-predator deaths do not count)"
+  },
+  {
+   "model": "the port missed something",
+   "expects": "ecology on kills no prey, or the groups status shows 0 pairs written or a Lua error"
+  }
+ ],
+ "kill_criterion": "prey deaths in the on arm and none in the off arm ships v5.6; anything else does not",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "ecology_on",
+   "replicates": 3,
+   "pre": [
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','enable'); print('seasonal-wildlife enable ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','on'); print('seasonal-wildlife groups on ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','coupling','on'); print('seasonal-wildlife groups coupling on ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','ecology','on'); print('seasonal-wildlife groups ecology on ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups'); print('seasonal-wildlife groups ->', tostring(ok), tostring(err))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "probe:rel"
+    ]
+   }
+  },
+  {
+   "name": "ecology_off",
+   "replicates": 3,
+   "pre": [
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','enable'); print('seasonal-wildlife enable ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','on'); print('seasonal-wildlife groups on ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','coupling','on'); print('seasonal-wildlife groups coupling on ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups','ecology','off'); print('seasonal-wildlife groups ecology off ->', tostring(ok), tostring(err))",
+    "local ok,err=pcall(dfhack.run_command,'seasonal-wildlife','groups'); print('seasonal-wildlife groups ->', tostring(ok), tostring(err))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "probe:rel"
+    ]
+   }
+  }
+ ]
+}
