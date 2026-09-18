@@ -1,0 +1,81 @@
+{
+ "id": "E18",
+ "title": "Nudge policy (b): the far-apart threshold against kill latency. T4's roster on the shipped v5.6 (ecology on, coupling on, packs of five), three thresholds for 'kept apart': 20, 40 (shipped) and 80 tiles, each after 3,000 ticks, radius 6. Forty-five thousand ticks, two replicates each. Measured: ticks from the first armed pack's arrival to the first armed kill, nudges performed, and how the pack's track looks.",
+ "fork": "v5.6 default for far_tiles: is 40 right, or does 20 kill sooner without looking teleported, or does 80 kill at all.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 45000,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "groups_enabled": 1,
+  "scheduled": 1
+ },
+ "predictions": [
+  {
+   "model": "closer is sooner",
+   "expects": "latency falls with the threshold; 20 kills soonest with the most nudges"
+  },
+  {
+   "model": "40 is enough",
+   "expects": "20 and 40 kill within a few thousand ticks of each other; 80 sometimes never"
+  },
+  {
+   "model": "no effect",
+   "expects": "latency and nudge counts do not order by threshold"
+  }
+ ],
+ "kill_criterion": "the largest threshold that still kills in 2 of 2 within the budget is the default; ties go to the larger (fewer teleports)",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "far20",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true)))",
+    "dfhack.run_command('seasonal-wildlife','groups','nudge','20','3000','6'); print('nudge policy: far_tiles 20, far_ticks 3000, radius 6')",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+    ]
+   }
+  },
+  {
+   "name": "far40",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true)))",
+    "dfhack.run_command('seasonal-wildlife','groups','nudge','40','3000','6'); print('nudge policy: far_tiles 40, far_ticks 3000, radius 6')",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+    ]
+   }
+  },
+  {
+   "name": "far80",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=5; cfg.ecology.enabled=true; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('roster: allowed %d assigned %d thin %d applied %d; predators and prey in every season; groups on, coupling on, pack 5, ecology %s; rotation enabled'):format(n,a,f,act, tostring(true)))",
+    "dfhack.run_command('seasonal-wildlife','groups','nudge','80','3000','6'); print('nudge policy: far_tiles 80, far_ticks 3000, radius 6')",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))"
+    ]
+   }
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""E28 tally: pack cohesion per arm and replicate from units.tsv.
+"""E28 tally: cohesion of the FIRST dingo pack per arm and replicate from units.tsv.
 
 For every sample, the wild dingoes on the map give a centroid and a mean Chebyshev distance to it.
 Reported per arm/rep: samples with a pack (>= 4 dingoes), mean of the per-sample mean distance, its max,
@@ -19,9 +19,13 @@ print("arm\trep\tpack_samples\tmean_dist\tmax_dist\tshare_under_8\tstuck_units\t
 summary = defaultdict(list)
 for key in sorted(pos, key=lambda k: (["control","station","leader","nudge"].index(k[0]) if k[0] in ["control","station","leader","nudge"] else 9, k[1])):
     ticks = sorted(pos[key]); dists = []; sizes = []
+    # follow the FIRST pack only: the ids present at the first sample with 4+ dingoes (a second pack can arrive later)
+    pack = None
     for t in ticks:
-        units = pos[key][t]
-        if len(units) < 4: continue
+        if pack is None and len(pos[key][t]) >= 4: pack = set(pos[key][t]); break
+    for t in ticks:
+        units = {u: p for u, p in pos[key][t].items() if pack and u in pack}
+        if len(units) < 2: continue
         cx = sum(p[0] for p in units.values()) / len(units); cy = sum(p[1] for p in units.values()) / len(units)
         d = sum(max(abs(p[0]-cx), abs(p[1]-cy)) for p in units.values()) / len(units)
         dists.append(d); sizes.append(len(units))
