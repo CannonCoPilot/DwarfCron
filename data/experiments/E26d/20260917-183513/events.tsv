@@ -1,0 +1,802 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260917-183513	river_edge_registered	1	16801	2032801	baseline	wild_present	22
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	168	FISH_STINGRAY ref6=16,23,0,-1,-1,6 countdown=25310 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	169	RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=26595 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	170	RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=21284 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	171	RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=26866 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	172	HIPPO ref6=16,23,0,-1,-1,2 countdown=24717 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	173	HIPPO ref6=16,23,0,-1,-1,2 countdown=21710 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	174	HIPPO ref6=16,23,0,-1,-1,2 countdown=26623 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	175	HIPPO ref6=16,23,0,-1,-1,2 countdown=21636 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	176	HIPPO ref6=16,23,0,-1,-1,2 countdown=29744 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	177	HIPPO ref6=16,23,0,-1,-1,2 countdown=24862 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	178	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=23257 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	179	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=25602 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	180	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=25820 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	181	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=21126 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	182	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=26033 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	183	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=21680 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	184	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=26048 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	185	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=24325 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	186	FISH_CARP ref6=16,23,0,-1,-1,5 countdown=21883 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	187	FISH_STINGRAY ref6=16,23,0,-1,-1,6 countdown=21665 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	188	ALLIGATOR ref6=16,23,0,-1,-1,0 countdown=21684 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	present_at_start	189	ALLIGATOR ref6=16,23,0,-1,-1,0 countdown=27390 flag_src=1
+20260917-183513	river_edge_registered	1	16801	2032801	manipulation	local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u))	river whitelist: 245 river-species entries open (>=50, any tile, any layer); 621 non-river entries on site+ring closed (surface, cavern, feature alike); 2888 entries beyond the ring left alone; 63 of the closed were unbounded (underworld) entries
+20260917-183513	river_edge_registered	1	16801	2032801	manipulation	local me=df.global.plotinfo.map_edge; local d=df.global.world.map; local W,H=d.x_count,d.y_count; local before=#me.surface_x; local n=0; local function try(x,y,z) local b=dfhack.maps.getTileBlock(x,y,z); if not b then return end; local des=b.designation[x%16][y%16]; local tt=b.tiletype[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type and df.tiletype.attrs[tt].material==df.tiletype_material.RIVER then me.surface_x:insert('#',x); me.surface_y:insert('#',y); me.surface_z:insert('#',z); n=n+1 end end; for z=0,d.z_count-1 do for x=0,W-1 do try(x,0,z); try(x,H-1,z) end; for y=1,H-2 do try(0,y,z); try(W-1,y,z) end end; print(('map_edge: %d river-water edge tiles appended to the surface entry list (%d -> %d)'):format(n, before, #me.surface_x))	map_edge: 9 river-water edge tiles appended to the surface entry list (396 -> 405)
+20260917-183513	river_edge_registered	1	16801	2032801	manipulation	probe:edge	x y z tiletype water liquid | 0 0 96 GrassLightFloor1 0 water | 1 0 96 GrassLightFloor4 0 water | 2 0 96 GrassDarkFloor2 0 water | 3 0 96 GrassDarkFloor3 0 water | 4 0 96 GrassLightFloor4 0 water | 5 0 96 GrassDarkFloor2 0 water | 6 0 96 GrassDarkFloor4 0 water | 7 0 96 GrassDarkFloor2 0 water | 8 0 96 GrassLightFloor2 0 water | 9 0 96 GrassLightFloor1 0 water | 10 0 96 GrassDarkFloor2 0 water | 11 0 96 GrassDarkFloor3 0 water | 12 0 96 GrassDarkFloor1 0 water | 13 0 96 GrassLightFloor2 0 water | 14 0 96 Shrub 0 water | 15 0 96 GrassLightFloor4 0 water | 16 0 96 GrassDarkFloor3 0 water | 17 0 96 GrassDarkFloor3 0 water | 18 0 96 StonePebbles3 0 water | 19 0 96 StoneBoulder 0 water | 20 0 96 StoneFloor4 0 water | 21 0 96 Shrub 0 water | 22 0 96 GrassDarkFloor4 0 water | 23 0 96 GrassLightFloor1 0 water | 24 0 96 GrassLightFloor2 0 water | 25 0 96 GrassLightFloor2 0 water | 26 0 96 GrassLightFloor3 0 water | 27 0 96 GrassDarkFloor3 0 water | 28 0 96 StonePebbles1 0 water | 29 0 96 GrassLightFloor3 0 water | 30 0 96 GrassLightFloor3 0 water | 31 0 96 StoneFloor2 0 water | 32 0 95 GrassLightRamp 0 water | 33 0 95 GrassDarkFloor3 0 water | 34 0 95 GrassDarkFloor3 0 water | 35 0 95 GrassLightFloor1 0 water | 36 0 95 GrassDarkFloor1 0 water | 37 0 95 StoneFloor3 0 water | 38 0 95 GrassLightFloor1 0 water | 39 0 95 GrassDarkFloor3 0 water | 40 0 95 GrassDarkFloor4 0 water | 41 0 95 GrassLightFloor3 0 water | 42 0 95 GrassLightFloor2 0 water | 43 0 95 GrassDarkFloor4 0 water | 44 0 95 GrassLightFloor3 0 water | 45 0 95 GrassDarkFloor3 0 water | 46 0 95 GrassDarkFloor1 0 water | 47 0 95 GrassDarkFloor1 0 water | 48 0 95 GrassDarkFloor4 0 water | 49 0 95 GrassLightFloor2 0 water | 50 0 95 GrassLightFloor4 0 water | 51 0 95 GrassDarkFloor2 0 water | 52 0 95 GrassLightFloor2 0 water | 53 0 95 GrassDarkFloor2 0 water | 54 0 95 GrassLightFloor1 0 water | 55 0 95 StonePebbles4 0 water | 56 0 95 GrassLightFloor1 0 water | 57 0 95 GrassDarkFloor2 0 water | 58 0 95 GrassDarkFloor4 0 water | 59 0 95 GrassDarkFloor2 0 water | 60 0 95 Shrub 0 water | 61 0 95 GrassDarkFloor3 0 water | 62 0 95 GrassDarkFloor1 0 water | 63 0 95 GrassLightFloor2 0 water | 64 0 95 GrassDarkFloor4 0 water | 65 0 95 GrassLightFloor1 0 water | 66 0 95 GrassLightFloor3 0 water | 67 0 95 GrassDarkFloor1 0 water | 68 0 95 GrassLightFloor4 0 water | 69 0 95 GrassLightFloor3 0 water | 70 0 95 GrassDarkFloor3 0 water | 71 0 95 GrassLightFloor4 0 water | 72 0 95 GrassDarkFloor4 0 water | 73 0 95 GrassLightFloor3 0 water | 74 0 95 Shrub 0 water | 75 0 95 GrassLightFloor2 0 water | 76 0 95 GrassLightFloor2 0 water | 77 0 95 GrassLightFloor4 0 water | 78 0 95 GrassDarkFloor2 0 water | 79 0 95 GrassLightFloor4 0 water | 80 0 95 Shrub 0 water | 81 0 95 GrassDarkFloor2 0 water | 82 0 95 GrassDarkFloor1 0 water | 83 0 95 GrassDarkFloor2 0 water | 84 0 95 GrassLightFloor1 0 water | 85 0 95 GrassLightFloor4 0 water | 86 0 95 GrassDarkFloor1 0 water | 87 0 95 GrassDarkFloor2 0 water | 88 0 95 GrassDarkFloor3 0 water | 89 0 95 StoneBoulder 0 water | 90 0 95 GrassDarkFloor1 0 water | 91 0 95 GrassDarkFloor1 0 water | 92 0 95 GrassDarkFloor3 0 water | 93 0 95 GrassDarkFloor3 0 water | 94 0 95 GrassLightFloor1 0 water | 95 0 95 GrassLightFloor3 0 water | 96 0 95 GrassLightFloor3 0 water | 97 0 95 GrassDarkFloor2 0 water | 98 0 95 GrassLightFloor3 0 water | 99 0 95 GrassDarkFloor1 0 water | 100 0 95 GrassDarkFloor3 0 water | 101 0 95 GrassDarkFloor4 0 water | 102 0 95 StoneBoulder 0 water | 103 0 95 GrassLightFloor4 0 water | 104 0 95 GrassLightFloor2 0 water | 105 0 95 GrassDarkFloor3 0 water | 106 0 95 GrassDarkFloor2 0 water | 107 0 95 GrassLightFloor4 0 water | 108 0 95 Shrub 0 water | 109 0 95 GrassLightFloor2 0 water | 110 0 95 Shrub 0 water | 111 0 95 GrassLightFloor1 0 water | 112 0 95 GrassLightFloor3 0 water | 113 0 95 GrassDarkFloor3 0 water | 114 0 95 GrassLightFloor4 0 water | 115 0 95 Shrub 0 water | 116 0 95 GrassLightFloor1 0 water | 117 0 95 StoneFloor1 0 water | 118 0 95 GrassDarkFloor4 0 water | 119 0 95 GrassDarkFloor1 0 water | 120 0 95 GrassLightFloor1 0 water | 121 0 95 GrassLightFloor2 0 water | 122 0 95 GrassLightFloor4 0 water | 123 0 95 Shrub 0 water | 124 0 95 GrassLightFloor1 0 water | 125 0 95 GrassLightFloor3 0 water | 126 0 95 GrassDarkFloor3 0 water | 127 0 95 GrassLightFloor2 0 water | 128 0 94 StoneRamp 0 water | 129 0 94 GrassDarkRamp 0 water | 130 0 94 GrassDarkFloor2 0 water | 131 0 94 GrassLightFloor1 0 water | 132 0 94 GrassLightFloor3 0 water | 133 0 94 StonePebbles2 0 water | 134 0 94 GrassLightFloor1 0 water | 135 0 94 StoneFloor3 0 water | 136 0 94 GrassDarkFloor4 0 water | 137 0 94 GrassLightFloor4 0 water | 138 0 94 GrassDarkFloor2 0 water | 139 0 94 GrassLightFloor3 0 water | 140 0 94 GrassDarkFloor2 0 water | 141 0 94 GrassDarkFloor3 0 water | 142 0 94 StonePebbles3 0 water | 143 0 94 GrassDarkFloor4 0 water | 144 0 94 Shrub 0 water | 145 0 94 GrassDarkFloor2 0 water | 146 0 94 GrassDarkFloor4 0 water | 147 0 94 GrassLightFloor2 0 water | 148 0 94 GrassDarkFloor3 0 water | 149 0 94 GrassLightFloor3 0 water | 150 0 94 GrassLightFloor2 0 water | 151 0 94 GrassLightFloor1 0 water | 152 0 94 GrassDarkFloor2 0 water | 153 0 94 GrassLightFloor2 0 water | 154 0 94 GrassLightFloor4 0 water | 155 0 94 GrassDarkFloor4 0 water | 156 0 94 GrassLightFloor2 0 water | 157 0 94 GrassDarkFloor4 0 water | 158 0 94 GrassLightFloor1 0 water | 159 0 94 GrassDarkFloor2 0 water | 160 0 94 GrassLightFloor2 0 water | 161 0 94 GrassDarkFloor2 0 water | 162 0 94 GrassDarkFloor2 0 water | 163 0 94 GrassDarkFloor2 0 water | 164 0 94 GrassLightFloor1 0 water | 165 0 94 GrassDarkFloor3 0 water | 166 0 94 GrassDarkFloor2 0 water | 167 0 94 GrassDarkFloor4 0 water | 168 0 94 GrassLightFloor4 0 water | 169 0 94 GrassLightFloor2 0 water | 170 0 94 GrassDarkFloor1 0 water | 171 0 94 StoneBoulder 0 water | 172 0 94 GrassDarkFloor3 0 water | 173 0 94 StoneBoulder 0 water | 174 0 94 GrassDarkFloor4 0 water | 175 0 94 GrassDarkFloor2 0 water | 176 0 94 Shrub 0 water | 177 0 94 GrassLightFloor4 0 water | 178 0 94 GrassDarkFloor4 0 water | 179 0 94 GrassLightFloor3 0 water | 180 0 94 StonePebbles4 0 water | 181 0 94 GrassDarkFloor2 0 water | 182 0 94 GrassDarkFloor2 0 water | 183 0 94 GrassDarkFloor3 0 water | 184 0 94 GrassLightFloor3 0 water | 185 0 94 GrassLightFloor1 0 water | 186 0 94 StonePebbles2 0 water | 187 0 94 GrassLightFloor3 0 water | 188 0 94 GrassDarkFloor3 0 water | 189 0 94 GrassDarkFloor3 0 water | 190 0 94 StoneFloor2 0 water | 191 0 94 GrassLightFloor4 0 water | 0 1 96 StoneFloor4 0 water | 191 1 94 GrassLightFloor3 0 water | 0 2 96 GrassDarkFloor2 0 water | 191 2 94 GrassDarkFloor3 0 water | 0 3 96 GrassDarkFloor1 0 water | 191 3 94 GrassLightFloor4 0 water | 0 4 96 GrassLightFloor3 0 water | 191 4 94 GrassDarkFloor4 0 water | 0 5 96 GrassLightFloor3 0 water | 191 5 94 GrassLightFloor1 0 water | 0 6 96 GrassLightFloor4 0 water | 191 6 94 GrassDarkFloor2 0 water | 0 7 96 GrassDarkFloor4 0 water | 191 7 94 GrassDarkFloor2 0 water | 0 8 96 GrassDarkFloor2 0 water | 191 8 94 GrassDarkFloor1 0 water | 0 9 96 GrassLightFloor3 0 water | 191 9 94 GrassLightFloor4 0 water | 0 10 96 GrassDarkFloor4 0 water | 191 10 94 GrassLightFloor3 0 water | 0 11 96 GrassLightFloor1 0 water | 191 11 94 Shrub 0 water | 0 12 96 GrassDarkFloor1 0 water | 191 12 94 GrassLightFloor1 0 water | 0 13 96 Shrub 0 water | 191 13 94 GrassDarkFloor2 0 water | 0 14 96 GrassLightFloor1 0 water | 191 14 94 GrassDarkFloor4 0 water | 0 15 96 GrassLightFloor4 0 water | 191 15 94 GrassDarkFloor3 0 water | 0 16 96 GrassLightFloor1 0 water | 191 16 94 GrassLightFloor3 0 water | 0 17 96 GrassDarkFloor1 0 water | 191 17 94 GrassLightFloor4 0 water | 0 18 96 GrassDarkFloor4 0 water | 191 18 94 Shrub 0 water | 0 19 96 GrassDarkFloor4 0 water | 191 19 94 GrassLightFloor4 0 water | 0 20 96 GrassLightFloor4 0 water | 191 20 94 GrassDarkFloor4 0 water | 0 21 96 GrassDarkFloor3 0 water | 191 21 94 GrassLightFloor4 0 water | 0 22 96 GrassDarkFloor4 0 water | 191 22 94 GrassDarkFloor4 0 water | 0 23 96 GrassLightFloor4 0 water | 191 23 94 GrassDarkFloor2 0 water | 0 24 96 GrassLightFloor4 0 water | 191 24 94 StonePebbles3 0 water | 0 25 96 GrassDarkFloor4 0 water | 191 25 94 GrassDarkFloor1 0 water | 0 26 96 GrassDarkFloor4 0 water | 191 26 94 GrassLightFloor1 0 water | 0 27 96 StonePebbles2 0 water | 191 27 94 GrassLightFloor1 0 water | 0 28 96 Shrub 0 water | 191 28 94 GrassDarkFloor1 0 water | 0 29 96 GrassDarkFloor3 0 water | 191 29 94 GrassLightFloor2 0 water | 0 30 96 GrassLightFloor3 0 water | 191 30 94 StonePebbles4 0 water | 0 31 96 GrassDarkFloor4 0 water | 191 31 94 GrassLightFloor4 0 water | 0 32 95 GrassLightRamp 0 water | 191 32 94 Shrub 0 water | 0 33 95 GrassLightFloor2 0 water | 191 33 94 GrassDarkFloor3 0 water | 0 34 95 GrassLightFloor3 0 water | 191 34 94 GrassDarkFloor2 0 water | 0 35 95 GrassDarkFloor4 0 water | 191 35 94 GrassDarkFloor1 0 water | 0 36 95 GrassLightFloor3 0 water | 191 36 94 GrassLightFloor4 0 water | 0 37 95 GrassDarkFloor2 0 water | 191 37 94 GrassLightFloor2 0 water | 0 38 95 GrassLightFloor4 0 water | 191 38 94 GrassLightFloor4 0 water | 0 39 95 GrassDarkFloor2 0 water | 191 39 94 StonePebbles2 0 water | 0 40 95 StoneFloor3 0 water | 191 40 94 GrassLightFloor2 0 water | 0 41 95 GrassDarkFloor2 0 water | 191 41 94 GrassDarkFloor1 0 water | 0 42 95 GrassLightFloor2 0 water | 191 42 94 GrassDarkFloor4 0 water | 0 43 95 GrassLightFloor3 0 water | 191 43 94 GrassDarkFloor4 0 water | 0 44 95 GrassLightFloor1 0 water | 191 44 94 GrassLightFloor2 0 water | 0 45 95 GrassDarkFloor4 0 water | 191 45 94 GrassLightFloor1 0 water | 0 46 95 GrassLightFloor3 0 water | 191 46 94 GrassLightFloor2 0 water | 0 47 95 GrassDarkFloor1 0 water | 191 47 94 GrassDarkFloor2 0 water | 0 48 95 GrassDarkFloor3 0 water | 191 48 94 GrassLightFloor3 0 water | 0 49 95 GrassDarkFloor3 0 water | 191 49 94 StonePebbles2 0 water | 0 50 95 GrassLightFloor1 0 water | 191 50 94 GrassLightFloor2 0 water | 0 51 95 GrassLightFloor1 0 water | 191 51 94 GrassDarkFloor4 0 water | 0 52 95 GrassDarkFloor1 0 water | 191 52 94 GrassLightFloor2 0 water | 0 53 95 Shrub 0 water | 0 54 95 GrassDarkFloor4 0 water | 0 55 95 GrassDarkFloor3 0 water | 0 56 95 GrassLightFloor3 0 water | 0 57 95 GrassDarkFloor2 0 water | 0 58 95 GrassDarkFloor2 0 water | 0 59 95 GrassDarkFloor2 0 water | 0 60 95 GrassDarkFloor3 0 water | 0 61 95 GrassDarkFloor3 0 water | 0 62 95 GrassDarkFloor1 0 water | 0 63 95 GrassDarkFloor3 0 water | 0 64 95 GrassDarkFloor4 0 water | 0 65 95 Shrub 0 water | 0 66 95 StoneBoulder 0 water | 0 67 95 GrassLightFloor3 0 water | 0 68 95 Shrub 0 water | 0 69 95 GrassLightFloor1 0 water | 0 70 95 Shrub 0 water | 0 71 95 GrassLightFloor1 0 water | 0 72 95 StonePebbles4 0 water | 0 73 95 GrassDarkFloor1 0 water | 0 74 95 Shrub 0 water | 0 75 95 GrassLightFloor2 0 water | 0 76 95 GrassLightFloor2 0 water | 0 77 95 StoneFloor3 0 water | 0 78 95 GrassDarkFloor4 0 water | 0 79 95 GrassLightFloor2 0 water | 0 80 94 GrassDarkRamp 0 water | 0 81 94 GrassDarkRamp 0 water | 0 82 94 GrassLightRamp 0 water | 0 83 94 GrassDarkFloor2 0 water | 0 84 94 StoneFloor4 0 water | 0 85 94 GrassLightFloor4 0 water | 0 86 94 GrassLightFloor4 0 water | 0 87 94 GrassDarkFloor1 0 water | 0 88 94 Shrub 0 water | 0 89 94 Shrub 0 water | 0 90 94 GrassLightFloor3 0 water | 0 91 94 GrassLightFloor4 0 water | 0 92 94 GrassDarkFloor1 0 water | 0 93 94 GrassDarkFloor4 0 water | 0 94 94 GrassDarkFloor3 0 water | 0 95 94 GrassLightFloor1 0 water | 0 96 94 GrassLightFloor1 0 water | 0 97 94 Shrub 0 water | 0 98 94 GrassDarkFloor4 0 water | 0 99 94 GrassLightFloor3 0 water | 0 100 94 GrassLightFloor2 0 water | 0 101 94 GrassLightFloor4 0 water | 0 102 94 GrassLightFloor4 0 water | 0 103 94 GrassDarkFloor4 0 water | 0 104 94 GrassLightFloor3 0 water | 0 105 94 GrassDarkFloor4 0 water | 0 106 94 GrassDarkFloor4 0 water | 0 107 94 GrassLightFloor2 0 water | 0 108 94 StoneFloor4 0 water | 0 109 94 GrassLightFloor1 0 water | 0 110 94 GrassLightFloor2 0 water | 0 111 94 GrassDarkFloor4 0 water | 0 112 94 GrassDarkFloor1 0 water | 0 113 94 GrassLightFloor4 0 water | 0 114 94 GrassLightFloor3 0 water | 0 115 94 GrassLightFloor2 0 water | 0 116 94 StonePebbles4 0 water | 0 117 94 StoneBoulder 0 water | 0 118 94 GrassDarkFloor3 0 water | 0 119 94 Shrub 0 water | 0 120 94 GrassDarkFloor1 0 water | 0 121 94 GrassDarkFloor1 0 water | 0 122 94 GrassDarkFloor3 0 water | 0 123 94 GrassLightFloor4 0 water | 0 124 94 GrassLightFloor4 0 water | 0 125 94 GrassLightFloor4 0 water | 0 126 94 GrassLightFloor1 0 water | 0 127 94 GrassLightFloor3 0 water | 0 128 94 GrassLightFloor2 0 water | 0 129 94 GrassDarkFloor3 0 water | 0 130 94 GrassLightFloor1 0 water | 0 131 94 GrassLightFloor2 0 water | 0 132 94 StoneFloor2 0 water | 0 133 94 GrassLightFloor1 0 water | 0 134 94 GrassLightFloor2 0 water | 0 135 94 StonePebbles4 0 water | 0 136 94 GrassDarkFloor4 0 water | 0 137 94 Shrub 0 water | 0 138 94 GrassLightFloor3 0 water | 0 139 94 GrassLightFloor4 0 water | 0 140 94 GrassDarkFloor2 0 water | 0 141 94 GrassDarkFloor4 0 water | 0 142 94 SoilFloor3 0 water | 0 143 94 StonePebbles3 0 water | 0 144 94 GrassDarkFloor4 0 water | 0 145 94 GrassDarkFloor3 0 water | 0 146 94 GrassDarkFloor2 0 water | 0 147 94 GrassLightFloor2 0 water | 0 148 94 Shrub 0 water | 0 149 94 GrassLightFloor3 0 water | 0 150 94 GrassDarkFloor3 0 water | 0 151 94 GrassLightFloor4 0 water | 0 152 94 Shrub 0 water | 191 53 93 RiverRampE 7 water | 191 54 93 RiverRampE 6 water | 191 55 93 RiverE 7 water | 191 56 93 RiverRampE 7 water | 0 153 93 RiverRampNE 7 water | 0 154 93 RiverNE 7 water | 0 155 93 RiverNE 7 water | 0 156 93 RiverRampNE 7 water | 0 157 93 RiverRampE 7 water
+20260917-183513	river_edge_registered	1	16801	2032801	manipulation	probe:release all	released 22 unit(s) [all]
+20260917-183513	river_edge_registered	1	19184	2035184	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	19184	2035184	every_applied	1	probe:release all
+20260917-183513	river_edge_registered	1	21540	2037540	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	21540	2037540	every_applied	2	probe:release all
+20260917-183513	river_edge_registered	1	23880	2039880	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	23880	2039880	every_applied	3	probe:release all
+20260917-183513	river_edge_registered	1	26373	2042373	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	26373	2042373	every_applied	4	probe:release all
+20260917-183513	river_edge_registered	1	28933	2044933	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	28933	2044933	every_applied	5	probe:release all
+20260917-183513	river_edge_registered	1	31242	2047242	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	31242	2047242	every_applied	6	probe:release all
+20260917-183513	river_edge_registered	1	33704	2049704	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	33704	2049704	every_applied	7	probe:release all
+20260917-183513	river_edge_registered	1	36119	2052119	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	36119	2052119	every_applied	8	probe:release all
+20260917-183513	river_edge_registered	1	38511	2054511	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	38511	2054511	every_applied	9	probe:release all
+20260917-183513	river_edge_registered	1	40733	2056733	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	40733	2056733	every_applied	10	probe:release all
+20260917-183513	river_edge_registered	1	40733	2056733	departure	188	ALLIGATOR ref6=16,23,0,-1,-1,0 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	43108	2059108	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	43108	2059108	every_applied	11	probe:release all
+20260917-183513	river_edge_registered	1	43108	2059108	departure	172	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	43108	2059108	departure	173	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	44371	2060371	departure	169	RIVER OTTER ref6=16,23,0,-1,-1,3 last_countdown=287 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	44371	2060371	departure	170	RIVER OTTER ref6=16,23,0,-1,-1,3 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	44371	2060371	departure	171	RIVER OTTER ref6=16,23,0,-1,-1,3 last_countdown=558 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	45600	2061600	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	45600	2061600	every_applied	12	probe:release all
+20260917-183513	river_edge_registered	1	45600	2061600	departure	174	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	45600	2061600	departure	175	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	47959	2063959	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	47959	2063959	every_applied	13	probe:release all
+20260917-183513	river_edge_registered	1	47959	2063959	departure	176	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	47959	2063959	departure	189	ALLIGATOR ref6=16,23,0,-1,-1,0 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	49298	2065298	departure	177	HIPPO ref6=16,23,0,-1,-1,2 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	50401	2066401	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	50401	2066401	every_applied	14	probe:release all
+20260917-183513	river_edge_registered	1	52930	2068930	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	52930	2068930	every_applied	15	probe:release all
+20260917-183513	river_edge_registered	1	55234	2071234	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	55234	2071234	every_applied	16	probe:release all
+20260917-183513	river_edge_registered	1	57610	2073610	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	57610	2073610	every_applied	17	probe:release all
+20260917-183513	river_edge_registered	1	60123	2076123	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	60123	2076123	every_applied	18	probe:release all
+20260917-183513	river_edge_registered	1	62820	2078820	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	62820	2078820	every_applied	19	probe:release all
+20260917-183513	river_edge_registered	1	65091	2081091	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	65091	2081091	every_applied	20	probe:release all
+20260917-183513	river_edge_registered	1	65091	2081091	departure	178	FISH_CARP ref6=16,23,0,-1,-1,5 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	67820	2083820	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	67820	2083820	every_applied	21	probe:release all
+20260917-183513	river_edge_registered	1	70353	2086353	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	70353	2086353	every_applied	22	probe:release all
+20260917-183513	river_edge_registered	1	72596	2088596	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	72596	2088596	every_applied	23	probe:release all
+20260917-183513	river_edge_registered	1	75398	2091398	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	75398	2091398	every_applied	24	probe:release all
+20260917-183513	river_edge_registered	1	77875	2093875	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	77875	2093875	every_applied	25	probe:release all
+20260917-183513	river_edge_registered	1	80349	2096349	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	80349	2096349	every_applied	26	probe:release all
+20260917-183513	river_edge_registered	1	81477	2097477	departure	168	FISH_STINGRAY ref6=16,23,0,-1,-1,6 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	82875	2098875	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	82875	2098875	every_applied	27	probe:release all
+20260917-183513	river_edge_registered	1	85201	2101201	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	85201	2101201	every_applied	28	probe:release all
+20260917-183513	river_edge_registered	1	87658	2103658	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	87658	2103658	every_applied	29	probe:release all
+20260917-183513	river_edge_registered	1	89982	2105982	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	89982	2105982	every_applied	30	probe:release all
+20260917-183513	river_edge_registered	1	92434	2108434	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	92434	2108434	every_applied	31	probe:release all
+20260917-183513	river_edge_registered	1	94734	2110734	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	94734	2110734	every_applied	32	probe:release all
+20260917-183513	river_edge_registered	1	94734	2110734	departure	187	FISH_STINGRAY ref6=16,23,0,-1,-1,6 last_countdown=0 last_flag_src=0 arrived_at=pre
+20260917-183513	river_edge_registered	1	97250	2113250	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	97250	2113250	every_applied	33	probe:release all
+20260917-183513	river_edge_registered	1	99679	2115679	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	99679	2115679	every_applied	34	probe:release all
+20260917-183513	river_edge_registered	1	102001	2118001	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	102001	2118001	every_applied	35	probe:release all
+20260917-183513	river_edge_registered	1	104484	2120484	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	104484	2120484	every_applied	36	probe:release all
+20260917-183513	river_edge_registered	1	106977	2122977	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	106977	2122977	every_applied	37	probe:release all
+20260917-183513	river_edge_registered	1	109225	2125225	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	109225	2125225	every_applied	38	probe:release all
+20260917-183513	river_edge_registered	1	111718	2127718	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	111718	2127718	every_applied	39	probe:release all
+20260917-183513	river_edge_registered	1	114009	2130009	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	114009	2130009	every_applied	40	probe:release all
+20260917-183513	river_edge_registered	1	116801	2132801	manipulation	probe:release all	released 0 unit(s) [all]
+20260917-183513	river_edge_registered	1	116801	2132801	every_applied	41	probe:release all
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3234	BIRD_EMU ref6=15,22,-1,-1,-1,95 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3236	BIRD_EAGLE ref6=15,22,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3248	BIRD_TURKEY ref6=15,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3254	WOLF ref6=15,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3255	GROUNDHOG ref6=15,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3261	WILD_BOAR ref6=15,22,-1,-1,-1,159 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3262	KANGAROO ref6=15,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3263	ADDER ref6=15,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3264	ECHIDNA ref6=15,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3265	KINGSNAKE ref6=15,22,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3266	SKUNK ref6=15,22,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3267	WEASEL ref6=15,22,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3268	OPOSSUM ref6=15,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3269	CRETACEOUS_CARNOTAURUS ref6=15,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3291	POND_GRABBER ref6=15,22,-1,2,-1,8 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3292	CROCODILE_CAVE ref6=15,22,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3293	OLM_GIANT ref6=15,22,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3294	TOAD_GIANT_CAVE ref6=15,22,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3300	RAT_GIANT ref6=15,22,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3301	BIRD_SWALLOW_CAVE_GIANT ref6=15,22,-1,2,-1,18 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3302	GREMLIN ref6=15,22,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3303	MOLE_DOG_NAKED ref6=15,22,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3304	BLIND_CAVE_BEAR ref6=15,22,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3305	GIANT_EARTHWORM ref6=15,22,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3306	RAT_LARGE ref6=15,22,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3309	TROLL ref6=15,22,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3310	GORLAK ref6=15,22,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3311	JABBERER ref6=15,22,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3312	CRUNDLE ref6=15,22,-1,14,-1,1 quantity 143->0 max 143->143 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3313	RAT_GIANT ref6=15,22,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3314	TROGLODYTE ref6=15,22,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3315	BUGBAT ref6=15,22,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3316	BIRD_SWALLOW_CAVE_GIANT ref6=15,22,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3317	RUTHERER ref6=15,22,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3321	SPIDER_CAVE_GIANT ref6=15,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3322	BLIND_CAVE_OGRE ref6=15,22,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3323	MANERA ref6=15,22,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3324	TROLL ref6=15,22,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3325	REACHER ref6=15,22,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3326	GORLAK ref6=15,22,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3338	CAVE_BLOB ref6=15,22,-1,22,-1,11 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3339	CRUNDLE ref6=15,22,-1,22,-1,12 quantity 201->0 max 201->201 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3340	PLUMP_HELMET_MAN ref6=15,22,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3341	FLESH_BALL ref6=15,22,-1,22,-1,14 quantity 441->0 max 441->441 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3342	ELEMENTMAN_MUD ref6=15,22,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3343	RUTHERER ref6=15,22,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3344	BUGBAT ref6=15,22,-1,22,-1,17 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3345	ELK_BIRD ref6=15,22,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3346	GREEN_DEVOURER ref6=15,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3347	HUNGRY_HEAD ref6=15,22,-1,22,-1,20 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3349	SPIDER_CAVE_GIANT ref6=15,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3350	REACHER ref6=15,22,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3351	CAVE_DRAGON ref6=15,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3352	TROLL ref6=15,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3353	CREEPING_EYE ref6=15,22,-1,22,-1,26 quantity 440->0 max 440->440 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3354	BLIND_CAVE_OGRE ref6=15,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3355	BLOOD_MAN ref6=15,22,-1,22,-1,28 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3357	GORLAK ref6=15,22,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3358	MAGMA_CRAB ref6=15,22,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3359	IMP_FIRE ref6=15,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3360	ELEMENTMAN_FIRE ref6=15,22,-1,32,-1,2 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3361	ELEMENTMAN_MAGMA ref6=15,22,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3363	DEMON_18 ref6=15,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3364	DEMON_2 ref6=15,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3365	DEMON_3 ref6=15,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3366	DEMON_16 ref6=15,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3367	DEMON_17 ref6=15,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3368	DEMON_15 ref6=15,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3369	DEMON_13 ref6=15,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3415	BIRD_EMU ref6=15,23,-1,-1,-1,95 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3417	BIRD_EAGLE ref6=15,23,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3429	BIRD_TURKEY ref6=15,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3435	WOLF ref6=15,23,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3436	GROUNDHOG ref6=15,23,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3442	WILD_BOAR ref6=15,23,-1,-1,-1,159 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3443	KANGAROO ref6=15,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3444	ADDER ref6=15,23,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3445	ECHIDNA ref6=15,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3446	KINGSNAKE ref6=15,23,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3447	SKUNK ref6=15,23,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3448	WEASEL ref6=15,23,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3449	OPOSSUM ref6=15,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3450	CRETACEOUS_CARNOTAURUS ref6=15,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3472	POND_GRABBER ref6=15,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3473	CROCODILE_CAVE ref6=15,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3474	OLM_GIANT ref6=15,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3475	TOAD_GIANT_CAVE ref6=15,23,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3481	RAT_GIANT ref6=15,23,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3482	BIRD_SWALLOW_CAVE_GIANT ref6=15,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3483	GREMLIN ref6=15,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3484	MOLE_DOG_NAKED ref6=15,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3485	BLIND_CAVE_BEAR ref6=15,23,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3486	GIANT_EARTHWORM ref6=15,23,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3487	RAT_LARGE ref6=15,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3490	TROLL ref6=15,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3491	GORLAK ref6=15,23,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3492	JABBERER ref6=15,23,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3493	CRUNDLE ref6=15,23,-1,14,-1,1 quantity 142->0 max 142->142 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3494	RAT_GIANT ref6=15,23,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3495	TROGLODYTE ref6=15,23,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3496	BUGBAT ref6=15,23,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3497	BIRD_SWALLOW_CAVE_GIANT ref6=15,23,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3498	RUTHERER ref6=15,23,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3502	SPIDER_CAVE_GIANT ref6=15,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3503	BLIND_CAVE_OGRE ref6=15,23,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3504	MANERA ref6=15,23,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3505	TROLL ref6=15,23,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3506	REACHER ref6=15,23,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3507	GORLAK ref6=15,23,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3519	CAVE_BLOB ref6=15,23,-1,22,-1,11 quantity 338->0 max 338->338 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3520	CRUNDLE ref6=15,23,-1,22,-1,12 quantity 201->0 max 201->201 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3521	PLUMP_HELMET_MAN ref6=15,23,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3522	FLESH_BALL ref6=15,23,-1,22,-1,14 quantity 440->0 max 440->440 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3523	ELEMENTMAN_MUD ref6=15,23,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3524	RUTHERER ref6=15,23,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3525	BUGBAT ref6=15,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3526	ELK_BIRD ref6=15,23,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3527	GREEN_DEVOURER ref6=15,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3528	HUNGRY_HEAD ref6=15,23,-1,22,-1,20 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3530	SPIDER_CAVE_GIANT ref6=15,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3531	REACHER ref6=15,23,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3532	CAVE_DRAGON ref6=15,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3533	TROLL ref6=15,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3534	CREEPING_EYE ref6=15,23,-1,22,-1,26 quantity 439->0 max 439->439 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3535	BLIND_CAVE_OGRE ref6=15,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3536	BLOOD_MAN ref6=15,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3538	GORLAK ref6=15,23,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3539	MAGMA_CRAB ref6=15,23,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3540	IMP_FIRE ref6=15,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3541	ELEMENTMAN_FIRE ref6=15,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3542	ELEMENTMAN_MAGMA ref6=15,23,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3544	DEMON_18 ref6=15,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3545	DEMON_2 ref6=15,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3546	DEMON_3 ref6=15,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3547	DEMON_16 ref6=15,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3548	DEMON_17 ref6=15,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3549	DEMON_15 ref6=15,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3550	DEMON_13 ref6=15,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3596	BIRD_EMU ref6=15,24,-1,-1,-1,95 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3598	BIRD_EAGLE ref6=15,24,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3610	BIRD_TURKEY ref6=15,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3616	WOLF ref6=15,24,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3617	GROUNDHOG ref6=15,24,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3623	WILD_BOAR ref6=15,24,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3624	KANGAROO ref6=15,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3625	ADDER ref6=15,24,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3626	ECHIDNA ref6=15,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3627	KINGSNAKE ref6=15,24,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3628	SKUNK ref6=15,24,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3629	WEASEL ref6=15,24,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3630	OPOSSUM ref6=15,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3631	CRETACEOUS_CARNOTAURUS ref6=15,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3653	POND_GRABBER ref6=15,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3654	CROCODILE_CAVE ref6=15,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3655	OLM_GIANT ref6=15,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3656	TOAD_GIANT_CAVE ref6=15,24,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3662	RAT_GIANT ref6=15,24,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3663	BIRD_SWALLOW_CAVE_GIANT ref6=15,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3664	GREMLIN ref6=15,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3665	MOLE_DOG_NAKED ref6=15,24,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3666	BLIND_CAVE_BEAR ref6=15,24,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3667	GIANT_EARTHWORM ref6=15,24,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3668	RAT_LARGE ref6=15,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3671	TROLL ref6=15,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3672	GORLAK ref6=15,24,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3673	JABBERER ref6=15,24,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3674	CRUNDLE ref6=15,24,-1,14,-1,1 quantity 141->0 max 141->141 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3675	RAT_GIANT ref6=15,24,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3676	TROGLODYTE ref6=15,24,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3677	BUGBAT ref6=15,24,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3678	BIRD_SWALLOW_CAVE_GIANT ref6=15,24,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3679	RUTHERER ref6=15,24,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3683	SPIDER_CAVE_GIANT ref6=15,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3684	BLIND_CAVE_OGRE ref6=15,24,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3685	MANERA ref6=15,24,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3686	TROLL ref6=15,24,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3687	REACHER ref6=15,24,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3688	GORLAK ref6=15,24,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3700	CAVE_BLOB ref6=15,24,-1,22,-1,11 quantity 337->0 max 337->337 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3701	CRUNDLE ref6=15,24,-1,22,-1,12 quantity 200->0 max 200->200 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3702	PLUMP_HELMET_MAN ref6=15,24,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3703	FLESH_BALL ref6=15,24,-1,22,-1,14 quantity 439->0 max 439->439 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3704	ELEMENTMAN_MUD ref6=15,24,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3705	RUTHERER ref6=15,24,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3706	BUGBAT ref6=15,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3707	ELK_BIRD ref6=15,24,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3708	GREEN_DEVOURER ref6=15,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3709	HUNGRY_HEAD ref6=15,24,-1,22,-1,20 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3711	SPIDER_CAVE_GIANT ref6=15,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3712	REACHER ref6=15,24,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3713	CAVE_DRAGON ref6=15,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3714	TROLL ref6=15,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3715	CREEPING_EYE ref6=15,24,-1,22,-1,26 quantity 438->0 max 438->438 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3716	BLIND_CAVE_OGRE ref6=15,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3717	BLOOD_MAN ref6=15,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3719	GORLAK ref6=15,24,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3720	MAGMA_CRAB ref6=15,24,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3721	IMP_FIRE ref6=15,24,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3722	ELEMENTMAN_FIRE ref6=15,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3723	ELEMENTMAN_MAGMA ref6=15,24,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3725	DEMON_18 ref6=15,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3726	DEMON_2 ref6=15,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3727	DEMON_3 ref6=15,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3728	DEMON_16 ref6=15,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3729	DEMON_17 ref6=15,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3730	DEMON_15 ref6=15,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	3731	DEMON_13 ref6=15,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4513	BIRD_EMU ref6=16,22,-1,-1,-1,95 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4515	BIRD_EAGLE ref6=16,22,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4527	BIRD_TURKEY ref6=16,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4533	WOLF ref6=16,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4534	GROUNDHOG ref6=16,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4540	WILD_BOAR ref6=16,22,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4541	KANGAROO ref6=16,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4542	ADDER ref6=16,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4543	ECHIDNA ref6=16,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4544	KINGSNAKE ref6=16,22,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4545	SKUNK ref6=16,22,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4546	WEASEL ref6=16,22,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4547	OPOSSUM ref6=16,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4548	CRETACEOUS_CARNOTAURUS ref6=16,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4570	POND_GRABBER ref6=16,22,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4571	CROCODILE_CAVE ref6=16,22,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4572	OLM_GIANT ref6=16,22,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4573	TOAD_GIANT_CAVE ref6=16,22,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4579	RAT_GIANT ref6=16,22,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4580	BIRD_SWALLOW_CAVE_GIANT ref6=16,22,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4581	GREMLIN ref6=16,22,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4582	MOLE_DOG_NAKED ref6=16,22,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4583	BLIND_CAVE_BEAR ref6=16,22,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4584	GIANT_EARTHWORM ref6=16,22,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4585	RAT_LARGE ref6=16,22,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4588	TROLL ref6=16,22,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4589	GORLAK ref6=16,22,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4590	JABBERER ref6=16,22,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4591	CRUNDLE ref6=16,22,-1,14,-1,1 quantity 137->0 max 137->137 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4592	RAT_GIANT ref6=16,22,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4593	TROGLODYTE ref6=16,22,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4594	BUGBAT ref6=16,22,-1,14,-1,4 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4595	BIRD_SWALLOW_CAVE_GIANT ref6=16,22,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4596	RUTHERER ref6=16,22,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4600	SPIDER_CAVE_GIANT ref6=16,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4601	BLIND_CAVE_OGRE ref6=16,22,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4602	MANERA ref6=16,22,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4603	TROLL ref6=16,22,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4604	REACHER ref6=16,22,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4605	GORLAK ref6=16,22,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4617	CAVE_BLOB ref6=16,22,-1,22,-1,11 quantity 333->0 max 333->333 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4618	CRUNDLE ref6=16,22,-1,22,-1,12 quantity 197->0 max 197->197 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4619	PLUMP_HELMET_MAN ref6=16,22,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4620	FLESH_BALL ref6=16,22,-1,22,-1,14 quantity 433->0 max 433->433 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4621	ELEMENTMAN_MUD ref6=16,22,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4622	RUTHERER ref6=16,22,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4623	BUGBAT ref6=16,22,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4624	ELK_BIRD ref6=16,22,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4625	GREEN_DEVOURER ref6=16,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4626	HUNGRY_HEAD ref6=16,22,-1,22,-1,20 quantity 129->0 max 129->129 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4628	SPIDER_CAVE_GIANT ref6=16,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4629	REACHER ref6=16,22,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4630	CAVE_DRAGON ref6=16,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4631	TROLL ref6=16,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4632	CREEPING_EYE ref6=16,22,-1,22,-1,26 quantity 432->0 max 432->432 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4633	BLIND_CAVE_OGRE ref6=16,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4634	BLOOD_MAN ref6=16,22,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4636	GORLAK ref6=16,22,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4637	MAGMA_CRAB ref6=16,22,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4638	IMP_FIRE ref6=16,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4639	ELEMENTMAN_FIRE ref6=16,22,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4640	ELEMENTMAN_MAGMA ref6=16,22,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4642	DEMON_18 ref6=16,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4643	DEMON_2 ref6=16,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4644	DEMON_3 ref6=16,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4645	DEMON_16 ref6=16,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4646	DEMON_17 ref6=16,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4647	DEMON_15 ref6=16,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4648	DEMON_13 ref6=16,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4687	Vermin:0 ref6=16,23,-1,-1,-1,78 quantity 368->370 max 368->368 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4689	Vermin:5 ref6=16,23,-1,-1,-1,80 quantity 197->199 max 197->197 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4690	Vermin:8 ref6=16,23,-1,-1,-1,81 quantity 172->173 max 172->172 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4691	Vermin:34 ref6=16,23,-1,-1,-1,88 quantity 149->150 max 149->149 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4692	Vermin:49 ref6=16,23,-1,-1,-1,89 quantity 237->236 max 237->237 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4693	Vermin:79 ref6=16,23,-1,-1,-1,94 quantity 410->410 max 410->410 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4694	BIRD_EMU ref6=16,23,-1,-1,-1,95 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4695	Vermin:91 ref6=16,23,-1,-1,-1,99 quantity 164->165 max 164->164 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4696	BIRD_EAGLE ref6=16,23,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4697	Vermin:118 ref6=16,23,-1,-1,-1,105 quantity 312->313 max 312->312 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4698	Vermin:121 ref6=16,23,-1,-1,-1,106 quantity 413->416 max 413->413 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4699	Vermin:124 ref6=16,23,-1,-1,-1,107 quantity 353->355 max 353->353 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4700	Vermin:130 ref6=16,23,-1,-1,-1,110 quantity 37->36 max 37->37 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4705	Vermin:145 ref6=16,23,-1,-1,-1,118 quantity 3924->4073 max 3924->3924 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4706	Vermin:148 ref6=16,23,-1,-1,-1,119 quantity 363->365 max 363->363 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4708	BIRD_TURKEY ref6=16,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4709	Vermin:196 ref6=16,23,-1,-1,-1,124 quantity 2742->0 max 2742->2742 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4712	Vermin:206 ref6=16,23,-1,-1,-1,128 quantity 324->324 max 324->324 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4714	WOLF ref6=16,23,-1,-1,-1,134 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4715	GROUNDHOG ref6=16,23,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4716	Vermin:514 ref6=16,23,-1,-1,-1,150 quantity 323->263 max 323->323 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4717	Vermin:517 ref6=16,23,-1,-1,-1,151 quantity 232->232 max 232->232 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4718	Vermin:528 ref6=16,23,-1,-1,-1,153 quantity 329->331 max 329->329 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4719	Vermin:531 ref6=16,23,-1,-1,-1,155 quantity 180->182 max 180->180 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4720	Vermin:561 ref6=16,23,-1,-1,-1,158 quantity 219->221 max 219->219 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4721	WILD_BOAR ref6=16,23,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4722	KANGAROO ref6=16,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4723	ADDER ref6=16,23,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4724	ECHIDNA ref6=16,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4725	KINGSNAKE ref6=16,23,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4726	SKUNK ref6=16,23,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4727	WEASEL ref6=16,23,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4728	OPOSSUM ref6=16,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4729	CRETACEOUS_CARNOTAURUS ref6=16,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4732	ALLIGATOR ref6=16,23,0,-1,-1,0 quantity 148->152 max 150->150 discovered 1->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4734	HIPPO ref6=16,23,0,-1,-1,2 quantity 469->481 max 475->475 discovered 1->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4735	RIVER OTTER ref6=16,23,0,-1,-1,3 quantity 272->278 max 275->275 discovered 1->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4737	FISH_CARP ref6=16,23,0,-1,-1,5 quantity 416->426 max 425->425 discovered 1->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4738	FISH_STINGRAY ref6=16,23,0,-1,-1,6 quantity 423->427 max 425->425 discovered 1->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4740	Vermin:566 ref6=16,23,0,-1,-1,8 quantity 10875->10876 max 10875->10875 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4741	Vermin:562 ref6=16,23,0,-1,-1,9 quantity 10025->10027 max 10025->10025 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4742	Vermin:561 ref6=16,23,0,-1,-1,10 quantity 10050->10049 max 10050->10050 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4751	POND_GRABBER ref6=16,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4752	CROCODILE_CAVE ref6=16,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4753	OLM_GIANT ref6=16,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4754	TOAD_GIANT_CAVE ref6=16,23,-1,2,-1,11 quantity 13->0 max 13->13 discovered 1->1 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4756	Vermin:617 ref6=16,23,-1,2,-1,13 quantity 451->455 max 451->451 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4757	Vermin:616 ref6=16,23,-1,2,-1,14 quantity 357->360 max 357->357 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4758	Vermin:410 ref6=16,23,-1,2,-1,15 quantity 439->437 max 439->439 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4759	Vermin:621 ref6=16,23,-1,2,-1,16 quantity 427->426 max 427->427 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4760	RAT_GIANT ref6=16,23,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4761	BIRD_SWALLOW_CAVE_GIANT ref6=16,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4762	GREMLIN ref6=16,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4763	MOLE_DOG_NAKED ref6=16,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4764	BLIND_CAVE_BEAR ref6=16,23,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4765	GIANT_EARTHWORM ref6=16,23,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4766	RAT_LARGE ref6=16,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4767	Vermin:630 ref6=16,23,-1,2,-1,24 quantity 281->279 max 281->281 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4768	Vermin:623 ref6=16,23,-1,2,-1,25 quantity 233->238 max 233->233 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4769	TROLL ref6=16,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4770	GORLAK ref6=16,23,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4771	JABBERER ref6=16,23,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4772	CRUNDLE ref6=16,23,-1,14,-1,1 quantity 136->0 max 136->136 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4773	RAT_GIANT ref6=16,23,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4774	TROGLODYTE ref6=16,23,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4775	BUGBAT ref6=16,23,-1,14,-1,4 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4776	BIRD_SWALLOW_CAVE_GIANT ref6=16,23,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4777	RUTHERER ref6=16,23,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4778	Vermin:623 ref6=16,23,-1,14,-1,7 quantity 247->182 max 247->247 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4779	Vermin:630 ref6=16,23,-1,14,-1,8 quantity 262->205 max 262->262 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4780	Vermin:616 ref6=16,23,-1,14,-1,9 quantity 413->417 max 413->413 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4781	SPIDER_CAVE_GIANT ref6=16,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4782	BLIND_CAVE_OGRE ref6=16,23,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4783	MANERA ref6=16,23,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4784	TROLL ref6=16,23,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4785	REACHER ref6=16,23,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4786	GORLAK ref6=16,23,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4798	CAVE_BLOB ref6=16,23,-1,22,-1,11 quantity 332->0 max 332->332 discovered 1->1 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4799	CRUNDLE ref6=16,23,-1,22,-1,12 quantity 197->0 max 197->197 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4800	PLUMP_HELMET_MAN ref6=16,23,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4801	FLESH_BALL ref6=16,23,-1,22,-1,14 quantity 432->0 max 432->432 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4802	ELEMENTMAN_MUD ref6=16,23,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4803	RUTHERER ref6=16,23,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4804	BUGBAT ref6=16,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4805	ELK_BIRD ref6=16,23,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4806	GREEN_DEVOURER ref6=16,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4807	HUNGRY_HEAD ref6=16,23,-1,22,-1,20 quantity 128->0 max 128->128 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4809	SPIDER_CAVE_GIANT ref6=16,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4810	REACHER ref6=16,23,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4811	CAVE_DRAGON ref6=16,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4812	TROLL ref6=16,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4813	CREEPING_EYE ref6=16,23,-1,22,-1,26 quantity 431->0 max 431->431 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4814	BLIND_CAVE_OGRE ref6=16,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4815	BLOOD_MAN ref6=16,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4816	Vermin:419 ref6=16,23,-1,22,-1,29 quantity 331->217 max 331->331 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4817	GORLAK ref6=16,23,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4818	MAGMA_CRAB ref6=16,23,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4819	IMP_FIRE ref6=16,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4820	ELEMENTMAN_FIRE ref6=16,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4821	ELEMENTMAN_MAGMA ref6=16,23,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4822	Vermin:620 ref6=16,23,-1,32,-1,4 quantity 407->328 max 407->407 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4823	DEMON_18 ref6=16,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4824	DEMON_2 ref6=16,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4825	DEMON_3 ref6=16,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4826	DEMON_16 ref6=16,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4827	DEMON_17 ref6=16,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4828	DEMON_15 ref6=16,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4829	DEMON_13 ref6=16,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4868	Vermin:0 ref6=16,24,-1,-1,-1,78 quantity 364->365 max 364->364 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4870	Vermin:5 ref6=16,24,-1,-1,-1,80 quantity 195->196 max 195->195 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4872	Vermin:34 ref6=16,24,-1,-1,-1,88 quantity 148->149 max 148->148 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4874	Vermin:79 ref6=16,24,-1,-1,-1,94 quantity 406->407 max 406->406 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4875	BIRD_EMU ref6=16,24,-1,-1,-1,95 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4877	BIRD_EAGLE ref6=16,24,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4879	Vermin:121 ref6=16,24,-1,-1,-1,106 quantity 409->410 max 409->409 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4880	Vermin:124 ref6=16,24,-1,-1,-1,107 quantity 350->351 max 350->350 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4881	Vermin:130 ref6=16,24,-1,-1,-1,110 quantity 37->38 max 37->37 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4889	BIRD_TURKEY ref6=16,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4890	Vermin:196 ref6=16,24,-1,-1,-1,124 quantity 2716->2463 max 2716->2716 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4895	WOLF ref6=16,24,-1,-1,-1,134 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4896	GROUNDHOG ref6=16,24,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4897	Vermin:514 ref6=16,24,-1,-1,-1,150 quantity 320->321 max 320->320 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4898	Vermin:517 ref6=16,24,-1,-1,-1,151 quantity 230->230 max 230->230 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4899	Vermin:528 ref6=16,24,-1,-1,-1,153 quantity 326->326 max 326->326 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4900	Vermin:531 ref6=16,24,-1,-1,-1,155 quantity 179->180 max 179->179 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4902	WILD_BOAR ref6=16,24,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4903	KANGAROO ref6=16,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4904	ADDER ref6=16,24,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4905	ECHIDNA ref6=16,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4906	KINGSNAKE ref6=16,24,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4907	SKUNK ref6=16,24,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4908	WEASEL ref6=16,24,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4909	OPOSSUM ref6=16,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4910	CRETACEOUS_CARNOTAURUS ref6=16,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4932	POND_GRABBER ref6=16,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4933	CROCODILE_CAVE ref6=16,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4934	OLM_GIANT ref6=16,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4935	TOAD_GIANT_CAVE ref6=16,24,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4941	RAT_GIANT ref6=16,24,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4942	BIRD_SWALLOW_CAVE_GIANT ref6=16,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4943	GREMLIN ref6=16,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4944	MOLE_DOG_NAKED ref6=16,24,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4945	BLIND_CAVE_BEAR ref6=16,24,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4946	GIANT_EARTHWORM ref6=16,24,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4947	RAT_LARGE ref6=16,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4950	TROLL ref6=16,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4951	GORLAK ref6=16,24,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4952	JABBERER ref6=16,24,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4953	CRUNDLE ref6=16,24,-1,14,-1,1 quantity 136->0 max 136->136 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4954	RAT_GIANT ref6=16,24,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4955	TROGLODYTE ref6=16,24,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4956	BUGBAT ref6=16,24,-1,14,-1,4 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4957	BIRD_SWALLOW_CAVE_GIANT ref6=16,24,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4958	RUTHERER ref6=16,24,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4962	SPIDER_CAVE_GIANT ref6=16,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4963	BLIND_CAVE_OGRE ref6=16,24,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4964	MANERA ref6=16,24,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4965	TROLL ref6=16,24,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4966	REACHER ref6=16,24,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4967	GORLAK ref6=16,24,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4979	CAVE_BLOB ref6=16,24,-1,22,-1,11 quantity 331->0 max 331->331 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4980	CRUNDLE ref6=16,24,-1,22,-1,12 quantity 196->0 max 196->196 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4981	PLUMP_HELMET_MAN ref6=16,24,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4982	FLESH_BALL ref6=16,24,-1,22,-1,14 quantity 431->0 max 431->431 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4983	ELEMENTMAN_MUD ref6=16,24,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4984	RUTHERER ref6=16,24,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4985	BUGBAT ref6=16,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4986	ELK_BIRD ref6=16,24,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4987	GREEN_DEVOURER ref6=16,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4988	HUNGRY_HEAD ref6=16,24,-1,22,-1,20 quantity 128->0 max 128->128 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4990	SPIDER_CAVE_GIANT ref6=16,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4991	REACHER ref6=16,24,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4992	CAVE_DRAGON ref6=16,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4993	TROLL ref6=16,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4994	CREEPING_EYE ref6=16,24,-1,22,-1,26 quantity 430->0 max 430->430 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4995	BLIND_CAVE_OGRE ref6=16,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4996	BLOOD_MAN ref6=16,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4998	GORLAK ref6=16,24,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	4999	MAGMA_CRAB ref6=16,24,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5000	IMP_FIRE ref6=16,24,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5001	ELEMENTMAN_FIRE ref6=16,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5002	ELEMENTMAN_MAGMA ref6=16,24,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5004	DEMON_18 ref6=16,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5005	DEMON_2 ref6=16,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5006	DEMON_3 ref6=16,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5007	DEMON_16 ref6=16,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5008	DEMON_17 ref6=16,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5009	DEMON_15 ref6=16,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5010	DEMON_13 ref6=16,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5885	BIRD_EMU ref6=17,22,-1,-1,-1,95 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5887	BIRD_EAGLE ref6=17,22,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5899	BIRD_TURKEY ref6=17,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5905	WOLF ref6=17,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5906	GROUNDHOG ref6=17,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5912	WILD_BOAR ref6=17,22,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5913	KANGAROO ref6=17,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5914	ADDER ref6=17,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5915	ECHIDNA ref6=17,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5916	KINGSNAKE ref6=17,22,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5917	SKUNK ref6=17,22,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5918	WEASEL ref6=17,22,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5919	OPOSSUM ref6=17,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5920	CRETACEOUS_CARNOTAURUS ref6=17,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5942	POND_GRABBER ref6=17,22,-1,4,-1,8 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5943	TOAD_GIANT_CAVE ref6=17,22,-1,4,-1,9 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5944	OLM_GIANT ref6=17,22,-1,4,-1,10 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5945	CROCODILE_CAVE ref6=17,22,-1,4,-1,11 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5950	RAT_LARGE ref6=17,22,-1,4,-1,16 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5951	RAT_GIANT ref6=17,22,-1,4,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5952	MOLE_DOG_NAKED ref6=17,22,-1,4,-1,18 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5953	MOLE_GIANT ref6=17,22,-1,4,-1,19 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5954	GREMLIN ref6=17,22,-1,4,-1,20 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5955	GIANT_EARTHWORM ref6=17,22,-1,4,-1,21 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5956	TROGLODYTE ref6=17,22,-1,4,-1,22 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5960	TROLL ref6=17,22,-1,4,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5961	GORLAK ref6=17,22,-1,4,-1,27 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5962	JABBERER ref6=17,22,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5963	CRUNDLE ref6=17,22,-1,14,-1,1 quantity 132->0 max 132->132 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5964	RAT_GIANT ref6=17,22,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5965	TROGLODYTE ref6=17,22,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5966	BUGBAT ref6=17,22,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5967	BIRD_SWALLOW_CAVE_GIANT ref6=17,22,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5968	RUTHERER ref6=17,22,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5972	SPIDER_CAVE_GIANT ref6=17,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5973	BLIND_CAVE_OGRE ref6=17,22,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5974	MANERA ref6=17,22,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5975	TROLL ref6=17,22,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5976	REACHER ref6=17,22,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5977	GORLAK ref6=17,22,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5989	CAVE_BLOB ref6=17,22,-1,22,-1,11 quantity 327->0 max 327->327 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5990	CRUNDLE ref6=17,22,-1,22,-1,12 quantity 194->0 max 194->194 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5991	PLUMP_HELMET_MAN ref6=17,22,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5992	FLESH_BALL ref6=17,22,-1,22,-1,14 quantity 425->0 max 425->425 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5993	ELEMENTMAN_MUD ref6=17,22,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5994	RUTHERER ref6=17,22,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5995	BUGBAT ref6=17,22,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5996	ELK_BIRD ref6=17,22,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5997	GREEN_DEVOURER ref6=17,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	5998	HUNGRY_HEAD ref6=17,22,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6000	SPIDER_CAVE_GIANT ref6=17,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6001	REACHER ref6=17,22,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6002	CAVE_DRAGON ref6=17,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6003	TROLL ref6=17,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6004	CREEPING_EYE ref6=17,22,-1,22,-1,26 quantity 424->0 max 424->424 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6005	BLIND_CAVE_OGRE ref6=17,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6006	BLOOD_MAN ref6=17,22,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6008	GORLAK ref6=17,22,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6009	MAGMA_CRAB ref6=17,22,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6010	IMP_FIRE ref6=17,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6011	ELEMENTMAN_FIRE ref6=17,22,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6012	ELEMENTMAN_MAGMA ref6=17,22,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6014	DEMON_18 ref6=17,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6015	DEMON_2 ref6=17,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6016	DEMON_3 ref6=17,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6017	DEMON_16 ref6=17,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6018	DEMON_17 ref6=17,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6019	DEMON_15 ref6=17,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6020	DEMON_13 ref6=17,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6062	Vermin:8 ref6=17,23,-1,-1,-1,81 quantity 167->168 max 167->167 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6065	Vermin:79 ref6=17,23,-1,-1,-1,94 quantity 391->391 max 391->391 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6066	BIRD_EMU ref6=17,23,-1,-1,-1,95 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6068	BIRD_EAGLE ref6=17,23,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6071	Vermin:124 ref6=17,23,-1,-1,-1,107 quantity 337->338 max 337->337 discovered 0->1 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6080	BIRD_TURKEY ref6=17,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6086	WOLF ref6=17,23,-1,-1,-1,134 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6087	GROUNDHOG ref6=17,23,-1,-1,-1,135 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6093	WILD_BOAR ref6=17,23,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6094	KANGAROO ref6=17,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6095	ADDER ref6=17,23,-1,-1,-1,161 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6096	ECHIDNA ref6=17,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6097	KINGSNAKE ref6=17,23,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6098	SKUNK ref6=17,23,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6099	WEASEL ref6=17,23,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6100	OPOSSUM ref6=17,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6101	CRETACEOUS_CARNOTAURUS ref6=17,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6123	POND_GRABBER ref6=17,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6124	CROCODILE_CAVE ref6=17,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6125	OLM_GIANT ref6=17,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6126	TOAD_GIANT_CAVE ref6=17,23,-1,2,-1,11 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6132	RAT_GIANT ref6=17,23,-1,2,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6133	BIRD_SWALLOW_CAVE_GIANT ref6=17,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6134	GREMLIN ref6=17,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6135	MOLE_DOG_NAKED ref6=17,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6136	BLIND_CAVE_BEAR ref6=17,23,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6137	GIANT_EARTHWORM ref6=17,23,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6138	RAT_LARGE ref6=17,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6141	TROLL ref6=17,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6142	GORLAK ref6=17,23,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6143	JABBERER ref6=17,23,-1,14,-1,0 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6144	CRUNDLE ref6=17,23,-1,14,-1,1 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6145	RAT_GIANT ref6=17,23,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6146	TROGLODYTE ref6=17,23,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6147	BUGBAT ref6=17,23,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6148	BIRD_SWALLOW_CAVE_GIANT ref6=17,23,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6149	RUTHERER ref6=17,23,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6153	SPIDER_CAVE_GIANT ref6=17,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6154	BLIND_CAVE_OGRE ref6=17,23,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6155	MANERA ref6=17,23,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6156	TROLL ref6=17,23,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6157	REACHER ref6=17,23,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6158	GORLAK ref6=17,23,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6170	CAVE_BLOB ref6=17,23,-1,22,-1,11 quantity 326->0 max 326->326 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6171	CRUNDLE ref6=17,23,-1,22,-1,12 quantity 193->0 max 193->193 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6172	PLUMP_HELMET_MAN ref6=17,23,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6173	FLESH_BALL ref6=17,23,-1,22,-1,14 quantity 424->0 max 424->424 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6174	ELEMENTMAN_MUD ref6=17,23,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6175	RUTHERER ref6=17,23,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6176	BUGBAT ref6=17,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6177	ELK_BIRD ref6=17,23,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6178	GREEN_DEVOURER ref6=17,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6179	HUNGRY_HEAD ref6=17,23,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6181	SPIDER_CAVE_GIANT ref6=17,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6182	REACHER ref6=17,23,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6183	CAVE_DRAGON ref6=17,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6184	TROLL ref6=17,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6185	CREEPING_EYE ref6=17,23,-1,22,-1,26 quantity 423->0 max 423->423 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6186	BLIND_CAVE_OGRE ref6=17,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6187	BLOOD_MAN ref6=17,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6189	GORLAK ref6=17,23,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6190	MAGMA_CRAB ref6=17,23,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6191	IMP_FIRE ref6=17,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6192	ELEMENTMAN_FIRE ref6=17,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6193	ELEMENTMAN_MAGMA ref6=17,23,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6195	DEMON_18 ref6=17,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6196	DEMON_2 ref6=17,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6197	DEMON_3 ref6=17,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6198	DEMON_16 ref6=17,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6199	DEMON_17 ref6=17,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6200	DEMON_15 ref6=17,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6201	DEMON_13 ref6=17,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6247	BIRD_EMU ref6=17,24,-1,-1,-1,95 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6249	BIRD_EAGLE ref6=17,24,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6261	BIRD_TURKEY ref6=17,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6267	WOLF ref6=17,24,-1,-1,-1,134 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6268	GROUNDHOG ref6=17,24,-1,-1,-1,135 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6274	WILD_BOAR ref6=17,24,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6275	KANGAROO ref6=17,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6276	ADDER ref6=17,24,-1,-1,-1,161 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6277	ECHIDNA ref6=17,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6278	KINGSNAKE ref6=17,24,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6279	SKUNK ref6=17,24,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6280	WEASEL ref6=17,24,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6281	OPOSSUM ref6=17,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6282	CRETACEOUS_CARNOTAURUS ref6=17,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6304	POND_GRABBER ref6=17,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6305	CROCODILE_CAVE ref6=17,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6306	OLM_GIANT ref6=17,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6307	TOAD_GIANT_CAVE ref6=17,24,-1,2,-1,11 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6313	RAT_GIANT ref6=17,24,-1,2,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6314	BIRD_SWALLOW_CAVE_GIANT ref6=17,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6315	GREMLIN ref6=17,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6316	MOLE_DOG_NAKED ref6=17,24,-1,2,-1,20 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6317	BLIND_CAVE_BEAR ref6=17,24,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6318	GIANT_EARTHWORM ref6=17,24,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6319	RAT_LARGE ref6=17,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6322	TROLL ref6=17,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6323	GORLAK ref6=17,24,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6324	JABBERER ref6=17,24,-1,14,-1,0 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6325	CRUNDLE ref6=17,24,-1,14,-1,1 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6326	RAT_GIANT ref6=17,24,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6327	TROGLODYTE ref6=17,24,-1,14,-1,3 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6328	BUGBAT ref6=17,24,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6329	BIRD_SWALLOW_CAVE_GIANT ref6=17,24,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6330	RUTHERER ref6=17,24,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6334	SPIDER_CAVE_GIANT ref6=17,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6335	BLIND_CAVE_OGRE ref6=17,24,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6336	MANERA ref6=17,24,-1,14,-1,12 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6337	TROLL ref6=17,24,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6338	REACHER ref6=17,24,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6339	GORLAK ref6=17,24,-1,14,-1,15 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6351	CAVE_BLOB ref6=17,24,-1,22,-1,11 quantity 326->0 max 326->326 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6352	CRUNDLE ref6=17,24,-1,22,-1,12 quantity 193->0 max 193->193 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6353	PLUMP_HELMET_MAN ref6=17,24,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6354	FLESH_BALL ref6=17,24,-1,22,-1,14 quantity 423->0 max 423->423 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6355	ELEMENTMAN_MUD ref6=17,24,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6356	RUTHERER ref6=17,24,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6357	BUGBAT ref6=17,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6358	ELK_BIRD ref6=17,24,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6359	GREEN_DEVOURER ref6=17,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6360	HUNGRY_HEAD ref6=17,24,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6362	SPIDER_CAVE_GIANT ref6=17,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6363	REACHER ref6=17,24,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6364	CAVE_DRAGON ref6=17,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6365	TROLL ref6=17,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6366	CREEPING_EYE ref6=17,24,-1,22,-1,26 quantity 422->0 max 422->422 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6367	BLIND_CAVE_OGRE ref6=17,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6368	BLOOD_MAN ref6=17,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6370	GORLAK ref6=17,24,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6371	MAGMA_CRAB ref6=17,24,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6372	IMP_FIRE ref6=17,24,-1,32,-1,1 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6373	ELEMENTMAN_FIRE ref6=17,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6374	ELEMENTMAN_MAGMA ref6=17,24,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6376	DEMON_18 ref6=17,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6377	DEMON_2 ref6=17,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6378	DEMON_3 ref6=17,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6379	DEMON_16 ref6=17,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6380	DEMON_17 ref6=17,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6381	DEMON_15 ref6=17,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6382	DEMON_13 ref6=17,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	6926	ALLIGATOR ref6=18,21,0,-1,-1,6 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	pool_delta	7285	ALLIGATOR ref6=18,23,0,-1,-1,2 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+20260917-183513	river_edge_registered	1	118107	2134107	end	summary	{"arm": "river_edge_registered", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 0, "departures": 14, "deaths": 0, "ticks": 101306, "wall_s": 220.3, "stop": null, "ticks_per_s": 459.8, "save_untouched": true}

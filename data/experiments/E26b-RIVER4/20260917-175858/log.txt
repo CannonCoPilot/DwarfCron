@@ -1,0 +1,622 @@
+17:58:58 run E26b-RIVER4 20260917-175858: River creatures, and only river creatures, allowed to spawn on RIVER4, a fort placed on region tile 16,23 where the river runs north to south through the tile,. Every non-vermin creature carrying a RIVER biome token in the vanilla raws (19 species; RIVER4 is temperate shrubland) is opened at 50 on every tile in every layer; every other Animal entry on the site and its ring, surface, cavern, underworld and feature alike, is closed (the first pass left the unbounded underworld entries open and twelve demons tripped the stop rule); every hold in every layer released, and released again every 1500 ticks. Edge water at every z, the map's feature list and map_edge's fields are logged first. Any arrival at all is a river creature. Runs to 403,200 ticks or six arrivals.
+17:58:58   [rig] DF already running (pid 33717), port 5555
+17:58:58 == E26b-RIVER4 arm=river_only rep=1 fort=RIVER4 budget=403200 every=1000
+17:58:59   [rig] restored RIVER4.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/RIVER4
+17:58:59   restored RIVER4.preverify -> RIVER4 sha256 3845f4f26682
+17:59:31   [rig] clicked through to RIVER4 (world: Udon Alu); waiting for the map
+17:59:31   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=46)
+17:59:31   [rig] drained 0 queued popup(s)
+17:59:32   baseline: 22 wild units on map, 684 pool entries, tick 16801 year 5
+17:59:38   manipulation: local n,zs,minz,maxz=0,{},999,-1; local d=df.global.world.map; local W,H=d.x_count,d.y_count; for z=0,d.z_count-1 do local cnt=0; for x=0,W-1 do for _,y in ipairs({0,H-1}) do local b=dfhack.maps.getTileBlock(x,y,z); if b then local des=b.designation[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type then cnt=cnt+1 end end end end; for y=0,H-1 do for _,x in ipairs({0,W-1}) do local b=dfhack.maps.getTileBlock(x,y,z); if b then local des=b.designation[x%16][y%16]; if des.flow_size>=4 and not des.liquid_type then cnt=cnt+1 end end end end; if cnt>0 then n=n+cnt; zs[#zs+1]=z..':'..cnt; if z<minz then minz=z end; if z>maxz then maxz=z end end end; print(('edge water: %d edge tiles with water>=4 across z %d..%d [%s]'):format(n, minz, maxz, table.concat(zs,' '))) -> edge water: 157 edge tiles with water>=4 across z 74..93 [74:148 93:9]
+17:59:38   manipulation: local out={}; local ok,err=pcall(function() for i,f in ipairs(df.global.world.features.map_features) do out[#out+1]=i..':'..tostring(f._type) end end); print('map_features:', ok and table.concat(out,' ') or ('err '..tostring(err))); local me={}; for k,v in pairs(df.global.plotinfo.map_edge) do local n; pcall(function() n=#v end); me[#me+1]=tostring(k)..'='..tostring(n or v) end; print('map_edge fields:', table.concat(me,' ')) -> map_features:	0:<type: feature_init_cavest> 1:<type: feature_init_subterranean_from_layerst> 2:<type: feature_init_subterranean_from_layerst> 3:<type: feature_init_subterranean_from_layerst> 4:<type: feature_init_magma_core_from_layerst> 5:<type: feature_init_underworld_from_layerst> 6:<type: feature_init_outdoor_riverst> 7:<type: feature_init_deep_special_tubest> 8:<type: feature_init_magma_poolst> 9:<type: feature_init_deep_special_tubest> 10:<type: feature_init_deep_special_tubest> 11:<type: feature_init_deep_special_tubest>
+map_edge fields:	layer_x=5 surface_x=396 layer_y=5 surface_y=396 layer_z=5 surface_z=396
+17:59:38   manipulation: probe:edge -> x	y	z	tiletype	water	liquid
+0	0	96	GrassLightFloor1	0	water
+1	0	96	GrassLightFloor4	0	water
+2	0	96	GrassDarkFloor2	0	water
+3	0	96	GrassDarkFloor3	0	water
+4	0	96	GrassLightFloor4	0	water
+5	0	96	GrassDarkFloor2	0	water
+6	0	96	GrassDarkFloor4	0	water
+7	0	96	GrassDarkFloor2	0	water
+8	0	96	GrassLightFloor2	0	water
+9	0	96	GrassLightFloor1	0	water
+10	0	96	GrassDarkFloor2	0	water
+11	0	96	GrassDarkFloor3	0	water
+12	0	96	GrassDarkFloor1	0	water
+13	0	96	GrassLightFloor2	0	water
+14	0	96	Shrub	0	water
+15	0	96	GrassLightFloor4	0	water
+16	0	96	GrassDarkFloor3	0	water
+17	0	96	GrassDarkFloor3	0	water
+18	0	96	StonePebbles3	0	water
+19	0	96	StoneBoulder	0	water
+20	0	96	StoneFloor4	0	water
+21	0	96	Shrub	0	water
+22	0	96	GrassDarkFloor4	0	water
+23	0	96	GrassLightFloor1	0	water
+24	0	96	GrassLightFloor2	0	water
+25	0	96	GrassLightFloor2	0	water
+26	0	96	GrassLightFloor3	0	water
+27	0	96	GrassDarkFloor3	0	water
+28	0	96	StonePebbles1	0	water
+29	0	96	GrassLightFloor3	0	water
+30	0	96	GrassLightFloor3	0	water
+31	0	96	StoneFloor2	0	water
+32	0	95	GrassLightRamp	0	water
+33	0	95	GrassDarkFloor3	0	water
+34	0	95	GrassDarkFloor3	0	water
+35	0	95	GrassLightFloor1	0	water
+36	0	95	GrassDarkFloor1	0	water
+37	0	95	StoneFloor3	0	water
+38	0	95	GrassLightFloor1	0	water
+39	0	95	GrassDarkFloor3	0	water
+40	0	95	GrassDarkFloor4	0	water
+41	0	95	GrassLightFloor3	0	water
+42	0	95	GrassLightFloor2	0	water
+43	0	95	GrassDarkFloor4	0	water
+44	0	95	GrassLightFloor3	0	water
+45	0	95	GrassDarkFloor3	0	water
+46	0	95	GrassDarkFloor1	0	water
+47	0	95	GrassDarkFloor1	0	water
+48	0	95	GrassDarkFloor4	0	water
+49	0	95	GrassLightFloor2	0	water
+50	0	95	GrassLightFloor4	0	water
+51	0	95	GrassDarkFloor2	0	water
+52	0	95	GrassLightFloor2	0	water
+53	0	95	GrassDarkFloor2	0	water
+54	0	95	GrassLightFloor1	0	water
+55	0	95	StonePebbles4	0	water
+56	0	95	GrassLightFloor1	0	water
+57	0	95	GrassDarkFloor2	0	water
+58	0	95	GrassDarkFloor4	0	water
+59	0	95	GrassDarkFloor2	0	water
+60	0	95	Shrub	0	water
+61	0	95	GrassDarkFloor3	0	water
+62	0	95	GrassDarkFloor1	0	water
+63	0	95	GrassLightFloor2	0	water
+64	0	95	GrassDarkFloor4	0	water
+65	0	95	GrassLightFloor1	0	water
+66	0	95	GrassLightFloor3	0	water
+67	0	95	GrassDarkFloor1	0	water
+68	0	95	GrassLightFloor4	0	water
+69	0	95	GrassLightFloor3	0	water
+70	0	95	GrassDarkFloor3	0	water
+71	0	95	GrassLightFloor4	0	water
+72	0	95	GrassDarkFloor4	0	water
+73	0	95	GrassLightFloor3	0	water
+74	0	95	Shrub	0	water
+75	0	95	GrassLightFloor2	0	water
+76	0	95	GrassLightFloor2	0	water
+77	0	95	GrassLightFloor4	0	water
+78	0	95	GrassDarkFloor2	0	water
+79	0	95	GrassLightFloor4	0	water
+80	0	95	Shrub	0	water
+81	0	95	GrassDarkFloor2	0	water
+82	0	95	GrassDarkFloor1	0	water
+83	0	95	GrassDarkFloor2	0	water
+84	0	95	GrassLightFloor1	0	water
+85	0	95	GrassLightFloor4	0	water
+86	0	95	GrassDarkFloor1	0	water
+87	0	95	GrassDarkFloor2	0	water
+88	0	95	GrassDarkFloor3	0	water
+89	0	95	StoneBoulder	0	water
+90	0	95	GrassDarkFloor1	0	water
+91	0	95	GrassDarkFloor1	0	water
+92	0	95	GrassDarkFloor3	0	water
+93	0	95	GrassDarkFloor3	0	water
+94	0	95	GrassLightFloor1	0	water
+95	0	95	GrassLightFloor3	0	water
+96	0	95	GrassLightFloor3	0	water
+97	0	95	GrassDarkFloor2	0	water
+98	0	95	GrassLightFloor3	0	water
+99	0	95	GrassDarkFloor1	0	water
+100	0	95	GrassDarkFloor3	0	water
+101	0	95	GrassDarkFloor4	0	water
+102	0	95	StoneBoulder	0	water
+103	0	95	GrassLightFloor4	0	water
+104	0	95	GrassLightFloor2	0	water
+105	0	95	GrassDarkFloor3	0	water
+106	0	95	GrassDarkFloor2	0	water
+107	0	95	GrassLightFloor4	0	water
+108	0	95	Shrub	0	water
+109	0	95	GrassLightFloor2	0	water
+110	0	95	Shrub	0	water
+111	0	95	GrassLightFloor1	0	water
+112	0	95	GrassLightFloor3	0	water
+113	0	95	GrassDarkFloor3	0	water
+114	0	95	GrassLightFloor4	0	water
+115	0	95	Shrub	0	water
+116	0	95	GrassLightFloor1	0	water
+117	0	95	StoneFloor1	0	water
+118	0	95	GrassDarkFloor4	0	water
+119	0	95	GrassDarkFloor1	0	water
+120	0	95	GrassLightFloor1	0	water
+121	0	95	GrassLightFloor2	0	water
+122	0	95	GrassLightFloor4	0	water
+123	0	95	Shrub	0	water
+124	0	95	GrassLightFloor1	0	water
+125	0	95	GrassLightFloor3	0	water
+126	0	95	GrassDarkFloor3	0	water
+127	0	95	GrassLightFloor2	0	water
+128	0	94	StoneRamp	0	water
+129	0	94	GrassDarkRamp	0	water
+130	0	94	GrassDarkFloor2	0	water
+131	0	94	GrassLightFloor1	0	water
+132	0	94	GrassLightFloor3	0	water
+133	0	94	StonePebbles2	0	water
+134	0	94	GrassLightFloor1	0	water
+135	0	94	StoneFloor3	0	water
+136	0	94	GrassDarkFloor4	0	water
+137	0	94	GrassLightFloor4	0	water
+138	0	94	GrassDarkFloor2	0	water
+139	0	94	GrassLightFloor3	0	water
+140	0	94	GrassDarkFloor2	0	water
+141	0	94	GrassDarkFloor3	0	water
+142	0	94	StonePebbles3	0	water
+143	0	94	GrassDarkFloor4	0	water
+144	0	94	Shrub	0	water
+145	0	94	GrassDarkFloor2	0	water
+146	0	94	GrassDarkFloor4	0	water
+147	0	94	GrassLightFloor2	0	water
+148	0	94	GrassDarkFloor3	0	water
+149	0	94	GrassLightFloor3	0	water
+150	0	94	GrassLightFloor2	0	water
+151	0	94	GrassLightFloor1	0	water
+152	0	94	GrassDarkFloor2	0	water
+153	0	94	GrassLightFloor2	0	water
+154	0	94	GrassLightFloor4	0	water
+155	0	94	GrassDarkFloor4	0	water
+156	0	94	GrassLightFloor2	0	water
+157	0	94	GrassDarkFloor4	0	water
+158	0	94	GrassLightFloor1	0	water
+159	0	94	GrassDarkFloor2	0	water
+160	0	94	GrassLightFloor2	0	water
+161	0	94	GrassDarkFloor2	0	water
+162	0	94	GrassDarkFloor2	0	water
+163	0	94	GrassDarkFloor2	0	water
+164	0	94	GrassLightFloor1	0	water
+165	0	94	GrassDarkFloor3	0	water
+166	0	94	GrassDarkFloor2	0	water
+167	0	94	GrassDarkFloor4	0	water
+168	0	94	GrassLightFloor4	0	water
+169	0	94	GrassLightFloor2	0	water
+170	0	94	GrassDarkFloor1	0	water
+171	0	94	StoneBoulder	0	water
+172	0	94	GrassDarkFloor3	0	water
+173	0	94	StoneBoulder	0	water
+174	0	94	GrassDarkFloor4	0	water
+175	0	94	GrassDarkFloor2	0	water
+176	0	94	Shrub	0	water
+177	0	94	GrassLightFloor4	0	water
+178	0	94	GrassDarkFloor4	0	water
+179	0	94	GrassLightFloor3	0	water
+180	0	94	StonePebbles4	0	water
+181	0	94	GrassDarkFloor2	0	water
+182	0	94	GrassDarkFloor2	0	water
+183	0	94	GrassDarkFloor3	0	water
+184	0	94	GrassLightFloor3	0	water
+185	0	94	GrassLightFloor1	0	water
+186	0	94	StonePebbles2	0	water
+187	0	94	GrassLightFloor3	0	water
+188	0	94	GrassDarkFloor3	0	water
+189	0	94	GrassDarkFloor3	0	water
+190	0	94	StoneFloor2	0	water
+191	0	94	GrassLightFloor4	0	water
+0	1	96	StoneFloor4	0	water
+191	1	94	GrassLightFloor3	0	water
+0	2	96	GrassDarkFloor2	0	water
+191	2	94	GrassDarkFloor3	0	water
+0	3	96	GrassDarkFloor1	0	water
+191	3	94	GrassLightFloor4	0	water
+0	4	96	GrassLightFloor3	0	water
+191	4	94	GrassDarkFloor4	0	water
+0	5	96	GrassLightFloor3	0	water
+191	5	94	GrassLightFloor1	0	water
+0	6	96	GrassLightFloor4	0	water
+191	6	94	GrassDarkFloor2	0	water
+0	7	96	GrassDarkFloor4	0	water
+191	7	94	GrassDarkFloor2	0	water
+0	8	96	GrassDarkFloor2	0	water
+191	8	94	GrassDarkFloor1	0	water
+0	9	96	GrassLightFloor3	0	water
+191	9	94	GrassLightFloor4	0	water
+0	10	96	GrassDarkFloor4	0	water
+191	10	94	GrassLightFloor3	0	water
+0	11	96	GrassLightFloor1	0	water
+191	11	94	Shrub	0	water
+0	12	96	GrassDarkFloor1	0	water
+191	12	94	GrassLightFloor1	0	water
+0	13	96	Shrub	0	water
+191	13	94	GrassDarkFloor2	0	water
+0	14	96	GrassLightFloor1	0	water
+191	14	94	GrassDarkFloor4	0	water
+0	15	96	GrassLightFloor4	0	water
+191	15	94	GrassDarkFloor3	0	water
+0	16	96	GrassLightFloor1	0	water
+191	16	94	GrassLightFloor3	0	water
+0	17	96	GrassDarkFloor1	0	water
+191	17	94	GrassLightFloor4	0	water
+0	18	96	GrassDarkFloor4	0	water
+191	18	94	Shrub	0	water
+0	19	96	GrassDarkFloor4	0	water
+191	19	94	GrassLightFloor4	0	water
+0	20	96	GrassLightFloor4	0	water
+191	20	94	GrassDarkFloor4	0	water
+0	21	96	GrassDarkFloor3	0	water
+191	21	94	GrassLightFloor4	0	water
+0	22	96	GrassDarkFloor4	0	water
+191	22	94	GrassDarkFloor4	0	water
+0	23	96	GrassLightFloor4	0	water
+191	23	94	GrassDarkFloor2	0	water
+0	24	96	GrassLightFloor4	0	water
+191	24	94	StonePebbles3	0	water
+0	25	96	GrassDarkFloor4	0	water
+191	25	94	GrassDarkFloor1	0	water
+0	26	96	GrassDarkFloor4	0	water
+191	26	94	GrassLightFloor1	0	water
+0	27	96	StonePebbles2	0	water
+191	27	94	GrassLightFloor1	0	water
+0	28	96	Shrub	0	water
+191	28	94	GrassDarkFloor1	0	water
+0	29	96	GrassDarkFloor3	0	water
+191	29	94	GrassLightFloor2	0	water
+0	30	96	GrassLightFloor3	0	water
+191	30	94	StonePebbles4	0	water
+0	31	96	GrassDarkFloor4	0	water
+191	31	94	GrassLightFloor4	0	water
+0	32	95	GrassLightRamp	0	water
+191	32	94	Shrub	0	water
+0	33	95	GrassLightFloor2	0	water
+191	33	94	GrassDarkFloor3	0	water
+0	34	95	GrassLightFloor3	0	water
+191	34	94	GrassDarkFloor2	0	water
+0	35	95	GrassDarkFloor4	0	water
+191	35	94	GrassDarkFloor1	0	water
+0	36	95	GrassLightFloor3	0	water
+191	36	94	GrassLightFloor4	0	water
+0	37	95	GrassDarkFloor2	0	water
+191	37	94	GrassLightFloor2	0	water
+0	38	95	GrassLightFloor4	0	water
+191	38	94	GrassLightFloor4	0	water
+0	39	95	GrassDarkFloor2	0	water
+191	39	94	StonePebbles2	0	water
+0	40	95	StoneFloor3	0	water
+191	40	94	GrassLightFloor2	0	water
+0	41	95	GrassDarkFloor2	0	water
+191	41	94	GrassDarkFloor1	0	water
+0	42	95	GrassLightFloor2	0	water
+191	42	94	GrassDarkFloor4	0	water
+0	43	95	GrassLightFloor3	0	water
+191	43	94	GrassDarkFloor4	0	water
+0	44	95	GrassLightFloor1	0	water
+191	44	94	GrassLightFloor2	0	water
+0	45	95	GrassDarkFloor4	0	water
+191	45	94	GrassLightFloor1	0	water
+0	46	95	GrassLightFloor3	0	water
+191	46	94	GrassLightFloor2	0	water
+0	47	95	GrassDarkFloor1	0	water
+191	47	94	GrassDarkFloor2	0	water
+0	48	95	GrassDarkFloor3	0	water
+191	48	94	GrassLightFloor3	0	water
+0	49	95	GrassDarkFloor3	0	water
+191	49	94	StonePebbles2	0	water
+0	50	95	GrassLightFloor1	0	water
+191	50	94	GrassLightFloor2	0	water
+0	51	95	GrassLightFloor1	0	water
+191	51	94	GrassDarkFloor4	0	water
+0	52	95	GrassDarkFloor1	0	water
+191	52	94	GrassLightFloor2	0	water
+0	53	95	Shrub	0	water
+0	54	95	GrassDarkFloor4	0	water
+0	55	95	GrassDarkFloor3	0	water
+0	56	95	GrassLightFloor3	0	water
+0	57	95	GrassDarkFloor2	0	water
+0	58	95	GrassDarkFloor2	0	water
+0	59	95	GrassDarkFloor2	0	water
+0	60	95	GrassDarkFloor3	0	water
+0	61	95	GrassDarkFloor3	0	water
+0	62	95	GrassDarkFloor1	0	water
+0	63	95	GrassDarkFloor3	0	water
+0	64	95	GrassDarkFloor4	0	water
+0	65	95	Shrub	0	water
+0	66	95	StoneBoulder	0	water
+0	67	95	GrassLightFloor3	0	water
+0	68	95	Shrub	0	water
+0	69	95	GrassLightFloor1	0	water
+0	70	95	Shrub	0	water
+0	71	95	GrassLightFloor1	0	water
+0	72	95	StonePebbles4	0	water
+0	73	95	GrassDarkFloor1	0	water
+0	74	95	Shrub	0	water
+0	75	95	GrassLightFloor2	0	water
+0	76	95	GrassLightFloor2	0	water
+0	77	95	StoneFloor3	0	water
+0	78	95	GrassDarkFloor4	0	water
+0	79	95	GrassLightFloor2	0	water
+0	80	94	GrassDarkRamp	0	water
+0	81	94	GrassDarkRamp	0	water
+0	82	94	GrassLightRamp	0	water
+0	83	94	GrassDarkFloor2	0	water
+0	84	94	StoneFloor4	0	water
+0	85	94	GrassLightFloor4	0	water
+0	86	94	GrassLightFloor4	0	water
+0	87	94	GrassDarkFloor1	0	water
+0	88	94	Shrub	0	water
+0	89	94	Shrub	0	water
+0	90	94	GrassLightFloor3	0	water
+0	91	94	GrassLightFloor4	0	water
+0	92	94	GrassDarkFloor1	0	water
+0	93	94	GrassDarkFloor4	0	water
+0	94	94	GrassDarkFloor3	0	water
+0	95	94	GrassLightFloor1	0	water
+0	96	94	GrassLightFloor1	0	water
+0	97	94	Shrub	0	water
+0	98	94	GrassDarkFloor4	0	water
+0	99	94	GrassLightFloor3	0	water
+0	100	94	GrassLightFloor2	0	water
+0	101	94	GrassLightFloor4	0	water
+0	102	94	GrassLightFloor4	0	water
+0	103	94	GrassDarkFloor4	0	water
+0	104	94	GrassLightFloor3	0	water
+0	105	94	GrassDarkFloor4	0	water
+0	106	94	GrassDarkFloor4	0	water
+0	107	94	GrassLightFloor2	0	water
+0	108	94	StoneFloor4	0	water
+0	109	94	GrassLightFloor1	0	water
+0	110	94	GrassLightFloor2	0	water
+0	111	94	GrassDarkFloor4	0	water
+0	112	94	GrassDarkFloor1	0	water
+0	113	94	GrassLightFloor4	0	water
+0	114	94	GrassLightFloor3	0	water
+0	115	94	GrassLightFloor2	0	water
+0	116	94	StonePebbles4	0	water
+0	117	94	StoneBoulder	0	water
+0	118	94	GrassDarkFloor3	0	water
+0	119	94	Shrub	0	water
+0	120	94	GrassDarkFloor1	0	water
+0	121	94	GrassDarkFloor1	0	water
+0	122	94	GrassDarkFloor3	0	water
+0	123	94	GrassLightFloor4	0	water
+0	124	94	GrassLightFloor4	0	water
+0	125	94	GrassLightFloor4	0	water
+0	126	94	GrassLightFloor1	0	water
+0	127	94	GrassLightFloor3	0	water
+0	128	94	GrassLightFloor2	0	water
+0	129	94	GrassDarkFloor3	0	water
+0	130	94	GrassLightFloor1	0	water
+0	131	94	GrassLightFloor2	0	water
+0	132	94	StoneFloor2	0	water
+0	133	94	GrassLightFloor1	0	water
+0	134	94	GrassLightFloor2	0	water
+0	135	94	StonePebbles4	0	water
+0	136	94	GrassDarkFloor4	0	water
+0	137	94	Shrub	0	water
+0	138	94	GrassLightFloor3	0	water
+0	139	94	GrassLightFloor4	0	water
+0	140	94	GrassDarkFloor2	0	water
+0	141	94	GrassDarkFloor4	0	water
+0	142	94	SoilFloor3	0	water
+0	143	94	StonePebbles3	0	water
+0	144	94	GrassDarkFloor4	0	water
+0	145	94	GrassDarkFloor3	0	water
+0	146	94	GrassDarkFloor2	0	water
+0	147	94	GrassLightFloor2	0	water
+0	148	94	Shrub	0	water
+0	149	94	GrassLightFloor3	0	water
+0	150	94	GrassDarkFloor3	0	water
+0	151	94	GrassLightFloor4	0	water
+0	152	94	Shrub	0	water
+17:59:39   manipulation: local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u)) -> river whitelist: 245 river-species entries open (>=50, any tile, any layer); 621 non-river entries on site+ring closed (surface, cavern, feature alike); 2888 entries beyond the ring left alone; 63 of the closed were unbounded (underworld) entries
+17:59:39   manipulation: probe:release all -> released 22 unit(s) [all]
+17:59:39   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+17:59:52   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:00   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:08   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:15   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:19   + 10572 ticks | wild  22 | arrivals   0 | departures   0 | deaths  0 | 342 t/s
+18:00:23   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:00:54   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:09   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:16   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:23   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:23   + 30000 ticks | wild  13 | arrivals   0 | departures   9 | deaths  0 | 370 t/s
+18:01:30   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:44   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:51   manipulation: probe:release all -> released 0 unit(s) [all]
+18:01:54   + 40617 ticks | wild   9 | arrivals   0 | departures  13 | deaths  0 | 366 t/s
+18:01:58   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:05   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:19   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:22   + 50336 ticks | wild   9 | arrivals   0 | departures  13 | deaths  0 | 396 t/s
+18:02:26   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:40   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:53   manipulation: probe:release all -> released 0 unit(s) [all]
+18:02:53   + 60935 ticks | wild   8 | arrivals   0 | departures  14 | deaths  0 | 405 t/s
+18:03:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:08   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:15   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:22   + 70906 ticks | wild   8 | arrivals   0 | departures  14 | deaths  0 | 381 t/s
+18:03:29   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:43   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:50   manipulation: probe:release all -> released 0 unit(s) [all]
+18:03:50   + 80357 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 403 t/s
+18:03:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:11   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:19   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:19   + 90127 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 383 t/s
+18:04:26   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:32   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:04:49   +100740 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 394 t/s
+18:04:53   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:00   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:15   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:18   +110138 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 367 t/s
+18:05:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:29   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:43   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:50   manipulation: probe:release all -> released 0 unit(s) [all]
+18:05:50   +120848 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 366 t/s
+18:05:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:05   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:18   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:18   +130277 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 382 t/s
+18:06:26   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:34   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:48   manipulation: probe:release all -> released 0 unit(s) [all]
+18:06:52   +140605 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 302 t/s
+18:06:56   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:11   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:19   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:23   +150059 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 334 t/s
+18:07:27   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:34   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:42   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:07:57   +160561 ticks | wild   7 | arrivals   0 | departures  15 | deaths  0 | 346 t/s
+18:08:05   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:21   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:28   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:44   manipulation: probe:release all -> released 0 unit(s) [all]
+18:08:52   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:00   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:04   +180517 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 345 t/s
+18:09:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:15   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:27   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:34   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:42   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:42   +190800 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 357 t/s
+18:09:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:09:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:05   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:20   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:10:59   +210494 ticks | wild   7 | arrivals   2 | departures  17 | deaths  0 | 307 t/s
+18:11:03   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:20   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:29   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:37   +220477 ticks | wild   7 | arrivals   2 | departures  17 | deaths  0 | 300 t/s
+18:11:45   manipulation: probe:release all -> released 0 unit(s) [all]
+18:11:54   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:03   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:11   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:15   +230354 ticks | wild   7 | arrivals   2 | departures  17 | deaths  0 | 277 t/s
+18:12:20   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:29   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:12:55   +240921 ticks | wild   6 | arrivals   2 | departures  18 | deaths  0 | 270 t/s
+18:13:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:13   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:31   +250214 ticks | wild   6 | arrivals   2 | departures  18 | deaths  0 | 284 t/s
+18:13:40   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:13:58   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:11   +260906 ticks | wild   6 | arrivals   2 | departures  18 | deaths  0 | 309 t/s
+18:14:15   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:24   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:42   manipulation: probe:release all -> released 0 unit(s) [all]
+18:14:51   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:00   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:09   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:18   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:26   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:26   +280288 ticks | wild   5 | arrivals   2 | departures  19 | deaths  0 | 287 t/s
+18:15:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:46   manipulation: probe:release all -> released 0 unit(s) [all]
+18:15:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:09   +290189 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 251 t/s
+18:16:13   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:16:49   +300307 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 278 t/s
+18:16:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:06   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:14   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:23   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:28   +310589 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 296 t/s
+18:17:32   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:50   manipulation: probe:release all -> released 0 unit(s) [all]
+18:17:59   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:08   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:08   +320534 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 246 t/s
+18:18:18   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:27   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:45   manipulation: probe:release all -> released 0 unit(s) [all]
+18:18:50   +330564 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 256 t/s
+18:18:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:13   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:32   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:32   +340804 ticks | wild   4 | arrivals   2 | departures  20 | deaths  0 | 272 t/s
+18:19:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:19:50   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:00   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:09   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:19   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:29   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:38   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:48   manipulation: probe:release all -> released 0 unit(s) [all]
+18:20:58   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:06   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:16   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:25   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:35   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:44   manipulation: probe:release all -> released 0 unit(s) [all]
+18:21:53   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:02   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:21   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:22:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:04   +390130 ticks | wild   3 | arrivals   2 | departures  21 | deaths  0 | 275 t/s
+18:23:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:21   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:30   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:43   +400119 ticks | wild   1 | arrivals   2 | departures  23 | deaths  0 | 283 t/s
+18:23:48   manipulation: probe:release all -> released 0 unit(s) [all]
+18:23:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:24:06   [rig] back at the title screen
+18:24:06   done: {"arm": "river_only", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 2, "departures": 23, "deaths": 0, "ticks": 403441, "wall_s": 1289.9, "stop": null, "ticks_per_s": 312.8, "save_untouched": true}
+18:24:29 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E26b-RIVER4/20260917-175858

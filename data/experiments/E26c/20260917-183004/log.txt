@@ -1,0 +1,68 @@
+18:30:04 run E26c 20260917-183004: The river feature's own population list. On RIVER4 every animal entry in feature_init_outdoor_riverst.feature.population reads count_min 0 against a full count_max, while region-level surface populations read count_min close to count_max. Same river-only whitelist as E26b on the site pool, plus count_min raised to count_max on the feature's own list. A season, stopping at four arrivals.
+18:30:04   [rig] DF already running (pid 50930), port 5555
+18:30:04 == E26c arm=feature_min_raised rep=1 fort=RIVER4 budget=100800 every=1000
+18:30:05   [rig] restored RIVER4.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/RIVER4
+18:30:05   restored RIVER4.preverify -> RIVER4 sha256 3845f4f26682
+18:30:24   [rig] clicked through to RIVER4 (world: Udon Alu); waiting for the map
+18:30:24   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=46)
+18:30:24   [rig] drained 0 queued popup(s)
+18:30:25   baseline: 22 wild units on map, 684 pool entries, tick 16801 year 5
+18:30:26   manipulation: local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u)) -> river whitelist: 245 river-species entries open (>=50, any tile, any layer); 621 non-river entries on site+ring closed (surface, cavern, feature alike); 2888 entries beyond the ring left alone; 63 of the closed were unbounded (underworld) entries
+18:30:26   manipulation: local r=df.global.world.raws.creatures.all; local n,tot=0,0; for i,fi in ipairs(df.global.world.features.map_features) do if tostring(fi._type):find('outdoor_river') then local f=fi.feature; for j=0,#f.population-1 do local p=f.population[j]; if p.type==df.world_population_type.Animal then tot=tot+1; if p.count_min<p.count_max then p.count_min=p.count_max; n=n+1 end end end; print(('river feature %d: count_min raised to count_max on %d of %d animal entries; irritation %d'):format(i, n, tot, f.irritation_level)) end end -> river feature 6: count_min raised to count_max on 7 of 7 animal entries; irritation 0
+18:30:26   manipulation: probe:release all -> released 22 unit(s) [all]
+18:30:26   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+18:30:34   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:47   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:54   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:58   + 10695 ticks | wild  22 | arrivals   0 | departures   0 | deaths  0 | 415 t/s
+18:31:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:14   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:21   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:24   + 20204 ticks | wild  22 | arrivals   0 | departures   0 | deaths  0 | 403 t/s
+18:31:27   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:40   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:47   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:53   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:58   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:10   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:16   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:16   + 40800 ticks | wild   9 | arrivals   0 | departures  13 | deaths  0 | 478 t/s
+18:32:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:28   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:39   + 50591 ticks | wild   8 | arrivals   0 | departures  14 | deaths  0 | 503 t/s
+18:32:45   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:51   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:02   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:02   + 60018 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 516 t/s
+18:33:08   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:14   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:20   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:25   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:43   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:15   + 90897 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 503 t/s
+18:34:18   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:24   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:30   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:39   +100459 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 474 t/s
+18:34:42   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:50   [rig] back at the title screen
+18:34:50   done: {"arm": "feature_min_raised", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 0, "departures": 16, "deaths": 0, "ticks": 101599, "wall_s": 215.4, "stop": null, "ticks_per_s": 471.6, "save_untouched": true}
+18:35:05   [rig] clicked through to RIVER4 (world: Udon Alu); waiting for the map
+18:35:05   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=46)
+18:35:13   [rig] back at the title screen
+18:35:13 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E26c/20260917-183004

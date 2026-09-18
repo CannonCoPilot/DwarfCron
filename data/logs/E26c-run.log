@@ -1,0 +1,847 @@
+18:30:04 run E26c 20260917-183004: The river feature's own population list. On RIVER4 every animal entry in feature_init_outdoor_riverst.feature.population reads count_min 0 against a full count_max, while region-level surface populations read count_min close to count_max. Same river-only whitelist as E26b on the site pool, plus count_min raised to count_max on the feature's own list. A season, stopping at four arrivals.
+18:30:04   [rig] DF already running (pid 50930), port 5555
+18:30:04 == E26c arm=feature_min_raised rep=1 fort=RIVER4 budget=100800 every=1000
+18:30:05   [rig] restored RIVER4.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/RIVER4
+18:30:05   restored RIVER4.preverify -> RIVER4 sha256 3845f4f26682
+18:30:24   [rig] clicked through to RIVER4 (world: Udon Alu); waiting for the map
+18:30:24   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=46)
+18:30:24   [rig] drained 0 queued popup(s)
+18:30:25   baseline: 22 wild units on map, 684 pool entries, tick 16801 year 5
+18:30:26   manipulation: local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u)) -> river whitelist: 245 river-species entries open (>=50, any tile, any layer); 621 non-river entries on site+ring closed (surface, cavern, feature alike); 2888 entries beyond the ring left alone; 63 of the closed were unbounded (underworld) entries
+18:30:26   manipulation: local r=df.global.world.raws.creatures.all; local n,tot=0,0; for i,fi in ipairs(df.global.world.features.map_features) do if tostring(fi._type):find('outdoor_river') then local f=fi.feature; for j=0,#f.population-1 do local p=f.population[j]; if p.type==df.world_population_type.Animal then tot=tot+1; if p.count_min<p.count_max then p.count_min=p.count_max; n=n+1 end end end; print(('river feature %d: count_min raised to count_max on %d of %d animal entries; irritation %d'):format(i, n, tot, f.irritation_level)) end end -> river feature 6: count_min raised to count_max on 7 of 7 animal entries; irritation 0
+18:30:26   manipulation: probe:release all -> released 22 unit(s) [all]
+18:30:26   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+18:30:34   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:41   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:47   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:54   manipulation: probe:release all -> released 0 unit(s) [all]
+18:30:58   + 10695 ticks | wild  22 | arrivals   0 | departures   0 | deaths  0 | 415 t/s
+18:31:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:14   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:21   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:24   + 20204 ticks | wild  22 | arrivals   0 | departures   0 | deaths  0 | 403 t/s
+18:31:27   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:40   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:47   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:53   manipulation: probe:release all -> released 0 unit(s) [all]
+18:31:58   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:04   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:10   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:16   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:16   + 40800 ticks | wild   9 | arrivals   0 | departures  13 | deaths  0 | 478 t/s
+18:32:22   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:28   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:33   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:39   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:39   + 50591 ticks | wild   8 | arrivals   0 | departures  14 | deaths  0 | 503 t/s
+18:32:45   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:51   manipulation: probe:release all -> released 0 unit(s) [all]
+18:32:57   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:02   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:02   + 60018 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 516 t/s
+18:33:08   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:14   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:20   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:25   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:31   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:37   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:43   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:49   manipulation: probe:release all -> released 0 unit(s) [all]
+18:33:55   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:01   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:07   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:12   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:15   + 90897 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 503 t/s
+18:34:18   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:24   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:30   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:36   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:39   +100459 ticks | wild   6 | arrivals   0 | departures  16 | deaths  0 | 474 t/s
+18:34:42   manipulation: probe:release all -> released 0 unit(s) [all]
+18:34:50   [rig] back at the title screen
+18:34:50   done: {"arm": "feature_min_raised", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 0, "departures": 16, "deaths": 0, "ticks": 101599, "wall_s": 215.4, "stop": null, "ticks_per_s": 471.6, "save_untouched": true}
+18:35:05   [rig] clicked through to RIVER4 (world: Udon Alu); waiting for the map
+18:35:05   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=5 tick=16801 season=0 units=46)
+18:35:13   [rig] back at the title screen
+18:35:13 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E26c/20260917-183004
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/E26c/20260917-183004
+
+# E26c -- The river feature's own population list. On RIVER4 every animal entry in feature_init_outdoor_riverst.feature.population reads count_min 0 against a full count_max, while region-level surface populations read count_min close to count_max. Same river-only whitelist as E26b on the site pool, plus count_min raised to count_max on the feature's own list. A season, stopping at four arrivals.
+run 20260917-183004 fort RIVER4 backup RIVER4.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Domain of Winds site 48 tiles 16..16,23..23 seed 424242
+commits: DwarfCron bc4bf1a seasonal-wildlife 4962368 fps cap 1000
+
+## Predictions (written before the run)
+- the draw reads the feature's world-level count: river-species arrivals with layer=feature within the season, none in E26b
+- the feature list is bookkeeping only: nothing arrives; the door is elsewhere or absent
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+feature_min_raised | 1 | True | None | 101599 | 471.6 | 0 | 16 | 0 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+
+## Waves (0; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+feature_min_raised | 1 | departure | 188 | ALLIGATOR | 16,23,0,-1,-1,0 | 150 -> 151 -> 151
+feature_min_raised | 1 | departure | 172 | HIPPO | 16,23,0,-1,-1,2 | 475 -> 477 -> 478
+feature_min_raised | 1 | departure | 173 | HIPPO | 16,23,0,-1,-1,2 | 475 -> 477 -> 478
+feature_min_raised | 1 | departure | 169 | RIVER | 16,23,0,-1,-1,3 | 275 -> 278 -> 278
+feature_min_raised | 1 | departure | 170 | RIVER | 16,23,0,-1,-1,3 | 275 -> 278 -> 278
+feature_min_raised | 1 | departure | 171 | RIVER | 16,23,0,-1,-1,3 | 275 -> 278 -> 278
+feature_min_raised | 1 | departure | 174 | HIPPO | 16,23,0,-1,-1,2 | 477 -> 478 -> 479
+feature_min_raised | 1 | departure | 175 | HIPPO | 16,23,0,-1,-1,2 | 478 -> 479 -> 479
+feature_min_raised | 1 | departure | 189 | ALLIGATOR | 16,23,0,-1,-1,0 | 151 -> 152 -> 152
+feature_min_raised | 1 | departure | 176 | HIPPO | 16,23,0,-1,-1,2 | 479 -> 480 -> 481
+feature_min_raised | 1 | departure | 177 | HIPPO | 16,23,0,-1,-1,2 | 480 -> 481 -> 481
+feature_min_raised | 1 | departure | 178 | FISH_CARP | 16,23,0,-1,-1,5 | 425 -> 427 -> 427
+feature_min_raised | 1 | departure | 179 | FISH_CARP | 16,23,0,-1,-1,5 | 425 -> 427 -> 427
+feature_min_raised | 1 | departure | 168 | FISH_STINGRAY | 16,23,0,-1,-1,6 | 425 -> 426 -> 426
+feature_min_raised | 1 | departure | 187 | FISH_STINGRAY | 16,23,0,-1,-1,6 | 426 -> 427 -> 427
+feature_min_raised | 1 | departure | 180 | FISH_CARP | 16,23,0,-1,-1,5 | 427 -> 428 -> 428
+
+## Manipulations applied
+feature_min_raised | 1 | +0 | local RIVER={['ALLIGATOR']=true,['ALLIGATOR SNAPPING TURTLE']=true,['BEAVER']=true,['BIRD_OSPREY']=true,['CROCODILE_SALTWATER']=true,['FISH_CARP']=true,['FISH_GAR_LONGNOSE']=true,['FISH_LAMPREY_SEA']=true,['FISH_MILKFISH']=true,['FISH_PIKE']=true,['FISH_STINGRAY']=true,['FISH_STURGEON']=true,['FISH_TIGERFISH']=true,['HIPPO']=true,['MINK']=true,['PLATYPUS']=true,['RIVER OTTER']=true,['SNAPPING TURTLE']=true,['SPONGE']=true}; local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c,k,u=0,0,0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; local inring=(r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1); if RIVER[id] then if p.quantity<50 then p.quantity=50 end; p.flags.extinct=false; o=o+1 elseif inring then if p.quantity_max>=10000000 then u=u+1 end; p.quantity=0; p.flags.extinct=true; c=c+1 else k=k+1 end end end; print(('river whitelist: %d river-species entries open (>=50, any tile, any layer); %d non-river entries on site+ring closed (surface, cavern, feature alike); %d entries beyond the ring left alone; %d of the closed were unbounded (underworld) entries'):format(o,c,k,u)) | river whitelist: 245 river-species entries open (>=50, any tile, any layer); 621 non-river entries on site+ring closed (surface, cavern, feature alike); 2888 entries beyond the ring left alone; 63 of the closed were unbounded (underworld) entries
+feature_min_raised | 1 | +0 | local r=df.global.world.raws.creatures.all; local n,tot=0,0; for i,fi in ipairs(df.global.world.features.map_features) do if tostring(fi._type):find('outdoor_river') then local f=fi.feature; for j=0,#f.population-1 do local p=f.population[j]; if p.type==df.world_population_type.Animal then tot=tot+1; if p.count_min<p.count_max then p.count_min=p.count_max; n=n+1 end end end; print(('river feature %d: count_min raised to count_max on %d of %d animal entries; irritation %d'):format(i, n, tot, f.irritation_level)) end end | river feature 6: count_min raised to count_max on 7 of 7 animal entries; irritation 0
+feature_min_raised | 1 | +0 | probe:release all | released 22 unit(s) [all]
+feature_min_raised | 1 | +2304 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +4712 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +7006 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +9367 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +11952 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +14327 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +16682 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +19076 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +21409 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +23785 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +26162 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +28677 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +31110 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +33419 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +35747 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +38048 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +40800 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +43344 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +45614 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +48041 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +50591 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +52819 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +55200 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +57600 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +60018 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +62662 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +65068 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +67417 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +69761 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +72369 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +74719 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +77379 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +79865 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +82304 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +84735 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +87180 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +89487 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +91996 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +94360 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +96727 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +99319 | probe:release all | released 0 unit(s) [all]
+feature_min_raised | 1 | +101599 | probe:release all | released 0 unit(s) [all]
+
+## Pool entries that changed between load and end of replicate (678; the second instrument)
+feature_min_raised | 1 | idx 3234 | BIRD_EMU ref6=15,22,-1,-1,-1,95 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3236 | BIRD_EAGLE ref6=15,22,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3248 | BIRD_TURKEY ref6=15,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3254 | WOLF ref6=15,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3255 | GROUNDHOG ref6=15,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3261 | WILD_BOAR ref6=15,22,-1,-1,-1,159 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3262 | KANGAROO ref6=15,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3263 | ADDER ref6=15,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3264 | ECHIDNA ref6=15,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3265 | KINGSNAKE ref6=15,22,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3266 | SKUNK ref6=15,22,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3267 | WEASEL ref6=15,22,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3268 | OPOSSUM ref6=15,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3269 | CRETACEOUS_CARNOTAURUS ref6=15,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3291 | POND_GRABBER ref6=15,22,-1,2,-1,8 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3292 | CROCODILE_CAVE ref6=15,22,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3293 | OLM_GIANT ref6=15,22,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3294 | TOAD_GIANT_CAVE ref6=15,22,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3300 | RAT_GIANT ref6=15,22,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3301 | BIRD_SWALLOW_CAVE_GIANT ref6=15,22,-1,2,-1,18 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3302 | GREMLIN ref6=15,22,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3303 | MOLE_DOG_NAKED ref6=15,22,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3304 | BLIND_CAVE_BEAR ref6=15,22,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3305 | GIANT_EARTHWORM ref6=15,22,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3306 | RAT_LARGE ref6=15,22,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3309 | TROLL ref6=15,22,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3310 | GORLAK ref6=15,22,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3311 | JABBERER ref6=15,22,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3312 | CRUNDLE ref6=15,22,-1,14,-1,1 quantity 143->0 max 143->143 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3313 | RAT_GIANT ref6=15,22,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3314 | TROGLODYTE ref6=15,22,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3315 | BUGBAT ref6=15,22,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3316 | BIRD_SWALLOW_CAVE_GIANT ref6=15,22,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3317 | RUTHERER ref6=15,22,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3321 | SPIDER_CAVE_GIANT ref6=15,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3322 | BLIND_CAVE_OGRE ref6=15,22,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3323 | MANERA ref6=15,22,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3324 | TROLL ref6=15,22,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3325 | REACHER ref6=15,22,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3326 | GORLAK ref6=15,22,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3338 | CAVE_BLOB ref6=15,22,-1,22,-1,11 quantity 339->0 max 339->339 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3339 | CRUNDLE ref6=15,22,-1,22,-1,12 quantity 201->0 max 201->201 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3340 | PLUMP_HELMET_MAN ref6=15,22,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3341 | FLESH_BALL ref6=15,22,-1,22,-1,14 quantity 441->0 max 441->441 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3342 | ELEMENTMAN_MUD ref6=15,22,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3343 | RUTHERER ref6=15,22,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3344 | BUGBAT ref6=15,22,-1,22,-1,17 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3345 | ELK_BIRD ref6=15,22,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3346 | GREEN_DEVOURER ref6=15,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3347 | HUNGRY_HEAD ref6=15,22,-1,22,-1,20 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3349 | SPIDER_CAVE_GIANT ref6=15,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3350 | REACHER ref6=15,22,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3351 | CAVE_DRAGON ref6=15,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3352 | TROLL ref6=15,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3353 | CREEPING_EYE ref6=15,22,-1,22,-1,26 quantity 440->0 max 440->440 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3354 | BLIND_CAVE_OGRE ref6=15,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3355 | BLOOD_MAN ref6=15,22,-1,22,-1,28 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3357 | GORLAK ref6=15,22,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3358 | MAGMA_CRAB ref6=15,22,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3359 | IMP_FIRE ref6=15,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3360 | ELEMENTMAN_FIRE ref6=15,22,-1,32,-1,2 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3361 | ELEMENTMAN_MAGMA ref6=15,22,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3363 | DEMON_18 ref6=15,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3364 | DEMON_2 ref6=15,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3365 | DEMON_3 ref6=15,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3366 | DEMON_16 ref6=15,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3367 | DEMON_17 ref6=15,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3368 | DEMON_15 ref6=15,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3369 | DEMON_13 ref6=15,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3415 | BIRD_EMU ref6=15,23,-1,-1,-1,95 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3417 | BIRD_EAGLE ref6=15,23,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3429 | BIRD_TURKEY ref6=15,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3435 | WOLF ref6=15,23,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3436 | GROUNDHOG ref6=15,23,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3442 | WILD_BOAR ref6=15,23,-1,-1,-1,159 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3443 | KANGAROO ref6=15,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3444 | ADDER ref6=15,23,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3445 | ECHIDNA ref6=15,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3446 | KINGSNAKE ref6=15,23,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3447 | SKUNK ref6=15,23,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3448 | WEASEL ref6=15,23,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3449 | OPOSSUM ref6=15,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3450 | CRETACEOUS_CARNOTAURUS ref6=15,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3472 | POND_GRABBER ref6=15,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3473 | CROCODILE_CAVE ref6=15,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3474 | OLM_GIANT ref6=15,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3475 | TOAD_GIANT_CAVE ref6=15,23,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3481 | RAT_GIANT ref6=15,23,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3482 | BIRD_SWALLOW_CAVE_GIANT ref6=15,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3483 | GREMLIN ref6=15,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3484 | MOLE_DOG_NAKED ref6=15,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3485 | BLIND_CAVE_BEAR ref6=15,23,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3486 | GIANT_EARTHWORM ref6=15,23,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3487 | RAT_LARGE ref6=15,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3490 | TROLL ref6=15,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3491 | GORLAK ref6=15,23,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3492 | JABBERER ref6=15,23,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3493 | CRUNDLE ref6=15,23,-1,14,-1,1 quantity 142->0 max 142->142 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3494 | RAT_GIANT ref6=15,23,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3495 | TROGLODYTE ref6=15,23,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3496 | BUGBAT ref6=15,23,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3497 | BIRD_SWALLOW_CAVE_GIANT ref6=15,23,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3498 | RUTHERER ref6=15,23,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3502 | SPIDER_CAVE_GIANT ref6=15,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3503 | BLIND_CAVE_OGRE ref6=15,23,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3504 | MANERA ref6=15,23,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3505 | TROLL ref6=15,23,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3506 | REACHER ref6=15,23,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3507 | GORLAK ref6=15,23,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3519 | CAVE_BLOB ref6=15,23,-1,22,-1,11 quantity 338->0 max 338->338 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3520 | CRUNDLE ref6=15,23,-1,22,-1,12 quantity 201->0 max 201->201 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3521 | PLUMP_HELMET_MAN ref6=15,23,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3522 | FLESH_BALL ref6=15,23,-1,22,-1,14 quantity 440->0 max 440->440 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3523 | ELEMENTMAN_MUD ref6=15,23,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3524 | RUTHERER ref6=15,23,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3525 | BUGBAT ref6=15,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3526 | ELK_BIRD ref6=15,23,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3527 | GREEN_DEVOURER ref6=15,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3528 | HUNGRY_HEAD ref6=15,23,-1,22,-1,20 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3530 | SPIDER_CAVE_GIANT ref6=15,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3531 | REACHER ref6=15,23,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3532 | CAVE_DRAGON ref6=15,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3533 | TROLL ref6=15,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3534 | CREEPING_EYE ref6=15,23,-1,22,-1,26 quantity 439->0 max 439->439 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3535 | BLIND_CAVE_OGRE ref6=15,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3536 | BLOOD_MAN ref6=15,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3538 | GORLAK ref6=15,23,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3539 | MAGMA_CRAB ref6=15,23,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3540 | IMP_FIRE ref6=15,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3541 | ELEMENTMAN_FIRE ref6=15,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3542 | ELEMENTMAN_MAGMA ref6=15,23,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3544 | DEMON_18 ref6=15,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3545 | DEMON_2 ref6=15,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3546 | DEMON_3 ref6=15,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3547 | DEMON_16 ref6=15,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3548 | DEMON_17 ref6=15,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3549 | DEMON_15 ref6=15,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3550 | DEMON_13 ref6=15,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3596 | BIRD_EMU ref6=15,24,-1,-1,-1,95 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3598 | BIRD_EAGLE ref6=15,24,-1,-1,-1,103 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3610 | BIRD_TURKEY ref6=15,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3616 | WOLF ref6=15,24,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3617 | GROUNDHOG ref6=15,24,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3623 | WILD_BOAR ref6=15,24,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3624 | KANGAROO ref6=15,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3625 | ADDER ref6=15,24,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3626 | ECHIDNA ref6=15,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3627 | KINGSNAKE ref6=15,24,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3628 | SKUNK ref6=15,24,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3629 | WEASEL ref6=15,24,-1,-1,-1,170 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3630 | OPOSSUM ref6=15,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3631 | CRETACEOUS_CARNOTAURUS ref6=15,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3653 | POND_GRABBER ref6=15,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3654 | CROCODILE_CAVE ref6=15,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3655 | OLM_GIANT ref6=15,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3656 | TOAD_GIANT_CAVE ref6=15,24,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3662 | RAT_GIANT ref6=15,24,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3663 | BIRD_SWALLOW_CAVE_GIANT ref6=15,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3664 | GREMLIN ref6=15,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3665 | MOLE_DOG_NAKED ref6=15,24,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3666 | BLIND_CAVE_BEAR ref6=15,24,-1,2,-1,21 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3667 | GIANT_EARTHWORM ref6=15,24,-1,2,-1,22 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3668 | RAT_LARGE ref6=15,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3671 | TROLL ref6=15,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3672 | GORLAK ref6=15,24,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3673 | JABBERER ref6=15,24,-1,14,-1,0 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3674 | CRUNDLE ref6=15,24,-1,14,-1,1 quantity 141->0 max 141->141 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3675 | RAT_GIANT ref6=15,24,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3676 | TROGLODYTE ref6=15,24,-1,14,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3677 | BUGBAT ref6=15,24,-1,14,-1,4 quantity 37->0 max 37->37 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3678 | BIRD_SWALLOW_CAVE_GIANT ref6=15,24,-1,14,-1,5 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3679 | RUTHERER ref6=15,24,-1,14,-1,6 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3683 | SPIDER_CAVE_GIANT ref6=15,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3684 | BLIND_CAVE_OGRE ref6=15,24,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3685 | MANERA ref6=15,24,-1,14,-1,12 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3686 | TROLL ref6=15,24,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3687 | REACHER ref6=15,24,-1,14,-1,14 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3688 | GORLAK ref6=15,24,-1,14,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3700 | CAVE_BLOB ref6=15,24,-1,22,-1,11 quantity 337->0 max 337->337 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3701 | CRUNDLE ref6=15,24,-1,22,-1,12 quantity 200->0 max 200->200 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3702 | PLUMP_HELMET_MAN ref6=15,24,-1,22,-1,13 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3703 | FLESH_BALL ref6=15,24,-1,22,-1,14 quantity 439->0 max 439->439 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3704 | ELEMENTMAN_MUD ref6=15,24,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3705 | RUTHERER ref6=15,24,-1,22,-1,16 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3706 | BUGBAT ref6=15,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3707 | ELK_BIRD ref6=15,24,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3708 | GREEN_DEVOURER ref6=15,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3709 | HUNGRY_HEAD ref6=15,24,-1,22,-1,20 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3711 | SPIDER_CAVE_GIANT ref6=15,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3712 | REACHER ref6=15,24,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3713 | CAVE_DRAGON ref6=15,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3714 | TROLL ref6=15,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3715 | CREEPING_EYE ref6=15,24,-1,22,-1,26 quantity 438->0 max 438->438 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3716 | BLIND_CAVE_OGRE ref6=15,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3717 | BLOOD_MAN ref6=15,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3719 | GORLAK ref6=15,24,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3720 | MAGMA_CRAB ref6=15,24,-1,32,-1,0 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3721 | IMP_FIRE ref6=15,24,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3722 | ELEMENTMAN_FIRE ref6=15,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3723 | ELEMENTMAN_MAGMA ref6=15,24,-1,32,-1,3 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3725 | DEMON_18 ref6=15,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3726 | DEMON_2 ref6=15,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3727 | DEMON_3 ref6=15,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3728 | DEMON_16 ref6=15,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3729 | DEMON_17 ref6=15,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3730 | DEMON_15 ref6=15,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 3731 | DEMON_13 ref6=15,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4513 | BIRD_EMU ref6=16,22,-1,-1,-1,95 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4515 | BIRD_EAGLE ref6=16,22,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4527 | BIRD_TURKEY ref6=16,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4533 | WOLF ref6=16,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4534 | GROUNDHOG ref6=16,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4540 | WILD_BOAR ref6=16,22,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4541 | KANGAROO ref6=16,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4542 | ADDER ref6=16,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4543 | ECHIDNA ref6=16,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4544 | KINGSNAKE ref6=16,22,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4545 | SKUNK ref6=16,22,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4546 | WEASEL ref6=16,22,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4547 | OPOSSUM ref6=16,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4548 | CRETACEOUS_CARNOTAURUS ref6=16,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4570 | POND_GRABBER ref6=16,22,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4571 | CROCODILE_CAVE ref6=16,22,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4572 | OLM_GIANT ref6=16,22,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4573 | TOAD_GIANT_CAVE ref6=16,22,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4579 | RAT_GIANT ref6=16,22,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4580 | BIRD_SWALLOW_CAVE_GIANT ref6=16,22,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4581 | GREMLIN ref6=16,22,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4582 | MOLE_DOG_NAKED ref6=16,22,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4583 | BLIND_CAVE_BEAR ref6=16,22,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4584 | GIANT_EARTHWORM ref6=16,22,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4585 | RAT_LARGE ref6=16,22,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4588 | TROLL ref6=16,22,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4589 | GORLAK ref6=16,22,-1,2,-1,27 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4590 | JABBERER ref6=16,22,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4591 | CRUNDLE ref6=16,22,-1,14,-1,1 quantity 137->0 max 137->137 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4592 | RAT_GIANT ref6=16,22,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4593 | TROGLODYTE ref6=16,22,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4594 | BUGBAT ref6=16,22,-1,14,-1,4 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4595 | BIRD_SWALLOW_CAVE_GIANT ref6=16,22,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4596 | RUTHERER ref6=16,22,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4600 | SPIDER_CAVE_GIANT ref6=16,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4601 | BLIND_CAVE_OGRE ref6=16,22,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4602 | MANERA ref6=16,22,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4603 | TROLL ref6=16,22,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4604 | REACHER ref6=16,22,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4605 | GORLAK ref6=16,22,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4617 | CAVE_BLOB ref6=16,22,-1,22,-1,11 quantity 333->0 max 333->333 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4618 | CRUNDLE ref6=16,22,-1,22,-1,12 quantity 197->0 max 197->197 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4619 | PLUMP_HELMET_MAN ref6=16,22,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4620 | FLESH_BALL ref6=16,22,-1,22,-1,14 quantity 433->0 max 433->433 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4621 | ELEMENTMAN_MUD ref6=16,22,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4622 | RUTHERER ref6=16,22,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4623 | BUGBAT ref6=16,22,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4624 | ELK_BIRD ref6=16,22,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4625 | GREEN_DEVOURER ref6=16,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4626 | HUNGRY_HEAD ref6=16,22,-1,22,-1,20 quantity 129->0 max 129->129 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4628 | SPIDER_CAVE_GIANT ref6=16,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4629 | REACHER ref6=16,22,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4630 | CAVE_DRAGON ref6=16,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4631 | TROLL ref6=16,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4632 | CREEPING_EYE ref6=16,22,-1,22,-1,26 quantity 432->0 max 432->432 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4633 | BLIND_CAVE_OGRE ref6=16,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4634 | BLOOD_MAN ref6=16,22,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4636 | GORLAK ref6=16,22,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4637 | MAGMA_CRAB ref6=16,22,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4638 | IMP_FIRE ref6=16,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4639 | ELEMENTMAN_FIRE ref6=16,22,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4640 | ELEMENTMAN_MAGMA ref6=16,22,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4642 | DEMON_18 ref6=16,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4643 | DEMON_2 ref6=16,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4644 | DEMON_3 ref6=16,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4645 | DEMON_16 ref6=16,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4646 | DEMON_17 ref6=16,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4647 | DEMON_15 ref6=16,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4648 | DEMON_13 ref6=16,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4687 | Vermin:0 ref6=16,23,-1,-1,-1,78 quantity 368->372 max 368->368 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4689 | Vermin:5 ref6=16,23,-1,-1,-1,80 quantity 197->198 max 197->197 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4690 | Vermin:8 ref6=16,23,-1,-1,-1,81 quantity 172->173 max 172->172 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4691 | Vermin:34 ref6=16,23,-1,-1,-1,88 quantity 149->152 max 149->149 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4692 | Vermin:49 ref6=16,23,-1,-1,-1,89 quantity 237->238 max 237->237 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4693 | Vermin:79 ref6=16,23,-1,-1,-1,94 quantity 410->410 max 410->410 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4694 | BIRD_EMU ref6=16,23,-1,-1,-1,95 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4695 | Vermin:91 ref6=16,23,-1,-1,-1,99 quantity 164->164 max 164->164 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4696 | BIRD_EAGLE ref6=16,23,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4697 | Vermin:118 ref6=16,23,-1,-1,-1,105 quantity 312->313 max 312->312 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4698 | Vermin:121 ref6=16,23,-1,-1,-1,106 quantity 413->415 max 413->413 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4699 | Vermin:124 ref6=16,23,-1,-1,-1,107 quantity 353->354 max 353->353 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4700 | Vermin:130 ref6=16,23,-1,-1,-1,110 quantity 37->37 max 37->37 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4705 | Vermin:145 ref6=16,23,-1,-1,-1,118 quantity 3924->3834 max 3924->3924 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4706 | Vermin:148 ref6=16,23,-1,-1,-1,119 quantity 363->365 max 363->363 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4708 | BIRD_TURKEY ref6=16,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4709 | Vermin:196 ref6=16,23,-1,-1,-1,124 quantity 2742->0 max 2742->2742 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4712 | Vermin:206 ref6=16,23,-1,-1,-1,128 quantity 324->326 max 324->324 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4714 | WOLF ref6=16,23,-1,-1,-1,134 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4715 | GROUNDHOG ref6=16,23,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4716 | Vermin:514 ref6=16,23,-1,-1,-1,150 quantity 323->263 max 323->323 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4717 | Vermin:517 ref6=16,23,-1,-1,-1,151 quantity 232->232 max 232->232 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4718 | Vermin:528 ref6=16,23,-1,-1,-1,153 quantity 329->329 max 329->329 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4719 | Vermin:531 ref6=16,23,-1,-1,-1,155 quantity 180->180 max 180->180 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4720 | Vermin:561 ref6=16,23,-1,-1,-1,158 quantity 219->222 max 219->219 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4721 | WILD_BOAR ref6=16,23,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4722 | KANGAROO ref6=16,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4723 | ADDER ref6=16,23,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4724 | ECHIDNA ref6=16,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4725 | KINGSNAKE ref6=16,23,-1,-1,-1,164 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4726 | SKUNK ref6=16,23,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4727 | WEASEL ref6=16,23,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4728 | OPOSSUM ref6=16,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4729 | CRETACEOUS_CARNOTAURUS ref6=16,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4732 | ALLIGATOR ref6=16,23,0,-1,-1,0 quantity 148->152 max 150->150 discovered 1->1 extinct 0->0
+feature_min_raised | 1 | idx 4734 | HIPPO ref6=16,23,0,-1,-1,2 quantity 469->481 max 475->475 discovered 1->1 extinct 0->0
+feature_min_raised | 1 | idx 4735 | RIVER OTTER ref6=16,23,0,-1,-1,3 quantity 272->278 max 275->275 discovered 1->1 extinct 0->0
+feature_min_raised | 1 | idx 4737 | FISH_CARP ref6=16,23,0,-1,-1,5 quantity 416->428 max 425->425 discovered 1->1 extinct 0->0
+feature_min_raised | 1 | idx 4738 | FISH_STINGRAY ref6=16,23,0,-1,-1,6 quantity 423->427 max 425->425 discovered 1->1 extinct 0->0
+feature_min_raised | 1 | idx 4740 | Vermin:566 ref6=16,23,0,-1,-1,8 quantity 10875->10876 max 10875->10875 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4741 | Vermin:562 ref6=16,23,0,-1,-1,9 quantity 10025->10025 max 10025->10025 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4742 | Vermin:561 ref6=16,23,0,-1,-1,10 quantity 10050->10050 max 10050->10050 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4751 | POND_GRABBER ref6=16,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4752 | CROCODILE_CAVE ref6=16,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4753 | OLM_GIANT ref6=16,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4754 | TOAD_GIANT_CAVE ref6=16,23,-1,2,-1,11 quantity 13->0 max 13->13 discovered 1->1 extinct 0->1
+feature_min_raised | 1 | idx 4756 | Vermin:617 ref6=16,23,-1,2,-1,13 quantity 451->455 max 451->451 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4757 | Vermin:616 ref6=16,23,-1,2,-1,14 quantity 357->360 max 357->357 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4758 | Vermin:410 ref6=16,23,-1,2,-1,15 quantity 439->441 max 439->439 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4759 | Vermin:621 ref6=16,23,-1,2,-1,16 quantity 427->431 max 427->427 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4760 | RAT_GIANT ref6=16,23,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4761 | BIRD_SWALLOW_CAVE_GIANT ref6=16,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4762 | GREMLIN ref6=16,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4763 | MOLE_DOG_NAKED ref6=16,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4764 | BLIND_CAVE_BEAR ref6=16,23,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4765 | GIANT_EARTHWORM ref6=16,23,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4766 | RAT_LARGE ref6=16,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4767 | Vermin:630 ref6=16,23,-1,2,-1,24 quantity 281->274 max 281->281 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4768 | Vermin:623 ref6=16,23,-1,2,-1,25 quantity 233->229 max 233->233 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4769 | TROLL ref6=16,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4770 | GORLAK ref6=16,23,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4771 | JABBERER ref6=16,23,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4772 | CRUNDLE ref6=16,23,-1,14,-1,1 quantity 136->0 max 136->136 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4773 | RAT_GIANT ref6=16,23,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4774 | TROGLODYTE ref6=16,23,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4775 | BUGBAT ref6=16,23,-1,14,-1,4 quantity 36->0 max 36->36 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4776 | BIRD_SWALLOW_CAVE_GIANT ref6=16,23,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4777 | RUTHERER ref6=16,23,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4778 | Vermin:623 ref6=16,23,-1,14,-1,7 quantity 247->175 max 247->247 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4779 | Vermin:630 ref6=16,23,-1,14,-1,8 quantity 262->202 max 262->262 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4780 | Vermin:616 ref6=16,23,-1,14,-1,9 quantity 413->417 max 413->413 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4781 | SPIDER_CAVE_GIANT ref6=16,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4782 | BLIND_CAVE_OGRE ref6=16,23,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4783 | MANERA ref6=16,23,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4784 | TROLL ref6=16,23,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4785 | REACHER ref6=16,23,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4786 | GORLAK ref6=16,23,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4798 | CAVE_BLOB ref6=16,23,-1,22,-1,11 quantity 332->0 max 332->332 discovered 1->1 extinct 0->1
+feature_min_raised | 1 | idx 4799 | CRUNDLE ref6=16,23,-1,22,-1,12 quantity 197->0 max 197->197 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4800 | PLUMP_HELMET_MAN ref6=16,23,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4801 | FLESH_BALL ref6=16,23,-1,22,-1,14 quantity 432->0 max 432->432 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4802 | ELEMENTMAN_MUD ref6=16,23,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4803 | RUTHERER ref6=16,23,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4804 | BUGBAT ref6=16,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4805 | ELK_BIRD ref6=16,23,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4806 | GREEN_DEVOURER ref6=16,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4807 | HUNGRY_HEAD ref6=16,23,-1,22,-1,20 quantity 128->0 max 128->128 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4809 | SPIDER_CAVE_GIANT ref6=16,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4810 | REACHER ref6=16,23,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4811 | CAVE_DRAGON ref6=16,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4812 | TROLL ref6=16,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4813 | CREEPING_EYE ref6=16,23,-1,22,-1,26 quantity 431->0 max 431->431 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4814 | BLIND_CAVE_OGRE ref6=16,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4815 | BLOOD_MAN ref6=16,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4816 | Vermin:419 ref6=16,23,-1,22,-1,29 quantity 331->207 max 331->331 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4817 | GORLAK ref6=16,23,-1,22,-1,30 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4818 | MAGMA_CRAB ref6=16,23,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4819 | IMP_FIRE ref6=16,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4820 | ELEMENTMAN_FIRE ref6=16,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4821 | ELEMENTMAN_MAGMA ref6=16,23,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4822 | Vermin:620 ref6=16,23,-1,32,-1,4 quantity 407->328 max 407->407 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4823 | DEMON_18 ref6=16,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4824 | DEMON_2 ref6=16,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4825 | DEMON_3 ref6=16,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4826 | DEMON_16 ref6=16,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4827 | DEMON_17 ref6=16,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4828 | DEMON_15 ref6=16,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4829 | DEMON_13 ref6=16,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4870 | Vermin:5 ref6=16,24,-1,-1,-1,80 quantity 195->196 max 195->195 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4872 | Vermin:34 ref6=16,24,-1,-1,-1,88 quantity 148->149 max 148->148 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4874 | Vermin:79 ref6=16,24,-1,-1,-1,94 quantity 406->407 max 406->406 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4875 | BIRD_EMU ref6=16,24,-1,-1,-1,95 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4876 | Vermin:91 ref6=16,24,-1,-1,-1,99 quantity 163->164 max 163->163 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4877 | BIRD_EAGLE ref6=16,24,-1,-1,-1,103 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4879 | Vermin:121 ref6=16,24,-1,-1,-1,106 quantity 409->410 max 409->409 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4881 | Vermin:130 ref6=16,24,-1,-1,-1,110 quantity 37->38 max 37->37 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4887 | Vermin:148 ref6=16,24,-1,-1,-1,119 quantity 359->360 max 359->359 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4889 | BIRD_TURKEY ref6=16,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4890 | Vermin:196 ref6=16,24,-1,-1,-1,124 quantity 2716->0 max 2716->2716 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4895 | WOLF ref6=16,24,-1,-1,-1,134 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4896 | GROUNDHOG ref6=16,24,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4901 | Vermin:561 ref6=16,24,-1,-1,-1,158 quantity 217->218 max 217->217 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 4902 | WILD_BOAR ref6=16,24,-1,-1,-1,159 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4903 | KANGAROO ref6=16,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4904 | ADDER ref6=16,24,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4905 | ECHIDNA ref6=16,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4906 | KINGSNAKE ref6=16,24,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4907 | SKUNK ref6=16,24,-1,-1,-1,166 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4908 | WEASEL ref6=16,24,-1,-1,-1,170 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4909 | OPOSSUM ref6=16,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4910 | CRETACEOUS_CARNOTAURUS ref6=16,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4932 | POND_GRABBER ref6=16,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4933 | CROCODILE_CAVE ref6=16,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4934 | OLM_GIANT ref6=16,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4935 | TOAD_GIANT_CAVE ref6=16,24,-1,2,-1,11 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4941 | RAT_GIANT ref6=16,24,-1,2,-1,17 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4942 | BIRD_SWALLOW_CAVE_GIANT ref6=16,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4943 | GREMLIN ref6=16,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4944 | MOLE_DOG_NAKED ref6=16,24,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4945 | BLIND_CAVE_BEAR ref6=16,24,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4946 | GIANT_EARTHWORM ref6=16,24,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4947 | RAT_LARGE ref6=16,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4950 | TROLL ref6=16,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4951 | GORLAK ref6=16,24,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4952 | JABBERER ref6=16,24,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4953 | CRUNDLE ref6=16,24,-1,14,-1,1 quantity 136->0 max 136->136 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4954 | RAT_GIANT ref6=16,24,-1,14,-1,2 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4955 | TROGLODYTE ref6=16,24,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4956 | BUGBAT ref6=16,24,-1,14,-1,4 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4957 | BIRD_SWALLOW_CAVE_GIANT ref6=16,24,-1,14,-1,5 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4958 | RUTHERER ref6=16,24,-1,14,-1,6 quantity 25->0 max 25->25 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4962 | SPIDER_CAVE_GIANT ref6=16,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4963 | BLIND_CAVE_OGRE ref6=16,24,-1,14,-1,11 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4964 | MANERA ref6=16,24,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4965 | TROLL ref6=16,24,-1,14,-1,13 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4966 | REACHER ref6=16,24,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4967 | GORLAK ref6=16,24,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4979 | CAVE_BLOB ref6=16,24,-1,22,-1,11 quantity 331->0 max 331->331 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4980 | CRUNDLE ref6=16,24,-1,22,-1,12 quantity 196->0 max 196->196 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4981 | PLUMP_HELMET_MAN ref6=16,24,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4982 | FLESH_BALL ref6=16,24,-1,22,-1,14 quantity 431->0 max 431->431 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4983 | ELEMENTMAN_MUD ref6=16,24,-1,22,-1,15 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4984 | RUTHERER ref6=16,24,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4985 | BUGBAT ref6=16,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4986 | ELK_BIRD ref6=16,24,-1,22,-1,18 quantity 30->0 max 30->30 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4987 | GREEN_DEVOURER ref6=16,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4988 | HUNGRY_HEAD ref6=16,24,-1,22,-1,20 quantity 128->0 max 128->128 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4990 | SPIDER_CAVE_GIANT ref6=16,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4991 | REACHER ref6=16,24,-1,22,-1,23 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4992 | CAVE_DRAGON ref6=16,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4993 | TROLL ref6=16,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4994 | CREEPING_EYE ref6=16,24,-1,22,-1,26 quantity 430->0 max 430->430 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4995 | BLIND_CAVE_OGRE ref6=16,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4996 | BLOOD_MAN ref6=16,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4998 | GORLAK ref6=16,24,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 4999 | MAGMA_CRAB ref6=16,24,-1,32,-1,0 quantity 35->0 max 35->35 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5000 | IMP_FIRE ref6=16,24,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5001 | ELEMENTMAN_FIRE ref6=16,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5002 | ELEMENTMAN_MAGMA ref6=16,24,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5004 | DEMON_18 ref6=16,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5005 | DEMON_2 ref6=16,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5006 | DEMON_3 ref6=16,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5007 | DEMON_16 ref6=16,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5008 | DEMON_17 ref6=16,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5009 | DEMON_15 ref6=16,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5010 | DEMON_13 ref6=16,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5885 | BIRD_EMU ref6=17,22,-1,-1,-1,95 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5887 | BIRD_EAGLE ref6=17,22,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5899 | BIRD_TURKEY ref6=17,22,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5905 | WOLF ref6=17,22,-1,-1,-1,134 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5906 | GROUNDHOG ref6=17,22,-1,-1,-1,135 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5912 | WILD_BOAR ref6=17,22,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5913 | KANGAROO ref6=17,22,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5914 | ADDER ref6=17,22,-1,-1,-1,161 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5915 | ECHIDNA ref6=17,22,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5916 | KINGSNAKE ref6=17,22,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5917 | SKUNK ref6=17,22,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5918 | WEASEL ref6=17,22,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5919 | OPOSSUM ref6=17,22,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5920 | CRETACEOUS_CARNOTAURUS ref6=17,22,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5942 | POND_GRABBER ref6=17,22,-1,4,-1,8 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5943 | TOAD_GIANT_CAVE ref6=17,22,-1,4,-1,9 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5944 | OLM_GIANT ref6=17,22,-1,4,-1,10 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5945 | CROCODILE_CAVE ref6=17,22,-1,4,-1,11 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5950 | RAT_LARGE ref6=17,22,-1,4,-1,16 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5951 | RAT_GIANT ref6=17,22,-1,4,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5952 | MOLE_DOG_NAKED ref6=17,22,-1,4,-1,18 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5953 | MOLE_GIANT ref6=17,22,-1,4,-1,19 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5954 | GREMLIN ref6=17,22,-1,4,-1,20 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5955 | GIANT_EARTHWORM ref6=17,22,-1,4,-1,21 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5956 | TROGLODYTE ref6=17,22,-1,4,-1,22 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5960 | TROLL ref6=17,22,-1,4,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5961 | GORLAK ref6=17,22,-1,4,-1,27 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5962 | JABBERER ref6=17,22,-1,14,-1,0 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5963 | CRUNDLE ref6=17,22,-1,14,-1,1 quantity 132->0 max 132->132 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5964 | RAT_GIANT ref6=17,22,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5965 | TROGLODYTE ref6=17,22,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5966 | BUGBAT ref6=17,22,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5967 | BIRD_SWALLOW_CAVE_GIANT ref6=17,22,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5968 | RUTHERER ref6=17,22,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5972 | SPIDER_CAVE_GIANT ref6=17,22,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5973 | BLIND_CAVE_OGRE ref6=17,22,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5974 | MANERA ref6=17,22,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5975 | TROLL ref6=17,22,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5976 | REACHER ref6=17,22,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5977 | GORLAK ref6=17,22,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5989 | CAVE_BLOB ref6=17,22,-1,22,-1,11 quantity 327->0 max 327->327 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5990 | CRUNDLE ref6=17,22,-1,22,-1,12 quantity 194->0 max 194->194 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5991 | PLUMP_HELMET_MAN ref6=17,22,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5992 | FLESH_BALL ref6=17,22,-1,22,-1,14 quantity 425->0 max 425->425 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5993 | ELEMENTMAN_MUD ref6=17,22,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5994 | RUTHERER ref6=17,22,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5995 | BUGBAT ref6=17,22,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5996 | ELK_BIRD ref6=17,22,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5997 | GREEN_DEVOURER ref6=17,22,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 5998 | HUNGRY_HEAD ref6=17,22,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6000 | SPIDER_CAVE_GIANT ref6=17,22,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6001 | REACHER ref6=17,22,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6002 | CAVE_DRAGON ref6=17,22,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6003 | TROLL ref6=17,22,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6004 | CREEPING_EYE ref6=17,22,-1,22,-1,26 quantity 424->0 max 424->424 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6005 | BLIND_CAVE_OGRE ref6=17,22,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6006 | BLOOD_MAN ref6=17,22,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6008 | GORLAK ref6=17,22,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6009 | MAGMA_CRAB ref6=17,22,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6010 | IMP_FIRE ref6=17,22,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6011 | ELEMENTMAN_FIRE ref6=17,22,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6012 | ELEMENTMAN_MAGMA ref6=17,22,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6014 | DEMON_18 ref6=17,22,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6015 | DEMON_2 ref6=17,22,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6016 | DEMON_3 ref6=17,22,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6017 | DEMON_16 ref6=17,22,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6018 | DEMON_17 ref6=17,22,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6019 | DEMON_15 ref6=17,22,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6020 | DEMON_13 ref6=17,22,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6059 | Vermin:0 ref6=17,23,-1,-1,-1,78 quantity 351->352 max 351->351 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6062 | Vermin:8 ref6=17,23,-1,-1,-1,81 quantity 167->168 max 167->167 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6063 | Vermin:34 ref6=17,23,-1,-1,-1,88 quantity 145->146 max 145->145 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6066 | BIRD_EMU ref6=17,23,-1,-1,-1,95 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6068 | BIRD_EAGLE ref6=17,23,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6070 | Vermin:121 ref6=17,23,-1,-1,-1,106 quantity 393->394 max 393->393 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6071 | Vermin:124 ref6=17,23,-1,-1,-1,107 quantity 337->338 max 337->337 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6080 | BIRD_TURKEY ref6=17,23,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6081 | Vermin:196 ref6=17,23,-1,-1,-1,124 quantity 2613->2531 max 2613->2613 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6086 | WOLF ref6=17,23,-1,-1,-1,134 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6087 | GROUNDHOG ref6=17,23,-1,-1,-1,135 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6092 | Vermin:561 ref6=17,23,-1,-1,-1,158 quantity 209->210 max 209->209 discovered 0->1 extinct 0->0
+feature_min_raised | 1 | idx 6093 | WILD_BOAR ref6=17,23,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6094 | KANGAROO ref6=17,23,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6095 | ADDER ref6=17,23,-1,-1,-1,161 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6096 | ECHIDNA ref6=17,23,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6097 | KINGSNAKE ref6=17,23,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6098 | SKUNK ref6=17,23,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6099 | WEASEL ref6=17,23,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6100 | OPOSSUM ref6=17,23,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6101 | CRETACEOUS_CARNOTAURUS ref6=17,23,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6123 | POND_GRABBER ref6=17,23,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6124 | CROCODILE_CAVE ref6=17,23,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6125 | OLM_GIANT ref6=17,23,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6126 | TOAD_GIANT_CAVE ref6=17,23,-1,2,-1,11 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6132 | RAT_GIANT ref6=17,23,-1,2,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6133 | BIRD_SWALLOW_CAVE_GIANT ref6=17,23,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6134 | GREMLIN ref6=17,23,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6135 | MOLE_DOG_NAKED ref6=17,23,-1,2,-1,20 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6136 | BLIND_CAVE_BEAR ref6=17,23,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6137 | GIANT_EARTHWORM ref6=17,23,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6138 | RAT_LARGE ref6=17,23,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6141 | TROLL ref6=17,23,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6142 | GORLAK ref6=17,23,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6143 | JABBERER ref6=17,23,-1,14,-1,0 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6144 | CRUNDLE ref6=17,23,-1,14,-1,1 quantity 131->0 max 131->131 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6145 | RAT_GIANT ref6=17,23,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6146 | TROGLODYTE ref6=17,23,-1,14,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6147 | BUGBAT ref6=17,23,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6148 | BIRD_SWALLOW_CAVE_GIANT ref6=17,23,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6149 | RUTHERER ref6=17,23,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6153 | SPIDER_CAVE_GIANT ref6=17,23,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6154 | BLIND_CAVE_OGRE ref6=17,23,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6155 | MANERA ref6=17,23,-1,14,-1,12 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6156 | TROLL ref6=17,23,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6157 | REACHER ref6=17,23,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6158 | GORLAK ref6=17,23,-1,14,-1,15 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6170 | CAVE_BLOB ref6=17,23,-1,22,-1,11 quantity 326->0 max 326->326 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6171 | CRUNDLE ref6=17,23,-1,22,-1,12 quantity 193->0 max 193->193 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6172 | PLUMP_HELMET_MAN ref6=17,23,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6173 | FLESH_BALL ref6=17,23,-1,22,-1,14 quantity 424->0 max 424->424 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6174 | ELEMENTMAN_MUD ref6=17,23,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6175 | RUTHERER ref6=17,23,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6176 | BUGBAT ref6=17,23,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6177 | ELK_BIRD ref6=17,23,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6178 | GREEN_DEVOURER ref6=17,23,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6179 | HUNGRY_HEAD ref6=17,23,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6181 | SPIDER_CAVE_GIANT ref6=17,23,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6182 | REACHER ref6=17,23,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6183 | CAVE_DRAGON ref6=17,23,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6184 | TROLL ref6=17,23,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6185 | CREEPING_EYE ref6=17,23,-1,22,-1,26 quantity 423->0 max 423->423 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6186 | BLIND_CAVE_OGRE ref6=17,23,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6187 | BLOOD_MAN ref6=17,23,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6189 | GORLAK ref6=17,23,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6190 | MAGMA_CRAB ref6=17,23,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6191 | IMP_FIRE ref6=17,23,-1,32,-1,1 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6192 | ELEMENTMAN_FIRE ref6=17,23,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6193 | ELEMENTMAN_MAGMA ref6=17,23,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6195 | DEMON_18 ref6=17,23,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6196 | DEMON_2 ref6=17,23,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6197 | DEMON_3 ref6=17,23,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6198 | DEMON_16 ref6=17,23,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6199 | DEMON_17 ref6=17,23,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6200 | DEMON_15 ref6=17,23,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6201 | DEMON_13 ref6=17,23,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6247 | BIRD_EMU ref6=17,24,-1,-1,-1,95 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6249 | BIRD_EAGLE ref6=17,24,-1,-1,-1,103 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6261 | BIRD_TURKEY ref6=17,24,-1,-1,-1,123 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6267 | WOLF ref6=17,24,-1,-1,-1,134 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6268 | GROUNDHOG ref6=17,24,-1,-1,-1,135 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6274 | WILD_BOAR ref6=17,24,-1,-1,-1,159 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6275 | KANGAROO ref6=17,24,-1,-1,-1,160 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6276 | ADDER ref6=17,24,-1,-1,-1,161 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6277 | ECHIDNA ref6=17,24,-1,-1,-1,162 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6278 | KINGSNAKE ref6=17,24,-1,-1,-1,164 quantity 5->0 max 5->5 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6279 | SKUNK ref6=17,24,-1,-1,-1,166 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6280 | WEASEL ref6=17,24,-1,-1,-1,170 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6281 | OPOSSUM ref6=17,24,-1,-1,-1,174 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6282 | CRETACEOUS_CARNOTAURUS ref6=17,24,-1,-1,-1,198 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6304 | POND_GRABBER ref6=17,24,-1,2,-1,8 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6305 | CROCODILE_CAVE ref6=17,24,-1,2,-1,9 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6306 | OLM_GIANT ref6=17,24,-1,2,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6307 | TOAD_GIANT_CAVE ref6=17,24,-1,2,-1,11 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6313 | RAT_GIANT ref6=17,24,-1,2,-1,17 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6314 | BIRD_SWALLOW_CAVE_GIANT ref6=17,24,-1,2,-1,18 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6315 | GREMLIN ref6=17,24,-1,2,-1,19 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6316 | MOLE_DOG_NAKED ref6=17,24,-1,2,-1,20 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6317 | BLIND_CAVE_BEAR ref6=17,24,-1,2,-1,21 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6318 | GIANT_EARTHWORM ref6=17,24,-1,2,-1,22 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6319 | RAT_LARGE ref6=17,24,-1,2,-1,23 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6322 | TROLL ref6=17,24,-1,2,-1,26 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6323 | GORLAK ref6=17,24,-1,2,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6324 | JABBERER ref6=17,24,-1,14,-1,0 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6325 | CRUNDLE ref6=17,24,-1,14,-1,1 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6326 | RAT_GIANT ref6=17,24,-1,14,-1,2 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6327 | TROGLODYTE ref6=17,24,-1,14,-1,3 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6328 | BUGBAT ref6=17,24,-1,14,-1,4 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6329 | BIRD_SWALLOW_CAVE_GIANT ref6=17,24,-1,14,-1,5 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6330 | RUTHERER ref6=17,24,-1,14,-1,6 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6334 | SPIDER_CAVE_GIANT ref6=17,24,-1,14,-1,10 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6335 | BLIND_CAVE_OGRE ref6=17,24,-1,14,-1,11 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6336 | MANERA ref6=17,24,-1,14,-1,12 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6337 | TROLL ref6=17,24,-1,14,-1,13 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6338 | REACHER ref6=17,24,-1,14,-1,14 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6339 | GORLAK ref6=17,24,-1,14,-1,15 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6351 | CAVE_BLOB ref6=17,24,-1,22,-1,11 quantity 326->0 max 326->326 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6352 | CRUNDLE ref6=17,24,-1,22,-1,12 quantity 193->0 max 193->193 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6353 | PLUMP_HELMET_MAN ref6=17,24,-1,22,-1,13 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6354 | FLESH_BALL ref6=17,24,-1,22,-1,14 quantity 423->0 max 423->423 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6355 | ELEMENTMAN_MUD ref6=17,24,-1,22,-1,15 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6356 | RUTHERER ref6=17,24,-1,22,-1,16 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6357 | BUGBAT ref6=17,24,-1,22,-1,17 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6358 | ELK_BIRD ref6=17,24,-1,22,-1,18 quantity 29->0 max 29->29 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6359 | GREEN_DEVOURER ref6=17,24,-1,22,-1,19 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6360 | HUNGRY_HEAD ref6=17,24,-1,22,-1,20 quantity 126->0 max 126->126 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6362 | SPIDER_CAVE_GIANT ref6=17,24,-1,22,-1,22 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6363 | REACHER ref6=17,24,-1,22,-1,23 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6364 | CAVE_DRAGON ref6=17,24,-1,22,-1,24 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6365 | TROLL ref6=17,24,-1,22,-1,25 quantity 8->0 max 8->8 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6366 | CREEPING_EYE ref6=17,24,-1,22,-1,26 quantity 422->0 max 422->422 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6367 | BLIND_CAVE_OGRE ref6=17,24,-1,22,-1,27 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6368 | BLOOD_MAN ref6=17,24,-1,22,-1,28 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6370 | GORLAK ref6=17,24,-1,22,-1,30 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6371 | MAGMA_CRAB ref6=17,24,-1,32,-1,0 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6372 | IMP_FIRE ref6=17,24,-1,32,-1,1 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6373 | ELEMENTMAN_FIRE ref6=17,24,-1,32,-1,2 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6374 | ELEMENTMAN_MAGMA ref6=17,24,-1,32,-1,3 quantity 19->0 max 19->19 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6376 | DEMON_18 ref6=17,24,-1,40,-1,0 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6377 | DEMON_2 ref6=17,24,-1,40,-1,1 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6378 | DEMON_3 ref6=17,24,-1,40,-1,2 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6379 | DEMON_16 ref6=17,24,-1,40,-1,3 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6380 | DEMON_17 ref6=17,24,-1,40,-1,4 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6381 | DEMON_15 ref6=17,24,-1,40,-1,5 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6382 | DEMON_13 ref6=17,24,-1,40,-1,6 quantity 10000001->0 max 10000001->10000001 discovered 0->0 extinct 0->1
+feature_min_raised | 1 | idx 6926 | ALLIGATOR ref6=18,21,0,-1,-1,6 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+feature_min_raised | 1 | idx 7285 | ALLIGATOR ref6=18,23,0,-1,-1,2 quantity 40->50 max 40->40 discovered 0->0 extinct 0->0
+
+## Units present at load (held group from the save), 22 rows; first few:
+feature_min_raised | 1 | 168 | FISH_STINGRAY ref6=16,23,0,-1,-1,6 countdown=25310 flag_src=1
+feature_min_raised | 1 | 169 | RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=26595 flag_src=1
+feature_min_raised | 1 | 170 | RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=21284 flag_src=1
+feature_min_raised | 1 | 171 | RIVER OTTER ref6=16,23,0,-1,-1,3 countdown=26866 flag_src=1
+feature_min_raised | 1 | 172 | HIPPO ref6=16,23,0,-1,-1,2 countdown=24717 flag_src=1
+feature_min_raised | 1 | 173 | HIPPO ref6=16,23,0,-1,-1,2 countdown=21710 flag_src=1
+feature_min_raised | 1 | 174 | HIPPO ref6=16,23,0,-1,-1,2 countdown=26623 flag_src=1
+feature_min_raised | 1 | 175 | HIPPO ref6=16,23,0,-1,-1,2 countdown=21636 flag_src=1
+
