@@ -1,0 +1,228 @@
+{
+  "id": "E22",
+  "title": "Forced events on the map while the ecology levers are armed, against controls. CTRL, small prey open first; when the first prey wave lands DFHack forces the event and opens the predator entries (cougar, dingo, wolf) so predators are guaranteed on the map during it (the first pass left predator presence to the species lottery and one lever arm drew none): a dwarven caravan (`force Caravan MOUNTAIN`), a migrant wave (`force Migrants`), or a megabeast (`force Megabeast`). Lever arms: 1,500 ticks later the predators are gathered to the prey and PREDATOR_OR_PREY written, then every 1,500 ticks (what the v5.6 ecology switch will do). Control arms: same forced event, no lever. Every 1,500 ticks: caravans, merchants, pack animals, citizens and megabeasts on the map and dead; predator combat reports; popups drained. 30,000 ticks after the force.",
+  "fork": "v5.6 safety: do armed predators attack merchants, pack animals or migrants; does a megabeast disturb the wave machinery or pick up the relation; do the arrival popups halt the scheduler (F7). Forced, not waited for (user, 17 Sep).",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 1500,
+  "tick_budget": 60000,
+  "combat": true,
+  "tool_must_be": {
+    "enabled": 0,
+    "groups_enabled": 0,
+    "scheduled": 0
+  },
+  "predictions": [
+    {
+      "model": "the relation is pairwise between wild units only",
+      "expects": "merchants, pack animals and migrants never appear in a predator's combat reports beyond the control's rate; megabeast arrival leaves arrivals and departures unchanged"
+    },
+    {
+      "model": "armed predators are generally hostile",
+      "expects": "lever arms show merchant, pack-animal or citizen combat and deaths the controls do not"
+    },
+    {
+      "model": "a forced event is ignored or never reaches the map",
+      "expects": "the event probe shows nothing new for the whole run in both arms; that event needs a different trigger"
+    }
+  ],
+  "kill_criterion": "a merchant, pack-animal or citizen death in a lever arm the control lacks is the positive; equal counts with the event present clears the lever for that event",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "caravan_control",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Caravan','MOUNTAIN'); print('force Caravan MOUNTAIN ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      }
+    },
+    {
+      "name": "caravan_lever",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Caravan','MOUNTAIN'); print('force Caravan MOUNTAIN ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      },
+      "after_on_arrival": {
+        "ticks": 3000,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      }
+    },
+    {
+      "name": "migrants_control",
+      "replicates": 1,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Migrants'); print('force Migrants ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      }
+    },
+    {
+      "name": "migrants_lever",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Migrants'); print('force Migrants ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      },
+      "after_on_arrival": {
+        "ticks": 3000,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      }
+    },
+    {
+      "name": "megabeast_control",
+      "replicates": 1,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Megabeast'); print('force Megabeast ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      }
+    },
+    {
+      "name": "megabeast_lever",
+      "replicates": 2,
+      "pre": [
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c))",
+        "probe:release surface"
+      ],
+      "on_arrival_min_units": 2,
+      "on_arrival": [
+        "probe:release surface",
+        "local ok,err=pcall(dfhack.run_command,'force','Megabeast'); print('force Megabeast ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick)",
+        "local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c))",
+        "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      },
+      "stop_when": {
+        "ticks_after_on_arrival": 33000
+      },
+      "after_on_arrival": {
+        "ticks": 3000,
+        "do": [
+          "probe:release surface",
+          "probe:gather",
+          "probe:lever relmap",
+          "probe:rel",
+          "local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick))"
+        ]
+      }
+    }
+  ]
+}

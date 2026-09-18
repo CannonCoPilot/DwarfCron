@@ -1,0 +1,341 @@
+19:40:51 run E22-caravan-depot 20260917-194051: E22 caravan trials, redone with a trade depot (user, 17 Sep: without a depot the caravan parks at the edge and leaves, so the merchants never cross the map). A 5x5 trade depot is placed on flat ground beside a citizen and completed with build-now before anything else; then small prey open, the dwarven caravan forced on the first prey wave with the predator entries opened, predators gathered and PREDATOR_OR_PREY written 3,000 ticks later and every 1,500 ticks. Two trials, levers armed.
+19:40:51   [rig] DF already running (pid 50930), port 5555
+19:40:51 == E22-caravan-depot arm=caravan_depot_lever rep=1 fort=CTRL budget=60000 every=1500
+19:40:51   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+19:40:51   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+19:41:16   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+19:41:16   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+19:41:16   [rig] drained 0 queued popup(s)
+19:41:17   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+19:41:18   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='PORCUPINE' or id=='ECHIDNA' or id=='BADGER' or id=='WOMBAT' or id=='BIRD_EMU') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed %d'):format(o,c)) -> opened 24 entries at 30 (PORCUPINE ECHIDNA BADGER WOMBAT BIRD_EMU); closed 153
+19:41:18   manipulation: local cz; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=u break end end; if not cz then print('depot: no citizen found') return end; local function flat(x,y,z) for dx=0,4 do for dy=0,4 do local p=xyz2pos(x+dx,y+dy,z); if not dfhack.maps.isValidTilePos(p) then return false end; local tt=dfhack.maps.getTileType(p); if not tt then return false end; local a=df.tiletype.attrs[tt]; if df.tiletype_shape[a.shape]~='FLOOR' or df.tiletype_material[a.material]=='TREE' then return false end; local b=dfhack.maps.getTileBlock(p); local occ=b.occupancy[p.x%16][p.y%16]; if occ.building~=0 or b.designation[p.x%16][p.y%16].flow_size>0 then return false end end end; return true end; local z=cz.pos.z; local found; for r=0,40 do for dx=-r,r do for dy=-r,r do if not found and (math.abs(dx)==r or math.abs(dy)==r) then local x,y=cz.pos.x+dx,cz.pos.y+dy; if flat(x,y,z) then found={x=x,y=y} end end end end; if found then break end end; if not found then print('depot: no flat 5x5 near citizen', cz.id, cz.pos.x, cz.pos.y, z) return end; local bld,err=dfhack.buildings.constructBuilding{type=df.building_type.TradeDepot, pos=xyz2pos(found.x,found.y,z), width=5, height=5}; if not bld then print('depot: constructBuilding failed: '..tostring(err)) return end; local ok,e2=pcall(dfhack.run_command,'build-now'); print(('depot: trade depot %d planned at %d,%d,%d (5x5) near citizen %d; build-now -> %s %s; stage %s'):format(bld.id, found.x, found.y, z, cz.id, tostring(ok), tostring(e2), tostring(bld:getBuildStage()))) -> Skipped 1 building with pending items
+Completed 0 construction jobs
+depot: trade depot 1 planned at 99,93,104 (5x5) near citizen 108; build-now -> true 0; stage 0
+19:41:18   manipulation: local n,done=0,0; for _,b in ipairs(df.global.world.buildings.all) do if b:getType()==df.building_type.TradeDepot then n=n+1; if b:getBuildStage()==b:getMaxBuildStage() then done=done+1 end end end; print(('depot check: %d trade depot(s), %d complete'):format(n,done)) -> depot check: 1 trade depot(s), 0 complete
+19:41:18   manipulation: probe:release surface -> released 0 unit(s) [surface]
+19:41:18   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '0'}
+19:41:27   manipulation: probe:release surface -> released 11 unit(s) [surface]
+19:41:28   manipulation: local ok,err=pcall(dfhack.run_command,'force','Caravan','MOUNTAIN'); print('force Caravan MOUNTAIN ->', tostring(ok), tostring(err), 'caravans', #df.global.plotinfo.caravans, 'tick', df.global.cur_year_tick) -> force Caravan MOUNTAIN ->	true	0	caravans	0	tick	18417
+19:41:28   manipulation: local site=df.world_site.find(df.global.plotinfo.site_id); local x0,x1=math.floor(site.global_min_x/16),math.floor(site.global_max_x/16); local y0,y1=math.floor(site.global_min_y/16),math.floor(site.global_max_y/16); local o,c=0,0; for _,p in ipairs(df.global.world.populations.all) do local r=p.population; if p.type==df.world_population_type.Animal and r.feature_idx<0 and r.cave_id<0 and r.region_x>=x0-1 and r.region_x<=x1+1 and r.region_y>=y0-1 and r.region_y<=y1+1 and p.quantity_max<10000000 then local cr=df.creature_raw.find(p.race); local id=cr and cr.creature_id or ''; if (id=='COUGAR' or id=='DINGO' or id=='WOLF') then p.quantity=30; p.flags.extinct=false; o=o+1 else p.quantity=0; p.flags.extinct=true; c=c+1 end end end; print(('opened %d entries at 30 (COUGAR DINGO WOLF); closed %d'):format(o,c)) -> opened 18 entries at 30 (COUGAR DINGO WOLF); closed 159
+19:41:28   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=0 [] merchants=0 dead=0 animals=0 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=18417
+19:41:28   manipulation: probe:release surface -> released 0 unit(s) [surface]
+19:41:28   manipulation: probe:gather -> gather: moved 0 predator(s) [] to within 6 tiles of unit 151 PORCUPINE at 34,163,104
+19:41:28   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 0 pair(s), 0 pair(s) without a slot, 0 predator(s) x 36 other(s)
+19:41:29   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+19:41:29   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=0 [] merchants=0 dead=0 animals=0 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=18417
+19:41:44   manipulation: probe:release surface -> released 3 unit(s) [surface]
+19:41:44   manipulation: probe:gather -> gather: moved 3 predator(s) [171 172 173] to within 6 tiles of unit 151 PORCUPINE at 37,128,104
+19:41:44   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 108 pair(s), 0 pair(s) without a slot, 3 predator(s) x 36 other(s)
+19:41:44   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	24
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	15
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	9
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	9
+WOLF	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	6
+19:41:44   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2905] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=19984
+19:41:50   manipulation: probe:release surface -> released 3 unit(s) [surface]
+19:41:50   manipulation: probe:gather -> gather: moved 6 predator(s) [171 172 173 174 175 176] to within 6 tiles of unit 151 PORCUPINE at 86,176,104
+19:41:50   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 216 pair(s), 0 pair(s) without a slot, 6 predator(s) x 36 other(s)
+19:41:51   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	36
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	WOLF	NONE	NONE	18
+19:41:51   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2745] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=21584
+19:41:51   manipulation: probe:release surface -> released 0 unit(s) [surface]
+19:41:51   manipulation: probe:gather -> gather: moved 6 predator(s) [171 172 173 174 175 176] to within 6 tiles of unit 151 PORCUPINE at 86,176,104
+19:41:51   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 216 pair(s), 0 pair(s) without a slot, 6 predator(s) x 36 other(s)
+19:41:51   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	36
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	WOLF	NONE	NONE	18
+19:41:51   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2745] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=21584
+19:41:57   manipulation: probe:release surface -> released 10 unit(s) [surface]
+19:41:57   manipulation: probe:gather -> gather: moved 16 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186] to within 6 tiles of unit 151 PORCUPINE at 186,79,104
+19:41:57   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 576 pair(s), 0 pair(s) without a slot, 16 predator(s) x 36 other(s)
+19:41:57   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	36
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	WOLF	STRANGER	STRANGER	18
+WOLF	DINGO	NONE	NONE	60
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	80
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	50
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	PORCUPINE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	10
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	100
+DINGO	WOLF	NONE	NONE	60
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	90
+19:41:57   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2588] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=23152
+19:42:03   manipulation: probe:release surface -> released 1 unit(s) [surface]
+19:42:03   manipulation: probe:gather -> gather: moved 17 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187] to within 6 tiles of unit 152 BIRD_EMU at 41,69,104
+19:42:03   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 560 pair(s), 35 pair(s) without a slot, 17 predator(s) x 35 other(s)
+19:42:03   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	36
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	18
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	12
+WOLF	WOLF	STRANGER	STRANGER	18
+WOLF	DINGO	STRANGER	NONE	1
+WOLF	DINGO	STRANGER	STRANGER	55
+WOLF	COUGAR	NOSLOT	NOSLOT	6
+WOLF	DINGO	NONE	NONE	4
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	80
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	50
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	100
+DINGO	WOLF	NONE	STRANGER	1
+DINGO	WOLF	NONE	NONE	4
+DINGO	WOLF	STRANGER	STRANGER	55
+DINGO	DINGO	STRANGER	STRANGER	4
+DINGO	DINGO	NONE	NONE	14
+DINGO	COUGAR	NOSLOT	NOSLOT	10
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	72
+COUGAR	ELK_BIRD	NOSLOT	NOSLOT	8
+COUGAR	MAGMA_CRAB	NOSLOT	NOSLOT	5
+COUGAR	TROGLODYTE	NOSLOT	NOSLOT	6
+COUGAR	PLUMP_HELMET_MAN	NOSLOT	NOSLOT	3
+COUGAR	DEMON_13	NOSLOT	NOSLOT	3
+COUGAR	BIRD_EMU	NOSLOT	NOSLOT	10
+COUGAR	WOLF	NOSLOT	NOSLOT	6
+COUGAR	DINGO	NOSLOT	NOSLOT	10
+19:42:03   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2420] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=24834
+19:42:10   manipulation: probe:release surface -> released 2 unit(s) [surface]
+19:42:10   manipulation: probe:gather -> gather: moved 19 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 190] to within 6 tiles of unit 153 BIRD_EMU at 94,20,104
+19:42:10   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 646 pair(s), 0 pair(s) without a slot, 19 predator(s) x 34 other(s)
+19:42:10   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	64
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	40
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	24
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	24
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	72
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	14
+WOLF	WOLF	STRANGER	STRANGER	18
+WOLF	DINGO	STRANGER	STRANGER	60
+WOLF	COUGAR	STRANGER	STRANGER	4
+WOLF	WOLF	NONE	NONE	24
+WOLF	COUGAR	STRANGER	NONE	1
+WOLF	COUGAR	NONE	NONE	3
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	80
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	50
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	60
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	30
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	90
+DINGO	WOLF	STRANGER	STRANGER	60
+DINGO	DINGO	STRANGER	STRANGER	18
+DINGO	COUGAR	NONE	NONE	1
+DINGO	WOLF	NONE	NONE	19
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	72
+DINGO	COUGAR	STRANGER	STRANGER	8
+DINGO	COUGAR	STRANGER	NONE	1
+DINGO	WOLF	PREDATOR_OR_PREY	NONE	1
+COUGAR	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	8
+COUGAR	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	9
+COUGAR	WOLF	STRANGER	STRANGER	4
+COUGAR	WOLF	NONE	STRANGER	1
+COUGAR	WOLF	NONE	NONE	3
+COUGAR	DINGO	NONE	NONE	1
+COUGAR	DINGO	STRANGER	STRANGER	8
+COUGAR	DINGO	NONE	STRANGER	1
+WOLF	DINGO	NONE	NONE	19
+WOLF	DINGO	NONE	PREDATOR_OR_PREY	1
+19:42:10   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2261] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=26427
+19:42:16   manipulation: probe:release surface -> released 6 unit(s) [surface]
+19:42:16   manipulation: probe:gather -> gather: moved 23 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 187 188 191 192 193 194 195 196] to within 6 tiles of unit 154 BIRD_EMU at 137,88,104
+19:42:17   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 736 pair(s), 0 pair(s) without a slot, 23 predator(s) x 32 other(s)
+19:42:17   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	104
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	65
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	78
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	91
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	42
+WOLF	WOLF	STRANGER	STRANGER	30
+WOLF	DINGO	NONE	NONE	60
+WOLF	DINGO	STRANGER	STRANGER	56
+WOLF	COUGAR	STRANGER	STRANGER	7
+WOLF	WOLF	NONE	NONE	84
+WOLF	DINGO	STRANGER	NONE	1
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	72
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	45
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	54
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	27
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	27
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	63
+DINGO	WOLF	NONE	NONE	60
+DINGO	WOLF	NONE	STRANGER	1
+DINGO	DINGO	STRANGER	STRANGER	4
+DINGO	DINGO	NONE	NONE	12
+DINGO	COUGAR	NONE	NONE	1
+DINGO	WOLF	STRANGER	STRANGER	56
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	56
+DINGO	COUGAR	STRANGER	STRANGER	8
+COUGAR	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	8
+COUGAR	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	7
+COUGAR	WOLF	STRANGER	STRANGER	7
+COUGAR	DINGO	NONE	NONE	1
+COUGAR	DINGO	STRANGER	STRANGER	8
+COUGAR	WOLF	NONE	NONE	6
+WOLF	COUGAR	NONE	NONE	6
+19:42:17   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:2091] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=28126
+19:42:23   manipulation: probe:release surface -> released 7 unit(s) [surface]
+19:42:23   manipulation: probe:gather -> gather: moved 30 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 187 188 191 192 193 194 195 196 197 198 199 200 201 202 203] to within 6 tiles of unit 155 BIRD_EMU at 73,161,104
+19:42:23   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 930 pair(s), 0 pair(s) without a slot, 30 predator(s) x 31 other(s)
+19:42:23   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	104
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	65
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	78
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	78
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	42
+WOLF	WOLF	STRANGER	STRANGER	114
+WOLF	DINGO	STRANGER	STRANGER	113
+WOLF	DINGO	NONE	NONE	93
+WOLF	COUGAR	STRANGER	STRANGER	13
+WOLF	DINGO	STRANGER	NONE	2
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	128
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	80
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	96
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	48
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	96
+DINGO	WOLF	STRANGER	STRANGER	113
+DINGO	DINGO	STRANGER	STRANGER	22
+DINGO	COUGAR	STRANGER	STRANGER	9
+DINGO	DINGO	NONE	NONE	134
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	84
+DINGO	WOLF	NONE	NONE	93
+DINGO	WOLF	NONE	STRANGER	2
+COUGAR	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	8
+COUGAR	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	WOLF	STRANGER	STRANGER	13
+COUGAR	DINGO	STRANGER	STRANGER	9
+COUGAR	DINGO	NONE	NONE	7
+DINGO	COUGAR	NONE	NONE	7
+19:42:24   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:1926] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=29770
+19:42:30   manipulation: probe:release surface -> released 5 unit(s) [surface]
+19:42:30   manipulation: probe:gather -> gather: moved 35 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 187 188 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208] to within 6 tiles of unit 156 BIRD_EMU at 176,66,104
+19:42:30   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 1050 pair(s), 0 pair(s) without a slot, 35 predator(s) x 30 other(s)
+19:42:30   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	104
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	65
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	78
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	65
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	38
+WOLF	WOLF	STRANGER	STRANGER	112
+WOLF	DINGO	STRANGER	STRANGER	208
+WOLF	COUGAR	STRANGER	STRANGER	13
+WOLF	DINGO	NONE	NONE	65
+WOLF	WOLF	NONE	NONE	6
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	168
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	105
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	126
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	63
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	63
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	105
+DINGO	WOLF	STRANGER	STRANGER	208
+DINGO	DINGO	STRANGER	STRANGER	156
+DINGO	COUGAR	STRANGER	STRANGER	16
+DINGO	DINGO	NONE	NONE	160
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	104
+COUGAR	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	8
+COUGAR	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	WOLF	STRANGER	STRANGER	13
+COUGAR	DINGO	STRANGER	STRANGER	16
+COUGAR	DINGO	NONE	NONE	5
+DINGO	WOLF	NONE	NONE	65
+DINGO	COUGAR	NONE	NONE	5
+19:42:30   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:1765] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=31382
+19:42:36   manipulation: probe:release surface -> released 1 unit(s) [surface]
+19:42:36   manipulation: probe:gather -> gather: moved 36 predator(s) [171 172 173 174 175 176 177 178 179 180 181 182 183 184 185 187 188 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 209] to within 6 tiles of unit 157 BIRD_EMU at 99,121,104
+19:42:37   manipulation: probe:lever relmap -> lever relmap: PREDATOR_OR_PREY written on 1015 pair(s), 29 pair(s) without a slot, 36 predator(s) x 29 other(s)
+19:42:37   manipulation: probe:rel -> pred	other	pred_to_other	other_to_pred	pairs
+WOLF	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	104
+WOLF	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	65
+WOLF	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	78
+WOLF	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	39
+WOLF	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	52
+WOLF	WOLF	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	38
+WOLF	WOLF	STRANGER	STRANGER	118
+WOLF	DINGO	STRANGER	STRANGER	273
+WOLF	COUGAR	STRANGER	STRANGER	13
+WOLF	COUGAR	NOSLOT	NOSLOT	13
+DINGO	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	168
+DINGO	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	105
+DINGO	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	126
+DINGO	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	63
+DINGO	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	63
+DINGO	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	84
+DINGO	WOLF	STRANGER	STRANGER	273
+DINGO	DINGO	STRANGER	STRANGER	316
+DINGO	COUGAR	STRANGER	STRANGER	21
+DINGO	COUGAR	NOSLOT	NOSLOT	21
+DINGO	DINGO	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	WE_ARE_SAME_RACE_WILDERNESS_ANIMALS	104
+COUGAR	ELK_BIRD	PREDATOR_OR_PREY	PREDATOR_OR_PREY	8
+COUGAR	MAGMA_CRAB	PREDATOR_OR_PREY	PREDATOR_OR_PREY	5
+COUGAR	TROGLODYTE	PREDATOR_OR_PREY	PREDATOR_OR_PREY	6
+COUGAR	PLUMP_HELMET_MAN	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	DEMON_13	PREDATOR_OR_PREY	PREDATOR_OR_PREY	3
+COUGAR	BIRD_EMU	PREDATOR_OR_PREY	PREDATOR_OR_PREY	4
+COUGAR	WOLF	STRANGER	STRANGER	13
+COUGAR	DINGO	STRANGER	STRANGER	21
+COUGAR	COUGAR	NOSLOT	NOSLOT	2
+COUGAR	ELK_BIRD	NOSLOT	NOSLOT	8
+COUGAR	MAGMA_CRAB	NOSLOT	NOSLOT	5
+COUGAR	TROGLODYTE	NOSLOT	NOSLOT	6
+COUGAR	PLUMP_HELMET_MAN	NOSLOT	NOSLOT	3
+COUGAR	DEMON_13	NOSLOT	NOSLOT	3
+COUGAR	BIRD_EMU	NOSLOT	NOSLOT	4
+COUGAR	WOLF	NOSLOT	NOSLOT	13
+COUGAR	DINGO	NOSLOT	NOSLOT	21
+19:42:37   manipulation: local c=df.global.plotinfo.caravans; local m,md,a,ad,cz,czd,mb,mbd=0,0,0,0,0,0,0,0; for _,u in ipairs(df.global.world.units.all) do local dead=dfhack.units.isDead(u); if u.flags1.merchant then local isan=false; pcall(function() isan=dfhack.units.isAnimal(u) end); if isan then a=a+1; if dead then ad=ad+1 end else m=m+1; if dead then md=md+1 end end end; if dfhack.units.isCitizen(u) then cz=cz+1; if dead then czd=czd+1 end end; local cr=df.creature_raw.find(u.race); local cs=cr and cr.caste[u.caste]; if cs and (cs.flags.MEGABEAST or cs.flags.SEMIMEGABEAST) then mb=mb+1; if dead then mbd=mbd+1 end end end; local ents=''; for _,cv in ipairs(c) do local e=df.historical_entity.find(cv.entity); ents=ents..' '..(e and e.entity_raw.code or '?')..':'..tostring(cv.time_remaining) end; print(('events: caravans=%d [%s] merchants=%d dead=%d animals=%d dead=%d citizens=%d dead=%d megabeasts=%d dead=%d season=%d tick=%d'):format(#c, ents, m, md, a, ad, cz, czd, mb, mbd, df.global.cur_season, df.global.cur_year_tick)) -> events: caravans=1 [ MOUNTAIN:1607] merchants=2 dead=0 animals=2 dead=0 citizens=7 dead=0 megabeasts=0 dead=0 season=0 tick=32961
+19:42:37   + 16161 ticks | wild  65 | arrivals  61 | departures   0 | deaths  9 | 298 t/s
