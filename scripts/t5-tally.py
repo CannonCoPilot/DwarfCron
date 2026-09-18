@@ -11,7 +11,7 @@ for r in csv.DictReader(open(f"{run_dir}/events.tsv"), delimiter="\t"): ev[int(r
 pos = defaultdict(lambda: defaultdict(dict))   # rep -> tick -> id -> (species, x, y, z, wild)
 for r in csv.DictReader(open(f"{run_dir}/units.tsv"), delimiter="\t"):
     if r["dead"] == "1" or r["inactive"] == "1": continue
-    pos[int(r["rep"])][int(r["tick"])][r["id"]] = (r["species"], int(r["x"]), int(r["y"]), int(r["z"]), r["wild"])
+    pos[int(r["rep"])][int(r["tick"])][r["id"]] = (r["species"], int(r["x"]), int(r["y"]), int(r["z"]), r["wild"], r["layer"])
 print(f"run {run_dir}")
 for rep in sorted(ev):
     rows = ev[rep]; led = set(); hold = dism = None; pool = []
@@ -28,21 +28,22 @@ for rep in sorted(ev):
     stuck = set(); run = defaultdict(lambda: (None, 0))
     for t in ticks:
         for uid, v in pos[rep][t].items():
-            if v[4] != "1": continue
+            if v[4] != "1" or v[5] != "surface": continue
             last, n = run[uid]; run[uid] = (v[1:4], n + 1 if v[1:4] == last else 1)
             if run[uid][1] >= 5: stuck.add((uid, v[0]))
-    # first armed pack spread
-    pack = None; dists = []
+    # first armed pack spread: the first single species with 4+ wild members at once, followed by id
+    pack = None; psp = None; dists = []
     for t in ticks:
-        armed = {u: v for u, v in pos[rep][t].items() if v[0] in ("DINGO", "COUGAR", "WOLF") and v[4] == "1"}
-        if pack is None and len(armed) >= 4: pack = set(armed)
+        for sp in ("DINGO", "COUGAR", "WOLF"):
+            armed = {u: v for u, v in pos[rep][t].items() if v[0] == sp and v[4] == "1"}
+            if pack is None and len(armed) >= 4: pack, psp = set(armed), sp
         if pack:
-            u = {i: v for i, v in armed.items() if i in pack}
+            u = {i: v for i, v in pos[rep][t].items() if i in pack and v[4] == "1"}
             if len(u) >= 2:
                 cx = sum(v[1] for v in u.values()) / len(u); cy = sum(v[2] for v in u.values()) / len(u)
                 dists.append(sum(max(abs(v[1] - cx), abs(v[2] - cy)) for v in u.values()) / len(u))
     p0 = pool[0][1] if pool else None; pmid = [q for t, q in pool if hold and dism and hold <= t <= dism]; pend = pool[-1][1] if pool else None
-    spread = f"{sum(dists)/len(dists):.2f} over {len(dists)} samples" if dists else "no armed pack of 4+"
+    spread = f"{psp} {sum(dists)/len(dists):.2f} over {len(dists)} samples" if dists else "no armed pack of 4+"
     print(f"rep {rep}: led={sorted(led)}")
     print(f"  hold at {hold}, kangaroos during hold min/max {min(during) if during else '-'}/{max(during) if during else '-'}, dismiss at {dism}, all gone at {gone_at}")
     print(f"  kangaroo pool: start {p0}, during hold {sorted(set(pmid))}, end {pend}")
