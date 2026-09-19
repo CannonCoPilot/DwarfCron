@@ -366,5 +366,6 @@ code{{font-family:var(--mono);font-size:.92em}}
 </div>
 """
 out_path.parent.mkdir(parents=True, exist_ok=True)
+page = page.replace("\ufffd", "&#xFFFD;")   # a replacement char from a lossy screen dump is written as an entity, not the raw code point
 out_path.write_text(page)
 print(f"wrote {out_path} ({out_path.stat().st_size/1e6:.1f} MB) from {run_dir}; claims {n_claims}; " + " ".join(f"{k} {v}" for k, v in tally.items() if v))
