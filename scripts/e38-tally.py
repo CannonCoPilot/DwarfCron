@@ -78,9 +78,17 @@ for k in sorted(samples):
         culled[k] = ["one phase has no surviving samples"]
         continue
     mo, mf = statistics.mean(on), statistics.mean(off)
+    # the E37 confound, inside one replicate: if the on-blocks carried more animals than the
+    # off-blocks, part of the gap is population, not jobs. Report both unit means so that is
+    # visible, and the per-unit charge the gap would imply if it were ALL population.
+    if k[0] == "toggle":
+        u_on = [x[4] for x in kept if x[2]]; u_off = [x[4] for x in kept if not x[2]]
+    else:
+        u_on = [x[4] for x in kept if x[0] % 2 == 0]; u_off = [x[4] for x in kept if x[0] % 2 == 1]
     per_rep[k] = dict(n_on=len(on), n_off=len(off), on=mo, off=mf, diff=mf - mo,
                       pct=100.0 * (mf - mo) / mf, dropped=dropped,
                       units=statistics.mean(x[4] for x in kept),
+                      u_on=statistics.mean(u_on), u_off=statistics.mean(u_off),
                       blocks=sorted({x[0] for x in kept}))
 
 if culled:
@@ -89,11 +97,22 @@ if culled:
         print(f"   {k[0]} rep {k[1]}: " + "; ".join(why))
 
 print("\nper replicate — paired within the replicate (off minus on; positive = the jobs cost fps)")
-print("arm\trep\tblocks\tn on/off\tfps on\tfps off\toff-on\t%\tunits\tdropped(1st of block)")
+print("arm\trep\tblocks\tn on/off\tfps on\tfps off\toff-on\t%\tunits on/off\tdropped(1st of block)")
 for k in sorted(per_rep):
     p = per_rep[k]
     print(f"{k[0]}\t{k[1]}\t{len(p['blocks'])}\t{p['n_on']}/{p['n_off']}\t{p['on']:.1f}\t{p['off']:.1f}"
-          f"\t{p['diff']:+.1f}\t{p['pct']:+.1f}\t{p['units']:.0f}\t{p['dropped']}")
+          f"\t{p['diff']:+.1f}\t{p['pct']:+.1f}\t{p['u_on']:.0f}/{p['u_off']:.0f}\t{p['dropped']}")
+print("\nthe load confound, inside each replicate")
+for k in sorted(per_rep):
+    p = per_rep[k]
+    du = p['u_on'] - p['u_off']
+    line = f"  {k[0]} rep {k[1]}: on-blocks {p['u_on']:.1f} units, off-blocks {p['u_off']:.1f} ({du:+.1f})"
+    if k[0] == "toggle" and abs(du) >= 1:
+        line += f" -> if the whole {p['diff']:+.1f} fps gap were population it would be {p['diff']/du:+.2f} fps/animal"
+        line += "; E37 measured DF's own charge at about -1.6 fps/animal between arms, so " + (
+            "population could account for most of it — read the gap as an UPPER bound on the jobs" if abs(p['diff']/du) <= 3 and du > 0
+            else "the population difference cannot explain the gap; it is the jobs")
+    print(line)
 
 tog = [per_rep[k] for k in sorted(per_rep) if k[0] == "toggle"]
 sham = [per_rep[k] for k in sorted(per_rep) if k[0] == "sham"]

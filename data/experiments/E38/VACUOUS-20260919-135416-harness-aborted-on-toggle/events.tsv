@@ -1,0 +1,253 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260919-135416	toggle	1	16800	823200	baseline	wild_present	13
+20260919-135416	toggle	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260919-135416	toggle	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260919-135416	toggle	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=true; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.groups.cohesion=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.quota.cavern=0; cfg.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e38: roster applied - %d allowed, %d assigned; jobs start ON'):format(n,a))	e38: roster applied - 70 allowed, 70 assigned; jobs start ON
+20260919-135416	toggle	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=125 during=true now=true blk=2 posn=800 units=31 citizens=7 day=14
+20260919-135416	toggle	1	18903	825303	arrival	139	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=22585 vanish=0 flag_src=1 flag_nf=1 pos=176,165,104 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	140	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=21122 vanish=0 flag_src=1 flag_nf=0 pos=179,18,49 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	141	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=23170 vanish=0 flag_src=1 flag_nf=0 pos=180,15,49 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	142	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=18303 vanish=0 flag_src=1 flag_nf=0 pos=184,11,49 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	143	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=24473 vanish=0 flag_src=1 flag_nf=0 pos=179,8,47 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	144	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=23889 vanish=0 flag_src=1 flag_nf=0 pos=171,1,45 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	145	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=26669 vanish=0 flag_src=1 flag_nf=0 pos=172,1,45 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	146	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=23112 vanish=0 flag_src=1 flag_nf=0 pos=174,2,45 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	147	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=26760 vanish=0 flag_src=1 flag_nf=0 pos=172,3,46 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	148	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=28930 vanish=0 flag_src=1 flag_nf=0 pos=168,6,45 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	149	CROCODILE_CAVE caste=FEMALE ref6=29,20,-1,13,-1,14 layer=cavern countdown=22228 vanish=0 flag_src=1 flag_nf=0 pos=3,34,31 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	150	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=21061 vanish=0 flag_src=1 flag_nf=0 pos=7,151,8 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	151	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=23204 vanish=0 flag_src=1 flag_nf=0 pos=4,158,8 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	152	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=26324 vanish=0 flag_src=1 flag_nf=0 pos=22,185,5 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	153	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=24160 vanish=0 flag_src=1 flag_nf=0 pos=22,185,5 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	154	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=20328 vanish=0 flag_src=0 flag_nf=0 pos=25,140,118 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	155	BLIND_CAVE_OGRE caste=MALE ref6=29,21,-1,13,-1,29 layer=cavern countdown=19367 vanish=0 flag_src=1 flag_nf=0 pos=23,168,31 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	156	BLIND_CAVE_OGRE caste=FEMALE ref6=29,21,-1,13,-1,29 layer=cavern countdown=20861 vanish=0 flag_src=1 flag_nf=0 pos=17,171,31 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	157	BLIND_CAVE_OGRE caste=MALE ref6=29,21,-1,13,-1,29 layer=cavern countdown=21437 vanish=0 flag_src=1 flag_nf=0 pos=9,177,31 listed_at=825303
+20260919-135416	toggle	1	18903	825303	arrival	158	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=22407 vanish=0 flag_src=1 flag_nf=1 pos=123,164,104 listed_at=825303
+20260919-135416	toggle	1	18903	825303	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=316 during=true now=true blk=2 posn=2903 units=51 citizens=7 day=15
+20260919-135416	toggle	1	18903	825303	every_applied	1	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))
+20260919-135416	toggle	1	21067	827467	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=368 during=true now=true blk=2 posn=5067 units=51 citizens=7 day=17
+20260919-135416	toggle	1	21067	827467	every_applied	2	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))
+20260919-135416	toggle	1	23180	829580	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=378 during=true now=true blk=2 posn=7180 units=51 citizens=7 day=19
+20260919-135416	toggle	1	23180	829580	every_applied	3	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))
+20260919-135416	toggle	1	25271	831671	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=345 during=true now=false blk=3 posn=1271 units=51 citizens=7 day=21
+20260919-135416	toggle	1	25271	831671	every_applied	4	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))
+20260919-135416	toggle	1	27318	833718	breach	invariant	tool state changed {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'} -> {'enabled': '1', 'groups_enabled': '1', 'scheduled': '0', 'initialized': '1'}
+20260919-135416	toggle	1	27318	833718	pool_delta	3183	Vermin:0 ref6=28,19,-1,-1,-1,49 quantity 252->102 max 252->252 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3184	Vermin:5 ref6=28,19,-1,-1,-1,50 quantity 226->0 max 226->226 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3185	Vermin:8 ref6=28,19,-1,-1,-1,51 quantity 322->0 max 322->322 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->102 max 354->354 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3187	BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3188	BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3189	Vermin:91 ref6=28,19,-1,-1,-1,58 quantity 350->0 max 350->350 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3190	Vermin:94 ref6=28,19,-1,-1,-1,59 quantity 268->102 max 268->268 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->100 max 24->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->100 max 16->100 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3197	Vermin:145 ref6=28,19,-1,-1,-1,68 quantity 3690->102 max 3690->3690 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3200	Vermin:196 ref6=28,19,-1,-1,-1,73 quantity 3503->102 max 3503->3503 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3204	COUGAR ref6=28,19,-1,-1,-1,79 quantity 2->100 max 2->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3206	BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3207	Vermin:517 ref6=28,19,-1,-1,-1,86 quantity 346->102 max 346->346 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3208	Vermin:528 ref6=28,19,-1,-1,-1,87 quantity 398->102 max 398->398 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3209	KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3210	PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->100 max 25->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3211	SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3212	WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3215	DINGO ref6=28,19,-1,-1,-1,100 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3216	WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3217	Vermin:514 ref6=28,19,-1,-1,-1,103 quantity 288->102 max 288->288 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3218	BEAVER ref6=28,19,0,-1,-1,0 quantity 493->102 max 493->493 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3219	BIRD_OSPREY ref6=28,19,0,-1,-1,1 quantity 340->102 max 340->340 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3220	FISH_STURGEON ref6=28,19,0,-1,-1,2 quantity 255->0 max 255->255 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3221	MINK ref6=28,19,0,-1,-1,3 quantity 323->102 max 323->323 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3222	FISH_LAMPREY_SEA ref6=28,19,0,-1,-1,4 quantity 425->0 max 425->425 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3223	RIVER OTTER ref6=28,19,0,-1,-1,5 quantity 306->102 max 306->306 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3224	PLATYPUS ref6=28,19,0,-1,-1,6 quantity 493->102 max 493->493 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3225	Vermin:539 ref6=28,19,0,-1,-1,7 quantity 7888->102 max 7888->7888 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3226	Vermin:547 ref6=28,19,0,-1,-1,8 quantity 7395->0 max 7395->7395 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3227	Vermin:549 ref6=28,19,0,-1,-1,9 quantity 6851->0 max 6851->6851 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3228	Vermin:542 ref6=28,19,0,-1,-1,10 quantity 5304->102 max 5304->5304 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3238	OLM_GIANT ref6=28,19,-1,8,-1,9 quantity 17->100 max 17->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3239	CROCODILE_CAVE ref6=28,19,-1,8,-1,10 quantity 10->100 max 10->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3240	POND_GRABBER ref6=28,19,-1,8,-1,11 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3241	TOAD_GIANT_CAVE ref6=28,19,-1,8,-1,12 quantity 13->100 max 13->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3242	Vermin:617 ref6=28,19,-1,8,-1,13 quantity 240->102 max 240->240 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3243	Vermin:619 ref6=28,19,-1,8,-1,14 quantity 356->102 max 356->356 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3244	Vermin:410 ref6=28,19,-1,8,-1,15 quantity 446->102 max 446->446 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3245	Vermin:621 ref6=28,19,-1,8,-1,16 quantity 453->102 max 453->453 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3246	Vermin:616 ref6=28,19,-1,8,-1,17 quantity 418->102 max 418->418 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3247	BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,8,-1,18 quantity 23->100 max 23->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3248	TROGLODYTE ref6=28,19,-1,8,-1,19 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3249	RAT_GIANT ref6=28,19,-1,8,-1,20 quantity 17->100 max 17->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3250	ELK_BIRD ref6=28,19,-1,8,-1,21 quantity 45->100 max 45->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3251	RAT_LARGE ref6=28,19,-1,8,-1,22 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3252	MOLE_DOG_NAKED ref6=28,19,-1,8,-1,23 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3253	GIANT_EARTHWORM ref6=28,19,-1,8,-1,24 quantity 27->100 max 27->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3254	Vermin:623 ref6=28,19,-1,8,-1,25 quantity 276->102 max 276->276 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3255	Vermin:630 ref6=28,19,-1,8,-1,26 quantity 403->102 max 403->403 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3269	CROCODILE_CAVE ref6=28,19,-1,16,-1,11 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3270	CRUNDLE ref6=28,19,-1,16,-1,12 quantity 130->102 max 130->130 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3271	TOAD_GIANT_CAVE ref6=28,19,-1,16,-1,13 quantity 9->100 max 9->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3272	POND_GRABBER ref6=28,19,-1,16,-1,14 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3273	PLUMP_HELMET_MAN ref6=28,19,-1,16,-1,15 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3274	OLM_GIANT ref6=28,19,-1,16,-1,16 quantity 11->100 max 11->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3275	Vermin:619 ref6=28,19,-1,16,-1,17 quantity 278->102 max 278->278 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3276	Vermin:617 ref6=28,19,-1,16,-1,18 quantity 259->102 max 259->259 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3277	Vermin:621 ref6=28,19,-1,16,-1,19 quantity 283->102 max 283->283 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3278	Vermin:616 ref6=28,19,-1,16,-1,20 quantity 354->102 max 354->354 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3279	Vermin:410 ref6=28,19,-1,16,-1,21 quantity 230->102 max 230->230 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3280	TROGLODYTE ref6=28,19,-1,16,-1,22 quantity 15->100 max 15->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3281	DRALTHA ref6=28,19,-1,16,-1,23 quantity 18->100 max 18->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3282	RAT_GIANT ref6=28,19,-1,16,-1,24 quantity 9->100 max 9->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3283	MOLE_GIANT ref6=28,19,-1,16,-1,25 quantity 19->100 max 19->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3284	BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,16,-1,26 quantity 18->100 max 18->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3285	HELMET_SNAKE ref6=28,19,-1,16,-1,27 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3287	Vermin:623 ref6=28,19,-1,16,-1,29 quantity 218->102 max 218->218 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3288	Vermin:630 ref6=28,19,-1,16,-1,30 quantity 209->102 max 209->209 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3289	SPIDER_CAVE_GIANT ref6=28,19,-1,16,-1,31 quantity 3->100 max 3->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3307	CRUNDLE ref6=28,19,-1,25,-1,12 quantity 177->102 max 177->177 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3308	PLUMP_HELMET_MAN ref6=28,19,-1,25,-1,13 quantity 20->100 max 20->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3309	FLESH_BALL ref6=28,19,-1,25,-1,14 quantity 311->100 max 311->311 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3310	CAVE_BLOB ref6=28,19,-1,25,-1,15 quantity 438->100 max 438->438 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3312	VORACIOUS_CAVE_CRAWLER ref6=28,19,-1,25,-1,17 quantity 10->100 max 10->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3313	JABBERER ref6=28,19,-1,25,-1,18 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3314	RUTHERER ref6=28,19,-1,25,-1,19 quantity 17->100 max 17->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3315	MOLEMARIAN ref6=28,19,-1,25,-1,20 quantity 15->100 max 15->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3316	ELK_BIRD ref6=28,19,-1,25,-1,21 quantity 34->100 max 34->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3317	GREMLIN ref6=28,19,-1,25,-1,22 quantity 1->100 max 1->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3319	SPIDER_CAVE_GIANT ref6=28,19,-1,25,-1,24 quantity 2->100 max 2->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3328	MAGMA_CRAB ref6=28,19,-1,34,-1,0 quantity 39->100 max 39->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	3329	IMP_FIRE ref6=28,19,-1,34,-1,1 quantity 28->100 max 28->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4700	Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->91 max 241->241 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->0 max 216->216 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->0 max 308->308 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4703	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->102 max 339->339 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4704	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4705	BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->0 max 334->334 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->102 max 257->257 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4708	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->100 max 23->100 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4709	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->100 max 15->100 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->0 max 3530->3530 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4721	COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->100 max 2->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->100 max 20->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4723	BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->99 max 331->331 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->96 max 381->381 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4726	KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->100 max 20->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4727	PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->100 max 24->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4728	SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->100 max 15->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4729	WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4732	DINGO ref6=29,20,-1,-1,-1,100 quantity 13->100 max 13->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4733	WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4734	Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->91 max 275->275 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4744	OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4745	CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->100 max 9->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4746	POND_GRABBER ref6=29,20,-1,8,-1,11 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4747	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->100 max 12->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4748	Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->102 max 231->231 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4749	Vermin:619 ref6=29,20,-1,8,-1,14 quantity 343->102 max 343->343 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->88 max 429->429 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->89 max 436->436 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->92 max 403->403 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4753	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->100 max 22->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4754	TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->93 max 14->100 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4755	RAT_GIANT ref6=29,20,-1,8,-1,20 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4756	ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->100 max 43->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4757	RAT_LARGE ref6=29,20,-1,8,-1,22 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4758	MOLE_DOG_NAKED ref6=29,20,-1,8,-1,23 quantity 20->100 max 20->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4759	GIANT_EARTHWORM ref6=29,20,-1,8,-1,24 quantity 26->100 max 26->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4760	Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->85 max 265->265 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->88 max 387->387 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4773	CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->102 max 147->147 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4774	TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 quantity 11->100 max 11->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4775	PLUMP_HELMET_MAN ref6=29,20,-1,13,-1,11 quantity 26->100 max 26->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4776	POND_GRABBER ref6=29,20,-1,13,-1,12 quantity 15->100 max 15->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4777	OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->100 max 9->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4778	CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->100 max 12->100 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->100 max 442->442 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4780	Vermin:619 ref6=29,20,-1,13,-1,16 quantity 311->102 max 311->311 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->91 max 331->331 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->77 max 257->257 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4783	TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->100 max 14->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4784	VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4785	JABBERER ref6=29,20,-1,13,-1,21 quantity 21->100 max 21->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4786	CAVE_FLOATER ref6=29,20,-1,13,-1,22 quantity 46->100 max 46->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4787	GREEN_DEVOURER ref6=29,20,-1,13,-1,23 quantity 12->100 max 12->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4788	RAT_GIANT ref6=29,20,-1,13,-1,24 quantity 19->100 max 19->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4789	ELK_BIRD ref6=29,20,-1,13,-1,25 quantity 43->100 max 43->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4790	Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->71 max 313->313 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4792	SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->100 max 3->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4810	CRUNDLE ref6=29,20,-1,25,-1,12 quantity 174->102 max 174->174 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4811	PLUMP_HELMET_MAN ref6=29,20,-1,25,-1,13 quantity 19->100 max 19->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4812	FLESH_BALL ref6=29,20,-1,25,-1,14 quantity 305->100 max 305->305 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4813	CAVE_BLOB ref6=29,20,-1,25,-1,15 quantity 429->100 max 429->429 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4815	VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,25,-1,17 quantity 10->100 max 10->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4816	JABBERER ref6=29,20,-1,25,-1,18 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4817	RUTHERER ref6=29,20,-1,25,-1,19 quantity 16->100 max 16->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4818	MOLEMARIAN ref6=29,20,-1,25,-1,20 quantity 15->100 max 15->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->100 max 33->100 discovered 1->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4820	GREMLIN ref6=29,20,-1,25,-1,22 quantity 1->100 max 1->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4822	SPIDER_CAVE_GIANT ref6=29,20,-1,25,-1,24 quantity 2->100 max 2->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->267 max 336->336 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4831	MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->100 max 38->100 discovered 1->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4832	IMP_FIRE ref6=29,20,-1,34,-1,1 quantity 27->100 max 27->100 discovered 0->0 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->352 max 421->421 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4837	DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	pool_delta	4993	BLIND_CAVE_OGRE ref6=29,21,-1,13,-1,29 quantity 4->1 max 4->4 discovered 0->1 extinct 0->0
+20260919-135416	toggle	1	27318	833718	end	summary	{"arm": "toggle", "rep": 1, "valid": false, "breaches": ["tool state changed {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'} -> {'enabled': '1', 'groups_enabled': '1', 'scheduled': '0', 'initialized': '1'}"], "control": null, "arrivals": 20, "departures": 0, "deaths": 0, "ticks": 10518, "wall_s": 59.9, "stop": null, "ticks_per_s": 175.6, "save_untouched": true}
+20260919-135416	toggle	2	16800	823200	baseline	wild_present	13
+20260919-135416	toggle	2	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260919-135416	toggle	2	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260919-135416	toggle	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=true; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.groups.cohesion=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.quota.cavern=0; cfg.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e38: roster applied - %d allowed, %d assigned; jobs start ON'):format(n,a))	e38: roster applied - 70 allowed, 70 assigned; jobs start ON
+20260919-135416	toggle	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=110 during=true now=true blk=2 posn=800 units=31 citizens=7 day=14
+20260919-135416	toggle	2	18849	825249	arrival	139	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=21441 vanish=0 flag_src=0 flag_nf=0 pos=141,1,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	140	OLM_GIANT caste=MALE ref6=30,20,-1,8,-1,9 layer=cavern countdown=19137 vanish=0 flag_src=1 flag_nf=0 pos=184,57,37 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	141	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=18506 vanish=0 flag_src=1 flag_nf=0 pos=146,120,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	142	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=27094 vanish=0 flag_src=1 flag_nf=0 pos=157,117,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	143	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=23979 vanish=0 flag_src=1 flag_nf=0 pos=159,117,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	144	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=27477 vanish=0 flag_src=1 flag_nf=0 pos=160,122,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	145	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=23645 vanish=0 flag_src=1 flag_nf=0 pos=160,124,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	146	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=26423 vanish=0 flag_src=1 flag_nf=0 pos=158,118,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	147	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=25542 vanish=0 flag_src=1 flag_nf=0 pos=165,112,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	148	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=20111 vanish=0 flag_src=1 flag_nf=0 pos=166,111,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	149	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=22495 vanish=0 flag_src=1 flag_nf=0 pos=169,104,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	150	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=27210 vanish=0 flag_src=1 flag_nf=0 pos=170,101,29 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	151	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=24117 vanish=0 flag_src=1 flag_nf=0 pos=43,52,6 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	152	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=18568 vanish=0 flag_src=1 flag_nf=0 pos=33,58,5 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	153	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=23973 vanish=0 flag_src=1 flag_nf=0 pos=33,48,5 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	154	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=28024 vanish=0 flag_src=1 flag_nf=0 pos=19,27,5 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	155	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=28179 vanish=0 flag_src=1 flag_nf=0 pos=20,27,5 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	156	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21860 vanish=0 flag_src=0 flag_nf=0 pos=72,29,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	157	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21549 vanish=0 flag_src=0 flag_nf=0 pos=72,17,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	158	BIRD_SWALLOW_CAVE_GIANT caste=MALE ref6=29,20,-1,8,-1,18 layer=cavern countdown=25219 vanish=0 flag_src=1 flag_nf=0 pos=58,15,46 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	159	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=25505 vanish=0 flag_src=1 flag_nf=1 pos=20,22,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	160	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=23050 vanish=0 flag_src=1 flag_nf=1 pos=27,5,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	161	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=23373 vanish=0 flag_src=1 flag_nf=1 pos=23,3,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	arrival	162	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=28286 vanish=0 flag_src=1 flag_nf=1 pos=21,1,104 listed_at=825249
+20260919-135416	toggle	2	18849	825249	manipulation	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))	e38: fps=247 during=true now=true blk=2 posn=2849 units=55 citizens=7 day=15
+20260919-135416	toggle	2	18849	825249	every_applied	1	local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local BLK=8000; local t=df.global.cur_year_tick; local blk=math.floor(t/BLK); local want=(blk%2==0); local prev=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; local e=df.global.enabler; local fps=e.calculated_fps; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then cz=cz+1 end end; if want~=prev then if want then sw.enableSched() else ru.cancel('seasonal-wildlife'); ru.cancel('seasonal-wildlife/groups'); ru.cancel('seasonal-wildlife/ecology'); ru.cancel('seasonal-wildlife/water') end end; local now=(ru.isScheduled and ru.isScheduled('seasonal-wildlife')) and true or false; print(('e38: fps=%d during=%s now=%s blk=%d posn=%d units=%d citizens=%d day=%d'):format(fps, tostring(prev), tostring(now), blk, t%BLK, #df.global.world.units.active, cz, math.floor(t/1200)))
