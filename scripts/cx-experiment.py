@@ -353,7 +353,20 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         if not (0 < int(clock["units_active"]) < 10000):
             breach.append(f"unit count insane ({clock['units_active']})")
         tool_now = rig.probe("tool")[0]
-        if tool_now != tool:
+        # The invariant is that the tool does not change state BEHIND the experiment's back —
+        # a silent flip mid-run would invalidate the arm. A paired design deliberately toggles
+        # instead, so a manifest may declare which keys it owns: `tool_may_vary: ["scheduled"]`
+        # drops those from the comparison and leaves every other key guarded exactly as before.
+        # Default is [] — existing manifests keep the strict check. (Added for E38, whose whole
+        # method is flipping `scheduled` inside one replicate; without this the harness aborts
+        # every replicate at the first toggle, as it did on run 20260919-135416.)
+        may_vary = set(man.get("tool_may_vary", []))
+        if may_vary:
+            a = {k: v for k, v in tool.items() if k not in may_vary}
+            b = {k: v for k, v in tool_now.items() if k not in may_vary}
+            if a != b:
+                breach.append(f"tool state changed (outside tool_may_vary={sorted(may_vary)}) {a} -> {b}")
+        elif tool_now != tool:
             breach.append(f"tool state changed {tool} -> {tool_now}")
         if breach:
             summary["breaches"].extend(breach); summary["valid"] = False
