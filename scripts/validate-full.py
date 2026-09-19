@@ -216,14 +216,21 @@ def lua(code, timeout=120):
 def luaj(code, timeout=120) -> Any:
     """Run Lua that prints one JSON line (via `json.encode`) and parse it."""
     out = lua("local json=require('json'); " + code, timeout=timeout)
-    for line in out.splitlines():
-        line = line.strip()
-        if line.startswith("{") or line.startswith("["):
-            try:
-                return json.loads(line)
-            except ValueError:
-                pass
-    return {"_raw": out}
+    # DFHack's json.encode PRETTY-PRINTS across lines (tabs, one key per line), so the
+    # document is the span from the first bracket to its matching last bracket, never one
+    # line. The first run of this driver parsed line-by-line, every probe fell through to
+    # {"_raw": ...}, and seven mechanics that the game was doing correctly were reported
+    # FAIL (run 143815, kept as VACUOUS-*). Pick whichever bracket opens first so a dict
+    # holding a list is not mistaken for the list.
+    starts = [k for k in (out.find("{"), out.find("[")) if k != -1]
+    if not starts:
+        return {"_raw": out}
+    i = min(starts)
+    j = out.rfind("}" if out[i] == "{" else "]")
+    try:
+        return json.loads(out[i:j + 1])
+    except ValueError:
+        return {"_raw": out}
 
 def screen(name):
     rc, txt = sh("screen", timeout=120)
