@@ -1,0 +1,99 @@
+{
+ "id": "E37",
+ "title": "What does seasonal-wildlife cost in FPS, and does that cost grow with the load the fort is already under? Every experiment so far has measured what the tool DOES; none has measured what it charges. DF's own achieved frame rate is readable at `enabler.calculated_fps` and the harness already samples it as `fps_achieved` at every clock probe, so the measure is DF's own number rather than wall-clock timing that would include RPC overhead. The cap is raised to 10,000 in every arm so the cap is never the binding constraint (NEVER zero \u2014 that freezes DF permanently; the rig refuses anything under 10). Two factors crossed: the tool fully on (roster on all three layers, groups + coupling + cohesion + ecology + water job + scheduler) against wholly off, under two load levels \u2014 the fort as it stands, and the same fort with sixty extra land animals placed at t0 so the unit loop carries roughly three times the work. Placement uses the tool's own headless route in BOTH arms, so the crowd is identical and only the jobs differ. A season, two replicates per arm.",
+ "fork": "Is the tool's FPS cost measurable at all, and is it constant or does it scale with the number of units on the map.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 10000,
+ "sample_every": 3000,
+ "tick_budget": 100800,
+ "combat": false,
+ "roster": true,
+ "tool_must_be": {},
+ "predictions": [
+  {
+   "model": "the cost is negligible",
+   "expects": "fps_achieved differs by a few per cent or less between on and off at both load levels, and the tool is free for practical purposes"
+  },
+  {
+   "model": "a constant cost",
+   "expects": "on runs a fixed amount below off at both load levels \u2014 the jobs cost what they cost regardless of how many units exist"
+  },
+  {
+   "model": "a cost that scales with units",
+   "expects": "the on/off gap is wider in the crowded arms than the baseline ones, because the jobs walk units.active and the walk grows with the map"
+  },
+  {
+   "model": "the tool pays for itself",
+   "expects": "on runs FASTER than off in the crowded arms, because the roster and the ceiling hold the population down where the control lets it grow"
+  }
+ ],
+ "kill_criterion": "a measured fps_achieved difference between tool-on and tool-off at each load level, 2 of 2, with the crowded gap compared against the baseline gap; no measurable difference at either level means the tool is free and the question is closed",
+ "culling": [
+  "drop a replicate on any changed save",
+  "a replicate whose crowded arm placed fewer than 30 extra units is a trigger failure \u2014 the load was not applied",
+  "a replicate running at the fps cap is vacuous: the cap, not the tool, is the constraint"
+ ],
+ "arms": [
+  {
+   "name": "off_baseline",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; cfg.water.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('e37: tool OFF - no roster, no jobs, no scheduler')",
+    "print('e37: BASELINE - no extra units placed')",
+    "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "on_baseline",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=true; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.groups.cohesion=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.quota.cavern=0; cfg.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e37: tool FULL - %d allowed, %d assigned, groups+coupling+cohesion+ecology+water all on'):format(n,a))",
+    "print('e37: BASELINE - no extra units placed')",
+    "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "off_crowded",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; cfg.water.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('e37: tool OFF - no roster, no jobs, no scheduler')",
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local rs=sw.getEmbarkRegions(); local cands={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and pop.quantity>0 and pop.quantity<10000001 then local c=df.creature_raw.find(pop.race); local info=c and sw.classify(c); if info and not info.mega and not info.gameVermin then cands[#cands+1]=pop end end end; local placed,tries=0,0; while placed<60 and tries<#cands*4 do for _,pop in ipairs(cands) do if placed>=60 then break end; local ids=sw.placeFromEntry(cfg,pop,3,nil); placed=placed+#ids end; tries=tries+#cands end; print(('e37: CROWDED - placed %d extra land units from %d entries; units_active now %d'):format(placed,#cands,#df.global.world.units.active))",
+    "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "on_crowded",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=true; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.groups.cohesion=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.quota.cavern=0; cfg.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e37: tool FULL - %d allowed, %d assigned, groups+coupling+cohesion+ecology+water all on'):format(n,a))",
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local rs=sw.getEmbarkRegions(); local cands={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, {land=true}) and pop.quantity>0 and pop.quantity<10000001 then local c=df.creature_raw.find(pop.race); local info=c and sw.classify(c); if info and not info.mega and not info.gameVermin then cands[#cands+1]=pop end end end; local placed,tries=0,0; while placed<60 and tries<#cands*4 do for _,pop in ipairs(cands) do if placed>=60 then break end; local ids=sw.placeFromEntry(cfg,pop,3,nil); placed=placed+#ids end; tries=tries+#cands end; print(('e37: CROWDED - placed %d extra land units from %d entries; units_active now %d'):format(placed,#cands,#df.global.world.units.active))",
+    "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local e=df.global.enabler; local by=sw.WILD.countByLayer(); local cz,alive=0,0; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then alive=alive+1; if dfhack.units.isCitizen(u) then cz=cz+1 end end end; local cfg=sw.loadConfig(); local ok,ru=pcall(require,'repeat-util'); local sched=ok and ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false; print(('e37: fps=%d cap=%d units_active=%d alive=%d land=%d water=%d cavern=%d deep=%d citizens=%d tool=%s sched=%s groups=%s eco=%s day=%d'):format(e.calculated_fps, math.floor(e.fps), #df.global.world.units.active, alive, by.land, by.water, by.cavern, by.deep, cz, tostring(cfg.enabled), tostring(sched), tostring(cfg.groups.enabled), tostring(cfg.ecology.enabled), math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  }
+ ]
+}

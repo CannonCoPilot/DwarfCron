@@ -1,0 +1,282 @@
+[
+ {
+  "phase": "CLI",
+  "name": "status",
+  "ok": true,
+  "detail": "Biomes: SHRUBLAND_TEMPERATE\nLayers: land\nquota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\ncaverns: layer off\nOn the map now: land 0  water 0  cavern 8  (+5 in the magma sea and underworld, never managed)\n  DF invasions excluded via unit.invasion_id\nEmbark subset (what can actually come to THIS fort):\n  land   BADGER                 predator  s",
+  "expected": "rc 0 and ['quota', 'layers', 'on the map now']"
+ },
+ {
+  "phase": "CLI",
+  "name": "status separates deep from cavern",
+  "ok": true,
+  "detail": "Biomes: SHRUBLAND_TEMPERATE\nLayers: land\nquota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\ncaverns: layer off\nOn the map now: land 0  water 0  cavern 8  (+5 in the magma sea and underworld, never managed)\n  DF invasions excluded via unit.invasion_id\nEmbark subset (what can actually come to THIS fort):\n  land   BADGER                 predator  s",
+  "expected": "the layer line naming the magma sea and underworld as never managed (addendum 51)"
+ },
+ {
+  "phase": "CLI",
+  "name": "status names the invasion field",
+  "ok": true,
+  "detail": "Biomes: SHRUBLAND_TEMPERATE\nLayers: land\nquota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\ncaverns: layer off\nOn the map now: land 0  water 0  cavern 8  (+5 in the magma sea and underworld, never managed)\n  DF invasions excluded via unit.invasion_id\nEmbark subset (what can actually come to THIS fort):\n  land   BADGER                 predator  s",
+  "expected": "the line reporting which unit field the invasion exclusion bound to"
+ },
+ {
+  "phase": "CLI",
+  "name": "classes",
+  "ok": true,
+  "detail": "natural       on   250\n  mythic        off  8\n  mega          off  7\n  night         off  0\n  unliving      off  0\n  generated     off  10\n  unclassified  off  0",
+  "expected": "rc 0 and ['natural']"
+ },
+ {
+  "phase": "CLI",
+  "name": "enable",
+  "ok": true,
+  "detail": "enabled",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "enable took effect",
+  "ok": true,
+  "detail": "Biomes: SHRUBLAND_TEMPERATE\nLayers: land\nquota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\ncaverns: layer off\nOn the map now: land 0  water 0  cavern 8  (+5 in the magma sea and underworld, never managed)\n  DF invasions excluded via unit.invasion_id\nEmbark subset (what can actually come to THIS fort):\n  land   BADGER                 predator  s",
+  "expected": "status reports the tool on"
+ },
+ {
+  "phase": "CLI",
+  "name": "disable",
+  "ok": true,
+  "detail": "disabled",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "enable again",
+  "ok": true,
+  "detail": "enabled",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups status",
+  "ok": true,
+  "detail": "resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=off (0 done)  cohesion=on  swept=0\necology: on  last write day 14: 0 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 2, nudges 0; livestock safe",
+  "expected": "rc 0 and ['groups']"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups on",
+  "ok": true,
+  "detail": "resident groups: on",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups coupling on",
+  "ok": true,
+  "detail": "migratory coupling: on",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups pack",
+  "ok": true,
+  "detail": "coupling pack size: 4",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups ecology on",
+  "ok": true,
+  "detail": "ecology: on",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups livestock off",
+  "ok": true,
+  "detail": "fort livestock is safe",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "groups nudge",
+  "ok": true,
+  "detail": "nudge: after 3000 ticks more than 40 tiles apart, to within 6",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "quota status",
+  "ok": true,
+  "detail": "quota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\n  on the map now: land 0  water 0  cavern 8  (+5 deep: magma sea and underworld, never managed)",
+  "expected": "rc 0 and ['quota']"
+ },
+ {
+  "phase": "CLI",
+  "name": "quota cavern 12",
+  "ok": true,
+  "detail": "note: the cavern ceiling is enforced on creature FREQUENCY, not on pool entries \u2014\n      entry quantity gates nothing underground (addendum 51). Managed cavern\n      species are held at frequency 1 while the layer is over its ceiling.\n      This brakes new ARRIVALS; it does not remove anything already down there,\n      so a ceiling set below the current population is reached only as DF walks\n      ",
+  "expected": "rc 0 and ['cavern']"
+ },
+ {
+  "phase": "CLI",
+  "name": "quota cavern warns about the frequency lever",
+  "ok": true,
+  "detail": "note: the cavern ceiling is enforced on creature FREQUENCY, not on pool entries \u2014\n      entry quantity gates nothing underground (addendum 51). Managed cavern\n      species are held at frequency 1 while the layer is over its ceiling.\n      This brakes new ARRIVALS; it does not remove anything already down there,\n      so a ceiling set below the current population is reached only as DF walks\n      ",
+  "expected": "the note that the ceiling is enforced on FREQUENCY, not pool entries"
+ },
+ {
+  "phase": "CLI",
+  "name": "quota cavern warns about the arrival lag",
+  "ok": true,
+  "detail": "note: the cavern ceiling is enforced on creature FREQUENCY, not on pool entries \u2014\n      entry quantity gates nothing underground (addendum 51). Managed cavern\n      species are held at frequency 1 while the layer is over its ceiling.\n      This brakes new ARRIVALS; it does not remove anything already down there,\n      so a ceiling set below the current population is reached only as DF walks\n      ",
+  "expected": "the addendum 57 wording that it brakes arrivals and does not cull"
+ },
+ {
+  "phase": "CLI",
+  "name": "quota cavern 0 (unset)",
+  "ok": true,
+  "detail": "quota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)\n  on the map now: land 0  water 0  cavern 8  (+5 deep: magma sea and underworld, never managed)",
+  "expected": "rc 0 and ['cavern']"
+ },
+ {
+  "phase": "CLI",
+  "name": "water status",
+  "ok": true,
+  "detail": "water: layer off\n  target 12  every 5000 ticks  countdown 25000",
+  "expected": "rc 0 and ['water']"
+ },
+ {
+  "phase": "CLI",
+  "name": "water target",
+  "ok": true,
+  "detail": "water: layer off\n  target 12  every 5000 ticks  countdown 25000",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "water cadence",
+  "ok": true,
+  "detail": "water: layer off\n  target 12  every 5000 ticks  countdown 25000",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "water off",
+  "ok": true,
+  "detail": "water: layer off\n  target 12  every 5000 ticks  countdown 25000",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "water on",
+  "ok": true,
+  "detail": "water: dormant \u2014 no open water at the map edge near the surface (open water at the edge near the surface: 0 tile(s); stocked entries: 147)\n  target 12  every 5000 ticks  countdown 25000",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "now (apply the roster)",
+  "ok": true,
+  "detail": "active: 0",
+  "expected": "rc 0 and []"
+ },
+ {
+  "phase": "CLI",
+  "name": "unknown verb prints usage",
+  "ok": true,
+  "detail": "Usage: seasonal-wildlife [gui|status|now|enable|disable|quota [land|water|cavern] N|place TOKEN [n] [land|water|cavern]|water [on|off|now|target N|cadence N]|groups [on|off|coupling on|off|pack N|cohesion on|off|herd N pack N flock N|hold TOKEN DAYS|dismiss TOKEN|ecology on|off|now|livestock on|off|nudge TILES TICKS RADIUS]]  (use the GUI for everything else)",
+  "expected": "a usage line rather than a stack trace"
+ },
+ {
+  "phase": "MECH",
+  "name": "config reads back after CLI edits",
+  "ok": true,
+  "detail": "mech: enabled=true groups=true ecology=true water=true layers=true/true/false",
+  "expected": "a config dump"
+ },
+ {
+  "phase": "MECH",
+  "name": "scheduler registered",
+  "ok": true,
+  "detail": "sched: true",
+  "expected": "repeat-util reports seasonal-wildlife scheduled"
+ },
+ {
+  "phase": "MECH",
+  "name": "layer counter separates deep from cavern",
+  "ok": true,
+  "detail": "layers: land=0 water=0 cavern=8 deep=5",
+  "expected": "countByLayer reports a separate deep bucket (addendum 51)"
+ },
+ {
+  "phase": "MECH",
+  "name": "invasion exclusion binds to a real field",
+  "ok": true,
+  "detail": "field: invasion_id\nfield_after: invasion_id",
+  "expected": "WILD.field resolves to invasion_id or invasion, never false"
+ },
+ {
+  "phase": "MECH",
+  "name": "cavern lever runs",
+  "ok": true,
+  "detail": "cavern: held=nil open=nil",
+  "expected": "CAVERN.apply returns a held/open result"
+ },
+ {
+  "phase": "MECH",
+  "name": "cavern status mentions the hold",
+  "ok": true,
+  "detail": "caverns: layer off",
+  "expected": "a caverns: status line"
+ },
+ {
+  "phase": "GUI",
+  "name": "window opens",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60",
+  "expected": "the seasonal-wildlife window on screen"
+ },
+ {
+  "phase": "GUI",
+  "name": "tab renders: Roster",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "expected": "the Roster tab drawn with content"
+ },
+ {
+  "phase": "GUI",
+  "name": "tab renders: Set roster",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "expected": "the Set roster tab drawn with content"
+ },
+ {
+  "phase": "GUI",
+  "name": "tab renders: Food web",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "expected": "the Food web tab drawn with content"
+ },
+ {
+  "phase": "GUI",
+  "name": "tab renders: Live",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "expected": "the Live tab drawn with content"
+ },
+ {
+  "phase": "GUI",
+  "name": "tab renders: Seasons",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "expected": "the Seasons tab drawn with content"
+ },
+ {
+  "phase": "GUI",
+  "name": "window closes on ESC",
+  "ok": true,
+  "detail": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle",
+  "expected": "the window dismissed"
+ }
+]
