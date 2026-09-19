@@ -42,7 +42,7 @@ def ground(name):
 VERDICTS = ["PASS", "FAIL", "DEAD", "DOC-DRIFT", "UNWIRED", "NOT-TESTABLE-HERE", "BACKLOG"]
 # bar segments are ordered so the two hues a deutan reader finds closest (green, red) are never neighbours
 BAR_ORDER = ["PASS", "DOC-DRIFT", "FAIL", "UNWIRED", "DEAD", "NOT-TESTABLE-HERE", "BACKLOG"]
-VCLASS = {"PASS": "v-pass", "FAIL": "v-fail", "DEAD": "v-dead", "DOC-DRIFT": "v-drift",
+VCLASS = {"PASS": "v-pass", "FIXED": "v-pass", "FAIL": "v-fail", "DEAD": "v-dead", "DOC-DRIFT": "v-drift",
           "UNWIRED": "v-unwired", "NOT-TESTABLE-HERE": "v-nt", "BACKLOG": "v-backlog"}
 VGLOSS = {
     "PASS": "did what was claimed; receipt and ground truth attached",

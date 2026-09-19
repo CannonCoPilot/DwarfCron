@@ -301,7 +301,7 @@ end
 local pool=sw.buildPool(cfg); local pools={}; local nAssigned,nAllowed=0,0
 for _,e in ipairs(pool) do
   if e.inEmbark then
-    if cfg.allow[e.key] then nAllowed=nAllowed+1 end
+    if sw.isAllowed(cfg,e) then nAllowed=nAllowed+1 end
     if cfg.assign[e.key] and #cfg.assign[e.key]>0 then nAssigned=nAssigned+1 end
   end
 end
@@ -363,8 +363,9 @@ def status_rows(txt):
     return window_rows(txt, 42, 48)
 
 def grid_status(txt):
-    """The Set-roster tab's grid_status sits on the header row, right of the tab strip (rows 20-24)."""
-    return window_rows(txt, 20, 24)
+    """The Set-roster tab's grid_status is the key panel's top row, right of 'Toggle a season on the
+    selected row:' (window row 28 on an 86x34 window); read the whole targets-and-keys block."""
+    return window_rows(txt, 20, 30)
 
 def dialog_rows(txt):
     return window_rows(txt, 24, 40)
@@ -616,7 +617,7 @@ def phase_mechanics():
     # under a long cap so the report carries seconds, not a timeout.
     t0 = time.time()
     pr = subprocess.run([str(ROOT / ".venv/bin/python"), str(ROOT / "scripts/cx-rpc.py"), "--port", "5555", "--timeout", "600",
-                         "--cmd", "seasonal-wildlife water now"], capture_output=True, text=True, timeout=660, cwd=ROOT)
+                         "--cmd", "seasonal-wildlife", "water", "now"], capture_output=True, text=True, timeout=660, cwd=ROOT)
     secs = time.time() - t0; out = (pr.stdout or "") + (pr.stderr or "")
     # the scan keeps running server-side after a client timeout and blocks the next RPC; drain it
     # so the finding stays on this check and does not cascade as timeouts through everything after
@@ -740,7 +741,7 @@ def phase_gui():
     rec("gui.k.enter", "PASS" if ok else "FAIL", "row 1's ok column flips Y<->-", f"{r0[0] if r0 else None} -> {r1[0] if r1 else None}", shots=[p] if p else [])
     key("SELECT")  # put it back
     # Shift-Enter cycles seasons
-    t0 = screen("C3-secselect-before"); key("SEC_SELECT"); t1 = screen("C3-secselect-after"); p = shot("C3-season-cycle")
+    t0 = screen("C3-secselect-before"); key("SELECT_ALL"); t1 = screen("C3-secselect-after"); p = shot("C3-season-cycle")
     l0 = r0[0][3] if (r0 := row_lines(t0)) else ""; l1 = r1[0][3] if (r1 := row_lines(t1)) else ""
     rec("gui.k.shiftenter", "PASS" if l0 and l1 and l0 != l1 and r0[0][0] == r1[0][0] else "FAIL", "row 1's season column changes", f"{l0}\n{l1}", shots=[p] if p else [])
     # Ctrl+D dry-run dialog
@@ -757,7 +758,7 @@ def phase_gui():
         return w if isinstance(w, dict) else {}
     def counts():
         c = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local by={}; local assigned=0; "
-                 "for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then if cfg.allow[e.key] then by[e.cat]=(by[e.cat] or 0)+1 end; if cfg.assign[e.key] and #cfg.assign[e.key]>0 then assigned=assigned+1 end end end; "
+                 "for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then if sw.isAllowed(cfg,e) then by[e.cat]=(by[e.cat] or 0)+1 end; if cfg.assign[e.key] and #cfg.assign[e.key]>0 then assigned=assigned+1 end end end; "
                  "by.assigned=assigned; print(json.encode(by))", timeout=120)
         return c if isinstance(c, dict) else {}
     BACKSPACE = "STRING_A000"   # DF's string keys: A000 is backspace (chr 0); A008 is not
@@ -821,14 +822,16 @@ def phase_gui():
     else:
         x_click = True
     p = shot("C9-addnew-prompt")
+    st9 = ""
     if x_key or x_click:
-        key("SELECT", 2.5)
+        key("SELECT", 2.5); st9 = status_rows(screen("C9-x-after"))
     added = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.token=='%s' then print(json.encode({token=e.token, inEmbark=e.inEmbark, eligible=e.eligible})) return end end; print(json.encode({missing=true}))" % (pick or "NONE"), timeout=120)
     anns = announcements()
-    outcome = isinstance(added, dict) and (added.get("inEmbark") or any("added to the embark" in a for a in anns))
+    outcome = (isinstance(added, dict) and bool(added.get("inEmbark"))) or any("added to the embark" in a for a in anns) \
+        or ("added to" in st9) or ("Could not add" in st9)   # a documented refusal, now visible on the status row
     rec("gui.k.ctrlX", "PASS" if x_key and outcome else ("NOT-TESTABLE-HERE" if not rows_add else "FAIL"),
-        "Ctrl+X in Add-new opens the prompt and the picked species is in the embark pool afterwards (or DF announces it)",
-        f"prompt by key: {x_key}; by clicking the label: {x_click}; pick={pick}; after={json.dumps(added)}; announcements={anns[-2:]}",
+        "Ctrl+X in Add-new opens the prompt and the picked species is in the embark pool afterwards, or the status row says why it could not be",
+        f"prompt by key: {x_key}; by clicking the label: {x_click}; pick={pick}; after={json.dumps(added)}; status={st9.strip()[:160]!r}; announcements={anns[-2:]}",
         shots=[x for x in (p0, p) if x], data={"pick": pick, "by_key": x_key, "by_click": x_click, "after": added, "add_view_rows": len(rows_add)},
         note="" if x_key else ("Ctrl+X is consumed by the filter box's TextArea (cut) — see gui.k.shadow; the label works by mouse" + ("" if outcome else "; the engine refused the pick as already present in the region, which is its documented behaviour")))
     key("CUSTOM_V", 0.8)

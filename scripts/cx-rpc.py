@@ -61,6 +61,13 @@ def main() -> int:
         print("no DFHack port — is the session running?", file=sys.stderr)
         return 2
 
+    # A command name with a space in it -- "seasonal-wildlife water now" as ONE argument -- never
+    # gets a reply from DFHack's RunCommand: the client sits at its timeout while the server is
+    # free. Found 19 Sep 2026 after two 600 s "hangs" that were this. Split it and say so.
+    if args.cmd and len(args.cmd) == 1 and any(c.isspace() for c in args.cmd[0]):
+        import shlex
+        args.cmd = shlex.split(args.cmd[0])
+        print(f"cx-rpc: split the single --cmd argument into {args.cmd}; a command name containing a space is never answered", file=sys.stderr)
     client = DFHackClient(args.host, args.port, timeout=args.timeout)
     try:
         client.connect()
