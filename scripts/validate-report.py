@@ -208,7 +208,7 @@ headline = (f"{tally['PASS']} of the {tally['PASS'] + tally['FAIL'] + tally['DEA
 run_id = run_dir.name
 summary = f"""
 <section id="summary">
-  <p class="eyebrow">Functional playtest · seasonal-wildlife v5.8.1 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
+  <p class="eyebrow">Functional playtest · seasonal-wildlife v5.8.2 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
   <h1>Seasonal Wildlife Playtest</h1>
   <p class="lede">{esc(headline)}</p>
   <div class="tiles">{tiles}</div>
@@ -251,7 +251,24 @@ method = f"""
   <details><summary>Run log</summary><pre class="mono small scroll">{esc(log[-12000:])}</pre></details>
 </section>"""
 
-nav = "".join(f'<a href="#{k}">{esc(SECTIONS[k])}</a>' for k in SECTIONS if (k in ("summary", "method") or by_sec.get(k) or (k == "perf" and perf)))
+# ---- hand-driven findings, written by the operator during the playtest
+narr = json.loads((run_dir / "narrative.json").read_text()) if (run_dir / "narrative.json").exists() else []
+def narr_html(n):
+    shots = "".join(f'<figure><img src="{img(s)}" alt="{esc(Path(s).stem)}" loading="lazy"><figcaption>{esc(Path(s).stem)}</figcaption></figure>' for s in n.get("shots", []) if img(s))
+    links = " ".join(f'<a href="#{esc(c)}" class="mono">{esc(c)}</a>' for c in n.get("claims", []))
+    return f"""<article class="receipt {VCLASS.get(n.get('verdict', 'PASS'), 'v-nt')}"><header>{chip(n.get('verdict', 'PASS'))}<h4>{esc(n['title'])}</h4><div class="meta">{links}</div></header><p class="narr">{esc(n['text'])}</p>{'<div class="shots">' + shots + '</div>' if shots else ''}</article>"""
+hand = ""
+if narr:
+    hand = f"""
+<section id="hand">
+  <h2>Driven by hand</h2>
+  <p class="muted">What the scripted checks could not settle was driven by hand on the rig — one key, one screen read, one probe of the game at a time (the logs are in <code>hand/</code>). These are the findings that came from that, with the screenshots that proved them.</p>
+  {''.join(narr_html(n) for n in narr)}
+</section>"""
+SECTIONS["hand"] = "Driven by hand"
+
+nav_order = [k for k in SECTIONS if k != "hand"]; nav_order.insert(1, "hand")   # the hand-driven findings sit right after the summary
+nav = "".join(f'<a href="#{k}">{esc(SECTIONS[k])}</a>' for k in nav_order if (k in ("summary", "method") or by_sec.get(k) or (k == "perf" and perf) or (k == "hand" and hand)))
 
 page = f"""<title>Seasonal Wildlife Playtest</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -318,7 +335,7 @@ ul.wrap{{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}}
 dl.eg{{display:grid;grid-template-columns:84px 1fr;gap:6px 12px;margin:12px 0 0;font-size:14px}}
 dl.eg dt{{font:500 11px/1.9 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}} dl.eg dd{{margin:0;min-width:0}}
 pre{{margin:0;white-space:pre-wrap;word-break:break-word}} pre.mono{{background:color-mix(in oklab,var(--ink) 5%,transparent);padding:8px 10px;border-radius:3px}}
-.note{{font-size:13.5px;color:var(--muted);margin:10px 0 0;max-width:80ch}}
+.note{{font-size:13.5px;color:var(--muted);margin:10px 0 0;max-width:80ch}} .narr{{margin:12px 0 0;max-width:78ch;font-size:15px}}
 .scroll{{overflow-x:auto;max-width:100%}} table{{border-collapse:collapse;font-size:13px;margin-top:10px}}
 table.kv th{{text-align:left;font:500 11.5px var(--mono);color:var(--muted);padding:3px 12px 3px 0;vertical-align:top;white-space:nowrap}} table.kv td{{padding:3px 0;font-family:var(--mono);font-size:12.5px;word-break:break-word}}
 table.data th,table.data td{{padding:4px 10px 4px 0;border-bottom:1px solid var(--rule);text-align:left}} table.data th{{font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}}
@@ -334,6 +351,7 @@ code{{font-family:var(--mono);font-size:.92em}}
 <nav>{nav}</nav>
 <main>
 {summary}
+{hand}
 {section_html('cli', '<p class="muted">Every verb in the dispatch table and every sub-command, asserted on the receipt it prints rather than on an exit code. Error paths are exercised too — a bad argument must print a usage line and change nothing.</p>')}
 {section_html('mech', '<p class="muted">Each mechanic is read from the game itself before and after: pool quantities by species and layer, wild units on the map by id, leave countdowns, the reaction-cache write count, cavern creature frequencies, the leader chosen for a group. Where a mechanic needs a season boundary or a stationary animal for 5,000 ticks, the experiment that measured it is cited instead of a hollow pass.</p>')}
 {section_html('gui', '<p class="muted">Driven with the window’s own hotkeys, exactly as a player would press them: each one is followed by a read of the text grid and, where the change lives in the config or the pool, a Lua probe. Screenshots are the DF window at that moment.</p>')}

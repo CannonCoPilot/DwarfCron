@@ -1,0 +1,87 @@
+14:38:15 validate-full run 20260919-143815 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260919-143815
+14:38:15 == SETUP: restore and load CTRL
+14:39:31   loaded: tick None season None citizens None land None water None cavern None deep None
+14:39:31 == CLI
+14:39:32   [PASS             ] cli.status: `status` lists biomes, layers, quota, cavern line, on-the-map counts, 
+14:39:32   [PASS             ] mech.layers.count: the layer counter separates land/water/cavern and reports the magma se
+14:39:32   [PASS             ] mech.invasion: DF invasions are excluded from every count via a real unit field
+14:39:32   [PASS             ] cli.now: `now` applies the current season's roster once and reports the active 
+14:39:32   [PASS             ] cli.classes: `classes` prints the seven ecology classes with on/off and counts, plu
+14:39:32   [PASS             ] cli.class: `class <TOKEN> <cls>` records an override; bad args print usage
+14:39:32   [PASS             ] cli.groups.status: `groups` prints resident-group status (max, gap, detached, coupling, c
+14:39:32   [NOT-TESTABLE-HERE] mech.stuck: a tracked non-flier that has not moved in 5,000 ticks is re-grounded; 
+14:39:33   [PASS             ] cli.groups.onoff: `groups on|off` enables/disables resident groups
+14:39:33   [PASS             ] cli.groups.coupling: `groups coupling on|off` (and the `piggyback` alias) sets migratory co
+14:39:33   [PASS             ] cli.groups.pack: `groups pack N` sets the coupled predator wave size; 0 = raws
+14:39:34   [PASS             ] cli.groups.ecology: `groups ecology [on|off|now]` reads, sets, or runs the ecology write o
+14:39:34   [PASS             ] cli.groups.livestock: `groups livestock on|off` makes the fort's animals targets
+14:39:34   [PASS             ] cli.groups.nudge: `groups nudge TILES TICKS RADIUS` changes the three nudge distances
+14:39:35   [PASS             ] cli.groups.cohesion: `groups cohesion on|off|herd N pack N flock N` sets cohesion and follo
+14:39:35   [PASS             ] cli.groups.hold: `groups hold TOKEN DAYS` raises every member's leave countdown; `group
+14:39:35   [PASS             ] cli.quota: `quota [land|water|cavern] N` sets a per-layer ceiling; 0 unsets; stat
+14:39:35   [PASS             ] cli.quota.cavern: `quota cavern N` warns that the ceiling is enforced on FREQUENCY and b
+14:39:35   [PASS             ] cli.water: `water [on|off|now|target N|cadence N|countdown N]` controls the water
+14:39:36   [PASS             ] cli.place: `place TOKEN [n] [layer]` places wild animals headlessly and debits th
+14:39:36   [PASS             ] cli.usage: an unknown verb prints usage rather than a stack trace
+14:39:37   [PASS             ] cli.errors: bad arguments to water/quota/class/hold/place print a usage line and c
+14:39:37   [PASS             ] cli.docstring: the launcher help (`help seasonal-wildlife`) describes the tool
+14:39:37 == MECHANICS
+14:39:38   [FAIL             ] mech.sched: enable registers a daily repeat-util job; disable cancels it
+14:39:38       expected: repeat-util reports seasonal-wildlife scheduled after enable
+      got: enabled
+14:39:38   [FAIL             ] cli.enable: `enable` / `disable` start and stop automatic rotation (registers/canc
+14:39:38       expected: 'enabled' and the job registered
+      got: enabled
+14:39:39   [FAIL             ] mech.apply: applying the roster writes pool quantities: in-season allowed species 
+14:39:39       expected: the apply changes pool quantities: some entries zeroed (out of season), some stocked
+      got: roster: 70 allowed, 70 assigned, 140 active
+14:39:40   [FAIL             ] mech.outofseason: applying a different season zeroes the species that season excludes
+14:39:40       expected: applying season 2 instead of 0 zeroes some species and stocks others
+      got: active other: 136
+14:39:42   [FAIL             ] mech.unassigned: a creature with no seasons assigned is not managed at all
+14:39:42       expected: a species with no seasons keeps the sentinel quantity 37 through an apply
+      got: {"_raw": "{\n\t\"after\": [ 37, 37 ],\n\t\"entries\": 2,\n\t\"key\": \"BADGER\",\n\t\"token\": \"BADGER\"\n}\n"}
+14:40:02   [FAIL             ] mech.force: Force wave clears the current group and a new wave arrives within a fe
+14:40:02       expected: new land wild units on the map within 3,000 ticks of force Wildlife
+      got: No stuck wildlife found
+14:40:03   [FAIL             ] mech.groups.track: resident groups tracks wildlife groups on the map (gated/resident rows
+14:40:03       expected: at least one tracked group row (TOKEN xN gated/resident (day D))
+      got: resident groups: on  max=3  gap=5-20 days  detached=0 departed=0  coupling=on (0 done)  cohesion=on  swept=0
+ecology: on  last write day 14: 0 predator(s) x 0 target(s), 0 pair(s) written, 0 without a slot, 0 nudged, 0 slot(s) cleared; total writes 1, nudges 0; livestock safe
+14:40:03   [NOT-TESTABLE-HERE] mech.cohesion: cohesion picks a leader per herd/pack/flock group and sets followers
+14:40:03   [NOT-TESTABLE-HERE] mech.leader.lowest: the leader is the lowest-id member (NOT the largest male — that is bac
+14:40:03   [NOT-TESTABLE-HERE] mech.hold: hold raises leave_countdown on every member to ≥ DAYS×1200 ticks
+14:40:03   [NOT-TESTABLE-HERE] mech.dismiss: dismiss zeroes leave_countdown and clears the leader
+14:40:03   [PASS             ] mech.ecology.write: the ecology write relates every LARGE_PREDATOR to every target in DF's
+14:40:20   [PASS             ] mech.ecology.cadence: the ecology job fires on its own every 1,500 ticks while enabled
+14:40:20   [NOT-TESTABLE-HERE] mech.ecology.nudge: a predator >40 tiles from every target for 3,000 ticks is moved to wit
+14:40:20   [NOT-TESTABLE-HERE] mech.coupling: when a prey group arrives, coupling closes the pool to its armed natur
+14:40:20   [NOT-TESTABLE-HERE] mech.season.boundary: the roster is re-applied at each season boundary and held daily agains
+14:40:24   [FAIL             ] mech.place: place puts N live wild units on walkable tiles with a population ref, 
+14:40:24       expected: N placed, entry debited by exactly N, all N alive on the map after 600 ticks
+      got: placed 3 KANGAROO on the land layer at ids 160,161,162; entry 88 debited 100 -> 97
+14:40:24   [PASS             ] mech.water.dormant: on a dry/inland fort the water layer is dormant and the status names W
+14:40:39   [FAIL             ] cli.water: `water [on|off|now|target N|cadence N|countdown N]` controls the water
+14:40:39       expected: 'water now' on a dormant layer places 0 and says why
+      got: TimeoutError: timed out
+14:40:44   [PASS             ] mech.water.target: water target / cadence / countdown are stored and reported
+14:40:44   [PASS             ] mech.quota.land: quota land N overrides groups.max_concurrent as the effective ceiling
+14:40:45   [PASS             ] mech.quota.water: quota water N overrides the water target as the effective stocking lev
+14:40:45   [FAIL             ] mech.quota.cavern: quota cavern N holds managed cavern species at frequency 1 while over 
+14:40:45       expected: CAVERN.apply holds ≥1 species and the minimum written frequency is 1 (never 0)
+      got: {"_raw": "{\n\t\"held\": 35,\n\t\"min_freq\": 1,\n\t\"open\": 0,\n\t\"sample\": [ [ \"IMP_FIRE\", 1 ], [ \"MOLEMARIAN\", 1 ], [ \"RAT_GIANT\", 1 ], [ \"CROCODILE_CAVE\", 1 ], [ \"SPIDER_CAVE\", 1 ], [ \"RUTHERER\", 1 ], [ \"CAP_HOPPER\", 1 ], [ \"MOLE_DOG_NAKED\", 1 ], [ \"FISH_CAVE\", 1 ], [ \"OLM_
+14:40:46   [PASS             ] mech.quota.cavern.throttle: QUOTA.cavernThrottle (the old entry-quantity ceiling) still prints a '
+14:40:46   [FAIL             ] mech.cavern.restore: disable (or quota cavern 0) restores every held cavern frequency
+14:40:46       expected: no species still held after quota cavern 0 + disable ('restored N cavern creature frequencies')
+      got: quota: land -- (3 groups, from max_concurrent)  water -- (12 from water target)  cavern -- (no ceiling)
+  on the map now: land 7  water 12  cavern 20  (+10 deep: magma sea and underworld, never managed)
+restored 35 cavern creature frequencies
+disabled
+{"_raw": "{\n\t\"creepy_freq\": 10,\n\t\"still_h
+14:40:47   [FAIL             ] mech.classes.lock: a creature in a disabled class is locked: not eligible, shows an L tag
+14:40:47       expected: the pool marks creatures of disabled classes as locked
+      got: {"_raw": "{\n\t\"classes\": {\n\t\t\"generated\": false,\n\t\t\"mega\": false,\n\t\t\"mythic\": false,\n\t\t\"natural\": true,\n\t\t\"night\": false,\n\t\t\"unclassified\": false,\n\t\t\"unliving\": false\n\t},\n\t\"example\": \"BLIND_CAVE_OGRE\",\n\t\"locked\": 14,\n\t\"unlocked\": 70\n}\n"}
+14:40:47   [FAIL             ] mech.class.override: a class override changes the creature's class on the next pool build
+14:40:47       expected: BADGER classes as mythic (and is locked, since mythic is off) after the override
+      got: BADGER -> mythic
+{"_raw": "{\n\t\"class\": \"mythic\",\n\t\"locked\": true,\n\t\"token\": \"BADGER\"\n}\n"}

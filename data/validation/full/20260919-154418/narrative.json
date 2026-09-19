@@ -1,0 +1,48 @@
+[
+ {
+  "title": "Both status labels are dead",
+  "text": "Pressing Ctrl+E flipped the tool's enabled flag (the label under it re-read 'Enable auto') and the status row beneath the hotkeys stayed blank. The same row is blank after every Roster action, and the Set-roster grid status is blank after F, Y, D, M and O. The actions happen; their receipts — 'Applied Spring live: 32 active.', 'Allowed 4 natural prey.' — never render. Both labels are created with text='' and are never re-laid-out after setText.",
+  "shots": [
+   "hand/ctrlE-status-row-blank.jpg"
+  ],
+  "verdict": "DEAD",
+  "claims": [
+   "gui.status.roster",
+   "gui.status.grid"
+  ]
+ },
+ {
+  "title": "Ctrl+A, Ctrl+W and Ctrl+X never reach their labels",
+  "text": "The Roster tab's filter box is a DFHack TextArea that holds keyboard focus whenever the tab is shown and consumes Ctrl+A (select all), Ctrl+W (delete word) and Ctrl+X (cut) — also C, K, U, V, Y, Z — before any HotkeyLabel sees them. The guide's line 'the text box filters by name — that is why all action keys are Ctrl-modified' is the wrong conclusion from the right observation. Ctrl+D, E, F, G, L, R and S are not in TextArea's set and work; Ctrl+G's prompt opens where Ctrl+W's does not, and the digits typed for Ctrl+W land in the filter box. Clicking the labels works.",
+  "shots": [
+   "hand/ctrlW-no-prompt-70-in-filter.jpg",
+   "hand/ctrlG-prompt-opens.jpg"
+  ],
+  "verdict": "FAIL",
+  "claims": [
+   "gui.k.shadow",
+   "gui.k.ctrlA",
+   "gui.k.ctrlW",
+   "gui.k.ctrlX"
+  ]
+ },
+ {
+  "title": "water now suspended the game for minutes on an inland fort — fixed as v5.8.2; then it did not answer at all, once",
+  "text": "On CTRL, `seasonal-wildlife water now` ran past a 190-second cap and then blocked the next call for another 190 seconds while the server finished; DF's core was suspended for about six and a half minutes on a fort with no water to stock. Three causes in one path: the `now` verb never consulted the cached wet-edge verdict the scheduled job checks; the placement scan asked DFHack five questions per tile across every z-level, exiting early only on finding 200 tiles; and it ran once per candidate species. The run that found it was killed on instruction, the code rewritten (gate on the cached verdict, read the map's block arrays, bound water scans to the surface band, one tile list per pass), deployed, and this run — on v5.8.2 — measures the verb again as cli.water. This run's cli.water check on v5.8.2 sent `water now` at 15:46:38 and received nothing in 600 s — but the drain call sent as the cap fired returned at once, four more checks passed within 14 s, and DF's CPU stayed under half a core throughout: the core was free and the reply never came. That is not the scan. In isolation after the run, on the same fort through the same RPC path, `water now` answered in 81 ms (0 ms inside the verb, dormant with the reason), `water survey` in 18 ms, `place` in 223 ms. One silent call, not reproduced, cause unknown; it stands as the FAIL. The second pass (v5.8.3) put a fuse on every scheduled job — raise or run past two seconds and the job is cancelled and named in status — a 1.5 s deadline on every scan, and a wall-time figure on every verb, so the next such event is bounded and self-reporting.",
+  "shots": [],
+  "verdict": "FAIL",
+  "claims": [
+   "cli.water"
+  ]
+ },
+ {
+  "title": "force Wildlife is real — a retraction",
+  "text": "df.timed_event_type on 53.16 has no plain Wildlife, and on that alone the first draft of this report called Ctrl+F a no-op that reports success. force.lua handles WILDLIFE as a synthetic event: wildlife.free_all_wildlife(), which clears the roaming-source flags so DF may send the next group — the release lever E8 measured (a chosen species in under 450 ticks, 5 of 5). Ctrl+F is tested as that lever. With nothing on the surface it has nothing to free, and the wave that follows is DF's own timer.",
+  "shots": [],
+  "verdict": "PASS",
+  "claims": [
+   "mech.force",
+   "gui.k.ctrlF"
+  ]
+ }
+]

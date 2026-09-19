@@ -1,0 +1,91 @@
+15:35:35 validate-full run 20260919-153535 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260919-153535
+15:35:35 == SETUP: restore and load CTRL
+15:35:57   loaded: tick 16800 season 0 citizens 7 land 0 water 0 cavern 8 deep 5
+15:35:57 == CLI
+15:35:57   [PASS             ] cli.status: `status` lists biomes, layers, quota, cavern line, on-the-map counts, 
+15:35:57   [PASS             ] mech.layers.count: the layer counter separates land/water/cavern and reports the magma se
+15:35:57   [PASS             ] mech.invasion: DF invasions are excluded from every count via a real unit field
+15:35:58   [PASS             ] cli.now: `now` applies the current season's roster once and reports the active 
+15:35:58   [PASS             ] cli.classes: `classes` prints the seven ecology classes with on/off and counts, plu
+15:35:58   [PASS             ] cli.class: `class <TOKEN> <cls>` records an override; bad args print usage
+15:35:58   [PASS             ] cli.groups.status: `groups` prints resident-group status (max, gap, detached, coupling, c
+15:35:58   [NOT-TESTABLE-HERE] mech.stuck: a tracked non-flier that has not moved in 5,000 ticks is re-grounded; 
+15:35:59   [PASS             ] cli.groups.onoff: `groups on|off` enables/disables resident groups
+15:35:59   [PASS             ] cli.groups.coupling: `groups coupling on|off` (and the `piggyback` alias) sets migratory co
+15:35:59   [PASS             ] cli.groups.pack: `groups pack N` sets the coupled predator wave size; 0 = raws
+15:36:00   [PASS             ] cli.groups.ecology: `groups ecology [on|off|now]` reads, sets, or runs the ecology write o
+15:36:00   [PASS             ] cli.groups.livestock: `groups livestock on|off` makes the fort's animals targets
+15:36:00   [PASS             ] cli.groups.nudge: `groups nudge TILES TICKS RADIUS` changes the three nudge distances
+15:36:00   [PASS             ] cli.groups.cohesion: `groups cohesion on|off|herd N pack N flock N` sets cohesion and follo
+15:36:00   [PASS             ] cli.groups.hold: `groups hold TOKEN DAYS` raises every member's leave countdown; `group
+15:36:01   [PASS             ] cli.quota: `quota [land|water|cavern] N` sets a per-layer ceiling; 0 unsets; stat
+15:36:01   [PASS             ] cli.quota.cavern: `quota cavern N` warns that the ceiling is enforced on FREQUENCY and b
+15:36:01   [PASS             ] cli.water: `water [on|off|now|target N|cadence N|countdown N]` controls the water
+15:36:01   [PASS             ] cli.place: `place TOKEN [n] [layer]` places wild animals headlessly and debits th
+15:36:01   [PASS             ] cli.usage: an unknown verb prints usage rather than a stack trace
+15:36:03   [PASS             ] cli.errors: bad arguments to water/quota/class/hold/place print a usage line and c
+15:36:03   [PASS             ] cli.docstring: the launcher help (`help seasonal-wildlife`) describes the tool
+15:36:03 == MECHANICS
+15:36:03   [PASS             ] mech.sched: enable registers a daily repeat-util job; disable cancels it
+15:36:03   [PASS             ] cli.enable: `enable` / `disable` start and stop automatic rotation (registers/canc
+15:36:04   [PASS             ] mech.apply: applying the roster writes pool quantities: in-season allowed species 
+15:36:05   [PASS             ] mech.outofseason: applying a different season zeroes the species that season excludes
+15:36:06   [PASS             ] mech.unassigned: a creature with no seasons assigned is not managed at all
+15:37:10   [NOT-TESTABLE-HERE] mech.force: Force wave clears the current group and a new wave arrives within a fe
+15:37:10   [PASS             ] mech.groups.track: resident groups tracks wildlife groups on the map (gated/resident rows
+15:37:10   [PASS             ] mech.cohesion: cohesion picks a leader per herd/pack/flock group and sets followers
+15:37:11   [PASS             ] mech.leader.lowest: the leader is the lowest-id member (NOT the largest male — that is bac
+15:37:11   [PASS             ] mech.hold: hold raises leave_countdown on every member to ≥ DAYS×1200 ticks
+15:37:11   [PASS             ] mech.dismiss: dismiss zeroes leave_countdown and clears the leader
+15:37:12   [FAIL             ] mech.ecology.write: the ecology write relates every LARGE_PREDATOR to every target in DF's
+15:37:12       expected: a 'last write' line; pairs > 0 whenever a LARGE_PREDATOR and a target are both on the map
+      got: ecology: on  last write day 19: 1 predator(s) x 8 target(s), 0 pair(s) written, 8 without a slot, 0 nudged, 0 slot(s) cleared; total writes 6, nudges 0; livestock safe
+15:37:45   [PASS             ] mech.ecology.cadence: the ecology job fires on its own every 1,500 ticks while enabled
+15:37:45   [NOT-TESTABLE-HERE] mech.ecology.nudge: a predator >40 tiles from every target for 3,000 ticks is moved to wit
+15:37:45   [NOT-TESTABLE-HERE] mech.coupling: when a prey group arrives, coupling closes the pool to its armed natur
+15:37:45   [NOT-TESTABLE-HERE] mech.season.boundary: the roster is re-applied at each season boundary and held daily agains
+15:38:08   [FAIL             ] mech.place: place puts N live wild units on walkable tiles with a population ref, 
+15:38:08       expected: N placed, entry debited by exactly N, all N alive on the map after 600 ticks
+      got: TimeoutError: timed out
+...arf Fortress/dfhack-config/scripts/seasonal-wildlife.lua:1806: attempt to call a nil value (field 'one')
+stack traceback:
+	...arf Fortress/dfhack-config/scripts/seasonal-wildlife.lua:1806: in field 'fromEntry'
+	...arf Fortress/dfhack-config/scripts/seasonal-wildlife.lua:34
+15:38:08   [PASS             ] mech.water.dormant: on a dry/inland fort the water layer is dormant and the status names W
+15:42:43   water now: 275 s (server drained)
+15:42:43   [FAIL             ] cli.water: `water [on|off|now|target N|cadence N|countdown N]` controls the water
+15:42:43       expected: 'water now' on a dormant layer returns at once (the wet-edge verdict is cached at load) with 'placed 0' and the reason
+      got: 274.9 s
+15:42:44   [PASS             ] mech.water.target: water target / cadence / countdown are stored and reported
+15:42:44   [PASS             ] mech.quota.land: quota land N overrides groups.max_concurrent as the effective ceiling
+15:42:44   [PASS             ] mech.quota.water: quota water N overrides the water target as the effective stocking lev
+15:42:45   [PASS             ] mech.quota.cavern: quota cavern N holds managed cavern species at frequency 1 while over 
+15:42:45   [PASS             ] mech.quota.cavern.throttle: QUOTA.cavernThrottle (the old entry-quantity ceiling) still prints a '
+15:42:46   [PASS             ] mech.cavern.restore: disable (or quota cavern 0) restores every held cavern frequency
+15:42:46   [PASS             ] mech.classes.lock: a creature in a disabled class is locked: not eligible, shows an L tag
+15:42:47   [PASS             ] mech.class.override: a class override changes the creature's class on the next pool build
+15:42:47   [PASS             ] mech.overlay: `overlay enable seasonal-wildlife.groups` registers a map overlay mark
+15:42:48   [PASS             ] mech.abundance: abundance sets the stocked quantity (not arrival volume — E24)
+15:42:48   [PASS             ] mech.reset: Reset to default restores managed quantities to the captured worldgen 
+15:42:48   [PASS             ] mech.addnew: Add-new writes a master row and a live entry so the species is in the 
+15:42:48 == GUI
+15:42:52   [PASS             ] gui.open: `gui/seasonal-wildlife` opens a resizable 86×34 window titled 'Seasona
+15:42:52   [PASS             ] gui.tab.roster: Roster tab: header with biomes and per-category counts, filter row, cr
+15:42:52   [PASS             ] gui.k.thin: the header shows a 'Thin:' hint when a category is under its target
+15:42:53   [PASS             ] gui.k.V: V cycles View: Current → Default → Add-new
+15:42:55   [PASS             ] gui.k.C: C cycles the category filter (incl. aquatic)
+15:42:56   [PASS             ] gui.k.B: B cycles the biome filter
+15:42:58   [PASS             ] gui.k.N: N cycles the season filter
+15:43:03   [PASS             ] gui.k.enter: Enter allows/blocks the selected creature (ok column flips Y/-)
+15:43:05   [FAIL             ] gui.k.shiftenter: Shift-Enter cycles the selected creature's seasons
+15:43:05       expected: row 1's season column changes
+      got: SpSu
+SpSu
+15:43:07   [PASS             ] gui.k.ctrlD: Ctrl+D opens the dry-run season table dialog
+15:43:15   [FAIL             ] gui.k.ctrlW: Ctrl+W prompts for the row's abundance and stores it
+15:43:15       expected: Ctrl+W opens the abundance prompt for the selected row; 70 typed there is stored as cfg.weight[row]
+      got: prompt by key: False; by clicking the label: True; weights newly 70: ['cavern:BAT']
+15:43:18   [FAIL             ] gui.k.shadow: Ctrl-modified action keys work while the filter box has focus (USAGE: 
+15:43:18       expected: Ctrl+A, Ctrl+W and Ctrl+X reach their labels with the filter focused
+      got: Ctrl+W prompt: False; Ctrl+A announcement: False; Ctrl+X any effect: False
+15:43:23   [PASS             ] gui.k.ctrlG: Ctrl+G prompts for an abundance for every filtered row
