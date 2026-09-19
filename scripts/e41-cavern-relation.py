@@ -14,7 +14,7 @@ import json, re, subprocess, sys, datetime as dt
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CX = str(ROOT / "scripts/cx-lifecycle.sh")
-RUN = ROOT / "data/experiments/E41" / dt.datetime.now().strftime("%Y%m%d-%H%M%S"); RUN.mkdir(parents=True)
+RUN = ROOT / "data/experiments/E41b" / dt.datetime.now().strftime("%Y%m%d-%H%M%S"); RUN.mkdir(parents=True)
 LOG = open(RUN / "log.txt", "a")
 BUDGET, SAMPLE = int(sys.argv[1]) if len(sys.argv) > 1 else 6000, 1500
 def log(m):
@@ -38,11 +38,14 @@ for rep in (1, 2):
     for arm in ("off", "eco"):
         log(f"== rep {rep} arm {arm}: restore + load CTRL")
         sh("save-restore", "CTRL.preverify"); out = sh("load", "CTRL"); log("  " + out.strip().splitlines()[-1][:100])
+        # E41b: BOTH arms run the tool enabled with the cavern layer on and the cavern gate OFF, so the
+        # only difference is the ecology switch; E41's off arm had the whole tool off and its on arm
+        # let the cavern gate bring other predators in (E40), which confounded the deaths.
         sh("cmd", "seasonal-wildlife", "disable")
-        if arm == "eco":
-            log("  " + sh("cmd", "seasonal-wildlife", "layer", "cavern", "on").strip()[:80])
-            log("  " + sh("cmd", "seasonal-wildlife", "groups", "ecology", "on").strip()[:80])
-            log("  " + sh("cmd", "seasonal-wildlife", "enable").strip()[:40])
+        log("  " + sh("cmd", "seasonal-wildlife", "layer", "cavern", "on").strip()[:80])
+        log("  " + sh("cmd", "seasonal-wildlife", "groups", "cavern", "off").strip()[:80])
+        log("  " + sh("cmd", "seasonal-wildlife", "groups", "ecology", "on" if arm == "eco" else "off").strip()[:80])
+        log("  " + sh("cmd", "seasonal-wildlife", "enable").strip()[:40])
         pred, r1 = place("CROCODILE_CAVE", 1); prey, r2 = place("CRUNDLE", 4)
         log(f"  {r1}\n  {r2}")
         if len(pred) != 1 or len(prey) != 4:
@@ -62,12 +65,16 @@ for rep in (1, 2):
             dead = sum(1 for p in st["prey"] if p.get("dead") or p.get("gone"))
             samples.append({"at": st["tick"] - t0, "dead": dead, "nearest": st["nearest"], "pred_dead": st["pred"].get("dead"), "pred_z": st["pred"].get("z")})
             log(f"  +{st['tick'] - t0}: crundles dead/gone {dead}/4, crocodile at z{st['pred'].get('z')} nearest living crundle {st['nearest']} tiles")
-        rows.append({"rep": rep, "arm": arm, "vacuous": False, "pred": pred[0], "prey": prey, "pairs": pairs, "samples": samples})
+        # attribution: DF's own combat reports naming the crocodile and a crundle; and the job's last write
+        att = luaj("local n,hits=0,0; for _,r in ipairs(df.global.world.status.reports) do local t=r.text:lower(); if t:find('crocodile') and t:find('crundle') then hits=hits+1 end; n=n+1 end; print(json.encode({reports=n, croc_x_crundle=hits}))")
+        eco_end = sh("cmd", "seasonal-wildlife", "groups", "ecology").strip()[:200]
+        log(f"  reports naming crocodile+crundle: {att.get('croc_x_crundle')} of {att.get('reports')}; {eco_end}")
+        rows.append({"rep": rep, "arm": arm, "vacuous": False, "pred": pred[0], "prey": prey, "pairs": pairs, "samples": samples, "reports": att, "eco_end": eco_end})
         (RUN / "rows.json").write_text(json.dumps(rows, indent=1))
         sh("cmd", "seasonal-wildlife", "disable")
 log("== TALLY")
 for r in rows:
     if r.get("vacuous"): log(f"  rep {r['rep']} {r['arm']}: VACUOUS"); continue
     last = r["samples"][-1]
-    log(f"  rep {r['rep']} {r['arm']:3s}: pairs written {r['pairs']}  crundles dead/gone at end {last['dead']}/4  nearest at end {last['nearest']}  by sample {[s['dead'] for s in r['samples']]}")
+    log(f"  rep {r['rep']} {r['arm']:3s}: crundles dead/gone at end {last['dead']}/4  by sample {[s['dead'] for s in r['samples']]}  combat reports croc+crundle {r.get('reports',{}).get('croc_x_crundle')}  | {r.get('eco_end','')[:110]}")
 log(f"== DONE {RUN}")
