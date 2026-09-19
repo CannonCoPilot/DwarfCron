@@ -1,0 +1,93 @@
+run data/experiments/E37/20260918-232733
+
+per replicate — DF's own achieved frame rate (rows.tsv clock/fps_achieved)
+arm	rep	n	fps min/mean/median/max	cap	units mean	citizens	tool/sched/groups/eco	placed
+off_baseline	1	34	190/250.7/244/327	10000	53.5	7->7	false/false/false/false	0
+off_baseline	2	34	220/295.8/302/365	10000	53.9	7->7	false/false/false/false	0
+off_crowded	1	34	96/192.3/190/266	10000	85.2	7->7	false/false/false/false	61
+off_crowded	2	34	78/273.2/295/378	10000	73.7	7->7	false/false/false/false	61
+on_baseline	1	34	108/297.4/310/339	10000	51.0	7->7	true/true/true/true	0
+on_baseline	2	34	118/268.8/268/338	10000	49.9	7->7	true/true/true/true	0
+on_crowded	1	34	193/267.4/272/330	10000	88.5	7->7	true/true/true/true	60
+on_crowded	2	34	211/254.5/261/296	10000	88.2	7->7	true/true/true/true	60
+
+run order — arm is confounded with time by construction, so check for drift
+started	arm	rep	fps mean
+23:27:33	off_baseline	1	250.7
+23:36:48	off_baseline	2	295.8
+23:45:01	on_baseline	1	297.4
+23:52:58	on_baseline	2	268.8
+00:01:40	off_crowded	1	192.3
+00:13:24	off_crowded	2	273.2
+00:22:38	on_crowded	1	267.4
+00:31:46	on_crowded	2	254.5
+  no monotone trend (3 of 7 steps rise) — drift is not
+  obviously driving the ordering, though the noise floor above still applies.
+
+the noise floor — how far apart IDENTICAL replicates land
+(same arm, same config, same fort: whatever separates these is the rig, not the tool)
+  off_baseline: rep 1 250.7, rep 2 295.8  -> spread 45.1 fps (16.5%)
+     at effectively the SAME load (53.5 vs 53.9 units, 0.8% apart) — this spread is pure rig noise
+  on_baseline: rep 1 297.4, rep 2 268.8  -> spread 28.6 fps (10.1%)
+     at effectively the SAME load (51.0 vs 49.9 units, 2.3% apart) — this spread is pure rig noise
+  off_crowded: rep 1 192.3, rep 2 273.2  -> spread 80.9 fps (34.7%)
+     loads differed by 14.4% too (85.2 vs 73.7 units) -> implies -7.05 fps/animal; NOT usable as a noise estimate
+  on_crowded: rep 1 267.4, rep 2 254.5  -> spread 12.8 fps (4.9%)
+     at effectively the SAME load (88.5 vs 88.2 units, 0.3% apart) — this spread is pure rig noise
+  => RESOLUTION FLOOR: 16.5%, from the 3 pair(s) that ran at matched
+     load. An on/off gap smaller than this is NOT a cost;
+     it is the rig. Report it as 'below the noise floor', never as a measured cost.
+
+per arm
+arm	reps	fps mean	units mean	samples
+off_baseline	[1, 2]	273.3	53.7	68
+on_baseline	[1, 2]	283.1	50.4	68
+off_crowded	[1, 2]	232.8	79.4	68
+on_crowded	[1, 2]	260.9	88.3	68
+
+the fork — the tool's cost at each load level, and whether it grows
+  baseline: off 273.3 fps, on 283.1 fps — on is FASTER by 9.8 fps (3.6%)
+  crowded: off 232.8 fps, on 260.9 fps — on is FASTER by 28.2 fps (12.1%)
+
+  baseline gap -9.8 fps (-3.6%) vs crowded gap -28.2 fps (-12.1%)
+  => NOT RESOLVABLE: both gaps sit under the 16.5% noise floor
+     (tool-on ran faster at baseline and faster when crowded).
+     The defensible claim is an UPPER BOUND on the tool's cost, not a measurement,
+     and the bound is the floor: below ~16%.
+     Note the direction is consistent: tool-on was never the slower arm in any
+     cell. That is evidence against a cost, not evidence of a benefit.
+
+fps against units — fitted WITHIN each replicate, read off at a common 58 units
+(pooling replicates corrupts this: two reps with different intercepts produce a slope
+ that is an artifact of the gap between them. Per-replicate slopes shown so you can see
+ whether the relationship is stable at all before trusting any adjusted figure.)
+arm	rep	n	slope (fps per unit)	fps @ ref	units range
+off_baseline	1	34	-1.15	245.0	31-66
+off_baseline	2	34	+1.80	304.0	31-67
+   !! off_baseline: slopes disagree in SIGN (-1.15 to +1.80) — the units/fps relationship is not resolvable here; do not quote a per-unit cost.
+on_baseline	1	34	+2.09	313.0	31-59
+on_baseline	2	34	+1.97	285.8	31-57
+off_crowded	1	34	-0.23	198.4	31-117
+off_crowded	2	34	-1.21	291.6	31-123
+on_crowded	1	34	-1.52	312.8	31-123
+on_crowded	2	34	-0.86	280.1	31-118
+  baseline, load held equal: off 274.5 vs on 299.4 — -24.9 fps (-9.1%)
+     ^ BELOW THE 16.5% NOISE FLOOR — not a measured cost.
+  crowded, load held equal: off 245.0 vs on 296.4 — -51.4 fps (-21.0%)
+  per-unit cost NOT quotable (they disagree in sign): replicate slopes run -1.52 to +2.09 fps/unit.
+  (a gap that survives this is the jobs; a gap that vanishes was the population.)
+
+cost per animal — crowded against baseline, within each tool state
+  tool off: 53.7 units at 273.3 fps -> 79.4 units at 232.8 fps = -1.58 fps per animal
+  tool on: 50.4 units at 283.1 fps -> 88.3 units at 260.9 fps = -0.58 fps per animal
+  DF charges -1.58 fps/animal with the tool off, -0.58 with it on.
+  NOT quoting a change in per-animal charge: the on/off gaps do not clear the 16.5% noise floor.
+  These two slopes are ratios of arm means and carry both arms' noise; comparing
+  them here would report the rig's variance as a property of the tool.
+  ('worth N animals' withheld for the same reason — it divides by these slopes.)
+
+cross-check — harness stepping rate (ticks_per_wall_s), which includes RPC overhead
+  off_baseline: 237.9 t/s
+  on_baseline: 251.7 t/s
+  off_crowded: 207.3 t/s
+  on_crowded: 229.9 t/s
