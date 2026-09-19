@@ -1,0 +1,72 @@
+{
+  "id": "E23c",
+  "title": "Get a REAL invasion onto the map and find out whether v5.8's exclusion holds against one. Addendum 49 ships the rule that DF's own invaders (invasion_id >= 0) leave every layer count, because one raid can make a cavern look stocked and silence the job that keeps it alive \u2014 and that rule has still never met an invader. E23b pinned all three cavern features at the documented maximum of 100,000 for two full seasons with no decay whatever and drew ZERO invaders, 2 of 2, so irritation is not sufficient; CTRL's own cavern irritation sits at 0 and never rises, which is what a fort that has never breached a cavern looks like. This takes the other road: 53.16's timed_event_type carries EvaluateAttackAndSendImmediateArmy, which DFHack's `force` accepts (it refuses only FeatureAttack, and only because it passes feature_ind = -1). An army invasion carries invasion_id just as a cavern raid does, so it exercises the same exclusion without needing an open cavern. A season on CTRL, two replicates each, with the tool's land and cavern layers managed so the counts under test are the shipped ones.",
+  "fork": "Can a real invasion be put on the map at all on this build, and does the tool's layer count exclude the invaders when it is.",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 1
+  },
+  "predictions": [
+    {
+      "model": "the exclusion works",
+      "expects": "invaders appear, invaders>0 is logged with their species, and the land and cavern counts never move with them"
+    },
+    {
+      "model": "the exclusion is a silent no-op",
+      "expects": "invaders appear and the layer counts rise with them, which means WILD.field resolved wrongly on this build \u2014 though E23b already showed it resolving to invasion_id, so this is now unlikely"
+    },
+    {
+      "model": "the event is accepted and nothing comes",
+      "expects": "force returns ok, the event is queued and then consumed, and no unit ever carries invasion_id >= 0 \u2014 the army needs a hostile civ with a route, which a quiet year-2 fort may not have"
+    },
+    {
+      "model": "force refuses it",
+      "expects": "the command errors, and an invasion cannot be raised from the event queue on 53.16 at all; the exclusion then stays untestable until a fort digs into a cavern"
+    }
+  ],
+  "kill_criterion": "invaders on the map with the layer counts provably excluding them, 2 of 2, validates addendum 49's exclusion against a real invasion; invaders counted as wildlife is a v5.8 bug to fix before v6.1; no invaders at all is reported as a trigger failure and sends the question to a fort with a breached cavern",
+  "culling": [
+    "drop a replicate on any changed save",
+    "a replicate with zero invaders is a TRIGGER failure, not evidence about the exclusion"
+  ],
+  "arms": [
+    {
+      "name": "forced_army",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=0; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e23c: roster %d allowed, %d assigned; land+cavern managed, no ceiling'):format(n,a))",
+        "local before=#df.global.timed_events; local ok,err=pcall(dfhack.run_command,'force','EvaluateAttackAndSendImmediateArmy'); local after=#df.global.timed_events; local q={}; for _,ev in ipairs(df.global.timed_events) do local ty=df.timed_event_type[ev.type]; q[ty]=(q[ty] or 0)+1 end; local qs={}; for k,v in pairs(q) do qs[#qs+1]=k..':'..v end; table.sort(qs); print(('e23c: force EvaluateAttackAndSendImmediateArmy ok=%s err=%s; timed_events %d -> %d; queued=[%s]'):format(tostring(ok),tostring(err),before,after,table.concat(qs,' ')))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local q={}; for _,ev in ipairs(df.global.timed_events) do local ty=df.timed_event_type[ev.type]; q[ty]=(q[ty] or 0)+1 end; local qs={}; for k,v in pairs(q) do qs[#qs+1]=k..':'..v end; table.sort(qs); print(('e23c: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s queued=[%s] citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',table.concat(qs,' '),cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local q={}; for _,ev in ipairs(df.global.timed_events) do local ty=df.timed_event_type[ev.type]; q[ty]=(q[ty] or 0)+1 end; local qs={}; for k,v in pairs(q) do qs[#qs+1]=k..':'..v end; table.sort(qs); print(('e23c: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s queued=[%s] citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',table.concat(qs,' '),cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "control",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=0; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e23c: roster %d allowed, %d assigned; land+cavern managed, no ceiling'):format(n,a))",
+        "print('e23c: control - no event forced')",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local q={}; for _,ev in ipairs(df.global.timed_events) do local ty=df.timed_event_type[ev.type]; q[ty]=(q[ty] or 0)+1 end; local qs={}; for k,v in pairs(q) do qs[#qs+1]=k..':'..v end; table.sort(qs); print(('e23c: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s queued=[%s] citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',table.concat(qs,' '),cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local q={}; for _,ev in ipairs(df.global.timed_events) do local ty=df.timed_event_type[ev.type]; q[ty]=(q[ty] or 0)+1 end; local qs={}; for k,v in pairs(q) do qs[#qs+1]=k..':'..v end; table.sort(qs); print(('e23c: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s queued=[%s] citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',table.concat(qs,' '),cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}

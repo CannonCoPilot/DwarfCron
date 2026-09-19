@@ -65,9 +65,33 @@ local function ref6(r)
     return ('%d,%d,%d,%d,%d,%d'):format(r.region_x, r.region_y, r.feature_idx, r.cave_id, r.site_id, r.population_idx)
 end
 
+-- A cave_id is not a cavern. `world_underground_region.layer_depth` reads 0-2 for the three
+-- cavern layers, 3 for the MAGMA SEA and 4 for the UNDERWORLD. Until 2026-09-18 this function
+-- returned 'cavern' for all five, so every `layer=cavern` row this probe has ever written --
+-- units.tsv, the arrival and departure events, pops.tsv -- counted magma crabs and demons as
+-- cavern wildlife. That is addendum 51's inflation: it was fixed inside seasonal-wildlife
+-- (WILD.caveDepth) and NOT here, so the tool's own counts were right while the harness's data
+-- stayed wrong by five to eight units on CTRL. Any threshold or tally calibrated from a
+-- `layer=cavern` figure written before this date is too high by that much.
+-- Depth per cave never changes while a world is loaded, so it is cached.
+local depth_cache = {}
+local function cave_depth(cave_id)
+    local d = depth_cache[cave_id]
+    if d ~= nil then return d end
+    local ur = df.global.world.world_data.underground_regions
+    local reg = (cave_id >= 0 and cave_id < #ur) and ur[cave_id] or nil
+    d = reg and reg.layer_depth or -1
+    depth_cache[cave_id] = d
+    return d
+end
+
 local function layer_of(r)
     if r.feature_idx >= 0 then return 'feature' end
-    if r.cave_id >= 0 then return 'cavern' end
+    if r.cave_id >= 0 then
+        -- an unknown cave reads as 'cavern', which is the pre-fix behaviour and the safe way
+        -- to be wrong: it never hides something that is genuinely in a cavern.
+        return cave_depth(r.cave_id) >= 3 and 'deep' or 'cavern'
+    end
     return 'surface'
 end
 

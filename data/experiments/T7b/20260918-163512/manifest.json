@@ -1,0 +1,65 @@
+{
+  "id": "T7b",
+  "title": "The cavern ceiling, rebuilt on frequency and gated properly. T7's ceiling closed pool entries exactly as designed and achieved nothing, because entry quantity gates nothing underground. This enforces the same ceiling by holding managed cavern species at frequency 1 while the layer is over it and restoring them under it \u2014 the v5.8.1 CAVERN lever. Ceiling 12, against a control with no ceiling. A season, two replicates each. NOTE: a first attempt used a ceiling of 25, chosen from T7's numbers \u2014 but T7's counter still included the magma sea and the underworld, so it overstated the cavern layer by five to eight units. With those excluded the population never exceeded 17 and the ceiling never engaged. Twelve sits below the observed band of 16-17, so it must engage, and the layer must then fall below it to release.",
+  "fork": "Does the ceiling now bite AND release in a live game, rather than only under a probe.",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 1
+  },
+  "predictions": [
+    {
+      "model": "the ceiling works on frequency",
+      "expects": "the ceiling arm oscillates around twenty-five with at least one held->open transition followed by fresh cavern arrivals; the control runs measurably higher"
+    },
+    {
+      "model": "a one-way door",
+      "expects": "species are held once and never released even as the layer decays well below the ceiling"
+    },
+    {
+      "model": "frequency 1 is too weak a brake",
+      "expects": "the ceiling arm tracks the control \u2014 a 1-in-100 weight does not slow arrivals enough to hold a ceiling"
+    }
+  ],
+  "kill_criterion": "a held->open transition followed by fresh cavern arrivals, in 2 of 2, with the ceiling arm measurably below the control and no fort harmed, ships the per-layer cavern quota",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "ceiling_12",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=12; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local r=sw.CAVERN.apply(cfg, df.global.cur_season); print(('t7b: roster %d allowed, %d assigned; cavern ceiling 12; first pass held=%s open=%s'):format(n,a,tostring(r and r.held),tostring(r and r.open)))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local held=0; local snap=sw.CAVERN.saved(); for _ in pairs(snap) do held=held+1 end; print(('t7b: land=%d water=%d cavern=%d deep=%d citizens=%d held=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,held,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local held=0; local snap=sw.CAVERN.saved(); for _ in pairs(snap) do held=held+1 end; print(('t7b: land=%d water=%d cavern=%d deep=%d citizens=%d held=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,held,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "no_ceiling",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=0; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); local r=sw.CAVERN.apply(cfg, df.global.cur_season); print(('t7b: roster %d allowed, %d assigned; cavern ceiling 0; first pass held=%s open=%s'):format(n,a,tostring(r and r.held),tostring(r and r.open)))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local held=0; local snap=sw.CAVERN.saved(); for _ in pairs(snap) do held=held+1 end; print(('t7b: land=%d water=%d cavern=%d deep=%d citizens=%d held=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,held,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; local held=0; local snap=sw.CAVERN.saved(); for _ in pairs(snap) do held=held+1 end; print(('t7b: land=%d water=%d cavern=%d deep=%d citizens=%d held=%d day=%d'):format(by.land,by.water,by.cavern,by.deep,cz,held,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}

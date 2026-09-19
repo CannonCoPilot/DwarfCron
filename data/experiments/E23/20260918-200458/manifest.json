@@ -1,0 +1,64 @@
+{
+  "id": "E23",
+  "title": "Does an agitated surface wave respect the player's roster, or arrive from any species DF likes? This is v6.1's other safety question, and it is only now askable. The report listed E23 as blocked because `force` has no siege event on 53.16-r1.1 \u2014 but the trigger was never the timed event. DFHack's own shipped agitation-rebalance reads and writes the counters DF actually rolls on: plotinfo.outdoor_irritation against plotinfo.main.custom_difficulty.wild_irritate_min and wild_sens, with the chance for the next wildlife group being min(100, (irritation - min) * 100 / sens) and a hard gate at biome savagery > 65. So both arms run on MAGMA (savage 71) with wild_irritate_min 0, wild_sens 1 and outdoor_irritation pinned at 100,000 \u2014 every surface wave agitated by construction, re-pinned each sample so decay cannot lower it. One arm runs the tool with the land roster closed to its three largest entries; the control runs the same agitation with the tool off. A season, two replicates each. The fort may die; on a savage map with maxed agitation that is the result, not a failure.",
+  "fork": "Can an agitated wave bring a species the roster has closed \u2014 that is, does the pool gate agitation, or bypass it.",
+  "fort": "MAGMA",
+  "backup": "MAGMA.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {},
+  "predictions": [
+    {
+      "model": "the pool gates agitation too",
+      "expects": "agitated arrivals in the closed arm are confined to the three species left open; the control shows a wider agitated mix drawn from the whole embark"
+    },
+    {
+      "model": "agitation bypasses the pool",
+      "expects": "closed species arrive agitated anyway \u2014 the closed arm's agitated mix matches the control's, and the roster promises nothing on a savage map"
+    },
+    {
+      "model": "agitation is not reachable from the counters",
+      "expects": "no unit is ever agitated in either arm despite a computed chance of 100%, which means the roll reads something else and v6.1 needs a different lever"
+    }
+  ],
+  "kill_criterion": "agitated arrivals confined to open entries in 2 of 2 lets v6.1 ship irruptions on the roster the player already sets; any closed species arriving agitated means the irruption module needs its own species filter",
+  "culling": [
+    "drop a replicate on any changed save",
+    "drop a replicate if the pre-step reports savagery <= 65 \u2014 the surface roll is gated on it and the arm is vacuous"
+  ],
+  "arms": [
+    {
+      "name": "agitated_roster_closed",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; local pool=sw.buildPool(cfg); local cands={}; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; if e.layer=='land' and not e.gameVermin then cands[#cands+1]=e end end end; local a=sw.assignFromMatrix(cfg,pool); table.sort(cands,function(x,y) return x.quantity>y.quantity end); local keep={}; local kept={}; for i=1,math.min(3,#cands) do keep[cands[i].key]=true; kept[#kept+1]=cands[i].token..'('..cands[i].quantity..')' end; local closed=0; for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' and not keep[e.key] then cfg.allow[e.key]=false; closed=closed+1 end end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e23: roster closed - %d assigned, %d land entries closed, %d left open, kept %s'):format(a,closed,act,table.concat(kept,'+')))",
+        "local pi=df.global.plotinfo; local cd=pi.main.custom_difficulty; cd.wild_irritate_min=0; cd.wild_sens=1; cd.wild_irritate_decay=0; pi.outdoor_irritation=100000; local w=df.global.world; local gl=(w.map.z_count-2)-w.worldgen.worldgen_parms.levels_above_ground; local rx,ry; for z=gl,0,-1 do rx,ry=dfhack.maps.getTileBiomeRgn(0,0,z); if rx then break end end; local b=rx and dfhack.maps.getRegionBiome(rx,ry); local sav=b and b.savagery or -1; local adj=pi.outdoor_irritation-cd.wild_irritate_min; local ch=(sav<=65 or adj<=0) and 0 or math.min(100,(adj*100)//cd.wild_sens); print(('e23: savagery=%d irritation=%d min=%d sens=%d -> surface agitation chance=%d%%'):format(sav,pi.outdoor_irritation,cd.wild_irritate_min,cd.wild_sens,ch))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local pi=df.global.plotinfo; if pi.outdoor_irritation<100000 then pi.outdoor_irritation=100000 end; local agit,cz=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then local ok,ag=pcall(dfhack.units.isAgitated,u); if ok and ag then agit=agit+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; print(('e23: land=%d agitated=%d citizens=%d irritation=%d mix=%s day=%d'):format(by.land,agit,cz,pi.outdoor_irritation,#parts>0 and table.concat(parts,', ') or 'none',math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local pi=df.global.plotinfo; if pi.outdoor_irritation<100000 then pi.outdoor_irritation=100000 end; local agit,cz=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then local ok,ag=pcall(dfhack.units.isAgitated,u); if ok and ag then agit=agit+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; print(('e23: land=%d agitated=%d citizens=%d irritation=%d mix=%s day=%d'):format(by.land,agit,cz,pi.outdoor_irritation,#parts>0 and table.concat(parts,', ') or 'none',math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "agitated_control",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('e23: control - tool disabled, no roster, every land entry left as DF wrote it')",
+        "local pi=df.global.plotinfo; local cd=pi.main.custom_difficulty; cd.wild_irritate_min=0; cd.wild_sens=1; cd.wild_irritate_decay=0; pi.outdoor_irritation=100000; local w=df.global.world; local gl=(w.map.z_count-2)-w.worldgen.worldgen_parms.levels_above_ground; local rx,ry; for z=gl,0,-1 do rx,ry=dfhack.maps.getTileBiomeRgn(0,0,z); if rx then break end end; local b=rx and dfhack.maps.getRegionBiome(rx,ry); local sav=b and b.savagery or -1; local adj=pi.outdoor_irritation-cd.wild_irritate_min; local ch=(sav<=65 or adj<=0) and 0 or math.min(100,(adj*100)//cd.wild_sens); print(('e23: savagery=%d irritation=%d min=%d sens=%d -> surface agitation chance=%d%%'):format(sav,pi.outdoor_irritation,cd.wild_irritate_min,cd.wild_sens,ch))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local pi=df.global.plotinfo; if pi.outdoor_irritation<100000 then pi.outdoor_irritation=100000 end; local agit,cz=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then local ok,ag=pcall(dfhack.units.isAgitated,u); if ok and ag then agit=agit+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; print(('e23: land=%d agitated=%d citizens=%d irritation=%d mix=%s day=%d'):format(by.land,agit,cz,pi.outdoor_irritation,#parts>0 and table.concat(parts,', ') or 'none',math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local pi=df.global.plotinfo; if pi.outdoor_irritation<100000 then pi.outdoor_irritation=100000 end; local agit,cz=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then local ok,ag=pcall(dfhack.units.isAgitated,u); if ok and ag then agit=agit+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; print(('e23: land=%d agitated=%d citizens=%d irritation=%d mix=%s day=%d'):format(by.land,agit,cz,pi.outdoor_irritation,#parts>0 and table.concat(parts,', ') or 'none',math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}

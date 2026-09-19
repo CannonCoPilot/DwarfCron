@@ -1,0 +1,17 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260918-135351	high_4to1	1	16800	823200	baseline	wild_present	13
+20260918-135351	high_4to1	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260918-135351	high_4to1	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); local z,keep=0,0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.underground_layer_max>=1 then if cr.creature_id=='TROGLODYTE' then cr.frequency=100; keep=keep+1 elseif cr.creature_id=='ELK_BIRD' then cr.frequency=25; keep=keep+1 else cr.frequency=0; z=z+1 end end end; print(('e35: TROGLODYTE=100 ELK_BIRD=25 (ratio 4:1, sum 125); %d other cavern-capable creatures zeroed, %d kept'):format(z,keep))	e35: TROGLODYTE=100 ELK_BIRD=25 (ratio 4:1, sum 125); 81 other cavern-capable creatures zeroed, 2 kept
+20260918-135351	high_4to1	1	16800	823200	manipulation	local function f(t) for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id==t then return cr.frequency end end return -1 end; local ur=df.global.world.world_data.underground_regions; local function depth(c) local r=ur[c]; return r and r.layer_depth or -1 end; local cav,deep=0,0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not u.flags1.inactive then local r=u.animal.population; if r.cave_id>=0 then if depth(r.cave_id)<=2 then cav=cav+1 else deep=deep+1 end end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e35: caverns=%d deep=%d citizens=%d trog_freq=%d elk_freq=%d day=%d'):format(cav,deep,cz,f('TROGLODYTE'),f('ELK_BIRD'),math.floor(df.global.cur_year_tick/1200)))	e35: caverns=8 deep=5 citizens=7 trog_freq=100 elk_freq=25 day=14

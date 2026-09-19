@@ -1,0 +1,65 @@
+{
+  "id": "E32",
+  "title": "Can a mid-predator be made to hunt \u2014 a badger that takes small prey and vermin without becoming a general large predator? T4 established the constraint: a BENIGN predator never acts on a written relation, because the drive is the caste flag rather than anything settable per unit \u2014 badger x groundhog was written forty times for zero combat reports. So one arm flips LARGE_PREDATOR on the badger's castes in memory, which also makes the tool's ecology switch arm it, against a control where the badger stays as shipped. The question is not only whether it hunts but WHAT it attacks: if it becomes a general predator, a mid-predator class needs a size filter on the targets the relation is written to. A season on CTRL, two replicates each, combat logged.",
+  "fork": "Is LARGE_PREDATOR the whole switch, and is the resulting hunter steerable by target size.",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": true,
+  "roster": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 1
+  },
+  "predictions": [
+    {
+      "model": "the flag is the whole switch",
+      "expects": "the armed arm produces badger kills where the control produces none, and the victims are whatever the relation was written to"
+    },
+    {
+      "model": "the flag arms it but it hunts indiscriminately",
+      "expects": "badger kills appear and include animals well above small prey, so a mid-predator needs the target list filtered by size rather than the flag alone"
+    },
+    {
+      "model": "the flag is not sufficient",
+      "expects": "no badger kills even when armed \u2014 something else gates the hunting drive and T4's reading was incomplete"
+    }
+  ],
+  "kill_criterion": "badger kills in the armed arm and none in the control, 2 of 2, makes LARGE_PREDATOR the switch; the victim sizes then say whether a size filter is needed",
+  "culling": [
+    "drop a replicate on any changed save"
+  ],
+  "arms": [
+    {
+      "name": "armed",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; local f=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BADGER' then for _,c in ipairs(cr.caste) do c.flags.LARGE_PREDATOR=true; f=f+1 end end end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.ecology.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e32: %d badger castes flipped \u2014 BADGER castes flipped to LARGE_PREDATOR; %d allowed, %d assigned, ecology on'):format(f,n,a))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local badger,armed=0,0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BADGER' then for _,c in ipairs(cr.caste) do if c.flags.LARGE_PREDATOR then armed=armed+1 end end end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then local c=df.creature_raw.find(u.race); if c and c.creature_id=='BADGER' then badger=badger+1 end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e32: land=%d badgers=%d armed_castes=%d citizens=%d day=%d'):format(by.land,badger,armed,cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local badger,armed=0,0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BADGER' then for _,c in ipairs(cr.caste) do if c.flags.LARGE_PREDATOR then armed=armed+1 end end end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then local c=df.creature_raw.find(u.race); if c and c.creature_id=='BADGER' then badger=badger+1 end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e32: land=%d badgers=%d armed_castes=%d citizens=%d day=%d'):format(by.land,badger,armed,cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    },
+    {
+      "name": "control",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=false; local f=0; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=true; cfg.groups.pack=4; cfg.ecology.enabled=true; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e32: %d badger castes flipped \u2014 control, badger left BENIGN as shipped; %d allowed, %d assigned, ecology on'):format(f,n,a))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local badger,armed=0,0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BADGER' then for _,c in ipairs(cr.caste) do if c.flags.LARGE_PREDATOR then armed=armed+1 end end end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then local c=df.creature_raw.find(u.race); if c and c.creature_id=='BADGER' then badger=badger+1 end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e32: land=%d badgers=%d armed_castes=%d citizens=%d day=%d'):format(by.land,badger,armed,cz,math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local badger,armed=0,0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BADGER' then for _,c in ipairs(cr.caste) do if c.flags.LARGE_PREDATOR then armed=armed+1 end end end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then local c=df.creature_raw.find(u.race); if c and c.creature_id=='BADGER' then badger=badger+1 end end end; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; print(('e32: land=%d badgers=%d armed_castes=%d citizens=%d day=%d'):format(by.land,badger,armed,cz,math.floor(df.global.cur_year_tick/1200)))"
+        ]
+      }
+    }
+  ]
+}
