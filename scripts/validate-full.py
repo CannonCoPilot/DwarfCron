@@ -778,7 +778,7 @@ def phase_gui():
         return w if isinstance(w, dict) else {}
     def counts():
         c = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local by={}; local assigned=0; "
-                 "for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then if sw.isAllowed(cfg,e) then by[e.cat]=(by[e.cat] or 0)+1 end; if cfg.assign[e.key] and #cfg.assign[e.key]>0 then assigned=assigned+1 end end end; "
+                 "for _,e in ipairs(pool) do if e.inEmbark then if sw.isAllowed(cfg,e) then by[e.cat]=(by[e.cat] or 0)+1 end; if cfg.assign[e.key] and #cfg.assign[e.key]>0 then assigned=assigned+1 end end end; "
                  "by.assigned=assigned; print(json.encode(by))", timeout=120)
         return c if isinstance(c, dict) else {}
     BACKSPACE = "STRING_A000"   # DF's string keys: A000 is backspace (chr 0); A008 is not
