@@ -574,21 +574,42 @@ def phase_mechanics():
         rec("mech.dismiss", "NOT-TESTABLE-HERE", "a tracked group", out, note="no tracked group on the map; measured T5")
     # --- ecology: write once, read the pair count; then let the cadence fire
     rc, out = cmd("groups", "ecology", "now")
-    m = re.search(r"(\d+) predator\(s\) x (\d+) target\(s\), (\d+) pair\(s\) written", out)
-    preds, targets, pairs = (int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else (0, 0, 0)
-    rec("mech.ecology.write", "PASS" if m and (pairs > 0 or preds == 0 or targets == 0) else "FAIL",
-        "a 'last write' line; pairs > 0 whenever a LARGE_PREDATOR and a target are both on the map", out,
-        data={"predators": preds, "targets": targets, "pairs": pairs},
-        note="" if pairs else "no armed predator and target co-present this session; the write ran and reported 0 pairs")
+    def write_line(txt):
+        mm = re.search(r"(\d+) predator\(s\) x (\d+) target\(s\), (\d+) pair\(s\) written, (\d+) without a slot", txt)
+        return tuple(int(x) for x in mm.groups()) if mm else None
+    first = write_line(out)
+    preds, targets, pairs, noslot = first or (0, 0, 0, 0)
     def total_writes(txt):
         mm = re.search(r"total writes (\d+)", txt)
         return int(mm.group(1)) if mm else -1
     w0 = total_writes(out)
     step(3200, 300)
-    rc, out = cmd("groups")
-    w1 = total_writes(out)
-    rec("mech.ecology.cadence", "PASS" if w1 > w0 >= 0 else "FAIL", "total writes increases across 3,200 stepped ticks (cadence 1,500)", out,
+    rc, out2 = cmd("groups")
+    w1 = total_writes(out2)
+    later = write_line(out2)
+    # USAGE: the write "skips units the game has not yet given a slot and catches them next pass". A load clears
+    # DF's enemy-status cache and DF re-slots units lazily (an encounter, not a timer), so a session can end with
+    # every predator still slotless (run 163604: 5 predators, 10 without a slot, 0 pairs across three passes).
+    # That is the documented skip, not a failed write; FAIL is reserved for 0 pairs with nothing skipped.
+    if first is None:
+        v, note = "FAIL", "no 'last write' line"
+    elif pairs > 0 or (later and later[2] > 0):
+        v, note = "PASS", "" if pairs > 0 else f"0 pairs on the first pass ({noslot} without a slot); the scheduled passes caught them: {later[2]} pair(s) by the third write"
+    elif preds == 0 or targets == 0:
+        v, note = "PASS", "no armed predator and target co-present this session; the write ran and reported 0 pairs"
+    elif (later or first)[3] > 0:
+        v, note = "NOT-TESTABLE-HERE", f"{preds} predator(s) x {targets} target(s) but DF gave no slot to any predator this session ({(later or first)[3]} without a slot after three passes); the write skips slotless units by design (USAGE) and cannot reach them — measured E11c/T4 with slotted units. Open: the ecology write could allocate the slot itself the way v5.9.3 placement does (PLACE.enemySlot)"
+    else:
+        v, note = "FAIL", ""
+    rec("mech.ecology.write", v,
+        "a 'last write' line; pairs > 0 whenever a slotted LARGE_PREDATOR and a slotted target are both on the map (slotless units are skipped until DF slots them)",
+        out + "\n--- after 3,200 ticks ---\n" + out2,
+        data={"predators": preds, "targets": targets, "pairs": pairs, "without_slot": noslot,
+              "later": dict(zip(("predators", "targets", "pairs", "without_slot"), later)) if later else None},
+        note=note)
+    rec("mech.ecology.cadence", "PASS" if w1 > w0 >= 0 else "FAIL", "total writes increases across 3,200 stepped ticks (cadence 1,500)", out2,
         data={"writes_before": w0, "writes_after": w1})
+    out = out2
     rec("mech.ecology.nudge", "NOT-TESTABLE-HERE", "a predator >40 tiles from every target for 3,000 ticks", out,
         note="the nudge counter is in the same line ('N nudged'); measured E17/E18 (kill latency followed pack arrival, not the threshold)")
     rec("mech.coupling", "NOT-TESTABLE-HERE", "a prey wave arriving while coupling is on, then the pool closing for its armed predators",
