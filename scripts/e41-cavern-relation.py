@@ -68,9 +68,14 @@ for rep in (1, 2):
             log(f"  +{st['tick'] - t0}: crundles dead/gone {dead}/4, crocodile at z{st['pred'].get('z')} nearest living crundle {st['nearest']} tiles")
         # attribution: DF's own combat reports naming the crocodile and a crundle; and the job's last write
         PREDWORD = {"CROCODILE_CAVE": "crocodile", "TROGLODYTE": "troglodyte", "TROLL": "troll", "JABBERER": "jabberer"}.get(PRED, PRED.lower())
-        att = luaj(f"local PREDWORD='{PREDWORD}'; " + "local n,hits=0,0; for _,r in ipairs(df.global.world.status.reports) do local t=r.text:lower(); if t:find(PREDWORD) and t:find('crundle') then hits=hits+1 end; n=n+1 end; print(json.encode({reports=n, croc_x_crundle=hits}))")
+        # attribution by DF's incident records (victim, criminal): combat REPORTS are blind in an unopened
+        # cavern (E41e found two reports in the whole world while four crundles died)
+        att = luaj("local prey={" + ",".join(map(str, prey)) + "}; local set={}; for _,i in ipairs(prey) do set[i]=true end; local by_pred,by_other,who=0,0,{}; "
+                   "for _,inc in ipairs(df.global.world.incidents.all) do if set[inc.victim] then local k=inc.criminal; local ku=k>=0 and df.unit.find(k); "
+                   f"if k=={pred[0]} then by_pred=by_pred+1 else by_other=by_other+1 end; who[#who+1]=(ku and df.creature_raw.find(ku.race).creature_id or '?')..'#'..tostring(k) end end; "
+                   "print(json.encode({reports=#df.global.world.status.reports, croc_x_crundle=by_pred, by_other=by_other, killers=who}))")
         eco_end = sh("cmd", "seasonal-wildlife", "groups", "ecology").strip()[:200]
-        log(f"  reports naming {PREDWORD}+crundle: {att.get('croc_x_crundle')} of {att.get('reports')}; {eco_end}")
+        log(f"  incidents: killed by the placed predator {att.get('croc_x_crundle')}, by other units {att.get('by_other')} {att.get('killers')}; {eco_end}")
         rows.append({"rep": rep, "arm": arm, "vacuous": False, "pred": pred[0], "prey": prey, "pairs": pairs, "samples": samples, "reports": att, "eco_end": eco_end})
         (RUN / "rows.json").write_text(json.dumps(rows, indent=1))
         sh("cmd", "seasonal-wildlife", "disable")
