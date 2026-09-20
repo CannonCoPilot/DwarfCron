@@ -14,7 +14,8 @@ import json, re, subprocess, sys, datetime as dt
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CX = str(ROOT / "scripts/cx-lifecycle.sh")
-RUN = ROOT / "data/experiments/E41b" / dt.datetime.now().strftime("%Y%m%d-%H%M%S"); RUN.mkdir(parents=True)
+PRED = sys.argv[2] if len(sys.argv) > 2 else "CROCODILE_CAVE"
+RUN = ROOT / ("data/experiments/E41b" if PRED == "CROCODILE_CAVE" else "data/experiments/E41c") / dt.datetime.now().strftime("%Y%m%d-%H%M%S"); RUN.mkdir(parents=True)
 LOG = open(RUN / "log.txt", "a")
 BUDGET, SAMPLE = int(sys.argv[1]) if len(sys.argv) > 1 else 6000, 1500
 def log(m):
@@ -46,13 +47,13 @@ for rep in (1, 2):
         log("  " + sh("cmd", "seasonal-wildlife", "groups", "cavern", "off").strip()[:80])
         log("  " + sh("cmd", "seasonal-wildlife", "groups", "ecology", "on" if arm == "eco" else "off").strip()[:80])
         log("  " + sh("cmd", "seasonal-wildlife", "enable").strip()[:40])
-        pred, r1 = place("CROCODILE_CAVE", 1); prey, r2 = place("CRUNDLE", 4)
+        pred, r1 = place(PRED, 1); prey, r2 = place("CRUNDLE", 4)
         log(f"  {r1}\n  {r2}")
         if len(pred) != 1 or len(prey) != 4:
             log("  VACUOUS: the subject was not placed"); rows.append({"rep": rep, "arm": arm, "vacuous": True}); continue
         s0 = state(pred[0], prey)
         depths = {s0["pred"]["depth"]} | {p["depth"] for p in s0["prey"]}
-        log(f"  placed: crocodile z{s0['pred']['z']} depth {s0['pred']['depth']}; crundles depths {sorted(depths)}; nearest {s0['nearest']} tiles")
+        log(f"  placed: {PRED} z{s0['pred']['z']} depth {s0['pred']['depth']}; crundles depths {sorted(depths)}; nearest {s0['nearest']} tiles")
         if len(depths) != 1:
             log("  VACUOUS: predator and prey are not in one realm"); rows.append({"rep": rep, "arm": arm, "vacuous": True}); continue
         pairs = None
@@ -66,7 +67,8 @@ for rep in (1, 2):
             samples.append({"at": st["tick"] - t0, "dead": dead, "nearest": st["nearest"], "pred_dead": st["pred"].get("dead"), "pred_z": st["pred"].get("z")})
             log(f"  +{st['tick'] - t0}: crundles dead/gone {dead}/4, crocodile at z{st['pred'].get('z')} nearest living crundle {st['nearest']} tiles")
         # attribution: DF's own combat reports naming the crocodile and a crundle; and the job's last write
-        att = luaj("local n,hits=0,0; for _,r in ipairs(df.global.world.status.reports) do local t=r.text:lower(); if t:find('crocodile') and t:find('crundle') then hits=hits+1 end; n=n+1 end; print(json.encode({reports=n, croc_x_crundle=hits}))")
+        PREDWORD = {"CROCODILE_CAVE": "crocodile", "TROGLODYTE": "troglodyte", "TROLL": "troll"}.get(PRED, PRED.lower())
+        att = luaj(f"local PREDWORD='{PREDWORD}'; " + "local n,hits=0,0; for _,r in ipairs(df.global.world.status.reports) do local t=r.text:lower(); if t:find(PREDWORD) and t:find('crundle') then hits=hits+1 end; n=n+1 end; print(json.encode({reports=n, croc_x_crundle=hits}))")
         eco_end = sh("cmd", "seasonal-wildlife", "groups", "ecology").strip()[:200]
         log(f"  reports naming crocodile+crundle: {att.get('croc_x_crundle')} of {att.get('reports')}; {eco_end}")
         rows.append({"rep": rep, "arm": arm, "vacuous": False, "pred": pred[0], "prey": prey, "pairs": pairs, "samples": samples, "reports": att, "eco_end": eco_end})
