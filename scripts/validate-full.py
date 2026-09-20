@@ -631,6 +631,7 @@ def phase_mechanics():
     rec("mech.water.outside", "PASS" if (m and t.get("out") and t.get("water") and not t.get("sub")) or (not m and "no free water tile" in out) else ("NOT-TESTABLE-HERE" if "no stocked" in out else "FAIL"),
         "placed in outside water, or refused for want of one; never a subterranean tile", out + "\n" + json.dumps(t), data={"tile": t})
     # --- v5.9.6: the cavern stocking pass under the cavern quota
+    lay0 = luaj("local sw=reqscript('seasonal-wildlife'); print(json.encode({cavern=sw.loadConfig().layers.cavern and true or false}))").get("cavern")
     rc, out = cmd("layer", "cavern", "on"); rc, out = cmd("quota", "cavern", "20"); rc, out = cmd("cavern", "on")
     rec("cli.cavern.stock", "PASS" if re.search(r"cavern stocking: on\s+\d+ of 20", out) else "FAIL", "'cavern stocking: on  N of 20 in the caverns'", out)
     c0 = luaj("print(json.encode({maxid=(function() local m=0; for _,u in ipairs(df.global.world.units.all) do if u.id>m then m=u.id end end; return m end)()}))")
@@ -644,7 +645,7 @@ def phase_mechanics():
     rec("mech.cavern.stock", "PASS" if ok else ("NOT-TESTABLE-HERE" if before is not None and before >= 20 else "FAIL"),
         "first pass places exactly quota-minus-present, every placed unit in its band (water for swimmers) with a slot; second pass places 0",
         out + "\n" + out2 + "\n" + json.dumps(chk), data={"before": before, "placed": placed, "check": chk})
-    cmd("cavern", "off"); cmd("quota", "cavern", "0"); cmd("layer", "cavern", "off")
+    cmd("cavern", "off"); cmd("quota", "cavern", "0"); cmd("layer", "cavern", "on" if lay0 else "off")   # restore the layer as found: the quota check later expects it
     # --- water on a dry fort
     rc, out = cmd("water", "on")
     rec("mech.water.dormant", "PASS" if re.search(r"water: dormant — .+", out) else "FAIL",
