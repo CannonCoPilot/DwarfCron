@@ -555,7 +555,7 @@ def phase_mechanics():
             "every led group's leader == its lowest member id", json.dumps(lead), data=lead)
     else:
         rec("mech.leader.lowest", "NOT-TESTABLE-HERE", "a led group to inspect", json.dumps(lead), note="loadGroups not exported or no led group")
-    tok = rows[0].split()[0] if rows else None
+    tok = re.sub(r"^cavern\d+:", "", rows[0].split()[0]) if rows else None   # v5.9.1 prefixes cavern groups on the status line
     if tok:
         rc, out = cmd("groups", "hold", tok, "30")
         g = ground("B4-held")
@@ -825,7 +825,7 @@ def phase_gui():
     key("CUSTOM_CTRL_E", 1.0)
     # Ctrl+L: refuses on 'all' (nothing changes), then fills a category to 3
     c0 = counts(); key("CUSTOM_CTRL_L", 1.0); t8 = screen("C8-l-all"); c1 = counts()
-    key("CUSTOM_C", 0.8); cat_txt = screen("C8-cat"); m = re.search(r"Cat:\s*([A-Za-z]+)", cat_txt)   # letters only: the next label used to run straight into this one; cat = m.group(1) if m else "?"
+    key("CUSTOM_C", 0.8); cat_txt = screen("C8-cat"); m = re.search(r"Cat:\s*([A-Za-z]+)", cat_txt); cat = m.group(1) if m else "?"   # letters only: the next label used to run into this one
     key("CUSTOM_CTRL_L", 1.0); p = shot("C8-fill-prompt"); t8b = screen("C8-l-prompt")
     for _ in range(3): key(BACKSPACE, 0.15)
     typ("3"); key("SELECT", 1.2); c2 = counts()
