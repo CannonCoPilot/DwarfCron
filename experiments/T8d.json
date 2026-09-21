@@ -1,0 +1,48 @@
+{
+ "id": "T8d",
+ "title": "v5.10.6 re-measure of dawn: the week's table plus the gate opened at first light. Same roster, budget and readout as T8.",
+ "fork": "the five patterns produce five distinguishable arrival distributions: burst clusters release gaps at 2.5 days in twos and threes with long quiet gaps; trickle's waves are 1-2 animals; dawn's summer week one is birds; follow's predator waves come when prey mass is on the map; steady is the baseline.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 100800,
+ "combat": false,
+ "tool_must_be": {
+  "enabled": 1,
+  "groups_enabled": 1,
+  "scheduled": 1
+ },
+ "predictions": [
+  {
+   "model": "the gate is the lever",
+   "expects": "burst: >=1 pair of waves under 3,500 ticks apart per replicate and a gap over gap_max after; trickle: median wave size <= 2; dawn: bird share of summer days 1-7 arrivals above steady's; follow: predator arrivals when prey mass >= 3x predator mass; steady: gaps 5-20 days"
+  },
+  {
+   "model": "DF's own wave timer dominates",
+   "expects": "the distributions do not differ from steady's beyond replicate noise"
+  }
+ ],
+ "kill_criterion": "a pattern whose distribution does not differ from steady in 2 of 2 is redesigned before the Layers tab exposes it",
+ "culling": [
+  "drop a replicate on any breach or changed save"
+ ],
+ "arms": [
+  {
+   "name": "dawn",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK','BIRD_RAVEN'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.groups.pack=0; cfg.groups.cohesion=true; cfg.groups.max_concurrent=4; cfg.ecology.enabled=true; cfg.patterns.land='dawn'; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('t8 roster: allowed %d assigned %d thin %d applied %d; groups on, coupling off, pack raw, max 4, ecology on, pattern land=dawn; rotation enabled'):format(n,a,f,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','pattern'); print((out or ''):gsub('\\n',' | '))",
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then o[#o+1]=e.token..'='..e.cat end end; table.sort(o); print('t8 cats: '..table.concat(o,' '))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','ledger','6','wave'); print('t8 ledger: '..(out or ''):gsub('\\n',' | '))"
+    ]
+   }
+  }
+ ]
+}
