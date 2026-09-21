@@ -7,40 +7,52 @@ Usage: t8-tally.py [run_dir]"""
 import csv, glob, json, re, sys
 from collections import defaultdict
 from statistics import median
-run_dir = sys.argv[1] if len(sys.argv) > 1 else sorted(glob.glob("data/experiments/T8/2*"))[-1]
 import os
-prov = json.load(open(f"{run_dir}/provenance.json")) if os.path.exists(f"{run_dir}/provenance.json") else {}
-valid = {(r["arm"], int(r["rep"])) for r in prov.get("replicates", []) if r.get("valid")} if prov else None
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+run_dir = args[0] if args else sorted(glob.glob("data/experiments/T8/2*"))[-1]
+# --baseline DIR: take the steady and burst arms from another run (T8b measures only the three re-designed patterns)
+baseline = sys.argv[sys.argv.index("--baseline") + 1] if "--baseline" in sys.argv else None
+valid = set(); have_prov = False
 ev = defaultdict(list)
-for r in csv.DictReader(open(f"{run_dir}/events.tsv"), delimiter="\t"): ev[(r["arm"], int(r["rep"]))].append(r)
-# wild prey on the surface per sample, from units.tsv
 prey_at = defaultdict(lambda: defaultdict(int))
 cats = {}
-for line in open(f"{run_dir}/log.txt", errors="replace"):
-    m = re.search(r"t8 cats: (.*)", line)
-    if m:
-        for kv in m.group(1).split():
-            k, _, v = kv.partition("="); cats[k] = v
-def cat(sp): return cats.get(sp, "?")
-for r in csv.DictReader(open(f"{run_dir}/units.tsv"), delimiter="\t"):
-    if r["dead"] == "1" or r["inactive"] == "1" or r["wild"] != "1" or r["layer"] != "surface": continue
-    if cat(r["species"]) == "prey": prey_at[(r["arm"], int(r["rep"]))][int(r["tick"])] += 1
 reasons = defaultdict(lambda: defaultdict(int))   # key -> reason word -> count
 seen_lines = {}
-cur = None
-for line in open(f"{run_dir}/log.txt", errors="replace"):
-    m = re.search(r"^\S+ == \w+ arm=(\w+) rep=(\d+)", line)
-    if m: cur = (m.group(1), int(m.group(2)))
-    if "t8 ledger:" in line and cur:
-        seen_lines.setdefault(cur, set())
-        for piece in line.split(" | "):
-            m2 = re.search(r"(y\d+ \w+ \d+\s+wave\s+(\w+)\s+detached \w+ x\d+; (\w+))", piece)
-            if m2 and m2.group(2) == "land" and m2.group(1) not in seen_lines[cur]:
-                seen_lines[cur].add(m2.group(1)); reasons[cur][m2.group(3)] += 1
+def cat(sp): return cats.get(sp, "?")
+def load(d, arms=None):
+    global have_prov
+    keep = lambda a: arms is None or a in arms
+    if os.path.exists(f"{d}/provenance.json"):
+        have_prov = True
+        for r in json.load(open(f"{d}/provenance.json")).get("replicates", []):
+            if r.get("valid") and keep(r["arm"]): valid.add((r["arm"], int(r["rep"])))
+    for r in csv.DictReader(open(f"{d}/events.tsv"), delimiter="\t"):
+        if keep(r["arm"]): ev[(r["arm"], int(r["rep"]))].append(r)
+    for line in open(f"{d}/log.txt", errors="replace"):
+        m = re.search(r"t8 cats: (.*)", line)
+        if m:
+            for kv in m.group(1).split():
+                k, _, v = kv.partition("="); cats[k] = v
+    for r in csv.DictReader(open(f"{d}/units.tsv"), delimiter="\t"):
+        if r["dead"] == "1" or r["inactive"] == "1" or r["wild"] != "1" or r["layer"] != "surface" or not keep(r["arm"]): continue
+        if cat(r["species"]) == "prey": prey_at[(r["arm"], int(r["rep"]))][int(r["tick"])] += 1
+    cur = None
+    for line in open(f"{d}/log.txt", errors="replace"):
+        m = re.search(r"^\S+ == \w+ arm=(\w+) rep=(\d+)", line)
+        if m: cur = (m.group(1), int(m.group(2))) if keep(m.group(1)) else None
+        if "t8 ledger:" in line and cur:
+            seen_lines.setdefault(cur, set())
+            for piece in line.split(" | "):
+                m2 = re.search(r"(y\d+ \w+ \d+\s+wave\s+(\w+)\s+detached \w+ x\d+; (\w+))", piece)
+                if m2 and m2.group(2) == "land" and m2.group(1) not in seen_lines[cur]:
+                    seen_lines[cur].add(m2.group(1)); reasons[cur][m2.group(3)] += 1
+load(run_dir)
+if baseline: load(baseline, arms={"steady", "burst"})
+if not have_prov: valid = None
 SUMMER_WEEK = (100800, 100800 + 7 * 1200)
 GAP_MAX_T = 20 * 1200
 out = {}
-print(f"run {run_dir}\n")
+print(f"run {run_dir}" + (f"  (steady and burst from {baseline})" if baseline else "") + "\n")
 print(f"{'arm':8} {'rep':>3} {'waves':>5} {'events':>6} {'max size':>8} {'med size':>8} {'gaps 2-3.6k':>11} {'gaps>=24k':>9} {'med gap d':>9} {'wk1 bird/all':>12} {'pred w/ prey':>12} reasons")
 for key in sorted(ev):
     arm, rep = key
