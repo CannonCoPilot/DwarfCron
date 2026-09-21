@@ -88,6 +88,10 @@ CLAIMS = [
     ("cli.ledger", "CLI", "`ledger [N] [kind] [layer]|clear` prints the tool's own writes, oldest first, stamped 'y<year> <Season> <day>' with kind and layer, and a 'shown of recorded' footer", "USAGE.md v5.9.9", "shipped"),
     ("mech.ledger.records", "MECH", "every write the tool makes leaves one ledger line: placement, roster and switch edits, and the session's arrivals, holds, dismissals, ecology changes and cavern holds when they happen", "USAGE.md v5.9.9; PLAN 3.6", "shipped"),
     ("mech.ledger.ring", "MECH", "the ledger keeps the newest 300 entries, its total keeps counting, and `clear` empties it", "v5.9.9", "shipped"),
+    ("cli.vermin", "CLI", "`vermin` lists the embark's vermin as families read from the raws (fish, flies, fliers, mammals, soil, colony, crawlers) with species count, allowed count, seasons, abundance and layers", "USAGE.md v5.9.10", "shipped"),
+    ("mech.vermin.family", "MECH", "`vermin <family> off|on` blocks and allows every species of the family; `seasons` and `abundance` write every member", "USAGE.md v5.9.10", "shipped"),
+    ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
+    ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
     ("mech.water.target", "MECH", "water target / cadence / countdown are stored and reported", "USAGE.md v5.8", "shipped"),
     ("mech.quota.land", "MECH", "quota land N overrides groups.max_concurrent as the effective ceiling", "USAGE.md v5.8", "shipped"),
@@ -461,6 +465,11 @@ def phase_cli():
     rc, out = sh("cmd", "help", "seasonal-wildlife", timeout=60)
     rec("cli.docstring", "PASS" if "seasonal" in out.lower() and "roster" in out.lower() else "FAIL", "launcher help text", out)
 
+    # --- vermin by family (v5.9.10)
+    rc, out = cmd("vermin")
+    fams = re.findall(r"^(fish|flies|fliers|mammals|soil|colony|crawlers)\s", out, re.M)
+    rec("cli.vermin", "PASS" if "FAMILY" in out and len(fams) >= 2 else "FAIL", "a FAMILY header and at least two family rows", out[:900], data={"families": fams})
+
 def phase_mechanics():
     log("== MECHANICS")
     # --- scheduler
@@ -803,6 +812,20 @@ def phase_mechanics():
         json.dumps(ring) + "\n" + out2 + out3, data=ring if isinstance(ring, dict) else {"raw": str(ring)},
         note=("%d ms for 310 adds" % ring["ms"]) if isinstance(ring, dict) and "ms" in ring else "")
 
+    # --- vermin family writes and defaults (v5.9.10)
+    probe = ("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local kf, km, kr = sw.keyFor('land','FLY'), sw.keyFor('land','MOSQUITO'), sw.keyFor('land','RAT'); "
+             "print(json.encode({fly=cfg.allow[kf], mos=cfg.allow[km], fly_s=cfg.assign[kf] or {}, rat_s=cfg.assign[kr] or {}, kf=kf}))")
+    rc, o1 = cmd("vermin", "flies", "off"); v_off = luaj(probe, timeout=60)
+    rc, o2 = cmd("vermin", "flies", "on"); v_on = luaj(probe, timeout=60)
+    ok = isinstance(v_off, dict) and isinstance(v_on, dict) and v_off.get("fly") is False and v_off.get("mos") is False and v_on.get("fly") is True and v_on.get("mos") is True
+    rc, o3 = cmd("vermin", "mammals", "seasons", "SuAu"); v_s = luaj(probe, timeout=60)
+    ok = ok and isinstance(v_s, dict) and v_s.get("rat_s") == [1, 2]
+    rec("mech.vermin.family", "PASS" if ok else "FAIL", "flies off -> FLY and MOSQUITO blocked; flies on -> both allowed; mammals seasons SuAu -> RAT assigned {1,2}",
+        o1 + o2 + o3, data={"off": v_off, "on": v_on, "seasons": v_s})
+    rc, o4 = cmd("vermin", "defaults"); v_d = luaj(probe, timeout=60)
+    okd = isinstance(v_d, dict) and v_d.get("fly_s") == [0, 1, 2] and v_d.get("rat_s") == [0, 1, 2, 3]
+    rec("mech.vermin.defaults", "PASS" if okd else "FAIL", "on this temperate embark: FLY (land insect) -> {0,1,2}; RAT (mammal) -> all four", o4, data=v_d)
+
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.5)
@@ -1015,6 +1038,13 @@ def phase_gui():
     click("Seasons"); t = screen("C18-seasons"); p = shot("C18-seasons")
     ok = all(s in t for s in ("Spring", "Summer", "Autumn", "Winter")) and re.search(r"[X+\-.]\s+[X+\-.]\s+[X+\-.]\s+[X+\-.]", t)
     rec("gui.tab.seasons", "PASS" if ok else "FAIL", "four season columns and +/-/X/. marks", t[:800], shots=[p] if p else [])
+    # Vermin (v5.9.10)
+    click("Vermin"); t = screen("C18b-vermin"); p = shot("C18b-vermin")
+    ok = "FAMILY" in t and re.search(r"\b(flies|mammals|crawlers)\b", t) is not None
+    key("CUSTOM_D", 1.2); t2 = screen("C18b-vermin-defaults"); p2 = shot("C18b-vermin-defaults")
+    okd = "Seasonal defaults set on" in t2
+    rec("gui.tab.vermin", "PASS" if ok and okd else "FAIL", "FAMILY header with family rows; D applies the defaults and the status line says so", t2[:900], shots=[x for x in (p, p2) if x])
+    rec("v6.vermin", "PASS" if ok and okd else "FAIL", "Vermin view by family with seasonal defaults", t2[:300], note="shipped in v5.9.10 as the sixth tab; the design's eight-tab layout keeps it")
     # close
     key("LEAVESCREEN", 1.2); t = screen("C19-closed")
     rec("gui.close", "PASS" if "Seasonal Wildlife" not in t else "FAIL", "the window gone after ESC", t[:200])
@@ -1070,7 +1100,7 @@ def phase_static():
         "v6.species": absent(r"Species detail|species_detail|SpeciesDetail|refreshSpecies"), "v6.web.graph": absent(r"web_graph|as a graph|═══|drawGraph"),
         "v6.web.byseason": absent(r"refreshWebSeason|web_by_season|byseason"), "v6.web.bylayer": absent(r"refreshWebLayer|web_by_layer|bylayer"),
         "v6.live.hotkeys": absent(r"key='CUSTOM_P'|key='CUSTOM_K'|key='CUSTOM_Q'|key='CUSTOM_X'[^_]|centres the map|act_next_wave"),
-        "v6.herds": absent(r"labels=\{[^}]*Herds|refreshHerds"), "v6.vermin": absent(r"labels=\{[^}]*Vermin|refreshVermin"),
+        "v6.herds": absent(r"labels=\{[^}]*Herds|refreshHerds"),
         "v6.patterns": absent(r"labels=\{[^}]*Patterns|'burst'|'trickle'|'dawn'|refreshPatterns"), "v6.caverns": absent(r"labels=\{[^}]*Caverns|not yet found|refreshCaverns"),
         "v6.ledger": absent(r"labels=\{[^}]*Ledger|undo last|refreshLedger"), "v6.ecology.tab": absent(r"labels=\{[^}]*Ecology|refreshEcology"),
         "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), "v6.presets": absent(r"preset"), "v6.undo": absent(r"snapshot ring|cfg_history|act_undo|undo_stack"),
