@@ -208,7 +208,7 @@ headline = (f"{tally['PASS']} of the {tally['PASS'] + tally['FAIL'] + tally['DEA
 run_id = run_dir.name
 summary = f"""
 <section id="summary">
-  <p class="eyebrow">Functional playtest · seasonal-wildlife v5.9.7 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
+  <p class="eyebrow">Functional playtest · seasonal-wildlife v5.9.8 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
   <h1>Seasonal Wildlife Playtest</h1>
   <p class="lede">{esc(headline)}</p>
   <div class="tiles">{tiles}</div>
