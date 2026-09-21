@@ -92,9 +92,10 @@ CLAIMS = [
     ("mech.vermin.family", "MECH", "`vermin <family> off|on` blocks and allows every species of the family; `seasons` and `abundance` write every member", "USAGE.md v5.9.10", "shipped"),
     ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
     ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
+    ("gui.tab.overview", "GUI", "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines", "USAGE.md v5.10.1", "shipped"),
     ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.burst", "MECH", "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days", "USAGE.md v5.10.0", "shipped"),
-    ("mech.pattern.trickle", "MECH", "trickle: every draw sized 1-2 (the pack lever on the opened species, restored with the table)", "USAGE.md v5.10.0", "shipped"),
+    ("mech.pattern.trickle", "MECH", "trickle: every draw sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change)", "USAGE.md v5.10.2", "shipped"),
     ("mech.pattern.dawn", "MECH", "dawn: in the first week of a season only bird and vermin-class entries are open for the wave", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.follow", "MECH", "follow: prey mass on the map at 3x predator mass opens only predators; no prey opens only prey", "USAGE.md v5.10.0", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
@@ -844,14 +845,19 @@ def phase_mechanics():
     # --- patterns: each needs a season under it (T8); recorded here so the report is complete
     for pid, what in (("mech.pattern.burst", "release gaps clustered at 2.5 days in twos and threes"), ("mech.pattern.trickle", "wave sizes of 1-2"),
                       ("mech.pattern.dawn", "bird arrivals concentrated in a season's first week"), ("mech.pattern.follow", "predator waves following prey mass")):
-        rec(pid, "NOT-TESTABLE-HERE", what + " across a season", "", note="a season under the pattern on CTRL: T8 (scripts/t8-tally.py over data/experiments/T8)")
+        rec(pid, "NOT-TESTABLE-HERE", what + " across a season", "", note="a season under the pattern on CTRL: T8 (steady, burst) and T8b (trickle, dawn, follow on v5.10.2); scripts/t8-tally.py over data/experiments/T8*")
 
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.5)
     txt = screen("C0-roster"); p = shot("C0-roster")
-    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Roster", "Set roster", "Food web", "Live", "Seasons"))
-    rec("gui.open", "PASS" if ok else "FAIL", "window title and five tab labels on screen", txt[:600], shots=[p] if p else [])
+    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Overview", "Roster", "Set roster", "Food web", "Live", "Seasons", "Vermin"))
+    rec("gui.open", "PASS" if ok else "FAIL", "window title and seven tab labels on screen", txt[:600], shots=[p] if p else [])
+    # Overview (v5.10.1): the page the window opens on
+    ok = "On the map" in txt and "Next boundary" in txt and "Recent" in txt and "In season now" in txt
+    rec("gui.tab.overview", "PASS" if ok else "FAIL", "On the map / In season now / Next boundary / Recent blocks on the opening page", txt[:900], shots=[p] if p else [])
+    rec("v6.overview", "PASS" if ok else "FAIL", "Overview view: what the map holds now, next boundary, recent ledger", txt[:300], note="shipped in v5.10.1 as the first tab")
+    click("Roster"); txt = screen("C0-roster"); p = shot("C0-roster")
     rows = row_lines(txt)
     ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and "Force wave" in txt
     rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, action keys", txt[:800], shots=[p] if p else [],
@@ -1116,7 +1122,7 @@ def phase_static():
     checks = {
         # patterns are deliberately specific: 'undo', 'ledger' and 'Herds' each occur once in the
         # script as a COMMENT, and 'Vermin' is a population type; none of those is a view
-        "v6.overview": absent(r"labels=\{[^}]*Overview|refreshOverview"), "v6.roster.why": absent(r"why_col|why column|refreshWhy"),
+        "v6.roster.why": absent(r"why_col|why column|refreshWhy"),
         "v6.species": absent(r"Species detail|species_detail|SpeciesDetail|refreshSpecies"), "v6.web.graph": absent(r"web_graph|as a graph|═══|drawGraph"),
         "v6.web.byseason": absent(r"refreshWebSeason|web_by_season|byseason"), "v6.web.bylayer": absent(r"refreshWebLayer|web_by_layer|bylayer"),
         "v6.live.hotkeys": absent(r"key='CUSTOM_P'|key='CUSTOM_K'|key='CUSTOM_Q'|key='CUSTOM_X'[^_]|centres the map|act_next_wave"),
