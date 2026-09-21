@@ -93,7 +93,7 @@ CLAIMS = [
     ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
     ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
     ("gui.tab.overview", "GUI", "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines", "USAGE.md v5.10.1", "shipped"),
-    ("gui.roster.why", "GUI", "the Roster's why column records the reason and date of every allow/season write (you, fill, matrix, co-align, vermin, defaults) and explains an untouched or locked species", "USAGE.md v5.10.5", "shipped"),
+    ("gui.roster.why", "GUI", "the Roster's why column shows who set a species' state and when (you, fill, matrix, co-align, vermin, defaults; compact since v5.10.8) and explains an untouched or locked species; the full reason is on the detail page", "USAGE.md v5.10.5/v5.10.8", "shipped"),
     ("gui.species.detail", "GUI", "`i` on a Roster row opens the species detail over the window (what it is, body, embark, allowed and why, abundance, seasons, eats, eaten by, on the map, history); Esc closes it", "USAGE.md v5.10.7", "shipped"),
     ("mech.species.detail", "MECH", "speciesDetail(cfg, pool, e) assembles the facts for one animal: at least nine lines with species, allowed (and why), seasons, eats and eaten by", "v5.10.7", "shipped"),
     ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
@@ -899,15 +899,15 @@ def phase_gui():
     rec("gui.k.enter", "PASS" if ok else "FAIL", "row 1's ok column flips Y<->-", f"{r0[0] if r0 else None} -> {r1[0] if r1 else None}", shots=[p] if p else [])
     # v5.10.5: the why column names the toggle as yours, with a date
     why1 = r1[0][4] if r1 else ""
-    mw = re.search(r"[Y\-]\s+(you: (?:allowed|blocked) @ y\d+ \w+ \d+)", why1)
-    rec("gui.roster.why", "PASS" if mw else "FAIL", "after Enter, row 1's why reads 'you: allowed|blocked @ y<year> <Season> <day>'", why1[-90:] if why1 else "no row", data={"why": mw.group(1) if mw else None})
+    mw = re.search(r"[Y\-]\s+(you (?:Sp|Su|Au|Wi)\d+)\s*$", why1)   # v5.10.8: the Roster shows the compact form (who and when); the full reason is on the detail page
+    rec("gui.roster.why", "PASS" if mw else "FAIL", "after Enter, row 1's why reads 'you <Sp|Su|Au|Wi><day>'", why1[-90:] if why1 else "no row", data={"why": mw.group(1) if mw else None})
     rec("v6.roster.why", "PASS" if mw else "FAIL", "Roster with a 'why' column", why1[-90:] if why1 else "no row", note="the why column shipped in v5.10.5; the per-layer selector is still v6.0 (v6.layersel)")
     key("SELECT")  # put it back
     # v5.10.7: the species detail drill-down on the selected row
     key("CUSTOM_I", 1.5); td = screen("C2b-detail"); pd = shot("C2b-detail")
-    okd = "Species detail" in td and "allowed" in td and "eats" in td and "eaten by" in td
+    okd = "Species detail:" in td and "allowed" in td   # the colon: the Roster's own hotkey label reads "i: Species detail" and "eats" in td and "eaten by" in td
     key("LEAVESCREEN", 1.0); tc = screen("C2b-detail-closed")
-    okc = "Species detail" not in tc and "Seasonal Wildlife" in tc
+    okc = "Species detail:" not in tc and "Seasonal Wildlife" in tc
     rec("gui.species.detail", "PASS" if okd and okc else "FAIL", "the detail window with allowed / eats / eaten by, gone after Esc with the main window still up", td[:900], shots=[pd] if pd else [])
     rec("v6.species", "PASS" if okd and okc else "FAIL", "Species detail — one animal, every control", td[:300], note="shipped in v5.10.7 on `i` (Enter stays allow/block)")
     # Shift-Enter cycles seasons
