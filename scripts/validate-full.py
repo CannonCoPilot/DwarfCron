@@ -92,6 +92,11 @@ CLAIMS = [
     ("mech.vermin.family", "MECH", "`vermin <family> off|on` blocks and allows every species of the family; `seasons` and `abundance` write every member", "USAGE.md v5.9.10", "shipped"),
     ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
     ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
+    ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
+    ("mech.pattern.burst", "MECH", "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days", "USAGE.md v5.10.0", "shipped"),
+    ("mech.pattern.trickle", "MECH", "trickle: every draw sized 1-2 (the pack lever on the opened species, restored with the table)", "USAGE.md v5.10.0", "shipped"),
+    ("mech.pattern.dawn", "MECH", "dawn: in the first week of a season only bird and vermin-class entries are open for the wave", "USAGE.md v5.10.0", "shipped"),
+    ("mech.pattern.follow", "MECH", "follow: prey mass on the map at 3x predator mass opens only predators; no prey opens only prey", "USAGE.md v5.10.0", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
     ("mech.water.target", "MECH", "water target / cadence / countdown are stored and reported", "USAGE.md v5.8", "shipped"),
     ("mech.quota.land", "MECH", "quota land N overrides groups.max_concurrent as the effective ceiling", "USAGE.md v5.8", "shipped"),
@@ -470,6 +475,16 @@ def phase_cli():
     fams = re.findall(r"^(fish|flies|fliers|mammals|soil|colony|crawlers)\s", out, re.M)
     rec("cli.vermin", "PASS" if "FAMILY" in out and len(fams) >= 2 else "FAIL", "a FAMILY header and at least two family rows", out[:900], data={"families": fams})
 
+    # --- arrival patterns (v5.10.0)
+    rc, p0 = cmd("pattern")
+    rc, p1 = cmd("pattern", "land", "burst")
+    rc, p2 = cmd("pattern", "bogus")
+    rc, p3 = cmd("pattern", "steady")
+    ok = "patterns: land=steady" in p0 and "land=burst" in p1 and "usage:" in p2 and "land=steady" in p3
+    rec("cli.pattern", "PASS" if ok else "FAIL", "shows land=steady; sets land=burst; refuses a bad name with usage; `pattern steady` sets the land layer", p0 + p1 + p2 + p3)
+    rec("plan.patterns", "PASS" if ok else "FAIL", "the arrival-pattern library on the scheduler: steady, burst, trickle, dawn, follow", p1,
+        note="shipped in v5.10.0 on the release gate; the distributions are T8's to measure (data/experiments/T8)")
+
 def phase_mechanics():
     log("== MECHANICS")
     # --- scheduler
@@ -826,6 +841,11 @@ def phase_mechanics():
     okd = isinstance(v_d, dict) and v_d.get("fly_s") == [0, 1, 2] and v_d.get("rat_s") == [0, 1, 2, 3]
     rec("mech.vermin.defaults", "PASS" if okd else "FAIL", "on this temperate embark: FLY (land insect) -> {0,1,2}; RAT (mammal) -> all four", o4, data=v_d)
 
+    # --- patterns: each needs a season under it (T8); recorded here so the report is complete
+    for pid, what in (("mech.pattern.burst", "release gaps clustered at 2.5 days in twos and threes"), ("mech.pattern.trickle", "wave sizes of 1-2"),
+                      ("mech.pattern.dawn", "bird arrivals concentrated in a season's first week"), ("mech.pattern.follow", "predator waves following prey mass")):
+        rec(pid, "NOT-TESTABLE-HERE", what + " across a season", "", note="a season under the pattern on CTRL: T8 (scripts/t8-tally.py over data/experiments/T8)")
+
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.5)
@@ -1101,11 +1121,11 @@ def phase_static():
         "v6.web.byseason": absent(r"refreshWebSeason|web_by_season|byseason"), "v6.web.bylayer": absent(r"refreshWebLayer|web_by_layer|bylayer"),
         "v6.live.hotkeys": absent(r"key='CUSTOM_P'|key='CUSTOM_K'|key='CUSTOM_Q'|key='CUSTOM_X'[^_]|centres the map|act_next_wave"),
         "v6.herds": absent(r"labels=\{[^}]*Herds|refreshHerds"),
-        "v6.patterns": absent(r"labels=\{[^}]*Patterns|'burst'|'trickle'|'dawn'|refreshPatterns"), "v6.caverns": absent(r"labels=\{[^}]*Caverns|not yet found|refreshCaverns"),
+        "v6.patterns": absent(r"labels=\{[^}]*Patterns|refreshPatterns"), "v6.caverns": absent(r"labels=\{[^}]*Caverns|not yet found|refreshCaverns"),
         "v6.ledger": absent(r"labels=\{[^}]*Ledger|undo last|refreshLedger"), "v6.ecology.tab": absent(r"labels=\{[^}]*Ecology|refreshEcology"),
         "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), "v6.presets": absent(r"preset"), "v6.undo": absent(r"snapshot ring|cfg_history|act_undo|undo_stack"),
         "v6.overlay.links": absent(r"coupled pairs as a line|drawLine|paintLine"),
-        "plan.patterns": absent(r"'burst'|'trickle'|'dawn'|'follow'|arrival_pattern"), "plan.irruptions": absent(r"pressure|irruption"),
+        "plan.irruptions": absent(r"pressure|irruption"),
         "plan.arming": absent(r"arming step|armWave|arm_step"),
     }
     for cid, is_absent in checks.items():
