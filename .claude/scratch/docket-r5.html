@@ -1,0 +1,893 @@
+<title>The Fortress Docket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  :root {
+    --ground:      #EBEDEF;
+    --surface:     #F6F7F8;
+    --surface-alt: #E1E5E8;
+    --edge:        #C9D0D5;
+    --edge-soft:   #D8DEE2;
+    --ink:         #16191C;
+    --ink-soft:    #4C555D;
+    --ink-faint:   #6F7981;
+    --accent:      #0B6E78;
+    --accent-deep: #084E55;
+    --accent-wash: #DCE9EB;
+    --pass:        #1F6B40;
+    --pass-wash:   #DCEBE2;
+    --warn:        #8A5300;
+    --warn-wash:   #F2E7D4;
+    --fail:        #9B2C1F;
+    --fail-wash:   #F0DEDA;
+    --plinth:      #14181B;
+    --plinth-ink:  #C8D2D6;
+    --plinth-dim:  #6B777D;
+    --measure: 67ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0F1316; --surface:#161B1F; --surface-alt:#1D242A;
+      --edge:#2C353C; --edge-soft:#232B31;
+      --ink:#E4E9EC; --ink-soft:#A6B1B8; --ink-faint:#7C878E;
+      --accent:#4FB3BD; --accent-deep:#8AD3DA; --accent-wash:#16282B;
+      --pass:#64C08C; --pass-wash:#16271E;
+      --warn:#D9A459; --warn-wash:#2A2114;
+      --fail:#E0836F; --fail-wash:#2B1A16;
+      --plinth:#0A0D0F; --plinth-ink:#C8D2D6; --plinth-dim:#68747A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0F1316; --surface:#161B1F; --surface-alt:#1D242A;
+    --edge:#2C353C; --edge-soft:#232B31;
+    --ink:#E4E9EC; --ink-soft:#A6B1B8; --ink-faint:#7C878E;
+    --accent:#4FB3BD; --accent-deep:#8AD3DA; --accent-wash:#16282B;
+    --pass:#64C08C; --pass-wash:#16271E;
+    --warn:#D9A459; --warn-wash:#2A2114;
+    --fail:#E0836F; --fail-wash:#2B1A16;
+    --plinth:#0A0D0F; --plinth-ink:#C8D2D6; --plinth-dim:#68747A;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1rem; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 88ch; margin: 0 auto;
+    padding: clamp(1.75rem,4vw,4rem) clamp(1.1rem,4vw,2.5rem) 5rem;
+    display: flex; flex-direction: column; gap: 3rem;
+  }
+  h1,h2,h3,.eyebrow,.tag,.rank { font-family: "IBM Plex Sans Condensed", Arial, sans-serif; text-wrap: balance; }
+
+  .eyebrow {
+    font-size: .76rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--accent); display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: baseline;
+  }
+  .eyebrow span { color: var(--ink-faint); letter-spacing: .1em; }
+  h1 { font-size: clamp(2.1rem,5vw,2.9rem); font-weight: 700; line-height: 1.04; letter-spacing: -.015em; margin: 0; }
+  .standfirst { font-size: 1.16rem; line-height: 1.55; color: var(--ink-soft); max-width: var(--measure); margin: 0; }
+  section { display: flex; flex-direction: column; gap: 1.1rem; }
+  h2 {
+    font-size: 1.9rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; margin: 0;
+    padding-bottom: .5rem; border-bottom: 1px solid var(--edge);
+  }
+  h3 { font-size: 1.12rem; font-weight: 600; margin: 0; }
+  p { margin: 0; max-width: var(--measure); }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  code {
+    font-family: "IBM Plex Mono", Menlo, monospace; font-size: .86em;
+    background: var(--surface-alt); padding: .08em .34em; border-radius: 2px;
+  }
+
+  .verdict {
+    border-left: 3px solid var(--accent); background: var(--accent-wash);
+    padding: 1.3rem 1.5rem; display: flex; flex-direction: column; gap: .7rem;
+  }
+  .verdict .lede {
+    font-family: "IBM Plex Sans Condensed", Arial, sans-serif;
+    font-size: 1.4rem; font-weight: 600; line-height: 1.25; color: var(--accent-deep);
+  }
+  .verdict p { max-width: var(--measure); }
+
+  /* docket entries — the rank number is real information: it is the order to work in */
+  .item {
+    display: grid; grid-template-columns: 2.1rem 1fr; gap: .2rem 1rem;
+    padding: 1.05rem 0; border-bottom: 1px solid var(--edge-soft);
+  }
+  .item:last-child { border-bottom: 0; }
+  .rank {
+    font-size: 1.05rem; font-weight: 700; color: var(--accent);
+    font-variant-numeric: tabular-nums; line-height: 1.5;
+  }
+  .item-body { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+  .tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .tag {
+    font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    padding: .14rem .5rem; border-radius: 2px; background: var(--surface-alt); color: var(--ink-soft);
+  }
+  .tag.have { background: var(--pass-wash); color: var(--pass); }
+  .tag.spec { background: var(--accent-wash); color: var(--accent-deep); }
+  .tag.risk { background: var(--fail-wash); color: var(--fail); }
+  .tag.demand { background: var(--warn-wash); color: var(--warn); }
+  .src {
+    font-family: "IBM Plex Mono", monospace; font-size: .74rem; color: var(--ink-faint);
+    overflow-wrap: anywhere;
+  }
+
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-family: "IBM Plex Sans Condensed", Arial, sans-serif; font-size: .9rem; min-width: 33rem; }
+  caption { caption-side: top; text-align: left; font-family: "IBM Plex Mono", monospace; font-size: .73rem; color: var(--ink-faint); padding-bottom: .5rem; }
+  th, td { text-align: left; padding: .58rem .9rem .58rem 0; border-bottom: 1px solid var(--edge-soft); vertical-align: top; }
+  thead th { font-size: .7rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); border-bottom: 1px solid var(--edge); }
+  tbody th { font-weight: 600; white-space: nowrap; }
+  td.num { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ok { color: var(--pass); font-weight: 600; }
+  .up { color: var(--accent); font-weight: 600; }
+
+  .plinth {
+    background: var(--plinth); color: var(--plinth-ink);
+    font-family: "IBM Plex Mono", monospace; font-size: .8rem; line-height: 1.6;
+    padding: 1.05rem 1.25rem; overflow-x: auto; border-radius: 3px;
+  }
+  .plinth .dim { color: var(--plinth-dim); }
+  .plinth .hit { color: #7FD4B0; }
+  .plinth pre { margin: 0; font: inherit; }
+
+  .tag.new { background: var(--accent-wash); color: var(--accent-deep); }
+  .fail-t { color: var(--fail); font-weight: 600; }
+
+  /* the census groups repos by the job each one does — the group name is the table's caption */
+  .census { display: flex; flex-direction: column; gap: 1.6rem; }
+  .census table { min-width: 38rem; }
+  td.ver { font-family: "IBM Plex Mono", monospace; font-size: .8rem; color: var(--ink-faint); white-space: nowrap; }
+  tr.mine th[scope="row"]::after {
+    content: "ours"; margin-left: .5rem; font-size: .6rem; font-weight: 600; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--warn); vertical-align: .16em;
+  }
+
+  /* correction blocks: where this pass overturned something the first pass recorded */
+  .amend {
+    border-left: 2px solid var(--warn); background: var(--warn-wash);
+    padding: .7rem .9rem; font-size: .92rem; color: var(--ink);
+    display: flex; flex-direction: column; gap: .4rem; max-width: var(--measure);
+  }
+  .amend b { font-family: "IBM Plex Sans Condensed", Arial, sans-serif; letter-spacing: .02em; color: var(--warn); }
+
+  .note { font-size: .93rem; color: var(--ink-soft); max-width: var(--measure); }
+  ul.plain { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column; gap: .45rem; max-width: var(--measure); }
+  footer { border-top: 1px solid var(--edge); padding-top: 1.3rem; font-size: .85rem; color: var(--ink-faint); display: flex; flex-direction: column; gap: .5rem; }
+</style>
+
+<div class="page">
+
+  <header style="display:flex;flex-direction:column;gap:1rem">
+    <div class="eyebrow">Prioritisation report<span>Revised 21 September 2026 · rev 5</span><span>W2:Urist</span></div>
+    <h1>The Fortress Docket</h1>
+    <p class="standfirst">
+      Forty-six Dwarf Fortress repositories now sit local and current — twenty of them cloned
+      in this pass, from names that were only ever mentioned in our own documents. Alongside
+      them, a full read of DFHack at <code>53.16-r1.1</code> against the <code>53.15-r2</code>
+      build our rig actually runs. The census changed four of the five items on the mod docket,
+      and found a script pack that already solved a blocker we have written down as open.
+    </p>
+  </header>
+
+  <div class="verdict">
+    <p class="lede">Ship <code>seasonal-wildlife</code> first. It is built, unpublished, and answers a 1,200-vote demand that a named community developer is actively trying to solve.</p>
+    <p>
+      It is 1,212 lines of working Lua sitting in <code>~/Claude/Projects/seasonal-wildlife</code>
+      with <strong>no git remote</strong> — it has never been published anywhere. Its only
+      blocker was in-game verification on a live fort, which this week's CrossOver rig now does
+      in twelve seconds. That is the shortest distance between work already done and work that
+      lands.
+    </p>
+    <p class="note">
+      <strong>Rev 4, 17 September:</strong> the ship-first verdict now rests on measurement, not
+      hope. Two days of controlled experiments on purpose-built test forts (fifteen forks, all but
+      one closed) found that the game does more than the tool assumed — predation between wild
+      groups is real and has a switch, and lake and ocean life arrives as ordinary waves when the
+      map edge is wet — and v5.9.8 is deployed and validated on the rig. The design for the plugin that
+      follows is in <em>The Seasonal Wildlife Plugin</em>. The rest of this note is rev 3's text.
+      This pass sharpened the claim rather than weakening it. The tool rotates the roster an
+      embark already has; adding a species that is not native to it still needs a reload, and
+      reading the upstream script confirms nothing else can do that either. Ship the rotation —
+      it is real and nobody else has it — and treat the insertion problem as the separate, named
+      piece of work it turns out to be.
+    </p>
+  </div>
+
+  <section>
+    <h2>Why the mod lane is open now</h2>
+    <p>
+      Until this week a DFHack mod could not be iterated here: testing meant a Windows VM, an
+      SSH hop and a human clicking through DF's menus. The rig built this session removes all
+      three. That is the precondition for everything in Group A below, and it is why the
+      grouping you asked for splits cleanly.
+    </p>
+    <div class="plinth"><pre><span class="dim">$</span> cx-lifecycle.sh start        <span class="dim">→</span> <span class="hit">live RPC in 3.5s</span>
+<span class="dim">$</span> cx-lifecycle.sh load region1 <span class="dim">→</span> <span class="hit">fortress loaded, 12s</span>
+<span class="dim">$</span> cx-lifecycle.sh deploy       <span class="dim">→</span> <span class="hit">cp, not scp — the bottle is a macOS path</span>
+<span class="dim">$</span> cx-lifecycle.sh ui click ... <span class="dim">→</span> <span class="hit">drive DF's own menus by on-screen text</span></pre></div>
+    <p class="note">
+      DF also runs at its own 99 fps cap under CrossOver, so nothing here is compromised by
+      emulation. A mod written in the morning can be exercised against a real fort by lunch.
+    </p>
+  </section>
+
+  <section>
+    <h2>Group A — Mods</h2>
+    <p>
+      Small, self-contained DFHack Lua. Each is days of work, not weeks, and each addresses a
+      request the community has made in writing. Ranked by <em>demand × readiness</em>, not by
+      difficulty.
+    </p>
+
+    <div>
+      <div class="item">
+        <div class="rank">1</div>
+        <div class="item-body">
+          <h3>Seasonal wildlife — break the 7-species limit</h3>
+          <div class="tags"><span class="tag have">1,212 lines already written</span><span class="tag demand">1.2K votes · 865 for change</span><span class="tag spec">approach validated</span></div>
+          <p>
+            Every region carries only seven creature types per niche, chosen at worldgen and
+            fixed forever. Our tool rotates the roster by season, curates species per
+            creature, fills categories to a target count, and models a predator/prey food web —
+            all live, without a save-reload. Phase 1 is done; Phase 2 (set-roster tab, season
+            grid, food-web pyramid) is planned and specified.
+          </p>
+          <p>
+            On Reddit, <strong>raedyohed</strong> is independently attempting the same thing —
+            appending to <code>world_data.regions[i].population</code> so the game's native
+            frequency-weighted spawner draws from a bigger pool — and wrote
+            <em>"Perfectly happy if anyone else beats me to it."</em>
+          </p>
+          <div class="amend">
+            <b>Amended — the tool is narrower than this entry claimed, and the reason is worth knowing</b>
+            <p>
+              The upstream script is <code>region-pops</code>, not <code>regions-pop</code>, and
+              reading it confirms the limit exactly: it enumerates
+              <code>world.populations.all</code> and then only scales or offsets the
+              <code>count</code> on records that are already there. It has no path that creates one.
+            </p>
+            <p>
+              Our own tool hits the same wall from the other side. Line 51 of
+              <code>seasonal-wildlife.lua</code> records it as already tested — <em>"live insertion
+              of a local_population is unsupported in DFHack — verified"</em> — so the tool
+              <strong>rotates the roster the embark already has</strong>, live, and
+              <code>addNewSpecies</code> needs a save-reload. That is a real and shippable feature,
+              but it is not yet the thing raedyohed is asking for. Both tools stop at the same
+              missing primitive: constructing a <code>df::local_population</code>
+              (<code>wilderpopst</code>) and pushing it onto <code>world.populations.all</code>.
+              Solving that one primitive is the whole prize, and it is what should be timeboxed
+              first — before Phase 2's UI work, which does not depend on it.
+            </p>
+          </div>
+          <div class="amend">
+            <b>Update, 16 September — verified in a running fort, and the limit is gone</b>
+            <p>
+              The tool ran against the live fortress on the rig. Six bugs found and fixed, nine
+              of ten checks now have in-game evidence, and the missing primitive above is solved:
+              writing the master row and then a live entry pointing at it puts a new species into
+              a running fort — DF's own spawner drew 12 badgers from one such entry. Add-new is
+              live, no reload. This is now exactly what raedyohed is asking for. Full account in
+              the Wildlife Ledger.
+            </p>
+          </div>
+          <div class="amend">
+            <b>Update, 17 September — the mechanics are measured, and the tool can be an ecology</b>
+            <p>
+              Thirteen experiments on seven purpose-built forts (a harness that restores a save,
+              manipulates, samples every 200 ticks and byte-diffs the save after) closed fourteen of
+              fifteen forks in the wildlife model. The findings that change the product: a new wave
+              follows within 450 ticks of the surface being freed, so exclusion is a cheap,
+              deterministic species selector; a written <code>leave_countdown</code> is honoured, so
+              standing herds and graceful turnover are one field write; <code>cluster_number</code> is
+              read at the draw, so pack size is a live lever; <strong>wild predators do kill wild prey</strong>
+              once beside them, and DF's own per-pair reaction cache is the switch — written to
+              <code>PREDATOR_OR_PREY</code>, 19 of 19 prey died against 0 of 14 without it; and
+              <strong>sharks and hippos arrive as ordinary waves</strong> on a lake or coast whose map
+              edge holds water. v5.9.8 (the water job, the cavern lever and stocking pass, the slot-allocating ecology write, the window in its own script) is
+              deployed and live-tested: the piggy-back delivered exactly the configured pack of five.
+              The one thing that does not work is DFHack's own <code>create-unit</code>, which reads a
+              structure field that does not exist at 53.16-r1.1 — and the tool never needed it.
+              Model: <em>The Wilderpop Model</em> rev 15. Design: <em>The Seasonal Wildlife Plugin</em>.
+            </p>
+          </div>
+          <p class="src">~/Claude/Projects/seasonal-wildlife @ 40d669f (v5.9.8; layers, resident groups, ecology, the water job, the cavern lever and stocking pass, the window in its own script — validated on the rig 21 Sep: 93 PASS of 137 claims) · r/dwarffortress 1ut4t9k</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">2</div>
+        <div class="item-body">
+          <h3>Pulled punches — cap damage in friendly brawls</h3>
+          <div class="tags"><span class="tag spec">implementation given by DFHack's lead</span><span class="tag have">permission granted</span></div>
+          <p>
+            Tavern brawls are intentional — alcohol causes erratic behaviour, and violent
+            dwarves start fights. The problem is that they do not pull their punches: a strong
+            dwarf caves a friend's skull during what should be a scuffle.
+          </p>
+          <p>
+            <strong>Putnam3145</strong> answered exactly how to fix it: intercept attacks with
+            the <code>onAction</code> event in <code>putnam_events</code>, check whether attacker
+            and defender are both from your civilisation, and reduce the action's
+            <code>attack_velocity</code> if so. He also wrote <em>"you're allowed"</em> to
+            reuse his code.
+          </p>
+          <div class="amend">
+            <b>Amended — <code>onAction</code> is not a DFHack hook, and DF has a better lever anyway</b>
+            <p>
+              <code>onAction</code> appears nowhere in DFHack: not in <code>EventManager</code>,
+              not in <code>eventful</code>, not in any script. It belongs to Putnam's own
+              <code>putnam_events</code> mod. Core DFHack's nearest equivalent,
+              <code>eventful.onUnitAttack</code>, fires with a <em>wound already in hand</em> —
+              too late to pull anything.
+            </p>
+            <p>
+              But reading the struct suggests we do not need his hook. An attack sits in
+              <code>unit.actions</code> as <code>unit_action_data_attack</code> with
+              <code>timer1</code> (<code>time_to_strike</code>) still counting down — a real
+              pre-strike window a tick handler can find. And beside
+              <code>attack_velocity</code>, the same struct carries DF's own intent flags:
+              <code>lightly_tap</code>, whose Bay12 name is <strong><code>NO_LETHAL_INTENT</code></strong>,
+              and <code>sparring_hit</code>. Setting the flag DF already uses for a pulled punch
+              is a truer fix than scaling a velocity, and it needs no third-party mod. Treat this
+              as a strong lead, not a proven one: the flag semantics are read off the structure
+              names and must be confirmed against a live brawl on the rig.
+            </p>
+          </div>
+          <p class="src">r/dwarffortress 1vhrokf · comment p2er2zu · <code>df.unit.xml</code> §<code>unit_action_data_attack</code> @ 53.16-r1.1</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">3</div>
+        <div class="item-body">
+          <h3>Mode-switch preservation — retire and unretire without losing the fort</h3>
+          <div class="tags"><span class="tag spec">8-year-old spec, still unsolved</span><span class="tag demand">recurring request</span></div>
+          <p>
+            Switching between fortress and adventure mode is the feature players most want to
+            combine, and retiring a fort silently destroys: hauling routes and quantum
+            stockpiles, pasture assignments, manager orders, bedroom and furniture assignments,
+            bins, and caged creatures. DFHack's <code>orders</code> export covers manager orders
+            and nothing else.
+          </p>
+          <p>
+            A tool that snapshots the rest before retirement and restores it after would make
+            the loop usable. The 2018 thread enumerates precisely what breaks — it is a
+            requirements document someone else already wrote.
+          </p>
+          <div class="amend">
+            <b>Amended — two of these are already solved, and both plugins are on our rig</b>
+            <p>
+              <code>preserve-rooms</code> records a citizen's bedroom, office, dining room and
+              tomb when they leave the map, suspends the zones so nobody else claims them, and
+              reassigns them on return — and separately keeps noble rooms attached to the
+              <em>role</em> rather than the person. <code>preserve-tombs</code> holds tomb
+              assignments through death. Both ship in DFHack and both are present in our
+              <code>53.15-r2</code> install right now.
+            </p>
+            <p>
+              So the item shrinks to what nothing covers: hauling routes and quantum stockpiles,
+              pasture assignments, bins, caged creatures, and squad and burrow membership.
+              Smaller scope, and a clearer pitch — the remaining gap next to two plugins that
+              already prove the pattern works.
+            </p>
+          </div>
+          <p class="src">r/dwarffortress adbhoc · and 1wbtwze for the demand · <code>preserve-rooms</code>, <code>preserve-tombs</code> verified installed</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">4</div>
+        <div class="item-body">
+          <h3>Adventure-mode fort actions — <code>advfort</code> is already rewritten</h3>
+          <div class="tags"><span class="tag risk">upstream is broken</span><span class="tag have">a working replacement exists</span><span class="tag new">now cloned</span></div>
+          <p>
+            <code>gui/advfort</code> lets an adventurer build and craft, and it does not
+            currently work. Reviving it is the difference between adventure mode as a combat
+            demo and adventure mode as the RPG players keep asking for.
+          </p>
+          <div class="amend">
+            <b>Amended — this is finished work, not a starting point</b>
+            <p>
+              <code>magnus-ISU/dfhack-commands</code> is not a fork with a patch in it. It
+              contains <code>adv/fort.lua</code>: <strong>4,313 lines</strong>, a ground-up
+              reimplementation dated 11 August 2026 that duplicates advfort's job logic —
+              choosers, predicates, item matching, workshop handling — internally, and
+              <em>deleted</em> <code>gui/advfort</code> from the tree rather than patching it. Its
+              redesign plan names the nine user-reported bugs it was written to kill and argues
+              they all trace to three structural decisions in the original.
+            </p>
+            <p>
+              Recommend we stop treating this as something to build. Run it on the rig, and if it
+              holds up, the useful contribution is helping it upstream — not writing a third one.
+            </p>
+          </div>
+          <p class="src">r/dwarffortress 1wbtwze · GitRepos/dfhack-commands @ 0486139, <code>advfort-redesign-plan.md</code></p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">5</div>
+        <div class="item-body">
+          <h3>The long tail — squad ammo, stockpile filters, orphaned equipment</h3>
+          <div class="tags"><span class="tag demand">most-cited annoyances</span></div>
+          <p>
+            Three recurring complaints, each a plausible small tool. <strong>Squad ammo</strong>
+            assignment is broken, so marksdwarves train with the wrong bolts or cannot fire.
+            <strong>Stockpile filters</strong> cannot separate by quality, or empty from full
+            containers, or glazed from unglazed. <strong>Orphaned equipment</strong> gets stuck
+            assigned to nobody and is invisible except in the custom assignment menu — the only
+            workaround is melting it.
+          </p>
+          <p class="src">r/dwarffortress 1w997ue</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">6</div>
+        <div class="item-body">
+          <h3>Dwarf Therapist on demand — generate the memory layout, don't hunt for it</h3>
+          <div class="tags"><span class="tag have">the rig already does the hard half</span><span class="tag demand">blocks us today</span></div>
+          <p>
+            Dwarf Therapist needs a memory layout <code>.ini</code> matched to the exact DF
+            build. Its repository ships 86 Windows layouts, and the newest is
+            <strong><code>v0.53.03</code></strong> — its last commit, in November 2025, is
+            literally <em>"Add memory layouts for 53.03"</em>. <strong>Our rig runs
+            0.53.15.</strong> There is no shipped layout for the version we play, which is why
+            installing it is failure-prone: the fix is to generate one, and that step is
+            undocumented in the places people look.
+          </p>
+          <p>
+            DFHack already ships the generator — <code>devel/export-dt-ini</code> writes the ini
+            from a running game, and Dwarf Therapist carries its own copy of the same script. So
+            the whole job is an orchestration our rig can already mostly perform: start DF with
+            DFHack, run the exporter, name the output by DF version and distribution
+            (<code>steam</code> / <code>itch</code> / <code>classic</code>), drop it into
+            <code>share/memory_layouts/windows/</code>, and launch Therapist against it —
+            verifying the layout is complete rather than silently partial, which is the failure
+            the exporter's own <code>complete</code> flag is there to catch.
+          </p>
+          <p>
+            Worth doing for its own sake, and it doubles as a template: "install a DF companion
+            tool, generate what it needs, verify it, report" is the shape of a lot of future
+            work.
+          </p>
+          <p class="src">repos/Dwarf-Therapist @ 9d3e241a · share/memory_layouts/windows (86 files, newest v0.53.03) · scripts/devel/export-dt-ini.lua</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Group B — Big projects</h2>
+    <p>
+      Systems work, measured in months. The ranking here is driven by one fact from the repo
+      review: <strong>Chronicler now has two direct competitors</strong>, and that should change
+      what we build rather than whether we build it.
+    </p>
+
+    <div>
+      <div class="item">
+        <div class="rank">1</div>
+        <div class="item-body">
+          <h3>Chronicler — close Phase 4, then pick a defensible edge</h3>
+          <div class="tags"><span class="tag have">both blockers now cleared</span><span class="tag risk">two competitors shipped</span></div>
+          <p>
+            Phase 4 was recorded as <em>code complete but not signed off</em> on two counts: 43
+            stale failing tests, and no packaged executable. Both are now closed
+            (<code>2347210</code> and <code>0bb68fa</code>). <strong>M4 is signable this
+            week</strong> — that is a stroke of the pen, not a sprint.
+          </p>
+          <p>
+            The harder question is positioning. <strong>Dwarfipedia</strong> generates
+            Wikipedia-style pages for every entity in a world using LLM prose — Chronicler's
+            narrative thesis, already shipped. <strong>LegendsViewer-Next</strong> is an
+            actively-developed legends browser that covers the exploration half. What neither
+            has is <em>live fortress state</em>: the 33-section bridge, the change detector, the
+            denizen registry, the Knowledge Horizon. That is the edge worth leaning into, and
+            the legends-browsing work is the part most at risk of being redundant.
+          </p>
+          <p>
+            Three places where DFHack already does work the bridge is doing by hand.
+            <strong>RemoteFortressReader</strong> exposes thirty-eight RPC methods and is
+            installed on our rig; Chronicler calls exactly one of them
+            (<code>GetWorldMapNew</code>, in <code>world_map.py</code>) while
+            <code>chronicler-bridge.lua</code> carries 2,041 lines that write a JSON file to
+            disk for Python to pick up. <code>GetUnitList</code>, <code>GetItemList</code>,
+            <code>GetBuildingDefList</code>, <code>GetReports</code>, <code>GetBlockList</code>
+            and <code>GetCreatureRaws</code> are already-typed protobuf equivalents of sections
+            we serialise ourselves. <strong><code>export-world-map</code></strong> writes
+            region, site, river and elevation data as CSV and GDAL <code>.vrt</code> — a
+            GIS-grade atlas substrate we are not using. And the <strong>overlay</strong>
+            framework would put Chronicler's readouts inside DF's own viewport instead of
+            beside it.
+          </p>
+          <p class="note">
+            None of this is free: RFR's schema is its own, the bridge's 33 sections do not map
+            one-to-one, and <code>export-world-map</code> is absent from our
+            <code>53.15-r2</code> build. The recommendation is a measured spike on the unit and
+            item sections — where the overlap is largest and the protobuf is already
+            generated — not a rewrite.
+          </p>
+          <p class="src">Project_Aion/projects/chronicler/progress · DwarfCron @ ca53c7c · <code>remotefortressreader.cpp</code> lines 251–288</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">2</div>
+        <div class="item-body">
+          <h3>A renderer on the bridge we already have</h3>
+          <div class="tags"><span class="tag spec">three independent attempts this month</span><span class="tag have">we own a state serialiser</span></div>
+          <p>
+            Three separate people are building views onto live DF state right now: a
+            <strong>Godot</strong> renderer using a forked DFHack, <strong>dwarf-eye</strong>
+            (Rust, Minecraft-style voxels via RemoteFortressReader), and <strong>DF in
+            Doom</strong>, which dumps state into WADs. All three are solving the same first
+            problem — getting game state out — which is the problem Chronicler's bridge already
+            solved and has in production.
+          </p>
+          <p>
+            The Godot author has not released, and commenters are asking for it to be merged
+            into Stonesense. The interesting move is not competing with those renderers but
+            making our bridge the thing they read from.
+          </p>
+          <p class="src">r/dwarffortress 1wac6t2, 1w8bm4z · GitRepos/dwarf-eye</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">3</div>
+        <div class="item-body">
+          <h3>Multiplayer — watch, do not build</h3>
+          <div class="tags"><span class="tag risk">two mature projects already</span></div>
+          <p>
+            <strong>multi-dwarf</strong> streams the game's real rendered pixels to browsers
+            with per-viewer cameras and HUDs, updated for DF 53.16 last month.
+            <strong>dwarf-with-friends</strong> ships Windows and Linux betas. This space is
+            genuinely contested and neither project is stalled. Recommend we track both and
+            spend nothing here unless a specific gap appears.
+          </p>
+          <p class="src">GitRepos/multi-dwarf @ 11ea5b1 · GitRepos/dwarf-with-friends @ 241b8d7</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">4</div>
+        <div class="item-body">
+          <h3>LLM-assisted binary work — a capability to note, not a project yet</h3>
+          <div class="tags"><span class="tag spec">newly demonstrated</span></div>
+          <p>
+            A widely-shared thread documents frontier models autonomously reverse-engineering
+            closed-source game binaries — including removing a decade-old hardcoded 60 FPS
+            assumption from a game with no source. DF is closed-source, and DFHack's structure
+            work already does much of what that would buy us. Worth filing as a capability that
+            has changed, against the day something needs a fix DFHack cannot reach.
+          </p>
+          <p class="src">r/singularity 1wc2eqb</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The repo collection</h2>
+    <p>
+      Forty-six repositories, all local, all fetched and fast-forwarded today. Twenty were
+      cloned in this pass: every Dwarf Fortress repository named anywhere in our own project
+      documents had its URL extracted and checked, and the ones that had only ever been cited
+      are now on disk. Nothing was overwritten — the refresh is fast-forward-only and reports
+      rather than discards.
+    </p>
+    <p class="note">
+      Grouped by the job each one does, because that is how they get reached for. Rows marked
+      <strong>ours</strong> are our own work. <em>New</em> means cloned in this pass.
+    </p>
+
+    <div class="census">
+
+      <div class="scroll">
+        <table>
+          <caption>Engine and structures — the ground truth everything else reads</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">dfhack-latest</th><td>DFHack <code>develop</code>. The working tree. <code>scripts</code>, <code>stonesense</code> and <code>library/xml</code> submodules were uninitialised and are now checked out.</td><td class="ver">53.16-r1.1 · <span class="up">submodules fixed</span></td></tr>
+            <tr><th scope="row">df-structures</th><td>The memory layout. Every claim in this report about a DF struct was checked here, not remembered.</td><td class="ver">3bfa5aa5</td></tr>
+            <tr><th scope="row">dfhack-53.10-r1</th><td>Pinned release tree — the version the UTM VM runs.</td><td class="ver">detached, correct</td></tr>
+            <tr><th scope="row">dfhack-0.50.13-r1.1</th><td>Pinned release tree, pre-Steam-era reference.</td><td class="ver">detached, correct</td></tr>
+            <tr><th scope="row">dfhack-0.47.05-r8</th><td>Pinned release tree, the last classic-DF line.</td><td class="ver">detached, correct</td></tr>
+            <tr><th scope="row">df_misc</th><td>DFHack's own scratch repo — offset-hunting scripts, IDA databases, reverse-engineering notes.</td><td class="ver"><span class="ok">new</span> · 8be5f95</td></tr>
+            <tr><th scope="row">dfhack-build-env</th><td>Dockerised cross-compile toolchains for building DFHack plugins.</td><td class="ver"><span class="ok">new</span> · stale 2023</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Remote API clients — the layer Chronicler's bridge sits on</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">dfhack-remote</th><td><strong>Rust crate, actively maintained.</strong> The best-kept client for the RPC surface; what <code>dwarf-eye</code> is built on.</td><td class="ver"><span class="ok">new</span> · v0.12, Mar 2026</td></tr>
+            <tr><th scope="row">dfhack-client-python</th><td>The Python RPC client Chronicler's own client wraps.</td><td class="ver">2021</td></tr>
+            <tr><th scope="row">dfhack-mcp</th><td>Exposes DFHack to a model over HTTP. Six endpoints, 151 lines — a sketch, but the right sketch.</td><td class="ver"><span class="ok">new</span> · Jul 2025</td></tr>
+            <tr><th scope="row">DFHackRPC</th><td>Older standalone Python client, DFHack 0.44 era. Useful as a protocol reference.</td><td class="ver"><span class="ok">new</span> · 2019</td></tr>
+            <tr><th scope="row">dfhack-remote-alexchandel</th><td>Browser-side JavaScript bindings over RFR via WebSockets.</td><td class="ver"><span class="ok">new</span> · 2021</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Script packs — where working Lua to read and borrow lives</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">dfhack-commands</th><td><strong>The find of this pass.</strong> 203 Lua scripts for DF 0.53.x plus the "High Adventure" content-mod suite. Holds the advfort rewrite, a worldgen driver, and honest <code>BROKEN_FEATURES.md</code> notes.</td><td class="ver"><span class="ok">new</span> · <span class="up">15 Sep 2026</span></td></tr>
+            <tr><th scope="row">myDFHackScripts</th><td>Small personal tool collection, current for the Steam era.</td><td class="ver">Mar 2026</td></tr>
+            <tr><th scope="row">dfhack-scripts-robob27</th><td>Fork of DFHack's script repo at the 2023 line. A before-picture for the Great Reorg.</td><td class="ver"><span class="ok">new</span> · 2023</td></tr>
+            <tr><th scope="row">eld-dfhack-scripts</th><td>47 Lua scripts, DFHack 43.x. Archival; the author warns they may not run.</td><td class="ver"><span class="ok">new</span> · 2023</td></tr>
+            <tr class="mine"><th scope="row">seasonal-wildlife</th><td>Season-rotating wildlife roster with curation, a mass-based food web, ecology classes, a water/cavern layer key and concurrent resident groups. v5.9.8 (through the water job, the cavern lever and stocking pass, and the slot-allocating ecology write), deployed and validated on the rig; the wildlife model behind it measured across fifteen forks on seven test forts (STATE addenda 7–25).</td><td class="ver"><span class="fail-t">no remote</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Legends and history — the half of Chronicler with company</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">LegendsViewer-Next</th><td>Actively developed legends browser, cross-platform, Steam-era. The serious incumbent.</td><td class="ver">6 Sep 2026</td></tr>
+            <tr><th scope="row">Dwarfipedia</th><td>A wiki page per entity, prose written by an LLM over legends data. Chronicler's narrative thesis, shipped.</td><td class="ver">Aug 2026</td></tr>
+            <tr><th scope="row">LegendsViewer</th><td>The legacy C# original. Its own README now points at Next.</td><td class="ver"><span class="ok">new</span> · retired</td></tr>
+            <tr><th scope="row">LegendsBrowser2</th><td>Go rewrite of Legends Browser, targeting DF 0.47.</td><td class="ver">Jun 2025</td></tr>
+            <tr><th scope="row">LegendsBrowser</th><td>The Java original. Historical reference.</td><td class="ver">2020</td></tr>
+            <tr><th scope="row">weblegends</th><td>A web server <em>inside</em> DF, serving live world history over HTTP. Architecturally the closest thing to our bridge.</td><td class="ver">2022</td></tr>
+            <tr><th scope="row">df-narrator</th><td>legends.xml to a Markdown lore document, sized for a model's context.</td><td class="ver">Feb 2026 · <span class="fail-t">dirty</span></td></tr>
+            <tr><th scope="row">df-sites-analyzer</th><td>Same author as df-narrator; ranks and profiles sites from legends.xml.</td><td class="ver"><span class="ok">new</span> · Feb 2026</td></tr>
+            <tr><th scope="row">DwarvenSurveyor</th><td>Renders a world map from exported legends XML.</td><td class="ver">2024</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Renderers and viewers — everyone solving "get the state out"</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">dwarf-eye</th><td>Rust, Minecraft-style voxel view of a live map over RFR.</td><td class="ver">8 Sep 2026</td></tr>
+            <tr><th scope="row">armok-vision</th><td><strong>The ancestor.</strong> Unity 3D realtime visualiser over RFR — the project RFR's API was shaped around. Dormant, but it is the reference implementation.</td><td class="ver"><span class="ok">new</span> · 2023</td></tr>
+            <tr><th scope="row">multi-dwarf</th><td>Browser multiplayer; streams real rendered pixels with per-viewer cameras and HUDs.</td><td class="ver">Aug 2026</td></tr>
+            <tr><th scope="row">dwarf-with-friends</th><td>Browser multiplayer with Windows and Linux betas.</td><td class="ver">Jul 2026</td></tr>
+            <tr><th scope="row">df-smooth-movement</th><td>Tweened movement, synced icons, free camera. <strong>Now upstreamed</strong> — see the scan below.</td><td class="ver">Aug 2026 · <span class="up">superseded</span></td></tr>
+            <tr><th scope="row">df-ai</th><td>A DFHack plugin that plays the fort by itself. Stalled at 0.44, but the only full autonomous-overseer design in the collection.</td><td class="ver">2022</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Raws, mods and launchers — the modding-side toolchain</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">dfraw_parser</th><td><strong>Maintained Rust raws-to-JSON parser.</strong> Turns creature, plant and material raws into searchable structured data — directly useful to seasonal-wildlife's curation layer.</td><td class="ver"><span class="ok">new</span> · Apr 2026</td></tr>
+            <tr><th scope="row">PyDwarf</th><td>Python raws mod manager with a real scripting API. Python 2.7 and long dormant, but the most thought-through raws-manipulation design here.</td><td class="ver"><span class="ok">new</span> · 2021</td></tr>
+            <tr><th scope="row">ModHearth</th><td>Mod manager for Steam DF that speaks to both DFHack and Workshop mods.</td><td class="ver">2024</td></tr>
+            <tr><th scope="row">DF-Modloader</th><td>A working mockup of a mod loader, kept for its design notes.</td><td class="ver">2021</td></tr>
+            <tr><th scope="row">DF-BAMM</th><td>Automated graphics-raw merging across heavily modded raws.</td><td class="ver"><span class="ok">new</span> · 2015</td></tr>
+            <tr><th scope="row">python-lnp</th><td>PyLNP, the classic third-party launcher and settings manager.</td><td class="ver"><span class="ok">new</span> · 2015</td></tr>
+            <tr><th scope="row">Nexus-Mod-Manager</th><td>General-purpose mod manager, kept as a packaging and distribution reference.</td><td class="ver">15 Sep 2026</td></tr>
+            <tr><th scope="row">DwarfGenManager</th><td>Batch script that generates many worlds and files them by in-game name. Crude, but it is prior art for the worldgen automation we need.</td><td class="ver"><span class="ok">new</span> · 2020</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="scroll">
+        <table>
+          <caption>Fortress inspection, and the macOS rig question</caption>
+          <thead><tr><th scope="col">Repo</th><th scope="col">What it is</th><th scope="col">State</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Dwarf-Therapist</th><td>The labour and attribute manager. Vendored under <code>DwarfCron/repos</code>.</td><td class="ver">Nov 2025</td></tr>
+            <tr class="mine"><th scope="row">DwarfFortressLogger</th><td><strong>Housekeeping:</strong> despite the name this is a Dwarf Therapist fork under our own account — a duplicate of the vendored copy. Either give it a purpose or retire it.</td><td class="ver"><span class="fail-t">duplicate</span></td></tr>
+            <tr><th scope="row">dwarf-fortress-macos</th><td>Steam DF + DFHack on Apple Silicon under plain Wine, with no Windows Steam client — because the client crash-loops under Wine. The nearest published alternative to our CrossOver rig.</td><td class="ver"><span class="ok">new</span> · <span class="up">13 Sep 2026</span></td></tr>
+            <tr><th scope="row">mac-dwarf</th><td>DF in a browser on a Mac via Apple <code>container</code> under Rosetta, bound to localhost.</td><td class="ver"><span class="ok">new</span> · Aug 2026</td></tr>
+            <tr><th scope="row">Whisky</th><td>The SwiftUI Wine front-end. <strong>Its README now carries a maintenance notice</strong> — no longer actively maintained.</td><td class="ver"><span class="ok">new</span> · <span class="fail-t">retired</span></td></tr>
+            <tr class="mine"><th scope="row">DwarfCron / Chronicler</th><td>Our own: 38,001 lines of Python, the 33-section bridge, the denizen registry, the Knowledge Horizon.</td><td class="ver">ca53c7c</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <p class="note">
+      Housekeeping carried forward: the three pinned DFHack trees are detached at release tags,
+      which is correct and was left alone. <code>df-narrator</code> and the vendored
+      <code>dfhack</code> have uncommitted local changes and were skipped rather than touched —
+      both are zero commits behind, so nothing is waiting on them. <code>DwarfFortressLogger</code>
+      is the one entry that should probably go away.
+    </p>
+  </section>
+
+  <section>
+    <h2>The DFHack scan</h2>
+    <p>
+      The rig runs <strong>53.15-r2</strong>; the repository is at <strong>53.16-r1.1</strong>.
+      Three releases of drift, verified from the shipped binary rather than from notes —
+      <code>dfhack.dll</code> carries the string <code>53.15-r2</code> and nothing later.
+    </p>
+
+    <div class="plinth"><pre><span class="dim">installed  </span> DF 0.53.15 · DFHack <span class="hit">53.15-r2</span>  <span class="dim">·</span> 75 plugins <span class="dim">·</span> 163 scripts
+<span class="dim">repository </span> DF 53.16   · DFHack <span class="hit">53.16-r1.1</span> <span class="dim">·</span> 99 plugins <span class="dim">·</span> 332 scripts
+<span class="dim">drift      </span> 53.15-r3 <span class="dim">→</span> 53.16-r1 <span class="dim">→</span> 53.16-r1.1
+<span class="dim">missing on the rig</span>  smooth-movement · export-world-map · map-render
+<span class="dim">new Lua API</span>        dfhack.screen.paintMapPortTile / readMapPortTile</pre></div>
+
+    <p>
+      The drift itself is mostly small fixes, but it carries two things worth having.
+      <code>paintMapPortTile</code> and <code>readMapPortTile</code>, added in
+      <code>53.15-r3</code>, let a script <strong>write onto DF's own world and region map
+      view</strong> — the most direct route to a living atlas that lives inside the game rather
+      than beside it. And <code>smooth-movement</code> has been merged into DFHack proper, which
+      retires the standalone plugin for anyone on the current build.
+    </p>
+
+    <h3>What the scan turned up that we did not know</h3>
+
+    <div>
+      <div class="item">
+        <div class="rank">A</div>
+        <div class="item-body">
+          <h3><code>modtools/create-unit</code> is broken, and the fix is mostly a rename</h3>
+          <div class="tags"><span class="tag spec">three sources agree</span><span class="tag have">upstream contribution</span></div>
+          <p>
+            <code>create-unit</code> still reads <code>df.global.world.arena_spawn</code> and
+            still calls the keybinding <code>D_LOOK_ARENA_CREATURE</code>. Neither exists any
+            more: the struct is now <code>world.arena</code> of type <code>arenast</code>, and
+            the keybinding is gone from the structures entirely. The script was last touched in
+            February 2025, for the Great Reorg, and the structures moved out from under it.
+          </p>
+          <p>
+            The cause is dated precisely. df-structures commit <code>a3759522</code>,
+            <em>"Apply Toady names to the bottom of world"</em> — <strong>9 January 2023</strong>,
+            by Quietust — renamed <code>&lt;compound name='arena_spawn'&gt;</code> to
+            <code>name='arena'</code>. A naming cleanup, not a DF change: the binary and its
+            memory layout are untouched, only DFHack's label for the field moved. The script was
+            never updated, and there is no compatibility alias anywhere in DFHack.
+          </p>
+          <p>
+            It has been reported. <strong>DFHack issue #2856</strong>, <em>"create-unit error:
+            Cannot read field world.arena_spawn: not found"</em>, was opened
+            <strong>9 February 2023</strong> — one month after the rename — and is
+            <strong>still open</strong>, with a stack trace pointing at line 164. So this is a
+            known, unowned, two-and-a-half-year-old regression, not something we discovered.
+          </p>
+          <p>
+            <strong>What it affects:</strong> <code>create-unit</code> itself,
+            <code>spawnunit</code> which wraps it, and any mod that calls either — the "High
+            Adventure" warlocks mod in <code>dfhack-commands</code> does. There is no other
+            supported way to put a creature on the map.
+          </p>
+          <p>
+            <strong>Whose fix, and does it survive future releases?</strong> It is DFHack's, and
+            the maintainers have already said what they want: issue <strong>#4619</strong>,
+            <em>"expose and use DF's create unit function"</em>, lists five steps. The first two
+            are <em>done</em> — <code>Units::create</code> wraps DF's own
+            <code>unitst_more_convenient_create</code> and is exposed as
+            <code>dfhack.units.create</code>. Steps three to five — document it, port
+            <code>create-unit</code> onto it, update <code>spawnunit</code> — are not. So the
+            sanctioned fix is a rewrite onto a stable entry point, not a patch to the arena
+            path, and that is durable: it stops depending on a viewscreen and a keybinding that
+            can move again. <strong>Do not carry this as a local patch</strong> —
+            <code>hack/scripts</code> is overwritten on every DFHack update. Upstream it or
+            don't do it.
+          </p>
+          <p>
+            One caution that makes this more interesting than a chore.
+            <code>dfhack-commands</code> already tried step four and found the gap: calling
+            <code>dfhack.units.create</code> yields a unit object that is
+            <em>not a properly working in-play creature</em>. The real unsolved question is what
+            else a unit needs after creation — and that is the same missing primitive the
+            wildlife work runs into.
+          </p>
+          <p class="src">df-structures a3759522 (2023-01-09) · DFHack issues #2856, #4619 · Units.cpp:1004 · scripts/modtools/create-unit.lua:164,180,293</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">B</div>
+        <div class="item-body">
+          <h3>A route around the worldgen blocker — and a correction about which blocker</h3>
+          <div class="tags"><span class="tag have">393 lines, working</span><span class="tag spec">our architecture, confirmed</span></div>
+          <div class="amend">
+            <b>Amended — an earlier revision of this entry conflated two separate things</b>
+            <p>
+              <strong>Live worldgen telemetry is not broken and never was.</strong>
+              <code>worldgen-bridge.lua</code> polls <code>df.global.world.worldgen_status</code>
+              every 30 frames and writes snapshots for the Python ingester; Stage 3.2 of the
+              roadmap has it <em>complete since 20 March 2026</em>, dashboard included. The
+              struct is still present at <code>53.16-r1.1</code>, so nothing is at risk there.
+            </p>
+            <p>
+              The "Known broken" note is about something else entirely: <strong><code>-gen</code>,
+              DF's headless worldgen flag</strong>, writes a <code>save/regionN</code> that DF's
+              own menus will not list. That is about the <em>save artifact</em>, not about
+              reading memory.
+            </p>
+          </div>
+          <p>
+            <code>fort/gen-world.lua</code> does not fix <code>-gen</code>, and does not touch
+            telemetry. It <strong>sidesteps the problem by never using <code>-gen</code></strong>:
+            it drives DF's interactive worldgen screens — writing
+            <code>viewscreen_new_regionst</code>'s own fields for anything DF exposes as data,
+            feeding a synthetic <code>_MOUSE_L</code> only at buttons with no data equivalent —
+            so DF creates the save through its normal flow and can therefore list it. Its
+            <code>embark</code> step then returns to the title screen and loads that world back,
+            which is the proof the save is real.
+          </p>
+          <p>
+            One correction from running it: <code>embark</code> cannot work as written, and
+            not because of pixel coordinates. A Lua script over RPC executes with the core
+            suspended, so a script that clicks through five screens never sees any of them
+            change. Multi-step flows have to be sequenced from outside, one atomic step per
+            call — which is how our rig now does it.
+          </p>
+          <p>
+            The second value here is architectural. That hybrid is
+            <strong>our <code>chronicler-ui.lua</code> design, arrived at independently</strong> —
+            data where DF exposes it, clicks on found on-screen labels where it does not. Two
+            people reaching the same architecture after rejecting the alternatives is the best
+            evidence we have that it is right. It also documents a trap we have not hit: DF's
+            first-run "Welcome to Dwarf Fortress" panel is modal, swallows fed input, and nothing
+            dismisses it programmatically — and it warns of a <code>free(): invalid pointer</code>
+            abort at <code>export_region</code> that killed several of its author's sessions.
+          </p>
+          <p class="src">chronicler CLAUDE.md "Known broken" · roadmap Stage 3.2 · GitRepos/dfhack-commands/dfhack/fort/gen-world.lua</p>
+        </div>
+      </div>
+
+      <div class="item">
+        <div class="rank">C</div>
+        <div class="item-body">
+          <h3>Tools already installed that overlap things we planned to build</h3>
+          <div class="tags"><span class="tag have">present on the rig</span></div>
+          <p>
+            <code>preserve-rooms</code> and <code>preserve-tombs</code> take a bite out of the
+            mode-switch item above. <code>pet-uncapper</code> already manipulates breeding
+            thresholds and pregnancy timing — the closest working precedent for
+            seasonal-wildlife's population work, and worth reading before Phase 2.
+            <code>spectate</code> does automated camera following with name-and-job tooltip
+            overlays, which is most of a narrator's presentation layer.
+            <code>exportlegends</code> hooks DF's own <em>Export XML</em> button and emits the
+            extended data that external tools depend on — Chronicler already consumes both
+            halves, which is one thing this audit confirms we got right.
+          </p>
+          <p class="src">verified against <code>hack/plugins</code> in the CrossOver bottle</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Suggested sequence</h2>
+    <ul class="plain">
+      <li><strong>This week.</strong> Sign off Chronicler M4 — the evidence is already in git. Then publish <code>seasonal-wildlife</code>: give it a remote, run Phase 1 verification against the live fort on the rig, and post it into the thread that is asking for it. Publishing does not wait on the species-insertion problem; the rotation feature stands on its own.</li>
+      <li><strong>Read before building — this is new, and it is the highest-value hour on the list.</strong> <code>dfhack-commands</code> has 203 scripts, an advfort rewrite, and a worldgen driver for a blocker we have recorded as open. Run <code>fort/gen-world.lua</code> on the rig before writing any more worldgen automation of our own.</li>
+      <li><strong>Then timebox one primitive.</strong> Inserting a <code>local_population</code> into <code>world.populations.all</code>. It is the single thing standing between seasonal-wildlife and the request that actually has 865 votes behind it, and both our tool and the upstream script stop at exactly this line.</li>
+      <li><strong>Good first contribution.</strong> Take DFHack issue #4619 — port <code>modtools/create-unit</code> onto <code>dfhack.units.create</code>, closing #2856 on the way. Open since 2023, unowned, maintainer-specified, and it forces us to answer the "what makes a created unit real" question that the wildlife work needs anyway.</li>
+      <li><strong>Cheap and unblocking.</strong> Automate the Dwarf Therapist layout export. No shipped layout exists for the DF we run, so Therapist is unusable on the rig today, and the generator already ships with DFHack.</li>
+      <li><strong>Then decide, before building more.</strong> Whether Chronicler's legends-browsing half is still worth investment now that two projects cover it, or whether live state and the Knowledge Horizon become the whole product. The RFR spike informs this: if the bridge gets cheaper, live state gets more defensible.</li>
+      <li><strong>Standing.</strong> Track multi-dwarf and dwarf-with-friends. Do not start a third multiplayer project. Pulled punches drops down the list — the implementation is better than we thought, but it is no longer the only shovel-ready thing.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div>Sources are the forty-six repositories themselves, DFHack at <code>53.16-r1.1</code> and the <code>53.15-r2</code> build installed in the CrossOver bottle, the project spaces on this machine, and ten community threads read 15 September 2026.</div>
+    <div>Repo state verified by fast-forward-only update; no local work was discarded. Version claims are taken from the shipped binary and from <code>df-structures</code>, not from documentation — three status documents were found stale in the process, and the corrections are marked in place above.</div>
+  </footer>
+
+</div>
+
