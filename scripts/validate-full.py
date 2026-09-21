@@ -85,6 +85,9 @@ CLAIMS = [
     ("mech.water.outside", "MECH", "a water entry is placed only in outside water near the surface, never in a cavern lake (v5.9)", "STATE addendum 76", "shipped"),
     ("cli.cavern.stock", "CLI", "`cavern [on|off|now|cadence N|countdown N]` controls the cavern stocking pass; status reports the caverns against the quota (v5.9.6)", "USAGE.md v5.9.6; STATE addendum 83", "shipped"),
     ("mech.cavern.stock", "MECH", "with `quota cavern N` and the caverns under it, one pass places the shortfall into cavern bands, floor or water by caste; at the quota a pass places nothing (v5.9.6)", "STATE addendum 83", "shipped"),
+    ("cli.ledger", "CLI", "`ledger [N] [kind] [layer]|clear` prints the tool's own writes, oldest first, stamped 'y<year> <Season> <day>' with kind and layer, and a 'shown of recorded' footer", "USAGE.md v5.9.9", "shipped"),
+    ("mech.ledger.records", "MECH", "every write the tool makes leaves one ledger line: placement, roster and switch edits, and the session's arrivals, holds, dismissals, ecology changes and cavern holds when they happen", "USAGE.md v5.9.9; PLAN 3.6", "shipped"),
+    ("mech.ledger.ring", "MECH", "the ledger keeps the newest 300 entries, its total keeps counting, and `clear` empties it", "v5.9.9", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
     ("mech.water.target", "MECH", "water target / cadence / countdown are stored and reported", "USAGE.md v5.8", "shipped"),
     ("mech.quota.land", "MECH", "quota land N overrides groups.max_concurrent as the effective ceiling", "USAGE.md v5.8", "shipped"),
@@ -776,6 +779,30 @@ def phase_mechanics():
             "a non-native, eligible land species accepted by addNewSpecies", json.dumps(an)[:600], data=an,
             note="every candidate tried was refused as already present in the region as some population type (vermin, colony insect) — the engine's documented refusal, not a write failure; the primitive was proven live on 16 Sep (12 badgers drawn from a written entry)")
 
+    # --- ledger (v5.9.9): every write leaves a line; the ring caps at 300 and the count keeps growing
+    rc, out = cmd("ledger", "300")
+    foot = re.search(r"ledger: (\d+) of (\d+) recorded shown", out)
+    kinds = sorted(set(re.findall(r"^y\d+ \w+ \d+\s+(\w+)", out, re.M)))
+    total = int(foot.group(2)) if foot else 0
+    rec("cli.ledger", "PASS" if foot and total > 0 and kinds else "FAIL",
+        "stamped lines 'y<year> <Season> <day>  kind  layer  text' and a 'shown of recorded' footer",
+        out[-1500:], data={"kinds": kinds, "total": total, "shown": int(foot.group(1)) if foot else 0})
+    need = {"place", "edit"}
+    rec("mech.ledger.records", "PASS" if need <= set(kinds) else "FAIL",
+        "after this session's placement and switch flips the ledger holds at least the kinds place and edit; arrive, hold, dismiss, ecology and cavern appear when the session produced them",
+        ", ".join(kinds), data={"kinds": kinds, "total": total})
+    rec("v6.explain", "PASS" if need <= set(kinds) else "FAIL", "every automatic decision logs one readable line (the ledger, v5.9.9)",
+        ", ".join(kinds), note="shipped as the ledger backend in v5.9.9 (`ledger`, `status`); the Ledger tab that displays it is still v6.0 (v6.ledger)")
+    ring = luaj("local sw=reqscript('seasonal-wildlife'); local _, before = sw.ledgerLines(1); local t0 = dfhack.getTickCount(); "
+                "for i = 1, 310 do sw.ledgerAdd('edit', '', 'ring test %d', i) end; local ms = dfhack.getTickCount() - t0; "
+                "local lines, total = sw.ledgerLines(400); print(json.encode({n=#lines, total=total, before=before, ms=ms}))", timeout=300)
+    rc, out2 = cmd("ledger", "clear"); rc, out3 = cmd("ledger", "5")
+    cleared = re.search(r"ledger: 0 of 0 recorded shown", out3) is not None
+    ok = isinstance(ring, dict) and ring.get("n") == 300 and ring.get("total") == ring.get("before", -1) + 310 and cleared
+    rec("mech.ledger.ring", "PASS" if ok else "FAIL", "310 adds leave exactly 300 lines and raise the total by 310; `clear` leaves 0 of 0",
+        json.dumps(ring) + "\n" + out2 + out3, data=ring if isinstance(ring, dict) else {"raw": str(ring)},
+        note=("%d ms for 310 adds" % ring["ms"]) if isinstance(ring, dict) and "ms" in ring else "")
+
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.5)
@@ -1047,7 +1074,7 @@ def phase_static():
         "v6.patterns": absent(r"labels=\{[^}]*Patterns|'burst'|'trickle'|'dawn'|refreshPatterns"), "v6.caverns": absent(r"labels=\{[^}]*Caverns|not yet found|refreshCaverns"),
         "v6.ledger": absent(r"labels=\{[^}]*Ledger|undo last|refreshLedger"), "v6.ecology.tab": absent(r"labels=\{[^}]*Ecology|refreshEcology"),
         "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), "v6.presets": absent(r"preset"), "v6.undo": absent(r"snapshot ring|cfg_history|act_undo|undo_stack"),
-        "v6.overlay.links": absent(r"coupled pairs as a line|drawLine|paintLine"), "v6.explain": absent(r"explanations|act_explain|decision log"),
+        "v6.overlay.links": absent(r"coupled pairs as a line|drawLine|paintLine"),
         "plan.patterns": absent(r"'burst'|'trickle'|'dawn'|'follow'|arrival_pattern"), "plan.irruptions": absent(r"pressure|irruption"),
         "plan.arming": absent(r"arming step|armWave|arm_step"),
     }
