@@ -93,6 +93,9 @@ CLAIMS = [
     ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
     ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
     ("gui.tab.overview", "GUI", "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines", "USAGE.md v5.10.1", "shipped"),
+    ("gui.roster.why", "GUI", "the Roster's why column records the reason and date of every allow/season write (you, fill, matrix, co-align, vermin, defaults) and explains an untouched or locked species", "USAGE.md v5.10.5", "shipped"),
+    ("gui.species.detail", "GUI", "`i` on a Roster row opens the species detail over the window (what it is, body, embark, allowed and why, abundance, seasons, eats, eaten by, on the map, history); Esc closes it", "USAGE.md v5.10.7", "shipped"),
+    ("mech.species.detail", "MECH", "speciesDetail(cfg, pool, e) assembles the facts for one animal: at least nine lines with species, allowed (and why), seasons, eats and eaten by", "v5.10.7", "shipped"),
     ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.burst", "MECH", "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.trickle", "MECH", "trickle: every draw sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change)", "USAGE.md v5.10.2", "shipped"),
@@ -360,7 +363,7 @@ def fmt_pools(ps):
         tot[e["token"]] = tot.get(e["token"], 0) + int(e["qty"])
     return tot
 
-ROW = re.compile(r"^\s*\d+\|\s+(\S+)(?: [w~])?\s+(prey|predator|bird|vermin|apex|other)\s+(small|medium|large)\s+(\S+)\s+(\S+)\s+(\d{1,3})\s+([Y\-])\s*$")
+ROW = re.compile(r"^\s*\d+\|\s+(\S+)(?: [w~])?\s+(prey|predator|bird|vermin|apex|other)\s+(small|medium|large)\s+(\S+)\s+(\S+)\s+(\d{1,3})\s+([Y\-])(?:\s+(.*?))?\s*$")   # v5.10.5: an optional why column after ok
 def row_lines(txt):
     """Roster rows as the text grid actually draws them: ' NN|' row prefix, NO icon (the category
     glyphs are non-ASCII and the reader blanks them), token with an optional ' w'/' ~' tag, then
@@ -847,6 +850,14 @@ def phase_mechanics():
                       ("mech.pattern.dawn", "bird arrivals concentrated in a season's first week"), ("mech.pattern.follow", "predator waves following prey mass")):
         rec(pid, "NOT-TESTABLE-HERE", what + " across a season", "", note="a season under the pattern on CTRL: T8 (steady, burst) and T8b (trickle, dawn, follow on v5.10.2); scripts/t8-tally.py over data/experiments/T8*")
 
+    # --- species detail (v5.10.7): the facts without a window
+    sd = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local e; "
+              "for _,q in ipairs(pool) do if q.inEmbark and q.cat=='predator' and q.layer=='land' then e=q; break end end; "
+              "if not e then print(json.encode({none=true})) else local L,F=sw.speciesDetail(cfg,pool,e); print(json.encode({token=e.token, n=#L, allowed=F.allowed, seasons=F.seasons, eats=F.eats, eaten=F['eaten by']})) end", timeout=120)
+    ok = isinstance(sd, dict) and sd.get("n", 0) >= 9 and "why:" in str(sd.get("allowed")) and sd.get("eats") is not None and sd.get("eaten") is not None
+    rec("mech.species.detail", "PASS" if ok else ("NOT-TESTABLE-HERE" if isinstance(sd, dict) and sd.get("none") else "FAIL"),
+        "≥9 lines; allowed carries 'why:'; eats and eaten by present", json.dumps(sd)[:500], data=sd)
+
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0)
@@ -886,7 +897,19 @@ def phase_gui():
     key("SELECT"); t1 = screen("C2-enter-after"); r1 = row_lines(t1); p = shot("C2-enter-toggle")
     ok = r0 and r1 and r0[0][0] == r1[0][0] and r0[0][2] != r1[0][2]
     rec("gui.k.enter", "PASS" if ok else "FAIL", "row 1's ok column flips Y<->-", f"{r0[0] if r0 else None} -> {r1[0] if r1 else None}", shots=[p] if p else [])
+    # v5.10.5: the why column names the toggle as yours, with a date
+    why1 = r1[0][4] if r1 else ""
+    mw = re.search(r"[Y\-]\s+(you: (?:allowed|blocked) @ y\d+ \w+ \d+)", why1)
+    rec("gui.roster.why", "PASS" if mw else "FAIL", "after Enter, row 1's why reads 'you: allowed|blocked @ y<year> <Season> <day>'", why1[-90:] if why1 else "no row", data={"why": mw.group(1) if mw else None})
+    rec("v6.roster.why", "PASS" if mw else "FAIL", "Roster with a 'why' column", why1[-90:] if why1 else "no row", note="the why column shipped in v5.10.5; the per-layer selector is still v6.0 (v6.layersel)")
     key("SELECT")  # put it back
+    # v5.10.7: the species detail drill-down on the selected row
+    key("CUSTOM_I", 1.5); td = screen("C2b-detail"); pd = shot("C2b-detail")
+    okd = "Species detail" in td and "allowed" in td and "eats" in td and "eaten by" in td
+    key("LEAVESCREEN", 1.0); tc = screen("C2b-detail-closed")
+    okc = "Species detail" not in tc and "Seasonal Wildlife" in tc
+    rec("gui.species.detail", "PASS" if okd and okc else "FAIL", "the detail window with allowed / eats / eaten by, gone after Esc with the main window still up", td[:900], shots=[pd] if pd else [])
+    rec("v6.species", "PASS" if okd and okc else "FAIL", "Species detail — one animal, every control", td[:300], note="shipped in v5.10.7 on `i` (Enter stays allow/block)")
     # Shift-Enter cycles seasons
     t0 = screen("C3-secselect-before"); key("SELECT_ALL"); t1 = screen("C3-secselect-after"); p = shot("C3-season-cycle")
     l0 = r0[0][3] if (r0 := row_lines(t0)) else ""; l1 = r1[0][3] if (r1 := row_lines(t1)) else ""
@@ -1129,8 +1152,8 @@ def phase_static():
     checks = {
         # patterns are deliberately specific: 'undo', 'ledger' and 'Herds' each occur once in the
         # script as a COMMENT, and 'Vermin' is a population type; none of those is a view
-        "v6.roster.why": absent(r"why_col|why column|refreshWhy"),
-        "v6.species": absent(r"Species detail|species_detail|SpeciesDetail|refreshSpecies"), "v6.web.graph": absent(r"web_graph|as a graph|═══|drawGraph"),
+        
+        "v6.web.graph": absent(r"web_graph|as a graph|═══|drawGraph"),
         "v6.web.byseason": absent(r"refreshWebSeason|web_by_season|byseason"), "v6.web.bylayer": absent(r"refreshWebLayer|web_by_layer|bylayer"),
         "v6.live.hotkeys": absent(r"key='CUSTOM_P'|key='CUSTOM_K'|key='CUSTOM_Q'|key='CUSTOM_X'[^_]|centres the map|act_next_wave"),
         "v6.herds": absent(r"labels=\{[^}]*Herds|refreshHerds"),
