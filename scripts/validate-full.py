@@ -849,8 +849,15 @@ def phase_mechanics():
 
 def phase_gui():
     log("== GUI")
-    sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.5)
-    txt = screen("C0-roster"); p = shot("C0-roster")
+    sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0)
+    # v5.10.1: the opening page (Overview) builds the pool twice and reads the ledger before it draws;
+    # run 144111 dumped the screen at 2.5 s and caught the frame before it. Wait for the content, up to 10 s.
+    txt = ""
+    for _ in range(8):
+        txt = screen("C0-overview")
+        if "Seasonal Wildlife" in txt and ("On the map" in txt or "CREATURE" in txt): break
+        time.sleep(1.0)
+    p = shot("C0-overview")
     ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Overview", "Roster", "Set roster", "Food web", "Live", "Seasons", "Vermin"))
     rec("gui.open", "PASS" if ok else "FAIL", "window title and seven tab labels on screen", txt[:600], shots=[p] if p else [])
     # Overview (v5.10.1): the page the window opens on
@@ -873,7 +880,7 @@ def phase_gui():
             return m.group(1) if m else None
         rec(cid, "PASS" if val(t0) and val(t1) and val(t0) != val(t1) else "FAIL", f"the {lab} filter label changes", f"{val(t0)} -> {val(t1)}", shots=[p] if p else [])
     # reopen for a clean filter state
-    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0)
+    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); click("Roster")   # v5.10.1: the window opens on Overview
     # Enter toggles allow on the selected (first) row
     t0 = screen("C2-enter-before"); r0 = row_lines(t0)
     key("SELECT"); t1 = screen("C2-enter-after"); r1 = row_lines(t1); p = shot("C2-enter-toggle")
@@ -953,7 +960,7 @@ def phase_gui():
     rec("gui.k.ctrlL", "PASS" if ok else "FAIL", f"no change on 'all'; the prompt on Cat={cat}; that category's allowed count == 3 afterwards",
         f"all: {c0.get(cat)}->{c1.get(cat)}; prompt: {'Fill' in t8b}; after: {c2.get(cat)}", shots=[p] if p else [], data={"cat": cat, "before": c0, "after": c2})
     # Ctrl+X: in Add-new the selected species is added (or refused as present). Key, then label.
-    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0)
+    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); click("Roster")   # v5.10.1: the window opens on Overview
     key("CUSTOM_V", 0.8); key("CUSTOM_V", 0.8); t_add = screen("C9-addnew-view"); p0 = shot("C9-addnew-view")
     rows_add = row_lines(t_add); pick = rows_add[0][0] if rows_add else None
     key("CUSTOM_CTRL_X", 1.2); t9 = screen("C9-x-key"); x_key = "Add " in t9
