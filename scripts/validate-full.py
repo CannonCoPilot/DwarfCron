@@ -1299,6 +1299,12 @@ def phase_static():
         "plan.arming": absent(r"arming step|armWave|arm_step"),
     }
     for cid, is_absent in checks.items():
+        if cid == "plan.arming" and re.search(r"function IRRUPT\.tick", src):
+            # v6.1.0 folded the design's 'arming step' into the irruption module: IRRUPT.tick arms the next roster-admitted cavern
+            # arrival at the threshold (mech.irruption.arm exercises it live). The row stays so the design's promise is traceable.
+            rec(cid, "PASS", "the arming step exists under another name", "folded into v6.1.0's IRRUPT.tick (arms the next admitted cavern arrival at the threshold; T9 and T9b measured it)",
+                note=f"claimed as: {CLAIM[cid][4]}; recorded UNWIRED until 22 Sep 2026 because the search looked for the design's own words")
+            continue
         rec(cid, "UNWIRED" if is_absent else "FAIL", "no code behind the promised view/feature (searched the shipped script)",
             "no matching identifier in seasonal-wildlife.lua" if is_absent else "an identifier matched — inspect before calling this built",
             note=f"claimed as: {CLAIM[cid][4]}")
