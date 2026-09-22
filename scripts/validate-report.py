@@ -211,6 +211,7 @@ summary = f"""
   <p class="eyebrow">Functional playtest · seasonal-wildlife v6.2.0 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
   <h1>Seasonal Wildlife Playtest</h1>
   <p class="lede">{esc(headline)}</p>
+  <p class="companions"><strong>Companion reports:</strong> <a href="https://claude.ai/code/artifact/a61b06b2-4687-41ea-91f0-2216220d7111">The Seasonal Wildlife Plugin</a> (the design, rev 20) · <a href="https://claude.ai/code/artifact/6cebd06e-eafd-44a8-aa6e-d3c108e5fcba">The Wilderpop Model</a> (the measurements, rev 31) · <a href="https://claude.ai/code/artifact/e0abf11b-c4ce-46dc-9d38-95826b9ea512">The Wildlife Backlog</a> (beyond v6.2).</p>
   <div class="tiles">{tiles}</div>
   <h3>By surface</h3>
   <div class="bars">{bars}</div>

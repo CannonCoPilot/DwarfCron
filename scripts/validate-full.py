@@ -385,7 +385,7 @@ def fmt_pools(ps):
         tot[e["token"]] = tot.get(e["token"], 0) + int(e["qty"])
     return tot
 
-ROW = re.compile(r"^\s*\d+\|\s+(\S+)(?: [w~])?\s+(prey|predator|bird|vermin|apex|other)\s+(small|medium|large)\s+(\S+)\s+(\S+)\s+(\d{1,3})\s+([Y\-])(?:\s+(.*?))?\s*$")   # v5.10.5: an optional why column after ok
+ROW = re.compile(r"^\s*\d+\|.*?\s{2,}(\S+)(?: [w~])?\s+(prey|predator|bird|vermin|apex|other)\s+(small|medium|large)\s+(\S+)\s+(\S+)\s+(\d{1,3})\s+([Y\-])(?:\s+(.*?))?\s*$")   # v5.10.5: an optional why column after ok; v6.2.0: skip anything painted on the MAP left of the window (the overlay's link dots landed in row 29 and read as the token)
 def row_lines(txt):
     """Roster rows as the text grid actually draws them: ' NN|' row prefix, NO icon (the category
     glyphs are non-ASCII and the reader blanks them), token with an optional ' w'/' ~' tag, then
@@ -928,7 +928,7 @@ def phase_gui():
     key("CUSTOM_ALT_L", 1.2); tL2 = screen("C1-altL-water"); n_water = len(row_lines(tL2))
     key("CUSTOM_ALT_L", 1.2); tL3 = screen("C1-altL-cavern"); n_cav = len(row_lines(tL3))
     key("CUSTOM_ALT_L", 1.2); tL4 = screen("C1-altL-all")
-    okL = "Land" in tL1 and "Water" in tL2 and "Cavern" in tL3 and "All layers" in tL4 and n_land <= n_all and (n_water < n_all or "layer off" in tL2 or "dormant" in tL2)
+    okL = n_all >= 5 and "Land" in tL1 and "Water" in tL2 and "Cavern" in tL3 and "All layers" in tL4 and n_land <= n_all and (n_water < n_all or "layer off" in tL2 or "dormant" in tL2)
     mW = re.search(r"Water[^(\n]*\([^)]*\)", tL2)
     rec("gui.k.altL", "PASS" if okL else "FAIL", "titles Land / Water / Cavern / All layers in turn; the Roster's row count follows the layer", f"rows all={n_all} land={n_land} water={n_water} cavern={n_cav}; water title: {mW.group(0) if mW else 'no reason'}", shots=[pL] if pL else [])
     rec("v6.layersel", "PASS" if okL else "FAIL", "layer selector on every tab, dormant layers named with the reason", tL2[:300], note="shipped in v6.2.0 as Alt+L, the title carrying the layer and its reason")
