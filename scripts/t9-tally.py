@@ -11,10 +11,10 @@ for line in log.splitlines():
     if cur is None: continue
     m = re.search(r"t9: cavern_units=(\d+) agitated=(\d+) citizens=(\d+) armed=(\S+ ?x?\d*) p1=([\d.]+) p2=([\d.]+) p3=([\d.]+) day=(\d+)", line)
     if m: reps[cur]["samples"].append(dict(cav=int(m.group(1)), agit=int(m.group(2)), cz=int(m.group(3)), armed=m.group(4), p1=float(m.group(5)), day=int(m.group(8)))); continue
-    if "t9 ledger:" in line:
-        reps[cur]["armed"] = max(reps[cur]["armed"], line.count(" armed "))
-        reps[cur]["stood"] = max(reps[cur]["stood"], line.count("stood down"))
-        reps[cur]["blocked"] = max(reps[cur]["blocked"], line.count("not armed"))
+    if "t9 ledger:" in line:   # the query shows the last four lines; count DISTINCT dated events across every sample
+        for kind, pat in (("armed", r"y\d+ \w+ \d+\s+irruption\s+cavern\s+armed \S+ x\d+ from cavern \d"), ("stood", r"y\d+ \w+ \d+\s+irruption\s+cavern\s+\S+ x\d+ stood down"), ("blocked", r"y\d+ \w+ \d+\s+irruption\s+cavern\s+\S+ x\d+ arrived at pressure [\d.]+ but the roster blocks it")):
+            reps[cur].setdefault("_" + kind, set()).update(re.findall(pat, line))
+            reps[cur][kind] = len(reps[cur]["_" + kind])
     m = re.search(r"done: (\{.*\})", line)
     if m:
         try: reps[cur]["done"] = json.loads(m.group(1))

@@ -1,0 +1,71 @@
+{
+  "id": "T9",
+  "title": "v6.1 irruptions on CTRL: with the module ON and every cavern's pressure PINNED at the threshold (the way E23 pinned irritation \u2014 there is no headless way to send dwarves into a cavern, so the pressure path is exercised by the pin and the ARMING path by DF's own cavern arrivals), does the next arriving cavern group the roster admits get armed, held armed, and stood down; with the module OFF under the same pin, nothing. A season each, two replicates, the T8 roster with the cavern layer on and the cavern gate on (max 2). Samples every 3,000 ticks: cavern units, how many carry the agitated flag, citizens, the armed group, the three pressures, and the ledger's irruption lines. The fort may lose dwarves in the ON arm \u2014 that is a result.",
+  "fork": "Does v6.1's arming path work end to end on a real cavern arrival, and is it inert when off.",
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 3000,
+  "tick_budget": 100800,
+  "combat": true,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1,
+    "groups_enabled": 1
+  },
+  "predictions": [
+    {
+      "model": "the arming path works",
+      "expects": "in the ON arm the ledger records 'armed <TOKEN> x<n> from cavern <d>' at the first cavern arrival after the pin, the agitated count among cavern units is > 0 at the next samples, and 'stood down' follows within duration_days or when the group leaves"
+    },
+    {
+      "model": "the roster is the dial",
+      "expects": "a cavern arrival of a blocked species records 'the roster blocks it: not armed'"
+    },
+    {
+      "model": "off is inert",
+      "expects": "the OFF arm records no irruption ledger line and 0 agitated cavern units at every sample"
+    }
+  ],
+  "kill_criterion": "ON: at least one 'armed' line and an agitated count > 0 in each replicate; OFF: zero armed lines and zero agitated at every sample, 2 of 2",
+  "culling": [
+    "drop a replicate on any breach or changed save",
+    "a replicate with no cavern arrival in the season is vacuous for the arming path (say so; the pressure path still reads)"
+  ],
+  "arms": [
+    {
+      "name": "irruption",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); for _,e in ipairs(pool) do if e.inEmbark and e.layer=='cavern' then cfg.assign[e.key]={0,1,2,3} end end; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.groups.cavern_max=2; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.irruption.enabled=true; cfg.irruption.threshold=1.0; cfg.irruption.duration_days=20; cfg.irruption.cooldown_days=1; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('t9 roster: allowed %d assigned %d applied %d; cavern layer on, cavern gate on (max 2), irruptions %s'):format(n,a,act,tostring(cfg.irruption.enabled)))",
+        "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','1','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','2','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','3','1.0'); print('t9 pinned: '..(out or ''):gsub('\\n',' | '))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,cav=0,0; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end; if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='cavern' then cav=cav+1; local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end end end; local g=sw.loadGroups(); local armed=g.armed and (g.armed.token..' x'..#g.armed.ids) or 'none'; print(('t9: cavern_units=%d agitated=%d citizens=%d armed=%s p1=%.2f p2=%.2f p3=%.2f day=%d'):format(cav,agit,cz,armed,sw.IRRUPT.pressure(g,0),sw.IRRUPT.pressure(g,1),sw.IRRUPT.pressure(g,2),math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','1','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','2','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','3','1.0'); print('t9 pinned: '..(out or ''):gsub('\\n',' | '))",
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,cav=0,0; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end; if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='cavern' then cav=cav+1; local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end end end; local g=sw.loadGroups(); local armed=g.armed and (g.armed.token..' x'..#g.armed.ids) or 'none'; print(('t9: cavern_units=%d agitated=%d citizens=%d armed=%s p1=%.2f p2=%.2f p3=%.2f day=%d'):format(cav,agit,cz,armed,sw.IRRUPT.pressure(g,0),sw.IRRUPT.pressure(g,1),sw.IRRUPT.pressure(g,2),math.floor(df.global.cur_year_tick/1200)))",
+          "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','ledger','4','irruption'); print('t9 ledger: '..(out or ''):gsub('\\n',' | '))"
+        ]
+      }
+    },
+    {
+      "name": "control",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); for _,e in ipairs(pool) do if e.inEmbark and e.layer=='cavern' then cfg.assign[e.key]={0,1,2,3} end end; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.groups.cavern_max=2; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.irruption.enabled=false; cfg.irruption.threshold=1.0; cfg.irruption.duration_days=20; cfg.irruption.cooldown_days=1; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('t9 roster: allowed %d assigned %d applied %d; cavern layer on, cavern gate on (max 2), irruptions %s'):format(n,a,act,tostring(cfg.irruption.enabled)))",
+        "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','1','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','2','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','3','1.0'); print('t9 pinned: '..(out or ''):gsub('\\n',' | '))",
+        "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,cav=0,0; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end; if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='cavern' then cav=cav+1; local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end end end; local g=sw.loadGroups(); local armed=g.armed and (g.armed.token..' x'..#g.armed.ids) or 'none'; print(('t9: cavern_units=%d agitated=%d citizens=%d armed=%s p1=%.2f p2=%.2f p3=%.2f day=%d'):format(cav,agit,cz,armed,sw.IRRUPT.pressure(g,0),sw.IRRUPT.pressure(g,1),sw.IRRUPT.pressure(g,2),math.floor(df.global.cur_year_tick/1200)))"
+      ],
+      "every": {
+        "ticks": 3000,
+        "do": [
+          "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','1','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','2','1.0'); pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','pin','3','1.0'); print('t9 pinned: '..(out or ''):gsub('\\n',' | '))",
+          "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local agit,cav=0,0; local cz=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end; if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='cavern' then cav=cav+1; local ok,a=pcall(function() return u.flags4.agitated_wilderness_creature end); if ok and a then agit=agit+1 end end end; local g=sw.loadGroups(); local armed=g.armed and (g.armed.token..' x'..#g.armed.ids) or 'none'; print(('t9: cavern_units=%d agitated=%d citizens=%d armed=%s p1=%.2f p2=%.2f p3=%.2f day=%d'):format(cav,agit,cz,armed,sw.IRRUPT.pressure(g,0),sw.IRRUPT.pressure(g,1),sw.IRRUPT.pressure(g,2),math.floor(df.global.cur_year_tick/1200)))",
+          "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','ledger','4','irruption'); print('t9 ledger: '..(out or ''):gsub('\\n',' | '))"
+        ]
+      }
+    }
+  ]
+}
