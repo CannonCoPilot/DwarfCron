@@ -23,12 +23,25 @@ log = (run_dir / "log.txt").read_text(errors="replace") if (run_dir / "log.txt")
 def esc(s):
     return html.escape(str(s) if s is not None else "")
 
+import subprocess, tempfile
+_shrunk = Path(tempfile.mkdtemp(prefix="playtest-shots-"))
 def img(rel):
+    # 22 Sep 2026: run 094025's forty shots embedded to 16,118,220 bytes, at the artifact cap (16 MB), so JPEGs are recompressed
+    # with macOS sips (native 1280 px, quality 50 — 350 KB shots become ~185 KB) into a temp dir before embedding; the run dir is never touched.
     p = run_dir / rel
     if not p.exists():
         return ""
     mime = "image/jpeg" if p.suffix == ".jpg" else "image/png"
-    b = base64.b64encode(p.read_bytes()).decode()
+    src = p
+    if p.suffix == ".jpg":
+        out = _shrunk / p.name
+        try:
+            subprocess.run(["sips", "-Z", "1280", "-s", "format", "jpeg", "-s", "formatOptions", "50", str(p), "--out", str(out)],
+                           check=True, capture_output=True, timeout=30)
+            if out.exists() and out.stat().st_size < p.stat().st_size: src = out
+        except Exception:
+            src = p
+    b = base64.b64encode(src.read_bytes()).decode()
     return f"data:{mime};base64,{b}"
 
 def screen_txt(name):
