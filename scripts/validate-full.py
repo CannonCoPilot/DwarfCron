@@ -98,7 +98,7 @@ CLAIMS = [
     ("mech.species.detail", "MECH", "speciesDetail(cfg, pool, e) assembles the facts for one animal: at least nine lines with species, allowed (and why), seasons, eats and eaten by", "v5.10.7", "shipped"),
     ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.burst", "MECH", "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days", "USAGE.md v5.10.0", "shipped"),
-    ("mech.pattern.trickle", "MECH", "trickle: every draw sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change)", "USAGE.md v5.10.2", "shipped"),
+    ("mech.pattern.trickle", "MECH", "trickle: draws sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change); a flier flock may run one over the raw (E42, T8b: one raven flock of 3 in ~20 waves)", "USAGE.md v5.10.2/v6.2.0", "shipped"),
     ("mech.pattern.dawn", "MECH", "dawn: in the first week of a season only bird and vermin-class entries are open for the wave", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.follow", "MECH", "follow: prey mass on the map at 3x predator mass opens only predators; no prey opens only prey", "USAGE.md v5.10.0", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
@@ -128,6 +128,8 @@ CLAIMS = [
     ("cli.irruption", "CLI", "`irruption` shows the status (off by default); `irruption on` turns it on and the status names the threshold and the three pressures; `irruption off` turns it off", "USAGE.md v6.1", "shipped"),
     ("gui.k.layI", "GUI", "I on Layers flips irruptions and the cavern pressure row shows the three pressures", "USAGE.md v6.1", "shipped"),
     ("mech.irruption.arm", "MECH", "with pressure pinned at the threshold, the next arriving cavern group the roster admits is armed (agitated flag on its members) and stood down after its duration; off is inert", "USAGE.md v6.1; PLAN 3.6b", "shipped"),
+    ("gui.k.altL", "GUI", "Alt+L on any tab cycles the layer (all → land → water → cavern) and the window's title names it with the reason when off or dormant; the Roster's rows follow it", "USAGE.md v6.2.0", "shipped"),
+    ("mech.overlay.links", "MECH", "overlayLinks() reports the related wild pairs the overlay would draw and how many share a level; the overlay seasonal-wildlife.groups is registered", "USAGE.md v6.2.0", "shipped"),
     ("gui.tab.ledger", "GUI", "Ledger tab: the recorded lines newest last, coloured by kind, with the kind and layer filters", "USAGE.md v5.11.4", "shipped"),
     ("gui.k.ledgerK", "GUI", "K on Ledger filters by kind (the header says kind=<kind>)", "USAGE.md v5.11.4", "shipped"),
     ("gui.k.ledgerZ", "GUI", "Z on Ledger undoes the last edit: a species blocked on the Roster is allowed again and the Ledger gains an undo line", "USAGE.md v5.11.4", "shipped"),
@@ -891,6 +893,11 @@ def phase_mechanics():
     ok = isinstance(sd, dict) and sd.get("n", 0) >= 9 and "why:" in str(sd.get("allowed")) and sd.get("eats") is not None and sd.get("eaten") is not None
     rec("mech.species.detail", "PASS" if ok else ("NOT-TESTABLE-HERE" if isinstance(sd, dict) and sd.get("none") else "FAIL"),
         "≥9 lines; allowed carries 'why:'; eats and eaten by present", json.dumps(sd)[:500], data=sd)
+    # v6.2.0: the overlay's links, without a screen
+    ol = luaj("local sw=reqscript('seasonal-wildlife'); local r=sw.overlayLinks(); local ok,out=pcall(dfhack.run_command_silent,'overlay','list'); r.registered=(out or ''):find('seasonal%-wildlife%.groups')~=nil; print(json.encode(r))", timeout=120)
+    okol = isinstance(ol, dict) and ol.get("registered") and isinstance(ol.get("pairs"), int)
+    rec("mech.overlay.links", "PASS" if okol else "FAIL", "the overlay is registered and overlayLinks answers with a pair count", json.dumps(ol)[:300], data=ol)
+    rec("v6.overlay.links", "PASS" if okol else "FAIL", "overlay extended with predator-prey links", json.dumps(ol)[:200], note="shipped in v6.2.0: a dotted line per related pair on the viewed level; " + (f"{ol.get('pairs')} related pair(s) at this moment" if isinstance(ol, dict) else ""))
 
 def phase_gui():
     log("== GUI")
@@ -915,6 +922,16 @@ def phase_gui():
     rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys", txt[:800], shots=[p] if p else [],
         data={"rows": len(rows), "first": rows[0][3] if rows else ""})
     rec("gui.k.thin", "PASS" if ("Thin:" in txt or "Ecosystem balanced" in txt) else "FAIL", "'Thin: …' or 'Ecosystem balanced.' in the header", txt[:400])
+    # v6.2.0: Alt+L cycles the layer on the Roster; the title names it; the rows change
+    n_all = len(row_lines(txt))
+    key("CUSTOM_ALT_L", 1.2); tL1 = screen("C1-altL-land"); pL = shot("C1-altL-land"); n_land = len(row_lines(tL1))
+    key("CUSTOM_ALT_L", 1.2); tL2 = screen("C1-altL-water"); n_water = len(row_lines(tL2))
+    key("CUSTOM_ALT_L", 1.2); tL3 = screen("C1-altL-cavern"); n_cav = len(row_lines(tL3))
+    key("CUSTOM_ALT_L", 1.2); tL4 = screen("C1-altL-all")
+    okL = "Land" in tL1 and "Water" in tL2 and "Cavern" in tL3 and "All layers" in tL4 and n_land <= n_all and (n_water < n_all or "layer off" in tL2 or "dormant" in tL2)
+    mW = re.search(r"Water[^(\n]*\([^)]*\)", tL2)
+    rec("gui.k.altL", "PASS" if okL else "FAIL", "titles Land / Water / Cavern / All layers in turn; the Roster's row count follows the layer", f"rows all={n_all} land={n_land} water={n_water} cavern={n_cav}; water title: {mW.group(0) if mW else 'no reason'}", shots=[pL] if pL else [])
+    rec("v6.layersel", "PASS" if okL else "FAIL", "layer selector on every tab, dormant layers named with the reason", tL2[:300], note="shipped in v6.2.0 as Alt+L, the title carrying the layer and its reason")
     # V / C / B / N
     for k, cid, before_pat in (("CUSTOM_V", "gui.k.V", r"View:\s*Current"), ("CUSTOM_C", "gui.k.C", r"Cat:\s*All"),
                                 ("CUSTOM_B", "gui.k.B", r"Biome:\s*All"), ("CUSTOM_N", "gui.k.N", r"Season:\s*All")):
@@ -1272,9 +1289,6 @@ def phase_static():
     checks = {
         # patterns are deliberately specific: 'undo', 'ledger' and 'Herds' each occur once in the
         # script as a COMMENT, and 'Vermin' is a population type; none of those is a view
-        
-        "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), 
-        "v6.overlay.links": absent(r"coupled pairs as a line|drawLine|paintLine"),
         "plan.arming": absent(r"arming step|armWave|arm_step"),
     }
     for cid, is_absent in checks.items():
