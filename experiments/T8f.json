@@ -1,0 +1,69 @@
+{
+ "id": "T8f",
+ "title": "Why did one first-light release wait ten days for DF's wave? Three of four dawn replicates (T8d, T8e) got DF's wave inside the week of the day-1 release; the fourth waited ten days while five gated badgers from spring still stood. Hypothesis: a standing gated land group from the prior season delays DF's next draw after a release. Two arms on T8d's dawn design: HELD keeps the oldest gated land group on the map across the boundary (held 60 days at Spring day 70+); CLEAR dismisses every land group at Spring day 70+ so the boundary is met with no gated group. Measured: ticks from summer day 1's 'the gate opens' to the first surface arrival.",
+ "fork": "Does a gated group standing from the prior season delay DF's wave after a first-light release.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 1000,
+ "tick_budget": 100800,
+ "combat": false,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1,
+  "groups_enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "a standing group delays the draw",
+   "expects": "HELD's first summer surface arrival lands days after the day-1 release; CLEAR's lands within ~450 ticks of it"
+  },
+  {
+   "model": "no effect",
+   "expects": "both arms land within the week; T8d's ten days was chance"
+  }
+ ],
+ "kill_criterion": "HELD's release-to-arrival gap exceeds CLEAR's in both replicate pairs by more than a day",
+ "culling": [
+  "drop a replicate on any breach or changed save",
+  "a HELD replicate whose hold receipt names no group is vacuous"
+ ],
+ "arms": [
+  {
+   "name": "held",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK','BIRD_RAVEN'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.groups.pack=0; cfg.groups.cohesion=true; cfg.groups.max_concurrent=4; cfg.ecology.enabled=true; cfg.patterns.land='dawn'; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('t8 roster: allowed %d assigned %d thin %d applied %d; groups on, coupling off, pack raw, max 4, ecology on, pattern land=dawn; rotation enabled'):format(n,a,f,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','pattern'); print((out or ''):gsub('\\n',' | '))",
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then o[#o+1]=e.token..'='..e.cat end end; table.sort(o); print('t8 cats: '..table.concat(o,' '))",
+    "_G.__t8f={done=false}; print('t8f: flag reset')"
+   ],
+   "every": {
+    "ticks": 1000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','ledger','6','wave'); print('t8 ledger: '..(out or ''):gsub('\\n',' | '))",
+     "local sw=reqscript('seasonal-wildlife'); _G.__t8f=_G.__t8f or {}; local yt=df.global.cur_year_tick; if not _G.__t8f.done and yt>=84000 and yt<100800 then local g=sw.loadGroups(); local n=0; local acted={}; local oldest; for _,grp in ipairs(g.groups) do if not grp.resident and (grp.layer or 'land')=='land' and (not oldest or grp.arrived<oldest.arrived) then oldest=grp end end; if oldest then sw.holdGroup(oldest,60); n=1; acted[1]=oldest.token..' x'..#oldest.ids..' held 60 days' end sw.saveGroups(g); _G.__t8f.done=true; print(('t8f HELD at day %d: %d group(s): %s'):format(math.floor(yt/1200),n,table.concat(acted,' '))) end"
+    ]
+   }
+  },
+  {
+   "name": "clear",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a,f=sw.assignFromMatrix(cfg,pool); for _,t in ipairs({'COUGAR','DINGO','WOLF','BIRD_EMU','BADGER','WOMBAT','PORCUPINE','KANGAROO','GROUNDHOG','SKUNK','BIRD_RAVEN'}) do cfg.assign[t]={0,1,2,3}; cfg.allow[t]=true end; cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.groups.pack=0; cfg.groups.cohesion=true; cfg.groups.max_concurrent=4; cfg.ecology.enabled=true; cfg.patterns.land='dawn'; sw.saveConfig(cfg); local act=sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('t8 roster: allowed %d assigned %d thin %d applied %d; groups on, coupling off, pack raw, max 4, ecology on, pattern land=dawn; rotation enabled'):format(n,a,f,act))",
+    "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','pattern'); print((out or ''):gsub('\\n',' | '))",
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' then o[#o+1]=e.token..'='..e.cat end end; table.sort(o); print('t8 cats: '..table.concat(o,' '))",
+    "_G.__t8f={done=false}; print('t8f: flag reset')"
+   ],
+   "every": {
+    "ticks": 1000,
+    "do": [
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','groups'); print((out or ''):gsub('\\n',' | '))",
+     "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','ledger','6','wave'); print('t8 ledger: '..(out or ''):gsub('\\n',' | '))",
+     "local sw=reqscript('seasonal-wildlife'); _G.__t8f=_G.__t8f or {}; local yt=df.global.cur_year_tick; if not _G.__t8f.done and yt>=84000 and yt<100800 then local g=sw.loadGroups(); local n=0; local acted={}; for _,grp in ipairs(g.groups) do if (grp.layer or 'land')=='land' then sw.dismissGroup(grp); n=n+1; acted[#acted+1]=grp.token..' x'..#grp.ids..' dismissed' end end sw.saveGroups(g); _G.__t8f.done=true; print(('t8f CLEAR at day %d: %d group(s): %s'):format(math.floor(yt/1200),n,table.concat(acted,' '))) end"
+    ]
+   }
+  }
+ ]
+}

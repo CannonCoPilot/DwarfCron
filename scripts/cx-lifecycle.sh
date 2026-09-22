@@ -801,7 +801,9 @@ cmd_lua() { "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --lua "$*
 cmd_cmd() {
     local logf="$DF_DIR/stderr.log" before=0
     [ -f "$logf" ] && before=$(stat -f %z "$logf")
-    "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --cmd "$@"
+    # CX_RPC_TIMEOUT (seconds, default 15): the client deadline. validate-full sets 45 — a `groups` right after a 6,000-tick
+    # step at full speed twice missed 15 s on 22 Sep 2026 while the same verb answered in 0.15 s by hand.
+    "$CX_PYTHON" "$SCRIPT_DIR/cx-rpc.py" --port "$(live_port)" --timeout "${CX_RPC_TIMEOUT:-15}" --cmd "$@"
     local rc=$?
     if [ -f "$logf" ]; then
         tail -c +$((before + 1)) "$logf" | grep -B1 -A8 -iE "error|traceback" | grep -v "Client connection" | head -20 >&2

@@ -1,0 +1,66 @@
+{
+ "id": "E23d",
+ "title": "Validate the invasion exclusion against a REAL invader. E23b pinned cavern irritation at its maximum for two seasons and drew nothing, and its probe said why: did_first_cavern_announcement was false \u2014 CTRL had never opened a cavern. This opens it headlessly: every cavern layer feature marked Discovered (the flag DFHack's feature script toggles), the announcement flag set, three citizens teleported onto cavern 1's floor so the fort is IN the cavern, and irritation pinned at 100000 every sample. Two seasons. Control: untouched. If an invasion comes, the exclusion (addendum 49) must keep every invasion_id >= 0 unit out of the cavern count.",
+ "fork": "Can a cavern invasion be raised on CTRL once the cavern counts as opened, and does the tool's cavern count exclude it.",
+ "fort": "CTRL",
+ "backup": "CTRL.preverify",
+ "fps": 1000,
+ "sample_every": 3000,
+ "tick_budget": 201600,
+ "combat": true,
+ "roster": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1,
+  "groups_enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "opened + irritated fires an invasion",
+   "expects": "invaders>0 at some sample in the invaded arm; the cavern count tracks the control's level rather than jumping by the invader count"
+  },
+  {
+   "model": "still no trigger",
+   "expects": "invaders==0 at every sample in both arms for two seasons \u2014 then the seasonal roll needs something the flags do not give (wealth, population), and E23d stays a fort-construction item"
+  }
+ ],
+ "kill_criterion": "at least one invasion in the invaded arm with the cavern count provably excluding every invader, 2 of 2, validates the exclusion; zero invaders is a trigger failure, reported as such",
+ "culling": [
+  "drop a replicate on any changed save",
+  "a replicate with zero invaders is not a failure of the exclusion \u2014 it is a failure of the trigger"
+ ],
+ "arms": [
+  {
+   "name": "invaded",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=0; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e23b: roster %d allowed, %d assigned; cavern layer managed, no ceiling'):format(n,a))",
+    "local mf=df.global.world.features.map_features; local n=0; for _,f in ipairs(mf) do if df.feature_init_subterranean_from_layerst:is_instance(f) then f.flags.Discovered=true; n=n+1 end end; local ok=pcall(function() df.global.plotinfo.flags.did_first_cavern_announcement=true end); print(('e23d: %d cavern features marked Discovered; did_first_cavern_announcement set: %s (reads %s)'):format(n,tostring(ok),tostring(df.global.plotinfo.flags.did_first_cavern_announcement)))",
+    "local sw=reqscript('seasonal-wildlife'); local b; for _,x in ipairs(sw.CAVE.get().bands) do if x.depth==0 then b=x end end; if not b then print('t9b: NO cavern-1 band on this map') else local tiles=sw.placementTiles(false,3,nil,{zlo=b.zlo,zhi=b.zhi,subterranean=true}); local n,moved=0,{}; for _,u in ipairs(df.global.world.units.active) do if n<3 and dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) and tiles[n+1] then local p=tiles[n+1]; dfhack.units.teleport(u,p); n=n+1; moved[#moved+1]=('#%d->%d,%d,%d'):format(u.id,p.x,p.y,p.z) end end; print(('t9b: cavern 1 band z%d-%d, %d floor tiles, %d citizen(s) teleported: %s'):format(b.zlo,b.zhi,#tiles,n,table.concat(moved,' '))) end",
+    "local mf=df.global.world.features.map_features; local set,parts=0,{}; for _,f in ipairs(mf) do if df.feature_init_subterranean_from_layerst:is_instance(f) then f.feature.irritation_level=100000; set=set+1; parts[#parts+1]=('depth%d=%d'):format(f.start_depth,f.feature.irritation_level) end end; local cd=df.global.plotinfo.main.custom_difficulty; print(('e23b: %d cavern features pinned at 100000 (%s); cavern_dweller_max_attackers=%d forgotten_irritate_min=%d'):format(set,table.concat(parts,' '),cd.cavern_dweller_max_attackers,cd.forgotten_irritate_min))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local irr=0; for _,f in ipairs(df.global.world.features.map_features) do if df.feature_init_subterranean_from_layerst:is_instance(f) then irr=irr+f.feature.irritation_level end end; print(('e23b: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s irritation_sum=%d citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',irr,cz,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local mf=df.global.world.features.map_features; local set,parts=0,{}; for _,f in ipairs(mf) do if df.feature_init_subterranean_from_layerst:is_instance(f) then f.feature.irritation_level=100000; set=set+1; parts[#parts+1]=('depth%d=%d'):format(f.start_depth,f.feature.irritation_level) end end; local cd=df.global.plotinfo.main.custom_difficulty; print(('e23b: %d cavern features pinned at 100000 (%s); cavern_dweller_max_attackers=%d forgotten_irritate_min=%d'):format(set,table.concat(parts,' '),cd.cavern_dweller_max_attackers,cd.forgotten_irritate_min))",
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local irr=0; for _,f in ipairs(df.global.world.features.map_features) do if df.feature_init_subterranean_from_layerst:is_instance(f) then irr=irr+f.feature.irritation_level end end; print(('e23b: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s irritation_sum=%d citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',irr,cz,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  },
+  {
+   "name": "control",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.water=false; cfg.layers.cavern=true; local pool=sw.buildPool(cfg); local n=0; for _,e in ipairs(pool) do if e.inEmbark and sw.defaultAllow(e) then cfg.allow[e.key]=true; n=n+1 end end; local a=sw.assignFromMatrix(cfg,pool); cfg.groups.enabled=true; cfg.groups.coupling=false; cfg.ecology.enabled=false; cfg.quota.cavern=0; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); sw.enableSched(); print(('e23b: roster %d allowed, %d assigned; cavern layer managed, no ceiling'):format(n,a))",
+    "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local irr=0; for _,f in ipairs(df.global.world.features.map_features) do if df.feature_init_subterranean_from_layerst:is_instance(f) then irr=irr+f.feature.irritation_level end end; print(('e23b: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s irritation_sum=%d citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',irr,cz,math.floor(df.global.cur_year_tick/1200)))"
+   ],
+   "every": {
+    "ticks": 3000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer(); local cz,inv=0,0; local mix={}; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cz=cz+1 end end; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) and not u.flags1.inactive and sw.WILD.invader(u) then inv=inv+1; local c=df.creature_raw.find(u.race); local t=c and c.creature_id or '?'; mix[t]=(mix[t] or 0)+1 end end; local ks={}; for k in pairs(mix) do ks[#ks+1]=k end; table.sort(ks); local parts={}; for _,k in ipairs(ks) do parts[#parts+1]=k..' x'..mix[k] end; local irr=0; for _,f in ipairs(df.global.world.features.map_features) do if df.feature_init_subterranean_from_layerst:is_instance(f) then irr=irr+f.feature.irritation_level end end; print(('e23b: land=%d cavern=%d deep=%d invaders=%d field=%s invader_mix=%s irritation_sum=%d citizens=%d day=%d'):format(by.land,by.cavern,by.deep,inv,tostring(sw.WILD.field),#parts>0 and table.concat(parts,', ') or 'none',irr,cz,math.floor(df.global.cur_year_tick/1200)))"
+    ]
+   }
+  }
+ ]
+}

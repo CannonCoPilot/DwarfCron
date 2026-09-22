@@ -98,7 +98,7 @@ CLAIMS = [
     ("mech.species.detail", "MECH", "speciesDetail(cfg, pool, e) assembles the facts for one animal: at least nine lines with species, allowed (and why), seasons, eats and eaten by", "v5.10.7", "shipped"),
     ("cli.pattern", "CLI", "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.burst", "MECH", "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days", "USAGE.md v5.10.0", "shipped"),
-    ("mech.pattern.trickle", "MECH", "trickle: draws sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change); a flier flock may run one over the raw (E42, T8b: one raven flock of 3 in ~20 waves)", "USAGE.md v5.10.2/v6.2.0", "shipped"),
+    ("mech.pattern.trickle", "MECH", "trickle: draws sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change); a flock may run one over the raw, flier or not (E42, E42b: raven and emu trios under {2,1}, never four)", "USAGE.md v5.10.2/v6.2.1", "shipped"),
     ("mech.pattern.dawn", "MECH", "dawn: in the first week of a season only bird and vermin-class entries are open for the wave", "USAGE.md v5.10.0", "shipped"),
     ("mech.pattern.follow", "MECH", "follow: prey mass on the map at 3x predator mass opens only predators; no prey opens only prey", "USAGE.md v5.10.0", "shipped"),
     ("mech.water.live", "MECH", "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries", "USAGE.md v5.8; E33", "shipped"),
@@ -248,8 +248,15 @@ def rec(cid, verdict, expected, got, shots=(), data=None, note=""):
     if verdict == "FAIL":
         log(f"      expected: {expected}\n      got: {(got or '').strip()[:300]}")
 
+RPC_TIMEOUT = "45"   # 22 Sep 2026: `groups` right after a full-speed 6,000-tick step twice missed cx-rpc's 15 s default (0.15 s by hand)
+RETRIED = []
 def sh(*args, timeout=180):
-    p = subprocess.run([CX, *args], capture_output=True, text=True, timeout=timeout, cwd=ROOT)
+    env = dict(os.environ, CX_RPC_TIMEOUT=RPC_TIMEOUT)
+    p = subprocess.run([CX, *args], capture_output=True, text=True, timeout=timeout, cwd=ROOT, env=env)
+    if args and args[0] in ("cmd", "lua") and "timed out" in (p.stdout + p.stderr):
+        time.sleep(2)   # one retry, recorded: a deadline missed once is the rig's moment, twice is the tool's
+        RETRIED.append(" ".join(str(a) for a in args[:4]))
+        p = subprocess.run([CX, *args], capture_output=True, text=True, timeout=timeout, cwd=ROOT, env=env)
     return p.returncode, (p.stdout or "") + (p.stderr or "")
 
 def cmd(*args, timeout=120):
@@ -1371,6 +1378,7 @@ def main():
     for r in results:
         tally[r["verdict"]] = tally.get(r["verdict"], 0) + 1
     log(f"== DONE {OUT}\n   " + "  ".join(f"{k} {v}" for k, v in sorted(tally.items())))
+    if RETRIED: log("   retried once after an RPC timeout: " + "; ".join(RETRIED))
     return 0
 
 sys.exit(main())
