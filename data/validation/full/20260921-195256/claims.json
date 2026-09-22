@@ -1,0 +1,1136 @@
+[
+ {
+  "id": "cli.status",
+  "surface": "CLI",
+  "claim": "`status` lists biomes, layers, quota, cavern line, on-the-map counts, the invasion field, and the embark subset",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.now",
+  "surface": "CLI",
+  "claim": "`now` applies the current season's roster once and reports the active count",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.enable",
+  "surface": "CLI",
+  "claim": "`enable` / `disable` start and stop automatic rotation (registers/cancels the daily scheduler)",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.classes",
+  "surface": "CLI",
+  "claim": "`classes` prints the seven ecology classes with on/off and counts, plus the unclassified review list",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.class",
+  "surface": "CLI",
+  "claim": "`class <TOKEN> <cls>` records an override; bad args print usage",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.status",
+  "surface": "CLI",
+  "claim": "`groups` prints resident-group status (max, gap, detached, coupling, cohesion, swept) and the ecology line",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.onoff",
+  "surface": "CLI",
+  "claim": "`groups on|off` enables/disables resident groups",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.coupling",
+  "surface": "CLI",
+  "claim": "`groups coupling on|off` (and the `piggyback` alias) sets migratory coupling",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.pack",
+  "surface": "CLI",
+  "claim": "`groups pack N` sets the coupled predator wave size; 0 = raws",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.ecology",
+  "surface": "CLI",
+  "claim": "`groups ecology [on|off|now]` reads, sets, or runs the ecology write once",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.livestock",
+  "surface": "CLI",
+  "claim": "`groups livestock on|off` makes the fort's animals targets",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.nudge",
+  "surface": "CLI",
+  "claim": "`groups nudge TILES TICKS RADIUS` changes the three nudge distances",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.cohesion",
+  "surface": "CLI",
+  "claim": "`groups cohesion on|off|herd N pack N flock N` sets cohesion and follow distances and reports groups led",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.groups.hold",
+  "surface": "CLI",
+  "claim": "`groups hold TOKEN DAYS` raises every member's leave countdown; `groups dismiss TOKEN` zeroes it and clears the leader",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.quota",
+  "surface": "CLI",
+  "claim": "`quota [land|water|cavern] N` sets a per-layer ceiling; 0 unsets; status shows effective values and what is on the map",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.quota.cavern",
+  "surface": "CLI",
+  "claim": "`quota cavern N` warns that the ceiling is enforced on FREQUENCY and brakes arrivals rather than culling",
+  "source": "STATE addendum 57",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.water",
+  "surface": "CLI",
+  "claim": "`water [on|off|now|target N|cadence N|countdown N]` controls the water job; status names live/dormant with the reason",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.place",
+  "surface": "CLI",
+  "claim": "`place TOKEN [n] [layer]` places wild animals headlessly and debits the entry",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.usage",
+  "surface": "CLI",
+  "claim": "an unknown verb prints usage rather than a stack trace",
+  "source": "script",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.errors",
+  "surface": "CLI",
+  "claim": "bad arguments to water/quota/class/hold/place print a usage line and change nothing",
+  "source": "script",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.docstring",
+  "surface": "CLI",
+  "claim": "the launcher help (`help seasonal-wildlife`) describes the tool",
+  "source": "script docstring",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.sched",
+  "surface": "MECH",
+  "claim": "enable registers a daily repeat-util job; disable cancels it",
+  "source": "USAGE.md 'Between the seasons'",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.apply",
+  "surface": "MECH",
+  "claim": "applying the roster writes pool quantities: in-season allowed species stocked, out-of-season zeroed",
+  "source": "USAGE.md Concepts; S1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.outofseason",
+  "surface": "MECH",
+  "claim": "applying a different season zeroes the species that season excludes",
+  "source": "USAGE.md; S1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.unassigned",
+  "surface": "MECH",
+  "claim": "a creature with no seasons assigned is not managed at all",
+  "source": "USAGE.md Concepts",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.force",
+  "surface": "MECH",
+  "claim": "Force wave clears the current group and a new wave arrives within a few thousand ticks",
+  "source": "USAGE.md; E1/E8",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.groups.track",
+  "surface": "MECH",
+  "claim": "resident groups tracks wildlife groups on the map (gated/resident rows with arrival day)",
+  "source": "USAGE.md Resident groups",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.cohesion",
+  "surface": "MECH",
+  "claim": "cohesion picks a leader per herd/pack/flock group and sets followers",
+  "source": "USAGE.md v5.7; E28",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.leader.lowest",
+  "surface": "MECH",
+  "claim": "the leader is the lowest-id member (NOT the largest male \u2014 that is backlog)",
+  "source": "USAGE.md; Backlog",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.hold",
+  "surface": "MECH",
+  "claim": "hold raises leave_countdown on every member to \u2265 DAYS\u00d71200 ticks",
+  "source": "USAGE.md v5.7; E9c/E19",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.dismiss",
+  "surface": "MECH",
+  "claim": "dismiss zeroes leave_countdown and clears the leader",
+  "source": "USAGE.md v5.7",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.ecology.write",
+  "surface": "MECH",
+  "claim": "the ecology write relates every LARGE_PREDATOR to every target in DF's reaction cache, slotting any unit DF has not (v5.9.7), and reports the pair count",
+  "source": "USAGE.md v5.6/v5.9.7; E11c/T4",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.ecology.cadence",
+  "surface": "MECH",
+  "claim": "the ecology job fires on its own every 1,500 ticks while enabled",
+  "source": "USAGE.md v5.6",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.ecology.nudge",
+  "surface": "MECH",
+  "claim": "a predator >40 tiles from every target for 3,000 ticks is moved to within 6",
+  "source": "USAGE.md v5.6; E18",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.place",
+  "surface": "MECH",
+  "claim": "place puts N live wild units on walkable tiles with a population ref, debits the entry by N, and they survive stepping",
+  "source": "STATE addendum 47",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.water.dormant",
+  "surface": "MECH",
+  "claim": "on a dry/inland fort the water layer is dormant and the status names WHICH test failed",
+  "source": "USAGE.md v5.8; E25",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.caverns",
+  "surface": "CLI",
+  "claim": "`caverns [survey]` reports each cavern band on the map with its levels and its edge water (v5.9)",
+  "source": "USAGE.md v5.9; STATE addendum 76",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.cavern.place",
+  "surface": "MECH",
+  "claim": "a cavern entry is placed in its own cavern: a subterranean tile inside the band of its depth, water for an aquatic caste (v5.9)",
+  "source": "STATE addendum 76",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.water.outside",
+  "surface": "MECH",
+  "claim": "a water entry is placed only in outside water near the surface, never in a cavern lake (v5.9)",
+  "source": "STATE addendum 76",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.cavern.stock",
+  "surface": "CLI",
+  "claim": "`cavern [on|off|now|cadence N|countdown N]` controls the cavern stocking pass; status reports the caverns against the quota (v5.9.6)",
+  "source": "USAGE.md v5.9.6; STATE addendum 83",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.cavern.stock",
+  "surface": "MECH",
+  "claim": "with `quota cavern N` and the caverns under it, one pass places the shortfall into cavern bands, floor or water by caste; at the quota a pass places nothing (v5.9.6)",
+  "source": "STATE addendum 83",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.ledger",
+  "surface": "CLI",
+  "claim": "`ledger [N] [kind] [layer]|clear` prints the tool's own writes, oldest first, stamped 'y<year> <Season> <day>' with kind and layer, and a 'shown of recorded' footer",
+  "source": "USAGE.md v5.9.9",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.ledger.records",
+  "surface": "MECH",
+  "claim": "every write the tool makes leaves one ledger line: placement, roster and switch edits, and the session's arrivals, holds, dismissals, ecology changes and cavern holds when they happen",
+  "source": "USAGE.md v5.9.9; PLAN 3.6",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.ledger.ring",
+  "surface": "MECH",
+  "claim": "the ledger keeps the newest 300 entries, its total keeps counting, and `clear` empties it",
+  "source": "v5.9.9",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.vermin",
+  "surface": "CLI",
+  "claim": "`vermin` lists the embark's vermin as families read from the raws (fish, flies, fliers, mammals, soil, colony, crawlers) with species count, allowed count, seasons, abundance and layers",
+  "source": "USAGE.md v5.9.10",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.vermin.family",
+  "surface": "MECH",
+  "claim": "`vermin <family> off|on` blocks and allows every species of the family; `seasons` and `abundance` write every member",
+  "source": "USAGE.md v5.9.10",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.vermin.defaults",
+  "surface": "MECH",
+  "claim": "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year",
+  "source": "USAGE.md v5.9.10; PLAN 3.5",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.vermin",
+  "surface": "GUI",
+  "claim": "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so",
+  "source": "USAGE.md v5.9.10",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.overview",
+  "surface": "GUI",
+  "claim": "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines",
+  "source": "USAGE.md v5.10.1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.roster.why",
+  "surface": "GUI",
+  "claim": "the Roster's why column shows who set a species' state and when (you, fill, matrix, co-align, vermin, defaults; compact since v5.10.8) and explains an untouched or locked species; the full reason is on the detail page",
+  "source": "USAGE.md v5.10.5/v5.10.8",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.species.detail",
+  "surface": "GUI",
+  "claim": "`i` on a Roster row opens the species detail over the window (what it is, body, embark, allowed and why, abundance, seasons, eats, eaten by, on the map, history); Esc closes it",
+  "source": "USAGE.md v5.10.7",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.species.detail",
+  "surface": "MECH",
+  "claim": "speciesDetail(cfg, pool, e) assembles the facts for one animal: at least nine lines with species, allowed (and why), seasons, eats and eaten by",
+  "source": "v5.10.7",
+  "claimed": "shipped"
+ },
+ {
+  "id": "cli.pattern",
+  "surface": "CLI",
+  "claim": "`pattern [land|cavern] <steady|burst|trickle|dawn|follow>` sets and shows the arrival pattern per layer; a bad name prints usage; `status` and the Live tab carry the line",
+  "source": "USAGE.md v5.10.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.pattern.burst",
+  "surface": "MECH",
+  "claim": "burst: two or three releases 2.5 days apart, then a quiet gap of gap_max to twice gap_max days",
+  "source": "USAGE.md v5.10.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.pattern.trickle",
+  "surface": "MECH",
+  "claim": "trickle: every draw sized 1-2 for as long as the pattern is on (a standing cluster write on every allowed, in-season land species, restored on change)",
+  "source": "USAGE.md v5.10.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.pattern.dawn",
+  "surface": "MECH",
+  "claim": "dawn: in the first week of a season only bird and vermin-class entries are open for the wave",
+  "source": "USAGE.md v5.10.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.pattern.follow",
+  "surface": "MECH",
+  "claim": "follow: prey mass on the map at 3x predator mass opens only predators; no prey opens only prey",
+  "source": "USAGE.md v5.10.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.water.live",
+  "surface": "MECH",
+  "claim": "on a lake fort the water layer is live and `water now` places animals from stocked, in-season water entries",
+  "source": "USAGE.md v5.8; E33",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.water.target",
+  "surface": "MECH",
+  "claim": "water target / cadence / countdown are stored and reported",
+  "source": "USAGE.md v5.8",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.quota.land",
+  "surface": "MECH",
+  "claim": "quota land N overrides groups.max_concurrent as the effective ceiling",
+  "source": "USAGE.md v5.8",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.quota.water",
+  "surface": "MECH",
+  "claim": "quota water N overrides the water target as the effective stocking level",
+  "source": "USAGE.md v5.8",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.quota.cavern",
+  "surface": "MECH",
+  "claim": "quota cavern N holds managed cavern species at frequency 1 while over the ceiling; frequency is never written 0",
+  "source": "STATE addenda 53\u201357; v5.8.1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.quota.cavern.throttle",
+  "surface": "MECH",
+  "claim": "QUOTA.cavernThrottle (the old entry-quantity ceiling) still prints a 'cavern ceiling' line \u2014 a second mechanism for the same setting, measured inert (T7)",
+  "source": "USAGE.md; STATE addendum 51",
+  "claimed": "withdrawn"
+ },
+ {
+  "id": "mech.cavern.restore",
+  "surface": "MECH",
+  "claim": "disable (or quota cavern 0) restores every held cavern frequency",
+  "source": "v5.8.1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.layers.count",
+  "surface": "MECH",
+  "claim": "the layer counter separates land/water/cavern and reports the magma sea and underworld as a never-managed deep bucket",
+  "source": "STATE addendum 51",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.invasion",
+  "surface": "MECH",
+  "claim": "DF invasions are excluded from every count via a real unit field",
+  "source": "USAGE.md Layers; addendum 49",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.classes.lock",
+  "surface": "MECH",
+  "claim": "a creature in a disabled class is locked: not eligible, shows an L tag, cannot be allowed",
+  "source": "USAGE.md Ecology classes",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.class.override",
+  "surface": "MECH",
+  "claim": "a class override changes the creature's class on the next pool build",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.overlay",
+  "surface": "MECH",
+  "claim": "`overlay enable seasonal-wildlife.groups` registers a map overlay marking each tracked group g/r",
+  "source": "USAGE.md Resident groups",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.stuck",
+  "surface": "MECH",
+  "claim": "a tracked non-flier that has not moved in 5,000 ticks is re-grounded; the status counts swept=N",
+  "source": "USAGE.md v5.7; T5",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.addnew",
+  "surface": "MECH",
+  "claim": "Add-new writes a master row and a live entry so the species is in the pool with no reload",
+  "source": "USAGE.md Adding a new species; v4.4",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.reset",
+  "surface": "MECH",
+  "claim": "Reset to default restores managed quantities to the captured worldgen snapshot and abundances to 50",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.abundance",
+  "surface": "MECH",
+  "claim": "abundance sets the stocked quantity (not arrival volume \u2014 E24)",
+  "source": "USAGE.md; addendum 58",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.save.untouched",
+  "surface": "MECH",
+  "claim": "a full session of console and GUI use leaves the save byte-identical (config lives in persistent site data)",
+  "source": "USAGE.md Uninstall; df-rig rule",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.season.boundary",
+  "surface": "MECH",
+  "claim": "the roster is re-applied at each season boundary and held daily against refunds",
+  "source": "USAGE.md Between the seasons",
+  "claimed": "shipped"
+ },
+ {
+  "id": "mech.coupling",
+  "surface": "MECH",
+  "claim": "when a prey group arrives, coupling closes the pool to its armed natural predators for up to two days",
+  "source": "USAGE.md v5.4/5.6",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.open",
+  "surface": "GUI",
+  "claim": "`gui/seasonal-wildlife` opens a resizable 86\u00d734 window titled 'Seasonal Wildlife' with five tabs",
+  "source": "script",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.roster",
+  "surface": "GUI",
+  "claim": "Roster tab: header with biomes and per-category counts, filter row (Alt+S search), creature list with cat/size/biome/season/ab/ok/why columns, season keys S/U/A/W, matrix and co-align keys, targets row, fill keys, Ctrl action keys, status line",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.setroster",
+  "surface": "GUI",
+  "claim": "Set roster folded into the Roster (v5.11.0): the targets row, fill keys, matrix/co-align keys and season keys are on the Roster page and the season grid is its SEASON column",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.foodweb",
+  "surface": "GUI",
+  "claim": "Food web tab: ecology-switch line, season selector, chains (All) or trophic pyramid + aquatic mini-web (a season)",
+  "source": "USAGE.md Food web tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.live",
+  "surface": "GUI",
+  "claim": "Live tab: resident-group status, tracked groups, ecology line, wild-on-map by race, quota line, cavern line, biomass ratio",
+  "source": "USAGE.md Live tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.tab.seasons",
+  "surface": "GUI",
+  "claim": "Seasons tab: four seasons side by side, one row per allowed creature under its trophic level, +/-/X/. marks",
+  "source": "USAGE.md Seasons tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.close",
+  "surface": "GUI",
+  "claim": "ESC closes the window",
+  "source": "script",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.shadow",
+  "surface": "GUI",
+  "claim": "Ctrl-modified action keys reach their labels on the Roster; since v5.11.0 the filter box takes focus only on Alt+S and releases it on Enter/Esc, so plain letters are actions too",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.status.roster",
+  "surface": "GUI",
+  "claim": "the Roster tab's status line shows each action's receipt ('Applied Spring live: N active.', 'Set N abundances to 60.', 'Auto rotation ON.')",
+  "source": "USAGE.md; script setStatus",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.status.grid",
+  "surface": "GUI",
+  "claim": "the Roster's status line shows the fill / matrix / co-align receipts ('Allowed N natural prey.', 'Assigned matrix seasons to N creatures.') \u2014 v5.11.0, was the Set roster grid status",
+  "source": "USAGE.md; script setStatus",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.V",
+  "surface": "GUI",
+  "claim": "V cycles View: Current \u2192 Default \u2192 Add-new",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.C",
+  "surface": "GUI",
+  "claim": "C cycles the category filter (incl. aquatic)",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.B",
+  "surface": "GUI",
+  "claim": "B cycles the biome filter",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.N",
+  "surface": "GUI",
+  "claim": "N cycles the season filter",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.enter",
+  "surface": "GUI",
+  "claim": "Enter allows/blocks the selected creature (ok column flips Y/-)",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.shiftenter",
+  "surface": "GUI",
+  "claim": "Shift-Enter cycles the selected creature's seasons",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlS",
+  "surface": "GUI",
+  "claim": "Ctrl+S is retired (v5.11.0): the Set roster keys \u2014 targets, F/Y/D, S/U/A/W, M/O \u2014 are on the Roster page itself",
+  "source": "USAGE.md v5.11.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlA",
+  "surface": "GUI",
+  "claim": "Ctrl+A applies the current season live and announces it",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlF",
+  "surface": "GUI",
+  "claim": "Ctrl+F clears the current wild group and forces a new wave",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlD",
+  "surface": "GUI",
+  "claim": "Ctrl+D opens the dry-run season table dialog",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlW",
+  "surface": "GUI",
+  "claim": "Ctrl+W prompts for the row's abundance and stores it",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlG",
+  "surface": "GUI",
+  "claim": "Ctrl+G prompts for an abundance for every filtered row",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlE",
+  "surface": "GUI",
+  "claim": "Ctrl+E toggles automatic rotation",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlX",
+  "surface": "GUI",
+  "claim": "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlR",
+  "surface": "GUI",
+  "claim": "Ctrl+R asks for confirmation then resets quantities and abundances",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.ctrlL",
+  "surface": "GUI",
+  "claim": "Ctrl+L fills the filtered category to N (refuses on 'all'/'aquatic')",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.thin",
+  "surface": "GUI",
+  "claim": "the header shows a 'Thin:' hint when a category is under its target",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.targets",
+  "surface": "GUI",
+  "claim": "Shift-P/R/B/V cycle the per-category targets",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.F",
+  "surface": "GUI",
+  "claim": "F fills categories to their targets",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.Y",
+  "surface": "GUI",
+  "claim": "Y allows the natural prey of allowed creatures",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.D",
+  "surface": "GUI",
+  "claim": "D allows the natural predators of allowed creatures",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.SUAW",
+  "surface": "GUI",
+  "claim": "S/U/A/W toggle Spring/Summer/Autumn/Winter on the selected Roster row (its SEASON column)",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.M",
+  "surface": "GUI",
+  "claim": "M assigns seasons from the climate matrix",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.O",
+  "surface": "GUI",
+  "claim": "O co-aligns predator\u2194prey seasons",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.gridmouse",
+  "surface": "GUI",
+  "claim": "the season grid is gone (v5.11.0): seasons are the S/U/A/W keys on the Roster row; no per-cell clicks to support",
+  "source": "USAGE.md v5.11.0",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.webN",
+  "surface": "GUI",
+  "claim": "N on Food web cycles the season; a specific season draws the pyramid",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.webG",
+  "surface": "GUI",
+  "claim": "G on Food web cycles the mode: Pyramid \u2192 Graph \u2192 By season \u2192 By layer",
+  "source": "USAGE.md v5.11.1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.webL",
+  "surface": "GUI",
+  "claim": "L on Food web jumps to the layers side by side",
+  "source": "USAGE.md v5.11.1",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveR",
+  "surface": "GUI",
+  "claim": "R refreshes the Live tab",
+  "source": "script",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveG",
+  "surface": "GUI",
+  "claim": "G toggles resident groups from the Live tab",
+  "source": "USAGE.md",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveP",
+  "surface": "GUI",
+  "claim": "P on Live flips migratory coupling",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveK",
+  "surface": "GUI",
+  "claim": "K on Live cycles the coupling pack size (raw \u2192 3 \u2192 5 \u2192 8 \u2192 12 \u2192 raw)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveW",
+  "surface": "GUI",
+  "claim": "W on Live forces the next wave (the Roster's Ctrl+F)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveQ",
+  "surface": "GUI",
+  "claim": "Q on Live holds the selected group thirty days (its row says 'held N more days')",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveX",
+  "surface": "GUI",
+  "claim": "X on Live dismisses the selected group (its row says 'dismissed')",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveF",
+  "surface": "GUI",
+  "claim": "F on Live follows the selected group (plotinfo.follow_unit set to a member)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "gui.k.liveEnter",
+  "surface": "GUI",
+  "claim": "Enter on a Live group row centres the map on it (the viewport moves)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped"
+ },
+ {
+  "id": "v6.overview",
+  "surface": "GUI",
+  "claim": "Overview view \u2014 what the map holds now, next boundary, recent ledger",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.roster.why",
+  "surface": "GUI",
+  "claim": "Roster with a 'why' column and per-layer selector",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.species",
+  "surface": "GUI",
+  "claim": "Species detail \u2014 one animal, every control",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.web.graph",
+  "surface": "GUI",
+  "claim": "Food web as a graph with live pairs",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.web.byseason",
+  "surface": "GUI",
+  "claim": "Food web by season \u2014 four pyramids",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.web.bylayer",
+  "surface": "GUI",
+  "claim": "Food web by layer, side by side",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.live.hotkeys",
+  "surface": "GUI",
+  "claim": "Live tab hotkeys P coupling / K pack / Q hold / X dismiss / W next wave / F follow, and 'Enter centres the map'",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.herds",
+  "surface": "GUI",
+  "claim": "Herds & packs view with labels, reasons, overrides",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.vermin",
+  "surface": "GUI",
+  "claim": "Vermin view by family with seasonal defaults",
+  "source": "design \u00a711; PLAN 3.5",
+  "claimed": "planned v5.9"
+ },
+ {
+  "id": "v6.patterns",
+  "surface": "GUI",
+  "claim": "Patterns & quotas per layer (steady/burst/trickle/dawn/follow)",
+  "source": "design \u00a711; PLAN 3.5",
+  "claimed": "planned v5.9"
+ },
+ {
+  "id": "v6.caverns",
+  "surface": "GUI",
+  "claim": "Caverns view \u2014 hidden until found, pressure, rotation by epoch",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.ledger",
+  "surface": "GUI",
+  "claim": "Ledger \u2014 every write and why, with undo",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.ecology.tab",
+  "surface": "GUI",
+  "claim": "Ecology tab \u2014 switch, nudge policy, pack size, live pair list",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.layersel",
+  "surface": "GUI",
+  "claim": "layer selector on every tab, dormant layers greyed with the reason",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.presets",
+  "surface": "GUI",
+  "claim": "biome presets applied at first run",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.undo",
+  "surface": "GUI",
+  "claim": "undo for roster edits (10-deep snapshot ring)",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.overlay.links",
+  "surface": "GUI",
+  "claim": "overlay extended with predator\u2013prey links",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "v6.explain",
+  "surface": "GUI",
+  "claim": "every automatic decision logs one readable line",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0"
+ },
+ {
+  "id": "plan.patterns",
+  "surface": "MECH",
+  "claim": "arrival-pattern library on the scheduler: steady, burst, trickle, dawn, follow",
+  "source": "PLAN 3.5",
+  "claimed": "planned v5.9"
+ },
+ {
+  "id": "plan.irruptions",
+  "surface": "MECH",
+  "claim": "cavern pressure score and irruptions (opt-in), never touching plotinfo.invasions",
+  "source": "PLAN 3.6b",
+  "claimed": "planned v6.1"
+ },
+ {
+  "id": "plan.arming",
+  "surface": "MECH",
+  "claim": "the 'arming step' of trigger/pre-load/set-the-table",
+  "source": "design \u00a72",
+  "claimed": "gap noted"
+ },
+ {
+  "id": "bl.frequency",
+  "surface": "MECH",
+  "claim": "per-species frequency override in the roster (never writing 0)",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.popnumber",
+  "surface": "DOC",
+  "claim": "roster wording: 'regional stock' not per-fort budget",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.grouping",
+  "surface": "MECH",
+  "claim": "published solitary/pack/herd table with overrides",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.largestmale",
+  "surface": "MECH",
+  "claim": "leader chosen by body size and sex",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.concurrency",
+  "surface": "MECH",
+  "claim": "max concurrent groups scaled from embark size (\u221atiles+1)",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.deepwater",
+  "surface": "MECH",
+  "claim": "deep-ocean species gated on the map having deep tiles",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.migrants",
+  "surface": "MECH",
+  "claim": "migrant-trigger timing study",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.perch",
+  "surface": "MECH",
+  "claim": "perched-fraction survey before any perch lever",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.r2r4",
+  "surface": "MECH",
+  "claim": "identify the 'r2/r4' creature",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.realm",
+  "surface": "MECH",
+  "claim": "geographic/realm grouping of species",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.quiet",
+  "surface": "MECH",
+  "claim": "tool-side filter to quiet animal-on-animal combat reports",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.eats",
+  "surface": "MECH",
+  "claim": "a who-eats-whom history",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "bl.balance",
+  "surface": "MECH",
+  "claim": "water placement weighted by what is swimming",
+  "source": "Backlog",
+  "claimed": "backlog"
+ },
+ {
+  "id": "doc.usage.version",
+  "surface": "DOC",
+  "claim": "USAGE.md's header states the current version and DF/DFHack it was developed against",
+  "source": "USAGE.md",
+  "claimed": "doc"
+ },
+ {
+  "id": "doc.usage.cavernquota",
+  "surface": "DOC",
+  "claim": "USAGE.md's description of `quota cavern` matches the shipped mechanism",
+  "source": "USAGE.md Per-layer quotas",
+  "claimed": "doc"
+ },
+ {
+  "id": "doc.docstring.tabs",
+  "surface": "DOC",
+  "claim": "the script docstring's tab count and Usage block match the shipped window and verbs",
+  "source": "script docstring",
+  "claimed": "doc"
+ },
+ {
+  "id": "doc.design.views",
+  "surface": "DOC",
+  "claim": "the design report's \u00a711 catalogue is labelled as v6.0 aspiration, not shipped",
+  "source": "design \u00a711",
+  "claimed": "doc"
+ },
+ {
+  "id": "doc.docket",
+  "surface": "DOC",
+  "claim": "the Docket's statement that the tool is at v5.5 is stale",
+  "source": "Docket",
+  "claimed": "doc"
+ }
+]

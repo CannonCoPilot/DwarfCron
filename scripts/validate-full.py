@@ -122,15 +122,26 @@ CLAIMS = [
     ("mech.coupling", "MECH", "when a prey group arrives, coupling closes the pool to its armed natural predators for up to two days", "USAGE.md v5.4/5.6", "shipped"),
     # ---- GUI: window and tabs
     ("gui.open", "GUI", "`gui/seasonal-wildlife` opens a resizable 86×34 window titled 'Seasonal Wildlife' with five tabs", "script", "shipped"),
-    ("gui.tab.roster", "GUI", "Roster tab: header with biomes and per-category counts, filter row, creature list with cat/size/biome/season/ab/ok columns, action keys, status line", "USAGE.md Roster tab", "shipped"),
-    ("gui.tab.setroster", "GUI", "Set roster tab: per-category targets, fill keys, season grid, matrix/co-align keys, grid status", "USAGE.md Set roster tab", "shipped"),
+    ("gui.tab.roster", "GUI", "Roster tab: header with biomes and per-category counts, filter row (Alt+S search), creature list with cat/size/biome/season/ab/ok/why columns, season keys S/U/A/W, matrix and co-align keys, targets row, fill keys, Ctrl action keys, status line", "USAGE.md Roster tab", "shipped"),
+    ("gui.tab.setroster", "GUI", "Set roster folded into the Roster (v5.11.0): the targets row, fill keys, matrix/co-align keys and season keys are on the Roster page and the season grid is its SEASON column", "USAGE.md Roster tab", "shipped"),
     ("gui.tab.foodweb", "GUI", "Food web tab: ecology-switch line, season selector, chains (All) or trophic pyramid + aquatic mini-web (a season)", "USAGE.md Food web tab", "shipped"),
+    ("cli.irruption", "CLI", "`irruption` shows the status (off by default); `irruption on` turns it on and the status names the threshold and the three pressures; `irruption off` turns it off", "USAGE.md v6.1", "shipped"),
+    ("gui.k.layI", "GUI", "I on Layers flips irruptions and the cavern pressure row shows the three pressures", "USAGE.md v6.1", "shipped"),
+    ("mech.irruption.arm", "MECH", "with pressure pinned at the threshold, the next arriving cavern group the roster admits is armed (agitated flag on its members) and stood down after its duration; off is inert", "USAGE.md v6.1; PLAN 3.6b", "shipped"),
+    ("gui.tab.ledger", "GUI", "Ledger tab: the recorded lines newest last, coloured by kind, with the kind and layer filters", "USAGE.md v5.11.4", "shipped"),
+    ("gui.k.ledgerK", "GUI", "K on Ledger filters by kind (the header says kind=<kind>)", "USAGE.md v5.11.4", "shipped"),
+    ("gui.k.ledgerZ", "GUI", "Z on Ledger undoes the last edit: a species blocked on the Roster is allowed again and the Ledger gains an undo line", "USAGE.md v5.11.4", "shipped"),
+    ("cli.undo", "CLI", "`undo` restores the state before the last edit and says what it undid; with nothing to undo it says so", "USAGE.md v5.11.4", "shipped"),
+    ("gui.tab.layers", "GUI", "Layers tab: a row per setting (layer, concurrent groups, gap, pattern, quota, coupling, ecology, nudge, pack) against land/water/cavern columns, the water line, a line per cavern found or hidden, the preset line", "USAGE.md v5.11.3", "shipped"),
+    ("gui.k.layT", "GUI", "T on Layers cycles the selected layer's pattern (steady → burst → trickle → dawn → follow)", "USAGE.md v5.11.3", "shipped"),
+    ("gui.k.layR", "GUI", "R on Layers re-applies the biome preset and the Ledger records a build line", "USAGE.md v5.11.3", "shipped"),
+    ("cli.preset", "CLI", "`preset` applies the biome preset and prints the receipt (allowed, matrix seasons, co-aligned, vermin defaults)", "USAGE.md v5.11.3", "shipped"),
     ("gui.tab.live", "GUI", "Live tab: resident-group status, tracked groups, ecology line, wild-on-map by race, quota line, cavern line, biomass ratio", "USAGE.md Live tab", "shipped"),
     ("gui.tab.seasons", "GUI", "Seasons tab: four seasons side by side, one row per allowed creature under its trophic level, +/-/X/. marks", "USAGE.md Seasons tab", "shipped"),
     ("gui.close", "GUI", "ESC closes the window", "script", "shipped"),
-    ("gui.k.shadow", "GUI", "Ctrl-modified action keys work while the filter box has focus (USAGE: 'that is why all action keys are Ctrl-modified here')", "USAGE.md Roster tab", "shipped"),
+    ("gui.k.shadow", "GUI", "Ctrl-modified action keys reach their labels on the Roster; since v5.11.0 the filter box takes focus only on Alt+S and releases it on Enter/Esc, so plain letters are actions too", "USAGE.md Roster tab", "shipped"),
     ("gui.status.roster", "GUI", "the Roster tab's status line shows each action's receipt ('Applied Spring live: N active.', 'Set N abundances to 60.', 'Auto rotation ON.')", "USAGE.md; script setStatus", "shipped"),
-    ("gui.status.grid", "GUI", "the Set-roster tab's grid status shows each action's receipt ('Allowed N natural prey.', 'Assigned matrix seasons to N creatures.')", "USAGE.md; script setGridStatus", "shipped"),
+    ("gui.status.grid", "GUI", "the Roster's status line shows the fill / matrix / co-align receipts ('Allowed N natural prey.', 'Assigned matrix seasons to N creatures.') — v5.11.0, was the Set roster grid status", "USAGE.md; script setStatus", "shipped"),
     # ---- GUI: Roster hotkeys
     ("gui.k.V", "GUI", "V cycles View: Current → Default → Add-new", "USAGE.md", "shipped"),
     ("gui.k.C", "GUI", "C cycles the category filter (incl. aquatic)", "USAGE.md", "shipped"),
@@ -138,7 +149,7 @@ CLAIMS = [
     ("gui.k.N", "GUI", "N cycles the season filter", "USAGE.md", "shipped"),
     ("gui.k.enter", "GUI", "Enter allows/blocks the selected creature (ok column flips Y/-)", "USAGE.md", "shipped"),
     ("gui.k.shiftenter", "GUI", "Shift-Enter cycles the selected creature's seasons", "USAGE.md", "shipped"),
-    ("gui.k.ctrlS", "GUI", "Ctrl+S opens the Set roster tab", "USAGE.md", "shipped"),
+    ("gui.k.ctrlS", "GUI", "Ctrl+S is retired (v5.11.0): the Set roster keys — targets, F/Y/D, S/U/A/W, M/O — are on the Roster page itself", "USAGE.md v5.11.0", "shipped"),
     ("gui.k.ctrlA", "GUI", "Ctrl+A applies the current season live and announces it", "USAGE.md", "shipped"),
     ("gui.k.ctrlF", "GUI", "Ctrl+F clears the current wild group and forces a new wave", "USAGE.md", "shipped"),
     ("gui.k.ctrlD", "GUI", "Ctrl+D opens the dry-run season table dialog", "USAGE.md", "shipped"),
@@ -154,14 +165,23 @@ CLAIMS = [
     ("gui.k.F", "GUI", "F fills categories to their targets", "USAGE.md", "shipped"),
     ("gui.k.Y", "GUI", "Y allows the natural prey of allowed creatures", "USAGE.md", "shipped"),
     ("gui.k.D", "GUI", "D allows the natural predators of allowed creatures", "USAGE.md", "shipped"),
-    ("gui.k.SUAW", "GUI", "S/U/A/W toggle Spring/Summer/Autumn/Winter on the selected grid row", "USAGE.md", "shipped"),
+    ("gui.k.SUAW", "GUI", "S/U/A/W toggle Spring/Summer/Autumn/Winter on the selected Roster row (its SEASON column)", "USAGE.md", "shipped"),
     ("gui.k.M", "GUI", "M assigns seasons from the climate matrix", "USAGE.md", "shipped"),
     ("gui.k.O", "GUI", "O co-aligns predator↔prey seasons", "USAGE.md", "shipped"),
-    ("gui.k.gridmouse", "GUI", "per-cell mouse clicks on the grid are NOT supported (documented limit)", "USAGE.md", "shipped"),
+    ("gui.k.gridmouse", "GUI", "the season grid is gone (v5.11.0): seasons are the S/U/A/W keys on the Roster row; no per-cell clicks to support", "USAGE.md v5.11.0", "shipped"),
     # ---- GUI: Food web / Live
     ("gui.k.webN", "GUI", "N on Food web cycles the season; a specific season draws the pyramid", "USAGE.md", "shipped"),
+    ("gui.k.webG", "GUI", "G on Food web cycles the mode: Pyramid → Graph → By season → By layer", "USAGE.md v5.11.1", "shipped"),
+    ("gui.k.webL", "GUI", "L on Food web jumps to the layers side by side", "USAGE.md v5.11.1", "shipped"),
     ("gui.k.liveR", "GUI", "R refreshes the Live tab", "script", "shipped"),
     ("gui.k.liveG", "GUI", "G toggles resident groups from the Live tab", "USAGE.md", "shipped"),
+    ("gui.k.liveP", "GUI", "P on Live flips migratory coupling", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveK", "GUI", "K on Live cycles the coupling pack size (raw → 3 → 5 → 8 → 12 → raw)", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveW", "GUI", "W on Live forces the next wave (the Roster's Ctrl+F)", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveQ", "GUI", "Q on Live holds the selected group thirty days (its row says 'held N more days')", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveX", "GUI", "X on Live dismisses the selected group (its row says 'dismissed')", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveF", "GUI", "F on Live follows the selected group (plotinfo.follow_unit set to a member)", "USAGE.md v5.11.2", "shipped"),
+    ("gui.k.liveEnter", "GUI", "Enter on a Live group row centres the map on it (the viewport moves)", "USAGE.md v5.11.2", "shipped"),
     # ---- Design report §11: the thirteen views (v6.0 catalogue)
     ("v6.overview", "GUI", "Overview view — what the map holds now, next boundary, recent ledger", "design §11", "planned v6.0"),
     ("v6.roster.why", "GUI", "Roster with a 'why' column and per-layer selector", "design §11", "planned v6.0"),
@@ -486,6 +506,20 @@ def phase_cli():
     rc, p3 = cmd("pattern", "steady")
     ok = "patterns: land=steady" in p0 and "land=burst" in p1 and "usage:" in p2 and "land=steady" in p3
     rec("cli.pattern", "PASS" if ok else "FAIL", "shows land=steady; sets land=burst; refuses a bad name with usage; `pattern steady` sets the land layer", p0 + p1 + p2 + p3)
+    out = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','preset'); print(json.encode({out=out}))", timeout=120)
+    ps = str(out.get("out") if isinstance(out, dict) else out)
+    rec("cli.preset", "PASS" if "preset" in ps and "species allowed" in ps and "vermin defaults" in ps else "FAIL", "the preset receipt: '<name>: N species allowed, matrix seasons on N, N partner rosters co-aligned, vermin defaults on N'", ps[:300])
+    u1 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','undo'); print(json.encode({out=out}))", timeout=120)
+    us = str(u1.get("out") if isinstance(u1, dict) else u1)
+    rec("cli.undo", "PASS" if ("undid:" in us or "nothing to undo" in us) else "FAIL", "'undid: <label>' or 'undo: nothing to undo'", us[:200])
+    ir0 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption'); print(json.encode({out=out}))", timeout=60)
+    ir1 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','on'); print(json.encode({out=out}))", timeout=60)
+    ir2 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','off'); print(json.encode({out=out}))", timeout=60)
+    s0, s1, s2 = (str(x.get("out") if isinstance(x, dict) else x) for x in (ir0, ir1, ir2))
+    rec("cli.irruption", "PASS" if "irruptions: off" in s0 and "irruptions: on" in s1 and "threshold" in s1 and "cavern 1" in s1 and "irruptions: off" in s2 else "FAIL",
+        "off by default; on shows threshold and pressures; off again", (s0 + " | " + s1 + " | " + s2)[:400])
+    rec("plan.irruptions", "PASS" if "irruptions: on" in s1 and "irruptions: off" in s2 else "FAIL", "the opt-in module answers on and off; plotinfo.invasions is never referenced by the tool", "on/off receipts above; plotinfo.invasions appears in the script once, in the module's comment saying it is never touched", note="built in v6.1.0 on E29/E23 (armed, not aimed; the roster the dial); T9 measures the arming path")
+    rec("mech.irruption.arm", "NOT-TESTABLE-HERE", "a cavern arrival under pinned pressure across a season", "", note="T9 (experiments/T9.json, scripts/t9-tally.py): two replicates each of module on and off with every cavern's pressure pinned at the threshold")
     rec("plan.patterns", "PASS" if ok else "FAIL", "the arrival-pattern library on the scheduler: steady, burst, trickle, dawn, follow", p1,
         note="shipped in v5.10.0 on the release gate; the distributions are T8's to measure (data/experiments/T8)")
 
@@ -869,16 +903,16 @@ def phase_gui():
         if "Seasonal Wildlife" in txt and ("On the map" in txt or "CREATURE" in txt): break
         time.sleep(1.0)
     p = shot("C0-overview")
-    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Overview", "Roster", "Set roster", "Food web", "Live", "Seasons", "Vermin"))
-    rec("gui.open", "PASS" if ok else "FAIL", "window title and seven tab labels on screen", txt[:600], shots=[p] if p else [])
+    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Overview", "Roster", "Seasons", "Food web", "Live", "Vermin")) and "Set roster" not in txt
+    rec("gui.open", "PASS" if ok else "FAIL", "window title and the six tab labels (v5.11.0: Set roster folded into Roster) on screen", txt[:600], shots=[p] if p else [])
     # Overview (v5.10.1): the page the window opens on
     ok = "On the map" in txt and "Next boundary" in txt and "Recent" in txt and "In season now" in txt
     rec("gui.tab.overview", "PASS" if ok else "FAIL", "On the map / In season now / Next boundary / Recent blocks on the opening page", txt[:900], shots=[p] if p else [])
     rec("v6.overview", "PASS" if ok else "FAIL", "Overview view: what the map holds now, next boundary, recent ledger", txt[:300], note="shipped in v5.10.1 as the first tab")
     click("Roster"); txt = screen("C0-roster"); p = shot("C0-roster")
     rows = row_lines(txt)
-    ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and "Force wave" in txt
-    rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, action keys", txt[:800], shots=[p] if p else [],
+    ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and "Force wave" in txt and "Fill to targets" in txt and "Matrix assign" in txt
+    rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys", txt[:800], shots=[p] if p else [],
         data={"rows": len(rows), "first": rows[0][3] if rows else ""})
     rec("gui.k.thin", "PASS" if ("Thin:" in txt or "Ecosystem balanced" in txt) else "FAIL", "'Thin: …' or 'Ecosystem balanced.' in the header", txt[:400])
     # V / C / B / N
@@ -1030,42 +1064,37 @@ def phase_gui():
     key("SELECT", 1.5); w3 = weights(); left = [k for k, v in w3.items() if v != 50]
     rec("gui.k.ctrlR", "PASS" if ("worldgen default" in t11 or "Yes, proceed" in t11) and not left else "FAIL",
         "the confirmation prompt, then no weight left off 50", f"prompt: {'worldgen default' in t11}; weights not 50 after: {left[:8]}", shots=[p] if p else [], data={"not_50_after": left[:20]})
-    # Ctrl+S -> Set roster
-    key("CUSTOM_CTRL_S", 1.2); t = screen("C12-setroster"); p = shot("C12-setroster")
-    ok = "Fill to targets" in t and "Assign seasons from matrix" in t and "Co-align" in t
-    rec("gui.k.ctrlS", "PASS" if ok else "FAIL", "the Set roster tab's keys on screen", t[:600], shots=[p] if p else [])
-    rec("gui.tab.setroster", "PASS" if ok and re.search(r"[X\-]\s+[X\-]\s+[X\-]\s+[X\-]\s*$", t, re.M) else "FAIL", "targets, fill keys, a season grid of X/- cells", window_rows(t), shots=[p] if p else [])
-    # targets: Shift-P cycles
-    m0 = re.search(r"prey:?\s*(\S+)", t); key("CUSTOM_SHIFT_P", 0.8); t1 = screen("C13-shiftp"); m1 = re.search(r"prey:?\s*(\S+)", t1)
+    # v5.11.0: Set roster folded into the Roster — its keys are read off the Roster page itself
+    t = screen("C12-roster-keys"); p = shot("C12-roster-keys")
+    ok = "Fill to targets" in t and "Matrix assign" in t and "Co-align" in t and "prey:" in t
+    rec("gui.k.ctrlS", "PASS" if ok and "Set roster" not in t else "FAIL", "the targets row, fill keys and matrix/co-align keys on the Roster page; no Set roster label", t[:600], shots=[p] if p else [])
+    rec("gui.tab.setroster", "PASS" if ok and row_lines(t) and all(r[3] for r in row_lines(t)[:5]) else "FAIL", "targets, fill keys, matrix/co-align keys, and a SEASON column on every row", window_rows(t), shots=[p] if p else [])
+    # targets: Shift-P cycles (the label reads 'prey: N'; the header's 'prey=N' count is a different thing)
+    m0 = re.search(r"prey:\s*(\d+)", t); key("CUSTOM_SHIFT_P", 0.8); t1 = screen("C13-shiftp"); m1 = re.search(r"prey:\s*(\d+)", t1)
     rec("gui.k.targets", "PASS" if m0 and m1 and m0.group(1) != m1.group(1) else "FAIL", "the prey target value changes", f"{m0.group(1) if m0 else None} -> {m1.group(1) if m1 else None}")
     c0 = counts(); key("CUSTOM_F", 1.5); t13 = screen("C13-fill"); p = shot("C13-fill-targets"); c1 = counts()
-    rec("gui.k.F", "PASS" if c0 != c1 or re.search(r"(allowed|blocked|to reach|already)", grid_status(t13), re.I) else "FAIL",
-        "allowed counts move toward the targets (or the grid status says nothing needed doing)", f"{c0} -> {c1}", shots=[p] if p else [], data={"before": c0, "after": c1})
-    rec("gui.status.grid", "PASS" if re.search(r"(allowed|blocked|to reach|already|Ecosystem)", grid_status(t13), re.I) else "DEAD",
-        "a fill receipt on the grid status row after F", grid_status(t13), shots=[p] if p else [],
-        note="setGridStatus() writes to a Label created with text='' at frame t=0,l=40; nothing it is given ever shows, so Y, D, M, O and F report nothing")
+    rec("gui.k.F", "PASS" if c0 != c1 or re.search(r"(allowed|blocked|to reach|already)", status_rows(t13), re.I) else "FAIL",
+        "allowed counts move toward the targets (or the status line says nothing needed doing)", f"{c0} -> {c1}", shots=[p] if p else [], data={"before": c0, "after": c1})
+    rec("gui.status.grid", "PASS" if re.search(r"(allowed|blocked|to reach|already|Ecosystem)", status_rows(t13), re.I) else "DEAD",
+        "a fill receipt on the Roster's status line after F", status_rows(t13), shots=[p] if p else [])
     key("CUSTOM_Y", 1.2); c2 = counts()
     rec("gui.k.Y", "PASS" if sum(v for k, v in c2.items() if k != "assigned") >= sum(v for k, v in c1.items() if k != "assigned") else "FAIL",
         "allowed counts never decrease (Y only adds)", f"{c1} -> {c2}", data={"before": c1, "after": c2})
     key("CUSTOM_D", 1.2); c3 = counts()
     rec("gui.k.D", "PASS" if sum(v for k, v in c3.items() if k != "assigned") >= sum(v for k, v in c2.items() if k != "assigned") else "FAIL",
         "allowed counts never decrease (D only adds)", f"{c2} -> {c3}", data={"before": c2, "after": c3})
-    # S/U/A/W on grid row 1
-    def grid_row1(txt):
-        for line in txt.splitlines():
-            m = re.match(r"^\s*\d+\|\s+[!v^.*\-] (\S+)\s+([X\-])\s+([X\-])\s+([X\-])\s+([X\-])\s*$", line)
-            if m:
-                return m.group(1), m.group(2, 3, 4, 5)
-        return None, None
-    t0 = screen("C14-grid-before"); tok0, c0 = grid_row1(t0)
+    # S/U/A/W on Roster row 1: each flips its own season in the SEASON column ('-', 'All', or e.g. 'SpAu')
+    def has_season(lbl, ab):
+        return lbl == "All" or ab in lbl
+    r0 = row_lines(screen("C14-season-before")); tok0 = r0[0][0] if r0 else None; lbl0 = r0[0][3] if r0 else ""
     flips = []
-    for k, i in (("CUSTOM_S", 0), ("CUSTOM_U", 1), ("CUSTOM_A", 2), ("CUSTOM_W", 3)):
-        key(k, 0.9); tk, ck = grid_row1(screen(f"C14-{k}"))
-        flips.append(bool(c0 and ck and tk == tok0 and ck[i] != c0[i]))
-        c0 = ck
-    p = shot("C14-grid-toggled")
-    rec("gui.k.SUAW", "PASS" if all(flips) else "FAIL", "each of S/U/A/W flips exactly its own cell on row 1", f"row {tok0}: {flips}", shots=[p] if p else [])
-    rec("gui.k.gridmouse", "NOT-TESTABLE-HERE", "a per-cell mouse click (documented as unsupported)", "", note="USAGE.md documents keyboard-only cells; the rig's fed clicks land on text labels, not List cells")
+    for k, ab in (("CUSTOM_S", "Sp"), ("CUSTOM_U", "Su"), ("CUSTOM_A", "Au"), ("CUSTOM_W", "Wi")):
+        key(k, 0.9); rk = row_lines(screen(f"C14-{k}")); tokk = rk[0][0] if rk else None; lblk = rk[0][3] if rk else ""
+        flips.append(bool(tok0 and tokk == tok0 and has_season(lbl0, ab) != has_season(lblk, ab)))
+        lbl0 = lblk
+    p = shot("C14-seasons-toggled")
+    rec("gui.k.SUAW", "PASS" if all(flips) else "FAIL", "each of S/U/A/W flips exactly its own season on Roster row 1", f"row {tok0}: {flips}; ends {lbl0}", shots=[p] if p else [])
+    rec("gui.k.gridmouse", "PASS" if all(flips) else "FAIL", "no grid since v5.11.0; the S/U/A/W keys act on the Roster row", f"{flips}", note="the Set roster grid and its keyboard-only cells are gone; the SEASON column is the grid")
     a0 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
     key("CUSTOM_M", 1.5); t15 = screen("C15-matrix")
     a1 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
@@ -1081,6 +1110,19 @@ def phase_gui():
     rec("gui.tab.foodweb", "PASS" if ok else "FAIL", "the ecology line and predator -> prey chains", t[:800], shots=[p] if p else [])
     key("CUSTOM_N", 1.2); t1 = screen("C16-foodweb-season"); p1 = shot("C16-foodweb-spring")
     rec("gui.k.webN", "PASS" if "Spring" in t1 and t1 != t else "FAIL", "the season selector moves to Spring and the view changes (pyramid)", t1[:800], shots=[p1] if p1 else [])
+    # v5.11.1: the modes. G -> Graph (edges with the live pairs marked), G -> By season (four columns), L -> By layer
+    key("CUSTOM_G", 1.2); tg = screen("C16b-web-graph"); pg = shot("C16b-web-graph")
+    okg = "as a graph" in tg and ("-->" in tg or "==>" in tg) and "live pair" in tg
+    rec("gui.k.webG", "PASS" if okg else "FAIL", "Mode: Graph — 'as a graph', an edge arrow and the live-pair legend", tg[:700], shots=[pg] if pg else [])
+    rec("v6.web.graph", "PASS" if okg else "FAIL", "Food web as a graph with live pairs", tg[:300], note="shipped in v5.11.1 as the Graph mode (G); live pairs read from DF's reaction table (ecoLivePairs)")
+    key("CUSTOM_G", 1.2); ts = screen("C16c-web-byseason"); ps = shot("C16c-web-byseason")
+    oks = all(x in ts for x in ("Spring", "Summer", "Autumn", "Winter")) and "mass ratio" in ts and "arrive" in ts
+    rec("v6.web.byseason", "PASS" if oks else "FAIL", "Food web by season — four columns with the mass ratio and arrivals", ts[:300], shots=[ps] if ps else [], note="shipped in v5.11.1 as the By season mode")
+    key("CUSTOM_L", 1.2); tl = screen("C16d-web-bylayer"); pl = shot("C16d-web-bylayer")
+    okl = "LAND" in tl and "bridge edges" in tl
+    rec("gui.k.webL", "PASS" if okl else "FAIL", "Mode: By layer — a LAND column and the bridge-edges line", tl[:500], shots=[pl] if pl else [])
+    rec("v6.web.bylayer", "PASS" if okl else "FAIL", "Food web by layer, side by side", tl[:300], note="shipped in v5.11.1 as the By layer mode (L)")
+    key("CUSTOM_G", 1.0)   # back to Pyramid for whatever follows
     # Live
     click("Live"); t = screen("C17-live"); p = shot("C17-live")
     ok = "Resident groups:" in t and "ecology:" in t and "Wild on map:" in t and "quota:" in t
@@ -1090,6 +1132,84 @@ def phase_gui():
     g0 = ground("C17-g-before"); key("CUSTOM_G", 1.2); t3 = screen("C17-live-g"); g1 = ground("C17-g-after")
     rec("gui.k.liveG", "PASS" if g0.get("groups") != g1.get("groups") else "FAIL", "cfg.groups.enabled flips", f"{g0.get('groups')} -> {g1.get('groups')}")
     key("CUSTOM_G", 1.0)
+    # v5.11.2: the Live keys and the Herds & packs block
+    th = screen("C17b-live-herds")
+    okh = "Herds & packs" in th and "cohesion" in th and ("herd" in th or "pack" in th or "flock" in th or "no tracked species" in th)
+    rec("v6.herds", "PASS" if okh else "FAIL", "Herds & packs: the cohesion line and per-species label/reason/override rows (or 'no tracked species')", th[:600], note="shipped in v5.11.2 inside the Live tab")
+    cfgq = lambda: luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode({coupling=cfg.groups.coupling, pack=cfg.groups.pack, follow=df.global.plotinfo.follow_unit, wx=df.global.window_x, wy=df.global.window_y, wz=df.global.window_z}))", timeout=60)
+    q0 = cfgq(); key("CUSTOM_P", 1.0); q1 = cfgq()
+    rec("gui.k.liveP", "PASS" if isinstance(q0, dict) and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "cfg.groups.coupling flips", f"{q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}")
+    key("CUSTOM_P", 1.0)   # put it back
+    key("CUSTOM_K", 1.0); q2 = cfgq()
+    rec("gui.k.liveK", "PASS" if isinstance(q2, dict) and q2.get("pack") != q1.get("pack") else "FAIL", "cfg.groups.pack moves to the next step", f"{q1.get('pack')} -> {q2.get('pack') if isinstance(q2, dict) else q2}")
+    for _ in range(4): key("CUSTOM_K", 0.6)   # back round to raw
+    # the group rows: Q / X / F / Enter need a tracked group on the map
+    rows_live = [l for l in th.splitlines() if re.search(r"\bx\d+ (gated|resident)", l)]
+    if rows_live:
+        # v6.1.0: the status lines come first; find the first group row's index in the list (the list starts two
+        # screen rows under the 'q: Hold 30 days' key row) and step the cursor down to it from row 1
+        rown = lambda l: int(m.group(1)) if (m := re.match(r"^\s*(\d+)\|", l)) else None
+        qrow = next((rown(l) for l in th.splitlines() if "Hold 30 days" in l), None)
+        grow = next((rown(l) for l in th.splitlines() if re.search(r"\bx\d+ (gated|resident)", l)), None)
+        steps = (grow - qrow - 2) if (qrow is not None and grow is not None) else 1
+        for _ in range(max(0, steps)): key("STANDARDSCROLL_DOWN", 0.25)
+        key("CUSTOM_Q", 1.2); tq = screen("C17c-live-hold"); pq = shot("C17c-live-hold")
+        rec("gui.k.liveQ", "PASS" if "held" in tq and "more days" in tq else "FAIL", "the selected group's row says 'held N more days'", tq[:500], shots=[pq] if pq else [])
+        f0 = cfgq(); key("CUSTOM_F", 1.2); f1 = cfgq()
+        rec("gui.k.liveF", "PASS" if isinstance(f1, dict) and f1.get("follow", -1) >= 0 else "FAIL", "plotinfo.follow_unit set to a member id", f"follow {f0.get('follow') if isinstance(f0, dict) else f0} -> {f1.get('follow') if isinstance(f1, dict) else f1}")
+        luaj("df.global.plotinfo.follow_unit = -1; print(json.encode({ok=true}))", timeout=30)
+        luaj("df.global.window_x = 0; df.global.window_y = 0; print(json.encode({ok=true}))", timeout=30)
+        e0 = cfgq(); key("SELECT", 1.2); e1 = cfgq()
+        moved = isinstance(e1, dict) and (e1.get("wx") != e0.get("wx") or e1.get("wy") != e0.get("wy") or e1.get("wz") != e0.get("wz"))
+        rec("gui.k.liveEnter", "PASS" if moved else "FAIL", "the viewport moves after Enter on a group row", f"{(e0.get('wx'), e0.get('wy'), e0.get('wz')) if isinstance(e0, dict) else e0} -> {(e1.get('wx'), e1.get('wy'), e1.get('wz')) if isinstance(e1, dict) else e1}")
+        key("CUSTOM_X", 1.2); tx = screen("C17d-live-dismiss"); px = shot("C17d-live-dismiss")
+        rec("gui.k.liveX", "PASS" if "dismissed" in tx else "FAIL", "the selected group's row says 'dismissed'", tx[:500], shots=[px] if px else [])
+    else:
+        for cid in ("gui.k.liveQ", "gui.k.liveX", "gui.k.liveF", "gui.k.liveEnter"):
+            rec(cid, "NOT-TESTABLE-HERE", "a tracked group row to act on", "no tracked group on the map at this point of the run", note="the groups job had no gated or resident group when the Live tab was reached")
+    rf0 = luaj("local sw=reqscript('seasonal-wildlife'); local n=0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' and (u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature) then n=n+1 end end; print(json.encode({flagged=n}))", timeout=60)
+    key("CUSTOM_W", 1.5)
+    rf1 = luaj("local sw=reqscript('seasonal-wildlife'); local n=0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' and (u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature) then n=n+1 end end; print(json.encode({flagged=n}))", timeout=60)
+    w0 = rf0.get("flagged", -1) if isinstance(rf0, dict) else -1; w1 = rf1.get("flagged", -1) if isinstance(rf1, dict) else -1
+    rec("gui.k.liveW", "PASS" if w0 > 0 and w1 == 0 else ("NOT-TESTABLE-HERE" if w0 == 0 else "FAIL"), "W clears the roaming-source flag on every wild land unit (force Wildlife), like Ctrl+F", f"flagged {w0} -> {w1}")
+    rec("v6.live.hotkeys", "PASS" if okh and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "Live tab hotkeys P K Q X W F and Enter centres the map", f"P flips coupling: {q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}; group-row keys above", note="shipped in v5.11.2")
+    # Layers (v5.11.3)
+    click("Layers"); t = screen("C17e-layers"); p = shot("C17e-layers")
+    okl = all(x in t for x in ("LAND", "WATER", "CAVERN", "pattern", "quota", "concurrent groups", "Caverns:", "preset:")) and ("water:" in t)
+    rec("gui.tab.layers", "PASS" if okl else "FAIL", "the three columns, the setting rows, the water line, the caverns block and the preset line", t[:900], shots=[p] if p else [])
+    rec("v6.patterns", "PASS" if okl and "pattern" in t else "FAIL", "Patterns & quotas per layer", t[:300], note="shipped in v5.11.3 as rows of the Layers tab")
+    rec("v6.caverns", "PASS" if okl and ("found" in t or "not on this map" in t) and "pressure" in t else "FAIL", "Caverns view — found or hidden per cavern, with its pressure", t[:300], note="shipped in v5.11.3 inside the Layers tab; the pressure is v6.1.0's (off shows a dash)")
+    rec("v6.ecology.tab", "PASS" if okl and "ecology switch" in t and "nudge after" in t and "pack size" in t else "FAIL", "Ecology: switch, nudge policy, pack size as rows (the live pair list is the Food web's Graph mode)", t[:300], note="shipped in v5.11.3 as Layers rows; live pairs in the Food web Graph (v5.11.1)")
+    pat0 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode({land=cfg.patterns.land}))", timeout=60)
+    key("CUSTOM_T", 1.0); pat1 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode({land=cfg.patterns.land}))", timeout=60)
+    rec("gui.k.layT", "PASS" if isinstance(pat0, dict) and isinstance(pat1, dict) and pat0.get("land") != pat1.get("land") else "FAIL", "cfg.patterns.land moves to the next pattern", f"{pat0.get('land') if isinstance(pat0, dict) else pat0} -> {pat1.get('land') if isinstance(pat1, dict) else pat1}")
+    for _ in range(4): key("CUSTOM_T", 0.6)   # round the cycle back to steady
+    key("CUSTOM_I", 1.2); ti = screen("C17e2-layers-irruption"); pi = shot("C17e2-layers-irruption")
+    oki = "Irruptions ON" in ti and re.search(r"cavern pressure\s+-\s+-\s+[\d.]+ / [\d.]+ / [\d.]+", ti) is not None
+    key("CUSTOM_I", 1.0)   # back off
+    rec("gui.k.layI", "PASS" if oki else "FAIL", "the status says Irruptions ON and the pressure row shows three numbers", ti[:500], shots=[pi] if pi else [])
+    led0 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
+    key("CUSTOM_R", 2.5); tr = screen("C17f-layers-preset")
+    led1 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
+    okr = "re-applied" in tr and isinstance(led1, dict) and isinstance(led0, dict) and led1.get("total", 0) > led0.get("total", 0) and "preset" in str(led1.get("last"))
+    rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset", f"status: {'re-applied' in tr}; ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
+    rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R", tr[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
+    # Ledger (v5.11.4): block row 1 on the Roster, then undo it from the Ledger
+    click("Roster"); time.sleep(0.8)
+    rz0 = row_lines(screen("C17g-roster-before-z"))
+    key("SELECT", 1.0); rz1 = row_lines(screen("C17g-roster-blocked"))
+    click("Ledger"); tl = screen("C17h-ledger"); pl = shot("C17h-ledger")
+    okt = "recorded" in tl and "newest last" in tl and re.search(r"y\d+ \w+ \d+\s+\w+", tl) is not None
+    rec("gui.tab.ledger", "PASS" if okt else "FAIL", "the header with the recorded count and dated lines", tl[:600], shots=[pl] if pl else [])
+    rec("v6.ledger", "PASS" if okt else "FAIL", "Ledger — every write and why, with undo", tl[:300], note="shipped in v5.11.4 as the eighth tab")
+    key("CUSTOM_K", 1.0); tk = screen("C17h-ledger-kind")
+    rec("gui.k.ledgerK", "PASS" if "kind=" in tk else "FAIL", "the header carries kind=<kind> after K", tk[:300])
+    for _ in range(14): key("CUSTOM_K", 0.3)   # back round to all
+    key("CUSTOM_Z", 2.0); tz = screen("C17h-ledger-undo"); pz = shot("C17h-ledger-undo")
+    click("Roster"); time.sleep(0.8); rz2 = row_lines(screen("C17g-roster-after-z"))
+    okz = rz0 and rz1 and rz2 and rz0[0][0] == rz2[0][0] and rz0[0][2] != rz1[0][2] and rz2[0][2] == rz0[0][2] and "Undid" in tz
+    rec("gui.k.ledgerZ", "PASS" if okz else "FAIL", "row 1's ok column: flipped by Enter, back after Z; the Ledger status says Undid", f"{rz0[0][:3] if rz0 else None} -> {rz1[0][:3] if rz1 else None} -> {rz2[0][:3] if rz2 else None}; status: {'Undid' in tz}", shots=[pz] if pz else [])
+    rec("v6.undo", "PASS" if okz else "FAIL", "undo for roster edits (10-deep snapshot ring)", f"undo restored row 1: {okz}", note="shipped in v5.11.4: UNDO ring in site data, Z on the Ledger tab and the undo verb")
     # Seasons
     click("Seasons"); t = screen("C18-seasons"); p = shot("C18-seasons")
     ok = all(s in t for s in ("Spring", "Summer", "Autumn", "Winter")) and re.search(r"[X+\-.]\s+[X+\-.]\s+[X+\-.]\s+[X+\-.]", t)
@@ -1153,15 +1273,8 @@ def phase_static():
         # patterns are deliberately specific: 'undo', 'ledger' and 'Herds' each occur once in the
         # script as a COMMENT, and 'Vermin' is a population type; none of those is a view
         
-        "v6.web.graph": absent(r"web_graph|as a graph|═══|drawGraph"),
-        "v6.web.byseason": absent(r"refreshWebSeason|web_by_season|byseason"), "v6.web.bylayer": absent(r"refreshWebLayer|web_by_layer|bylayer"),
-        "v6.live.hotkeys": absent(r"key='CUSTOM_P'|key='CUSTOM_K'|key='CUSTOM_Q'|key='CUSTOM_X'[^_]|centres the map|act_next_wave"),
-        "v6.herds": absent(r"labels=\{[^}]*Herds|refreshHerds"),
-        "v6.patterns": absent(r"labels=\{[^}]*Patterns|refreshPatterns"), "v6.caverns": absent(r"labels=\{[^}]*Caverns|not yet found|refreshCaverns"),
-        "v6.ledger": absent(r"labels=\{[^}]*Ledger|undo last|refreshLedger"), "v6.ecology.tab": absent(r"labels=\{[^}]*Ecology|refreshEcology"),
-        "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), "v6.presets": absent(r"preset"), "v6.undo": absent(r"snapshot ring|cfg_history|act_undo|undo_stack"),
+        "v6.layersel": absent(r"layer selector|Land · Water|layerSel|cur_layer"), 
         "v6.overlay.links": absent(r"coupled pairs as a line|drawLine|paintLine"),
-        "plan.irruptions": absent(r"pressure|irruption"),
         "plan.arming": absent(r"arming step|armWave|arm_step"),
     }
     for cid, is_absent in checks.items():
@@ -1180,7 +1293,7 @@ def phase_static():
         rec(cid, "BACKLOG", "unscheduled by the Backlog's own terms", "", note=note)
     # doc drift
     m = re.search(r"\*\*Status:\*\*\s*v([\d.]+).*?DF ([\d.]+)\s*/\s*DFHack ([\d.r-]+)", usage, re.S)
-    ver = re.search(r"--\s*v(5\.\d+(?:\.\d+)?)\s*—", src)
+    ver = re.search(r"--\s*v(\d+\.\d+(?:\.\d+)?)\s*—", src)   # v6.1.1: any major, not only v5
     rec("doc.usage.version", "DOC-DRIFT" if m and ver and m.group(1) != ver.group(1) else "PASS",
         "USAGE.md's Status header names the shipped version", f"USAGE.md says v{m.group(1) if m else '?'} / DF {m.group(2) if m else '?'}; the script's newest changelog entry is v{ver.group(1) if ver else '?'}; the rig is DF 53.16 / DFHack 53.16-r1.1")
     cav_doc = "WITHDRAWN" in usage and "inert" in usage
