@@ -1,0 +1,123 @@
+21:47:30 run X4 20260926-214730: Is DF's extra animal structural (E42c)? E42b: a written {2,1} gave ravens and emus three, never four. Here {1,1} on BIRD_RAVEN, BIRD_EMU and KANGAROO, every other land species at frequency 1, the three at 100; the surface released every 1,500 ticks.
+21:47:30   [rig] DF already running (pid 64320), port 5555
+21:47:30 == X4 arm=size1 rep=1 fort=CTRL budget=60000 every=500
+21:47:31   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:47:31   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:48:10   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:48:10   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:48:10   [rig] drained 0 queued popup(s)
+21:48:12   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:48:12   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:48:12   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'BIRD_RAVEN','BIRD_EMU','KANGAROO'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 6 entries stocked at 500
+21:48:12   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='BIRD_RAVEN' then cr.frequency=100; n=n+1 elseif cr.creature_id=='BIRD_EMU' then cr.frequency=100; n=n+1 elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 3 named species set, 11 other land species at frequency 1
+21:48:12   manipulation: local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BIRD_RAVEN' or cr.creature_id=='BIRD_EMU' or cr.creature_id=='KANGAROO' then cr.cluster_number[0]=1; cr.cluster_number[1]=1; n=n+1 end end; print(('x4: %d species written to cluster {1,1}'):format(n)) -> x4: 3 species written to cluster {1,1}
+21:48:12   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:48:30   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:48:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:48:41   +  5248 ticks | wild  26 | arrivals  13 | departures   0 | deaths  0 | 288 t/s
+21:48:44   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:48:51   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:48:59   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:01   + 10464 ticks | wild  32 | arrivals  19 | departures   0 | deaths  0 | 379 t/s
+21:49:06   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:13   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:21   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:21   + 15191 ticks | wild  36 | arrivals  23 | departures   0 | deaths  0 | 273 t/s
+21:49:29   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:43   + 20364 ticks | wild  42 | arrivals  29 | departures   0 | deaths  0 | 285 t/s
+21:49:46   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:49:54   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:05   + 25197 ticks | wild  49 | arrivals  38 | departures   2 | deaths  0 | 264 t/s
+21:50:11   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:20   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:28   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:31   + 30442 ticks | wild  67 | arrivals  73 | departures  18 | deaths  1 | 236 t/s
+21:50:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:45   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:54   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:50:54   + 35378 ticks | wild  72 | arrivals  81 | departures  21 | deaths  1 | 249 t/s
+21:51:03   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:12   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:18   + 40137 ticks | wild  71 | arrivals  87 | departures  28 | deaths  1 | 226 t/s
+21:51:21   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:30   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:39   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:44   + 45460 ticks | wild  68 | arrivals  93 | departures  37 | deaths  1 | 243 t/s
+21:51:47   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:51:56   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:05   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:08   + 50284 ticks | wild  71 | arrivals  99 | departures  40 | deaths  1 | 227 t/s
+21:52:13   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:22   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:31   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:40   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:48   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:52:56   manipulation: probe:release surface -> released 7 unit(s) [surface]
+21:52:56   + 60399 ticks | wild  67 | arrivals 122 | departures  67 | deaths  1 | 251 t/s
+21:53:05   [rig] back at the title screen
+21:53:05   done: {"arm": "size1", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 122, "departures": 67, "deaths": 1, "ticks": 60399, "wall_s": 249.4, "stop": null, "ticks_per_s": 242.2, "save_untouched": true}
+21:53:05 == X4 arm=size1 rep=2 fort=CTRL budget=60000 every=500
+21:53:06   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:53:06   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:53:47   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:53:47   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:53:48   [rig] drained 0 queued popup(s)
+21:53:49   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:53:49   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:53:50   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'BIRD_RAVEN','BIRD_EMU','KANGAROO'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 6 entries stocked at 500
+21:53:50   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='BIRD_RAVEN' then cr.frequency=100; n=n+1 elseif cr.creature_id=='BIRD_EMU' then cr.frequency=100; n=n+1 elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 3 named species set, 11 other land species at frequency 1
+21:53:50   manipulation: local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BIRD_RAVEN' or cr.creature_id=='BIRD_EMU' or cr.creature_id=='KANGAROO' then cr.cluster_number[0]=1; cr.cluster_number[1]=1; n=n+1 end end; print(('x4: %d species written to cluster {1,1}'):format(n)) -> x4: 3 species written to cluster {1,1}
+21:53:50   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:54:06   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:14   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:19   +  5013 ticks | wild  25 | arrivals  12 | departures   0 | deaths  0 | 286 t/s
+21:54:22   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:29   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:40   + 10203 ticks | wild  31 | arrivals  18 | departures   0 | deaths  0 | 275 t/s
+21:54:45   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:54:53   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:00   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:00   + 15040 ticks | wild  35 | arrivals  22 | departures   0 | deaths  0 | 241 t/s
+21:55:08   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:17   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:24   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:24   + 20400 ticks | wild  41 | arrivals  28 | departures   0 | deaths  0 | 283 t/s
+21:55:33   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:42   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:47   + 25117 ticks | wild  51 | arrivals  41 | departures   3 | deaths  0 | 251 t/s
+21:55:50   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:55:59   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:08   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:14   + 30454 ticks | wild  49 | arrivals  54 | departures  17 | deaths  1 | 221 t/s
+21:56:17   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:26   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:34   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:38   + 35258 ticks | wild  59 | arrivals  72 | departures  25 | deaths  1 | 232 t/s
+21:56:43   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:56:52   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:05   + 40385 ticks | wild  77 | arrivals  93 | departures  28 | deaths  1 | 210 t/s
+21:57:10   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:19   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:29   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:29   + 45055 ticks | wild  78 | arrivals 100 | departures  34 | deaths  1 | 215 t/s
+21:57:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:47   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:56   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:57:56   + 50236 ticks | wild  91 | arrivals 116 | departures  37 | deaths  1 | 195 t/s
+21:58:05   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:58:15   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:58:22   + 55022 ticks | wild  83 | arrivals 122 | departures  51 | deaths  1 | 222 t/s
+21:58:25   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:58:34   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:58:43   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:58:48   + 60184 ticks | wild  82 | arrivals 135 | departures  65 | deaths  1 | 226 t/s
+21:58:57   [rig] back at the title screen
+21:58:57   done: {"arm": "size1", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 135, "departures": 65, "deaths": 1, "ticks": 60184, "wall_s": 261.5, "stop": null, "ticks_per_s": 230.2, "save_untouched": true}
+21:59:39   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:59:39   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:59:46   [rig] back at the title screen
+21:59:46 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/X4/20260926-214730

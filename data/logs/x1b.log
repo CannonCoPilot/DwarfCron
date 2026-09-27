@@ -1,0 +1,1326 @@
+20:26:37 run X1 20260926-202637: Does the fixed roster keep every inactive species away, on every layer? A season on a copy of the alpha trial fort (Boatsbowed, the tester's own roster: 61 inactive) under v6.3.0, which holds every inactive species at stock 0 or frequency 1 and seasons every active one. Also X7: the job and tab timings over the same season.
+20:26:37   [rig] DF already running (pid 64320), port 5555
+20:26:37 == X1 arm=fixed rep=1 fort=BOATS budget=100800 every=2000
+20:26:37   [rig] restored BOATS.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/BOATS
+20:26:37   restored BOATS.preverify -> BOATS sha256 7f5ac40925ab
+20:27:03   [rig] clicked through to BOATS (world: Cadeniat ledef ni); waiting for the map
+20:27:03   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=129220 season=1 units=252)
+20:27:03   [rig] drained 0 queued popup(s)
+20:27:04   baseline: 90 wild units on map, 949 pool entries, tick 129220 year 100
+20:27:04   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','now'); print('x1 now: '..(out or ''):gsub('\n',' | ')) -> x1 now: active: 112  [31 ms] |
+20:27:05   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and not e.locked then local a=cfg.assign[e.key]; o[#o+1]=e.key..'='..(cfg.allow[e.key]==nil and 'nil' or tostring(cfg.allow[e.key]))..'/'..(a and table.concat(a,'') or '') end end; table.sort(o); print('x1 roster '..#o..': '..table.concat(o,' ')) -> x1 roster 137: AARDVARK=true/02 ALBATROSS_MAN=true/23 BIRD_ALBATROSS=false/ BIRD_EAGLE=true/23 BIRD_KESTREL=false/ BIRD_OSPREY=true/23 BIRD_PARAKEET=false/ BIRD_WREN=true/0123 cavern:BAT=true/1 cavern:BIRD_SWALLOW_CAVE_GIANT=true/3 cavern:BIRD_SWALLOW_CAVE=true/3 cavern:BUGBAT=true/3 cavern:CAP_HOPPER=true/3 cavern:CAVE_BLOB=true/3 cavern:CAVE_FLOATER=true/3 cavern:CROCODILE_CAVE=true/3 cavern:CRUNDLE=true/2 cavern:DRUNIAN=true/2 cavern:ELK_BIRD=true/2 cavern:FISH_CAVE=true/2 cavern:FLESH_BALL=true/2 cavern:GREMLIN=true/2 cavern:HUNGRY_HEAD=true/2 cavern:IMP_FIRE=true/2 cavern:JABBERER=true/0 cavern:LOBSTER_CAVE=true/2 cavern:MAGMA_CRAB=true/0 cavern:MOLE_DOG_NAKED=true/0 cavern:MOLE_GIANT=true/0 cavern:OLM_GIANT=true/0 cavern:OLM=true/0 cavern:PLUMP_HELMET_MAN=true/0 cavern:POND_GRABBER=true/0 cavern:RAT_GIANT=true/1 cavern:RAT_LARGE=true/1 cavern:RUTHERER=true/1 cavern:SPIDER_CAVE_GIANT=true/1 cavern:SPIDER_CAVE=true/1 cavern:TOAD_GIANT_CAVE=true/1 cavern:TROGLODYTE=true/1 cavern:VORACIOUS_CAVE_CRAWLER=true/1 CAVY=false/ CHEETAH_MAN=false/ CHEETAH=false/ COUGAR_MAN=false/ COUGAR=false/ DINGO_MAN=false/ DINGO=false/ EAGLE_MAN=false/ ELEPHANT_MAN=false/ ELEPHANT=true/01 FISH_BARRACUDA_GREAT=false/ FISH_BLUEFISH=false/ FISH_COELACANTH=false/ FISH_GROUPER_GIANT=false/ FISH_MARLIN=false/ FISH_MILKFISH=false/ FISH_OPAH=false/ FISH_RAY_MANTA=true/01 FISH_SKATE_COMMON=false/ FISH_STINGRAY=false/ FISH_SUNFISH_OCEAN=true/23 FISH_SWORDFISH=false/ FISH_TUNA_BLUEFIN=false/ FLY_ACORN=true/0123 GIANT_ALBATROSS=false/ GIANT_CHEETAH=false/ GIANT_COUGAR=true/023 GIANT_DINGO=false/ GIANT_EAGLE=true/23 GIANT_GRAY_LANGUR=true/01 GIANT_GREAT_HORNED_OWL=false/ GIANT_HYENA=false/ GIANT_JACKAL=false/ GIANT_JAGUAR=true/0 GIANT_LEOPARD=false/ GIANT_LION=false/ GIANT_ORCA=false/ GIANT_OSPREY=true/23 GIANT_PARAKEET=false/ GIANT_RHINOCEROS=false/ GIANT_SPERM_WHALE=true/23 GIANT_TIGER=false/ GIRAFFE_MAN=false/ HAMSTER=true/0123 HONEY BADGER=true/0 HYENA_MAN=false/ HYENA=false/ JAGUAR_MAN=true/0 JAGUAR=false/ LEOPARD_MAN=false/ LEOPARD=false/ LION_MAN=false/ LION=false/ LIZARD_RHINO_TWO_LEGGED=true/23 ORCA_MAN=true/23 ORCA=false/ OSPREY_MAN=true/23 PANGOLIN=true/01 RAT_MAN=true/0123 RAT=true/0123 RHINOCEROS_MAN=false/ SEA_SERPENT=false/ SHARK_ANGEL=false/ SHARK_BLUE=false/ SHARK_BULL=false/ SHARK_FRILL=false/ SHARK_GREAT_WHITE=false/ SHARK_HAMMERHEAD=false/ SHARK_MAKO_LONGFIN=true/023 SHARK_MAKO_SHORTFIN=false/ SHARK_REEF_BLACKTIP=false/ SHARK_REEF_WHITETIP=true/01 SHARK_SPINY_DOGFISH=true/0123 SHARK_TIGER=false/ SHARK_WHALE=false/ SHARK_WOBBEGONG_SPOTTED=true/0123 SPARROW=true/0123 SPERM_WHALE_MAN=false/ SPERM_WHALE=false/ TIGER_MAN=false/ TIGER=true/0 WARTHOG_MAN=false/ water:BIRD_OSPREY=true/3 water:FISH_MILKFISH=true/2 water:FISH_STINGRAY=true/0 water:GIANT_HIPPO=true/0 water:GIANT_OSPREY=true/2 water:GIANT_OTTER=true/0 water:HIPPO_MAN=true/1 water:HIPPO=true/1 water:OSPREY_MAN=true/2 water:OTTER_MAN=true/1 water:PLATYPUS, GIANT=true/3 water:PLATYPUS=true/3 water:RIVER OTTER=true/1 WILD_BOAR_MAN=false/
+20:27:05   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=17 last=11 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=16 last=55 worst=55 over=1 | groups runs=44 last=0 worst=54 over=2 | water runs=17 last=0 worst=50 over=0 | fuse: intact -- no job has been cancelled
+20:27:05   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+20:29:06   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=34 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=29 last=8 worst=55 over=1 | groups runs=113 last=17 worst=54 over=3 | water runs=21 last=41 worst=50 over=0 | fuse: intact -- no job has been cancelled
+20:29:06   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=61 refreshOverview=0 refreshPanel=0 refresh=17 refreshSeasons=0 refreshWeb=0 refreshLive=34 refreshLayers=0 refreshVermin=34 refreshLedger=0 web:graph=18 web:byseason=0 web:bylayer=0
+20:29:06   + 20754 ticks | wild  79 | arrivals  40 | departures  46 | deaths  5 | 93 t/s
+20:30:53   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=51 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=43 last=11 worst=58 over=2 | groups runs=182 last=0 worst=54 over=3 | water runs=25 last=35 worst=50 over=0 | fuse: intact -- no job has been cancelled
+20:30:53   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=46 refreshOverview=0 refreshPanel=0 refresh=15 refreshSeasons=0 refreshWeb=0 refreshLive=34 refreshLayers=0 refreshVermin=33 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+20:30:53   + 41440 ticks | wild  72 | arrivals  58 | departures  66 | deaths 10 | 191 t/s
+20:32:22   + 60126 ticks | wild  68 | arrivals  78 | departures  88 | deaths 12 | 217 t/s
+20:32:33   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=68 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=57 last=17 worst=58 over=2 | groups runs=251 last=4 worst=54 over=3 | water runs=29 last=0 worst=50 over=0 | fuse: intact -- no job has been cancelled
+20:32:33   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=56 refreshOverview=0 refreshPanel=0 refresh=17 refreshSeasons=0 refreshWeb=0 refreshLive=17 refreshLayers=16 refreshVermin=17 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+20:34:39   + 80680 ticks | wild  56 | arrivals  92 | departures 109 | deaths 17 | 167 t/s
+20:34:52   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=85 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=71 last=17 worst=58 over=2 | groups runs=319 last=0 worst=54 over=3 | water runs=33 last=50 worst=54 over=1 | fuse: intact -- no job has been cancelled
+20:34:52   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=47 refreshOverview=17 refreshPanel=0 refresh=0 refreshSeasons=16 refreshWeb=0 refreshLive=17 refreshLayers=14 refreshVermin=18 refreshLedger=17 web:graph=0 web:byseason=0 web:bylayer=0
+20:36:38   +101368 ticks | wild  72 | arrivals 139 | departures 134 | deaths 23 | 215 t/s
+20:36:46   [rig] back at the title screen
+20:36:46   done: {"arm": "fixed", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 139, "departures": 134, "deaths": 23, "ticks": 101368, "wall_s": 552.8, "stop": null, "ticks_per_s": 183.4, "save_untouched": true}
+20:36:46 == X1 arm=fixed rep=2 fort=BOATS budget=100800 every=2000
+20:36:46   [rig] restored BOATS.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/BOATS
+20:36:46   restored BOATS.preverify -> BOATS sha256 7f5ac40925ab
+20:37:18   [rig] clicked through to BOATS (world: Cadeniat ledef ni); waiting for the map
+20:37:18   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=129220 season=1 units=252)
+20:37:18   [rig] drained 0 queued popup(s)
+20:37:19   baseline: 90 wild units on map, 949 pool entries, tick 129220 year 100
+20:37:19   manipulation: local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','now'); print('x1 now: '..(out or ''):gsub('\n',' | ')) -> x1 now: active: 112  [30 ms] |
+20:37:19   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and not e.locked then local a=cfg.assign[e.key]; o[#o+1]=e.key..'='..(cfg.allow[e.key]==nil and 'nil' or tostring(cfg.allow[e.key]))..'/'..(a and table.concat(a,'') or '') end end; table.sort(o); print('x1 roster '..#o..': '..table.concat(o,' ')) -> x1 roster 137: AARDVARK=true/02 ALBATROSS_MAN=true/23 BIRD_ALBATROSS=false/ BIRD_EAGLE=true/23 BIRD_KESTREL=false/ BIRD_OSPREY=true/23 BIRD_PARAKEET=false/ BIRD_WREN=true/0123 cavern:BAT=true/1 cavern:BIRD_SWALLOW_CAVE_GIANT=true/3 cavern:BIRD_SWALLOW_CAVE=true/3 cavern:BUGBAT=true/3 cavern:CAP_HOPPER=true/3 cavern:CAVE_BLOB=true/3 cavern:CAVE_FLOATER=true/3 cavern:CROCODILE_CAVE=true/3 cavern:CRUNDLE=true/2 cavern:DRUNIAN=true/2 cavern:ELK_BIRD=true/2 cavern:FISH_CAVE=true/2 cavern:FLESH_BALL=true/2 cavern:GREMLIN=true/2 cavern:HUNGRY_HEAD=true/2 cavern:IMP_FIRE=true/2 cavern:JABBERER=true/0 cavern:LOBSTER_CAVE=true/2 cavern:MAGMA_CRAB=true/0 cavern:MOLE_DOG_NAKED=true/0 cavern:MOLE_GIANT=true/0 cavern:OLM_GIANT=true/0 cavern:OLM=true/0 cavern:PLUMP_HELMET_MAN=true/0 cavern:POND_GRABBER=true/0 cavern:RAT_GIANT=true/1 cavern:RAT_LARGE=true/1 cavern:RUTHERER=true/1 cavern:SPIDER_CAVE_GIANT=true/1 cavern:SPIDER_CAVE=true/1 cavern:TOAD_GIANT_CAVE=true/1 cavern:TROGLODYTE=true/1 cavern:VORACIOUS_CAVE_CRAWLER=true/1 CAVY=false/ CHEETAH_MAN=false/ CHEETAH=false/ COUGAR_MAN=false/ COUGAR=false/ DINGO_MAN=false/ DINGO=false/ EAGLE_MAN=false/ ELEPHANT_MAN=false/ ELEPHANT=true/01 FISH_BARRACUDA_GREAT=false/ FISH_BLUEFISH=false/ FISH_COELACANTH=false/ FISH_GROUPER_GIANT=false/ FISH_MARLIN=false/ FISH_MILKFISH=false/ FISH_OPAH=false/ FISH_RAY_MANTA=true/01 FISH_SKATE_COMMON=false/ FISH_STINGRAY=false/ FISH_SUNFISH_OCEAN=true/23 FISH_SWORDFISH=false/ FISH_TUNA_BLUEFIN=false/ FLY_ACORN=true/0123 GIANT_ALBATROSS=false/ GIANT_CHEETAH=false/ GIANT_COUGAR=true/023 GIANT_DINGO=false/ GIANT_EAGLE=true/23 GIANT_GRAY_LANGUR=true/01 GIANT_GREAT_HORNED_OWL=false/ GIANT_HYENA=false/ GIANT_JACKAL=false/ GIANT_JAGUAR=true/0 GIANT_LEOPARD=false/ GIANT_LION=false/ GIANT_ORCA=false/ GIANT_OSPREY=true/23 GIANT_PARAKEET=false/ GIANT_RHINOCEROS=false/ GIANT_SPERM_WHALE=true/23 GIANT_TIGER=false/ GIRAFFE_MAN=false/ HAMSTER=true/0123 HONEY BADGER=true/0 HYENA_MAN=false/ HYENA=false/ JAGUAR_MAN=true/0 JAGUAR=false/ LEOPARD_MAN=false/ LEOPARD=false/ LION_MAN=false/ LION=false/ LIZARD_RHINO_TWO_LEGGED=true/23 ORCA_MAN=true/23 ORCA=false/ OSPREY_MAN=true/23 PANGOLIN=true/01 RAT_MAN=true/0123 RAT=true/0123 RHINOCEROS_MAN=false/ SEA_SERPENT=false/ SHARK_ANGEL=false/ SHARK_BLUE=false/ SHARK_BULL=false/ SHARK_FRILL=false/ SHARK_GREAT_WHITE=false/ SHARK_HAMMERHEAD=false/ SHARK_MAKO_LONGFIN=true/023 SHARK_MAKO_SHORTFIN=false/ SHARK_REEF_BLACKTIP=false/ SHARK_REEF_WHITETIP=true/01 SHARK_SPINY_DOGFISH=true/0123 SHARK_TIGER=false/ SHARK_WHALE=false/ SHARK_WOBBEGONG_SPOTTED=true/0123 SPARROW=true/0123 SPERM_WHALE_MAN=false/ SPERM_WHALE=false/ TIGER_MAN=false/ TIGER=true/0 WARTHOG_MAN=false/ water:BIRD_OSPREY=true/3 water:FISH_MILKFISH=true/2 water:FISH_STINGRAY=true/0 water:GIANT_HIPPO=true/0 water:GIANT_OSPREY=true/2 water:GIANT_OTTER=true/0 water:HIPPO_MAN=true/1 water:HIPPO=true/1 water:OSPREY_MAN=true/2 water:OTTER_MAN=true/1 water:PLATYPUS, GIANT=true/3 water:PLATYPUS=true/3 water:RIVER OTTER=true/1 WILD_BOAR_MAN=false/
+20:37:19   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=102 last=1 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=84 last=50 worst=58 over=2 | groups runs=382 last=0 worst=54 over=3 | water runs=38 last=0 worst=54 over=1 | fuse: intact -- no job has been cancelled
+20:37:19   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+20:39:02   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=119 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=97 last=0 worst=58 over=2 | groups runs=451 last=0 worst=67 over=4 | water runs=42 last=50 worst=54 over=1 | fuse: intact -- no job has been cancelled
+20:39:02   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=57 refreshOverview=0 refreshPanel=0 refresh=23 refreshSeasons=0 refreshWeb=0 refreshLive=32 refreshLayers=11 refreshVermin=34 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+20:39:02   + 20785 ticks | wild  98 | arrivals  51 | departures  43 | deaths  0 | 214 t/s
+20:40:43   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=136 last=5 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=111 last=16 worst=58 over=2 | groups runs=520 last=17 worst=67 over=5 | water runs=46 last=0 worst=54 over=1 | fuse: intact -- no job has been cancelled
+20:40:43   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=54 refreshOverview=16 refreshPanel=0 refresh=12 refreshSeasons=7 refreshWeb=0 refreshLive=31 refreshLayers=0 refreshVermin=34 refreshLedger=0 web:graph=16 web:byseason=0 web:bylayer=0
+20:40:43   + 41521 ticks | wild  86 | arrivals  65 | departures  65 | deaths  4 | 217 t/s
+20:42:18   + 60173 ticks | wild  76 | arrivals  95 | departures 101 | deaths  8 | 208 t/s
+20:42:31   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=153 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=125 last=16 worst=58 over=2 | groups runs=589 last=0 worst=67 over=5 | water runs=50 last=50 worst=67 over=3 | fuse: intact -- no job has been cancelled
+20:42:31   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=65 refreshOverview=0 refreshPanel=0 refresh=16 refreshSeasons=16 refreshWeb=0 refreshLive=17 refreshLayers=17 refreshVermin=34 refreshLedger=0 web:graph=16 web:byseason=0 web:bylayer=0
+20:44:51   + 80634 ticks | wild  76 | arrivals 136 | departures 131 | deaths 19 | 148 t/s
+20:45:05   manipulation: local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) -> x7 jobs:  runs=170 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=139 last=9 worst=58 over=2 | groups runs=657 last=1 worst=67 over=5 | water runs=54 last=0 worst=67 over=4 | fuse: intact -- no job has been cancelled
+20:45:05   manipulation: local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) -> x7 tabs: open=69 refreshOverview=0 refreshPanel=0 refresh=16 refreshSeasons=17 refreshWeb=0 refreshLive=16 refreshLayers=17 refreshVermin=17 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+20:47:02   +101249 ticks | wild  69 | arrivals 176 | departures 162 | deaths 35 | 189 t/s
+20:47:10   [rig] back at the title screen
+20:47:10   done: {"arm": "fixed", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 176, "departures": 162, "deaths": 35, "ticks": 101249, "wall_s": 563.3, "stop": null, "ticks_per_s": 179.8, "save_untouched": true}
+20:47:47   [rig] clicked through to BOATS (world: Cadeniat ledef ni); waiting for the map
+20:47:47   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=129220 season=1 units=252)
+20:47:55   [rig] back at the title screen
+20:47:55 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/X1/20260926-202637
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/X1/20260926-202637
+
+# X1 -- Does the fixed roster keep every inactive species away, on every layer? A season on a copy of the alpha trial fort (Boatsbowed, the tester's own roster: 61 inactive) under v6.3.0, which holds every inactive species at stock 0 or frequency 1 and seasons every active one. Also X7: the job and tab timings over the same season.
+run 20260926-202637 fort BOATS backup BOATS.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Destined Absolute Dimensions site 288 tiles 51..51,62..62 seed FaRoU63yTy56W79PnUIA
+commits: DwarfCron 174e03d seasonal-wildlife 01cdbee fps cap 1000
+
+## Predictions (written before the run)
+- the roster rule holds: no arrival of an inactive species on any layer; no arrival of an unseasoned species; out-of-season arrivals only as a group already drawn before the boundary
+- the cavern floor leaks: a handful of inactive cavern arrivals at frequency 1
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+fixed | 1 | True | None | 101368 | 183.4 | 139 | 134 | 23 |  | 
+fixed | 2 | True | None | 101249 | 179.8 | 176 | 162 | 35 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+fixed | 1 | +2119 | TROLL | 51,62,-1,44,-1,34 | 1 | 28544 | 31031 | departure
+fixed | 1 | +6283 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 8 | 21325,22018,24100,24597,26158,26717,27027,27505 | 12407,12407,10333,14471,14471,20665,37217,16517 | death/departure
+fixed | 1 | +8361 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 1 | 19470 | 20640 | departure
+fixed | 1 | +10419 | DEMON_14 | 51,62,-1,119,-1,4 | 2 | 22567,24701 | 26896,74383 | departure
+fixed | 1 | +12505 | GORLAK | 51,62,-1,69,-1,32 | 1 | 21455 | 24810 | departure
+fixed | 1 | +12505 | DEMON_12 | 51,62,-1,119,-1,0 | 4 | 21658,22330,24395,26128 | 24810,57931,64055,55865 | departure
+fixed | 1 | +12505 | TROLL | 51,62,-1,69,-1,27 | 1 | 27823 | 28935 | departure
+fixed | 1 | +14548 | TROLL | 51,62,-1,69,-1,27 | 1 | 25858 | 31052 | departure
+fixed | 1 | +14548 | REACHER | 51,62,-1,69,-1,28 | 2 | 22276,28267 | 6206,12400 | death
+fixed | 1 | +14548 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 21110 | 28952 | departure
+fixed | 1 | +14548 | GORLAK | 51,61,-1,18,-1,27 | 1 | 21014 | 22767 | departure
+fixed | 1 | +14548 | TROLL | 51,62,-1,18,-1,26 | 1 | 24315 | 22767 | death
+fixed | 1 | +16616 | TROLL | 51,61,-1,18,-1,26 | 1 | 25165 | 14418 | death
+fixed | 1 | +18690 | CAVY | 51,61,-1,-1,-1,81 | 5 | 20301,23998,24996,25225,26961 | 26910,33131,26910,28957,28957 | departure
+fixed | 1 | +18690 | TROLL | 51,62,-1,18,-1,26 | 1 | 21754 | 12344 | death
+fixed | 1 | +20754 | HIPPO | 50,61,0,-1,-1,3 | 1 | 24246 | 33139 | departure
+fixed | 1 | +20754 | RIVER | 50,61,0,-1,-1,4 | 1 | 24246 | 24846 | departure
+fixed | 1 | +20754 | PANGOLIN | 51,61,-1,-1,-1,110 | 1 | 22957 | 24846 | departure
+fixed | 1 | +20754 | ELEPHANT | 51,61,-1,-1,-1,91 | 5 | 20262,20377,22735,25496,26282 | 53759,22746 | death/departure/present
+fixed | 1 | +20754 | GORLAK | 51,62,-1,69,-1,32 | 1 | 26335 | 28977 | departure
+fixed | 1 | +22800 | ELEPHANT | 51,61,-1,-1,-1,91 | 1 | 28087 | 31093 | departure
+fixed | 1 | +26948 | RUTHERER | 51,62,-1,69,-1,20 | 6 | 20253,20450,20700,21589,26151,27920 | 41422,55813,31130,33178,43488,53732 | departure
+fixed | 1 | +29001 | REACHER | 51,62,-1,44,-1,32 | 1 | 21012 | 27013 | departure
+fixed | 1 | +31034 | TROLL | 51,61,-1,18,-1,26 | 1 | 19758 | 2116 | death
+fixed | 1 | +31034 | GORLAK | 51,61,-1,18,-1,27 | 1 | 25855 | 27044 | departure
+fixed | 1 | +33150 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 23972 | 26976 | departure
+fixed | 1 | +33150 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 1 | 20584 | 22864 | departure
+fixed | 1 | +35255 | HIPPO | 50,61,0,-1,-1,3 | 1 | 24745 | 51574 | departure
+fixed | 1 | +37315 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 2 | 23476,26358 | 28973,28973 | departure
+fixed | 1 | +37315 | DEMON_21 | 51,62,-1,119,-1,6 | 2 | 22558,26055 | 26951,49514 | departure
+fixed | 1 | +41440 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23560 | 35120 | departure
+fixed | 1 | +45600 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 27931 | 51600 | departure
+fixed | 1 | +51821 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23179 | 26801 | departure
+fixed | 1 | +53893 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 1 | 18558 | 20620 | departure
+fixed | 1 | +53893 | ELEPHANT | 51,61,-1,-1,-1,91 | 4 | 19459,23069,24200,27423 | 22667,28868,24729,24729 | departure
+fixed | 1 | +56014 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 1 | 27622 | 32908 | departure
+fixed | 1 | +56014 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23986 | 39125 | departure
+fixed | 1 | +56014 | TROGLODYTE | 51,62,-1,44,-1,25 | 8 | 21601,21625,21660,25185,25366,26863,27007,27975 | 28788,30815,30815,30815,22608,30815,26747,28788 | departure
+fixed | 1 | +58078 | TROLL | 51,62,-1,18,-1,26 | 1 | 20907 | 24683 | departure
+fixed | 1 | +60126 | TROLL | 51,62,-1,18,-1,26 | 1 | 27978 | 26703 | death
+fixed | 1 | +60126 | TROLL | 51,62,-1,69,-1,27 | 1 | 29551 | 6162 | death
+fixed | 1 | +66288 | TOAD_GIANT_CAVE | 51,62,-1,18,-1,8 | 1 | 25940 | 28851 | departure
+fixed | 1 | +66288 | TROLL | 51,62,-1,69,-1,27 | 1 | 23444 | 24699 | departure
+fixed | 1 | +66288 | TROLL | 51,61,-1,18,-1,26 | 1 | 28894 | 30912 | departure
+fixed | 1 | +68370 | DEMON_3 | 51,62,-1,119,-1,1 | 4 | 19500,21894,22439,28282 | 24681,26769,28830,26769 | departure
+fixed | 1 | +68370 | RUTHERER | 51,62,-1,69,-1,20 | 3 | 21325,24658,29634 | - | present
+fixed | 1 | +70436 | HIPPO | 50,61,0,-1,-1,3 | 1 | 24564 | 28850 | departure
+fixed | 1 | +76560 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 23440 | - | present
+fixed | 1 | +78622 | GIANT_EAGLE | 50,61,-1,-1,-1,65 | 1 | 27659 | - | present
+fixed | 1 | +80680 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 24320 | - | present
+fixed | 1 | +82761 | GORLAK | 51,62,-1,18,-1,27 | 1 | 28239 | - | present
+fixed | 1 | +82761 | GIANT_EAGLE | 51,61,-1,-1,-1,65 | 1 | 25348 | - | present
+fixed | 1 | +82761 | GORLAK | 51,62,-1,69,-1,32 | 1 | 26234 | - | present
+fixed | 1 | +86829 | GORLAK | 51,62,-1,18,-1,27 | 1 | 28134 | - | present
+fixed | 1 | +86829 | GORLAK | 51,62,-1,44,-1,36 | 1 | 27599 | 10371 | death
+fixed | 1 | +86829 | CRUNDLE | 51,62,-1,44,-1,11 | 11 | 21397,23621,24219,24706,26450,27069,27265,27524,27583,28024,28439 | - | present
+fixed | 1 | +86829 | DEMON_21 | 51,62,-1,119,-1,6 | 1 | 22323 | - | present
+fixed | 1 | +88922 | CRUNDLE | 51,62,-1,44,-1,11 | 7 | 19094,21842,22228,26949,27349,27590,27843 | - | present
+fixed | 1 | +90987 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 24013 | - | present
+fixed | 1 | +90987 | HUNGRY_HEAD | 51,62,-1,69,-1,19 | 6 | 20129,21544,24444,25672,28806,29128 | - | present
+fixed | 1 | +93051 | HUNGRY_HEAD | 51,62,-1,69,-1,19 | 1 | 18573 | - | present
+fixed | 1 | +93051 | DEMON_14 | 51,62,-1,119,-1,4 | 5 | 21435,25891,26922,28296,28615 | - | present
+fixed | 1 | +95139 | ELK_BIRD | 51,62,-1,18,-1,20 | 5 | 20639,21164,22652,24166,27677 | - | present
+fixed | 1 | +95139 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 24861 | - | present
+fixed | 1 | +101368 | IMP_FIRE | 51,62,-1,94,-1,2 | 3 | 18087,25419,26599 | - | present
+fixed | 1 | +101368 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 23632 | - | present
+fixed | 2 | +2124 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 1 | 19575 | 20706 | departure
+fixed | 2 | +8377 | REACHER | 51,62,-1,44,-1,32 | 1 | 26953 | 28950 | death
+fixed | 2 | +10431 | DEMON_14 | 51,62,-1,119,-1,4 | 4 | 18592,20545,22290,28500 | 24827,41452,57914,45626 | departure
+fixed | 2 | +10431 | CAVY | 51,61,-1,-1,-1,81 | 9 | 20364,20516,21237,21312,21916,22080,22085,22106,26811 | 24827,31090,24827,24827,31090,24827,31090,24827,33160 | departure
+fixed | 2 | +10431 | GORLAK | 51,62,-1,18,-1,27 | 1 | 27304 | 14455 | death
+fixed | 2 | +10431 | TROLL | 51,62,-1,69,-1,27 | 1 | 29191 | 66128 | death
+fixed | 2 | +12502 | GORLAK | 51,62,-1,69,-1,32 | 1 | 20068 | 24825 | departure
+fixed | 2 | +14550 | TROLL | 51,62,-1,18,-1,26 | 1 | 21914 | 24867 | departure
+fixed | 2 | +14550 | CREEPING_EYE | 51,62,-1,69,-1,29 | 15 | 19936,20285,20517,21240,21563,23502,23848,24746,26892,27516,28572,28681,28806,29313,29567 | 24867,33153,43546,43546,37333,35223,43546,39425,41507,39425,41507,39425,33153,31074,24867 | departure
+fixed | 2 | +14550 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 27635 | 29041 | departure
+fixed | 2 | +16614 | CREEPING_EYE | 51,62,-1,69,-1,29 | 5 | 18532,19799,22805,24134,24327 | 49711,45603,45603,37361,39443 | death/departure
+fixed | 2 | +16614 | SHARK_WOBBEGONG_SPOTTED | 51,62,-1,-1,-1,24 | 1 | 20958 | 80516 | departure
+fixed | 2 | +16614 | DEMON_22 | 51,62,-1,119,-1,3 | 4 | 20647,22156,23860,25271 | 26977,45603,47643,45603 | departure
+fixed | 2 | +18734 | DEMON_22 | 51,62,-1,119,-1,3 | 1 | 24714 | 43483 | departure
+fixed | 2 | +18734 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 21542 | 8270 | death
+fixed | 2 | +18734 | ELEPHANT | 51,61,-1,-1,-1,91 | 3 | 20928,23898,26403 | 22787,26890,26890 | departure
+fixed | 2 | +20785 | HIPPO | 50,61,0,-1,-1,3 | 1 | 24215 | 28988 | departure
+fixed | 2 | +22830 | REACHER | 51,62,-1,44,-1,32 | 1 | 26497 | 29053 | death
+fixed | 2 | +24886 | TROLL | 51,62,-1,18,-1,26 | 1 | 25784 | 26997 | departure
+fixed | 2 | +27004 | HIPPO | 50,61,0,-1,-1,3 | 1 | 22996 | 24879 | departure
+fixed | 2 | +27004 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 25905 | 35213 | departure
+fixed | 2 | +31116 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23884 | 49518 | departure
+fixed | 2 | +31116 | RIVER | 50,61,0,-1,-1,4 | 1 | 23884 | 29057 | departure
+fixed | 2 | +31116 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 1 | 24030 | 20767 | death
+fixed | 2 | +33211 | TROGLODYTE | 51,62,-1,44,-1,25 | 5 | 20338,23633,25555,25884,28329 | 24885,31046,29006,26962,4116 | death/departure
+fixed | 2 | +39417 | TROLL | 51,61,-1,18,-1,26 | 1 | 25065 | 16640 | death
+fixed | 2 | +41521 | PANGOLIN | 51,61,-1,-1,-1,110 | 1 | 21816 | 51435 | departure
+fixed | 2 | +43591 | TOAD_GIANT_CAVE | 51,62,-1,18,-1,8 | 1 | 27297 | 32968 | departure
+fixed | 2 | +43591 | RAT_MAN | 51,61,-1,-1,-1,104 | 5 | 21911,24178,24832,25766,28488 | 16582,26821,30935,24754,26821 | death/departure
+fixed | 2 | +45624 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 2 | 22493,28187 | 39084,53555 | departure
+fixed | 2 | +51883 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23117 | 30802 | departure
+fixed | 2 | +51883 | TROLL | 51,61,-1,18,-1,26 | 1 | 27502 | 28751 | departure
+fixed | 2 | +51883 | TROGLODYTE | 51,62,-1,44,-1,25 | 7 | 20093,20403,21305,25043,25182,27922,29338 | 24676,30802,30802,32825,28751,32825,26696 | departure
+fixed | 2 | +51883 | TROLL | 51,62,-1,18,-1,26 | 1 | 24237 | 26696 | departure
+fixed | 2 | +53975 | TROGLODYTE | 51,62,-1,44,-1,25 | 3 | 18230,22387,25521 | 26659,28710,26659 | departure
+fixed | 2 | +56057 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23943 | 24577 | departure
+fixed | 2 | +58096 | TROLL | 51,62,-1,18,-1,26 | 1 | 18150 | 20483 | departure
+fixed | 2 | +58096 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 1 | 28408 | 32798 | departure
+fixed | 2 | +60173 | ELEPHANT | 51,61,-1,-1,-1,91 | 5 | 23977,24007,24559,27372,27969 | 26611,28643,28643,26611,30721 | departure
+fixed | 2 | +60173 | HIPPO | 50,61,0,-1,-1,3 | 1 | 24827 | - | present
+fixed | 2 | +62217 | ELEPHANT | 51,61,-1,-1,-1,91 | 2 | 21895,24435 | 26599 | departure/present
+fixed | 2 | +62217 | DEMON_14 | 51,62,-1,119,-1,4 | 3 | 22544,25271,26400 | 24567 | departure/present
+fixed | 2 | +62217 | REACHER | 51,62,-1,69,-1,28 | 1 | 20507 | 6128 | death
+fixed | 2 | +62217 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 1 | 25450 | 28677 | departure
+fixed | 2 | +64257 | DEMON_14 | 51,62,-1,119,-1,4 | 1 | 28615 | - | present
+fixed | 2 | +64257 | GORLAK | 51,62,-1,18,-1,27 | 1 | 18183 | 24559 | departure
+fixed | 2 | +66325 | HIPPO | 50,61,0,-1,-1,3 | 1 | 23675 | 26631 | departure
+fixed | 2 | +66325 | GORLAK | 51,62,-1,69,-1,32 | 1 | 26107 | 6151 | death
+fixed | 2 | +68345 | DEMON_14 | 51,62,-1,119,-1,4 | 4 | 23442,23903,25686,27166 | 24611,26710,26710,28785 | departure
+fixed | 2 | +68345 | GORLAK | 51,62,-1,69,-1,32 | 1 | 26412 | 4131 | death
+fixed | 2 | +72476 | REACHER | 51,62,-1,69,-1,28 | 1 | 19706 | 6103 | death
+fixed | 2 | +72476 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 1 | 28154 | 28773 | departure
+fixed | 2 | +76559 | CRUNDLE | 51,62,-1,69,-1,12 | 17 | 19688,21006,21132,23175,23511,23766,24101,24227,25228,26163,26387,26660,27157,27488,27764,28300,28641 | 12257,4075,12257,14335,8149,8149,12257,8149,8149,6126,6126,8149,4075,8149,12257,6126 | death/present
+fixed | 2 | +76559 | ELK_BIRD | 51,61,-1,18,-1,20 | 6 | 19606,21222,24190,27002,27248,29228 | - | present
+fixed | 2 | +82685 | REACHER | 51,62,-1,44,-1,32 | 1 | 23243 | - | present
+fixed | 2 | +82685 | ELK_BIRD | 51,62,-1,44,-1,23 | 6 | 19774,22733,23148,24191,25792,26013 | - | present
+fixed | 2 | +84708 | ELEMENTMAN_FIRE | 51,62,-1,94,-1,3 | 1 | 19073 | - | present
+fixed | 2 | +86784 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 23216 | - | present
+fixed | 2 | +86784 | GIANT_OSPREY | 50,61,0,-1,-1,8 | 1 | 23216 | - | present
+fixed | 2 | +86784 | OSPREY_MAN | 50,61,0,-1,-1,11 | 1 | 23216 | - | present
+fixed | 2 | +88816 | ELEPHANT | 51,61,-1,-1,-1,91 | 6 | 19603,25655,26130,26645,27616,29281 | - | present
+fixed | 2 | +90894 | HUNGRY_HEAD | 51,62,-1,69,-1,19 | 5 | 20916,23714,25683,26631,27560 | 8285 | death/present
+fixed | 2 | +90894 | GIANT_OSPREY | 51,62,-1,-1,-1,10 | 1 | 26197 | - | present
+fixed | 2 | +90894 | ELEPHANT | 51,61,-1,-1,-1,91 | 5 | 20578,21419,24440,24642,27088 | - | present
+fixed | 2 | +95055 | GIANT_EAGLE | 51,61,-1,-1,-1,65 | 1 | 18307 | - | present
+fixed | 2 | +95055 | RAT_MAN | 51,61,-1,-1,-1,104 | 4 | 18695,18951,21060,26407 | 6194 | death/present
+fixed | 2 | +95055 | DEMON_12 | 51,62,-1,119,-1,0 | 3 | 22022,22292,25333 | - | present
+fixed | 2 | +95055 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 1 | 24945 | - | present
+fixed | 2 | +99179 | IMP_FIRE | 51,62,-1,94,-1,2 | 3 | 19747,21090,25622 | - | present
+
+## Waves (127; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+fixed | 1 | +2119 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +6283 | GIANT_GRAY_LANGUR | surface | 8 | 3 | 5 | 0
+fixed | 1 | +8361 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +10419 | DEMON_14 | deep | 2 | 2 | 0 | 0
+fixed | 1 | +10419 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +12505 | DEMON_12 | deep | 4 | 4 | 0 | 0
+fixed | 1 | +12505 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +14548 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +14548 | REACHER | cavern | 2 | 0 | 2 | 0
+fixed | 1 | +14548 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +14548 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +14548 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +16616 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +18690 | CAVY | surface | 5 | 5 | 0 | 0
+fixed | 1 | +18690 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +20754 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +20754 | RIVER | feature | 1 | 1 | 0 | 0
+fixed | 1 | +20754 | PANGOLIN | surface | 1 | 1 | 0 | 0
+fixed | 1 | +20754 | ELEPHANT | surface | 6 | 2 | 1 | 3
+fixed | 1 | +20754 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +26948 | RUTHERER | cavern | 6 | 6 | 0 | 0
+fixed | 1 | +29001 | REACHER | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +31034 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +31034 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +33150 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +33150 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +35255 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +37315 | TOAD_GIANT_CAVE | cavern | 2 | 2 | 0 | 0
+fixed | 1 | +37315 | DEMON_21 | deep | 2 | 2 | 0 | 0
+fixed | 1 | +41440 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +45600 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +51821 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +53893 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +53893 | ELEPHANT | surface | 4 | 4 | 0 | 0
+fixed | 1 | +56014 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +56014 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +56014 | TROGLODYTE | cavern | 8 | 8 | 0 | 0
+fixed | 1 | +58078 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +60126 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +60126 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +66288 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +66288 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +66288 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 1 | +68370 | DEMON_3 | deep | 4 | 4 | 0 | 0
+fixed | 1 | +68370 | RUTHERER | cavern | 3 | 0 | 0 | 3
+fixed | 1 | +70436 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 1 | +76560 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 1 | +78622 | GIANT_EAGLE | surface | 1 | 0 | 0 | 1
+fixed | 1 | +80680 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 1 | +82761 | GORLAK | cavern | 1 | 0 | 0 | 1
+fixed | 1 | +82761 | GIANT_EAGLE | surface | 1 | 0 | 0 | 1
+fixed | 1 | +82761 | GORLAK | cavern | 1 | 0 | 0 | 1
+fixed | 1 | +86829 | GORLAK | cavern | 1 | 0 | 0 | 1
+fixed | 1 | +86829 | GORLAK | cavern | 1 | 0 | 1 | 0
+fixed | 1 | +86829 | CRUNDLE | cavern | 18 | 0 | 0 | 18
+fixed | 1 | +86829 | DEMON_21 | deep | 1 | 0 | 0 | 1
+fixed | 1 | +90987 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 1 | +90987 | HUNGRY_HEAD | cavern | 7 | 0 | 0 | 7
+fixed | 1 | +93051 | DEMON_14 | deep | 5 | 0 | 0 | 5
+fixed | 1 | +95139 | ELK_BIRD | cavern | 5 | 0 | 0 | 5
+fixed | 1 | +95139 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 1 | +101368 | IMP_FIRE | deep | 3 | 0 | 0 | 3
+fixed | 1 | +101368 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 2 | +2124 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +8377 | REACHER | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +10431 | DEMON_14 | deep | 4 | 4 | 0 | 0
+fixed | 2 | +10431 | CAVY | surface | 9 | 9 | 0 | 0
+fixed | 2 | +10431 | GORLAK | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +10431 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +10431 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +14550 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +14550 | CREEPING_EYE | cavern | 20 | 18 | 2 | 0
+fixed | 2 | +14550 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +16614 | SHARK_WOBBEGONG_SPOTTED | surface | 1 | 1 | 0 | 0
+fixed | 2 | +16614 | DEMON_22 | deep | 5 | 5 | 0 | 0
+fixed | 2 | +18734 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +18734 | ELEPHANT | surface | 3 | 3 | 0 | 0
+fixed | 2 | +20785 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +22830 | REACHER | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +24886 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +27004 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +27004 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +31116 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +31116 | RIVER | feature | 1 | 1 | 0 | 0
+fixed | 2 | +31116 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +33211 | TROGLODYTE | cavern | 5 | 4 | 1 | 0
+fixed | 2 | +39417 | TROLL | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +41521 | PANGOLIN | surface | 1 | 1 | 0 | 0
+fixed | 2 | +43591 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +43591 | RAT_MAN | surface | 5 | 4 | 1 | 0
+fixed | 2 | +45624 | MAGMA_CRAB | deep | 2 | 2 | 0 | 0
+fixed | 2 | +51883 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +51883 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +51883 | TROGLODYTE | cavern | 10 | 10 | 0 | 0
+fixed | 2 | +51883 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +56057 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +58096 | TROLL | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +58096 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +60173 | ELEPHANT | surface | 7 | 6 | 0 | 1
+fixed | 2 | +60173 | HIPPO | feature | 1 | 0 | 0 | 1
+fixed | 2 | +62217 | DEMON_14 | deep | 4 | 1 | 0 | 3
+fixed | 2 | +62217 | REACHER | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +62217 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +62217 | GORLAK | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +66325 | HIPPO | feature | 1 | 1 | 0 | 0
+fixed | 2 | +66325 | GORLAK | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +68345 | DEMON_14 | deep | 4 | 4 | 0 | 0
+fixed | 2 | +68345 | GORLAK | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +72476 | REACHER | cavern | 1 | 0 | 1 | 0
+fixed | 2 | +72476 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+fixed | 2 | +76559 | CRUNDLE | cavern | 17 | 0 | 16 | 1
+fixed | 2 | +76559 | ELK_BIRD | cavern | 6 | 0 | 0 | 6
+fixed | 2 | +82685 | REACHER | cavern | 1 | 0 | 0 | 1
+fixed | 2 | +82685 | ELK_BIRD | cavern | 6 | 0 | 0 | 6
+fixed | 2 | +84708 | ELEMENTMAN_FIRE | deep | 1 | 0 | 0 | 1
+fixed | 2 | +86784 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 2 | +86784 | GIANT_OSPREY | feature | 1 | 0 | 0 | 1
+fixed | 2 | +86784 | OSPREY_MAN | feature | 1 | 0 | 0 | 1
+fixed | 2 | +88816 | ELEPHANT | surface | 6 | 0 | 0 | 6
+fixed | 2 | +90894 | HUNGRY_HEAD | cavern | 5 | 0 | 1 | 4
+fixed | 2 | +90894 | GIANT_OSPREY | surface | 1 | 0 | 0 | 1
+fixed | 2 | +90894 | ELEPHANT | surface | 5 | 0 | 0 | 5
+fixed | 2 | +95055 | GIANT_EAGLE | surface | 1 | 0 | 0 | 1
+fixed | 2 | +95055 | RAT_MAN | surface | 4 | 0 | 1 | 3
+fixed | 2 | +95055 | DEMON_12 | deep | 3 | 0 | 0 | 3
+fixed | 2 | +95055 | FISH_MILKFISH | feature | 1 | 0 | 0 | 1
+fixed | 2 | +99179 | IMP_FIRE | deep | 3 | 0 | 0 | 3
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+fixed | 1 | unit 2860 TROLL: 28544 -> 0 over 28915 ticks (slope -0.987/tick)
+fixed | 1 | unit 2861 GIANT_GRAY_LANGUR: 22018 -> 11685 over 10333 ticks (slope -1.000/tick)
+fixed | 1 | unit 2862 GIANT_GRAY_LANGUR: 26717 -> 16384 over 10333 ticks (slope -1.000/tick)
+fixed | 1 | unit 2870 TOAD_GIANT_CAVE: 19470 -> 883 over 18587 ticks (slope -1.000/tick)
+fixed | 1 | unit 2871 DEMON_14: 24701 -> 0 over 24836 ticks (slope -0.995/tick)
+fixed | 1 | unit 2872 DEMON_14: 22567 -> 0 over 72342 ticks (slope -0.312/tick)
+fixed | 1 | unit 2873 GORLAK: 21455 -> 0 over 22750 ticks (slope -0.943/tick)
+fixed | 1 | unit 2874 DEMON_12: 21658 -> 0 over 22750 ticks (slope -0.952/tick)
+fixed | 1 | unit 2875 DEMON_12: 24395 -> 0 over 55865 ticks (slope -0.437/tick)
+fixed | 1 | unit 2878 TROLL: 27823 -> 969 over 26847 ticks (slope -1.000/tick)
+fixed | 1 | unit 2879 TROLL: 25858 -> 0 over 28952 ticks (slope -0.893/tick)
+fixed | 1 | unit 2880 REACHER: 28267 -> 24125 over 4142 ticks (slope -1.000/tick)
+fixed | 1 | unit 2882 REACHER: 22276 -> 11953 over 10322 ticks (slope -1.000/tick)
+fixed | 1 | unit 2881 TOAD_GIANT_CAVE: 21110 -> 0 over 26892 ticks (slope -0.785/tick)
+fixed | 1 | unit 2883 GORLAK: 21014 -> 306 over 20707 ticks (slope -1.000/tick)
+fixed | 1 | unit 2884 TROLL: 24315 -> 3602 over 20707 ticks (slope -1.000/tick)
+fixed | 1 | unit 2885 TROLL: 25165 -> 12780 over 12385 ticks (slope -1.000/tick)
+fixed | 1 | unit 2886 CAVY: 24996 -> 184 over 24810 ticks (slope -1.000/tick)
+fixed | 1 | unit 2887 CAVY: 25225 -> 0 over 31041 ticks (slope -0.813/tick)
+fixed | 1 | unit 2891 TROLL: 21754 -> 11441 over 10311 ticks (slope -1.000/tick)
+fixed | 1 | unit 2892 HIPPO: 24246 -> 0 over 31067 ticks (slope -0.780/tick)
+fixed | 1 | unit 2893 RIVER: 24246 -> 1499 over 22746 ticks (slope -1.000/tick)
+fixed | 1 | unit 2894 PANGOLIN: 22957 -> 210 over 22746 ticks (slope -1.000/tick)
+fixed | 1 | unit 2895 ELEPHANT: 20377 -> 0 over 80614 ticks (slope -0.253/tick)
+fixed | 1 | unit 2896 ELEPHANT: 26282 -> 0 over 80614 ticks (slope -0.326/tick)
+fixed | 1 | unit 2901 GORLAK: 26335 -> 0 over 26893 ticks (slope -0.979/tick)
+fixed | 1 | unit 2899 ELEPHANT: 28087 -> 0 over 29021 ticks (slope -0.968/tick)
+fixed | 1 | unit 2902 RUTHERER: 27920 -> 0 over 39340 ticks (slope -0.710/tick)
+fixed | 1 | unit 2903 RUTHERER: 20700 -> 0 over 53732 ticks (slope -0.385/tick)
+fixed | 1 | unit 2908 REACHER: 21012 -> 0 over 24892 ticks (slope -0.844/tick)
+fixed | 1 | unit 2910 GORLAK: 25855 -> 872 over 24980 ticks (slope -1.000/tick)
+fixed | 1 | unit 2911 TOAD_GIANT_CAVE: 23972 -> 0 over 24928 ticks (slope -0.962/tick)
+fixed | 1 | unit 2912 TOAD_GIANT_CAVE: 20584 -> 0 over 20743 ticks (slope -0.992/tick)
+fixed | 1 | unit 2913 HIPPO: 24745 -> 0 over 49547 ticks (slope -0.499/tick)
+fixed | 1 | unit 2914 TOAD_GIANT_CAVE: 23476 -> 0 over 26951 ticks (slope -0.871/tick)
+fixed | 1 | unit 2915 TOAD_GIANT_CAVE: 26358 -> 0 over 26951 ticks (slope -0.978/tick)
+fixed | 1 | unit 2916 DEMON_21: 26055 -> 1168 over 24882 ticks (slope -1.000/tick)
+fixed | 1 | unit 2917 DEMON_21: 22558 -> 0 over 47487 ticks (slope -0.475/tick)
+fixed | 1 | unit 2918 HIPPO: 23560 -> 0 over 33073 ticks (slope -0.712/tick)
+fixed | 1 | unit 2919 TOAD_GIANT_CAVE: 27931 -> 0 over 49539 ticks (slope -0.564/tick)
+fixed | 1 | unit 2920 HIPPO: 23179 -> 0 over 24739 ticks (slope -0.937/tick)
+fixed | 1 | unit 2921 TOAD_GIANT_CAVE: 18558 -> 0 over 18586 ticks (slope -0.998/tick)
+fixed | 1 | unit 2922 ELEPHANT: 19459 -> 0 over 20620 ticks (slope -0.944/tick)
+fixed | 1 | unit 2926 TOAD_GIANT_CAVE: 27622 -> 0 over 30815 ticks (slope -0.896/tick)
+fixed | 1 | unit 2927 HIPPO: 23986 -> 0 over 37037 ticks (slope -0.648/tick)
+fixed | 1 | unit 2928 TROGLODYTE: 27007 -> 255 over 26747 ticks (slope -1.000/tick)
+fixed | 1 | unit 2936 TROLL: 20907 -> 0 over 22602 ticks (slope -0.925/tick)
+fixed | 1 | unit 2937 TROLL: 27978 -> 3297 over 24676 ticks (slope -1.000/tick)
+fixed | 1 | unit 2938 TROLL: 29551 -> 25411 over 4140 ticks (slope -1.000/tick)
+fixed | 1 | unit 2940 TOAD_GIANT_CAVE: 25940 -> 0 over 26763 ticks (slope -0.969/tick)
+fixed | 1 | unit 2941 TROLL: 23444 -> 809 over 22634 ticks (slope -1.000/tick)
+fixed | 1 | unit 2942 TROLL: 28894 -> 40 over 28851 ticks (slope -1.000/tick)
+fixed | 1 | unit 2943 DEMON_3: 19500 -> 0 over 22617 ticks (slope -0.862/tick)
+fixed | 1 | unit 2947 RUTHERER: 29634 -> 0 over 32998 ticks (slope -0.898/tick)
+fixed | 1 | unit 2950 HIPPO: 24564 -> 0 over 26764 ticks (slope -0.918/tick)
+fixed | 1 | unit 2951 FISH_MILKFISH: 23440 -> 0 over 24808 ticks (slope -0.945/tick)
+fixed | 1 | unit 2952 GIANT_EAGLE: 27659 -> 4913 over 22746 ticks (slope -1.000/tick)
+fixed | 1 | unit 2953 FISH_MILKFISH: 24320 -> 3632 over 20688 ticks (slope -1.000/tick)
+fixed | 1 | unit 2954 GORLAK: 28239 -> 9630 over 18607 ticks (slope -1.000/tick)
+fixed | 1 | unit 2955 GIANT_EAGLE: 25348 -> 6741 over 18607 ticks (slope -1.000/tick)
+fixed | 1 | unit 2956 GORLAK: 26234 -> 7626 over 18607 ticks (slope -1.000/tick)
+fixed | 1 | unit 2966 GORLAK: 28134 -> 13595 over 14539 ticks (slope -1.000/tick)
+fixed | 1 | unit 2967 GORLAK: 27599 -> 19286 over 8310 ticks (slope -1.000/tick)
+fixed | 1 | unit 2968 CRUNDLE: 27265 -> 12724 over 14539 ticks (slope -1.000/tick)
+fixed | 1 | unit 2986 DEMON_21: 22323 -> 7778 over 14539 ticks (slope -1.000/tick)
+fixed | 1 | unit 2972 CRUNDLE: 27349 -> 14900 over 12446 ticks (slope -1.000/tick)
+fixed | 1 | unit 2987 FISH_MILKFISH: 24013 -> 13632 over 10381 ticks (slope -1.000/tick)
+fixed | 1 | unit 2988 HUNGRY_HEAD: 25672 -> 15291 over 10381 ticks (slope -1.000/tick)
+fixed | 1 | unit 2994 HUNGRY_HEAD: 18573 -> 10256 over 8317 ticks (slope -1.000/tick)
+fixed | 1 | unit 2995 DEMON_14: 26922 -> 18604 over 8317 ticks (slope -1.000/tick)
+fixed | 1 | unit 3000 ELK_BIRD: 20639 -> 14410 over 6229 ticks (slope -1.000/tick)
+fixed | 1 | unit 3005 FISH_MILKFISH: 24861 -> 18632 over 6229 ticks (slope -1.000/tick)
+fixed | 2 | unit 2860 TOAD_GIANT_CAVE: 19575 -> 912 over 18661 ticks (slope -1.000/tick)
+fixed | 2 | unit 2861 REACHER: 26953 -> 72 over 26881 ticks (slope -1.000/tick)
+fixed | 2 | unit 2862 DEMON_14: 22290 -> 0 over 22780 ticks (slope -0.978/tick)
+fixed | 2 | unit 2866 CAVY: 22106 -> 0 over 22780 ticks (slope -0.970/tick)
+fixed | 2 | unit 2875 GORLAK: 27304 -> 14903 over 12399 ticks (slope -1.000/tick)
+fixed | 2 | unit 2876 TROLL: 29191 -> 0 over 64095 ticks (slope -0.455/tick)
+fixed | 2 | unit 2877 GORLAK: 20068 -> 0 over 22756 ticks (slope -0.882/tick)
+fixed | 2 | unit 2878 TROLL: 21914 -> 0 over 22777 ticks (slope -0.962/tick)
+fixed | 2 | unit 2879 CREEPING_EYE: 21563 -> 0 over 22777 ticks (slope -0.947/tick)
+fixed | 2 | unit 2899 TOAD_GIANT_CAVE: 27635 -> 664 over 26971 ticks (slope -1.000/tick)
+fixed | 2 | unit 2887 CREEPING_EYE: 18532 -> 0 over 47643 ticks (slope -0.389/tick)
+fixed | 2 | unit 2900 SHARK_WOBBEGONG_SPOTTED: 20958 -> 0 over 78441 ticks (slope -0.267/tick)
+fixed | 2 | unit 2901 DEMON_22: 23860 -> 0 over 24907 ticks (slope -0.958/tick)
+fixed | 2 | unit 2905 DEMON_22: 24714 -> 0 over 41439 ticks (slope -0.596/tick)
+fixed | 2 | unit 2907 TOAD_GIANT_CAVE: 21542 -> 15390 over 6152 ticks (slope -1.000/tick)
+fixed | 2 | unit 2908 ELEPHANT: 20928 -> 245 over 20683 ticks (slope -1.000/tick)
+fixed | 2 | unit 2911 HIPPO: 24215 -> 0 over 26918 ticks (slope -0.900/tick)
+fixed | 2 | unit 2912 REACHER: 26497 -> 0 over 26943 ticks (slope -0.983/tick)
+fixed | 2 | unit 2913 TROLL: 25784 -> 895 over 24887 ticks (slope -1.000/tick)
+fixed | 2 | unit 2914 HIPPO: 22996 -> 227 over 22769 ticks (slope -1.000/tick)
+fixed | 2 | unit 2915 TOAD_GIANT_CAVE: 25905 -> 0 over 33169 ticks (slope -0.781/tick)
+fixed | 2 | unit 2916 HIPPO: 23884 -> 0 over 47463 ticks (slope -0.503/tick)
+fixed | 2 | unit 2917 RIVER: 23884 -> 0 over 26980 ticks (slope -0.885/tick)
+fixed | 2 | unit 2918 TOAD_GIANT_CAVE: 24030 -> 5372 over 18657 ticks (slope -1.000/tick)
+fixed | 2 | unit 2919 TROGLODYTE: 20338 -> 0 over 22846 ticks (slope -0.890/tick)
+fixed | 2 | unit 2924 TROLL: 25065 -> 10506 over 14558 ticks (slope -1.000/tick)
+fixed | 2 | unit 2925 PANGOLIN: 21816 -> 0 over 49373 ticks (slope -0.442/tick)
+fixed | 2 | unit 2926 TOAD_GIANT_CAVE: 27297 -> 0 over 30935 ticks (slope -0.882/tick)
+fixed | 2 | unit 2927 RAT_MAN: 25766 -> 11258 over 14505 ticks (slope -1.000/tick)
+fixed | 2 | unit 2932 MAGMA_CRAB: 28187 -> 0 over 37061 ticks (slope -0.761/tick)
+fixed | 2 | unit 2934 HIPPO: 23117 -> 0 over 28751 ticks (slope -0.804/tick)
+fixed | 2 | unit 2935 TROLL: 27502 -> 802 over 26696 ticks (slope -1.000/tick)
+fixed | 2 | unit 2936 TROGLODYTE: 20403 -> 0 over 22643 ticks (slope -0.901/tick)
+fixed | 2 | unit 2946 TROLL: 24237 -> 0 over 24676 ticks (slope -0.982/tick)
+fixed | 2 | unit 2942 TROGLODYTE: 22387 -> 0 over 24604 ticks (slope -0.910/tick)
+fixed | 2 | unit 2947 HIPPO: 23943 -> 1421 over 22522 ticks (slope -1.000/tick)
+fixed | 2 | unit 2948 TROLL: 18150 -> 0 over 18463 ticks (slope -0.983/tick)
+fixed | 2 | unit 2949 SPIDER_CAVE_GIANT: 28408 -> 0 over 30720 ticks (slope -0.925/tick)
+fixed | 2 | unit 2950 ELEPHANT: 24559 -> 22 over 24535 ticks (slope -1.000/tick)
+fixed | 2 | unit 2957 HIPPO: 24827 -> 0 over 41076 ticks (slope -0.604/tick)
+fixed | 2 | unit 2952 ELEPHANT: 24435 -> 0 over 24567 ticks (slope -0.995/tick)
+fixed | 2 | unit 2958 DEMON_14: 22544 -> 48 over 22491 ticks (slope -1.000/tick)
+fixed | 2 | unit 2962 REACHER: 20507 -> 16398 over 4108 ticks (slope -1.000/tick)
+fixed | 2 | unit 2963 SPIDER_CAVE_GIANT: 25450 -> 0 over 26599 ticks (slope -0.957/tick)
+fixed | 2 | unit 2961 DEMON_14: 28615 -> 0 over 36992 ticks (slope -0.774/tick)
+fixed | 2 | unit 2964 GORLAK: 18183 -> 0 over 22527 ticks (slope -0.807/tick)
+fixed | 2 | unit 2965 HIPPO: 23675 -> 0 over 24569 ticks (slope -0.964/tick)
+fixed | 2 | unit 2966 GORLAK: 26107 -> 22020 over 4087 ticks (slope -1.000/tick)
+fixed | 2 | unit 2967 DEMON_14: 23442 -> 889 over 22549 ticks (slope -1.000/tick)
+fixed | 2 | unit 2971 GORLAK: 26412 -> 24345 over 2067 ticks (slope -1.000/tick)
+fixed | 2 | unit 2972 REACHER: 19706 -> 15623 over 4083 ticks (slope -1.000/tick)
+fixed | 2 | unit 2973 SPIDER_CAVE_GIANT: 28154 -> 1449 over 26703 ticks (slope -1.000/tick)
+fixed | 2 | unit 2974 CRUNDLE: 26387 -> 16161 over 10225 ticks (slope -1.000/tick)
+fixed | 2 | unit 2991 ELK_BIRD: 27002 -> 2310 over 24690 ticks (slope -1.000/tick)
+fixed | 2 | unit 2997 REACHER: 23243 -> 4679 over 18564 ticks (slope -1.000/tick)
+fixed | 2 | unit 2998 ELK_BIRD: 25792 -> 7227 over 18564 ticks (slope -1.000/tick)
+fixed | 2 | unit 3004 ELEMENTMAN_FIRE: 19073 -> 2532 over 16541 ticks (slope -1.000/tick)
+fixed | 2 | unit 3005 FISH_MILKFISH: 23216 -> 8751 over 14465 ticks (slope -1.000/tick)
+fixed | 2 | unit 3006 GIANT_OSPREY: 23216 -> 8751 over 14465 ticks (slope -1.000/tick)
+fixed | 2 | unit 3007 OSPREY_MAN: 23216 -> 8751 over 14465 ticks (slope -1.000/tick)
+fixed | 2 | unit 3014 ELEPHANT: 26130 -> 13697 over 12433 ticks (slope -1.000/tick)
+fixed | 2 | unit 3020 HUNGRY_HEAD: 20916 -> 10561 over 10355 ticks (slope -1.000/tick)
+fixed | 2 | unit 3025 GIANT_OSPREY: 26197 -> 15842 over 10355 ticks (slope -1.000/tick)
+fixed | 2 | unit 3026 ELEPHANT: 20578 -> 10223 over 10355 ticks (slope -1.000/tick)
+fixed | 2 | unit 3031 GIANT_EAGLE: 18307 -> 12113 over 6194 ticks (slope -1.000/tick)
+fixed | 2 | unit 3032 RAT_MAN: 18951 -> 12757 over 6194 ticks (slope -1.000/tick)
+fixed | 2 | unit 3036 DEMON_12: 22292 -> 16098 over 6194 ticks (slope -1.000/tick)
+fixed | 2 | unit 3039 FISH_MILKFISH: 24945 -> 18751 over 6194 ticks (slope -1.000/tick)
+fixed | 2 | unit 3040 IMP_FIRE: 19747 -> 17677 over 2070 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+fixed | 1 | departure | 2324 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 0 -> 0
+fixed | 1 | departure | 2551 | CREEPING_EYE | 51,62,-1,69,-1,29 | 406 -> 407 -> 410
+fixed | 1 | departure | 2824 | CRUNDLE | 51,62,-1,44,-1,11 | 0 -> 0 -> 0
+fixed | 1 | departure | 2549 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 1 | departure | 2552 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 1 | departure | 2553 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 1 | departure | 2694 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | departure | 2809 | BIRD_KESTREL | 50,61,-1,-1,-1,62 | 0 -> 0 -> 0
+fixed | 1 | departure | 2556 | CREEPING_EYE | 51,62,-1,69,-1,29 | 410 -> 411 -> 411
+fixed | 1 | departure | 2603 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2695 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | departure | 2696 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | departure | 2540 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 1 -> 0
+fixed | 1 | departure | 2826 | CRUNDLE | 51,62,-1,44,-1,11 | 0 -> 0 -> 0
+fixed | 1 | departure | 2833 | CROCODILE_CAVE | 51,61,-1,18,-1,11 | 0 -> 1 -> 0
+fixed | 1 | departure | 2836 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 1 | departure | 2777 | CRUNDLE | 51,62,-1,69,-1,12 | 0 -> 1 -> 0
+fixed | 1 | departure | 2834 | TROLL | 51,62,-1,18,-1,26 | 4 -> 5 -> 5
+fixed | 1 | departure | 2840 | CAVY | 51,61,-1,-1,-1,81 | 1 -> 0 -> 1
+fixed | 1 | departure | 2854 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2699 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 0 -> 0
+fixed | 1 | departure | 2830 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2831 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2835 | BIRD_KESTREL | 50,61,-1,-1,-1,62 | 0 -> 0 -> 0
+fixed | 1 | departure | 2839 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 1 | departure | 2841 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 1 | departure | 2843 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | departure | 2852 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 0 -> 1 -> 0
+fixed | 1 | departure | 2700 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 0 -> 0
+fixed | 1 | departure | 2832 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2844 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | departure | 2845 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | departure | 2848 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | departure | 2849 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 1 -> 0 -> 0
+fixed | 1 | departure | 2850 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 1 -> 0 -> 0
+fixed | 1 | departure | 2851 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 1 -> 0 -> 0
+fixed | 1 | departure | 2846 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | departure | 2855 | BIRD_OSPREY | 50,61,0,-1,-1,0 | 0 -> 1 -> 0
+fixed | 1 | death | 2863 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 92 -> 92 -> 0
+fixed | 1 | departure | 2602 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2652 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2796 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 0 -> 1 -> 0
+fixed | 1 | departure | 2837 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 1 | departure | 2838 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 1 | departure | 2842 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 1 | departure | 2847 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 1 | death | 2861 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 92 -> 0 -> 0
+fixed | 1 | death | 2862 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 92 -> 0 -> 0
+fixed | 1 | departure | 2864 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 0 -> 0 -> 92
+fixed | 1 | death | 2865 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 0 -> 0 -> 92
+fixed | 1 | death | 2880 | REACHER | 51,62,-1,69,-1,28 | 10 -> 10 -> 10
+fixed | 1 | departure | 2869 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 0 -> 92 -> 92
+fixed | 1 | departure | 2594 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2761 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2853 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2867 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 92 -> 93 -> 93
+fixed | 1 | death | 2882 | REACHER | 51,62,-1,69,-1,28 | 10 -> 10 -> 10
+fixed | 1 | departure | 2762 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2870 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 100 -> 101 -> 101
+fixed | 1 | death | 2885 | TROLL | 51,61,-1,18,-1,26 | 5 -> 4 -> 4
+fixed | 1 | death | 2891 | TROLL | 51,62,-1,18,-1,26 | 3 -> 3 -> 3
+fixed | 1 | departure | 2605 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 1
+fixed | 1 | departure | 2856 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 0 -> 0 -> 0
+fixed | 1 | departure | 2860 | TROLL | 51,62,-1,44,-1,34 | 7 -> 8 -> 8
+fixed | 1 | death | 2909 | TROLL | 51,61,-1,18,-1,26 | 4 -> 4 -> 4
+fixed | 1 | departure | 2763 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 1 | departure | 2346 | MAGMA_CRAB | 52,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2798 | HIPPO | 50,61,0,-1,-1,3 | 102 -> 103 -> 104
+fixed | 1 | departure | 2871 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2873 | GORLAK | 51,62,-1,69,-1,32 | 7 -> 8 -> 8
+fixed | 1 | departure | 2874 | DEMON_12 | 51,62,-1,119,-1,0 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2883 | GORLAK | 51,61,-1,18,-1,27 | 13 -> 14 -> 14
+fixed | 1 | death | 2884 | TROLL | 51,62,-1,18,-1,26 | 3 -> 3 -> 3
+fixed | 1 | departure | 2325 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 1 -> 0
+fixed | 1 | departure | 2716 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 1 | departure | 2878 | TROLL | 51,62,-1,69,-1,27 | 6 -> 7 -> 7
+fixed | 1 | death | 2868 | GIANT_GRAY_LANGUR | 51,61,-1,-1,-1,107 | 95 -> 95 -> 95
+fixed | 1 | departure | 2881 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 98 -> 99 -> 98
+fixed | 1 | death | 2900 | ELEPHANT | 51,61,-1,-1,-1,91 | 96 -> 96 -> 96
+fixed | 1 | departure | 2879 | TROLL | 51,62,-1,69,-1,27 | 7 -> 8 -> 8
+fixed | 1 | departure | 2886 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 1
+fixed | 1 | departure | 2888 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 1
+fixed | 1 | departure | 2893 | RIVER | 50,61,0,-1,-1,4 | 104 -> 105 -> 106
+fixed | 1 | departure | 2894 | PANGOLIN | 51,61,-1,-1,-1,110 | 100 -> 101 -> 101
+fixed | 1 | departure | 2522 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 1 | departure | 2889 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 1 | departure | 2890 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 1 | departure | 2901 | GORLAK | 51,62,-1,69,-1,32 | 8 -> 9 -> 9
+fixed | 1 | departure | 2887 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 1 | departure | 2857 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 0 -> 0
+fixed | 1 | departure | 2892 | HIPPO | 50,61,0,-1,-1,3 | 103 -> 104 -> 104
+fixed | 1 | departure | 2899 | ELEPHANT | 51,61,-1,-1,-1,91 | 96 -> 93 -> 94
+fixed | 1 | departure | 2908 | REACHER | 51,62,-1,44,-1,32 | 9 -> 10 -> 10
+fixed | 1 | departure | 2912 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 99 -> 100 -> 100
+fixed | 1 | departure | 2717 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2904 | RUTHERER | 51,62,-1,69,-1,20 | 98 -> 99 -> 100
+fixed | 1 | departure | 2910 | GORLAK | 51,61,-1,18,-1,27 | 14 -> 15 -> 15
+fixed | 1 | departure | 2451 | MAGMA_CRAB | 52,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 1 | departure | 2905 | RUTHERER | 51,62,-1,69,-1,20 | 99 -> 100 -> 100
+fixed | 1 | departure | 2911 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 100 -> 101 -> 101
+fixed | 1 | death | 2273 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | death | 2274 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | death | 2279 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | death | 2281 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | departure | 2916 | DEMON_21 | 51,62,-1,119,-1,6 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2275 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 1 | departure | 2797 | FISH_STINGRAY | 50,61,0,-1,-1,2 | 0 -> 0 -> 0
+fixed | 1 | departure | 2859 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 0 -> 1
+fixed | 1 | departure | 2914 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 101 -> 103 -> 103
+fixed | 1 | departure | 2915 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 101 -> 103 -> 103
+fixed | 1 | death | 2938 | TROLL | 51,62,-1,69,-1,27 | 7 -> 6 -> 6
+fixed | 1 | departure | 2858 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 1 -> 0
+fixed | 1 | departure | 2877 | DEMON_12 | 51,62,-1,119,-1,0 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2902 | RUTHERER | 51,62,-1,69,-1,20 | 100 -> 98 -> 99
+fixed | 1 | departure | 2875 | DEMON_12 | 51,62,-1,119,-1,0 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2906 | RUTHERER | 51,62,-1,69,-1,20 | 98 -> 99 -> 99
+fixed | 1 | departure | 2898 | ELEPHANT | 51,61,-1,-1,-1,91 | 95 -> 0 -> 0
+fixed | 1 | departure | 2921 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 100 -> 0 -> 0
+fixed | 1 | departure | 2876 | DEMON_12 | 51,62,-1,119,-1,0 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2918 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 1 | departure | 2922 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 2
+fixed | 1 | departure | 2920 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 1 | departure | 2924 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 2 -> 0
+fixed | 1 | departure | 2925 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 2 -> 0
+fixed | 1 | departure | 2932 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 0
+fixed | 1 | departure | 2907 | RUTHERER | 51,62,-1,69,-1,20 | 0 -> 0 -> 1
+fixed | 1 | departure | 2903 | RUTHERER | 51,62,-1,69,-1,20 | 0 -> 1 -> 0
+fixed | 1 | departure | 2923 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 1 -> 0
+fixed | 1 | departure | 2934 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 1 -> 1
+fixed | 1 | departure | 2936 | TROLL | 51,62,-1,18,-1,26 | 1 -> 2 -> 2
+fixed | 1 | departure | 2872 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2928 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 1 -> 0
+fixed | 1 | departure | 2935 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 1 -> 0
+fixed | 1 | departure | 2913 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 1 | departure | 2917 | DEMON_21 | 51,62,-1,119,-1,6 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2929 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 1 | departure | 2930 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 1 | departure | 2931 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 1 | departure | 2933 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 1 | death | 2937 | TROLL | 51,62,-1,18,-1,26 | 2 -> 2 -> 2
+fixed | 1 | departure | 2926 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 0 -> 0 -> 0
+fixed | 1 | departure | 2941 | TROLL | 51,62,-1,69,-1,27 | 6 -> 7 -> 7
+fixed | 1 | death | 2280 | ELK_BIRD | 51,62,-1,69,-1,18 | 100 -> 100 -> 100
+fixed | 1 | departure | 2943 | DEMON_3 | 51,62,-1,119,-1,1 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2927 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 1 | departure | 2940 | TOAD_GIANT_CAVE | 51,62,-1,18,-1,8 | 0 -> 0 -> 0
+fixed | 1 | departure | 2944 | DEMON_3 | 51,62,-1,119,-1,1 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | departure | 2946 | DEMON_3 | 51,62,-1,119,-1,1 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | death | 2277 | ELK_BIRD | 51,62,-1,69,-1,18 | 100 -> 100 -> 100
+fixed | 1 | death | 2278 | ELK_BIRD | 51,62,-1,69,-1,18 | 100 -> 100 -> 100
+fixed | 1 | departure | 2919 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 0 -> 0 -> 0
+fixed | 1 | departure | 2942 | TROLL | 51,61,-1,18,-1,26 | 2 -> 3 -> 3
+fixed | 1 | departure | 2945 | DEMON_3 | 51,62,-1,119,-1,1 | 10000001 -> 10000001 -> 10000001
+fixed | 1 | death | 2967 | GORLAK | 51,62,-1,44,-1,36 | 11 -> 11 -> 11
+fixed | 1 | death | 2276 | ELK_BIRD | 51,62,-1,69,-1,18 | 100 -> 100 -> 100
+fixed | 1 | departure | 2764 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 1 | departure | 2950 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 1 -> 0
+fixed | 2 | departure | 2551 | CREEPING_EYE | 51,62,-1,69,-1,29 | 406 -> 407 -> 410
+fixed | 2 | departure | 2694 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 2 | departure | 2695 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 2 | departure | 2696 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 0 -> 0
+fixed | 2 | departure | 2722 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2761 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2809 | BIRD_KESTREL | 50,61,-1,-1,-1,62 | 0 -> 0 -> 0
+fixed | 2 | departure | 2824 | CRUNDLE | 51,62,-1,44,-1,11 | 0 -> 0 -> 0
+fixed | 2 | departure | 2549 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 2 | departure | 2552 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 2 | departure | 2553 | CREEPING_EYE | 51,62,-1,69,-1,29 | 407 -> 410 -> 411
+fixed | 2 | departure | 2556 | CREEPING_EYE | 51,62,-1,69,-1,29 | 410 -> 411 -> 411
+fixed | 2 | departure | 2716 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 1
+fixed | 2 | departure | 2792 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 1
+fixed | 2 | departure | 2717 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2826 | CRUNDLE | 51,62,-1,44,-1,11 | 0 -> 0 -> 0
+fixed | 2 | departure | 2833 | CROCODILE_CAVE | 51,61,-1,18,-1,11 | 0 -> 1 -> 0
+fixed | 2 | departure | 2835 | BIRD_KESTREL | 50,61,-1,-1,-1,62 | 0 -> 1 -> 0
+fixed | 2 | departure | 2540 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 0 -> 0
+fixed | 2 | departure | 2777 | CRUNDLE | 51,62,-1,69,-1,12 | 0 -> 1 -> 0
+fixed | 2 | departure | 2830 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2834 | TROLL | 51,62,-1,18,-1,26 | 4 -> 5 -> 5
+fixed | 2 | departure | 2836 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 2 | departure | 2840 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 2 | departure | 2841 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 2 | departure | 2843 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 1 -> 0
+fixed | 2 | departure | 2845 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 1 -> 0
+fixed | 2 | departure | 2852 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 0 -> 1 -> 0
+fixed | 2 | departure | 2831 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2832 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2839 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 1
+fixed | 2 | departure | 2844 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 2 | departure | 2848 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 2 | departure | 2849 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 0 -> 2 -> 0
+fixed | 2 | departure | 2850 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 0 -> 2 -> 0
+fixed | 2 | departure | 2851 | PLUMP_HELMET_MAN | 51,62,-1,69,-1,13 | 0 -> 2 -> 0
+fixed | 2 | departure | 2854 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2837 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2842 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2853 | DEMON_20 | 51,62,-1,119,-1,2 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2847 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 0 -> 0
+fixed | 2 | departure | 2855 | BIRD_OSPREY | 50,61,0,-1,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2838 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 0 -> 0
+fixed | 2 | departure | 2860 | TOAD_GIANT_CAVE | 51,62,-1,44,-1,16 | 100 -> 101 -> 101
+fixed | 2 | departure | 2699 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 0 -> 0
+fixed | 2 | departure | 2798 | HIPPO | 50,61,0,-1,-1,3 | 102 -> 103 -> 102
+fixed | 2 | death | 2875 | GORLAK | 51,62,-1,18,-1,27 | 14 -> 14 -> 14
+fixed | 2 | departure | 2797 | FISH_STINGRAY | 50,61,0,-1,-1,2 | 0 -> 0 -> 0
+fixed | 2 | death | 2907 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 99 -> 98 -> 98
+fixed | 2 | departure | 2856 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 0 -> 0 -> 0
+fixed | 2 | departure | 2846 | ELK_BIRD | 51,62,-1,18,-1,20 | 0 -> 1 -> 0
+fixed | 2 | departure | 2857 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 0 -> 0
+fixed | 2 | departure | 2862 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2866 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2868 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2869 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2871 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2873 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | death | 2861 | REACHER | 51,62,-1,44,-1,32 | 9 -> 9 -> 9
+fixed | 2 | departure | 2877 | GORLAK | 51,62,-1,69,-1,32 | 8 -> 9 -> 9
+fixed | 2 | death | 2923 | TROGLODYTE | 51,62,-1,44,-1,25 | 95 -> 95 -> 96
+fixed | 2 | departure | 2700 | IMP_FIRE | 51,62,-1,94,-1,2 | 0 -> 1 -> 0
+fixed | 2 | departure | 2878 | TROLL | 51,62,-1,18,-1,26 | 4 -> 5 -> 5
+fixed | 2 | departure | 2879 | CREEPING_EYE | 51,62,-1,69,-1,29 | 391 -> 393 -> 393
+fixed | 2 | departure | 2896 | CREEPING_EYE | 51,62,-1,69,-1,29 | 391 -> 393 -> 393
+fixed | 2 | departure | 2867 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2870 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2872 | CAVY | 51,61,-1,-1,-1,81 | 0 -> 1 -> 0
+fixed | 2 | departure | 2908 | ELEPHANT | 51,61,-1,-1,-1,91 | 100 -> 0 -> 101
+fixed | 2 | departure | 2541 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2874 | CAVY | 51,61,-1,-1,-1,81 | 1 -> 0 -> 0
+fixed | 2 | departure | 2899 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 99 -> 100 -> 100
+fixed | 2 | departure | 2901 | DEMON_22 | 51,62,-1,119,-1,3 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2762 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2895 | CREEPING_EYE | 51,62,-1,69,-1,29 | 393 -> 394 -> 396
+fixed | 2 | departure | 2909 | ELEPHANT | 51,61,-1,-1,-1,91 | 101 -> 103 -> 103
+fixed | 2 | departure | 2910 | ELEPHANT | 51,61,-1,-1,-1,91 | 101 -> 103 -> 103
+fixed | 2 | departure | 2793 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2880 | CREEPING_EYE | 51,62,-1,69,-1,29 | 394 -> 396 -> 397
+fixed | 2 | departure | 2894 | CREEPING_EYE | 51,62,-1,69,-1,29 | 394 -> 396 -> 397
+fixed | 2 | departure | 2451 | MAGMA_CRAB | 52,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2858 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 0 -> 0
+fixed | 2 | departure | 2884 | CREEPING_EYE | 51,62,-1,69,-1,29 | 396 -> 397 -> 398
+fixed | 2 | departure | 2911 | HIPPO | 50,61,0,-1,-1,3 | 104 -> 105 -> 105
+fixed | 2 | departure | 2859 | POND_GRABBER | 51,61,-1,44,-1,15 | 0 -> 0 -> 0
+fixed | 2 | departure | 2863 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2883 | CREEPING_EYE | 51,62,-1,69,-1,29 | 397 -> 398 -> 402
+fixed | 2 | death | 2912 | REACHER | 51,62,-1,44,-1,32 | 9 -> 9 -> 9
+fixed | 2 | departure | 2913 | TROLL | 51,62,-1,18,-1,26 | 5 -> 5 -> 5
+fixed | 2 | departure | 2914 | HIPPO | 50,61,0,-1,-1,3 | 105 -> 105 -> 105
+fixed | 2 | death | 2918 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 100 -> 100 -> 100
+fixed | 2 | departure | 2886 | CREEPING_EYE | 51,62,-1,69,-1,29 | 398 -> 402 -> 405
+fixed | 2 | departure | 2890 | CREEPING_EYE | 51,62,-1,69,-1,29 | 398 -> 402 -> 405
+fixed | 2 | departure | 2893 | CREEPING_EYE | 51,62,-1,69,-1,29 | 398 -> 402 -> 405
+fixed | 2 | departure | 2897 | CREEPING_EYE | 51,62,-1,69,-1,29 | 398 -> 402 -> 405
+fixed | 2 | departure | 2865 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2888 | CREEPING_EYE | 51,62,-1,69,-1,29 | 402 -> 405 -> 408
+fixed | 2 | departure | 2892 | CREEPING_EYE | 51,62,-1,69,-1,29 | 402 -> 405 -> 408
+fixed | 2 | departure | 2898 | CREEPING_EYE | 51,62,-1,69,-1,29 | 402 -> 405 -> 408
+fixed | 2 | death | 2924 | TROLL | 51,61,-1,18,-1,26 | 4 -> 4 -> 4
+fixed | 2 | departure | 2881 | CREEPING_EYE | 51,62,-1,69,-1,29 | 405 -> 408 -> 408
+fixed | 2 | departure | 2882 | CREEPING_EYE | 51,62,-1,69,-1,29 | 405 -> 408 -> 408
+fixed | 2 | departure | 2885 | CREEPING_EYE | 51,62,-1,69,-1,29 | 405 -> 408 -> 408
+fixed | 2 | departure | 2919 | TROGLODYTE | 51,62,-1,44,-1,25 | 88 -> 89 -> 90
+fixed | 2 | departure | 2657 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2796 | FISH_MILKFISH | 50,61,0,-1,-1,1 | 0 -> 0 -> 0
+fixed | 2 | departure | 2917 | RIVER | 50,61,0,-1,-1,4 | 106 -> 107 -> 107
+fixed | 2 | departure | 2922 | TROGLODYTE | 51,62,-1,44,-1,25 | 89 -> 90 -> 91
+fixed | 2 | death | 2927 | RAT_MAN | 51,61,-1,-1,-1,104 | 97 -> 97 -> 97
+fixed | 2 | departure | 2889 | CREEPING_EYE | 51,62,-1,69,-1,29 | 408 -> 409 -> 409
+fixed | 2 | death | 2891 | CREEPING_EYE | 51,62,-1,69,-1,29 | 408 -> 409 -> 409
+fixed | 2 | departure | 2902 | DEMON_22 | 51,62,-1,119,-1,3 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2904 | DEMON_22 | 51,62,-1,119,-1,3 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2905 | DEMON_22 | 51,62,-1,119,-1,3 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2915 | TOAD_GIANT_CAVE | 51,61,-1,18,-1,8 | 100 -> 101 -> 101
+fixed | 2 | departure | 2921 | TROGLODYTE | 51,62,-1,44,-1,25 | 90 -> 91 -> 92
+fixed | 2 | departure | 2903 | DEMON_22 | 51,62,-1,119,-1,3 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2920 | TROGLODYTE | 51,62,-1,44,-1,25 | 91 -> 92 -> 92
+fixed | 2 | death | 2887 | CREEPING_EYE | 51,62,-1,69,-1,29 | 409 -> 409 -> 409
+fixed | 2 | departure | 2864 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2930 | RAT_MAN | 51,61,-1,-1,-1,104 | 98 -> 99 -> 101
+fixed | 2 | death | 2962 | REACHER | 51,62,-1,69,-1,28 | 11 -> 11 -> 11
+fixed | 2 | departure | 2928 | RAT_MAN | 51,61,-1,-1,-1,104 | 99 -> 101 -> 101
+fixed | 2 | departure | 2931 | RAT_MAN | 51,61,-1,-1,-1,104 | 99 -> 101 -> 101
+fixed | 2 | departure | 2522 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | death | 2966 | GORLAK | 51,62,-1,69,-1,32 | 7 -> 7 -> 7
+fixed | 2 | death | 2971 | GORLAK | 51,62,-1,69,-1,32 | 7 -> 7 -> 7
+fixed | 2 | death | 2277 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 100 -> 100
+fixed | 2 | death | 2281 | ELK_BIRD | 51,62,-1,69,-1,18 | 0 -> 100 -> 100
+fixed | 2 | departure | 2604 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | departure | 2929 | RAT_MAN | 51,61,-1,-1,-1,104 | 101 -> 100 -> 100
+fixed | 2 | death | 2876 | TROLL | 51,62,-1,69,-1,27 | 7 -> 7 -> 7
+fixed | 2 | departure | 2926 | TOAD_GIANT_CAVE | 51,62,-1,18,-1,8 | 0 -> 1 -> 0
+fixed | 2 | departure | 2936 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 0
+fixed | 2 | departure | 2658 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2943 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 0
+fixed | 2 | departure | 2946 | TROLL | 51,62,-1,18,-1,26 | 4 -> 6 -> 6
+fixed | 2 | departure | 2948 | TROLL | 51,62,-1,18,-1,26 | 4 -> 6 -> 6
+fixed | 2 | death | 2972 | REACHER | 51,62,-1,69,-1,28 | 10 -> 10 -> 10
+fixed | 2 | departure | 2660 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2661 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2662 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2916 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 2 | departure | 2935 | TROLL | 51,61,-1,18,-1,26 | 4 -> 5 -> 5
+fixed | 2 | departure | 2940 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 1
+fixed | 2 | departure | 2942 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 1
+fixed | 2 | departure | 2945 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 0 -> 1
+fixed | 2 | departure | 2947 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 2 | death | 2975 | CRUNDLE | 51,62,-1,69,-1,12 | 83 -> 83 -> 84
+fixed | 2 | death | 2987 | CRUNDLE | 51,62,-1,69,-1,12 | 83 -> 83 -> 84
+fixed | 2 | departure | 2595 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2934 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 0 -> 0
+fixed | 2 | departure | 2937 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 1 -> 0
+fixed | 2 | departure | 2938 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 1 -> 0
+fixed | 2 | departure | 2944 | TROGLODYTE | 51,62,-1,44,-1,25 | 0 -> 1 -> 0
+fixed | 2 | death | 2984 | CRUNDLE | 51,62,-1,69,-1,12 | 83 -> 84 -> 84
+fixed | 2 | death | 2985 | CRUNDLE | 51,62,-1,69,-1,12 | 83 -> 84 -> 84
+fixed | 2 | death | 2990 | CRUNDLE | 51,62,-1,69,-1,12 | 83 -> 84 -> 84
+fixed | 2 | departure | 2932 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 1 -> 0 -> 0
+fixed | 2 | departure | 2939 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 2 | departure | 2941 | TROGLODYTE | 51,62,-1,44,-1,25 | 1 -> 0 -> 0
+fixed | 2 | death | 2978 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | death | 2980 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | death | 2982 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | death | 2983 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | death | 2986 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | death | 2988 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 84
+fixed | 2 | departure | 2950 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2954 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2958 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2951 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2952 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2953 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2964 | GORLAK | 51,62,-1,18,-1,27 | 15 -> 16 -> 16
+fixed | 2 | death | 2974 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 85
+fixed | 2 | death | 2976 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 85
+fixed | 2 | death | 2981 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 85
+fixed | 2 | death | 2989 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 84 -> 85
+fixed | 2 | departure | 2602 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 1 -> 0
+fixed | 2 | departure | 2949 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 0 -> 1 -> 0
+fixed | 2 | departure | 2955 | ELEPHANT | 51,61,-1,-1,-1,91 | 0 -> 0 -> 0
+fixed | 2 | departure | 2963 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 0 -> 1 -> 0
+fixed | 2 | death | 2977 | CRUNDLE | 51,62,-1,69,-1,12 | 84 -> 85 -> 85
+fixed | 2 | departure | 2324 | IMP_FIRE | 51,62,-1,94,-1,2 | 100 -> 102 -> 102
+fixed | 2 | departure | 2325 | IMP_FIRE | 51,62,-1,94,-1,2 | 100 -> 102 -> 102
+fixed | 2 | departure | 2925 | PANGOLIN | 51,61,-1,-1,-1,110 | 0 -> 1 -> 0
+fixed | 2 | departure | 2965 | HIPPO | 50,61,0,-1,-1,3 | 0 -> 1 -> 0
+fixed | 2 | departure | 2967 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2968 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2969 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2900 | SHARK_WOBBEGONG_SPOTTED | 51,62,-1,-1,-1,24 | 100 -> 101 -> 101
+fixed | 2 | departure | 2970 | DEMON_14 | 51,62,-1,119,-1,4 | 10000001 -> 10000001 -> 10000001
+fixed | 2 | departure | 2933 | MAGMA_CRAB | 51,62,-1,94,-1,0 | 0 -> 0 -> 0
+fixed | 2 | death | 3022 | HUNGRY_HEAD | 51,62,-1,69,-1,19 | 97 -> 98 -> 98
+fixed | 2 | departure | 2273 | ELK_BIRD | 51,62,-1,69,-1,18 | 100 -> 101 -> -
+fixed | 2 | departure | 2973 | SPIDER_CAVE_GIANT | 51,62,-1,69,-1,24 | 0 -> 0 -> -
+fixed | 2 | death | 3035 | RAT_MAN | 51,61,-1,-1,-1,104 | 97 -> 97 -> -
+
+## Manipulations applied
+fixed | 1 | +0 | local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','now'); print('x1 now: '..(out or ''):gsub('\n',' | ')) | x1 now: active: 112  [31 ms] |
+fixed | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and not e.locked then local a=cfg.assign[e.key]; o[#o+1]=e.key..'='..(cfg.allow[e.key]==nil and 'nil' or tostring(cfg.allow[e.key]))..'/'..(a and table.concat(a,'') or '') end end; table.sort(o); print('x1 roster '..#o..': '..table.concat(o,' ')) | x1 roster 137: AARDVARK=true/02 ALBATROSS_MAN=true/23 BIRD_ALBATROSS=false/ BIRD_EAGLE=true/23 BIRD_KESTREL=false/ BIRD_OSPREY=true/23 BIRD_PARAKEET=false/ BIRD_WREN=true/0123 cavern:BAT=true/1 cavern:BIRD_SWALLOW_CAVE_GIANT=true/3 cavern:BIRD_SWALLOW_CAVE=true/3 cavern:BUGBAT=true/3 cavern:CAP_HOPPER=true/3 cavern:CAVE_BLOB=true/3 cavern:CAVE_FLOATER=true/3 cavern:CROCODILE_CAVE=true/3 cavern:CRUNDLE=true/2 cavern:DRUNIAN=true/2 cavern:ELK_BIRD=true/2 cavern:FISH_CAVE=true/2 cavern:FLESH_BALL=true/2 cavern:GREMLIN=true/2 cavern:HUNGRY_HEAD=true/2 cavern:IMP_FIRE=true/2 cavern:JABBERER=true/0 cavern:LOBSTER_CAVE=true/2 cavern:MAGMA_CRAB=true/0 cavern:MOLE_DOG_NAKED=true/0 cavern:MOLE_GIANT=true/0 cavern:OLM_GIANT=true/0 cavern:OLM=true/0 cavern:PLUMP_HELMET_MAN=true/0 cavern:POND_GRABBER=true/0 cavern:RAT_GIANT=true/1 cavern:RAT_LARGE=true/1 cavern:RUTHERER=true/1 cavern:SPIDER_CAVE_GIANT=true/1 cavern:SPIDER_CAVE=true/1 cavern:TOAD_GIANT_CAVE=true/1 cavern:TROGLODYTE=true/1 cavern:VORACIOUS_CAVE_CRAWLER=true/1 CAVY=false/ CHEETAH_MAN=false/ CHEETAH=false/ COUGAR_MAN=false/ COUGAR=false/ DINGO_MAN=false/ DINGO=false/ EAGLE_MAN=false/ ELEPHANT_MAN=false/ ELEPHANT=true/01 FISH_BARRACUDA_GREAT=false/ FISH_BLUEFISH=false/ FISH_COELACANTH=false/ FISH_GROUPER_GIANT=false/ FISH_MARLIN=false/ FISH_MILKFISH=false/ FISH_OPAH=false/ FISH_RAY_MANTA=true/01 FISH_SKATE_COMMON=false/ FISH_STINGRAY=false/ FISH_SUNFISH_OCEAN=true/23 FISH_SWORDFISH=false/ FISH_TUNA_BLUEFIN=false/ FLY_ACORN=true/0123 GIANT_ALBATROSS=false/ GIANT_CHEETAH=false/ GIANT_COUGAR=true/023 GIANT_DINGO=false/ GIANT_EAGLE=true/23 GIANT_GRAY_LANGUR=true/01 GIANT_GREAT_HORNED_OWL=false/ GIANT_HYENA=false/ GIANT_JACKAL=false/ GIANT_JAGUAR=true/0 GIANT_LEOPARD=false/ GIANT_LION=false/ GIANT_ORCA=false/ GIANT_OSPREY=true/23 GIANT_PARAKEET=false/ GIANT_RHINOCEROS=false/ GIANT_SPERM_WHALE=true/23 GIANT_TIGER=false/ GIRAFFE_MAN=false/ HAMSTER=true/0123 HONEY BADGER=true/0 HYENA_MAN=false/ HYENA=false/ JAGUAR_MAN=true/0 JAGUAR=false/ LEOPARD_MAN=false/ LEOPARD=false/ LION_MAN=false/ LION=false/ LIZARD_RHINO_TWO_LEGGED=true/23 ORCA_MAN=true/23 ORCA=false/ OSPREY_MAN=true/23 PANGOLIN=true/01 RAT_MAN=true/0123 RAT=true/0123 RHINOCEROS_MAN=false/ SEA_SERPENT=false/ SHARK_ANGEL=false/ SHARK_BLUE=false/ SHARK_BULL=false/ SHARK_FRILL=false/ SHARK_GREAT_WHITE=false/ SHARK_HAMMERHEAD=false/ SHARK_MAKO_LONGFIN=true/023 SHARK_MAKO_SHORTFIN=false/ SHARK_REEF_BLACKTIP=false/ SHARK_REEF_WHITETIP=true/01 SHARK_SPINY_DOGFISH=true/0123 SHARK_TIGER=false/ SHARK_WHALE=false/ SHARK_WOBBEGONG_SPOTTED=true/0123 SPARROW=true/0123 SPERM_WHALE_MAN=false/ SPERM_WHALE=false/ TIGER_MAN=false/ TIGER=true/0 WARTHOG_MAN=false/ water:BIRD_OSPREY=true/3 water:FISH_MILKFISH=true/2 water:FISH_STINGRAY=true/0 water:GIANT_HIPPO=true/0 water:GIANT_OSPREY=true/2 water:GIANT_OTTER=true/0 water:HIPPO_MAN=true/1 water:HIPPO=true/1 water:OSPREY_MAN=true/2 water:OTTER_MAN=true/1 water:PLATYPUS, GIANT=true/3 water:PLATYPUS=true/3 water:RIVER OTTER=true/1 WILD_BOAR_MAN=false/
+fixed | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=17 last=11 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=16 last=55 worst=55 over=1 | groups runs=44 last=0 worst=54 over=2 | water runs=17 last=0 worst=50 over=0 | fuse: intact -- no job has been cancelled
+fixed | 1 | +20754 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=34 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=29 last=8 worst=55 over=1 | groups runs=113 last=17 worst=54 over=3 | water runs=21 last=41 worst=50 over=0 | fuse: intact -- no job has been cancelled
+fixed | 1 | +20754 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=61 refreshOverview=0 refreshPanel=0 refresh=17 refreshSeasons=0 refreshWeb=0 refreshLive=34 refreshLayers=0 refreshVermin=34 refreshLedger=0 web:graph=18 web:byseason=0 web:bylayer=0
+fixed | 1 | +41440 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=51 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=43 last=11 worst=58 over=2 | groups runs=182 last=0 worst=54 over=3 | water runs=25 last=35 worst=50 over=0 | fuse: intact -- no job has been cancelled
+fixed | 1 | +41440 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=46 refreshOverview=0 refreshPanel=0 refresh=15 refreshSeasons=0 refreshWeb=0 refreshLive=34 refreshLayers=0 refreshVermin=33 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+fixed | 1 | +62197 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=68 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=57 last=17 worst=58 over=2 | groups runs=251 last=4 worst=54 over=3 | water runs=29 last=0 worst=50 over=0 | fuse: intact -- no job has been cancelled
+fixed | 1 | +62197 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=56 refreshOverview=0 refreshPanel=0 refresh=17 refreshSeasons=0 refreshWeb=0 refreshLive=17 refreshLayers=16 refreshVermin=17 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+fixed | 1 | +82761 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=85 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=71 last=17 worst=58 over=2 | groups runs=319 last=0 worst=54 over=3 | water runs=33 last=50 worst=54 over=1 | fuse: intact -- no job has been cancelled
+fixed | 1 | +82761 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=47 refreshOverview=17 refreshPanel=0 refresh=0 refreshSeasons=16 refreshWeb=0 refreshLive=17 refreshLayers=14 refreshVermin=18 refreshLedger=17 web:graph=0 web:byseason=0 web:bylayer=0
+fixed | 2 | +0 | local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','now'); print('x1 now: '..(out or ''):gsub('\n',' | ')) | x1 now: active: 112  [30 ms] |
+fixed | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and not e.locked then local a=cfg.assign[e.key]; o[#o+1]=e.key..'='..(cfg.allow[e.key]==nil and 'nil' or tostring(cfg.allow[e.key]))..'/'..(a and table.concat(a,'') or '') end end; table.sort(o); print('x1 roster '..#o..': '..table.concat(o,' ')) | x1 roster 137: AARDVARK=true/02 ALBATROSS_MAN=true/23 BIRD_ALBATROSS=false/ BIRD_EAGLE=true/23 BIRD_KESTREL=false/ BIRD_OSPREY=true/23 BIRD_PARAKEET=false/ BIRD_WREN=true/0123 cavern:BAT=true/1 cavern:BIRD_SWALLOW_CAVE_GIANT=true/3 cavern:BIRD_SWALLOW_CAVE=true/3 cavern:BUGBAT=true/3 cavern:CAP_HOPPER=true/3 cavern:CAVE_BLOB=true/3 cavern:CAVE_FLOATER=true/3 cavern:CROCODILE_CAVE=true/3 cavern:CRUNDLE=true/2 cavern:DRUNIAN=true/2 cavern:ELK_BIRD=true/2 cavern:FISH_CAVE=true/2 cavern:FLESH_BALL=true/2 cavern:GREMLIN=true/2 cavern:HUNGRY_HEAD=true/2 cavern:IMP_FIRE=true/2 cavern:JABBERER=true/0 cavern:LOBSTER_CAVE=true/2 cavern:MAGMA_CRAB=true/0 cavern:MOLE_DOG_NAKED=true/0 cavern:MOLE_GIANT=true/0 cavern:OLM_GIANT=true/0 cavern:OLM=true/0 cavern:PLUMP_HELMET_MAN=true/0 cavern:POND_GRABBER=true/0 cavern:RAT_GIANT=true/1 cavern:RAT_LARGE=true/1 cavern:RUTHERER=true/1 cavern:SPIDER_CAVE_GIANT=true/1 cavern:SPIDER_CAVE=true/1 cavern:TOAD_GIANT_CAVE=true/1 cavern:TROGLODYTE=true/1 cavern:VORACIOUS_CAVE_CRAWLER=true/1 CAVY=false/ CHEETAH_MAN=false/ CHEETAH=false/ COUGAR_MAN=false/ COUGAR=false/ DINGO_MAN=false/ DINGO=false/ EAGLE_MAN=false/ ELEPHANT_MAN=false/ ELEPHANT=true/01 FISH_BARRACUDA_GREAT=false/ FISH_BLUEFISH=false/ FISH_COELACANTH=false/ FISH_GROUPER_GIANT=false/ FISH_MARLIN=false/ FISH_MILKFISH=false/ FISH_OPAH=false/ FISH_RAY_MANTA=true/01 FISH_SKATE_COMMON=false/ FISH_STINGRAY=false/ FISH_SUNFISH_OCEAN=true/23 FISH_SWORDFISH=false/ FISH_TUNA_BLUEFIN=false/ FLY_ACORN=true/0123 GIANT_ALBATROSS=false/ GIANT_CHEETAH=false/ GIANT_COUGAR=true/023 GIANT_DINGO=false/ GIANT_EAGLE=true/23 GIANT_GRAY_LANGUR=true/01 GIANT_GREAT_HORNED_OWL=false/ GIANT_HYENA=false/ GIANT_JACKAL=false/ GIANT_JAGUAR=true/0 GIANT_LEOPARD=false/ GIANT_LION=false/ GIANT_ORCA=false/ GIANT_OSPREY=true/23 GIANT_PARAKEET=false/ GIANT_RHINOCEROS=false/ GIANT_SPERM_WHALE=true/23 GIANT_TIGER=false/ GIRAFFE_MAN=false/ HAMSTER=true/0123 HONEY BADGER=true/0 HYENA_MAN=false/ HYENA=false/ JAGUAR_MAN=true/0 JAGUAR=false/ LEOPARD_MAN=false/ LEOPARD=false/ LION_MAN=false/ LION=false/ LIZARD_RHINO_TWO_LEGGED=true/23 ORCA_MAN=true/23 ORCA=false/ OSPREY_MAN=true/23 PANGOLIN=true/01 RAT_MAN=true/0123 RAT=true/0123 RHINOCEROS_MAN=false/ SEA_SERPENT=false/ SHARK_ANGEL=false/ SHARK_BLUE=false/ SHARK_BULL=false/ SHARK_FRILL=false/ SHARK_GREAT_WHITE=false/ SHARK_HAMMERHEAD=false/ SHARK_MAKO_LONGFIN=true/023 SHARK_MAKO_SHORTFIN=false/ SHARK_REEF_BLACKTIP=false/ SHARK_REEF_WHITETIP=true/01 SHARK_SPINY_DOGFISH=true/0123 SHARK_TIGER=false/ SHARK_WHALE=false/ SHARK_WOBBEGONG_SPOTTED=true/0123 SPARROW=true/0123 SPERM_WHALE_MAN=false/ SPERM_WHALE=false/ TIGER_MAN=false/ TIGER=true/0 WARTHOG_MAN=false/ water:BIRD_OSPREY=true/3 water:FISH_MILKFISH=true/2 water:FISH_STINGRAY=true/0 water:GIANT_HIPPO=true/0 water:GIANT_OSPREY=true/2 water:GIANT_OTTER=true/0 water:HIPPO_MAN=true/1 water:HIPPO=true/1 water:OSPREY_MAN=true/2 water:OTTER_MAN=true/1 water:PLATYPUS, GIANT=true/3 water:PLATYPUS=true/3 water:RIVER OTTER=true/1 WILD_BOAR_MAN=false/
+fixed | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=102 last=1 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=84 last=50 worst=58 over=2 | groups runs=382 last=0 worst=54 over=3 | water runs=38 last=0 worst=54 over=1 | fuse: intact -- no job has been cancelled
+fixed | 2 | +20785 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=119 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=97 last=0 worst=58 over=2 | groups runs=451 last=0 worst=67 over=4 | water runs=42 last=50 worst=54 over=1 | fuse: intact -- no job has been cancelled
+fixed | 2 | +20785 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=57 refreshOverview=0 refreshPanel=0 refresh=23 refreshSeasons=0 refreshWeb=0 refreshLive=32 refreshLayers=11 refreshVermin=34 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+fixed | 2 | +41521 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=136 last=5 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=111 last=16 worst=58 over=2 | groups runs=520 last=17 worst=67 over=5 | water runs=46 last=0 worst=54 over=1 | fuse: intact -- no job has been cancelled
+fixed | 2 | +41521 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=54 refreshOverview=16 refreshPanel=0 refresh=12 refreshSeasons=7 refreshWeb=0 refreshLive=31 refreshLayers=0 refreshVermin=34 refreshLedger=0 web:graph=16 web:byseason=0 web:bylayer=0
+fixed | 2 | +62217 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=153 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=125 last=16 worst=58 over=2 | groups runs=589 last=0 worst=67 over=5 | water runs=50 last=50 worst=67 over=3 | fuse: intact -- no job has been cancelled
+fixed | 2 | +62217 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=65 refreshOverview=0 refreshPanel=0 refresh=16 refreshSeasons=16 refreshWeb=0 refreshLive=17 refreshLayers=17 refreshVermin=34 refreshLedger=0 web:graph=16 web:byseason=0 web:bylayer=0
+fixed | 2 | +82685 | local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus()) | x7 jobs:  runs=170 last=0 worst=16 over=0 | cavern runs=1 last=329 worst=329 over=1 | ecology runs=139 last=9 worst=58 over=2 | groups runs=657 last=1 worst=67 over=5 | water runs=54 last=0 worst=67 over=4 | fuse: intact -- no job has been cancelled
+fixed | 2 | +82685 | local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' ')) | x7 tabs: open=69 refreshOverview=0 refreshPanel=0 refresh=16 refreshSeasons=17 refreshWeb=0 refreshLive=16 refreshLayers=17 refreshVermin=17 refreshLedger=0 web:graph=17 web:byseason=0 web:bylayer=0
+
+## Pool entries that changed between load and end of replicate (447; the second instrument)
+fixed | 1 | idx 2828 | GIANT_EAGLE ref6=50,61,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 0->1 extinct 0->0
+fixed | 1 | idx 2837 | ELEPHANT ref6=50,61,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2844 | Vermin:517 ref6=50,61,-1,-1,-1,103 quantity 100->103 max 244->244 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2847 | GIANT_GRAY_LANGUR ref6=50,61,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2849 | PANGOLIN ref6=50,61,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2870 | GIANT_COUGAR ref6=50,61,-1,-1,-1,132 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2878 | Vermin:474 ref6=50,61,-1,-1,-1,145 quantity 0->103 max 290->290 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2879 | Vermin:49 ref6=50,61,-1,-1,-1,147 quantity 100->103 max 380->380 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2880 | Vermin:528 ref6=50,61,-1,-1,-1,148 quantity 100->103 max 400->400 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2881 | Vermin:477 ref6=50,61,-1,-1,-1,149 quantity 100->103 max 4101->4101 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2882 | Vermin:79 ref6=50,61,-1,-1,-1,150 quantity 100->103 max 368->368 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2884 | FISH_MILKFISH ref6=50,61,0,-1,-1,1 quantity 0->98 max 180->180 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2886 | HIPPO ref6=50,61,0,-1,-1,3 quantity 100->0 max 252->252 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2887 | RIVER OTTER ref6=50,61,0,-1,-1,4 quantity 100->0 max 120->120 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2891 | GIANT_OSPREY ref6=50,61,0,-1,-1,8 quantity 0->103 max 192->192 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2893 | OTTER_MAN ref6=50,61,0,-1,-1,10 quantity 100->0 max 120->120 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2894 | OSPREY_MAN ref6=50,61,0,-1,-1,11 quantity 0->100 max 96->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2904 | TOAD_GIANT_CAVE ref6=50,61,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2908 | Vermin:619 ref6=50,61,-1,18,-1,12 quantity 0->103 max 477->477 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2909 | Vermin:617 ref6=50,61,-1,18,-1,13 quantity 0->103 max 368->368 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2911 | Vermin:616 ref6=50,61,-1,18,-1,15 quantity 100->0 max 399->399 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2914 | RAT_GIANT ref6=50,61,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2916 | ELK_BIRD ref6=50,61,-1,18,-1,20 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2918 | DRUNIAN ref6=50,61,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2919 | RAT_LARGE ref6=50,61,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2920 | Vermin:623 ref6=50,61,-1,18,-1,24 quantity 100->0 max 332->332 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2935 | CRUNDLE ref6=50,61,-1,44,-1,11 quantity 0->103 max 190->190 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2940 | TOAD_GIANT_CAVE ref6=50,61,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2941 | Vermin:617 ref6=50,61,-1,44,-1,17 quantity 0->103 max 413->413 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2942 | Vermin:619 ref6=50,61,-1,44,-1,18 quantity 0->103 max 333->333 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2946 | RAT_GIANT ref6=50,61,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2947 | ELK_BIRD ref6=50,61,-1,44,-1,23 quantity 0->100 max 38->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2949 | TROGLODYTE ref6=50,61,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2950 | VORACIOUS_CAVE_CRAWLER ref6=50,61,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2952 | Vermin:616 ref6=50,61,-1,44,-1,28 quantity 100->0 max 287->287 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2954 | Vermin:623 ref6=50,61,-1,44,-1,30 quantity 100->0 max 380->380 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2955 | SPIDER_CAVE_GIANT ref6=50,61,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2973 | CRUNDLE ref6=50,61,-1,69,-1,12 quantity 0->103 max 215->215 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2975 | FLESH_BALL ref6=50,61,-1,69,-1,14 quantity 0->100 max 324->324 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2979 | ELK_BIRD ref6=50,61,-1,69,-1,18 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2980 | HUNGRY_HEAD ref6=50,61,-1,69,-1,19 quantity 0->103 max 131->131 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2981 | RUTHERER ref6=50,61,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2983 | GREMLIN ref6=50,61,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2985 | SPIDER_CAVE_GIANT ref6=50,61,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 2996 | IMP_FIRE ref6=50,61,-1,94,-1,2 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3042 | GIANT_EAGLE ref6=50,62,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3051 | ELEPHANT ref6=50,62,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3058 | Vermin:517 ref6=50,62,-1,-1,-1,103 quantity 100->103 max 243->243 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3061 | GIANT_GRAY_LANGUR ref6=50,62,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3063 | PANGOLIN ref6=50,62,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3084 | GIANT_COUGAR ref6=50,62,-1,-1,-1,132 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3091 | Vermin:474 ref6=50,62,-1,-1,-1,145 quantity 0->103 max 289->289 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3092 | Vermin:528 ref6=50,62,-1,-1,-1,148 quantity 100->103 max 398->398 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3094 | HIPPO ref6=50,62,0,-1,-1,1 quantity 100->0 max 270->270 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3095 | RIVER OTTER ref6=50,62,0,-1,-1,2 quantity 100->0 max 108->108 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3097 | FISH_MILKFISH ref6=50,62,0,-1,-1,4 quantity 0->103 max 153->153 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3100 | GIANT_OSPREY ref6=50,62,0,-1,-1,7 quantity 0->103 max 144->144 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3101 | OTTER_MAN ref6=50,62,0,-1,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3104 | OSPREY_MAN ref6=50,62,0,-1,-1,11 quantity 0->100 max 45->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3105 | HIPPO_MAN ref6=50,62,0,-1,-1,12 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3114 | TOAD_GIANT_CAVE ref6=50,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3118 | Vermin:619 ref6=50,62,-1,18,-1,12 quantity 0->103 max 475->475 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3119 | Vermin:617 ref6=50,62,-1,18,-1,13 quantity 0->103 max 366->366 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3121 | Vermin:616 ref6=50,62,-1,18,-1,15 quantity 100->0 max 398->398 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3124 | RAT_GIANT ref6=50,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3126 | ELK_BIRD ref6=50,62,-1,18,-1,20 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3128 | DRUNIAN ref6=50,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3129 | RAT_LARGE ref6=50,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3130 | Vermin:623 ref6=50,62,-1,18,-1,24 quantity 100->0 max 331->331 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3145 | CRUNDLE ref6=50,62,-1,44,-1,11 quantity 0->103 max 187->187 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3150 | TOAD_GIANT_CAVE ref6=50,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3151 | Vermin:617 ref6=50,62,-1,44,-1,17 quantity 0->103 max 407->407 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3152 | Vermin:619 ref6=50,62,-1,44,-1,18 quantity 0->103 max 328->328 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3156 | RAT_GIANT ref6=50,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3157 | ELK_BIRD ref6=50,62,-1,44,-1,23 quantity 0->100 max 37->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3159 | TROGLODYTE ref6=50,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3160 | VORACIOUS_CAVE_CRAWLER ref6=50,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3162 | Vermin:616 ref6=50,62,-1,44,-1,28 quantity 100->0 max 283->283 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3164 | Vermin:623 ref6=50,62,-1,44,-1,30 quantity 100->0 max 375->375 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3165 | SPIDER_CAVE_GIANT ref6=50,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3183 | CRUNDLE ref6=50,62,-1,69,-1,12 quantity 0->103 max 214->214 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3185 | FLESH_BALL ref6=50,62,-1,69,-1,14 quantity 0->100 max 323->323 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3189 | ELK_BIRD ref6=50,62,-1,69,-1,18 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3190 | HUNGRY_HEAD ref6=50,62,-1,69,-1,19 quantity 0->103 max 130->130 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3191 | RUTHERER ref6=50,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3193 | GREMLIN ref6=50,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3195 | SPIDER_CAVE_GIANT ref6=50,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3206 | IMP_FIRE ref6=50,62,-1,94,-1,2 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3905 | GIANT_EAGLE ref6=51,61,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3914 | ELEPHANT ref6=51,61,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3921 | Vermin:517 ref6=51,61,-1,-1,-1,103 quantity 100->105 max 241->241 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3924 | GIANT_GRAY_LANGUR ref6=51,61,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->1 extinct 0->0
+fixed | 1 | idx 3926 | PANGOLIN ref6=51,61,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3947 | GIANT_COUGAR ref6=51,61,-1,-1,-1,132 quantity 0->100 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3955 | Vermin:474 ref6=51,61,-1,-1,-1,145 quantity 0->91 max 286->286 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3956 | Vermin:49 ref6=51,61,-1,-1,-1,147 quantity 100->104 max 376->376 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3957 | Vermin:528 ref6=51,61,-1,-1,-1,148 quantity 100->103 max 394->394 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3958 | Vermin:477 ref6=51,61,-1,-1,-1,149 quantity 100->0 max 4062->4062 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3959 | Vermin:79 ref6=51,61,-1,-1,-1,150 quantity 100->101 max 365->365 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3961 | HIPPO ref6=51,61,0,-1,-1,1 quantity 100->0 max 208->208 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3963 | FISH_MILKFISH ref6=51,61,0,-1,-1,3 quantity 0->103 max 247->247 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3964 | RIVER OTTER ref6=51,61,0,-1,-1,4 quantity 100->0 max 260->260 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3966 | OSPREY_MAN ref6=51,61,0,-1,-1,6 quantity 0->103 max 104->104 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3971 | GIANT_OSPREY ref6=51,61,0,-1,-1,11 quantity 0->103 max 234->234 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3972 | HIPPO_MAN ref6=51,61,0,-1,-1,12 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3981 | TOAD_GIANT_CAVE ref6=51,61,-1,18,-1,8 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3985 | Vermin:619 ref6=51,61,-1,18,-1,12 quantity 0->103 max 470->470 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3986 | Vermin:617 ref6=51,61,-1,18,-1,13 quantity 0->103 max 362->362 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3988 | Vermin:616 ref6=51,61,-1,18,-1,15 quantity 100->0 max 393->393 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3991 | RAT_GIANT ref6=51,61,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3993 | ELK_BIRD ref6=51,61,-1,18,-1,20 quantity 0->100 max 27->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 3995 | DRUNIAN ref6=51,61,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3996 | RAT_LARGE ref6=51,61,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3997 | Vermin:623 ref6=51,61,-1,18,-1,24 quantity 100->0 max 327->327 discovered 0->0 extinct 0->0
+fixed | 1 | idx 3999 | TROLL ref6=51,61,-1,18,-1,26 quantity 6->3 max 4->4 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4012 | CRUNDLE ref6=51,61,-1,44,-1,11 quantity 0->103 max 174->174 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4017 | TOAD_GIANT_CAVE ref6=51,61,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4018 | Vermin:617 ref6=51,61,-1,44,-1,17 quantity 0->103 max 377->377 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4019 | Vermin:619 ref6=51,61,-1,44,-1,18 quantity 0->103 max 304->304 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4023 | RAT_GIANT ref6=51,61,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4024 | ELK_BIRD ref6=51,61,-1,44,-1,23 quantity 0->100 max 35->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4026 | TROGLODYTE ref6=51,61,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4027 | VORACIOUS_CAVE_CRAWLER ref6=51,61,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4029 | Vermin:616 ref6=51,61,-1,44,-1,28 quantity 100->0 max 262->262 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4031 | Vermin:623 ref6=51,61,-1,44,-1,30 quantity 100->0 max 347->347 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4032 | SPIDER_CAVE_GIANT ref6=51,61,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4050 | CRUNDLE ref6=51,61,-1,69,-1,12 quantity 0->103 max 208->208 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4052 | FLESH_BALL ref6=51,61,-1,69,-1,14 quantity 0->100 max 313->313 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4056 | ELK_BIRD ref6=51,61,-1,69,-1,18 quantity 0->100 max 30->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4057 | HUNGRY_HEAD ref6=51,61,-1,69,-1,19 quantity 0->103 max 126->126 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4058 | RUTHERER ref6=51,61,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4060 | GREMLIN ref6=51,61,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4062 | SPIDER_CAVE_GIANT ref6=51,61,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4073 | IMP_FIRE ref6=51,61,-1,94,-1,2 quantity 0->100 max 19->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4083 | BIRD_OSPREY ref6=51,62,-1,-1,-1,8 quantity 0->100 max 14->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4084 | OSPREY_MAN ref6=51,62,-1,-1,-1,9 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4085 | GIANT_OSPREY ref6=51,62,-1,-1,-1,10 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4087 | ALBATROSS_MAN ref6=51,62,-1,-1,-1,12 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4095 | SHARK_MAKO_LONGFIN ref6=51,62,-1,-1,-1,29 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4099 | SHARK_REEF_WHITETIP ref6=51,62,-1,-1,-1,33 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4104 | FISH_RAY_MANTA ref6=51,62,-1,-1,-1,38 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4111 | FISH_SUNFISH_OCEAN ref6=51,62,-1,-1,-1,48 quantity 0->100 max 17->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4117 | ORCA_MAN ref6=51,62,-1,-1,-1,70 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4123 | GIANT_SPERM_WHALE ref6=51,62,-1,-1,-1,79 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4133 | TOAD_GIANT_CAVE ref6=51,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4137 | Vermin:619 ref6=51,62,-1,18,-1,12 quantity 0->103 max 468->468 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4138 | Vermin:617 ref6=51,62,-1,18,-1,13 quantity 0->89 max 361->361 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4140 | Vermin:616 ref6=51,62,-1,18,-1,15 quantity 100->0 max 392->392 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4143 | RAT_GIANT ref6=51,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4145 | ELK_BIRD ref6=51,62,-1,18,-1,20 quantity 0->96 max 27->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4147 | DRUNIAN ref6=51,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4148 | RAT_LARGE ref6=51,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4149 | Vermin:623 ref6=51,62,-1,18,-1,24 quantity 100->0 max 326->326 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4151 | TROLL ref6=51,62,-1,18,-1,26 quantity 4->2 max 4->4 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4152 | GORLAK ref6=51,62,-1,18,-1,27 quantity 15->13 max 15->15 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4164 | CRUNDLE ref6=51,62,-1,44,-1,11 quantity 0->84 max 171->171 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4169 | TOAD_GIANT_CAVE ref6=51,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4170 | Vermin:617 ref6=51,62,-1,44,-1,17 quantity 0->78 max 372->372 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4171 | Vermin:619 ref6=51,62,-1,44,-1,18 quantity 0->103 max 299->299 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4175 | RAT_GIANT ref6=51,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4176 | ELK_BIRD ref6=51,62,-1,44,-1,23 quantity 0->100 max 34->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4178 | TROGLODYTE ref6=51,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4179 | VORACIOUS_CAVE_CRAWLER ref6=51,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4181 | Vermin:616 ref6=51,62,-1,44,-1,28 quantity 100->0 max 258->258 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4183 | Vermin:623 ref6=51,62,-1,44,-1,30 quantity 100->0 max 342->342 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4184 | SPIDER_CAVE_GIANT ref6=51,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4189 | GORLAK ref6=51,62,-1,44,-1,36 quantity 12->11 max 11->11 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4202 | CRUNDLE ref6=51,62,-1,69,-1,12 quantity 0->103 max 207->207 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4204 | FLESH_BALL ref6=51,62,-1,69,-1,14 quantity 0->100 max 312->312 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4208 | ELK_BIRD ref6=51,62,-1,69,-1,18 quantity 0->100 max 30->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4209 | HUNGRY_HEAD ref6=51,62,-1,69,-1,19 quantity 0->96 max 125->125 discovered 0->1 extinct 0->0
+fixed | 1 | idx 4210 | RUTHERER ref6=51,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4212 | GREMLIN ref6=51,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 4214 | SPIDER_CAVE_GIANT ref6=51,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4217 | TROLL ref6=51,62,-1,69,-1,27 quantity 8->7 max 7->7 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4218 | REACHER ref6=51,62,-1,69,-1,28 quantity 12->10 max 11->11 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4219 | CREEPING_EYE ref6=51,62,-1,69,-1,29 quantity 406->411 max 400->400 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4221 | Vermin:419 ref6=51,62,-1,69,-1,31 quantity 225->208 max 422->422 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4222 | GORLAK ref6=51,62,-1,69,-1,32 quantity 9->8 max 8->8 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4225 | IMP_FIRE ref6=51,62,-1,94,-1,2 quantity 0->97 max 19->100 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4227 | Vermin:620 ref6=51,62,-1,94,-1,4 quantity 199->204 max 371->371 discovered 1->1 extinct 0->0
+fixed | 1 | idx 4232 | DEMON_14 ref6=51,62,-1,119,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+fixed | 1 | idx 5002 | BIRD_OSPREY ref6=52,62,-1,-1,-1,8 quantity 0->100 max 14->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5003 | OSPREY_MAN ref6=52,62,-1,-1,-1,9 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5004 | GIANT_OSPREY ref6=52,62,-1,-1,-1,10 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5006 | ALBATROSS_MAN ref6=52,62,-1,-1,-1,12 quantity 0->100 max 6->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5014 | SHARK_MAKO_LONGFIN ref6=52,62,-1,-1,-1,29 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5018 | SHARK_REEF_WHITETIP ref6=52,62,-1,-1,-1,33 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5023 | FISH_RAY_MANTA ref6=52,62,-1,-1,-1,38 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5030 | FISH_SUNFISH_OCEAN ref6=52,62,-1,-1,-1,48 quantity 0->100 max 17->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5036 | ORCA_MAN ref6=52,62,-1,-1,-1,70 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5042 | GIANT_SPERM_WHALE ref6=52,62,-1,-1,-1,79 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5052 | TOAD_GIANT_CAVE ref6=52,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5056 | Vermin:619 ref6=52,62,-1,18,-1,12 quantity 0->103 max 461->461 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5057 | Vermin:617 ref6=52,62,-1,18,-1,13 quantity 0->103 max 355->355 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5059 | Vermin:616 ref6=52,62,-1,18,-1,15 quantity 100->0 max 386->386 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5062 | RAT_GIANT ref6=52,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5064 | ELK_BIRD ref6=52,62,-1,18,-1,20 quantity 0->100 max 26->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5066 | DRUNIAN ref6=52,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5067 | RAT_LARGE ref6=52,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5068 | Vermin:623 ref6=52,62,-1,18,-1,24 quantity 100->0 max 321->321 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5083 | CRUNDLE ref6=52,62,-1,44,-1,11 quantity 0->103 max 156->156 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5088 | TOAD_GIANT_CAVE ref6=52,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5089 | Vermin:617 ref6=52,62,-1,44,-1,17 quantity 0->103 max 340->340 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5090 | Vermin:619 ref6=52,62,-1,44,-1,18 quantity 0->103 max 274->274 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5094 | RAT_GIANT ref6=52,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5095 | ELK_BIRD ref6=52,62,-1,44,-1,23 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5097 | TROGLODYTE ref6=52,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5098 | VORACIOUS_CAVE_CRAWLER ref6=52,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5100 | Vermin:616 ref6=52,62,-1,44,-1,28 quantity 100->0 max 236->236 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5102 | Vermin:623 ref6=52,62,-1,44,-1,30 quantity 100->0 max 313->313 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5103 | SPIDER_CAVE_GIANT ref6=52,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5121 | CRUNDLE ref6=52,62,-1,69,-1,12 quantity 0->103 max 200->200 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5123 | FLESH_BALL ref6=52,62,-1,69,-1,14 quantity 0->100 max 301->301 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5127 | ELK_BIRD ref6=52,62,-1,69,-1,18 quantity 0->100 max 29->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5128 | HUNGRY_HEAD ref6=52,62,-1,69,-1,19 quantity 0->103 max 121->121 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5129 | RUTHERER ref6=52,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5131 | GREMLIN ref6=52,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5133 | SPIDER_CAVE_GIANT ref6=52,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 5144 | IMP_FIRE ref6=52,62,-1,94,-1,2 quantity 0->100 max 19->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 7604 | BIRD_EAGLE ref6=50,61,-1,-1,-1,166 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 1 | idx 7605 | AARDVARK ref6=50,61,-1,-1,-1,167 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2828 | GIANT_EAGLE ref6=50,61,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2837 | ELEPHANT ref6=50,61,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2844 | Vermin:517 ref6=50,61,-1,-1,-1,103 quantity 100->103 max 244->244 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2847 | GIANT_GRAY_LANGUR ref6=50,61,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2849 | PANGOLIN ref6=50,61,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2870 | GIANT_COUGAR ref6=50,61,-1,-1,-1,132 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2878 | Vermin:474 ref6=50,61,-1,-1,-1,145 quantity 0->103 max 290->290 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2879 | Vermin:49 ref6=50,61,-1,-1,-1,147 quantity 100->103 max 380->380 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2880 | Vermin:528 ref6=50,61,-1,-1,-1,148 quantity 100->103 max 400->400 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2881 | Vermin:477 ref6=50,61,-1,-1,-1,149 quantity 100->214 max 4101->4101 discovered 0->1 extinct 0->0
+fixed | 2 | idx 2882 | Vermin:79 ref6=50,61,-1,-1,-1,150 quantity 100->103 max 368->368 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2884 | FISH_MILKFISH ref6=50,61,0,-1,-1,1 quantity 0->101 max 180->180 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2886 | HIPPO ref6=50,61,0,-1,-1,3 quantity 100->0 max 252->252 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2887 | RIVER OTTER ref6=50,61,0,-1,-1,4 quantity 100->0 max 120->120 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2891 | GIANT_OSPREY ref6=50,61,0,-1,-1,8 quantity 0->102 max 192->192 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2893 | OTTER_MAN ref6=50,61,0,-1,-1,10 quantity 100->0 max 120->120 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2894 | OSPREY_MAN ref6=50,61,0,-1,-1,11 quantity 0->100 max 96->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2904 | TOAD_GIANT_CAVE ref6=50,61,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2908 | Vermin:619 ref6=50,61,-1,18,-1,12 quantity 0->103 max 477->477 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2909 | Vermin:617 ref6=50,61,-1,18,-1,13 quantity 0->103 max 368->368 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2911 | Vermin:616 ref6=50,61,-1,18,-1,15 quantity 100->0 max 399->399 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2914 | RAT_GIANT ref6=50,61,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2916 | ELK_BIRD ref6=50,61,-1,18,-1,20 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2918 | DRUNIAN ref6=50,61,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2919 | RAT_LARGE ref6=50,61,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2920 | Vermin:623 ref6=50,61,-1,18,-1,24 quantity 100->0 max 332->332 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2935 | CRUNDLE ref6=50,61,-1,44,-1,11 quantity 0->103 max 190->190 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2940 | TOAD_GIANT_CAVE ref6=50,61,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2941 | Vermin:617 ref6=50,61,-1,44,-1,17 quantity 0->103 max 413->413 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2942 | Vermin:619 ref6=50,61,-1,44,-1,18 quantity 0->103 max 333->333 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2946 | RAT_GIANT ref6=50,61,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2947 | ELK_BIRD ref6=50,61,-1,44,-1,23 quantity 0->100 max 38->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2949 | TROGLODYTE ref6=50,61,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2950 | VORACIOUS_CAVE_CRAWLER ref6=50,61,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2952 | Vermin:616 ref6=50,61,-1,44,-1,28 quantity 100->0 max 287->287 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2954 | Vermin:623 ref6=50,61,-1,44,-1,30 quantity 100->0 max 380->380 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2955 | SPIDER_CAVE_GIANT ref6=50,61,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2973 | CRUNDLE ref6=50,61,-1,69,-1,12 quantity 0->103 max 215->215 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2975 | FLESH_BALL ref6=50,61,-1,69,-1,14 quantity 0->100 max 324->324 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2979 | ELK_BIRD ref6=50,61,-1,69,-1,18 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2980 | HUNGRY_HEAD ref6=50,61,-1,69,-1,19 quantity 0->103 max 131->131 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2981 | RUTHERER ref6=50,61,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2983 | GREMLIN ref6=50,61,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2985 | SPIDER_CAVE_GIANT ref6=50,61,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 2996 | IMP_FIRE ref6=50,61,-1,94,-1,2 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3042 | GIANT_EAGLE ref6=50,62,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3051 | ELEPHANT ref6=50,62,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3058 | Vermin:517 ref6=50,62,-1,-1,-1,103 quantity 100->103 max 243->243 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3061 | GIANT_GRAY_LANGUR ref6=50,62,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3063 | PANGOLIN ref6=50,62,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3084 | GIANT_COUGAR ref6=50,62,-1,-1,-1,132 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3091 | Vermin:474 ref6=50,62,-1,-1,-1,145 quantity 0->103 max 289->289 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3092 | Vermin:528 ref6=50,62,-1,-1,-1,148 quantity 100->103 max 398->398 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3094 | HIPPO ref6=50,62,0,-1,-1,1 quantity 100->0 max 270->270 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3095 | RIVER OTTER ref6=50,62,0,-1,-1,2 quantity 100->0 max 108->108 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3097 | FISH_MILKFISH ref6=50,62,0,-1,-1,4 quantity 0->103 max 153->153 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3100 | GIANT_OSPREY ref6=50,62,0,-1,-1,7 quantity 0->103 max 144->144 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3101 | OTTER_MAN ref6=50,62,0,-1,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3104 | OSPREY_MAN ref6=50,62,0,-1,-1,11 quantity 0->100 max 45->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3105 | HIPPO_MAN ref6=50,62,0,-1,-1,12 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3114 | TOAD_GIANT_CAVE ref6=50,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3118 | Vermin:619 ref6=50,62,-1,18,-1,12 quantity 0->103 max 475->475 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3119 | Vermin:617 ref6=50,62,-1,18,-1,13 quantity 0->103 max 366->366 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3121 | Vermin:616 ref6=50,62,-1,18,-1,15 quantity 100->0 max 398->398 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3124 | RAT_GIANT ref6=50,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3126 | ELK_BIRD ref6=50,62,-1,18,-1,20 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3128 | DRUNIAN ref6=50,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3129 | RAT_LARGE ref6=50,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3130 | Vermin:623 ref6=50,62,-1,18,-1,24 quantity 100->0 max 331->331 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3145 | CRUNDLE ref6=50,62,-1,44,-1,11 quantity 0->103 max 187->187 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3150 | TOAD_GIANT_CAVE ref6=50,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3151 | Vermin:617 ref6=50,62,-1,44,-1,17 quantity 0->103 max 407->407 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3152 | Vermin:619 ref6=50,62,-1,44,-1,18 quantity 0->103 max 328->328 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3156 | RAT_GIANT ref6=50,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3157 | ELK_BIRD ref6=50,62,-1,44,-1,23 quantity 0->100 max 37->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3159 | TROGLODYTE ref6=50,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3160 | VORACIOUS_CAVE_CRAWLER ref6=50,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3162 | Vermin:616 ref6=50,62,-1,44,-1,28 quantity 100->0 max 283->283 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3164 | Vermin:623 ref6=50,62,-1,44,-1,30 quantity 100->0 max 375->375 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3165 | SPIDER_CAVE_GIANT ref6=50,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3183 | CRUNDLE ref6=50,62,-1,69,-1,12 quantity 0->103 max 214->214 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3185 | FLESH_BALL ref6=50,62,-1,69,-1,14 quantity 0->100 max 323->323 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3189 | ELK_BIRD ref6=50,62,-1,69,-1,18 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3190 | HUNGRY_HEAD ref6=50,62,-1,69,-1,19 quantity 0->103 max 130->130 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3191 | RUTHERER ref6=50,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3193 | GREMLIN ref6=50,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3195 | SPIDER_CAVE_GIANT ref6=50,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3206 | IMP_FIRE ref6=50,62,-1,94,-1,2 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3905 | GIANT_EAGLE ref6=51,61,-1,-1,-1,65 quantity 0->100 max 22->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3914 | ELEPHANT ref6=51,61,-1,-1,-1,91 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3921 | Vermin:517 ref6=51,61,-1,-1,-1,103 quantity 100->107 max 241->241 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3922 | RAT_MAN ref6=51,61,-1,-1,-1,104 quantity 100->97 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3924 | GIANT_GRAY_LANGUR ref6=51,61,-1,-1,-1,107 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3926 | PANGOLIN ref6=51,61,-1,-1,-1,110 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3947 | GIANT_COUGAR ref6=51,61,-1,-1,-1,132 quantity 0->100 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3955 | Vermin:474 ref6=51,61,-1,-1,-1,145 quantity 0->100 max 286->286 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3956 | Vermin:49 ref6=51,61,-1,-1,-1,147 quantity 100->101 max 376->376 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3957 | Vermin:528 ref6=51,61,-1,-1,-1,148 quantity 100->96 max 394->394 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3959 | Vermin:79 ref6=51,61,-1,-1,-1,150 quantity 100->106 max 365->365 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3961 | HIPPO ref6=51,61,0,-1,-1,1 quantity 100->0 max 208->208 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3963 | FISH_MILKFISH ref6=51,61,0,-1,-1,3 quantity 0->103 max 247->247 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3964 | RIVER OTTER ref6=51,61,0,-1,-1,4 quantity 100->0 max 260->260 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3966 | OSPREY_MAN ref6=51,61,0,-1,-1,6 quantity 0->103 max 104->104 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3971 | GIANT_OSPREY ref6=51,61,0,-1,-1,11 quantity 0->103 max 234->234 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3972 | HIPPO_MAN ref6=51,61,0,-1,-1,12 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3981 | TOAD_GIANT_CAVE ref6=51,61,-1,18,-1,8 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3985 | Vermin:619 ref6=51,61,-1,18,-1,12 quantity 0->103 max 470->470 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3986 | Vermin:617 ref6=51,61,-1,18,-1,13 quantity 0->103 max 362->362 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3988 | Vermin:616 ref6=51,61,-1,18,-1,15 quantity 100->0 max 393->393 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3991 | RAT_GIANT ref6=51,61,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3993 | ELK_BIRD ref6=51,61,-1,18,-1,20 quantity 0->97 max 27->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 3995 | DRUNIAN ref6=51,61,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3996 | RAT_LARGE ref6=51,61,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3997 | Vermin:623 ref6=51,61,-1,18,-1,24 quantity 100->0 max 327->327 discovered 0->0 extinct 0->0
+fixed | 2 | idx 3999 | TROLL ref6=51,61,-1,18,-1,26 quantity 6->5 max 4->4 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4012 | CRUNDLE ref6=51,61,-1,44,-1,11 quantity 0->103 max 174->174 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4017 | TOAD_GIANT_CAVE ref6=51,61,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4018 | Vermin:617 ref6=51,61,-1,44,-1,17 quantity 0->103 max 377->377 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4019 | Vermin:619 ref6=51,61,-1,44,-1,18 quantity 0->103 max 304->304 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4023 | RAT_GIANT ref6=51,61,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4024 | ELK_BIRD ref6=51,61,-1,44,-1,23 quantity 0->100 max 35->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4026 | TROGLODYTE ref6=51,61,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4027 | VORACIOUS_CAVE_CRAWLER ref6=51,61,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4029 | Vermin:616 ref6=51,61,-1,44,-1,28 quantity 100->0 max 262->262 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4031 | Vermin:623 ref6=51,61,-1,44,-1,30 quantity 100->0 max 347->347 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4032 | SPIDER_CAVE_GIANT ref6=51,61,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4050 | CRUNDLE ref6=51,61,-1,69,-1,12 quantity 0->103 max 208->208 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4052 | FLESH_BALL ref6=51,61,-1,69,-1,14 quantity 0->100 max 313->313 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4056 | ELK_BIRD ref6=51,61,-1,69,-1,18 quantity 0->100 max 30->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4057 | HUNGRY_HEAD ref6=51,61,-1,69,-1,19 quantity 0->103 max 126->126 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4058 | RUTHERER ref6=51,61,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4060 | GREMLIN ref6=51,61,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4062 | SPIDER_CAVE_GIANT ref6=51,61,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4073 | IMP_FIRE ref6=51,61,-1,94,-1,2 quantity 0->100 max 19->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4083 | BIRD_OSPREY ref6=51,62,-1,-1,-1,8 quantity 0->100 max 14->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4084 | OSPREY_MAN ref6=51,62,-1,-1,-1,9 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4085 | GIANT_OSPREY ref6=51,62,-1,-1,-1,10 quantity 0->100 max 22->100 discovered 0->1 extinct 0->0
+fixed | 2 | idx 4087 | ALBATROSS_MAN ref6=51,62,-1,-1,-1,12 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4092 | SHARK_WOBBEGONG_SPOTTED ref6=51,62,-1,-1,-1,24 quantity 100->101 max 100->100 discovered 0->1 extinct 0->0
+fixed | 2 | idx 4095 | SHARK_MAKO_LONGFIN ref6=51,62,-1,-1,-1,29 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4099 | SHARK_REEF_WHITETIP ref6=51,62,-1,-1,-1,33 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4104 | FISH_RAY_MANTA ref6=51,62,-1,-1,-1,38 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4111 | FISH_SUNFISH_OCEAN ref6=51,62,-1,-1,-1,48 quantity 0->100 max 17->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4117 | ORCA_MAN ref6=51,62,-1,-1,-1,70 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4123 | GIANT_SPERM_WHALE ref6=51,62,-1,-1,-1,79 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4133 | TOAD_GIANT_CAVE ref6=51,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4137 | Vermin:619 ref6=51,62,-1,18,-1,12 quantity 0->103 max 468->468 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4138 | Vermin:617 ref6=51,62,-1,18,-1,13 quantity 0->88 max 361->361 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4140 | Vermin:616 ref6=51,62,-1,18,-1,15 quantity 100->0 max 392->392 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4143 | RAT_GIANT ref6=51,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4145 | ELK_BIRD ref6=51,62,-1,18,-1,20 quantity 0->100 max 27->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4147 | DRUNIAN ref6=51,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4148 | RAT_LARGE ref6=51,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4149 | Vermin:623 ref6=51,62,-1,18,-1,24 quantity 100->0 max 326->326 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4151 | TROLL ref6=51,62,-1,18,-1,26 quantity 4->6 max 4->4 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4152 | GORLAK ref6=51,62,-1,18,-1,27 quantity 15->16 max 15->15 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4164 | CRUNDLE ref6=51,62,-1,44,-1,11 quantity 0->103 max 171->171 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4169 | TOAD_GIANT_CAVE ref6=51,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4170 | Vermin:617 ref6=51,62,-1,44,-1,17 quantity 0->75 max 372->372 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4171 | Vermin:619 ref6=51,62,-1,44,-1,18 quantity 0->103 max 299->299 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4175 | RAT_GIANT ref6=51,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4176 | ELK_BIRD ref6=51,62,-1,44,-1,23 quantity 0->96 max 34->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4178 | TROGLODYTE ref6=51,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4179 | VORACIOUS_CAVE_CRAWLER ref6=51,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4181 | Vermin:616 ref6=51,62,-1,44,-1,28 quantity 100->0 max 258->258 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4183 | Vermin:623 ref6=51,62,-1,44,-1,30 quantity 100->0 max 342->342 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4184 | SPIDER_CAVE_GIANT ref6=51,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4185 | REACHER ref6=51,62,-1,44,-1,32 quantity 10->8 max 10->10 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4202 | CRUNDLE ref6=51,62,-1,69,-1,12 quantity 0->86 max 207->207 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4204 | FLESH_BALL ref6=51,62,-1,69,-1,14 quantity 0->100 max 312->312 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4208 | ELK_BIRD ref6=51,62,-1,69,-1,18 quantity 0->101 max 30->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4209 | HUNGRY_HEAD ref6=51,62,-1,69,-1,19 quantity 0->98 max 125->125 discovered 0->1 extinct 0->0
+fixed | 2 | idx 4210 | RUTHERER ref6=51,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4212 | GREMLIN ref6=51,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 4214 | SPIDER_CAVE_GIANT ref6=51,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4217 | TROLL ref6=51,62,-1,69,-1,27 quantity 8->7 max 7->7 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4218 | REACHER ref6=51,62,-1,69,-1,28 quantity 12->11 max 11->11 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4219 | CREEPING_EYE ref6=51,62,-1,69,-1,29 quantity 406->409 max 400->400 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4221 | Vermin:419 ref6=51,62,-1,69,-1,31 quantity 225->213 max 422->422 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4222 | GORLAK ref6=51,62,-1,69,-1,32 quantity 9->7 max 8->8 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4225 | IMP_FIRE ref6=51,62,-1,94,-1,2 quantity 0->99 max 19->100 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4226 | ELEMENTMAN_FIRE ref6=51,62,-1,94,-1,3 quantity 25->24 max 25->25 discovered 0->1 extinct 0->0
+fixed | 2 | idx 4227 | Vermin:620 ref6=51,62,-1,94,-1,4 quantity 199->200 max 371->371 discovered 1->1 extinct 0->0
+fixed | 2 | idx 4231 | DEMON_22 ref6=51,62,-1,119,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+fixed | 2 | idx 4232 | DEMON_14 ref6=51,62,-1,119,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+fixed | 2 | idx 5002 | BIRD_OSPREY ref6=52,62,-1,-1,-1,8 quantity 0->100 max 14->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5003 | OSPREY_MAN ref6=52,62,-1,-1,-1,9 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5004 | GIANT_OSPREY ref6=52,62,-1,-1,-1,10 quantity 0->100 max 22->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5006 | ALBATROSS_MAN ref6=52,62,-1,-1,-1,12 quantity 0->100 max 6->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5014 | SHARK_MAKO_LONGFIN ref6=52,62,-1,-1,-1,29 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5018 | SHARK_REEF_WHITETIP ref6=52,62,-1,-1,-1,33 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5023 | FISH_RAY_MANTA ref6=52,62,-1,-1,-1,38 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5030 | FISH_SUNFISH_OCEAN ref6=52,62,-1,-1,-1,48 quantity 0->100 max 17->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5036 | ORCA_MAN ref6=52,62,-1,-1,-1,70 quantity 0->100 max 7->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5042 | GIANT_SPERM_WHALE ref6=52,62,-1,-1,-1,79 quantity 0->100 max 27->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5052 | TOAD_GIANT_CAVE ref6=52,62,-1,18,-1,8 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5056 | Vermin:619 ref6=52,62,-1,18,-1,12 quantity 0->103 max 461->461 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5057 | Vermin:617 ref6=52,62,-1,18,-1,13 quantity 0->103 max 355->355 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5059 | Vermin:616 ref6=52,62,-1,18,-1,15 quantity 100->0 max 386->386 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5062 | RAT_GIANT ref6=52,62,-1,18,-1,18 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5064 | ELK_BIRD ref6=52,62,-1,18,-1,20 quantity 0->100 max 26->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5066 | DRUNIAN ref6=52,62,-1,18,-1,22 quantity 0->100 max 20->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5067 | RAT_LARGE ref6=52,62,-1,18,-1,23 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5068 | Vermin:623 ref6=52,62,-1,18,-1,24 quantity 100->0 max 321->321 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5083 | CRUNDLE ref6=52,62,-1,44,-1,11 quantity 0->103 max 156->156 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5088 | TOAD_GIANT_CAVE ref6=52,62,-1,44,-1,16 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5089 | Vermin:617 ref6=52,62,-1,44,-1,17 quantity 0->103 max 340->340 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5090 | Vermin:619 ref6=52,62,-1,44,-1,18 quantity 0->103 max 274->274 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5094 | RAT_GIANT ref6=52,62,-1,44,-1,22 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5095 | ELK_BIRD ref6=52,62,-1,44,-1,23 quantity 0->100 max 31->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5097 | TROGLODYTE ref6=52,62,-1,44,-1,25 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5098 | VORACIOUS_CAVE_CRAWLER ref6=52,62,-1,44,-1,26 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5100 | Vermin:616 ref6=52,62,-1,44,-1,28 quantity 100->0 max 236->236 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5102 | Vermin:623 ref6=52,62,-1,44,-1,30 quantity 100->0 max 313->313 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5103 | SPIDER_CAVE_GIANT ref6=52,62,-1,44,-1,31 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5121 | CRUNDLE ref6=52,62,-1,69,-1,12 quantity 0->103 max 200->200 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5123 | FLESH_BALL ref6=52,62,-1,69,-1,14 quantity 0->100 max 301->301 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5127 | ELK_BIRD ref6=52,62,-1,69,-1,18 quantity 0->100 max 29->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5128 | HUNGRY_HEAD ref6=52,62,-1,69,-1,19 quantity 0->103 max 121->121 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5129 | RUTHERER ref6=52,62,-1,69,-1,20 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5131 | GREMLIN ref6=52,62,-1,69,-1,22 quantity 0->100 max 1->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5133 | SPIDER_CAVE_GIANT ref6=52,62,-1,69,-1,24 quantity 100->0 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 5144 | IMP_FIRE ref6=52,62,-1,94,-1,2 quantity 0->100 max 19->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 7604 | BIRD_EAGLE ref6=50,61,-1,-1,-1,166 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+fixed | 2 | idx 7605 | AARDVARK ref6=50,61,-1,-1,-1,167 quantity 0->100 max 100->100 discovered 0->0 extinct 0->0
+
+## Units present at load (held group from the save), 180 rows; first few:
+fixed | 1 | 2273 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2274 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2275 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2276 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2277 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2278 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2279 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+fixed | 1 | 2280 | ELK_BIRD ref6=51,62,-1,69,-1,18 countdown=0 flag_src=0
+
+=== x1 exit 0

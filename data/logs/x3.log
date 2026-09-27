@@ -1,0 +1,1854 @@
+21:20:03 run X3 20260926-212003: Does a creature's FREQUENCY weight DF's surface pick, as E36 showed it does underground? Every other land species at frequency 1; KANGAROO and PORCUPINE at the same 4:1 ratio, high (100:25) or low (4:1); both stocked at 500; the surface released every 1,500 ticks.
+21:20:03   [rig] DF already running (pid 64320), port 5555
+21:20:03 == X3 arm=high rep=1 fort=CTRL budget=60000 every=500
+21:20:03   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:20:03   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:20:41   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:20:41   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:20:42   [rig] drained 0 queued popup(s)
+21:20:43   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:20:43   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:20:43   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 4 entries stocked at 500
+21:20:43   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=25; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 2 named species set, 12 other land species at frequency 1
+21:20:43   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:21:00   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:21:08   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:21:17   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:21:17   +  5322 ticks | wild  33 | arrivals  20 | departures   0 | deaths  0 | 236 t/s
+21:21:26   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:21:35   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:21:45   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:21:45   + 10484 ticks | wild  42 | arrivals  29 | departures   0 | deaths  0 | 194 t/s
+21:21:54   manipulation: probe:release surface -> released 7 unit(s) [surface]
+21:22:04   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:22:11   + 15173 ticks | wild  57 | arrivals  44 | departures   0 | deaths  0 | 195 t/s
+21:22:14   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:22:25   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:22:36   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:22:42   + 20353 ticks | wild  66 | arrivals  53 | departures   0 | deaths  0 | 203 t/s
+21:22:46   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:22:58   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:23:08   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:23:12   + 25085 ticks | wild  73 | arrivals  63 | departures   3 | deaths  0 | 200 t/s
+21:23:20   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:23:31   manipulation: probe:release surface -> released 6 unit(s) [surface]
+21:23:42   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:23:45   + 30226 ticks | wild  84 | arrivals  88 | departures  17 | deaths  0 | 172 t/s
+21:23:53   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:24:04   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:24:16   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:24:20   + 35291 ticks | wild  82 | arrivals  99 | departures  29 | deaths  1 | 151 t/s
+21:24:28   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:24:39   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:24:51   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:24:55   + 40422 ticks | wild  85 | arrivals 113 | departures  40 | deaths  1 | 180 t/s
+21:25:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:25:13   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:25:25   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:25:25   + 45017 ticks | wild  77 | arrivals 122 | departures  57 | deaths  1 | 169 t/s
+21:25:36   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:25:48   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:26:00   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:26:00   + 50191 ticks | wild  80 | arrivals 132 | departures  64 | deaths  1 | 163 t/s
+21:26:11   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:26:22   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:26:34   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:26:34   + 55494 ticks | wild  79 | arrivals 141 | departures  74 | deaths  1 | 163 t/s
+21:26:45   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:26:56   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:27:03   + 60130 ticks | wild  83 | arrivals 154 | departures  82 | deaths  2 | 163 t/s
+21:27:12   [rig] back at the title screen
+21:27:12   done: {"arm": "high", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 154, "departures": 82, "deaths": 2, "ticks": 60130, "wall_s": 336.1, "stop": null, "ticks_per_s": 178.9, "save_untouched": true}
+21:27:12 == X3 arm=high rep=2 fort=CTRL budget=60000 every=500
+21:27:12   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:27:12   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:27:52   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:27:52   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:27:52   [rig] drained 0 queued popup(s)
+21:27:54   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:27:54   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:27:54   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 4 entries stocked at 500
+21:27:54   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=25; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 2 named species set, 12 other land species at frequency 1
+21:27:54   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:28:12   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:28:23   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:28:33   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:28:33   +  5153 ticks | wild  57 | arrivals  44 | departures   0 | deaths  0 | 157 t/s
+21:28:44   manipulation: probe:release surface -> released 6 unit(s) [surface]
+21:28:54   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:29:03   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:29:03   + 10365 ticks | wild  67 | arrivals  54 | departures   0 | deaths  0 | 225 t/s
+21:29:15   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:29:27   manipulation: probe:release surface -> released 11 unit(s) [surface]
+21:29:39   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:29:39   + 15396 ticks | wild  84 | arrivals  71 | departures   0 | deaths  0 | 151 t/s
+21:29:50   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:30:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:30:09   + 20005 ticks | wild  92 | arrivals  80 | departures   0 | deaths  1 | 192 t/s
+21:30:13   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:30:24   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:30:35   manipulation: probe:release surface -> released 8 unit(s) [surface]
+21:30:41   + 25289 ticks | wild 103 | arrivals  94 | departures   3 | deaths  1 | 198 t/s
+21:30:44   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:30:54   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:31:04   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:31:10   + 30460 ticks | wild 101 | arrivals 108 | departures  19 | deaths  1 | 221 t/s
+21:31:13   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:31:22   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:31:32   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:31:35   + 35260 ticks | wild  88 | arrivals 123 | departures  44 | deaths  4 | 209 t/s
+21:31:41   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:31:51   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:32:01   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:32:04   + 40411 ticks | wild  91 | arrivals 143 | departures  59 | deaths  6 | 210 t/s
+21:32:10   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:32:19   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:32:28   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:32:28   + 45103 ticks | wild  83 | arrivals 151 | departures  74 | deaths  7 | 217 t/s
+21:32:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:32:46   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:32:55   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:32:55   + 50362 ticks | wild  77 | arrivals 160 | departures  87 | deaths  9 | 211 t/s
+21:33:04   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:33:14   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:33:24   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:33:33   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:33:42   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:33:48   + 60125 ticks | wild  84 | arrivals 186 | departures 104 | deaths 11 | 218 t/s
+21:33:57   [rig] back at the title screen
+21:33:57   done: {"arm": "high", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 186, "departures": 104, "deaths": 11, "ticks": 60125, "wall_s": 314.7, "stop": null, "ticks_per_s": 191.0, "save_untouched": true}
+21:33:57 == X3 arm=low rep=1 fort=CTRL budget=60000 every=500
+21:33:57   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:33:57   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:34:35   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:34:35   [rig] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:34:35   [rig] drained 0 queued popup(s)
+21:34:36   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:34:37   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:34:37   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 4 entries stocked at 500
+21:34:37   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=4; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=1; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 2 named species set, 12 other land species at frequency 1
+21:34:37   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:34:54   manipulation: probe:release surface -> released 9 unit(s) [surface]
+21:35:02   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:35:10   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:35:10   +  5440 ticks | wild  48 | arrivals  35 | departures   0 | deaths  0 | 277 t/s
+21:35:19   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:35:28   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:35:34   + 10091 ticks | wild  61 | arrivals  48 | departures   0 | deaths  0 | 213 t/s
+21:35:37   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:35:47   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:35:56   manipulation: probe:release surface -> released 13 unit(s) [surface]
+21:36:03   + 15343 ticks | wild  79 | arrivals  66 | departures   0 | deaths  0 | 192 t/s
+21:36:06   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:36:15   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:36:24   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:36:27   + 20006 ticks | wild  89 | arrivals  77 | departures   0 | deaths  1 | 229 t/s
+21:36:34   manipulation: probe:release surface -> released 7 unit(s) [surface]
+21:36:43   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:36:53   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:36:55   + 25350 ticks | wild  99 | arrivals  89 | departures   1 | deaths  2 | 236 t/s
+21:37:02   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:37:12   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:37:22   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:37:32   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:37:41   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:37:51   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:37:51   + 35394 ticks | wild  77 | arrivals 120 | departures  46 | deaths 10 | 224 t/s
+21:37:59   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:38:08   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:38:14   + 40063 ticks | wild  89 | arrivals 138 | departures  52 | deaths 10 | 204 t/s
+21:38:17   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:38:26   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:38:35   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:38:41   + 45428 ticks | wild  91 | arrivals 156 | departures  68 | deaths 10 | 245 t/s
+21:38:44   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:38:53   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:39:02   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:39:05   + 50128 ticks | wild 104 | arrivals 176 | departures  74 | deaths 11 | 207 t/s
+21:39:11   manipulation: probe:release surface -> released 8 unit(s) [surface]
+21:39:21   manipulation: probe:release surface -> released 7 unit(s) [surface]
+21:39:30   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:39:33   + 55291 ticks | wild 111 | arrivals 197 | departures  87 | deaths 12 | 212 t/s
+21:39:40   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:39:48   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:39:57   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:40:09   [rig] back at the title screen
+21:40:09   done: {"arm": "low", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 213, "departures": 110, "deaths": 13, "ticks": 60593, "wall_s": 286.8, "stop": null, "ticks_per_s": 211.3, "save_untouched": true}
+21:40:09 == X3 arm=low rep=2 fort=CTRL budget=60000 every=500
+21:40:09   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+21:40:09   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+21:40:48   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:40:48   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:40:48   [rig] drained 0 queued popup(s)
+21:40:49   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+21:40:50   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+21:40:50   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) -> x: 4 entries stocked at 500
+21:40:50   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=4; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=1; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) -> x: 2 named species set, 12 other land species at frequency 1
+21:40:50   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+21:41:08   manipulation: probe:release surface -> released 7 unit(s) [surface]
+21:41:18   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:41:28   manipulation: probe:release surface -> released 6 unit(s) [surface]
+21:41:28   +  5269 ticks | wild  54 | arrivals  41 | departures   0 | deaths  0 | 214 t/s
+21:41:38   manipulation: probe:release surface -> released 9 unit(s) [surface]
+21:41:48   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:41:59   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:41:59   + 10424 ticks | wild  69 | arrivals  56 | departures   0 | deaths  0 | 187 t/s
+21:42:10   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:42:22   manipulation: probe:release surface -> released 9 unit(s) [surface]
+21:42:29   + 15119 ticks | wild  87 | arrivals  75 | departures   0 | deaths  1 | 197 t/s
+21:42:32   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:42:42   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:42:52   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:42:58   + 20204 ticks | wild  94 | arrivals  82 | departures   0 | deaths  1 | 202 t/s
+21:43:01   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:43:12   manipulation: probe:release surface -> released 12 unit(s) [surface]
+21:43:21   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:43:28   + 25485 ticks | wild 110 | arrivals 102 | departures   4 | deaths  1 | 191 t/s
+21:43:32   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:43:41   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:43:51   manipulation: probe:release surface -> released 8 unit(s) [surface]
+21:44:00   manipulation: probe:release surface -> released 8 unit(s) [surface]
+21:44:08   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:44:17   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:44:21   + 35121 ticks | wild 103 | arrivals 143 | departures  52 | deaths  1 | 210 t/s
+21:44:27   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:44:36   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:44:47   manipulation: probe:release surface -> released 4 unit(s) [surface]
+21:44:50   + 40403 ticks | wild 120 | arrivals 171 | departures  63 | deaths  1 | 190 t/s
+21:44:57   manipulation: probe:release surface -> released 9 unit(s) [surface]
+21:45:06   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:45:15   manipulation: probe:release surface -> released 9 unit(s) [surface]
+21:45:18   + 45420 ticks | wild 111 | arrivals 182 | departures  82 | deaths  2 | 202 t/s
+21:45:25   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:45:34   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:45:43   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:45:52   manipulation: probe:release surface -> released 3 unit(s) [surface]
+21:46:02   manipulation: probe:release surface -> released 10 unit(s) [surface]
+21:46:11   manipulation: probe:release surface -> released 8 unit(s) [surface]
+21:46:11   + 55334 ticks | wild 123 | arrivals 225 | departures 113 | deaths  2 | 221 t/s
+21:46:20   manipulation: probe:release surface -> released 5 unit(s) [surface]
+21:46:29   manipulation: probe:release surface -> released 2 unit(s) [surface]
+21:46:36   + 60012 ticks | wild 122 | arrivals 242 | departures 131 | deaths  2 | 203 t/s
+21:46:44   [rig] back at the title screen
+21:46:44   done: {"arm": "low", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 242, "departures": 131, "deaths": 2, "ticks": 60012, "wall_s": 307.2, "stop": null, "ticks_per_s": 195.3, "save_untouched": true}
+21:47:22   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+21:47:22   [rig] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+21:47:30   [rig] back at the title screen
+21:47:30 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/X3/20260926-212003
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/X3/20260926-212003
+
+# X3 -- Does a creature's FREQUENCY weight DF's surface pick, as E36 showed it does underground? Every other land species at frequency 1; KANGAROO and PORCUPINE at the same 4:1 ratio, high (100:25) or low (4:1); both stocked at 500; the surface released every 1,500 ticks.
+run 20260926-212003 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 2b68521 seasonal-wildlife 0a8cf9d fps cap 1000
+
+## Predictions (written before the run)
+- frequency is the surface weight: high arm: KANGAROO+PORCUPINE most waves (~86% of weight); low arm: ~20%; ~4:1 between them in both
+- the surface ignores frequency (E3's weight is something else): the same share in both arms
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+high | 1 | True | None | 60130 | 178.9 | 154 | 82 | 2 |  | 
+high | 2 | True | None | 60125 | 191.0 | 186 | 104 | 11 |  | 
+low | 1 | True | None | 60593 | 211.3 | 213 | 110 | 13 |  | 
+low | 2 | True | None | 60012 | 195.3 | 242 | 131 | 2 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+high | 1 | +587 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 24413 | 25083 | departure
+high | 1 | +587 | TROLL | 29,20,-1,8,-1,27 | 1 | 27382 | 27985 | departure
+high | 1 | +587 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 23722 | 24498 | departure
+high | 1 | +587 | DEMON_9 | 29,20,-1,43,-1,2 | 3 | 20104,26606,27035 | 20327,29094,29639 | departure
+high | 1 | +587 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 21107,24788,27136,29290 | 30784,38100,39257,41637 | departure
+high | 1 | +587 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 21466 | 23863 | departure
+high | 1 | +587 | TOAD_GIANT_CAVE | 29,21,-1,13,-1,10 | 1 | 21059 | 31943 | departure
+high | 1 | +2400 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 26839 | 28418 | departure
+high | 1 | +2400 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22244,23639,25733 | 25637,26172,26733 | departure
+high | 1 | +4160 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19694,21852,25728,29093 | 29466,30037,30037,30580 | departure
+high | 1 | +5892 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20291,24368,28859 | 31107,32795,33367 | departure
+high | 1 | +7676 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 25502,25978 | 27615,28167 | departure
+high | 1 | +9381 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20830,23104,26778,28426 | 32223,34552,35095,35636 | departure
+high | 1 | +11128 | KANGAROO | 29,20,-1,-1,-1,88 | 7 | 19473,21390,23701,25150,27298,28874,29422 | 23612,26413,28131,28716,21402,31096,31689 | departure
+high | 1 | +12860 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 28870 | 29957 | departure
+high | 1 | +12860 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19631,20771,25075,29325 | 22431,22983,30545,31616 | departure
+high | 1 | +14617 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 25318,27485,28158 | 30970,32096,32096 | departure
+high | 1 | +16276 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 22589,22720,26015,28210 | 26541,26541,28741,29311 | departure
+high | 1 | +18000 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 20314,26737 | 22422,27587 | departure
+high | 1 | +19778 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 21127,21435,27738 | 22446,23039,28693 | departure
+high | 1 | +21525 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 28453 | - | present
+high | 1 | +21525 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 20598,20620 | 22408,22951 | departure
+high | 1 | +23271 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 23777,28734 | 31106,36317 | departure
+high | 1 | +24450 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 1 | 26688 | 27584 | departure
+high | 1 | +25085 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 26452,27442 | 29292,29884 | departure
+high | 1 | +25085 | POND_GRABBER | 29,21,-1,13,-1,12 | 2 | 21964,28091 | 25697,29884 | departure
+high | 1 | +26887 | KANGAROO | 29,20,-1,-1,-1,88 | 1 | 24919 | 26328 | departure
+high | 1 | +26887 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 3 | 24259,28630,29331 | 30390,32119 | departure/present
+high | 1 | +28572 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 21052,21840,23725,26052 | - | present
+high | 1 | +28572 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 | 20246,20341,23650,25789,26678,28414,28578 | 21074,31016,31558 | departure/present
+high | 1 | +29133 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 26153 | - | present
+high | 1 | +29681 | DEMON_12 | 28,20,-1,44,-1,4 | 4 | 20943,22791,26828,28215 | 23534 | departure/present
+high | 1 | +30226 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20001,20828,24403,26956 | 28238,22402 | departure/present
+high | 1 | +30226 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 1 | 23000 | 2304 | death
+high | 1 | +31371 | JABBERER | 29,20,-1,25,-1,18 | 1 | 26986 | 27093 | departure
+high | 1 | +31930 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 | 23440,24452 | - | present
+high | 1 | +32530 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 2 | 25787,28606 | - | present
+high | 1 | +33626 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20137,21070,27907 | 20751 | departure/present
+high | 1 | +35291 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 22162 | - | present
+high | 1 | +35291 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 22347,23876 | 22590 | departure/present
+high | 1 | +36999 | POND_GRABBER | 29,21,-1,13,-1,12 | 2 | 25238,25568 | - | present
+high | 1 | +36999 | KANGAROO | 29,20,-1,-1,-1,88 | 5 | 21496,24071,26159,27954,29206 | - | present
+high | 1 | +36999 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 25603 | - | present
+high | 1 | +38687 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 25357,27022,27254,28485 | - | present
+high | 1 | +40422 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 19847,23294 | - | present
+high | 1 | +42224 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 21294,25183,25224,26662 | - | present
+high | 1 | +43933 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 22304 | - | present
+high | 1 | +43933 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19753,22201,27681,29574 | - | present
+high | 1 | +45587 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 25313,25374 | - | present
+high | 1 | +47342 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19610,21525,24859,28222 | - | present
+high | 1 | +49072 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 | 24640,24741,26337,28442 | - | present
+high | 1 | +50782 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 19734,28128,28327 | - | present
+high | 1 | +52628 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 25307 | 4649 | death
+high | 1 | +52628 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20183,22816,28240 | - | present
+high | 1 | +54377 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21177,22790 | - | present
+high | 1 | +56070 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 4 | 20580,20729,21000,24156 | - | present
+high | 1 | +57881 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19579,19812,27384,29026 | - | present
+high | 1 | +59588 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 25673 | - | present
+high | 1 | +59588 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20121,23608,23809,26597 | - | present
+high | 2 | +600 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 25395,28232,28519 | 26420,28675,29280 | departure
+high | 2 | +600 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 19964,22082,23861,25534,28241 | 34660,35196,18213,24156,25811 | death/departure
+high | 2 | +600 | CRUNDLE | 29,20,-1,13,-1,9 | 15 | 20008,20315,21642,21782,22953,23274,23330,23422,23653,24700,24861,25104,25909,28413,29934 | 22328,30490,31038,31632,33439,34032,34660,34660,35196,35748,35748,36966,38091,38091,39250 | departure
+high | 2 | +600 | DEMON_16 | 29,20,-1,43,-1,3 | 3 | 20723,22675,26819 | 23525,29860,29860 | departure
+high | 2 | +600 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 1 | 24159 | 26992 | departure
+high | 2 | +1148 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 20395,29357 | 25263,31688 | departure
+high | 2 | +1148 | CRUNDLE | 29,20,-1,13,-1,9 | 5 | 21115,21865,22280,23967,24551 | 39263,40436,40436,40436,41011 | departure
+high | 2 | +1737 | TROGLODYTE | 29,20,-1,8,-1,19 | 3 | 20883,25948,26568 | 31099,31689,31689 | departure
+high | 2 | +2283 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 26030,28076 | 31756,32349 | departure
+high | 2 | +2283 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 28022 | 35847 | departure
+high | 2 | +4010 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 23938,27967,27972,28026 | 25265,28826,30029,30029 | death/departure
+high | 2 | +5756 | GROUNDHOG | 29,20,-1,-1,-1,80 | 2 | 24300,28070 | 28283,28283 | departure
+high | 2 | +5756 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19995,20487,21014,26107 | 22430,24124,28283,28876 | departure
+high | 2 | +7442 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21092,25892 | 24196,28354 | departure
+high | 2 | +9151 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 25842,27186 | 21939,30140 | death/departure
+high | 2 | +10917 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 20689 | 21919 | departure
+high | 2 | +10917 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 2 | 22643,27092 | 28933,30667 | departure
+high | 2 | +12667 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 23041 | 26024 | departure
+high | 2 | +12667 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 10 | 21001,21979,25022,25687,26242,26722,26984,27102,28079,28523 | 28318,28917,29492,29492,30696,31860,32994,32994,32994,37695 | departure
+high | 2 | +14303 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 27066 | 30800 | departure
+high | 2 | +14303 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 20458,22242 | 27281 | departure/present
+high | 2 | +15947 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20276,28221,29051 | 30327,30919,31487 | departure
+high | 2 | +17615 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 2 | 21739,22407 | 22235,23969 | departure
+high | 2 | +19408 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 19477,22447,26285,26327 | 29803,30390,31529,32177 | departure
+high | 2 | +21255 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20394,21384,24453,28507 | 25019,25019,25611,29107 | departure
+high | 2 | +22928 | DINGO | 29,20,-1,-1,-1,100 | 8 | 19560,20421,22591,24012,26190,27812,28282,29107 | 20435,30899,31481,32060,32614,32614,33151,36044 | departure
+high | 2 | +24756 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 25801,28786 | 26829 | departure/present
+high | 2 | +26411 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 22632,28144 | 29131 | departure/present
+high | 2 | +28186 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20478,22544,24418,25732 | 25030 | departure/present
+high | 2 | +29880 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22272,23029,23057 | 25108 | departure/present
+high | 2 | +30460 | DEMON_2 | 28,20,-1,44,-1,1 | 5 | 20277,23629,27141,28100,28746 | 29091 | departure/present
+high | 2 | +31638 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 19619,23256,25587 | 21042,1198 | death/departure/present
+high | 2 | +31638 | REACHER | 29,20,-1,25,-1,28 | 1 | 25768 | 11091 | death
+high | 2 | +32232 | ELK_BIRD | 29,20,-1,25,-1,21 | 5 | 21830,24688,26275,26284,27575 | 26740 | departure/present
+high | 2 | +33426 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 26977,27535 | - | present
+high | 2 | +35260 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 4 | 25666,26739,27392,28426 | - | present
+high | 2 | +35796 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 | 21571,23468,23720,24821,26229,27222,27803,28677 | - | present
+high | 2 | +36348 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 22958 | - | present
+high | 2 | +36939 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 21038,22453 | 22612 | departure/present
+high | 2 | +38130 | TROGLODYTE | 29,20,-1,8,-1,19 | 1 | 23114 | - | present
+high | 2 | +38691 | GROUNDHOG | 29,20,-1,-1,-1,80 | 4 | 20467,23252,27635,29589 | 1159,600,10520 | death/present
+high | 2 | +40411 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 29269 | - | present
+high | 2 | +40411 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22278,22936,23012 | - | present
+high | 2 | +41584 | OLM_GIANT | 29,21,-1,13,-1,13 | 1 | 29045 | - | present
+high | 2 | +42159 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 24208,25979,26005 | - | present
+high | 2 | +42159 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 1 | 25317 | - | present
+high | 2 | +43934 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 19776,25456,27331 | - | present
+high | 2 | +45661 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22042,23062,24135 | 613 | death/present
+high | 2 | +47434 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 21002,21769,23314,26355 | - | present
+high | 2 | +49211 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 26138,28950 | 5777 | death/present
+high | 2 | +50937 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20496,24099,24262,27218 | - | present
+high | 2 | +52680 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20533,23556,24796,29094 | - | present
+high | 2 | +54409 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 22660,22942,23181,27138 | - | present
+high | 2 | +56079 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 29550 | - | present
+high | 2 | +56079 | BADGER | 29,20,-1,-1,-1,82 | 5 | 23228,25953,25979,26654,29131 | 1114 | death/present
+high | 2 | +57786 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 19643,26485 | - | present
+high | 2 | +59551 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 21380 | - | present
+high | 2 | +59551 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 5 | 20870,21581,23132,28503,29645 | - | present
+low | 1 | +634 | BIRD_EMU | 29,20,-1,-1,-1,56 | 9 | 21199,24135,25061,25541,26478,26719,26778,27622,28724 | 30556,31109,31109,31683,31683,32305,32305,32913,32913 | departure
+low | 1 | +634 | POND_GRABBER | 29,20,-1,8,-1,11 | 4 | 23373,24502,26079,28593 | - | present
+low | 1 | +634 | DEMON_18 | 29,20,-1,43,-1,1 | 1 | 23289 | 24716 | departure
+low | 1 | +634 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 | 19900,21478,21995,24274,24536 | 25282,25905,25905,26473,26473 | departure
+low | 1 | +634 | TROGLODYTE | 29,20,-1,13,-1,19 | 8 | 20356,22632,22768,24500,24762,25005,25057,28776 | 26473,26473,27046,29335,29335,29939,29939,31109 | death/departure
+low | 1 | +634 | DEMON_10 | 29,20,-1,43,-1,5 | 2 | 26251,27638 | 26473,28166 | departure
+low | 1 | +2455 | GROUNDHOG | 29,20,-1,-1,-1,80 | 4 | 19618,23647,25255,26082 | 26345,27514,28118,28735 | departure
+low | 1 | +4200 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 26734 | 31194 | departure
+low | 1 | +4200 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 24550 | 26373 | departure
+low | 1 | +6015 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 5 | 21085,24606,24958,26311,27018 | 26924,28146,30472,33510,36418 | departure
+low | 1 | +7739 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 24696 | 25808 | departure
+low | 1 | +7739 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 19749,20962,21451 | 24004,24004,25200 | departure
+low | 1 | +9520 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 21040,22986,23622,26886 | 24641,24641,26967,28192 | departure
+low | 1 | +11274 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 23149 | 27082 | departure
+low | 1 | +11274 | WOMBAT | 29,20,-1,-1,-1,96 | 1 | 27690 | 35409 | departure
+low | 1 | +13006 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 22025 | 22927 | departure
+low | 1 | +13006 | DINGO | 29,20,-1,-1,-1,100 | 12 | 21311,21800,22250,22315,22347,23058,23842,24651,25541,25611,29649,29732 | 27684,27684,28864,30567,31131,31131,31759,32422,32422,32422,32422,33035 | departure
+low | 1 | +14751 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 19981 | 2939 | death
+low | 1 | +14751 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 26328,26406 | 28235,28822 | departure
+low | 1 | +16556 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 26371 | 30127 | departure
+low | 1 | +16556 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 27073 | 27581 | departure
+low | 1 | +18241 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21612,21953 | 27187,27800 | departure
+low | 1 | +20006 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 | 22888,23460,24061,25046,26333,27624,28571 | 32466,33073,33644,34168,34168,34712,34712 | departure
+low | 1 | +21829 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 19672,26544 | 24212,1134 | death/departure
+low | 1 | +22963 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 22260,25081,25706,28510 | 32942,37630 | departure/present
+low | 1 | +23539 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 20816,28746 | 24367,29540 | departure
+low | 1 | +25350 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 24756,26011,26938,27346 | 29941,30555,31208,31208 | departure
+low | 1 | +27107 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 25914 | 2862 | death
+low | 1 | +27107 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 23405 | 27611 | departure
+low | 1 | +27680 | DEMON_9 | 29,20,-1,43,-1,2 | 2 | 23223,26549 | 23613 | departure/present
+low | 1 | +28800 | GROUNDHOG | 29,20,-1,-1,-1,80 | 4 | 20905,21070,24086,24270 | 23672,28880,29420,582 | death/departure
+low | 1 | +29969 | JABBERER | 29,20,-1,25,-1,18 | 1 | 26055 | 26589 | departure
+low | 1 | +30573 | BADGER | 29,20,-1,-1,-1,82 | 5 | 24836,26273,26435,27507,29401 | 1744,617,27107,4821,617 | death/departure
+low | 1 | +30573 | CRUNDLE | 29,20,-1,25,-1,12 | 6 | 20435,21458,23666,26058,28528,29049 | 24145,25985,29402,26542,29402,27107 | departure
+low | 1 | +30573 | OLM_GIANT | 29,20,-1,13,-1,13 | 1 | 27408 | 29402 | departure
+low | 1 | +31190 | CRUNDLE | 29,20,-1,25,-1,12 | 2 | 23414,26308 | 27030 | departure/present
+low | 1 | +31743 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 29163 | - | present
+low | 1 | +32317 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 | 21820 | 1844 | death
+low | 1 | +32317 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 27131 | - | present
+low | 1 | +32939 | CRUNDLE | 29,20,-1,25,-1,12 | 2 | 21480,25096 | 26413 | departure/present
+low | 1 | +34161 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 21108,28608 | 24059 | departure/present
+low | 1 | +34800 | CRUNDLE | 29,20,-1,25,-1,12 | 1 | 24081 | 24552 | departure
+low | 1 | +35933 | CRUNDLE | 29,20,-1,25,-1,12 | 4 | 22461,23820,26156,29516 | 23419,24660 | departure/present
+low | 1 | +35933 | BIRD_KAKAPO | 29,20,-1,-1,-1,55 | 1 | 20325 | 20625 | departure
+low | 1 | +35933 | WOLF | 29,20,-1,-1,-1,101 | 4 | 20062,21822,23240,28960 | 23419 | departure/present
+low | 1 | +37712 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 25064 | - | present
+low | 1 | +37712 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20461,20508,23810 | - | present
+low | 1 | +38910 | CRUNDLE | 29,20,-1,25,-1,12 | 1 | 22769 | - | present
+low | 1 | +39525 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 | 26193,26530,27668,28855 | - | present
+low | 1 | +41307 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 26921 | - | present
+low | 1 | +41307 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21265,22785 | - | present
+low | 1 | +42986 | CRUNDLE | 29,20,-1,25,-1,12 | 1 | 26946 | - | present
+low | 1 | +42986 | BIRD_EMU | 29,20,-1,-1,-1,56 | 6 | 20160,23635,24877,26426,27410,27681 | - | present
+low | 1 | +42986 | GROUNDHOG | 29,20,-1,-1,-1,80 | 4 | 24528,24620,28940,29558 | 10093 | death/present
+low | 1 | +43573 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 | 19701 | - | present
+low | 1 | +44765 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20155,20757,22611 | - | present
+low | 1 | +46041 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 | 27459 | - | present
+low | 1 | +46683 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 25479 | - | present
+low | 1 | +46683 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 23173 | - | present
+low | 1 | +48439 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 21895 | 1689 | death
+low | 1 | +48439 | BADGER | 29,20,-1,-1,-1,82 | 7 | 23170,25372,26481,27505,28467,28869,29501 | - | present
+low | 1 | +50128 | BADGER | 29,20,-1,-1,-1,82 | 1 | 22204 | - | present
+low | 1 | +50128 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 28511 | - | present
+low | 1 | +50128 | DINGO | 29,20,-1,-1,-1,100 | 7 | 20842,22980,27459,27515,27642,28154,29466 | 5777 | death/present
+low | 1 | +51293 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 20290 | - | present
+low | 1 | +51841 | BADGER | 29,20,-1,-1,-1,82 | 8 | 22344,22804,23266,24074,24568,25337,26525,28240 | - | present
+low | 1 | +53650 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 22974 | - | present
+low | 1 | +53650 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 8 | 20710,21981,25229,25327,25449,26951,28133,28175 | - | present
+low | 1 | +54174 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 1 | 20235 | - | present
+low | 1 | +55291 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 23381,24626 | - | present
+low | 1 | +57115 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 29192 | - | present
+low | 1 | +57115 | GROUNDHOG | 29,20,-1,-1,-1,80 | 1 | 20878 | - | present
+low | 1 | +58806 | DINGO | 29,20,-1,-1,-1,100 | 10 | 19499,19736,22125,23613,23651,23726,23936,24704,24731,27425 | - | present
+low | 1 | +59975 | TROLL | 29,21,-1,13,-1,32 | 1 | 25566 | - | present
+low | 1 | +60593 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 27001 | - | present
+low | 1 | +60593 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 22064,22138 | - | present
+low | 2 | +607 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 7 | 20008,20042,22707,22913,23418,24019,28567 | 21343,23740,30004,30592,30592,30592,30592 | departure
+low | 2 | +607 | OLM_GIANT | 29,20,-1,8,-1,9 | 1 | 24730 | 25945 | departure
+low | 2 | +607 | TROGLODYTE | 29,21,-1,13,-1,19 | 6 | 21118,21384,22003,23542,25758,26425 | 27073,27073,27073,29385,29385,30004 | departure
+low | 2 | +607 | DEMON_2 | 28,20,-1,44,-1,1 | 4 | 20294,23921,27133,27904 | 21970,29385,30004,30592 | departure
+low | 2 | +607 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 | 20512,24039,25191,28917 | 22628,30592,31682,31682 | departure
+low | 2 | +607 | DEMON_3 | 29,20,-1,43,-1,0 | 5 | 21134,23184,27294,28880,29071 | 28737,29385,30004,30004,31132 | departure
+low | 2 | +1180 | TROGLODYTE | 29,21,-1,13,-1,19 | 4 | 20059,22223,24169,25572 | 29431,31109,31109,31642 | departure
+low | 2 | +1180 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 | 27082,28543 | 31642,32785 | departure
+low | 2 | +2450 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 20554 | 24102 | departure
+low | 2 | +2450 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 27954 | 28161 | departure
+low | 2 | +4094 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 6 | 21442,23949,24533,26899,28102,29621 | 24156,24156,29308,30459,31027,31582 | departure
+low | 2 | +5866 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 28701 | 29810 | departure
+low | 2 | +5866 | BIRD_EMU | 29,20,-1,-1,-1,56 | 8 | 19812,23260,23505,26733,27010,27051,28374,29309 | 30923,31503,32738,33363,33956,34537,35678,36223 | departure
+low | 2 | +7527 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 1 | 29239 | 35670 | death
+low | 2 | +7527 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 23800,24244,24287 | 24762,27026,27026 | departure
+low | 2 | +9207 | GROUNDHOG | 29,20,-1,-1,-1,80 | 1 | 27350 | 32337 | departure
+low | 2 | +9207 | WOMBAT | 29,20,-1,-1,-1,96 | 1 | 23356 | 24195 | departure
+low | 2 | +10980 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 6 | 19808,23100,25157,26680,27491,29101 | 29971,594,29971,32217,32217,32217 | death/departure
+low | 2 | +12769 | BADGER | 29,20,-1,-1,-1,82 | 9 | 22168,22658,23339,25773,26101,27695,27697,28539,28787 | 29320,29869,29869,29869,30428,30428,30963,30963,30963 | departure
+low | 2 | +14583 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 27787 | 29693 | departure
+low | 2 | +14583 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22595,24173,25272 | 23433,30837,32595 | departure
+low | 2 | +16284 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 21020 | 22320 | departure
+low | 2 | +16284 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 29096 | 32516 | departure
+low | 2 | +17984 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 | 20780,28234 | 22419,30273 | departure
+low | 2 | +19664 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 3 | 19551,19932,21674 | 26361,26898,28061 | departure
+low | 2 | +21342 | BADGER | 29,20,-1,-1,-1,82 | 12 | 19835,20029,22773,24183,24618,25063,25780,27068,27272,28042,28557,29458 | 25220,25836,29866,31088,31088,31088,31088,31088,31710,31710,31710,31710 | departure
+low | 2 | +23235 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 20075,22506,24087,29153 | 29195,36777,34939,35543 | departure
+low | 2 | +24909 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 22400,26198,27295,27706 | 31070,34558 | departure/present
+low | 2 | +26552 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 22717,24303,24842 | 25268,25268,25878 | departure
+low | 2 | +28250 | DINGO | 29,20,-1,-1,-1,100 | 8 | 19742,20049,22034,22511,22740,25610,25829,26918 | 23570,24802,24802,26479,24802,28834,24802,27729 | departure
+low | 2 | +29344 | CREEPING_EYE | 29,20,-1,25,-1,25 | 4 | 25133,25956,27250,29479 | 30668,27218 | departure/present
+low | 2 | +29992 | KANGAROO | 29,20,-1,-1,-1,88 | 5 | 23359,23434,27084,27611,28977 | 24737,29475 | departure/present
+low | 2 | +30611 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 24768 | 28167 | departure
+low | 2 | +31199 | DEMON_1 | 28,20,-1,44,-1,3 | 2 | 24820,25633 | 25363 | departure/present
+low | 2 | +31739 | PORCUPINE | 29,20,-1,-1,-1,90 | 1 | 21907 | 24240 | departure
+low | 2 | +31739 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 20738,21014 | 24823 | departure/present
+low | 2 | +32289 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 20306 | 20763 | departure
+low | 2 | +32289 | OLM_GIANT | 29,21,-1,13,-1,13 | 1 | 22045 | 22440 | departure
+low | 2 | +32822 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 1 | 25791 | 26645 | departure
+low | 2 | +32822 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 28445 | - | present
+low | 2 | +33402 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 22242 | 23160 | departure
+low | 2 | +33402 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 27020 | - | present
+low | 2 | +33965 | TROGLODYTE | 30,20,-1,8,-1,19 | 5 | 20610,20951,21209,26274,27078 | - | present
+low | 2 | +34553 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 26258 | - | present
+low | 2 | +35121 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 20062 | 21441 | departure
+low | 2 | +35121 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 20998,26614 | - | present
+low | 2 | +35676 | TROGLODYTE | 30,20,-1,8,-1,19 | 1 | 20783 | - | present
+low | 2 | +36789 | BIRD_EMU | 29,20,-1,-1,-1,56 | 10 | 20195,21643,21848,22759,23293,24191,25143,25618,26142,26349 | 22678 | departure/present
+low | 2 | +38604 | CREEPING_EYE | 29,20,-1,25,-1,25 | 2 | 26643,29123 | - | present
+low | 2 | +38604 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 | 20478,20684,22198,26679 | - | present
+low | 2 | +39822 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 26491 | - | present
+low | 2 | +40403 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 28177 | - | present
+low | 2 | +40403 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 23757 | - | present
+low | 2 | +40403 | BIRD_EMU | 29,20,-1,-1,-1,56 | 8 | 20176,20584,21046,23046,24682,24928,28351,29340 | - | present
+low | 2 | +42089 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21224,21287 | - | present
+low | 2 | +43732 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 7 | 22817,22848,23079,23525,24552,25058,28272 | - | present
+low | 2 | +45420 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 21726,24682 | - | present
+low | 2 | +46562 | CREEPING_EYE | 29,20,-1,25,-1,25 | 1 | 22911 | - | present
+low | 2 | +47178 | BADGER | 29,20,-1,-1,-1,82 | 10 | 19736,21566,21711,23397,24077,27485,28529,28589,28712,28914 | - | present
+low | 2 | +48800 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 | 21089,22448,23850 | - | present
+low | 2 | +50582 | WOLF | 29,20,-1,-1,-1,101 | 3 | 20418,28086,28584 | - | present
+low | 2 | +52430 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 10 | 21006,21071,21150,21872,24228,24513,25643,27156,28306,28903 | - | present
+low | 2 | +53052 | CREEPING_EYE | 29,20,-1,25,-1,25 | 4 | 21074,26179,26672,28826 | - | present
+low | 2 | +53052 | KANGAROO | 29,20,-1,-1,-1,88 | 1 | 20823 | - | present
+low | 2 | +53648 | KANGAROO | 29,20,-1,-1,-1,88 | 2 | 19860,27984 | - | present
+low | 2 | +54190 | DINGO | 29,20,-1,-1,-1,100 | 8 | 20351,23293,24024,24323,26448,27390,28364,29669 | - | present
+low | 2 | +54729 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 1 | 25859 | - | present
+low | 2 | +55979 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 5 | 19557,20799,22793,23265,24928 | - | present
+low | 2 | +56562 | DEMON_10 | 29,20,-1,43,-1,5 | 2 | 25149,29255 | - | present
+low | 2 | +57618 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 1 | 27563 | - | present
+low | 2 | +57618 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 1 | 22669 | - | present
+low | 2 | +59467 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 27069,27380,29381 | - | present
+low | 2 | +59467 | TROGLODYTE | 29,20,-1,13,-1,19 | 5 | 22024,22060,22827,28351,29720 | - | present
+
+## Waves (233; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+high | 1 | +587 | PORCUPINE | surface | 1 | 1 | 0 | 0
+high | 1 | +587 | TROLL | cavern | 1 | 1 | 0 | 0
+high | 1 | +587 | VORACIOUS_CAVE_CRAWLER | cavern | 1 | 1 | 0 | 0
+high | 1 | +587 | DEMON_9 | deep | 3 | 3 | 0 | 0
+high | 1 | +587 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 1 | +587 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+high | 1 | +587 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+high | 1 | +2400 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+high | 1 | +2400 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 1 | +4160 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 1 | +5892 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 1 | +7676 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 1 | +9381 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 1 | +11128 | KANGAROO | surface | 7 | 7 | 0 | 0
+high | 1 | +12860 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+high | 1 | +12860 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 1 | +14617 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 1 | +16276 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 1 | +18000 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 1 | +19778 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 1 | +21525 | PORCUPINE | surface | 1 | 0 | 0 | 1
+high | 1 | +21525 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 1 | +23271 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 1 | +24450 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+high | 1 | +25085 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 1 | +25085 | POND_GRABBER | cavern | 4 | 2 | 0 | 2
+high | 1 | +26887 | KANGAROO | surface | 6 | 1 | 0 | 5
+high | 1 | +26887 | BIRD_RAVEN | surface | 3 | 2 | 0 | 1
+high | 1 | +28572 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +28572 | TROGLODYTE | cavern | 8 | 3 | 0 | 5
+high | 1 | +29681 | DEMON_12 | deep | 4 | 1 | 0 | 3
+high | 1 | +30226 | KANGAROO | surface | 4 | 2 | 0 | 2
+high | 1 | +30226 | BLIND_CAVE_OGRE | cavern | 1 | 0 | 1 | 0
+high | 1 | +31371 | JABBERER | cavern | 1 | 1 | 0 | 0
+high | 1 | +31930 | BIRD_EMU | surface | 2 | 0 | 0 | 2
+high | 1 | +32530 | BLIND_CAVE_OGRE | cavern | 2 | 0 | 0 | 2
+high | 1 | +33626 | KANGAROO | surface | 3 | 1 | 0 | 2
+high | 1 | +35291 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+high | 1 | +35291 | KANGAROO | surface | 2 | 1 | 0 | 1
+high | 1 | +36999 | PORCUPINE | surface | 1 | 0 | 0 | 1
+high | 1 | +38687 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +40422 | KANGAROO | surface | 2 | 0 | 0 | 2
+high | 1 | +42224 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +43933 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+high | 1 | +43933 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +45587 | KANGAROO | surface | 2 | 0 | 0 | 2
+high | 1 | +47342 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +49072 | BIRD_EMU | surface | 4 | 0 | 0 | 4
+high | 1 | +50782 | KANGAROO | surface | 3 | 0 | 0 | 3
+high | 1 | +52628 | BIRD_KESTREL | surface | 1 | 0 | 1 | 0
+high | 1 | +52628 | KANGAROO | surface | 3 | 0 | 0 | 3
+high | 1 | +54377 | KANGAROO | surface | 2 | 0 | 0 | 2
+high | 1 | +56070 | BIRD_RAVEN | surface | 4 | 0 | 0 | 4
+high | 1 | +57881 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 1 | +59588 | PORCUPINE | surface | 1 | 0 | 0 | 1
+high | 1 | +59588 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 2 | +600 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 2 | +600 | TROGLODYTE | cavern | 10 | 9 | 1 | 0
+high | 2 | +600 | CRUNDLE | cavern | 20 | 20 | 0 | 0
+high | 2 | +600 | DEMON_16 | deep | 3 | 3 | 0 | 0
+high | 2 | +600 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+high | 2 | +2283 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 2 | +2283 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+high | 2 | +4010 | KANGAROO | surface | 4 | 3 | 1 | 0
+high | 2 | +5756 | GROUNDHOG | surface | 2 | 2 | 0 | 0
+high | 2 | +5756 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 2 | +7442 | KANGAROO | surface | 2 | 2 | 0 | 0
+high | 2 | +9151 | KANGAROO | surface | 2 | 1 | 1 | 0
+high | 2 | +10917 | PORCUPINE | surface | 1 | 1 | 0 | 0
+high | 2 | +10917 | BIRD_RAVEN | surface | 2 | 2 | 0 | 0
+high | 2 | +12667 | PORCUPINE | surface | 1 | 1 | 0 | 0
+high | 2 | +12667 | BIRD_RAVEN | surface | 10 | 10 | 0 | 0
+high | 2 | +14303 | PORCUPINE | surface | 1 | 1 | 0 | 0
+high | 2 | +14303 | KANGAROO | surface | 2 | 1 | 0 | 1
+high | 2 | +15947 | KANGAROO | surface | 3 | 3 | 0 | 0
+high | 2 | +17615 | BIRD_RAVEN | surface | 2 | 2 | 0 | 0
+high | 2 | +19408 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 2 | +21255 | KANGAROO | surface | 4 | 4 | 0 | 0
+high | 2 | +22928 | DINGO | surface | 8 | 8 | 0 | 0
+high | 2 | +24756 | KANGAROO | surface | 2 | 1 | 0 | 1
+high | 2 | +26411 | KANGAROO | surface | 2 | 1 | 0 | 1
+high | 2 | +28186 | KANGAROO | surface | 4 | 1 | 0 | 3
+high | 2 | +29880 | KANGAROO | surface | 3 | 1 | 0 | 2
+high | 2 | +30460 | DEMON_2 | deep | 5 | 1 | 0 | 4
+high | 2 | +31638 | KANGAROO | surface | 3 | 1 | 1 | 1
+high | 2 | +31638 | REACHER | cavern | 1 | 0 | 1 | 0
+high | 2 | +32232 | ELK_BIRD | cavern | 5 | 1 | 0 | 4
+high | 2 | +33426 | KANGAROO | surface | 2 | 0 | 0 | 2
+high | 2 | +35260 | BIRD_RAVEN | surface | 4 | 0 | 0 | 4
+high | 2 | +35260 | TROGLODYTE | cavern | 10 | 0 | 0 | 10
+high | 2 | +36939 | BIRD_RAVEN | surface | 2 | 1 | 0 | 1
+high | 2 | +38691 | GROUNDHOG | surface | 4 | 0 | 3 | 1
+high | 2 | +40411 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+high | 2 | +40411 | KANGAROO | surface | 3 | 0 | 0 | 3
+high | 2 | +41584 | OLM_GIANT | cavern | 1 | 0 | 0 | 1
+high | 2 | +42159 | KANGAROO | surface | 3 | 0 | 0 | 3
+high | 2 | +42159 | CROCODILE_CAVE | cavern | 1 | 0 | 0 | 1
+high | 2 | +43934 | KANGAROO | surface | 3 | 0 | 0 | 3
+high | 2 | +45661 | KANGAROO | surface | 3 | 0 | 1 | 2
+high | 2 | +47434 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 2 | +49211 | KANGAROO | surface | 2 | 0 | 1 | 1
+high | 2 | +50937 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 2 | +52680 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 2 | +54409 | KANGAROO | surface | 4 | 0 | 0 | 4
+high | 2 | +56079 | PORCUPINE | surface | 1 | 0 | 0 | 1
+high | 2 | +56079 | BADGER | surface | 5 | 0 | 1 | 4
+high | 2 | +57786 | KANGAROO | surface | 2 | 0 | 0 | 2
+high | 2 | +59551 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+high | 2 | +59551 | BIRD_RAVEN | surface | 5 | 0 | 0 | 5
+low | 1 | +634 | BIRD_EMU | surface | 9 | 9 | 0 | 0
+low | 1 | +634 | POND_GRABBER | cavern | 4 | 0 | 0 | 4
+low | 1 | +634 | DEMON_18 | deep | 1 | 1 | 0 | 0
+low | 1 | +634 | TROGLODYTE | cavern | 5 | 5 | 0 | 0
+low | 1 | +634 | TROGLODYTE | cavern | 8 | 7 | 1 | 0
+low | 1 | +634 | DEMON_10 | deep | 2 | 2 | 0 | 0
+low | 1 | +2455 | GROUNDHOG | surface | 4 | 4 | 0 | 0
+low | 1 | +4200 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 1 | +4200 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 1 | +6015 | BIRD_RAVEN | surface | 5 | 5 | 0 | 0
+low | 1 | +7739 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 1 | +7739 | KANGAROO | surface | 3 | 3 | 0 | 0
+low | 1 | +9520 | KANGAROO | surface | 4 | 4 | 0 | 0
+low | 1 | +11274 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 1 | +11274 | WOMBAT | surface | 1 | 1 | 0 | 0
+low | 1 | +13006 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 1 | +13006 | DINGO | surface | 12 | 12 | 0 | 0
+low | 1 | +14751 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 1 | 0
+low | 1 | +14751 | KANGAROO | surface | 2 | 2 | 0 | 0
+low | 1 | +16556 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 1 | +16556 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 1 | +18241 | KANGAROO | surface | 2 | 2 | 0 | 0
+low | 1 | +20006 | BIRD_EMU | surface | 7 | 7 | 0 | 0
+low | 1 | +21829 | BIRD_RAVEN | surface | 2 | 1 | 1 | 0
+low | 1 | +22963 | KANGAROO | surface | 4 | 2 | 0 | 2
+low | 1 | +23539 | KANGAROO | surface | 2 | 2 | 0 | 0
+low | 1 | +25350 | KANGAROO | surface | 4 | 4 | 0 | 0
+low | 1 | +27107 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 1 | 0
+low | 1 | +27107 | SKUNK | surface | 1 | 1 | 0 | 0
+low | 1 | +27680 | DEMON_9 | deep | 2 | 1 | 0 | 1
+low | 1 | +28800 | GROUNDHOG | surface | 4 | 3 | 1 | 0
+low | 1 | +29969 | JABBERER | cavern | 1 | 1 | 0 | 0
+low | 1 | +30573 | BADGER | surface | 5 | 1 | 4 | 0
+low | 1 | +30573 | CRUNDLE | cavern | 17 | 11 | 0 | 6
+low | 1 | +30573 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+low | 1 | +31743 | VORACIOUS_CAVE_CRAWLER | cavern | 1 | 0 | 0 | 1
+low | 1 | +32317 | BIRD_EMU | surface | 9 | 0 | 1 | 8
+low | 1 | +32317 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 1 | +34161 | BIRD_RAVEN | surface | 2 | 1 | 0 | 1
+low | 1 | +35933 | BIRD_KAKAPO | surface | 1 | 1 | 0 | 0
+low | 1 | +35933 | WOLF | surface | 4 | 1 | 0 | 3
+low | 1 | +37712 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 1 | +37712 | KANGAROO | surface | 3 | 0 | 0 | 3
+low | 1 | +39525 | BIRD_EMU | surface | 4 | 0 | 0 | 4
+low | 1 | +41307 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 1 | +41307 | KANGAROO | surface | 2 | 0 | 0 | 2
+low | 1 | +42986 | GROUNDHOG | surface | 4 | 0 | 1 | 3
+low | 1 | +44765 | KANGAROO | surface | 3 | 0 | 0 | 3
+low | 1 | +46683 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 1 | +46683 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 1 | +48439 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 1 | 0
+low | 1 | +48439 | BADGER | surface | 16 | 0 | 0 | 16
+low | 1 | +50128 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 1 | +50128 | DINGO | surface | 7 | 0 | 1 | 6
+low | 1 | +51293 | DEMON_9 | deep | 1 | 0 | 0 | 1
+low | 1 | +53650 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 1 | +53650 | BIRD_RAVEN | surface | 9 | 0 | 0 | 9
+low | 1 | +55291 | KANGAROO | surface | 2 | 0 | 0 | 2
+low | 1 | +57115 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 1 | +57115 | GROUNDHOG | surface | 1 | 0 | 0 | 1
+low | 1 | +58806 | DINGO | surface | 10 | 0 | 0 | 10
+low | 1 | +59975 | TROLL | cavern | 1 | 0 | 0 | 1
+low | 1 | +60593 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 1 | +60593 | KANGAROO | surface | 2 | 0 | 0 | 2
+low | 2 | +607 | BIRD_RAVEN | surface | 7 | 7 | 0 | 0
+low | 2 | +607 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+low | 2 | +607 | TROGLODYTE | cavern | 10 | 10 | 0 | 0
+low | 2 | +607 | DEMON_2 | deep | 4 | 4 | 0 | 0
+low | 2 | +607 | TROGLODYTE | cavern | 6 | 6 | 0 | 0
+low | 2 | +607 | DEMON_3 | deep | 5 | 5 | 0 | 0
+low | 2 | +2450 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 2 | +2450 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 2 | +4094 | BIRD_RAVEN | surface | 6 | 6 | 0 | 0
+low | 2 | +5866 | BIRD_OWL_GREAT_HORNED | surface | 1 | 1 | 0 | 0
+low | 2 | +5866 | BIRD_EMU | surface | 8 | 8 | 0 | 0
+low | 2 | +7527 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 1 | 0
+low | 2 | +7527 | KANGAROO | surface | 3 | 3 | 0 | 0
+low | 2 | +9207 | GROUNDHOG | surface | 1 | 1 | 0 | 0
+low | 2 | +9207 | WOMBAT | surface | 1 | 1 | 0 | 0
+low | 2 | +10980 | BIRD_RAVEN | surface | 6 | 5 | 1 | 0
+low | 2 | +12769 | BADGER | surface | 9 | 9 | 0 | 0
+low | 2 | +14583 | PORCUPINE | surface | 1 | 1 | 0 | 0
+low | 2 | +14583 | KANGAROO | surface | 3 | 3 | 0 | 0
+low | 2 | +16284 | SKUNK | surface | 1 | 1 | 0 | 0
+low | 2 | +16284 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 2 | +17984 | BIRD_EMU | surface | 2 | 2 | 0 | 0
+low | 2 | +19664 | BIRD_RAVEN | surface | 3 | 3 | 0 | 0
+low | 2 | +21342 | BADGER | surface | 12 | 12 | 0 | 0
+low | 2 | +23235 | KANGAROO | surface | 4 | 4 | 0 | 0
+low | 2 | +24909 | KANGAROO | surface | 4 | 2 | 0 | 2
+low | 2 | +26552 | KANGAROO | surface | 3 | 3 | 0 | 0
+low | 2 | +28250 | DINGO | surface | 8 | 8 | 0 | 0
+low | 2 | +29344 | CREEPING_EYE | cavern | 16 | 4 | 0 | 12
+low | 2 | +29992 | KANGAROO | surface | 8 | 2 | 0 | 6
+low | 2 | +31199 | DEMON_1 | deep | 2 | 1 | 0 | 1
+low | 2 | +31739 | PORCUPINE | surface | 1 | 1 | 0 | 0
+low | 2 | +31739 | BIRD_RAVEN | surface | 2 | 1 | 0 | 1
+low | 2 | +32289 | OLM_GIANT | cavern | 1 | 1 | 0 | 0
+low | 2 | +32822 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+low | 2 | +32822 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+low | 2 | +33402 | SKUNK | surface | 1 | 1 | 0 | 0
+low | 2 | +33402 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 2 | +33965 | TROGLODYTE | cavern | 6 | 0 | 0 | 6
+low | 2 | +35121 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+low | 2 | +35121 | BIRD_RAVEN | surface | 2 | 0 | 0 | 2
+low | 2 | +36789 | BIRD_EMU | surface | 10 | 1 | 0 | 9
+low | 2 | +38604 | BIRD_EMU | surface | 4 | 0 | 0 | 4
+low | 2 | +40403 | SKUNK | surface | 1 | 0 | 0 | 1
+low | 2 | +40403 | BIRD_EMU | surface | 8 | 0 | 0 | 8
+low | 2 | +42089 | KANGAROO | surface | 2 | 0 | 0 | 2
+low | 2 | +43732 | BIRD_RAVEN | surface | 7 | 0 | 0 | 7
+low | 2 | +45420 | KANGAROO | surface | 2 | 0 | 0 | 2
+low | 2 | +47178 | BADGER | surface | 10 | 0 | 0 | 10
+low | 2 | +48800 | BIRD_EMU | surface | 3 | 0 | 0 | 3
+low | 2 | +50582 | WOLF | surface | 3 | 0 | 0 | 3
+low | 2 | +52430 | BIRD_RAVEN | surface | 10 | 0 | 0 | 10
+low | 2 | +54190 | DINGO | surface | 8 | 0 | 0 | 8
+low | 2 | +54729 | VORACIOUS_CAVE_CRAWLER | cavern | 1 | 0 | 0 | 1
+low | 2 | +55979 | BIRD_RAVEN | surface | 5 | 0 | 0 | 5
+low | 2 | +56562 | DEMON_10 | deep | 2 | 0 | 0 | 2
+low | 2 | +57618 | BIRD_OWL_GREAT_HORNED | surface | 1 | 0 | 0 | 1
+low | 2 | +57618 | BIRD_KESTREL | surface | 1 | 0 | 0 | 1
+low | 2 | +59467 | KANGAROO | surface | 3 | 0 | 0 | 3
+low | 2 | +59467 | TROGLODYTE | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+high | 1 | unit 139 PORCUPINE: 24413 -> 0 over 24498 ticks (slope -0.997/tick)
+high | 1 | unit 140 TROLL: 27382 -> 0 over 27450 ticks (slope -0.998/tick)
+high | 1 | unit 141 VORACIOUS_CAVE_CRAWLER: 23722 -> 0 over 23863 ticks (slope -0.994/tick)
+high | 1 | unit 142 DEMON_9: 20104 -> 330 over 19766 ticks (slope -1.000/tick)
+high | 1 | unit 143 DEMON_9: 27035 -> 0 over 28546 ticks (slope -0.947/tick)
+high | 1 | unit 145 KANGAROO: 27136 -> 0 over 30231 ticks (slope -0.898/tick)
+high | 1 | unit 146 KANGAROO: 24788 -> 0 over 37511 ticks (slope -0.661/tick)
+high | 1 | unit 149 OLM_GIANT: 21466 -> 0 over 23278 ticks (slope -0.922/tick)
+high | 1 | unit 150 TOAD_GIANT_CAVE: 21059 -> 0 over 31343 ticks (slope -0.672/tick)
+high | 1 | unit 151 BIRD_OWL_GREAT_HORNED: 26839 -> 0 over 27826 ticks (slope -0.965/tick)
+high | 1 | unit 152 KANGAROO: 23639 -> 0 over 25030 ticks (slope -0.944/tick)
+high | 1 | unit 153 KANGAROO: 22244 -> 0 over 25637 ticks (slope -0.868/tick)
+high | 1 | unit 155 KANGAROO: 29093 -> 167 over 28925 ticks (slope -1.000/tick)
+high | 1 | unit 156 KANGAROO: 25728 -> 0 over 29466 ticks (slope -0.873/tick)
+high | 1 | unit 159 KANGAROO: 28859 -> 0 over 30506 ticks (slope -0.946/tick)
+high | 1 | unit 160 KANGAROO: 20291 -> 0 over 32206 ticks (slope -0.630/tick)
+high | 1 | unit 162 KANGAROO: 25502 -> 0 over 27064 ticks (slope -0.942/tick)
+high | 1 | unit 163 KANGAROO: 25978 -> 0 over 27615 ticks (slope -0.941/tick)
+high | 1 | unit 164 KANGAROO: 28426 -> 0 over 31620 ticks (slope -0.899/tick)
+high | 1 | unit 165 KANGAROO: 26778 -> 0 over 34024 ticks (slope -0.787/tick)
+high | 1 | unit 168 KANGAROO: 19473 -> 0 over 23069 ticks (slope -0.844/tick)
+high | 1 | unit 169 KANGAROO: 25150 -> 0 over 25871 ticks (slope -0.972/tick)
+high | 1 | unit 175 BIRD_KESTREL: 28870 -> 0 over 29364 ticks (slope -0.983/tick)
+high | 1 | unit 176 KANGAROO: 20771 -> 0 over 21880 ticks (slope -0.949/tick)
+high | 1 | unit 177 KANGAROO: 19631 -> 0 over 22431 ticks (slope -0.875/tick)
+high | 1 | unit 180 KANGAROO: 28158 -> 0 over 30400 ticks (slope -0.926/tick)
+high | 1 | unit 181 KANGAROO: 27485 -> 0 over 31495 ticks (slope -0.873/tick)
+high | 1 | unit 183 KANGAROO: 26015 -> 67 over 25948 ticks (slope -1.000/tick)
+high | 1 | unit 184 KANGAROO: 22589 -> 0 over 25948 ticks (slope -0.871/tick)
+high | 1 | unit 187 KANGAROO: 20314 -> 0 over 21844 ticks (slope -0.930/tick)
+high | 1 | unit 188 KANGAROO: 26737 -> 0 over 27017 ticks (slope -0.990/tick)
+high | 1 | unit 189 KANGAROO: 21435 -> 0 over 21826 ticks (slope -0.982/tick)
+high | 1 | unit 190 KANGAROO: 21127 -> 0 over 22446 ticks (slope -0.941/tick)
+high | 1 | unit 192 PORCUPINE: 28453 -> 0 over 38605 ticks (slope -0.737/tick)
+high | 1 | unit 193 KANGAROO: 20620 -> 0 over 21880 ticks (slope -0.942/tick)
+high | 1 | unit 194 KANGAROO: 20598 -> 0 over 22408 ticks (slope -0.919/tick)
+high | 1 | unit 195 KANGAROO: 28734 -> 0 over 30499 ticks (slope -0.942/tick)
+high | 1 | unit 196 KANGAROO: 23777 -> 0 over 35735 ticks (slope -0.665/tick)
+high | 1 | unit 197 CROCODILE_CAVE: 26688 -> 0 over 26980 ticks (slope -0.989/tick)
+high | 1 | unit 198 KANGAROO: 26452 -> 0 over 28685 ticks (slope -0.922/tick)
+high | 1 | unit 199 KANGAROO: 27442 -> 0 over 29292 ticks (slope -0.937/tick)
+high | 1 | unit 200 POND_GRABBER: 21964 -> 0 over 25106 ticks (slope -0.875/tick)
+high | 1 | unit 204 KANGAROO: 24919 -> 0 over 25741 ticks (slope -0.968/tick)
+high | 1 | unit 207 BIRD_RAVEN: 29331 -> 0 over 29753 ticks (slope -0.986/tick)
+high | 1 | unit 210 KANGAROO: 26052 -> 0 over 31558 ticks (slope -0.826/tick)
+high | 1 | unit 214 TROGLODYTE: 20341 -> 0 over 20500 ticks (slope -0.992/tick)
+high | 1 | unit 221 TROGLODYTE: 26153 -> 0 over 30997 ticks (slope -0.844/tick)
+high | 1 | unit 222 DEMON_12: 22791 -> 0 over 22947 ticks (slope -0.993/tick)
+high | 1 | unit 226 KANGAROO: 26956 -> 0 over 27655 ticks (slope -0.975/tick)
+high | 1 | unit 230 BLIND_CAVE_OGRE: 23000 -> 21296 over 1704 ticks (slope -1.000/tick)
+high | 1 | unit 231 JABBERER: 26986 -> 476 over 26510 ticks (slope -1.000/tick)
+high | 1 | unit 232 BIRD_EMU: 24452 -> 0 over 28200 ticks (slope -0.867/tick)
+high | 1 | unit 234 BLIND_CAVE_OGRE: 25787 -> 0 over 27600 ticks (slope -0.934/tick)
+high | 1 | unit 236 KANGAROO: 20137 -> 0 over 20144 ticks (slope -1.000/tick)
+high | 1 | unit 239 BIRD_OWL_GREAT_HORNED: 22162 -> 0 over 24839 ticks (slope -0.892/tick)
+high | 1 | unit 240 KANGAROO: 22347 -> 361 over 21986 ticks (slope -1.000/tick)
+high | 1 | unit 202 POND_GRABBER: 25568 -> 2437 over 23131 ticks (slope -1.000/tick)
+high | 1 | unit 205 KANGAROO: 21496 -> 0 over 23131 ticks (slope -0.929/tick)
+high | 1 | unit 242 PORCUPINE: 25603 -> 2470 over 23131 ticks (slope -1.000/tick)
+high | 1 | unit 246 KANGAROO: 25357 -> 3913 over 21443 ticks (slope -1.000/tick)
+high | 1 | unit 250 KANGAROO: 23294 -> 3583 over 19708 ticks (slope -1.000/tick)
+high | 1 | unit 252 KANGAROO: 25183 -> 7276 over 17906 ticks (slope -1.000/tick)
+high | 1 | unit 256 BIRD_OWL_GREAT_HORNED: 22304 -> 6107 over 16197 ticks (slope -1.000/tick)
+high | 1 | unit 257 KANGAROO: 19753 -> 3556 over 16197 ticks (slope -1.000/tick)
+high | 1 | unit 261 KANGAROO: 25374 -> 10831 over 14543 ticks (slope -1.000/tick)
+high | 1 | unit 263 KANGAROO: 19610 -> 6822 over 12788 ticks (slope -1.000/tick)
+high | 1 | unit 267 BIRD_EMU: 28442 -> 17381 over 11058 ticks (slope -1.000/tick)
+high | 1 | unit 271 KANGAROO: 19734 -> 10384 over 9348 ticks (slope -1.000/tick)
+high | 1 | unit 274 BIRD_KESTREL: 25307 -> 21295 over 4012 ticks (slope -1.000/tick)
+high | 1 | unit 275 KANGAROO: 28240 -> 20738 over 7502 ticks (slope -1.000/tick)
+high | 1 | unit 278 KANGAROO: 22790 -> 17036 over 5753 ticks (slope -1.000/tick)
+high | 1 | unit 280 BIRD_RAVEN: 21000 -> 16940 over 4060 ticks (slope -1.000/tick)
+high | 1 | unit 285 KANGAROO: 27384 -> 25135 over 2249 ticks (slope -1.000/tick)
+high | 1 | unit 289 PORCUPINE: 25673 -> 25131 over 542 ticks (slope -1.000/tick)
+high | 1 | unit 290 KANGAROO: 26597 -> 26055 over 542 ticks (slope -1.000/tick)
+high | 2 | unit 139 KANGAROO: 25395 -> 0 over 25811 ticks (slope -0.984/tick)
+high | 2 | unit 142 TROGLODYTE: 25534 -> 0 over 34032 ticks (slope -0.750/tick)
+high | 2 | unit 152 CRUNDLE: 21782 -> 28 over 21751 ticks (slope -1.000/tick)
+high | 2 | unit 172 DEMON_16: 20723 -> 0 over 22934 ticks (slope -0.904/tick)
+high | 2 | unit 175 CROCODILE_CAVE: 24159 -> 0 over 26420 ticks (slope -0.914/tick)
+high | 2 | unit 147 TROGLODYTE: 20395 -> 0 over 24674 ticks (slope -0.827/tick)
+high | 2 | unit 167 CRUNDLE: 21865 -> 0 over 38702 ticks (slope -0.565/tick)
+high | 2 | unit 149 TROGLODYTE: 25948 -> 0 over 30495 ticks (slope -0.851/tick)
+high | 2 | unit 176 KANGAROO: 28076 -> 0 over 31143 ticks (slope -0.902/tick)
+high | 2 | unit 178 BIRD_KESTREL: 28022 -> 0 over 35283 ticks (slope -0.794/tick)
+high | 2 | unit 179 KANGAROO: 23938 -> 0 over 24728 ticks (slope -0.968/tick)
+high | 2 | unit 183 GROUNDHOG: 28070 -> 400 over 27670 ticks (slope -1.000/tick)
+high | 2 | unit 185 KANGAROO: 21014 -> 0 over 21836 ticks (slope -0.962/tick)
+high | 2 | unit 189 KANGAROO: 21092 -> 0 over 23648 ticks (slope -0.892/tick)
+high | 2 | unit 191 KANGAROO: 25842 -> 4531 over 21309 ticks (slope -1.000/tick)
+high | 2 | unit 193 PORCUPINE: 20689 -> 0 over 21315 ticks (slope -0.971/tick)
+high | 2 | unit 194 BIRD_RAVEN: 27092 -> 0 over 28374 ticks (slope -0.955/tick)
+high | 2 | unit 196 PORCUPINE: 23041 -> 0 over 25463 ticks (slope -0.905/tick)
+high | 2 | unit 197 BIRD_RAVEN: 28079 -> 335 over 27744 ticks (slope -1.000/tick)
+high | 2 | unit 207 PORCUPINE: 27066 -> 0 over 30224 ticks (slope -0.896/tick)
+high | 2 | unit 208 KANGAROO: 22242 -> 0 over 26682 ticks (slope -0.834/tick)
+high | 2 | unit 210 KANGAROO: 28221 -> 0 over 29714 ticks (slope -0.950/tick)
+high | 2 | unit 213 BIRD_RAVEN: 21739 -> 63 over 21676 ticks (slope -1.000/tick)
+high | 2 | unit 215 KANGAROO: 26285 -> 0 over 29214 ticks (slope -0.900/tick)
+high | 2 | unit 219 KANGAROO: 20394 -> 0 over 24406 ticks (slope -0.836/tick)
+high | 2 | unit 223 DINGO: 19560 -> 0 over 19801 ticks (slope -0.988/tick)
+high | 2 | unit 231 KANGAROO: 25801 -> 0 over 26181 ticks (slope -0.985/tick)
+high | 2 | unit 233 KANGAROO: 28144 -> 0 over 28577 ticks (slope -0.985/tick)
+high | 2 | unit 235 KANGAROO: 24418 -> 0 over 24494 ticks (slope -0.997/tick)
+high | 2 | unit 239 KANGAROO: 23029 -> 0 over 24529 ticks (slope -0.939/tick)
+high | 2 | unit 242 DEMON_2: 27141 -> 0 over 28512 ticks (slope -0.952/tick)
+high | 2 | unit 247 KANGAROO: 19619 -> 0 over 20472 ticks (slope -0.958/tick)
+high | 2 | unit 250 REACHER: 25768 -> 15246 over 10521 ticks (slope -1.000/tick)
+high | 2 | unit 251 ELK_BIRD: 26275 -> 82 over 26189 ticks (slope -1.000/tick)
+high | 2 | unit 256 KANGAROO: 26977 -> 278 over 26699 ticks (slope -1.000/tick)
+high | 2 | unit 258 BIRD_RAVEN: 25666 -> 801 over 24865 ticks (slope -1.000/tick)
+high | 2 | unit 262 TROGLODYTE: 26229 -> 1897 over 24329 ticks (slope -1.000/tick)
+high | 2 | unit 266 TROGLODYTE: 22958 -> 0 over 23777 ticks (slope -0.966/tick)
+high | 2 | unit 272 BIRD_RAVEN: 21038 -> 0 over 22033 ticks (slope -0.955/tick)
+high | 2 | unit 270 TROGLODYTE: 23114 -> 1119 over 21995 ticks (slope -1.000/tick)
+high | 2 | unit 274 GROUNDHOG: 27635 -> 27035 over 600 ticks (slope -1.000/tick)
+high | 2 | unit 278 BIRD_OWL_GREAT_HORNED: 29269 -> 9553 over 19714 ticks (slope -1.000/tick)
+high | 2 | unit 279 KANGAROO: 22278 -> 2562 over 19714 ticks (slope -1.000/tick)
+high | 2 | unit 282 OLM_GIANT: 29045 -> 10504 over 18541 ticks (slope -1.000/tick)
+high | 2 | unit 283 KANGAROO: 26005 -> 8037 over 17966 ticks (slope -1.000/tick)
+high | 2 | unit 286 CROCODILE_CAVE: 25317 -> 7351 over 17966 ticks (slope -1.000/tick)
+high | 2 | unit 287 KANGAROO: 19776 -> 3585 over 16191 ticks (slope -1.000/tick)
+high | 2 | unit 290 KANGAROO: 23062 -> 8598 over 14464 ticks (slope -1.000/tick)
+high | 2 | unit 293 KANGAROO: 23314 -> 10622 over 12691 ticks (slope -1.000/tick)
+high | 2 | unit 297 KANGAROO: 28950 -> 18036 over 10914 ticks (slope -1.000/tick)
+high | 2 | unit 299 KANGAROO: 24099 -> 14910 over 9188 ticks (slope -1.000/tick)
+high | 2 | unit 303 KANGAROO: 23556 -> 16111 over 7445 ticks (slope -1.000/tick)
+high | 2 | unit 307 KANGAROO: 27138 -> 21421 over 5716 ticks (slope -1.000/tick)
+high | 2 | unit 311 PORCUPINE: 29550 -> 25504 over 4046 ticks (slope -1.000/tick)
+high | 2 | unit 312 BADGER: 25979 -> 21933 over 4046 ticks (slope -1.000/tick)
+high | 2 | unit 317 KANGAROO: 19643 -> 17304 over 2339 ticks (slope -1.000/tick)
+high | 2 | unit 319 BIRD_KESTREL: 21380 -> 20806 over 574 ticks (slope -1.000/tick)
+high | 2 | unit 320 BIRD_RAVEN: 20870 -> 20296 over 574 ticks (slope -1.000/tick)
+low | 1 | unit 139 BIRD_EMU: 28724 -> 0 over 29939 ticks (slope -0.959/tick)
+low | 1 | unit 148 POND_GRABBER: 26079 -> 0 over 59959 ticks (slope -0.435/tick)
+low | 1 | unit 152 DEMON_18: 23289 -> 0 over 24105 ticks (slope -0.966/tick)
+low | 1 | unit 153 TROGLODYTE: 21995 -> 0 over 24716 ticks (slope -0.890/tick)
+low | 1 | unit 158 TROGLODYTE: 25057 -> 0 over 25905 ticks (slope -0.967/tick)
+low | 1 | unit 166 DEMON_10: 26251 -> 341 over 25905 ticks (slope -1.000/tick)
+low | 1 | unit 168 GROUNDHOG: 25255 -> 0 over 25797 ticks (slope -0.979/tick)
+low | 1 | unit 172 BIRD_OWL_GREAT_HORNED: 26734 -> 0 over 30600 ticks (slope -0.874/tick)
+low | 1 | unit 173 BIRD_KESTREL: 24550 -> 0 over 25769 ticks (slope -0.953/tick)
+low | 1 | unit 174 BIRD_RAVEN: 24958 -> 0 over 26302 ticks (slope -0.949/tick)
+low | 1 | unit 179 BIRD_KESTREL: 24696 -> 0 over 25200 ticks (slope -0.980/tick)
+low | 1 | unit 180 KANGAROO: 21451 -> 0 over 23451 ticks (slope -0.915/tick)
+low | 1 | unit 183 KANGAROO: 23622 -> 0 over 24027 ticks (slope -0.983/tick)
+low | 1 | unit 187 BIRD_OWL_GREAT_HORNED: 23149 -> 0 over 26438 ticks (slope -0.876/tick)
+low | 1 | unit 188 WOMBAT: 27690 -> 0 over 34767 ticks (slope -0.796/tick)
+low | 1 | unit 189 BIRD_OWL_GREAT_HORNED: 22025 -> 0 over 22388 ticks (slope -0.984/tick)
+low | 1 | unit 190 DINGO: 25541 -> 0 over 27057 ticks (slope -0.944/tick)
+low | 1 | unit 202 BIRD_OWL_GREAT_HORNED: 19981 -> 17606 over 2375 ticks (slope -1.000/tick)
+low | 1 | unit 204 KANGAROO: 26406 -> 0 over 27682 ticks (slope -0.954/tick)
+low | 1 | unit 206 BIRD_OWL_GREAT_HORNED: 26371 -> 0 over 29485 ticks (slope -0.894/tick)
+low | 1 | unit 207 BIRD_KESTREL: 27073 -> 56 over 27017 ticks (slope -1.000/tick)
+low | 1 | unit 208 KANGAROO: 21953 -> 0 over 26524 ticks (slope -0.828/tick)
+low | 1 | unit 210 BIRD_EMU: 28571 -> 0 over 31835 ticks (slope -0.897/tick)
+low | 1 | unit 217 BIRD_RAVEN: 19672 -> 0 over 23599 ticks (slope -0.834/tick)
+low | 1 | unit 219 KANGAROO: 28510 -> 0 over 32328 ticks (slope -0.882/tick)
+low | 1 | unit 223 KANGAROO: 20816 -> 0 over 23687 ticks (slope -0.879/tick)
+low | 1 | unit 225 KANGAROO: 27346 -> 0 over 29368 ticks (slope -0.931/tick)
+low | 1 | unit 229 BIRD_OWL_GREAT_HORNED: 25914 -> 23639 over 2275 ticks (slope -1.000/tick)
+low | 1 | unit 230 SKUNK: 23405 -> 0 over 27067 ticks (slope -0.865/tick)
+low | 1 | unit 231 DEMON_9: 23223 -> 194 over 23025 ticks (slope -1.000/tick)
+low | 1 | unit 233 GROUNDHOG: 21070 -> 0 over 23041 ticks (slope -0.914/tick)
+low | 1 | unit 237 JABBERER: 26055 -> 116 over 25936 ticks (slope -1.000/tick)
+low | 1 | unit 238 BADGER: 26273 -> 25103 over 1170 ticks (slope -1.000/tick)
+low | 1 | unit 243 CRUNDLE: 23666 -> 65 over 23601 ticks (slope -1.000/tick)
+low | 1 | unit 260 OLM_GIANT: 27408 -> 0 over 28779 ticks (slope -0.952/tick)
+low | 1 | unit 246 CRUNDLE: 26308 -> 0 over 26490 ticks (slope -0.993/tick)
+low | 1 | unit 261 VORACIOUS_CAVE_CRAWLER: 29163 -> 313 over 28850 ticks (slope -1.000/tick)
+low | 1 | unit 262 BIRD_EMU: 21820 -> 20590 over 1230 ticks (slope -1.000/tick)
+low | 1 | unit 271 BIRD_OWL_GREAT_HORNED: 27131 -> 0 over 28276 ticks (slope -0.960/tick)
+low | 1 | unit 248 CRUNDLE: 21480 -> 0 over 27654 ticks (slope -0.777/tick)
+low | 1 | unit 272 BIRD_RAVEN: 21108 -> 0 over 23519 ticks (slope -0.897/tick)
+low | 1 | unit 253 CRUNDLE: 24081 -> 74 over 24006 ticks (slope -1.000/tick)
+low | 1 | unit 254 CRUNDLE: 22461 -> 0 over 22873 ticks (slope -0.982/tick)
+low | 1 | unit 274 BIRD_KAKAPO: 20325 -> 352 over 19972 ticks (slope -1.000/tick)
+low | 1 | unit 275 WOLF: 21822 -> 0 over 22873 ticks (slope -0.954/tick)
+low | 1 | unit 279 BIRD_KESTREL: 25064 -> 2183 over 22881 ticks (slope -1.000/tick)
+low | 1 | unit 280 KANGAROO: 20461 -> 0 over 22881 ticks (slope -0.894/tick)
+low | 1 | unit 258 CRUNDLE: 22769 -> 1086 over 21683 ticks (slope -1.000/tick)
+low | 1 | unit 283 BIRD_EMU: 26530 -> 5461 over 21068 ticks (slope -1.000/tick)
+low | 1 | unit 287 BIRD_KESTREL: 26921 -> 7635 over 19286 ticks (slope -1.000/tick)
+low | 1 | unit 288 KANGAROO: 21265 -> 1979 over 19286 ticks (slope -1.000/tick)
+low | 1 | unit 259 CRUNDLE: 26946 -> 9339 over 17607 ticks (slope -1.000/tick)
+low | 1 | unit 263 BIRD_EMU: 20160 -> 2553 over 17607 ticks (slope -1.000/tick)
+low | 1 | unit 290 GROUNDHOG: 24620 -> 7012 over 17607 ticks (slope -1.000/tick)
+low | 1 | unit 266 BIRD_EMU: 19701 -> 2681 over 17020 ticks (slope -1.000/tick)
+low | 1 | unit 294 KANGAROO: 20155 -> 4327 over 15828 ticks (slope -1.000/tick)
+low | 1 | unit 268 BIRD_EMU: 27459 -> 12907 over 14552 ticks (slope -1.000/tick)
+low | 1 | unit 297 BIRD_KESTREL: 25479 -> 11569 over 13910 ticks (slope -1.000/tick)
+low | 1 | unit 298 BIRD_OWL_GREAT_HORNED: 23173 -> 9263 over 13910 ticks (slope -1.000/tick)
+low | 1 | unit 299 BIRD_OWL_GREAT_HORNED: 21895 -> 20806 over 1089 ticks (slope -1.000/tick)
+low | 1 | unit 300 BADGER: 23170 -> 11011 over 12154 ticks (slope -1.000/tick)
+low | 1 | unit 306 BADGER: 22204 -> 11739 over 10465 ticks (slope -1.000/tick)
+low | 1 | unit 309 BIRD_KESTREL: 28511 -> 18046 over 10465 ticks (slope -1.000/tick)
+low | 1 | unit 310 DINGO: 29466 -> 19001 over 10465 ticks (slope -1.000/tick)
+low | 1 | unit 317 DEMON_9: 20290 -> 10989 over 9300 ticks (slope -1.000/tick)
+low | 1 | unit 305 BADGER: 24074 -> 15322 over 8752 ticks (slope -1.000/tick)
+low | 1 | unit 325 BIRD_OWL_GREAT_HORNED: 22974 -> 16031 over 6943 ticks (slope -1.000/tick)
+low | 1 | unit 326 BIRD_RAVEN: 25327 -> 18384 over 6943 ticks (slope -1.000/tick)
+low | 1 | unit 334 BIRD_RAVEN: 20235 -> 13816 over 6419 ticks (slope -1.000/tick)
+low | 1 | unit 335 KANGAROO: 23381 -> 18079 over 5302 ticks (slope -1.000/tick)
+low | 1 | unit 337 BIRD_OWL_GREAT_HORNED: 29192 -> 25714 over 3478 ticks (slope -1.000/tick)
+low | 1 | unit 338 GROUNDHOG: 20878 -> 17400 over 3478 ticks (slope -1.000/tick)
+low | 1 | unit 339 DINGO: 27425 -> 25638 over 1787 ticks (slope -1.000/tick)
+low | 1 | unit 349 TROLL: 25566 -> 24948 over 618 ticks (slope -1.000/tick)
+low | 2 | unit 139 BIRD_RAVEN: 20042 -> 0 over 20735 ticks (slope -0.967/tick)
+low | 2 | unit 146 OLM_GIANT: 24730 -> 0 over 25414 ticks (slope -0.973/tick)
+low | 2 | unit 147 TROGLODYTE: 26425 -> 0 over 26482 ticks (slope -0.998/tick)
+low | 2 | unit 157 DEMON_2: 20294 -> 0 over 21343 ticks (slope -0.951/tick)
+low | 2 | unit 161 TROGLODYTE: 20512 -> 0 over 21970 ticks (slope -0.934/tick)
+low | 2 | unit 167 DEMON_3: 27294 -> 0 over 28180 ticks (slope -0.969/tick)
+low | 2 | unit 153 TROGLODYTE: 24169 -> 0 over 28812 ticks (slope -0.839/tick)
+low | 2 | unit 165 TROGLODYTE: 27082 -> 0 over 31109 ticks (slope -0.871/tick)
+low | 2 | unit 172 BIRD_KESTREL: 20554 -> 0 over 23571 ticks (slope -0.872/tick)
+low | 2 | unit 173 BIRD_OWL_GREAT_HORNED: 27954 -> 411 over 27542 ticks (slope -1.000/tick)
+low | 2 | unit 174 BIRD_RAVEN: 23949 -> 363 over 23586 ticks (slope -1.000/tick)
+low | 2 | unit 180 BIRD_OWL_GREAT_HORNED: 28701 -> 0 over 29255 ticks (slope -0.981/tick)
+low | 2 | unit 181 BIRD_EMU: 29309 -> 0 over 30362 ticks (slope -0.965/tick)
+low | 2 | unit 189 BIRD_OWL_GREAT_HORNED: 29239 -> 0 over 35111 ticks (slope -0.833/tick)
+low | 2 | unit 190 KANGAROO: 24244 -> 32 over 24212 ticks (slope -1.000/tick)
+low | 2 | unit 193 GROUNDHOG: 27350 -> 0 over 31744 ticks (slope -0.862/tick)
+low | 2 | unit 194 WOMBAT: 23356 -> 0 over 23615 ticks (slope -0.989/tick)
+low | 2 | unit 195 BIRD_RAVEN: 23100 -> 0 over 29423 ticks (slope -0.785/tick)
+low | 2 | unit 201 BADGER: 28787 -> 0 over 28775 ticks (slope -1.000/tick)
+low | 2 | unit 210 PORCUPINE: 27787 -> 0 over 29149 ticks (slope -0.953/tick)
+low | 2 | unit 211 KANGAROO: 22595 -> 0 over 22786 ticks (slope -0.992/tick)
+low | 2 | unit 214 SKUNK: 21020 -> 0 over 21732 ticks (slope -0.967/tick)
+low | 2 | unit 215 BIRD_KESTREL: 29096 -> 0 over 31973 ticks (slope -0.910/tick)
+low | 2 | unit 216 BIRD_EMU: 20780 -> 0 over 21838 ticks (slope -0.952/tick)
+low | 2 | unit 218 BIRD_RAVEN: 21674 -> 0 over 25756 ticks (slope -0.842/tick)
+low | 2 | unit 221 BADGER: 24618 -> 0 over 24683 ticks (slope -0.997/tick)
+low | 2 | unit 233 KANGAROO: 24087 -> 0 over 28585 ticks (slope -0.843/tick)
+low | 2 | unit 237 KANGAROO: 27706 -> 0 over 30425 ticks (slope -0.911/tick)
+low | 2 | unit 241 KANGAROO: 22717 -> 0 over 24656 ticks (slope -0.921/tick)
+low | 2 | unit 244 DINGO: 22511 -> 0 over 22958 ticks (slope -0.981/tick)
+low | 2 | unit 252 CREEPING_EYE: 25133 -> 0 over 30668 ticks (slope -0.820/tick)
+low | 2 | unit 268 KANGAROO: 23359 -> 0 over 24198 ticks (slope -0.965/tick)
+low | 2 | unit 256 CREEPING_EYE: 24768 -> 0 over 27563 ticks (slope -0.899/tick)
+low | 2 | unit 276 DEMON_1: 24820 -> 40 over 24780 ticks (slope -1.000/tick)
+low | 2 | unit 278 PORCUPINE: 21907 -> 0 over 23595 ticks (slope -0.928/tick)
+low | 2 | unit 279 BIRD_RAVEN: 21014 -> 0 over 24240 ticks (slope -0.867/tick)
+low | 2 | unit 257 CREEPING_EYE: 20306 -> 165 over 20141 ticks (slope -1.000/tick)
+low | 2 | unit 281 OLM_GIANT: 22045 -> 144 over 21901 ticks (slope -1.000/tick)
+low | 2 | unit 282 CROCODILE_CAVE: 25791 -> 0 over 25956 ticks (slope -0.994/tick)
+low | 2 | unit 283 TOAD_GIANT_CAVE: 28445 -> 1254 over 27190 ticks (slope -1.000/tick)
+low | 2 | unit 284 SKUNK: 22242 -> 0 over 22577 ticks (slope -0.985/tick)
+low | 2 | unit 285 BIRD_KESTREL: 27020 -> 410 over 26610 ticks (slope -1.000/tick)
+low | 2 | unit 286 TROGLODYTE: 27078 -> 1029 over 26047 ticks (slope -1.000/tick)
+low | 2 | unit 258 CREEPING_EYE: 26258 -> 799 over 25459 ticks (slope -1.000/tick)
+low | 2 | unit 292 BIRD_KESTREL: 20062 -> 0 over 20858 ticks (slope -0.962/tick)
+low | 2 | unit 293 BIRD_RAVEN: 26614 -> 1723 over 24891 ticks (slope -1.000/tick)
+low | 2 | unit 291 TROGLODYTE: 20783 -> 0 over 24336 ticks (slope -0.854/tick)
+low | 2 | unit 295 BIRD_EMU: 20195 -> 0 over 21989 ticks (slope -0.918/tick)
+low | 2 | unit 259 CREEPING_EYE: 29123 -> 7715 over 21408 ticks (slope -1.000/tick)
+low | 2 | unit 305 BIRD_EMU: 22198 -> 788 over 21408 ticks (slope -1.000/tick)
+low | 2 | unit 261 CREEPING_EYE: 26491 -> 6301 over 20190 ticks (slope -1.000/tick)
+low | 2 | unit 262 CREEPING_EYE: 28177 -> 8568 over 19609 ticks (slope -1.000/tick)
+low | 2 | unit 309 SKUNK: 23757 -> 4147 over 19609 ticks (slope -1.000/tick)
+low | 2 | unit 310 BIRD_EMU: 24928 -> 5319 over 19609 ticks (slope -1.000/tick)
+low | 2 | unit 318 KANGAROO: 21224 -> 3301 over 17923 ticks (slope -1.000/tick)
+low | 2 | unit 320 BIRD_RAVEN: 24552 -> 8272 over 16280 ticks (slope -1.000/tick)
+low | 2 | unit 329 KANGAROO: 21726 -> 7134 over 14592 ticks (slope -1.000/tick)
+low | 2 | unit 263 CREEPING_EYE: 22911 -> 9461 over 13450 ticks (slope -1.000/tick)
+low | 2 | unit 331 BADGER: 27485 -> 14646 over 12834 ticks (slope -1.000/tick)
+low | 2 | unit 341 BIRD_EMU: 22448 -> 11235 over 11212 ticks (slope -1.000/tick)
+low | 2 | unit 344 WOLF: 28086 -> 18654 over 9430 ticks (slope -1.000/tick)
+low | 2 | unit 347 BIRD_RAVEN: 21006 -> 13424 over 7582 ticks (slope -1.000/tick)
+low | 2 | unit 264 CREEPING_EYE: 26672 -> 19712 over 6960 ticks (slope -1.000/tick)
+low | 2 | unit 271 KANGAROO: 20823 -> 13863 over 6960 ticks (slope -1.000/tick)
+low | 2 | unit 269 KANGAROO: 19860 -> 13496 over 6364 ticks (slope -1.000/tick)
+low | 2 | unit 357 DINGO: 27390 -> 21568 over 5822 ticks (slope -1.000/tick)
+low | 2 | unit 365 VORACIOUS_CAVE_CRAWLER: 25859 -> 20576 over 5283 ticks (slope -1.000/tick)
+low | 2 | unit 366 BIRD_RAVEN: 20799 -> 16766 over 4033 ticks (slope -1.000/tick)
+low | 2 | unit 371 DEMON_10: 29255 -> 25805 over 3450 ticks (slope -1.000/tick)
+low | 2 | unit 373 BIRD_OWL_GREAT_HORNED: 27563 -> 25169 over 2394 ticks (slope -1.000/tick)
+low | 2 | unit 374 BIRD_KESTREL: 22669 -> 20275 over 2394 ticks (slope -1.000/tick)
+low | 2 | unit 375 KANGAROO: 27380 -> 26835 over 545 ticks (slope -1.000/tick)
+low | 2 | unit 378 TROGLODYTE: 29720 -> 29174 over 545 ticks (slope -1.002/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+high | 1 | departure | 142 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+high | 1 | departure | 149 | OLM_GIANT | 29,20,-1,8,-1,9 | 15 -> 16 -> 16
+high | 1 | departure | 141 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,13,-1,20 | 16 -> 17 -> 17
+high | 1 | departure | 139 | PORCUPINE | 29,20,-1,-1,-1,90 | 498 -> 499 -> 499
+high | 1 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 27 -> 28 -> 30
+high | 1 | departure | 152 | KANGAROO | 29,20,-1,-1,-1,88 | 448 -> 449 -> 446
+high | 1 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 30 -> 32
+high | 1 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 30 -> 32
+high | 1 | departure | 140 | TROLL | 29,20,-1,8,-1,27 | 4 -> 5 -> 5
+high | 1 | departure | 153 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 446 -> 447
+high | 1 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+high | 1 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 32 -> 33
+high | 1 | departure | 154 | KANGAROO | 29,20,-1,-1,-1,88 | 446 -> 447 -> 447
+high | 1 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 32 -> 33 -> 34
+high | 1 | departure | 143 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+high | 1 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 34 -> 34
+high | 1 | departure | 144 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+high | 1 | departure | 151 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 15 -> 16 -> 16
+high | 1 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 34 -> 35 -> 35
+high | 1 | departure | 145 | KANGAROO | 29,20,-1,-1,-1,88 | 443 -> 444 -> 444
+high | 1 | departure | 150 | TOAD_GIANT_CAVE | 29,21,-1,13,-1,10 | 10 -> 11 -> 11
+high | 1 | departure | 172 | KANGAROO | 29,20,-1,-1,-1,88 | 444 -> 445 -> 445
+high | 1 | death | 230 | BLIND_CAVE_OGRE | 29,20,-1,25,-1,26 | 5 -> 3 -> 3
+high | 1 | departure | 155 | KANGAROO | 29,20,-1,-1,-1,88 | 445 -> 443 -> 445
+high | 1 | departure | 156 | KANGAROO | 29,20,-1,-1,-1,88 | 443 -> 445 -> 447
+high | 1 | departure | 157 | KANGAROO | 29,20,-1,-1,-1,88 | 443 -> 445 -> 447
+high | 1 | departure | 158 | KANGAROO | 29,20,-1,-1,-1,88 | 445 -> 447 -> 447
+high | 1 | departure | 168 | KANGAROO | 29,20,-1,-1,-1,88 | 445 -> 447 -> 447
+high | 1 | departure | 162 | KANGAROO | 29,20,-1,-1,-1,88 | 447 -> 447 -> 449
+high | 1 | departure | 176 | KANGAROO | 29,20,-1,-1,-1,88 | 447 -> 447 -> 449
+high | 1 | departure | 163 | KANGAROO | 29,20,-1,-1,-1,88 | 447 -> 449 -> 449
+high | 1 | departure | 177 | KANGAROO | 29,20,-1,-1,-1,88 | 447 -> 449 -> 449
+high | 1 | departure | 159 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 447 -> 448
+high | 1 | departure | 169 | KANGAROO | 29,20,-1,-1,-1,88 | 447 -> 448 -> 448
+high | 1 | departure | 146 | KANGAROO | 29,20,-1,-1,-1,88 | 448 -> 446 -> 448
+high | 1 | departure | 160 | KANGAROO | 29,20,-1,-1,-1,88 | 448 -> 446 -> 448
+high | 1 | departure | 161 | KANGAROO | 29,20,-1,-1,-1,88 | 446 -> 448 -> 450
+high | 1 | departure | 170 | KANGAROO | 29,20,-1,-1,-1,88 | 446 -> 448 -> 450
+high | 1 | departure | 147 | KANGAROO | 29,20,-1,-1,-1,88 | 448 -> 450 -> 449
+high | 1 | departure | 171 | KANGAROO | 29,20,-1,-1,-1,88 | 448 -> 450 -> 449
+high | 1 | departure | 187 | KANGAROO | 29,20,-1,-1,-1,88 | 450 -> 449 -> 449
+high | 1 | departure | 164 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 450 -> 449
+high | 1 | departure | 148 | KANGAROO | 29,20,-1,-1,-1,88 | 450 -> 449 -> 453
+high | 1 | departure | 173 | KANGAROO | 29,20,-1,-1,-1,88 | 450 -> 449 -> 453
+high | 1 | departure | 189 | KANGAROO | 29,20,-1,-1,-1,88 | 450 -> 449 -> 453
+high | 1 | departure | 174 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 453 -> 454
+high | 1 | departure | 175 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 23 -> 24 -> 24
+high | 1 | departure | 183 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 453 -> 454
+high | 1 | departure | 184 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 453 -> 454
+high | 1 | departure | 190 | KANGAROO | 29,20,-1,-1,-1,88 | 449 -> 453 -> 454
+high | 1 | departure | 178 | KANGAROO | 29,20,-1,-1,-1,88 | 453 -> 454 -> 452
+high | 1 | departure | 165 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 452 -> 455
+high | 1 | departure | 193 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 452 -> 455
+high | 1 | departure | 166 | KANGAROO | 29,20,-1,-1,-1,88 | 452 -> 455 -> 457
+high | 1 | departure | 179 | KANGAROO | 29,20,-1,-1,-1,88 | 452 -> 455 -> 457
+high | 1 | departure | 194 | KANGAROO | 29,20,-1,-1,-1,88 | 452 -> 455 -> 457
+high | 1 | departure | 167 | KANGAROO | 29,20,-1,-1,-1,88 | 455 -> 457 -> 458
+high | 1 | departure | 185 | KANGAROO | 29,20,-1,-1,-1,88 | 455 -> 457 -> 458
+high | 1 | departure | 180 | KANGAROO | 29,20,-1,-1,-1,88 | 457 -> 458 -> 458
+high | 1 | departure | 186 | KANGAROO | 29,20,-1,-1,-1,88 | 457 -> 458 -> 458
+high | 1 | departure | 188 | KANGAROO | 29,20,-1,-1,-1,88 | 457 -> 458 -> 458
+high | 1 | departure | 181 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 460 -> 456
+high | 1 | departure | 182 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 460 -> 456
+high | 1 | departure | 191 | KANGAROO | 29,20,-1,-1,-1,88 | 456 -> 457 -> 457
+high | 1 | departure | 214 | TROGLODYTE | 29,20,-1,8,-1,19 | 6 -> 7 -> 7
+high | 1 | departure | 200 | POND_GRABBER | 29,21,-1,13,-1,12 | 11 -> 12 -> 12
+high | 1 | departure | 197 | CROCODILE_CAVE | 29,20,-1,8,-1,10 | 9 -> 10 -> 10
+high | 1 | departure | 228 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 452 -> 453
+high | 1 | departure | 204 | KANGAROO | 29,20,-1,-1,-1,88 | 452 -> 453 -> 453
+high | 1 | departure | 222 | DEMON_12 | 28,20,-1,44,-1,4 | 10000001 -> 10000001 -> 10000001
+high | 1 | departure | 195 | KANGAROO | 29,20,-1,-1,-1,88 | 453 -> 454 -> 455
+high | 1 | departure | 198 | KANGAROO | 29,20,-1,-1,-1,88 | 453 -> 454 -> 455
+high | 1 | departure | 236 | KANGAROO | 29,20,-1,-1,-1,88 | 453 -> 454 -> 455
+high | 1 | departure | 199 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 455 -> 455
+high | 1 | departure | 201 | POND_GRABBER | 29,21,-1,13,-1,12 | 12 -> 13 -> 13
+high | 1 | departure | 207 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 349 -> 350 -> 350
+high | 1 | death | 274 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 23 -> 23 -> 23
+high | 1 | departure | 240 | KANGAROO | 29,20,-1,-1,-1,88 | 455 -> 452 -> 453
+high | 1 | departure | 226 | KANGAROO | 29,20,-1,-1,-1,88 | 452 -> 453 -> 453
+high | 1 | departure | 231 | JABBERER | 29,20,-1,25,-1,18 | 15 -> 16 -> 16
+high | 1 | departure | 208 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 350 -> 351 -> 354
+high | 1 | departure | 196 | KANGAROO | 29,20,-1,-1,-1,88 | 453 -> 450 -> 450
+high | 1 | departure | 215 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 8 -> 9
+high | 1 | departure | 216 | TROGLODYTE | 29,20,-1,8,-1,19 | 8 -> 9 -> -
+high | 2 | death | 144 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 -> 4 -> 4
+high | 2 | departure | 152 | CRUNDLE | 29,20,-1,13,-1,9 | 130 -> 131 -> 131
+high | 2 | departure | 172 | DEMON_16 | 29,20,-1,43,-1,3 | 10000001 -> 10000001 -> 10000001
+high | 2 | departure | 145 | TROGLODYTE | 29,20,-1,8,-1,19 | 4 -> 5 -> 5
+high | 2 | departure | 146 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 -> 7 -> 7
+high | 2 | departure | 147 | TROGLODYTE | 29,20,-1,8,-1,19 | 5 -> 7 -> 7
+high | 2 | departure | 139 | KANGAROO | 29,20,-1,-1,-1,88 | 466 -> 467 -> 467
+high | 2 | departure | 175 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 11 -> 12 -> 12
+high | 2 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 28
+high | 2 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 28
+high | 2 | departure | 185 | KANGAROO | 29,20,-1,-1,-1,88 | 467 -> 464 -> 464
+high | 2 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 29 -> 29
+high | 2 | departure | 140 | KANGAROO | 29,20,-1,-1,-1,88 | 464 -> 466 -> 465
+high | 2 | departure | 179 | KANGAROO | 29,20,-1,-1,-1,88 | 464 -> 466 -> 465
+high | 2 | departure | 141 | KANGAROO | 29,20,-1,-1,-1,88 | 466 -> 465 -> 465
+high | 2 | departure | 186 | KANGAROO | 29,20,-1,-1,-1,88 | 466 -> 465 -> 465
+high | 2 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 29 -> 31 -> 31
+high | 2 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 29 -> 31 -> 31
+high | 2 | departure | 173 | DEMON_16 | 29,20,-1,43,-1,3 | 10000001 -> 10000001 -> 10000001
+high | 2 | departure | 174 | DEMON_16 | 29,20,-1,43,-1,3 | 10000001 -> 10000001 -> 10000001
+high | 2 | departure | 153 | CRUNDLE | 29,20,-1,13,-1,9 | 132 -> 133 -> 134
+high | 2 | death | 191 | KANGAROO | 29,20,-1,-1,-1,88 | 465 -> 465 -> 463
+high | 2 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 33 -> 29
+high | 2 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 33 -> 29
+high | 2 | departure | 154 | CRUNDLE | 29,20,-1,13,-1,9 | 133 -> 134 -> 135
+high | 2 | departure | 189 | KANGAROO | 29,20,-1,-1,-1,88 | 465 -> 463 -> 463
+high | 2 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 29 -> 29
+high | 2 | departure | 155 | CRUNDLE | 29,20,-1,13,-1,9 | 134 -> 135 -> 135
+high | 2 | departure | 148 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 9 -> 11
+high | 2 | departure | 149 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 -> 9 -> 11
+high | 2 | death | 180 | KANGAROO | 29,20,-1,-1,-1,88 | 463 -> 463 -> 461
+high | 2 | departure | 193 | PORCUPINE | 29,20,-1,-1,-1,90 | 497 -> 498 -> 498
+high | 2 | death | 248 | KANGAROO | 29,20,-1,-1,-1,88 | 463 -> 463 -> 461
+high | 2 | departure | 150 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 11 -> 11
+high | 2 | departure | 151 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 11 -> 11
+high | 2 | departure | 156 | CRUNDLE | 29,20,-1,13,-1,9 | 135 -> 137 -> 138
+high | 2 | departure | 176 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 465 -> 467
+high | 2 | departure | 181 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 465 -> 467
+high | 2 | departure | 182 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 465 -> 467
+high | 2 | departure | 183 | GROUNDHOG | 29,20,-1,-1,-1,80 | 18 -> 20 -> 20
+high | 2 | departure | 184 | GROUNDHOG | 29,20,-1,-1,-1,80 | 18 -> 20 -> 20
+high | 2 | departure | 187 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 465 -> 467
+high | 2 | departure | 157 | CRUNDLE | 29,20,-1,13,-1,9 | 137 -> 138 -> 140
+high | 2 | departure | 177 | KANGAROO | 29,20,-1,-1,-1,88 | 465 -> 467 -> 467
+high | 2 | departure | 188 | KANGAROO | 29,20,-1,-1,-1,88 | 465 -> 467 -> 467
+high | 2 | departure | 142 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 2 -> 3
+high | 2 | departure | 158 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 141
+high | 2 | departure | 159 | CRUNDLE | 29,20,-1,13,-1,9 | 138 -> 140 -> 141
+high | 2 | departure | 143 | TROGLODYTE | 29,20,-1,8,-1,19 | 2 -> 3 -> 3
+high | 2 | departure | 160 | CRUNDLE | 29,20,-1,13,-1,9 | 140 -> 141 -> 143
+high | 2 | departure | 190 | KANGAROO | 29,20,-1,-1,-1,88 | 467 -> 468 -> 468
+high | 2 | departure | 161 | CRUNDLE | 29,20,-1,13,-1,9 | 141 -> 143 -> 143
+high | 2 | departure | 162 | CRUNDLE | 29,20,-1,13,-1,9 | 141 -> 143 -> 143
+high | 2 | departure | 163 | CRUNDLE | 29,20,-1,13,-1,9 | 143 -> 144 -> 144
+high | 2 | departure | 178 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 24 -> 25 -> 25
+high | 2 | departure | 164 | CRUNDLE | 29,20,-1,13,-1,9 | 144 -> 146 -> 146
+high | 2 | departure | 165 | CRUNDLE | 29,20,-1,13,-1,9 | 144 -> 146 -> 146
+high | 2 | departure | 196 | PORCUPINE | 29,20,-1,-1,-1,90 | 498 -> 499 -> 499
+high | 2 | departure | 192 | KANGAROO | 29,20,-1,-1,-1,88 | 468 -> 469 -> 469
+high | 2 | death | 275 | GROUNDHOG | 29,20,-1,-1,-1,80 | 16 -> 16 -> 16
+high | 2 | departure | 166 | CRUNDLE | 29,20,-1,13,-1,9 | 146 -> 147 -> 148
+high | 2 | departure | 194 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 345 -> 347 -> 347
+high | 2 | departure | 213 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 345 -> 347 -> 347
+high | 2 | death | 274 | GROUNDHOG | 29,20,-1,-1,-1,80 | 16 -> 16 -> 16
+high | 2 | departure | 167 | CRUNDLE | 29,20,-1,13,-1,9 | 147 -> 148 -> 148
+high | 2 | departure | 197 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 347 -> 348 -> 351
+high | 2 | departure | 168 | CRUNDLE | 29,20,-1,13,-1,9 | 148 -> 151 -> 152
+high | 2 | departure | 169 | CRUNDLE | 29,20,-1,13,-1,9 | 148 -> 151 -> 152
+high | 2 | departure | 170 | CRUNDLE | 29,20,-1,13,-1,9 | 148 -> 151 -> 152
+high | 2 | departure | 195 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 348 -> 351 -> 353
+high | 2 | departure | 198 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 348 -> 351 -> 353
+high | 2 | departure | 208 | KANGAROO | 29,20,-1,-1,-1,88 | 466 -> 467 -> 464
+high | 2 | departure | 214 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 348 -> 351 -> 353
+high | 2 | departure | 171 | CRUNDLE | 29,20,-1,13,-1,9 | 151 -> 152 -> 152
+high | 2 | departure | 199 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 351 -> 353 -> 354
+high | 2 | departure | 200 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 351 -> 353 -> 354
+high | 2 | death | 250 | REACHER | 29,20,-1,25,-1,28 | 11 -> 11 -> 11
+high | 2 | departure | 201 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 355 -> 355
+high | 2 | departure | 223 | DINGO | 29,20,-1,-1,-1,100 | 5 -> 6 -> 6
+high | 2 | departure | 202 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 355 -> 356 -> 356
+high | 2 | departure | 207 | PORCUPINE | 29,20,-1,-1,-1,90 | 499 -> 500 -> 500
+high | 2 | departure | 203 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 356 -> 359 -> 359
+high | 2 | departure | 204 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 356 -> 359 -> 359
+high | 2 | departure | 205 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 356 -> 359 -> 359
+high | 2 | departure | 210 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 461 -> 463
+high | 2 | departure | 219 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 461 -> 463
+high | 2 | departure | 220 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 461 -> 463
+high | 2 | death | 292 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 461 -> 463
+high | 2 | departure | 211 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 463 -> 460
+high | 2 | departure | 221 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 463 -> 460
+high | 2 | departure | 212 | KANGAROO | 29,20,-1,-1,-1,88 | 463 -> 460 -> 460
+high | 2 | departure | 215 | KANGAROO | 29,20,-1,-1,-1,88 | 460 -> 459 -> 460
+high | 2 | death | 277 | GROUNDHOG | 29,20,-1,-1,-1,80 | 16 -> 16 -> 16
+high | 2 | departure | 216 | KANGAROO | 29,20,-1,-1,-1,88 | 459 -> 460 -> 461
+high | 2 | departure | 206 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 359 -> 360 -> 360
+high | 2 | departure | 222 | KANGAROO | 29,20,-1,-1,-1,88 | 460 -> 461 -> 458
+high | 2 | departure | 217 | KANGAROO | 29,20,-1,-1,-1,88 | 461 -> 458 -> 460
+high | 2 | departure | 218 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 460 -> 460
+high | 2 | departure | 231 | KANGAROO | 29,20,-1,-1,-1,88 | 458 -> 460 -> 460
+high | 2 | departure | 247 | KANGAROO | 29,20,-1,-1,-1,88 | 460 -> 457 -> 458
+high | 2 | departure | 235 | KANGAROO | 29,20,-1,-1,-1,88 | 457 -> 458 -> 458
+high | 2 | departure | 224 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 7 -> 8
+high | 2 | departure | 225 | DINGO | 29,20,-1,-1,-1,100 | 7 -> 8 -> 9
+high | 2 | departure | 226 | DINGO | 29,20,-1,-1,-1,100 | 8 -> 9 -> 11
+high | 2 | departure | 239 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 455 -> 456
+high | 2 | death | 298 | KANGAROO | 29,20,-1,-1,-1,88 | 454 -> 455 -> 456
+high | 2 | departure | 227 | DINGO | 29,20,-1,-1,-1,100 | 9 -> 11 -> 12
+high | 2 | departure | 228 | DINGO | 29,20,-1,-1,-1,100 | 9 -> 11 -> 12
+high | 2 | departure | 233 | KANGAROO | 29,20,-1,-1,-1,88 | 455 -> 456 -> 456
+high | 2 | departure | 229 | DINGO | 29,20,-1,-1,-1,100 | 11 -> 12 -> 12
+high | 2 | death | 313 | BADGER | 29,20,-1,-1,-1,82 | 11 -> 11 -> 11
+high | 2 | departure | 230 | DINGO | 29,20,-1,-1,-1,100 | 12 -> 13 -> 13
+high | 2 | departure | 251 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 31 -> 31
+high | 2 | departure | 242 | DEMON_2 | 28,20,-1,44,-1,1 | 10000001 -> 10000001 -> 10000001
+high | 2 | departure | 272 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 340 -> 340
+low | 1 | death | 202 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 12 -> 12 -> 12
+low | 1 | death | 218 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 337 -> 337 -> 337
+low | 1 | departure | 152 | DEMON_18 | 29,20,-1,43,-1,1 | 10000001 -> 10000001 -> 10000001
+low | 1 | departure | 153 | TROGLODYTE | 29,20,-1,8,-1,19 | 10 -> 11 -> 13
+low | 1 | departure | 154 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 13 -> 15
+low | 1 | departure | 155 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 13 -> 15
+low | 1 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 30
+low | 1 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 28 -> 30
+low | 1 | departure | 156 | TROGLODYTE | 29,20,-1,8,-1,19 | 13 -> 15 -> 15
+low | 1 | departure | 157 | TROGLODYTE | 29,20,-1,8,-1,19 | 13 -> 15 -> 15
+low | 1 | departure | 158 | TROGLODYTE | 29,20,-1,13,-1,19 | 6 -> 8 -> 9
+low | 1 | departure | 159 | TROGLODYTE | 29,20,-1,13,-1,19 | 6 -> 8 -> 9
+low | 1 | departure | 166 | DEMON_10 | 29,20,-1,43,-1,5 | 10000001 -> 10000001 -> 10000001
+low | 1 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 30 -> 30
+low | 1 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 28 -> 30 -> 30
+low | 1 | departure | 160 | TROGLODYTE | 29,20,-1,13,-1,19 | 8 -> 9 -> 9
+low | 1 | departure | 167 | DEMON_10 | 29,20,-1,43,-1,5 | 10000001 -> 10000001 -> 10000001
+low | 1 | departure | 168 | GROUNDHOG | 29,20,-1,-1,-1,80 | 17 -> 14 -> 14
+low | 1 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 31 -> 34
+low | 1 | death | 236 | GROUNDHOG | 29,20,-1,-1,-1,80 | 14 -> 14 -> 15
+low | 1 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 34 -> 34
+low | 1 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 34 -> 34
+low | 1 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 31 -> 34 -> 34
+low | 1 | departure | 161 | TROGLODYTE | 29,20,-1,13,-1,19 | 9 -> 11 -> 13
+low | 1 | departure | 162 | TROGLODYTE | 29,20,-1,13,-1,19 | 9 -> 11 -> 13
+low | 1 | departure | 169 | GROUNDHOG | 29,20,-1,-1,-1,80 | 14 -> 15 -> 16
+low | 1 | death | 229 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 13 -> 13 -> 13
+low | 1 | departure | 163 | TROGLODYTE | 29,20,-1,13,-1,19 | 11 -> 13 -> 13
+low | 1 | departure | 164 | TROGLODYTE | 29,20,-1,13,-1,19 | 11 -> 13 -> 13
+low | 1 | departure | 170 | GROUNDHOG | 29,20,-1,-1,-1,80 | 15 -> 16 -> 17
+low | 1 | departure | 173 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 21 -> 22 -> 22
+low | 1 | departure | 139 | BIRD_EMU | 29,20,-1,-1,-1,56 | 0 -> 1 -> 3
+low | 1 | departure | 171 | GROUNDHOG | 29,20,-1,-1,-1,80 | 16 -> 17 -> 17
+low | 1 | death | 239 | BADGER | 29,20,-1,-1,-1,82 | 11 -> 11 -> 11
+low | 1 | death | 242 | BADGER | 29,20,-1,-1,-1,82 | 11 -> 11 -> 11
+low | 1 | departure | 140 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 -> 3 -> 2
+low | 1 | departure | 141 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 -> 3 -> 2
+low | 1 | death | 165 | TROGLODYTE | 29,20,-1,13,-1,19 | 13 -> 13 -> 13
+low | 1 | departure | 180 | KANGAROO | 29,20,-1,-1,-1,88 | 478 -> 480 -> 480
+low | 1 | departure | 181 | KANGAROO | 29,20,-1,-1,-1,88 | 478 -> 480 -> 480
+low | 1 | departure | 142 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 2 -> 4
+low | 1 | departure | 143 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 2 -> 4
+low | 1 | death | 238 | BADGER | 29,20,-1,-1,-1,82 | 11 -> 11 -> 11
+low | 1 | departure | 144 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 4 -> 6
+low | 1 | departure | 145 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 4 -> 6
+low | 1 | departure | 174 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 355 -> 355
+low | 1 | departure | 182 | KANGAROO | 29,20,-1,-1,-1,88 | 480 -> 481 -> 481
+low | 1 | departure | 146 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 -> 6 -> 6
+low | 1 | departure | 147 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 -> 6 -> 6
+low | 1 | departure | 179 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 22 -> 23 -> 23
+low | 1 | departure | 175 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 355 -> 356 -> 356
+low | 1 | departure | 183 | KANGAROO | 29,20,-1,-1,-1,88 | 481 -> 483 -> 483
+low | 1 | departure | 184 | KANGAROO | 29,20,-1,-1,-1,88 | 481 -> 483 -> 483
+low | 1 | death | 262 | BIRD_EMU | 29,20,-1,-1,-1,56 | 6 -> 6 -> 6
+low | 1 | departure | 172 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 12 -> 13 -> 13
+low | 1 | death | 241 | BADGER | 29,20,-1,-1,-1,82 | 11 -> 11 -> 11
+low | 1 | departure | 189 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 12 -> 13 -> 13
+low | 1 | departure | 176 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 356 -> 357 -> 357
+low | 1 | departure | 185 | KANGAROO | 29,20,-1,-1,-1,88 | 483 -> 484 -> 484
+low | 1 | departure | 186 | KANGAROO | 29,20,-1,-1,-1,88 | 484 -> 482 -> 482
+low | 1 | departure | 187 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 13 -> 14 -> 14
+low | 1 | departure | 177 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 357 -> 358 -> 358
+low | 1 | departure | 190 | DINGO | 29,20,-1,-1,-1,100 | 1 -> 3 -> 3
+low | 1 | departure | 191 | DINGO | 29,20,-1,-1,-1,100 | 1 -> 3 -> 3
+low | 1 | departure | 192 | DINGO | 29,20,-1,-1,-1,100 | 3 -> 4 -> 4
+low | 1 | departure | 178 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 358 -> 359 -> 359
+low | 1 | departure | 204 | KANGAROO | 29,20,-1,-1,-1,88 | 480 -> 481 -> 482
+low | 1 | departure | 193 | DINGO | 29,20,-1,-1,-1,100 | 4 -> 5 -> 7
+low | 1 | departure | 205 | KANGAROO | 29,20,-1,-1,-1,88 | 481 -> 482 -> 482
+low | 1 | departure | 194 | DINGO | 29,20,-1,-1,-1,100 | 5 -> 7 -> 8
+low | 1 | departure | 195 | DINGO | 29,20,-1,-1,-1,100 | 5 -> 7 -> 8
+low | 1 | departure | 207 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 22 -> 23 -> 23
+low | 1 | departure | 196 | DINGO | 29,20,-1,-1,-1,100 | 7 -> 8 -> 12
+low | 1 | departure | 197 | DINGO | 29,20,-1,-1,-1,100 | 8 -> 12 -> 13
+low | 1 | departure | 198 | DINGO | 29,20,-1,-1,-1,100 | 8 -> 12 -> 13
+low | 1 | departure | 199 | DINGO | 29,20,-1,-1,-1,100 | 8 -> 12 -> 13
+low | 1 | departure | 200 | DINGO | 29,20,-1,-1,-1,100 | 8 -> 12 -> 13
+low | 1 | departure | 208 | KANGAROO | 29,20,-1,-1,-1,88 | 479 -> 480 -> 481
+low | 1 | departure | 201 | DINGO | 29,20,-1,-1,-1,100 | 12 -> 13 -> 13
+low | 1 | departure | 209 | KANGAROO | 29,20,-1,-1,-1,88 | 480 -> 481 -> 481
+low | 1 | departure | 217 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 340 -> 340
+low | 1 | departure | 188 | WOMBAT | 29,20,-1,-1,-1,96 | 13 -> 14 -> 14
+low | 1 | departure | 206 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 14 -> 14 -> 14
+low | 1 | departure | 223 | KANGAROO | 29,20,-1,-1,-1,88 | 481 -> 482 -> 482
+low | 1 | death | 299 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 12 -> 12 -> 12
+low | 1 | departure | 231 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+low | 1 | departure | 210 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 3 -> 4
+low | 1 | departure | 233 | GROUNDHOG | 29,20,-1,-1,-1,80 | 14 -> 15 -> 15
+low | 1 | departure | 211 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 4 -> 5
+low | 1 | departure | 224 | KANGAROO | 29,20,-1,-1,-1,88 | 482 -> 483 -> 483
+low | 1 | death | 291 | GROUNDHOG | 29,20,-1,-1,-1,80 | 15 -> 15 -> 15
+low | 1 | departure | 212 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 -> 5 -> 7
+low | 1 | departure | 213 | BIRD_EMU | 29,20,-1,-1,-1,56 | 5 -> 7 -> 9
+low | 1 | departure | 214 | BIRD_EMU | 29,20,-1,-1,-1,56 | 5 -> 7 -> 9
+low | 1 | departure | 215 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 -> 9 -> 9
+low | 1 | departure | 216 | BIRD_EMU | 29,20,-1,-1,-1,56 | 7 -> 9 -> 9
+low | 1 | departure | 230 | SKUNK | 29,20,-1,-1,-1,92 | 14 -> 15 -> 15
+low | 1 | departure | 243 | CRUNDLE | 29,20,-1,25,-1,12 | 160 -> 161 -> 161
+low | 1 | departure | 225 | KANGAROO | 29,20,-1,-1,-1,88 | 483 -> 482 -> 484
+low | 1 | departure | 219 | KANGAROO | 29,20,-1,-1,-1,88 | 482 -> 484 -> 486
+low | 1 | departure | 226 | KANGAROO | 29,20,-1,-1,-1,88 | 482 -> 484 -> 486
+low | 1 | death | 312 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 6 -> 6
+low | 1 | departure | 227 | KANGAROO | 29,20,-1,-1,-1,88 | 484 -> 486 -> 486
+low | 1 | departure | 228 | KANGAROO | 29,20,-1,-1,-1,88 | 484 -> 486 -> 486
+low | 1 | departure | 237 | JABBERER | 29,20,-1,25,-1,18 | 16 -> 17 -> 17
+low | 1 | departure | 244 | CRUNDLE | 29,20,-1,25,-1,12 | 161 -> 162 -> 163
+low | 1 | departure | 274 | BIRD_KAKAPO | 29,20,-1,-1,-1,55 | 15 -> 16 -> 16
+low | 1 | departure | 249 | CRUNDLE | 29,20,-1,25,-1,12 | 162 -> 163 -> 164
+low | 1 | departure | 234 | GROUNDHOG | 29,20,-1,-1,-1,80 | 14 -> 15 -> 16
+low | 1 | departure | 240 | BADGER | 29,20,-1,-1,-1,82 | 0 -> 1 -> 1
+low | 1 | departure | 252 | CRUNDLE | 29,20,-1,25,-1,12 | 163 -> 164 -> 165
+low | 1 | departure | 235 | GROUNDHOG | 29,20,-1,-1,-1,80 | 15 -> 16 -> 16
+low | 1 | departure | 246 | CRUNDLE | 29,20,-1,25,-1,12 | 164 -> 165 -> 165
+low | 1 | departure | 272 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 340 -> 341 -> 341
+low | 1 | departure | 250 | CRUNDLE | 29,20,-1,25,-1,12 | 165 -> 169 -> 171
+low | 1 | departure | 253 | CRUNDLE | 29,20,-1,25,-1,12 | 165 -> 169 -> 171
+low | 1 | departure | 254 | CRUNDLE | 29,20,-1,25,-1,12 | 165 -> 169 -> 171
+low | 1 | departure | 275 | WOLF | 29,20,-1,-1,-1,101 | 8 -> 9 -> 9
+low | 1 | departure | 245 | CRUNDLE | 29,20,-1,25,-1,12 | 169 -> 171 -> 172
+low | 1 | departure | 251 | CRUNDLE | 29,20,-1,25,-1,12 | 169 -> 171 -> 172
+low | 1 | departure | 260 | OLM_GIANT | 29,20,-1,13,-1,13 | 8 -> 9 -> 9
+low | 1 | departure | 220 | KANGAROO | 29,20,-1,-1,-1,88 | 486 -> 485 -> -
+low | 1 | departure | 255 | CRUNDLE | 29,20,-1,25,-1,12 | 171 -> 172 -> -
+low | 2 | death | 196 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 341 -> 341 -> 341
+low | 2 | departure | 139 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 344 -> 345 -> 345
+low | 2 | departure | 157 | DEMON_2 | 28,20,-1,44,-1,1 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 161 | TROGLODYTE | 29,20,-1,8,-1,19 | 9 -> 10 -> 10
+low | 2 | departure | 140 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 345 -> 346 -> 346
+low | 2 | departure | 146 | OLM_GIANT | 29,20,-1,8,-1,9 | 15 -> 16 -> 16
+low | 2 | departure | 172 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 22 -> 23 -> 23
+low | 2 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 30 -> 30
+low | 2 | departure | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 30 -> 30
+low | 2 | departure | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 30 -> 30
+low | 2 | departure | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 26 -> 30 -> 30
+low | 2 | departure | 147 | TROGLODYTE | 29,21,-1,13,-1,19 | 4 -> 7 -> 7
+low | 2 | departure | 148 | TROGLODYTE | 29,21,-1,13,-1,19 | 4 -> 7 -> 7
+low | 2 | departure | 149 | TROGLODYTE | 29,21,-1,13,-1,19 | 4 -> 7 -> 7
+low | 2 | departure | 174 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 349 -> 351 -> 351
+low | 2 | departure | 175 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 349 -> 351 -> 351
+low | 2 | departure | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 33 -> 34
+low | 2 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 33 -> 34
+low | 2 | departure | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 30 -> 33 -> 34
+low | 2 | departure | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 33 -> 34 -> 34
+low | 2 | departure | 167 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 150 | TROGLODYTE | 29,21,-1,13,-1,19 | 7 -> 9 -> 11
+low | 2 | departure | 151 | TROGLODYTE | 29,21,-1,13,-1,19 | 7 -> 9 -> 11
+low | 2 | departure | 158 | DEMON_2 | 28,20,-1,44,-1,1 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 168 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 141 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 351 -> 352 -> 356
+low | 2 | departure | 152 | TROGLODYTE | 29,21,-1,13,-1,19 | 9 -> 11 -> 11
+low | 2 | departure | 153 | TROGLODYTE | 29,21,-1,13,-1,19 | 9 -> 11 -> 11
+low | 2 | departure | 159 | DEMON_2 | 28,20,-1,44,-1,1 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 169 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 170 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 173 | BIRD_OWL_GREAT_HORNED | 28,19,-1,-1,-1,61 | 15 -> 16 -> 16
+low | 2 | departure | 142 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 352 -> 356 -> 356
+low | 2 | departure | 143 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 352 -> 356 -> 356
+low | 2 | departure | 144 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 352 -> 356 -> 356
+low | 2 | departure | 145 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 352 -> 356 -> 356
+low | 2 | departure | 160 | DEMON_2 | 28,20,-1,44,-1,1 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 162 | TROGLODYTE | 29,20,-1,8,-1,19 | 10 -> 11 -> 11
+low | 2 | departure | 171 | DEMON_3 | 29,20,-1,43,-1,0 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 154 | TROGLODYTE | 29,21,-1,13,-1,19 | 11 -> 13 -> 14
+low | 2 | departure | 155 | TROGLODYTE | 29,21,-1,13,-1,19 | 11 -> 13 -> 14
+low | 2 | departure | 163 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 13 -> 14
+low | 2 | departure | 164 | TROGLODYTE | 29,20,-1,8,-1,19 | 11 -> 13 -> 14
+low | 2 | departure | 190 | KANGAROO | 29,20,-1,-1,-1,88 | 475 -> 476 -> 476
+low | 2 | departure | 156 | TROGLODYTE | 29,21,-1,13,-1,19 | 13 -> 14 -> 14
+low | 2 | departure | 165 | TROGLODYTE | 29,20,-1,8,-1,19 | 13 -> 14 -> 14
+low | 2 | departure | 176 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 356 -> 357 -> 357
+low | 2 | departure | 194 | WOMBAT | 29,20,-1,-1,-1,96 | 14 -> 15 -> 15
+low | 2 | departure | 166 | TROGLODYTE | 29,20,-1,8,-1,19 | 14 -> 15 -> 15
+low | 2 | departure | 177 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 357 -> 358 -> 359
+low | 2 | departure | 191 | KANGAROO | 29,20,-1,-1,-1,88 | 476 -> 478 -> 478
+low | 2 | departure | 192 | KANGAROO | 29,20,-1,-1,-1,88 | 476 -> 478 -> 478
+low | 2 | departure | 178 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 358 -> 359 -> 360
+low | 2 | departure | 179 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 359 -> 360 -> 360
+low | 2 | departure | 180 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 14 -> 15 -> 15
+low | 2 | departure | 181 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 -> 1 -> 2
+low | 2 | departure | 182 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 -> 2 -> 2
+low | 2 | departure | 211 | KANGAROO | 29,20,-1,-1,-1,88 | 478 -> 479 -> 479
+low | 2 | departure | 183 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 1 -> 2
+low | 2 | departure | 214 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 14 -> 14
+low | 2 | departure | 184 | BIRD_EMU | 29,20,-1,-1,-1,56 | 1 -> 2 -> 3
+low | 2 | departure | 185 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 3 -> 2
+low | 2 | departure | 186 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 2 -> 2
+low | 2 | departure | 216 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 2 -> 2
+low | 2 | departure | 195 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 360 -> 362 -> 362
+low | 2 | departure | 197 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 360 -> 362 -> 362
+low | 2 | departure | 187 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 3 -> 4
+low | 2 | departure | 193 | GROUNDHOG | 29,20,-1,-1,-1,80 | 20 -> 21 -> 21
+low | 2 | departure | 188 | BIRD_EMU | 29,20,-1,-1,-1,56 | 3 -> 4 -> 4
+low | 2 | departure | 201 | BADGER | 29,20,-1,-1,-1,82 | 0 -> 1 -> 4
+low | 2 | departure | 202 | BADGER | 29,20,-1,-1,-1,82 | 1 -> 4 -> 6
+low | 2 | departure | 203 | BADGER | 29,20,-1,-1,-1,82 | 1 -> 4 -> 6
+low | 2 | departure | 204 | BADGER | 29,20,-1,-1,-1,82 | 1 -> 4 -> 6
+low | 2 | death | 189 | BIRD_OWL_GREAT_HORNED | 29,20,-1,-1,-1,61 | 15 -> 15 -> 15
+low | 2 | departure | 198 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 362 -> 365 -> 356
+low | 2 | departure | 199 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 362 -> 365 -> 356
+low | 2 | departure | 200 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 362 -> 365 -> 356
+low | 2 | departure | 205 | BADGER | 29,20,-1,-1,-1,82 | 4 -> 6 -> 9
+low | 2 | departure | 206 | BADGER | 29,20,-1,-1,-1,82 | 4 -> 6 -> 9
+low | 2 | departure | 207 | BADGER | 29,20,-1,-1,-1,82 | 6 -> 9 -> 9
+low | 2 | departure | 208 | BADGER | 29,20,-1,-1,-1,82 | 6 -> 9 -> 9
+low | 2 | departure | 209 | BADGER | 29,20,-1,-1,-1,82 | 6 -> 9 -> 9
+low | 2 | departure | 210 | PORCUPINE | 29,20,-1,-1,-1,90 | 498 -> 499 -> 499
+low | 2 | departure | 212 | KANGAROO | 29,20,-1,-1,-1,88 | 477 -> 476 -> 476
+low | 2 | departure | 218 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 340 -> 341
+low | 2 | departure | 219 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 340 -> 341 -> 341
+low | 2 | departure | 221 | BADGER | 29,20,-1,-1,-1,82 | 9 -> 10 -> 1
+low | 2 | departure | 213 | KANGAROO | 29,20,-1,-1,-1,88 | 476 -> 477 -> 477
+low | 2 | departure | 222 | BADGER | 29,20,-1,-1,-1,82 | 10 -> 1 -> 1
+low | 2 | departure | 220 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 342 -> 342
+low | 2 | departure | 217 | BIRD_EMU | 29,20,-1,-1,-1,56 | 4 -> 5 -> 2
+low | 2 | departure | 215 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 21 -> 22 -> 22
+low | 2 | departure | 223 | BADGER | 29,20,-1,-1,-1,82 | 1 -> 2 -> 2
+low | 2 | departure | 241 | KANGAROO | 29,20,-1,-1,-1,88 | 477 -> 479 -> 481
+low | 2 | departure | 242 | KANGAROO | 29,20,-1,-1,-1,88 | 477 -> 479 -> 481
+low | 2 | departure | 244 | DINGO | 29,20,-1,-1,-1,100 | 5 -> 6 -> 6
+low | 2 | departure | 224 | BADGER | 29,20,-1,-1,-1,82 | 2 -> 7 -> 11
+low | 2 | departure | 225 | BADGER | 29,20,-1,-1,-1,82 | 2 -> 7 -> 11
+low | 2 | departure | 226 | BADGER | 29,20,-1,-1,-1,82 | 2 -> 7 -> 11
+low | 2 | departure | 227 | BADGER | 29,20,-1,-1,-1,82 | 2 -> 7 -> 11
+low | 2 | departure | 228 | BADGER | 29,20,-1,-1,-1,82 | 2 -> 7 -> 11
+low | 2 | departure | 233 | KANGAROO | 29,20,-1,-1,-1,88 | 479 -> 481 -> 481
+low | 2 | departure | 243 | KANGAROO | 29,20,-1,-1,-1,88 | 479 -> 481 -> 481
+low | 2 | departure | 229 | BADGER | 29,20,-1,-1,-1,82 | 7 -> 11 -> 11
+low | 2 | departure | 230 | BADGER | 29,20,-1,-1,-1,82 | 7 -> 11 -> 11
+low | 2 | departure | 231 | BADGER | 29,20,-1,-1,-1,82 | 7 -> 11 -> 11
+low | 2 | departure | 232 | BADGER | 29,20,-1,-1,-1,82 | 7 -> 11 -> 11
+low | 2 | departure | 245 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 10 -> 10
+low | 2 | departure | 246 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 10 -> 10
+low | 2 | departure | 248 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 10 -> 10
+low | 2 | departure | 250 | DINGO | 29,20,-1,-1,-1,100 | 6 -> 10 -> 10
+low | 2 | departure | 257 | CREEPING_EYE | 29,20,-1,25,-1,25 | 276 -> 277 -> 277
+low | 2 | departure | 247 | DINGO | 29,20,-1,-1,-1,100 | 2 -> 3 -> 3
+low | 2 | departure | 268 | KANGAROO | 29,20,-1,-1,-1,88 | 481 -> 482 -> 482
+low | 2 | departure | 281 | OLM_GIANT | 29,21,-1,13,-1,13 | 8 -> 9 -> 9
+low | 2 | departure | 237 | KANGAROO | 29,20,-1,-1,-1,88 | 482 -> 483 -> 483
+low | 2 | departure | 251 | DINGO | 29,20,-1,-1,-1,100 | 3 -> 4 -> 4
+low | 2 | departure | 278 | PORCUPINE | 29,20,-1,-1,-1,90 | 499 -> 500 -> 500
+low | 2 | departure | 254 | CREEPING_EYE | 29,20,-1,25,-1,25 | 277 -> 278 -> 278
+low | 2 | departure | 276 | DEMON_1 | 28,20,-1,44,-1,3 | 10000001 -> 10000001 -> 10000001
+low | 2 | departure | 279 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 327 -> 328 -> 328
+low | 2 | departure | 284 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 14 -> 14
+low | 2 | departure | 292 | BIRD_KESTREL | 28,19,-1,-1,-1,60 | 23 -> 24 -> 24
+low | 2 | departure | 249 | DINGO | 29,20,-1,-1,-1,100 | 4 -> 5 -> 5
+low | 2 | departure | 235 | KANGAROO | 29,20,-1,-1,-1,88 | 483 -> 484 -> 485
+low | 2 | departure | 236 | KANGAROO | 29,20,-1,-1,-1,88 | 484 -> 485 -> 484
+low | 2 | departure | 256 | CREEPING_EYE | 29,20,-1,25,-1,25 | 278 -> 279 -> 279
+low | 2 | departure | 239 | KANGAROO | 29,20,-1,-1,-1,88 | 485 -> 484 -> 485
+low | 2 | departure | 272 | KANGAROO | 29,20,-1,-1,-1,88 | 485 -> 484 -> 485
+low | 2 | departure | 282 | CROCODILE_CAVE | 29,20,-1,13,-1,14 | 12 -> 13 -> 13
+low | 2 | departure | 295 | BIRD_EMU | 29,20,-1,-1,-1,56 | 2 -> 3 -> 3
+low | 2 | departure | 234 | KANGAROO | 29,20,-1,-1,-1,88 | 484 -> 485 -> -
+low | 2 | departure | 253 | CREEPING_EYE | 29,20,-1,25,-1,25 | 279 -> 280 -> -
+
+## Manipulations applied
+high | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') | tool disarmed
+high | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) | x: 4 entries stocked at 500
+high | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=25; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) | x: 2 named species set, 12 other land species at frequency 1
+high | 1 | +1815 | probe:release surface | released 5 unit(s) [surface]
+high | 1 | +3600 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +5322 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +7080 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +8826 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +10484 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +12300 | probe:release surface | released 7 unit(s) [surface]
+high | 1 | +13990 | probe:release surface | released 5 unit(s) [surface]
+high | 1 | +15721 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +17397 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +19221 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +20914 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +22721 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +24450 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +26260 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +28037 | probe:release surface | released 6 unit(s) [surface]
+high | 1 | +29681 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +31371 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +33085 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +34740 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +36398 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +38098 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +39844 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +41604 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +43405 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +45017 | probe:release surface | released 5 unit(s) [surface]
+high | 1 | +46713 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +48471 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +50191 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +52034 | probe:release surface | released 3 unit(s) [surface]
+high | 1 | +53770 | probe:release surface | released 4 unit(s) [surface]
+high | 1 | +55494 | probe:release surface | released 2 unit(s) [surface]
+high | 1 | +57277 | probe:release surface | released 5 unit(s) [surface]
+high | 1 | +59006 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') | tool disarmed
+high | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) | x: 4 entries stocked at 500
+high | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=25; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) | x: 2 named species set, 12 other land species at frequency 1
+high | 2 | +1737 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +3465 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +5153 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +6897 | probe:release surface | released 6 unit(s) [surface]
+high | 2 | +8619 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +10365 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +12087 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +13771 | probe:release surface | released 11 unit(s) [surface]
+high | 2 | +15396 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +17058 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +18813 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +20613 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +22351 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +24125 | probe:release surface | released 8 unit(s) [surface]
+high | 2 | +25822 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +27592 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +29275 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +31090 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +32836 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +34632 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +36348 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +38130 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +39850 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +41584 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +43363 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +45103 | probe:release surface | released 3 unit(s) [surface]
+high | 2 | +46866 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +48622 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +50362 | probe:release surface | released 2 unit(s) [surface]
+high | 2 | +52110 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +53827 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +55542 | probe:release surface | released 4 unit(s) [surface]
+high | 2 | +57193 | probe:release surface | released 5 unit(s) [surface]
+high | 2 | +58972 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') | tool disarmed
+low | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) | x: 4 entries stocked at 500
+low | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=4; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=1; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) | x: 2 named species set, 12 other land species at frequency 1
+low | 1 | +1902 | probe:release surface | released 9 unit(s) [surface]
+low | 1 | +3644 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +5440 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +7177 | probe:release surface | released 5 unit(s) [surface]
+low | 1 | +8950 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +10708 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +12458 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +14170 | probe:release surface | released 13 unit(s) [surface]
+low | 1 | +15920 | probe:release surface | released 3 unit(s) [surface]
+low | 1 | +17690 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +19396 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +21292 | probe:release surface | released 7 unit(s) [surface]
+low | 1 | +22963 | probe:release surface | released 5 unit(s) [surface]
+low | 1 | +24739 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +26539 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +28252 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +29969 | probe:release surface | released 3 unit(s) [surface]
+low | 1 | +31743 | probe:release surface | released 3 unit(s) [surface]
+low | 1 | +33547 | probe:release surface | released 10 unit(s) [surface]
+low | 1 | +35394 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +37121 | probe:release surface | released 5 unit(s) [surface]
+low | 1 | +38910 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +40690 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +42433 | probe:release surface | released 3 unit(s) [surface]
+low | 1 | +44137 | probe:release surface | released 4 unit(s) [surface]
+low | 1 | +46041 | probe:release surface | released 3 unit(s) [surface]
+low | 1 | +47906 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +49528 | probe:release surface | released 10 unit(s) [surface]
+low | 1 | +51293 | probe:release surface | released 8 unit(s) [surface]
+low | 1 | +53079 | probe:release surface | released 7 unit(s) [surface]
+low | 1 | +54718 | probe:release surface | released 10 unit(s) [surface]
+low | 1 | +56558 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +58220 | probe:release surface | released 2 unit(s) [surface]
+low | 1 | +59975 | probe:release surface | released 10 unit(s) [surface]
+low | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') | tool disarmed
+low | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n)) | x: 4 entries stocked at 500
+low | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=4; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=1; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o)) | x: 2 named species set, 12 other land species at frequency 1
+low | 2 | +1812 | probe:release surface | released 7 unit(s) [surface]
+low | 2 | +3551 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +5269 | probe:release surface | released 6 unit(s) [surface]
+low | 2 | +6969 | probe:release surface | released 9 unit(s) [surface]
+low | 2 | +8663 | probe:release surface | released 4 unit(s) [surface]
+low | 2 | +10424 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +12174 | probe:release surface | released 5 unit(s) [surface]
+low | 2 | +14023 | probe:release surface | released 9 unit(s) [surface]
+low | 2 | +15741 | probe:release surface | released 4 unit(s) [surface]
+low | 2 | +17406 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +19099 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +20735 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +22577 | probe:release surface | released 12 unit(s) [surface]
+low | 2 | +24347 | probe:release surface | released 4 unit(s) [surface]
+low | 2 | +26021 | probe:release surface | released 4 unit(s) [surface]
+low | 2 | +27680 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +29344 | probe:release surface | released 8 unit(s) [surface]
+low | 2 | +31199 | probe:release surface | released 8 unit(s) [surface]
+low | 2 | +32822 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +34553 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +36228 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +38016 | probe:release surface | released 10 unit(s) [surface]
+low | 2 | +39822 | probe:release surface | released 4 unit(s) [surface]
+low | 2 | +41544 | probe:release surface | released 9 unit(s) [surface]
+low | 2 | +43197 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +44810 | probe:release surface | released 9 unit(s) [surface]
+low | 2 | +46562 | probe:release surface | released 2 unit(s) [surface]
+low | 2 | +48257 | probe:release surface | released 10 unit(s) [surface]
+low | 2 | +49993 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +51820 | probe:release surface | released 3 unit(s) [surface]
+low | 2 | +53648 | probe:release surface | released 10 unit(s) [surface]
+low | 2 | +55334 | probe:release surface | released 8 unit(s) [surface]
+low | 2 | +57084 | probe:release surface | released 5 unit(s) [surface]
+low | 2 | +58778 | probe:release surface | released 2 unit(s) [surface]
+
+## Pool entries that changed between load and end of replicate (191; the second instrument)
+high | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->354 max 354->354 discovered 0->1 extinct 0->0
+high | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+high | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->14 max 16->16 discovered 0->1 extinct 0->0
+high | 1 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+high | 1 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->500 max 25->25 discovered 0->0 extinct 0->0
+high | 1 | idx 3537 | DEMON_12 ref6=28,20,-1,44,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+high | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->242 max 241->241 discovered 0->1 extinct 0->0
+high | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->219 max 216->216 discovered 0->1 extinct 0->0
+high | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->310 max 308->308 discovered 0->1 extinct 0->0
+high | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->6 max 11->11 discovered 0->1 extinct 0->0
+high | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->336 max 334->334 discovered 0->1 extinct 0->0
+high | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+high | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3492 max 3530->3530 discovered 0->1 extinct 0->0
+high | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+high | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->332 max 331->331 discovered 0->1 extinct 0->0
+high | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+high | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->450 max 20->20 discovered 0->1 extinct 0->0
+high | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->497 max 24->24 discovered 0->1 extinct 0->0
+high | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->242 max 275->275 discovered 0->1 extinct 0->0
+high | 1 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+high | 1 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->10 max 9->9 discovered 0->1 extinct 0->0
+high | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->435 max 429->429 discovered 0->1 extinct 0->0
+high | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->435 max 436->436 discovered 0->1 extinct 0->0
+high | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->405 max 403->403 discovered 0->1 extinct 0->0
+high | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->9 max 14->14 discovered 0->1 extinct 0->0
+high | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->255 max 265->265 discovered 0->1 extinct 0->0
+high | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->389 max 387->387 discovered 0->1 extinct 0->0
+high | 1 | idx 4762 | TROLL ref6=29,20,-1,8,-1,27 quantity 5->5 max 5->5 discovered 0->1 extinct 0->0
+high | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->445 max 442->442 discovered 0->1 extinct 0->0
+high | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->333 max 331->331 discovered 0->1 extinct 0->0
+high | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->224 max 257->257 discovered 0->1 extinct 0->0
+high | 1 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->17 max 16->16 discovered 0->1 extinct 0->0
+high | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->265 max 313->313 discovered 0->1 extinct 0->0
+high | 1 | idx 4816 | JABBERER ref6=29,20,-1,25,-1,18 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+high | 1 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->35 max 33->33 discovered 1->1 extinct 0->0
+high | 1 | idx 4824 | BLIND_CAVE_OGRE ref6=29,20,-1,25,-1,26 quantity 6->3 max 6->6 discovered 0->1 extinct 0->0
+high | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->261 max 336->336 discovered 0->1 extinct 0->0
+high | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->35 max 38->38 discovered 1->1 extinct 0->0
+high | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+high | 1 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+high | 1 | idx 4974 | TOAD_GIANT_CAVE ref6=29,21,-1,13,-1,10 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+high | 1 | idx 4976 | POND_GRABBER ref6=29,21,-1,13,-1,12 quantity 15->13 max 15->15 discovered 0->1 extinct 0->0
+high | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->355 max 354->354 discovered 0->1 extinct 0->0
+high | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->24 max 24->24 discovered 0->1 extinct 0->0
+high | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+high | 2 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+high | 2 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->500 max 25->25 discovered 0->0 extinct 0->0
+high | 2 | idx 3534 | DEMON_2 ref6=28,20,-1,44,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+high | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->244 max 241->241 discovered 0->1 extinct 0->0
+high | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->217 max 216->216 discovered 0->1 extinct 0->0
+high | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->310 max 308->308 discovered 0->1 extinct 0->0
+high | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->340 max 339->339 discovered 0->1 extinct 0->0
+high | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->337 max 334->334 discovered 0->1 extinct 0->0
+high | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->259 max 257->257 discovered 0->1 extinct 0->0
+high | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3019 max 3530->3530 discovered 0->1 extinct 0->0
+high | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+high | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->17 max 20->20 discovered 0->1 extinct 0->0
+high | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->12 max 16->16 discovered 0->1 extinct 0->0
+high | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->333 max 331->331 discovered 0->1 extinct 0->0
+high | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+high | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->454 max 20->20 discovered 0->1 extinct 0->0
+high | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->499 max 24->24 discovered 0->1 extinct 0->0
+high | 2 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->13 max 13->13 discovered 0->1 extinct 0->0
+high | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->239 max 275->275 discovered 0->1 extinct 0->0
+high | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->430 max 429->429 discovered 0->1 extinct 0->0
+high | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->438 max 436->436 discovered 0->1 extinct 0->0
+high | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->406 max 403->403 discovered 0->1 extinct 0->0
+high | 2 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->3 max 14->14 discovered 0->1 extinct 0->0
+high | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->260 max 265->265 discovered 0->1 extinct 0->0
+high | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->388 max 387->387 discovered 0->1 extinct 0->0
+high | 2 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->152 max 147->147 discovered 0->1 extinct 0->0
+high | 2 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+high | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->442 max 442->442 discovered 0->1 extinct 0->0
+high | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->337 max 331->331 discovered 0->1 extinct 0->0
+high | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->233 max 257->257 discovered 0->1 extinct 0->0
+high | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->274 max 313->313 discovered 0->1 extinct 0->0
+high | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->31 max 33->33 discovered 1->1 extinct 0->0
+high | 2 | idx 4826 | REACHER ref6=29,20,-1,25,-1,28 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+high | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->256 max 336->336 discovered 0->1 extinct 0->0
+high | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->36 max 38->38 discovered 1->1 extinct 0->0
+high | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+high | 2 | idx 4839 | DEMON_16 ref6=29,20,-1,43,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+high | 2 | idx 4977 | OLM_GIANT ref6=29,21,-1,13,-1,13 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+low | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->353 max 354->354 discovered 0->1 extinct 0->0
+low | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+low | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->12 max 16->16 discovered 0->1 extinct 0->0
+low | 1 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+low | 1 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->500 max 25->25 discovered 0->0 extinct 0->0
+low | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->244 max 241->241 discovered 0->1 extinct 0->0
+low | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->217 max 216->216 discovered 0->1 extinct 0->0
+low | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->310 max 308->308 discovered 0->1 extinct 0->0
+low | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->341 max 339->339 discovered 0->1 extinct 0->0
+low | 1 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+low | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->9 max 11->11 discovered 0->1 extinct 0->0
+low | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->335 max 334->334 discovered 0->1 extinct 0->0
+low | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->258 max 257->257 discovered 0->1 extinct 0->0
+low | 1 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->21 max 23->23 discovered 0->1 extinct 0->0
+low | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->11 max 15->15 discovered 0->1 extinct 0->0
+low | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3415 max 3530->3530 discovered 0->1 extinct 0->0
+low | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+low | 1 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->16 max 20->20 discovered 0->1 extinct 0->0
+low | 1 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->1 max 16->16 discovered 0->1 extinct 0->0
+low | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+low | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+low | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->485 max 20->20 discovered 0->1 extinct 0->0
+low | 1 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->500 max 24->24 discovered 0->0 extinct 0->0
+low | 1 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+low | 1 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+low | 1 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->1 extinct 0->0
+low | 1 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->9 max 12->12 discovered 0->1 extinct 0->0
+low | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->234 max 275->275 discovered 0->1 extinct 0->0
+low | 1 | idx 4746 | POND_GRABBER ref6=29,20,-1,8,-1,11 quantity 14->10 max 14->14 discovered 0->1 extinct 0->0
+low | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->427 max 429->429 discovered 0->1 extinct 0->0
+low | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->437 max 436->436 discovered 0->1 extinct 0->0
+low | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->406 max 403->403 discovered 0->1 extinct 0->0
+low | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->15 max 14->14 discovered 0->1 extinct 0->0
+low | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->264 max 265->265 discovered 0->1 extinct 0->0
+low | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->390 max 387->387 discovered 0->1 extinct 0->0
+low | 1 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+low | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->445 max 442->442 discovered 0->1 extinct 0->0
+low | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->333 max 331->331 discovered 0->1 extinct 0->0
+low | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->223 max 257->257 discovered 0->1 extinct 0->0
+low | 1 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+low | 1 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+low | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->279 max 313->313 discovered 0->1 extinct 0->0
+low | 1 | idx 4810 | CRUNDLE ref6=29,20,-1,25,-1,12 quantity 174->172 max 174->174 discovered 0->1 extinct 0->0
+low | 1 | idx 4816 | JABBERER ref6=29,20,-1,25,-1,18 quantity 16->17 max 16->16 discovered 0->1 extinct 0->0
+low | 1 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->34 max 33->33 discovered 1->1 extinct 0->0
+low | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->253 max 336->336 discovered 0->1 extinct 0->0
+low | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->37 max 38->38 discovered 1->1 extinct 0->0
+low | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+low | 1 | idx 4837 | DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 1 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 1 | idx 4841 | DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 1 | idx 4996 | TROLL ref6=29,21,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+low | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->356 max 354->354 discovered 0->1 extinct 0->0
+low | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->24 max 24->24 discovered 0->1 extinct 0->0
+low | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+low | 2 | idx 3200 | Vermin:196 ref6=28,19,-1,-1,-1,73 quantity 3503->3630 max 3503->3503 discovered 0->1 extinct 0->0
+low | 2 | idx 3209 | KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+low | 2 | idx 3210 | PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->500 max 25->25 discovered 0->0 extinct 0->0
+low | 2 | idx 3534 | DEMON_2 ref6=28,20,-1,44,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 2 | idx 3536 | DEMON_1 ref6=28,20,-1,44,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->245 max 241->241 discovered 0->1 extinct 0->0
+low | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->219 max 216->216 discovered 0->1 extinct 0->0
+low | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->308 max 308->308 discovered 0->1 extinct 0->0
+low | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->331 max 339->339 discovered 0->1 extinct 0->0
+low | 2 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->3 max 11->11 discovered 0->1 extinct 0->0
+low | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->334 max 334->334 discovered 0->1 extinct 0->0
+low | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->259 max 257->257 discovered 0->1 extinct 0->0
+low | 2 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->23 max 23->23 discovered 0->1 extinct 0->0
+low | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+low | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3298 max 3530->3530 discovered 0->1 extinct 0->0
+low | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+low | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->21 max 20->20 discovered 0->1 extinct 0->0
+low | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->12 max 16->16 discovered 0->1 extinct 0->0
+low | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+low | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+low | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->485 max 20->20 discovered 0->1 extinct 0->0
+low | 2 | idx 4727 | PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->500 max 24->24 discovered 0->1 extinct 0->0
+low | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->14 max 15->15 discovered 0->1 extinct 0->0
+low | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->15 max 14->14 discovered 0->1 extinct 0->0
+low | 2 | idx 4732 | DINGO ref6=29,20,-1,-1,-1,100 quantity 13->5 max 13->13 discovered 0->1 extinct 0->0
+low | 2 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->9 max 12->12 discovered 0->1 extinct 0->0
+low | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->235 max 275->275 discovered 0->1 extinct 0->0
+low | 2 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+low | 2 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+low | 2 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->232 max 231->231 discovered 0->1 extinct 0->0
+low | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+low | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+low | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->408 max 403->403 discovered 0->1 extinct 0->0
+low | 2 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->15 max 14->14 discovered 0->1 extinct 0->0
+low | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->265 max 265->265 discovered 0->1 extinct 0->0
+low | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->386 max 387->387 discovered 0->1 extinct 0->0
+low | 2 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->13 max 12->12 discovered 0->1 extinct 0->0
+low | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->442 max 442->442 discovered 0->1 extinct 0->0
+low | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->332 max 331->331 discovered 0->1 extinct 0->0
+low | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->237 max 257->257 discovered 0->1 extinct 0->0
+low | 2 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+low | 2 | idx 4784 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,13,-1,20 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+low | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->275 max 313->313 discovered 0->1 extinct 0->0
+low | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->34 max 33->33 discovered 1->1 extinct 0->0
+low | 2 | idx 4823 | CREEPING_EYE ref6=29,20,-1,25,-1,25 quantity 292->280 max 292->292 discovered 0->1 extinct 0->0
+low | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->260 max 336->336 discovered 0->1 extinct 0->0
+low | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->37 max 38->38 discovered 1->1 extinct 0->0
+low | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+low | 2 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 2 | idx 4841 | DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+low | 2 | idx 4977 | OLM_GIANT ref6=29,21,-1,13,-1,13 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+low | 2 | idx 4983 | TROGLODYTE ref6=29,21,-1,13,-1,19 quantity 14->14 max 14->14 discovered 0->1 extinct 0->0
+low | 2 | idx 5998 | TROGLODYTE ref6=30,20,-1,8,-1,19 quantity 13->7 max 13->13 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 52 rows; first few:
+high | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+high | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+high | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+high | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+high | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+high | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+high | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+high | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+
+=== x3 exit 0

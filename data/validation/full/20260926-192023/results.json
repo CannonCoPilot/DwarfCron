@@ -1,0 +1,619 @@
+[
+ {
+  "id": "w0.keys",
+  "surface": "GUI",
+  "claim": "no window key collides with a DF global binding (the macro keys Ctrl+R/L/P/S, the FPS keys Alt+=/-) or a DFHack global keybinding",
+  "source": "alpha 1 steps 3.5/4.4; plan rev 2 W0/W9",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "no window key is one of DF's global binds (CUSTOM_ALT_EQUALS, CUSTOM_ALT_MINUS, CUSTOM_CTRL_L, CUSTOM_CTRL_P, CUSTOM_CTRL_R, CUSTOM_CTRL_S)",
+  "got": "clashes: CUSTOM_CTRL_L = DF LOAD_MACRO; CUSTOM_CTRL_R = DF RECORD_MACRO",
+  "shots": [],
+  "data": {
+   "window_keys": [
+    "CUSTOM_A",
+    "CUSTOM_ALT_L",
+    "CUSTOM_ALT_S",
+    "CUSTOM_B",
+    "CUSTOM_C",
+    "CUSTOM_CTRL_A",
+    "CUSTOM_CTRL_D",
+    "CUSTOM_CTRL_E",
+    "CUSTOM_CTRL_F",
+    "CUSTOM_CTRL_G",
+    "CUSTOM_CTRL_L",
+    "CUSTOM_CTRL_R",
+    "CUSTOM_CTRL_W",
+    "CUSTOM_CTRL_X",
+    "CUSTOM_D",
+    "CUSTOM_E",
+    "CUSTOM_F",
+    "CUSTOM_G",
+    "CUSTOM_I",
+    "CUSTOM_K",
+    "CUSTOM_L",
+    "CUSTOM_M",
+    "CUSTOM_N",
+    "CUSTOM_O",
+    "CUSTOM_P",
+    "CUSTOM_Q",
+    "CUSTOM_R",
+    "CUSTOM_S",
+    "CUSTOM_SHIFT_B",
+    "CUSTOM_SHIFT_P",
+    "CUSTOM_SHIFT_R",
+    "CUSTOM_SHIFT_V",
+    "CUSTOM_SHIFT_W",
+    "CUSTOM_T",
+    "CUSTOM_U",
+    "CUSTOM_V",
+    "CUSTOM_W",
+    "CUSTOM_X",
+    "CUSTOM_Y",
+    "CUSTOM_Z"
+   ],
+   "df_global": {
+    "CUSTOM_ALT_EQUALS": "FPS_UP",
+    "CUSTOM_ALT_MINUS": "FPS_DOWN",
+    "CUSTOM_CTRL_R": "RECORD_MACRO",
+    "CUSTOM_CTRL_P": "PLAY_MACRO",
+    "CUSTOM_CTRL_S": "SAVE_MACRO",
+    "CUSTOM_CTRL_L": "LOAD_MACRO"
+   },
+   "dfhack_keybinding_list": "Usage:\n  keybinding list <key>\n  keybinding clear <key>[@context]...\n  keybinding set <key>[@context] \"cmdline\" \"cmdline\"...\n  keybinding add <key>[@context] \"cmdline\" \"cmdline\"...\nLater adds, and earlier items within one command have priority.\nKey format: [Ctrl-][Alt-][Super-][Shift-](A-Z, 0-9, F1-F12, `, etc.).\nContext may be used to limit the scope of the binding, by\nrequiring the current context to have a certain prefix.\nCurrent UI context is: \ndwarfmode/Default\n"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.ascii",
+  "surface": "GUI",
+  "claim": "every string the window or the console draws is ASCII (DF draws UTF-8 em dashes as three glyphs)",
+  "source": "alpha 1 step 3.6; W0/W9",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "no non-ASCII character in any string literal of the window or the engine",
+  "got": "17 literal(s): seasonal-wildlife.lua:176: 'dormant \u2014 ([^(]+)' | seasonal-wildlife.lua:538: ' \u2014 trophic pyramid (terrestrial; prey feeds upward ^)' | seasonal-wildlife.lua:553: ' \u2014 aquatic chain' | seasonal-wildlife.lua:1220: 'Dry-run \u2014 season table (by type)' | seasonal-wildlife.lua:1647: ' \u2014 %d present, over the ceiling; new arrivals held until the resident | seasonal-wildlife.lua:1649: ' \u2014 %d present' | seasonal-wildlife.lua:2957: 'water: dormant \u2014 %s (open water at the edge near the surface: %d tile | seasonal-wildlife.lua:2968: '  \u2014 last pass: ' | seasonal-wildlife.lua:3056: '  \u2014 last pass: ' | seasonal-wildlife.lua:3746: '?? \u2014 NO INVASION FIELD FOUND, nothing is excluded' | seasonal-wildlife.lua:3925: '  \u2014 ' | seasonal-wildlife.lua:3929: 'water: wet-edge survey re-run in %d ms \u2014 %s%s'",
+  "shots": [],
+  "data": {
+   "hits": [
+    "seasonal-wildlife.lua:176: 'dormant \u2014 ([^(]+)'",
+    "seasonal-wildlife.lua:538: ' \u2014 trophic pyramid (terrestrial; prey feeds upward ^)'",
+    "seasonal-wildlife.lua:553: ' \u2014 aquatic chain'",
+    "seasonal-wildlife.lua:1220: 'Dry-run \u2014 season table (by type)'",
+    "seasonal-wildlife.lua:1647: ' \u2014 %d present, over the ceiling; new arrivals held until the resident",
+    "seasonal-wildlife.lua:1649: ' \u2014 %d present'",
+    "seasonal-wildlife.lua:2957: 'water: dormant \u2014 %s (open water at the edge near the surface: %d tile",
+    "seasonal-wildlife.lua:2968: '  \u2014 last pass: '",
+    "seasonal-wildlife.lua:3056: '  \u2014 last pass: '",
+    "seasonal-wildlife.lua:3746: '?? \u2014 NO INVASION FIELD FOUND, nothing is excluded'",
+    "seasonal-wildlife.lua:3925: '  \u2014 '",
+    "seasonal-wildlife.lua:3929: 'water: wet-edge survey re-run in %d ms \u2014 %s%s'",
+    "seasonal-wildlife.lua:3948: 'note: the cavern ceiling is enforced on creature FREQUENCY, not on po",
+    "seasonal-wildlife.lua:3953: '      the residents off \u2014 measured at 44 days from 28 to 9 (addendum ",
+    "seasonal-wildlife.lua:3963: '  cavern ceiling: %d of %d present \u2014 %s (%d closed, %d reopened, %d h",
+    "seasonal-wildlife.lua:4085: 'place: placed none \u2014 %s  [%d ms]'",
+    "seasonal-wildlife.lua:4102: '  \u2014 '"
+   ]
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.timing.tabs",
+  "surface": "PERF",
+  "claim": "every tab of the window refreshes in under 100 ms on the alpha fort",
+  "source": "alpha 1 steps 1.1/5.2/6.1; W7",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "every tab refresh < 100 ms",
+  "got": "{\"open\": 275, \"refresh\": 0, \"refreshLayers\": 17, \"refreshLedger\": 0, \"refreshLive\": 27, \"refreshOverview\": 0, \"refreshSeasons\": 0, \"refreshVermin\": 83, \"refreshWeb\": 0, \"web:bylayer\": 0, \"web:byseason\": 0, \"web:graph\": 0}",
+  "shots": [],
+  "data": {
+   "jobs": {
+    "buildPool": {
+     "ms": 67,
+     "ok": true
+    },
+    "ecology (1500 t)": {
+     "ms": 183,
+     "ok": true
+    },
+    "groups (300 t)": {
+     "ms": 0,
+     "ok": true
+    },
+    "loadConfig": {
+     "ms": 0,
+     "ok": true
+    },
+    "season hold (daily)": {
+     "ms": 18,
+     "ok": true
+    },
+    "water": {
+     "ms": 0,
+     "ok": true
+    }
+   },
+   "tabs": {
+    "open": {
+     "ms": 275,
+     "ok": true
+    },
+    "refresh": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLayers": {
+     "ms": 17,
+     "ok": true
+    },
+    "refreshLedger": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLive": {
+     "ms": 27,
+     "ok": true
+    },
+    "refreshOverview": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshSeasons": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshVermin": {
+     "ms": 83,
+     "ok": true
+    },
+    "refreshWeb": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:bylayer": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:byseason": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:graph": {
+     "ms": 0,
+     "ok": true
+    }
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.timing.jobs",
+  "surface": "PERF",
+  "claim": "every scheduled job runs in under 50 ms per pass on the alpha fort",
+  "source": "alpha 1 steps 1.1/4.3; W7",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "every job pass < 50 ms",
+  "got": "{\"buildPool\": 67, \"ecology (1500 t)\": 183, \"groups (300 t)\": 0, \"loadConfig\": 0, \"season hold (daily)\": 18, \"water\": 0}",
+  "shots": [],
+  "data": {
+   "jobs": {
+    "buildPool": {
+     "ms": 67,
+     "ok": true
+    },
+    "ecology (1500 t)": {
+     "ms": 183,
+     "ok": true
+    },
+    "groups (300 t)": {
+     "ms": 0,
+     "ok": true
+    },
+    "loadConfig": {
+     "ms": 0,
+     "ok": true
+    },
+    "season hold (daily)": {
+     "ms": 18,
+     "ok": true
+    },
+    "water": {
+     "ms": 0,
+     "ok": true
+    }
+   },
+   "tabs": {
+    "open": {
+     "ms": 275,
+     "ok": true
+    },
+    "refresh": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLayers": {
+     "ms": 17,
+     "ok": true
+    },
+    "refreshLedger": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLive": {
+     "ms": 27,
+     "ok": true
+    },
+    "refreshOverview": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshSeasons": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshVermin": {
+     "ms": 83,
+     "ok": true
+    },
+    "refreshWeb": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:bylayer": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:byseason": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:graph": {
+     "ms": 0,
+     "ok": true
+    }
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.seasons",
+  "surface": "MECH",
+  "claim": "with every present layer on, every active species on every layer has at least one season",
+  "source": "D2; Q8; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "no active species without a season",
+  "got": "46 active with no season: cavern:BAT water:BIRD_OSPREY cavern:BIRD_SWALLOW_CAVE cavern:BIRD_SWALLOW_CAVE_GIANT cavern:BUGBAT cavern:CAP_HOPPER cavern:CAVE_BLOB cavern:CAVE_FLOATER cavern:CROCODILE_CAVE cavern:CRUNDLE cavern:DRUNIAN cavern:ELK_BIRD cavern:FISH_CAVE water:FISH_MILKFISH water:FISH_STINGRAY cavern:FLESH_BALL water:GIANT_HIPPO water:GIANT_OSPREY water:GIANT_OTTER cavern:GREMLIN water:HIPPO water:HIPPO_MAN cavern:HUNGRY_HEAD cavern:IMP_FIRE cavern:JABBERER",
+  "shots": [],
+  "data": {
+   "active": 76,
+   "active_no_season": [
+    "cavern:BAT",
+    "water:BIRD_OSPREY",
+    "cavern:BIRD_SWALLOW_CAVE",
+    "cavern:BIRD_SWALLOW_CAVE_GIANT",
+    "cavern:BUGBAT",
+    "cavern:CAP_HOPPER",
+    "cavern:CAVE_BLOB",
+    "cavern:CAVE_FLOATER",
+    "cavern:CROCODILE_CAVE",
+    "cavern:CRUNDLE",
+    "cavern:DRUNIAN",
+    "cavern:ELK_BIRD",
+    "cavern:FISH_CAVE",
+    "water:FISH_MILKFISH",
+    "water:FISH_STINGRAY",
+    "cavern:FLESH_BALL",
+    "water:GIANT_HIPPO",
+    "water:GIANT_OSPREY",
+    "water:GIANT_OTTER",
+    "cavern:GREMLIN",
+    "water:HIPPO",
+    "water:HIPPO_MAN",
+    "cavern:HUNGRY_HEAD",
+    "cavern:IMP_FIRE",
+    "cavern:JABBERER",
+    "cavern:LOBSTER_CAVE",
+    "cavern:MAGMA_CRAB",
+    "cavern:MOLE_DOG_NAKED",
+    "cavern:MOLE_GIANT",
+    "cavern:OLM",
+    "cavern:OLM_GIANT",
+    "water:OSPREY_MAN",
+    "water:OTTER_MAN",
+    "water:PLATYPUS",
+    "water:PLATYPUS, GIANT",
+    "cavern:PLUMP_HELMET_MAN",
+    "cavern:POND_GRABBER",
+    "cavern:RAT_GIANT",
+    "cavern:RAT_LARGE",
+    "water:RIVER OTTER",
+    "cavern:RUTHERER",
+    "cavern:SPIDER_CAVE",
+    "cavern:SPIDER_CAVE_GIANT",
+    "cavern:TOAD_GIANT_CAVE",
+    "cavern:TROGLODYTE",
+    "cavern:VORACIOUS_CAVE_CRAWLER"
+   ],
+   "inactive": 61,
+   "inactive_cavern_open": [],
+   "inactive_stocked": [
+    "BIRD_ALBATROSS 59842",
+    "BIRD_KESTREL 28",
+    "CAVY 5191",
+    "CHEETAH 1403",
+    "CHEETAH_MAN 1006",
+    "COUGAR 302",
+    "COUGAR_MAN 1347",
+    "DINGO 3412",
+    "ELEPHANT_MAN 701",
+    "FISH_BLUEFISH 54606",
+    "FISH_COELACANTH 18182",
+    "FISH_MARLIN 54606",
+    "FISH_OPAH 38222",
+    "FISH_STINGRAY 25979",
+    "FISH_SWORDFISH 29121",
+    "FISH_TUNA_BLUEFIN 108594",
+    "GIANT_ALBATROSS 66505",
+    "GIANT_CHEETAH 1605",
+    "GIANT_DINGO 3822",
+    "GIANT_JACKAL 2204",
+    "GIANT_LEOPARD 408",
+    "GIANT_ORCA 35474",
+    "GIANT_RHINOCEROS 5203",
+    "GIANT_TIGER 302",
+    "GIRAFFE_MAN 1446",
+    "HYENA 3795",
+    "HYENA_MAN 1598",
+    "JAGUAR 607",
+    "LEOPARD 607",
+    "LEOPARD_MAN 1005",
+    "LION 1602",
+    "LION_MAN 1005",
+    "ORCA 62058",
+    "SEA_SERPENT 2216",
+    "SHARK_BLUE 57626",
+    "SHARK_BULL 24250",
+    "SHARK_FRILL 53194",
+    "SHARK_GREAT_WHITE 49143",
+    "SHARK_MAKO_SHORTFIN 50970",
+    "SHARK_REEF_BLACKTIP 16453",
+    "SHARK_TIGER 25109",
+    "SHARK_WHALE 24250",
+    "SPERM_WHALE 48762",
+    "SPERM_WHALE_MAN 22175",
+    "TIGER_MAN 746",
+    "WARTHOG_MAN 1391",
+    "WILD_BOAR_MAN 2013"
+   ],
+   "species": 137
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.inactive",
+  "surface": "MECH",
+  "claim": "after the season is applied, every inactive species is held: its entries at 0 on land, water and vermin, its raw frequency at 1 in the caverns",
+  "source": "R1; Q4; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "every inactive species at 0 (land/water/vermin) or frequency 1 (caverns)",
+  "got": "47 stocked: BIRD_ALBATROSS 59842 BIRD_KESTREL 28 CAVY 5191 CHEETAH 1403 CHEETAH_MAN 1006 COUGAR 302 COUGAR_MAN 1347 DINGO 3412 ELEPHANT_MAN 701 FISH_BLUEFISH 54606 FISH_COELACANTH 18182 FISH_MARLIN 54606 FISH_OPAH 38222 FISH_STINGRAY 25979 FISH_SWORDFISH 29121 FISH_TUNA_BLUEFIN 108594 GIANT_ALBATROSS 66505 GIANT_CHEETAH 1605 GIANT_DINGO 3822 GIANT_JACKAL 2204; 0 cavern open:",
+  "shots": [],
+  "data": {
+   "active": 76,
+   "active_no_season": [
+    "cavern:BAT",
+    "water:BIRD_OSPREY",
+    "cavern:BIRD_SWALLOW_CAVE",
+    "cavern:BIRD_SWALLOW_CAVE_GIANT",
+    "cavern:BUGBAT",
+    "cavern:CAP_HOPPER",
+    "cavern:CAVE_BLOB",
+    "cavern:CAVE_FLOATER",
+    "cavern:CROCODILE_CAVE",
+    "cavern:CRUNDLE",
+    "cavern:DRUNIAN",
+    "cavern:ELK_BIRD",
+    "cavern:FISH_CAVE",
+    "water:FISH_MILKFISH",
+    "water:FISH_STINGRAY",
+    "cavern:FLESH_BALL",
+    "water:GIANT_HIPPO",
+    "water:GIANT_OSPREY",
+    "water:GIANT_OTTER",
+    "cavern:GREMLIN",
+    "water:HIPPO",
+    "water:HIPPO_MAN",
+    "cavern:HUNGRY_HEAD",
+    "cavern:IMP_FIRE",
+    "cavern:JABBERER",
+    "cavern:LOBSTER_CAVE",
+    "cavern:MAGMA_CRAB",
+    "cavern:MOLE_DOG_NAKED",
+    "cavern:MOLE_GIANT",
+    "cavern:OLM",
+    "cavern:OLM_GIANT",
+    "water:OSPREY_MAN",
+    "water:OTTER_MAN",
+    "water:PLATYPUS",
+    "water:PLATYPUS, GIANT",
+    "cavern:PLUMP_HELMET_MAN",
+    "cavern:POND_GRABBER",
+    "cavern:RAT_GIANT",
+    "cavern:RAT_LARGE",
+    "water:RIVER OTTER",
+    "cavern:RUTHERER",
+    "cavern:SPIDER_CAVE",
+    "cavern:SPIDER_CAVE_GIANT",
+    "cavern:TOAD_GIANT_CAVE",
+    "cavern:TROGLODYTE",
+    "cavern:VORACIOUS_CAVE_CRAWLER"
+   ],
+   "inactive": 61,
+   "inactive_cavern_open": [],
+   "inactive_stocked": [
+    "BIRD_ALBATROSS 59842",
+    "BIRD_KESTREL 28",
+    "CAVY 5191",
+    "CHEETAH 1403",
+    "CHEETAH_MAN 1006",
+    "COUGAR 302",
+    "COUGAR_MAN 1347",
+    "DINGO 3412",
+    "ELEPHANT_MAN 701",
+    "FISH_BLUEFISH 54606",
+    "FISH_COELACANTH 18182",
+    "FISH_MARLIN 54606",
+    "FISH_OPAH 38222",
+    "FISH_STINGRAY 25979",
+    "FISH_SWORDFISH 29121",
+    "FISH_TUNA_BLUEFIN 108594",
+    "GIANT_ALBATROSS 66505",
+    "GIANT_CHEETAH 1605",
+    "GIANT_DINGO 3822",
+    "GIANT_JACKAL 2204",
+    "GIANT_LEOPARD 408",
+    "GIANT_ORCA 35474",
+    "GIANT_RHINOCEROS 5203",
+    "GIANT_TIGER 302",
+    "GIRAFFE_MAN 1446",
+    "HYENA 3795",
+    "HYENA_MAN 1598",
+    "JAGUAR 607",
+    "LEOPARD 607",
+    "LEOPARD_MAN 1005",
+    "LION 1602",
+    "LION_MAN 1005",
+    "ORCA 62058",
+    "SEA_SERPENT 2216",
+    "SHARK_BLUE 57626",
+    "SHARK_BULL 24250",
+    "SHARK_FRILL 53194",
+    "SHARK_GREAT_WHITE 49143",
+    "SHARK_MAKO_SHORTFIN 50970",
+    "SHARK_REEF_BLACKTIP 16453",
+    "SHARK_TIGER 25109",
+    "SHARK_WHALE 24250",
+    "SPERM_WHALE 48762",
+    "SPERM_WHALE_MAN 22175",
+    "TIGER_MAN 746",
+    "WARTHOG_MAN 1391",
+    "WILD_BOAR_MAN 2013"
+   ],
+   "species": 137
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.lastseason",
+  "surface": "MECH",
+  "claim": "removing an active species' last season is refused (make it inactive instead)",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "toggling off the only season leaves it in place",
+  "got": "AARDVARK: seasons after removing the last = 0",
+  "shots": [],
+  "data": {
+   "activated": -1,
+   "after_last": 0,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "",
+    "0",
+    "1"
+   ],
+   "empty": true,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.activate",
+  "surface": "MECH",
+  "claim": "activating an inactive species gives it exactly one season",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "activation yields exactly one season",
+  "got": "AARDVARK: seasons after activation = -1 (-1: no activation path in the engine)",
+  "shots": [],
+  "data": {
+   "activated": -1,
+   "after_last": 0,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "",
+    "0",
+    "1"
+   ],
+   "empty": true,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.cycle",
+  "surface": "MECH",
+  "claim": "cycling an active species' seasons never lands on 'no season'",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "seven cycles never produce an empty season set",
+  "got": "AARDVARK: 1 -> 2 -> 3 -> 0,1,2,3 ->  -> 0 -> 1",
+  "shots": [],
+  "data": {
+   "activated": -1,
+   "after_last": 0,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "",
+    "0",
+    "1"
+   ],
+   "empty": true,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.overlay",
+  "surface": "MECH",
+  "claim": "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)",
+  "source": "alpha 1 steps 6.2/6.3/10.1; W0",
+  "claimed": "shipped v6.3",
+  "verdict": "FAIL",
+  "expected": "seasonal-wildlife.groups enabled=False after the run, as before it",
+  "got": "before: enabled=False; after: enabled=True",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.save.untouched",
+  "surface": "MECH",
+  "claim": "a full session of console and GUI use leaves the save byte-identical (config lives in persistent site data)",
+  "source": "USAGE.md Uninstall; df-rig rule",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "diff -rq of the save against its backup is empty after the whole session",
+  "got": "identical",
+  "shots": [],
+  "data": {
+   "identical": true
+  },
+  "note": ""
+ }
+]

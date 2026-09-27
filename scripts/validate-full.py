@@ -68,7 +68,7 @@ CLAIMS = [
     ("mech.model.role", "MECH", "role is independent of habitat: orca and giant orca predators (curated), eagle and kestrel predators (BONECARN), sperm whale predator, whale shark, albatross, hippo prey", "plan rev 2 R2, W2", "shipped v6.4"),
     ("mech.model.band", "MECH", "three size bands by adult volume (D4): kestrel, wolf, dingo small; bull shark, lion medium; giraffe, hippo, elephant large", "D4; W2", "shipped v6.4"),
     ("mech.model.audit", "MECH", "the model's reading of every creature raw matches the audit fixture (data/fixtures/species-model.tsv); the first run writes it", "plan rev 2 W2", "shipped v6.4"),
-    ("mech.diet.habitat", "MECH", "the diet test checks habitat: a lion takes no shark, an eagle no sea fish, a great white no deer; an osprey takes a sea fish, a lion a zebra", "alpha 1 step 5.2; W3", "shipped v6.4"),
+    ("mech.diet.habitat", "MECH", "the diet test checks habitat: a lion takes no shark, an eagle no sea fish, a great white no deer; an osprey takes a sea fish (a herring: DF's sea fish that are units all outweigh an osprey), a lion a gazelle (DF has no zebra)", "alpha 1 step 5.2; W3", "shipped v6.4"),
     ("mech.matrix.balance", "MECH", "after the matrix no season holds more than half the active roster, and every active species has at least one season", "D6; W3", "shipped v6.4"),
     ("mech.pair.guarantee", "MECH", "after the matrix every season of every realm and habitat group that has a predator with edible prey holds such a pair", "D6; W3", "shipped v6.4"),
     ("mech.coalign.bounded", "MECH", "co-align adds at most one season per partner, from a snapshot, and its reported count equals the season cells added", "R3; W3", "shipped v6.4"),
@@ -524,12 +524,12 @@ FIXTURE = ROOT / "data/fixtures/species-model.tsv"
 MODEL_LUA = """
 local sw=reqscript('seasonal-wildlife'); local M=sw.MODEL
 local want={'SHARK_GREAT_WHITE','SEA_SERPENT','GIANT_CUTTLEFISH','POND_GRABBER','HIPPO','RIVER OTTER','CRAB','HORSESHOE_CRAB','CROCODILE_CAVE','BIRD_PENGUIN',
-  'BIRD_ALBATROSS','BIRD_OSPREY','BIRD_DUCK','BIRD_EAGLE','BIRD_KESTREL','WOLF','DINGO','ORCA','GIANT_ORCA','SPERM_WHALE','SHARK_WHALE','SHARK_BULL','LION','GIRAFFE','ELEPHANT','ZEBRA','DEER'}
+  'BIRD_ALBATROSS','BIRD_OSPREY','BIRD_DUCK','BIRD_EAGLE','BIRD_KESTREL','WOLF','DINGO','ORCA','GIANT_ORCA','SPERM_WHALE','SHARK_WHALE','SHARK_BULL','LION','GIRAFFE','ELEPHANT','GAZELLE','DEER','FISH_HERRING'}
 local out={named={}, pairs={}}
 for _,t in ipairs(want) do local e=M.entry(t); if e then out.named[t]={habitat=e.habitat, role=e.role, band=e.size, mass=e.mass} end end
 local function E(a,b) local x,y=M.entry(a),M.entry(b); if not x or not y then return 'missing' end; return sw.eats(x,y) end
 out.pairs={ ['LION>SHARK_GREAT_WHITE']=E('LION','SHARK_GREAT_WHITE'), ['LION>SHARK_BULL']=E('LION','SHARK_BULL'), ['BIRD_EAGLE>FISH_TUNA_BLUEFIN']=E('BIRD_EAGLE','FISH_TUNA_BLUEFIN'),
-  ['SHARK_GREAT_WHITE>DEER']=E('SHARK_GREAT_WHITE','DEER'), ['BIRD_OSPREY>FISH_BLUEFISH']=E('BIRD_OSPREY','FISH_BLUEFISH'), ['LION>ZEBRA']=E('LION','ZEBRA') }
+  ['SHARK_GREAT_WHITE>DEER']=E('SHARK_GREAT_WHITE','DEER'), ['BIRD_OSPREY>FISH_HERRING']=E('BIRD_OSPREY','FISH_HERRING'), ['LION>GAZELLE']=E('LION','GAZELLE') }
 local rows={}
 for _,r in ipairs(M.audit()) do rows[#rows+1]=table.concat({r.token, r.habitat, r.role, r.why, r.band, tostring(r.mass), tostring(r.vermin), tostring(r.eco), r.bodies, r.salt}, '\\t') end
 out.audit=rows
@@ -586,7 +586,7 @@ def phase_model():
         rec("mech.model.audit", "PASS" if rows and not gone and not new else "FAIL", "the live reading equals the fixture, row for row",
             f"{len(rows)} live rows, {len(fx)} fixture rows; {len(gone)} changed or missing, {len(new)} new: " + " | ".join((gone + new)[:8]), data={"n": len(rows), "diff": (gone + new)[:40]})
     pr = m.get("pairs", {}) if isinstance(m, dict) else {}
-    want = {"LION>SHARK_GREAT_WHITE": False, "LION>SHARK_BULL": False, "BIRD_EAGLE>FISH_TUNA_BLUEFIN": False, "SHARK_GREAT_WHITE>DEER": False, "BIRD_OSPREY>FISH_BLUEFISH": True, "LION>ZEBRA": True}
+    want = {"LION>SHARK_GREAT_WHITE": False, "LION>SHARK_BULL": False, "BIRD_EAGLE>FISH_TUNA_BLUEFIN": False, "SHARK_GREAT_WHITE>DEER": False, "BIRD_OSPREY>FISH_HERRING": True, "LION>GAZELLE": True}
     badp = {k: pr.get(k) for k, v in want.items() if pr.get(k) != v}
     rec("mech.diet.habitat", "PASS" if pr and not badp else "FAIL", "the six diet verdicts as the habitat test gives them", f"mismatches: {badp}" if badp else json.dumps(pr), data=pr)
     x = luaj(MATRIX_LUA, timeout=300)
@@ -753,6 +753,17 @@ T(out.jobs, 'season hold (daily)', function() sw.holdOutOfSeason(cfg, df.global.
 T(out.jobs, 'groups (300 t)', function() sw.groupsTick(cfg, g) end)
 out.parts = {}
 T(out.parts, 'loadConfig', function() sw.loadConfig() end)
+out.live = {}
+local function L(name, f) if f then T(out.live, name, f) end end
+L('groupsStatus', sw.groupsStatus and function() sw.groupsStatus() end)
+L('PATTERN.status', sw.PATTERN and sw.PATTERN.status and function() sw.PATTERN.status(cfg) end)
+L('IRRUPT.status', sw.IRRUPT and sw.IRRUPT.status and function() sw.IRRUPT.status(cfg, g) end)
+L('ecologyStatus', sw.ecologyStatus and function() sw.ecologyStatus(cfg, g) end)
+L('QUOTA.status', sw.QUOTA and sw.QUOTA.status and function() sw.QUOTA.status(cfg) end)
+L('CAVE.status', sw.CAVE and sw.CAVE.status and function() sw.CAVE.status() end)
+L('STOCK.status', sw.STOCK and sw.STOCK.status and function() sw.STOCK.status(cfg) end)
+L('CAVERN.status', sw.CAVERN and sw.CAVERN.status and function() sw.CAVERN.status(cfg) end)
+L('FUSE.status', sw.FUSE and sw.FUSE.status and function() sw.FUSE.status() end)
 T(out.parts, 'buildPool', function() sw.buildPool(cfg) end)   -- not a job: jobs build the pool only when the roster changed
 if sw.ecologyRun then T(out.jobs, 'ecology (1500 t)', function() sw.ecologyRun(cfg, g) end)
 else T(out.jobs, 'ecology (1500 t)', function() dfhack.run_command_silent('seasonal-wildlife','groups','ecology','now') end) end
@@ -807,8 +818,9 @@ def phase_w0(fort):
     tabs, jobs = (t.get("tabs") or {}), (t.get("jobs") or {})
     slow_t = {k: v["ms"] for k, v in tabs.items() if k != "open" and (v.get("ms", 0) >= 100 or not v.get("ok"))}
     slow_j = {k: v["ms"] for k, v in jobs.items() if v.get("ms", 0) >= 50 or not v.get("ok")}
+    live = {k: v.get("ms") for k, v in (t.get("live") or {}).items() if v.get("ms")}   # the Live tab's status lines, each timed alone
     rec("w0.timing.tabs", "PASS" if tabs and not slow_t else "FAIL", "every tab refresh < 100 ms",
-        json.dumps({k: v.get("ms") for k, v in tabs.items()}), data=t)
+        json.dumps({k: v.get("ms") for k, v in tabs.items()}) + (f"; Live parts {json.dumps(live)}" if live else ""), data=t)
     rec("w0.timing.jobs", "PASS" if jobs and not slow_j else "FAIL", "every job pass < 50 ms",
         json.dumps({k: v.get("ms") for k, v in jobs.items()}), data=t)
     # the roster rule, with every present layer on and the season applied
@@ -876,8 +888,9 @@ def phase_setup(fort):
 def phase_cli():
     log("== CLI")
     rc, out = cmd("status")
-    ok = all(k in out for k in ("Biomes:", "Layers:", "quota:", "On the map now:", "Embark subset"))
-    rec("cli.status", "PASS" if ok else "FAIL", "Biomes/Layers/quota/On the map now/Embark subset", out)
+    q = "limits:" if V65 else "quota:"   # v6.5 (W4): quota retired for limits (groups at once, ceiling)
+    ok = all(k in out for k in ("Biomes:", "Layers:", q, "On the map now:", "Embark subset"))
+    rec("cli.status", "PASS" if ok else "FAIL", f"Biomes/Layers/{q[:-1]}/On the map now/Embark subset", out)
     rec("mech.layers.count", "PASS" if "magma sea and underworld" in out else "FAIL",
         "the on-the-map line naming the deep bucket", out)
     rec("mech.invasion", "PASS" if re.search(r"excluded via unit\.invasion", out) else "FAIL",
@@ -931,7 +944,7 @@ def phase_cli():
     for args in (("water", "target", "x"), ("water", "bogus"), ("quota", "bogus", "1"), ("quota", "land", "-1"),
                  ("class", "BADGER", "notaclass"), ("place", "NOT_A_CREATURE"), ("groups", "dismiss")):
         rc, out = cmd(*args)
-        errs.append((args, "usage" in out.lower() or "no stocked" in out or "no tracked" in out, out.strip()[:120]))
+        errs.append((args, "usage" in out.lower() or "no stocked" in out or "no tracked" in out or (V65 and "retired in v6.5" in out), out.strip()[:120]))
     rec("cli.errors", "PASS" if all(e[1] for e in errs) else "FAIL", "each prints usage / a refusal",
         "\n".join(f"{a}: {o}" for a, _, o in errs), data=[list(a) for a, ok_, _ in errs if not ok_])
     rc, out = sh("cmd", "help", "seasonal-wildlife", timeout=60)
@@ -1088,6 +1101,9 @@ def phase_mechanics():
         rec("mech.dismiss", "NOT-TESTABLE-HERE", "a tracked group", out, note="no tracked group on the map; measured T5")
     # --- ecology: write once, read the pair count; then let the cadence fire
     rc, out = cmd("groups", "ecology", "now")
+    def waiting(txt):
+        mm = re.search(r"pair\(s\) written \(\d+ new, (\d+) waiting", txt)
+        return int(mm.group(1)) if mm else 0
     def write_line(txt):
         mm = re.search(r"(\d+) predator\(s\) x (\d+) target\(s\), (\d+) pair\(s\) written(?: \([^)]*\))?, (\d+) without a slot", txt)   # v6.3: '(N new, M waiting)' 
         return tuple(int(x) for x in mm.groups()) if mm else None
@@ -1111,6 +1127,10 @@ def phase_mechanics():
         v, note = "PASS", "" if pairs > 0 else f"0 pairs on the first pass ({noslot} without a slot); the scheduled passes caught them: {later[2]} pair(s) by the third write"
     elif preds == 0 or targets == 0:
         v, note = "PASS", "no armed predator and target co-present this session; the write ran and reported 0 pairs"
+    elif all(x is not None and x[2] == 0 and x[3] == 0 for x in (first, later)) and waiting(out) == 0 and waiting(out2) == 0:
+        # ecoWrite counts every predator-target pair that shares a realm as written, waiting or slotless; all three
+        # at 0 means none did (run 211308: 4 cavern-side predators x 14 targets). v6.4.1 prints 'none in one realm'.
+        v, note = "NOT-TESTABLE-HERE", f"{preds} predator(s) x {targets} target(s) on the map but no pair in one realm (written, waiting and slotless all 0 across three passes); the write only relates within a realm (v5.9.1)"
     elif (later or first)[3] > 0:
         v, note = "NOT-TESTABLE-HERE", f"{preds} predator(s) x {targets} target(s) but DF gave no slot to any predator this session ({(later or first)[3]} without a slot after three passes); the write skips slotless units by design (USAGE) and cannot reach them — measured E11c/T4 with slotted units. Open: the ecology write could allocate the slot itself the way v5.9.3 placement does (PLACE.enemySlot)"
     else:
@@ -1193,8 +1213,10 @@ def phase_mechanics():
         cmd("cavern", "off"); cmd("quota", "cavern", "0"); cmd("layer", "cavern", "on" if lay0 else "off")   # restore the layer as found: the quota check later expects it
     # --- water on a dry fort
     rc, out = cmd("water", "on")
-    rec("mech.water.dormant", "PASS" if re.search(r"water: dormant (—|--) .+", out) else "FAIL",
-        "'water: dormant — <reason>' on CTRL (inland)", out, data={"line": next((l for l in out.splitlines() if "dormant" in l), "")})
+    dorm = re.search(r"water: dormant (—|--) .+", out)
+    pooled = V65 and not dorm and re.search(r"water: draws on .* pool \d+", out)   # v6.5 (W4): Driver B draws rivers, lakes AND pools
+    rec("mech.water.dormant", "PASS" if dorm else ("NOT-TESTABLE-HERE" if pooled else "FAIL"),
+        "'water: dormant — <reason>' on CTRL (inland)", out, note="CTRL holds open pool water, which v6.5's Driver B draws for; no dry fort in the set" if pooled else "", data={"line": next((l for l in out.splitlines() if "dormant" in l), "")})
     # `water now` on a dry fort: the scheduled job is gated by the cached wet-edge verdict, but
     # WATER.run — the `now` path — is not, and goes straight to a full-map placement scan. Time it
     # under a long cap so the report carries seconds, not a timeout.
@@ -1277,7 +1299,7 @@ def phase_mechanics():
     rec("mech.overlay", "PASS" if ok else "FAIL", "'enabled widget seasonal-wildlife.groups' (or overlay list showing it enabled)", out + out2, shots=[p] if p else [])
     # --- abundance and reset
     ab = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local pick; "
-              "for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' and cfg.allow[e.key] and cfg.assign[e.key] and #cfg.assign[e.key]>0 then pick=e; break end end; "
+              "for _,e in ipairs(pool) do if e.inEmbark and e.layer=='land' and cfg.allow[e.key] and cfg.assign[e.key] and #cfg.assign[e.key]>0 and (not sw.ROSTER or sw.ROSTER.wants(cfg, e.key, df.global.cur_season)) then pick=e; break end end; "
               "if not pick then print(json.encode({none=true})) return end; cfg.weight[pick.key]=100; sw.saveConfig(cfg); sw.applyLive(cfg, df.global.cur_season); sw.saveConfig(cfg); "
               "local q100=sw.qtyFor(cfg, pick.key); cfg.weight[pick.key]=50; sw.saveConfig(cfg); local q50=sw.qtyFor(cfg, pick.key); "
               "print(json.encode({token=pick.token, q_at_100=q100, q_at_50=q50}))", timeout=180)
@@ -1403,7 +1425,7 @@ def phase_gui():
     rec("v6.overview", "PASS" if ok else "FAIL", "Overview view: what the map holds now, next boundary, recent ledger", txt[:300], note="shipped in v5.10.1 as the first tab")
     click("Roster"); txt = screen("C0-roster"); p = shot("C0-roster")
     rows = row_lines(txt)
-    ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and "Force wave" in txt and "Fill to targets" in txt and "Matrix assign" in txt
+    ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and ("Send off" if V65 else "Force wave") in txt and "Fill to targets" in txt and "Matrix assign" in txt
     rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys", txt[:800], shots=[p] if p else [],
         data={"rows": len(rows), "first": rows[0][3] if rows else ""})
     rec("gui.k.thin", "PASS" if ("Thin:" in txt or "Ecosystem balanced" in txt) else "FAIL", "'Thin: …' or 'Ecosystem balanced.' in the header", txt[:400])
@@ -1413,7 +1435,10 @@ def phase_gui():
     key("CUSTOM_ALT_L", 1.2); tL2 = screen("C1-altL-water"); n_water = len(row_lines(tL2))
     key("CUSTOM_ALT_L", 1.2); tL3 = screen("C1-altL-cavern"); n_cav = len(row_lines(tL3))
     key("CUSTOM_ALT_L", 1.2); tL4 = screen("C1-altL-all")
-    okL = n_all >= 5 and "Land" in tL1 and "Water" in tL2 and "Cavern" in tL3 and "All layers" in tL4 and n_land <= n_all and (n_water < n_all or "layer off" in tL2 or "dormant" in tL2)
+    if "Deep" in tL4:   # v6.5 (D7): the cycle is all -> land -> water -> cavern -> deep -> all
+        key("CUSTOM_ALT_L", 1.2); tL4 = screen("C1-altL-all")
+    toks = lambda t: {r[0] for r in row_lines(t)}
+    okL = n_all >= 5 and "Land" in tL1 and "Water" in tL2 and "Cavern" in tL3 and "All layers" in tL4 and n_land <= n_all and (n_water < n_all or toks(tL2) != toks(txt) or "layer off" in tL2 or "dormant" in tL2)
     mW = re.search(r"Water[^(\n]*\([^)]*\)", tL2)
     rec("gui.k.altL", "PASS" if okL else "FAIL", "titles Land / Water / Cavern / All layers in turn; the Roster's row count follows the layer", f"rows all={n_all} land={n_land} water={n_water} cavern={n_cav}; water title: {mW.group(0) if mW else 'no reason'}", shots=[pL] if pL else [])
     rec("v6.layersel", "PASS" if okL else "FAIL", "layer selector on every tab, dormant layers named with the reason", tL2[:300], note="shipped in v6.2.0 as Alt+L, the title carrying the layer and its reason")
@@ -1435,7 +1460,7 @@ def phase_gui():
     rec("gui.k.enter", "PASS" if ok else "FAIL", "row 1's ok column flips Y<->-", f"{r0[0] if r0 else None} -> {r1[0] if r1 else None}", shots=[p] if p else [])
     # v5.10.5: the why column names the toggle as yours, with a date
     why1 = r1[0][4] if r1 else ""
-    mw = re.search(r"[Y\-]\s+(you (?:Sp|Su|Au|Wi)\d+)\s*$", why1)   # v5.10.8: the Roster shows the compact form (who and when); the full reason is on the detail page
+    mw = re.search(r"[Y\-]\s+(you (?:Sp|Su|Au|Wi)\d+)(?:\s*$|\s{2,})", why1)   # v6.6: the taller window reaches DF's 'Elevation N' label beside it   # v5.10.8: the Roster shows the compact form (who and when); the full reason is on the detail page
     rec("gui.roster.why", "PASS" if mw else "FAIL", "after Enter, row 1's why reads 'you <Sp|Su|Au|Wi><day>'", why1[-90:] if why1 else "no row", data={"why": mw.group(1) if mw else None})
     rec("v6.roster.why", "PASS" if mw else "FAIL", "Roster with a 'why' column", why1[-90:] if why1 else "no row", note="the why column shipped in v5.10.5; the per-layer selector is still v6.0 (v6.layersel)")
     key("SELECT")  # put it back
@@ -1565,9 +1590,12 @@ def phase_gui():
     # Alt+R reset (v6.3): roster or everything, then a yes/no; the roster reset leaves every weight at 50
     key("CUSTOM_ALT_R", 1.2); p = shot("C11-reset-choice"); t11 = screen("C11-reset-choice")
     key("SELECT", 1.2); t11b = screen("C11-reset-confirm"); key("SELECT", 1.5); w3 = weights(); left = [k for k, v in w3.items() if v != 50]
+    if V65:   # v6.5 (W5): stock is kept by the roster reset (only 'Everything' resets it); the roster comes back as first found, one season each
+        rr = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local o={}; for k,v in pairs(cfg.allow) do if v and #(cfg.assign[k] or {})<1 then o[#o+1]=k..'=0' end end; print(json.encode({off=o}))", timeout=60)
+        left = (rr.get("off") or []) if isinstance(rr, dict) else ["probe failed"]
     okr = "The roster" in t11 and "Everything" in t11 and "Reset the roster" in t11b
     rec("gui.k.altR", "PASS" if okr and not left else "FAIL",
-        "the roster / everything choice, the confirmation, then no weight left off 50", f"choice: {'The roster' in t11}; confirm: {'Reset the roster' in t11b}; weights not 50 after: {left[:8]}", shots=[p] if p else [], data={"not_50_after": left[:20]})
+        "the roster / everything choice, the confirmation, then " + ("every active species on at least one season (one from the matrix; the pair guarantee, D6, may add one)" if V65 else "no weight left off 50"), f"choice: {'The roster' in t11}; confirm: {'Reset the roster' in t11b}; " + ("active species not on one season" if V65 else "weights not 50") + f" after: {left[:8]}", shots=[p] if p else [], data={"not_50_after": left[:20]})
     # v5.11.0: Set roster folded into the Roster — its keys are read off the Roster page itself
     t = screen("C12-roster-keys"); p = shot("C12-roster-keys")
     ok = "Fill to targets" in t and "Matrix assign" in t and "Co-align" in t and "prey:" in t
@@ -1631,10 +1659,11 @@ def phase_gui():
     key("CUSTOM_G", 1.0)   # back to Pyramid for whatever follows
     # Live
     click("Live"); t = screen("C17-live"); p = shot("C17-live")
-    ok = "Resident groups:" in t and "ecology:" in t and "Wild on map:" in t and "quota:" in t
+    GH = "Groups:" if V66 else "Resident groups:"   # v6.6 (W11): 'Groups: on  N at once ...'
+    ok = GH in t and "ecology:" in t and "Wild on map:" in t and ("limits:" if V65 else "quota:") in t
     rec("gui.tab.live", "PASS" if ok else "FAIL", "resident groups / ecology / Wild on map / quota lines", t[:900], shots=[p] if p else [])
     key("CUSTOM_R", 1.0); t2 = screen("C17-live-refresh")
-    rec("gui.k.liveR", "PASS" if "Resident groups:" in t2 else "FAIL", "the tab re-renders", t2[:300])
+    rec("gui.k.liveR", "PASS" if GH in t2 else "FAIL", "the tab re-renders", t2[:300])
     g0 = ground("C17-g-before"); key("CUSTOM_G", 1.2); t3 = screen("C17-live-g"); g1 = ground("C17-g-after")
     rec("gui.k.liveG", "PASS" if g0.get("groups") != g1.get("groups") else "FAIL", "cfg.groups.enabled flips", f"{g0.get('groups')} -> {g1.get('groups')}")
     key("CUSTOM_G", 1.0)
@@ -1681,7 +1710,7 @@ def phase_gui():
     rec("v6.live.hotkeys", "PASS" if okh and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "Live tab hotkeys P K Q X W F and Enter centres the map", f"P flips coupling: {q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}; group-row keys above", note="shipped in v5.11.2")
     # Layers (v5.11.3)
     click("Layers"); t = screen("C17e-layers"); p = shot("C17e-layers")
-    okl = all(x in t for x in ("LAND", "WATER", "CAVERN", "pattern", "quota", "concurrent groups", "Caverns:", "preset:")) and ("water:" in t)
+    okl = all(x in t for x in ("LAND", "WATER", "CAVERN", "pattern", *(("ceiling", "groups at once") if V65 else ("quota", "concurrent groups")), "Caverns:", "preset:")) and ("water:" in t)
     rec("gui.tab.layers", "PASS" if okl else "FAIL", "the three columns, the setting rows, the water line, the caverns block and the preset line", t[:900], shots=[p] if p else [])
     rec("v6.patterns", "PASS" if okl and "pattern" in t else "FAIL", "Patterns & quotas per layer", t[:300], note="shipped in v5.11.3 as rows of the Layers tab")
     rec("v6.caverns", "PASS" if okl and ("found" in t or "not on this map" in t) and "pressure" in t else "FAIL", "Caverns view — found or hidden per cavern, with its pressure", t[:300], note="shipped in v5.11.3 inside the Layers tab; the pressure is v6.1.0's (off shows a dash)")

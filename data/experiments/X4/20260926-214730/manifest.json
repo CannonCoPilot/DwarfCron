@@ -1,0 +1,46 @@
+{
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 500,
+  "tick_budget": 60000,
+  "combat": false,
+  "tool_must_be": {
+    "enabled": 0
+  },
+  "id": "X4",
+  "title": "Is DF's extra animal structural (E42c)? E42b: a written {2,1} gave ravens and emus three, never four. Here {1,1} on BIRD_RAVEN, BIRD_EMU and KANGAROO, every other land species at frequency 1, the three at 100; the surface released every 1,500 ticks.",
+  "fork": "The group-size promise at one: 'exactly one' or 'one, sometimes two'.",
+  "predictions": [
+    {
+      "model": "the raw's max is honoured at one",
+      "expects": "every wave of the three is 1"
+    },
+    {
+      "model": "DF adds one (E42b)",
+      "expects": "waves of 1 and 2, never 3"
+    }
+  ],
+  "kill_criterion": "no wave above 1 in either replicate makes the promise 'exactly one'",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "size1",
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'BIRD_RAVEN','BIRD_EMU','KANGAROO'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('x: %d entries stocked at 500'):format(n))",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='BIRD_RAVEN' then cr.frequency=100; n=n+1 elseif cr.creature_id=='BIRD_EMU' then cr.frequency=100; n=n+1 elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('x: %d named species set, %d other land species at frequency 1'):format(n,o))",
+        "local n=0; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='BIRD_RAVEN' or cr.creature_id=='BIRD_EMU' or cr.creature_id=='KANGAROO' then cr.cluster_number[0]=1; cr.cluster_number[1]=1; n=n+1 end end; print(('x4: %d species written to cluster {1,1}'):format(n))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    }
+  ]
+}

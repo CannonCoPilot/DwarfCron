@@ -1,0 +1,47 @@
+{
+  "fort": "BOATS",
+  "backup": "BOATS.preverify",
+  "fps": 1000,
+  "sample_every": 2000,
+  "tick_budget": 100800,
+  "combat": false,
+  "tool_must_be": {
+    "enabled": 1,
+    "scheduled": 1
+  },
+  "id": "X1",
+  "title": "Does the fixed roster keep every inactive species away, on every layer? A season on a copy of the alpha trial fort (Boatsbowed, the tester's own roster: 61 inactive) under v6.3.0, which holds every inactive species at stock 0 or frequency 1 and seasons every active one. Also X7: the job and tab timings over the same season.",
+  "fork": "v6.3.0 roster rule (arm fixed) against v6.2.1 (manifest X1c, arm v621), same fort, same roster.",
+  "predictions": [
+    {
+      "model": "the roster rule holds",
+      "expects": "no arrival of an inactive species on any layer; no arrival of an unseasoned species; out-of-season arrivals only as a group already drawn before the boundary"
+    },
+    {
+      "model": "the cavern floor leaks",
+      "expects": "a handful of inactive cavern arrivals at frequency 1"
+    }
+  ],
+  "kill_criterion": "an inactive surface species arrives in either replicate",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "fixed",
+      "replicates": 2,
+      "pre": [
+        "local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','now'); print('x1 now: '..(out or ''):gsub('\\n',' | '))",
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}; for _,e in ipairs(pool) do if e.inEmbark and not e.locked then local a=cfg.assign[e.key]; o[#o+1]=e.key..'='..(cfg.allow[e.key]==nil and 'nil' or tostring(cfg.allow[e.key]))..'/'..(a and table.concat(a,'') or '') end end; table.sort(o); print('x1 roster '..#o..': '..table.concat(o,' '))",
+        "local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus())"
+      ],
+      "every": {
+        "ticks": 20000,
+        "do": [
+          "local sw=reqscript('seasonal-wildlife'); local o={}; for n,st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do o[#o+1]=('%s runs=%d last=%d worst=%d over=%d'):format(n:gsub('seasonal%-wildlife/?',''),st.runs or 0,st.last or 0,st.worst or 0,st.over or 0) end; table.sort(o); print('x7 jobs: '..(#o>0 and table.concat(o,' | ') or 'no stats (pre-v6.3)')..' | '..sw.fuseStatus())",
+          "local gw=reqscript('gui/seasonal-wildlife'); local o={}; local function T(n,f) local t0=dfhack.getTickCount(); local ok=pcall(f); o[#o+1]=('%s=%d%s'):format(n,dfhack.getTickCount()-t0, ok and '' or '!') end; T('open', function() gw.show_gui() end); local scr=gw.view; local w=scr and scr.subviews[1]; if w then for _,m in ipairs({'refreshOverview','refreshPanel','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger'}) do if w[m] then T(m, function() w[m](w) end) end end; if w.subviews.web_mode then for _,md in ipairs({'graph','byseason','bylayer'}) do T('web:'..md, function() w.subviews.web_mode:setOption(md,false); w:refreshWeb() end) end end; pcall(function() scr:dismiss() end) end; print('x7 tabs: '..table.concat(o,' '))"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,420 @@
+[
+ {
+  "id": "w0.keys",
+  "surface": "GUI",
+  "claim": "no window key collides with a DF global binding (the macro keys Ctrl+R/L/P/S, the FPS keys Alt+=/-) or a DFHack global keybinding",
+  "source": "alpha 1 steps 3.5/4.4; plan rev 2 W0/W9",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "no window key is one of DF's global binds (CUSTOM_ALT_EQUALS, CUSTOM_ALT_MINUS, CUSTOM_CTRL_L, CUSTOM_CTRL_P, CUSTOM_CTRL_R, CUSTOM_CTRL_S)",
+  "got": "41 window keys, none global",
+  "shots": [],
+  "data": {
+   "window_keys": [
+    "CUSTOM_A",
+    "CUSTOM_ALT_F",
+    "CUSTOM_ALT_L",
+    "CUSTOM_ALT_P",
+    "CUSTOM_ALT_R",
+    "CUSTOM_ALT_S",
+    "CUSTOM_B",
+    "CUSTOM_C",
+    "CUSTOM_CTRL_A",
+    "CUSTOM_CTRL_D",
+    "CUSTOM_CTRL_E",
+    "CUSTOM_CTRL_F",
+    "CUSTOM_CTRL_G",
+    "CUSTOM_CTRL_W",
+    "CUSTOM_CTRL_X",
+    "CUSTOM_D",
+    "CUSTOM_E",
+    "CUSTOM_F",
+    "CUSTOM_G",
+    "CUSTOM_I",
+    "CUSTOM_K",
+    "CUSTOM_L",
+    "CUSTOM_M",
+    "CUSTOM_N",
+    "CUSTOM_O",
+    "CUSTOM_P",
+    "CUSTOM_Q",
+    "CUSTOM_R",
+    "CUSTOM_S",
+    "CUSTOM_SHIFT_B",
+    "CUSTOM_SHIFT_P",
+    "CUSTOM_SHIFT_R",
+    "CUSTOM_SHIFT_V",
+    "CUSTOM_SHIFT_W",
+    "CUSTOM_T",
+    "CUSTOM_U",
+    "CUSTOM_V",
+    "CUSTOM_W",
+    "CUSTOM_X",
+    "CUSTOM_Y",
+    "CUSTOM_Z"
+   ],
+   "df_global": {
+    "CUSTOM_ALT_EQUALS": "FPS_UP",
+    "CUSTOM_ALT_MINUS": "FPS_DOWN",
+    "CUSTOM_CTRL_R": "RECORD_MACRO",
+    "CUSTOM_CTRL_P": "PLAY_MACRO",
+    "CUSTOM_CTRL_S": "SAVE_MACRO",
+    "CUSTOM_CTRL_L": "LOAD_MACRO"
+   },
+   "dfhack_keybinding_list": "Usage:\n  keybinding list <key>\n  keybinding clear <key>[@context]...\n  keybinding set <key>[@context] \"cmdline\" \"cmdline\"...\n  keybinding add <key>[@context] \"cmdline\" \"cmdline\"...\nLater adds, and earlier items within one command have priority.\nKey format: [Ctrl-][Alt-][Super-][Shift-](A-Z, 0-9, F1-F12, `, etc.).\nContext may be used to limit the scope of the binding, by\nrequiring the current context to have a certain prefix.\nCurrent UI context is: \ndwarfmode/Default\n"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.ascii",
+  "surface": "GUI",
+  "claim": "every string the window or the console draws is ASCII (DF draws UTF-8 em dashes as three glyphs)",
+  "source": "alpha 1 step 3.6; W0/W9",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "no non-ASCII character in any string literal of the window or the engine",
+  "got": "0 literal(s):",
+  "shots": [],
+  "data": {
+   "hits": []
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.timing.tabs",
+  "surface": "PERF",
+  "claim": "every tab of the window refreshes in under 100 ms on the alpha fort",
+  "source": "alpha 1 steps 1.1/5.2/6.1; W7",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "every tab refresh < 100 ms",
+  "got": "{\"open\": 39, \"refresh\": 0, \"refreshLayers\": 0, \"refreshLedger\": 0, \"refreshLive\": 33, \"refreshOverview\": 0, \"refreshPanel\": 0, \"refreshSeasons\": 0, \"refreshVermin\": 18, \"refreshWeb\": 0, \"web:bylayer\": 0, \"web:byseason\": 0, \"web:graph\": 18}",
+  "shots": [],
+  "data": {
+   "jobs": {
+    "buildPool": {
+     "ms": 13,
+     "ok": true
+    },
+    "ecology (1500 t)": {
+     "ms": 18,
+     "ok": true
+    },
+    "groups (300 t)": {
+     "ms": 0,
+     "ok": true
+    },
+    "loadConfig": {
+     "ms": 18,
+     "ok": true
+    },
+    "season hold (daily)": {
+     "ms": 0,
+     "ok": true
+    },
+    "water": {
+     "ms": 0,
+     "ok": true
+    }
+   },
+   "tabs": {
+    "open": {
+     "ms": 39,
+     "ok": true
+    },
+    "refresh": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLayers": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLedger": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLive": {
+     "ms": 33,
+     "ok": true
+    },
+    "refreshOverview": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshPanel": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshSeasons": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshVermin": {
+     "ms": 18,
+     "ok": true
+    },
+    "refreshWeb": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:bylayer": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:byseason": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:graph": {
+     "ms": 18,
+     "ok": true
+    }
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.timing.jobs",
+  "surface": "PERF",
+  "claim": "every scheduled job runs in under 50 ms per pass on the alpha fort",
+  "source": "alpha 1 steps 1.1/4.3; W7",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "every job pass < 50 ms",
+  "got": "{\"buildPool\": 13, \"ecology (1500 t)\": 18, \"groups (300 t)\": 0, \"loadConfig\": 18, \"season hold (daily)\": 0, \"water\": 0}",
+  "shots": [],
+  "data": {
+   "jobs": {
+    "buildPool": {
+     "ms": 13,
+     "ok": true
+    },
+    "ecology (1500 t)": {
+     "ms": 18,
+     "ok": true
+    },
+    "groups (300 t)": {
+     "ms": 0,
+     "ok": true
+    },
+    "loadConfig": {
+     "ms": 18,
+     "ok": true
+    },
+    "season hold (daily)": {
+     "ms": 0,
+     "ok": true
+    },
+    "water": {
+     "ms": 0,
+     "ok": true
+    }
+   },
+   "tabs": {
+    "open": {
+     "ms": 39,
+     "ok": true
+    },
+    "refresh": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLayers": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLedger": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshLive": {
+     "ms": 33,
+     "ok": true
+    },
+    "refreshOverview": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshPanel": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshSeasons": {
+     "ms": 0,
+     "ok": true
+    },
+    "refreshVermin": {
+     "ms": 18,
+     "ok": true
+    },
+    "refreshWeb": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:bylayer": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:byseason": {
+     "ms": 0,
+     "ok": true
+    },
+    "web:graph": {
+     "ms": 18,
+     "ok": true
+    }
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.seasons",
+  "surface": "MECH",
+  "claim": "with every present layer on, every active species on every layer has at least one season",
+  "source": "D2; Q8; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "no active species without a season",
+  "got": "0 active with no season:",
+  "shots": [],
+  "data": {
+   "active": 76,
+   "active_no_season": [],
+   "inactive": 61,
+   "inactive_cavern_open": [],
+   "inactive_stocked": [],
+   "species": 137
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.inactive",
+  "surface": "MECH",
+  "claim": "after the season is applied, every inactive species is held: its entries at 0 on land, water and vermin, its raw frequency at 1 in the caverns",
+  "source": "R1; Q4; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "every inactive species at 0 (land/water/vermin) or frequency 1 (caverns)",
+  "got": "0 stocked: ; 0 cavern open:",
+  "shots": [],
+  "data": {
+   "active": 76,
+   "active_no_season": [],
+   "inactive": 61,
+   "inactive_cavern_open": [],
+   "inactive_stocked": [],
+   "species": 137
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.lastseason",
+  "surface": "MECH",
+  "claim": "removing an active species' last season is refused (make it inactive instead)",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "toggling off the only season leaves it in place",
+  "got": "AARDVARK: seasons after removing the last = 1",
+  "shots": [],
+  "data": {
+   "activated": 1,
+   "after_last": 1,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "0",
+    "1",
+    "2"
+   ],
+   "empty": false,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.activate",
+  "surface": "MECH",
+  "claim": "activating an inactive species gives it exactly one season",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "activation yields exactly one season",
+  "got": "AARDVARK: seasons after activation = 1 (-1: no activation path in the engine)",
+  "shots": [],
+  "data": {
+   "activated": 1,
+   "after_last": 1,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "0",
+    "1",
+    "2"
+   ],
+   "empty": false,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.roster.cycle",
+  "surface": "MECH",
+  "claim": "cycling an active species' seasons never lands on 'no season'",
+  "source": "D2; W1",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "seven cycles never produce an empty season set",
+  "got": "AARDVARK: 1 -> 2 -> 3 -> 0,1,2,3 -> 0 -> 1 -> 2",
+  "shots": [],
+  "data": {
+   "activated": 1,
+   "after_last": 1,
+   "cycle": [
+    "1",
+    "2",
+    "3",
+    "0,1,2,3",
+    "0",
+    "1",
+    "2"
+   ],
+   "empty": false,
+   "token": "AARDVARK"
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.overlay",
+  "surface": "MECH",
+  "claim": "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)",
+  "source": "alpha 1 steps 6.2/6.3/10.1; W0",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "seasonal-wildlife.groups enabled=True after the run, as before it",
+  "got": "before: enabled=True; after: enabled=True",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.save.untouched",
+  "surface": "MECH",
+  "claim": "a full session of console and GUI use leaves the save byte-identical (config lives in persistent site data)",
+  "source": "USAGE.md Uninstall; df-rig rule",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "diff -rq of the save against its backup is empty after the whole session",
+  "got": "identical",
+  "shots": [],
+  "data": {
+   "identical": true
+  },
+  "note": ""
+ }
+]

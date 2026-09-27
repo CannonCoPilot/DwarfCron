@@ -1,0 +1,36 @@
+19:20:23 validate-full run 20260926-192023 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260926-192023
+19:20:23 == SETUP: restore and load BOATS
+19:20:42   loaded: tick 129220 season 1 citizens 29 land 12 water 5 cavern 35 deep 38
+19:20:42 == W0: keys, overlay, ASCII, timing, the roster rule
+19:20:42   [FAIL             ] w0.keys: no window key collides with a DF global binding (the macro keys Ctrl+R
+19:20:42       expected: no window key is one of DF's global binds (CUSTOM_ALT_EQUALS, CUSTOM_ALT_MINUS, CUSTOM_CTRL_L, CUSTOM_CTRL_P, CUSTOM_CTRL_R, CUSTOM_CTRL_S)
+      got: clashes: CUSTOM_CTRL_L = DF LOAD_MACRO; CUSTOM_CTRL_R = DF RECORD_MACRO
+19:20:42   [FAIL             ] w0.ascii: every string the window or the console draws is ASCII (DF draws UTF-8 
+19:20:42       expected: no non-ASCII character in any string literal of the window or the engine
+      got: 17 literal(s): seasonal-wildlife.lua:176: 'dormant — ([^(]+)' | seasonal-wildlife.lua:538: ' — trophic pyramid (terrestrial; prey feeds upward ^)' | seasonal-wildlife.lua:553: ' — aquatic chain' | seasonal-wildlife.lua:1220: 'Dry-run — season table (by type)' | seasonal-wildlife.lua:1647: ' — %d pre
+19:20:43   [PASS             ] w0.timing.tabs: every tab of the window refreshes in under 100 ms on the alpha fort
+19:20:43   [FAIL             ] w0.timing.jobs: every scheduled job runs in under 50 ms per pass on the alpha fort
+19:20:43       expected: every job pass < 50 ms
+      got: {"buildPool": 67, "ecology (1500 t)": 183, "groups (300 t)": 0, "loadConfig": 0, "season hold (daily)": 18, "water": 0}
+19:20:44   [FAIL             ] w0.roster.seasons: with every present layer on, every active species on every layer has a
+19:20:44       expected: no active species without a season
+      got: 46 active with no season: cavern:BAT water:BIRD_OSPREY cavern:BIRD_SWALLOW_CAVE cavern:BIRD_SWALLOW_CAVE_GIANT cavern:BUGBAT cavern:CAP_HOPPER cavern:CAVE_BLOB cavern:CAVE_FLOATER cavern:CROCODILE_CAVE cavern:CRUNDLE cavern:DRUNIAN cavern:ELK_BIRD cavern:FISH_CAVE water:FISH_MILKFISH water:FISH_STIN
+19:20:44   [FAIL             ] w0.roster.inactive: after the season is applied, every inactive species is held: its entri
+19:20:44       expected: every inactive species at 0 (land/water/vermin) or frequency 1 (caverns)
+      got: 47 stocked: BIRD_ALBATROSS 59842 BIRD_KESTREL 28 CAVY 5191 CHEETAH 1403 CHEETAH_MAN 1006 COUGAR 302 COUGAR_MAN 1347 DINGO 3412 ELEPHANT_MAN 701 FISH_BLUEFISH 54606 FISH_COELACANTH 18182 FISH_MARLIN 54606 FISH_OPAH 38222 FISH_STINGRAY 25979 FISH_SWORDFISH 29121 FISH_TUNA_BLUEFIN 108594 GIANT_ALBATROS
+19:20:44   [FAIL             ] w0.roster.lastseason: removing an active species' last season is refused (make it inactive i
+19:20:44       expected: toggling off the only season leaves it in place
+      got: AARDVARK: seasons after removing the last = 0
+19:20:44   [FAIL             ] w0.roster.activate: activating an inactive species gives it exactly one season
+19:20:44       expected: activation yields exactly one season
+      got: AARDVARK: seasons after activation = -1 (-1: no activation path in the engine)
+19:20:44   [FAIL             ] w0.roster.cycle: cycling an active species' seasons never lands on 'no season'
+19:20:44       expected: seven cycles never produce an empty season set
+      got: AARDVARK: 1 -> 2 -> 3 -> 0,1,2,3 ->  -> 0 -> 1
+19:20:44   [FAIL             ] w0.overlay: a validation run leaves DFHack's overlay settings as it found them (se
+19:20:44       expected: seasonal-wildlife.groups enabled=False after the run, as before it
+      got: before: enabled=False; after: enabled=True
+19:20:44 == TEARDOWN
+19:20:51   [PASS             ] mech.save.untouched: a full session of console and GUI use leaves the save byte-identical (
+19:20:52 == DONE /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260926-192023
+   FAIL 9  PASS 2
