@@ -1,0 +1,401 @@
+<meta charset="utf-8">
+<title>Bestiary Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&family=Barlow+Semi+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --surface:#eef1ed; --panel:#fbfcfa; --ink:#17201b; --muted:#56615b; --faint:#8b958f; --line:#d5dcd6; --grid:#e4e9e5;
+  --accent:#2f6f4f; --accent-ink:#ffffff; --chip:#e3e9e4; --focus:#2a78d6;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --other:#9a9f9b;
+  --seq-lo:#cde2fb; --seq-hi:#0d366b;
+  --font-ui:"Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-data:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-mark:"VT323", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --surface:#101412; --panel:#171c19; --ink:#e4ebe6; --muted:#9ba7a0; --faint:#6f7a74; --line:#2a332e; --grid:#222a25;
+    --accent:#72c29a; --accent-ink:#0d1a13; --chip:#212924; --focus:#3987e5;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; --other:#6b716d;
+    --seq-lo:#184f95; --seq-hi:#cde2fb;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --surface:#101412; --panel:#171c19; --ink:#e4ebe6; --muted:#9ba7a0; --faint:#6f7a74; --line:#2a332e; --grid:#222a25;
+  --accent:#72c29a; --accent-ink:#0d1a13; --chip:#212924; --focus:#3987e5;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767; --other:#6b716d;
+  --seq-lo:#184f95; --seq-hi:#cde2fb;
+}
+*{box-sizing:border-box}
+body{background:var(--surface);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.4;padding-inline:16px;padding-block:18px 40px}
+.wrap{max-width:1320px;margin-inline:auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.mark{display:flex;align-items:baseline;gap:14px}
+.mark h1{font-family:var(--font-mark);font-weight:400;font-size:46px;line-height:.9;margin:0;letter-spacing:.02em}
+.mark .glyphs{font-family:var(--font-mark);font-size:28px;color:var(--accent);letter-spacing:.2em}
+.lede{color:var(--muted);max-width:62ch;margin:6px 0 0;text-wrap:pretty}
+.tiles{display:flex;gap:8px;flex-wrap:wrap}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;min-width:92px}
+.tile b{display:block;font-family:var(--font-data);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.filters{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.filters label,.builder label{display:flex;flex-direction:column;gap:2px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+select,input[type=search],input[type=number]{font:inherit;font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 6px;min-width:0}
+input[type=search]{width:12em}
+.check{flex-direction:row!important;align-items:center;gap:6px!important}
+.count{margin-left:auto;font-family:var(--font-data);font-size:13px;color:var(--muted)}
+.main{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:1fr}}
+aside{display:grid;gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:600}
+.presets{display:grid;gap:4px}
+.presets button{all:unset;cursor:pointer;display:grid;grid-template-columns:22px 1fr;gap:6px;align-items:baseline;padding:5px 6px;border-radius:5px;font-size:14px}
+.presets button .k{font-family:var(--font-mark);font-size:20px;color:var(--accent);line-height:1}
+.presets button:hover,.presets button:focus-visible{background:var(--chip)}
+.presets button[aria-pressed="true"]{background:var(--chip);box-shadow:inset 3px 0 0 var(--accent)}
+.types{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.types button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer}
+.types button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.builder{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.builder .full{grid-column:1/-1}
+.builder select{width:100%}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.chartcard{padding:12px 12px 6px}
+.chartcard h3{margin:0;font-size:19px;font-weight:600;text-wrap:balance}
+.chartcard p{margin:2px 0 6px;color:var(--muted);font-size:14px;max-width:80ch}
+#chart{width:100%;height:560px}
+@media (max-width:600px){#chart{height:420px}}
+.note{font-size:13px;color:var(--muted)}
+details.tablecard summary{cursor:pointer;font-weight:600;font-size:14px}
+.tablewrap{overflow-x:auto;max-height:520px;overflow-y:auto;margin-top:8px}
+table{border-collapse:collapse;font-family:var(--font-data);font-size:12.5px;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--grid);text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:var(--panel);cursor:pointer;color:var(--muted);font-weight:500}
+td.g{font-family:var(--font-mark);font-size:18px;color:var(--accent)}
+td.n{text-align:right}
+.foot{font-size:12.5px;color:var(--faint);max-width:90ch}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="mark"><h1>Bestiary Atlas</h1><span class="glyphs" aria-hidden="true">d W ö A e</span></div>
+      <p class="lede">Every creature raw Dwarf Fortress ships, vanilla and extinct, read the way the game reads them, and the way seasonal-wildlife reads them: habitat, role, size band. Pick a question on the left or build any chart from any two variables.</p>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </header>
+
+  <div class="filters" id="filters">
+    <label>Source<select id="f-source"><option value="">all</option><option value="vanilla">vanilla (Holocene)</option><option value="extinct">extinct</option></select></label>
+    <label>Class<select id="f-class"><option value="natural">natural wildlife</option><option value="">every creature</option><option value="special">special (DF's own)</option></select></label>
+    <label>Habitat<select id="f-habitat"><option value="">all</option></select></label>
+    <label>Category<select id="f-category"><option value="">all</option></select></label>
+    <label>Size band<select id="f-band"><option value="">all</option><option>small</option><option>medium</option><option>large</option></select></label>
+    <label>Period<select id="f-period"><option value="">all</option></select></label>
+    <label>Biome family<select id="f-biome"><option value="">all</option></select></label>
+    <label class="check"><input type="checkbox" id="f-fort"> on the trial fort</label>
+    <label class="check"><input type="checkbox" id="f-people"> hide animal people</label>
+    <label>Search<input type="search" id="f-q" placeholder="name or token"></label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="main">
+    <aside>
+      <div class="card"><h2>Questions</h2><div class="presets" id="presets"></div></div>
+      <div class="card">
+        <h2>Build a chart</h2>
+        <div class="types" id="types"></div>
+        <div class="builder">
+          <label class="full" id="l-x">X<select id="b-x"></select></label>
+          <label class="full" id="l-y">Y<select id="b-y"></select></label>
+          <label class="full" id="l-g">Colour by<select id="b-g"></select></label>
+          <label id="l-agg">Measure<select id="b-agg"><option value="count">count of creatures</option><option value="sum">sum of Y</option><option value="mean">mean of Y</option></select></label>
+          <label id="l-bins">Bins<input type="number" id="b-bins" min="5" max="120" value="40"></label>
+          <label class="check"><input type="checkbox" id="b-logx"> log X</label>
+          <label class="check"><input type="checkbox" id="b-logy"> log Y</label>
+        </div>
+      </div>
+      <div class="card note" id="about"></div>
+    </aside>
+    <section class="card chartcard">
+      <h3 id="c-title"></h3>
+      <p id="c-desc"></p>
+      <div id="chart" role="img" aria-label="chart"></div>
+    </section>
+  </div>
+
+  <details class="card tablecard" id="tablecard">
+    <summary>Table of the creatures shown (<span id="t-n"></span>)</summary>
+    <div class="tablewrap"><table id="table"></table></div>
+  </details>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<script>
+const ROWS = /*__DATA__*/[];
+const $ = id => document.getElementById(id);
+const SEASONS = ["Spring","Summer","Autumn","Winter"];
+// ---- derived fields
+for (const r of ROWS){
+  r.cluster_mid = (r.cluster_min!=null && r.cluster_max!=null) ? (r.cluster_min + r.cluster_max)/2 : null;
+  r.group = r.cluster_mid ? Math.max(1, Math.floor(r.cluster_mid)) : 1;
+  r.clutch_mid = (r.clutch_min!=null && r.clutch_max!=null) ? (r.clutch_min + r.clutch_max)/2 : null;
+  r.lifespan = (r.maxage_min!=null && r.maxage_max!=null) ? (r.maxage_min + r.maxage_max)/2 : null;
+  r.pop_mid = (r.pop_min!=null && r.pop_max!=null) ? (r.pop_min + r.pop_max)/2 : null;
+  r.eggs = r.lays_eggs ? "lays eggs" : "live young";
+  r.fort_seasons = (r.boats_seasons||"").split("").filter(c=>"0123".includes(c)).map(c=>SEASONS[+c]);
+  r.on_fort = r.boats_stock!=null;
+  r.fort_status = r.boats_active==null ? "" : (r.boats_active ? "active" : "inactive");
+  r.realm = r.biome_families.length && r.biome_families.every(f=>f==="underground") ? "underground" : "surface";
+  r.bodies = r.biome_families.filter(f=>["ocean","lake","river","pool","underground"].includes(f));
+}
+// ---- variables
+const Q = [ // quantitative
+  ["adult_size","adult body size (cm³)",true],["cluster_max","group size, most",false],["cluster_min","group size, fewest",false],["cluster_mid","group size, middle",false],
+  ["pop_mid","population number (worldgen, middle)",true],["frequency","frequency (odds weight)",false],["clutch_mid","clutch size (middle)",false],
+  ["lifespan","lifespan (years, middle)",false],["child_age","years as a child",false],["pet_value","pet value",true],["difficulty","difficulty",false],
+  ["walk_kph","top land speed (kph)",false],["swim_kph","top swim speed (kph)",false],["fly_kph","top flight speed (kph)",false],["climb_kph","top climb speed (kph)",false],
+  ["n_biomes","number of biomes",false],["climate_lean","climate lean (cold −1 … hot +1)",false],
+  ["boats_stock","stock on the trial fort",true],["x1_arrivals","arrivals in X1 (trial fort, one season)",false]];
+const C = [ // categorical; multi = a creature counts once per value
+  ["category","category (role or vermin)"],["role","role"],["habitat","habitat"],["band","size band"],["source","source"],["period","period"],["class","class"],["special","special kind"],
+  ["eggs","lays eggs or live young"],["biome_families","biome family",true],["climates","climate",true],["fort_seasons","season on the trial fort",true],
+  ["fort_status","active on the trial fort"],["boats_layers","layer on the trial fort",true],["realm","realm"],
+  ["savage","savage"],["nocturnal","nocturnal"],["large_predator","large predator (behaviour)"],["benign","benign"],["grazer","grazer"],["flier","flies"],["amphibious","amphibious"],
+  ["pet","pet"],["large_roaming","large roaming"],["animal_person","animal person"],["giant","giant"]];
+const QL = Object.fromEntries(Q.map(q=>[q[0],q[1]])), QLOG = Object.fromEntries(Q.map(q=>[q[0],q[2]]));
+const CL = Object.fromEntries(C.map(c=>[c[0],c[1]])), CMULTI = Object.fromEntries(C.map(c=>[c[0],!!c[2]]));
+const valsOf = (r,k) => { const v=r[k]; if (Array.isArray(v)) return v.length? v.map(String) : ["(none)"]; if (v===true) return ["yes"]; if (v===false) return ["no"]; return [v===""||v==null ? "(none)" : String(v)]; };
+// ---- state
+const S = { type:"hist", x:"adult_size", y:"cluster_max", g:"band", agg:"count", bins:40, logx:true, logy:false, preset:null };
+// ---- filters
+function fill(sel, vals){ for (const v of vals){ const o=document.createElement("option"); o.value=v; o.textContent=v; sel.appendChild(o);} }
+fill($("f-habitat"), ["land","flier","waterbird","semiaquatic","aquatic"]);
+fill($("f-category"), ["predator","prey","vermin"]);
+fill($("f-period"), ["Holocene","Cenozoic","Cretaceous","Jurassic","Triassic","Permian","Carboniferous","Devonian","Silurian","Ordovician","Cambrian"]);
+fill($("f-biome"), [...new Set(ROWS.flatMap(r=>r.biome_families))].sort());
+function filtered(){
+  const src=$("f-source").value, cls=$("f-class").value, hab=$("f-habitat").value, cat=$("f-category").value, band=$("f-band").value,
+        per=$("f-period").value, bio=$("f-biome").value, fort=$("f-fort").checked, people=$("f-people").checked, q=$("f-q").value.trim().toLowerCase();
+  return ROWS.filter(r => (!src||r.source===src) && (!cls||r.class===cls) && (!hab||r.habitat===hab) && (!cat||r.category===cat) && (!band||r.band===band)
+    && (!per||r.period===per) && (!bio||r.biome_families.includes(bio)) && (!fort||r.on_fort) && (!people||!r.animal_person)
+    && (!q || r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)));
+}
+// ---- colour
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const SERIES = () => [1,2,3,4,5,6,7,8].map(i=>tok("--s"+i));
+function groupsOf(rows, g, cap=8){
+  const cnt = new Map();
+  for (const r of rows) for (const v of valsOf(r,g)) cnt.set(v,(cnt.get(v)||0)+1);
+  const order = {small:0,medium:1,large:2, Spring:0,Summer:1,Autumn:2,Winter:3, predator:0,prey:1,vermin:2, land:0,flier:1,waterbird:2,semiaquatic:3,aquatic:4};
+  let keys = [...cnt.keys()].sort((a,b)=> (order[a]??99)-(order[b]??99) || cnt.get(b)-cnt.get(a) || a.localeCompare(b));
+  if (keys.length > cap){ const keep = [...keys].sort((a,b)=>cnt.get(b)-cnt.get(a)).slice(0,cap-1); keys = keys.filter(k=>keep.includes(k)); keys.push("Other"); }
+  return keys;
+}
+function colourMap(keys){ const s=SERIES(), m={}; keys.forEach((k,i)=> m[k] = k==="Other" ? tok("--other") : s[i % 8]); return m; }
+function gkey(r, g, keys){ const v = valsOf(r,g)[0]; return keys.includes(v) ? v : "Other"; }
+// ---- layout
+function baseLayout(){
+  return { paper_bgcolor:tok("--panel"), plot_bgcolor:tok("--panel"), font:{family:getComputedStyle(document.body).fontFamily, color:tok("--ink"), size:13},
+    margin:{l:64,r:16,t:10,b:58}, hoverlabel:{bgcolor:tok("--panel"), bordercolor:tok("--line"), font:{color:tok("--ink"), family:"IBM Plex Mono, monospace", size:12}},
+    legend:{orientation:"h", y:-0.14, font:{color:tok("--muted")}},
+    xaxis:{gridcolor:tok("--grid"), zerolinecolor:tok("--line"), linecolor:tok("--line"), tickfont:{color:tok("--muted")}, title:{font:{color:tok("--muted")}}},
+    yaxis:{gridcolor:tok("--grid"), zerolinecolor:tok("--line"), linecolor:tok("--line"), tickfont:{color:tok("--muted")}, title:{font:{color:tok("--muted")}}} };
+}
+const CFG = {displaylogo:false, responsive:true, modeBarButtonsToRemove:["select2d","lasso2d","autoScale2d"]};
+// ---- charts
+function hist(rows, overlay){
+  const x=S.x, g=S.g, lay=baseLayout();
+  const pts = rows.filter(r=>r[x]!=null && (!S.logx || r[x]>0));
+  const keys = g ? groupsOf(pts,g) : ["all"]; const cm = colourMap(keys);
+  const vals = pts.map(r=>S.logx? Math.log10(r[x]) : r[x]); const lo=Math.min(...vals), hi=Math.max(...vals);
+  const size = (hi-lo)/Math.max(5,S.bins) || 1;
+  const traces = keys.map(k=>{ const sub = g ? pts.filter(r=>valsOf(r,g).map(v=>keys.includes(v)?v:"Other").includes(k)) : pts;
+    return { type:"histogram", name:k, x: sub.map(r=>S.logx? Math.log10(r[x]) : r[x]), xbins:{start:lo, end:hi+size, size},
+      marker:{color: g? cm[k] : tok("--s1"), line:{color:tok("--panel"), width:1}}, opacity: overlay? 0.55 : 1,
+      hovertemplate: (S.logx? "10^%{x:.2f}" : "%{x}") + "<br>%{y} creatures<extra>"+k+"</extra>" }; });
+  lay.barmode = overlay ? "overlay" : "stack"; lay.bargap = 0.04;
+  lay.xaxis.title.text = QL[x] + (S.logx? " (log scale)" : ""); lay.yaxis.title.text = "creatures"; if (S.logy) lay.yaxis.type="log";
+  if (S.logx){ const tv=[]; for (let e=Math.floor(lo); e<=Math.ceil(hi); e++) tv.push(e);
+    lay.xaxis.tickvals=tv; lay.xaxis.ticktext=tv.map(e=> e>=6 ? (10**(e-6))+"M" : e>=3 ? (10**(e-3))+"k" : String(10**e)); }
+  lay.showlegend = !!g;
+  return [traces, lay, `${pts.length} creatures with a value`];
+}
+function scatter(rows){
+  const x=S.x, y=S.y, g=S.g, lay=baseLayout();
+  const pts = rows.filter(r=>r[x]!=null && r[y]!=null && (!S.logx||r[x]>0) && (!S.logy||r[y]>0));
+  const keys = g ? groupsOf(pts,g) : ["all"]; const cm = colourMap(keys);
+  const traces = keys.map(k=>{ const sub = g ? pts.filter(r=>gkey(r,g,keys)===k) : pts;
+    return { type:"scattergl", mode:"markers", name:k, x:sub.map(r=>r[x]), y:sub.map(r=>r[y]), text:sub.map(r=>`${r.name} (${r.id})`),
+      marker:{color: g? cm[k] : tok("--s1"), size:8, opacity:.8, line:{color:tok("--panel"), width:1}},
+      hovertemplate:"%{text}<br>"+QL[x]+": %{x}<br>"+QL[y]+": %{y}<extra>"+k+"</extra>" }; });
+  lay.xaxis.title.text=QL[x]; lay.yaxis.title.text=QL[y]; if (S.logx) lay.xaxis.type="log"; if (S.logy) lay.yaxis.type="log"; lay.showlegend=!!g;
+  return [traces, lay, `${pts.length} creatures with both values`];
+}
+function box(rows){
+  const cat=S.x, y=S.y, lay=baseLayout();
+  const pts = rows.filter(r=>r[y]!=null && (!S.logy||r[y]>0));
+  const keys = groupsOf(pts, cat, 14); const cm = colourMap(keys.length<=8? keys : []);
+  const traces = keys.map((k,i)=>{ const sub = pts.filter(r=>valsOf(r,cat).map(v=>keys.includes(v)?v:"Other").includes(k));
+    const col = keys.length<=8 ? cm[k] : tok("--s1");
+    return { type:"box", name:k, y:sub.map(r=>r[y]), text:sub.map(r=>r.name), boxpoints:"all", jitter:.4, pointpos:0,
+      marker:{color:col, size:5, opacity:.55}, line:{color:col, width:2}, fillcolor:"rgba(0,0,0,0)", hovertemplate:"%{text}: %{y}<extra>"+k+"</extra>" }; });
+  lay.yaxis.title.text = QL[y]; if (S.logy) lay.yaxis.type="log"; lay.xaxis.title.text = CL[cat]; lay.showlegend=false;
+  return [traces, lay, `${pts.length} creatures`];
+}
+function bars(rows){
+  const cat=S.x, g=S.g, lay=baseLayout(), agg=S.agg, y=S.y;
+  const pts = rows.filter(r=> agg==="count" || r[y]!=null);
+  const xkeys = groupsOf(pts, cat, 40); const gkeys = g ? groupsOf(pts,g) : ["all"]; const cm = colourMap(gkeys);
+  const measure = list => agg==="count" ? list.length : agg==="sum" ? list.reduce((a,r)=>a+(r[y]||0),0) : (list.length? list.reduce((a,r)=>a+(r[y]||0),0)/list.length : 0);
+  const traces = gkeys.map(k=>{
+    const ys = xkeys.map(xk=>measure(pts.filter(r=> valsOf(r,cat).map(v=>xkeys.includes(v)?v:"Other").includes(xk) && (!g || valsOf(r,g).map(v=>gkeys.includes(v)?v:"Other").includes(k)))));
+    return { type:"bar", name:k, x:xkeys, y:ys, marker:{color: g? cm[k] : tok("--s1"), line:{color:tok("--panel"), width:1}},
+      hovertemplate:"%{x}: %{y:,.4~r}<extra>"+k+"</extra>" }; });
+  lay.barmode = "stack"; lay.bargap = .18;
+  lay.xaxis.title.text = CL[cat] + (CMULTI[cat]? " (a creature counts in each)" : ""); lay.xaxis.type="category";
+  lay.yaxis.title.text = agg==="count" ? "creatures" : `${agg} of ${QL[y]}`; if (S.logy) lay.yaxis.type="log"; lay.showlegend=!!g;
+  return [traces, lay, `${pts.length} creatures`];
+}
+function heat(rows){
+  const a=S.x, b=S.g || "habitat", lay=baseLayout();
+  const xk = groupsOf(rows, a, 30), yk = groupsOf(rows, b, 30);
+  const z = yk.map(yv => xk.map(xv => rows.filter(r=>valsOf(r,a).includes(xv) && valsOf(r,b).includes(yv)).length));
+  const trace = { type:"heatmap", x:xk, y:yk, z, colorscale:[[0,tok("--panel")],[.0001,tok("--seq-lo")],[1,tok("--seq-hi")]], xgap:2, ygap:2,
+    hovertemplate:"%{y} × %{x}: %{z} creatures<extra></extra>", colorbar:{tickfont:{color:tok("--muted")}, outlinewidth:0} };
+  lay.xaxis.title.text=CL[a]; lay.yaxis.title.text=CL[b]; lay.xaxis.type="category"; lay.yaxis.type="category"; lay.margin.l=110;
+  return [[trace], lay, `${rows.length} creatures`];
+}
+// predator-prey: the seasonal-wildlife diet test (v6.4), habitat reach, water body, realm, mass and numbers
+const REACH = { land:{land:1,flier:1,waterbird:1,semiaquatic:1}, flier:{land:1,flier:1,waterbird:1,semiaquatic:1},
+  waterbird:{land:1,flier:1,waterbird:1,semiaquatic:1,aquatic:1}, semiaquatic:{land:1,waterbird:1,semiaquatic:1,aquatic:1}, aquatic:{waterbird:1,semiaquatic:1,aquatic:1} };
+const take = e => e.adult_size * Math.pow(e.group, .75) * ((e.large_predator||e.ambushpredator) ? 1.5 : 1);
+const need = p => p.adult_size * (p.group > 1 ? .9 : .6);
+function eats(e,p){
+  if (e===p || e.category!=="predator" || e.class!=="natural" || p.class!=="natural") return false;
+  if (e.adult_size<=0 || p.adult_size<=0 || e.realm!==p.realm) return false;
+  if (!(REACH[e.habitat]||REACH.land)[p.habitat]) return false;
+  const wet = h => h==="aquatic"||h==="semiaquatic";
+  if (wet(e.habitat) && wet(p.habitat) && e.bodies.length && p.bodies.length && !e.bodies.some(b=>p.bodies.includes(b))) return false;
+  if (p.category==="predator" && p.adult_size >= e.adult_size*.5) return false;
+  return take(e) >= need(p);
+}
+function network(rows){
+  const lay = baseLayout();
+  const nodes = rows.filter(r=>r.class==="natural" && !r.vermin);
+  if (nodes.length > 320) return [[], Object.assign(lay,{annotations:[{text:`${nodes.length} creatures: narrow the filters to 320 or fewer for the web (try "on the trial fort", a biome family or a period)`, showarrow:false, font:{color:tok("--muted"), size:15}, xref:"paper", yref:"paper", x:.5, y:.5}], xaxis:{visible:false}, yaxis:{visible:false}}), "too many to draw"];
+  const idx = new Map(nodes.map((n,i)=>[n,i])); const edges=[];
+  for (const e of nodes) if (e.category==="predator") for (const p of nodes) if (eats(e,p)) edges.push([idx.get(e), idx.get(p)]);
+  const deg = new Array(nodes.length).fill(0); edges.forEach(([a,b])=>{deg[a]++;deg[b]++;});
+  // A size-structured web: one column per realm and habitat, height = adult body size (log10), so a predator
+  // sits above the prey it can take and the edges read downward. Within a column, species spread by size rank.
+  const HAB = ["land","flier","waterbird","semiaquatic","aquatic"];
+  const cols = [];
+  for (const realm of ["surface","underground"]) for (const h of HAB) if (nodes.some(r=>r.realm===realm && r.habitat===h)) cols.push(realm+"|"+h);
+  const pos = new Array(nodes.length);
+  cols.forEach((c,ci)=>{ const [realm,h]=c.split("|"); const mem = nodes.filter(r=>r.realm===realm && r.habitat===h).sort((a,b)=>a.adult_size-b.adult_size);
+    mem.forEach((r,m)=>{ const off = ((m*0.61803) % 1) - .5; pos[idx.get(r)] = [ci + off*.8, Math.log10(Math.max(1,r.adult_size))]; }); });
+  lay.annotations = cols.map((c,ci)=>({ x:ci, y:1.02, xref:"x", yref:"paper", text:c.replace("surface|","").replace("underground|","cavern ")+"", showarrow:false, font:{color:tok("--muted"), size:12} }));
+  const ex=[], ey=[]; for (const [a,b] of edges){ ex.push(pos[a][0],pos[b][0],null); ey.push(pos[a][1],pos[b][1],null); }
+  const g = S.g || "habitat"; const keys = groupsOf(nodes,g); const cm = colourMap(keys);
+  const traces = [{ type:"scatter", mode:"lines", x:ex, y:ey, line:{color:tok("--faint"), width:.6}, opacity:.3, hoverinfo:"skip", showlegend:false }];
+  for (const key of keys){ const sub = nodes.filter(r=>gkey(r,g,keys)===key);
+    traces.push({ type:"scatter", mode:"markers", name:key, x:sub.map(r=>pos[idx.get(r)][0]), y:sub.map(r=>pos[idx.get(r)][1]),
+      text:sub.map(r=>{ const i=idx.get(r); const eatsN=edges.filter(e=>e[0]===i).length, eatenN=edges.filter(e=>e[1]===i).length; return `${r.name} (${r.id})<br>${r.habitat} ${r.role}, ${r.band}<br>eats ${eatsN} · eaten by ${eatenN}`; }),
+      marker:{color:cm[key], size:sub.map(r=>6+Math.max(0,Math.log10(Math.max(1,r.adult_size))-2)*2.4), line:{color:tok("--panel"), width:1.5}},
+      hovertemplate:"%{text}<extra></extra>" }); }
+  lay.xaxis={visible:false, range:[-.6, cols.length-.4]}; lay.yaxis.title.text="adult body size (cm³, log scale)";
+  const ymax=Math.ceil(Math.max(...pos.map(p=>p[1]))); lay.yaxis.tickvals=[...Array(ymax+1).keys()]; lay.yaxis.ticktext=lay.yaxis.tickvals.map(e=> e>=6 ? (10**(e-6))+"M" : e>=3 ? (10**(e-3))+"k" : String(10**e));
+  lay.showlegend=true; lay.margin={l:64,r:10,t:30,b:40};
+  return [traces, lay, `${nodes.length} creatures, ${edges.length} predator→prey edges (the tool's diet test: habitat reach, water body, realm, mass × numbers)`];
+}
+// ---- presets: the questions asked for
+const PRESETS = [
+  {k:"#", t:"How big do groups get?", d:"The largest group each species arrives in (CLUSTER_NUMBER), by category. A solitary animal is 1.", s:{type:"hist", x:"cluster_max", g:"category", logx:false, logy:false, bins:30}},
+  {k:"o", t:"Who lays eggs?", d:"Egg-layers and live-bearers in each habitat; the clutch-size chart follows from Colour by → eggs.", s:{type:"bars", x:"habitat", g:"eggs", agg:"count", logy:false}},
+  {k:"0", t:"Clutch sizes", d:"Eggs per clutch (middle of CLUTCH_SIZE) for every egg-layer, by habitat.", s:{type:"hist", x:"clutch_mid", g:"habitat", logx:false, logy:false, bins:30}},
+  {k:"B", t:"Body sizes", d:"Adult body volume in cm³ on a log scale, coloured by the three size bands (small < 150,000, medium < 1,000,000, large).", s:{type:"hist", x:"adult_size", g:"band", logx:true, logy:false, bins:45}},
+  {k:"*", t:"Size against group size", d:"Adult body size against the largest group, both log: pack hunters and herds against solitary giants.", s:{type:"scatter", x:"adult_size", y:"cluster_max", g:"role", logx:true, logy:true}},
+  {k:"=", t:"Size by habitat", d:"The spread of adult body size in each habitat, every creature a point.", s:{type:"box", x:"habitat", y:"adult_size", logy:true}},
+  {k:"~", t:"Speed by habitat", d:"Top land speed in each habitat (from the gaits: 8,800 ÷ the sprint value, as the raws' own comments give it).", s:{type:"box", x:"habitat", y:"walk_kph", logy:false}},
+  {k:"&", t:"Who eats whom on the trial fort", d:"The predator–prey web of Boatsbowed's species by the tool's diet test, one column per habitat, height by body size: predators sit above what they can take. Hover a node for what it eats and what eats it.", s:{type:"network", g:"role"}, f:{fort:true}},
+  {k:"S", t:"Types by season on the trial fort", d:"How many species of each category the tool's roster puts in each season on Boatsbowed (a species counts in each of its seasons).", s:{type:"bars", x:"fort_seasons", g:"category", agg:"count", logy:false}, f:{fort:true}},
+  {k:"b", t:"Types by biome family", d:"How many creatures of each habitat live in each biome family (a creature counts in every family it has).", s:{type:"bars", x:"biome_families", g:"habitat", agg:"count", logy:false}},
+  {k:"%", t:"Biome × season on the trial fort", d:"Species per biome family and season in the tool's roster on Boatsbowed.", s:{type:"heat", x:"fort_seasons", g:"biome_families"}, f:{fort:true}},
+  {k:"f", t:"Relative frequency", d:"The FREQUENCY weight each species carries into DF's pick, the odds control's raw value; most sit at 50.", s:{type:"hist", x:"frequency", g:"category", logx:false, logy:true, bins:40}},
+  {k:"!", t:"What actually arrived", d:"Arrivals on Boatsbowed across one season of X1 (the tool on, v6.3), by category.", s:{type:"bars", x:"category", g:"habitat", agg:"sum", y:"x1_arrivals", logy:false}, f:{fort:true}},
+  {k:"$", t:"Stock by category, overlaid", d:"The regional stock each species holds on Boatsbowed, log scale, one overlaid histogram per category.", s:{type:"overlay", x:"boats_stock", g:"category", logx:true, logy:false, bins:30}, f:{fort:true}},
+  {k:"£", t:"Stock by season, overlaid", d:"The same stock, one histogram per season the roster gives the species.", s:{type:"overlay", x:"boats_stock", g:"fort_seasons", logx:true, logy:false, bins:30}, f:{fort:true}},
+  {k:"T", t:"The extinct periods", d:"The extinct module's creatures by geological period and habitat.", s:{type:"bars", x:"period", g:"habitat", agg:"count", logy:false}, f:{source:"extinct"}},
+];
+const TYPES = [["hist","Histogram"],["overlay","Overlaid histograms"],["scatter","Scatter"],["box","Box plot"],["bars","Bars"],["heat","Heatmap"],["network","Food web"]];
+function fillSelect(sel, opts, allowNone){ sel.innerHTML=""; if (allowNone){ const o=document.createElement("option"); o.value=""; o.textContent="(nothing)"; sel.appendChild(o);} for (const [v,l] of opts){ const o=document.createElement("option"); o.value=v; o.textContent=l; sel.appendChild(o);} }
+function syncBuilder(){
+  const t=S.type, xQ = (t==="hist"||t==="overlay"||t==="scatter");
+  fillSelect($("b-x"), xQ ? Q : C); $("b-x").value = S.x;
+  if (xQ && !QL[S.x]) { S.x="adult_size"; $("b-x").value=S.x; } if (!xQ && !CL[S.x]) { S.x="habitat"; $("b-x").value=S.x; }
+  fillSelect($("b-y"), Q); $("b-y").value = S.y;
+  fillSelect($("b-g"), C, t!=="heat" && t!=="network"); $("b-g").value = S.g || "";
+  $("l-x").firstChild.textContent = t==="box" ? "Group by" : (t==="heat" ? "Columns" : "X");
+  $("l-g").firstChild.textContent = t==="heat" ? "Rows" : "Colour by";
+  $("l-y").hidden = !(t==="scatter"||t==="box"||(t==="bars" && S.agg!=="count"));
+  $("l-x").hidden = t==="network"; $("l-agg").hidden = t!=="bars"; $("l-bins").hidden = !(t==="hist"||t==="overlay");
+  $("b-agg").value=S.agg; $("b-bins").value=S.bins; $("b-logx").checked=S.logx; $("b-logy").checked=S.logy;
+  $("b-logx").parentElement.hidden = !(t==="hist"||t==="overlay"||t==="scatter");
+  document.querySelectorAll("#types button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.t===t)));
+  document.querySelectorAll("#presets button").forEach((b,i)=>b.setAttribute("aria-pressed", String(i===S.preset)));
+}
+function draw(){
+  const rows = filtered();
+  $("count").textContent = `${rows.length} of ${ROWS.length} creatures`;
+  const fn = {hist:r=>hist(r,false), overlay:r=>hist(r,true), scatter, box, bars, heat, network}[S.type];
+  const [traces, lay, note] = fn(rows);
+  const p = S.preset!=null ? PRESETS[S.preset] : null;
+  $("c-title").textContent = p ? p.t : ({hist:"Histogram", overlay:"Overlaid histograms", scatter:"Scatter", box:"Box plot", bars:"Bars", heat:"Heatmap", network:"Food web"}[S.type] + ": " + (S.type==="scatter" ? `${QL[S.y]} against ${QL[S.x]}` : S.type==="box" ? `${QL[S.y]} by ${CL[S.x]}` : S.type==="heat" ? `${CL[S.g||"habitat"]} × ${CL[S.x]}` : S.type==="network" ? "predators and prey" : (QL[S.x]||CL[S.x]||"")));
+  $("c-desc").textContent = (p ? p.d + " " : "") + note + ".";
+  Plotly.react("chart", traces, lay, CFG);
+  table(rows);
+}
+// ---- table
+const TCOLS = [["tile",""],["name","name"],["id","token"],["source","source"],["period","period"],["habitat","habitat"],["category","category"],["band","band"],["adult_size","size cm³"],["cluster_min","group min"],["cluster_max","group max"],["frequency","freq"],["clutch_mid","clutch"],["lifespan","lifespan"],["walk_kph","kph"],["n_biomes","biomes"],["boats_stock","fort stock"],["boats_seasons","fort seasons"],["x1_arrivals","X1 arrivals"]];
+let sortKey="name", sortDir=1;
+function table(rows){
+  $("t-n").textContent = rows.length;
+  if (!$("tablecard").open) return;
+  const r2 = [...rows].sort((a,b)=>{ const x=a[sortKey], y=b[sortKey]; if (x==null) return 1; if (y==null) return -1; return (typeof x==="number" ? x-y : String(x).localeCompare(String(y)))*sortDir; });
+  const fmt = (k,v)=> v==null||v==="" ? "" : (k==="boats_seasons" ? String(v).split("").map(c=>["Sp","Su","Au","Wi"][+c]||"").join("") : (typeof v==="number" ? v.toLocaleString() : v));
+  $("table").innerHTML = "<thead><tr>" + TCOLS.map(([k,l])=>`<th data-k="${k}" scope="col">${l}${k===sortKey?(sortDir>0?" ▲":" ▼"):""}</th>`).join("") + "</tr></thead><tbody>" +
+    r2.map(r=>"<tr>"+TCOLS.map(([k])=>`<td class="${k==="tile"?"g":(typeof r[k]==="number"?"n":"")}">${fmt(k,r[k])}</td>`).join("")+"</tr>").join("") + "</tbody>";
+}
+$("table").addEventListener("click", e=>{ const k=e.target.closest("th")?.dataset.k; if (!k) return; sortDir = (k===sortKey) ? -sortDir : 1; sortKey=k; table(filtered()); });
+$("tablecard").addEventListener("toggle", ()=>table(filtered()));
+// ---- wiring
+const pres = $("presets");
+PRESETS.forEach((p,i)=>{ const b=document.createElement("button"); b.type="button"; b.innerHTML=`<span class="k" aria-hidden="true">${p.k}</span><span>${p.t}</span>`;
+  b.addEventListener("click", ()=>{ Object.assign(S, {g:"", y:S.y, agg:"count"}, p.s, {preset:i});
+    const f = p.f || {}; $("f-fort").checked = !!f.fort; $("f-source").value = f.source || ""; syncBuilder(); draw(); }); pres.appendChild(b); });
+const ty = $("types");
+TYPES.forEach(([t,l])=>{ const b=document.createElement("button"); b.type="button"; b.dataset.t=t; b.textContent=l; b.addEventListener("click", ()=>{ S.type=t; S.preset=null;
+  if ((t==="box"||t==="bars"||t==="heat") && QL[S.x]) S.x = "habitat"; if ((t==="hist"||t==="overlay"||t==="scatter") && CL[S.x]) S.x="adult_size";
+  if (t==="heat" && !S.g) S.g="band"; syncBuilder(); draw(); }); ty.appendChild(b); });
+for (const [id,key,cast] of [["b-x","x",String],["b-y","y",String],["b-g","g",String],["b-agg","agg",String],["b-bins","bins",Number]])
+  $(id).addEventListener("change", e=>{ S[key]=cast(e.target.value); S.preset=null; syncBuilder(); draw(); });
+for (const [id,key] of [["b-logx","logx"],["b-logy","logy"]]) $(id).addEventListener("change", e=>{ S[key]=e.target.checked; S.preset=null; draw(); });
+document.querySelectorAll("#filters select, #filters input").forEach(el=>el.addEventListener(el.type==="search"?"input":"change", draw));
+// tiles and notes
+const nat = ROWS.filter(r=>r.class==="natural");
+$("tiles").innerHTML = [["creatures",ROWS.length],["natural",nat.length],["extinct",ROWS.filter(r=>r.source==="extinct").length],["special",ROWS.filter(r=>r.class==="special").length],["on the trial fort",ROWS.filter(r=>r.on_fort).length]]
+  .map(([l,v])=>`<div class="tile"><b>${v.toLocaleString()}</b><span>${l}</span></div>`).join("");
+$("about").innerHTML = `<b>How the readings are made.</b> Habitat: aquatic if it cannot move on land or breathe air; waterbird if it flies and has a water biome; flier; semiaquatic if it breathes water or lives only in water; else land. Role: predator on a carnivore's diet or a predator's behaviour tag, else prey. Size band by adult volume. Special: megabeasts, titans, night creatures, demons, forgotten beasts, mythic, unliving (DF's own; the tool does not manage them).`;
+$("foot").textContent = "Source: the DF 53.16 raws on the DwarfCron rig (vanilla_creatures, vanilla_creatures_extinct), with COPY_TAGS_FROM and creature variations resolved as DF does. Trial-fort columns: Boatsbowed, experiment X1 (26 Sep 2026). Built by DwarfCron scripts/bestiary/build_bestiary.py.";
+// theme changes redraw with the new tokens
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+new MutationObserver(draw).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+S.preset = 3; Object.assign(S, PRESETS[3].s); syncBuilder(); draw();
+</script>

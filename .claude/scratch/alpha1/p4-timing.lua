@@ -1,0 +1,18 @@
+local sw = reqscript('seasonal-wildlife')
+local function T(name, f) local t0 = dfhack.getTickCount(); local ok, r = pcall(f); print(('%-28s %6d ms  %s'):format(name, dfhack.getTickCount() - t0, ok and '' or ('ERR ' .. tostring(r)))) return r end
+local cfg = T('loadConfig', function() return sw.loadConfig() end)
+T('getEmbarkRegions', function() return sw.getEmbarkRegions() end)
+local pool = T('buildPool', function() return sw.buildPool(cfg) end)
+print('pool size ' .. #pool .. '; creature raws ' .. #df.global.world.raws.creatures.all .. '; populations ' .. #df.global.world.populations.all .. '; units.active ' .. #df.global.world.units.active)
+T('buildPool again', function() return sw.buildPool(cfg) end)
+T('countsFor', function() return sw.countsFor(cfg, pool) end)
+T('groupsStatus', function() return sw.groupsStatus() end)
+T('ecoLivePairs', function() return sw.ecoLivePairs() end)
+T('overlayLinks', function() return sw.overlayLinks() end)
+T('cavernsFound', function() return sw.cavernsFound() end)
+T('WILD.countByLayer', function() return sw.WILD.countByLayer() end)
+T('ledgerLines 300', function() return sw.ledgerLines(300) end)
+local craw = df.global.world.raws.creatures.all
+T('classify all raws', function() for _, c in ipairs(craw) do sw.classify(c) end end)
+T('climateRange all raws', function() for _, c in ipairs(craw) do sw.climateRange(c) end end)
+T('predation (1 pass)', function() return sw.predation and sw.predation(cfg, pool) end)

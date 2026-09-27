@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha One Findings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#EEF0EB; --paper-2:#E3E7DF; --card:#F7F8F5; --ink:#1F2A22; --ink-2:#4A554D; --rule:#C9D0C4;
+  --moss:#3F6B36; --moss-soft:#DCE8D4; --rust:#A6491F; --rust-soft:#F1DDD2; --amber:#8A6A12; --amber-soft:#F0E6C6;
+  --slate:#3E5A76; --slate-soft:#DCE4EC;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A16; --paper-2:#1D241F; --card:#1A211C; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+    --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+    --slate:#8FB2D6; --slate-soft:#1E2A36;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A16; --paper-2:#1D241F; --card:#1A211C; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+  --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+  --slate:#8FB2D6; --slate-soft:#1E2A36;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.58 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--moss)}
+h1,h2,h3{font-family:"Newsreader",Georgia,serif;font-weight:600;letter-spacing:-0.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,4vw,2.9rem);line-height:1.05}
+h2{font-size:1.6rem;line-height:1.15}
+h3{font-size:1.12rem;line-height:1.3}
+p{margin:0}
+code,kbd{font:0.86em "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+code{background:var(--paper-2);padding:1px 5px;border-radius:3px}
+kbd{background:var(--card);border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:1px 5px}
+.eyebrow{font:600 0.72rem/1.2 "Source Sans 3",sans-serif;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-2)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+header{padding:42px 0 26px;border-bottom:1px solid var(--rule)}
+header .lede{margin-top:14px;max-width:66ch;font-size:1.07rem;color:var(--ink-2)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:18px;font-size:0.92rem;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.facts b{color:var(--ink);font-weight:600}
+section{padding:34px 0;border-bottom:1px solid var(--rule)}
+section>h2{margin-bottom:6px}
+section>.sub{color:var(--ink-2);max-width:70ch;margin-bottom:18px}
+.prose{max-width:70ch;display:grid;gap:12px}
+.roots{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:16px}
+.root{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:grid;gap:6px;align-content:start}
+.root .n{font:600 0.72rem/1 "JetBrains Mono",monospace;color:var(--rust)}
+.root h3{font-family:"Source Sans 3",sans-serif;font-size:1.02rem}
+.root p{font-size:0.94rem;color:var(--ink-2)}
+.root .hits{font-size:0.82rem;color:var(--ink-2)}
+.ws{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:6px}
+.wsh{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 14px}
+.wsh .id{font:600 0.95rem "JetBrains Mono",monospace;color:var(--moss)}
+.chip{display:inline-block;font:600 0.7rem/1 "Source Sans 3",sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:999px;border:1px solid}
+.sev-c{color:var(--rust);border-color:var(--rust);background:var(--rust-soft)}
+.sev-h{color:var(--amber);border-color:var(--amber);background:var(--amber-soft)}
+.sev-m{color:var(--slate);border-color:var(--slate);background:var(--slate-soft)}
+.steps-hit{font-size:0.86rem;color:var(--ink-2)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px}
+.box{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:14px 16px}
+.box h3{font-family:"Source Sans 3",sans-serif;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.box ul,.box ol{margin:0;padding-left:1.15em;display:grid;gap:6px;font-size:0.94rem}
+.box p{font-size:0.94rem}
+.accept{border-left:3px solid var(--moss)}
+.evid{border-left:3px solid var(--slate)}
+.cause{border-left:3px solid var(--rust)}
+.tbl{overflow-x:auto;margin-top:10px}
+table{border-collapse:collapse;font-size:0.9rem;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:0.74rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+td.num{text-align:right;white-space:nowrap}
+td.bad{color:var(--rust);font-weight:600}
+td.good{color:var(--moss);font-weight:600}
+.qa{display:grid;gap:10px;max-width:78ch}
+.qa details{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:10px 14px}
+.qa summary{cursor:pointer;font-weight:600}
+.qa details p{margin-top:8px;color:var(--ink-2)}
+.dec{display:grid;gap:10px}
+.dec .row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:12px 14px}
+.dec .row .k{font:600 0.95rem "JetBrains Mono",monospace;color:var(--amber)}
+.dec .row b{font-weight:600}
+.dec .row .rec{margin-top:6px;font-size:0.93rem;color:var(--ink-2)}
+.phases{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.phase{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--moss);border-radius:6px;padding:14px 16px;display:grid;gap:8px;align-content:start}
+.phase .v{font:600 0.8rem "JetBrains Mono",monospace;color:var(--ink-2)}
+.phase ul{margin:0;padding-left:1.1em;font-size:0.92rem;display:grid;gap:4px}
+.mono{font-family:"JetBrains Mono",monospace;font-size:0.84rem}
+.muted{color:var(--ink-2)}
+footer{padding:26px 0 60px;color:var(--ink-2);font-size:0.9rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Seasonal Wildlife · alpha trial one · digest and repair plan</div>
+    <h1>Alpha One Findings</h1>
+    <p class="lede">The first alpha trial of <em>seasonal-wildlife</em> v6.2.1 marked 22 of 46 steps as anomalies. Traced to their causes, they come down to five root problems and ten workstreams. Three of the root problems are in the tool and two are in our own validation harness, which passed 148 claims while missing most of what a player hits in the first hour. Every finding below comes from the trial fort itself: its ledger and saved configuration, DFHack's error log, live timings on the running game, and the vanilla creature raws.</p>
+    <div class="facts">
+      <span>Fort <b>Boatsbowed</b> (tropical shrubland · tropical ocean · saltwater river · 30 dwarves)</span>
+      <span>Build <b>DF 53.16 · DFHack 53.16-r1.1 · plugin v6.2.1</b> (deployed files byte-identical to the repository)</span>
+      <span>Tester tally <b>21 pass · 22 anomaly · 1 skipped · 2 unmarked</b></span>
+      <span>Fort ledger <b>219 lines</b>: 146 edits, 36 arrivals, 7 placements, 1 fuse trip</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="roots">
+  <h2>Five root causes</h2>
+  <p class="sub">Most anomalies are symptoms. These five causes explain all but a handful of the 22 on their own; the workstreams further down fix them one at a time.</p>
+  <div class="roots">
+    <div class="root"><span class="n">R1 · critical</span><h3>Blocking a species does not block it unless it has seasons</h3>
+      <p>The roster only manages species with at least one season assigned. Matrix assign clears seasons on everything it does not allow, so a blocked species is usually unseasoned and left entirely to DF. On this fort <b>63 blocked species still hold their full worldgen stock</b>: cavies 5,191, giant rhinoceros 5,203, giant jackal 2,204, dingo 3,412, lion 1,602, every shark. Every water and cavern species also has no seasons, so those two layers are not managed at all.</p>
+      <p class="hits">Explains 4.2 (blocked rhinos and jackals arrived), 11.3 (arrivals the tool did not send), 7.2 (the pile-up), 11.1 (the "—" season question), 1.4 (no cavern species in the roster).</p></div>
+    <div class="root"><span class="n">R2 · high</span><h3>One flag decides a species' whole identity</h3>
+      <p>Category is a single choice made from one raw flag at a time: a CARNIVORE flag makes a predator, a BENIGN flag makes prey, and nothing else is looked at. So a Giant Orca, BENIGN in the raws, is prey; a bird cannot also be a predator; a dingo carrying DF's LARGE_PREDATOR <em>behaviour</em> flag is filed as "large". "Aquatic" is set by any water-breathing flag <em>or</em> by a biome list that is all water, which puts otters, hippos, albatrosses and eleven night creatures under aquatic, and crabs and squid under "other". The diet model then has no habitat check, so lions eat sharks.</p>
+      <p class="hits">Explains 2.1, 5.2 (land and water eating each other), 1.4 (Roster's water view), 11.2 (the otter in the ocean).</p></div>
+    <div class="root"><span class="n">R3 · high</span><h3>The roster tools cascade through the whole web</h3>
+      <p>Co-align and the <kbd>Y</kbd>/<kbd>D</kbd> fills update partners inside the same loop they read from, so each creature sees the sets the ones before it just widened. In one pass the change spreads across the entire food web: every species ends up in every season (co-align) or allowed (fills). With R2's unchecked diet, the web is dense enough that "partner" means nearly everyone.</p>
+      <p class="hits">Explains 3.2, 3.4, and most of why 3.1's matrix seasons do not survive.</p></div>
+    <div class="root"><span class="n">R4 · high</span><h3>Hot loops allocate on a 54 MB Lua heap</h3>
+      <p>Six loops over the fort's 7,606 population entries build a throwaway one-key table per entry. On DFHack's 54 MB Lua heap each allocation triggers garbage-collection work: the same loop costs <b>1.5 s with the per-entry table and 0–33 ms without</b>. That is the Live tab's 3.4–4.3 s refresh and much of the groups job's 0.3–1.5 s stalls. Reading the configuration costs 65 ms a call and every job reads it. The ecology job overran by 2.8 s on day 79 and the fuse cancelled it, silently: <b>ecology has been off since</b> and nothing in the window says so.</p>
+      <p class="hits">Explains 1.1 (hangs, CPU doubling), 5.2 and 6.1 (slow tabs), part of 12.2.</p></div>
+    <div class="root"><span class="n">R5 · ours</span><h3>The validator could not see what the player sees</h3>
+      <p>It injects keys straight into the window, bypassing DF's own global bindings, so <kbd>Ctrl</kbd>+<kbd>R</kbd> and <kbd>Ctrl</kbd>+<kbd>L</kbd>, DF's record- and load-macro keys, passed. It enabled the map overlay to test it and never turned it off, so the tester's fort had "graphical bugs" from day one. It recorded "a species with no seasons is not managed at all" as a PASS, enshrining R1. It checks text by bytes, so seventeen em dashes that DF draws as <code>ΓÇö</code>, the tester's "Cyrillic RCo", passed as well.</p>
+      <p class="hits">Explains 3.5, 4.4, 3.6, 6.2/6.3/10.1, and why none of R1–R4 surfaced in 176 claims.</p></div>
+  </div>
+</section>
+
+<section id="evidence">
+  <h2>What was measured</h2>
+  <p class="sub">Timings taken on the trial fort, paused, 252 active units and 7,606 population entries. The target for every window action is under 100 ms, and under 50 ms per tick for any background job.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>What</th><th class="num">Measured</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Open the window (already initialised)</td><td class="num">632 ms</td><td>The 15–30 s the tester saw is not reproduced on reopen. The first open applied the preset, and the groups job was stalling the game at the same time; both are covered below. Opening will print its own time from now on.</td></tr>
+      <tr><td>Live tab refresh</td><td class="num bad">3,379–4,319 ms</td><td>A population pass per layer with a table allocated per entry.</td></tr>
+      <tr><td>Same population pass, table built once</td><td class="num good">0–33 ms</td><td>1,478–1,601 ms with the per-entry table. Heap 54,316 KB.</td></tr>
+      <tr><td>Food web, Graph mode, all seasons</td><td class="num">518 ms</td><td>Other modes 1–49 ms.</td></tr>
+      <tr><td>Rebuild the pool / Vermin / Layers</td><td class="num">222 / 167 / 100 ms</td><td>Classifying 1,120 raws on every rebuild: 118 ms. The raws do not change during play.</td></tr>
+      <tr><td>Read the configuration</td><td class="num">≈65 ms per call</td><td>Every job and every window action reads it afresh.</td></tr>
+      <tr><td>Groups job, during the trial</td><td class="num bad">253–1,489 ms</td><td>Budget 250 ms; over budget 22 times in the trial's log section.</td></tr>
+      <tr><td>Ecology job, day 79</td><td class="num bad">4,816 ms, cancelled</td><td>1,611 predator–prey pairs written for 48 predators × 195 targets. The fuse is still tripped.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="workstreams">
+  <h2>Ten workstreams</h2>
+  <p class="sub">Each workstream groups the anomalies that share a cause, with the evidence, the fix, and the test that proves it. W0 is the harness; it goes first, because every later fix needs a validator that can see it.</p>
+  <div class="ws">
+
+  <article class="box" id="w0">
+    <div class="wsh"><span class="id">W0</span><h3>Make the validator see what a player sees</h3><span class="chip sev-c">first</span></div>
+    <p class="steps-hit">Steps 3.5, 3.6, 4.4, 6.2, 6.3, 10.1 · root R5</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box evid"><h3>Evidence</h3><ul>
+        <li>DF's <code>interface.txt</code> binds <kbd>Ctrl</kbd>+<kbd>R</kbd> RECORD_MACRO, <kbd>Ctrl</kbd>+<kbd>L</kbd> LOAD_MACRO, <kbd>Ctrl</kbd>+<kbd>P</kbd> PLAY_MACRO and <kbd>Ctrl</kbd>+<kbd>S</kbd> SAVE_MACRO; DF acts on these before any DFHack screen.</li>
+        <li><code>overlay.json</code> kept <code>seasonal-wildlife.groups</code> enabled from validation until the tester switched it off; the widget's own default is off.</li>
+        <li>The claim <code>mech.unassigned</code> ("not managed at all") is recorded PASS.</li>
+        <li>Seventeen UTF-8 em dashes in displayed strings: the Dry-run title, the Food web headings, the water and cavern status lines.</li></ul></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>A static check of every window key against DF's <code>interface.txt</code> and DFHack's global keybindings; any collision fails the run.</li>
+        <li>Snapshot and restore every persisted DFHack setting the run touches (overlays first).</li>
+        <li>Replace <code>mech.unassigned</code> with claims that a blocked species, seasoned or not, on every layer, ends with zero stock.</li>
+        <li>A lint that fails any non-ASCII character in a displayed string.</li>
+        <li>Timing budgets as claims: each tab's refresh and each job's tick measured and bounded.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>Run against today's v6.2.1, the new checks <b>fail</b> on the two macro keys, the em dashes, the blocked-but-unseasoned species and the Live tab's time. A validator that passes the current build has not learned anything.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w1">
+    <div class="wsh"><span class="id">W1</span><h3>Block means block, on every layer</h3><span class="chip sev-c">critical</span></div>
+    <p class="steps-hit">Steps 4.2, 7.2, 11.1, 11.3, 3.3, 3.7, 4.4 · root R1</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box cause"><h3>Cause</h3><p>Two functions build the set of species to manage from season assignments alone: the season-boundary apply and the daily out-of-season hold. Anything without seasons is skipped. Blocking works only by accident, when the species still has a season. Separately, the Default view filters on "in this embark", exactly like Current, so the two lists are identical by construction. Reset restores the stock of species in the first-run snapshot, which leaves added species and roster choices alone. That matches its own promise but not the name "Reset to default".</p></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Manage every roster species. Inactive (blocked) is zero stock, always. Active with no seasons means "all year", shown as <code>All</code>, so the "—" state disappears.</li>
+        <li>In the caverns, stock is not the lever (T7: closing 109 entries stopped no cavern wave); inactive cavern species are held at frequency 1, the lever the cavern ceiling already uses.</li>
+        <li>Default view shows the first-run snapshot: which species the embark had, at what stock, before any edit.</li>
+        <li>Reset becomes two actions behind one confirmation: <em>restore stock</em> (today's behaviour) and <em>restore the embark</em> (remove added species, re-apply the preset).</li>
+        <li><kbd>F</kbd> leaves a category alone unless its target is set, so apex species are no longer blocked by a default target of 0.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>On this fort, after the fix and one day of play: all 63 blocked species show zero stock, no inactive species arrives over a season, and the 46 active-but-unseasoned water and cavern species are managed. Validated by the new W0 claims and a two-replicate experiment on a copy of Boatsbowed.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w2">
+    <div class="wsh"><span class="id">W2</span><h3>A species model built from the raws</h3><span class="chip sev-h">high</span></div>
+    <p class="steps-hit">Steps 2.1, 1.4, 5.2, 11.2 · root R2</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box evid"><h3>Evidence</h3><ul>
+        <li>DF 53 stores the raws' <code>[AQUATIC]</code> as <em>cannot breathe air</em>, <code>[AMPHIBIOUS]</code> as <em>can breathe water</em>, <code>[UNDERSWIM]</code> as <code>AQUATIC_UNDERSWIM</code>. Tiles carry a <code>water_salt</code> bit. The raws name each creature's water: OCEAN, and RIVER, LAKE and POOL each as fresh, brackish or salt.</li>
+        <li>Big BENIGN swimmers read as prey: GIANT_ORCA, ORCA, ORCA_MAN, SHARK_WHALE, FISH_RAY_MANTA, FISH_SUNFISH_OCEAN.</li>
+        <li>45 species fall in "other", sixteen of them aquatic: crabs, horseshoe crabs, nautilus, cuttlefish, ammonite, gigantic squid.</li>
+        <li>28 species are "aquatic" without swimming underwater: three albatrosses (fliers), eleven night creatures, otters, hippos, pond grabbers.</li>
+        <li>"Large" for a predator is DF's LARGE_PREDATOR behaviour flag: a dingo (20,000 cm³) and a frill shark (60,000) are large; a monitor lizard (100,000) is large by the 5,000 threshold.</li>
+        <li>Ocean fish not on the embark are filed on the land layer, which is why the Roster's Water view shows almost nothing.</li></ul></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Two independent axes. <b>Habitat</b>: aquatic (cannot breathe air, or cannot move on land), amphibious (can breathe water and air), flier, land; plus the cavern and deep layers. <b>Role</b>: predator, prey, grazer, scavenger. A bird can be a predator: an eagle is a flier and a predator.</li>
+        <li>Size by adult body volume in bands, independent of DF's behaviour flags; LARGE_PREDATOR is kept, shown as "aggressive".</li>
+        <li>A curated vanilla table for the raws' gaps (orcas, whale shark, octopus, squid, crabs), each line citing its raw, and a per-species role and habitat override on the species detail page.</li>
+        <li>Water body and salinity per species from its biome tags, used by the diet model (W3) and placement (W8).</li>
+        <li>Every creature is filed on the layer its habitat belongs to, whether or not the embark has it.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>A generated audit table of all 767 vanilla creatures, raw tags beside the tool's reading, has no row the tester flagged left wrong. It becomes a validator fixture, so a later change that misfiles an orca fails the run.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w3">
+    <div class="wsh"><span class="id">W3</span><h3>Season shaping and the food web</h3><span class="chip sev-h">high</span></div>
+    <p class="steps-hit">Steps 3.1, 3.2, 3.3, 3.4, 5.2 · root R3</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box cause"><h3>Cause</h3><p>Co-align walks the pool and extends every partner of every creature to all of its seasons, writing as it goes. Fill natural prey and predators allow partners inside the same walk, so newly allowed species pull in their own partners. The diet test checks mass and layer but not habitat, and lets any bird eat any smaller aquatic creature.</p></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Diet requires compatible habitats: land hunts land and amphibious; aquatic hunts aquatic; amphibious and piscivorous birds bridge the shore. Every cross-habitat edge carries its reason.</li>
+        <li>Co-align reads a snapshot and solves a small problem per season and ecosystem: every predator has a prey and every prey a predator. It extends a species by at most one adjacent season, and reports what it could not pair instead of widening further. This is the tester's proposal.</li>
+        <li><kbd>Y</kbd> and <kbd>D</kbd> add only direct partners of species active <em>before</em> the key, and only where a predator has no prey (or a prey no predator); they list what they added.</li>
+        <li>Matrix assign splits each habitat group four ways by climate lean, one quarter per season, with at least one predator–prey pair per layer per season. This is the tester's proposal.</li>
+        <li>Targets per layer; <kbd>F</kbd> fills only layers below target.</li>
+        <li>Food web: <kbd>N</kbd> hidden in By-season (it shows all four); chains marked in every mode.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>On this fort after the preset: no season holds more than half the roster, co-align changes fewer than 20 sets and leaves no species in all four seasons unless it began there, <kbd>Y</kbd> adds a number you could count by hand, and no land predator lists an aquatic prey.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w4">
+    <div class="wsh"><span class="id">W4</span><h3>Speed and silent failures</h3><span class="chip sev-h">high</span></div>
+    <p class="steps-hit">Steps 1.1, 5.2, 6.1, 12.2 · root R4</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Build the layer set once, outside the loop, at all six sites: the Live tab, the cavern ceiling, coupling, the water and cavern stocking passes, and the dawn table.</li>
+        <li>Hold the configuration in memory and write it back when changed, instead of decoding it on every call.</li>
+        <li>Classify the 1,120 raws once per loaded world, not on every pool rebuild.</li>
+        <li>Ecology writes only pairs that are new since the last pass, in bounded batches; 1,611 pairs at once is what tripped the fuse.</li>
+        <li>A tripped fuse shows as a banner on every tab, naming the job and offering re-arm.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>Every tab refreshes in under 100 ms on this fort; the groups job and the ecology job stay under 50 ms per tick across a season; no fuse trips. All of it is measured by the validator's new timing claims. The tester's frame-rate comparison is repeated on the Jobs tab (W9).</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w5">
+    <div class="wsh"><span class="id">W5</span><h3>Window, keys and text</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 1.1, 1.3, 2.4, 3.5, 3.6, 4.4, 7.6</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Move <kbd>Ctrl</kbd>+<kbd>R</kbd> and <kbd>Ctrl</kbd>+<kbd>L</kbd> to keys DF does not own; avoid <kbd>Ctrl</kbd>+<kbd>P</kbd> and <kbd>Ctrl</kbd>+<kbd>S</kbd>.</li>
+        <li>ASCII in every displayed string; the "—" season becomes <code>All</code> or <code>none</code>.</li>
+        <li>A help block in the window's script, so the launcher's Help pane describes it instead of the generic welcome text.</li>
+        <li>Open at most of the screen, wrap long lines, drop right-edge clipping (the Layers intro line is cut at "or h").</li>
+        <li>A confirmation before re-applying the preset and before any action that rewrites the whole roster.</li>
+        <li>A non-Shift alternative for cycling seasons: on this rig only the left Shift reaches DF, which DFHack cannot change.</li>
+        <li>Mouse: click a Ledger line, click a Seasons cell (W10).</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>W0's key, lint and clip checks pass; the launcher's Help tab shows the window's summary; the tester can read every tab at the default size without resizing.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w6">
+    <div class="wsh"><span class="id">W6</span><h3>Seeing what is on the map</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 4.2, 6.1, 6.2, 6.3, 7.2, 9.2, 11.3, 2.5</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box evid"><h3>Evidence</h3><ul>
+        <li>90 wild units on the map at inspection; the Live tab tracks 27, in 16 groups. The rest are deep-layer demons and magma crabs, cavern residents, three elephants the tool never tracked, and the five tool-placed water animals.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>F</kbd> runs DFHack's <code>fix/wildlife</code>, which removes only animals stuck while trying to leave, then asks DF for a new wave. Nothing sends the current group away, which is the pile-up.</li>
+        <li>The overlay draws a group marker at its screen position on every z-level, which is the <code>g1</code> the tester saw on every level below ground.</li>
+        <li>The undo ring is ten deep by design and was full (10 of 10).</li></ul></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>Live lists every wild unit on the map by origin: DF wave (tracked), tool-placed, resident since embark, born here, deep layer. Tracked groups become one section of it, not all of it.</li>
+        <li>The Ledger records every arrival on every layer, including DF's own and the force action.</li>
+        <li>Force sends the current group off (countdowns zeroed) before calling the next; a <em>call this species</em> action on the species detail page, as the tester asked.</li>
+        <li>Overlay markers only on the viewed level.</li>
+        <li>Undo 50 deep, the depth shown, and a list of what each step would undo.</li>
+        <li>Live redesigned around the question "what is here and why".</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>Every wild unit on the map appears on the Live tab with an origin; Force leaves at most one arriving group on the map; the overlay draws nothing on levels its groups are not on.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w7">
+    <div class="wsh"><span class="id">W7</span><h3>Words and explanations</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 2.6, 3.7, 4.3, 7.3, 7.4, 7.5 and the questions answered below</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box"><h3>Fix</h3><ul>
+        <li>The vocabulary the tester proposed (decision D1): <em>active / inactive</em> for released onto this map or not; <em>Add invasive</em> for bringing in a species the embark does not have.</li>
+        <li>"Auto" becomes <em>Seasonal rotation</em>, with a line saying what it does at each boundary and each day.</li>
+        <li>"Abundance" becomes <em>stock</em>, because it is a count, not a share: DF's choice of species ignores stock (measured 17 September). A separate <em>odds</em> lever on the raw's frequency, with each species' share of its layer shown beside it, follows one confirming experiment.</li>
+        <li>A <kbd>?</kbd> page per tab: quota, stocking, ecology, coupling, nudge, pack size, patterns, irruptions and "armed", in the words of the answers below.</li>
+        <li>The stale "the cavern gate takes steady until v6.1" message removed; the Layers tab greys cells that do not apply to a layer and says why.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>A reader of the alpha 2 walkthrough can answer every question in this trial's report from inside the window.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w8">
+    <div class="wsh"><span class="id">W8</span><h3>Water and caverns</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 7.1, 7.2, 7.4, 11.2</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box evid"><h3>Evidence</h3><ul>
+        <li>The first-run defaults leave the water and cavern layers off, so the preset seasons neither; turning them on later adds unseasoned, unmanaged species.</li>
+        <li><code>reveal all</code> unhid the caverns, but DF's discovered flag stayed false on all three and its first-cavern announcement never fired. The tool counts a cavern as found only by that flag.</li>
+        <li>The water job is working: 7 animals placed, 5 on the map, target 12. It places at any wet edge tile, so a river otter entry went into the ocean. DF never draws river or lake entries during play (measured 17 September); ocean entries arrive only when the map edge is wet.</li>
+        <li>The nudge setting's "radius 6" is drawn under the Water column; nudge is a single surface-predator policy.</li></ul></div>
+      <div class="box"><h3>Fix</h3><ul>
+        <li>The preset turns on every layer the map actually has, and seasons each of them.</li>
+        <li>A cavern counts as found when DF says so <em>or</em> its tiles are revealed, and the line says which (decision D5).</li>
+        <li>Water placement matches the species' water: ocean or river or lake, and salt, brackish or fresh against the tile's salt bit.</li>
+        <li>The water line always shows its state and reason, including when the layer is off.</li>
+        <li>Nudge moves to its own row labelled "surface predators".</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>On Boatsbowed: the preset leaves all three layers on and seasoned; a river species is only ever placed in the river; the revealed caverns read as found; the tester sees aquatic life within a week of turning the water layer on.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w9">
+    <div class="wsh"><span class="id">W9</span><h3>A master switch and a Jobs tab</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 4.3, 12.2 · the tester's request</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box"><h3>Fix</h3><ul>
+        <li>One <em>all on / all off</em> switch that stops every job and restores every raw the tool changed, and says so.</li>
+        <li>A Jobs tab listing each background job: the season boundary and daily hold, groups, ecology, water, cavern stocking and ceiling, irruptions, and the overlay. Each row shows its state, cadence, last run in ms, worst run, fuse state, and an on/off toggle.</li>
+        <li>A frame-rate readout on the tab, taken while running, so the tester's on/off comparison is one keypress per job.</li>
+        <li>On first run the tool shows what it turned on, instead of reading "tool OFF" beside switches that say on (decision D3).</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>Every job the tool schedules is listed; switching all off returns the frame rate to the tool-free figure within the fort's own noise; switching one job off stops only that job.</p></div>
+    </div>
+  </article>
+
+  <article class="box" id="w10">
+    <div class="wsh"><span class="id">W10</span><h3>Vermin and Seasons as editors</h3><span class="chip sev-m">medium</span></div>
+    <p class="steps-hit">Steps 5.1, 8.1</p>
+    <div class="cols" style="margin-top:10px">
+      <div class="box"><h3>Fix</h3><ul>
+        <li>The Vermin tab lists each active vermin species under its family, and seasons and stock are set per species. Family is a grouping and a shortcut, not the unit of control; the tester is right that a whole family rarely shares seasons.</li>
+        <li>The Seasons tab becomes editable: click or <kbd>Enter</kbd> on a cell toggles that species in that season, the same edit as the Roster's season keys and the species detail's, with one undo entry.</li></ul></div>
+      <div class="box accept"><h3>Done when</h3><p>A season can be toggled from all three places and each shows the other two's change immediately.</p></div>
+    </div>
+  </article>
+
+  </div>
+</section>
+
+<section id="answers">
+  <h2>Answers to the tester's questions</h2>
+  <p class="sub">These are the answers the in-window help pages (W7) will carry, written against the code as it stands today.</p>
+  <div class="qa">
+    <details><summary>What is the "Cyrillic RCo" text?</summary><p>An em dash. The tool writes it in UTF-8, and DF draws text in its own 256-character set, so the three bytes appear as <code>ΓÇö</code>. It sits in the Dry-run title, the Food web headings and the water and cavern status lines. W5 replaces all seventeen with ASCII, and W0 fails any that come back.</p></details>
+    <details><summary>What is the difference between Matrix and Co-align?</summary><p>Matrix gives each active species seasons from its climate range: the coldest third of your roster autumn and winter, the warmest third spring and summer, the middle all year. Co-align then widens seasons so predators and their prey overlap. Today co-align widens without limit, which is why everything ends up in every season (W3).</p></details>
+    <details><summary>Can a bird also be a predator or prey?</summary><p>Not today: category is one choice. W2 splits it into habitat and role, so an eagle is a flier and a predator, and a parakeet a flier and prey.</p></details>
+    <details><summary>Does abundance come from a shared pool across layers, or per layer?</summary><p>Neither. Abundance sets each population entry's stock to 100 × abundance ÷ 50, so 50 means a stock of 100. DF's choice of <em>which</em> species arrives ignores stock (measured 17 September); stock only matters when it reaches zero, which stops the species, and it caps how many can come before the entry runs out. So abundance does not change proportions at all. W7 renames it <em>stock</em>, and adds an <em>odds</em> lever on the raw's frequency showing each species' share of its layer.</p></details>
+    <details><summary>A creature shows "—" for seasons and Y for ok. When does it appear?</summary><p>Whenever DF draws it. With no seasons the tool does not manage it at all, so it keeps its worldgen stock all year. That is also true when it is <em>blocked</em>, which is the root of the blocked arrivals (R1). After W1, active with no seasons means all year, shown as <code>All</code>, and inactive means never.</p></details>
+    <details><summary>Are creatures being spawned by the game rather than the tool?</summary><p>Yes, and all land and cavern arrivals always are. The tool never creates land or cavern animals: it sets which entries DF may draw from and holds or releases DF's gate. The only animals it creates are water placements (7 on this fort) and cavern stocking (off). The pile-up is DF drawing 63 species the tool believed were blocked, plus Force calling new groups without sending the current one off, plus eleven rhinos held for thirty days in step 6.3.</p></details>
+    <details><summary>What is a quota, and what is stocking?</summary><p>A quota is a per-layer ceiling: land, how many tracked groups at once; water, how many animals the water job keeps on the map; caverns, how many wild units the caverns may hold. 0 means unset. Stocking is the tool placing animals itself, because DF never draws river or lake entries during play and rarely fills caverns: the water job places up to its target, and cavern stocking (off by default) fills up to the cavern quota.</p></details>
+    <details><summary>Why don't all layers have the same options?</summary><p>Because DF gives each layer a different lever. The surface is steered by stock and the arrival gate. Water only by placement, since DF never draws river or lake animals in play. Caverns only by the raw's frequency, since closing a cavern entry stopped no cavern wave (109 entries held at zero, thirty arrivals anyway). W7 greys the cells that do not apply and says why.</p></details>
+    <details><summary>What do ecology and coupling do? Is nudge per layer?</summary><p>Ecology writes DF's own predator–prey relation between wild animals on the map, so a predator near prey attacks it; with it off they meet by chance. It also nudges any surface predator that has stayed more than 40 tiles from all prey for 3,000 ticks to within 6 tiles of the nearest. Nudge is one policy for surface predators: the "radius 6" under the Water column is a layout bug (W8). Coupling: when a prey group arrives, the tool briefly opens only that prey's natural predators so DF's next wave is one of them, then restores the roster. The jackals following the rhinos in step 6.4 were coupling. On this fort ecology has been off since day 79, when its fuse tripped (W4).</p></details>
+    <details><summary>If pack size is set to a number, is the group always exactly that size?</summary><p>No. "Raw" leaves the creature's own range (a dingo's is 3–12). A number writes that range as N to N, and DF then draws N and sometimes N + 1: ravens and emus both drew three under a written maximum of two, about one wave in six, never four (E42b). It applies to the predator waves coupling opens.</p></details>
+    <details><summary>What does "armed" mean for irruptions?</summary><p>The group's members get DF's agitated-wilderness flag, the one that makes wildlife attack what it meets, for ten days, then it is cleared. It cannot aim: an armed group is dangerous to dwarves working in that cavern, and does not march on the fort. Pressure only rises with citizens in a cavern's depth band, which is why the tester's three pressures read 0 with no dwarves underground.</p></details>
+    <details><summary>What does "the cavern gate takes steady until v6.1" mean?</summary><p>Nothing any more. It is a message from before v6.1 shipped, and it is wrong in v6.2.1; W7 removes it.</p></details>
+    <details><summary>Which water can a river otter live in?</summary><p>Its raw lists any pool, lake or river, of any salinity, but no ocean. The tool placed it at an ocean edge because placement ignores the water body. W8 matches ocean, river or lake and salt, brackish or fresh.</p></details>
+    <details><summary>Why is undo limited?</summary><p>The undo ring holds ten edits by design, of any kind, and the trial filled it. W6 makes it fifty deep and shows the depth.</p></details>
+    <details><summary>What were the <code>g1</code> and <code>r11</code> marks and the red dashes?</summary><p>The map overlay: <code>g</code>/<code>r</code> plus a count marks a gated or resident group, and the red dashes are predator–prey links. It is off by default; our validator had left it on. It also drew markers on every z-level, which W6 fixes.</p></details>
+  </div>
+</section>
+
+<section id="decisions">
+  <h2>Decisions for you</h2>
+  <p class="sub">Each has a recommendation. The plan proceeds on the recommendation unless you say otherwise.</p>
+  <div class="dec">
+    <div class="row"><span class="k">D1</span><div><b>Vocabulary.</b> Adopt your proposal: <em>active / inactive</em> for released onto this map or not; <em>Add invasive</em> in place of Add-new.<p class="rec">Recommend yes. "Allowed" and "blocked" disappear from the window, the guide and the ledger together.</p></div></div>
+    <div class="row"><span class="k">D2</span><div><b>An active species with no seasons</b> is present all year, shown <code>All</code>.<p class="rec">Recommend yes. The alternative, "never", makes activating a species a two-step action with a silent failure between the steps.</p></div></div>
+    <div class="row"><span class="k">D3</span><div><b>After the first-run preset</b>, seasonal rotation starts on, with every layer the map has, and a one-screen summary of what was switched on.<p class="rec">Recommend yes. Today the tool starts off while groups and ecology run, which is what made "auto" unreadable.</p></div></div>
+    <div class="row"><span class="k">D4</span><div><b>Size bands</b> by adult body volume: small under 150,000 cm³, large at or over, overridable per species. Dingo (20,000), frill shark (60,000) and monitor lizard (100,000) become small; orca (5,000,000) and hippo (1,500,000) large.<p class="rec">Recommend this threshold; a third, medium band if you want one.</p></div></div>
+    <div class="row"><span class="k">D5</span><div><b>A revealed cavern counts as found</b>, labelled "revealed" rather than "found by your dwarves".<p class="rec">Recommend yes: the player has already seen it.</p></div></div>
+    <div class="row"><span class="k">D6</span><div><b>Matrix by quarters within each habitat group</b>, with at least one predator–prey pair per layer per season.<p class="rec">Recommend yes, as you proposed; the thirds scheme becomes an option.</p></div></div>
+  </div>
+</section>
+
+<section id="order">
+  <h2>Order of work</h2>
+  <p class="sub">Four releases, each validated on the rig and replayed on a copy of Boatsbowed before the next begins. The alpha 2 walkthrough is rewritten against the fourth.</p>
+  <div class="phases">
+    <div class="phase"><span class="v">v6.3 · correctness and speed</span><h3>Stop the damage</h3><ul>
+      <li>W0: the validator's new checks, first, failing on v6.2.1</li><li>W1: block means block, Default view, two-level reset</li><li>W4: the six loops, cached configuration, ecology batches, fuse banner</li><li>W5: macro keys, ASCII, launcher help, preset confirmation</li></ul></div>
+    <div class="phase"><span class="v">v6.4 · the species model</span><h3>Know each animal</h3><ul>
+      <li>W2: habitat and role, size bands, water body and salinity, the vanilla table and overrides</li><li>W3: the diet test, bounded co-align, direct Y/D, quartered matrix, per-layer targets</li><li>W8: layers on and seasoned by the preset, revealed caverns, salinity-true placement</li></ul></div>
+    <div class="phase"><span class="v">v6.5 · visibility and control</span><h3>See and steer it</h3><ul>
+      <li>W6: Live by origin, full arrival ledger, force that clears, deeper undo, overlay per level</li><li>W9: master switch and Jobs tab</li><li>W7: the help pages; the odds experiment, then the odds lever</li></ul></div>
+    <div class="phase"><span class="v">v6.6 · editors and words</span><h3>Make it pleasant</h3><ul>
+      <li>W10: Vermin per species, editable Seasons</li><li>W7: the D1 vocabulary through window, guide and ledger</li><li>W5: layout, larger window, wrapping, mouse</li><li>Alpha 2 walkthrough, then the console-verb phase two</li></ul></div>
+  </div>
+  <div class="prose" style="margin-top:18px">
+    <p><b>Experiments this needs, two replicates each:</b> X1, block-means-block on a copy of Boatsbowed (every inactive species absent for a season, on every layer). X2, salinity-true water placement. X3, the odds lever: whether writing a surface species' frequency changes its share of arrivals as the cavern ceiling's frequency writes did underground. X4, E42c's written {1,1} pack, which settles what "pack size N" can promise.</p>
+    <p><b>Not reproduced:</b> the 15–30 s first open. Reopening measures 0.6 s, and the fort is past its first run. The window will print its own opening time, so alpha 2 can confirm the fix on a fresh fort.</p>
+  </div>
+</section>
+
+<section id="coverage">
+  <h2>Every report, where it goes</h2>
+  <p class="sub">All 22 anomalies, the skipped step, the unmarked steps, and every note left on a pass, each mapped to its workstream.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Step</th><th>Report</th><th>Cause found</th><th>Work</th></tr></thead>
+    <tbody>
+      <tr><td>1.1</td><td>No help; 15–30 s hang; CPU doubles</td><td>No help block in the window script; groups job stalls up to 1.5 s; Live 4.3 s</td><td>W5, W4</td></tr>
+      <tr><td>1.3</td><td>Resize cannot reach off-screen text; want larger window</td><td>Fixed-width rows; 90×34 default</td><td>W5</td></tr>
+      <tr><td>1.4</td><td>Roster rows do not follow the layer; per-layer counts unclear</td><td>Ocean fish filed on the land layer; water and cavern layers unseasoned</td><td>W2, W8, W6</td></tr>
+      <tr><td>2.1</td><td>Orca, sharks, dingo, monitor misfiled; aquatic vs ocean; night creatures under aquatic</td><td>One-flag categories; biome-only aquatic test; behaviour flag as size</td><td>W2</td></tr>
+      <tr><td>2.4</td><td>Only left Shift works</td><td>Outside DFHack's reach on this rig</td><td>W5 (non-Shift key)</td></tr>
+      <tr><td>2.5</td><td>Add force to species detail</td><td>Request</td><td>W6</td></tr>
+      <tr><td>2.6</td><td>How does abundance share out?</td><td>It is a stock count; DF's pick ignores it</td><td>W7 (stock, odds)</td></tr>
+      <tr><td>3.1</td><td>Quarter each ecotype across seasons</td><td>Request</td><td>W3, D6</td></tr>
+      <tr><td>3.2</td><td>Co-align puts everything in every season</td><td>In-place cascade over an unchecked diet web</td><td>W3</td></tr>
+      <tr><td>3.3</td><td>Fill blocks apex; targets span layers</td><td>Apex target defaults to 0; single target set</td><td>W1, W3</td></tr>
+      <tr><td>3.4</td><td>Y and D add everything</td><td>In-place cascade</td><td>W3</td></tr>
+      <tr><td>3.5</td><td><kbd>Ctrl</kbd>+<kbd>L</kbd> says "No macros!"</td><td>DF's LOAD_MACRO key</td><td>W5, W0</td></tr>
+      <tr><td>3.6</td><td>"RCo" text</td><td>UTF-8 em dash in DF's character set</td><td>W5, W0</td></tr>
+      <tr><td>3.7</td><td>Current and Default identical; rename Add-new, block</td><td>Both views filter on "in embark"</td><td>W1, W7, D1</td></tr>
+      <tr><td>4.2</td><td>Blocked rhinos and jackals arrive; pile-up</td><td>R1; Force frees without sending off</td><td>W1, W6</td></tr>
+      <tr><td>4.3</td><td>What does auto do?</td><td>Tool starts off; no explanation</td><td>W7, W9, D3</td></tr>
+      <tr><td>4.4</td><td>Reset leaves aardvark and eagle; <kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Reset restores stock only; DF's RECORD_MACRO key</td><td>W1, W5</td></tr>
+      <tr><td>5.1</td><td>Seasons tab should be editable</td><td>Request</td><td>W10</td></tr>
+      <tr><td>5.2</td><td>Food web slow; land and water eat each other; N does nothing in By season</td><td>Graph mode 518 ms; diet has no habitat test</td><td>W4, W3</td></tr>
+      <tr><td>6.1</td><td>Live slow and hard to read</td><td>Per-entry allocation, 3.4–4.3 s</td><td>W4, W6</td></tr>
+      <tr><td>6.2–6.3, 10.1</td><td>Glyphs on every level; red dashes; overlay should be off</td><td>Validator left it on; markers ignore z-level</td><td>W0, W6</td></tr>
+      <tr><td>6.4</td><td>Jackals followed rhinos</td><td>Coupling working as designed</td><td>—</td></tr>
+      <tr><td>7.1</td><td>Revealed caverns "off"; no water reason</td><td>Found = DF's discovered flag only; defaults leave layers off</td><td>W8, D5</td></tr>
+      <tr><td>7.2</td><td>No river or ocean animals; huge numbers on the map</td><td>Water was off; placement ignores water body; R1 pile-up</td><td>W8, W1</td></tr>
+      <tr><td>7.3</td><td>Quota, stocking, different options per layer, stale tooltip</td><td>Undocumented in the window; stale v6.1 message</td><td>W7</td></tr>
+      <tr><td>7.4</td><td>Nudge per layer? ecology, coupling, pack</td><td>Nudge row drawn across columns</td><td>W7, W8</td></tr>
+      <tr><td>7.5</td><td>"Armed"; pressures at 0</td><td>No dwarves underground; term unexplained</td><td>W7</td></tr>
+      <tr><td>7.6</td><td>Preset re-applies without confirmation</td><td>No dialog</td><td>W5</td></tr>
+      <tr><td>8.1</td><td>Family-wide seasons make no sense</td><td>Family is the unit of control</td><td>W10</td></tr>
+      <tr><td>9.2</td><td>Undo stops after some edits</td><td>Ten-deep ring, full</td><td>W6</td></tr>
+      <tr><td>11.1</td><td>What does "—" with Y mean?</td><td>Unmanaged, worldgen stock all year</td><td>W1, D2</td></tr>
+      <tr><td>11.2</td><td>Otter in the ocean</td><td>Placement ignores water body and salinity</td><td>W8</td></tr>
+      <tr><td>11.3</td><td>Arrivals missing from Live and Ledger</td><td>Live shows tracked groups only; R1</td><td>W6, W1</td></tr>
+      <tr><td>11.4</td><td>Pattern change (unmarked)</td><td>Not run</td><td>Alpha 2</td></tr>
+      <tr><td>12.1</td><td>Save and reload (skipped; save provided)</td><td>Save read; configuration, ledger and groups intact</td><td>—</td></tr>
+      <tr><td>12.2</td><td>No all-off; wants a jobs tab</td><td>Request; ecology fuse tripped unseen</td><td>W9, W4</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="appendix">
+  <h2>Evidence tables</h2>
+  <div class="qa">
+    <details><summary>The 63 blocked species DF can still draw, with their stock</summary><p class="mono">BIRD_ALBATROSS 59842 · BIRD_KESTREL 28 · cavern:BLOOD_MAN 21 · cavern:CAVE_DRAGON 4 · CAVY 5191 · CHEETAH 1403 · CHEETAH_MAN 1006 · COUGAR 302 · COUGAR_MAN 1347 · cavern:CREEPING_EYE 417 · cavern:CREEPY_CRAWLER 439 · DINGO 3412 · cavern:ELEMENTMAN_FIRE 26 · cavern:ELEMENTMAN_MAGMA 16 · cavern:ELEMENTMAN_MUD 14 · ELEPHANT_MAN 701 · FISH_BLUEFISH 54606 · FISH_COELACANTH 18182 · FISH_MARLIN 54606 · FISH_OPAH 38222 · FISH_STINGRAY 25979 · FISH_SWORDFISH 29121 · FISH_TUNA_BLUEFIN 108594 · GIANT_ALBATROSS 66505 · GIANT_CHEETAH 1605 · GIANT_DINGO 3822 · GIANT_JACKAL 2204 · GIANT_LEOPARD 408 · GIANT_ORCA 35474 · GIANT_RHINOCEROS 5203 · water:GIANT_SPONGE 5057 · GIANT_SPONGE 935388 · GIANT_TIGER 302 · GIRAFFE_MAN 1446 · cavern:GORLAK 15 · HYENA 3795 · HYENA_MAN 1598 · JAGUAR 607 · LEOPARD 607 · LEOPARD_MAN 1005 · LION 1602 · LION_MAN 1005 · cavern:MAGGOT_PURRING 455 · cavern:MANERA 19 · ORCA 62058 · cavern:REACHER 12 · SEA_SERPENT 2216 · SHARK_BLUE 57626 · SHARK_BULL 24250 · SHARK_FRILL 53194 · SHARK_GREAT_WHITE 49143 · SHARK_MAKO_SHORTFIN 50970 · SHARK_REEF_BLACKTIP 16453 · SHARK_TIGER 25109 · SHARK_WHALE 24250 · cavern:SNAKE_FIRE 385 · SPERM_WHALE 48762 · SPERM_WHALE_MAN 22175 · SPONGE_MAN 17742 · TIGER_MAN 746 · cavern:TROLL 8 · WARTHOG_MAN 1391 · WILD_BOAR_MAN 2013</p></details>
+    <details><summary>The six loops that allocate per population entry</summary><p class="mono">gui Win:refreshLive (per layer) · engine QUOTA.cavernThrottle · startCoupling · WATER.entries · STOCK.entries · PATTERN.openOnly</p></details>
+    <details><summary>Species filed "other" (45)</summary><p class="mono">BAT_MAN, BEETLE_MAN, BUTTERFLY_MONARCH_MAN, CRAB (aq), CRAB_MAN (aq), CRETACEOUS_AMMONITE (aq), CRETACEOUS_AMMONITE_MAN (aq), CUTTLEFISH_MAN (aq), FIREFLY_MAN, FLY_MAN, GIANT_BEETLE, GIANT_BUTTERFLY_MONARCH, GIANT_CRAB (aq), GIANT_CUTTLEFISH (aq), GIANT_FIREFLY, GIANT_FLY, GIANT_GRAY_LANGUR, GIANT_HORSESHOE_CRAB (aq), GIANT_LOUSE, GIANT_MANTIS, GIANT_MOSQUITO, GIANT_NAUTILUS (aq), GIANT_ROACH, GIANT_TICK, GIGANTIC SQUID (aq), GRAY_LANGUR, GRAY_LANGUR_MAN, HORSESHOE_CRAB (aq), HORSESHOE_CRAB_MAN (aq), LOUSE_MAN, MANTIS_MAN, MOSQUITO_MAN, NAUTILUS_MAN (aq), RAT_MAN, ROACH_MAN, SQUID MAN (aq), TICK_MAN, WORM_MAN, cavern: CAVE_BLOB, CAVE_FLOATER, CREEPING_EYE, DRUNIAN, FLESH_BALL, MAGMA_CRAB, MANERA</p></details>
+    <details><summary>Species filed "aquatic" that do not swim underwater (28)</summary><p class="mono">ALBATROSS_MAN (flier), BIRD_ALBATROSS (flier), GIANT_ALBATROSS (flier), FLY_ACORN (flier), NIGHT_CREATURE_1–11, SEA_MONSTER, SEA_SERPENT, cavern: CROCODILE_CAVE, ELEMENTMAN_MUD, FLESH_BALL, PLUMP_HELMET_MAN, POND_GRABBER, water: GIANT_HIPPO, GIANT_OTTER, HIPPO, HIPPO_MAN, OTTER_MAN, RIVER OTTER</p></details>
+    <details><summary>Sources read</summary><p>The tester's report and 38 screenshots; DFHack's <code>stderr.log</code> from the trial's first launcher command onward; the fort's ledger (219 lines), configuration, group records and undo ring, read live; 767 vanilla creature raws parsed from <code>data/vanilla/vanilla_creatures</code> and 375 resolved live from the running game; DF's <code>interface.txt</code> and <code>overlay.json</code>; the tool's source at v6.2.1. Working files: <code>DwarfCron/.claude/scratch/alpha1/</code>.</p></details>
+  </div>
+</section>
+
+</main>
+<footer class="wrap">Companion pages: <a href="https://claude.ai/code/artifact/816094a0-886c-4e34-8c58-13c2c1c5040b">Seasonal Wildlife Alpha Trial</a> · <a href="https://claude.ai/code/artifact/a61b06b2-4687-41ea-91f0-2216220d7111">The Seasonal Wildlife Plugin</a> (design) · <a href="https://claude.ai/code/artifact/6cebd06e-eafd-44a8-aa6e-d3c108e5fcba">The Wilderpop Model</a> · <a href="https://claude.ai/code/artifact/3f8ce1ed-4db3-4482-97fa-c27b2eaded7e">Seasonal Wildlife Playtest</a>. W2:Urist, 26 September 2026.</footer>
+</body>
+</html>

@@ -1,0 +1,190 @@
+
+Alpha One Findings
+    Seasonal Wildlife · alpha trial one · digest and repair plan · rev 2
+    Alpha One Findings
+    The first alpha trial of seasonal-wildlife v6.2.1 marked 22 of 46 steps as anomalies. They trace to five root causes. Rev 2 records your decisions and resolves the open questions with evidence. It then rebuilds the plan around one principle you set: every creature, on every layer, is either active with at least one season or inactive and never appears, and every layer is steered with the same controls and the same words.
+      Fort Boatsbowed (tropical shrubland · tropical ocean · saltwater river · 30 dwarves)
+      Build DF 53.16 · DFHack 53.16-r1.1 · plugin v6.2.1
+      Tester tally 21 pass · 22 anomaly · 1 skipped · 2 unmarked
+      Rev 1 → rev 2: 6 decisions taken · 8 questions resolved · 12 workstreams · 4 releases · 7 experiments
+  Five root causes
+  Unchanged from rev 1, with one sharpening to R1 that your cavern question uncovered.
+    R1 · criticalA species with no seasons is not managed at all, on any layer
+      Every pass that enforces the roster builds its list from season assignments only: the season-boundary apply, the daily out-of-season hold, the cavern frequency pass and the water placement pass. The water pass goes further and treats an unseasoned species as unrestricted. Matrix assign clears the seasons of everything blocked, and no water or cavern species on this fort has seasons. The result is 63 blocked species that DF can still draw (cavies 5,191, giant rhinos 5,203, every shark), every cavern species left open, and water placement that ignores the roster.
+    R2 · highOne raw flag decides a species' whole identity
+      Category is a single choice from one flag. A BENIGN orca is prey; a bird cannot be a predator; DF's LARGE_PREDATOR behaviour flag decides "large". "Aquatic" comes from any water-breathing flag or an all-water biome list, and the diet test never checks habitat.
+    R3 · highThe roster tools cascade through the whole web
+      Co-align and the Y/D fills write inside the loop they read, so one pass spreads a change across every partner of every partner.
+    R4 · highHot loops allocate on a 54 MB Lua heap
+      A throwaway table per population entry costs 1.5 s a pass, against 0–33 ms without it. Reading the configuration costs 65 ms a call. The ecology job overran on day 79 and its fuse cut it off silently.
+    R5 · oursThe validator could not see what the player sees
+      Its keys bypass DF's macro bindings, it left the overlay on, it recorded R1 as a PASS, and it passed seventeen em dashes that DF draws as ΓÇö.
+  Decisions taken
+  Your answers, and how each one changes the plan.
+    D1Active / inactive; Add invasive. Adopted across the window, the guide and the ledger.
+    D2An active species always has at least one season; activating one gives it exactly one. There is no "no season" state for an active species and no "all seasons" default. The only way a species never appears is inactive. The one default season comes from the species' own climate lean, balanced by the quartered matrix (D6). The player adds seasons by hand; removing the last one is refused with "make it inactive instead".
+    D3Rotation and every present layer on after the preset, for now; and a control panel. Every switch the tool has, apart from individual creatures, gets an indicator and a toggle in one place, with the background jobs, their timings and their fuses. It moves into the first release because it makes every later release easier to test.
+    D4Three size bands, by adult body volume in the raws (cm³). Your small predators all land in small.
+      BandAdult volumeExamples from the raws
+        Smallunder 150,000kestrel 250 · cat 5,000 · reef shark 15,000 · dingo 20,000 · wolf 40,000 · cougar 60,000 · frill shark 60,000 · troglodyte 60,000 · monitor lizard 100,000
+        Medium150,000 to 999,999bull shark 150,000 · lion 200,000 · grizzly 200,000 · tiger 225,000 · troll 250,000 · horse 500,000 · saltwater crocodile 800,000
+        Large1,000,000 and overgiraffe 1,000,000 · hippo 1,500,000 · great white 2,000,000 · rhinoceros 3,000,000 · elephant 5,000,000 · orca 5,000,000 · sperm whale 25,000,000
+    D5A revealed cavern counts as found, labelled "revealed".
+    D6The quartered matrix: within each habitat group, species are ranked by climate lean and dealt one season each in quarters. Every layer keeps at least one predator–prey pair in every season.
+  Questions resolved
+  Each answer rests on the raws, the tool's code, or a measurement already on record. Where something is still unmeasured, it names the experiment that settles it.
+    Q1How the raws make a species truly aquatic, water-dwelling, or merely marine
+      DF 53 turns the raw tokens into caste flags, and four of them decide habitat between them. Every creature you named, resolved live on your fort:
+      Raw tokenFlag in DF 53What it meansCarried by
+        [IMMOBILE_LAND]IMMOBILE_LANDCannot move on land at allevery shark and fish, cuttlefish, squid, nautilus, sea monster, sea serpent, pond grabber, cave fish (80 raws)
+        [AQUATIC]CANNOT_BREATHE_AIR + CAN_BREATHE_WATERDrowns in airthe same set: the two always travel together in vanilla
+        [AMPHIBIOUS]CAN_BREATHE_WATERBreathes both, so it can live in water and leave itcrabs, horseshoe crabs, hippos, otters, platypus, crocodiles, cave crocodile, seals, walrus, toads, olm, capybara (31 raws)
+        [UNDERSWIM]AQUATIC_UNDERSWIMSwims below the surface rather than on itfish, crabs, seals, toads, platypus (99 raws). It describes how a creature swims, not where it lives.
+        [FLIER]FLIERFliesalbatross, osprey, loon, puffin, duck, and all land birds
+        [BIOME:…]BIOME_* flagsWhere it lives, with the water body and salinity: OCEAN; RIVER, LAKE or POOL, each fresh, brackish or salt; SUBTERRANEAN_WATERalbatross: ocean only · osprey: ocean, lake, river and 4 land biomes · otter: pool, lake, river, any salinity, no ocean
+      What does not help: CAN_SWIM_INNATE is on almost everything. Wolves, dingoes, eagles and kestrels all have it, so it says nothing about habitat. A water-only biome list is not enough either, because it catches albatrosses.
+      The model this gives, matching your grouping:
+      HabitatRuleYour examples, and where they land
+        Aquatic: water onlycannot move on land, or cannot breathe airsharks, fish, mollusks, SEA_MONSTER, SEA_SERPENT, GIANT_CUTTLEFISH, POND_GRABBER. Sea monster and sea serpent do not breathe air in the raws, so they fall here without an exception.
+        Semi-aquatic: needs water, prefers it, can leave itbreathes water but also air; or not a flier and every biome it has is waterCROCODILE_CAVE, GIANT_HIPPO, HIPPO, HIPPO_MAN, GIANT_OTTER, OTTER_MAN, RIVER OTTER, CRAB, GIANT_CRAB, HORSESHOE_CRAB, platypus, seals, walrus, beaver, penguin
+        Waterbird: marine or riparian, does not swimflier with at least one water biomeBIRD_ALBATROSS (ocean only), osprey, loon, puffin, duck. They arrive only where the map has their water, and live on the land and air layer.
+        Flierflier with no water biomeeagle, kestrel, owls, bats
+        Landeverything elsedingo, wolf, rhinoceros; wetland amphibians with land biomes (saltwater crocodile, alligator, capybara) stay semi-aquatic because they breathe water
+      Water-dwelling species are placed and matched by water body and salinity, using each tile's salt bit. A river otter is never put in the ocean; a hippo only in a river or lake.
+      Your experiment (X6): give two marine birds, albatross and puffin, swimming tags one at a time (AQUATIC_UNDERSWIM, then CAN_BREATHE_WATER) and watch where they spend their time. It is a runtime raw write, restored when the tool is off or the world unloads, like the frequency writes the cavern layer already uses.
+    Q2Predatory birds and vermin hunting
+      Both tokens exist as writable caste flags in DF 53, and vanilla barely uses them: DIVE_HUNTS_VERMIN is on the peregrine falcon alone, HUNTS_VERMIN on the cat alone. The raws hold twelve predatory fliers, eleven of them without the dive: buzzard, eagle, kea, kestrel, osprey, three owls, roc, giant cave swallow and vulture. The water-biome fliers are albatross, duck, loon, osprey and puffin.
+      Plan (W6): the tool writes DIVE_HUNTS_VERMIN on every predatory bird and every marine or riparian bird, and HUNTS_VERMIN on every small-band predator, with a switch on the control panel. It snapshots the flags before writing and restores them on disable and unload.
+      What is not known, and gets tested first (X5): whether either flag changes a wild animal's behaviour, as opposed to a pet's; vanilla only gives them to a falcon and a housecat. This is the experiment the Wilderpop programme has carried since E32b. Two caveats go in the help text either way. A raw flag belongs to the species, so a tamed eagle gets it too. And vermin in DF are not units, so the effect is on the vermin on the map, not on the food web's prey.
+    Q3If not stock, what sets the odds of a species arriving?
+      Measured so far. When a wave comes, DF picks the species by a weight that belongs to the species, and stock plays no part: a kangaroo beat a porcupine at even stock, at five to one and at one to five (E3). Stock only decides eligibility (zero or extinct stops a species) and how many can come before the reserve runs out. It does not change wave size either (E24). In the caverns the species weight is the raw's FREQUENCY, a comparative weight on a shared budget: two species held at the same 4 : 1 ratio took 22–28% of arrivals at frequencies 100 and 25, and 0% at 4 and 1 (E36). On the surface FREQUENCY is the only candidate for E3's species weight, but it has not been measured there.
+      The two controls, independent, per creature (W5):
+        Stock: the reserve population in the region, shown as a number. Debited one per arrival, refunded when an animal leaves; 0 means none left to come. Editable.
+        Odds: the species' weight when its layer receives a wave, shown as a percentage share of that layer's active, in-season species so the effect of a change is visible before it is made. Written to FREQUENCY in memory, restored when the tool is off or the world unloads, never below 1 (a frequency of 0 on the last creature in a role freezes DF, addendum 54).
+      Settled by X3 before odds ship on the surface: the E36 design on land, with two species held at the same ratio at different absolute weights, two replicates each. If the surface ignores frequency, odds there are implemented by the arrival engine (Q5) choosing the species itself.
+    Q4Did closed cavern entries really fail to stop cavern waves, or was that leakage from unmanaged species?
+      Both are true, about different things.
+      The T7 finding stands. Its decisive probe ran with the tool disabled, so no seasonal logic was running, and all 109 local cavern entries were zeroed by hand: 12,071 ticks later every entry was still zero and cavern wildlife had gone from 13 to 43. A second probe zeroed all 914 master entries across all 45 caves, and 33 units arrived. Setting one species' raw frequency to 0 stopped that species while an untouched control kept arriving (addendum 52), and E34 confirmed it both ways, 2 of 2. Cavern spawning reads the raws, not the population lists.
+      Your leakage hypothesis is also right, for Boatsbowed. The tool already rotates the cavern layer by frequency: a daily pass holds out-of-season or inactive cavern species at frequency 1. But that pass, like every other, lists only species that have seasons, and no cavern species on this fort has any. So every cavern species was open to DF all trial. The ledger shows one species held at frequency 1, once.
+      Consequence (W1): R1's fix covers the caverns through the lever that works there. Every cavern species is active with seasons or inactive, and the frequency pass enforces it. X1 measures it on a copy of Boatsbowed.
+    Q5Is "stocking" a stop-gap? How do water and caverns act and feel like land?
+      Honestly: for caverns it is unnecessary, and for water it is the only mechanism but a crude one. DF draws cavern waves by itself, steered by frequency, so cavern stocking duplicates what DF already does and can be retired. DF never draws river or lake animals during play; it seeds them once at embark (measured 17 September). Ocean animals arrive only where the map edge is wet. So water placement is the one way to have river life at all. As built, though, it places single animals toward a count, ignores seasons for unseasoned species, has no groups, no pattern and no group size, and its animals are never tracked. That is why it felt like an override.
+      The redesign: one arrival engine with two drivers under the same controls (W4).
+      Driver A · DF draws
+Land, the ocean at a wet edge, the caverns. The tool shapes DF's draw: stock (surface) or frequency (caverns) for who may come, odds for who is likely, the raw's cluster for group size, and the gate and pattern for when.
+      Driver B · the tool draws
+Rivers, lakes, pools, and any layer DF will not serve. The tool runs the same draw itself. It waits for the same gate and pattern, picks a species by the same odds from active, in-season species, sizes the group by the same group-size rule, debits stock, and places the group together at a matching water edge. It stamps the animals as wildlife with a leave countdown, so they depart like a DF wave, and tracks them as a group.
+      What the player sees
+One set of controls on every layer: active, seasons, stock, odds, group size, groups at once, gap, pattern, ceiling, coupling, cohesion (herd, pack, flock, school), ecology and nudge within the habitat, hold, send off, call. Which driver serves a layer shows only as a note on the control panel.
+      Driver B is built from pieces already proven on 53.16: headless placement that DF treats as wildlife (E30), and the leave countdown hold and dismiss already use. X2 measures a placed group against the promise: it stays together, leaves on its countdown, debits and refunds stock, lands in its own water body and salinity, and responds to coupling and cohesion.
+    Q6"Quota" meant three different things
+      Agreed: it capped groups on land, a placement count on water, and wild units in the caverns. It is retired. Every layer gets the same two limits, meaning the same thing everywhere: groups at once (how many wild groups the layer holds) and ceiling (the most wild animals of that layer on the map at once). Each driver enforces them its own way (the gate and odds under Driver A, the tool's own draw under Driver B), and the player never has to know which.
+    Q7Packs, herds, schools and coupling on every layer
+      Group size, cohesion, coupling, hold, send off and call all act on groups, and under the engine every layer has groups. So each applies everywhere with the same meaning. Group size uses the raw's range, or a value you set (DF draws N and sometimes N + 1, E42b; X4 settles whether that holds at one). Cohesion keeps a group behind a leader: a school for aquatic species, a flock for fliers, a pack for predators, a herd for the rest. Coupling lets a prey arrival call its predators next, on its own layer and habitat. Ecology writes DF's predator–prey relation for every wild pair within a habitat. Nudge moves a predator toward prey within its own habitat, so a shark is nudged through water, a troll through its cavern, and a lion across land.
+    Q8"All creatures ever", including vermin
+      Adopted as the roster rule, and enforced by the validator: every species that can reach this map on any layer is on the roster, either active with one or more seasons or inactive. That covers land, water, cavern and vermin, each through the lever that works for it: stock on the surface and for vermin (E27), frequency in the caverns, the engine's own draw for rivers and lakes. Species that cannot reach the map are listed under Add invasive. Two assumptions, open to your correction. First, the magma sea's natural species (magma crab, fire imp) join the roster on a deep layer steered by frequency. Second, demons and night creatures stay locked, shown with the reason, because they are DF's world content rather than wildlife.
+  One vocabulary
+  The words the window, the guide and the ledger will use, on every layer (W11). Each has a one-line help entry in the window.
+    WordMeaningReplaces
+      Active / inactiveWhether a species may arrive on this map at allallowed / blocked, ok Y/-
+      SeasonsWhen an active species may arrive; one or more, never none— (no seasons)
+      StockHow many of the species remain in the region to arriveabundance, ab
+      OddsHow likely the species is chosen when its layer gets a wave, as a share(new)
+      Group sizeHow many arrive togetherpack size, cluster
+      Groups at once · CeilingHow many groups, and how many animals, a layer holds at onceconcurrent groups, cavern max, quota, water target
+      Gap · Arrival patternDays between waves; steady, burst, trickle, dawn or follow(same)
+      CohesionA group keeps together behind a leader: herd, pack, flock, school(same)
+      Coupling · Ecology · NudgePrey calls predators next; predators hunt prey; far predators are moved closer within their habitat(same)
+      Hold · Send off · CallKeep a group longer; make it leave now; ask for a wave of this specieshold, dismiss, force wave
+      Seasonal rotationAt each season change, the season's roster takes effect; every day, out-of-season species are held backauto, tool on/off
+      Add invasiveBring in a species the embark's regions do not haveAdd-new
+      AgitatedDF's own word for wildlife that attacks what it meets; what an irruption does to a cavern group for ten daysarmed
+  Twelve workstreams
+  Refined from rev 1's ten. The arrival engine (W4) and the stock-and-odds controls (W5) are new; the control panel (W8) is wider; vermin hunting (W6) is new; water and caverns fold into the engine.
+    IDWorkstreamWhat it deliversProven by
+      W0The validator sees what a player seesA check of every window key against DF's and DFHack's global bindings. Persisted settings restored after a run. A lint that fails non-ASCII text in the window. Timing budgets per tab and per job. The roster rule as claims: every species on every layer is active with at least one season or inactive, and every inactive one ends at zero stock or frequency 1.The new checks fail on v6.2.1 before any fix lands.
+      W1One roster for every creatureActive with at least one season, or inactive, on every layer, enforced through each layer's own lever. Activation gives exactly one default season, and removing the last season is refused. Water placement obeys the roster. A Default view showing the embark as first found. Reset in two levels behind a confirmation. Targets per layer; F leaves a category alone unless its target is set.X1 on a copy of Boatsbowed: no inactive species arrives in a season on any layer; the 63 held.
+      W2A species model built from the rawsFive habitat classes (Q1), role independent of habitat, three size bands (D4), water body and salinity per species. A curated vanilla table for the raws' gaps (orcas, whale shark, crabs, squid), each line citing its raw. Per-species habitat and role overrides on the detail page.An audit of all 767 vanilla creatures as a validator fixture.
+      W3Season shaping and the food webA diet test with a habitat check. The quartered one-season matrix per habitat group with the pair guarantee (D6). Co-align from a snapshot, extending a species by at most one adjacent season. Y and D add direct partners only, where a pairing is missing.No season holds more than half the roster; co-align and Y report counts you could check by hand.
+      W4One arrival engine for every layerDriver A and Driver B (Q5). Groups at once and ceiling on every layer (Q6). Group size, cohesion, coupling, ecology and nudge per habitat (Q7). Water placement by body and salinity. The preset turns on every layer the map has (D3). Revealed caverns count as found (D5). "Stocking" and "quota" are retired.X2: a placed river group behaves as a DF wave on every promise.
+      W5Stock and odds, per creatureTwo independent controls with a share-of-layer readout (Q3). The deep layer's natural species join the roster (Q8).X3 decides how surface odds are delivered.
+      W6Hunting behaviourDIVE_HUNTS_VERMIN on predatory, marine and riparian birds; HUNTS_VERMIN on small predators; a panel switch; snapshot and restore (Q2).X5 first; X6 for marine birds and swimming.
+      W7Speed and silent failuresThe six loops fixed. Configuration held in memory. Raws classified once per world. Ecology writes in bounded batches of new pairs only. A fuse banner with re-arm.Every tab under 100 ms and every job under 50 ms per tick on this fort, for a season.
+      W8The control panelOne tab listing every switch the tool has (rotation, each layer, groups, coupling, cohesion, ecology, nudge, irruptions, vermin hunting, the overlay, each background job), each with an indicator and a toggle. Beside each job: its cadence, last and worst run time, and fuse state. A master all-on / all-off that stops every job and restores every raw the tool wrote. A running frame-rate readout.Switching all off returns the frame rate to the tool-free figure; each toggle stops only its own job.
+      W9Window, keys and textNew keys for DF's macro keys. ASCII text. Help in the launcher. Confirmation before re-applying the preset or rewriting the roster. A non-Shift season key. Opening near screen size with wrapping.W0's checks pass.
+      W10Seeing what is on the mapLive lists every wild unit by origin (DF wave, tool-drawn, resident, born here, deep). The Ledger records every arrival and every call. Send off before call. Call from the species detail page. Undo 50 deep with its depth shown. The overlay only on the viewed level.Every wild unit on the map appears with an origin.
+      W11Words and in-window helpThe vocabulary above in the window, the guide and the ledger; a ? page per tab; stale messages removed; cells that do not apply greyed with the reason.Every question in this trial answerable from inside the window.
+      W12Vermin and Seasons as editorsThe Vermin tab per species under each family. The Seasons tab editable by click or key, one undo entry per edit.A season toggled in any of three places shows in the other two.
+  Experiments
+  Two replicates per arm, on copies of Boatsbowed unless a layer needs another fort. Each gates the workstream beside it.
+    IDQuestionDesignGates
+      X1Does the fixed roster keep every inactive species away, on every layer?A season with the 63 inactive and every cavern species seasoned or inactive, against v6.2.1v6.3 ships
+      X2Does a tool-drawn group behave as a DF wave?River and ocean groups placed by Driver B: cohesion, countdown departure, stock debit and refund, water body, salinity, couplingW4
+      X3Does FREQUENCY weight the surface pick?E36's design on land: two species at the same ratio, high and low absolute weightW5 on the surface
+      X4Is DF's extra animal structural?A written group size of one (E42c)W4 group-size promise
+      X5Do the vermin-hunting flags change wild behaviour?Eagles and dingoes with and without the flags; vermin counts and unit movementW6
+      X6What do swimming tags do to a marine bird?Albatross and puffin with AQUATIC_UNDERSWIM, then CAN_BREATHE_WATER, against untouchedW6, your question
+      X7Do the fixed jobs stay inside their budgets for a whole season?The timing claims over 100,800 ticks on BoatsbowedW7
+  Order of work
+  Four releases. Each is validated on the rig and replayed on a copy of Boatsbowed before the next begins. The control panel moves into the first release because it makes every later one easier to test.
+    v6.3 · a truthful roster, and the panelStop the damage
+      W0: the new checks, failing on v6.2.1 first
+W1: the roster rule on every layer, one default season, the Default view, two-level reset
+W7: speed and the fuse banner
+W8: the control panel with every switch, the jobs and the master toggle
+W9: macro keys, ASCII, launcher help, confirmations
+X1, X7
+    v6.4 · the species modelKnow each animal
+      W2: five habitats, role, three size bands, water body and salinity, overrides
+W3: the habitat diet test, the quartered matrix, bounded co-align, direct Y/D
+The 767-creature audit as a fixture
+    v6.5 · one engine for every layerMake the layers alike
+      W4: Driver B for rivers and lakes, one set of limits and group controls everywhere; stocking and quota retired
+W5: stock and odds per creature, after X3
+W10: Live by origin, the full ledger, send off and call
+X2, X3, X4
+    v6.6 · behaviour, words, editorsMake it pleasant
+      W6: vermin hunting, after X5 and X6
+W11: the vocabulary and the help pages
+W12: Vermin per species, editable Seasons
+W9: layout, window size, wrapping, mouse
+Alpha 2 walkthrough (UI), then the console-verb phase two
+  Every report, where it goes
+  All 22 anomalies and every note on a pass, mapped to rev 2's workstreams.
+    StepReportCause foundWork
+      1.1No help; hang; CPU doublesNo help block; groups job stalls to 1.5 s; Live 4.3 sW9, W7
+      1.3Text off-screen; want a larger windowFixed-width rows; 90×34 defaultW9
+      1.4Roster ignores the layer; per-layer counts unclearOcean fish filed on land; water and cavern unseasonedW2, W1, W10
+      2.1Orca, sharks, dingo, monitor misfiled; aquatic muddledOne-flag categories; biome-only aquatic testW2
+      2.4Only left Shift worksOutside DFHack's reachW9
+      2.5Call from species detailRequestW10
+      2.6What does abundance share?It is stock; the pick ignores itW5
+      3.1Quarter each ecotypeRequestW3 (D6)
+      3.2, 3.4Co-align and Y/D take everythingIn-place cascadeW3
+      3.3Fill blocks apex; targets span layersApex target 0; one target setW1
+      3.5, 4.4Ctrl+L "No macros!"; Ctrl+RDF's macro keysW9, W0
+      3.6"RCo" textUTF-8 em dashW9, W0
+      3.7Current equals Default; namesBoth filter on "in embark"W1, W11
+      4.2, 7.2, 11.3Blocked species arrive; pile-up; arrivals unseenR1; Force does not send off; Live tracks groups onlyW1, W10
+      4.3, 12.2What is auto; no all-off; wants a jobs tabUnexplained; fuse tripped unseenW8, W11
+      5.1Seasons tab should be editableRequestW12
+      5.2Slow; land and water eat each other; N idleGraph 518 ms; no habitat testW7, W3
+      6.1Live slow, hard to readPer-entry allocationW7, W10
+      6.2, 6.3, 10.1Glyphs on every level; overlay should be offValidator left it on; markers ignore z-levelW0, W10
+      7.1Revealed caverns off; no water reasonFound = discovered flag only; layers off by defaultW4 (D5, D3)
+      7.3, 7.4Quota, stocking, uneven options, nudge, coupling, packThree meanings of quota; stocking crude; nudge row misdrawnW4, W11 (Q5–Q7)
+      7.5"Armed"; pressures at 0No dwarves undergroundW11 ("agitated")
+      7.6No confirmationNo dialogW9
+      8.1Family-wide seasonsFamily is the unit of controlW12
+      9.2Undo limitTen-deep ringW10
+      11.1"—" with YUnmanaged, worldgen stockW1 (D2)
+      11.2Otter in the oceanPlacement ignores water bodyW4, W2
+      11.4, 12.1Not run; save supplied—Alpha 2
+  Evidence
+    Timings on the trial fortOpen the window 632 ms · Live 3,379–4,319 ms · the same population pass with the table built once 0–33 ms against 1,478–1,601 ms · Food web graph, all seasons 518 ms · pool rebuild 222 ms · configuration read ≈65 ms · groups job 253–1,489 ms against a 250 ms budget, over it 22 times · ecology 4,816 ms, cancelled day 79 after writing 1,611 pairs.
+    The 63 inactive species DF can still drawBIRD_ALBATROSS 59842 · BIRD_KESTREL 28 · cavern:BLOOD_MAN 21 · cavern:CAVE_DRAGON 4 · CAVY 5191 · CHEETAH 1403 · CHEETAH_MAN 1006 · COUGAR 302 · COUGAR_MAN 1347 · cavern:CREEPING_EYE 417 · cavern:CREEPY_CRAWLER 439 · DINGO 3412 · cavern:ELEMENTMAN_FIRE 26 · cavern:ELEMENTMAN_MAGMA 16 · cavern:ELEMENTMAN_MUD 14 · ELEPHANT_MAN 701 · FISH_BLUEFISH 54606 · FISH_COELACANTH 18182 · FISH_MARLIN 54606 · FISH_OPAH 38222 · FISH_STINGRAY 25979 · FISH_SWORDFISH 29121 · FISH_TUNA_BLUEFIN 108594 · GIANT_ALBATROSS 66505 · GIANT_CHEETAH 1605 · GIANT_DINGO 3822 · GIANT_JACKAL 2204 · GIANT_LEOPARD 408 · GIANT_ORCA 35474 · GIANT_RHINOCEROS 5203 · water:GIANT_SPONGE 5057 · GIANT_SPONGE 935388 · GIANT_TIGER 302 · GIRAFFE_MAN 1446 · cavern:GORLAK 15 · HYENA 3795 · HYENA_MAN 1598 · JAGUAR 607 · LEOPARD 607 · LEOPARD_MAN 1005 · LION 1602 · LION_MAN 1005 · cavern:MAGGOT_PURRING 455 · cavern:MANERA 19 · ORCA 62058 · cavern:REACHER 12 · SEA_SERPENT 2216 · SHARK_BLUE 57626 · SHARK_BULL 24250 · SHARK_FRILL 53194 · SHARK_GREAT_WHITE 49143 · SHARK_MAKO_SHORTFIN 50970 · SHARK_REEF_BLACKTIP 16453 · SHARK_TIGER 25109 · SHARK_WHALE 24250 · cavern:SNAKE_FIRE 385 · SPERM_WHALE 48762 · SPERM_WHALE_MAN 22175 · SPONGE_MAN 17742 · TIGER_MAN 746 · cavern:TROLL 8 · WARTHOG_MAN 1391 · WILD_BOAR_MAN 2013
+    The code paths behind R1applyLive · holdOutOfSeason · CAVERN.apply: "managed" = keys with #assign > 0. WATER.entries and STOCK.entries: "an unassigned species is UNRESTRICTED". assignFromMatrix clears assignments for everything not allowed.
+    Measurements citedE3 (species pick ignores stock) · E24 (stock does not change wave size) · E26 series and the 17 September river finding (river and lake entries never drawn in play) · E27 (vermin stock lever) · E30 (headless placement) · T7 and addendum 52 (cavern lists ignored; frequency suppresses) · E34 (frequency reversible, 2 of 2) · E36 (frequency a comparative weight) · addendum 54 (never write 0) · E42b (N + 1 group size).
+    Sources readThe tester's report and 38 screenshots; DFHack's log for the trial session; the fort's ledger, configuration, groups and undo ring, live; 767 vanilla raws parsed and the fort's creatures resolved live; DF's interface.txt and overlay.json; the tool at v6.2.1; STATE addenda 51–56. Working files: DwarfCron/.claude/scratch/alpha1/. Rev 1 kept as alpha1-findings-rev1.html.
+Companion pages: Seasonal Wildlife Alpha Trial · The Seasonal Wildlife Plugin · The Wilderpop Model · Seasonal Wildlife Playtest. W2:Urist, rev 2, 26 September 2026.
+
