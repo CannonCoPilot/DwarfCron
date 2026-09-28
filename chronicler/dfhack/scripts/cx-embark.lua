@@ -180,6 +180,14 @@ elseif cmd == 'read' then
         l.region_pos.x, l.region_pos.y, tostring(vs.choosing_embark), tostring(vs.zoomed_in),
         vs.zoom_cent_x, vs.zoom_cent_y, tostring(confirm)))
 
+elseif cmd == 'size' then
+    -- embark square side in mid-level tiles (1..16), written in placement mode before the click; DF 53 has no resize
+    -- keys, and the square follows embark_dx/dy (verified 28 Sep 2026: 6 -> mm_max - mm_min = 5)
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    local n = tonumber(args[2]) or 4
+    vs.embark_dx, vs.embark_dy = n, tonumber(args[3]) or n
+    print(('embark size %dx%d'):format(vs.embark_dx, vs.embark_dy))
+
 elseif cmd == 'worlds' then
     -- Same source chronicler-ui `saves` reads, restricted to world folders that
     -- carry no fort yet (the ones "Start new game in existing world" lists).

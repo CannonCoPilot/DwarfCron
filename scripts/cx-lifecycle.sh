@@ -546,6 +546,13 @@ cmd_embark() {
         case "$rd" in *choosing=true*) break;; esac
         [ "$i" = 3 ] && err "Embark did not enter placement mode: $rd"
     done
+    # CX_EMBARK_STOP=1: stop here, on the site screen in placement mode, for probing (FPS2 embark size, 28 Sep 2026)
+    [ -n "${CX_EMBARK_STOP:-}" ] && { log "stopped in placement mode: $rd"; return 0; }
+    # CX_EMBARK_SIZE=N: an NxN square (default DF's 4x4); keep off-x/off-y + N <= 16 to stay inside one region tile
+    if [ -n "${CX_EMBARK_SIZE:-}" ]; then
+        cmd_cmd cx-embark size "$CX_EMBARK_SIZE" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
+        sleep 1
+    fi
     local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" mx my
     for i in 1 2 3 4 5; do
         # never post a pointer event outside the DF window
@@ -573,7 +580,7 @@ cmd_embark() {
     sleep 2; dismiss_okay
     cmd_ui pause >/dev/null
     cmd_save "$name"
-    log "embarked: world $world tile $rx,$ry -> save $name ($(ui_state))"
+    log "embarked: world $world tile $rx,$ry size ${CX_EMBARK_SIZE:-4} -> save $name ($(ui_state))"
 }
 
 cmd_state() { ui_state; }
@@ -640,6 +647,10 @@ cmd_step() {
     local i=0 last="$t0" stalled=0 delta=0
     while [ "$i" -lt $((secs * 4)) ]; do
         t1=$(ui_get tick)
+        # An empty read (the server's "I/O error in send result", seen twice on 28 Sep 2026 right after an unpause)
+        # is not tick 0: the arithmetic took it as a new-year wrap, "stepped 273980 ticks (129220 -> )", and the step
+        # returned at once with the fort left RUNNING. Skip the poll instead.
+        case "$t1" in ''|*[!0-9]*) sleep 0.25; i=$((i + 1)); continue ;; esac
         delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
         [ "$delta" -ge "$ticks" ] && break
         # a popup can be queued mid-step; notice a stall and clear it rather than
@@ -673,8 +684,16 @@ cmd_step() {
         sleep 0.25; i=$((i + 1))
     done
     waited=$((i / 4))
-    cmd_ui pause >/dev/null
+    # the pause must land: an RPC error here would leave the fort running behind the caller's back
+    local p
+    for p in 1 2 3 4 5; do
+        cmd_ui pause >/dev/null 2>&1
+        [ "$(ui_get paused)" = "true" ] && break
+        sleep 0.3
+    done
+    [ "$(ui_get paused)" = "true" ] || log "WARNING: could not confirm the pause after the step"
     t1=$(ui_get tick)
+    case "$t1" in ''|*[!0-9]*) sleep 0.3; t1=$(ui_get tick) ;; esac
     delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
     log "stepped $delta ticks ($t0 -> $t1) in ${waited}s"
 }
