@@ -48,6 +48,7 @@ def deployed_version():
 V = deployed_version()
 V65 = V >= (6, 5, 0)
 V66 = V >= (6, 6, 0)
+V67 = V >= (6, 7, 0)
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
@@ -204,6 +205,9 @@ CLAIMS = [
     ("gui.k.ctrlW", "GUI", "Ctrl+W prompts for the row's abundance and stores it", "USAGE.md", "shipped"),
     ("gui.k.ctrlG", "GUI", "Ctrl+G prompts for an abundance for every filtered row", "USAGE.md", "shipped"),
     ("gui.k.ctrlE", "GUI", "Ctrl+E toggles automatic rotation", "USAGE.md", "shipped"),
+    ("mech.animalperson", "MECH", "an animal person stands where its root animal stands: role, habitat, size, mass and every predator/prey verdict the same (JAGUAR_MAN as JAGUAR, OTTER_MAN as RIVER OTTER, ALBATROSS_MAN as BIRD_ALBATROSS)", "user 28 Sep; alpha 2 step 10.1", "shipped v6.7"),
+    ("gui.odds.bracket", "GUI", "the Roster's ODDS column shows an active species out of season with its in-season share in brackets", "alpha 2 step 4.3", "shipped v6.7"),
+    ("gui.addnew.whole", "GUI", "Add invasive leaves the new species on the roster at once: active with one season, or inactive", "alpha 2 step 8.1", "shipped v6.7"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
     ("gui.k.altR", "GUI", "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50", "USAGE.md; W9", "shipped"),
     ("gui.k.altF", "GUI", "Alt+F (Ctrl+L until v6.3: DF's LOAD_MACRO) fills the filtered category to N (refuses on 'all'/'aquatic')", "USAGE.md; W9", "shipped"),
@@ -680,6 +684,26 @@ def phase_v65():
     else:
         rec("mech.call", "NOT-TESTABLE-HERE", "an active land species in season", json.dumps(pk))
 
+
+def phase_v67():
+    log("== v6.7: animal people")
+    m = luaj("""
+local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local o={}
+for _,pr in ipairs({{'JAGUAR_MAN','JAGUAR'},{'OTTER_MAN','RIVER OTTER'},{'ALBATROSS_MAN','BIRD_ALBATROSS'}}) do
+  local a,b=sw.MODEL.entry(pr[1]),sw.MODEL.entry(pr[2]); local r={root=sw.MODEL.rootOf(pr[1])}
+  if a and b then
+    r.same={role=a.role==b.role, habitat=a.habitat==b.habitat, size=a.size==b.size, mass=a.mass==b.mass}
+    local diff=0; local n=0
+    for _,p in ipairs(pool) do if p.token~=pr[1] and p.token~=pr[2] then n=n+1
+      if sw.eats(a,p)~=sw.eats(b,p) or sw.eats(p,a)~=sw.eats(p,b) then diff=diff+1 end end end
+    r.checked=n; r.diff=diff
+  end
+  o[pr[1]]=r
+end
+print(json.encode(o))""", timeout=180)
+    bad = {k: v for k, v in (m.items() if isinstance(m, dict) else []) if not (v.get("same") and all(v["same"].values()) and v.get("diff") == 0)}
+    rec("mech.animalperson", "PASS" if isinstance(m, dict) and m and not bad and "_raw" not in m else "FAIL",
+        "each person matches its root on role, habitat, size and mass, and on every eats verdict both ways against the pool", json.dumps(m), data=m)
 
 def phase_v66():
     log("== v6.6: hunting")
@@ -1428,6 +1452,10 @@ def phase_gui():
     ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and ("Send off" if V65 else "Force wave") in txt and "Fill to targets" in txt and "Matrix assign" in txt
     rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys", txt[:800], shots=[p] if p else [],
         data={"rows": len(rows), "first": rows[0][3] if rows else ""})
+    if V67:
+        br = re.findall(r"\(\d+%\)", txt)
+        rec("gui.odds.bracket", "PASS" if br else "NOT-TESTABLE-HERE", "an '(N%)' cell on the Roster's first page", f"bracketed cells on the first page: {br[:6]}",
+            note="" if br else "no active species out of season on the first page of this roster")
     rec("gui.k.thin", "PASS" if ("Thin:" in txt or "Ecosystem balanced" in txt) else "FAIL", "'Thin: …' or 'Ecosystem balanced.' in the header", txt[:400])
     # v6.2.0: Alt+L cycles the layer on the Roster; the title names it; the rows change
     n_all = len(row_lines(txt))
@@ -1566,6 +1594,19 @@ def phase_gui():
         f"prompt by key: {x_key}; by clicking the label: {x_click}; pick={pick}; after={json.dumps(added)}; status={st9.strip()[:160]!r}; announcements={anns[-2:]}",
         shots=[x for x in (p0, p) if x], data={"pick": pick, "by_key": x_key, "by_click": x_click, "after": added, "add_view_rows": len(rows_add)},
         note="" if x_key else ("Ctrl+X is consumed by the filter box's TextArea (cut) — see gui.k.shadow; the label works by mouse" + ("" if outcome else "; the engine refused the pick as already present in the region, which is its documented behaviour")))
+    if V67:
+        # run 145349: the first row (ADDER on CTRL) was refused as already present in the region, so the claim never saw
+        # an add; walk down the Add invasive list until one goes through (the Ctrl+X claim above keeps the first row)
+        stw, i = st9, 0
+        while "Could not add" in stw and i + 1 < min(len(rows_add), 8):
+            i += 1; pick = rows_add[i][0]
+            key("STANDARDSCROLL_DOWN", 0.3); key("CUSTOM_CTRL_X", 1.2); key("SELECT", 2.5)
+            stw = status_rows(screen(f"C9-x-after-{i}"))
+        for _ in range(i): key("STANDARDSCROLL_UP", 0.3)   # run 151022: a cursor left on row i+1 carried into the Roster claims that read row 1
+        w = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.token=='%s' then print(json.encode({inEmbark=e.inEmbark, allow=cfg.allow[e.key], n=#(cfg.assign[e.key] or {})})) return end end; print('{}')" % (pick or ""), timeout=120)
+        okw = isinstance(w, dict) and w.get("inEmbark") and (w.get("allow") is False or (w.get("allow") is True and w.get("n", 0) >= 1))
+        rec("gui.addnew.whole", "PASS" if okw else ("NOT-TESTABLE-HERE" if not (isinstance(w, dict) and w.get("inEmbark")) else "FAIL"),
+            "right after the add: active with >=1 season, or inactive", f"{pick}: {json.dumps(w)}", data=w)
     key("CUSTOM_V", 0.8)
     # Ctrl+A apply: DF announces it. Key, then label.
     pa = fmt_pools(pools()); ann0 = announcements()
@@ -1892,7 +1933,7 @@ def phase_teardown(fort):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "v65", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     a = ap.parse_args()
     log(f"validate-full run {RUN} -> {OUT}")
@@ -1909,6 +1950,9 @@ def main():
         if a.only == "v65":
             try: phase_v65()
             except Exception as e: log(f"!! phase_v65 raised: {e!r}")
+        if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
+            try: phase_gui()
+            except Exception as e: log(f"!! phase_gui raised: {e!r}")
         phases = () if a.only else (phase_cli, phase_mechanics)
         for ph in phases:
             try: ph()
@@ -1932,6 +1976,9 @@ def main():
         if not a.only and V66:
             try: phase_v66()
             except Exception as e: log(f"!! phase_v66 raised: {e!r}")
+        if not a.only and V67:
+            try: phase_v67()
+            except Exception as e: log(f"!! phase_v67 raised: {e!r}")
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")

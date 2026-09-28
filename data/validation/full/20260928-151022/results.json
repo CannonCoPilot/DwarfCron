@@ -1,0 +1,1327 @@
+[
+ {
+  "id": "gui.open",
+  "surface": "GUI",
+  "claim": "`gui/seasonal-wildlife` opens a resizable window titled 'Seasonal Wildlife' with nine tabs, the Panel second (v6.3)",
+  "source": "script",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "window title and the nine tab labels on screen",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|",
+  "shots": [
+   "shots/C0-overview.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.tab.panel",
+  "surface": "GUI",
+  "claim": "Panel tab (v6.3, W8): every switch with an indicator, the jobs with cadence / last / worst / fuse, all on and all off; Enter flips a switch",
+  "source": "plan rev 2 W8",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "SWITCHES with [ON]/[off] rows, JOBS with timings, the all on / all off keys",
+  "got": "3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Every switch the tool has, apart from single creatures. Enter flips the row; a tripped job re-arms.\n  8|                            a: All on (the usual set)     x: All off (stop every job, restore every raw)\n  9|                            r: Refresh                    frame rate 141 (cap 1000)\n 11|                            SWITCHES\n 12|                            [ON]  Seasonal rotation              the season roster at each boundary; out-of-season species held daily\n 13|                            [ON]  Layer: land                    the surface: its roster, gate and groups\n 14|                            [ON]  Layer: water                   rivers, lakes and sea: roster and placement\n 15|                            [ON]  Layer: caverns                 the three caverns: roster by frequency, gate\n 16|                            [ON]  Groups and the arrival gate    tracks every group; releases DF's gate so groups share the map                                               Elevation 7\n 17|                            [ON]  Cavern gate                    cavern groups gated on their own count and ",
+  "shots": [
+   "shots/C0b-panel.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.panel.alloff",
+  "surface": "MECH",
+  "claim": "all off stops every job and restores every raw the tool wrote; all on brings the switches back (v6.3, W8)",
+  "source": "plan rev 2 W8",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "after All off: rotation off, no job scheduled, no frequency held; after All on: the switches as before",
+  "got": "before {'eco': True, 'enabled': True, 'sched': True}; off {'eco': False, 'enabled': False, 'held': 0, 'sched': False}; on {'eco': True, 'enabled': True, 'sched': True}; status: True/True",
+  "shots": [],
+  "data": {
+   "before": {
+    "eco": true,
+    "enabled": true,
+    "sched": true
+   },
+   "off": {
+    "eco": false,
+    "enabled": false,
+    "held": 0,
+    "sched": false
+   },
+   "on": {
+    "eco": true,
+    "enabled": true,
+    "sched": true
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.tab.overview",
+  "surface": "GUI",
+  "claim": "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines",
+  "source": "USAGE.md v5.10.1",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "On the map / In season now / Next boundary / Recent blocks on the opening page",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            r: Refresh\n  8|                            Mid Spri",
+  "shots": [
+   "shots/C0-overview.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.overview",
+  "surface": "GUI",
+  "claim": "Overview view \u2014 what the map holds now, next boundary, recent ledger",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Overview view: what the map holds now, next boundary, recent ledger",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.10.1 as the first tab"
+ },
+ {
+  "id": "gui.tab.roster",
+  "surface": "GUI",
+  "claim": "Roster tab: header with biomes and per-category counts, filter row (Alt+S search), creature list with cat/size/biome/season/ab/ok/why columns, season keys S/U/A/W, matrix and co-align keys, targets row, fill keys, Ctrl action keys, status line",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "filter row, \u22655 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers",
+  "shots": [
+   "shots/C0-roster.jpg"
+  ],
+  "data": {
+   "rows": 37,
+   "first": "Wi"
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.odds.bracket",
+  "surface": "GUI",
+  "claim": "the Roster's ODDS column shows an active species out of season with its in-season share in brackets",
+  "source": "alpha 2 step 4.3",
+  "claimed": "shipped v6.7",
+  "verdict": "PASS",
+  "expected": "an '(N%)' cell on the Roster's first page",
+  "got": "bracketed cells on the first page: ['(14%)', '(33%)', '(14%)', '(14%)', '(33%)', '(11%)']",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.thin",
+  "surface": "GUI",
+  "claim": "the header shows a 'Thin:' hint when a category is under its target",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "'Thin: \u2026' or 'Ecosystem balanced.' in the header",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.altL",
+  "surface": "GUI",
+  "claim": "Alt+L on any tab cycles the layer (all \u2192 land \u2192 water \u2192 cavern) and the window's title names it with the reason when off or dormant; the Roster's rows follow it",
+  "source": "USAGE.md v6.2.0",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "titles Land / Water / Cavern / All layers in turn; the Roster's row count follows the layer",
+  "got": "rows all=37 land=22 water=13 cavern=33; water title: Water (Alt+L)",
+  "shots": [
+   "shots/C1-altL-land.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.layersel",
+  "surface": "GUI",
+  "claim": "layer selector on every tab, dormant layers greyed with the reason",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "layer selector on every tab, dormant layers named with the reason",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v6.2.0 as Alt+L, the title carrying the layer and its reason"
+ },
+ {
+  "id": "gui.k.V",
+  "surface": "GUI",
+  "claim": "V cycles View: Current \u2192 Default \u2192 Add-new",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the V filter label changes",
+  "got": "Current -> Default",
+  "shots": [
+   "shots/C1-CUSTOM_V.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.C",
+  "surface": "GUI",
+  "claim": "C cycles the category filter (incl. aquatic)",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the C filter label changes",
+  "got": "All -> predator",
+  "shots": [
+   "shots/C1-CUSTOM_C.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.B",
+  "surface": "GUI",
+  "claim": "B cycles the biome filter",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the B filter label changes",
+  "got": "All -> SHRUBLAND_TEMn:",
+  "shots": [
+   "shots/C1-CUSTOM_B.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.N",
+  "surface": "GUI",
+  "claim": "N cycles the season filter",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the N filter label changes",
+  "got": "All -> Spring",
+  "shots": [
+   "shots/C1-CUSTOM_N.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.enter",
+  "surface": "GUI",
+  "claim": "Enter allows/blocks the selected creature (ok column flips Y/-)",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "row 1's ok column flips Y<->-",
+  "got": "('BADGER', 0, 'Y', 'Wi', ' 16|                               BADGER           predator small  land  SHR.TEM   Wi      0      (14%) Y   matrix Sp15                                                          Elevation 7') -> ('BADGER', 0, '-', '-', ' 16|                               BADGER           predator small  land  SHR.TEM   -       0      -     -   you Sp15                                                             Elevation 7')",
+  "shots": [
+   "shots/C2-enter-toggle.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.roster.why",
+  "surface": "GUI",
+  "claim": "the Roster's why column shows who set a species' state and when (you, fill, matrix, co-align, vermin, defaults; compact since v5.10.8) and explains an untouched or locked species; the full reason is on the detail page",
+  "source": "USAGE.md v5.10.5/v5.10.8",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "after Enter, row 1's why reads 'you <Sp|Su|Au|Wi><day>'",
+  "got": "-     -   you Sp15                                                             Elevation 7",
+  "shots": [],
+  "data": {
+   "why": "you Sp15"
+  },
+  "note": ""
+ },
+ {
+  "id": "v6.roster.why",
+  "surface": "GUI",
+  "claim": "Roster with a 'why' column and per-layer selector",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Roster with a 'why' column",
+  "got": "-     -   you Sp15                                                             Elevation 7",
+  "shots": [],
+  "data": null,
+  "note": "the why column shipped in v5.10.5; the per-layer selector is still v6.0 (v6.layersel)"
+ },
+ {
+  "id": "gui.species.detail",
+  "surface": "GUI",
+  "claim": "`i` on a Roster row opens the species detail over the window (what it is, body, embark, allowed and why, abundance, seasons, eats, eaten by, on the map, history); Esc closes it",
+  "source": "USAGE.md v5.10.7",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the detail window with allowed / eats / eaten by, gone after Esc with the main window still up",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Biomes: SHRUBLAND_TEMPERATE\n  8|",
+  "shots": [
+   "shots/C2b-detail.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.species",
+  "surface": "GUI",
+  "claim": "Species detail \u2014 one animal, every control",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Species detail \u2014 one animal, every control",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.10.7 on `i` (Enter stays allow/block)"
+ },
+ {
+  "id": "gui.k.shiftenter",
+  "surface": "GUI",
+  "claim": "Shift-Enter cycles the selected creature's seasons",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "row 1's season column changes",
+  "got": "Wi\nAll",
+  "shots": [
+   "shots/C3-season-cycle.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlD",
+  "surface": "GUI",
+  "claim": "Ctrl+D opens the dry-run season table dialog",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the 'Dry-run \u2014 season table' dialog with Sp Su Au Wi",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|",
+  "shots": [
+   "shots/C4-dryrun-dialog.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlW",
+  "surface": "GUI",
+  "claim": "Ctrl+W prompts for the row's abundance and stores it",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Ctrl+W opens the abundance prompt for the selected row; 70 typed there is stored as cfg.weight[row]",
+  "got": "prompt by key: True; by clicking the label: False; weights newly 70: ['BADGER']",
+  "shots": [
+   "shots/C5-abundance-key.jpg"
+  ],
+  "data": {
+   "by_key": true,
+   "by_click": false,
+   "set_to_70": [
+    "BADGER"
+   ]
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.shadow",
+  "surface": "GUI",
+  "claim": "Ctrl-modified action keys reach their labels on the Roster; since v5.11.0 the filter box takes focus only on Alt+S and releases it on Enter/Esc, so plain letters are actions too",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Ctrl+A, Ctrl+W and Ctrl+X reach their labels with the filter focused",
+  "got": "Ctrl+W prompt: True; Ctrl+A announcement: True; Ctrl+X any effect: True",
+  "shots": [],
+  "data": {
+   "ctrl_w": true,
+   "ctrl_a": true,
+   "ctrl_x": true,
+   "textarea_binds": [
+    "CTRL_A",
+    "CTRL_C",
+    "CTRL_K",
+    "CTRL_U",
+    "CTRL_V",
+    "CTRL_W",
+    "CTRL_X",
+    "CTRL_Y",
+    "CTRL_Z"
+   ]
+  },
+  "note": "DFHack's TextArea (behind the FilteredList's edit field) binds Ctrl+A/C/K/U/V/W/X/Y/Z as editor shortcuts and the field has focus whenever the Roster tab is shown, with no key to release it. Ctrl+D/E/F/G/L/R/S are not in that set and work. Rebind A/W/X (or give the edit field a focus key) to fix."
+ },
+ {
+  "id": "gui.k.ctrlG",
+  "surface": "GUI",
+  "claim": "Ctrl+G prompts for an abundance for every filtered row",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the prompt opens and \u22655 values read 60 afterwards",
+  "got": "prompt: True; values at 60: 70",
+  "shots": [
+   "shots/C6-abundance-filter-prompt.jpg"
+  ],
+  "data": {
+   "at_60": 70
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlE",
+  "surface": "GUI",
+  "claim": "Ctrl+E toggles automatic rotation",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "cfg.enabled flips",
+  "got": "True -> False",
+  "shots": [
+   "shots/C7-auto-toggle.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.status.roster",
+  "surface": "GUI",
+  "claim": "the Roster tab's status line shows each action's receipt ('Applied Spring live: N active.', 'Set N abundances to 60.', 'Auto rotation ON.')",
+  "source": "USAGE.md; script setStatus",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "'Auto rotation ON.'/'off.' on the status row after Ctrl+E (the label is set by act_enable)",
+  "got": "55|                            Ctrl+a: Apply now   Ctrl+f: Send off + neCtrl+d: Dry-run   Ctrl+e: Rotation on\n 56|                            Ctrl+w: Stock (rowCtrl+g: Stock (filteAlt+o: Odds (row) Ctrl+x: Add invasive\n 57|                            Alt+r: Reset (asks: roster or everything)    Alt+f: Fill cat to N\n 58|                            P: prey: 0        R: predator: 0        V: vermin: 0      (land)\n 59|                            f: Fill to targets  y: Fill natural prey  d: Fill natural predators\n 60|                            Seasonal rotation off.",
+  "shots": [
+   "shots/C7-auto-toggle.jpg"
+  ],
+  "data": null,
+  "note": "the Label is created with text='' at frame t=4 of the bottom panel and never shows anything afterwards; every setStatus() receipt in the Roster tab is invisible"
+ },
+ {
+  "id": "gui.k.altF",
+  "surface": "GUI",
+  "claim": "Alt+F (Ctrl+L until v6.3: DF's LOAD_MACRO) fills the filtered category to N (refuses on 'all'/'aquatic')",
+  "source": "USAGE.md; W9",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "no change on 'all'; the prompt on Cat=predator; that category's active count == 3 afterwards",
+  "got": "all: 23->23; prompt: True; after: 3",
+  "shots": [
+   "shots/C8-fill-prompt.jpg"
+  ],
+  "data": {
+   "cat": "predator",
+   "before": {
+    "assigned": 70,
+    "predator": 23,
+    "prey": 26,
+    "vermin": 21
+   },
+   "after": {
+    "assigned": 50,
+    "predator": 3,
+    "prey": 26,
+    "vermin": 21
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlX",
+  "surface": "GUI",
+  "claim": "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Ctrl+X in Add-new opens the prompt and the picked species is in the embark pool afterwards, or the status row says why it could not be",
+  "got": "prompt by key: True; by clicking the label: True; pick=ADDER; after={\"eligible\": true, \"inEmbark\": false, \"token\": \"ADDER\"}; status='55|                            Ctrl+a: Apply now   Ctrl+f: Send off + neCtrl+d: Dry-run   Ctrl+e: Rotation off\\n 56|                            Ctrl+w: Stock (ro'; announcements=['Spring wildlife roster applied.', 'Spring wildlife applied (48 active).']",
+  "shots": [
+   "shots/C9-addnew-view.jpg",
+   "shots/C9-addnew-prompt.jpg"
+  ],
+  "data": {
+   "pick": "ADDER",
+   "by_key": true,
+   "by_click": true,
+   "after": {
+    "eligible": true,
+    "inEmbark": false,
+    "token": "ADDER"
+   },
+   "add_view_rows": 37
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.addnew.whole",
+  "surface": "GUI",
+  "claim": "Add invasive leaves the new species on the roster at once: active with one season, or inactive",
+  "source": "alpha 2 step 8.1",
+  "claimed": "shipped v6.7",
+  "verdict": "PASS",
+  "expected": "right after the add: active with >=1 season, or inactive",
+  "got": "ADDER_MAN: {\"allow\": true, \"inEmbark\": true, \"n\": 1}",
+  "shots": [],
+  "data": {
+   "allow": true,
+   "inEmbark": true,
+   "n": 1
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlA",
+  "surface": "GUI",
+  "claim": "Ctrl+A applies the current season live and announces it",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Ctrl+A applies the season live and DF's announcement log carries '<Season> wildlife applied (N active).'",
+  "got": "by key: True; by clicking the label: True\nSpring wildlife applied (48 active).\nADDER_MAN added to the embark wildlife.\nSpring wildlife applied (40 active).",
+  "shots": [
+   "shots/C10-apply.jpg"
+  ],
+  "data": {
+   "by_key": true,
+   "by_click": true,
+   "pool_entries_changed": 9
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlF",
+  "surface": "GUI",
+  "claim": "Ctrl+F clears the current wild group and forces a new wave",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "NOT-TESTABLE-HERE",
+  "expected": "Ctrl+F clears the roaming-source flag on every wild land unit (force Wildlife = free_all_wildlife), so DF may send the next group",
+  "got": "flagged before 0 -> after 0",
+  "shots": [],
+  "data": {
+   "before": 0,
+   "after": 0
+  },
+  "note": "no flagged wild land unit was on the surface at this moment; the lever itself is measured in E8/E10 and by mech.force"
+ },
+ {
+  "id": "gui.k.altR",
+  "surface": "GUI",
+  "claim": "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50",
+  "source": "USAGE.md; W9",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the roster / everything choice, the confirmation, then every active species on at least one season (one from the matrix; the pair guarantee, D6, may add one)",
+  "got": "choice: True; confirm: True; active species not on one season after: []",
+  "shots": [
+   "shots/C11-reset-choice.jpg"
+  ],
+  "data": {
+   "not_50_after": []
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.ctrlS",
+  "surface": "GUI",
+  "claim": "Ctrl+S is retired (v5.11.0): the Set roster keys \u2014 targets, F/Y/D, S/U/A/W, M/O \u2014 are on the Roster page itself",
+  "source": "USAGE.md v5.11.0",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the targets row, fill keys and matrix/co-align keys on the Roster page; no Set roster label",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|",
+  "shots": [
+   "shots/C12-roster-keys.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.tab.setroster",
+  "surface": "GUI",
+  "claim": "Set roster folded into the Roster (v5.11.0): the targets row, fill keys, matrix/co-align keys and season keys are on the Roster page and the season grid is its SEASON column",
+  "source": "USAGE.md Roster tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "targets, fill keys, matrix/co-align keys, and a SEASON column on every row",
+  "got": "3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Biomes: SHRUBLAND_TEMPERATE\n  8|                            Active  prey=26 pred=24 bird=0 vermin=21 other=0  Spring  rotation ON  14 special left to DF\n  9|                            Ecosystem balanced.   [BADGER: eats IMP_FIRE,...; eaten by COUGAR,...]\n 11|                            v: View: Current      c: Cat: All       b: Biome: All biomes   n: Season: All\n 12|                            i: Species detail     Enter: active/inactive   E or Shift-Enter: cycle seasons   ODDS = share of its layer\n 13|                            CREATURE           ROLE     SIZE   HAB   BIOME     SEASON  STOCK  ODDS  act WHY\n 14|                            Alt+s:\n 16|                               ADDER_MAN        predator small  land  SHR.TEM   Au      0      (1%)  Y   matrix Sp15                                                          Elevation 7\n 17|                               BADGER           predator small  land  SHR.TEM   Wi      0      (14%) Y   matrix Sp15\n 18|                               BAT              vermin   small  fly   SHR.TEM   Su      0      -     Y   matrix Sp15\n 19|                       ",
+  "shots": [
+   "shots/C12-roster-keys.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.targets",
+  "surface": "GUI",
+  "claim": "Shift-P/R/B/V cycle the per-category targets",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the prey target value changes",
+  "got": "0 -> 1",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.F",
+  "surface": "GUI",
+  "claim": "F fills categories to their targets",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "allowed counts move toward the targets (or the status line says nothing needed doing)",
+  "got": "{'assigned': 71, 'predator': 24, 'prey': 26, 'vermin': 21} -> {'assigned': 64, 'predator': 24, 'prey': 19, 'vermin': 21}",
+  "shots": [
+   "shots/C13-fill-targets.jpg"
+  ],
+  "data": {
+   "before": {
+    "assigned": 71,
+    "predator": 24,
+    "prey": 26,
+    "vermin": 21
+   },
+   "after": {
+    "assigned": 64,
+    "predator": 24,
+    "prey": 19,
+    "vermin": 21
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.status.grid",
+  "surface": "GUI",
+  "claim": "the Roster's status line shows the fill / matrix / co-align receipts ('Allowed N natural prey.', 'Assigned matrix seasons to N creatures.') \u2014 v5.11.0, was the Set roster grid status",
+  "source": "USAGE.md; script setStatus",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "a fill receipt on the Roster's status line after F",
+  "got": "55|                            Ctrl+a: Apply now   Ctrl+f: Send off + neCtrl+d: Dry-run   Ctrl+e: Rotation off\n 56|                            Ctrl+w: Stock (rowCtrl+g: Stock (filteAlt+o: Odds (row) Ctrl+x: Add invasive\n 57|                            Alt+r: Reset (asks: roster or everything)    Alt+f: Fill cat to N\n 58|                            P: prey: 1        R: predator: 0        V: vermin: 0      (land)\n 59|                            f: Fill to targets  y: Fill natural prey  d: Fill natural predators\n 60|                            deactivated 7 prey",
+  "shots": [
+   "shots/C13-fill-targets.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.Y",
+  "surface": "GUI",
+  "claim": "Y allows the natural prey of allowed creatures",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "allowed counts never decrease (Y only adds)",
+  "got": "{'assigned': 64, 'predator': 24, 'prey': 19, 'vermin': 21} -> {'assigned': 64, 'predator': 24, 'prey': 19, 'vermin': 21}",
+  "shots": [],
+  "data": {
+   "before": {
+    "assigned": 64,
+    "predator": 24,
+    "prey": 19,
+    "vermin": 21
+   },
+   "after": {
+    "assigned": 64,
+    "predator": 24,
+    "prey": 19,
+    "vermin": 21
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.D",
+  "surface": "GUI",
+  "claim": "D allows the natural predators of allowed creatures",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "allowed counts never decrease (D only adds)",
+  "got": "{'assigned': 64, 'predator': 24, 'prey': 19, 'vermin': 21} -> {'assigned': 64, 'predator': 24, 'prey': 19, 'vermin': 21}",
+  "shots": [],
+  "data": {
+   "before": {
+    "assigned": 64,
+    "predator": 24,
+    "prey": 19,
+    "vermin": 21
+   },
+   "after": {
+    "assigned": 64,
+    "predator": 24,
+    "prey": 19,
+    "vermin": 21
+   }
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.SUAW",
+  "surface": "GUI",
+  "claim": "S/U/A/W toggle Spring/Summer/Autumn/Winter on the selected Roster row (its SEASON column)",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "FAIL",
+  "expected": "each of S/U/A/W flips exactly its own season on Roster row 1",
+  "got": "row ADDER_MAN: [False, False, False, False]; ends Au",
+  "shots": [
+   "shots/C14-seasons-toggled.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.gridmouse",
+  "surface": "GUI",
+  "claim": "the season grid is gone (v5.11.0): seasons are the S/U/A/W keys on the Roster row; no per-cell clicks to support",
+  "source": "USAGE.md v5.11.0",
+  "claimed": "shipped",
+  "verdict": "FAIL",
+  "expected": "no grid since v5.11.0; the S/U/A/W keys act on the Roster row",
+  "got": "[False, False, False, False]",
+  "shots": [],
+  "data": null,
+  "note": "the Set roster grid and its keyboard-only cells are gone; the SEASON column is the grid"
+ },
+ {
+  "id": "gui.k.M",
+  "surface": "GUI",
+  "claim": "M assigns seasons from the climate matrix",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "\u22655 species carry season assignments after M",
+  "got": "assigned after: 64; changed from before: True",
+  "shots": [],
+  "data": {
+   "assigned": 64
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.k.O",
+  "surface": "GUI",
+  "claim": "O co-aligns predator\u2194prey seasons",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "season cells never decrease (O only extends partners' seasons)",
+  "got": "cells 69 -> 131",
+  "shots": [
+   "shots/C15-matrix-coalign.jpg"
+  ],
+  "data": {
+   "cells_before": 69,
+   "cells_after": 131
+  },
+  "note": ""
+ },
+ {
+  "id": "gui.tab.foodweb",
+  "surface": "GUI",
+  "claim": "Food web tab: ecology-switch line, season selector, chains (All) or trophic pyramid + aquatic mini-web (a season)",
+  "source": "USAGE.md Food web tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the ecology line and predator -> prey chains",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers",
+  "shots": [
+   "shots/C16-foodweb-all.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.webN",
+  "surface": "GUI",
+  "claim": "N on Food web cycles the season; a specific season draws the pyramid",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the season selector moves to Spring and the view changes (pyramid)",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers",
+  "shots": [
+   "shots/C16-foodweb-spring.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.webG",
+  "surface": "GUI",
+  "claim": "G on Food web cycles the mode: Pyramid \u2192 Graph \u2192 By season \u2192 By layer",
+  "source": "USAGE.md v5.11.1",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Mode: Graph \u2014 'as a graph', an edge arrow and the live-pair legend",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|",
+  "shots": [
+   "shots/C16b-web-graph.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.web.graph",
+  "surface": "GUI",
+  "claim": "Food web as a graph with live pairs",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Food web as a graph with live pairs",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.1 as the Graph mode (G); live pairs read from DF's reaction table (ecoLivePairs)"
+ },
+ {
+  "id": "v6.web.byseason",
+  "surface": "GUI",
+  "claim": "Food web by season \u2014 four pyramids",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Food web by season \u2014 four columns with the mass ratio and arrivals",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [
+   "shots/C16c-web-byseason.jpg"
+  ],
+  "data": null,
+  "note": "shipped in v5.11.1 as the By season mode"
+ },
+ {
+  "id": "gui.k.webL",
+  "surface": "GUI",
+  "claim": "L on Food web jumps to the layers side by side",
+  "source": "USAGE.md v5.11.1",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "Mode: By layer \u2014 a LAND column and the bridge-edges line",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|",
+  "shots": [
+   "shots/C16d-web-bylayer.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.web.bylayer",
+  "surface": "GUI",
+  "claim": "Food web by layer, side by side",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Food web by layer, side by side",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.1 as the By layer mode (L)"
+ },
+ {
+  "id": "gui.tab.live",
+  "surface": "GUI",
+  "claim": "Live tab: resident-group status, tracked groups, ecology line, wild-on-map by race, quota line, cavern line, biomass ratio",
+  "source": "USAGE.md Live tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "resident groups / ecology / Wild on map / quota lines",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            This instant: tracked groups (select one), herds &",
+  "shots": [
+   "shots/C17-live.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveR",
+  "surface": "GUI",
+  "claim": "R refreshes the Live tab",
+  "source": "script",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the tab re-renders",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveG",
+  "surface": "GUI",
+  "claim": "G toggles resident groups from the Live tab",
+  "source": "USAGE.md",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "cfg.groups.enabled flips",
+  "got": "True -> False",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.herds",
+  "surface": "GUI",
+  "claim": "Herds & packs view with labels, reasons, overrides",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Herds & packs: the cohesion line and per-species label/reason/override rows (or 'no tracked species')",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.2 inside the Live tab"
+ },
+ {
+  "id": "gui.k.liveP",
+  "surface": "GUI",
+  "claim": "P on Live flips migratory coupling",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "cfg.groups.coupling flips",
+  "got": "False -> True",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveK",
+  "surface": "GUI",
+  "claim": "K on Live cycles the coupling pack size (raw \u2192 3 \u2192 5 \u2192 8 \u2192 12 \u2192 raw)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "cfg.groups.pack moves to the next step",
+  "got": "0 -> 3",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveQ",
+  "surface": "GUI",
+  "claim": "Q on Live holds the selected group thirty days (its row says 'held N more days')",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the selected group's row says 'held N more days'",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|",
+  "shots": [
+   "shots/C17c-live-hold.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveF",
+  "surface": "GUI",
+  "claim": "F on Live follows the selected group (plotinfo.follow_unit set to a member)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "plotinfo.follow_unit set to a member id",
+  "got": "follow -1 -> 126",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveEnter",
+  "surface": "GUI",
+  "claim": "Enter on a Live group row centres the map on it (the viewport moves)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the viewport moves after Enter on a group row",
+  "got": "(0, 0, 24) -> (-30, 18, 24)",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveX",
+  "surface": "GUI",
+  "claim": "X on Live dismisses the selected group (its row says 'dismissed')",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the selected group's row says 'dismissed'",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|",
+  "shots": [
+   "shots/C17d-live-dismiss.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.liveW",
+  "surface": "GUI",
+  "claim": "W on Live forces the next wave (the Roster's Ctrl+F)",
+  "source": "USAGE.md v5.11.2",
+  "claimed": "shipped",
+  "verdict": "NOT-TESTABLE-HERE",
+  "expected": "W clears the roaming-source flag on every wild land unit (force Wildlife), like Ctrl+F",
+  "got": "flagged 0 -> 0",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.live.hotkeys",
+  "surface": "GUI",
+  "claim": "Live tab hotkeys P coupling / K pack / Q hold / X dismiss / W next wave / F follow, and 'Enter centres the map'",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Live tab hotkeys P K Q X W F and Enter centres the map",
+  "got": "P flips coupling: False -> True; group-row keys above",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.2"
+ },
+ {
+  "id": "gui.tab.layers",
+  "surface": "GUI",
+  "claim": "Layers tab: a row per setting (layer, concurrent groups, gap, pattern, quota, coupling, ecology, nudge, pack) against land/water/cavern columns, the water line, a line per cavern found or hidden, the preset line",
+  "source": "USAGE.md v5.11.3",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the three columns, the setting rows, the water line, the caverns block and the preset line",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Per layer: the gate, patterns, quotas, ecology, the",
+  "shots": [
+   "shots/C17e-layers.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.patterns",
+  "surface": "GUI",
+  "claim": "Patterns & quotas per layer (steady/burst/trickle/dawn/follow)",
+  "source": "design \u00a711; PLAN 3.5",
+  "claimed": "planned v5.9",
+  "verdict": "PASS",
+  "expected": "Patterns & quotas per layer",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.3 as rows of the Layers tab"
+ },
+ {
+  "id": "v6.caverns",
+  "surface": "GUI",
+  "claim": "Caverns view \u2014 hidden until found, pressure, rotation by epoch",
+  "source": "design \u00a711",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Caverns view \u2014 found or hidden per cavern, with its pressure",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.3 inside the Layers tab; the pressure is v6.1.0's (off shows a dash)"
+ },
+ {
+  "id": "v6.ecology.tab",
+  "surface": "GUI",
+  "claim": "Ecology tab \u2014 switch, nudge policy, pack size, live pair list",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Ecology: switch, nudge policy, pack size as rows (the live pair list is the Food web's Graph mode)",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.3 as Layers rows; live pairs in the Food web Graph (v5.11.1)"
+ },
+ {
+  "id": "gui.k.layT",
+  "surface": "GUI",
+  "claim": "T on Layers cycles the selected layer's pattern (steady \u2192 burst \u2192 trickle \u2192 dawn \u2192 follow)",
+  "source": "USAGE.md v5.11.3",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "cfg.patterns.land moves to the next pattern",
+  "got": "steady -> burst",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.layI",
+  "surface": "GUI",
+  "claim": "I on Layers flips irruptions and the cavern pressure row shows the three pressures",
+  "source": "USAGE.md v6.1",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the status says Irruptions ON and the pressure row shows three numbers",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|",
+  "shots": [
+   "shots/C17e2-layers-irruption.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.layR",
+  "surface": "GUI",
+  "claim": "R on Layers re-applies the biome preset and the Ledger records a build line",
+  "source": "USAGE.md v5.11.3",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the status says re-applied and the Ledger gained a build line naming the preset",
+  "got": "status: False; ledger build lines 47 -> 51: y2 Spring 15   build     -       preset temperate shrubland: 71 species active, one season each on 71; every present lay",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.presets",
+  "surface": "GUI",
+  "claim": "biome presets applied at first run",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "biome presets: applied at first run and re-applied with R",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it"
+ },
+ {
+  "id": "gui.tab.ledger",
+  "surface": "GUI",
+  "claim": "Ledger tab: the recorded lines newest last, coloured by kind, with the kind and layer filters",
+  "source": "USAGE.md v5.11.4",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the header with the recorded count and dated lines",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|",
+  "shots": [
+   "shots/C17h-ledger.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.ledger",
+  "surface": "GUI",
+  "claim": "Ledger \u2014 every write and why, with undo",
+  "source": "design \u00a711; PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "PASS",
+  "expected": "Ledger \u2014 every write and why, with undo",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.4 as the eighth tab"
+ },
+ {
+  "id": "gui.k.ledgerK",
+  "surface": "GUI",
+  "claim": "K on Ledger filters by kind (the header says kind=<kind>)",
+  "source": "USAGE.md v5.11.4",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the header carries kind=<kind> after K",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.k.ledgerZ",
+  "surface": "GUI",
+  "claim": "Z on Ledger undoes the last edit: a species blocked on the Roster is allowed again and the Ledger gains an undo line",
+  "source": "USAGE.md v5.11.4",
+  "claimed": "shipped",
+  "verdict": "FAIL",
+  "expected": "row 1's ok column: flipped by Enter, back after Z; the Ledger status says Undid",
+  "got": "('ADDER_MAN', 0, 'Y') -> ('ADDER_MAN', 0, 'Y') -> ('ADDER_MAN', 0, 'Y'); status: True",
+  "shots": [
+   "shots/C17h-ledger-undo.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.undo",
+  "surface": "GUI",
+  "claim": "undo for roster edits (10-deep snapshot ring)",
+  "source": "PLAN 3.6",
+  "claimed": "planned v6.0",
+  "verdict": "FAIL",
+  "expected": "undo for roster edits (10-deep snapshot ring)",
+  "got": "undo restored row 1: False",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.11.4: UNDO ring in site data, Z on the Ledger tab and the undo verb"
+ },
+ {
+  "id": "gui.tab.seasons",
+  "surface": "GUI",
+  "claim": "Seasons tab: four seasons side by side, one row per allowed creature under its trophic level, +/-/X/. marks",
+  "source": "USAGE.md Seasons tab",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "four season columns and +/-/X/. marks",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers",
+  "shots": [
+   "shots/C18-seasons.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.tab.vermin",
+  "surface": "GUI",
+  "claim": "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so",
+  "source": "USAGE.md v5.9.10",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "FAMILY header with family rows; D applies the defaults and the status line says so",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Vermin by family. Enter: active/inactive; S U A W s",
+  "shots": [
+   "shots/C18b-vermin.jpg",
+   "shots/C18b-vermin-defaults.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "v6.vermin",
+  "surface": "GUI",
+  "claim": "Vermin view by family with seasonal defaults",
+  "source": "design \u00a711; PLAN 3.5",
+  "claimed": "planned v5.9",
+  "verdict": "PASS",
+  "expected": "Vermin view by family with seasonal defaults",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   E",
+  "shots": [],
+  "data": null,
+  "note": "shipped in v5.9.10 as the sixth tab; the design's eight-tab layout keeps it"
+ },
+ {
+  "id": "gui.vermin.species",
+  "surface": "GUI",
+  "claim": "E on the Vermin tab opens a family to its species rows, each with active/inactive, seasons and stock",
+  "source": "W12; alpha 1 step 8.1",
+  "claimed": "shipped v6.6",
+  "verdict": "PASS",
+  "expected": "species rows under the opened family, each with active/inactive",
+  "got": "3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Vermin by family. Enter: active/inactive; S U A W seasons; E opens the family; Shift+W stock; D the family defaults.\n  8|                            s: Spring   u: Summer   a: Autumn   w: Winter   W: Stock      d: Defaults     e: Open family\n 10|                            FAMILY                                 n  active  SEASON stock   LAYERS\n 11|                            - fish      fish                         7       7  All    20k     cavern/land/water\n 12|                                 cavern:FISH_CAVE                 active   All    1.2k    cavern\n 13|                                 cavern:LOBSTER_CAVE              active   All    60      cavern\n 14|                                 POND_TURTLE                      active   All    60      land\n 15|                                 water:FISH_LAMPREY_BROOK         active   All    5.3k    water\n 16|                                 water:FISH_SALMON                active   All    60      water                                                                               Elevation -73\n 17|                                 water:FISH_SHAD       ",
+  "shots": [
+   "shots/C18c-vermin-open.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.seasons.edit",
+  "surface": "GUI",
+  "claim": "S U A W on the Seasons tab edit the selected species' seasons and the Roster shows the change",
+  "source": "W12; alpha 1 step 5.1",
+  "claimed": "shipped v6.6",
+  "verdict": "PASS",
+  "expected": "the Seasons status line names the species and its new seasons (or the last-season refusal)",
+  "got": "3|                                                                                       Seasonal Wildlife\n  5|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  6|                              Overview    Panel    Roster    Seasons    Food web    Live    Layers    Vermin    Ledger\n  7|                            Each level across the four seasons. + = arrives this season, - = leaves after it. Select a row; S U A W edit its seasons.\n  8|                            s: Spring   u: Summer   a: Autumn   w: Winter     BIRD_SWAL",
+  "shots": [
+   "shots/C18d-seasons-edit.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.help",
+  "surface": "GUI",
+  "claim": "Alt+H opens a help page for the tab with the vocabulary",
+  "source": "W11",
+  "claimed": "shipped v6.6",
+  "verdict": "PASS",
+  "expected": "a Help dialog with the tab's text and the vocabulary",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle                                   Stocks                                                                   Early Spring\n  2|                  Outpost               7  0  0  0  7  0  0  0              ~60    ~60    ~30    ~20    ~20    ~30   None                  Year 2\n  3|                                                                                       Seasonal Wildlife\n  5|",
+  "shots": [
+   "shots/C18e-help.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.layout",
+  "surface": "GUI",
+  "claim": "the window opens taller than 34 rows when the screen allows, with all nine tabs on one row",
+  "source": "W9; alpha 1 step 1.3",
+  "claimed": "shipped v6.6",
+  "verdict": "PASS",
+  "expected": "window taller than 34 rows; one screen row holds Overview, Panel, Roster and Ledger",
+  "got": "window rows 3-62 (60); tab row found: True",
+  "shots": [
+   "shots/C18e-help.jpg"
+  ],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "gui.close",
+  "surface": "GUI",
+  "claim": "ESC closes the window",
+  "source": "script",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "the window gone after ESC",
+  "got": "0|                  Dod kirtir          Pop                                  Food  Drink  Seeds   Meat   Fish  Plant  Other                  15th Granite\n  1|                  Claspeddangle",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "w0.overlay",
+  "surface": "MECH",
+  "claim": "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)",
+  "source": "alpha 1 steps 6.2/6.3/10.1; W0",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "seasonal-wildlife.groups enabled=False after the run, as before it",
+  "got": "before: enabled=False; after: enabled=False",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.save.untouched",
+  "surface": "MECH",
+  "claim": "a full session of console and GUI use leaves the save byte-identical (config lives in persistent site data)",
+  "source": "USAGE.md Uninstall; df-rig rule",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "diff -rq of the save against its backup is empty after the whole session",
+  "got": "identical",
+  "shots": [],
+  "data": {
+   "identical": true
+  },
+  "note": ""
+ }
+]
