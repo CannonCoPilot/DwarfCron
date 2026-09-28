@@ -1,0 +1,637 @@
+<title>Seasonal Wildlife Alpha Two</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#EEF0EB; --paper-2:#E3E7DF; --ink:#1F2A22; --ink-2:#4A554D; --rule:#C9D0C4;
+  --moss:#3F6B36; --moss-soft:#DCE8D4; --rust:#A6491F; --rust-soft:#F1DDD2; --amber:#8A6A12; --amber-soft:#F0E6C6;
+  --pass:#3F6B36; --skip:#6A756E; --card:#F7F8F5; --kbd-bg:#FFFFFF; --kbd-edge:#B8C1B4; --focus:#2F5F9E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A16; --paper-2:#1D241F; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+    --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+    --pass:#8FBF7A; --skip:#8B968D; --card:#1A211C; --kbd-bg:#242C26; --kbd-edge:#4A5750; --focus:#7FAEE6;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A16; --paper-2:#1D241F; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+  --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+  --pass:#8FBF7A; --skip:#8B968D; --card:#1A211C; --kbd-bg:#242C26; --kbd-edge:#4A5750; --focus:#7FAEE6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--moss)}
+h1,h2,h3{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-0.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,4vw,3rem);line-height:1.05}
+h2{font-size:1.65rem;line-height:1.15}
+h3{font-size:1.15rem;line-height:1.25}
+p{margin:0}
+kbd{font:600 0.82em/1 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;background:var(--kbd-bg);border:1px solid var(--kbd-edge);border-bottom-width:2px;border-radius:4px;padding:2px 6px;white-space:nowrap;color:var(--ink)}
+code{font:0.9em "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;background:var(--paper-2);padding:1px 5px;border-radius:3px}
+.eyebrow{font:600 0.72rem/1 "Source Sans 3",sans-serif;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-2)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.masthead{padding:44px 0 28px;border-bottom:1px solid var(--rule)}
+.masthead .eyebrow{margin-bottom:14px}
+.masthead .lede{margin-top:16px;max-width:62ch;font-size:1.08rem;color:var(--ink-2)}
+.masthead .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:20px;font-size:0.92rem;color:var(--ink-2)}
+.masthead .facts b{color:var(--ink);font-weight:600}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;padding:32px 0 80px}
+@media (max-width:860px){.layout{grid-template-columns:1fr}.rail{position:static!important}}
+.rail{position:sticky;top:20px;align-self:start;font-size:0.92rem}
+.rail ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--rule)}
+.rail li a{display:block;padding:6px 0 6px 14px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;margin-left:-1px}
+.rail li a:hover{color:var(--ink)}
+.rail li a.on{color:var(--ink);border-left-color:var(--moss)}
+.rail .tally{margin-top:22px;padding:14px;background:var(--card);border:1px solid var(--rule);border-radius:6px;font-variant-numeric:tabular-nums}
+.rail .tally div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.rail .tally .n{font-weight:600}
+main{min-width:0}
+.phase{padding:10px 0 34px;border-bottom:1px solid var(--rule);margin-bottom:26px}
+.phase-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline;margin-bottom:8px}
+.phase-head .num{font-family:"Newsreader",Georgia,serif;font-size:2.2rem;line-height:1;color:var(--moss);font-variant-numeric:tabular-nums}
+.phase-head .why{grid-column:2;color:var(--ink-2);max-width:66ch;margin-top:6px}
+.phase-head .need{grid-column:2;margin-top:10px;font-size:0.9rem;color:var(--ink-2)}
+.phase-head .need b{color:var(--ink)}
+.steps{display:grid;gap:12px;margin-top:20px}
+.step{display:grid;grid-template-columns:54px minmax(0,1fr);gap:0 14px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:14px 16px 14px 12px}
+.step .id{font:600 0.8rem/1.2 "JetBrains Mono",ui-monospace,monospace;color:var(--ink-2);padding-top:4px}
+.step .body{display:grid;gap:8px;min-width:0}
+.step h3{font-family:"Source Sans 3",sans-serif;font-weight:600;font-size:1.02rem}
+.step .do,.step .expect,.step .watch{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;font-size:0.95rem}
+.step .do>span:first-child,.step .expect>span:first-child,.step .watch>span:first-child{font:600 0.7rem/1.9 "Source Sans 3",sans-serif;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2)}
+.step .watch>span:last-child{color:var(--ink-2)}
+.step .expect b{color:var(--moss);font-weight:600}
+.step .keys{display:flex;flex-wrap:wrap;gap:6px 6px;align-items:center}
+.step .verdict{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px;padding-top:10px;border-top:1px dashed var(--rule)}
+.step .verdict label{display:inline-flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;padding:4px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--paper)}
+.step .verdict input{margin:0}
+.step .verdict label.p:has(input:checked){background:var(--moss-soft);border-color:var(--pass);color:var(--pass)}
+.step .verdict label.a:has(input:checked){background:var(--rust-soft);border-color:var(--rust);color:var(--rust)}
+.step .verdict label.s:has(input:checked){background:var(--paper-2);border-color:var(--skip);color:var(--skip)}
+.step textarea{width:100%;min-height:38px;resize:vertical;font:0.9rem/1.4 "Source Sans 3",sans-serif;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:6px 8px;margin-top:6px}
+.step textarea:focus,.step .verdict input:focus-visible+span,button:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.step.anom{border-left:3px solid var(--rust)}
+.step.pass{border-left:3px solid var(--pass)}
+.step.skip{border-left:3px solid var(--skip)}
+.note{background:var(--amber-soft);border-left:3px solid var(--amber);padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.95rem;max-width:72ch}
+.note b{font-weight:600}
+.callout{background:var(--moss-soft);border-left:3px solid var(--moss);padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.95rem;max-width:72ch}
+table.sev{border-collapse:collapse;font-size:0.93rem;margin-top:14px;max-width:72ch}
+table.sev th,table.sev td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.sev th{font-weight:600;color:var(--ink-2);font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase}
+.report{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:18px}
+.report .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+button{font:600 0.9rem "Source Sans 3",sans-serif;color:var(--paper);background:var(--moss);border:0;border-radius:5px;padding:8px 14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+.report textarea{width:100%;min-height:260px;font:0.85rem/1.45 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px}
+.tester{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.tester label{display:grid;gap:4px;font-size:0.85rem;color:var(--ink-2)}
+.tester input{font:0.95rem "Source Sans 3",sans-serif;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:6px 8px}
+.muted{color:var(--ink-2)}
+@media (prefers-reduced-motion: no-preference){.step{transition:border-color .15s}}
+
+.recheck{border-collapse:collapse;font-size:0.93rem;margin-top:14px;width:100%}
+.recheck th,.recheck td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.recheck th{font-weight:600;color:var(--ink-2);font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase}
+.recheck td:first-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace;color:var(--rust)}
+.recheck td:last-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace}
+.tablewrap{overflow-x:auto}
+.step .tag{display:inline-block;font:600 0.68rem/1.6 "Source Sans 3",sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--rust);background:var(--rust-soft);border-radius:3px;padding:0 6px;margin-left:8px;vertical-align:0.1em}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Alpha trial two · UI · re-tests alpha one</div>
+    <h1>Seasonal Wildlife Alpha Two</h1>
+    <p class="lede">A play-order walkthrough of the <em>Seasonal Wildlife</em> window as of v6.6, the release built from what alpha one found. Work through it on a live fort, mark each step, and compile the report at the end. Steps tagged <b>re-check</b> test a specific alpha one finding. Console commands are left for a later round.</p>
+    <div class="facts">
+      <span>Plugin <b>seasonal-wildlife v6.6.0</b> (f22fa30)</span>
+      <span>Game <b>Dwarf Fortress 53.16</b> · <b>DFHack 53.16-r1.1</b></span>
+      <span>Validated <b>177 claims pass on the rig, 0 fail</b> (run 002027)</span>
+      <span>Steps <b id="stepcount">–</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="rail" aria-label="Phases">
+    <ol id="railList"></ol>
+    <div class="tally" aria-live="polite">
+      <div><span>Pass</span><span class="n" id="tPass">0</span></div>
+      <div><span>Anomaly</span><span class="n" id="tAnom">0</span></div>
+      <div><span>Skipped</span><span class="n" id="tSkip">0</span></div>
+      <div><span>Unmarked</span><span class="n" id="tOpen">0</span></div>
+    </div>
+  </nav>
+
+  <main id="main">
+
+    <section class="phase" id="p0">
+      <div class="phase-head"><span class="num">0</span><h2>Before you open the window</h2>
+        <p class="why">Alpha two tests v6.6, the release that answers alpha one. Most steps re-test something alpha one found; the tag on a step names it.</p></div>
+      <div class="note"><b>Use a backup.</b> The plugin under test is <code>seasonal-wildlife v6.6.0</code>. It passed 177 of its claims on the test rig with none failing (run 002027), but the rig forts are small and seven dwarves strong; yours is the real test.</div><table class="sev"><thead><tr><th>Mark</th><th>Use it when</th></tr></thead><tbody><tr><td><b>Pass</b></td><td>What the step promises is what you saw.</td></tr><tr><td><b>Anomaly</b></td><td>Anything else: a wrong value, a key that did nothing, a clipped column, a word you did not understand, a frame-rate dip. Write what you pressed, what you saw and what you expected.</td></tr><tr><td><b>Skipped</b></td><td>The fort cannot show it (no water, no cavern found, no boundary reached). Say why.</td></tr></tbody></table><h3 style="margin-top:22px">What alpha one found, and where to re-check it</h3><div class="tablewrap"><table class="recheck"><thead><tr><th>Alpha 1</th><th>What it found in v6.2.1</th><th>Fixed in</th><th>Re-check at</th></tr></thead><tbody>
+<tr><td>R1</td><td>A blocked species kept its worldgen stock and could still arrive (63 on Boatsbowed); water and cavern species were never seasoned.</td><td>v6.3</td><td>2.3, 2.4, 16.1</td></tr>
+<tr><td>R2</td><td>One raw flag decided a species' category: a giant orca read as prey, an albatross as aquatic, a dingo as large.</td><td>v6.4</td><td>3.2, 10.2</td></tr>
+<tr><td>R3</td><td>Co-align and the Y/D fills cascaded through the whole roster in one pass; a lion could eat a shark.</td><td>v6.4</td><td>5.3, 5.4, 10.2</td></tr>
+<tr><td>R4</td><td>Jobs ran for seconds on a big fort; the ecology write tripped its fuse unseen.</td><td>v6.3</td><td>1.3, 17.2</td></tr>
+<tr><td>R5</td><td>Ctrl+R and Ctrl+L were DF's own macro keys; the window drew garbled dashes; the overlay stayed on.</td><td>v6.3</td><td>2.7, 7.1, 15.1</td></tr>
+<tr><td>7.6</td><td>Whole-roster tools changed many species without asking.</td><td>v6.3</td><td>5.1</td></tr>
+<tr><td>9.2</td><td>Undo went only ten steps back.</td><td>v6.5</td><td>14.2</td></tr>
+</tbody></table></div>
+      <div class="steps">
+        <div class="step" data-id="0.1"><div class="id">0.1</div><div class="body"><h3>Choose the fort</h3>
+          <div class="do"><span>Do</span><span>Use a copy of the alpha one fort if you still have it, or embark a fort with wildlife on the surface and, ideally, a river or lake and a breached cavern.</span></div>
+          <div class="expect"><span>Expect</span><span>Nothing yet. Note the biomes, whether water touches the map edge, and whether a cavern is open.</span></div>
+          <div class="watch"><span>Watch</span><span>Write the fort’s population, year and season in the note, so later steps have a baseline.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.2"><div class="id">0.2</div><div class="body"><h3>Back it up</h3>
+          <div class="do"><span>Do</span><span>Copy the save folder before you open the window.</span></div>
+          <div class="expect"><span>Expect</span><span>A fort that never opens the window is never touched, so the copy is your control.</span></div>
+          <div class="watch"><span>Watch</span><span>The tool writes to the map’s wildlife populations, to creature raws while it runs, and to persistent site data.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.3"><div class="id">0.3</div><div class="body"><h3>Turn on the frame counter</h3>
+          <div class="do"><span>Do</span><span>In Settings, show the frame rate. Read it unpaused for a minute at your usual speed.</span></div>
+          <div class="expect"><span>Expect</span><span>A baseline for phase 17. A paused game shows a meaningless high number.</span></div>
+          <div class="watch"><span>Watch</span><span>Two loads of the same fort can differ by ten to fifteen percent on their own.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p1">
+      <div class="phase-head"><span class="num">1</span><h2>First open: Overview and Panel</h2>
+        <p class="why">The window opens on the Overview. The Panel tab is new in v6.3: every switch the tool has, and how long each job takes.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="1.1"><div class="id">1.1</div><div class="body"><h3>Open the window<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>In DFHack’s console type <code>gui/seasonal-wildlife</code>, or use your launcher.</span></div>
+          <div class="expect"><span>Expect</span><span>A window titled <b>Seasonal Wildlife</b> with nine tabs: Overview, Panel, Roster, Seasons, Food web, Live, Layers, Vermin, Ledger. The Overview shows the date, what is on the map per layer, what is in season, and the next boundary.</span></div>
+          <div class="watch"><span>Watch</span><span>All text should be plain ASCII. Alpha one saw dashes drawn as <code>ΓÇö</code>.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.2"><div class="id">1.2</div><div class="body"><h3>Read the Panel</h3>
+          <div class="do"><span>Do</span><span>Click <b>Panel</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>A SWITCHES list with <b>[ON]</b> or <b>[off]</b> on every row (rotation, each layer, groups, cohesion, ecology, nudge, water draws, deep layer, coupling, livestock, vermin hunting, irruptions, overlay), then a JOBS table: every, last, worst, runs, over, fuse. A frame-rate line reads the game’s rate; it is information only.</span></div>
+          <div class="watch"><span>Watch</span><span>Enter on a switch row flips it. Note any switch whose description you could not follow.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.3"><div class="id">1.3</div><div class="body"><h3>Read the job timings<span class="tag">re-check R4</span></h3>
+          <div class="do"><span>Do</span><span>Leave the window open a game day, then press <kbd>R</kbd> on the Panel.</span></div>
+          <div class="expect"><span>Expect</span><span>Each job shows its last and worst pass in milliseconds against a 50 ms budget; <b>over</b> counts passes above it; <b>fuse</b> reads intact.</span></div>
+          <div class="watch"><span>Watch</span><span>Record the worst figures. The rig saw the groups job reach 149 to 196 ms on some passes, so a nonzero <b>over</b> on groups is known; a tripped fuse is not.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.4"><div class="id">1.4</div><div class="body"><h3>All off, then all on</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>X</kbd> (All off) and answer the question; then <kbd>A</kbd> (All on).</span></div>
+          <div class="expect"><span>Expect</span><span>Each asks first. All off stops every job and restores every creature raw the tool changed; all on puts the switches back as they were.</span></div>
+          <div class="watch"><span>Watch</span><span>Anything left on after All off, or a switch that came back different.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p2">
+      <div class="phase-head"><span class="num">2</span><h2>The roster rule</h2>
+        <p class="why">Alpha one’s biggest finding: a species you blocked could still arrive. v6.3 has one rule. An active species has at least one season; the only way to keep one away is to make it inactive, and an inactive species is held on every layer.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="2.1"><div class="id">2.1</div><div class="body"><h3>Read the new columns</h3>
+          <div class="do"><span>Do</span><span>Click <b>Roster</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns CREATURE, ROLE (predator, prey, vermin), SIZE (small, medium, large), HAB (land, fly, wbird, semi, aqua), BIOME, SEASON, STOCK, ODDS, act, WHY. The header counts active species per role and says how many <b>special</b> creatures are left to DF.</span></div>
+          <div class="watch"><span>Watch</span><span>Special means DF’s own classes: demons, megabeasts, titans, forgotten beasts, night creatures and the like. They are not on the roster by design.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.2"><div class="id">2.2</div><div class="body"><h3>Filters</h3>
+          <div class="do"><span>Do</span><span>Cycle <kbd>V</kbd> (View: Current, Default, Add invasive), <kbd>C</kbd> (category, including habitats), <kbd>B</kbd> (biome), <kbd>N</kbd> (season).</span></div>
+          <div class="expect"><span>Expect</span><span>Each changes the rows. Default shows the roster as the embark was first found.</span></div>
+          <div class="watch"><span>Watch</span><span>A filter that empties the list without saying why.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.3"><div class="id">2.3</div><div class="body"><h3>Make a species inactive<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Select an active species and press <kbd>Enter</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>act turns to <b>-</b>, its SEASON clears, WHY reads <b>you</b> and today’s date.</span></div>
+          <div class="watch"><span>Watch</span><span>Remember the species; step 16.1 checks it never arrives.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.4"><div class="id">2.4</div><div class="body"><h3>Make it active again<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Enter</kbd> on the same row.</span></div>
+          <div class="expect"><span>Expect</span><span>act turns to <b>Y</b> with <b>exactly one</b> season, chosen from its climate.</span></div>
+          <div class="watch"><span>Watch</span><span>No season, or all four.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.5"><div class="id">2.5</div><div class="body"><h3>Cycle seasons</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>E</kbd> (or <kbd>Shift</kbd>+<kbd>Enter</kbd>) on an active row several times.</span></div>
+          <div class="expect"><span>Expect</span><span>The season steps through single seasons and pairs and never lands on none.</span></div>
+          <div class="watch"><span>Watch</span><span>A row left with no season.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.6"><div class="id">2.6</div><div class="body"><h3>Try to remove the last season</h3>
+          <div class="do"><span>Do</span><span>On a species with one season, press that season’s key (<kbd>S</kbd> <kbd>U</kbd> <kbd>A</kbd> <kbd>W</kbd>).</span></div>
+          <div class="expect"><span>Expect</span><span>Refused: <b>the last season stays: make the species inactive instead</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>The row going to no season.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.7"><div class="id">2.7</div><div class="body"><h3>Cycle the layer<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>L</kbd> five times.</span></div>
+          <div class="expect"><span>Expect</span><span>The title reads All layers, Land, Water, Cavern (with how many are found), Deep (magma sea), then All layers again; the rows follow the layer.</span></div>
+          <div class="watch"><span>Watch</span><span>The layer key used to be Ctrl+L, DF’s macro key. Nothing should start recording a macro.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p3">
+      <div class="phase-head"><span class="num">3</span><h2>One creature: the species detail</h2>
+        <p class="why">The detail page is where one species’ controls live: its habitat and role, its stock and odds, its group size, and a call.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="3.1"><div class="id">3.1</div><div class="body"><h3>Open the detail<span class="tag">re-check R2</span></h3>
+          <div class="do"><span>Do</span><span>Select a large animal and press <kbd>I</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Rows for species, habitat, role, body (<b>adult volume in cm³</b> and its band), embark, allowed, stock, odds, group size, seasons, eats, eaten by, on the map, history.</span></div>
+          <div class="watch"><span>Watch</span><span>Bands are small under 150,000 cm³, medium to 1,000,000, large above. A lion reads about 200,000 (medium), an elephant 5,000,000 (large). Until v6.4.1 every size read ten times too small.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.2"><div class="id">3.2</div><div class="body"><h3>Habitat and role come from the raws<span class="tag">re-check R2</span></h3>
+          <div class="do"><span>Do</span><span>Open the detail for an orca or giant orca, an albatross, and a dingo if your world has them.</span></div>
+          <div class="expect"><span>Expect</span><span>Orca: aquatic predator. Albatross: waterbird (flies, lives by water), not aquatic. Dingo: land predator, small.</span></div>
+          <div class="watch"><span>Watch</span><span>If one reads wrong, <kbd>H</kbd> cycles its habitat and <kbd>R</kbd> its role; the row then says <b>you</b> and what the raws said.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.3"><div class="id">3.3</div><div class="body"><h3>Set its stock</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>K</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The stock line reads the number you set. For a species out of season it says how many <b>come back in season</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Stock is how many remain in the region to arrive. It does not make a species more likely; that is odds.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.4"><div class="id">3.4</div><div class="body"><h3>Set its odds</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>O</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The odds line shows the weight and its share of the layer.</span></div>
+          <div class="watch"><span>Watch</span><span>On the rig, raising two species’ odds took them from about a quarter of surface waves to about three quarters.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.5"><div class="id">3.5</div><div class="body"><h3>Set its group size</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>G</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The group size line says <b>you set it</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>DF sometimes sends one more than the size you set, never two more. That is DF, not the tool.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.6"><div class="id">3.6</div><div class="body"><h3>Call a wave</h3>
+          <div class="do"><span>Do</span><span>For an active land species in season, press <kbd>C</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The next land wave is that species. The ledger records the call.</span></div>
+          <div class="watch"><span>Watch</span><span>A call that brings another species.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p4">
+      <div class="phase-head"><span class="num">4</span><h2>Stock and odds on the Roster</h2>
+        <p class="why">The same two controls, for one row or for every row the filter shows.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="4.1"><div class="id">4.1</div><div class="body"><h3>Stock for one row</h3>
+          <div class="do"><span>Do</span><span>Select a row and press <kbd>Ctrl</kbd>+<kbd>W</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>A prompt <b>Stock for</b> the species; the STOCK column changes.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="4.2"><div class="id">4.2</div><div class="body"><h3>Stock for the filter</h3>
+          <div class="do"><span>Do</span><span>Filter to one category and press <kbd>Ctrl</kbd>+<kbd>G</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Every row shown takes the number.</span></div>
+          <div class="watch"><span>Watch</span><span>Rows outside the filter changing.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="4.3"><div class="id">4.3</div><div class="body"><h3>Odds for one row</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>O</kbd> on a row.</span></div>
+          <div class="expect"><span>Expect</span><span>The ODDS column shows its share of its layer.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p5">
+      <div class="phase-head"><span class="num">5</span><h2>Whole-roster tools</h2>
+        <p class="why">Each of these rewrites many species, so since v6.3 each asks first.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="5.1"><div class="id">5.1</div><div class="body"><h3>Every tool asks<span class="tag">re-check 7.6</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>M</kbd> (Matrix assign), <kbd>O</kbd> (Co-align), <kbd>F</kbd> (Fill to targets), <kbd>Y</kbd> and <kbd>D</kbd> (fill natural prey or predators), and answer No each time.</span></div>
+          <div class="expect"><span>Expect</span><span>A yes/no question every time, and No changes nothing.</span></div>
+          <div class="watch"><span>Watch</span><span>A tool that acts without asking.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.2"><div class="id">5.2</div><div class="body"><h3>Matrix assign</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>M</kbd> and answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Every active species gets one season by climate, spread across the year, and every season of every habitat group keeps at least one predator with prey it eats. WHY reads <b>matrix</b>, or <b>pair</b> where a season was added for a pair.</span></div>
+          <div class="watch"><span>Watch</span><span>One season holding more than half the roster.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.3"><div class="id">5.3</div><div class="body"><h3>Co-align<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>O</kbd> and answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Partners are aligned to within one adjacent season of each other. Seasons are only ever added, and never spread through the whole roster.</span></div>
+          <div class="watch"><span>Watch</span><span>Alpha one saw co-align give most species all four seasons in one press.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.4"><div class="id">5.4</div><div class="body"><h3>Fill natural prey and predators<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Y</kbd>, then <kbd>D</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Each adds only direct partners where a pairing is missing, and the ledger says how many.</span></div>
+          <div class="watch"><span>Watch</span><span>A fill that activates species with no partner.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.5"><div class="id">5.5</div><div class="body"><h3>Category targets</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Shift</kbd>+<kbd>P</kbd> (prey), <kbd>Shift</kbd>+<kbd>R</kbd> (predator) or <kbd>Shift</kbd>+<kbd>V</kbd> (vermin) to set a target, then <kbd>Alt</kbd>+<kbd>F</kbd> to fill a category to a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The P / R / V line shows the targets; the header says Thin when a category is under its target.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p6">
+      <div class="phase-head"><span class="num">6</span><h2>Apply, send off, rotation</h2>
+        <p class="why">The roster only reaches DF when it is applied, at each season boundary or by hand.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="6.1"><div class="id">6.1</div><div class="body"><h3>Dry run</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>D</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>A list of what an apply would change, with nothing changed.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.2"><div class="id">6.2</div><div class="body"><h3>Apply now</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>A</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>DF’s announcement log reads <b>&lt;Season&gt; wildlife applied (N active).</b></span></div>
+          <div class="watch"><span>Watch</span><span>If the filter box has focus, Ctrl+A may select its text instead; the label works by mouse.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.3"><div class="id">6.3</div><div class="body"><h3>Send off and next</h3>
+          <div class="do"><span>Do</span><span>With wild animals on the surface, press <kbd>Ctrl</kbd>+<kbd>F</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The groups on the map are told to leave, and DF may send the next wave.</span></div>
+          <div class="watch"><span>Watch</span><span>This replaces force-wildlife, which piled a new wave on the old one.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.4"><div class="id">6.4</div><div class="body"><h3>Rotation off and on</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>E</kbd> twice.</span></div>
+          <div class="expect"><span>Expect</span><span>The header reads rotation off, then on.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p7">
+      <div class="phase-head"><span class="num">7</span><h2>Reset</h2>
+        <p class="why">Two levels since v6.3: the roster, or everything.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="7.1"><div class="id">7.1</div><div class="body"><h3>Reset the roster<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>R</kbd>, choose <b>The roster</b>, answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>The roster returns to the embark as first found: every active species on one season (a predator may keep a second one for a pair). Stock and odds you set are kept.</span></div>
+          <div class="watch"><span>Watch</span><span>Reset used to be Ctrl+R, DF’s record-macro key.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="7.2"><div class="id">7.2</div><div class="body"><h3>Reset everything</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>R</kbd>, choose <b>Everything</b>, answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Stock returns to the worldgen snapshot and every setting to its default; the roster as first found.</span></div>
+          <div class="watch"><span>Watch</span><span>Do this last in a session, or on the copy.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p8">
+      <div class="phase-head"><span class="num">8</span><h2>Add an invasive species</h2>
+        <p class="why">A species that is not native to the embark can be brought in live.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="8.1"><div class="id">8.1</div><div class="body"><h3>Add invasive</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>V</kbd> until View reads Add invasive, select a species, press <kbd>Ctrl</kbd>+<kbd>X</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The species joins the roster for this map, and the ledger records the add.</span></div>
+          <div class="watch"><span>Watch</span><span>Note whether it arrived active and with which seasons; an added species that never shows on the Roster is an anomaly.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p9">
+      <div class="phase-head"><span class="num">9</span><h2>Seasons tab</h2>
+        <p class="why">Every active species under its level across the four seasons. New in v6.6: you can edit here.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="9.1"><div class="id">9.1</div><div class="body"><h3>Read it</h3>
+          <div class="do"><span>Do</span><span>Click <b>Seasons</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns Spring to Winter; <b>+</b> arrives that season, <b>-</b> leaves after it, <b>.</b> not present.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="9.2"><div class="id">9.2</div><div class="body"><h3>Edit from the grid</h3>
+          <div class="do"><span>Do</span><span>Select a row and press <kbd>S</kbd>, <kbd>U</kbd>, <kbd>A</kbd> or <kbd>W</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>That season flips for the species, as on the Roster, and the header names the species with its new seasons.</span></div>
+          <div class="watch"><span>Watch</span><span>Removing its last season should be refused here too.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p10">
+      <div class="phase-head"><span class="num">10</span><h2>Food web</h2>
+        <p class="why">Who eats whom, from the species model: role, habitat and body size.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="10.1"><div class="id">10.1</div><div class="body"><h3>The pyramid</h3>
+          <div class="do"><span>Do</span><span>Click <b>Food web</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Levels large predators, small predators, prey, vermin. Large predators now include every medium or large predator.</span></div>
+          <div class="watch"><span>Watch</span><span>A level that is empty on a fort that has its animals.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="10.2"><div class="id">10.2</div><div class="body"><h3>Diet follows habitat<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Look for any land predator shown eating a sea creature, or a bird eating a large fish.</span></div>
+          <div class="expect"><span>Expect</span><span>None. A lion takes no shark, an eagle no tuna, a great white no deer. An osprey takes small sea fish (vermin).</span></div>
+          <div class="watch"><span>Watch</span><span>Alpha one saw lions eating sharks.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="10.3"><div class="id">10.3</div><div class="body"><h3>The four modes</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>G</kbd> to step Pyramid, Graph, By season; <kbd>L</kbd> for By layer; <kbd>N</kbd> for the season.</span></div>
+          <div class="expect"><span>Expect</span><span>Graph shows arrows and marks live pairs; By season shows four columns with the mass ratio; By layer puts layers side by side.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p11">
+      <div class="phase-head"><span class="num">11</span><h2>Live</h2>
+        <p class="why">What is on the map this instant, and where each animal came from.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="11.1"><div class="id">11.1</div><div class="body"><h3>Origins</h3>
+          <div class="do"><span>Do</span><span>Click <b>Live</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>A <b>Wild on map</b> line, then each animal by origin: DF wave, tool-drawn, resident, born here, untracked, deep. Then the ecology, limits, cavern and fuse lines.</span></div>
+          <div class="watch"><span>Watch</span><span>An animal counted twice or in no origin.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.2"><div class="id">11.2</div><div class="body"><h3>Groups</h3>
+          <div class="do"><span>Do</span><span>Scroll to <b>Groups:</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>One row per tracked group: species, size, how it came, its day.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.3"><div class="id">11.3</div><div class="body"><h3>Hold and send off</h3>
+          <div class="do"><span>Do</span><span>Select a group; press <kbd>Q</kbd> (hold 30 days), then <kbd>X</kbd> (send off).</span></div>
+          <div class="expect"><span>Expect</span><span>The row reads <b>held N more days</b>, then <b>dismissed</b>, and the group leaves.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.4"><div class="id">11.4</div><div class="body"><h3>Follow and centre</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>F</kbd> on a group, then <kbd>Enter</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The camera follows a member; Enter centres the map on the group.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.5"><div class="id">11.5</div><div class="body"><h3>Herds and packs</h3>
+          <div class="do"><span>Do</span><span>Read the Herds &amp; packs block.</span></div>
+          <div class="expect"><span>Expect</span><span>Each tracked species is herd, pack, flock or <b>school</b>, with the reason from its raws.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p12">
+      <div class="phase-head"><span class="num">12</span><h2>Layers</h2>
+        <p class="why">One column per layer, with the same words on every layer.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="12.1"><div class="id">12.1</div><div class="body"><h3>Read the table</h3>
+          <div class="do"><span>Do</span><span>Click <b>Layers</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns LAND, WATER, CAVERN, DEEP; rows layer, drawn by, groups at once, ceiling, gap between waves, pattern, coupling, cohesion, ecology switch, nudge after, pack size, irruptions, cavern pressure.</span></div>
+          <div class="watch"><span>Watch</span><span>Water is drawn by the tool (DF sends no river or lake waves in play); land and caverns by DF; deep by frequency.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.2"><div class="id">12.2</div><div class="body"><h3>Change a limit</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>L</kbd> to pick a column, then <kbd>C</kbd> (groups at once) or <kbd>Q</kbd> (ceiling).</span></div>
+          <div class="expect"><span>Expect</span><span>The cell changes and the ledger records it.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.3"><div class="id">12.3</div><div class="body"><h3>The water line</h3>
+          <div class="do"><span>Do</span><span>Read the line under the table that starts <code>water:</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>Groups at once, animals against the ceiling, the water on the map (ocean, lake, river, pool; salt and fresh), and the next draw.</span></div>
+          <div class="watch"><span>Watch</span><span>A fort with water that reads dormant.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.4"><div class="id">12.4</div><div class="body"><h3>Caverns</h3>
+          <div class="do"><span>Do</span><span>Read the Caverns block.</span></div>
+          <div class="expect"><span>Expect</span><span>Each cavern is <b>not yet found</b> until your dwarves reach it, then its species.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p13">
+      <div class="phase-head"><span class="num">13</span><h2>Vermin, and vermin hunting</h2>
+        <p class="why">Vermin by family, now editable per species. Vermin hunting is an opt-in switch new in v6.6.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="13.1"><div class="id">13.1</div><div class="body"><h3>Families</h3>
+          <div class="do"><span>Do</span><span>Click <b>Vermin</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>One row per family (fish, flies, fliers, mammals, crawlers) with active count, seasons, stock and layers.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.2"><div class="id">13.2</div><div class="body"><h3>Open a family</h3>
+          <div class="do"><span>Do</span><span>Select a family and press <kbd>E</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Its species appear under it, each with active, seasons, stock and layer.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.3"><div class="id">13.3</div><div class="body"><h3>Edit one vermin species</h3>
+          <div class="do"><span>Do</span><span>On a species row press <kbd>Enter</kbd>, a season key, or <kbd>Shift</kbd>+<kbd>W</kbd> (stock).</span></div>
+          <div class="expect"><span>Expect</span><span>That species alone changes.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.4"><div class="id">13.4</div><div class="body"><h3>Vermin hunting on</h3>
+          <div class="do"><span>Do</span><span>On the Panel, turn on <b>Vermin hunting</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Predatory and water birds get the dive-hunting flag and small land predators the hunting flag, for as long as the switch is on.</span></div>
+          <div class="watch"><span>Watch</span><span>On the rig, wild kestrels and badgers with the flags behaved no differently from those without. Tell us if yours do anything visible.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p14">
+      <div class="phase-head"><span class="num">14</span><h2>Ledger, undo, help</h2>
+        <p class="why">Every write the tool makes is in the ledger, and the edits can be undone.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="14.1"><div class="id">14.1</div><div class="body"><h3>Filter the ledger</h3>
+          <div class="do"><span>Do</span><span>Click <b>Ledger</b>; press <kbd>K</kbd> (kind) and <kbd>L</kbd> (layer).</span></div>
+          <div class="expect"><span>Expect</span><span>The list narrows; the count line shows how many of how many.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="14.2"><div class="id">14.2</div><div class="body"><h3>Undo<span class="tag">re-check 9.2</span></h3>
+          <div class="do"><span>Do</span><span>Make three roster edits, then press <kbd>Z</kbd> three times.</span></div>
+          <div class="expect"><span>Expect</span><span>Each edit is undone in reverse order. Undo now goes fifty edits deep.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="14.3"><div class="id">14.3</div><div class="body"><h3>Help on every tab</h3>
+          <div class="do"><span>Do</span><span>On each tab press <kbd>Alt</kbd>+<kbd>H</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>A help page for that tab, with the vocabulary: active, stock, odds, group size, groups at once, ceiling, send off, call.</span></div>
+          <div class="watch"><span>Watch</span><span>A word used in the window that the help does not explain.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p15">
+      <div class="phase-head"><span class="num">15</span><h2>The map overlay</h2>
+        <p class="why">Group markers and predator-prey links drawn on the map.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="15.1"><div class="id">15.1</div><div class="body"><h3>Turn it on<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Open <code>gui/control-panel</code>, find the overlay <code>seasonal-wildlife.groups</code>, enable it.</span></div>
+          <div class="expect"><span>Expect</span><span>Markers on tracked groups, only on the level you are viewing, and lines between related predators and prey.</span></div>
+          <div class="watch"><span>Watch</span><span>Alpha one’s run left the overlay on; turn it off again at the end if you do not want it.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p16">
+      <div class="phase-head"><span class="num">16</span><h2>A season boundary</h2>
+        <p class="why">Let the game run into the next season. This is where the roster meets DF.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="16.1"><div class="id">16.1</div><div class="body"><h3>Inactive stays away<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Play through at least one boundary; watch for the species you made inactive in 2.3.</span></div>
+          <div class="expect"><span>Expect</span><span>It never arrives, on any layer. On the rig’s copy of the alpha one fort, v6.4 let no inactive animal in across two test runs, where v6.2.1 let in 32 and 12.</span></div>
+          <div class="watch"><span>Watch</span><span>Any inactive or out-of-season arrival: note species, layer and date.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.2"><div class="id">16.2</div><div class="body"><h3>The boundary itself</h3>
+          <div class="do"><span>Do</span><span>At the change of season, read the announcements and the Ledger.</span></div>
+          <div class="expect"><span>Expect</span><span>A <b>&lt;Season&gt; wildlife roster applied</b> announcement and a season line in the ledger.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.3"><div class="id">16.3</div><div class="body"><h3>Water groups</h3>
+          <div class="do"><span>Do</span><span>If your map has river or lake water, watch the water line and the Live tab over a few days.</span></div>
+          <div class="expect"><span>Expect</span><span>Groups drawn into water that suits them, swimming together, leaving on their countdown.</span></div>
+          <div class="watch"><span>Watch</span><span>An animal placed on dry land.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p17">
+      <div class="phase-head"><span class="num">17</span><h2>Persistence and cost</h2>
+        <p class="why">Does everything survive a reload, and what does the tool cost while its jobs run.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="17.1"><div class="id">17.1</div><div class="body"><h3>Save, quit, reload</h3>
+          <div class="do"><span>Do</span><span>Note an inactive species, a stock you set, and the ledger’s last line. Save, return to the title, load again, open the window.</span></div>
+          <div class="expect"><span>Expect</span><span>All three as you left them; undo still works.</span></div>
+          <div class="watch"><span>Watch</span><span>Settings back at defaults, or a ledger that restarted.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="17.2"><div class="id">17.2</div><div class="body"><h3>Frame rate on and off<span class="tag">re-check R4</span></h3>
+          <div class="do"><span>Do</span><span>Unpaused, read the frame rate for a minute with the tool on; then All off on the Panel and read it again.</span></div>
+          <div class="expect"><span>Expect</span><span>On the test fort the jobs cost about ten to twelve percent of frame rate while they run.</span></div>
+          <div class="watch"><span>Watch</span><span>Compare within one session and ignore the first seconds after a switch. Note the Panel’s worst times too.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+
+    <section class="phase" id="p18">
+      <div class="phase-head"><span class="num">18</span><h2>Compile the report</h2>
+        <p class="why">Everything you marked and wrote becomes one report. Copy it out and send it; nothing leaves this page on its own.</p></div>
+      <div class="report">
+        <div class="tester">
+          <label>Tester<input id="tName" placeholder="name or handle"></label>
+          <label>Fort<input id="tFort" placeholder="fort name, biomes"></label>
+          <label>Game &amp; DFHack<input id="tVer" placeholder="53.16 · 53.16-r1.1 · plugin v6.6.0"></label>
+          <label>Date<input id="tDate" placeholder="YYYY-MM-DD"></label>
+        </div>
+        <div class="bar" style="margin-top:14px">
+          <button id="btnCompile">Compile report</button>
+          <button class="ghost" id="btnCopy">Copy to clipboard</button>
+          <button class="ghost" id="btnClear">Clear all marks</button>
+          <span class="muted" id="copyMsg"></span>
+        </div>
+        <textarea id="reportOut" readonly placeholder="Press Compile report. The text is Markdown: the tally, then every anomaly with its note, then skipped steps, then passes."></textarea>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  var KEY='sw-alpha-two-v1';
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){state={}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+  var steps=Array.prototype.slice.call(document.querySelectorAll('.step[data-id]'));
+  document.getElementById('stepcount').textContent=steps.length;
+
+  steps.forEach(function(st){
+    var id=st.getAttribute('data-id'); var v=st.querySelector('.verdict');
+    var s=state[id]||{};
+    var html='';
+    [['p','Pass'],['a','Anomaly'],['s','Skipped']].forEach(function(o){
+      html+='<label class="'+o[0]+'"><input type="radio" name="v-'+id+'" value="'+o[0]+'"'+(s.v===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';
+    });
+    html+='<textarea placeholder="Note: what you pressed, what you saw, what you expected; screenshot names">'+(s.n?esc(s.n):'')+'</textarea>';
+    v.innerHTML=html;
+    paint(st,s.v);
+    v.querySelectorAll('input[type=radio]').forEach(function(r){r.addEventListener('change',function(){state[id]=state[id]||{};state[id].v=r.value;save();paint(st,r.value);tally();})});
+    var ta=v.querySelector('textarea'); ta.addEventListener('input',function(){state[id]=state[id]||{};state[id].n=ta.value;save();});
+  });
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function paint(st,v){st.classList.remove('pass','anom','skip'); if(v==='p')st.classList.add('pass'); if(v==='a')st.classList.add('anom'); if(v==='s')st.classList.add('skip');}
+  function tally(){var p=0,a=0,s=0,o=0;steps.forEach(function(st){var v=(state[st.getAttribute('data-id')]||{}).v; if(v==='p')p++;else if(v==='a')a++;else if(v==='s')s++;else o++;});
+    document.getElementById('tPass').textContent=p;document.getElementById('tAnom').textContent=a;document.getElementById('tSkip').textContent=s;document.getElementById('tOpen').textContent=o;}
+  tally();
+
+  ['tName','tFort','tVer','tDate'].forEach(function(k){var el=document.getElementById(k); el.value=(state._meta||{})[k]||''; el.addEventListener('input',function(){state._meta=state._meta||{};state._meta[k]=el.value;save();});});
+
+  var phases=Array.prototype.slice.call(document.querySelectorAll('.phase'));
+  var rail=document.getElementById('railList');
+  phases.forEach(function(ph){var h=ph.querySelector('h2'); var li=document.createElement('li'); var a=document.createElement('a'); a.href='#'+ph.id; a.textContent=ph.querySelector('.num').textContent+'  '+h.textContent; li.appendChild(a); rail.appendChild(li);});
+  var links=rail.querySelectorAll('a');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(l){l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});
+    phases.forEach(function(ph){io.observe(ph)});
+  }
+
+  function compile(){
+    var m=state._meta||{}; var lines=[];
+    lines.push('# Seasonal Wildlife alpha trial two (UI, v6.6)');
+    lines.push('');
+    lines.push('- Tester: '+(m.tName||'')); lines.push('- Fort: '+(m.tFort||'')); lines.push('- Game / DFHack / plugin: '+(m.tVer||'')); lines.push('- Date: '+(m.tDate||''));
+    var p=[],a=[],s=[],o=[];
+    steps.forEach(function(st){var id=st.getAttribute('data-id'); var h=st.querySelector('h3').cloneNode(true); var tg=h.querySelector('.tag'); if(tg)tg.remove(); var t=h.textContent; var v=state[id]||{}; var row={id:id,t:t,n:(v.n||'').trim()};
+      if(v.v==='p')p.push(row);else if(v.v==='a')a.push(row);else if(v.v==='s')s.push(row);else o.push(row);});
+    lines.push(''); lines.push('Tally: '+p.length+' pass · '+a.length+' anomaly · '+s.length+' skipped · '+o.length+' unmarked of '+steps.length+' steps.');
+    function block(title,rows,withNote){ if(!rows.length)return; lines.push(''); lines.push('## '+title); rows.forEach(function(r){lines.push('- **'+r.id+' '+r.t+'**'+(withNote&&r.n?': '+r.n.replace(/\n+/g,' '):'')); if(!withNote&&r.n){lines.push('  - '+r.n.replace(/\n+/g,' '))}}); }
+    block('Anomalies',a,true); block('Skipped (and why)',s,true); block('Passes',p,false); block('Unmarked',o,false);
+    return lines.join('\n');
+  }
+  document.getElementById('btnCompile').addEventListener('click',function(){document.getElementById('reportOut').value=compile();});
+  document.getElementById('btnCopy').addEventListener('click',function(){var t=document.getElementById('reportOut'); if(!t.value)t.value=compile(); var msg=document.getElementById('copyMsg');
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(function(){msg.textContent='Copied.'},function(){t.select();msg.textContent='Select the text and copy it.'})}else{t.select();msg.textContent='Select the text and copy it.'}
+    setTimeout(function(){msg.textContent=''},2500);});
+  var armed=false,armT=null;document.getElementById('btnClear').addEventListener('click',function(){var b=this;if(!armed){armed=true;b.textContent='Press again to clear every mark';clearTimeout(armT);armT=setTimeout(function(){armed=false;b.textContent='Clear all marks'},4000);return;}armed=false;b.textContent='Clear all marks';var meta=state._meta; state={_meta:meta}; save(); steps.forEach(function(st){st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=false}); st.querySelector('textarea').value=''; paint(st,null);}); tally(); document.getElementById('reportOut').value='';});
+})();
+</script>
