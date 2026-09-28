@@ -262,7 +262,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     # 2. load, drain, cap the tick rate.
     rig.must("load", fort, timeout=400)
     rig.must("popups")
-    rig.must("fps", fps, 10)
+    rig.must("fps", fps, int(arm.get("gfps", man.get("gfps", 10))))   # FPS1 (28 Sep): an arm may set its own graphics cap
 
     # 3. (the tool-state assertion runs after the t0 manipulations, which may enable it)
 
@@ -293,7 +293,7 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         apply_manipulation(rig, out, ctx, tick, abs_tick, m)
     # the tool must now be in the state the manifest demands, and stay there
     tool = rig.probe("tool")[0]
-    want = man.get("tool_must_be", {"enabled": 0, "groups_enabled": 0, "scheduled": 0})
+    want = arm.get("tool_must_be", man.get("tool_must_be", {"enabled": 0, "groups_enabled": 0, "scheduled": 0}))   # FPS1: per arm
     bad = {k: tool.get(k) for k, v in want.items() if str(tool.get(k)) != str(v)}
     if bad:
         raise RuntimeError(f"seasonal-wildlife state {tool} violates tool_must_be {want}: {bad}")
@@ -524,21 +524,26 @@ def cmd_run(a):
         "replicates": [],
     }
     rig.must("start", timeout=200)
-    for arm in man["arms"]:
-        for rep in range(1, int(arm.get("replicates", 1)) + 1):
+    # FPS1 (28 Sep): "interleave" runs rep 1 of every arm, then rep 2 of every arm, so warm-up and heat are shared
+    if man.get("interleave"):
+        order = [(arm, r) for r in range(1, max(int(x.get("replicates", 1)) for x in man["arms"]) + 1)
+                 for arm in man["arms"] if r <= int(arm.get("replicates", 1))]
+    else:
+        order = [(arm, r) for arm in man["arms"] for r in range(1, int(arm.get("replicates", 1)) + 1)]
+    for arm, rep in order:
+        try:
+            s = run_replicate(rig, out, man, arm, rep, run_id, prov)
+        except Exception as e:  # a failed replicate is recorded and the run goes on
+            s = {"arm": arm["name"], "rep": rep, "valid": False, "breaches": [f"exception: {e}"]}
+            out.log(f"  REPLICATE FAILED: {e}")
             try:
-                s = run_replicate(rig, out, man, arm, rep, run_id, prov)
-            except Exception as e:  # a failed replicate is recorded and the run goes on
-                s = {"arm": arm["name"], "rep": rep, "valid": False, "breaches": [f"exception: {e}"]}
-                out.log(f"  REPLICATE FAILED: {e}")
-                try:
-                    if rig.state().get("map") == "true":
-                        rig.must("title")
-                except Exception as e2:
-                    out.log(f"  could not get back to the title: {e2}; restarting the rig")
-                    rig.sh("stop"); rig.port = None; rig.must("start", timeout=200)
-            prov["replicates"].append(s)
-            (run_dir / "provenance.json").write_text(json.dumps(prov, indent=2))
+                if rig.state().get("map") == "true":
+                    rig.must("title")
+            except Exception as e2:
+                out.log(f"  could not get back to the title: {e2}; restarting the rig")
+                rig.sh("stop"); rig.port = None; rig.must("start", timeout=200)
+        prov["replicates"].append(s)
+        (run_dir / "provenance.json").write_text(json.dumps(prov, indent=2))
     # versions, read once at the end from a fresh load of the fort
     try:
         rig.must("load", man["fort"], timeout=400)

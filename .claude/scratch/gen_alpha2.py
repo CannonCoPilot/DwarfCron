@@ -29,6 +29,7 @@ extra_css = """
 .recheck td:first-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace;color:var(--rust)}
 .recheck td:last-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace}
 .tablewrap{overflow-x:auto}
+.load textarea{width:100%;min-height:90px;font:0.85rem/1.45 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px}
 .step .tag{display:inline-block;font:600 0.68rem/1.6 "Source Sans 3",sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--rust);background:var(--rust-soft);border-radius:3px;padding:0 6px;margin-left:8px;vertical-align:0.1em}
 </style>"""
 style = style.replace('</style>', extra_css)
@@ -132,7 +133,7 @@ phase(4, 'Stock and odds on the Roster',
   [
    ('4.1', 'Stock for one row', f'Select a row and press {k("Ctrl","W")}.', 'A prompt <b>Stock for</b> the species; the STOCK column changes.', '', ''),
    ('4.2', 'Stock for the filter', f'Filter to one category and press {k("Ctrl","G")}.', 'Every row shown takes the number.', 'Rows outside the filter changing.', ''),
-   ('4.3', 'Odds for one row', f'Press {k("Alt","O")} on a row.', 'The ODDS column shows its share of its layer.', '', ''),
+   ('4.3', 'Odds for one row', f'Press {k("Alt","O")} on a row that is in season.', 'The ODDS column shows its share of its layer.', 'Out of season the column shows <b>-</b> whatever you set; the species detail gives the share it would have in season.', ''),
   ])
 
 phase(5, 'Whole-roster tools',
@@ -188,7 +189,7 @@ phase(9, 'Seasons tab',
 phase(10, 'Food web',
   'Who eats whom, from the species model: role, habitat and body size.',
   [
-   ('10.1', 'The pyramid', 'Click <b>Food web</b>.', 'Levels large predators, small predators, prey, vermin. Large predators now include every medium or large predator.', 'A level that is empty on a fort that has its animals.', ''),
+   ('10.1', 'The pyramid', 'Click <b>Food web</b>.', 'A season’s trophic pyramid: four unlabelled tiers of species with <b>^</b> between them (prey feeds upward), apex at the top (every medium or large predator), then small predators, prey, and vermin at the base; an aquatic chain below it, each line a predator <b>----&gt;</b> what it eats.', 'A tier missing on a fort that has its animals, or a pairing that makes you stop (the rig’s round saw a giant otter eating a jaguar man).', ''),
    ('10.2', 'Diet follows habitat', 'Look for any land predator shown eating a sea creature, or a bird eating a large fish.',
     'None. A lion takes no shark, an eagle no tuna, a great white no deer. An osprey takes small sea fish (vermin).', 'Alpha one saw lions eating sharks.', 'R3'),
    ('10.3', 'The four modes', f'Press {k("G")} to step Pyramid, Graph, By season; {k("L")} for By layer; {k("N")} for the season.',
@@ -277,6 +278,11 @@ REPORT = """
           <span class="muted" id="copyMsg"></span>
         </div>
         <textarea id="reportOut" readonly placeholder="Press Compile report. The text is Markdown: the tally, then every anomaly with its note, then skipped steps, then passes."></textarea>
+        <details class="load" style="margin-top:16px"><summary>Load a round from its marks file</summary>
+          <p class="muted" style="margin:10px 0 6px">Paste the contents of a round's <code>marks.json</code> (the rig's rounds write one). Its marks and notes replace what is on this page for the steps it covers.</p>
+          <textarea id="marksIn" placeholder='{"0.1": {"v": "p", "n": "note"}, "_meta": {"tName": "..."}}'></textarea>
+          <div class="bar" style="margin-top:8px"><button class="ghost" id="btnLoad">Load marks</button><span class="muted" id="loadMsg"></span></div>
+        </details>
       </div>
     </section>"""
 
@@ -290,6 +296,20 @@ def step_html(s):
             f'          <div class="verdict"></div></div></div>')
 
 # the report compiler reads h3 text for titles; keep the tag out of it
+LOADJS = """  document.getElementById('btnLoad').addEventListener('click',function(){
+    var msg=document.getElementById('loadMsg'), m;
+    try{m=JSON.parse(document.getElementById('marksIn').value)}catch(e){msg.textContent='That is not valid JSON: paste the whole marks.json.';return}
+    var n=0;
+    steps.forEach(function(st){var id=st.getAttribute('data-id'), x=m[id]; if(!x||!/^[pas]$/.test(x.v||''))return;
+      state[id]={v:x.v,n:x.n||''}; n++;
+      st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=(r.value===x.v)});
+      st.querySelector('.verdict textarea').value=x.n||''; paint(st,x.v);});
+    if(m._meta){state._meta=m._meta; ['tName','tFort','tVer','tDate'].forEach(function(k){document.getElementById(k).value=m._meta[k]||''});}
+    save(); tally(); msg.textContent='Loaded '+n+' step marks.';
+  });
+"""
+script = script.replace("})();\n</script>", LOADJS + "})();\n</script>")
+assert "btnLoad" in script
 script = script.replace("var t=st.querySelector('h3').textContent;", "var h=st.querySelector('h3').cloneNode(true); var tg=h.querySelector('.tag'); if(tg)tg.remove(); var t=h.textContent;")
 
 sections = []

@@ -96,6 +96,7 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule
 .recheck td:first-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace;color:var(--rust)}
 .recheck td:last-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace}
 .tablewrap{overflow-x:auto}
+.load textarea{width:100%;min-height:90px;font:0.85rem/1.45 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px}
 .step .tag{display:inline-block;font:600 0.68rem/1.6 "Source Sans 3",sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--rust);background:var(--rust-soft);border-radius:3px;padding:0 6px;margin-left:8px;vertical-align:0.1em}
 </style>
 
@@ -277,8 +278,9 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule
           <div class="watch"><span>Watch</span><span>Rows outside the filter changing.</span></div>
           <div class="verdict"></div></div></div>
         <div class="step" data-id="4.3"><div class="id">4.3</div><div class="body"><h3>Odds for one row</h3>
-          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>O</kbd> on a row.</span></div>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>O</kbd> on a row that is in season.</span></div>
           <div class="expect"><span>Expect</span><span>The ODDS column shows its share of its layer.</span></div>
+          <div class="watch"><span>Watch</span><span>Out of season the column shows <b>-</b> whatever you set; the species detail gives the share it would have in season.</span></div>
           <div class="verdict"></div></div></div>
       </div>
     </section>
@@ -390,8 +392,8 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule
       <div class="steps">
         <div class="step" data-id="10.1"><div class="id">10.1</div><div class="body"><h3>The pyramid</h3>
           <div class="do"><span>Do</span><span>Click <b>Food web</b>.</span></div>
-          <div class="expect"><span>Expect</span><span>Levels large predators, small predators, prey, vermin. Large predators now include every medium or large predator.</span></div>
-          <div class="watch"><span>Watch</span><span>A level that is empty on a fort that has its animals.</span></div>
+          <div class="expect"><span>Expect</span><span>A season’s trophic pyramid: four unlabelled tiers of species with <b>^</b> between them (prey feeds upward), apex at the top (every medium or large predator), then small predators, prey, and vermin at the base; an aquatic chain below it, each line a predator <b>----&gt;</b> what it eats.</span></div>
+          <div class="watch"><span>Watch</span><span>A tier missing on a fort that has its animals, or a pairing that makes you stop (the rig’s round saw a giant otter eating a jaguar man).</span></div>
           <div class="verdict"></div></div></div>
         <div class="step" data-id="10.2"><div class="id">10.2</div><div class="body"><h3>Diet follows habitat<span class="tag">re-check R3</span></h3>
           <div class="do"><span>Do</span><span>Look for any land predator shown eating a sea creature, or a bird eating a large fish.</span></div>
@@ -569,6 +571,11 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule
           <span class="muted" id="copyMsg"></span>
         </div>
         <textarea id="reportOut" readonly placeholder="Press Compile report. The text is Markdown: the tally, then every anomaly with its note, then skipped steps, then passes."></textarea>
+        <details class="load" style="margin-top:16px"><summary>Load a round from its marks file</summary>
+          <p class="muted" style="margin:10px 0 6px">Paste the contents of a round's <code>marks.json</code> (the rig's rounds write one). Its marks and notes replace what is on this page for the steps it covers.</p>
+          <textarea id="marksIn" placeholder='{"0.1": {"v": "p", "n": "note"}, "_meta": {"tName": "..."}}'></textarea>
+          <div class="bar" style="margin-top:8px"><button class="ghost" id="btnLoad">Load marks</button><span class="muted" id="loadMsg"></span></div>
+        </details>
       </div>
     </section>
 
@@ -633,5 +640,16 @@ button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(function(){msg.textContent='Copied.'},function(){t.select();msg.textContent='Select the text and copy it.'})}else{t.select();msg.textContent='Select the text and copy it.'}
     setTimeout(function(){msg.textContent=''},2500);});
   var armed=false,armT=null;document.getElementById('btnClear').addEventListener('click',function(){var b=this;if(!armed){armed=true;b.textContent='Press again to clear every mark';clearTimeout(armT);armT=setTimeout(function(){armed=false;b.textContent='Clear all marks'},4000);return;}armed=false;b.textContent='Clear all marks';var meta=state._meta; state={_meta:meta}; save(); steps.forEach(function(st){st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=false}); st.querySelector('textarea').value=''; paint(st,null);}); tally(); document.getElementById('reportOut').value='';});
+  document.getElementById('btnLoad').addEventListener('click',function(){
+    var msg=document.getElementById('loadMsg'), m;
+    try{m=JSON.parse(document.getElementById('marksIn').value)}catch(e){msg.textContent='That is not valid JSON: paste the whole marks.json.';return}
+    var n=0;
+    steps.forEach(function(st){var id=st.getAttribute('data-id'), x=m[id]; if(!x||!/^[pas]$/.test(x.v||''))return;
+      state[id]={v:x.v,n:x.n||''}; n++;
+      st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=(r.value===x.v)});
+      st.querySelector('.verdict textarea').value=x.n||''; paint(st,x.v);});
+    if(m._meta){state._meta=m._meta; ['tName','tFort','tVer','tDate'].forEach(function(k){document.getElementById(k).value=m._meta[k]||''});}
+    save(); tally(); msg.textContent='Loaded '+n+' step marks.';
+  });
 })();
 </script>
