@@ -270,6 +270,10 @@ cmd_save_restore() {
     local region="${name%%.*}"
     rm -rf "$SAVE_ROOT/$region"
     ditto "$src" "$SAVE_ROOT/$region" || err "restore failed"
+    # DF's Continue list is sorted newest first, read once at DF start, and shows ~8 saves with no working scroll key.
+    # ditto keeps the backup's old mtimes, so a restored save sank below the fold once autosaves and played saves
+    # joined its world (FPS5b, 29 Sep 2026: FPS2E3/E4/E5 unloadable). Touch it: newest again, drawn at the top.
+    find "$SAVE_ROOT/$region" -exec touch {} +
     log "restored $name -> $SAVE_ROOT/$region"
 }
 
@@ -729,7 +733,13 @@ cmd_load() {
     [ -n "$world" ] || err "DF lists no save in folder '$folder' -- known: $(cmd_ui saves 2>/dev/null | awk -F'\t' '$1=="SAVE"{printf "%s ",$2}')"
     click_when_drawn "World: $world" || err "world list never showed 'World: $world'"
     wait_state titlemode CONTINUE_ACTIVE 15 || err "clicking the world row did not open its save list (state: $(ui_state))"
-    wait_drawn "Folder: $folder" >/dev/null || err "save list never showed 'Folder: $folder'"
+    # FPS5b, 29 Sep 2026: the seasonal autosaves joined region4's list (CTRL, FPS2E1-6, autosave 1-3) and FPS2E4 fell
+    # below the panel -- the verb waited for a label that was never drawn. Scroll the list until the folder shows.
+    local s=0
+    until wait_drawn "Folder: $folder" 2 >/dev/null; do
+        s=$((s + 1)); [ "$s" -gt 12 ] && err "save list never showed 'Folder: $folder' (scrolled $((s - 1)) times)"
+        cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; sleep 0.5
+    done
     cmd_ui clickrel "Folder: $folder" -1 "Fortress" >/dev/null 2>&1 || err "could not click the fortress row for $folder"
     log "clicked through to $folder (world: $world); waiting for the map"
     local waited=0

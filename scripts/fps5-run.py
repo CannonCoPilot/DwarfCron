@@ -113,10 +113,28 @@ class Session:
 def restart():
     sh("stop", timeout=200); sh("start", timeout=300)
 
-def load_fort(save, restore=True, tool=TOOL_ON):
+def prune_autosaves(save):
+    """DF's seasonal autosaves join the save list of the world being played; after a few year-long sessions region4's
+    list outgrew its panel and the load verb could not see FPS2E3/E4 (FPS5b run 103823). Delete the autosave folders
+    that belong to THIS save's world -- the experiment's own throwaway worlds -- and never any other world's."""
+    rows_ = [l.split("\t") for l in sh("ui", "saves").splitlines() if l.startswith("SAVE\t")]
+    world = next((r[2] for r in rows_ if len(r) > 2 and r[1] == save), None)
+    gone = []
+    for r in rows_:
+        if len(r) > 2 and r[1].startswith("autosave") and world and r[2] == world:
+            sh("save-delete", r[1], check=False); gone.append(r[1])
+    if gone:
+        log(f"    pruned {len(gone)} autosave(s) of world {world}: {', '.join(gone)}")
+
+def load_fort(save, restore=True, tool=TOOL_ON, fresh=False):
+    """fresh=True: restore (touched newest) BEFORE restarting DF -- DF reads its Continue list once at start, newest
+    first, ~8 rows visible, no scroll key -- then load in the new process. fresh=False: load in the process as it is."""
     sh("title", timeout=300)
+    prune_autosaves(save)
     if restore:
         sh("save-restore", f"{save}.preverify")
+    if fresh:
+        restart()
     sh("load", save, timeout=700)
     sh("fps", 1000, 60)
     sh("lua", tool)
@@ -130,7 +148,7 @@ def measure(sess, phase, windows=4, secs=8.0):
 
 def run_hold(sess):
     save = f"FPS2E{sess.size}"
-    restart(); load_fort(save, tool=TOOL_OFF)
+    load_fort(save, tool=TOOL_OFF, fresh=True)
     log(f"    {sh('cmd', 'cx-load', 'clearwild').strip().splitlines()[-1]}")
     sh("step", 20)
     log(f"    {sh('cmd', 'cx-load', 'constwild', 30).strip().splitlines()[-1]}")
@@ -140,7 +158,7 @@ def run_hold(sess):
 def run_long(sess, play, every):
     save = f"FPS2E{sess.size}"
     played_save = f"FPS5P{RUN[-6:]}{sess.rep}{sess.size}"
-    restart(); load_fort(save)
+    load_fort(save, fresh=True)
     sh("cmd", "cx-load", "sustain")   # 29 Sep: the first year-long session's 20 dwarves all died of THIRST (no water here)
     r = {"P0": measure(sess, "P0_fresh_original")}
     while sess.played < play:
@@ -161,7 +179,7 @@ def run_long(sess, play, every):
     sh("save", played_save, timeout=400)
     r["A1"] = measure(sess, "A1_aged_played")
     load_fort(save); r["A2"] = measure(sess, "A2_aged_original")
-    restart(); load_fort(played_save, restore=False); r["A3"] = measure(sess, "A3_fresh_played")
+    load_fort(played_save, restore=False, fresh=True); r["A3"] = measure(sess, "A3_fresh_played")
     load_fort(save); r["A4"] = measure(sess, "A4_fresh_original")
     sh("title", timeout=300); sh("save-delete", played_save, check=False)
     base = (r["P0"] + r["A4"]) / 2
@@ -174,17 +192,29 @@ def main():
     ap.add_argument("mode", choices=["hold", "long"]); ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--play", type=int, default=YEAR); ap.add_argument("--every", type=int, default=16800)
     ap.add_argument("--sizes", default="1,2,3,4,5,6"); ap.add_argument("--seed", type=int, default=5)
+    ap.add_argument("--only", help="re-run just these sessions, 'size:rep,size:rep' (a FAILED one), into --append's run")
+    ap.add_argument("--append", help="an existing run directory to append rows to (its RUN id is kept)")
     a = ap.parse_args()
-    OUT = ROOT / "data/experiments" / ("FPS5a" if a.mode == "hold" else "FPS5b") / RUN
+    global RUN
+    if a.append:
+        OUT = Path(a.append); RUN = OUT.name
+    else:
+        OUT = ROOT / "data/experiments" / ("FPS5a" if a.mode == "hold" else "FPS5b") / RUN
     OUT.mkdir(parents=True, exist_ok=True)
     _log = open(OUT / "log.txt", "a"); rows = open(OUT / "rows.tsv", "a")
-    rows.write("\t".join(COLS) + "\n")
+    if rows.tell() == 0:
+        rows.write("\t".join(COLS) + "\n")
     sizes = [int(x) for x in a.sizes.split(",")]
-    (OUT / "design.json").write_text(json.dumps(vars(a), indent=1))
+    (OUT / ("design-rerun.json" if a.append else "design.json")).write_text(json.dumps(vars(a), indent=1))
     log(f"== FPS5 {a.mode} run {RUN}: sizes {sizes}, {a.reps} reps" + (f", play {a.play} every {a.every}" if a.mode == "long" else ""))
     rng = random.Random(a.seed)
+    only = {tuple(int(x) for x in p.split(":")) for p in a.only.split(",")} if a.only else None
     for rep in range(1, a.reps + 1):
         order = sizes[:]; rng.shuffle(order)
+        if only:
+            order = [k for k in order if (k, rep) in only]
+        if not order:
+            continue
         log(f"== rep {rep}: order {order}")
         for size in order:
             log(f"  -- size {size}x{size} rep {rep}")
