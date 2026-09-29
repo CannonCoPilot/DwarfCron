@@ -225,6 +225,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
 .toast.show{opacity:1}
 .banner{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--ink-2)}
 .banner b{color:var(--ink)}
+.conn.live{background:var(--good-soft);border-color:color-mix(in oklab,var(--good) 35%,transparent)}
+.conn.live i{background:var(--good)}
+.conn.lost{background:var(--crit-soft);border-color:color-mix(in oklab,var(--crit) 35%,transparent)}
+.conn.lost i{background:var(--crit)}
+.web path.vermin{stroke-dasharray:3 3}
+.web .fam text{font-style:italic}
+.chip.fam{background:transparent;border:1px dashed var(--line-2)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:640px){
   .fort h1{font-size:24px}
@@ -240,10 +247,10 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <div class="wrap">
 <div class="top">
   <div class="top-row">
-    <div class="fort"><h1>Boatsbowed</h1><span class="tool">seasonal-wildlife 6.7</span></div>
+    <div class="fort"><h1 id="fortName">&nbsp;</h1><span class="tool">seasonal-wildlife 6.8</span></div>
     <div class="clock" id="clock"></div>
     <div class="spacer"></div>
-    <span class="conn" title="This prototype runs on a saved snapshot. Nothing is sent to a game."><i></i>Sample data &middot; not connected</span>
+    <span class="conn" id="conn"><i></i><span id="connText">Loading</span></span>
   </div>
   <div class="top-row" style="margin-top:12px">
     <div class="seg" role="group" aria-label="Layer" id="layerSeg"></div>
@@ -270,112 +277,108 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <script type="application/json" id="data">__DATA__</script>
 <script>
 (() => {
-const D = JSON.parse(document.getElementById('data').textContent);
-const SP = D.species, BY = Object.fromEntries(SP.map(s => [s.key, s]));
+// Two modes, one page. Sample: the data is embedded (the published prototype). Live: the page is served by
+// `seasonal-wildlife-web` inside DFHack, reads /state.json every two seconds and sends each change to /cmd as one
+// seasonal-wildlife console command. The token in the address authorises both.
+const EMBED = JSON.parse(document.getElementById('data').textContent);
+const LIVEMODE = EMBED === null;
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'], SHORT = ['Sp', 'Su', 'Au', 'Wi'];
-const NOW = 2;                     // Autumn, 14 Sandstone: 58 of 84 days gone
-const DAY_OF_SEASON = 58;
 const LAYERS = ['land', 'water', 'cavern'];
 const LNAME = { land: 'Land', water: 'Water', cavern: 'Caverns' };
-const eats = {}, eatenBy = {};
-for (const [p, q] of D.pairs) { (eats[p] ||= []).push(q); (eatenBy[q] ||= []).push(p); }
+const FAM = { fish: 'fish', flies: 'flies & biting insects', fliers: 'flying insects', mammals: 'rodents & small mammals',
+              soil: 'worms & soil life', colony: 'colony insects', crawlers: 'crawlers' };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const fmt = n => n.toLocaleString('en-US');
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const arr = x => Array.isArray(x) ? x : [];          // DFHack's encoder writes an empty table as {}
 const store = { get(k, d) { try { const v = localStorage.getItem('swc.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
                 set(k, v) { try { localStorage.setItem('swc.' + k, JSON.stringify(v)); } catch {} } };
 
-// ---- sample state around the snapshot: groups on the map, limits, jobs, ledger ----
-const LIVE = [
-  { key: 'cavern:CRUNDLE', n: 17, origin: 'DF wave', leaves: 6.5, cohesion: 'herd', held: false },
-  { key: 'cavern:ELK_BIRD', n: 7, origin: 'DF wave', leaves: 3.2, cohesion: 'flock', held: false },
-  { key: 'cavern:FLESH_BALL', n: 3, origin: 'DF wave', leaves: 9.0, cohesion: '', held: false },
-  { key: 'FISH_MILKFISH', n: 6, origin: 'DF wave', leaves: 4.4, cohesion: 'school', held: false },
-  { key: 'SHARK_MAKO_LONGFIN', n: 1, origin: 'DF wave', leaves: 2.1, cohesion: '', held: false },
-  { key: 'GIANT_EAGLE', n: 1, origin: 'DF wave', leaves: 7.8, cohesion: '', held: true },
-  { key: 'BIRD_OSPREY', n: 1, origin: 'resident', leaves: null, cohesion: '', held: false },
-];
-const onMap = new Set(LIVE.map(g => g.key));
-const LIM = {
-  land:   { groups: 4, ceiling: 60, wild: 38, gate: 1.8, gap: 3, pattern: 'steady' },
-  water:  { groups: 2, ceiling: 40, wild: 0,  gate: 0,   gap: 4, pattern: 'steady' },
-  cavern: { groups: 3, ceiling: 80, wild: 41, gate: 0.6, gap: 3, pattern: 'burst' },
-};
-const JOBS = [
-  { name: 'groups', last: 12, worst: 149, fuse: 'armed' }, { name: 'ecology', last: 9, worst: 71, fuse: 'armed' },
-  { name: 'water', last: 3, worst: 66, fuse: 'armed' }, { name: 'cavern', last: 18, worst: 44, fuse: 'armed' },
-  { name: 'hold', last: 2, worst: 6, fuse: 'armed' },
-];
-const BUDGET = 50;
-const LEDGER = [
-  ['Au 14 · 09:12', 'groups', 'GIANT_EAGLE held 3 more days (you)'],
-  ['Au 13 · 22:40', 'arrival', 'SHARK_MAKO_LONGFIN x1 arrived at the east sea edge; stock 421 -> 420'],
-  ['Au 12 · 06:05', 'arrival', 'FISH_MILKFISH x6 arrived (school); stock 7436 -> 7430'],
-  ['Au 11 · 17:31', 'arrival', 'cavern:CRUNDLE x17 arrived in cavern 1 (herd)'],
-  ['Au 10 · 03:14', 'departure', 'GIANT_PARAKEET x5 left; stock 340 -> 345 (given back)'],
-  ['Au 08 · 12:00', 'ecology', '24 predator-prey pairs written, 0 waiting'],
-  ['Au 01 · 00:00', 'season', 'Autumn roster took effect: 23 species in season, 34 held out of season'],
-  ['Au 01 · 00:00', 'season', 'water layer: no active water species in Autumn'],
-  ['Su 71 · 15:20', 'odds', 'cavern:ELK_BIRD odds 50 -> 80 (you)'],
-  ['Su 66 · 08:47', 'stock', 'GIANT_COUGAR stock 40 -> 16 (you)'],
-];
-// wild animals on the map per layer, last 28 days (sample)
-const SERIES = (() => {
-  const out = { land: [], water: [], cavern: [] }; let a = 30, c = 22;
-  for (let i = 0; i < 29; i++) {
-    a = Math.max(8, Math.min(58, a + Math.round(Math.sin(i * 0.9) * 5 + (i % 7 === 3 ? 9 : -2))));
-    c = Math.max(10, Math.min(70, c + Math.round(Math.cos(i * 0.6) * 4 + (i % 9 === 5 ? 14 : -1))));
-    out.land.push(a); out.cavern.push(c); out.water.push(i < 4 ? 6 - i : 0);
-  }
-  out.land[28] = LIM.land.wild; out.cavern[28] = LIM.cavern.wild; return out;
-})();
+// ---- the state, from either source ----
+let D, SP = [], BY = {}, eats = {}, eatenBy = {}, onMap = new Set(), GROUPS = [], LIM = {}, JOBS = [], LEDGER = [],
+    NOW = 0, DATE = {}, BUDGET = 50, SERIES = [];
+function ingest(d) {
+  D = d;
+  SP = arr(d.species).map(s => ({ ...s, seasons: arr(s.seasons), role: s.role || 'prey' }));
+  BY = Object.fromEntries(SP.map(s => [s.key, s]));
+  eats = {}; eatenBy = {};
+  for (const [p, q] of arr(d.pairs)) { if (!BY[p] || !BY[q]) continue; (eats[p] ||= []).push(q); (eatenBy[q] ||= []).push(p); }
+  GROUPS = arr(d.live).filter(g => BY[g.key]);
+  onMap = new Set(SP.filter(s => s.on_map > 0).map(s => s.key).concat(GROUPS.map(g => g.key)));
+  LIM = d.limits || {}; JOBS = arr(d.jobs); LEDGER = arr(d.ledger); DATE = d.date || {}; NOW = DATE.season ?? 0;
+  BUDGET = d.budget || 50;
+  if (LIVEMODE) {           // the tool keeps no history; the page samples what is on the map while it is open
+    const w = d.wild || {}, t = DATE.abs_day;
+    if (t != null && (!SERIES.length || t > SERIES[SERIES.length - 1].t)) SERIES.push({ t, land: w.land || 0, water: w.water || 0, cavern: w.cavern || 0 });
+    if (SERIES.length > 400) SERIES.shift();
+  } else SERIES = arr(d.series);
+}
 
 // ---- ui state ----
 const st = {
-  tab: store.get('tab', 'status'), layer: store.get('layer', 'all'), q: '', sel: 'GIANT_COUGAR',
+  tab: store.get('tab', 'status'), layer: store.get('layer', 'all'), q: '', sel: null,
   sort: { k: 'name', dir: 1 }, fActive: 'all', fRole: 'all', fHab: 'all', fNow: false,
-  webSeason: NOW, webActive: true, webFocus: null, conOpen: false, cmds: [],
+  webSeason: null, webActive: true, webVermin: true, webFocus: null, conOpen: false, cmds: [], conn: LIVEMODE ? 'loading' : 'sample',
 };
-if (!BY[st.sel]) st.sel = SP[0].key;
 
-// ---- the numbers the tool would show ----
+// ---- the numbers the tool shows ----
+const isVermin = s => s.role === 'vermin';
 function inSeason(s, k = NOW) { return s.active && s.seasons.includes(k); }
-function pool(layer, season) { return SP.filter(s => s.layer === layer && inSeason(s, season)); }
-function share(s, freq = s.freq) {
-  if (!s.active) return null;
+function pool(layer, season) { return SP.filter(s => s.layer === layer && !isVermin(s) && inSeason(s, season)); }
+function share(s, freq = s.freq) {       // ODDS.share: the species' weight over its layer's active in-season species
+  if (!s.active || isVermin(s)) return null;
   const k = s.seasons.includes(NOW) ? NOW : s.seasons[0];
   const p = pool(s.layer, k).filter(x => x.key !== s.key);
   const tot = p.reduce((t, x) => t + x.freq, 0) + freq;
-  return { pct: freq / tot * 100, now: k === NOW };
+  return tot > 0 ? { pct: freq / tot * 100, now: k === NOW } : null;
 }
 const pct = v => v >= 10 ? v.toFixed(0) + '%' : v.toFixed(1) + '%';
 function shareText(s) { const r = share(s); if (!r) return '—'; return r.now ? pct(r.pct) : '(' + pct(r.pct) + ')'; }
 const layerOk = s => st.layer === 'all' || s.layer === st.layer;
+const nm = s => esc(s.name);
 
-// ---- commands: what the page would send to the game ----
-function send(cmd, what, verbNote) {
+// ---- commands ----
+// Sample mode logs what would be sent. Live mode sends it and reads the state back.
+async function send(args, what) {
+  const cmd = 'seasonal-wildlife ' + args.join(' ');
   const t = new Date().toTimeString().slice(0, 8);
-  st.cmds.unshift({ t, cmd, verbNote });
-  renderConsole(); toast(what);
+  if (!LIVEMODE) { st.cmds.unshift({ t, cmd, res: 'not sent: sample' }); renderConsole(); toast(what); return; }
+  const line = { t, cmd, res: 'sending' }; st.cmds.unshift(line); renderConsole();
+  try {
+    const q = new URLSearchParams({ t: TOKEN }); for (const a of args) q.append('a', a);
+    const r = await fetch('/cmd?' + q.toString(), { method: 'POST' });
+    const j = await r.json();
+    line.res = j.ok ? 'done' : 'refused'; line.out = (j.out || '').trim();
+    toast(j.ok ? (line.out.split('\n')[0] || what) : 'Refused: ' + (line.out || 'unknown'));
+  } catch (e) { line.res = 'failed'; line.out = String(e); toast('Could not reach the game: ' + e.message); }
+  renderConsole(); refresh(true);
 }
 function renderConsole() {
   document.getElementById('conCount').textContent = st.cmds.length;
   const last = st.cmds[0];
   document.getElementById('conLast').textContent = last ? last.cmd : 'Every change on this page becomes one seasonal-wildlife console command.';
+  const chip = r => r === 'done' ? 'good' : (r === 'refused' || r === 'failed') ? 'crit' : '';
   document.getElementById('conBody').innerHTML = st.cmds.length ? st.cmds.map(c =>
-    `<div class="line"><span class="sub">${c.t}</span><span class="c">${esc(c.cmd)}</span>${c.verbNote ? '<span class="chip warn">v6.8, not deployed yet</span>' : '<span class="chip">not sent: sample</span>'}</div>`).join('')
-    : '<p class="sub" style="margin:6px 0">Nothing yet. Change a species, a limit or a group and its command appears here.</p>';
+    `<div class="line"><span class="sub">${c.t}</span><span class="c">${esc(c.cmd)}${c.out ? `<br><span class="sub">${esc(c.out.split('\n').slice(0, 3).join(' / '))}</span>` : ''}</span><span class="chip ${chip(c.res)}">${esc(c.res)}</span></div>`).join('')
+    : `<p class="sub" style="margin:6px 0">Nothing yet. Change a species, a limit or a group and its command appears here.</p>`;
   document.getElementById('console').classList.toggle('open', st.conOpen);
 }
-let tt; function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2200); }
+let tt; function toast(msg) { const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600); }
 document.getElementById('conHead').onclick = () => { st.conOpen = !st.conOpen; renderConsole(); };
 
 // ---- chrome ----
-function renderClock() {
-  const f = DAY_OF_SEASON / 84, R = 13, C = 2 * Math.PI * R;
+function renderChrome() {
+  document.getElementById('fortName').textContent = D.fort || 'Fortress';
+  const c = document.getElementById('conn'), ct = document.getElementById('connText');
+  c.className = 'conn ' + (st.conn === 'live' ? 'live' : st.conn === 'lost' ? 'lost' : '');
+  ct.textContent = st.conn === 'live' ? 'Live' : st.conn === 'lost' ? 'Lost the game: retrying' : st.conn === 'loading' ? 'Connecting' : 'Sample data · not connected';
+  c.title = st.conn === 'sample' ? 'This page runs on a saved snapshot. Nothing is sent to a game.' : `State built in ${D.ms ?? '?'} ms`;
+  const f = Math.max(0, Math.min(1, (DATE.day_of_season || 0) / 84)), R = 13, C = 2 * Math.PI * R;
   document.getElementById('clock').innerHTML =
     `<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="${R}" fill="none" stroke="var(--surface-3)" stroke-width="4"/><circle cx="16" cy="16" r="${R}" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="${C * f} ${C}" transform="rotate(-90 16 16)" stroke-linecap="round"/></svg>
-     <span><b>Autumn</b>, 14th Sandstone &middot; <span class="num">26</span> days to Winter</span>`;
+     <span><b>${SEASONS[NOW]}</b>, ${ordinal(DATE.day_of_month || 1)} ${esc(DATE.month || '')} &middot; <span class="num">${DATE.days_to_next ?? '?'}</span> days to ${SEASONS[(NOW + 1) % 4]}</span>`;
 }
+const ordinal = n => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
 function renderLayerSeg() {
   const opts = [['all', 'All layers'], ...LAYERS.map(l => [l, LNAME[l]])];
   document.getElementById('layerSeg').innerHTML = opts.map(([k, n]) =>
@@ -384,7 +387,7 @@ function renderLayerSeg() {
 }
 const TABS = [['status', 'Status'], ['species', 'Species'], ['web', 'Food web'], ['ledger', 'Ledger & settings']];
 function renderTabs() {
-  const counts = { species: SP.filter(layerOk).length, web: null, ledger: LEDGER.length, status: LIVE.length };
+  const counts = { species: SP.filter(layerOk).length, web: null, ledger: LEDGER.length, status: GROUPS.length };
   document.getElementById('tabs').innerHTML = TABS.map(([k, n]) =>
     `<button role="tab" type="button" data-tab="${k}" aria-selected="${st.tab === k}" aria-controls="p-${k}">${n}${counts[k] != null ? `<span class="count">${counts[k]}</span>` : ''}</button>`).join('');
   document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => go(b.dataset.tab));
@@ -395,91 +398,104 @@ function go(tab, sel) { st.tab = tab; if (sel) st.sel = sel; store.set('tab', ta
 // ---- Status ----
 function renderStatus() {
   const cards = LAYERS.filter(l => st.layer === 'all' || st.layer === l).map(l => {
-    const L = LIM[l], groups = LIVE.filter(g => BY[g.key].layer === l && g.origin !== 'resident').length;
-    const inS = pool(l, NOW).length, active = SP.filter(s => s.layer === l && s.active).length;
-    const next = pool(l, 3).length;
+    const L = LIM[l] || {}, groups = L.groups_now ?? 0;
+    const inS = pool(l, NOW).length, active = SP.filter(s => s.layer === l && s.active && !isVermin(s)).length;
+    const next = pool(l, (NOW + 1) % 4).length;
     let chip, note;
-    if (l === 'water' && inS === 0) { chip = '<span class="chip warn">Nothing in season</span>'; note = `No active water species has Autumn. ${next} come in Winter. Give one an Autumn season, or run the matrix (M).`; }
-    else if (groups >= L.groups) { chip = '<span class="chip warn">Full</span>'; note = 'Every group slot is taken. The next wave waits for one to leave.'; }
-    else { chip = L.gate > 0 ? `<span class="chip">Gate opens in ${L.gate} d</span>` : '<span class="chip good">Gate open</span>'; note = `${inS} of ${active} active species are in season. Pattern: ${L.pattern}, a wave every ${L.gap} days.`; }
-    const wf = Math.min(1, L.wild / L.ceiling);
+    if (L.on === false) { chip = '<span class="chip">Off</span>'; note = `This layer is switched off. The tool leaves it to DF.`; }
+    else if (active > 0 && inS === 0) { chip = '<span class="chip warn">Nothing in season</span>'; note = `No active ${LNAME[l].toLowerCase()} species has ${SEASONS[NOW]}. ${next} come in ${SEASONS[(NOW + 1) % 4]}. Give one a ${SEASONS[NOW]} season, or run the matrix (M in the game window).`; }
+    else if (L.groups && groups >= L.groups) { chip = '<span class="chip warn">Full</span>'; note = 'Every group slot is taken. The next wave waits for one to leave.'; }
+    else { chip = (L.gate_days || 0) > 0 ? `<span class="chip">Next wave in ${L.gate_days.toFixed(1)} d</span>` : '<span class="chip good">Open</span>'; note = `${inS} of ${active} active species are in season. Pattern: ${esc(L.pattern || 'steady')}.`; }
+    const ceil = L.ceiling || 0, wf = ceil ? Math.min(1, (L.wild || 0) / ceil) : 0;
     return `<div class="panel lcard">
       <div class="lhead"><span class="dot ${l}"></span><h3>${LNAME[l]}</h3>${chip}</div>
-      <div class="metric"><span class="lab">Groups at once</span><span class="val num">${groups} / ${L.groups}</span>
-        <div class="pips">${Array.from({ length: L.groups }, (_, i) => `<i style="${i < groups ? `background:var(--${l})` : ''}"></i>`).join('')}</div></div>
-      <div class="metric"><span class="lab">Wild animals on the map</span><span class="val num">${L.wild} / ${L.ceiling}</span>
-        <div class="meter"><span style="width:${wf * 100}%;background:var(--${l})"></span></div></div>
+      <div class="metric"><span class="lab">Groups at once</span><span class="val num">${groups} / ${L.groups ?? '?'}</span>
+        <div class="pips">${Array.from({ length: Math.max(1, L.groups || 0) }, (_, i) => `<i style="${i < groups ? `background:var(--${l})` : ''}"></i>`).join('')}</div></div>
+      <div class="metric"><span class="lab">Wild animals on the map</span><span class="val num">${L.wild ?? 0}${ceil ? ' / ' + ceil : ' <span class="sub">(no ceiling)</span>'}</span>
+        ${ceil ? `<div class="meter"><span style="width:${wf * 100}%;background:var(--${l})"></span></div>` : ''}</div>
       <div class="lnote">${note}</div></div>`;
   }).join('');
-  const live = LIVE.filter(g => layerOk(BY[g.key]));
-  const rows = live.map(g => { const s = BY[g.key]; return `<tr>
-      <td><button class="elink" data-go="${g.key}" style="background:none;padding:0"><span class="dot ${s.layer}"></span><span class="t">${esc(s.name)}</span></button></td>
-      <td class="num mono">${g.n}</td><td><span class="chip">${g.origin}</span>${g.cohesion ? ` <span class="sub">${g.cohesion}</span>` : ''}</td>
-      <td class="num">${g.leaves == null ? '<span class="sub">stays</span>' : (g.held ? '<span class="chip accent">held</span> ' : '') + g.leaves.toFixed(1) + ' d'}</td>
-      <td style="white-space:nowrap">${g.leaves == null ? '' : `<button class="btn small" data-hold="${g.key}">${g.held ? 'Release' : 'Hold 3 d'}</button> <button class="btn small" data-off="${g.key}">Send off</button>`}</td></tr>`; }).join('');
-  const nextIn = SP.filter(s => layerOk(s) && s.active && s.seasons.includes(3) && !s.seasons.includes(NOW));
-  const nextOut = SP.filter(s => layerOk(s) && s.active && s.seasons.includes(NOW) && !s.seasons.includes(3));
-  const chipList = (a, cls) => a.length ? a.slice(0, 14).map(s => `<button class="elink ${cls}" data-go="${s.key}"><span class="dot ${s.layer}"></span><span class="t">${esc(s.name)}</span></button>`).join('') + (a.length > 14 ? `<span class="more">+${a.length - 14} more</span>` : '') : '<span class="sub">none</span>';
-  const jobs = JOBS.map(j => { const max = 160, over = j.worst > BUDGET; return `<div class="job"><span class="mono">${j.name}</span>
+  const live = GROUPS.filter(g => layerOk(BY[g.key]));
+  const rows = live.map(g => { const s = BY[g.key], canHold = g.tracked !== false && g.leaves != null; return `<tr>
+      <td><button class="elink" data-go="${g.key}" style="background:none;padding:0"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button></td>
+      <td class="num mono">${g.n}</td><td><span class="chip">${esc(g.origin)}</span></td>
+      <td class="num">${g.leaves == null ? '<span class="sub">—</span>' : g.leaves.toFixed(1) + ' d'}</td>
+      <td style="white-space:nowrap">${canHold ? `<button class="btn small" data-hold="${esc(s.token)}">Hold 3 d</button> <button class="btn small" data-off="${esc(s.token)}">Send off</button>` : ''}</td></tr>`; }).join('');
+  const nxt = (NOW + 1) % 4;
+  const nextIn = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(nxt) && !s.seasons.includes(NOW));
+  const nextOut = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(NOW) && !s.seasons.includes(nxt));
+  const chipList = a => a.length ? a.slice(0, 14).map(s => `<button class="elink" data-go="${s.key}"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button>`).join('') + (a.length > 14 ? `<span class="more">+${a.length - 14} more</span>` : '') : '<span class="sub">none</span>';
+  const max = Math.max(160, ...JOBS.map(j => j.worst));
+  const jobs = JOBS.length ? JOBS.map(j => { const over = j.worst > BUDGET; return `<div class="job"><span class="mono">${esc(j.name)}</span>
       <div class="jbar" title="last ${j.last} ms, worst ${j.worst} ms, budget ${BUDGET} ms"><span class="last" style="width:${j.last / max * 100}%"></span><span class="budget" style="left:${BUDGET / max * 100}%"></span><span class="worst" style="left:${Math.min(j.worst, max) / max * 100}%"></span></div>
-      <span class="mono num" style="text-align:right;white-space:nowrap">${j.last} / ${j.worst} ms ${over ? '<span class="chip warn" title="Worst run is over the 50 ms budget">over</span>' : ''}</span></div>`; }).join('');
+      <span class="mono num" style="text-align:right;white-space:nowrap">${j.last} / ${j.worst} ms ${over ? '<span class="chip warn" title="Worst run is over the budget">over</span>' : ''}</span></div>`; }).join('')
+    : '<p class="sub" style="margin:0">No job has run in this session yet.</p>';
+  const banner = LIVEMODE
+    ? `<b>Live from ${esc(D.fort)}.</b> The page reads the game every two seconds (the last read took ${D.ms ?? '?'} ms inside DF). Each change you make is sent as one console command, and the Commands drawer shows the game's reply.`
+    : `<b>A prototype on sample data.</b> The roster is a saved snapshot of Boatsbowed (26 Sep): 115 managed species and the vermin its biomes hold. Groups, limits, jobs and history are made up to show the layout. Nothing here talks to a game.`;
   document.getElementById('p-status').innerHTML = `
-    <div class="banner"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" style="flex:none;margin-top:1px"><circle cx="10" cy="10" r="8"/><path d="M10 9v5M10 6.2v.2"/></svg>
-      <span><b>A prototype on sample data.</b> The roster is a saved snapshot of Boatsbowed (26 Sep, 115 managed species). Groups, limits, jobs and history are made up to show the layout. Nothing here talks to a game yet.</span></div>
+    <div class="banner"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" style="flex:none;margin-top:1px"><circle cx="10" cy="10" r="8"/><path d="M10 9v5M10 6.2v.2"/></svg><span>${banner}</span></div>
+    ${D.enabled === false ? '<div class="banner" style="border-color:var(--warn)"><b>Seasonal rotation is off.</b>&nbsp;The roster is kept, but nothing is applied until it is switched on (Panel, or <span class="mono">seasonal-wildlife enable</span>).</div>' : ''}
     <div class="layers">${cards}</div>
     <div class="grid2">
-      <div class="panel"><h2>On the map now</h2><div class="tscroll"><table><thead><tr><th>Species</th><th>Count</th><th>Came as</th><th>Leaves in</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="sub">No tracked groups on this layer.</td></tr>'}</tbody></table></div>
-        <div class="row" style="margin-top:10px">${LAYERS.filter(l => l !== 'water' && layerOk({ layer: l })).map(l => `<button class="btn small" data-sendoff="${l}">Send off every ${LNAME[l].toLowerCase()} group</button>`).join('')}</div></div>
-      <div class="panel"><h2>Wild animals on the map, last 28 days</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></div>
+      <div class="panel"><h2>On the map now</h2><div class="tscroll"><table><thead><tr><th>Species</th><th>Count</th><th>Came as</th><th>Leaves in</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="sub">No wild animals on this layer.</td></tr>'}</tbody></table></div>
+        <div class="row" style="margin-top:10px">${['land', 'cavern'].filter(l => layerOk({ layer: l })).map(l => `<button class="btn small" data-sendoff="${l}">Send off every ${LNAME[l].toLowerCase()} group</button>`).join('')}</div></div>
+      <div class="panel"><h2>${LIVEMODE ? 'Wild animals on the map while this page is open' : 'Wild animals on the map, last 28 days'}</h2><div class="legend" id="legend"></div><div class="chart" id="chart"></div></div>
     </div>
     <div class="grid2">
-      <div class="panel"><h2>At the next season change, in 26 days</h2><div class="boundary">
-        <div><div class="sub" style="margin-bottom:6px">Arriving with Winter (${nextIn.length})</div><div class="blist">${chipList(nextIn, '')}</div></div>
-        <div><div class="sub" style="margin-bottom:6px">Held out after Autumn (${nextOut.length})</div><div class="blist">${chipList(nextOut, '')}</div></div></div></div>
+      <div class="panel"><h2>At the next season change, in ${DATE.days_to_next ?? '?'} days</h2><div class="boundary">
+        <div><div class="sub" style="margin-bottom:6px">Arriving with ${SEASONS[nxt]} (${nextIn.length})</div><div class="blist">${chipList(nextIn)}</div></div>
+        <div><div class="sub" style="margin-bottom:6px">Held out after ${SEASONS[NOW]} (${nextOut.length})</div><div class="blist">${chipList(nextOut)}</div></div></div></div>
       <div class="panel"><h2>Background jobs</h2><div class="jobs">${jobs}</div>
-        <p class="sub" style="margin:10px 0 0">Bar: last run. Tick: worst run. Dashed line: the 50 ms budget. A job whose fuse blows stops and shows here.</p></div>
+        <p class="sub" style="margin:10px 0 0">Bar: last run. Tick: worst run. Dashed line: the ${BUDGET} ms budget. ${esc(D.fuse || '')}</p></div>
     </div>`;
   drawChart();
   const P = document.getElementById('p-status');
   P.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go('species', b.dataset.go));
-  P.querySelectorAll('[data-hold]').forEach(b => b.onclick = () => { const g = LIVE.find(x => x.key === b.dataset.hold); g.held = !g.held; if (g.held) g.leaves += 3; else g.leaves -= 3;
-    send(g.held ? `seasonal-wildlife groups hold ${BY[g.key].token} 3` : `seasonal-wildlife groups hold ${BY[g.key].token} 0`, g.held ? `${BY[g.key].name} held 3 more days` : `${BY[g.key].name} released`); renderStatus(); });
-  P.querySelectorAll('[data-off]').forEach(b => b.onclick = () => { const i = LIVE.findIndex(x => x.key === b.dataset.off), g = LIVE[i]; LIVE.splice(i, 1); onMap.delete(g.key);
-    send(`seasonal-wildlife groups dismiss ${BY[g.key].token}`, `${BY[g.key].name} sent off`); renderAll(); });
+  P.querySelectorAll('[data-hold]').forEach(b => b.onclick = () => send(['groups', 'hold', b.dataset.hold, '3'], `${b.dataset.hold} held 3 more days`));
+  P.querySelectorAll('[data-off]').forEach(b => b.onclick = () => {
+    if (!LIVEMODE) { GROUPS = GROUPS.filter(g => BY[g.key].token !== b.dataset.off); onMap = new Set(GROUPS.map(g => g.key)); renderAll(); }
+    send(['groups', 'dismiss', b.dataset.off], `${b.dataset.off} sent off`); });
   P.querySelectorAll('[data-sendoff]').forEach(b => b.onclick = () => { const l = b.dataset.sendoff;
-    for (let i = LIVE.length - 1; i >= 0; i--) if (BY[LIVE[i].key].layer === l && LIVE[i].origin !== 'resident') { onMap.delete(LIVE[i].key); LIVE.splice(i, 1); }
-    send(`seasonal-wildlife sendoff ${l}`, `Every ${LNAME[l].toLowerCase()} group sent off; the gate opens`); renderAll(); });
+    if (!LIVEMODE) { GROUPS = GROUPS.filter(g => BY[g.key].layer !== l || g.origin === 'resident'); onMap = new Set(GROUPS.map(g => g.key)); renderAll(); }
+    send(['sendoff', l], `Every ${LNAME[l].toLowerCase()} group sent off; the gate opens`); });
 }
 
 function drawChart() {
   const el = document.getElementById('chart'); if (!el) return;
   const ls = LAYERS.filter(l => layerOk({ layer: l }));
   document.getElementById('legend').innerHTML = ls.map(l => `<span><i class="dot ${l}"></i>${LNAME[l]}</span>`).join('');
-  const W = 520, H = 220, m = { l: 34, r: 70, t: 10, b: 24 }, n = 29;
-  const ymax = 80, x = i => m.l + i / (n - 1) * (W - m.l - m.r), y = v => H - m.b - v / ymax * (H - m.t - m.b);
-  let g = '<g class="grid">' + [0, 20, 40, 60, 80].map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/>`).join('') + '</g>';
-  g += '<g class="axis">' + [0, 20, 40, 60, 80].map(v => `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join('')
-     + [0, 7, 14, 21, 28].map(i => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${i === 28 ? 'today' : '-' + (28 - i) + ' d'}</text>`).join('') + '</g>';
+  if (SERIES.length < 2) { el.innerHTML = `<p class="sub" style="margin:8px 0">${LIVEMODE ? 'Collecting: the line starts once the game has moved on a little. Unpause to see it grow.' : 'No history.'}</p>`; return; }
+  const W = 520, H = 220, m = { l: 34, r: 78, t: 10, b: 24 }, n = SERIES.length;
+  const t0 = SERIES[0].t, t1 = SERIES[n - 1].t, span = Math.max(1e-6, t1 - t0);
+  const top = Math.max(10, ...SERIES.flatMap(p => ls.map(l => p[l])));
+  const ymax = Math.ceil(top / 20) * 20, ticks = [0, ymax / 4, ymax / 2, ymax * 3 / 4, ymax];
+  const x = t => m.l + (t - t0) / span * (W - m.l - m.r), y = v => H - m.b - v / ymax * (H - m.t - m.b);
+  let g = '<g class="grid">' + ticks.map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/>`).join('') + '</g>';
+  const daysAgo = t => { const d = t1 - t; return d < 0.05 ? 'now' : d < 1 ? '-' + Math.round(d * 24) + ' h' : '-' + d.toFixed(d < 10 ? 1 : 0) + ' d'; };
+  g += '<g class="axis">' + ticks.map(v => `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`).join('')
+     + [0, 0.25, 0.5, 0.75, 1].map(f => `<text x="${x(t0 + f * span)}" y="${H - 6}" text-anchor="middle">${daysAgo(t0 + f * span)}</text>`).join('') + '</g>';
   const ends = [];
   for (const l of ls) {
-    const s = SERIES[l];
-    g += `<path d="${s.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ')}" fill="none" stroke="var(--${l})" stroke-width="2" stroke-linejoin="round"/>`;
-    g += `<circle cx="${x(n - 1)}" cy="${y(s[n - 1])}" r="4" fill="var(--${l})" stroke="var(--surface)" stroke-width="2"/>`;
-    ends.push({ l, y: y(s[n - 1]), v: s[n - 1] });
+    g += `<path d="${SERIES.map((p, i) => (i ? 'L' : 'M') + x(p.t).toFixed(1) + ' ' + y(p[l]).toFixed(1)).join(' ')}" fill="none" stroke="var(--${l})" stroke-width="2" stroke-linejoin="round"/>`;
+    const last = SERIES[n - 1][l];
+    g += `<circle cx="${x(t1)}" cy="${y(last)}" r="4" fill="var(--${l})" stroke="var(--surface)" stroke-width="2"/>`;
+    ends.push({ l, y: y(last), v: last });
   }
   ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
-  g += ends.map(e => `<text class="lbl" x="${x(n - 1) + 9}" y="${e.y + 4}">${LNAME[e.l]} ${e.v}</text>`).join('');
+  g += ends.map(e => `<text class="lbl" x="${x(t1) + 9}" y="${e.y + 4}">${LNAME[e.l]} ${e.v}</text>`).join('');
   g += `<line id="xh" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" stroke="var(--muted)" stroke-dasharray="3 3" opacity="0"/>`;
   g += `<rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="transparent" id="hit"/>`;
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wild animals on the map per layer over the last 28 days">${g}</svg><div class="tip" id="tip"></div>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wild animals on the map per layer over time">${g}</svg><div class="tip" id="tip"></div>`;
   const svg = el.querySelector('svg'), tip = el.querySelector('#tip'), xh = el.querySelector('#xh');
   el.querySelector('#hit').addEventListener('pointermove', ev => {
-    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * W;
-    const i = Math.max(0, Math.min(n - 1, Math.round((sx - m.l) / (W - m.l - m.r) * (n - 1))));
-    xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.setAttribute('opacity', 1);
-    tip.innerHTML = `<div class="sub" style="margin-bottom:4px">${i === 28 ? 'Today' : (28 - i) + ' days ago'}</div>` + ls.map(l => `<div class="row"><span><i class="dot ${l}"></i>${LNAME[l]}</span><b class="num">${SERIES[l][i]}</b></div>`).join('');
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * W, tt_ = t0 + (sx - m.l) / (W - m.l - m.r) * span;
+    let i = 0; for (let k = 1; k < n; k++) if (Math.abs(SERIES[k].t - tt_) < Math.abs(SERIES[i].t - tt_)) i = k;
+    const p = SERIES[i];
+    xh.setAttribute('x1', x(p.t)); xh.setAttribute('x2', x(p.t)); xh.setAttribute('opacity', 1);
+    tip.innerHTML = `<div class="sub" style="margin-bottom:4px">${daysAgo(p.t) === 'now' ? 'Now' : daysAgo(p.t).slice(1) + ' ago'}</div>` + ls.map(l => `<div class="row"><span><i class="dot ${l}"></i>${LNAME[l]}</span><b class="num">${p[l]}</b></div>`).join('');
     tip.style.display = 'block';
-    const px = x(i) / W * r.width; tip.style.left = Math.min(px + 12, r.width - 150) + 'px'; tip.style.top = '8px';
+    const px = x(p.t) / W * r.width; tip.style.left = Math.min(px + 12, r.width - 150) + 'px'; tip.style.top = '8px';
   });
   el.querySelector('#hit').addEventListener('pointerleave', () => { tip.style.display = 'none'; xh.setAttribute('opacity', 0); });
 }
@@ -494,9 +510,9 @@ function filtered() {
     && (st.fRole === 'all' || s.role === st.fRole)
     && (st.fHab === 'all' || s.habitat === st.fHab)
     && (!st.fNow || inSeason(s))
-    && (!q || s.name.toLowerCase().includes(q) || s.token.toLowerCase().includes(q)));
+    && (!q || s.name.toLowerCase().includes(q) || s.token.toLowerCase().includes(q) || (s.family && FAM[s.family].includes(q))));
   const k = st.sort.k, d = st.sort.dir;
-  const val = s => k === 'name' ? s.name : k === 'stock' ? s.stock : k === 'odds' ? (share(s)?.pct ?? -1) : k === 'size' ? BAND[s.band] : k === 'seasons' ? s.seasons.length : k === 'active' ? +s.active : s[k];
+  const val = s => k === 'name' ? s.name : k === 'stock' ? s.stock : k === 'odds' ? (share(s)?.pct ?? -1) : k === 'size' ? (BAND[s.band] ?? -1) : k === 'seasons' ? s.seasons.length : k === 'active' ? +s.active : s[k];
   a.sort((x, y) => { const u = val(x), v = val(y); return (u < v ? -1 : u > v ? 1 : 0) * d || x.name.localeCompare(y.name); });
   return a;
 }
@@ -507,7 +523,7 @@ function renderSpecies() {
     P.innerHTML = `<div class="split"><div>
       <div class="filters">
         <select id="fActive" aria-label="Active"><option value="all">Active and inactive</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-        <select id="fRole" aria-label="Role"><option value="all">Any role</option><option value="predator">Predators</option><option value="prey">Prey</option></select>
+        <select id="fRole" aria-label="Role"><option value="all">Any role</option><option value="predator">Predators</option><option value="prey">Prey</option><option value="vermin">Vermin</option></select>
         <select id="fHab" aria-label="Habitat"><option value="all">Any habitat</option>${HABS.map(h => `<option value="${h}">${h}</option>`).join('')}</select>
         <label class="chip" style="cursor:pointer"><input type="checkbox" id="fNow" style="margin:0"> In season now</label>
         <span class="sub" id="fCount"></span>
@@ -520,141 +536,181 @@ function renderSpecies() {
     P.querySelector('#fHab').onchange = e => { st.fHab = e.target.value; renderList(); };
     P.querySelector('#fNow').onchange = e => { st.fNow = e.target.checked; renderList(); };
   }
+  if (!st.sel || !BY[st.sel]) st.sel = (SP.find(s => s.active && !isVermin(s)) || SP[0] || {}).key;
   renderList(); renderDetail();
 }
 function renderList() {
   const a = filtered();
   document.getElementById('fCount').textContent = `${a.length} of ${SP.filter(layerOk).length}`;
   const cols = [['name', 'Species'], ['role', 'Role'], ['size', 'Size'], ['seasons', 'Seasons'], ['stock', 'Stock'], ['odds', 'Odds'], ['active', 'Active']];
-  document.getElementById('list').innerHTML = `<table><thead><tr>${cols.map(([k, n]) => `<th data-sort="${k}" aria-sort="${st.sort.k === k ? (st.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}" ${['stock', 'odds'].includes(k) ? 'style="text-align:right"' : ''}>${n}</th>`).join('')}</tr></thead><tbody>
-    ${a.map(s => `<tr data-key="${s.key}" aria-selected="${s.key === st.sel}" class="${s.active ? '' : 'inactive'}">
-      <td><span class="name"><span class="dot ${s.layer}" title="${LNAME[s.layer]}"></span><span style="text-transform:capitalize">${esc(s.name)}</span>${onMap.has(s.key) ? '<span class="chip accent" title="On the map now">on map</span>' : ''}</span></td>
-      <td>${s.role}</td><td>${s.band}</td><td>${seasonStrip(s)}</td>
+  const L = document.getElementById('list'), top = L.scrollTop;
+  L.innerHTML = `<table><thead><tr>${cols.map(([k, n]) => `<th data-sort="${k}" aria-sort="${st.sort.k === k ? (st.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}" ${['stock', 'odds'].includes(k) ? 'style="text-align:right"' : ''}>${n}</th>`).join('')}</tr></thead><tbody>
+    ${a.map(s => `<tr data-key="${esc(s.key)}" aria-selected="${s.key === st.sel}" class="${s.active ? '' : 'inactive'}">
+      <td><span class="name"><span class="dot ${s.layer}" title="${LNAME[s.layer] || s.layer}"></span><span style="text-transform:capitalize">${nm(s)}</span>${onMap.has(s.key) ? '<span class="chip accent" title="On the map now">on map</span>' : ''}</span></td>
+      <td>${isVermin(s) ? `<span class="chip fam" title="${esc(FAM[s.family] || '')}">vermin</span>` : s.role}</td><td>${s.band || '—'}</td><td>${seasonStrip(s)}</td>
       <td class="mono num" style="text-align:right">${fmt(s.stock)}</td><td class="mono num" style="text-align:right">${shareText(s)}</td>
-      <td><button class="switch" role="switch" aria-checked="${s.active}" aria-label="${s.name} active" data-act="${s.key}"></button></td></tr>`).join('')
+      <td><button class="switch" role="switch" aria-checked="${s.active}" aria-label="${nm(s)} active" data-act="${esc(s.key)}"></button></td></tr>`).join('')
       || '<tr><td colspan="7" class="sub">No species match these filters.</td></tr>'}</tbody></table>`;
-  const L = document.getElementById('list');
+  L.scrollTop = top;
   L.querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.sort; st.sort = { k, dir: st.sort.k === k ? -st.sort.dir : (['stock', 'odds', 'active'].includes(k) ? -1 : 1) }; renderList(); });
   L.querySelectorAll('tbody tr[data-key]').forEach(tr => tr.onclick = e => { if (e.target.closest('.switch')) return; st.sel = tr.dataset.key; renderList(); renderDetail(); });
   L.querySelectorAll('[data-act]').forEach(b => b.onclick = () => toggleActive(BY[b.dataset.act]));
 }
 function toggleActive(s) {
-  s.active = !s.active;
-  if (s.active) s.seasons = [s.climate < 0.35 ? 3 : s.climate > 0.65 ? 1 : NOW]; else s.seasons = [];
-  send(`seasonal-wildlife roster ${s.key} ${s.active ? 'active' : 'inactive'}`,
-       s.active ? `${s.name} is active, with ${SEASONS[s.seasons[0]]}` : `${s.name} is inactive: it will not arrive`, true);
-  renderList(); renderDetail(); renderTabs();
+  const on = !s.active;
+  if (!LIVEMODE) { s.active = on; s.seasons = on ? [s.climate < 0.35 ? 3 : s.climate > 0.65 ? 1 : NOW] : []; renderList(); renderDetail(); renderTabs(); }
+  send(['roster', s.key, on ? 'active' : 'inactive'], on ? `${s.name} is active` : `${s.name} is inactive: it will not arrive`);
 }
 function egoList(keys, cap) {
   if (!keys || !keys.length) return '<span class="sub">none on this map</span>';
-  const a = keys.map(k => BY[k]).sort((x, y) => (+y.active - +x.active) || (onMap.has(y.key) - onMap.has(x.key)) || x.name.localeCompare(y.name));
-  return a.slice(0, cap).map(s => `<button class="elink ${onMap.has(s.key) ? 'live' : ''}" data-go="${s.key}" title="${esc(s.name)}${s.active ? '' : ' (inactive)'}${onMap.has(s.key) ? ', on the map' : ''}" style="${s.active ? '' : 'opacity:.55'}"><span class="dot ${s.layer}"></span><span class="t">${esc(s.name)}</span></button>`).join('')
+  const a = keys.map(k => BY[k]).filter(Boolean).sort((x, y) => (+y.active - +x.active) || (onMap.has(y.key) - onMap.has(x.key)) || x.name.localeCompare(y.name));
+  return a.slice(0, cap).map(s => `<button class="elink ${onMap.has(s.key) ? 'live' : ''}" data-go="${esc(s.key)}" title="${nm(s)}${s.active ? '' : ' (inactive)'}${onMap.has(s.key) ? ', on the map' : ''}" style="${s.active ? '' : 'opacity:.55'}"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button>`).join('')
     + (a.length > cap ? `<span class="more">+${a.length - cap} more</span>` : '');
 }
 function renderDetail() {
   const s = BY[st.sel], el = document.getElementById('detail'); if (!s || !el) return;
-  const sh = share(s);
+  if (el.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;   // do not clobber an edit in progress
+  const sh = share(s), vm = isVermin(s);
   el.innerHTML = `
-    <div class="dhead"><span class="mono sub">${esc(s.key)}</span><h3>${esc(s.name)}</h3>
-      <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer]}</span><span class="chip">${s.habitat}</span><span class="chip">${s.role}</span><span class="chip">${s.band}</span>${s.animal_person ? '<span class="chip">animal person</span>' : ''}${onMap.has(s.key) ? '<span class="chip accent">on the map</span>' : ''}</div></div>
+    <div class="dhead"><span class="mono sub">${esc(s.key)}</span><h3>${nm(s)}</h3>
+      <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span><span class="chip">${vm ? 'vermin: ' + esc(FAM[s.family] || s.family || '') : s.role}</span>${s.band ? `<span class="chip">${s.band}</span>` : ''}${s.animal_person ? '<span class="chip">animal person</span>' : ''}${onMap.has(s.key) ? '<span class="chip accent">on the map</span>' : ''}</div></div>
     <div class="row" style="justify-content:space-between"><span style="font-weight:600">${s.active ? 'Active: may arrive in its seasons' : 'Inactive: never arrives'}</span>
       <button class="switch" role="switch" aria-checked="${s.active}" aria-label="Active" id="dAct"></button></div>
     <div class="field"><span class="lab">Seasons</span>
-      <div class="seasonbtns">${[0, 1, 2, 3].map(i => `<button type="button" data-season="${i}" aria-pressed="${s.seasons.includes(i)}" class="${i === NOW ? 'now' : ''}" ${s.active ? '' : 'disabled'}>${SEASONS[i]}</button>`).join('')}</div>
-      <span class="refuse" id="refuse" hidden>An active species keeps at least one season. To stop it arriving, make it inactive.</span></div>
-    <div class="field"><label for="dStock">Stock <span style="text-transform:none;letter-spacing:0;font-weight:400">(left in the region to arrive)</span></label>
+      <div class="seasonbtns">${[0, 1, 2, 3].map(i => `<button type="button" data-season="${i}" aria-pressed="${s.seasons.includes(i)}" class="${i === NOW ? 'now' : ''}">${SEASONS[i]}</button>`).join('')}</div>
+      <span class="refuse" id="refuse" hidden>An active species keeps at least one season. To stop it arriving, make it inactive.</span>
+      ${s.active ? '' : '<span class="sub">Choosing a season makes it active.</span>'}</div>
+    <div class="field"><label for="dStock">Stock <span style="text-transform:none;letter-spacing:0;font-weight:400">(left in the region to arrive${s.stock_set ? '; you set it' : ''})</span></label>
       <div class="row"><span class="stepper"><button type="button" data-step="-10" aria-label="Minus 10">−</button><input id="dStock" type="number" min="0" value="${s.stock}"><button type="button" data-step="10" aria-label="Plus 10">+</button></span>
       <button class="btn small" id="dStockSet">Set stock</button></div></div>
+    ${vm ? `<div class="why">Vermin are not units and come in no waves, so they have no odds and cannot be called. Their stock and seasons work as for any species.</div>` : `
     <div class="field"><label for="dOdds">Odds</label>
-      <input id="dOdds" type="range" min="1" max="200" value="${Math.min(200, s.freq)}" ${s.active ? '' : 'disabled'}>
-      <div class="share"><span>Weight <b class="mono" id="dOddsV">${s.freq}</b></span><span id="dShare">${sh ? (sh.now ? `${pct(sh.pct)} of Autumn's ${LNAME[s.layer].toLowerCase()} waves` : `(${pct(sh.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : 'inactive: no share'}</span></div></div>
-    <div class="field"><span class="lab">Group size</span><span>${s.gmin === s.gmax ? s.gmin : `${s.gmin} to ${s.gmax}`} <span class="sub">from the raws</span></span></div>
+      <input id="dOdds" type="range" min="1" max="${Math.max(200, s.freq)}" value="${s.freq}" ${s.active ? '' : 'disabled'}>
+      <div class="share"><span>Weight <b class="mono" id="dOddsV">${s.freq}</b>${s.odds_set ? ' <span class="sub">(you set it)</span>' : ''}</span><span id="dShare">${shareLine(s, sh)}</span></div></div>
+    <div class="field"><span class="lab">Group size</span><span>${s.gmin === s.gmax ? s.gmin : `${s.gmin} to ${s.gmax}`}</span></div>`}
     <div class="field"><span class="lab">Food web</span>
       <div class="ego"><div class="col"><h4>Eaten by (${(eatenBy[s.key] || []).length})</h4>${egoList(eatenBy[s.key], 8)}</div>
-        <div class="mid">${esc(s.name)}</div>
+        <div class="mid">${nm(s)}</div>
         <div class="col"><h4>Eats (${(eats[s.key] || []).length})</h4>${egoList(eats[s.key], 8)}</div></div>
       <button class="btn small" id="dWeb" style="justify-self:start">Open in the food web</button></div>
-    <div class="row"><button class="btn primary" id="dCall" ${inSeason(s) && s.stock > 0 ? '' : 'disabled'}>Call a wave now</button>
-      <span class="sub">${!s.active ? 'Inactive species cannot be called.' : !s.seasons.includes(NOW) ? 'Out of season: it can be called in ' + s.seasons.map(i => SEASONS[i]).join(', ') + '.' : s.stock <= 0 ? 'No stock left to arrive.' : `The next ${LNAME[s.layer].toLowerCase()} wave will be this species.`}</span></div>`;
+    ${s.why ? `<div class="why">Why: ${esc(s.why)}</div>` : ''}
+    ${vm ? '' : `<div class="row"><button class="btn primary" id="dCall" ${inSeason(s) && s.stock > 0 ? '' : 'disabled'}>Call a wave now</button>
+      <span class="sub">${!s.active ? 'Inactive species cannot be called.' : !s.seasons.includes(NOW) ? 'Out of season: it can be called in ' + s.seasons.map(i => SEASONS[i]).join(', ') + '.' : s.stock <= 0 ? 'No stock left to arrive.' : `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be this species.`}</span></div>`}`;
   el.querySelector('#dAct').onclick = () => toggleActive(s);
   el.querySelectorAll('[data-season]').forEach(b => b.onclick = () => {
     const i = +b.dataset.season, has = s.seasons.includes(i);
-    if (has && s.seasons.length === 1) { el.querySelector('#refuse').hidden = false; return; }
-    s.seasons = has ? s.seasons.filter(x => x !== i) : [...s.seasons, i].sort();
-    send(`seasonal-wildlife seasons ${s.key} ${s.seasons.length === 4 ? 'all' : s.seasons.map(x => SHORT[x]).join('')}`, `${s.name}: ${s.seasons.map(x => SEASONS[x]).join(', ')}`, true);
-    renderDetail(); renderList();
+    if (has && s.seasons.length === 1 && s.active) { el.querySelector('#refuse').hidden = false; return; }
+    const next = has ? s.seasons.filter(x => x !== i) : [...s.seasons, i].sort();
+    if (!LIVEMODE) { s.seasons = next; s.active = true; renderDetail(); renderList(); }
+    send(['seasons', s.key, next.length === 4 ? 'all' : next.map(x => SHORT[x]).join('')], `${s.name}: ${next.map(x => SEASONS[x]).join(', ')}`);
   });
   const inp = el.querySelector('#dStock');
   el.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { inp.value = Math.max(0, (+inp.value || 0) + +b.dataset.step); });
-  el.querySelector('#dStockSet').onclick = () => { const v = Math.max(0, Math.round(+inp.value || 0)); s.stock = v; send(`seasonal-wildlife stock ${s.key} ${v}`, `${s.name}: stock ${fmt(v)}`); renderList(); renderDetail(); };
+  el.querySelector('#dStockSet').onclick = () => { const v = Math.max(0, Math.round(+inp.value || 0)); if (!LIVEMODE) { s.stock = v; renderList(); } inp.blur(); send(['stock', s.key, String(v)], `${s.name}: stock ${fmt(v)}`); };
   const od = el.querySelector('#dOdds');
-  od.oninput = () => { const v = +od.value, r = share(s, v); el.querySelector('#dOddsV').textContent = v;
-    el.querySelector('#dShare').textContent = r ? (r.now ? `${pct(r.pct)} of Autumn's ${LNAME[s.layer].toLowerCase()} waves` : `(${pct(r.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : ''; };
-  od.onchange = () => { s.freq = +od.value; send(`seasonal-wildlife odds ${s.key} ${s.freq}`, `${s.name}: odds ${s.freq} (${shareText(s)})`); renderList(); };
-  el.querySelector('#dCall').onclick = () => send(`seasonal-wildlife call ${s.key}`, `The next ${LNAME[s.layer].toLowerCase()} wave will be ${s.name}`);
-  el.querySelector('#dWeb').onclick = () => { st.webFocus = s.key; st.webActive = false; go('web'); };
+  if (od) {
+    od.oninput = () => { const v = +od.value; el.querySelector('#dOddsV').textContent = v; el.querySelector('#dShare').textContent = shareLine(s, share(s, v)); };
+    od.onchange = () => { const v = +od.value; if (!LIVEMODE) { s.freq = v; renderList(); } od.blur(); send(['odds', s.key, String(v)], `${s.name}: odds ${v}`); };
+  }
+  const call = el.querySelector('#dCall'); if (call) call.onclick = () => send(['call', s.key], `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be ${s.name}`);
+  el.querySelector('#dWeb').onclick = () => { st.webFocus = vm ? famId(s) : s.key; st.webActive = false; go('web'); };
   el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { st.sel = b.dataset.go; renderList(); renderDetail(); });
 }
+function shareLine(s, r) { return r ? (r.now ? `${pct(r.pct)} of ${SEASONS[NOW]}'s ${(LNAME[s.layer] || '').toLowerCase()} waves` : `(${pct(r.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : 'inactive: no share'; }
 
 // ---- Food web ----
+// Species are nodes; vermin are drawn one node per family and layer (the Vermin tab's unit), since DF treats a
+// family alike and a web of every gnat would bury the animals. Dashed: a vermin hunter and what it can take.
+const famId = s => `fam:${s.layer}:${s.family}`;
 function renderWeb() {
   const P = document.getElementById('p-web');
-  const vis = SP.filter(s => layerOk(s) && (!st.webActive || s.active) && (st.webSeason === 'any' || !st.webActive || s.seasons.includes(+st.webSeason)));
+  if (st.webSeason === null) st.webSeason = NOW;
+  const pass = s => layerOk(s) && (!st.webActive || s.active) && (st.webSeason === 'any' || !st.webActive || s.seasons.includes(+st.webSeason));
+  const vis = SP.filter(s => pass(s) && (!isVermin(s) || st.webVermin));
   const vk = new Set(vis.map(s => s.key));
-  const pairs = D.pairs.filter(([p, q]) => vk.has(p) && vk.has(q));
-  const used = new Set(pairs.flat());
-  const HO = { flier: 0, waterbird: 1, land: 2, semiaquatic: 3, aquatic: 4 };
-  const ord = (a, b) => (a.layer > b.layer ? 1 : a.layer < b.layer ? -1 : 0) || HO[a.habitat] - HO[b.habitat] || BAND[b.band] - BAND[a.band] || a.name.localeCompare(b.name);
-  const preds = vis.filter(s => s.role === 'predator' && used.has(s.key)).sort(ord);
-  const prey = vis.filter(s => s.role === 'prey' && used.has(s.key)).sort(ord);
-  const alone = vis.filter(s => !used.has(s.key));
-  // the pair guarantee: every season of every group holds an active predator and a prey it eats
-  const groups = LAYERS;
-  const g = groups.map(l => [0, 1, 2, 3].map(k => D.pairs.some(([p, q]) => BY[p].layer === l && BY[q].layer === l && inSeason(BY[p], k) && inSeason(BY[q], k))));
-  const RH = 20, top = 36, W = 640, colL = 190, colR = W - 190;
+  // nodes: species, and one per vermin family
+  const nodes = new Map();
+  for (const s of vis) {
+    if (!isVermin(s)) { nodes.set(s.key, { id: s.key, s, name: s.name, layer: s.layer, role: s.role, habitat: s.habitat, band: s.band, live: onMap.has(s.key) }); continue; }
+    const id = famId(s);
+    if (!nodes.has(id)) nodes.set(id, { id, fam: s.family, name: `${FAM[s.family] || s.family}`, layer: s.layer, role: 'vermin', members: [], habitat: 'zz', band: 'small', live: false });
+    nodes.get(id).members.push(s);
+  }
+  const seen = new Set(), edges = [];
+  for (const [p, q] of arr(D.pairs)) {
+    if (!vk.has(p) || !vk.has(q)) continue;
+    const to = isVermin(BY[q]) ? famId(BY[q]) : q, k = p + '>' + to;
+    if (seen.has(k)) continue; seen.add(k);
+    edges.push({ p, q: to, vermin: isVermin(BY[q]), live: onMap.has(p) && onMap.has(q) });
+  }
+  const used = new Set(edges.flatMap(e => [e.p, e.q]));
+  const HO = { flier: 0, waterbird: 1, land: 2, semiaquatic: 3, aquatic: 4, zz: 9 };
+  const ord = (a, b) => (a.layer > b.layer ? 1 : a.layer < b.layer ? -1 : 0) || (HO[a.habitat] ?? 5) - (HO[b.habitat] ?? 5) || (BAND[b.band] ?? 0) - (BAND[a.band] ?? 0) || a.name.localeCompare(b.name);
+  const all = [...nodes.values()];
+  const preds = all.filter(n => n.role === 'predator' && used.has(n.id)).sort(ord);
+  const prey = all.filter(n => n.role !== 'predator' && used.has(n.id)).sort(ord);
+  const alone = vis.filter(s => !isVermin(s) && !used.has(s.key));
+  const g = LAYERS.map(l => [0, 1, 2, 3].map(k => arr(D.pairs).some(([p, q]) => BY[p] && BY[q] && !isVermin(BY[q]) && BY[p].layer === l && BY[q].layer === l && inSeason(BY[p], k) && inSeason(BY[q], k))));
+  const RH = 20, top = 36, W = 700, colL = 200, colR = W - 240;
   const H = top + Math.max(preds.length, prey.length, 1) * RH + 12;
-  const yP = new Map(preds.map((s, i) => [s.key, top + i * RH + RH / 2]));
-  const yQ = new Map(prey.map((s, i) => [s.key, top + i * RH + RH / 2]));
-  const edges = pairs.map(([p, q]) => { const y1 = yP.get(p), y2 = yQ.get(q), live = onMap.has(p) && onMap.has(q);
-    return `<path data-p="${p}" data-q="${q}" class="${live ? 'live' : ''}" d="M${colL} ${y1} C ${(colL + colR) / 2} ${y1}, ${(colL + colR) / 2} ${y2}, ${colR} ${y2}"/>`; }).join('');
-  const node = (s, x, y, anchor) => `<g class="node" data-key="${s.key}" tabindex="0" role="button" aria-label="${esc(s.name)}"><circle cx="${x}" cy="${y}" r="${onMap.has(s.key) ? 5 : 4}" fill="var(--${s.layer})" ${onMap.has(s.key) ? 'stroke="var(--accent)" stroke-width="2"' : ''}/><text x="${anchor === 'end' ? x - 10 : x + 10}" y="${y + 4}" text-anchor="${anchor}" style="text-transform:capitalize">${esc(s.name.length > 24 ? s.name.slice(0, 23) + '…' : s.name)}</text></g>`;
-  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Food web: predators on the left, prey on the right">
-    <text class="colhead" x="${colL - 10}" y="20" text-anchor="end">PREDATORS (${preds.length})</text><text class="colhead" x="${colR + 10}" y="20">PREY (${prey.length})</text>
-    ${edges}${preds.map(s => node(s, colL, yP.get(s.key), 'end')).join('')}${prey.map(s => node(s, colR, yQ.get(s.key), 'start')).join('')}</svg>`;
+  const yP = new Map(preds.map((n, i) => [n.id, top + i * RH + RH / 2]));
+  const yQ = new Map(prey.map((n, i) => [n.id, top + i * RH + RH / 2]));
+  const svgEdges = edges.map(e => { const y1 = yP.get(e.p), y2 = yQ.get(e.q);
+    return `<path data-p="${esc(e.p)}" data-q="${esc(e.q)}" class="${e.live ? 'live' : ''} ${e.vermin ? 'vermin' : ''}" d="M${colL} ${y1} C ${(colL + colR) / 2} ${y1}, ${(colL + colR) / 2} ${y2}, ${colR} ${y2}"/>`; }).join('');
+  const label = n => { const t = n.fam ? `${n.name} (${n.members.length})` : n.name; const cap = n.fam ? 34 : 26; return esc(t.length > cap ? t.slice(0, cap - 1) + '…' : t); };
+  const node = (n, x, y, anchor) => `<g class="node ${n.fam ? 'fam' : ''}" data-key="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(n.name)}">${n.fam
+      ? `<rect x="${x - 4}" y="${y - 4}" width="8" height="8" rx="1.5" fill="none" stroke="var(--${n.layer})" stroke-width="2"/>`
+      : `<circle cx="${x}" cy="${y}" r="${n.live ? 5 : 4}" fill="var(--${n.layer})" ${n.live ? 'stroke="var(--accent)" stroke-width="2"' : ''}/>`}<text x="${anchor === 'end' ? x - 10 : x + 10}" y="${y + 4}" text-anchor="${anchor}" style="text-transform:${n.fam ? 'none' : 'capitalize'}">${label(n)}</text></g>`;
+  const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Food web: predators on the left, prey and vermin on the right">
+    <text class="colhead" x="${colL - 10}" y="20" text-anchor="end">PREDATORS (${preds.length})</text><text class="colhead" x="${colR + 10}" y="20">PREY AND VERMIN (${prey.length})</text>
+    ${svgEdges}${preds.map(n => node(n, colL, yP.get(n.id), 'end')).join('')}${prey.map(n => node(n, colR, yQ.get(n.id), 'start')).join('')}</svg>`;
+  const nv = edges.filter(e => e.vermin).length;
   P.innerHTML = `
     <div class="webbar">
       <div class="seg" role="group" aria-label="Season" id="webSeason">${[0, 1, 2, 3].map(k => `<button type="button" data-s="${k}" aria-pressed="${String(st.webSeason) === String(k)}">${SEASONS[k]}${k === NOW ? ' (now)' : ''}</button>`).join('')}<button type="button" data-s="any" aria-pressed="${st.webSeason === 'any'}">Any season</button></div>
       <label class="chip" style="cursor:pointer"><input type="checkbox" id="webActive" ${st.webActive ? 'checked' : ''} style="margin:0"> Active species only</label>
-      <span class="sub">${pairs.length} pairs &middot; hover or click a species to trace it &middot; <span style="color:var(--accent)">violet</span>: both on the map now</span>
+      <label class="chip" style="cursor:pointer"><input type="checkbox" id="webVermin" ${st.webVermin ? 'checked' : ''} style="margin:0"> Vermin</label>
+      <span class="sub">${edges.length - nv} pairs${st.webVermin ? `, ${nv} vermin links (dashed)` : ''} &middot; <span style="color:var(--accent)">violet</span>: both on the map now</span>
     </div>
+    ${st.webVermin && nv && !D.hunting ? `<div class="banner"><span><b>Vermin hunting is off.</b> The dashed links are what these hunters would take once it is switched on (Panel, or <span class="mono">seasonal-wildlife hunting on</span>). DF only lets a species with the hunting flag catch vermin.</span></div>` : ''}
     <div class="webwrap">
-      <div class="web ${st.webFocus ? 'focus' : ''}" id="web">${pairs.length ? svg : '<p class="sub" style="padding:16px">No predator and prey meet under these filters.</p>'}</div>
+      <div class="web ${st.webFocus ? 'focus' : ''}" id="web">${edges.length ? svg : '<p class="sub" style="padding:16px">No predator and prey meet under these filters.</p>'}</div>
       <div style="display:grid;gap:16px">
         <div class="panel" id="webSide"></div>
-        <div class="panel guarantee"><h2>Pair guarantee</h2><p class="sub" style="margin:0 0 8px">Every season of every layer should hold an active predator and a prey it eats.</p>
-          <table><thead><tr><th></th>${SHORT.map((x, i) => `<th>${x}</th>`).join('')}</tr></thead><tbody>${groups.map((l, gi) => `<tr><td><span class="dot ${l}"></span> ${LNAME[l]}</td>${g[gi].map(ok => `<td>${ok ? '<span class="chip good" title="Holds a pair">✓</span>' : '<span class="chip crit" title="No pair this season">✗</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-        ${alone.length ? `<div class="panel"><h2>No partner here (${alone.length})</h2><div class="blist">${alone.slice(0, 16).map(s => `<button class="elink" data-go="${s.key}"><span class="dot ${s.layer}"></span><span class="t">${esc(s.name)}</span></button>`).join('')}${alone.length > 16 ? `<span class="more">+${alone.length - 16} more</span>` : ''}</div></div>` : ''}
+        <div class="panel guarantee"><h2>Pair guarantee</h2><p class="sub" style="margin:0 0 8px">Every season of every layer should hold an active predator and a prey it eats. Vermin do not count.</p>
+          <table><thead><tr><th></th>${SHORT.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${LAYERS.map((l, gi) => `<tr><td><span class="dot ${l}"></span> ${LNAME[l]}</td>${g[gi].map(ok => `<td>${ok ? '<span class="chip good" title="Holds a pair">✓</span>' : '<span class="chip crit" title="No pair this season">✗</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        ${alone.length ? `<div class="panel"><h2>No partner here (${alone.length})</h2><div class="blist">${alone.slice(0, 16).map(s => `<button class="elink" data-go="${esc(s.key)}"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button>`).join('')}${alone.length > 16 ? `<span class="more">+${alone.length - 16} more</span>` : ''}</div></div>` : ''}
       </div></div>`;
   P.querySelectorAll('#webSeason button').forEach(b => b.onclick = () => { st.webSeason = b.dataset.s === 'any' ? 'any' : +b.dataset.s; renderWeb(); });
   P.querySelector('#webActive').onchange = e => { st.webActive = e.target.checked; renderWeb(); };
+  P.querySelector('#webVermin').onchange = e => { st.webVermin = e.target.checked; renderWeb(); };
   P.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go('species', b.dataset.go));
   const web = P.querySelector('#web');
-  const focus = key => {
-    const on = new Set(key ? [key] : []);
-    web.classList.toggle('focus', !!key);
-    web.querySelectorAll('path').forEach(p => { const hit = key && (p.dataset.p === key || p.dataset.q === key); p.classList.toggle('on', !!hit); if (hit) { on.add(p.dataset.p); on.add(p.dataset.q); } });
+  const focus = id => {
+    const on = new Set(id ? [id] : []);
+    web.classList.toggle('focus', !!id);
+    web.querySelectorAll('path').forEach(p => { const hit = id && (p.dataset.p === id || p.dataset.q === id); p.classList.toggle('on', !!hit); if (hit) { on.add(p.dataset.p); on.add(p.dataset.q); } });
     web.querySelectorAll('.node').forEach(n => n.classList.toggle('on', on.has(n.dataset.key)));
-    side(key);
+    side(id);
   };
-  const side = key => {
-    const el = P.querySelector('#webSide');
-    if (!key) { el.innerHTML = `<h2>Trace a species</h2><p class="sub" style="margin:0">Hover a name to see what it eats and what eats it. Click to keep it selected. In the game window this is the view that does not fit.</p>`; return; }
-    const s = BY[key];
-    const a = (eats[key] || []).filter(k => vk.has(k)), b = (eatenBy[key] || []).filter(k => vk.has(k));
-    el.innerHTML = `<span class="mono sub">${esc(key)}</span><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;text-transform:capitalize;margin:2px 0 8px">${esc(s.name)}</h3>
-      <div class="field"><span class="lab">Eats (${a.length})</span><div class="blist">${egoList(a, 12)}</div></div>
-      <div class="field" style="margin-top:10px"><span class="lab">Eaten by (${b.length})</span><div class="blist">${egoList(b, 12)}</div></div>
-      <button class="btn small" style="margin-top:12px" data-go="${key}">Open species</button>`;
+  const side = id => {
+    const el = P.querySelector('#webSide'), n = id && nodes.get(id);
+    if (!n) { el.innerHTML = `<h2>Trace a species</h2><p class="sub" style="margin:0">Hover a name to see what it eats and what eats it. Click to keep it selected. Squares are vermin families.</p>`; return; }
+    const hunters = [...new Set(edges.filter(e => e.q === id).map(e => e.p))];
+    if (n.fam) {
+      el.innerHTML = `<span class="mono sub">vermin &middot; ${LNAME[n.layer] || n.layer}</span><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;margin:2px 0 8px">${esc(n.name)}</h3>
+        <div class="field"><span class="lab">Species (${n.members.length})</span><div class="blist">${egoList(n.members.map(m => m.key), 14)}</div></div>
+        <div class="field" style="margin-top:10px"><span class="lab">Hunted by (${hunters.length})</span><div class="blist">${egoList(hunters, 14)}</div></div>
+        ${D.hunting ? '' : '<p class="sub" style="margin:10px 0 0">Vermin hunting is off, so none of these hunt them yet.</p>'}`;
+    } else {
+      const a = [...new Set(edges.filter(e => e.p === id).map(e => e.q))];
+      const sp = a.filter(k => BY[k]), fams = a.filter(k => !BY[k]).map(k => nodes.get(k)).filter(Boolean);
+      el.innerHTML = `<span class="mono sub">${esc(id)}</span><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;text-transform:capitalize;margin:2px 0 8px">${esc(n.name)}</h3>
+        <div class="field"><span class="lab">Eats (${sp.length})</span><div class="blist">${egoList(sp, 12)}</div></div>
+        ${fams.length ? `<div class="field" style="margin-top:10px"><span class="lab">Hunts vermin (${fams.length} ${fams.length === 1 ? 'family' : 'families'})</span><div class="blist">${fams.map(f => `<span class="chip fam">${esc(f.name)}</span>`).join('')}</div></div>` : ''}
+        <div class="field" style="margin-top:10px"><span class="lab">Eaten by (${hunters.length})</span><div class="blist">${egoList(hunters, 12)}</div></div>
+        <button class="btn small" style="margin-top:12px" data-go="${esc(id)}">Open species</button>`;
+    }
     el.querySelectorAll('[data-go]').forEach(x => x.onclick = () => go('species', x.dataset.go));
   };
   web.querySelectorAll('.node').forEach(n => {
@@ -663,43 +719,64 @@ function renderWeb() {
     const pick = () => { st.webFocus = st.webFocus === n.dataset.key ? null : n.dataset.key; focus(st.webFocus); };
     n.addEventListener('click', pick); n.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
   });
-  if (st.webFocus && !vk.has(st.webFocus)) st.webFocus = null;
+  if (st.webFocus && !nodes.has(st.webFocus)) st.webFocus = null;
   focus(st.webFocus);
-  if (st.webFocus) { const n = web.querySelector(`.node[data-key="${CSS.escape(st.webFocus)}"]`); if (n) web.scrollTop = Math.max(0, +n.querySelector('circle').getAttribute('cy') - 120); }
+  if (st.webFocus) { const n = web.querySelector(`.node[data-key="${CSS.escape(st.webFocus)}"]`); if (n) { const c = n.querySelector('circle,rect'); web.scrollTop = Math.max(0, +(c.getAttribute('cy') || c.getAttribute('y')) - 120); } }
 }
 
 // ---- Ledger & settings ----
 function renderLedger() {
   const P = document.getElementById('p-ledger');
+  if (P.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
   const lay = LAYERS.filter(l => layerOk({ layer: l }));
   P.innerHTML = `<div class="grid2">
-    <div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Ledger</h2><button class="btn small" id="undo">Undo the last edit</button></div>
+    <div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h2 style="margin:0">Ledger</h2><button class="btn small" id="undo" ${LIVEMODE && !D.undo_depth ? 'disabled' : ''}>Undo the last edit${LIVEMODE ? ` (${D.undo_depth || 0})` : ''}</button></div>
       <p class="sub" style="margin:0 0 6px">Every write the tool made, and why. Undo goes back fifty edits.</p>
-      <ul class="ledger">${LEDGER.map(([t, k, m]) => `<li><span class="mono sub">${t}</span><span class="chip k">${k}</span><span>${esc(m)}</span><span></span></li>`).join('')}</ul></div>
-    <div class="panel"><h2>Layer settings</h2><div class="settings">${lay.map(l => { const L = LIM[l]; return `<div class="field" style="border:1px solid var(--line);border-radius:8px;padding:12px">
+      <ul class="ledger">${LEDGER.map(e => `<li><span class="mono sub">${esc(e.t)}</span><span class="chip k">${esc(e.k)}</span><span>${esc(e.s)}</span><span></span></li>`).join('') || '<li><span class="sub">Nothing recorded yet.</span></li>'}</ul></div>
+    <div class="panel"><h2>Layer settings</h2><div class="settings">${lay.map(l => { const L = LIM[l] || {}; return `<div class="field" style="border:1px solid var(--line);border-radius:8px;padding:12px">
         <div class="lhead"><span class="dot ${l}"></span><h3>${LNAME[l]}</h3></div>
-        <div class="kv"><label for="g-${l}">Groups at once</label><input id="g-${l}" type="number" min="1" max="12" value="${L.groups}" data-l="${l}" data-f="groups">
-          <label for="c-${l}">Ceiling</label><input id="c-${l}" type="number" min="1" max="400" value="${L.ceiling}" data-l="${l}" data-f="ceiling">
+        <div class="kv"><label for="g-${l}">Groups at once</label><input id="g-${l}" type="number" min="1" max="12" value="${L.groups ?? 1}" data-l="${l}" data-f="groups">
+          <label for="c-${l}">Ceiling</label><input id="c-${l}" type="number" min="0" max="400" value="${L.ceiling ?? 0}" data-l="${l}" data-f="ceiling">
           <label for="p-${l}">Pattern</label><select id="p-${l}" data-l="${l}" data-f="pattern">${['steady', 'burst', 'trickle', 'dawn', 'follow'].map(p => `<option ${p === L.pattern ? 'selected' : ''}>${p}</option>`).join('')}</select></div></div>`; }).join('')}</div>
-      <p class="sub" style="margin:10px 0 0">Groups at once: how many wild groups a layer holds. Ceiling: the most wild animals of that layer on the map.</p></div></div>`;
-  P.querySelector('#undo').onclick = () => send('seasonal-wildlife undo', 'Undid the last edit');
+      <p class="sub" style="margin:10px 0 0">Groups at once: how many wild groups a layer holds. Ceiling: the most wild animals of that layer on the map; 0 is none.</p></div></div>`;
+  P.querySelector('#undo').onclick = () => send(['undo'], 'Undid the last edit');
   P.querySelectorAll('[data-f]').forEach(inp => inp.onchange = () => {
-    const l = inp.dataset.l, f = inp.dataset.f, L = LIM[l];
-    if (f === 'pattern') { L.pattern = inp.value; send(`seasonal-wildlife pattern ${l} ${inp.value}`, `${LNAME[l]}: ${inp.value} pattern`); }
-    else { L[f] = Math.max(1, Math.round(+inp.value || 1)); send(`seasonal-wildlife limits ${l} ${f} ${L[f]}`, `${LNAME[l]}: ${f === 'groups' ? 'groups at once' : 'ceiling'} ${L[f]}`); }
+    const l = inp.dataset.l, f = inp.dataset.f, L = LIM[l] || (LIM[l] = {});
+    inp.blur();
+    if (f === 'pattern') { if (!LIVEMODE) L.pattern = inp.value; send(['pattern', l, inp.value], `${LNAME[l]}: ${inp.value} pattern`); }
+    else { const v = Math.max(f === 'ceiling' ? 0 : 1, Math.round(+inp.value || 0)); if (!LIVEMODE) L[f] = v; send(['limits', l, f, String(v)], `${LNAME[l]}: ${f === 'groups' ? 'groups at once' : 'ceiling'} ${v}`); }
   });
 }
 
-function renderAll() { renderLayerSeg(); renderTabs(); renderStatus(); renderSpecies(); renderWeb(); renderLedger(); }
+function renderAll() { renderChrome(); renderLayerSeg(); renderTabs(); renderStatus(); renderSpecies(); renderWeb(); renderLedger(); }
 document.getElementById('q').addEventListener('input', e => { st.q = e.target.value; if (st.tab !== 'species') { st.tab = 'species'; renderTabs(); } renderList(); });
 document.addEventListener('keydown', e => {
-  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); document.getElementById('q').focus(); }
-  if (st.tab === 'species' && ['ArrowDown', 'ArrowUp'].includes(e.key) && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+  if (e.key === '/' && !['INPUT', 'SELECT'].includes(document.activeElement.tagName)) { e.preventDefault(); document.getElementById('q').focus(); }
+  if (st.tab === 'species' && ['ArrowDown', 'ArrowUp'].includes(e.key) && !['INPUT', 'SELECT'].includes(document.activeElement.tagName)) {
     const a = filtered(), i = a.findIndex(s => s.key === st.sel); const j = Math.max(0, Math.min(a.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
     if (a[j]) { e.preventDefault(); st.sel = a[j].key; renderList(); renderDetail(); document.querySelector(`#list tr[data-key="${CSS.escape(st.sel)}"]`)?.scrollIntoView({ block: 'nearest' }); }
   }
 });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(drawChart, 150); });
-renderClock(); renderConsole(); renderAll();
+
+// ---- boot ----
+let lastText = '';
+async function refresh(force) {
+  if (!LIVEMODE || (document.hidden && !force)) return;
+  try {
+    const r = await fetch('/state.json?t=' + encodeURIComponent(TOKEN), { cache: 'no-store' });
+    if (r.status === 403) { st.conn = 'lost'; toast('The token in this address is not the one the game gave. Run seasonal-wildlife-web status for the current address.'); return; }
+    const text = await r.text();
+    const was = st.conn; st.conn = 'live';
+    if (text === lastText && was === 'live') return;          // nothing moved: leave the page as it is
+    lastText = text;
+    const d = JSON.parse(text);
+    if (!d.loaded) { D = { fort: 'No fort loaded', species: [] }; ingest({ fort: 'No fort loaded' }); renderAll(); return; }
+    ingest(d); renderAll();
+  } catch (e) { if (st.conn !== 'lost') { st.conn = 'lost'; renderChrome(); } }
+}
+renderConsole();
+if (LIVEMODE) { ingest({ fort: 'Connecting', species: [] }); renderAll(); refresh(true); setInterval(refresh, 2000); }
+else { ingest(EMBED); renderAll(); }
 })();
 </script>

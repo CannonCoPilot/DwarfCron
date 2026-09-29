@@ -215,6 +215,11 @@ CLAIMS = [
     ("cli.seasons.set", "CLI", "`seasons KEY SpAu` sets exactly those seasons; `seasons KEY none` is refused and changes nothing; a bad code prints usage", "user 29 Sep (companion); the one rule", "shipped v6.8"),
     ("cli.seasons.activate", "CLI", "`seasons KEY Wi` on an inactive species makes it active in Winter", "user 29 Sep (companion); toggleSeason's rule", "shipped v6.8"),
     ("cli.roster.undo", "CLI", "`undo` after a console roster or seasons edit restores the state before it", "user 29 Sep (companion)", "shipped v6.8"),
+    ("web.snapshot", "CLI", "`seasonal-wildlife-web snapshot` prints one JSON state with the fort, the date, every managed species, the food-web pairs and vermin links", "user 29 Sep (companion)", "shipped v6.8"),
+    ("web.serve", "MECH", "`seasonal-wildlife-web start` serves the page and /state.json to a browser on the host at 127.0.0.1 (through CrossOver), and `stop` stops it", "user 29 Sep (companion)", "shipped v6.8"),
+    ("web.guard", "MECH", "the server refuses a request without the token, a verb off its list, and a request whose Host is not 127.0.0.1/localhost", "user 29 Sep (companion); loopback CSRF and DNS rebinding", "shipped v6.8"),
+    ("web.stop", "MECH", "`seasonal-wildlife-web stop` closes the port", "user 29 Sep (companion)", "shipped v6.8"),
+    ("web.cmd", "MECH", "a POST /cmd with the token runs the console verb and returns its reply", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
     ("gui.k.altR", "GUI", "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50", "USAGE.md; W9", "shipped"),
     ("gui.k.altF", "GUI", "Alt+F (Ctrl+L until v6.3: DF's LOAD_MACRO) fills the filtered category to N (refuses on 'all'/'aquatic')", "USAGE.md; W9", "shipped"),
@@ -740,6 +745,48 @@ print(json.encode({one=one, off=off}))"""
         rec("cli.seasons.activate", "PASS" if isinstance(s7, dict) and s7.get("allow") is True and s7.get("assign") == [3] else "FAIL",
             "allow true, seasons [3]", f"{off}: {json.dumps(s7)}\n{o7}")
         cmd("roster", off, "inactive")
+
+def phase_v68_web():
+    log("== v6.8: the companion server")
+    rc, out = sh("cmd", "seasonal-wildlife-web", "snapshot", timeout=120)
+    m = re.search(r"\{.*\}", out, re.S)
+    try: snap = json.loads(m.group(0)) if m else {}
+    except Exception: snap = {}
+    sp = snap.get("species") or []; pr = snap.get("pairs") or []
+    nv = sum(1 for p in pr if len(p) == 3); ver = sum(1 for s in sp if s.get("role") == "vermin")
+    rec("web.snapshot", "PASS" if snap.get("loaded") and sp and pr and snap.get("date") else "FAIL",
+        "loaded, a date, species and pairs", f"species {len(sp)} (vermin {ver}), pairs {len(pr)} (vermin links {nv}), built in {snap.get('ms')} ms", data={"ms": snap.get("ms"), "species": len(sp), "vermin": ver, "pairs": len(pr), "vermin_links": nv})
+    port = 8642
+    rc, out = sh("cmd", "seasonal-wildlife-web", "start", str(port), timeout=60)
+    tm = re.search(r"\?t=([0-9a-f]+)", out)
+    tok = tm.group(1) if tm else ""
+    def curl(path, method="GET", host=None):
+        a = ["curl", "-s", "-m", "10", "-o", "-", "-w", "\n%{http_code}", "-X", method]
+        if host: a += ["-H", f"Host: {host}"]
+        p = subprocess.run(a + [f"http://127.0.0.1:{port}{path}"], capture_output=True, text=True)
+        body, _, code = p.stdout.rpartition("\n")
+        return (int(code) if code.isdigit() else 0), body
+    time.sleep(1)
+    c1, page = curl("/")
+    c2, state = curl(f"/state.json?t={tok}")
+    ok_state = False
+    try: ok_state = json.loads(state).get("loaded") is True
+    except Exception: pass
+    rec("web.serve", "PASS" if tok and c1 == 200 and "seasonal-wildlife" in page and c2 == 200 and ok_state else "FAIL",
+        "GET / 200 with the page; GET /state.json 200 with loaded state", f"start: {out.strip()[:160]}; page {c1} ({len(page)} bytes); state {c2} ({len(state)} bytes)")
+    g1, _ = curl("/state.json?t=wrong")
+    g2, _ = curl(f"/cmd?t={tok}&a=preset", "POST")
+    g3, _ = curl(f"/state.json?t={tok}", host="evil.example:8642")
+    rec("web.guard", "PASS" if (g1, g2, g3) == (403, 400, 403) else "FAIL", "403 bad token; 400 preset (not on the list); 403 wrong Host",
+        f"bad token {g1}; preset {g2}; wrong host {g3}")
+    c4, body = curl(f"/cmd?t={tok}&a=roster", "POST")
+    try: j = json.loads(body)
+    except Exception: j = {}
+    rec("web.cmd", "PASS" if c4 == 200 and j.get("ok") and "roster " in (j.get("out") or "") else "FAIL", "200, ok, the roster summary in the reply", f"{c4} {body[:300]}")
+    rc, out = sh("cmd", "seasonal-wildlife-web", "status", timeout=60); log("   " + out.strip()[:300])
+    sh("cmd", "seasonal-wildlife-web", "stop", timeout=60)
+    c5, _ = curl("/")
+    rec("web.stop", "PASS" if c5 == 0 else "FAIL", "no answer on the port after stop", f"GET / after stop: {c5}")
 
 def phase_v67():
     log("== v6.7: animal people")
@@ -2006,8 +2053,8 @@ def main():
         if a.only == "v65":
             try: phase_v65()
             except Exception as e: log(f"!! phase_v65 raised: {e!r}")
-        if a.only == "v68":   # the console roster and seasons verbs alone
-            try: phase_v68()
+        if a.only == "v68":   # the console roster and seasons verbs and the companion server alone
+            try: phase_v68(); phase_v68_web()
             except Exception as e: log(f"!! phase_v68 raised: {e!r}")
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
@@ -2039,7 +2086,7 @@ def main():
             try: phase_v67()
             except Exception as e: log(f"!! phase_v67 raised: {e!r}")
         if not a.only and V68:
-            try: phase_v68()
+            try: phase_v68(); phase_v68_web()
             except Exception as e: log(f"!! phase_v68 raised: {e!r}")
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
