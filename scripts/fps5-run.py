@@ -9,7 +9,8 @@ per replicate (seeded), so slow drift of the host spreads over all sizes.
 hold  (FPS5a): tool OFF; `cx-load clearwild` (every wild unit on every layer vanishes, every pool on the site's tiles
       is closed), one tick, `cx-load constwild 30` (30 prey land animals placed, pools closed again, nobody leaves);
       2,000 ticks warm-up; six 8-s stopwatch windows. The wild load is 30 on every map; citizens are the embark's 7.
-long  (FPS5b): tool ON (the user's setup); stopwatch baseline, then PLAY ticks in steps of EVERY, a 3 x 6 s stopwatch
+long  (FPS5b): tool ON (the user's setup); `cx-load sustain` after the load and before every step (the site has no
+      water: unsustained, all 20 dwarves of the first session died of thirst by ~190,000 ticks); stopwatch baseline, then PLAY ticks in steps of EVERY, a 3 x 6 s stopwatch
       reading after each step; then FPS4's four-way split: aged/played (A1), aged/original (A2), fresh/played (A3),
       fresh/original (A4).
 
@@ -38,9 +39,9 @@ TOOL_ON = ("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); 
            "cfg.enabled=true; cfg.groups.enabled=true; sw.saveConfig(cfg); sw.enableSched(); print('tool on')")
 TOOL_OFF = ("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; "
             "cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool off')")
-LINE = re.compile(r"citizens (\d+) units (\d+) wild (\d+) items (\d+) map (\d+)x(\d+)x(\d+) fps (\S+) gfps (\S+) working (\d+) jobs (\d+) cavwild (\d+)")
+LINE = re.compile(r"citizens (\d+) units (\d+) wild (\d+) items (\d+) map (\d+)x(\d+)x(\d+) fps (\S+) gfps (\S+) working (\d+) jobs (\d+) cavwild (\d+) dead (\d+)")
 COLS = ["run", "mode", "rep", "size", "phase", "sample", "ticks_played", "tps", "tps_windows", "df_fps", "gfps", "citizens", "units",
-        "wild", "cavwild", "items", "jobs", "working", "map_x", "map_y", "map_z", "df_cpu_cores", "df_sys_share", "df_ipc",
+        "wild", "cavwild", "items", "jobs", "working", "dead_citizens", "map_x", "map_y", "map_z", "df_cpu_cores", "df_sys_share", "df_ipc",
         "df_footprint_mb", "df_resident_mb", "df_max_footprint_mb", "df_pageins", "df_disk_read_mb", "df_disk_written_mb",
         "wine_cpu_cores", "load1", "session_wall_s", "step_wall_s", "step_cpu_cores"]
 
@@ -64,7 +65,7 @@ def tick():
 
 def load_line():
     m = LINE.search(sh("cmd", "cx-load", "line"))
-    return m.groups() if m else ("",) * 12
+    return m.groups() if m else ("",) * 13
 
 def stamp():
     a = time.monotonic(); k = tick(); b = time.monotonic()
@@ -91,13 +92,13 @@ class Session:
         self.t0 = time.monotonic(); self.played = 0; self.sample = 0
 
     def record(self, phase, rates, s0, s1, step_wall="", step_cpu=""):
-        cit, units, wild, items, mx, my, mz, fps, gfps, working, jobs, cav = load_line()
+        cit, units, wild, items, mx, my, mz, fps, gfps, working, jobs, cav, dead = load_line()
         dfr = procstat.rates(s0.get("df"), s1.get("df")); wr = procstat.rates(s0.get("wine"), s1.get("wine"))
         d = s1.get("df") or {}
         vals = {"run": RUN, "mode": self.mode, "rep": self.rep, "size": self.size, "phase": phase, "sample": self.sample,
                 "ticks_played": self.played, "tps": f"{statistics.mean(rates):.1f}" if rates else "",
                 "tps_windows": ",".join(f"{r:.0f}" for r in rates), "df_fps": fps, "gfps": gfps, "citizens": cit, "units": units,
-                "wild": wild, "cavwild": cav, "items": items, "jobs": jobs, "working": working, "map_x": mx, "map_y": my, "map_z": mz,
+                "wild": wild, "cavwild": cav, "items": items, "jobs": jobs, "working": working, "dead_citizens": dead, "map_x": mx, "map_y": my, "map_z": mz,
                 "df_cpu_cores": f"{dfr.get('cpu_cores', 0):.3f}", "df_sys_share": f"{dfr.get('sys_share', 0):.3f}",
                 "df_ipc": f"{dfr['ipc']:.3f}" if dfr.get("ipc") else "",
                 "df_footprint_mb": f"{d.get('phys_footprint_mb', 0):.0f}", "df_resident_mb": f"{d.get('resident_mb', 0):.0f}",
@@ -140,8 +141,10 @@ def run_long(sess, play, every):
     save = f"FPS2E{sess.size}"
     played_save = f"FPS5P{RUN[-6:]}{sess.rep}{sess.size}"
     restart(); load_fort(save)
+    sh("cmd", "cx-load", "sustain")   # 29 Sep: the first year-long session's 20 dwarves all died of THIRST (no water here)
     r = {"P0": measure(sess, "P0_fresh_original")}
     while sess.played < play:
+        sh("cmd", "cx-load", "sustain")
         s0 = procstat.snapshot(); t0 = time.monotonic()
         out = sh("step", every, max(300, every // 20 + 120), timeout=every // 5 + 900)
         wall = time.monotonic() - t0; s1 = procstat.snapshot()
@@ -150,9 +153,11 @@ def run_long(sess, play, every):
         cpu = procstat.rates(s0.get("df"), s1.get("df")).get("cpu_cores", 0)
         rates, a, b = stopwatch(3, 6.0)
         v = sess.record("play", rates, a, b, f"{wall:.1f}", f"{cpu:.3f}")
+        if v["citizens"] in ("", "0"):
+            raise RuntimeError(f"the settlement is gone at {sess.played} ticks (citizens {v['citizens']!r}, dead {v['dead_citizens']})")
         if sess.sample % 4 == 0:
             log(f"    play {sess.played:>7}: {v['tps']} t/s; cit {v['citizens']} wild {v['wild']} items {v['items']}; cpu {v['df_cpu_cores']} "
-                f"footprint {v['df_footprint_mb']} MB disk w {v['df_disk_written_mb']} MB load {v['load1']}")
+                f"dead {v['dead_citizens']} footprint {v['df_footprint_mb']} MB disk w {v['df_disk_written_mb']} MB load {v['load1']}")
     sh("save", played_save, timeout=400)
     r["A1"] = measure(sess, "A1_aged_played")
     load_fort(save); r["A2"] = measure(sess, "A2_aged_original")

@@ -12,6 +12,9 @@
 --   cx-load constwild <n>            FPS5: clearwild, then place n PREY land animals, close the pools again, and set every
 --                                    wild unit's leave countdown to 10,000,000 -- the same wild load on any map, held
 --   cx-load hold                     every wild unit's leave countdown to 10,000,000 (nobody leaves)
+--   cx-load sustain                  every living citizen's thirst and hunger timers to 0 (FPS5b: fresh embarks at
+--                                    region4 29,20 have no water; in the first year-long session all 20 dwarves died
+--                                    of THIRST and the settlement withered). Dwarves then never walk to eat or drink.
 --   cx-load citizens <n>             n new dwarves at existing citizens' tiles, made citizens with makeown
 --                                    (a histfig, the civ and the site government), each given a working
 --                                    citizen's labors so they take jobs rather than idle
@@ -48,11 +51,16 @@ local function line()
             end
         end
     end
+    local dead = 0
+    for _, u in ipairs(w.units.all) do
+        if u.civ_id == df.global.plotinfo.civ_id and dfhack.units.isDead(u)
+           and df.creature_raw.find(u.race).creature_id == 'DWARF' then dead = dead + 1 end
+    end
     local jobs, link = 0, w.jobs.list.next
     while link do jobs = jobs + 1; link = link.next end
     -- the map/fps fields keep FPS2's order (fps2-tally.py's regex); working citizens and jobs trail
-    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s working %d jobs %d cavwild %d'):format(cit, #w.units.active, wild,
-        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps), busy, jobs, cav)
+    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s working %d jobs %d cavwild %d dead %d'):format(cit, #w.units.active, wild,
+        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps), busy, jobs, cav, dead)
 end
 
 local function flag(t, k)   -- a flag name this DF build lacks reads false, not an error
@@ -103,6 +111,11 @@ elseif cmd == 'clearwild' then
         if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then u.animal.vanish_countdown = 1; v = v + 1 end
     end
     print(('clearwild: %d wild unit(s) set to vanish next tick; %d pool entries closed'):format(v, closePools()))
+
+elseif cmd == 'sustain' then
+    local n = 0
+    for _, u in ipairs(citizens()) do u.counters2.thirst_timer = 0; u.counters2.hunger_timer = 0; n = n + 1 end
+    print(('sustain: %d citizen(s) watered and fed'):format(n))
 
 elseif cmd == 'hold' then
     print(('hold: %d wild unit(s) will not leave'):format(holdWild()))
@@ -342,5 +355,5 @@ elseif cmd == 'walk' then
     print('walk: shaft top reaches band ' .. table.concat(s, ' '))
 
 else
-    print('usage: cx-load line | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
+    print('usage: cx-load line | sustain | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
 end
