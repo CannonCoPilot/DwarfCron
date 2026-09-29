@@ -212,19 +212,19 @@ elseif cmd == 'breach' then
         if f:getType() == df.feature_type.subterranean_from_layer and not f.flags.Discovered then f.flags.Discovered = true; disc = disc + 1 end
     end
     -- DF rebuilds the walkable groups on its next tick; the manifest's next step proves the path (cx-load walk)
-    _G.CX_LOAD_BREACH = { cit = cit.id, contact = found.contact }
+    _G.CX_LOAD_BREACH = { cit = cit.id, top = { x = found.x, y = found.y, z = ztop }, contact = found.contact }
     print(('breach: dug %d levels, sealed %d aquifer tiles, marked %d cave(s) discovered'):format(ztop - zbot + 1, sealed, disc))
 
 elseif cmd == 'walk' then
     -- after at least one tick: can a citizen walk to each breached band's floor?
     local b = _G.CX_LOAD_BREACH
     if not b then print('walk: no breach this session'); return end
-    local cits = citizens()
-    local from = cits[1]
-    for _, u in ipairs(cits) do if u.id == b.cit then from = u end end
+    -- from the shaft's top tile, not from a citizen: a dwarf who steps into a room the fort cannot path to reads false
+    -- while the shaft is whole (FPS2 run 155935: band 1 read true, false, true, true, false for one dwarf)
+    local from = xyz2pos(b.top.x, b.top.y, b.top.z)
     local s = {}
-    for i, c in ipairs(b.contact) do s[#s + 1] = ('%d=%s'):format(i, tostring(dfhack.maps.canWalkBetween(from.pos, xyz2pos(c.x, c.y, c.z)))) end
-    print('walk: citizen reaches band ' .. table.concat(s, ' '))
+    for i, c in ipairs(b.contact) do s[#s + 1] = ('%d=%s'):format(i, tostring(dfhack.maps.canWalkBetween(from, xyz2pos(c.x, c.y, c.z)))) end
+    print('walk: shaft top reaches band ' .. table.concat(s, ' '))
 
 else
     print('usage: cx-load line | wild <n> [species] | citizens <n> | breach <zlo-zhi,...> [n] [dry] | walk')

@@ -25,13 +25,14 @@ for line in open(run / "log.txt"):
     if m and arm and rep:
         g = [int(x) for x in m.groups()[:7]]
         load.setdefault((arm, rep), []).append({"cit": g[0], "units": g[1], "wild": g[2], "items": g[3],
-                                                "area": g[4] * g[5], "z": g[6], "gfps": float(m.group(9))})
+                                                "area": g[4] * g[5], "z": g[6], "fps": float(m.group(8)), "gfps": float(m.group(9))})
 
 def mean(v):
     return statistics.mean(v) if v else float("nan")
 
-print(f"{'arm':<18} rep  t/s per step (2+)                     mean  citizens units  wild items  area(t2)  z  gfps")
+print(f"{'arm':<18} rep  t/s per step (2+)                     mean  citizens units  wild items  area(t2)  z  gfps  DF fps")
 by_arm: dict[str, list[float]] = {}
+dffps: dict[str, list[float]] = {}
 points = []   # (ms/tick, citizens, units, wild, items, area) per step
 for a in order:
     for r in sorted({k[1] for k in tps if k[0] == a}):
@@ -45,8 +46,10 @@ for a in order:
                 points.append((1000.0 / v, x["cit"], x["units"], x["wild"], x["items"], x["area"]))
         lx = L[-1] if L else {}
         g = [x["gfps"] for x in L[1:]] or [0]
+        f = [x["fps"] for x in L[2:]] or [0]   # DF's own counter (the player's FPS readout); L[1] is taken right after the load
+        dffps.setdefault(a, []).extend(f)
         print(f"{a:<18} {r:>3}  {' '.join(f'{x:5.0f}' for x in keep):<36} {mean(keep):6.0f}  {lx.get('cit', '?'):>8} {lx.get('units', '?'):>5}"
-              f" {lx.get('wild', '?'):>5} {lx.get('items', '?'):>5} {lx.get('area', '?'):>8} {lx.get('z', '?'):>3} {mean(g):5.1f}")
+              f" {lx.get('wild', '?'):>5} {lx.get('items', '?'):>5} {lx.get('area', '?'):>8} {lx.get('z', '?'):>3} {mean(g):5.1f}  {mean(f):6.0f}")
 
 print()
 base = order[0]
@@ -57,7 +60,7 @@ for a in order:
     reps = by_arm[a]
     spread = abs(reps[0] - reps[-1]) / means[a] * 100 if len(reps) > 1 and means[a] else 0
     rel = f"{(means[a] / means[base] - 1) * 100:+4.0f}% vs {base}" if a != base and base in means else ""
-    print(f"{a:<18} mean {means[a]:6.0f} t/s  (reps {', '.join(f'{x:.0f}' for x in reps)}; spread {spread:.0f}%)  {rel}")
+    print(f"{a:<18} mean {means[a]:6.0f} t/s  (reps {', '.join(f'{x:.0f}' for x in reps)}; spread {spread:.0f}%)  DF fps {mean(dffps.get(a, [])):4.0f}  {rel}")
 
 # Pooled fit: ms per tick = b0 + b_cit*citizens + b_other*(units - citizens) + b_items*items/1000 + b_area*area.
 # Plain normal equations; five columns do not need numpy.

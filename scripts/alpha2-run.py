@@ -439,10 +439,20 @@ def s42():
 @step("4.3", "Odds for one row")
 def s43():
     close_window(); open_window("Roster")
-    r = roster(); k = next((k for k, e in r.items() if e.get("layer") == "land" and e.get("allow") is True and e.get("cat") == "prey"), None)
+    r = roster()
+    # v6.7: prefer an active land prey OUT of season, so the bracketed share is what is tested; else any active one
+    cur = luaj("print(json.encode({s=df.global.cur_season}))").get("s", -1)
+    land = [k for k, e in r.items() if e.get("layer") == "land" and e.get("allow") is True and e.get("cat") == "prey"]
+    k = next((k for k in land if cur not in (r[k].get("assign") or [])), None) if cur >= 0 else None
+    k = k or (land[0] if land else None)
     select_key(k); key("CUSTOM_ALT_O", 1.0); answer("30")
     t = win_text(screen("4.3-odds")); row = list_row(t, r[k].get("token"))
-    mark("4.3", "Odds for one row", "p" if re.search(r"\d+%", row) else "a", f"{k}: row now '{row.strip()}'.")
+    # v6.7 (round 1's anomaly): the ODDS cell is the column before 'act'; '-' on an active species is the anomaly,
+    # '(n%)' is the out-of-season share, 'n%' the in-season one
+    m = re.search(r"\s(\(\d+%\)|\d+%|-)\s+[Y-]\s", row)
+    cell = m.group(1) if m else "?"
+    mark("4.3", "Odds for one row", "p" if cell not in ("-", "?") else "a",
+         f"{k}: ODDS cell '{cell}' ({'out of season, bracketed' if cell.startswith('(') else 'in season' if cell.endswith('%') else 'no share shown'}); row '{row.strip()}'.")
     sh("cmd", "seasonal-wildlife", "odds", r_token(k), "clear")
 
 # --- 5 ---------------------------------------------------------------------------------------------------
@@ -581,7 +591,8 @@ def s81():
     tok = pick.get("t") if isinstance(pick, dict) else ""
     after = luaj(SW + f"local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); for _,e in ipairs(pool) do if e.token=='{tok}' then print(json.encode({{inEmbark=e.inEmbark, allow=cfg.allow[e.key], assign=cfg.assign[e.key] or {{}}}})) return end end; print('{{}}')")
     led = sh("cmd", "seasonal-wildlife", "ledger", "3")[1]
-    ok = isinstance(after, dict) and after.get("inEmbark")
+    # v6.7 (round 1's anomaly): right after the add the species obeys the roster rule -- active with a season, or inactive
+    ok = isinstance(after, dict) and after.get("inEmbark") and (after.get("allow") is False or (after.get("allow") is True and len(after.get("assign") or []) >= 1))
     mark("8.1", "Add invasive", "p" if ok else "a",
          f"{tok}: on this embark after the add: {after.get('inEmbark') if isinstance(after, dict) else after}; active {after.get('allow') if isinstance(after, dict) else '?'} seasons {season_str(after.get('assign', [])) if isinstance(after, dict) else '?'}. "
          f"Ledger: {' | '.join(l.strip()[:80] for l in led.splitlines()[-2:])}")
@@ -624,8 +635,19 @@ def s101():
     body = t.split("trophic pyramid", 1)[-1].split("aquatic chain", 1)[0]
     tiers = [l.strip() for l in body.splitlines()[1:] if l.strip() and not set(l.strip()) <= set("^ ")]
     chain = [l.strip() for l in t.split("aquatic chain", 1)[-1].splitlines() if "---->" in l]
-    mark("10.1", "The pyramid", "p" if len(tiers) == 4 and "^" in body else "a",
-         f"{len(tiers)} tiers, top '{tiers[0][:70] if tiers else ''}', base '{tiers[-1][:70] if tiers else ''}'; aquatic chain lines: {len(chain)}, e.g. '{chain[0][:90] if chain else ''}'.")
+    # v6.7 (round 1's design question, the user's call): an animal person stands where its root animal stands
+    ap = luaj(SW + """local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local n,bad=0,{}
+for _,a in ipairs(pool) do if a.inEmbark then local root=sw.MODEL.rootOf(a.token); local b=root and sw.MODEL.entry(root)
+  if b then n=n+1; local d=(a.role~=b.role or a.habitat~=b.habitat or a.size~=b.size)
+    if not d then for _,p in ipairs(pool) do if p.inEmbark and p.token~=a.token and p.token~=root and (sw.eats(a,p)~=sw.eats(b,p) or sw.eats(p,a)~=sw.eats(p,b)) then d=true break end end end
+    if d then bad[#bad+1]=a.token..'/'..root end end end end
+print(json.encode({people=n, differ=bad}))""")
+    apok = isinstance(ap, dict) and ap.get("people", 0) > 0 and not ap.get("differ")
+    mark("10.1", "The pyramid", "p" if len(tiers) == 4 and "^" in body and apok else "a",
+         f"{len(tiers)} tiers, top '{tiers[0][:70] if tiers else ''}', base '{tiers[-1][:70] if tiers else ''}'; aquatic chain lines: {len(chain)}, e.g. '{chain[0][:90] if chain else ''}'. "
+         f"Animal people on this embark mirroring their root (role, habitat, size, every eats verdict both ways): "
+         f"{(ap.get('people', 0) - len(ap.get('differ') or [])) if isinstance(ap, dict) else '?'} of {ap.get('people', '?') if isinstance(ap, dict) else ap}"
+         f"{'; differ: ' + ', '.join(ap['differ'][:6]) if isinstance(ap, dict) and ap.get('differ') else ''}.")
 
 @step("10.2", "Diet follows habitat")
 def s102():
