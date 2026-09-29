@@ -114,6 +114,13 @@ def part_b(d):
     print("\n-- does speed track the process's growth? ms/tick on footprint, within the same model")
     X2 = [row + [f(r, "df_footprint_mb") / 100] for row, r in zip(X, play)]
     ols(X2, y, ["intercept (ms)", "per 100k ticks played", "per 10k map tiles", "per citizen", "per wild unit", "per 1000 items", "per 100 MB footprint"])
+    print("\n-- host contention: the same model with the host's 1-minute load average (other lanes share the machine)")
+    X3 = [row + [f(r, "load1")] for row, r in zip(X, play)]
+    ols(X3, y, ["intercept (ms)", "per 100k ticks played", "per 10k map tiles", "per citizen", "per wild unit", "per 1000 items", "per unit of load1"])
+    starved = [r for r in play if f(r, "df_cpu_cores") < 2.0]
+    print(f"  readings where DF got under 2 cores (starved by the host, not slowed by the fort): {len(starved)} of {len(play)}")
+    for r in starved:
+        print(f"    {r['size']}x{r['size']} rep {r['rep']} at {f(r, 'ticks_played'):.0f} t: {f(r, 'tps'):.0f} t/s, {f(r, 'df_cpu_cores'):.2f} cores, load1 {f(r, 'load1'):.1f}")
 
 if __name__ == "__main__":
     part_a(sys.argv[1])
