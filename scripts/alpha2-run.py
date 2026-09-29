@@ -460,13 +460,19 @@ def s43():
 def s51():
     close_window(); open_window("Roster")
     r0 = roster(); asked = {}
+    told = {}   # rounds 1-2: F with no target set does nothing and says why instead of asking -- a pass, not an anomaly
     for k, name in (("CUSTOM_M", "Matrix assign"), ("CUSTOM_O", "Co-align"), ("CUSTOM_F", "Fill to targets"), ("CUSTOM_Y", "Fill natural prey"), ("CUSTOM_D", "Fill natural predators")):
         asked[name], _ = asks(k, f"5.1-{name}")
         if asked[name]:
             key("LEAVESCREEN", 1.0)
+        elif name == "Fill to targets":
+            st = (SCREENS / f"5.1-{name}.txt").read_text(errors="replace") if (SCREENS / f"5.1-{name}.txt").exists() else ""
+            told[name] = "No target set" in st
     same = roster() == r0
-    mark("5.1", "Every tool asks", "p" if all(asked.values()) and same else "a",
-         "; ".join(f"{n}: {'asked' if a else 'did not ask'}" for n, a in asked.items()) + f". Answering No left the roster {'unchanged' if same else 'CHANGED'}.")
+    ok = all(asked[n] or told.get(n) for n in asked) and same
+    mark("5.1", "Every tool asks", "p" if ok else "a",
+         "; ".join(f"{n}: {'asked' if a else ('nothing to do, said why (no target set)' if told.get(n) else 'did not ask')}" for n, a in asked.items())
+         + f". Answering No left the roster {'unchanged' if same else 'CHANGED'}.")
 
 def seasons_stats(r):
     act = {k: e for k, e in r.items() if e.get("allow") is True}
@@ -633,7 +639,8 @@ def s92():
 def s101():
     open_window("Food web"); t = win_text(screen("10.1-web"))
     body = t.split("trophic pyramid", 1)[-1].split("aquatic chain", 1)[0]
-    tiers = [l.strip() for l in body.splitlines()[1:] if l.strip() and not set(l.strip()) <= set("^ ")]
+    # the split on 'aquatic chain' leaves that section's '<Season> --' header behind; it is not a tier (round 2)
+    tiers = [l.strip() for l in body.splitlines()[1:] if l.strip() and not set(l.strip()) <= set("^ ") and not l.strip().endswith("--")]
     chain = [l.strip() for l in t.split("aquatic chain", 1)[-1].splitlines() if "---->" in l]
     # v6.7 (round 1's design question, the user's call): an animal person stands where its root animal stands
     ap = luaj(SW + """local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local n,bad=0,{}
