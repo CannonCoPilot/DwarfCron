@@ -1,0 +1,118 @@
+{
+  "id": "FPS3b",
+  "fort": "BOATS",
+  "backup": "BOATS.preverify",
+  "fps": 1000,
+  "sample_every": 1000,
+  "tick_budget": 6000,
+  "combat": false,
+  "interleave": true,
+  "title": "FPS3's work arms again, with the hauling sustained: FPS3 (run 202403) laid one stockpile beside the loose items and the fort filled it in ~1,000 ticks (28 working -> 6), so its work arms failed the kill criterion. Here `cx-load rework` moves the stockpile >= 50 tiles at every 1,000-tick sample, so everything is hauled across the map again (probe: 27/25/11/28 working). Idle vs working, 29 vs 89 citizens, on a freshly started DF. Sampling reads the load BEFORE the stockpile moves (run 211946 read it after and saw 0 working).",
+  "fork": "What a working citizen costs next to an idle one.",
+  "predictions": [
+    {
+      "model": "working dwarves cost more than idle ones",
+      "expects": "W1 below W0, and W3-W1 larger than W2-W0"
+    }
+  ],
+  "kill_criterion": "a work arm whose mean working count over samples 2+ is under 15 did not keep the fort at work",
+  "culling": [
+    "the first sample step of every replicate (warm-up, load-time caches)"
+  ],
+  "arms": [
+    {
+      "name": "W0_idle",
+      "fort": "BOATS",
+      "backup": "BOATS.preverify",
+      "gfps": 60,
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=true; cfg.groups.enabled=true; sw.saveConfig(cfg); sw.enableSched(); print('fps3: tool on')",
+        "dfhack.run_script('cx-load', 'line')"
+      ],
+      "tool_must_be": {
+        "enabled": 1,
+        "scheduled": 1
+      },
+      "sample_every": 1000,
+      "every": {
+        "ticks": 1000,
+        "do": [
+          "dfhack.run_script('cx-load', 'line')"
+        ]
+      }
+    },
+    {
+      "name": "W1_work",
+      "fort": "BOATS",
+      "backup": "BOATS.preverify",
+      "gfps": 60,
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=true; cfg.groups.enabled=true; sw.saveConfig(cfg); sw.enableSched(); print('fps3: tool on')",
+        "dfhack.run_script('cx-load', 'work')",
+        "dfhack.run_script('cx-load', 'line')"
+      ],
+      "tool_must_be": {
+        "enabled": 1,
+        "scheduled": 1
+      },
+      "sample_every": 1000,
+      "every": {
+        "ticks": 1000,
+        "do": [
+          "dfhack.run_script('cx-load', 'line')",
+          "dfhack.run_script('cx-load', 'rework')"
+        ]
+      }
+    },
+    {
+      "name": "W2_cit60",
+      "fort": "BOATS",
+      "backup": "BOATS.preverify",
+      "gfps": 60,
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=true; cfg.groups.enabled=true; sw.saveConfig(cfg); sw.enableSched(); print('fps3: tool on')",
+        "dfhack.run_script('cx-load', 'citizens', '60')",
+        "dfhack.run_script('cx-load', 'line')"
+      ],
+      "tool_must_be": {
+        "enabled": 1,
+        "scheduled": 1
+      },
+      "sample_every": 1000,
+      "every": {
+        "ticks": 1000,
+        "do": [
+          "dfhack.run_script('cx-load', 'line')"
+        ]
+      }
+    },
+    {
+      "name": "W3_cit60_work",
+      "fort": "BOATS",
+      "backup": "BOATS.preverify",
+      "gfps": 60,
+      "replicates": 2,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=true; cfg.groups.enabled=true; sw.saveConfig(cfg); sw.enableSched(); print('fps3: tool on')",
+        "dfhack.run_script('cx-load', 'citizens', '60')",
+        "dfhack.run_script('cx-load', 'work')",
+        "dfhack.run_script('cx-load', 'line')"
+      ],
+      "tool_must_be": {
+        "enabled": 1,
+        "scheduled": 1
+      },
+      "sample_every": 1000,
+      "every": {
+        "ticks": 1000,
+        "do": [
+          "dfhack.run_script('cx-load', 'line')",
+          "dfhack.run_script('cx-load', 'rework')"
+        ]
+      }
+    }
+  ]
+}

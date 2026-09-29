@@ -14,18 +14,19 @@ for r in csv.DictReader(open(run / "rows.tsv"), delimiter="\t"):
     if r["metric"] == "ticks_per_wall_s" and r["value"]:
         tps.setdefault((r["arm"], r["rep"]), []).append(float(r["value"]))
 
-LOAD = re.compile(r"load: citizens (\d+) units (\d+) wild (\d+) items (\d+) map (\d+)x(\d+)x(\d+) fps (\S+) gfps (\S+)")
+LOAD = re.compile(r"load: citizens (\d+) units (\d+) wild (\d+) items (\d+) map (\d+)x(\d+)x(\d+) fps (\S+) gfps (\S+)(?: working (\d+) jobs (\d+))?")
 load: dict[tuple[str, str], list[dict]] = {}
 arm = rep = None
 for line in open(run / "log.txt"):
-    m = re.search(r"== FPS2 arm=(\S+) rep=(\d+)", line)
+    m = re.search(r"== FPS\w+ arm=(\S+) rep=(\d+)", line)
     if m:
         arm, rep = m.group(1), m.group(2)
     m = LOAD.search(line)
     if m and arm and rep:
         g = [int(x) for x in m.groups()[:7]]
         load.setdefault((arm, rep), []).append({"cit": g[0], "units": g[1], "wild": g[2], "items": g[3],
-                                                "area": g[4] * g[5], "z": g[6], "fps": float(m.group(8)), "gfps": float(m.group(9))})
+                                                "area": g[4] * g[5], "z": g[6], "fps": float(m.group(8)), "gfps": float(m.group(9)),
+                                                "working": int(m.group(10)) if m.group(10) else None, "jobs": int(m.group(11)) if m.group(11) else None})
 
 def mean(v):
     return statistics.mean(v) if v else float("nan")
@@ -49,7 +50,8 @@ for a in order:
         f = [x["fps"] for x in L[2:]] or [0]   # DF's own counter (the player's FPS readout); L[1] is taken right after the load
         dffps.setdefault(a, []).extend(f)
         print(f"{a:<18} {r:>3}  {' '.join(f'{x:5.0f}' for x in keep):<36} {mean(keep):6.0f}  {lx.get('cit', '?'):>8} {lx.get('units', '?'):>5}"
-              f" {lx.get('wild', '?'):>5} {lx.get('items', '?'):>5} {lx.get('area', '?'):>8} {lx.get('z', '?'):>3} {mean(g):5.1f}  {mean(f):6.0f}")
+              f" {lx.get('wild', '?'):>5} {lx.get('items', '?'):>5} {lx.get('area', '?'):>8} {lx.get('z', '?'):>3} {mean(g):5.1f}  {mean(f):6.0f}"
+              + (f"  working {'/'.join(str(x['working']) for x in L[1:])}" if L and L[-1].get("working") is not None else ""))
 
 print()
 base = order[0]

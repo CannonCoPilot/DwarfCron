@@ -9,6 +9,11 @@
 --   cx-load citizens <n>             n new dwarves at existing citizens' tiles, made citizens with makeown
 --                                    (a histfig, the civ and the site government), each given a working
 --                                    citizen's labors so they take jobs rather than idle
+--   cx-load work [side]              the fort's hauling: one stockpile accepting everything (DFHack's library/all)
+--                                    on the flattest reachable side x side patch (default 30) at the citizens' level,
+--                                    so every loose item becomes a hauling job (BOATS: 0 stockpiles, 745 loose items,
+--                                    29 of 29 citizens haul, 0 jobs before)
+--   cx-load rework [side]            remove the last stockpile and lay the next >= 50 tiles away (sustained hauling)
 --   cx-load breach <zlo-zhi,...> [n] [dry]
 --                                    dig one up/down stair shaft from a surface floor the citizens reach down to
 --                                    the first n cavern bands (default all listed), through rock only, sealing
@@ -26,15 +31,18 @@ local w = df.global.world
 
 local function line()
     local e = df.global.enabler
-    local cit, wild = 0, 0
+    local cit, wild, busy = 0, 0, 0
     for _, u in ipairs(w.units.active) do
         if not dfhack.units.isDead(u) then
-            if dfhack.units.isCitizen(u) then cit = cit + 1 end
+            if dfhack.units.isCitizen(u) then cit = cit + 1; if u.job.current_job then busy = busy + 1 end end
             if dfhack.units.isWildlife(u) then wild = wild + 1 end
         end
     end
-    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s'):format(cit, #w.units.active, wild,
-        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps))
+    local jobs, link = 0, w.jobs.list.next
+    while link do jobs = jobs + 1; link = link.next end
+    -- the map/fps fields keep FPS2's order (fps2-tally.py's regex); working citizens and jobs trail
+    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s working %d jobs %d'):format(cit, #w.units.active, wild,
+        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps), busy, jobs)
 end
 
 local function flag(t, k)   -- a flag name this DF build lacks reads false, not an error
@@ -123,6 +131,59 @@ elseif cmd == 'citizens' then
         else failed = failed + 1 end
     end
     print(('citizens: made %d of %d (%d failed; labors from %d, %d enabled); now %d citizens'):format(made, n, failed, tmpl.id, most, #citizens()))
+
+elseif cmd == 'work' or cmd == 'rework' then
+    -- rework (FPS3 run 202403: one stockpile beside the loose items was filled in ~1,000 ticks, 28 working -> 6): remove
+    -- the last stockpile and lay the next one at least 50 tiles from it, so everything it held is hauled across the map
+    -- again; called at every sample, the fort never runs out of hauling
+    local side = tonumber(args[2]) or 30
+    local last = _G.CX_LOAD_PILE
+    if cmd == 'rework' and last then
+        local old = df.building.find(last.id)
+        if old then dfhack.buildings.deconstruct(old) end
+    end
+    local cits = citizens()
+    if #cits == 0 then print('work: no citizen'); return end
+    local lv, z, best = {}, nil, 0
+    for _, u in ipairs(cits) do lv[u.pos.z] = (lv[u.pos.z] or 0) + 1 end
+    for zz, c in pairs(lv) do if c > best then z, best = zz, c end end
+    local cx, cy, n = 0, 0, 0
+    for _, u in ipairs(cits) do if u.pos.z == z then cx, cy, n = cx + u.pos.x, cy + u.pos.y, n + 1 end end
+    cx, cy = cx // n, cy // n
+    local from
+    for _, u in ipairs(cits) do if u.pos.z == z then from = u.pos; break end end
+    local T = df.tiletype
+    local function ok(x, y)
+        local tt = dfhack.maps.getTileType(x, y, z)
+        if not tt or T.attrs[tt].shape ~= df.tiletype_shape.FLOOR then return false end
+        local d = dfhack.maps.getTileFlags(x, y, z)
+        return d and d.flow_size == 0 and not dfhack.buildings.findAtTile(x, y, z)
+    end
+    -- the flattest patch within 80 tiles of the citizens' centre whose corner the fort can walk to
+    local X, Y = w.map.x_count, w.map.y_count
+    local bx, by, bn = nil, nil, -1
+    for x0 = math.max(1, cx - 80), math.min(X - side - 1, cx + 80 - side), 5 do
+        for y0 = math.max(1, cy - 80), math.min(Y - side - 1, cy + 80 - side), 5 do
+            local c = 0
+            for x = x0, x0 + side - 1, 3 do for y = y0, y0 + side - 1, 3 do if ok(x, y) then c = c + 1 end end end
+            local far = not (cmd == 'rework' and last) or math.max(math.abs(x0 - last.x), math.abs(y0 - last.y)) >= 50
+            if far and c > bn and dfhack.maps.canWalkBetween(from, xyz2pos(x0 + side // 2, y0 + side // 2, z)) then bx, by, bn = x0, y0, c end
+        end
+    end
+    if not bx then print('work: no reachable patch'); return end
+    local ext, good = {}, 0
+    for i = 0, side - 1 do for j = 0, side - 1 do
+        local v = ok(bx + i, by + j); ext[i * side + j + 1] = v and 1 or 0; if v then good = good + 1 end
+    end end
+    local bld, err = dfhack.buildings.constructBuilding{ type = df.building_type.Stockpile, abstract = true,
+        pos = xyz2pos(bx, by, z), width = side, height = side }
+    if not bld then print('work: stockpile refused: ' .. tostring(err)); return end
+    _G.CX_LOAD_PILE = { id = bld.id, x = bx, y = by }
+    local out = dfhack.run_command_silent('stockpiles', 'import', 'library/all', '-s', tostring(bld.id)) or ''
+    local loose = 0
+    for _, it in ipairs(w.items.other.IN_PLAY) do if it.flags.on_ground and not it.flags.forbid then loose = loose + 1 end end
+    print(('work: stockpile %d at %d,%d,%d %dx%d (%d usable tiles), settings library/all%s; %d loose items to haul')
+        :format(bld.id, bx, by, z, side, side, good, out:find('rror') and (' FAILED: ' .. out:gsub('%s+', ' ')) or '', loose))
 
 elseif cmd == 'breach' then
     local BANDS = {}
@@ -227,5 +288,5 @@ elseif cmd == 'walk' then
     print('walk: shaft top reaches band ' .. table.concat(s, ' '))
 
 else
-    print('usage: cx-load line | wild <n> [species] | citizens <n> | breach <zlo-zhi,...> [n] [dry] | walk')
+    print('usage: cx-load line | wild <n> [species] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
 end

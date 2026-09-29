@@ -156,6 +156,15 @@ cmd_stop() {
         "$WINESERVER" -k 2>/dev/null
         sleep 2
     fi
+    # 28 Sep 2026: a DF up two days (6.4 GB, loads 48 s -> 400 s+) ignored both `die` and `wineserver -k`, so the
+    # harness's "restarting the rig" was a no-op and three FPS3 replicates failed in a row; a plain TERM ended it in 1 s
+    if is_running; then
+        log "still running after wineserver -k; sending TERM to $(df_pids | tr '\n' ' ')"
+        kill -TERM $(df_pids) 2>/dev/null
+        local t=0
+        while is_running && [ "$t" -lt 15 ]; do sleep 1; t=$((t + 1)); done
+        is_running && { log "TERM ignored; KILL"; kill -KILL $(df_pids) 2>/dev/null; sleep 2; }
+    fi
     is_running && err "could not stop DF" || log "stopped after ${waited}s"
 }
 
