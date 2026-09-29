@@ -9,10 +9,14 @@ run = Path(sys.argv[1])
 man = json.load(open(run / "manifest.json"))
 order = [a["name"] for a in man["arms"]]
 
+# a run sampled with the harness's stopwatch (FPS2b on) is read by it: step-timed rates carry ~5 s of fixed overhead per call
+ROWS = list(csv.DictReader(open(run / "rows.tsv"), delimiter="\t"))
+METRIC = "ticks_per_s_stopwatch" if any(r["metric"] == "ticks_per_s_stopwatch" for r in ROWS) else "ticks_per_wall_s"
 tps: dict[tuple[str, str], list[float]] = {}
-for r in csv.DictReader(open(run / "rows.tsv"), delimiter="\t"):
-    if r["metric"] == "ticks_per_wall_s" and r["value"]:
+for r in ROWS:
+    if r["metric"] == METRIC and r["value"]:
         tps.setdefault((r["arm"], r["rep"]), []).append(float(r["value"]))
+print(f"rate: {METRIC}")
 
 LOAD = re.compile(r"load: citizens (\d+) units (\d+) wild (\d+) items (\d+) map (\d+)x(\d+)x(\d+) fps (\S+) gfps (\S+)(?: working (\d+) jobs (\d+))?")
 load: dict[tuple[str, str], list[dict]] = {}

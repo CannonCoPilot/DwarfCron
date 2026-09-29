@@ -788,6 +788,8 @@ cmd_save() {
 # and must not assume it starts from the map.
 cmd_title() {
     [ "$(ui_get map)" = "true" ] || { log "no map loaded; already out of the fort"; return 0; }
+    # a queued popup swallows OPTIONS (FPS4, 29 Sep 2026: 300,000 ticks of play left one, and the quit failed twice)
+    local drained; drained=$(drain_popups); [ -n "$drained" ] && log "drained $drained queued popup(s) before quitting"
     local i
     for i in 1 2 3 4 5 6; do
         if wait_drawn "Really quit" 1 >/dev/null; then

@@ -126,6 +126,25 @@ class Rig:
         drained = [l for l in err.splitlines() if "drained" in l]
         return int(m.group(1)), wall, drained
 
+    def stopwatch(self, windows: int = 3, secs: float = 6.0) -> list[float]:
+        """Ticks per wall second read unpaused, the tick counter stamped at each window's ends (midpoint of the read).
+        `step`'s fixed ~5 s per call (polling, pause handling) stays out of it; on a fresh DF that overhead had squeezed
+        ~270 t/s into ~220 (FPS4 smoke, 28 Sep 2026). The windows' ticks count toward the replicate's budget."""
+        def stamp():
+            a = time.monotonic(); k = int(self.state()["tick"]); b = time.monotonic()
+            return k, (a + b) / 2
+        self.must("unpause"); time.sleep(1.0)
+        rates = []
+        k0, t0 = stamp()
+        for _ in range(windows):
+            time.sleep(secs)
+            k, t = stamp()
+            d = k - k0
+            if d < 0:
+                d += 403200   # cur_year_tick wraps at the new year
+            rates.append(d / (t - t0)); k0, t0 = k, t
+        self.must("pause")
+        return rates
 
 # --------------------------------------------------------------- checksums --
 
@@ -335,6 +354,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         wall_total += wall
         for d in drained:
             out.event(ctx, tick, abs_tick, "popups_drained", "step", d.strip())
+        sw = arm.get("stopwatch", man.get("stopwatch"))
+        sw_rates = rig.stopwatch(int(sw.get("windows", 3)), float(sw.get("secs", 6.0))) if sw else []
         clock = rig.probe("clock")[0]
         new_abs = abs_tick_of(clock)
         advanced = new_abs - abs_tick
@@ -343,6 +364,8 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
         for k in ("fps_achieved", "units_active", "popups", "paused"):
             out.row(ctx, tick, abs_tick, "clock", k, clock[k])
         out.row(ctx, tick, abs_tick, "clock", "ticks_per_wall_s", f"{n / wall:.1f}" if wall else "")
+        if sw_rates:   # FPS2b: the stopwatch reading, free of the step verb's per-call overhead
+            out.row(ctx, tick, abs_tick, "clock", "ticks_per_s_stopwatch", f"{sum(sw_rates) / len(sw_rates):.1f}")
 
         # liveness invariants: tick advanced, popups empty, tool unchanged, unit count sane
         breach = []
