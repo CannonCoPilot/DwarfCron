@@ -362,7 +362,7 @@ function renderConsole() {
   const last = st.cmds[0];
   document.getElementById('conLast').textContent = last ? last.cmd : 'Every change on this page becomes one seasonal-wildlife console command.';
   document.getElementById('conBody').innerHTML = st.cmds.length ? st.cmds.map(c =>
-    `<div class="line"><span class="sub">${c.t}</span><span class="c">${esc(c.cmd)}</span>${c.verbNote ? '<span class="chip warn">needs a new verb</span>' : '<span class="chip">not sent: sample</span>'}</div>`).join('')
+    `<div class="line"><span class="sub">${c.t}</span><span class="c">${esc(c.cmd)}</span>${c.verbNote ? '<span class="chip warn">v6.8, not deployed yet</span>' : '<span class="chip">not sent: sample</span>'}</div>`).join('')
     : '<p class="sub" style="margin:6px 0">Nothing yet. Change a species, a limit or a group and its command appears here.</p>';
   document.getElementById('console').classList.toggle('open', st.conOpen);
 }
@@ -581,7 +581,7 @@ function renderDetail() {
     const i = +b.dataset.season, has = s.seasons.includes(i);
     if (has && s.seasons.length === 1) { el.querySelector('#refuse').hidden = false; return; }
     s.seasons = has ? s.seasons.filter(x => x !== i) : [...s.seasons, i].sort();
-    send(`seasonal-wildlife seasons ${s.key} ${s.seasons.map(x => SHORT[x].toLowerCase()).join(',')}`, `${s.name}: ${s.seasons.map(x => SEASONS[x]).join(', ')}`, true);
+    send(`seasonal-wildlife seasons ${s.key} ${s.seasons.length === 4 ? 'all' : s.seasons.map(x => SHORT[x]).join('')}`, `${s.name}: ${s.seasons.map(x => SEASONS[x]).join(', ')}`, true);
     renderDetail(); renderList();
   });
   const inp = el.querySelector('#dStock');

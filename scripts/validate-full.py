@@ -49,6 +49,7 @@ V = deployed_version()
 V65 = V >= (6, 5, 0)
 V66 = V >= (6, 6, 0)
 V67 = V >= (6, 7, 0)
+V68 = V >= (6, 8, 0)
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
@@ -208,6 +209,12 @@ CLAIMS = [
     ("mech.animalperson", "MECH", "an animal person stands where its root animal stands: role, habitat, size, mass and every predator/prey verdict the same (JAGUAR_MAN as JAGUAR, OTTER_MAN as RIVER OTTER, ALBATROSS_MAN as BIRD_ALBATROSS)", "user 28 Sep; alpha 2 step 10.1", "shipped v6.7"),
     ("gui.odds.bracket", "GUI", "the Roster's ODDS column shows an active species out of season with its in-season share in brackets", "alpha 2 step 4.3", "shipped v6.7"),
     ("gui.addnew.whole", "GUI", "Add invasive leaves the new species on the roster at once: active with one season, or inactive", "alpha 2 step 8.1", "shipped v6.7"),
+    # ---- v6.8 (29 Sep, the browser companion): the Roster's two edits from the console
+    ("cli.roster", "CLI", "`roster` prints one line per layer with its active, in-season and inactive counts", "user 29 Sep (companion)", "shipped v6.8"),
+    ("cli.roster.state", "CLI", "`roster KEY inactive` leaves the species inactive with no seasons; `roster KEY active` makes it active with exactly one season; each is one undo step and one ledger line", "user 29 Sep (companion); the one rule", "shipped v6.8"),
+    ("cli.seasons.set", "CLI", "`seasons KEY SpAu` sets exactly those seasons; `seasons KEY none` is refused and changes nothing; a bad code prints usage", "user 29 Sep (companion); the one rule", "shipped v6.8"),
+    ("cli.seasons.activate", "CLI", "`seasons KEY Wi` on an inactive species makes it active in Winter", "user 29 Sep (companion); toggleSeason's rule", "shipped v6.8"),
+    ("cli.roster.undo", "CLI", "`undo` after a console roster or seasons edit restores the state before it", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
     ("gui.k.altR", "GUI", "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50", "USAGE.md; W9", "shipped"),
     ("gui.k.altF", "GUI", "Alt+F (Ctrl+L until v6.3: DF's LOAD_MACRO) fills the filtered category to N (refuses on 'all'/'aquatic')", "USAGE.md; W9", "shipped"),
@@ -684,6 +691,55 @@ def phase_v65():
     else:
         rec("mech.call", "NOT-TESTABLE-HERE", "an active land species in season", json.dumps(pk))
 
+
+def phase_v68():
+    log("== v6.8: roster and seasons from the console")
+    probe = """
+local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local one,off
+for _,e in ipairs(pool) do if e.inEmbark and not e.locked then
+  if not one and cfg.allow[e.key]==true and #(cfg.assign[e.key] or {})==1 then one=e.key end
+  if not off and cfg.allow[e.key]==false then off=e.key end end end
+print(json.encode({one=one, off=off}))"""
+    pk = luaj(probe, timeout=180)
+    one, off = (pk.get("one"), pk.get("off")) if isinstance(pk, dict) else (None, None)
+    def state(key):
+        return luaj("local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); print(json.encode({allow=c.allow['%s'], assign=c.assign['%s'] or {}, undo=sw.UNDO.depth()}))" % (key, key), timeout=60)
+    rc, out = cmd("roster")
+    rec("cli.roster", "PASS" if re.search(r"^roster \w+\s+\d+ active \(\d+ in season now\),\s+\d+ inactive", out, re.M) else "FAIL",
+        "a 'roster <layer> N active (N in season now), N inactive' line", out)
+    if not one:
+        for cid in ("cli.roster.state", "cli.seasons.set", "cli.roster.undo"):
+            rec(cid, "NOT-TESTABLE-HERE", "an active species with one season on this fort", json.dumps(pk))
+    else:
+        s0 = state(one)
+        rc, o1 = cmd("roster", one, "inactive"); s1 = state(one)
+        rc, o2 = cmd("roster", one, "active"); s2 = state(one)
+        led = cmd("ledger", "5")[1]
+        ok = (isinstance(s1, dict) and s1.get("allow") is False and not s1.get("assign") and isinstance(s2, dict) and s2.get("allow") is True
+              and len(s2.get("assign") or []) == 1 and s2.get("undo", 0) >= s0.get("undo", 0) + 2 - (1 if s0.get("undo", 0) >= 50 else 0)
+              and f"{one} inactive" in led and f"{one} active" in led)
+        rec("cli.roster.state", "PASS" if ok else "FAIL", "inactive: allow false, no seasons; active: allow true, one season; undo +2; both in the ledger",
+            f"{one}: before {json.dumps(s0)}; inactive {json.dumps(s1)}; active {json.dumps(s2)}\n{o1}{o2}\nledger:\n{led}")
+        rc, o3 = cmd("seasons", one, "SpAu"); s3 = state(one)
+        rc, o4 = cmd("seasons", one, "none"); s4 = state(one)
+        rc, o5 = cmd("seasons", one, "Xy")
+        ok = (isinstance(s3, dict) and s3.get("assign") == [0, 2] and isinstance(s4, dict) and s4.get("assign") == [0, 2]
+              and "at least one season" in o4 and "usage" in o5.lower())
+        rec("cli.seasons.set", "PASS" if ok else "FAIL", "SpAu -> [0,2]; none refused, still [0,2]; Xy -> usage",
+            f"SpAu {json.dumps(s3)}; none {json.dumps(s4)}\n{o3}{o4}{o5}")
+        rc, o6 = cmd("undo"); s6 = state(one)
+        rec("cli.roster.undo", "PASS" if isinstance(s6, dict) and s6.get("assign") == s2.get("assign") and s6.get("allow") is True else "FAIL",
+            "after undo: the seasons before `seasons SpAu`", f"before SpAu {json.dumps(s2)}; after undo {json.dumps(s6)}\n{o6}")
+        # put the species back as the run found it
+        luaj("local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.allow['%s']=%s; c.assign['%s']=%s; sw.saveConfig(c); print('{}')"
+             % (one, "true" if s0.get("allow") else "false", one, "{" + ",".join(str(x) for x in s0.get("assign") or []) + "}"), timeout=60)
+    if not off:
+        rec("cli.seasons.activate", "NOT-TESTABLE-HERE", "an inactive species on this fort", json.dumps(pk))
+    else:
+        rc, o7 = cmd("seasons", off, "Wi"); s7 = state(off)
+        rec("cli.seasons.activate", "PASS" if isinstance(s7, dict) and s7.get("allow") is True and s7.get("assign") == [3] else "FAIL",
+            "allow true, seasons [3]", f"{off}: {json.dumps(s7)}\n{o7}")
+        cmd("roster", off, "inactive")
 
 def phase_v67():
     log("== v6.7: animal people")
@@ -1933,7 +1989,7 @@ def phase_teardown(fort):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65", "gui"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     a = ap.parse_args()
     log(f"validate-full run {RUN} -> {OUT}")
@@ -1950,6 +2006,9 @@ def main():
         if a.only == "v65":
             try: phase_v65()
             except Exception as e: log(f"!! phase_v65 raised: {e!r}")
+        if a.only == "v68":   # the console roster and seasons verbs alone
+            try: phase_v68()
+            except Exception as e: log(f"!! phase_v68 raised: {e!r}")
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
             except Exception as e: log(f"!! phase_gui raised: {e!r}")
@@ -1979,6 +2038,9 @@ def main():
         if not a.only and V67:
             try: phase_v67()
             except Exception as e: log(f"!! phase_v67 raised: {e!r}")
+        if not a.only and V68:
+            try: phase_v68()
+            except Exception as e: log(f"!! phase_v68 raised: {e!r}")
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
