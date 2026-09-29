@@ -3,9 +3,15 @@
 -- Each lever puts real simulation load on a loaded fort the way play would, and prints a one-line receipt.
 --
 --   cx-load line                     one line: citizens, active units, wild units, items, map size, fps/gfps achieved
---   cx-load wild <n> [species]       place n wild land animals on the surface through seasonal-wildlife's `place`,
+--   cx-load wild <n> [species] [prey] place n wild land animals (prey: prey species only) on the surface through seasonal-wildlife's `place`,
 --                                    spread over up to <species> (default 6) of the fort's surface land entries;
 --                                    each entry is topped up first so the stock never limits the count
+--   cx-load clearwild                vaporize every wild unit on every layer (exterminate's method: vanish_countdown 1,
+--                                    gone on the next tick, no corpse) and close every Animal pool entry on the site's
+--                                    9 region tiles and its caverns (quantity 0, extinct) -- in memory only, never saved
+--   cx-load constwild <n>            FPS5: clearwild, then place n PREY land animals, close the pools again, and set every
+--                                    wild unit's leave countdown to 10,000,000 -- the same wild load on any map, held
+--   cx-load hold                     every wild unit's leave countdown to 10,000,000 (nobody leaves)
 --   cx-load citizens <n>             n new dwarves at existing citizens' tiles, made citizens with makeown
 --                                    (a histfig, the civ and the site government), each given a working
 --                                    citizen's labors so they take jobs rather than idle
@@ -31,18 +37,22 @@ local w = df.global.world
 
 local function line()
     local e = df.global.enabler
-    local cit, wild, busy = 0, 0, 0
+    local cit, wild, busy, cav = 0, 0, 0, 0
     for _, u in ipairs(w.units.active) do
         if not dfhack.units.isDead(u) then
             if dfhack.units.isCitizen(u) then cit = cit + 1; if u.job.current_job then busy = busy + 1 end end
-            if dfhack.units.isWildlife(u) then wild = wild + 1 end
+            if dfhack.units.isWildlife(u) then
+                wild = wild + 1
+                local ap = u.animal.population
+                if ap.feature_idx >= 0 or ap.cave_id >= 0 then cav = cav + 1 end
+            end
         end
     end
     local jobs, link = 0, w.jobs.list.next
     while link do jobs = jobs + 1; link = link.next end
     -- the map/fps fields keep FPS2's order (fps2-tally.py's regex); working citizens and jobs trail
-    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s working %d jobs %d'):format(cit, #w.units.active, wild,
-        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps), busy, jobs)
+    return ('citizens %d units %d wild %d items %d map %dx%dx%d fps %s gfps %s working %d jobs %d cavwild %d'):format(cit, #w.units.active, wild,
+        #w.items.other.IN_PLAY, w.map.x_count, w.map.y_count, w.map.z_count, tostring(e.calculated_fps), tostring(e.calculated_gfps), busy, jobs, cav)
 end
 
 local function flag(t, k)   -- a flag name this DF build lacks reads false, not an error
@@ -58,8 +68,51 @@ local function citizens()
     return out
 end
 
+local function sitePools(fn)
+    -- every Animal entry the site's map can draw from: its region tiles and their ring, every layer
+    local site = df.world_site.find(df.global.plotinfo.site_id)
+    local x0, x1 = site.global_min_x // 16, site.global_max_x // 16
+    local y0, y1 = site.global_min_y // 16, site.global_max_y // 16
+    local n = 0
+    for _, p in ipairs(w.populations.all) do
+        local r = p.population
+        if p.type == df.world_population_type.Animal and r.region_x >= x0 - 1 and r.region_x <= x1 + 1
+           and r.region_y >= y0 - 1 and r.region_y <= y1 + 1 then fn(p); n = n + 1 end
+    end
+    return n
+end
+
+local function closePools()
+    return sitePools(function(p) p.quantity = 0; p.flags.extinct = true end)
+end
+
+local function holdWild()
+    local n = 0
+    for _, u in ipairs(w.units.active) do
+        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then u.animal.leave_countdown = 10000000; n = n + 1 end
+    end
+    return n
+end
+
 if cmd == 'line' then
     print('load: ' .. line())
+
+elseif cmd == 'clearwild' then
+    local v = 0
+    for _, u in ipairs(w.units.active) do
+        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then u.animal.vanish_countdown = 1; v = v + 1 end
+    end
+    print(('clearwild: %d wild unit(s) set to vanish next tick; %d pool entries closed'):format(v, closePools()))
+
+elseif cmd == 'hold' then
+    print(('hold: %d wild unit(s) will not leave'):format(holdWild()))
+
+elseif cmd == 'constwild' then
+    -- the caller has already run clearwild and let one tick pass (the vanished units must be gone before placing)
+    local n = tonumber(args[2]) or 30
+    local out = dfhack.run_command_silent('cx-load', 'wild', tostring(n), '6', 'prey') or ''
+    local closed = closePools()
+    print(('constwild: %s; pools closed %d; held %d'):format(out:gsub('%s+$', ''), closed, holdWild()))
 
 elseif cmd == 'wild' then
     local n, nsp = tonumber(args[2]) or 0, tonumber(args[3]) or 6
@@ -70,7 +123,8 @@ elseif cmd == 'wild' then
     local sw = reqscript('seasonal-wildlife')
     local walker = {}
     for _, e in ipairs(sw.buildPool(sw.loadConfig())) do
-        if e.inEmbark and e.layer == 'land' and e.habitat == 'land' and e.cat ~= 'vermin' and not e.mega and not e.locked then walker[e.token] = true end
+        if e.inEmbark and e.layer == 'land' and e.habitat == 'land' and e.cat ~= 'vermin' and not e.mega and not e.locked
+           and (args[4] ~= 'prey' or e.role == 'prey') then walker[e.token] = true end
     end
     -- their surface entries on the site's tiles, biggest first; one per species
     local cand, seen = {}, {}
@@ -288,5 +342,5 @@ elseif cmd == 'walk' then
     print('walk: shaft top reaches band ' .. table.concat(s, ' '))
 
 else
-    print('usage: cx-load line | wild <n> [species] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
+    print('usage: cx-load line | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
 end
