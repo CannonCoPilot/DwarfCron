@@ -29,6 +29,10 @@
 --                                    any aquifer on the 3x3 around it; marks the caves discovered and proves a
 --                                    citizen can walk to a floor in each band. Bands come from
 --                                    `seasonal-wildlife caverns` (BOATS: 64-72,59-63,38-46).
+--   cx-load world                    FPS6: the world's scale -- dims, historical figures (all, alive), events,
+--                                    collections, entities, civs, sites, artifacts, armies, army controllers, units,
+--                                    and the nearest civilization site (distance in region tiles, its civ's sites/figures)
+--   cx-load guests                   FPS6: merchants, visitors and invaders on the map
 --
 -- Verified on BOATS (28 Sep 2026): a created dwarf + make_own is a citizen with histfig, own group and fort
 -- control, alive and moving 1,800 ticks later; the breach finds a column in 1.6 s, and one tick after the dig
@@ -354,6 +358,53 @@ elseif cmd == 'walk' then
     for i, c in ipairs(b.contact) do s[#s + 1] = ('%d=%s'):format(i, tostring(dfhack.maps.canWalkBetween(from, xyz2pos(c.x, c.y, c.z)))) end
     print('walk: shaft top reaches band ' .. table.concat(s, ' '))
 
+elseif cmd == 'world' then
+    -- FPS6: the scale of the world around the fort, read once after the load. Every count is pcall'd: a vector this
+    -- build names differently reads -1, never an error (and -1 in the rows means "not read", not "none")
+    local function n(fn) local ok, v = pcall(fn); return ok and v or -1 end
+    local wd = w.world_data
+    local alive = n(function() local k = 0; for _, h in ipairs(w.history.figures) do if h.died_year == -1 then k = k + 1 end end; return k end)
+    local civs = n(function() local k = 0; for _, e in ipairs(w.entities.all) do if e.type == df.historical_entity_type.Civilization then k = k + 1 end end; return k end)
+    -- the nearest site owned by a civilization, in region tiles from the fort's own site, and that civ's size
+    local near, ncivsites, ncivhf, nrace = -1, -1, -1, '?'
+    pcall(function()
+        local fort = df.world_site.find(df.global.plotinfo.site_id)
+        local best, bestciv = math.huge, nil
+        for _, s in ipairs(wd.sites) do
+            if s.id ~= fort.id and s.civ_id >= 0 then
+                local e = df.historical_entity.find(s.civ_id)
+                if e and e.type == df.historical_entity_type.Civilization then
+                    local d = math.sqrt((s.pos.x - fort.pos.x) ^ 2 + (s.pos.y - fort.pos.y) ^ 2)
+                    if d < best then best, bestciv = d, e end
+                end
+            end
+        end
+        if bestciv then
+            near = best; ncivhf = #bestciv.histfig_ids; nrace = df.creature_raw.find(bestciv.race).creature_id
+            ncivsites = 0
+            for _, s in ipairs(wd.sites) do if s.civ_id == bestciv.id then ncivsites = ncivsites + 1 end end
+        end
+    end)
+    print(('world: dims %dx%d year %d hf %d hf_alive %d events %d collections %d entities %d civs %d sites %d artifacts %d armies %d army_controllers %d units_all %d near_civ %.1f near_civ_sites %d near_civ_hf %d near_civ_race %s'):format(
+        n(function() return wd.world_width end), n(function() return wd.world_height end), df.global.cur_year,
+        n(function() return #w.history.figures end), alive, n(function() return #w.history.events end),
+        n(function() return #w.history.event_collections.all end), n(function() return #w.entities.all end), civs,
+        n(function() return #wd.sites end), n(function() return #w.artifacts.all end), n(function() return #w.armies.all end),
+        n(function() return #w.army_controllers.all end), #w.units.all, near, ncivsites, ncivhf, nrace))
+
+elseif cmd == 'guests' then
+    -- FPS6: who is on the map besides the fort and the wild -- longer histories may send more of them
+    local merch, visit, inv = 0, 0, 0
+    for _, u in ipairs(w.units.active) do
+        if not dfhack.units.isDead(u) and not dfhack.units.isCitizen(u) and not dfhack.units.isWildlife(u) then
+            if u.flags1.merchant then merch = merch + 1 end
+            if flag(u.flags1, 'active_invader') or flag(u.flags1, 'invader_origin') then inv = inv + 1 end
+            local ok, v = pcall(dfhack.units.isVisitor, u)
+            if ok and v then visit = visit + 1 end
+        end
+    end
+    print(('guests: merchants %d visitors %d invaders %d'):format(merch, visit, inv))
+
 else
-    print('usage: cx-load line | sustain | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk')
+    print('usage: cx-load line | sustain | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk | world | guests')
 end

@@ -90,6 +90,7 @@ class Session:
     def __init__(self, mode, rep, size):
         self.mode, self.rep, self.size = mode, rep, size
         self.t0 = time.monotonic(); self.played = 0; self.sample = 0
+        self.extra = {}   # FPS6 (fps6-run.py) adds world columns here; they land in any COLS entry it appends
 
     def record(self, phase, rates, s0, s1, step_wall="", step_cpu=""):
         cit, units, wild, items, mx, my, mz, fps, gfps, working, jobs, cav, dead = load_line()
@@ -106,7 +107,8 @@ class Session:
                 "df_disk_read_mb": f"{d.get('disk_read_mb', 0):.1f}", "df_disk_written_mb": f"{d.get('disk_written_mb', 0):.1f}",
                 "wine_cpu_cores": f"{wr.get('cpu_cores', 0):.3f}", "load1": f"{s1.get('load1', 0):.2f}",
                 "session_wall_s": f"{time.monotonic() - self.t0:.0f}", "step_wall_s": step_wall, "step_cpu_cores": step_cpu}
-        rows.write("\t".join(str(vals[c]) for c in COLS) + "\n"); rows.flush()
+        vals.update(self.extra)
+        rows.write("\t".join(str(vals.get(c, "")) for c in COLS) + "\n"); rows.flush()
         self.sample += 1
         return vals
 

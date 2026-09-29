@@ -63,3 +63,18 @@ longer histories may send more of them.
 - **Risks:** worldgen rejections at the larger sizes (the verb tolerates one rejection type; a reject costs a
   re-seed); no qualifying tile on a small old world (relax to 'nearest qualifying biome, any savagery under 50',
   recorded); a 6x6 or 4x4 default in presets (the embark verb sets 3x3 by `CX_EMBARK_SIZE=3`).
+
+## Implementation (29 Sep 2026, scripts/fps6-run.py)
+
+- **Seeds 6101 and 6102 in every cell.** Within a world size the history factor is then paired: same seed, same
+  terrain rules, only the end year differs.
+- **Order.** Generate all 20 worlds first (pilot MEDIUM@500 seed 6101 first; if it fails the run stops), then two
+  shuffled session passes (every world's first session before any second one), so host drift spreads over cells.
+- **Guards.** `genworld` now stops before Create world if `params` fails (a preset title this build lacks);
+  the runner also checks the params line's dims and end year against the design. Each pristine world folder is
+  moved to `df-snapshots/fps6-worlds/` after its embark, so DF's "existing world" list does not grow by 20.
+- **Probes.** `cx-load world` (read once per session after the load) and `cx-load guests` (every sample).
+- **Site rule level 2** (recorded as `rule_level`): the same biomes, savagery < 50, not evil, no river, lake or
+  site on the tile, no ocean on the ring.
+- Chain: `scripts/oneoff/chain-fps6.sh` waits for FPS5b's exit line, deploys, runs `fps6-run.py all`
+  (log `data/logs/fps6.log`, exit line `=== fps6 exit`).

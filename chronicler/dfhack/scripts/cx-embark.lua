@@ -6,7 +6,7 @@
 -- the reads and pokes they are built from. Learned 2026-09-16 on DF 53.16.
 --
 --   cx-embark presets                 on new_region: list worldgen presets
---   cx-embark params <i> <title> <seed> <end_year>
+--   cx-embark params <i|PRESET_TITLE> <title> <seed> <end_year>
 --                                     on new_region/Advanced: copy preset i into
 --                                     slot 0 and set seeds/title/end year there
 --   cx-embark survey [filter]         on choose_start_site: one row per region tile
@@ -58,7 +58,16 @@ if cmd == 'presets' then
 elseif cmd == 'params' then
     local vs = need(df.viewscreen_new_regionst, 'new_region')
     local idx, title, seed, end_year = tonumber(args[2]), args[3], args[4], tonumber(args[5])
-    if not idx or not title or not seed then qerror('usage: cx-embark params <preset-index> <title> <seed> [end_year]') end
+    if not idx and args[2] then
+        -- a preset by title, spaces as underscores (FPS6: SMALLER_REGION, SMALL_REGION, MEDIUM_REGION, LARGE_REGION);
+        -- the list's order is DF's, so an index is only safe once read off `presets` on this build
+        local want = args[2]:gsub('_', ' '):upper()
+        for i = 0, #vs.worldgen_presets - 1 do
+            if vs.worldgen_presets[i].title:upper() == want then idx = i; break end
+        end
+        if not idx then qerror('no preset titled ' .. want) end
+    end
+    if not idx or not title or not seed then qerror('usage: cx-embark params <preset-index|PRESET_TITLE> <title> <seed> [end_year]') end
     local src, dst = vs.worldgen_presets[idx], vs.worldgen_presets[0]
     if not src then qerror('no preset ' .. idx) end
     local copied = 0

@@ -380,7 +380,7 @@ dismiss_okay() {
 }
 
 # ------------------------------------------------------------ worldgen ----
-# genworld <title> <seed> [preset-index] [end-year]
+# genworld <title> <seed> [preset-index|PRESET_TITLE] [end-year]
 #
 # Title -> Create new world -> Detail -> params -> Create world -> Keep world.
 # All four seeds are set to <seed>, so the same call makes the same world.
@@ -408,7 +408,11 @@ cmd_genworld() {
     dismiss_okay
     click_when_drawn "Detail" 10 || err "no 'Detail' button on the world screen"
     sleep 1
-    cmd_cmd cx-embark params "$preset" "$title" "$seed" "$endyr" 2>&1 | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
+    # a failed params (a preset title this build lacks) must stop here: Create world would otherwise generate
+    # whatever slot 0 held (FPS6, 29 Sep 2026)
+    local pl; pl=$(cmd_cmd cx-embark params "$preset" "$title" "$seed" "$endyr" 2>&1 | tr -d "\r" | tail -1)
+    echo "[cx-lifecycle] $pl"
+    case "$pl" in params:*) ;; *) err "worldgen params failed: $pl";; esac
     click_when_drawn "Create world" 10 || err "no 'Create world' button"
     local waited=0 allowed=""
     while [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ]; do
