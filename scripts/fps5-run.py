@@ -11,8 +11,8 @@ hold  (FPS5a): tool OFF; `cx-load clearwild` (every wild unit on every layer van
       2,000 ticks warm-up; six 8-s stopwatch windows. The wild load is 30 on every map; citizens are the embark's 7.
 long  (FPS5b): tool ON (the user's setup); `cx-load sustain` after the load and before every step (the site has no
       water: unsustained, all 20 dwarves of the first session died of thirst by ~190,000 ticks); stopwatch baseline, then PLAY ticks in steps of EVERY, a 3 x 6 s stopwatch
-      reading after each step; then FPS4's four-way split: aged/played (A1), aged/original (A2), fresh/played (A3),
-      fresh/original (A4).
+      reading after each step; then the split: aged/played (A1), fresh/played (A3), fresh/original (A4) -- process age
+      = A1 vs A3 on the same save, fort change = A3 vs A4 in the same process.
 
 Each reading records ticks/s, DF's own fps, citizens, units, wild (all / cavern), items, jobs and working citizens,
 and -- through proc_pid_rusage (scripts/procstat.py) -- DF's CPU cores in use, system-time share, instructions per
@@ -178,13 +178,18 @@ def run_long(sess, play, every):
                 f"dead {v['dead_citizens']} footprint {v['df_footprint_mb']} MB disk w {v['df_disk_written_mb']} MB load {v['load1']}")
     sh("save", played_save, timeout=400)
     r["A1"] = measure(sess, "A1_aged_played")
-    load_fort(save); r["A2"] = measure(sess, "A2_aged_original")
-    load_fort(played_save, restore=False, fresh=True); r["A3"] = measure(sess, "A3_fresh_played")
-    load_fort(save); r["A4"] = measure(sess, "A4_fresh_original")
+    # FPS5b 103823: DF reads its Continue list once at start, so the aged process cannot find a save restored after it
+    # started -- the old A2 (aged process, original save) failed in 3 of 3 attempts. The split is now measured on ONE
+    # save across the restart: process age = A1 (aged) vs A3 (fresh), both the played save; fort change = A3 vs A4,
+    # both in the fresh process. The original is restored and touched BEFORE that restart, so the new list shows it.
+    sh("title", timeout=300); prune_autosaves(save); sh("save-restore", f"{save}.preverify")
+    restart(); sh("load", played_save, timeout=700); sh("fps", 1000, 60); sh("lua", TOOL_ON); sh("cmd", "cx-load", "sustain")
+    r["A3"] = measure(sess, "A3_fresh_played")
+    sh("title", timeout=300); sh("load", save, timeout=700); sh("fps", 1000, 60); sh("lua", TOOL_ON)
+    r["A4"] = measure(sess, "A4_fresh_original")
     sh("title", timeout=300); sh("save-delete", played_save, check=False)
-    base = (r["P0"] + r["A4"]) / 2
-    log(f"  size {sess.size} rep {sess.rep}: fresh/original {r['P0']:.0f} & {r['A4']:.0f}; aged/original {r['A2']:.0f} ({(r['A2'] / base - 1) * 100:+.0f}%); "
-        f"fresh/played {r['A3']:.0f} ({(r['A3'] / base - 1) * 100:+.0f}%); aged/played {r['A1']:.0f} ({(r['A1'] / base - 1) * 100:+.0f}%)")
+    log(f"  size {sess.size} rep {sess.rep}: process age {(r['A1'] / r['A3'] - 1) * 100:+.0f}% (played save, aged {r['A1']:.0f} vs fresh {r['A3']:.0f}); "
+        f"fort change {(r['A3'] / r['A4'] - 1) * 100:+.0f}% (fresh process, played {r['A3']:.0f} vs original {r['A4']:.0f}); original at start {r['P0']:.0f}")
 
 def main():
     global OUT, _log, rows

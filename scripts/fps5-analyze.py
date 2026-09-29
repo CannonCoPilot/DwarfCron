@@ -6,8 +6,8 @@ FPS5b (a year per session): for every map size --
   * the play curve: log(t/s) on ticks played, per size (slope = % speed lost per 100k ticks);
   * resources: physical-footprint growth (MB per 100k ticks), disk written (MB per 100k ticks), CPU cores used,
     system-time share and instructions per cycle, first quarter vs last quarter of play;
-  * the four-way split (FPS4's design): process age = aged/original vs fresh/original; fort change = fresh/played
-    vs fresh/original;
+  * the split: process age = aged vs fresh process on the same played save (A1 vs A3); fort change = played vs
+    original save in the same fresh process (A3 vs A4);
   * a pooled model of ms/tick on ticks played, map area, citizens, wild units and items (OLS, standard errors), so
     session age is separated from the load the fort carries at each sample.
 """
@@ -93,18 +93,18 @@ def part_b(d):
               f"{statistics.mean(dw):>13.1f} {mq(q1, 'df_cpu_cores'):>5.2f}->{mq(q4, 'df_cpu_cores'):<5.2f} {mq(q1, 'df_sys_share'):>4.2f}->{mq(q4, 'df_sys_share'):<4.2f} "
               f"{mq(q1, 'df_ipc'):>4.2f}->{mq(q4, 'df_ipc'):<4.2f} {'/'.join(cit):>8} {'/'.join(wild):>9}")
 
-    print("\n-- four-way split per size (mean over reps; % vs the mean of P0 and A4)")
+    print("\n-- split per size: process age = aged vs fresh process on the SAME played save (A1 vs A3); fort change = played vs original save in the SAME fresh process (A3 vs A4)")
     for k in sizes:
-        acc = defaultdict(list)
+        pa, fc = [], []
         for (kk, rep), g in sess.items():
-            if kk == k:
-                for r in g:
-                    acc[r["phase"]].append(f(r, "tps"))
-        if not acc.get("A4_fresh_original"):
-            continue
-        base = statistics.mean(acc["P0_fresh_original"] + acc["A4_fresh_original"])
-        pc = lambda ph: (statistics.mean(acc[ph]) / base - 1) * 100 if acc.get(ph) else float("nan")
-        print(f"  {k}x{k}: base {base:.0f} t/s; process age {pc('A2_aged_original'):+.0f}%; fort change {pc('A3_fresh_played'):+.0f}%; both {pc('A1_aged_played'):+.0f}%")
+            if kk != k:
+                continue
+            ph = {r["phase"]: f(r, "tps") for r in g}
+            if all(x in ph for x in ("A1_aged_played", "A3_fresh_played", "A4_fresh_original")):
+                pa.append((ph["A1_aged_played"] / ph["A3_fresh_played"] - 1) * 100)
+                fc.append((ph["A3_fresh_played"] / ph["A4_fresh_original"] - 1) * 100)
+        if pa:
+            print(f"  {k}x{k}: process age {statistics.mean(pa):+.0f}% [{', '.join(f'{x:+.0f}' for x in pa)}]; fort change {statistics.mean(fc):+.0f}% [{', '.join(f'{x:+.0f}' for x in fc)}]")
 
     print("\n-- pooled model over play readings: ms/tick on session age, map area and the fort's load")
     play = [r for r in rs if r["phase"] == "play"]
