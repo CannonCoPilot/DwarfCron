@@ -461,26 +461,16 @@ cmd_genworld() {
 # embark <world-folder> <region-x> <region-y> <save-name> [size=4]
 #
 # Title -> Start new game in existing world -> the world -> Fortress -> site
-# screen -> centre the view on the tile -> Embark -> place by REAL pointer
-# clicks until the read-back matches -> Confirm -> Play now -> map -> save.
+# screen -> centre the view on the tile -> Embark -> place in-script
+# (cx-embark place) -> Confirm if warned -> Play now -> map -> check site -> save.
 #
 # The embark square is placed with its top-left at mid-level tile
 # (rx*16+6, ry*16+6), so a 4x4 sits wholly inside the region tile: one tile,
-# one biome, no neighbour bleeding in. The placement loop clicks the map
-# centre, reads where DF put the square, and moves the pointer by the
-# difference at 16 px per mid-level tile; two iterations is the norm.
-#
-# ⚠️ Map clicks are physical pointer events (cx-mouse.py), because DF resolves
-# a map click from the previous frame's hover. The flow refuses to click
-# unless DF is the frontmost application, so a stray click cannot land in
-# another window.
-CX_MAP_CENTER_PX="${CX_MAP_CENTER_PX:-961}"   # pixel under zoom_cent on this rig's 1920x1072 window
-CX_MAP_CENTER_PY="${CX_MAP_CENTER_PY:-552}"
-CX_MM_PX=16                                      # pixels per mid-level tile in the zoomed view
-
-df_frontmost() {
-    [ "$(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null)" = "Dwarf Fortress.exe" ]
-}
+# one biome, no neighbour bleeding in. `cx-embark place` puts it there and
+# clicks in one suspended Lua call (writes DF's hover fields first), so the
+# embark needs no pointer and no frontmost window. Until 29 Sep 2026 this was a
+# physical-pointer loop (cx-mouse.py); it failed whenever someone was using the
+# Mac, and every "adjusting" click was itself an embark attempt.
 
 # The site screen has no Back button. LEAVESCREEN opens a small dialog whose
 # "Return to title" is the exit; a second LEAVESCREEN closes that dialog again,
@@ -595,38 +585,19 @@ cmd_embark() {
         cmd_cmd cx-embark size "$CX_EMBARK_SIZE" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
         sleep 1
     fi
-    # The square FOLLOWS THE POINTER (hover, no click) and a click EMBARKS wherever it sits: the warnings dialog
-    # (Confirm/Abort) when the area has any (aquifer, savagery...), else straight to preparation. So place it
-    # by moving the pointer and reading back, and click exactly once, on the target. (Until 29 Sep 2026 the loop
-    # clicked to adjust: each miss was an embark attempt -- the FPS6 pilot's 3x3 on a warning-free tile went
-    # to preparation from the "adjusting" click, or converged with no dialog and was never confirmed.)
-    local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" mx my
-    for i in 1 2 3 4 5; do
-        # never post a pointer event outside the DF window
-        { [ "$px" -ge 0 ] && [ "$px" -lt 1920 ] && [ "$py" -ge 0 ] && [ "$py" -lt 1072 ]; } || err "placement pixel $px,$py is off the window; refusing"
-        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
-        df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer events"
-        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" move "$px" "$py" >/dev/null 2>&1
-        sleep 1
-        rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
-        mx=$(echo "$rd" | sed -n 's/.*mm_min=\([0-9-]*\),.*/\1/p'); my=$(echo "$rd" | sed -n 's/.*mm_min=[0-9-]*,\([0-9-]*\) .*/\1/p')
-        log "placement $i: hover $px,$py -> $rd"
-        [ -n "$mx" ] && [ -n "$my" ] || err "could not read the placement (state: $(ui_state))"
-        case "$rd" in *choosing=true*) ;; *) err "left placement mode unexpectedly: $rd";; esac
-        [ "$mx" = "$tx" ] && [ "$my" = "$ty" ] && break
-        px=$((px + (tx - mx) * CX_MM_PX)); py=$((py + (ty - my) * CX_MM_PX))
-        [ "$i" = 5 ] && err "placement did not converge on $tx,$ty (last $mx,$my)"
-    done
-    "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
-    df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer clicks"
-    "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" click "$px" "$py" >/dev/null 2>&1
+    # Placement is in-script (`cx-embark place`: write DF's hover fields and click in one suspended call). No pointer,
+    # no frontmost window: the pointer-driven loop fought whoever was using the Mac and failed the FPS6 pilot twice
+    # (29 Sep 2026). The click embarks: the warnings dialog when the area has any (Confirm), else preparation.
+    local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy))
+    rd=$(cmd_cmd cx-embark place "$tx" "$ty" 2>/dev/null | tr -d "\r" | tail -1)
+    log "$rd"
+    case "$rd" in placed*) ;; *) err "place failed: $rd (state: $(ui_state))";; esac
     sleep 1
     if [ "$(ui_get screen)" != "viewscreen_setupdwarfgamest" ]; then
         rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
-        log "embark click $px,$py -> $rd"
         case "$rd" in
             *mm_min=$tx,$ty*confirm=true*) cmd_ui click "Confirm" >/dev/null 2>&1 ;;
-            *confirm=true*) cmd_ui click "Abort" >/dev/null 2>&1; err "the click embarked at the wrong spot (want $tx,$ty): $rd; aborted" ;;
+            *) err "the embark click did not take (want $tx,$ty): $rd" ;;
         esac
     fi
     wait_state screen viewscreen_setupdwarfgamest 30 || err "Confirm did not open the preparation screen (state: $(ui_state))"
@@ -634,6 +605,8 @@ cmd_embark() {
     wait_state map true "$CX_LOAD_TIMEOUT" || err "map never loaded (state: $(ui_state))"
     sleep 2; dismiss_okay
     cmd_ui pause >/dev/null
+    rd=$(cmd_cmd cx-embark site 2>/dev/null | tr -d "\r" | tail -1)
+    case "$rd" in *"mm_min=$tx,$ty "*) ;; *) err "the fort is not where it was placed (want $tx,$ty): $rd";; esac
     cmd_save "$name"
     log "embarked: world $world tile $rx,$ry size ${CX_EMBARK_SIZE:-4} -> save $name ($(ui_state))"
 }

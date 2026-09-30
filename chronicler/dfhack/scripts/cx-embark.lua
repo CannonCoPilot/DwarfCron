@@ -13,6 +13,9 @@
 --   cx-embark center <rx> <ry>        on choose_start_site: zoom the view onto a tile
 --   cx-embark read                    on choose_start_site: the location + state line
 --   cx-embark worlds                  on the title: WORLD rows DF knows about
+--   cx-embark place <mm_x> <mm_y>     on choose_start_site in placement mode: put the
+--                                     square's top-left on that mid-level tile and click
+--   cx-embark site                    on a loaded fort: the site's mid-level min corner
 --
 -- ⚠️ Why the params command edits preset 0 and not the one you picked: the
 -- Advanced screen's editable rows (`member[]`) are pointers bound to whichever
@@ -26,11 +29,13 @@
 -- region tile), not region units. Poking it with region units puts the view
 -- near the world origin -- which is what the first attempt did.
 --
--- ⚠️ What this file deliberately does NOT do: click the map. DF decides which
--- map tile a click hit from the hover it computed on the PREVIOUS rendered
--- frame, and it overwrites gps.mouse from SDL every frame, so an in-script
--- click always lands where the physical pointer is. Map clicks are real
--- pointer events, driven by cx-mouse.py from the shell.
+-- ⚠️ Map clicks: DF decides which map tile a click hit from the hover it
+-- computed on the PREVIOUS rendered frame (neighbor_hover_* on the site screen)
+-- and overwrites gps.mouse from SDL every frame, so a bare in-script click lands
+-- where the physical pointer is. `place` writes the hover fields AND clicks in
+-- the same suspended call, before any frame can recompute them (29 Sep 2026):
+-- the embark needs no pointer, no frontmost window, and cannot fight a person
+-- using the Mac -- which is what broke the pointer-driven FPS6 pilot twice.
 
 local args = {...}
 local cmd = args[1]
@@ -193,6 +198,32 @@ elseif cmd == 'read' then
         l.embark_pos_min.x, l.embark_pos_min.y, l.embark_pos_max.x, l.embark_pos_max.y,
         l.region_pos.x, l.region_pos.y, tostring(vs.choosing_embark), tostring(vs.zoomed_in),
         vs.zoom_cent_x, vs.zoom_cent_y, tostring(confirm)))
+
+elseif cmd == 'place' then
+    -- the click embarks wherever the hover says the square is: the warnings dialog (warn_mm_* = the area) when the
+    -- area has warnings, else straight to preparation
+    local vs = need(df.viewscreen_choose_start_sitest, 'choose_start_site')
+    if not vs.choosing_embark then qerror('place needs placement mode (click Embark first)') end
+    local sx, sy = tonumber(args[2]), tonumber(args[3])
+    if not sx or not sy then qerror('usage: cx-embark place <mm_x> <mm_y>') end
+    local ex, ey = sx + vs.embark_dx - 1, sy + vs.embark_dy - 1
+    vs.neighbor_hover_ax, vs.neighbor_hover_ay = sx // 16, sy // 16
+    vs.neighbor_hover_mm_sx, vs.neighbor_hover_mm_sy, vs.neighbor_hover_mm_ex, vs.neighbor_hover_mm_ey = sx, sy, ex, ey
+    local l = vs.location
+    l.region_pos.x, l.region_pos.y = sx // 16, sy // 16
+    l.embark_pos_min.x, l.embark_pos_min.y, l.embark_pos_max.x, l.embark_pos_max.y = sx, sy, ex, ey
+    -- the click must hit the map pane, not the sidebar: the screen centre is always map
+    local gps = df.global.gps
+    gps.mouse_x, gps.mouse_y = gps.dimx // 4, gps.dimy // 2
+    gps.precise_mouse_x, gps.precise_mouse_y = gps.mouse_x * gps.tile_pixel_x, gps.mouse_y * gps.tile_pixel_y
+    require('gui').simulateInput(vs, '_MOUSE_L')
+    print(('placed %d,%d..%d,%d warn=%d,%d..%d,%d'):format(sx, sy, ex, ey,
+        vs.warn_mm_startx, vs.warn_mm_starty, vs.warn_mm_endx, vs.warn_mm_endy))
+
+elseif cmd == 'site' then
+    if not dfhack.isMapLoaded() then qerror('site needs a loaded fort') end
+    local site = df.world_site.find(df.global.plotinfo.site_id)
+    print(('site mm_min=%d,%d mm_max=%d,%d'):format(site.global_min_x, site.global_min_y, site.global_max_x, site.global_max_y))
 
 elseif cmd == 'size' then
     -- embark square side in mid-level tiles (1..16), written in placement mode before the click; DF 53 has no resize
