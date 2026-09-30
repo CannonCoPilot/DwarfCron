@@ -1,0 +1,65 @@
+== FPS5a data/experiments/FPS5a/20260929-090645: 18 sessions, wild held (constwild 30), tool off
+  size   area t2  t/s per rep            mean   ms/tick  wild  cav  cit  cpu cores
+  1x1       2304  739, 724, 716             726     1.38  30/29/30 0/0/0 7/7/7  4.33
+  2x2       9216  725, 739, 734             732     1.37  30/30/30 0/0/0 7/7/7  4.09
+  3x3      20736  544, 527, 540             537     1.86  30/30/30 0/0/0 7/7/7  4.01
+  4x4      36864  615, 620, 618             618     1.62  30/30/30 0/0/0 7/7/7  3.76
+  5x5      57600  511, 530, 516             519     1.93  30/30/30 0/0/0 7/7/7  3.56
+  6x6      82944  413, 413, 411             412     2.43  30/30/30 0/0/0 7/7/7  3.54
+  log(ms/tick) = a + b*log(area):  b = the elasticity of tick cost to map area
+  n=18, R2=0.710
+    a                              -0.85020  (se 0.22496, t   -3.8)
+    b (elasticity)                  0.14054  (se 0.02248, t    6.3)
+
+== FPS5b data/experiments/FPS5b/20260929-103823: 507 readings
+
+-- play curve per size: log(t/s) on ticks played; start and end t/s; resources
+  size   %/100k t  t/s start  t/s end  MB/100k diskW MB/100k  cores q1->q4  sys q1->q4  IPC q1->q4  cit end  wild end
+  1x1      -13.3%        541      393       36          64.1  3.40->3.45  0.51->0.48 1.83->1.84 17/19/22  22/18/27
+  2x2      -12.9%        502      416       48          11.3  3.42->3.59  0.55->0.53 1.64->1.56 16/22/17  31/22/13
+  3x3       -8.5%        450      327       79           8.1  3.64->3.47  0.55->0.49 1.64->1.74 19/14/19  31/21/15
+  4x4      -11.5%        353      303      121           7.6  3.14->3.10  0.50->0.46 1.86->1.80 18/17/21  25/32/21
+  5x5       -9.2%        292      240      170          10.0  3.18->3.16  0.49->0.39 1.82->2.02 21/16/20  24/26/37
+  6x6      -16.7%        286      185      222          10.9  3.10->2.86  0.48->0.33 1.84->2.32 20/17/17  43/47/41
+
+-- split per size: process age = aged vs fresh process on the SAME played save (A1 vs A3); fort change = played vs original save in the SAME fresh process (A3 vs A4)
+  1x1: process age -7% [-7, -5, -8]; fort change -5% [+10, -8, -17]
+  2x2: process age -10% [-9, -12, -9]; fort change -1% [+9, -32, +19]
+  3x3: process age -17% [-15, -14, -22]; fort change +24% [+2, +36, +35]
+  4x4: process age -17% [-24, -6, -20]; fort change +1% [+9, -26, +20]
+  5x5: process age -32% [-46, -26, -25]; fort change +25% [+25, +22, +28]
+  6x6: process age -38% [-38, -44, -30]; fort change +0% [+9, -13, +4]
+
+-- pooled model over play readings: ms/tick on session age, map area and the fort's load
+  n=432, R2=0.383
+    intercept (ms)                  1.06571  (se 0.28887, t    3.7)
+    per 100k ticks played           0.09652  (se 0.09325, t    1.0)
+    per 10k map tiles               0.02743  (se 0.06520, t    0.4)
+    per citizen                     0.01536  (se 0.02361, t    0.7)
+    per wild unit                   0.01038  (se 0.00646, t    1.6)
+    per 1000 items                  1.10896  (se 0.24707, t    4.5)
+
+-- does speed track the process's growth? ms/tick on footprint, within the same model
+  n=432, R2=0.384
+    intercept (ms)                  2.70468  (se 2.18753, t    1.2)
+    per 100k ticks played           0.14730  (se 0.11497, t    1.3)
+    per 10k map tiles               0.06752  (se 0.08407, t    0.8)
+    per citizen                     0.01740  (se 0.02378, t    0.7)
+    per wild unit                   0.00976  (se 0.00652, t    1.5)
+    per 1000 items                  1.26097  (se 0.31867, t    4.0)
+    per 100 MB footprint           -0.07554  (se 0.09994, t   -0.8)
+
+-- host contention: the same model with the host's 1-minute load average (other lanes share the machine)
+  n=432, R2=0.393
+    intercept (ms)                  0.02169  (se 0.48951, t    0.0)
+    per 100k ticks played           0.11800  (se 0.09297, t    1.3)
+    per 10k map tiles               0.03991  (se 0.06493, t    0.6)
+    per citizen                     0.00409  (se 0.02384, t    0.2)
+    per wild unit                   0.00949  (se 0.00643, t    1.5)
+    per 1000 items                  1.17310  (se 0.24658, t    4.8)
+    per unit of load1               0.11906  (se 0.04523, t    2.6)
+  readings where DF got under 2 cores (starved by the host, not slowed by the fort): 4 of 432
+    6x6 rep 1 at 286853 t: 122 t/s, 1.93 cores, load1 6.2
+    3x3 rep 1 at 118680 t: 154 t/s, 1.69 cores, load1 9.2
+    5x5 rep 2 at 135233 t: 36 t/s, 1.07 cores, load1 9.0
+    1x1 rep 2 at 102170 t: 201 t/s, 1.53 cores, load1 6.1
