@@ -800,6 +800,11 @@ print(json.encode({bad=bad, armed=armed, benign=benign, reach=r, dealt=#list, fo
         ok = (big and small and all(b["weight"] < max(1, b["freq"]) and b["weight"] >= max(1, int(0.1 * b["freq"] + 0.5)) for b in big if b["mass"] > 1000000 and b["habitat"] == "aquatic")
               and any(b["mass"] > 1000000 and b["habitat"] == "aquatic" for b in big) and all(x["weight"] == max(1, x["freq"]) for x in small if x["mass"] <= 1000000))
         rec("mech.v69.pelagic", "PASS" if ok else "FAIL", "giants: 0.1 x FREQUENCY <= weight < FREQUENCY; small fish: weight = FREQUENCY", json.dumps(w))
+    # curious flags are held and the roster exists only while rotation runs: switch it on for the rest of the phase
+    # (validation 124603 found CTRL with rotation off: both checks NOT-TESTABLE); put it back at the end
+    en0 = luaj("print(json.encode({on=reqscript('seasonal-wildlife').loadConfig().enabled}))", timeout=60)
+    was_on = isinstance(en0, dict) and bool(en0.get("on"))
+    if not was_on: cmd("enable", timeout=240)
     rc, o1 = cmd("alerts"); rc, o2 = cmd("alerts", "off"); rc, o3 = cmd("alerts", "on")
     rec("cli.alerts", "PASS" if "quiet wildlife fights: on" in o1 and "quiet wildlife fights: off" in o2 and "quiet wildlife fights: on" in o3 else "FAIL",
         "on by default; off; on again", o1 + o2 + o3)
@@ -828,7 +833,7 @@ local live0=sw.RESERVE.of(e0.key); cfg.exhaust.enabled=true; cfg.exhaust.stamp=-
 sw.RESERVE.set(e0.key, 0)
 local made=R.exhaustCheck(cfg, s)
 local held=R.exhaustHolds(cfg, e0.key)
-dfhack.run_command('seasonal-wildlife','now')
+dfhack.run_command_silent('seasonal-wildlife','now')   -- silent: its 'active: N [ms]' line would break the JSON read
 local cfg2=sw.loadConfig(); local after=sw.RESERVE.of(e0.key); local prom
 for k,v in pairs(cfg2.exhaust.promoted) do if v.for_key==e0.key then prom=k end end
 local inS = prom and sw.inSeason(cfg2, prom, s) or false
@@ -843,6 +848,7 @@ print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, p
         rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
             json.dumps(x)[:800])
     cmd("ledger", "8")
+    if not was_on: cmd("disable", timeout=240)
     tj = luaj("local m=df.global.world.map; print(json.encode({t=(m.x_count//48)*(m.y_count//48)}))", timeout=60)
     want = (int(math.isqrt(tj["t"])) + 1) if isinstance(tj, dict) and tj.get("t") else None
     rc, a0 = cmd("limits", "land", "groups", "auto"); rc, a1 = cmd("limits", "land", "groups", "4"); rc, a2 = cmd("limits", "land", "groups", "auto")

@@ -1,0 +1,168 @@
+[
+ {
+  "id": "mech.v69.armed",
+  "surface": "MECH",
+  "claim": "a food-web predator is armed exactly when it is not BENIGN (LARGE_PREDATOR is not the switch)",
+  "source": "ECO P1/T1: coyote hunted, BENIGN wolf never",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "0 predators armed while BENIGN or unarmed while not; some armed",
+  "got": "armed 64, BENIGN 18, mismatches []",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.reach",
+  "surface": "MECH",
+  "claim": "the relation write reaches only where the predator can: a shark never takes a deer; an alligator and a wolf do",
+  "source": "ECO W1L/W1O",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "shark x deer false; alligator x deer true; wolf x deer true",
+  "got": "{\"gator_deer\": true, \"shark_deer\": false, \"wolf_deer\": true}",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.fitseason",
+  "surface": "MECH",
+  "claim": "the season deal never gives a species a season its raws forbid (NO_SPRING/SUMMER/AUTUMN/WINTER) unless they forbid every season",
+  "source": "ECO T2; user 30 Sep",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "every species with a NO_<season> flag dealt an allowed season",
+  "got": "dealt 29, forbidden [], all four barred 0",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.pelagic",
+  "surface": "MECH",
+  "claim": "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY",
+  "source": "user 30 Sep; ECO O/DEPTH",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "giants: 0.1 x FREQUENCY <= weight < FREQUENCY; small fish: weight = FREQUENCY",
+  "got": "{\"FISH_COD\": {\"freq\": 50, \"habitat\": \"aquatic\", \"mass\": 50000, \"weight\": 50}, \"FISH_MILKFISH\": {\"freq\": 50, \"habitat\": \"aquatic\", \"mass\": 10000, \"weight\": 50}, \"SHARK_WHALE\": {\"freq\": 50, \"habitat\": \"aquatic\", \"mass\": 20000000, \"weight\": 5}}",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "cli.alerts",
+  "surface": "CLI",
+  "claim": "`alerts off|on` switches quiet wildlife fights and says so; on by default",
+  "source": "ECO A1/A2",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "on by default; off; on again",
+  "got": "quiet wildlife fights: on (combat alerts with no humanoid in them are dropped)\nquiet wildlife fights: off (combat alerts with no humanoid in them are dropped)\nquiet wildlife fights: on (combat alerts with no humanoid in them are dropped)",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "cli.curious",
+  "surface": "CLI",
+  "claim": "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused",
+  "source": "ECO B/CB",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "flags set -> cleared by resident -> restored by thief; DEER refused",
+  "got": "flags 4 -> 0 -> 4\ncurious beasts kept as residents (flags cleared while the tool runs): BEAR_GRIZZLY\ncurious beasts kept as residents (flags cleared while the tool runs): none -- all steal and leave, as DF does\ncurious: DEER is not a curious beast (no CURIOUSBEAST_EATER/ITEM/GUZZLER)",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.exhaust",
+  "surface": "MECH",
+  "claim": "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change",
+  "source": "ECO N1",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
+  "got": "{\"after\": 0, \"back\": 1, \"held\": true, \"in_season\": true, \"key\": \"BIRD_KESTREL\", \"live0\": 47, \"made\": 1, \"out_after_roll\": true, \"promoted\": \"BIRD_OWL_GREAT_HORNED\"}",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.autogroups",
+  "surface": "MECH",
+  "claim": "land groups at once default to floor(sqrt(embark tiles)) + 1 and `limits land groups N` sets a number instead",
+  "source": "user 29 Sep; ECO2-G",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "auto (5) for 16 embark tiles; 4 when set; auto again",
+  "got": "limits: land auto (5) group(s) at once, ceiling none; water 2 group(s) at once, ceiling 12; cavern 2 group(s) at once, ceiling none\n  on the map now: land 0  water 0  cavern 8  deep 5\nlimits: land 4 group(s) at once, ceiling none; water 2 group(s) at once, ceiling 12; cavern 2 group(s) at once, ceiling none\n  on the map now: land 0  water 0  cavern 8  deep 5\nlimits: land auto (5) group(s) at once, ceiling none; water 2 group(s) at once, ceiling 12; cavern 2 group(s) at once, ceiling none\n  on the map now: land 0  water 0  cavern 8  deep 5",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "cli.scavenge",
+  "surface": "CLI",
+  "claim": "`scavenge on|off|now` switches scavenging, runs one pass on demand and reports it; off by default",
+  "source": "ECO S/S2; PLAN scavenging",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": "off by default; on; a pass reports N eaten; off",
+  "got": "scavenging: off  radius 20\nscavenging: on  radius 20\nscavenge: 0 eaten\nscavenging: on  radius 20\nscavenging: off  radius 20",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.v69.guild",
+  "surface": "MECH",
+  "claim": "the engine's guild for each natural species agrees with the ECO desk's guild table (data/eco-desk/v2/guilds/species2.tsv) for at least 95% of them",
+  "source": "ECO desk v2 guild design",
+  "claimed": "shipped v6.9",
+  "verdict": "PASS",
+  "expected": ">= 95% of shared species in the same guild",
+  "got": "shared 894, agree 99.7%; first differences (desk/engine): ['ANT_MAN:RP/LB', 'CAVE_FISH_MAN:SH/FF', 'TRIASSIC_SHAROVIPTERYX_MAN:RP/ML']",
+  "shots": [],
+  "data": {
+   "shared": 894,
+   "agree": 0.9966442953020134,
+   "diff": [
+    "ANT_MAN:RP/LB",
+    "CAVE_FISH_MAN:SH/FF",
+    "TRIASSIC_SHAROVIPTERYX_MAN:RP/ML"
+   ]
+  },
+  "note": ""
+ },
+ {
+  "id": "w0.overlay",
+  "surface": "MECH",
+  "claim": "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)",
+  "source": "alpha 1 steps 6.2/6.3/10.1; W0",
+  "claimed": "shipped v6.3",
+  "verdict": "PASS",
+  "expected": "seasonal-wildlife.groups enabled=False after the run, as before it",
+  "got": "before: enabled=False; after: enabled=False",
+  "shots": [],
+  "data": null,
+  "note": ""
+ },
+ {
+  "id": "mech.save.untouched",
+  "surface": "MECH",
+  "claim": "a full session of console and GUI use leaves the save byte-identical (config lives in persistent site data)",
+  "source": "USAGE.md Uninstall; df-rig rule",
+  "claimed": "shipped",
+  "verdict": "PASS",
+  "expected": "diff -rq of the save against its backup is empty after the whole session",
+  "got": "identical",
+  "shots": [],
+  "data": {
+   "identical": true
+  },
+  "note": ""
+ }
+]

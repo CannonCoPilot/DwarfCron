@@ -1,0 +1,26 @@
+12:47:33 validate-full run 20260930-124733 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-124733
+12:47:33 == SETUP: restore and load CTRL
+12:47:51   loaded: tick 16800 season 0 citizens 7 land 0 water 0 cavern 8 deep 5
+12:47:51 == v6.9: the ecology as the ECO suite measured it
+12:47:51   [PASS             ] mech.v69.armed: a food-web predator is armed exactly when it is not BENIGN (LARGE_PRED
+12:47:51   [PASS             ] mech.v69.reach: the relation write reaches only where the predator can: a shark never 
+12:47:51   [PASS             ] mech.v69.fitseason: the season deal never gives a species a season its raws forbid (NO_SPR
+12:47:51   [PASS             ] mech.v69.pelagic: a pelagic giant's water-draw weight is its FREQUENCY scaled down by si
+12:47:52   [PASS             ] cli.alerts: `alerts off|on` switches quiet wildlife fights and says so; on by defa
+12:47:53   [FAIL             ] cli.curious: `curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flag
+12:47:53       expected: flags set -> cleared by resident -> restored by thief; DEER refused
+      got: flags 4 -> 0 -> 0
+curious beasts kept as residents (flags cleared while the tool runs): BEAR_GRIZZLY
+curious: BEAR_GRIZZLY is not a curious beast (no CURIOUSBEAST_EATER/ITEM/GUZZLER)
+curious: DEER is not a curious beast (no CURIOUSBEAST_EATER/ITEM/GUZZLER)
+12:47:53   [FAIL             ] mech.v69.exhaust: an in-season species whose stock reaches 0 is held at 0 by an apply, a
+12:47:53       expected: 1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll
+      got: {"_raw": "active: 10  [5 ms]\n{\n\t\"after\": 0,\n\t\"back\": 1,\n\t\"held\": true,\n\t\"in_season\": true,\n\t\"key\": \"BIRD_KESTREL\",\n\t\"live0\": 47,\n\t\"made\": 1,\n\t\"out_after_roll\": true,\n\t\"promoted\": \"BIRD_OWL_GREAT_HORNED\"\n}\n"}
+12:47:54   [PASS             ] mech.v69.autogroups: land groups at once default to floor(sqrt(embark tiles)) + 1 and `limi
+12:47:54   [PASS             ] cli.scavenge: `scavenge on|off|now` switches scavenging, runs one pass on demand and
+12:47:55   [PASS             ] mech.v69.guild: the engine's guild for each natural species agrees with the ECO desk's
+12:47:55   [PASS             ] w0.overlay: a validation run leaves DFHack's overlay settings as it found them (se
+12:47:55 == TEARDOWN
+12:48:02   [PASS             ] mech.save.untouched: a full session of console and GUI use leaves the save byte-identical (
+12:48:03 == DONE /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-124733
+   FAIL 2  PASS 10
