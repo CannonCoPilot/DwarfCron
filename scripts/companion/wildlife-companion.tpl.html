@@ -232,6 +232,18 @@ input[type=range]{accent-color:var(--accent);width:100%}
 .web path.vermin{stroke-dasharray:3 3}
 .web .fam text{font-style:italic}
 .chip.fam{background:transparent;border:1px dashed var(--line-2)}
+.tile{display:inline-block;flex:none;vertical-align:middle;image-rendering:pixelated;image-rendering:crisp-edges;background-repeat:no-repeat}
+.tile.ascii{position:relative;border-radius:2px}
+.tile.ascii i{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.tile.ascii b{position:absolute;inset:0;display:grid;place-items:center;font:600 13px/1 var(--mono)}
+.tile.none{background:var(--surface-3);border-radius:3px}
+.dtile{display:grid;place-items:center;min-height:72px;background:var(--surface-2);border-radius:8px;padding:8px;justify-self:start;min-width:88px}
+.scav{display:flex;flex-wrap:wrap;gap:6px}
+.scav button{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+.scav button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.scav button:disabled{opacity:.5;cursor:not-allowed}
+.scav small{color:var(--muted);font-size:11px}
+.planned{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:1px 6px;margin-left:6px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:640px){
   .fort h1{font-size:24px}
@@ -254,6 +266,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
   </div>
   <div class="top-row" style="margin-top:12px">
     <div class="seg" role="group" aria-label="Layer" id="layerSeg"></div>
+    <div class="seg" role="group" aria-label="Creature tiles" id="tileSeg"></div>
     <div class="spacer"></div>
     <label class="search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg><input id="q" type="search" placeholder="Find a species" aria-label="Find a species"><kbd>/</kbd></label>
   </div>
@@ -296,7 +309,62 @@ const store = { get(k, d) { try { const v = localStorage.getItem('swc.' + k); re
 
 // ---- the state, from either source ----
 let D, SP = [], BY = {}, eats = {}, eatenBy = {}, onMap = new Set(), GROUPS = [], LIM = {}, JOBS = [], LEDGER = [],
-    NOW = 0, DATE = {}, BUDGET = 50, SERIES = [];
+    NOW = 0, DATE = {}, BUDGET = 50, SERIES = [], GFX = null, MASK = null, MASKFOR = '';
+
+// ---- creature tiles: DF's Steam sprites or its ASCII glyph, in the install's own font and palette ----
+// A sprite sheet is a CSS background at the tile's offset; a glyph is the font sheet used as a mask over the
+// creature's DF colour, on its DF background. Until the font is ready, a CP437 character stands in.
+const CP437 = ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼' + Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i)).join('') + '⌂'
+  + 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0';
+const cpChar = n => [...CP437][n] || '?';
+const withTok = u => LIVEMODE && u && u.startsWith('/') ? u + (u.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(TOKEN) : u;
+function prepareFont() {           // white glyphs on transparent, from DF's font sheet (magenta or black ground)
+  const f = GFX && GFX.font; if (!f || !f.url || MASKFOR === f.url) return;
+  MASKFOR = f.url;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+    for (let i = 0; i < p.length; i += 4) {
+      const r = p[i], g = p[i + 1], b = p[i + 2], magenta = r > 200 && g < 60 && b > 200;
+      const a = magenta ? 0 : Math.min(p[i + 3], Math.max(r, g, b));
+      p[i] = p[i + 1] = p[i + 2] = 255; p[i + 3] = a;
+    }
+    x.putImageData(d, 0, 0);
+    MASK = { url: c.toDataURL(), gw: f.gw || img.width / 16, gh: f.gh || img.height / 16, w: img.width, h: img.height };
+    renderAll();
+  };
+  img.src = withTok(f.url);
+}
+function tile(s, h = 24, big = false) {
+  if (!s) return '';
+  const set = st.tiles;
+  if (set === 'steam' && GFX && s.gfx) {
+    const g = s.gfx, useBig = big && g.p, pg = GFX.pages[useBig ? g.p : (g.ip || g.p)];
+    if (pg) {
+      const tw = pg.tw || 32, th = pg.th || 32;
+      const tx = useBig ? g.x : (g.ip ? g.ix : g.x), ty = useBig ? g.y : (g.ip ? g.iy : g.y);
+      const wt = useBig ? (g.w || 1) : 1, ht = useBig ? (g.h || 1) : 1;
+      const k = h / (ht * th);
+      return `<span class="tile" role="img" aria-label="${esc(s.name)}" style="width:${wt * tw * k}px;height:${h}px;background-image:url('${withTok(pg.url)}');background-size:${pg.w * k}px ${pg.h * k}px;background-position:${-tx * tw * k}px ${-ty * th * k}px"></span>`;
+    }
+  }
+  const a = s.ascii;
+  if (!a) return `<span class="tile none" style="width:${h}px;height:${h}px"></span>`;
+  const pal = (GFX && GFX.palette) || [], fg = pal[a.fg + (a.br ? 8 : 0)] || '#c0c0c0', bg = pal[a.bg] || '#000';
+  const gw = MASK ? MASK.gw : 8, gh = MASK ? MASK.gh : 12, k = h / gh, w = Math.round(gw * k);
+  if (!MASK) return `<span class="tile ascii" role="img" aria-label="${esc(s.name)}" style="width:${w}px;height:${h}px;background:${bg}"><b style="color:${fg};font-size:${Math.round(h * 0.8)}px">${esc(cpChar(a.ch))}</b></span>`;
+  const col = a.ch % 16, row = Math.floor(a.ch / 16);
+  const m = `url(${MASK.url}) ${-col * gw * k}px ${-row * gh * k}px / ${MASK.w * k}px ${MASK.h * k}px no-repeat`;
+  return `<span class="tile ascii" role="img" aria-label="${esc(s.name)}" style="width:${w}px;height:${h}px;background:${bg}"><i style="background:${fg};-webkit-mask:${m};mask:${m}"></i></span>`;
+}
+function renderTileSeg() {
+  const el = document.getElementById('tileSeg');
+  el.innerHTML = [['steam', 'Steam tiles'], ['ascii', 'ASCII']].map(([k, n]) => `<button type="button" data-t="${k}" aria-pressed="${st.tiles === k}">${n}</button>`).join('');
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { st.tiles = b.dataset.t; store.set('tiles', st.tiles); renderAll(); });
+  el.hidden = !GFX;
+}
 function ingest(d) {
   D = d;
   SP = arr(d.species).map(s => ({ ...s, seasons: arr(s.seasons), role: s.role || 'prey' }));
@@ -307,6 +375,7 @@ function ingest(d) {
   onMap = new Set(SP.filter(s => s.on_map > 0).map(s => s.key).concat(GROUPS.map(g => g.key)));
   LIM = d.limits || {}; JOBS = arr(d.jobs); LEDGER = arr(d.ledger); DATE = d.date || {}; NOW = DATE.season ?? 0;
   BUDGET = d.budget || 50;
+  GFX = d.gfx || GFX; prepareFont();
   if (LIVEMODE) {           // the tool keeps no history; the page samples what is on the map while it is open
     const w = d.wild || {}, t = DATE.abs_day;
     if (t != null && (!SERIES.length || t > SERIES[SERIES.length - 1].t)) SERIES.push({ t, land: w.land || 0, water: w.water || 0, cavern: w.cavern || 0 });
@@ -318,7 +387,7 @@ function ingest(d) {
 const st = {
   tab: store.get('tab', 'status'), layer: store.get('layer', 'all'), q: '', sel: null,
   sort: { k: 'name', dir: 1 }, fActive: 'all', fRole: 'all', fHab: 'all', fNow: false,
-  webSeason: null, webActive: true, webVermin: true, webFocus: null, conOpen: false, cmds: [], conn: LIVEMODE ? 'loading' : 'sample',
+  webSeason: null, webActive: true, webVermin: true, webFocus: null, tiles: store.get('tiles', 'steam'), scav: {}, conOpen: false, cmds: [], conn: LIVEMODE ? 'loading' : 'sample',
 };
 
 // ---- the numbers the tool shows ----
@@ -417,14 +486,14 @@ function renderStatus() {
   }).join('');
   const live = GROUPS.filter(g => layerOk(BY[g.key]));
   const rows = live.map(g => { const s = BY[g.key], canHold = g.tracked !== false && g.leaves != null; return `<tr>
-      <td><button class="elink" data-go="${g.key}" style="background:none;padding:0"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button></td>
+      <td><button class="elink" data-go="${g.key}" style="background:none;padding:0">${tile(s, 22)}<span class="t">${nm(s)}</span></button></td>
       <td class="num mono">${g.n}</td><td><span class="chip">${esc(g.origin)}</span></td>
       <td class="num">${g.leaves == null ? '<span class="sub">—</span>' : g.leaves.toFixed(1) + ' d'}</td>
       <td style="white-space:nowrap">${canHold ? `<button class="btn small" data-hold="${esc(s.token)}">Hold 3 d</button> <button class="btn small" data-off="${esc(s.token)}">Send off</button>` : ''}</td></tr>`; }).join('');
   const nxt = (NOW + 1) % 4;
   const nextIn = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(nxt) && !s.seasons.includes(NOW));
   const nextOut = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(NOW) && !s.seasons.includes(nxt));
-  const chipList = a => a.length ? a.slice(0, 14).map(s => `<button class="elink" data-go="${s.key}"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button>`).join('') + (a.length > 14 ? `<span class="more">+${a.length - 14} more</span>` : '') : '<span class="sub">none</span>';
+  const chipList = a => a.length ? a.slice(0, 14).map(s => `<button class="elink" data-go="${s.key}">${tile(s, 18)}<span class="t">${nm(s)}</span></button>`).join('') + (a.length > 14 ? `<span class="more">+${a.length - 14} more</span>` : '') : '<span class="sub">none</span>';
   const max = Math.max(160, ...JOBS.map(j => j.worst));
   const jobs = JOBS.length ? JOBS.map(j => { const over = j.worst > BUDGET; return `<div class="job"><span class="mono">${esc(j.name)}</span>
       <div class="jbar" title="last ${j.last} ms, worst ${j.worst} ms, budget ${BUDGET} ms"><span class="last" style="width:${j.last / max * 100}%"></span><span class="budget" style="left:${BUDGET / max * 100}%"></span><span class="worst" style="left:${Math.min(j.worst, max) / max * 100}%"></span></div>
@@ -546,7 +615,7 @@ function renderList() {
   const L = document.getElementById('list'), top = L.scrollTop;
   L.innerHTML = `<table><thead><tr>${cols.map(([k, n]) => `<th data-sort="${k}" aria-sort="${st.sort.k === k ? (st.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}" ${['stock', 'odds'].includes(k) ? 'style="text-align:right"' : ''}>${n}</th>`).join('')}</tr></thead><tbody>
     ${a.map(s => `<tr data-key="${esc(s.key)}" aria-selected="${s.key === st.sel}" class="${s.active ? '' : 'inactive'}">
-      <td><span class="name"><span class="dot ${s.layer}" title="${LNAME[s.layer] || s.layer}"></span><span style="text-transform:capitalize">${nm(s)}</span>${onMap.has(s.key) ? '<span class="chip accent" title="On the map now">on map</span>' : ''}</span></td>
+      <td><span class="name"><span class="dot ${s.layer}" title="${LNAME[s.layer] || s.layer}"></span>${tile(s, 24)}<span style="text-transform:capitalize">${nm(s)}</span>${onMap.has(s.key) ? '<span class="chip accent" title="On the map now">on map</span>' : ''}</span></td>
       <td>${isVermin(s) ? `<span class="chip fam" title="${esc(FAM[s.family] || '')}">vermin</span>` : s.role}</td><td>${s.band || '—'}</td><td>${seasonStrip(s)}</td>
       <td class="mono num" style="text-align:right">${fmt(s.stock)}</td><td class="mono num" style="text-align:right">${shareText(s)}</td>
       <td><button class="switch" role="switch" aria-checked="${s.active}" aria-label="${nm(s)} active" data-act="${esc(s.key)}"></button></td></tr>`).join('')
@@ -564,7 +633,7 @@ function toggleActive(s) {
 function egoList(keys, cap) {
   if (!keys || !keys.length) return '<span class="sub">none on this map</span>';
   const a = keys.map(k => BY[k]).filter(Boolean).sort((x, y) => (+y.active - +x.active) || (onMap.has(y.key) - onMap.has(x.key)) || x.name.localeCompare(y.name));
-  return a.slice(0, cap).map(s => `<button class="elink ${onMap.has(s.key) ? 'live' : ''}" data-go="${esc(s.key)}" title="${nm(s)}${s.active ? '' : ' (inactive)'}${onMap.has(s.key) ? ', on the map' : ''}" style="${s.active ? '' : 'opacity:.55'}"><span class="dot ${s.layer}"></span><span class="t">${nm(s)}</span></button>`).join('')
+  return a.slice(0, cap).map(s => `<button class="elink ${onMap.has(s.key) ? 'live' : ''}" data-go="${esc(s.key)}" title="${nm(s)}${s.active ? '' : ' (inactive)'}${onMap.has(s.key) ? ', on the map' : ''}" style="${s.active ? '' : 'opacity:.55'}">${tile(s, 18)}<span class="t">${nm(s)}</span></button>`).join('')
     + (a.length > cap ? `<span class="more">+${a.length - cap} more</span>` : '');
 }
 function renderDetail() {
@@ -572,6 +641,7 @@ function renderDetail() {
   if (el.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;   // do not clobber an edit in progress
   const sh = share(s), vm = isVermin(s);
   el.innerHTML = `
+    <div class="dtile">${tile(s, st.tiles === 'steam' ? 64 : 48, true)}</div>
     <div class="dhead"><span class="mono sub">${esc(s.key)}</span><h3>${nm(s)}</h3>
       <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span><span class="chip">${vm ? 'vermin: ' + esc(FAM[s.family] || s.family || '') : s.role}</span>${s.band ? `<span class="chip">${s.band}</span>` : ''}${s.animal_person ? '<span class="chip">animal person</span>' : ''}${onMap.has(s.key) ? '<span class="chip accent">on the map</span>' : ''}</div></div>
     <div class="row" style="justify-content:space-between"><span style="font-weight:600">${s.active ? 'Active: may arrive in its seasons' : 'Inactive: never arrives'}</span>
@@ -593,6 +663,7 @@ function renderDetail() {
         <div class="mid">${nm(s)}</div>
         <div class="col"><h4>Eats (${(eats[s.key] || []).length})</h4>${egoList(eats[s.key], 8)}</div></div>
       <button class="btn small" id="dWeb" style="justify-self:start">Open in the food web</button></div>
+    ${vm ? '' : scavField(s)}
     ${s.why ? `<div class="why">Why: ${esc(s.why)}</div>` : ''}
     ${vm ? '' : `<div class="row"><button class="btn primary" id="dCall" ${inSeason(s) && s.stock > 0 ? '' : 'disabled'}>Call a wave now</button>
       <span class="sub">${!s.active ? 'Inactive species cannot be called.' : !s.seasons.includes(NOW) ? 'Out of season: it can be called in ' + s.seasons.map(i => SEASONS[i]).join(', ') + '.' : s.stock <= 0 ? 'No stock left to arrive.' : `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be this species.`}</span></div>`}`;
@@ -612,9 +683,37 @@ function renderDetail() {
     od.oninput = () => { const v = +od.value; el.querySelector('#dOddsV').textContent = v; el.querySelector('#dShare').textContent = shareLine(s, share(s, v)); };
     od.onchange = () => { const v = +od.value; if (!LIVEMODE) { s.freq = v; renderList(); } od.blur(); send(['odds', s.key, String(v)], `${s.name}: odds ${v}`); };
   }
+  el.querySelectorAll('[data-scav]').forEach(b => b.onclick = () => {
+    const cur = new Set(scavOf(s)), k = b.dataset.scav; cur.has(k) ? cur.delete(k) : cur.add(k);
+    st.scav[s.key] = cur; renderDetail();
+    const t = new Date().toTimeString().slice(0, 8);
+    st.cmds.unshift({ t, cmd: `seasonal-wildlife scavenge ${s.key} ${cur.size ? [...cur].join(',') : 'none'}`, res: 'planned: no such verb yet' }); renderConsole();
+  });
   const call = el.querySelector('#dCall'); if (call) call.onclick = () => send(['call', s.key], `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be ${s.name}`);
   el.querySelector('#dWeb').onclick = () => { st.webFocus = vm ? famId(s) : s.key; st.webActive = false; go('web'); };
   el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { st.sel = b.dataset.go; renderList(); renderDetail(); });
+}
+// Scavenging (pinned for later development, 29 Sep): which vermin and remains a species takes. The categories are
+// suggested from what the raws say it is; the tool has no verb for them yet, so in live mode they are shown, not sent.
+const SCAV = [['bugs', 'Eats bugs', ['flies', 'colony']], ['fish', 'Eats fish', ['fish']], ['crawlers', 'Eats crawlers', ['crawlers']],
+              ['fliers', 'Eats fliers', ['fliers']], ['remains', 'Eats remains', []]];
+function scavSuggest(s) {
+  const d = s.diet || {}, small = s.band === 'small', pred = s.role === 'predator', out = new Set();
+  if ((s.habitat === 'waterbird' || s.habitat === 'semiaquatic' || s.habitat === 'aquatic') && (pred || small)) out.add('fish');
+  if (s.habitat === 'flier' && pred) out.add('fliers');
+  if (pred && small && (s.habitat === 'land' || s.habitat === 'semiaquatic')) out.add('crawlers');
+  if (s.habitat === 'waterbird') out.add('crawlers');
+  if (small && (s.habitat === 'flier' || s.habitat === 'land') && !d.grazer) out.add('bugs');
+  if (d.bonecarn || (d.carnivore && s.band !== 'small')) out.add('remains');
+  return out;
+}
+function scavOf(s) { return st.scav[s.key] || scavSuggest(s); }
+function scavField(s) {
+  const on = scavOf(s), mine = !!st.scav[s.key];
+  const nFam = fams => SP.filter(v => isVermin(v) && v.layer === s.layer && fams.includes(v.family)).length;
+  return `<div class="field"><span class="lab">Scavenging<span class="planned">planned</span></span>
+    <div class="scav">${SCAV.map(([k, n, fams]) => `<button type="button" data-scav="${k}" aria-pressed="${on.has(k)}" ${LIVEMODE ? 'disabled' : ''} title="${k === 'remains' ? 'Picks up remains near it; they are removed from the game' : 'Vermin: ' + fams.map(f => FAM[f]).join(', ')}">${n}<small>${k === 'remains' ? 'corpses' : nFam(fams) + ' here'}</small></button>`).join('')}</div>
+    <span class="sub">${mine ? 'Set by you on this page.' : 'Suggested from the raws: ' + (on.size ? [...on].map(k => SCAV.find(x => x[0] === k)[1].toLowerCase()).join(', ') : 'none') + '.'} Eating remains works like a haul: it walks to remains nearby, picks them up, and they are removed. Not in the tool yet${LIVEMODE ? '' : '; changes here only show the command it would take'}.</span></div>`;
 }
 function shareLine(s, r) { return r ? (r.now ? `${pct(r.pct)} of ${SEASONS[NOW]}'s ${(LNAME[s.layer] || '').toLowerCase()} waves` : `(${pct(r.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : 'inactive: no share'; }
 
@@ -705,7 +804,7 @@ function renderWeb() {
     } else {
       const a = [...new Set(edges.filter(e => e.p === id).map(e => e.q))];
       const sp = a.filter(k => BY[k]), fams = a.filter(k => !BY[k]).map(k => nodes.get(k)).filter(Boolean);
-      el.innerHTML = `<span class="mono sub">${esc(id)}</span><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;text-transform:capitalize;margin:2px 0 8px">${esc(n.name)}</h3>
+      el.innerHTML = `<div class="row">${tile(n.s, 40, true)}<span class="mono sub">${esc(id)}</span></div><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;text-transform:capitalize;margin:2px 0 8px">${esc(n.name)}</h3>
         <div class="field"><span class="lab">Eats (${sp.length})</span><div class="blist">${egoList(sp, 12)}</div></div>
         ${fams.length ? `<div class="field" style="margin-top:10px"><span class="lab">Hunts vermin (${fams.length} ${fams.length === 1 ? 'family' : 'families'})</span><div class="blist">${fams.map(f => `<span class="chip fam">${esc(f.name)}</span>`).join('')}</div></div>` : ''}
         <div class="field" style="margin-top:10px"><span class="lab">Eaten by (${hunters.length})</span><div class="blist">${egoList(hunters, 12)}</div></div>
@@ -748,7 +847,7 @@ function renderLedger() {
   });
 }
 
-function renderAll() { renderChrome(); renderLayerSeg(); renderTabs(); renderStatus(); renderSpecies(); renderWeb(); renderLedger(); }
+function renderAll() { renderChrome(); renderLayerSeg(); renderTileSeg(); renderTabs(); renderStatus(); renderSpecies(); renderWeb(); renderLedger(); }
 document.getElementById('q').addEventListener('input', e => { st.q = e.target.value; if (st.tab !== 'species') { st.tab = 'species'; renderTabs(); } renderList(); });
 document.addEventListener('keydown', e => {
   if (e.key === '/' && !['INPUT', 'SELECT'].includes(document.activeElement.tagName)) { e.preventDefault(); document.getElementById('q').focus(); }

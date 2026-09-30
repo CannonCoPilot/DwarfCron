@@ -218,6 +218,7 @@ CLAIMS = [
     ("web.snapshot", "CLI", "`seasonal-wildlife-web snapshot` prints one JSON state with the fort, the date, every managed species, the food-web pairs and vermin links", "user 29 Sep (companion)", "shipped v6.8"),
     ("web.serve", "MECH", "`seasonal-wildlife-web start` serves the page and /state.json to a browser on the host at 127.0.0.1 (through CrossOver), and `stop` stops it", "user 29 Sep (companion)", "shipped v6.8"),
     ("web.guard", "MECH", "the server refuses a request without the token, a verb off its list, and a request whose Host is not 127.0.0.1/localhost", "user 29 Sep (companion); loopback CSRF and DNS rebinding", "shipped v6.8"),
+    ("web.gfx", "MECH", "the snapshot carries sprite sheets, the font and a 16-colour palette, most species a sprite and an ASCII glyph, and GET /gfx/font and a sheet return PNGs", "user 29 Sep (companion tiles)", "shipped v6.8"),
     ("web.stop", "MECH", "`seasonal-wildlife-web stop` closes the port", "user 29 Sep (companion)", "shipped v6.8"),
     ("web.cmd", "MECH", "a POST /cmd with the token runs the console verb and returns its reply", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
@@ -774,6 +775,15 @@ def phase_v68_web():
     except Exception: pass
     rec("web.serve", "PASS" if tok and c1 == 200 and "seasonal-wildlife" in page and c2 == 200 and ok_state else "FAIL",
         "GET / 200 with the page; GET /state.json 200 with loaded state", f"start: {out.strip()[:160]}; page {c1} ({len(page)} bytes); state {c2} ({len(state)} bytes)")
+    gx = snap.get("gfx") or {}
+    pages = gx.get("pages") or {}
+    with_sprite = sum(1 for x in sp if x.get("gfx")); with_ascii = sum(1 for x in sp if x.get("ascii"))
+    first = next((x["gfx"]["p"] for x in sp if x.get("gfx")), None)
+    cf, fb = curl(f"/gfx/font?t={tok}"); cp, pb = curl(f"/gfx/p/{first}?t={tok}") if first else (0, "")
+    ok = (len(gx.get("palette") or []) == 16 and pages and gx.get("font") and sp and with_sprite >= 0.8 * len(sp) and with_ascii >= 0.95 * len(sp)
+          and cf == 200 and fb[1:4] == "PNG" and cp == 200 and pb[1:4] == "PNG")
+    rec("web.gfx", "PASS" if ok else "FAIL", "palette 16, sheets, font; >=80% sprites, >=95% glyphs; /gfx/font and a sheet are PNGs",
+        f"palette {len(gx.get('palette') or [])}, sheets {len(pages)}, sprites {with_sprite}/{len(sp)}, glyphs {with_ascii}/{len(sp)}; font {cf} {fb[1:4]!r}; sheet {first} {cp} {pb[1:4]!r}")
     g1, _ = curl("/state.json?t=wrong")
     g2, _ = curl(f"/cmd?t={tok}&a=preset", "POST")
     g3, _ = curl(f"/state.json?t={tok}", host="evil.example:8642")

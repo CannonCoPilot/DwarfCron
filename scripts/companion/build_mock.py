@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the seasonal-wildlife browser companion, in two forms from one template.
 
-  build_mock.py <out.html>          the SAMPLE page (published as an artifact): the state is embedded, in the same
+  build_mock.py <out.html> [--sprites sprites.json]
+                                    the SAMPLE page (published as an artifact): the state is embedded, in the same
                                     shape `seasonal-wildlife-web` serves as /state.json
   build_mock.py --live <out.html>   the LIVE page the tool ships (scripts/seasonal-wildlife-web.html): no data; it
                                     reads /state.json from the game and sends /cmd
@@ -35,7 +36,7 @@ def roster(d):
                  habitat=x["habitat"], role=x["role"], band=x["band"], active=bool(x["boats_active"]),
                  seasons=sorted({int(c) for c in (x["boats_seasons"] or "")}), stock=int(x["boats_stock"] or 0),
                  freq=int(x["frequency"] or 50), gmin=x["cluster_min"] or 1, gmax=x["cluster_max"] or 1,
-                 climate=round(x["climate_lean"] or 0.5, 2), animal_person=x["animal_person"], why="")
+                 climate=round(x["climate_lean"] or 0.5, 2), animal_person=x["animal_person"], why="", diet=diet(x))
         if s["active"] and not s["seasons"]:   # the one rule: an active species has a season
             s["seasons"] = [3 if s["climate"] < 0.35 else 1 if s["climate"] > 0.65 else 0]
         if not s["active"]:
@@ -43,6 +44,9 @@ def roster(d):
         s["why"] = "preset: one season" if s["active"] else "default: inactive"
         out.append(s)
     return out
+
+def diet(x):   # the caste flags scavenging suggestions read (the live snapshot reads the same from the raws in memory)
+    return {"carnivore": bool(x.get("carnivore")), "bonecarn": bool(x.get("bonecarn")), "grazer": bool(x.get("grazer"))}
 
 def family(x):   # the engine's VERMIN.family order; the bestiary has no creature classes, so mammals go by name
     if x.get("vermin_fish"): return "fish"
@@ -69,7 +73,7 @@ def vermin(d):
         out.append(dict(key=(layer + ":" if layer != "land" else "") + x["id"], token=x["id"], name=x["name"],
                         layer=layer, habitat=x["habitat"] or "land", role="vermin", band="small", active=True, seasons=seasons,
                         stock=int(x.get("pop_max") or 200), freq=0, gmin=1, gmax=1, family=fam, animal_person=False,
-                        why=f"vermin {fam}: seasonal defaults"))
+                        why=f"vermin {fam}: seasonal defaults", diet=diet(x)))
     return out
 
 def hunts(p):   # HUNT.wants
@@ -139,11 +143,24 @@ def state():
                      (("cavern", 18, 44), ("ecology", 9, 71), ("groups", 12, 149), ("hold", 2, 6), ("water", 3, 66))],
             "ledger": [{"t": t, "k": k, "l": "", "s": s} for t, k, s in ledger], "series": series, "ms": 0}
 
+def with_sprites(st, path):
+    """Merge build_sprites.py's output: gfx pages, font and palette at the top; gfx/ascii per species."""
+    g = json.load(open(path))
+    st["gfx"] = {"pages": g["pages"], "font": g["font"], "palette": g["palette"]}
+    for s in st["species"]:
+        s.update(g["tiles"].get(s["token"], {}))
+    return st
+
 if __name__ == "__main__":
     tpl = (Path(__file__).parent / "wildlife-companion.tpl.html").read_text()
+    if sys.argv[1] == "--tokens":   # the creature tokens the sample uses, for build_sprites.py
+        json.dump(sorted({x["token"] for x in state()["species"]}), open(sys.argv[2], "w")); sys.exit(0)
     if sys.argv[1] == "--live":
         Path(sys.argv[2]).write_text(tpl.replace("__DATA__", "null"))
     else:
-        data = json.dumps(state())
+        st = state()
+        if len(sys.argv) > 3 and sys.argv[2] == "--sprites":
+            st = with_sprites(st, sys.argv[3])
+        data = json.dumps(st)
         assert "</script" not in data
         Path(sys.argv[1]).write_text(tpl.replace("__DATA__", data))
