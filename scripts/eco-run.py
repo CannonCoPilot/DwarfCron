@@ -324,6 +324,17 @@ BLOCKS["WB"] = dict(fort="OCEAN2", spot="shore", cells={
     **{f"{s}_{b}_{'w' if w else 'df'}": dict(steps=[f"spawn {b} 6 {{X}} {{Y}} {{Z}} 4 water", f"spawn {s} 4 {{X}} {{Y}} {{Z}} 5 water"] + ([f"rel {s} {b}"] if w else []), ticks=3000)
        for s in ("SHARK_TIGER",) for b in ("BIRD_DUCK", "BIRD_PENGUIN") for w in (False, True)},
 })
+# CAL (user 30 Sep: "run a longer calibration first"): kill rates over 30,000 ticks by pack size, prey size, and for
+# solitary hunters; 6 prey, written relation, one spot per fort. Feeds the size gate and the FREQUENCY ladder.
+def cal(pred, n, prey):
+    return dict(steps=[f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 4", f"spawn {pred} {n} {{X}} {{Y}} {{Z}} 5", f"rel {pred} {prey}"], ticks=30000)
+BLOCKS["CAL"] = dict(fort="CTRL", spot="land", cells={
+    **{f"wolf{n}_{p}": cal("WOLF", n, p) for p in ("DEER", "MOOSE", "WATER_BUFFALO", "ELEPHANT") for n in (3, 5, 7)},
+    **{f"hyena{n}_{p}": cal("HYENA", n, p) for p in ("WATER_BUFFALO", "ELEPHANT") for n in (5, 10)},
+    **{f"cougar1_{p}": cal("COUGAR", 1, p) for p in ("DEER", "ELK", "MOOSE")},
+    **{f"lion1_{p}": cal("LION", 1, p) for p in ("GIRAFFE", "WATER_BUFFALO")},
+    "tiger1_WATER_BUFFALO": cal("TIGER", 1, "WATER_BUFFALO"),
+})
 BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
     "ctl": colo([]),
     **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},

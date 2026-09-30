@@ -491,7 +491,9 @@ elseif cmd == 'read' then
             local v, k = df.unit.find(it.victim), df.unit.find(it.criminal)
             out('death', { { 'tag', tag }, { 'victim', v and race_of(v) or it.victim }, { 'killer', k and race_of(k) or it.criminal },
                 { 'cause', df.death_type[it.death_cause] or it.death_cause }, { 'victim_spawned', S.spawned[it.victim] and 1 or 0 },
-                { 'killer_spawned', S.spawned[it.criminal] and 1 or 0 } })
+                { 'killer_spawned', S.spawned[it.criminal] and 1 or 0 },
+                -- ticks from the watch to the death (ECO CAL, 30 Sep: kill rates over a long cell need the time of each kill)
+                { 'dt', (function() local ok, v = pcall(function() return it.event_year * 403200 + it.event_time - (S.t0 or 0) end); return ok and v or -1 end)() } })
         end
     end
     local al = 0
