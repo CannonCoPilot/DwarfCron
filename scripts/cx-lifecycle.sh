@@ -417,6 +417,12 @@ cmd_genworld() {
     local waited=0 allowed=""
     while [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ]; do
         sleep 3; waited=$((waited + 3))
+        # fail fast: a DF that died mid-generation (FPS6 29 Sep 2026: MEDIUM at 500 years, 71 s in) left this loop
+        # polling a dead process for the whole timeout
+        if ! is_running; then
+            local cl; cl=$(ls -t "$DF_DIR"/crashlogs/crash_*.txt 2>/dev/null | head -1)
+            err "DF exited during worldgen after ${waited}s${cl:+ (crash log $(basename "$cl"))}"
+        fi
         if wait_drawn "Keep world and return to main menu" 1 >/dev/null; then
             cmd_ui click "Keep world and return to main menu" >/dev/null 2>&1
             break
