@@ -55,7 +55,7 @@ ARCHIVE = Path(cfg("CX_SNAPSHOT_DIR")) / "fps6-worlds"
 
 def sh(*args, timeout=900, env=None, check=True):
     """f5.sh with other deadlines: worldgen and a 257x257 survey outlast FPS5's 45 s RPC deadline."""
-    e = dict(os.environ, CX_RPC_TIMEOUT="45", CX_LOAD_TIMEOUT="600", **(env or {}))
+    e = {**os.environ, "CX_RPC_TIMEOUT": "45", "CX_LOAD_TIMEOUT": "600", **(env or {})}   # a caller's value wins (the survey's 1200)
     p = subprocess.run([f5.CX, *map(str, args)], capture_output=True, text=True, timeout=timeout, env=e)
     out = (p.stdout + p.stderr).replace("\r", "")
     if check and p.returncode != 0:
