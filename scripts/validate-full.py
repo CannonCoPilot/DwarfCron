@@ -50,6 +50,7 @@ V65 = V >= (6, 5, 0)
 V66 = V >= (6, 6, 0)
 V67 = V >= (6, 7, 0)
 V68 = V >= (6, 8, 0)
+V69 = V >= (6, 9, 0)
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
@@ -220,6 +221,14 @@ CLAIMS = [
     ("web.guard", "MECH", "the server refuses a request without the token, a verb off its list, and a request whose Host is not 127.0.0.1/localhost", "user 29 Sep (companion); loopback CSRF and DNS rebinding", "shipped v6.8"),
     ("web.gfx", "MECH", "the snapshot carries sprite sheets, the font and a 16-colour palette, most species a sprite and an ASCII glyph, and GET /gfx/font and a sheet return PNGs", "user 29 Sep (companion tiles)", "shipped v6.8"),
     ("web.stop", "MECH", "`seasonal-wildlife-web stop` closes the port", "user 29 Sep (companion)", "shipped v6.8"),
+    # ---- v6.9 (ECO suite, 29-30 Sep 2026): the ecology as measured
+    ("mech.v69.armed", "MECH", "a food-web predator is armed exactly when it is not BENIGN (LARGE_PREDATOR is not the switch)", "ECO P1/T1: coyote hunted, BENIGN wolf never", "shipped v6.9"),
+    ("mech.v69.reach", "MECH", "the relation write reaches only where the predator can: a shark never takes a deer; an alligator and a wolf do", "ECO W1L/W1O", "shipped v6.9"),
+    ("mech.v69.fitseason", "MECH", "the season deal never gives a species a season its raws forbid (NO_SPRING/SUMMER/AUTUMN/WINTER) unless they forbid every season", "ECO T2; user 30 Sep", "shipped v6.9"),
+    ("mech.v69.pelagic", "MECH", "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY", "user 30 Sep; ECO O/DEPTH", "shipped v6.9"),
+    ("cli.alerts", "CLI", "`alerts off|on` switches quiet wildlife fights and says so; on by default", "ECO A1/A2", "shipped v6.9"),
+    ("cli.curious", "CLI", "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused", "ECO B/CB", "shipped v6.9"),
+    ("mech.v69.exhaust", "MECH", "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change", "ECO N1", "shipped v6.9"),
     ("web.cmd", "MECH", "a POST /cmd with the token runs the console verb and returns its reply", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
     ("gui.k.altR", "GUI", "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50", "USAGE.md; W9", "shipped"),
@@ -746,6 +755,91 @@ print(json.encode({one=one, off=off}))"""
         rec("cli.seasons.activate", "PASS" if isinstance(s7, dict) and s7.get("allow") is True and s7.get("assign") == [3] else "FAIL",
             "allow true, seasons [3]", f"{off}: {json.dumps(s7)}\n{o7}")
         cmd("roster", off, "inactive")
+
+def phase_v69():
+    log("== v6.9: the ecology as the ECO suite measured it")
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg)
+local bad, armed, benign = {}, 0, 0
+for _,e in ipairs(pool) do if e.cat=='predator' and not e.locked and (e.layer=='land' or e.layer=='water' or e.layer=='cavern') then
+  local a = sw.ecoArmed(e) and true or false
+  if a then armed=armed+1 end; if e.benign then benign=benign+1 end
+  if a == (e.benign and true or false) then bad[#bad+1]=e.key end end end
+local M=sw.MODEL
+local function E(t,l) local e=M.entry(t,l); return e end
+local r={ shark_deer=M.reaches(E('SHARK_BLUE','water'),E('DEER','land')), gator_deer=M.reaches(E('ALLIGATOR','water'),E('DEER','land')),
+          wolf_deer=M.reaches(E('WOLF','land'),E('DEER','land')) }
+local c=sw.defaultConfig(); local list, forbidden, allbarred = {}, {}, 0
+for _,e in ipairs(pool) do if e.noSeason and (e.noSeason[0] or e.noSeason[1] or e.noSeason[2] or e.noSeason[3]) and not e.locked then list[#list+1]=e end end
+sw.ROSTER.deal(c, list, 'validator')
+for _,e in ipairs(list) do local s=(c.assign[e.key] or {})[1]
+  local all4 = e.noSeason[0] and e.noSeason[1] and e.noSeason[2] and e.noSeason[3]
+  if all4 then allbarred=allbarred+1 elseif s==nil or e.noSeason[s] then forbidden[#forbidden+1]=e.key..':'..tostring(s) end end
+local w={}
+for _,t in ipairs({'SHARK_WHALE','WHALE_SPERM','FISH_COD','FISH_MILKFISH'}) do
+  local e=M.entry(t,'water'); local cr=e and df.creature_raw.find(e.idx)
+  if e and cr then local c2=sw.classify(cr); e.habitat=c2.habitat; e.waters=c2.waters
+    w[t]={ weight=sw.ENGINE.weight(cfg,e,cr), freq=cr.frequency, mass=e.mass, habitat=e.habitat } end end
+print(json.encode({bad=bad, armed=armed, benign=benign, reach=r, dealt=#list, forbidden=forbidden, allbarred=allbarred, w=w}))""", timeout=240)
+    if not isinstance(j, dict) or "bad" not in j:
+        for cid in ("mech.v69.armed", "mech.v69.reach", "mech.v69.fitseason", "mech.v69.pelagic"):
+            rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        rec("mech.v69.armed", "PASS" if not j["bad"] and j["armed"] > 0 else "FAIL", "0 predators armed while BENIGN or unarmed while not; some armed",
+            f"armed {j['armed']}, BENIGN {j['benign']}, mismatches {j['bad'][:12]}")
+        r = j.get("reach") or {}
+        rec("mech.v69.reach", "PASS" if r.get("shark_deer") is False and r.get("gator_deer") is True and r.get("wolf_deer") is True else "FAIL",
+            "shark x deer false; alligator x deer true; wolf x deer true", json.dumps(r))
+        rec("mech.v69.fitseason", "PASS" if j["dealt"] > 0 and not j["forbidden"] else ("NOT-TESTABLE-HERE" if j["dealt"] == 0 else "FAIL"),
+            "every species with a NO_<season> flag dealt an allowed season", f"dealt {j['dealt']}, forbidden {j['forbidden'][:12]}, all four barred {j['allbarred']}")
+        w = j.get("w") or {}
+        big = [w[t] for t in ("SHARK_WHALE", "WHALE_SPERM") if t in w]; small = [w[t] for t in ("FISH_COD", "FISH_MILKFISH") if t in w]
+        ok = (big and small and all(b["weight"] < max(1, b["freq"]) and b["weight"] >= max(1, int(0.1 * b["freq"] + 0.5)) for b in big if b["mass"] > 1000000 and b["habitat"] == "aquatic")
+              and any(b["mass"] > 1000000 and b["habitat"] == "aquatic" for b in big) and all(x["weight"] == max(1, x["freq"]) for x in small if x["mass"] <= 1000000))
+        rec("mech.v69.pelagic", "PASS" if ok else "FAIL", "giants: 0.1 x FREQUENCY <= weight < FREQUENCY; small fish: weight = FREQUENCY", json.dumps(w))
+    rc, o1 = cmd("alerts"); rc, o2 = cmd("alerts", "off"); rc, o3 = cmd("alerts", "on")
+    rec("cli.alerts", "PASS" if "quiet wildlife fights: on" in o1 and "quiet wildlife fights: off" in o2 and "quiet wildlife fights: on" in o3 else "FAIL",
+        "on by default; off; on again", o1 + o2 + o3)
+    fl = "local cr=df.creature_raw.find(dfhack.units and reqscript('seasonal-wildlife').raceIndex('BEAR_GRIZZLY')); local n=0; for _,c in ipairs(cr.caste) do for _,f in ipairs({'CURIOUS_BEAST_EATER','CURIOUS_BEAST_GUZZLER'}) do if c.flags[f] then n=n+1 end end end; print(json.encode({n=n}))"
+    f0 = luaj(fl, timeout=60)
+    rc, c1 = cmd("curious", "BEAR_GRIZZLY", "resident"); f1 = luaj(fl, timeout=60)
+    rc, c2 = cmd("curious", "BEAR_GRIZZLY", "thief"); f2 = luaj(fl, timeout=60)
+    rc, c3 = cmd("curious", "DEER", "resident")
+    n = lambda f: f.get("n") if isinstance(f, dict) else None
+    en = luaj("print(json.encode({on=reqscript('seasonal-wildlife').loadConfig().enabled}))", timeout=60)
+    if isinstance(en, dict) and not en.get("on"):
+        rec("cli.curious", "NOT-TESTABLE-HERE", "rotation on (the flags are held only while the tool runs)", json.dumps(en))
+    else:
+        rec("cli.curious", "PASS" if (n(f0) or 0) > 0 and n(f1) == 0 and n(f2) == n(f0) and "not a curious beast" in c3 else "FAIL",
+            "flags set -> cleared by resident -> restored by thief; DEER refused", f"flags {n(f0)} -> {n(f1)} -> {n(f2)}\n{c1}{c2}{c3}")
+    x = luaj("""
+local sw=reqscript('seasonal-wildlife'); local R=sw.ROSTER; local cfg=sw.loadConfig(); local s=df.global.cur_season
+local pool=sw.buildPool(cfg); local e0,q0
+for _,e in ipairs(pool) do
+  if not e0 and e.inEmbark and not e.locked and e.cat~='vermin' and e.layer=='land' and R.wants(cfg,e.key,s) and #sw.RESERVE.entries(e.key)>0 then
+    for _,q in ipairs(pool) do
+      if q~=e and q.inEmbark and not q.locked and q.cat~='vermin' and cfg.allow[q.key]==true and R.group(q)==R.group(e)
+         and not sw.inSeason(cfg,q.key,s) and not (q.noSeason and q.noSeason[s]) then e0=e break end end end end
+if not e0 then print(json.encode({none=true})) return end
+local live0=sw.RESERVE.of(e0.key); cfg.exhaust.enabled=true; cfg.exhaust.stamp=-1; sw.saveConfig(cfg)
+sw.RESERVE.set(e0.key, 0)
+local made=R.exhaustCheck(cfg, s)
+local held=R.exhaustHolds(cfg, e0.key)
+dfhack.run_command('seasonal-wildlife','now')
+local cfg2=sw.loadConfig(); local after=sw.RESERVE.of(e0.key); local prom
+for k,v in pairs(cfg2.exhaust.promoted) do if v.for_key==e0.key then prom=k end end
+local inS = prom and sw.inSeason(cfg2, prom, s) or false
+cfg2.exhaust.stamp=-1; local back=R.exhaustRoll(cfg2); local cfg3=sw.loadConfig()
+local outS = prom and sw.inSeason(cfg3, prom, s) or false
+sw.RESERVE.set(e0.key, live0)
+print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, promoted=prom or '', in_season=inS, back=back, out_after_roll=not outS}))""", timeout=300)
+    if isinstance(x, dict) and x.get("none"):
+        rec("mech.v69.exhaust", "NOT-TESTABLE-HERE", "an in-season land species with an active out-of-season group-mate", json.dumps(x))
+    else:
+        ok = isinstance(x, dict) and x.get("made", 0) >= 1 and x.get("held") and x.get("after") == 0 and x.get("promoted") and x.get("in_season") and x.get("back", 0) >= 1 and x.get("out_after_roll")
+        rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
+            json.dumps(x)[:800])
+    cmd("ledger", "8")
 
 def phase_v68_web():
     log("== v6.8: the companion server")
@@ -2046,7 +2140,7 @@ def phase_teardown(fort):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "gui"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     a = ap.parse_args()
     log(f"validate-full run {RUN} -> {OUT}")
@@ -2066,6 +2160,9 @@ def main():
         if a.only == "v68":   # the console roster and seasons verbs and the companion server alone
             try: phase_v68(); phase_v68_web()
             except Exception as e: log(f"!! phase_v68 raised: {e!r}")
+        if a.only == "v69":   # the ECO ecology: armed, reach, seasons, pelagic, alerts, curious, exhaustion
+            try: phase_v69()
+            except Exception as e: log(f"!! phase_v69 raised: {e!r}")
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
             except Exception as e: log(f"!! phase_gui raised: {e!r}")
@@ -2098,6 +2195,9 @@ def main():
         if not a.only and V68:
             try: phase_v68(); phase_v68_web()
             except Exception as e: log(f"!! phase_v68 raised: {e!r}")
+        if not a.only and V69:
+            try: phase_v69()
+            except Exception as e: log(f"!! phase_v69 raised: {e!r}")
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
