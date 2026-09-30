@@ -338,6 +338,36 @@ BLOCKS["CAL"] = dict(fort="CTRL", spot="land", cells={
     **{f"lion1_{p}": cal("LION", 1, p) for p in ("GIRAFFE", "WATER_BUFFALO")},
     "tiger1_WATER_BUFFALO": cal("TIGER", 1, "WATER_BUFFALO"),
 })
+# STL (user 30 Sep): can stealth lift solitary hunting? cougar/lion vs deer (fast) and water buffalo (slow), 30k t.
+# Arms: ctl; sneak = unit SNEAK skill 10 on the placed hunters (what NATURAL_SKILL:SNEAK:10 gives a new unit); nslow =
+# sneak + every gait's stealth_slows 0 (sneaking costs no speed); ambush = AMBUSHPREDATOR on. Every 5,000 ticks the
+# hunters are sampled for hidden_in_ambush / hidden_ambusher (do wild animals sneak at all?).
+_STL_SAMPLE = ("lua:local n,h=0,0; for _,u in ipairs(df.global.world.units.active) do local c=df.creature_raw.find(u.race)"
+               " if c and c.creature_id=='{P}' and not dfhack.units.isDead(u) then n=n+1; if u.flags1.hidden_in_ambush or u.flags1.hidden_ambusher then h=h+1 end end end;"
+               " print(('eco hidden token={P} n=%d hidden=%d'):format(n,h))")
+_STL_SNEAK = ("lua:local utils=require('utils'); local k=0; for _,u in ipairs(df.global.world.units.active) do local c=df.creature_raw.find(u.race)"
+              " if c and c.creature_id=='{P}' and u.status.current_soul then utils.insert_or_update(u.status.current_soul.skills,"
+              " {new=true, id=df.job_skill.SNEAK, rating=10}, 'id'); k=k+1 end end; print(('eco sneak token={P} units=%d'):format(k))")
+_STL_SLOW = ("lua:for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='{P}' then for _,ca in ipairs(c.caste) do"
+             " for g=0,#ca.body_info.gait_info-1 do local l=ca.body_info.gait_info[g]; for k=0,#l-1 do l[k].stealth_slows={V} end end end end end;"
+             " print('eco stealthslows token={P} value={V}')")
+_STL_RESTORE = ("lua:local T={[0]=50,[1]=20,[2]=10}; for _,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='{P}' then for _,ca in ipairs(c.caste) do"
+                " for g=0,#ca.body_info.gait_info-1 do local l=ca.body_info.gait_info[g]; for k=0,#l-1 do l[k].stealth_slows=T[k] or 0 end end end end end;"
+                " print('eco stealthslows token={P} restored=1')")
+def stl(pred, prey, arm):
+    P = pred
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')"]
+    if arm == "ambush": st.append(f"flag {P} AMBUSHPREDATOR on")
+    if arm == "nslow": st.append(_STL_SLOW.replace("{P}", P).replace("{V}", "0"))
+    st += [f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 4", f"spawn {P} 1 {{X}} {{Y}} {{Z}} 5", f"rel {P} {prey}"]
+    if arm in ("sneak", "nslow"): st.append(_STL_SNEAK.replace("{P}", P))
+    st.append("watch")
+    for _ in range(6):
+        st += ["step:5000", _STL_SAMPLE.replace("{P}", P)]
+    post = [_STL_RESTORE.replace("{P}", P)] if arm == "nslow" else []
+    return dict(steps=st, ticks=10, nowatch=True, post=post)
+BLOCKS["STL"] = dict(fort="CTRL", spot="land", cells={
+    f"{p.lower()}_{q}_{a}": stl(p, q, a) for p in ("COUGAR", "LION") for q in ("DEER", "WATER_BUFFALO") for a in ("ctl", "sneak", "nslow", "ambush")})
 BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
     "ctl": colo([]),
     **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},
