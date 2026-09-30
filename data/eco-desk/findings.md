@@ -157,3 +157,10 @@ HO (OCEAN2 shore, 1 rep, written relations only):
   corpses_SHARK_GREAT_WHITE / walkeat_SHARK_BLUE: 0 units placed (radius-2 water spawn found no tiles) -> vacuous.
 HL (LAKE shore): 10 FISH_CARP spread none 34.3 / lowest 1.8 / largest male 2.3. Vermin cells (duck, peregrine, control)
   vacuous. corpses_ALLIGATOR (2 placed): 0 held/moved; walkeat_ALLIGATOR placed 0 -> vacuous.
+ECO2-FC (CTRL, tool disarmed, 60k t, released every 1,500 t, 1 rep; 143 cavern waves after the first sample):
+  FREQUENCY steers the cavern pick in proportion, PER CAVERN LAYER (each layer draws its own pool, gated by
+  UNDERGROUND_DEPTH). Cavern 1 (cave 8): giant cave swallow f100 42 of 49 (others f1). Cavern 2 (cave 13): blind cave
+  ogre f50 33 of 49 (swallow, depth 1:2, never came there). Cavern 3 (cave 25): ogre f50 21, blood man f25 10, cave blob
+  f12 7 -> 55/26/18% of the named vs 57/29/14% predicted; the f1 species 7 of 45. Waves split evenly across the three
+  layers (49/49/45) -> the layer is picked first, then the species within it.
+  => FREQUENCY is the cavern balancing dial too; the tool's cavern ceiling-by-frequency (addendum 53) acts on a real lever.
