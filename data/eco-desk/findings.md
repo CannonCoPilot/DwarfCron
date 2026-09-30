@@ -208,3 +208,15 @@ ECO3 WB (OCEAN2 shore, 4 SHARK_TIGER vs 6 birds placed in water, 3,000 t, 2 reps
   are caught while swimming, then the survivors fly/walk out.
   BIRD_PENGUIN: DF alone 0 attacks (1 penguin died per rep, not by a spawned killer: cause unrecorded); written 2 and 3 of
   6 killed. => aquatic predators DO take swimming waterbirds (the reach table's 'untested' cell -> yes, in water).
+ECO CAL (CTRL, one spot, 6 prey + n written predators, 30,000 t, sustain per cell, 2 reps; kills rep1/rep2):
+  wolves    deer       moose      water buffalo  elephant (hunters lost)
+    3       0/0        0/1        2/0            0/0 (1/1)
+    5       0/0        0/1        1/0            0/0 (2/0)
+    7       1/0        2/0        3/1            2/1 (1/0)
+  hyenas 5: buffalo 0/0, elephant 1/1 (0/2 lost); hyenas 10: buffalo 0/1, elephant 5/3 (1/2 lost).
+  solitary: cougar vs deer/elk/moose 0 in 6; lion vs giraffe 0/0, vs buffalo 0/1; tiger vs buffalo 0/0 -> 1 kill in 12.
+  Rates: best 1.33 kills / 10k t (10 hyenas on elephants), 7 wolves 0.17-0.66, 3-5 wolves 0-0.33.
+  => kills track group size, not prey mass: bigger prey died MORE (deer 1 in 6 wolf cell-reps, buffalo 7, elephants
+  3 to wolves, 8 to 10 hyenas); deer escape. Solitary hunters are inert over 30k t. Predation thins, never wipes
+  out (max 5 of 6 in 30k t). A mass-ratio gate has no basis in DF's combat; group size is the lever.
+  Attempt 1 (withered by thirst at ~330k t) is data/experiments/ECO/CAL-20260930-135309 (rep 1 wolf cells valid).
