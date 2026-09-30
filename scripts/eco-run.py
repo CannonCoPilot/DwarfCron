@@ -327,7 +327,10 @@ BLOCKS["WB"] = dict(fort="OCEAN2", spot="shore", cells={
 # CAL (user 30 Sep: "run a longer calibration first"): kill rates over 30,000 ticks by pack size, prey size, and for
 # solitary hunters; 6 prey, written relation, one spot per fort. Feeds the size gate and the FREQUENCY ladder.
 def cal(pred, n, prey):
-    return dict(steps=[f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 4", f"spawn {pred} {n} {{X}} {{Y}} {{Z}} 5", f"rel {pred} {prey}"], ticks=30000)
+    # every cell waters and feeds the citizens first: 22 cells x 30k ticks is over a year in one session, and CTRL's
+    # dwarves died of thirst in the first attempt (14:08-14:12, 'settlement withered'), which ended the fort
+    return dict(steps=["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')",
+                       f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 4", f"spawn {pred} {n} {{X}} {{Y}} {{Z}} 5", f"rel {pred} {prey}"], ticks=30000)
 BLOCKS["CAL"] = dict(fort="CTRL", spot="land", cells={
     **{f"wolf{n}_{p}": cal("WOLF", n, p) for p in ("DEER", "MOOSE", "WATER_BUFFALO", "ELEPHANT") for n in (3, 5, 7)},
     **{f"hyena{n}_{p}": cal("HYENA", n, p) for p in ("WATER_BUFFALO", "ELEPHANT") for n in (5, 10)},
