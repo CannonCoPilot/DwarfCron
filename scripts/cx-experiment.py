@@ -347,6 +347,14 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     control = arm.get("control") or man.get("control")
     control_met = None
     stop = arm.get("stop_when")
+    # ECO2-W (30 Sep 2026): a t0 manipulation may move the clock (setting the season jumps cur_year_tick by up to
+    # 302,400); counting that jump spent a 45,000-tick budget before the first step. The budget counts only ticks
+    # stepped from here.
+    clock = rig.probe("clock")[0]
+    jump = abs_tick_of(clock) - abs_tick
+    if jump:
+        out.log(f"  clock moved {jump:+d} ticks by the t0 manipulations; the budget counts from here")
+    tick = int(clock["tick"]); abs_tick = abs_tick_of(clock)
     stepped_total = 0
     wall_total = 0.0
     while stepped_total < budget:
