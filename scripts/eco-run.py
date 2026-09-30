@@ -392,6 +392,19 @@ def stl2(pred, prey, arm):
     return dict(steps=st, ticks=10, nowatch=True)
 BLOCKS["STL2"] = dict(fort="CTRL", spot="land", cells={
     f"{p.lower()}_{q}_{a}": stl2(p, q, a) for p in ("COUGAR", "LION") for q in ("DEER", "WATER_BUFFALO") for a in _STL2_ARMS})
+# RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
+# Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
+# natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.
+_RELP = ("lua:local c=df.global.world.enemy_status_cache; local L={}; for _,u in ipairs(df.global.world.units.active) do"
+         " if not dfhack.units.isDead(u) and u.enemy.enemy_status_slot>=0 then local r=df.creature_raw.find(u.race);"
+         " L[#L+1]={u.enemy.enemy_status_slot, r and r.creature_id or '?', dfhack.units.isCitizen(u) and 'cit' or"
+         " (u.flags2.roaming_wilderness_population_source and 'wild' or 'other')} end end; local C={}; for i=1,#L do for j=1,#L do"
+         " if i~=j then local ok,v=pcall(function() return c.rel_map[L[i][1]][L[j][1]].ur end); if ok and v and v>=0 then"
+         " local k=L[i][2]..'('..L[i][3]..')>'..L[j][2]..'('..L[j][3]..')='..tostring(df.unit_reaction_type[v] or v); C[k]=(C[k] or 0)+1 end end end end;"
+         " print(('eco relp tag={T} slotted=%d'):format(#L)); for k,v in pairs(C) do print(('eco relp tag={T} pair=%s n=%d'):format(k:gsub(' ','_'),v)) end")
+BLOCKS["RELP"] = dict(fort="CTRL", spot="land", cells={"lion_norel": dict(steps=[
+    _RELP.replace("{T}", "natives"), "spawn LION 1 {X} {Y} {Z} 5", "step:100", _RELP.replace("{T}", "t100"),
+    "step:2900", _RELP.replace("{T}", "t3000")], ticks=10, nowatch=True)})
 BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
     "ctl": colo([]),
     **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},

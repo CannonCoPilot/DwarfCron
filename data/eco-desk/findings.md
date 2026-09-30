@@ -232,3 +232,14 @@ ECO STL (CTRL, 1 COUGAR or LION vs 6 DEER / WATER_BUFFALO, written, 30,000 t, su
   STL2 (running) adds norel (no relation written), fight (MELEE_COMBAT, BITE, GRASP_STRIKE, WRESTLING, DODGING 10), all.
   Prey speed (ticks/100 tiles; lower faster): lion 109, elk 122, deer 137, wolf 149, moose 157, tiger 157, buffalo 183,
   cougar 195, elephant 488; CAL kills rose as prey slowed (deer 1, moose 4, buffalo 7, elephant 11).
+ECO STL2 (data/experiments/ECO/STL2-20260930-164417; same pairs, 30k t, 2 reps; skills rating 10 on the placed hunter; att/kills/runs-with-kill per arm):
+  ctl 53/4 (lion_DEER_ctl 3 then 1 -> STL's clean ctl was luck); norel (no rel) 0/0 in 8 runs; sneak 85/4; fight
+  (MELEE_COMBAT BITE GRASP_STRIKE WRESTLING DODGING) 315/3 (cougar x deer 131 and 145 attacks, 1 kill each rep); all
+  (+SNEAK, SITUATIONAL_AWARENESS, AMBUSHPREDATOR) 18/1. Hidden 0/240. POOLED STL+STL2: skilled or AMBUSH 10 of 48 runs
+  with a kill vs unchanged 2 of 16 -> no lift; skills raise engagement (fight) at most. Lone hunters' limit = meeting prey.
+  Skills-write rows say units=2: the previous cell's cleared hunter is still in units.active on that tick (hidden n=1 in
+  every sample) -> harmless. norel off-target: LION killed 8 BADGER (104 att vs 4), COUGAR hit native WOLF/PORCUPINE/KAKAPO.
+RELP (data/experiments/ECO/RELP-20260930-174328; CTRL, 1 run): enemy_status slots are assigned lazily (0 natives slotted at load). +100 t: 42 slotted, only
+  SAME_RACE / SAME_CULTURE / STRANGER. +3,000 t: DF itself wrote PREDATOR_OR_PREY LION(placed, no rel)>BIRD_KESTREL(wild),
+  and dwarves/yak/horse/pig/reindeer > kestrel. => DF writes PREDATOR_OR_PREY on its own over time; that is how placed
+  hunters attack unrelated natives in 30k-t cells. P1 (3,000 t, 0 attacks without a write) stands as a short-run result.
