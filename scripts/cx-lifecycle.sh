@@ -82,6 +82,16 @@ port_busy() { lsof -nP -iTCP:"$1" -sTCP:LISTEN >/dev/null 2>&1; }
 # the server, which presents as "RPC is broken" rather than "port taken".
 pick_port() {
     local p="${DFHACK_PORT:-$CX_DFHACK_PORT}"
+    # A DF that CRASHED leaves its RPC socket with the bottle's wineserver, which then survives `wineserver -k`
+    # (29 Sep 2026, FPS6 pilot: 5555 held by wineserve with no DF running; the fallback port came up with no RPC).
+    # With no DF running, a wineserver holding the port is stale: end it (TERM, then KILL) and take the port back.
+    if port_busy "$p" && ! is_running; then
+        local ws; ws=$(lsof -nP -iTCP:"$p" -sTCP:LISTEN 2>/dev/null | awk 'NR==2 && $1 ~ /^wine/ {print $2}')
+        if [ -n "$ws" ]; then
+            log "port $p is held by a stale wineserver (pid $ws, no DF running); ending it" >&2
+            kill "$ws" 2>/dev/null; sleep 3; kill -0 "$ws" 2>/dev/null && { kill -9 "$ws" 2>/dev/null; sleep 2; }
+        fi
+    fi
     if port_busy "$p"; then
         local who
         who=$(lsof -nP -iTCP:"$p" -sTCP:LISTEN 2>/dev/null | awk 'NR==2{print $1}')
