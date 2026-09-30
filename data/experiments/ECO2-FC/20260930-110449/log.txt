@@ -1,0 +1,64 @@
+11:04:49 run ECO2-FC 20260930-110449: FREQUENCY on the cavern pick: the first four cavern species of CTRL's cavern pool (alphabetical) at 100/50/25/12, every other cavern species at 1, all cavern entries stocked 500; tool disarmed; the map released every 1,500 ticks (surface and caverns). Cavern wave shares vs f/sum(f).
+11:04:50   [rig] DF already running (pid 28770), port 5555
+11:04:50 == ECO2-FC arm=cavern_f100_50_25_12 rep=1 fort=CTRL budget=60000 every=500
+11:04:50   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+11:04:50   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+11:05:03   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+11:05:03   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+11:05:03   [rig] drained 0 queued popup(s)
+11:05:04   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+11:05:04   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+11:05:05   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local cav={}; local ids={}; for _,pop in ipairs(df.global.world.populations.all) do if df.world_population_type[pop.type]=='Animal' and sw.managedPop(pop, rs, sw.LAYER_SET.cavern) then local cr=df.creature_raw.find(pop.race); if not cav[pop.race] then cav[pop.race]=true; ids[#ids+1]=cr.creature_id end; pop.quantity=500; pop.flags.extinct=false end end; table.sort(ids); local F={100,50,25,12}; local want={}; for i=1,math.min(4,#ids) do want[ids[i]]=F[i] end; local o=0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if want[cr.creature_id] then cr.frequency=want[cr.creature_id] elseif cav[i] then cr.frequency=1; o=o+1 end end; local s={}; for k,v in pairs(want) do s[#s+1]=k..'='..v end; print('eco: cavern species '..#ids..'; set '..table.concat(s,' ')..'; '..o..' others at 1; all cavern entries stocked 500') -> eco: cavern species 35; set CAVE_BLOB=12 BIRD_SWALLOW_CAVE_GIANT=100 BLIND_CAVE_OGRE=50 BLOOD_MAN=25; 31 others at 1; all cavern entries stocked 500
+11:05:05   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+11:05:13   manipulation: probe:release all -> released 22 unit(s) [all]
+11:05:22   manipulation: probe:release all -> released 22 unit(s) [all]
+11:05:28   +  5127 ticks | wild  72 | arrivals  59 | departures   0 | deaths  0 | 206 t/s
+11:05:31   manipulation: probe:release all -> released 28 unit(s) [all]
+11:05:40   manipulation: probe:release all -> released 19 unit(s) [all]
+11:05:50   manipulation: probe:release all -> released 15 unit(s) [all]
+11:06:00   manipulation: probe:release all -> released 19 unit(s) [all]
+11:06:10   manipulation: probe:release all -> released 16 unit(s) [all]
+11:06:20   manipulation: probe:release all -> released 45 unit(s) [all]
+11:06:24   + 15330 ticks | wild 198 | arrivals 191 | departures   0 | deaths  6 | 185 t/s
+11:06:30   manipulation: probe:release all -> released 22 unit(s) [all]
+11:06:42   manipulation: probe:release all -> released 23 unit(s) [all]
+11:06:53   manipulation: probe:release all -> released 27 unit(s) [all]
+11:06:57   + 20352 ticks | wild 264 | arrivals 268 | departures   0 | deaths 17 | 160 t/s
+11:07:05   manipulation: probe:release all -> released 24 unit(s) [all]
+11:07:17   manipulation: probe:release all -> released 24 unit(s) [all]
+11:07:30   manipulation: probe:release all -> released 21 unit(s) [all]
+11:07:34   + 25364 ticks | wild 319 | arrivals 331 | departures   3 | deaths 22 | 155 t/s
+11:07:42   manipulation: probe:release all -> released 19 unit(s) [all]
+11:07:55   manipulation: probe:release all -> released 20 unit(s) [all]
+11:08:08   manipulation: probe:release all -> released 19 unit(s) [all]
+11:08:13   + 30351 ticks | wild 349 | arrivals 390 | departures  27 | deaths 27 | 125 t/s
+11:08:23   manipulation: probe:release all -> released 21 unit(s) [all]
+11:08:38   manipulation: probe:release all -> released 22 unit(s) [all]
+11:08:53   manipulation: probe:release all -> released 16 unit(s) [all]
+11:08:58   + 35315 ticks | wild 357 | arrivals 448 | departures  71 | deaths 33 | 123 t/s
+11:09:07   manipulation: probe:release all -> released 16 unit(s) [all]
+11:09:22   manipulation: probe:release all -> released 30 unit(s) [all]
+11:09:37   manipulation: probe:release all -> released 23 unit(s) [all]
+11:09:42   + 40192 ticks | wild 405 | arrivals 530 | departures  94 | deaths 44 | 117 t/s
+11:09:52   manipulation: probe:release all -> released 26 unit(s) [all]
+11:10:07   manipulation: probe:release all -> released 21 unit(s) [all]
+11:10:21   manipulation: probe:release all -> released 35 unit(s) [all]
+11:10:25   + 45039 ticks | wild 403 | arrivals 612 | departures 164 | deaths 58 | 139 t/s
+11:10:34   manipulation: probe:release all -> released 27 unit(s) [all]
+11:10:48   manipulation: probe:release all -> released 28 unit(s) [all]
+11:11:02   manipulation: probe:release all -> released 19 unit(s) [all]
+11:11:06   + 50041 ticks | wild 408 | arrivals 691 | departures 217 | deaths 79 | 128 t/s
+11:11:16   manipulation: probe:release all -> released 19 unit(s) [all]
+11:11:30   manipulation: probe:release all -> released 23 unit(s) [all]
+11:11:45   manipulation: probe:release all -> released 16 unit(s) [all]
+11:11:55   + 55493 ticks | wild 396 | arrivals 753 | departures 276 | deaths 94 | 113 t/s
+11:12:00   manipulation: probe:release all -> released 23 unit(s) [all]
+11:12:13   manipulation: probe:release all -> released 19 unit(s) [all]
+11:12:27   manipulation: probe:release all -> released 23 unit(s) [all]
+11:12:36   + 60486 ticks | wild 396 | arrivals 813 | departures 327 | deaths 103 | 124 t/s
+11:12:45   [rig] back at the title screen
+11:12:45   done: {"arm": "cavern_f100_50_25_12", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 813, "departures": 327, "deaths": 103, "ticks": 60486, "wall_s": 404.5, "stop": null, "ticks_per_s": 149.5, "save_untouched": true}
+11:12:58   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+11:12:58   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+11:13:06   [rig] back at the title screen
+11:13:06 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/ECO2-FC/20260930-110449

@@ -164,3 +164,11 @@ ECO2-FC (CTRL, tool disarmed, 60k t, released every 1,500 t, 1 rep; 143 cavern w
   f12 7 -> 55/26/18% of the named vs 57/29/14% predicted; the f1 species 7 of 45. Waves split evenly across the three
   layers (49/49/45) -> the layer is picked first, then the species within it.
   => FREQUENCY is the cavern balancing dial too; the tool's cavern ceiling-by-frequency (addendum 53) acts on a real lever.
+ECO2-G (fresh 7-dwarf embarks FPS2E1..E6, tool on + preset, 40k t, 2 reps; groups = distinct species x population among
+  live wild units per 1,500 t sample; limit default land 3 / cavern 2 vs sqrt(embark)+1 = 2,3,4,5,6,7):
+  surface groups at once, mean (reps): 1x1 1.98 vs 1.77 (limit 2); 2x2 1.98 vs 2.09 (same limit 3); 3x3 1.76 vs 1.94;
+  4x4 2.71 vs 2.60; 5x5 2.16 vs 3.28; 6x6 2.69 vs 3.46. At 5x5/6x6 every root+1 rep (3.16-3.81) beat every default rep
+  (1.77-2.85) -> the gate binds on big maps (kill criterion 'within 0.5 at every size' FAILS -> the limit matters).
+  Surface waves 5x5 4.0 -> 5.5, 6x6 3.0 -> 5.0. t/s no cost (6x6 223 vs 261). Cavern groups unchanged by the cavern
+  limit (4.8-8.7, above the limit: residents and ungated sources count) -> the cavern limit is not binding.
+  => DEFAULT land groups at once = sqrt(embark)+1 (v6.9); cavern left at 2.

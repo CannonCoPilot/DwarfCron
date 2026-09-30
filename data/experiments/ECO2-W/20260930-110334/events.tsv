@@ -1,0 +1,115 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260930-110334	winter_natural	1	16800	823200	baseline	wild_present	13
+20260930-110334	winter_natural	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-110334	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-110334	winter_natural	1	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-110334	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-110334	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-110334	winter_natural	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=true season=3
+20260930-110334	winter_natural	1	319890	1126290	arrival	139	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=28892 vanish=0 flag_src=1 flag_nf=1 pos=83,162,109 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	140	TOAD_GIANT_CAVE caste=MALE ref6=29,21,-1,8,-1,12 layer=cavern countdown=19996 vanish=0 flag_src=1 flag_nf=0 pos=64,190,38 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	141	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=22915 vanish=0 flag_src=1 flag_nf=0 pos=156,179,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	142	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=21264 vanish=0 flag_src=1 flag_nf=0 pos=156,180,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	143	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=28033 vanish=0 flag_src=1 flag_nf=0 pos=170,189,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	144	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=19779 vanish=0 flag_src=1 flag_nf=0 pos=167,190,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	145	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=27477 vanish=0 flag_src=1 flag_nf=0 pos=170,191,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	146	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=27544 vanish=0 flag_src=1 flag_nf=0 pos=167,191,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	147	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=27713 vanish=0 flag_src=1 flag_nf=0 pos=169,191,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	148	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=20554 vanish=0 flag_src=1 flag_nf=0 pos=166,191,31 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	151	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=24575 vanish=0 flag_src=1 flag_nf=0 pos=20,121,7 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	152	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=24887 vanish=0 flag_src=1 flag_nf=0 pos=17,124,7 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	153	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=24789 vanish=0 flag_src=1 flag_nf=0 pos=12,129,8 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	154	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=28643 vanish=0 flag_src=1 flag_nf=0 pos=9,125,7 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	155	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=23166 vanish=0 flag_src=1 flag_nf=1 pos=82,188,104 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	arrival	156	OLM_GIANT caste=MALE ref6=29,20,-1,8,-1,9 layer=cavern countdown=27144 vanish=0 flag_src=1 flag_nf=0 pos=112,5,45 listed_at=1126290
+20260930-110334	winter_natural	1	319890	1126290	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-110334	winter_natural	1	319890	1126290	every_applied	1	probe:release surface
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4704	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->332 max 334->334 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3424 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->500 max 20->20 discovered 0->0 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4744	OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->433 max 436->436 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->383 max 387->387 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->325 max 331->331 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->246 max 257->257 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4783	TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->4 max 14->14 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->319 max 336->336 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->390 max 421->421 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4836	DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	pool_delta	4947	TOAD_GIANT_CAVE ref6=29,21,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260930-110334	winter_natural	1	319890	1126290	end	summary	{"arm": "winter_natural", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 16, "departures": 0, "deaths": 0, "ticks": 303090, "wall_s": 2.8, "stop": null, "ticks_per_s": 106962.7, "save_untouched": true}
+20260930-110334	winter_cleared	1	16800	823200	baseline	wild_present	13
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-110334	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-110334	winter_cleared	1	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-110334	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-110334	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-110334	winter_cleared	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then for _,k in ipairs(cr.caste) do k.flags.NO_WINTER=false end; print('eco: GROUNDHOG NO_WINTER cleared') end end	eco: GROUNDHOG NO_WINTER cleared
+20260930-110334	winter_cleared	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=false season=3
+20260930-110334	winter_cleared	1	319891	1126291	arrival	139	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24752 vanish=0 flag_src=1 flag_nf=1 pos=188,64,104 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	140	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26676 vanish=0 flag_src=1 flag_nf=1 pos=183,70,104 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	141	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=29227 vanish=0 flag_src=1 flag_nf=1 pos=189,65,104 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	142	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=19967 vanish=0 flag_src=1 flag_nf=1 pos=191,62,104 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	143	OLM_GIANT caste=MALE ref6=29,20,-1,8,-1,9 layer=cavern countdown=24652 vanish=0 flag_src=1 flag_nf=0 pos=182,17,49 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	144	CROCODILE_CAVE caste=MALE ref6=28,20,-1,13,-1,14 layer=cavern countdown=25357 vanish=0 flag_src=1 flag_nf=0 pos=17,117,30 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	145	DEMON_4 caste=FEMALE ref6=28,20,-1,44,-1,2 layer=deep countdown=28242 vanish=0 flag_src=1 flag_nf=0 pos=10,0,5 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	146	DEMON_4 caste=MALE ref6=28,20,-1,44,-1,2 layer=deep countdown=20311 vanish=0 flag_src=1 flag_nf=0 pos=10,1,5 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	147	DEMON_4 caste=FEMALE ref6=28,20,-1,44,-1,2 layer=deep countdown=22761 vanish=0 flag_src=1 flag_nf=0 pos=13,0,4 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	148	DEMON_4 caste=FEMALE ref6=28,20,-1,44,-1,2 layer=deep countdown=28254 vanish=0 flag_src=1 flag_nf=0 pos=21,4,5 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	149	OLM_GIANT caste=MALE ref6=29,20,-1,8,-1,9 layer=cavern countdown=20019 vanish=0 flag_src=1 flag_nf=0 pos=60,5,48 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	150	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=21838 vanish=0 flag_src=1 flag_nf=0 pos=171,77,29 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	151	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=25651 vanish=0 flag_src=1 flag_nf=0 pos=181,69,30 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	152	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=27861 vanish=0 flag_src=1 flag_nf=0 pos=184,66,30 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	arrival	153	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=25016 vanish=0 flag_src=1 flag_nf=0 pos=191,56,30 listed_at=1126291
+20260930-110334	winter_cleared	1	319891	1126291	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-110334	winter_cleared	1	319891	1126291	every_applied	1	probe:release surface
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	3475	CROCODILE_CAVE ref6=28,20,-1,13,-1,14 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	3535	DEMON_4 ref6=28,20,-1,44,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->333 max 334->334 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->3059 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->496 max 20->20 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4744	OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->14 max 16->16 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->432 max 436->436 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->401 max 403->403 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->384 max 387->387 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->327 max 331->331 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->241 max 257->257 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4783	TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->5 max 14->14 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->319 max 336->336 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->389 max 421->421 discovered 0->1 extinct 0->0
+20260930-110334	winter_cleared	1	319891	1126291	end	summary	{"arm": "winter_cleared", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 15, "departures": 0, "deaths": 0, "ticks": 303091, "wall_s": 3.0, "stop": null, "ticks_per_s": 100545.2, "save_untouched": true}
