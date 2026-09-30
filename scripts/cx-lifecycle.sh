@@ -424,27 +424,31 @@ cmd_genworld() {
     echo "[cx-lifecycle] $pl"
     case "$pl" in params:*) ;; *) err "worldgen params failed: $pl";; esac
     click_when_drawn "Create world" 10 || err "no 'Create world' button"
-    local waited=0 allowed=""
+    local waited=0 allowed="" poll="${CX_GENWORLD_POLL:-10}" scr
+    # 29 Sep 2026: DF crashed 2 of 4 times during a 129x129, 500-year generation while this loop made three DFHack
+    # calls every 3 s (two screen finds and a state read, each its own connection). One screen read per poll now,
+    # every 10 s; the cause is not proven, so a crash is also caught fast: DF's own crash log appearing, or the
+    # process gone, ends the wait at once (the second crash left the process hung, alive).
+    local crash0; crash0=$(ls -t "$DF_DIR"/crashlogs/crash_*.txt 2>/dev/null | head -1)
     while [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ]; do
-        sleep 3; waited=$((waited + 3))
-        # fail fast: a DF that died mid-generation (FPS6 29 Sep 2026: MEDIUM at 500 years, 71 s in) left this loop
-        # polling a dead process for the whole timeout
-        if ! is_running; then
-            local cl; cl=$(ls -t "$DF_DIR"/crashlogs/crash_*.txt 2>/dev/null | head -1)
-            err "DF exited during worldgen after ${waited}s${cl:+ (crash log $(basename "$cl"))}"
-        fi
-        if wait_drawn "Keep world and return to main menu" 1 >/dev/null; then
+        sleep "$poll"; waited=$((waited + poll))
+        local crash; crash=$(ls -t "$DF_DIR"/crashlogs/crash_*.txt 2>/dev/null | head -1)
+        [ -n "$crash" ] && [ "$crash" != "$crash0" ] && err "DF crashed during worldgen after ${waited}s (crash log $(basename "$crash"))"
+        is_running || err "DF exited during worldgen after ${waited}s"
+        scr=$(cmd_ui screen 2>/dev/null | tr -d "\r")
+        if echo "$scr" | grep -q "Keep world and return to main menu"; then
             cmd_ui click "Keep world and return to main menu" >/dev/null 2>&1
             break
         fi
-        if wait_drawn "ALLOW THIS REJECTION TYPE" 1 >/dev/null; then
-            local kind; kind=$(cmd_ui screen 0 6 2>/dev/null | tr -d "\r" | grep -o '[A-Z][A-Z ]*REJECTION' | head -1)
+        if echo "$scr" | grep -q "ALLOW THIS REJECTION TYPE"; then
+            local kind; kind=$(echo "$scr" | grep -o '[A-Z][A-Z ]*REJECTION' | head -1)
             [ -n "$allowed" ] && [ "$allowed" != "$kind" ] && err "second rejection type ($kind after $allowed); aborting worldgen"
             allowed="$kind"; log "worldgen rejection: $kind -- allowing that type"
             cmd_ui click "ALLOW THIS REJECTION TYPE" >/dev/null 2>&1
         fi
-        [ "$(ui_get screen)" = "viewscreen_titlest" ] && err "dropped to the title during worldgen"
+        echo "$scr" | grep -q "Create new world" && err "dropped to the title during worldgen"
     done
+    [ "$waited" -lt "${CX_GENWORLD_TIMEOUT:-600}" ] || err "worldgen did not finish in ${CX_GENWORLD_TIMEOUT:-600}s"
     wait_state screen viewscreen_titlest 60 || err "did not return to the title after keeping the world"
     local after; after=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | cut -f1 | sort)
     local folder; folder=$(comm -13 <(echo "$before") <(echo "$after") | head -1)

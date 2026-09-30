@@ -35,12 +35,13 @@ import procstat  # noqa: E402
 
 ROOT = f5.ROOT
 SEASON = 100800
+GEN_TRIES = 3
 SIZES = {"SMALLER": ("SMALLER_REGION", 33), "SMALL": ("SMALL_REGION", 65), "MEDIUM": ("MEDIUM_REGION", 129), "LARGE": ("LARGE_REGION", 257)}
 SEEDS = {"a": 6101, "b": 6102}
 BIOMES = ("GRASSLAND_TEMPERATE", "SAVANNA_TEMPERATE", "SHRUBLAND_TEMPERATE")
 WORLD_COLS = ["world", "size_name", "world_dim", "years", "seed"]
 f5.COLS = f5.COLS + WORLD_COLS + ["merchants", "visitors", "invaders"]
-WORLDS_COLS = WORLD_COLS + ["status", "folder", "save", "gen_wall_s", "rejection", "rx", "ry", "biome", "sav", "evil", "same8",
+WORLDS_COLS = WORLD_COLS + ["status", "folder", "save", "gen_wall_s", "gen_crashes", "rejection", "rx", "ry", "biome", "sav", "evil", "same8",
                             "rule_level", "qualifying", "water", "embark_wall_s", "save_mb", "note"]
 LOADS_COLS = WORLD_COLS + ["session", "load_wall_s", "save_mb", "df_footprint_mb", "df_resident_mb", "dims", "year", "hf", "hf_alive",
                            "events", "collections", "entities", "civs", "sites", "artifacts", "armies", "army_controllers",
@@ -112,10 +113,23 @@ def gen_world(w, write):
     try:
         if (SAVE_DIR / save).exists():
             sh("title", timeout=300); sh("save-delete", save)
-        f5.restart()
-        t0 = time.monotonic()
-        out = sh("genworld", f"FPS6-{key}", w["seed"], SIZES[w["size_name"]][0], w["years"], timeout=7500,
-                 env={"CX_GENWORLD_TIMEOUT": "7200"})
+        # DF crashed in 2 of 4 generations of the pilot world on 29 Sep, at random (the same seed also generated
+        # cleanly); a seed always makes the same world, so a crash is retried on a fresh DF, up to GEN_TRIES times
+        crashes, out = 0, ""
+        for attempt in range(GEN_TRIES):
+            f5.restart()
+            t0 = time.monotonic()
+            try:
+                out = sh("genworld", f"FPS6-{key}", w["seed"], SIZES[w["size_name"]][0], w["years"], timeout=7500,
+                         env={"CX_GENWORLD_TIMEOUT": "7200"})
+                break
+            except RuntimeError as e:
+                if "during worldgen" not in str(e) or attempt == GEN_TRIES - 1:
+                    vals["gen_crashes"] = crashes + ("during worldgen" in str(e))
+                    raise
+                crashes += 1
+                f5.log(f"    DF crashed generating {key} (attempt {attempt + 1}); retrying on a fresh DF: {str(e)[-120:]}")
+        vals["gen_crashes"] = crashes
         vals["gen_wall_s"] = f"{time.monotonic() - t0:.0f}"
         m = re.search(r"params: slot 0 <- preset \d+ \(([^)]*)\), \d+ fields, (\d+)x(\d+), seed=(\d+), end_year=(\d+)", out)
         if not m or int(m.group(2)) != w["world_dim"] or int(m.group(5)) != w["years"]:
