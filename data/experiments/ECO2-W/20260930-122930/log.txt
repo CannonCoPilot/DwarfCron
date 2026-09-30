@@ -1,0 +1,195 @@
+12:29:30 run ECO2-W 20260930-122930: Does a raw NO_WINTER flag beat a roster that wants the species in Winter? CTRL set to Winter; GROUNDHOG (natural NO_WINTER) at FREQUENCY 100 and stock 500 -- what the tool does when it makes a species active in Winter -- every other land species at 1. Control: the same with NO_WINTER cleared.
+12:29:30   [rig] DF already running (pid 65688), port 5555
+12:29:30 == ECO2-W arm=winter_natural rep=1 fort=CTRL budget=45000 every=500
+12:29:31   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+12:29:31   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+12:29:44   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+12:29:44   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+12:29:44   [rig] drained 0 queued popup(s)
+12:29:45   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+12:29:45   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+12:29:45   manipulation: df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick)) -> eco: season 3 year tick 319200
+12:29:45   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n)) -> eco: 2 entries stocked at 500
+12:29:46   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o)) -> eco: 1 named species set, 13 other land species at frequency 1
+12:29:46   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end -> eco: GROUNDHOG NO_WINTER=true season=3
+12:29:46   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+12:29:46   clock moved +302400 ticks by the t0 manipulations; the budget counts from here
+12:29:54   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:30:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:30:06   +  5494 ticks | wild  30 | arrivals  17 | departures   0 | deaths  0 | 336 t/s
+12:30:09   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:30:17   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:30:26   manipulation: probe:release surface -> released 8 unit(s) [surface]
+12:30:35   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:30:43   manipulation: probe:release surface -> released 6 unit(s) [surface]
+12:30:53   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:31:02   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:31:10   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:31:19   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:31:27   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:31:35   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:31:38   + 25426 ticks | wild  63 | arrivals  53 | departures   2 | deaths  1 | 260 t/s
+12:31:43   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:31:51   manipulation: probe:release surface -> released 6 unit(s) [surface]
+12:32:00   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:32:00   + 30014 ticks | wild  65 | arrivals  73 | departures  20 | deaths  1 | 241 t/s
+12:32:08   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:32:17   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:32:26   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:32:26   + 35389 ticks | wild  79 | arrivals  95 | departures  27 | deaths  2 | 238 t/s
+12:32:35   manipulation: probe:release surface -> released 8 unit(s) [surface]
+12:32:44   manipulation: probe:release surface -> released 8 unit(s) [surface]
+12:32:51   + 40364 ticks | wild  90 | arrivals 113 | departures  31 | deaths  5 | 191 t/s
+12:32:55   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:33:05   manipulation: probe:release surface -> released 12 unit(s) [surface]
+12:33:14   manipulation: probe:release surface -> released 7 unit(s) [surface]
+12:33:17   + 45191 ticks | wild 105 | arrivals 137 | departures  39 | deaths  6 | 239 t/s
+12:33:26   [rig] back at the title screen
+12:33:26   done: {"arm": "winter_natural", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 137, "departures": 39, "deaths": 6, "ticks": 45191, "wall_s": 179.4, "stop": null, "ticks_per_s": 252.0, "save_untouched": true}
+12:33:26 == ECO2-W arm=winter_natural rep=2 fort=CTRL budget=45000 every=500
+12:33:26   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+12:33:26   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+12:33:39   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+12:33:39   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+12:33:39   [rig] drained 0 queued popup(s)
+12:33:40   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+12:33:40   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+12:33:40   manipulation: df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick)) -> eco: season 3 year tick 319200
+12:33:41   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n)) -> eco: 2 entries stocked at 500
+12:33:41   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o)) -> eco: 1 named species set, 13 other land species at frequency 1
+12:33:41   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end -> eco: GROUNDHOG NO_WINTER=true season=3
+12:33:41   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+12:33:41   clock moved +302400 ticks by the t0 manipulations; the budget counts from here
+12:33:49   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:33:57   manipulation: probe:release surface -> released 7 unit(s) [surface]
+12:34:05   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:34:14   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:34:23   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:34:33   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:34:42   manipulation: probe:release surface -> released 6 unit(s) [surface]
+12:34:51   manipulation: probe:release surface -> released 11 unit(s) [surface]
+12:34:55   + 15377 ticks | wild  60 | arrivals  47 | departures   0 | deaths  0 | 215 t/s
+12:35:01   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:35:11   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:35:20   manipulation: probe:release surface -> released 8 unit(s) [surface]
+12:35:20   + 20133 ticks | wild  70 | arrivals  57 | departures   0 | deaths  0 | 215 t/s
+12:35:30   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:35:41   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:35:50   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:35:50   + 25395 ticks | wild  77 | arrivals  68 | departures   4 | deaths  0 | 205 t/s
+12:35:59   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:36:09   manipulation: probe:release surface -> released 9 unit(s) [surface]
+12:36:16   + 30104 ticks | wild  90 | arrivals  95 | departures  18 | deaths  0 | 208 t/s
+12:36:19   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:36:28   manipulation: probe:release surface -> released 11 unit(s) [surface]
+12:36:37   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:36:44   + 35448 ticks | wild  93 | arrivals 112 | departures  30 | deaths  2 | 240 t/s
+12:36:47   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:36:56   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:37:05   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:37:08   + 40362 ticks | wild  89 | arrivals 118 | departures  39 | deaths  3 | 237 t/s
+12:37:14   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:37:24   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:37:33   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:37:42   [rig] back at the title screen
+12:37:42   done: {"arm": "winter_natural", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 125, "departures": 51, "deaths": 4, "ticks": 45600, "wall_s": 199.1, "stop": null, "ticks_per_s": 229.1, "save_untouched": true}
+12:37:42 == ECO2-W arm=winter_cleared rep=1 fort=CTRL budget=45000 every=500
+12:37:42   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+12:37:42   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+12:37:56   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+12:37:56   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+12:37:56   [rig] drained 0 queued popup(s)
+12:37:57   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+12:37:57   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+12:37:57   manipulation: df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick)) -> eco: season 3 year tick 319200
+12:37:58   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n)) -> eco: 2 entries stocked at 500
+12:37:58   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o)) -> eco: 1 named species set, 13 other land species at frequency 1
+12:37:58   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then for _,k in ipairs(cr.caste) do k.flags.NO_WINTER=false end; print('eco: GROUNDHOG NO_WINTER cleared') end end -> eco: GROUNDHOG NO_WINTER cleared
+12:37:58   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end -> eco: GROUNDHOG NO_WINTER=false season=3
+12:37:58   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+12:37:58   clock moved +302400 ticks by the t0 manipulations; the budget counts from here
+12:38:07   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:38:15   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:38:20   +  5378 ticks | wild  42 | arrivals  29 | departures   0 | deaths  0 | 279 t/s
+12:38:23   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:38:31   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:38:39   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:38:47   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:38:55   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:39:01   + 15130 ticks | wild  56 | arrivals  44 | departures   0 | deaths  1 | 286 t/s
+12:39:04   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:39:12   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:39:20   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:39:22   + 20263 ticks | wild  66 | arrivals  54 | departures   0 | deaths  1 | 296 t/s
+12:39:28   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:39:36   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:39:44   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:39:44   + 25333 ticks | wild  72 | arrivals  61 | departures   1 | deaths  1 | 287 t/s
+12:39:52   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:40:00   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:40:05   + 30073 ticks | wild  79 | arrivals  81 | departures  14 | deaths  1 | 245 t/s
+12:40:08   manipulation: probe:release surface -> released 8 unit(s) [surface]
+12:40:16   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:40:25   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:40:27   + 35037 ticks | wild  74 | arrivals 100 | departures  38 | deaths  1 | 287 t/s
+12:40:33   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:40:41   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:40:49   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:40:52   + 40400 ticks | wild  75 | arrivals 113 | departures  50 | deaths  1 | 269 t/s
+12:40:57   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:41:05   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:41:15   manipulation: probe:release surface -> released 7 unit(s) [surface]
+12:41:15   + 45323 ticks | wild  78 | arrivals 122 | departures  56 | deaths  1 | 252 t/s
+12:41:23   [rig] back at the title screen
+12:41:23   done: {"arm": "winter_cleared", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 122, "departures": 56, "deaths": 1, "ticks": 45323, "wall_s": 165.6, "stop": null, "ticks_per_s": 273.7, "save_untouched": true}
+12:41:23 == ECO2-W arm=winter_cleared rep=2 fort=CTRL budget=45000 every=500
+12:41:24   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+12:41:24   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+12:41:38   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+12:41:38   [rig] loaded after 6s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+12:41:38   [rig] drained 0 queued popup(s)
+12:41:39   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+12:41:39   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed') -> tool disarmed
+12:41:39   manipulation: df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick)) -> eco: season 3 year tick 319200
+12:41:40   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n)) -> eco: 2 entries stocked at 500
+12:41:40   manipulation: local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o)) -> eco: 1 named species set, 13 other land species at frequency 1
+12:41:40   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then for _,k in ipairs(cr.caste) do k.flags.NO_WINTER=false end; print('eco: GROUNDHOG NO_WINTER cleared') end end -> eco: GROUNDHOG NO_WINTER cleared
+12:41:40   manipulation: for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end -> eco: GROUNDHOG NO_WINTER=false season=3
+12:41:40   tool state ok: {'enabled': '0', 'groups_enabled': '0', 'scheduled': '0', 'initialized': '1'}
+12:41:40   clock moved +302400 ticks by the t0 manipulations; the budget counts from here
+12:41:49   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:41:56   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:42:01   +  5358 ticks | wild  30 | arrivals  17 | departures   0 | deaths  0 | 328 t/s
+12:42:03   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:42:11   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:42:18   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:42:18   + 10107 ticks | wild  37 | arrivals  24 | departures   0 | deaths  0 | 318 t/s
+12:42:27   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:42:35   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:42:43   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:42:51   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:42:59   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:42:59   + 20215 ticks | wild  51 | arrivals  38 | departures   0 | deaths  0 | 284 t/s
+12:43:08   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:43:17   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:43:23   + 25325 ticks | wild  55 | arrivals  47 | departures   1 | deaths  4 | 262 t/s
+12:43:26   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:43:35   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:43:44   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:43:54   manipulation: probe:release surface -> released 4 unit(s) [surface]
+12:44:03   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:44:09   + 35266 ticks | wild  51 | arrivals  70 | departures  28 | deaths  4 | 252 t/s
+12:44:12   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:44:21   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:44:30   manipulation: probe:release surface -> released 5 unit(s) [surface]
+12:44:32   + 40481 ticks | wild  69 | arrivals  93 | departures  33 | deaths  4 | 272 t/s
+12:44:38   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:44:46   manipulation: probe:release surface -> released 2 unit(s) [surface]
+12:44:54   manipulation: probe:release surface -> released 3 unit(s) [surface]
+12:44:54   + 45234 ticks | wild  71 | arrivals  98 | departures  36 | deaths  4 | 273 t/s
+12:45:02   [rig] back at the title screen
+12:45:02   done: {"arm": "winter_cleared", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 98, "departures": 36, "deaths": 4, "ticks": 45234, "wall_s": 163.7, "stop": null, "ticks_per_s": 276.2, "save_untouched": true}
+12:45:18   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+12:45:18   [rig] loaded after 9s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+12:45:26   [rig] back at the title screen
+12:45:26 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/ECO2-W/20260930-122930

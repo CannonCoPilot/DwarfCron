@@ -189,3 +189,7 @@ TV2 (CTRL, every cell at one shared spot, 3,000 t, 2 reps; WOLF x6 written again
   LOOSE_CLUSTERS on (10 KANGAROO): 37.2 / 38.8 vs 41.8 / 40.6 -> no effect.
   GIANT_FOX (BENIGN in raws) x DEER: 0 / 0; BENIGN off: 2 / 10 attacks, 0 / 1 kill -> BENIGN is the switch for giants too.
   GIANT_WOLF x DEER: 11 / 24 attacks, 1 / 1 kill. AMBUSHPREDATOR on WOLF: 0 / 0 (control 0 / 0) -> nothing.
+ECO2-W rerun (CTRL set to Winter, tool disarmed, GROUNDHOG FREQUENCY 100 + stock 500, other land species f1; 45k t,
+  2 reps; waves after the first sample): natural NO_WINTER: 0 of 42 and 0 of 44 surface waves were groundhogs;
+  NO_WINTER cleared: 21 of 32 and 19 of 25. => the raw flag beats any roster/stock/FREQUENCY the tool writes; a
+  NO_<season> species dealt that season never arrives by DF's draw (v6.9 fits seasons to the flags).

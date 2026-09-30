@@ -188,6 +188,150 @@ BLOCKS["S2"] = dict(fort="CTRL", spot="land", cells={
                                     "eat HYENA 3", "items {X+40} {Y} {Z} 4 after-eat", "save:ECOTMP", "load:ECOTMP",
                                     "items {X+40} {Y} {Z} 4 after-reload", "step:500"], ticks=10),
 })
+# ---------------------------------------------------------------- ECO2 (30 Sep): every layer and water type
+def pairs2(spec, ticks=3000, both=True):
+    """spec: (pred, pred medium, prey, prey medium[, extra steps]) -> a DF-only and a written cell, same centre r5."""
+    cells = {}
+    for t in spec:
+        pred, pm, prey, qm = t[:4]; extra = list(t[4]) if len(t) > 4 else []
+        for w in ((False, True) if both else (True,)):
+            st = extra + [f"spawn {pred} 5 {{X}} {{Y}} {{Z}} 5 {pm}", f"spawn {prey} 8 {{X}} {{Y}} {{Z}} 5 {qm}"]
+            if w:
+                st.append(f"rel {pred} {prey}")
+            tag = "".join(e.split()[0][0] for e in extra)
+            cells[f"{pred}({pm})x{prey}({qm}){':' + tag if tag else ''}:{'w' if w else 'df'}"] = dict(steps=st, ticks=ticks)
+    return cells
+
+def lead2(tok, n, how, medium, pred=None, pmedium=None):
+    steps = [f"spawn {tok} {n} {{X}} {{Y}} {{Z}} 4 {medium}"]
+    if pred:
+        steps += [f"spawn {pred} 5 {{X}} {{Y}} {{Z}} 6 {pmedium or medium}", f"rel {pred} {tok}", "watch"]
+    for _ in range(6):
+        steps += [f"lead {tok} {how}", "step:500"]
+    return dict(steps=steps, ticks=10, nowatch=bool(pred))
+
+def corpses2(scav, medium, prey="KANGAROO", pmed=None):
+    pm = pmed or medium
+    return dict(steps=[f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 2 {pm}", f"corpse {{ids:{prey}}}", "step:50", "items {X} {Y} {Z} 6 before",
+                       f"spawn {scav} 5 {{X+3}} {{Y}} {{Z}} 3 {medium}"], ticks=4000, post=["items {X} {Y} {Z} 6 after"])
+
+def walkeat(scav, medium, prey, pmed=None):
+    pm = pmed or medium
+    return dict(steps=[f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 2 {pm}", f"corpse {{ids:{prey}}}", "step:50", "items {X} {Y} {Z} 6 before",
+                       f"spawn {scav} 5 {{X+8}} {{Y}} {{Z}} 2 {medium}", f"walkto {scav} {{X}} {{Y}} {{Z}}", "step:150",
+                       f"near {scav} {{X}} {{Y}} {{Z}} 3", "step:250", f"near {scav} {{X}} {{Y}} {{Z}} 3", f"eat {scav} 2",
+                       "items {X} {Y} {Z} 6 after-eat"], ticks=10)
+
+BOATS_CAVES = {"1": "cavern:72:64", "2": "cavern:63:59", "3": "cavern:46:38"}
+BLOCKS["HC1"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={
+    **pairs2([("TROLL", "cave", "GORLAK", "cave"), ("TROLL", "cave", "ELK_BIRD", "cave"), ("TOAD_GIANT_CAVE", "cave", "ELK_BIRD", "cave"),
+              ("TROLL", "cave", "GORLAK", "cave", ["flag TROLL BENIGN on"])]),
+    **{f"lead_GORLAK_{h}": lead2("GORLAK", 10, h, "cave") for h in ("none", "lowest", "largest-male")},
+    **{f"lead_GORLAK_{h}_pred": lead2("GORLAK", 10, h, "cave", pred="TROLL") for h in ("none", "lowest", "largest-male")},
+    "corpses_TROLL": corpses2("TROLL", "cave", "ELK_BIRD"), "corpses_RAT_GIANT": corpses2("RAT_GIANT", "cave", "ELK_BIRD"),
+    "walkeat_TROLL": walkeat("TROLL", "cave", "ELK_BIRD"),
+    "rage50_GORLAK": dict(steps=["misc GORLAK prone_to_rage 50", "spawn TROLL 5 {X} {Y} {Z} 5 cave", "spawn GORLAK 8 {X} {Y} {Z} 5 cave", "rel TROLL GORLAK"], ticks=3000),
+    "vermin_CAT_cave": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn CAT 4 {X} {Y} {Z} 3 cave"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_ctl_cave": dict(steps=["vermin {X} {Y} {Z} 12 before"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+})
+BLOCKS["HC2"] = dict(fort="BOATS", spot=BOATS_CAVES["2"], cells={
+    **pairs2([("TROGLODYTE", "cave", "ELK_BIRD", "cave"), ("VORACIOUS_CAVE_CRAWLER", "cave", "CRUNDLE", "cave")]),
+    **{f"lead_TROGLODYTE_{h}": lead2("TROGLODYTE", 8, h, "cave") for h in ("none", "lowest", "largest-male")},
+})
+BLOCKS["HC3"] = dict(fort="BOATS", spot=BOATS_CAVES["3"], cells={
+    **pairs2([("JABBERER", "cave", "REACHER", "cave"), ("BLIND_CAVE_OGRE", "cave", "RUTHERER", "cave")]),
+})
+BLOCKS["HCP"] = dict(fort="BOATS", spot="cavepool:63:38", cells={
+    **pairs2([("CROCODILE_CAVE", "cavewater", "ELK_BIRD", "cave"), ("OLM_GIANT", "cavewater", "CRUNDLE", "cave"),
+              ("POND_GRABBER", "cavewater", "GORLAK", "cave"), ("CROCODILE_CAVE", "cave", "GORLAK", "cave")]),
+    "corpses_CROCODILE_CAVE_pool": corpses2("CROCODILE_CAVE", "cavewater", "ELK_BIRD", "cave"),
+})
+BLOCKS["HR"] = dict(fort="RIVER4", spot="shore", cells={
+    **pairs2([("ALLIGATOR", "water", "DEER", "land"), ("FISH_LAMPREY_SEA", "water", "FISH_PIKE", "water"),
+              ("WOLF", "land", "BEAVER", "water"), ("SHARK_BULL", "water", "FISH_PIKE", "water"),
+              ("WOLF", "land", "FISH_PIKE", "water", ["flag WOLF CAN_BREATHE_WATER on", "flag WOLF CAN_SWIM_INNATE on"])]),
+    **{f"lead_FISH_PIKE_{h}": lead2("FISH_PIKE", 10, h, "water") for h in ("none", "lowest", "largest-male")},
+    "vermin_DUCK_river": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn BIRD_DUCK 6 {X} {Y} {Z} 3 land"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_ctl_river": dict(steps=["vermin {X} {Y} {Z} 12 before"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+})
+BLOCKS["HO"] = dict(fort="OCEAN2", spot="shore", cells={
+    **pairs2([("SHARK_BLUE", "water", "HARP_SEAL", "water", ["flag SHARK_BLUE BENIGN on"]), ("ORCA", "water", "HARP_SEAL", "water"),
+              ("ORCA", "water", "HARP_SEAL", "water", ["flag ORCA BENIGN off"])], both=False),
+    **{f"lead_FISH_MILKFISH_{h}": lead2("FISH_MILKFISH", 10, h, "water") for h in ("none", "lowest", "largest-male")},
+    **{f"lead_FISH_MILKFISH_{h}_pred": lead2("FISH_MILKFISH", 10, h, "water", pred="SHARK_TIGER") for h in ("none", "lowest", "largest-male")},
+    "corpses_SHARK_GREAT_WHITE": corpses2("SHARK_GREAT_WHITE", "water", "FISH_MILKFISH"),
+    "walkeat_SHARK_BLUE": walkeat("SHARK_BLUE", "water", "FISH_MILKFISH"),
+    "viewrange5_MILKFISH": dict(steps=["misc FISH_MILKFISH viewrange 5", "spawn SHARK_TIGER 5 {X} {Y} {Z} 5 water", "spawn FISH_MILKFISH 8 {X} {Y} {Z} 5 water", "rel SHARK_TIGER FISH_MILKFISH"], ticks=3000),
+    "viewrange40_MILKFISH": dict(steps=["misc FISH_MILKFISH viewrange 40", "spawn SHARK_TIGER 5 {X} {Y} {Z} 5 water", "spawn FISH_MILKFISH 8 {X} {Y} {Z} 5 water", "rel SHARK_TIGER FISH_MILKFISH"], ticks=3000),
+})
+BLOCKS["HL"] = dict(fort="LAKE", spot="shore", cells={
+    **{f"lead_FISH_CARP_{h}": lead2("FISH_CARP", 10, h, "water") for h in ("none", "lowest", "largest-male")},
+    "vermin_DUCK_lake": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn BIRD_DUCK 6 {X} {Y} {Z} 3 land"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_PEREGRINE_lake": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn BIRD_FALCON_PEREGRINE 4 {X} {Y} {Z} 3 land"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_ctl_lake": dict(steps=["vermin {X} {Y} {Z} 12 before"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "corpses_ALLIGATOR": corpses2("ALLIGATOR", "water", "FISH_CARP"),
+    "walkeat_ALLIGATOR": walkeat("ALLIGATOR", "water", "FISH_CARP"),
+})
+def valcell(field, v, prey="DEER", pred="WOLF", n=10):
+    return dict(steps=[f"misc {prey} {field} {v}", f"spawn {pred} 6 {{X}} {{Y}} {{Z}} 3", f"spawn {prey} {n} {{X+10}} {{Y}} {{Z}} 3", f"rel {pred} {prey}"], ticks=3000)
+BLOCKS["TV"] = dict(fort="CTRL", spot="land", cells={
+    "ctl": pair("WOLF", 6, "DEER", 10, True),
+    **{f"rage{v}_DEER": valcell("prone_to_rage", v) for v in (25, 50, 100)},
+    **{f"viewrange{v}_DEER": valcell("viewrange", v) for v in (5, 40)},
+    "visionarc_narrow_DEER": dict(steps=["misc DEER vision_arc_min 10", "misc DEER vision_arc_max 10", "spawn WOLF 6 {X} {Y} {Z} 3", "spawn DEER 10 {X+10} {Y} {Z} 3", "rel WOLF DEER"], ticks=3000),
+    "FLEEQUICK_on_DEER_r2": flipcell(["flag DEER FLEEQUICK on"], "WOLF", 6, "DEER", 10, write=True),
+    "GIANT_FOX_w": pair("GIANT_FOX", 4, "DEER", 10, True),
+    "GIANT_FOX_benignoff_w": dict(steps=["flag GIANT_FOX BENIGN off", "spawn GIANT_FOX 4 {X} {Y} {Z} 3", "spawn DEER 10 {X+10} {Y} {Z} 3", "rel GIANT_FOX DEER"], ticks=3000),
+    "vermin_CAT_land": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn CAT 4 {X} {Y} {Z} 3"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_PEREGRINE_land": dict(steps=["vermin {X} {Y} {Z} 12 before", "spawn BIRD_FALCON_PEREGRINE 4 {X} {Y} {Z} 3"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+    "vermin_ctl_land": dict(steps=["vermin {X} {Y} {Z} 12 before"], ticks=4000, post=["vermin {X} {Y} {Z} 12 after"]),
+})
+BLOCKS["A2"] = dict(fort="CTRL", spot="land", cells={
+    "wild_humanoid_mode": dict(steps=["alerts drop-wild on humanoid", "spawn WOLF 6 {X} {Y} {Z} 3", "spawn DEER 10 {X+10} {Y} {Z} 3", "rel WOLF DEER"], ticks=2000, post=["alerts drop-wild off"]),
+    "animalperson_humanoid_mode": dict(steps=["alerts drop-wild on humanoid", "spawn WOLF_MAN 4 {X} {Y} {Z} 3", "spawn DEER 10 {X+10} {Y} {Z} 3", "rel WOLF_MAN DEER"], ticks=2000, post=["alerts drop-wild off"]),
+    "entity_humanoid_mode": dict(steps=["alerts drop-wild on humanoid", "spawn GOBLIN 4 {X} {Y} {Z} 3", "spawn DEER 10 {X+10} {Y} {Z} 3", "rel GOBLIN DEER"], ticks=2000, post=["alerts drop-wild off"]),
+})
+RESET = ("lua:local n=0 for id,t in pairs(_G.CX_ECO.spawned) do local u=df.unit.find(id) if u and t=='RACCOON' and u.animal.leave_countdown==0 then "
+         "u.animal.leave_countdown=200000; u.path.goal=df.unit_path_goal.None; u.path.path.x:resize(0); u.path.path.y:resize(0); u.path.path.z:resize(0); n=n+1 end end print('eco lua reset='..n)")
+def raccoon(mode):
+    steps = ["fortspot", "spawn RACCOON 4 {FX+12} {FY} {FZ} 3"]
+    if mode == "flags_off":
+        steps = ["flag RACCOON CURIOUS_BEAST_EATER off", "flag RACCOON CURIOUS_BEAST_ITEM off", "flag RACCOON CURIOUS_BEAST off"] + steps
+    for _ in range(10):
+        steps += ["step:300"] + ([RESET] if mode == "reset" else [])
+    return dict(steps=steps + ["where RACCOON"], ticks=10)
+BLOCKS["CB"] = dict(fort="CTRL", spot="land", cells={f"raccoon_{m}": raccoon(m) for m in ("default", "reset", "flags_off")})
+
+def vcell(hunter, n, medium="land"):
+    st = ["vermin {X} {Y} {Z} 10 before"] + ([f"spawn {hunter} {n} {{X}} {{Y}} {{Z}} 4 {medium}"] if hunter else [])
+    return dict(steps=st, ticks=4000, post=["vermin {X} {Y} {Z} 10 after"])
+VHUNT = {"ctl": None, "CAT": "CAT", "PEREGRINE": "BIRD_FALCON_PEREGRINE", "DUCK": "BIRD_DUCK"}
+BLOCKS["VR"] = dict(fort="CTRL", spot="vermin:surface", cells={f"v_{k}": vcell(h, 4) for k, h in VHUNT.items()})
+BLOCKS["VRL"] = dict(fort="LAKE", spot="vermin:surface", cells={f"v_{k}": vcell(h, 4) for k, h in VHUNT.items()})
+BLOCKS["VRR"] = dict(fort="RIVER4", spot="vermin:surface", cells={f"v_{k}": vcell(h, 4) for k, h in VHUNT.items()})
+BLOCKS["VRC"] = dict(fort="BOATS", spot="vermin:cavern", cells={f"v_{k}": vcell(h, 4, "cave") for k, h in {"ctl": None, "CAT": "CAT", "RAT_GIANT": "RAT_GIANT"}.items()})
+def colo(steps_pre, pred="WOLF", prey="DEER", np=6, nq=10, write=True, pm="land", qm="land"):
+    st = list(steps_pre) + [f"spawn {pred} {np} {{X}} {{Y}} {{Z}} 5 {pm}", f"spawn {prey} {nq} {{X}} {{Y}} {{Z}} 5 {qm}"]
+    if write:
+        st.append(f"rel {pred} {prey}")
+    return dict(steps=st, ticks=3000)
+BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
+    "ctl": colo([]),
+    **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},
+    **{f"viewrange{v}": colo([f"misc DEER viewrange {v}"]) for v in (5, 40)},
+    "visionarc_narrow": colo(["misc DEER vision_arc_min 10", "misc DEER vision_arc_max 10"]),
+    "fleequick": colo(["flag DEER FLEEQUICK on"]),
+    "meander_off": colo(["flag DEER MEANDERER off"], write=False, np=0) if False else dict(steps=["flag DEER MEANDERER off", "spawn DEER 10 {X} {Y} {Z} 3"], ticks=3000),
+    "meander_ctl": dict(steps=["spawn DEER 10 {X} {Y} {Z} 3"], ticks=3000),
+    "loose_on": dict(steps=["flag KANGAROO LOOSE_CLUSTERS on", "spawn KANGAROO 10 {X} {Y} {Z} 3"], ticks=3000),
+    "loose_ctl": dict(steps=["spawn KANGAROO 10 {X} {Y} {Z} 3"], ticks=3000),
+    "giantfox": colo([], pred="GIANT_FOX", np=4),
+    "giantfox_benignoff": colo(["flag GIANT_FOX BENIGN off"], pred="GIANT_FOX", np=4),
+    "giantwolf": colo([], pred="GIANT_WOLF", np=4),
+    "ambush": colo(["flag WOLF AMBUSHPREDATOR on"], write=False),
+    "ambush_ctl": colo([], write=False),
+})
+
 BLOCKS["DEPTH"] = dict(fort="BOATS", spot="water", cells={"depth_survey": dict(steps=["depth BOATS"], ticks=10)})
 BLOCKS["DEPTHL"] = dict(fort="LAKE", spot="water", cells={"depth_survey": dict(steps=["depth LAKE"], ticks=10)})
 
@@ -226,7 +370,9 @@ def main():
             sh("stop", timeout=120, check=False); sh("start", timeout=300)
             sh("load", b["fort"], timeout=1200)
             sh("fps", 1000, 10)
-            spot = kv(eco("spot", b["spot"])[-1])
+            sp = b["spot"].split(":")
+            spot = kv(eco("cavespot", sp[0], 0, *sp[1:])[-1] if sp[0] in ("cavern", "cavepool")
+                      else eco("vspot", *sp[1:])[-1] if sp[0] == "vermin" else eco("spot", sp[0])[-1])
             X, Y, Z = int(spot["x"]), int(spot["y"]), int(spot["z"])
             say(f"  rep {rep}: spot {b['spot']} {X},{Y},{Z}")
             ids, temps = {}, []

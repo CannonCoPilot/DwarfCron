@@ -57,6 +57,19 @@ local function deep(x, y, z)
     local d = dfhack.maps.getTileFlags(x, y, z)
     return d and d.flow_size >= 4 and not d.liquid_type and d.outside
 end
+-- cavern variants: the same tests, but under the ground (subterranean, not outside)
+local function cwalk(x, y, z)
+    local t = tt(x, y, z); if not t then return false end
+    local sa = df.tiletype_shape.attrs[df.tiletype.attrs[t].shape]
+    if not sa.walkable then return false end
+    if sa.basic_shape ~= df.tiletype_shape_basic.Floor and sa.basic_shape ~= df.tiletype_shape_basic.Ramp then return false end
+    local d = dfhack.maps.getTileFlags(x, y, z)
+    return d ~= nil and d.flow_size < 4 and d.subterranean and not d.outside
+end
+local function cdeep(x, y, z)
+    local d = dfhack.maps.getTileFlags(x, y, z)
+    return d and d.flow_size >= 4 and not d.liquid_type and d.subterranean and not d.outside
+end
 local function free(x, y, z)
     local b = dfhack.maps.getTileBlock(x, y, z)
     return b and not b.occupancy[x % 16][y % 16].unit
@@ -127,6 +140,90 @@ if cmd == 'spot' then
     end end
     if not best then do return fail('no ' .. kind .. ' spot on this map') end end
     out('spot', { { 'kind', kind }, { 'x', best[1] }, { 'y', best[2] }, { 'z', best[3] }, { 'walk81', best[4] }, { 'deep81', best[5] } })
+
+elseif cmd == 'cavespot' then
+    -- cavespot cavern|cavepool [skip]: an open cavern floor (>= 50 of 81 tiles cavern floor) or a cavern pool edge
+    -- (floor with >= 12 of 81 tiles of cavern water on its level or one below); the nth (skip) match from the top
+    local kind, skip = args[2] or 'cavern', tonumber(args[3]) or 0
+    local X, Y, Z = dfhack.maps.getTileSize()
+    local zhi, zlo = tonumber(args[4]) or (Z - 1), tonumber(args[5]) or 0   -- a cavern layer's band (`seasonal-wildlife caverns`)
+    local found = 0
+    for z = zhi, zlo, -1 do
+        for y = 6, Y - 7, 4 do for x = 6, X - 7, 4 do
+            if cwalk(x, y, z) then
+                local nw, nd = 0, 0
+                for dy = -4, 4 do for dx = -4, 4 do
+                    if cwalk(x + dx, y + dy, z) then nw = nw + 1
+                    elseif cdeep(x + dx, y + dy, z) or cdeep(x + dx, y + dy, z - 1) then nd = nd + 1 end
+                end end
+                if (kind == 'cavern' and nw >= 50 and nd == 0) or (kind == 'cavepool' and nw >= 20 and nd >= 12) then
+                    if found == skip then
+                        out('spot', { { 'kind', kind }, { 'x', x }, { 'y', y }, { 'z', z }, { 'walk81', nw }, { 'deep81', nd } }); return
+                    end
+                    found = found + 1
+                end
+            end
+        end end
+    end
+    do return fail('no ' .. kind .. ' spot on this map') end
+
+elseif cmd == 'where' then
+    -- where TOKEN: every spawned TOKEN still known: id, position, and the state that could explain a departure
+    for id, tok in pairs(S.spawned) do if tok == args[2] then
+        local u = df.unit.find(id)
+        if not u then out('where', { { 'id', id }, { 'state', 'removed' } })
+        else
+            local j = u.job.current_job
+            out('where', { { 'id', id }, { 'x', u.pos.x }, { 'y', u.pos.y }, { 'z', u.pos.z }, { 'inactive', tostring(u.flags1.inactive) },
+                { 'dead', tostring(dfhack.units.isDead(u)) }, { 'leave', u.animal.leave_countdown }, { 'vanish', u.animal.vanish_countdown },
+                { 'job', j and df.job_type[j.job_type] or '-' }, { 'goal', df.unit_path_goal[u.path.goal] or u.path.goal },
+                { 'dest', u.path.dest.x .. ',' .. u.path.dest.y .. ',' .. u.path.dest.z }, { 'items', #u.inventory },
+                { 'wild', tostring(dfhack.units.isWildlife(u)) }, { 'merchant', tostring(u.flags1.merchant) },
+                { 'forest', tostring(u.flags1.forest) }, { 'marauder', tostring(u.flags2.visitor_uninvited or false) } })
+        end
+    end end
+
+elseif cmd == 'misc' then
+    -- misc TOKEN FIELD VALUE: set a caste misc value (prone_to_rage, viewrange, vision_arc_min/max, grazer, ...)
+    -- on every caste, snapshotted for `restore`
+    local craw = raw_of(args[2] or '')
+    if not craw then do return fail('no creature ' .. tostring(args[2])) end end
+    local field, v = args[3], tonumber(args[4])
+    for ci, cst in ipairs(craw.caste) do
+        local key = args[2] .. ':' .. ci .. ':misc.' .. field
+        if S.flags[key] == nil then S.flags[key] = cst.misc[field] end
+        cst.misc[field] = v
+    end
+    out('misc', { { 'token', args[2] }, { 'field', field }, { 'value', v } })
+
+elseif cmd == 'vermin' then
+    -- vermin X Y Z R [tag]: vermin (not units) within R of X,Y,Z on levels z-1..z+1, by species
+    local x0, y0, z0, r = tonumber(args[2]), tonumber(args[3]), tonumber(args[4]), tonumber(args[5]) or 10
+    local by, n = {}, 0
+    for _, v in ipairs(df.vermin.get_vector()) do
+        if v.visible ~= false and math.abs(v.pos.x - x0) <= r and math.abs(v.pos.y - y0) <= r and math.abs(v.pos.z - z0) <= 1 then
+            local c = df.creature_raw.find(v.race); local k = c and c.creature_id or '?'
+            by[k] = (by[k] or 0) + (v.amount or 1); n = n + (v.amount or 1)
+        end
+    end
+    local parts = { { 'tag', args[6] or '-' }, { 'total', n } }
+    for k, c in pairs(by) do parts[#parts + 1] = { k, c } end
+    out('vermin', parts)
+
+elseif cmd == 'vspot' then
+    -- vspot [surface|cavern]: the densest 10x10 cluster of live vermin (by amount), on the surface (outside) or below
+    local want = args[2] or 'surface'
+    local bins, best, bk = {}, 0, nil
+    for _, v in ipairs(df.vermin.get_vector()) do
+        local d = dfhack.maps.getTileFlags(v.pos)
+        if d and ((want == 'surface') == (d.outside == true)) then
+            local k = (v.pos.x // 10) .. ',' .. (v.pos.y // 10) .. ',' .. v.pos.z
+            bins[k] = (bins[k] or 0) + (v.amount or 1)
+            if bins[k] > best then best, bk = bins[k], { v.pos.x, v.pos.y, v.pos.z } end
+        end
+    end
+    if not bk then do return fail('no ' .. want .. ' vermin on this map') end end
+    out('spot', { { 'kind', 'vermin' }, { 'x', bk[1] }, { 'y', bk[2] }, { 'z', bk[3] }, { 'vermin', best } })
 
 elseif cmd == 'fortspot' then
     for _, u in ipairs(df.global.world.units.active) do
@@ -263,10 +360,13 @@ elseif cmd == 'spawn' then
     local tiles = {}
     for dy = -radius, radius do for dx = -radius, radius do
         local x, y = x0 + dx, y0 + dy
-        if medium == 'water' then
+        if medium == 'water' or medium == 'cavewater' then
+            local test = medium == 'water' and deep or cdeep
             for _, z in ipairs({ z0, z0 - 1 }) do
-                if deep(x, y, z) and free(x, y, z) then tiles[#tiles + 1] = xyz2pos(x, y, z); break end
+                if test(x, y, z) and free(x, y, z) then tiles[#tiles + 1] = xyz2pos(x, y, z); break end
             end
+        elseif medium == 'cave' then
+            if cwalk(x, y, z0) and free(x, y, z0) then tiles[#tiles + 1] = xyz2pos(x, y, z0) end
         elseif walkable(x, y, z0) and free(x, y, z0) then tiles[#tiles + 1] = xyz2pos(x, y, z0) end
     end end
     local ids = {}
@@ -434,7 +534,9 @@ elseif cmd == 'restore' then
         local token, ci, flag = key:match('^([^:]+):([^:]+):(.+)$')
         local craw = raw_of(token)
         if craw then
-            if ci == '-' then craw.flags[flag] = v else craw.caste[tonumber(ci)].flags[flag] = v end
+            if ci == '-' then craw.flags[flag] = v
+            elseif flag:sub(1, 5) == 'misc.' then craw.caste[tonumber(ci)].misc[flag:sub(6)] = v
+            else craw.caste[tonumber(ci)].flags[flag] = v end
             n = n + 1
         end
     end
@@ -465,7 +567,23 @@ elseif cmd == 'lead' then
 elseif cmd == 'alerts' then
     -- prototype: every tick, drop COMBAT alerts in which no unit belongs to the fort (citizens, their pets,
     -- visitors stay). Runs on eventful's TICK-free path: repeat-util.
-    local on = args[3] ~= 'off'
+    -- alerts drop-wild on|off [humanoid]: 'humanoid' also keeps any alert with a humanoid in it -- a creature some
+    -- entity (civilisation) is made of, or an animal person (creature class ANIMAL_PERSON, or an id ending MAN) --
+    -- so custom entities (gnomes...) always alert; only non-humanoid wildlife fights are dropped (user, 30 Sep)
+    local on, mode = args[3] ~= 'off', args[4] or 'fort'
+    if mode == 'humanoid' then
+        local h, n = {}, 0
+        for _, e in ipairs(df.global.world.raws.entities) do
+            for _, cid in ipairs(e.creature_ids) do if not h[cid] then h[cid] = true; n = n + 1 end end
+        end
+        for i, c in ipairs(df.global.world.raws.creatures.all) do
+            local ap = false
+            for _, cl in ipairs(c.caste[0].creature_class) do if cl.value == 'ANIMAL_PERSON' then ap = true end end
+            if ap or c.creature_id:match('MAN$') then if not h[i] then h[i] = true; n = n + 1 end end
+        end
+        _G.CX_ECO.humanoid = h
+        out('humanoid', { { 'races', n } })
+    end
     local repeatUtil = require('repeat-util')
     if on then
         repeatUtil.scheduleEvery('cx_eco_alerts', 1, 'ticks', function()
@@ -476,14 +594,15 @@ elseif cmd == 'alerts' then
                     local fort = false
                     for j = 0, #a.report_unid - 1 do
                         local u = df.unit.find(a.report_unid[j])
-                        if u and (dfhack.units.isCitizen(u) or dfhack.units.isOwnCiv(u) or dfhack.units.isFortControlled(u)) then fort = true end
+                        if u and (dfhack.units.isCitizen(u) or dfhack.units.isOwnCiv(u) or dfhack.units.isFortControlled(u)
+                            or (mode == 'humanoid' and _G.CX_ECO.humanoid[u.race])) then fort = true end
                     end
                     if not fort then al:erase(i); _G.CX_ECO.dropped = (_G.CX_ECO.dropped or 0) + 1 end
                 end
             end
         end)
     else repeatUtil.cancel('cx_eco_alerts') end
-    out('alerts_filter', { { 'on', on } })
+    out('alerts_filter', { { 'on', on }, { 'mode', mode } })
 
 else
     do return fail('usage: cx-eco spot|spawn|rel|watch|read|clear|flag|restore|lead|alerts ...') end

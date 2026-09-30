@@ -1,0 +1,1117 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260930-122930	winter_natural	1	16800	823200	baseline	wild_present	13
+20260930-122930	winter_natural	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-122930	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-122930	winter_natural	1	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-122930	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-122930	winter_natural	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-122930	winter_natural	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=true season=3
+20260930-122930	winter_natural	1	319890	1126290	arrival	139	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=26223 vanish=0 flag_src=1 flag_nf=1 pos=145,3,104 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	140	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=29,20,-1,8,-1,18 layer=cavern countdown=27580 vanish=0 flag_src=1 flag_nf=0 pos=15,176,58 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	141	REACHER caste=FEMALE ref6=29,20,-1,13,-1,30 layer=cavern countdown=20918 vanish=0 flag_src=1 flag_nf=0 pos=3,53,31 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	142	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=20530 vanish=0 flag_src=1 flag_nf=0 pos=9,43,8 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	143	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26478 vanish=0 flag_src=1 flag_nf=1 pos=179,68,104 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	144	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26945 vanish=0 flag_src=1 flag_nf=1 pos=183,71,104 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	145	OLM_GIANT caste=FEMALE ref6=29,20,-1,8,-1,9 layer=cavern countdown=22039 vanish=0 flag_src=1 flag_nf=0 pos=185,103,38 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	146	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=27264 vanish=0 flag_src=1 flag_nf=0 pos=111,176,6 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	147	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=25797 vanish=0 flag_src=1 flag_nf=0 pos=109,183,6 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	148	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=20569 vanish=0 flag_src=1 flag_nf=0 pos=106,182,6 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	149	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=21060 vanish=0 flag_src=1 flag_nf=0 pos=109,189,5 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	150	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=22143 vanish=0 flag_src=1 flag_nf=0 pos=109,191,5 listed_at=1126290
+20260930-122930	winter_natural	1	319890	1126290	arrival	151	TOAD_GIANT_CAVE caste=MALE ref6=29,20,-1,13,-1,10 layer=cavern countdown=25135 vanish=0 flag_src=1 flag_nf=0 pos=187,33,33 listed_at=1126290
+20260930-122930	winter_natural	1	321295	1127695	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	1	321295	1127695	every_applied	1	probe:release surface
+20260930-122930	winter_natural	1	322119	1128519	arrival	152	WOMBAT caste=FEMALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=28622 vanish=0 flag_src=1 flag_nf=1 pos=156,1,104 listed_at=1128519
+20260930-122930	winter_natural	1	322119	1128519	arrival	153	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=21924 vanish=0 flag_src=1 flag_nf=1 pos=181,153,111 listed_at=1128519
+20260930-122930	winter_natural	1	323333	1129733	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	323333	1129733	every_applied	2	probe:release surface
+20260930-122930	winter_natural	1	323927	1130327	arrival	154	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=25909 vanish=0 flag_src=1 flag_nf=1 pos=21,184,107 listed_at=1130327
+20260930-122930	winter_natural	1	323927	1130327	arrival	155	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=23613 vanish=0 flag_src=1 flag_nf=1 pos=157,1,104 listed_at=1130327
+20260930-122930	winter_natural	1	325313	1131713	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	325313	1131713	every_applied	3	probe:release surface
+20260930-122930	winter_natural	1	325919	1132319	arrival	156	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=24250 vanish=0 flag_src=1 flag_nf=1 pos=142,183,104 listed_at=1132319
+20260930-122930	winter_natural	1	325919	1132319	arrival	157	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=29517 vanish=0 flag_src=1 flag_nf=1 pos=103,165,115 listed_at=1132319
+20260930-122930	winter_natural	1	327293	1133693	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	327293	1133693	every_applied	4	probe:release surface
+20260930-122930	winter_natural	1	327884	1134284	arrival	158	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26747 vanish=0 flag_src=1 flag_nf=1 pos=23,51,106 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	159	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=22204 vanish=0 flag_src=1 flag_nf=1 pos=20,49,109 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	160	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=20449 vanish=0 flag_src=1 flag_nf=1 pos=17,48,109 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	161	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=22268 vanish=0 flag_src=1 flag_nf=1 pos=12,47,107 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	162	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=27478 vanish=0 flag_src=1 flag_nf=1 pos=7,48,106 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	163	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=25562 vanish=0 flag_src=1 flag_nf=1 pos=7,49,107 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	164	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26942 vanish=0 flag_src=1 flag_nf=1 pos=7,51,107 listed_at=1134284
+20260930-122930	winter_natural	1	327884	1134284	arrival	165	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=25800 vanish=0 flag_src=1 flag_nf=1 pos=7,58,110 listed_at=1134284
+20260930-122930	winter_natural	1	329095	1135495	manipulation	probe:release surface	released 8 unit(s) [surface]
+20260930-122930	winter_natural	1	329095	1135495	every_applied	5	probe:release surface
+20260930-122930	winter_natural	1	329749	1136149	arrival	166	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=27574 vanish=0 flag_src=1 flag_nf=1 pos=74,1,104 listed_at=1136149
+20260930-122930	winter_natural	1	329749	1136149	arrival	167	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25532 vanish=0 flag_src=1 flag_nf=1 pos=78,2,104 listed_at=1136149
+20260930-122930	winter_natural	1	331028	1137428	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	331028	1137428	every_applied	6	probe:release surface
+20260930-122930	winter_natural	1	331671	1138071	arrival	168	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=20548 vanish=0 flag_src=1 flag_nf=1 pos=156,141,114 listed_at=1138071
+20260930-122930	winter_natural	1	331671	1138071	arrival	169	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=22052 vanish=0 flag_src=1 flag_nf=1 pos=86,2,104 listed_at=1138071
+20260930-122930	winter_natural	1	331671	1138071	arrival	170	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=26653 vanish=0 flag_src=1 flag_nf=1 pos=80,0,104 listed_at=1138071
+20260930-122930	winter_natural	1	331671	1138071	arrival	171	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25822 vanish=0 flag_src=1 flag_nf=1 pos=78,1,104 listed_at=1138071
+20260930-122930	winter_natural	1	331671	1138071	arrival	172	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23576 vanish=0 flag_src=1 flag_nf=1 pos=73,0,104 listed_at=1138071
+20260930-122930	winter_natural	1	331671	1138071	arrival	173	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23738 vanish=0 flag_src=1 flag_nf=1 pos=72,0,104 listed_at=1138071
+20260930-122930	winter_natural	1	332878	1139278	manipulation	probe:release surface	released 6 unit(s) [surface]
+20260930-122930	winter_natural	1	332878	1139278	every_applied	7	probe:release surface
+20260930-122930	winter_natural	1	333506	1139906	arrival	174	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=26760 vanish=0 flag_src=1 flag_nf=1 pos=124,13,104 listed_at=1139906
+20260930-122930	winter_natural	1	333506	1139906	arrival	175	BIRD_KAKAPO caste=FEMALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=25144 vanish=0 flag_src=1 flag_nf=1 pos=0,77,104 listed_at=1139906
+20260930-122930	winter_natural	1	334740	1141140	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	334740	1141140	every_applied	8	probe:release surface
+20260930-122930	winter_natural	1	335371	1141771	arrival	176	BIRD_KESTREL caste=FEMALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=21082 vanish=0 flag_src=1 flag_nf=1 pos=191,86,116 listed_at=1141771
+20260930-122930	winter_natural	1	335371	1141771	arrival	177	BIRD_KESTREL caste=FEMALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=24828 vanish=0 flag_src=1 flag_nf=1 pos=185,189,113 listed_at=1141771
+20260930-122930	winter_natural	1	336753	1143153	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	336753	1143153	every_applied	9	probe:release surface
+20260930-122930	winter_natural	1	337419	1143819	arrival	178	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=28881 vanish=0 flag_src=1 flag_nf=1 pos=3,169,104 listed_at=1143819
+20260930-122930	winter_natural	1	337419	1143819	arrival	179	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=28928 vanish=0 flag_src=1 flag_nf=1 pos=184,110,104 listed_at=1143819
+20260930-122930	winter_natural	1	338557	1144957	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	338557	1144957	every_applied	10	probe:release surface
+20260930-122930	winter_natural	1	339141	1145541	arrival	180	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24187 vanish=0 flag_src=1 flag_nf=1 pos=190,140,104 listed_at=1145541
+20260930-122930	winter_natural	1	339141	1145541	arrival	181	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25544 vanish=0 flag_src=1 flag_nf=1 pos=190,142,104 listed_at=1145541
+20260930-122930	winter_natural	1	339141	1145541	arrival	182	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24848 vanish=0 flag_src=1 flag_nf=1 pos=181,159,104 listed_at=1145541
+20260930-122930	winter_natural	1	340429	1146829	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	1	340429	1146829	every_applied	11	probe:release surface
+20260930-122930	winter_natural	1	340953	1147353	arrival	183	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=28316 vanish=0 flag_src=1 flag_nf=1 pos=185,8,103 listed_at=1147353
+20260930-122930	winter_natural	1	340953	1147353	arrival	184	SKUNK caste=FEMALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=25811 vanish=0 flag_src=1 flag_nf=1 pos=184,98,104 listed_at=1147353
+20260930-122930	winter_natural	1	340953	1147353	departure	142	DEMON_3 ref6=28,20,-1,44,-1,5 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	341554	1147954	arrival	185	GORLAK caste=FEMALE ref6=29,20,-1,13,-1,33 layer=cavern countdown=20131 vanish=0 flag_src=1 flag_nf=0 pos=156,1,32 listed_at=1147954
+20260930-122930	winter_natural	1	341554	1147954	departure	141	REACHER ref6=29,20,-1,13,-1,30 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	342108	1148508	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	342108	1148508	every_applied	12	probe:release surface
+20260930-122930	winter_natural	1	342806	1149206	arrival	186	WOMBAT caste=FEMALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=25271 vanish=0 flag_src=1 flag_nf=1 pos=190,23,104 listed_at=1149206
+20260930-122930	winter_natural	1	342806	1149206	arrival	187	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=21357 vanish=0 flag_src=1 flag_nf=1 pos=185,74,111 listed_at=1149206
+20260930-122930	winter_natural	1	342806	1149206	death	168	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=10111 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	344072	1150472	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	344072	1150472	every_applied	13	probe:release surface
+20260930-122930	winter_natural	1	344626	1151026	arrival	188	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=25542 vanish=0 flag_src=1 flag_nf=1 pos=186,76,104 listed_at=1151026
+20260930-122930	winter_natural	1	344626	1151026	arrival	189	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=25320 vanish=0 flag_src=1 flag_nf=1 pos=188,76,104 listed_at=1151026
+20260930-122930	winter_natural	1	344626	1151026	arrival	190	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=21377 vanish=0 flag_src=1 flag_nf=1 pos=189,74,104 listed_at=1151026
+20260930-122930	winter_natural	1	344626	1151026	arrival	191	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=26937 vanish=0 flag_src=1 flag_nf=1 pos=190,74,104 listed_at=1151026
+20260930-122930	winter_natural	1	345811	1152211	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_natural	1	345811	1152211	every_applied	14	probe:release surface
+20260930-122930	winter_natural	1	346364	1152764	arrival	192	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25638 vanish=0 flag_src=1 flag_nf=1 pos=4,24,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	arrival	193	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=24200 vanish=0 flag_src=1 flag_nf=1 pos=3,24,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	arrival	194	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=20398 vanish=0 flag_src=1 flag_nf=1 pos=1,22,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	arrival	195	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25313 vanish=0 flag_src=1 flag_nf=1 pos=3,27,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	arrival	196	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23696 vanish=0 flag_src=1 flag_nf=1 pos=2,28,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	arrival	197	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=28295 vanish=0 flag_src=1 flag_nf=1 pos=0,26,104 listed_at=1152764
+20260930-122930	winter_natural	1	346364	1152764	departure	151	TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	346926	1153326	arrival	198	TROLL caste=MALE ref6=29,20,-1,13,-1,32 layer=cavern countdown=21582 vanish=0 flag_src=1 flag_nf=0 pos=127,179,29 listed_at=1152764
+20260930-122930	winter_natural	1	346926	1153326	departure	126	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	347512	1153912	manipulation	probe:release surface	released 6 unit(s) [surface]
+20260930-122930	winter_natural	1	347512	1153912	every_applied	15	probe:release surface
+20260930-122930	winter_natural	1	347512	1153912	departure	127	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	347512	1153912	departure	128	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	347512	1153912	departure	129	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	347512	1153912	departure	146	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=224 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	347512	1153912	departure	147	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	347512	1153912	departure	148	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	347512	1153912	departure	153	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=1128519
+20260930-122930	winter_natural	1	348078	1154478	arrival	199	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=20363 vanish=0 flag_src=1 flag_nf=1 pos=133,2,112 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	arrival	200	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=27494 vanish=0 flag_src=1 flag_nf=1 pos=30,180,109 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	arrival	201	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=27183 vanish=0 flag_src=1 flag_nf=0 pos=182,63,7 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	arrival	202	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=22192 vanish=0 flag_src=1 flag_nf=0 pos=191,59,5 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	arrival	203	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=22444 vanish=0 flag_src=1 flag_nf=0 pos=191,56,5 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	arrival	204	DEMON_18 caste=DEFAULT ref6=29,20,-1,43,-1,1 layer=deep countdown=24577 vanish=0 flag_src=1 flag_nf=0 pos=191,57,5 listed_at=1154478
+20260930-122930	winter_natural	1	348078	1154478	departure	130	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	348078	1154478	departure	143	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1126290
+20260930-122930	winter_natural	1	348078	1154478	departure	149	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	348078	1154478	departure	150	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	348665	1155065	arrival	205	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=29541 vanish=0 flag_src=1 flag_nf=0 pos=44,177,55 listed_at=1155065
+20260930-122930	winter_natural	1	348665	1155065	arrival	206	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=28195 vanish=0 flag_src=1 flag_nf=0 pos=25,191,58 listed_at=1155065
+20260930-122930	winter_natural	1	348665	1155065	arrival	207	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=29098 vanish=0 flag_src=1 flag_nf=0 pos=24,189,58 listed_at=1155065
+20260930-122930	winter_natural	1	348665	1155065	arrival	214	PLUMP_HELMET_MAN caste=FEMALE ref6=29,20,-1,25,-1,13 layer=cavern countdown=20446 vanish=0 flag_src=1 flag_nf=0 pos=8,7,26 listed_at=1155065
+20260930-122930	winter_natural	1	348665	1155065	departure	131	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	348665	1155065	departure	132	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	348665	1155065	departure	144	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1126290
+20260930-122930	winter_natural	1	348665	1155065	departure	145	OLM_GIANT ref6=29,20,-1,8,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	349214	1155614	arrival	208	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=28674 vanish=0 flag_src=1 flag_nf=0 pos=25,190,58 listed_at=1155065
+20260930-122930	winter_natural	1	349214	1155614	arrival	209	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=26922 vanish=0 flag_src=1 flag_nf=0 pos=24,191,58 listed_at=1155065
+20260930-122930	winter_natural	1	349214	1155614	arrival	219	FLESH_BALL caste=DEFAULT ref6=29,20,-1,25,-1,14 layer=cavern countdown=28537 vanish=0 flag_src=1 flag_nf=0 pos=156,190,24 listed_at=1155614
+20260930-122930	winter_natural	1	349214	1155614	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	349214	1155614	every_applied	16	probe:release surface
+20260930-122930	winter_natural	1	349214	1155614	departure	133	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	349764	1156164	arrival	210	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=21552 vanish=0 flag_src=1 flag_nf=0 pos=24,191,58 listed_at=1155065
+20260930-122930	winter_natural	1	349764	1156164	arrival	223	COUGAR caste=MALE ref6=29,20,-1,-1,-1,79 layer=surface countdown=24506 vanish=0 flag_src=1 flag_nf=1 pos=175,3,104 listed_at=1156164
+20260930-122930	winter_natural	1	349764	1156164	arrival	224	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19671 vanish=0 flag_src=1 flag_nf=1 pos=184,188,104 listed_at=1156164
+20260930-122930	winter_natural	1	349764	1156164	arrival	225	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22510 vanish=0 flag_src=1 flag_nf=1 pos=189,189,104 listed_at=1156164
+20260930-122930	winter_natural	1	349764	1156164	arrival	226	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25895 vanish=0 flag_src=1 flag_nf=1 pos=189,185,104 listed_at=1156164
+20260930-122930	winter_natural	1	349764	1156164	arrival	227	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28005 vanish=0 flag_src=1 flag_nf=1 pos=190,181,104 listed_at=1156164
+20260930-122930	winter_natural	1	350341	1156741	departure	139	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 last_countdown=0 last_flag_src=0 arrived_at=1126290
+20260930-122930	winter_natural	1	350341	1156741	departure	155	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=1130327
+20260930-122930	winter_natural	1	350921	1157321	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_natural	1	350921	1157321	every_applied	17	probe:release surface
+20260930-122930	winter_natural	1	350921	1157321	departure	140	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 last_countdown=0 last_flag_src=1 arrived_at=1126290
+20260930-122930	winter_natural	1	350921	1157321	departure	156	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=1132319
+20260930-122930	winter_natural	1	351506	1157906	arrival	211	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=28014 vanish=0 flag_src=1 flag_nf=0 pos=24,191,58 listed_at=1155065
+20260930-122930	winter_natural	1	351506	1157906	arrival	228	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=27501 vanish=0 flag_src=1 flag_nf=1 pos=184,21,119 listed_at=1157906
+20260930-122930	winter_natural	1	351506	1157906	arrival	229	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22158 vanish=0 flag_src=1 flag_nf=1 pos=58,13,104 listed_at=1157906
+20260930-122930	winter_natural	1	351506	1157906	arrival	230	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27047 vanish=0 flag_src=1 flag_nf=1 pos=71,1,104 listed_at=1157906
+20260930-122930	winter_natural	1	351506	1157906	arrival	231	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27945 vanish=0 flag_src=1 flag_nf=1 pos=8,5,104 listed_at=1157906
+20260930-122930	winter_natural	1	351506	1157906	departure	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	1	351506	1157906	departure	154	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1130327
+20260930-122930	winter_natural	1	351506	1157906	death	188	WOLF ref6=29,20,-1,-1,-1,101 last_countdown=19247 last_flag_src=0 arrived_at=1151026
+20260930-122930	winter_natural	1	352090	1158490	arrival	212	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=24484 vanish=0 flag_src=1 flag_nf=0 pos=25,191,58 listed_at=1155065
+20260930-122930	winter_natural	1	352090	1158490	departure	152	WOMBAT ref6=29,20,-1,-1,-1,96 last_countdown=0 last_flag_src=0 arrived_at=1128519
+20260930-122930	winter_natural	1	352758	1159158	arrival	213	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=26766 vanish=0 flag_src=1 flag_nf=0 pos=23,189,58 listed_at=1155065
+20260930-122930	winter_natural	1	352758	1159158	arrival	215	PLUMP_HELMET_MAN caste=MALE ref6=29,20,-1,25,-1,13 layer=cavern countdown=26450 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=1155065
+20260930-122930	winter_natural	1	352758	1159158	arrival	216	PLUMP_HELMET_MAN caste=FEMALE ref6=29,20,-1,25,-1,13 layer=cavern countdown=25196 vanish=0 flag_src=1 flag_nf=0 pos=2,4,26 listed_at=1155065
+20260930-122930	winter_natural	1	352758	1159158	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_natural	1	352758	1159158	every_applied	18	probe:release surface
+20260930-122930	winter_natural	1	353320	1159720	arrival	217	PLUMP_HELMET_MAN caste=FEMALE ref6=29,20,-1,25,-1,13 layer=cavern countdown=19875 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=1155065
+20260930-122930	winter_natural	1	353320	1159720	arrival	232	BIRD_KESTREL caste=FEMALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=26173 vanish=0 flag_src=1 flag_nf=1 pos=121,55,119 listed_at=1159720
+20260930-122930	winter_natural	1	353320	1159720	arrival	233	BIRD_KAKAPO caste=FEMALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=24799 vanish=0 flag_src=1 flag_nf=1 pos=188,40,104 listed_at=1159720
+20260930-122930	winter_natural	1	353954	1160354	arrival	218	PLUMP_HELMET_MAN caste=MALE ref6=29,20,-1,25,-1,13 layer=cavern countdown=20242 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=1155065
+20260930-122930	winter_natural	1	353954	1160354	arrival	220	FLESH_BALL caste=DEFAULT ref6=29,20,-1,25,-1,14 layer=cavern countdown=19999 vanish=0 flag_src=1 flag_nf=0 pos=160,191,24 listed_at=1155614
+20260930-122930	winter_natural	1	354589	1160989	arrival	221	FLESH_BALL caste=DEFAULT ref6=29,20,-1,25,-1,14 layer=cavern countdown=23613 vanish=0 flag_src=1 flag_nf=0 pos=160,191,24 listed_at=1155614
+20260930-122930	winter_natural	1	354589	1160989	arrival	222	FLESH_BALL caste=DEFAULT ref6=29,20,-1,25,-1,14 layer=cavern countdown=28799 vanish=0 flag_src=1 flag_nf=0 pos=157,191,24 listed_at=1155614
+20260930-122930	winter_natural	1	354589	1160989	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	354589	1160989	every_applied	19	probe:release surface
+20260930-122930	winter_natural	1	355217	1161617	arrival	234	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=28408 vanish=0 flag_src=1 flag_nf=1 pos=178,183,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	235	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=24073 vanish=0 flag_src=1 flag_nf=1 pos=180,165,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	236	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=27416 vanish=0 flag_src=1 flag_nf=1 pos=186,172,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	237	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=19757 vanish=0 flag_src=1 flag_nf=1 pos=185,176,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	238	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=22094 vanish=0 flag_src=1 flag_nf=1 pos=187,178,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	239	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=23137 vanish=0 flag_src=1 flag_nf=1 pos=190,185,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	240	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=26419 vanish=0 flag_src=1 flag_nf=1 pos=189,185,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	arrival	241	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=27749 vanish=0 flag_src=1 flag_nf=1 pos=188,181,104 listed_at=1161617
+20260930-122930	winter_natural	1	355217	1161617	departure	169	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	356531	1162931	manipulation	probe:release surface	released 8 unit(s) [surface]
+20260930-122930	winter_natural	1	356531	1162931	every_applied	20	probe:release surface
+20260930-122930	winter_natural	1	356531	1162931	departure	158	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1134284
+20260930-122930	winter_natural	1	357175	1163575	arrival	242	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=28124 vanish=0 flag_src=1 flag_nf=1 pos=179,12,104 listed_at=1163575
+20260930-122930	winter_natural	1	357175	1163575	arrival	243	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29107 vanish=0 flag_src=1 flag_nf=1 pos=165,22,119 listed_at=1163575
+20260930-122930	winter_natural	1	357175	1163575	arrival	244	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=24564 vanish=0 flag_src=1 flag_nf=1 pos=154,0,106 listed_at=1163575
+20260930-122930	winter_natural	1	357175	1163575	arrival	245	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=28330 vanish=0 flag_src=1 flag_nf=1 pos=157,0,106 listed_at=1163575
+20260930-122930	winter_natural	1	357175	1163575	departure	176	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1141771
+20260930-122930	winter_natural	1	357781	1164181	arrival	246	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=25009 vanish=0 flag_src=1 flag_nf=1 pos=157,0,106 listed_at=1163575
+20260930-122930	winter_natural	1	357781	1164181	arrival	247	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=23395 vanish=0 flag_src=1 flag_nf=1 pos=156,0,106 listed_at=1163575
+20260930-122930	winter_natural	1	357781	1164181	arrival	248	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=28675 vanish=0 flag_src=1 flag_nf=1 pos=156,0,106 listed_at=1163575
+20260930-122930	winter_natural	1	357781	1164181	arrival	249	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26602 vanish=0 flag_src=1 flag_nf=1 pos=155,0,107 listed_at=1163575
+20260930-122930	winter_natural	1	358373	1164773	manipulation	probe:release surface	released 8 unit(s) [surface]
+20260930-122930	winter_natural	1	358373	1164773	every_applied	21	probe:release surface
+20260930-122930	winter_natural	1	359014	1165414	arrival	250	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=27448 vanish=0 flag_src=1 flag_nf=1 pos=114,79,113 listed_at=1165414
+20260930-122930	winter_natural	1	359014	1165414	arrival	251	COUGAR caste=MALE ref6=29,20,-1,-1,-1,79 layer=surface countdown=21587 vanish=0 flag_src=1 flag_nf=1 pos=160,9,104 listed_at=1165414
+20260930-122930	winter_natural	1	359014	1165414	departure	157	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1132319
+20260930-122930	winter_natural	1	359014	1165414	death	173	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	359564	1165964	death	170	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	359564	1165964	death	242	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=26285 last_flag_src=0 arrived_at=1163575
+20260930-122930	winter_natural	1	360192	1166592	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	1	360192	1166592	every_applied	22	probe:release surface
+20260930-122930	winter_natural	1	360192	1166592	departure	175	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 last_countdown=0 last_flag_src=0 arrived_at=1139906
+20260930-122930	winter_natural	1	360764	1167164	arrival	252	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=26490 vanish=0 flag_src=1 flag_nf=1 pos=107,189,104 listed_at=1167164
+20260930-122930	winter_natural	1	360764	1167164	arrival	253	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=25502 vanish=0 flag_src=1 flag_nf=1 pos=97,191,104 listed_at=1167164
+20260930-122930	winter_natural	1	360764	1167164	departure	171	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	360764	1167164	departure	177	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=7 last_flag_src=0 arrived_at=1141771
+20260930-122930	winter_natural	1	361368	1167768	departure	166	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1136149
+20260930-122930	winter_natural	1	361368	1167768	departure	172	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1138071
+20260930-122930	winter_natural	1	361951	1168351	manipulation	probe:release surface	released 12 unit(s) [surface]
+20260930-122930	winter_natural	1	361951	1168351	every_applied	23	probe:release surface
+20260930-122930	winter_natural	1	361951	1168351	departure	174	WOMBAT ref6=29,20,-1,-1,-1,96 last_countdown=0 last_flag_src=0 arrived_at=1139906
+20260930-122930	winter_natural	1	362605	1169005	arrival	254	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=24799 vanish=0 flag_src=0 flag_nf=0 pos=99,188,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	255	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=27289 vanish=0 flag_src=0 flag_nf=0 pos=96,191,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	256	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=26805 vanish=0 flag_src=0 flag_nf=0 pos=97,188,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	257	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=28664 vanish=0 flag_src=0 flag_nf=0 pos=95,184,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	258	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=28528 vanish=0 flag_src=0 flag_nf=0 pos=97,183,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	259	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=24608 vanish=0 flag_src=0 flag_nf=0 pos=96,189,104 listed_at=1167164
+20260930-122930	winter_natural	1	362605	1169005	arrival	264	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25173 vanish=0 flag_src=1 flag_nf=1 pos=135,183,104 listed_at=1169005
+20260930-122930	winter_natural	1	362605	1169005	arrival	267	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22850 vanish=0 flag_src=1 flag_nf=1 pos=133,183,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	260	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=23356 vanish=0 flag_src=0 flag_nf=0 pos=94,185,104 listed_at=1167164
+20260930-122930	winter_natural	1	363223	1169623	arrival	261	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=24324 vanish=0 flag_src=0 flag_nf=0 pos=95,186,104 listed_at=1167164
+20260930-122930	winter_natural	1	363223	1169623	arrival	262	DINGO caste=MALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=27822 vanish=0 flag_src=0 flag_nf=0 pos=93,175,104 listed_at=1167164
+20260930-122930	winter_natural	1	363223	1169623	arrival	263	DINGO caste=FEMALE ref6=29,20,-1,-1,-1,100 layer=surface countdown=29044 vanish=0 flag_src=0 flag_nf=0 pos=98,181,104 listed_at=1167164
+20260930-122930	winter_natural	1	363223	1169623	arrival	265	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=24161 vanish=0 flag_src=1 flag_nf=1 pos=153,189,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	266	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=21081 vanish=0 flag_src=1 flag_nf=1 pos=156,190,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	268	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22662 vanish=0 flag_src=1 flag_nf=1 pos=142,183,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	269	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27834 vanish=0 flag_src=1 flag_nf=1 pos=155,112,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	270	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28050 vanish=0 flag_src=1 flag_nf=1 pos=153,191,104 listed_at=1169005
+20260930-122930	winter_natural	1	363223	1169623	arrival	271	ELK_BIRD caste=MALE ref6=29,21,-1,13,-1,25 layer=cavern countdown=25459 vanish=0 flag_src=1 flag_nf=0 pos=66,180,30 listed_at=1169623
+20260930-122930	winter_natural	1	363223	1169623	arrival	272	ELK_BIRD caste=MALE ref6=29,21,-1,13,-1,25 layer=cavern countdown=29510 vanish=0 flag_src=1 flag_nf=0 pos=61,191,30 listed_at=1169623
+20260930-122930	winter_natural	1	363223	1169623	arrival	273	ELK_BIRD caste=MALE ref6=29,21,-1,13,-1,25 layer=cavern countdown=25994 vanish=0 flag_src=1 flag_nf=0 pos=63,191,30 listed_at=1169623
+20260930-122930	winter_natural	1	363223	1169623	departure	185	GORLAK ref6=29,20,-1,13,-1,33 last_countdown=0 last_flag_src=1 arrived_at=1147954
+20260930-122930	winter_natural	1	363766	1170166	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260930-122930	winter_natural	1	363766	1170166	every_applied	24	probe:release surface
+20260930-122930	winter_natural	1	363766	1170166	departure	180	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=104 last_flag_src=0 arrived_at=1145541
+20260930-122930	winter_natural	1	364391	1170791	arrival	277	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=20710 vanish=0 flag_src=1 flag_nf=1 pos=45,191,104 listed_at=1170791
+20260930-122930	winter_natural	1	364391	1170791	arrival	279	SKUNK caste=FEMALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=22451 vanish=0 flag_src=1 flag_nf=1 pos=5,137,104 listed_at=1170791
+20260930-122930	winter_natural	1	364391	1170791	death	269	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=27291 last_flag_src=1 arrived_at=1169623
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->350 max 354->354 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->13 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	3538	DEMON_3 ref6=28,20,-1,44,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->309 max 308->308 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4703	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->340 max 339->339 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4704	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4705	BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->335 max 334->334 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4708	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->23 max 23->23 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4709	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->12 max 15->15 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3243 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4721	COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->0 max 2->2 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->500 max 20->20 discovered 0->0 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->381 max 381->381 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4726	KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->9 max 20->20 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4727	PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->22 max 24->24 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4728	SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->14 max 15->15 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4729	WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->12 max 14->14 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4732	DINGO ref6=29,20,-1,-1,-1,100 quantity 13->0 max 13->13 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4733	WOLF ref6=29,20,-1,-1,-1,101 quantity 12->8 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4744	OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->427 max 429->429 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->433 max 436->436 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->404 max 403->403 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4753	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->23 max 22->22 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4756	ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->34 max 43->43 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->378 max 387->387 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4774	TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->443 max 442->442 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->197 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4794	REACHER ref6=29,20,-1,13,-1,30 quantity 10->10 max 10->10 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4796	TROLL ref6=29,20,-1,13,-1,32 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4797	GORLAK ref6=29,20,-1,13,-1,33 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4811	PLUMP_HELMET_MAN ref6=29,20,-1,25,-1,13 quantity 19->15 max 19->19 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4812	FLESH_BALL ref6=29,20,-1,25,-1,14 quantity 305->301 max 305->305 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->33 max 33->33 discovered 1->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->250 max 336->336 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4831	MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->38 max 38->38 discovered 1->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4837	DEMON_18 ref6=29,20,-1,43,-1,1 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4838	DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	pool_delta	4989	ELK_BIRD ref6=29,21,-1,13,-1,25 quantity 43->37 max 43->43 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	1	364391	1170791	end	summary	{"arm": "winter_natural", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 137, "departures": 39, "deaths": 6, "ticks": 45191, "wall_s": 179.4, "stop": null, "ticks_per_s": 252.0, "save_untouched": true}
+20260930-122930	winter_natural	2	16800	823200	baseline	wild_present	13
+20260930-122930	winter_natural	2	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-122930	winter_natural	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-122930	winter_natural	2	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-122930	winter_natural	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-122930	winter_natural	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-122930	winter_natural	2	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=true season=3
+20260930-122930	winter_natural	2	319891	1126291	arrival	139	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=23727 vanish=0 flag_src=1 flag_nf=1 pos=22,15,104 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	140	TOAD_GIANT_CAVE caste=MALE ref6=29,20,-1,8,-1,12 layer=cavern countdown=20842 vanish=0 flag_src=1 flag_nf=0 pos=8,107,40 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	141	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=19897 vanish=0 flag_src=1 flag_nf=0 pos=35,18,6 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	142	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=19544 vanish=0 flag_src=1 flag_nf=0 pos=32,12,6 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	143	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=29420 vanish=0 flag_src=1 flag_nf=1 pos=90,187,104 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	144	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=28956 vanish=0 flag_src=1 flag_nf=1 pos=95,191,104 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	145	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=29,20,-1,8,-1,18 layer=cavern countdown=19885 vanish=0 flag_src=1 flag_nf=0 pos=31,27,62 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	146	JABBERER caste=MALE ref6=29,20,-1,13,-1,21 layer=cavern countdown=26425 vanish=0 flag_src=1 flag_nf=0 pos=70,16,31 listed_at=1126291
+20260930-122930	winter_natural	2	319891	1126291	arrival	147	TOAD_GIANT_CAVE caste=FEMALE ref6=29,20,-1,13,-1,10 layer=cavern countdown=25205 vanish=0 flag_src=1 flag_nf=0 pos=190,38,32 listed_at=1126291
+20260930-122930	winter_natural	2	321140	1127540	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	321140	1127540	every_applied	1	probe:release surface
+20260930-122930	winter_natural	2	321830	1128230	arrival	148	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=20927 vanish=0 flag_src=1 flag_nf=1 pos=169,165,108 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	149	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=21546 vanish=0 flag_src=1 flag_nf=1 pos=175,28,108 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	150	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=25724 vanish=0 flag_src=1 flag_nf=1 pos=179,26,113 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	151	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26439 vanish=0 flag_src=1 flag_nf=1 pos=181,23,116 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	152	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=21780 vanish=0 flag_src=1 flag_nf=1 pos=183,19,116 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	153	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=28072 vanish=0 flag_src=1 flag_nf=1 pos=184,15,114 listed_at=1128230
+20260930-122930	winter_natural	2	321830	1128230	arrival	154	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=22405 vanish=0 flag_src=1 flag_nf=1 pos=178,15,110 listed_at=1128230
+20260930-122930	winter_natural	2	323030	1129430	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260930-122930	winter_natural	2	323030	1129430	every_applied	2	probe:release surface
+20260930-122930	winter_natural	2	323600	1130000	arrival	155	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28262 vanish=0 flag_src=1 flag_nf=1 pos=6,41,104 listed_at=1130000
+20260930-122930	winter_natural	2	323600	1130000	arrival	156	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21309 vanish=0 flag_src=1 flag_nf=1 pos=2,48,104 listed_at=1130000
+20260930-122930	winter_natural	2	323600	1130000	arrival	157	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22871 vanish=0 flag_src=1 flag_nf=1 pos=0,40,104 listed_at=1130000
+20260930-122930	winter_natural	2	324713	1131113	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	324713	1131113	every_applied	3	probe:release surface
+20260930-122930	winter_natural	2	325273	1131673	arrival	158	WOMBAT caste=FEMALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=20146 vanish=0 flag_src=1 flag_nf=1 pos=6,148,104 listed_at=1131673
+20260930-122930	winter_natural	2	325273	1131673	arrival	159	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=24924 vanish=0 flag_src=1 flag_nf=1 pos=33,173,109 listed_at=1131673
+20260930-122930	winter_natural	2	325273	1131673	arrival	160	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=20163 vanish=0 flag_src=1 flag_nf=1 pos=29,170,109 listed_at=1131673
+20260930-122930	winter_natural	2	326592	1132992	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	326592	1132992	every_applied	4	probe:release surface
+20260930-122930	winter_natural	2	327268	1133668	arrival	161	SKUNK caste=MALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=20442 vanish=0 flag_src=1 flag_nf=1 pos=8,184,104 listed_at=1133668
+20260930-122930	winter_natural	2	327268	1133668	arrival	162	BIRD_KESTREL caste=FEMALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=28893 vanish=0 flag_src=1 flag_nf=1 pos=0,117,112 listed_at=1133668
+20260930-122930	winter_natural	2	328549	1134949	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	328549	1134949	every_applied	5	probe:release surface
+20260930-122930	winter_natural	2	329177	1135577	arrival	163	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=28136 vanish=0 flag_src=1 flag_nf=1 pos=68,4,104 listed_at=1135577
+20260930-122930	winter_natural	2	329177	1135577	arrival	164	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21272 vanish=0 flag_src=1 flag_nf=1 pos=8,170,104 listed_at=1135577
+20260930-122930	winter_natural	2	329177	1135577	arrival	165	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26401 vanish=0 flag_src=1 flag_nf=1 pos=6,170,104 listed_at=1135577
+20260930-122930	winter_natural	2	329177	1135577	arrival	166	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23736 vanish=0 flag_src=1 flag_nf=1 pos=2,160,104 listed_at=1135577
+20260930-122930	winter_natural	2	330449	1136849	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_natural	2	330449	1136849	every_applied	6	probe:release surface
+20260930-122930	winter_natural	2	331091	1137491	arrival	167	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=19996 vanish=0 flag_src=1 flag_nf=1 pos=4,4,104 listed_at=1137491
+20260930-122930	winter_natural	2	331091	1137491	arrival	168	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25623 vanish=0 flag_src=1 flag_nf=1 pos=6,7,104 listed_at=1137491
+20260930-122930	winter_natural	2	331091	1137491	arrival	169	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=29199 vanish=0 flag_src=1 flag_nf=1 pos=7,7,104 listed_at=1137491
+20260930-122930	winter_natural	2	331091	1137491	arrival	170	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=26016 vanish=0 flag_src=1 flag_nf=1 pos=3,9,104 listed_at=1137491
+20260930-122930	winter_natural	2	331091	1137491	arrival	171	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=22761 vanish=0 flag_src=1 flag_nf=1 pos=1,8,104 listed_at=1137491
+20260930-122930	winter_natural	2	331091	1137491	arrival	172	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23404 vanish=0 flag_src=1 flag_nf=1 pos=2,10,104 listed_at=1137491
+20260930-122930	winter_natural	2	332272	1138672	manipulation	probe:release surface	released 6 unit(s) [surface]
+20260930-122930	winter_natural	2	332272	1138672	every_applied	7	probe:release surface
+20260930-122930	winter_natural	2	332824	1139224	arrival	173	SKUNK caste=FEMALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=23071 vanish=0 flag_src=1 flag_nf=1 pos=10,25,104 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	174	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=28222 vanish=0 flag_src=1 flag_nf=1 pos=25,46,113 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	175	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=23879 vanish=0 flag_src=1 flag_nf=1 pos=24,42,113 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	176	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=27982 vanish=0 flag_src=1 flag_nf=1 pos=1,41,115 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	177	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=20859 vanish=0 flag_src=1 flag_nf=1 pos=0,43,118 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	178	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=21137 vanish=0 flag_src=1 flag_nf=1 pos=1,38,117 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	179	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=23241 vanish=0 flag_src=1 flag_nf=1 pos=14,34,115 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	180	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=19927 vanish=0 flag_src=1 flag_nf=1 pos=13,31,117 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	181	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26761 vanish=0 flag_src=1 flag_nf=1 pos=9,32,116 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	182	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=20197 vanish=0 flag_src=1 flag_nf=1 pos=10,33,117 listed_at=1139224
+20260930-122930	winter_natural	2	332824	1139224	arrival	183	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=28275 vanish=0 flag_src=1 flag_nf=1 pos=16,33,117 listed_at=1139224
+20260930-122930	winter_natural	2	333994	1140394	manipulation	probe:release surface	released 11 unit(s) [surface]
+20260930-122930	winter_natural	2	333994	1140394	every_applied	8	probe:release surface
+20260930-122930	winter_natural	2	334577	1140977	arrival	184	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=23919 vanish=0 flag_src=1 flag_nf=1 pos=105,49,115 listed_at=1140977
+20260930-122930	winter_natural	2	334577	1140977	arrival	185	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=29177 vanish=0 flag_src=1 flag_nf=1 pos=183,164,107 listed_at=1140977
+20260930-122930	winter_natural	2	335771	1142171	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	335771	1142171	every_applied	9	probe:release surface
+20260930-122930	winter_natural	2	336387	1142787	arrival	186	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23220 vanish=0 flag_src=1 flag_nf=1 pos=49,109,104 listed_at=1142787
+20260930-122930	winter_natural	2	336387	1142787	arrival	187	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20416 vanish=0 flag_src=1 flag_nf=1 pos=29,18,104 listed_at=1142787
+20260930-122930	winter_natural	2	337515	1143915	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	337515	1143915	every_applied	10	probe:release surface
+20260930-122930	winter_natural	2	338077	1144477	arrival	188	BIRD_KESTREL caste=FEMALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=20046 vanish=0 flag_src=1 flag_nf=1 pos=171,112,117 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	189	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29100 vanish=0 flag_src=1 flag_nf=1 pos=1,17,117 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	190	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=19700 vanish=0 flag_src=1 flag_nf=1 pos=10,135,115 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	191	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26170 vanish=0 flag_src=1 flag_nf=1 pos=0,93,118 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	192	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=20478 vanish=0 flag_src=1 flag_nf=1 pos=1,97,119 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	193	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=27105 vanish=0 flag_src=1 flag_nf=1 pos=3,74,119 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	194	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=25398 vanish=0 flag_src=1 flag_nf=1 pos=0,34,115 listed_at=1144477
+20260930-122930	winter_natural	2	338077	1144477	arrival	195	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=25197 vanish=0 flag_src=1 flag_nf=1 pos=0,94,118 listed_at=1144477
+20260930-122930	winter_natural	2	339333	1145733	manipulation	probe:release surface	released 8 unit(s) [surface]
+20260930-122930	winter_natural	2	339333	1145733	every_applied	11	probe:release surface
+20260930-122930	winter_natural	2	339927	1146327	arrival	196	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27414 vanish=0 flag_src=1 flag_nf=1 pos=179,6,103 listed_at=1146327
+20260930-122930	winter_natural	2	339927	1146327	arrival	197	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23072 vanish=0 flag_src=1 flag_nf=1 pos=182,5,103 listed_at=1146327
+20260930-122930	winter_natural	2	339927	1146327	arrival	198	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=29560 vanish=0 flag_src=1 flag_nf=1 pos=183,0,103 listed_at=1146327
+20260930-122930	winter_natural	2	339927	1146327	arrival	199	COUGAR caste=FEMALE ref6=29,20,-1,-1,-1,79 layer=surface countdown=25621 vanish=0 flag_src=1 flag_nf=1 pos=140,5,104 listed_at=1146327
+20260930-122930	winter_natural	2	339927	1146327	departure	141	DEMON_15 ref6=28,20,-1,44,-1,6 last_countdown=450 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	340461	1146861	arrival	200	DEMON_9 caste=DEFAULT ref6=29,20,-1,43,-1,2 layer=deep countdown=21563 vanish=0 flag_src=1 flag_nf=0 pos=177,25,4 listed_at=1146861
+20260930-122930	winter_natural	2	340461	1146861	arrival	201	DEMON_15 caste=DEFAULT ref6=28,20,-1,44,-1,6 layer=deep countdown=24618 vanish=0 flag_src=1 flag_nf=0 pos=72,9,7 listed_at=1146861
+20260930-122930	winter_natural	2	340461	1146861	departure	142	DEMON_15 ref6=28,20,-1,44,-1,6 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	341061	1147461	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_natural	2	341061	1147461	every_applied	12	probe:release surface
+20260930-122930	winter_natural	2	341706	1148106	arrival	202	SKUNK caste=FEMALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=27898 vanish=0 flag_src=1 flag_nf=1 pos=76,188,104 listed_at=1148106
+20260930-122930	winter_natural	2	341706	1148106	arrival	203	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=28719 vanish=0 flag_src=1 flag_nf=1 pos=16,139,104 listed_at=1148106
+20260930-122930	winter_natural	2	342337	1148737	arrival	204	TOAD_GIANT_CAVE caste=FEMALE ref6=29,20,-1,8,-1,12 layer=cavern countdown=27722 vanish=0 flag_src=1 flag_nf=0 pos=182,19,50 listed_at=1148737
+20260930-122930	winter_natural	2	342337	1148737	departure	145	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	342965	1149365	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	342965	1149365	every_applied	13	probe:release surface
+20260930-122930	winter_natural	2	343517	1149917	arrival	205	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=28460 vanish=0 flag_src=1 flag_nf=1 pos=11,189,104 listed_at=1149917
+20260930-122930	winter_natural	2	343517	1149917	arrival	206	BIRD_KESTREL caste=MALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=26166 vanish=0 flag_src=1 flag_nf=1 pos=191,15,114 listed_at=1149917
+20260930-122930	winter_natural	2	343517	1149917	departure	148	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	344595	1150995	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	344595	1150995	every_applied	14	probe:release surface
+20260930-122930	winter_natural	2	345160	1151560	arrival	207	SKUNK caste=FEMALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=25480 vanish=0 flag_src=1 flag_nf=1 pos=191,174,104 listed_at=1151560
+20260930-122930	winter_natural	2	345160	1151560	arrival	208	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=29093 vanish=0 flag_src=1 flag_nf=1 pos=84,186,104 listed_at=1151560
+20260930-122930	winter_natural	2	345160	1151560	arrival	209	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25771 vanish=0 flag_src=1 flag_nf=1 pos=84,189,104 listed_at=1151560
+20260930-122930	winter_natural	2	345160	1151560	arrival	210	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25730 vanish=0 flag_src=1 flag_nf=1 pos=80,190,104 listed_at=1151560
+20260930-122930	winter_natural	2	345160	1151560	arrival	211	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=26725 vanish=0 flag_src=1 flag_nf=1 pos=77,190,104 listed_at=1151560
+20260930-122930	winter_natural	2	345160	1151560	departure	139	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=1126291
+20260930-122930	winter_natural	2	345732	1152132	departure	158	WOMBAT ref6=29,20,-1,-1,-1,96 last_countdown=256 last_flag_src=0 arrived_at=1131673
+20260930-122930	winter_natural	2	346304	1152704	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_natural	2	346304	1152704	every_applied	15	probe:release surface
+20260930-122930	winter_natural	2	346865	1153265	arrival	212	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=24747 vanish=0 flag_src=1 flag_nf=1 pos=126,72,105 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	213	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=25255 vanish=0 flag_src=1 flag_nf=1 pos=17,57,119 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	214	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=28212 vanish=0 flag_src=1 flag_nf=1 pos=128,75,104 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	215	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=21124 vanish=0 flag_src=1 flag_nf=1 pos=130,77,104 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	216	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26923 vanish=0 flag_src=1 flag_nf=1 pos=4,9,117 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	217	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=22615 vanish=0 flag_src=1 flag_nf=1 pos=9,0,116 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	218	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26074 vanish=0 flag_src=1 flag_nf=1 pos=11,64,119 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	219	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26501 vanish=0 flag_src=1 flag_nf=1 pos=4,0,113 listed_at=1153265
+20260930-122930	winter_natural	2	346865	1153265	arrival	220	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=27018 vanish=0 flag_src=1 flag_nf=1 pos=28,50,118 listed_at=1153265
+20260930-122930	winter_natural	2	347487	1153887	departure	126	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	347487	1153887	departure	127	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	347487	1153887	departure	146	JABBERER ref6=29,20,-1,13,-1,21 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	348093	1154493	arrival	221	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=20938 vanish=0 flag_src=1 flag_nf=0 pos=158,188,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	222	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=28391 vanish=0 flag_src=1 flag_nf=0 pos=170,191,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	223	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=26850 vanish=0 flag_src=1 flag_nf=0 pos=167,190,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	224	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=28557 vanish=0 flag_src=1 flag_nf=0 pos=169,191,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	225	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=21323 vanish=0 flag_src=1 flag_nf=0 pos=171,189,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	226	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=25282 vanish=0 flag_src=1 flag_nf=0 pos=166,190,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	arrival	227	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=27062 vanish=0 flag_src=1 flag_nf=0 pos=166,191,31 listed_at=1154493
+20260930-122930	winter_natural	2	348093	1154493	manipulation	probe:release surface	released 9 unit(s) [surface]
+20260930-122930	winter_natural	2	348093	1154493	every_applied	16	probe:release surface
+20260930-122930	winter_natural	2	348093	1154493	departure	128	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348093	1154493	departure	129	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348093	1154493	departure	130	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=19 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348705	1155105	arrival	228	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=24928 vanish=0 flag_src=1 flag_nf=1 pos=189,56,114 listed_at=1155105
+20260930-122930	winter_natural	2	348705	1155105	arrival	229	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=27608 vanish=0 flag_src=1 flag_nf=1 pos=166,0,104 listed_at=1155105
+20260930-122930	winter_natural	2	348705	1155105	arrival	230	CAVE_DRAGON caste=MALE ref6=29,20,-1,25,-1,29 layer=cavern countdown=26966 vanish=0 flag_src=1 flag_nf=0 pos=190,20,26 listed_at=1155105
+20260930-122930	winter_natural	2	348705	1155105	arrival	231	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=29,20,-1,8,-1,18 layer=cavern countdown=28823 vanish=0 flag_src=1 flag_nf=0 pos=57,0,49 listed_at=1155105
+20260930-122930	winter_natural	2	348705	1155105	departure	131	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348705	1155105	departure	132	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348705	1155105	departure	133	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_natural	2	348705	1155105	departure	140	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	348705	1155105	departure	147	TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_natural	2	349304	1155704	arrival	232	CAVE_BLOB caste=DEFAULT ref6=29,20,-1,25,-1,15 layer=cavern countdown=23888 vanish=0 flag_src=1 flag_nf=0 pos=187,16,26 listed_at=1155704
+20260930-122930	winter_natural	2	349304	1155704	arrival	233	CAVE_BLOB caste=DEFAULT ref6=29,20,-1,25,-1,15 layer=cavern countdown=27607 vanish=0 flag_src=1 flag_nf=0 pos=191,15,26 listed_at=1155704
+20260930-122930	winter_natural	2	349304	1155704	departure	161	SKUNK ref6=29,20,-1,-1,-1,92 last_countdown=0 last_flag_src=0 arrived_at=1133668
+20260930-122930	winter_natural	2	349843	1156243	arrival	234	VORACIOUS_CAVE_CRAWLER caste=FEMALE ref6=29,20,-1,25,-1,17 layer=cavern countdown=27900 vanish=0 flag_src=1 flag_nf=0 pos=82,187,26 listed_at=1156243
+20260930-122930	winter_natural	2	349843	1156243	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	349843	1156243	every_applied	17	probe:release surface
+20260930-122930	winter_natural	2	349843	1156243	departure	143	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=6 last_flag_src=0 arrived_at=1126291
+20260930-122930	winter_natural	2	349843	1156243	departure	144	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1126291
+20260930-122930	winter_natural	2	349843	1156243	death	232	CAVE_BLOB ref6=29,20,-1,25,-1,15 last_countdown=23888 last_flag_src=1 arrived_at=1155704
+20260930-122930	winter_natural	2	349843	1156243	death	233	CAVE_BLOB ref6=29,20,-1,25,-1,15 last_countdown=27607 last_flag_src=1 arrived_at=1155704
+20260930-122930	winter_natural	2	350400	1156800	arrival	235	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=19850 vanish=0 flag_src=1 flag_nf=1 pos=145,2,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	236	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25475 vanish=0 flag_src=1 flag_nf=1 pos=180,129,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	237	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23374 vanish=0 flag_src=1 flag_nf=1 pos=191,126,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	238	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=24234 vanish=0 flag_src=1 flag_nf=1 pos=191,121,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	239	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25707 vanish=0 flag_src=1 flag_nf=1 pos=191,118,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	240	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=23724 vanish=0 flag_src=1 flag_nf=1 pos=191,117,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	arrival	241	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25502 vanish=0 flag_src=1 flag_nf=1 pos=189,121,104 listed_at=1156800
+20260930-122930	winter_natural	2	350400	1156800	departure	149	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	350400	1156800	departure	150	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	351000	1157400	arrival	242	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=27725 vanish=0 flag_src=1 flag_nf=1 pos=191,122,104 listed_at=1156800
+20260930-122930	winter_natural	2	351000	1157400	arrival	243	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=21220 vanish=0 flag_src=1 flag_nf=1 pos=189,119,104 listed_at=1156800
+20260930-122930	winter_natural	2	351000	1157400	arrival	244	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=20813 vanish=0 flag_src=1 flag_nf=1 pos=190,119,104 listed_at=1156800
+20260930-122930	winter_natural	2	351000	1157400	arrival	245	BIRD_EMU caste=MALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=27297 vanish=0 flag_src=1 flag_nf=1 pos=191,130,104 listed_at=1156800
+20260930-122930	winter_natural	2	351000	1157400	departure	151	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	351000	1157400	departure	152	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	351600	1158000	manipulation	probe:release surface	released 11 unit(s) [surface]
+20260930-122930	winter_natural	2	351600	1158000	every_applied	18	probe:release surface
+20260930-122930	winter_natural	2	351600	1158000	departure	164	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1135577
+20260930-122930	winter_natural	2	352179	1158579	arrival	246	WOMBAT caste=FEMALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=27647 vanish=0 flag_src=1 flag_nf=1 pos=3,12,104 listed_at=1158579
+20260930-122930	winter_natural	2	352179	1158579	arrival	247	BIRD_KESTREL caste=MALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=19831 vanish=0 flag_src=1 flag_nf=1 pos=115,190,119 listed_at=1158579
+20260930-122930	winter_natural	2	353393	1159793	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	353393	1159793	every_applied	19	probe:release surface
+20260930-122930	winter_natural	2	353393	1159793	departure	159	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1131673
+20260930-122930	winter_natural	2	353393	1159793	departure	160	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1131673
+20260930-122930	winter_natural	2	353393	1159793	departure	167	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	354004	1160404	arrival	248	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=26323 vanish=0 flag_src=1 flag_nf=1 pos=146,180,104 listed_at=1160404
+20260930-122930	winter_natural	2	354004	1160404	arrival	249	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=20290 vanish=0 flag_src=1 flag_nf=1 pos=147,191,104 listed_at=1160404
+20260930-122930	winter_natural	2	354004	1160404	arrival	250	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=28851 vanish=0 flag_src=1 flag_nf=1 pos=145,180,104 listed_at=1160404
+20260930-122930	winter_natural	2	354648	1161048	departure	153	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	354648	1161048	departure	154	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1128230
+20260930-122930	winter_natural	2	355236	1161636	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	355236	1161636	every_applied	20	probe:release surface
+20260930-122930	winter_natural	2	355871	1162271	arrival	251	BIRD_OWL_GREAT_HORNED caste=MALE ref6=29,20,-1,-1,-1,61 layer=surface countdown=20306 vanish=0 flag_src=1 flag_nf=1 pos=111,167,119 listed_at=1162271
+20260930-122930	winter_natural	2	355871	1162271	arrival	252	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=25262 vanish=0 flag_src=1 flag_nf=1 pos=17,19,114 listed_at=1162271
+20260930-122930	winter_natural	2	355871	1162271	death	228	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=18397 last_flag_src=0 arrived_at=1155105
+20260930-122930	winter_natural	2	356507	1162907	departure	155	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1130000
+20260930-122930	winter_natural	2	356507	1162907	departure	162	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=290 last_flag_src=0 arrived_at=1133668
+20260930-122930	winter_natural	2	356507	1162907	departure	165	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1135577
+20260930-122930	winter_natural	2	357134	1163534	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	357134	1163534	every_applied	21	probe:release surface
+20260930-122930	winter_natural	2	357736	1164136	arrival	253	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=27386 vanish=0 flag_src=1 flag_nf=1 pos=186,41,111 listed_at=1164136
+20260930-122930	winter_natural	2	357736	1164136	arrival	254	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=29049 vanish=0 flag_src=1 flag_nf=1 pos=137,190,116 listed_at=1164136
+20260930-122930	winter_natural	2	357736	1164136	departure	166	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1135577
+20260930-122930	winter_natural	2	357736	1164136	departure	168	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	358941	1165341	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	358941	1165341	every_applied	22	probe:release surface
+20260930-122930	winter_natural	2	358941	1165341	departure	163	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 last_countdown=0 last_flag_src=0 arrived_at=1135577
+20260930-122930	winter_natural	2	359562	1165962	arrival	255	BIRD_KESTREL caste=MALE ref6=29,20,-1,-1,-1,60 layer=surface countdown=20583 vanish=0 flag_src=1 flag_nf=1 pos=71,17,118 listed_at=1165962
+20260930-122930	winter_natural	2	359562	1165962	arrival	256	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=27969 vanish=0 flag_src=1 flag_nf=1 pos=51,183,104 listed_at=1165962
+20260930-122930	winter_natural	2	359562	1165962	departure	156	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1130000
+20260930-122930	winter_natural	2	359562	1165962	departure	184	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=1140977
+20260930-122930	winter_natural	2	359562	1165962	departure	188	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1144477
+20260930-122930	winter_natural	2	360206	1166606	departure	157	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1130000
+20260930-122930	winter_natural	2	360859	1167259	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_natural	2	360859	1167259	every_applied	23	probe:release surface
+20260930-122930	winter_natural	2	360859	1167259	departure	169	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=84 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	360859	1167259	departure	173	SKUNK ref6=29,20,-1,-1,-1,92 last_countdown=0 last_flag_src=0 arrived_at=1139224
+20260930-122930	winter_natural	2	360859	1167259	departure	186	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1142787
+20260930-122930	winter_natural	2	361535	1167935	arrival	257	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=21518 vanish=0 flag_src=1 flag_nf=1 pos=63,170,114 listed_at=1167935
+20260930-122930	winter_natural	2	361535	1167935	arrival	258	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=20091 vanish=0 flag_src=1 flag_nf=1 pos=77,180,105 listed_at=1167935
+20260930-122930	winter_natural	2	361535	1167935	arrival	259	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=29011 vanish=0 flag_src=1 flag_nf=1 pos=72,186,105 listed_at=1167935
+20260930-122930	winter_natural	2	361535	1167935	departure	170	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	361535	1167935	departure	174	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 last_countdown=187 last_flag_src=0 arrived_at=1139224
+20260930-122930	winter_natural	2	361535	1167935	departure	187	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=1142787
+20260930-122930	winter_natural	2	361535	1167935	death	253	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=24263 last_flag_src=0 arrived_at=1164136
+20260930-122930	winter_natural	2	362185	1168585	arrival	260	DEMON_4 caste=MALE ref6=29,20,-1,43,-1,6 layer=deep countdown=27314 vanish=0 flag_src=1 flag_nf=0 pos=191,19,4 listed_at=1168585
+20260930-122930	winter_natural	2	362185	1168585	departure	171	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	362185	1168585	departure	175	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1139224
+20260930-122930	winter_natural	2	362185	1168585	departure	200	DEMON_9 ref6=29,20,-1,43,-1,2 last_countdown=485 last_flag_src=1 arrived_at=1146861
+20260930-122930	winter_natural	2	362841	1169241	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	362841	1169241	every_applied	24	probe:release surface
+20260930-122930	winter_natural	2	362841	1169241	departure	172	BIRD_EMU ref6=29,20,-1,-1,-1,56 last_countdown=0 last_flag_src=0 arrived_at=1137491
+20260930-122930	winter_natural	2	363470	1169870	arrival	261	SKUNK caste=MALE ref6=29,20,-1,-1,-1,92 layer=surface countdown=25728 vanish=0 flag_src=1 flag_nf=1 pos=188,10,103 listed_at=1169870
+20260930-122930	winter_natural	2	363470	1169870	arrival	262	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=25622 vanish=0 flag_src=1 flag_nf=1 pos=175,189,104 listed_at=1169870
+20260930-122930	winter_natural	2	363470	1169870	arrival	263	BIRD_EMU caste=FEMALE ref6=29,20,-1,-1,-1,56 layer=surface countdown=29342 vanish=0 flag_src=1 flag_nf=1 pos=188,186,104 listed_at=1169870
+20260930-122930	winter_natural	2	364141	1170541	departure	176	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=1139224
+20260930-122930	winter_natural	2	364800	1171200	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_natural	2	364800	1171200	every_applied	25	probe:release surface
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->358 max 354->354 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->22 max 24->24 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->14 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	3539	DEMON_15 ref6=28,20,-1,44,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->217 max 216->216 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->310 max 308->308 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4703	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->332 max 339->339 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4704	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4705	BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->4 max 11->11 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->335 max 334->334 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->261 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4708	BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->19 max 23->23 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4709	BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->13 max 15->15 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3351 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->18 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4721	COUGAR ref6=29,20,-1,-1,-1,79 quantity 2->1 max 2->2 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->500 max 20->20 discovered 0->0 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->332 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->377 max 381->381 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4726	KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->18 max 20->20 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4727	PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4728	SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->14 max 15->15 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4729	WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4733	WOLF ref6=29,20,-1,-1,-1,101 quantity 12->9 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4747	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->428 max 429->429 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->431 max 436->436 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->403 max 403->403 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4753	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->22 max 22->22 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->379 max 387->387 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4774	TOAD_GIANT_CAVE ref6=29,20,-1,13,-1,10 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->443 max 442->442 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->324 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->207 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4783	TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->7 max 14->14 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4785	JABBERER ref6=29,20,-1,13,-1,21 quantity 21->22 max 21->21 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4813	CAVE_BLOB ref6=29,20,-1,25,-1,15 quantity 429->427 max 429->429 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4815	VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,25,-1,17 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->33 max 33->33 discovered 1->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4827	CAVE_DRAGON ref6=29,20,-1,25,-1,29 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->250 max 336->336 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4831	MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->36 max 38->38 discovered 1->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->343 max 421->421 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4838	DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	pool_delta	4842	DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_natural	2	364800	1171200	end	summary	{"arm": "winter_natural", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 125, "departures": 51, "deaths": 4, "ticks": 45600, "wall_s": 199.1, "stop": null, "ticks_per_s": 229.1, "save_untouched": true}
+20260930-122930	winter_cleared	1	16800	823200	baseline	wild_present	13
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-122930	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-122930	winter_cleared	1	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-122930	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-122930	winter_cleared	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-122930	winter_cleared	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then for _,k in ipairs(cr.caste) do k.flags.NO_WINTER=false end; print('eco: GROUNDHOG NO_WINTER cleared') end end	eco: GROUNDHOG NO_WINTER cleared
+20260930-122930	winter_cleared	1	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=false season=3
+20260930-122930	winter_cleared	1	319891	1126291	arrival	139	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28816 vanish=0 flag_src=1 flag_nf=1 pos=14,190,104 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	140	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20549 vanish=0 flag_src=1 flag_nf=1 pos=19,190,104 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	141	TOAD_GIANT_CAVE caste=MALE ref6=29,20,-1,8,-1,12 layer=cavern countdown=26133 vanish=0 flag_src=1 flag_nf=0 pos=13,4,50 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	142	TROLL caste=MALE ref6=29,20,-1,13,-1,32 layer=cavern countdown=23233 vanish=0 flag_src=1 flag_nf=0 pos=76,19,31 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	143	DEMON_16 caste=MALE ref6=29,20,-1,43,-1,3 layer=deep countdown=23783 vanish=0 flag_src=1 flag_nf=0 pos=10,94,4 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	144	DEMON_16 caste=MALE ref6=29,20,-1,43,-1,3 layer=deep countdown=24236 vanish=0 flag_src=1 flag_nf=0 pos=3,101,6 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	145	DEMON_16 caste=MALE ref6=29,20,-1,43,-1,3 layer=deep countdown=28425 vanish=0 flag_src=1 flag_nf=0 pos=0,111,6 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	146	DEMON_16 caste=MALE ref6=29,20,-1,43,-1,3 layer=deep countdown=27054 vanish=0 flag_src=1 flag_nf=0 pos=0,114,6 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	147	TOAD_GIANT_CAVE caste=MALE ref6=29,21,-1,8,-1,12 layer=cavern countdown=24816 vanish=0 flag_src=1 flag_nf=0 pos=60,191,38 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	148	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=24126 vanish=0 flag_src=1 flag_nf=0 pos=174,59,29 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	149	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=19794 vanish=0 flag_src=1 flag_nf=0 pos=182,59,30 listed_at=1126291
+20260930-122930	winter_cleared	1	319891	1126291	arrival	150	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=20890 vanish=0 flag_src=1 flag_nf=0 pos=191,56,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	151	CRUNDLE caste=FEMALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=27398 vanish=0 flag_src=1 flag_nf=0 pos=167,45,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	152	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=29126 vanish=0 flag_src=1 flag_nf=0 pos=170,47,29 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	153	CRUNDLE caste=FEMALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=21288 vanish=0 flag_src=1 flag_nf=0 pos=172,52,29 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	154	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=26213 vanish=0 flag_src=1 flag_nf=0 pos=189,61,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	155	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=20956 vanish=0 flag_src=1 flag_nf=0 pos=188,63,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	156	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=22714 vanish=0 flag_src=1 flag_nf=0 pos=187,61,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	157	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=22837 vanish=0 flag_src=1 flag_nf=0 pos=188,59,30 listed_at=1126291
+20260930-122930	winter_cleared	1	320640	1127040	arrival	158	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=21754 vanish=0 flag_src=1 flag_nf=0 pos=190,57,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321305	1127705	arrival	159	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=22911 vanish=0 flag_src=1 flag_nf=0 pos=190,58,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321305	1127705	arrival	160	CRUNDLE caste=FEMALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=25599 vanish=0 flag_src=1 flag_nf=0 pos=186,57,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321305	1127705	arrival	161	CRUNDLE caste=MALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=27193 vanish=0 flag_src=1 flag_nf=0 pos=186,58,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321305	1127705	arrival	162	CRUNDLE caste=FEMALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=24085 vanish=0 flag_src=1 flag_nf=0 pos=191,55,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321305	1127705	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	321305	1127705	every_applied	1	probe:release surface
+20260930-122930	winter_cleared	1	321948	1128348	arrival	163	CRUNDLE caste=FEMALE ref6=29,20,-1,13,-1,9 layer=cavern countdown=25753 vanish=0 flag_src=1 flag_nf=0 pos=191,55,30 listed_at=1126291
+20260930-122930	winter_cleared	1	321948	1128348	arrival	164	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=21567 vanish=0 flag_src=1 flag_nf=1 pos=27,126,114 listed_at=1128348
+20260930-122930	winter_cleared	1	321948	1128348	arrival	165	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25558 vanish=0 flag_src=1 flag_nf=1 pos=5,4,104 listed_at=1128348
+20260930-122930	winter_cleared	1	323249	1129649	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	323249	1129649	every_applied	2	probe:release surface
+20260930-122930	winter_cleared	1	323938	1130338	arrival	166	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27490 vanish=0 flag_src=1 flag_nf=1 pos=150,185,104 listed_at=1130338
+20260930-122930	winter_cleared	1	323938	1130338	arrival	167	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24787 vanish=0 flag_src=1 flag_nf=1 pos=148,186,104 listed_at=1130338
+20260930-122930	winter_cleared	1	325278	1131678	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	325278	1131678	every_applied	3	probe:release surface
+20260930-122930	winter_cleared	1	325920	1132320	arrival	168	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=24500 vanish=0 flag_src=1 flag_nf=1 pos=168,128,116 listed_at=1132320
+20260930-122930	winter_cleared	1	325920	1132320	arrival	169	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25056 vanish=0 flag_src=1 flag_nf=1 pos=118,11,104 listed_at=1132320
+20260930-122930	winter_cleared	1	325920	1132320	arrival	170	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21880 vanish=0 flag_src=1 flag_nf=1 pos=118,6,104 listed_at=1132320
+20260930-122930	winter_cleared	1	327264	1133664	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	327264	1133664	every_applied	4	probe:release surface
+20260930-122930	winter_cleared	1	327885	1134285	arrival	171	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=23133 vanish=0 flag_src=1 flag_nf=1 pos=10,173,104 listed_at=1134285
+20260930-122930	winter_cleared	1	327885	1134285	arrival	172	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28390 vanish=0 flag_src=1 flag_nf=1 pos=142,6,104 listed_at=1134285
+20260930-122930	winter_cleared	1	327885	1134285	arrival	173	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28583 vanish=0 flag_src=1 flag_nf=1 pos=141,5,104 listed_at=1134285
+20260930-122930	winter_cleared	1	327885	1134285	death	164	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=16251 last_flag_src=0 arrived_at=1128348
+20260930-122930	winter_cleared	1	329111	1135511	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	329111	1135511	every_applied	5	probe:release surface
+20260930-122930	winter_cleared	1	329783	1136183	arrival	174	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=19398 vanish=0 flag_src=1 flag_nf=1 pos=5,98,104 listed_at=1136183
+20260930-122930	winter_cleared	1	329783	1136183	arrival	175	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22318 vanish=0 flag_src=1 flag_nf=1 pos=8,102,104 listed_at=1136183
+20260930-122930	winter_cleared	1	329783	1136183	arrival	176	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24303 vanish=0 flag_src=1 flag_nf=1 pos=6,107,104 listed_at=1136183
+20260930-122930	winter_cleared	1	329783	1136183	arrival	177	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23141 vanish=0 flag_src=1 flag_nf=1 pos=1,110,104 listed_at=1136183
+20260930-122930	winter_cleared	1	331072	1137472	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	1	331072	1137472	every_applied	6	probe:release surface
+20260930-122930	winter_cleared	1	331706	1138106	arrival	178	BIRD_KAKAPO caste=MALE ref6=29,20,-1,-1,-1,55 layer=surface countdown=25274 vanish=0 flag_src=1 flag_nf=1 pos=187,134,104 listed_at=1138106
+20260930-122930	winter_cleared	1	331706	1138106	arrival	179	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21319 vanish=0 flag_src=1 flag_nf=1 pos=74,3,104 listed_at=1138106
+20260930-122930	winter_cleared	1	332968	1139368	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	332968	1139368	every_applied	7	probe:release surface
+20260930-122930	winter_cleared	1	333651	1140051	arrival	180	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21536 vanish=0 flag_src=1 flag_nf=1 pos=4,6,104 listed_at=1140051
+20260930-122930	winter_cleared	1	333651	1140051	arrival	181	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21320 vanish=0 flag_src=1 flag_nf=1 pos=0,5,104 listed_at=1140051
+20260930-122930	winter_cleared	1	333651	1140051	arrival	182	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25066 vanish=0 flag_src=1 flag_nf=1 pos=1,8,104 listed_at=1140051
+20260930-122930	winter_cleared	1	334968	1141368	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	334968	1141368	every_applied	8	probe:release surface
+20260930-122930	winter_cleared	1	335637	1142037	arrival	183	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=29066 vanish=0 flag_src=1 flag_nf=1 pos=184,52,104 listed_at=1142037
+20260930-122930	winter_cleared	1	335637	1142037	arrival	184	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21401 vanish=0 flag_src=1 flag_nf=1 pos=186,180,104 listed_at=1142037
+20260930-122930	winter_cleared	1	335637	1142037	arrival	185	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24558 vanish=0 flag_src=1 flag_nf=1 pos=190,183,104 listed_at=1142037
+20260930-122930	winter_cleared	1	336880	1143280	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	336880	1143280	every_applied	9	probe:release surface
+20260930-122930	winter_cleared	1	337507	1143907	arrival	186	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24888 vanish=0 flag_src=1 flag_nf=1 pos=9,162,104 listed_at=1143907
+20260930-122930	winter_cleared	1	337507	1143907	arrival	187	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23262 vanish=0 flag_src=1 flag_nf=1 pos=3,166,104 listed_at=1143907
+20260930-122930	winter_cleared	1	337507	1143907	arrival	188	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23327 vanish=0 flag_src=1 flag_nf=1 pos=5,169,104 listed_at=1143907
+20260930-122930	winter_cleared	1	338800	1145200	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	338800	1145200	every_applied	10	probe:release surface
+20260930-122930	winter_cleared	1	339463	1145863	arrival	189	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24670 vanish=0 flag_src=1 flag_nf=1 pos=187,165,104 listed_at=1145863
+20260930-122930	winter_cleared	1	339463	1145863	arrival	190	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25554 vanish=0 flag_src=1 flag_nf=1 pos=189,162,104 listed_at=1145863
+20260930-122930	winter_cleared	1	339463	1145863	arrival	191	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28352 vanish=0 flag_src=1 flag_nf=1 pos=189,158,104 listed_at=1145863
+20260930-122930	winter_cleared	1	339463	1145863	arrival	192	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22903 vanish=0 flag_src=1 flag_nf=1 pos=188,160,104 listed_at=1145863
+20260930-122930	winter_cleared	1	340745	1147145	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	1	340745	1147145	every_applied	11	probe:release surface
+20260930-122930	winter_cleared	1	341382	1147782	arrival	193	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24882 vanish=0 flag_src=1 flag_nf=1 pos=179,185,104 listed_at=1147782
+20260930-122930	winter_cleared	1	341382	1147782	arrival	194	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20175 vanish=0 flag_src=1 flag_nf=1 pos=184,187,104 listed_at=1147782
+20260930-122930	winter_cleared	1	341382	1147782	arrival	195	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23445 vanish=0 flag_src=1 flag_nf=1 pos=183,189,104 listed_at=1147782
+20260930-122930	winter_cleared	1	341382	1147782	arrival	196	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23272 vanish=0 flag_src=1 flag_nf=1 pos=188,191,104 listed_at=1147782
+20260930-122930	winter_cleared	1	342595	1148995	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	1	342595	1148995	every_applied	12	probe:release surface
+20260930-122930	winter_cleared	1	343212	1149612	arrival	197	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22947 vanish=0 flag_src=1 flag_nf=1 pos=150,8,104 listed_at=1149612
+20260930-122930	winter_cleared	1	343212	1149612	arrival	198	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27836 vanish=0 flag_src=1 flag_nf=1 pos=152,7,104 listed_at=1149612
+20260930-122930	winter_cleared	1	343212	1149612	arrival	199	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24256 vanish=0 flag_src=1 flag_nf=1 pos=150,0,104 listed_at=1149612
+20260930-122930	winter_cleared	1	344533	1150933	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	344533	1150933	every_applied	13	probe:release surface
+20260930-122930	winter_cleared	1	344533	1150933	departure	142	TROLL ref6=29,20,-1,13,-1,32 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	345177	1151577	arrival	200	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=22147 vanish=0 flag_src=1 flag_nf=1 pos=172,93,116 listed_at=1151577
+20260930-122930	winter_cleared	1	345177	1151577	arrival	201	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26751 vanish=0 flag_src=1 flag_nf=1 pos=4,141,104 listed_at=1151577
+20260930-122930	winter_cleared	1	345177	1151577	arrival	202	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24848 vanish=0 flag_src=1 flag_nf=1 pos=0,132,104 listed_at=1151577
+20260930-122930	winter_cleared	1	345177	1151577	arrival	203	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23788 vanish=0 flag_src=1 flag_nf=1 pos=6,139,104 listed_at=1151577
+20260930-122930	winter_cleared	1	345177	1151577	departure	148	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	345177	1151577	departure	149	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	345793	1152193	arrival	204	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=26771 vanish=0 flag_src=1 flag_nf=0 pos=188,20,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	arrival	205	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=22411 vanish=0 flag_src=1 flag_nf=0 pos=191,12,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	arrival	206	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=22616 vanish=0 flag_src=1 flag_nf=0 pos=191,9,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	arrival	207	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=24138 vanish=0 flag_src=1 flag_nf=0 pos=191,11,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	arrival	208	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=26981 vanish=0 flag_src=1 flag_nf=0 pos=191,8,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	arrival	209	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=29066 vanish=0 flag_src=1 flag_nf=0 pos=191,13,50 listed_at=1152193
+20260930-122930	winter_cleared	1	345793	1152193	departure	143	DEMON_16 ref6=29,20,-1,43,-1,3 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	345793	1152193	departure	147	TOAD_GIANT_CAVE ref6=29,21,-1,8,-1,12 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	345793	1152193	departure	150	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	346413	1152813	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	1	346413	1152813	every_applied	14	probe:release surface
+20260930-122930	winter_cleared	1	346995	1153395	arrival	210	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21212 vanish=0 flag_src=1 flag_nf=1 pos=173,1,104 listed_at=1153395
+20260930-122930	winter_cleared	1	346995	1153395	arrival	211	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24589 vanish=0 flag_src=1 flag_nf=1 pos=164,0,104 listed_at=1153395
+20260930-122930	winter_cleared	1	346995	1153395	departure	126	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	348135	1154535	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	348135	1154535	every_applied	15	probe:release surface
+20260930-122930	winter_cleared	1	348135	1154535	departure	127	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	348135	1154535	departure	144	DEMON_16 ref6=29,20,-1,43,-1,3 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	348690	1155090	arrival	212	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25639 vanish=0 flag_src=1 flag_nf=1 pos=52,8,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	213	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=21483 vanish=0 flag_src=1 flag_nf=1 pos=89,185,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	214	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=28786 vanish=0 flag_src=1 flag_nf=1 pos=80,181,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	215	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=24451 vanish=0 flag_src=1 flag_nf=1 pos=87,185,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	216	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=29779 vanish=0 flag_src=1 flag_nf=1 pos=83,189,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	217	WOLF caste=FEMALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=29406 vanish=0 flag_src=1 flag_nf=1 pos=80,189,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	218	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=20678 vanish=0 flag_src=1 flag_nf=1 pos=77,189,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	arrival	219	WOLF caste=MALE ref6=29,20,-1,-1,-1,101 layer=surface countdown=25181 vanish=0 flag_src=1 flag_nf=1 pos=80,191,104 listed_at=1155090
+20260930-122930	winter_cleared	1	348690	1155090	departure	128	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	348690	1155090	departure	151	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	349273	1155673	departure	129	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	349273	1155673	departure	130	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	349273	1155673	departure	131	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	349902	1156302	arrival	220	CAVE_BLOB caste=DEFAULT ref6=28,20,-1,25,-1,15 layer=cavern countdown=28560 vanish=0 flag_src=1 flag_nf=0 pos=7,191,24 listed_at=1156302
+20260930-122930	winter_cleared	1	349902	1156302	arrival	222	CAVE_BLOB caste=DEFAULT ref6=28,20,-1,25,-1,15 layer=cavern countdown=20325 vanish=0 flag_src=1 flag_nf=0 pos=6,191,24 listed_at=1156302
+20260930-122930	winter_cleared	1	349902	1156302	arrival	223	CAVE_BLOB caste=DEFAULT ref6=28,20,-1,25,-1,15 layer=cavern countdown=27138 vanish=0 flag_src=1 flag_nf=0 pos=9,191,24 listed_at=1156302
+20260930-122930	winter_cleared	1	349902	1156302	manipulation	probe:release surface	released 8 unit(s) [surface]
+20260930-122930	winter_cleared	1	349902	1156302	every_applied	16	probe:release surface
+20260930-122930	winter_cleared	1	349902	1156302	departure	132	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	349902	1156302	departure	133	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	1	349902	1156302	departure	152	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=488 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	349902	1156302	departure	153	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	350513	1156913	arrival	224	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28321 vanish=0 flag_src=1 flag_nf=1 pos=153,182,104 listed_at=1156913
+20260930-122930	winter_cleared	1	350513	1156913	arrival	225	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22425 vanish=0 flag_src=1 flag_nf=1 pos=133,183,104 listed_at=1156913
+20260930-122930	winter_cleared	1	350513	1156913	arrival	226	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22908 vanish=0 flag_src=1 flag_nf=1 pos=136,183,104 listed_at=1156913
+20260930-122930	winter_cleared	1	350513	1156913	arrival	227	DEMON_10 caste=MALE ref6=29,20,-1,43,-1,5 layer=deep countdown=25633 vanish=0 flag_src=1 flag_nf=0 pos=159,5,5 listed_at=1156913
+20260930-122930	winter_cleared	1	350513	1156913	arrival	228	DEMON_10 caste=FEMALE ref6=29,20,-1,43,-1,5 layer=deep countdown=20747 vanish=0 flag_src=1 flag_nf=0 pos=148,0,5 listed_at=1156913
+20260930-122930	winter_cleared	1	350513	1156913	departure	145	DEMON_16 ref6=29,20,-1,43,-1,3 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	350513	1156913	departure	154	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	350513	1156913	departure	155	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	350513	1156913	departure	168	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 last_countdown=518 last_flag_src=0 arrived_at=1132320
+20260930-122930	winter_cleared	1	350513	1156913	departure	174	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136183
+20260930-122930	winter_cleared	1	351701	1158101	arrival	229	DEMON_10 caste=FEMALE ref6=29,20,-1,43,-1,5 layer=deep countdown=27613 vanish=0 flag_src=1 flag_nf=0 pos=148,0,5 listed_at=1156913
+20260930-122930	winter_cleared	1	351701	1158101	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	351701	1158101	every_applied	17	probe:release surface
+20260930-122930	winter_cleared	1	351701	1158101	departure	139	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126291
+20260930-122930	winter_cleared	1	351701	1158101	departure	140	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126291
+20260930-122930	winter_cleared	1	351701	1158101	departure	146	DEMON_16 ref6=29,20,-1,43,-1,3 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	352348	1158748	arrival	230	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26644 vanish=0 flag_src=1 flag_nf=1 pos=37,29,109 listed_at=1158748
+20260930-122930	winter_cleared	1	352348	1158748	arrival	231	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=24115 vanish=0 flag_src=1 flag_nf=1 pos=16,0,112 listed_at=1158748
+20260930-122930	winter_cleared	1	352348	1158748	departure	156	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	352348	1158748	departure	157	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	352348	1158748	departure	158	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127040
+20260930-122930	winter_cleared	1	352348	1158748	departure	159	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127705
+20260930-122930	winter_cleared	1	352348	1158748	departure	165	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1128348
+20260930-122930	winter_cleared	1	352930	1159330	departure	171	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1134285
+20260930-122930	winter_cleared	1	352930	1159330	departure	175	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136183
+20260930-122930	winter_cleared	1	353597	1159997	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	353597	1159997	every_applied	18	probe:release surface
+20260930-122930	winter_cleared	1	353597	1159997	departure	160	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127705
+20260930-122930	winter_cleared	1	353597	1159997	departure	161	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127705
+20260930-122930	winter_cleared	1	354237	1160637	arrival	232	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22115 vanish=0 flag_src=1 flag_nf=1 pos=70,9,104 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	233	REACHER caste=FEMALE ref6=29,20,-1,13,-1,30 layer=cavern countdown=24090 vanish=0 flag_src=1 flag_nf=0 pos=111,11,29 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	234	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22400 vanish=0 flag_src=1 flag_nf=1 pos=104,3,104 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	235	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26913 vanish=0 flag_src=1 flag_nf=1 pos=118,6,104 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	236	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=25543 vanish=0 flag_src=1 flag_nf=0 pos=54,8,31 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	237	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=28886 vanish=0 flag_src=1 flag_nf=0 pos=56,3,31 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	238	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=20566 vanish=0 flag_src=1 flag_nf=0 pos=56,0,31 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	arrival	239	TROGLODYTE caste=FEMALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=26650 vanish=0 flag_src=1 flag_nf=0 pos=55,0,31 listed_at=1160637
+20260930-122930	winter_cleared	1	354237	1160637	departure	162	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1127705
+20260930-122930	winter_cleared	1	354237	1160637	departure	163	CRUNDLE ref6=29,20,-1,13,-1,9 last_countdown=0 last_flag_src=1 arrived_at=1128348
+20260930-122930	winter_cleared	1	354237	1160637	departure	169	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1132320
+20260930-122930	winter_cleared	1	354895	1161295	departure	170	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1132320
+20260930-122930	winter_cleared	1	354895	1161295	departure	176	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136183
+20260930-122930	winter_cleared	1	355504	1161904	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	1	355504	1161904	every_applied	19	probe:release surface
+20260930-122930	winter_cleared	1	355504	1161904	departure	141	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 last_countdown=0 last_flag_src=1 arrived_at=1126291
+20260930-122930	winter_cleared	1	355504	1161904	departure	177	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136183
+20260930-122930	winter_cleared	1	355504	1161904	departure	179	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1138106
+20260930-122930	winter_cleared	1	356091	1162491	arrival	241	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=24855 vanish=0 flag_src=1 flag_nf=1 pos=191,70,119 listed_at=1162491
+20260930-122930	winter_cleared	1	356091	1162491	arrival	242	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26373 vanish=0 flag_src=1 flag_nf=1 pos=179,83,105 listed_at=1162491
+20260930-122930	winter_cleared	1	356091	1162491	arrival	243	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=25909 vanish=0 flag_src=1 flag_nf=1 pos=137,99,118 listed_at=1162491
+20260930-122930	winter_cleared	1	356091	1162491	arrival	244	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=21699 vanish=0 flag_src=1 flag_nf=1 pos=179,85,105 listed_at=1162491
+20260930-122930	winter_cleared	1	356091	1162491	arrival	245	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26939 vanish=0 flag_src=1 flag_nf=1 pos=191,96,105 listed_at=1162491
+20260930-122930	winter_cleared	1	356091	1162491	departure	166	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1130338
+20260930-122930	winter_cleared	1	356671	1163071	arrival	240	TROGLODYTE caste=MALE ref6=29,20,-1,13,-1,19 layer=cavern countdown=24781 vanish=0 flag_src=1 flag_nf=0 pos=56,0,31 listed_at=1160637
+20260930-122930	winter_cleared	1	356671	1163071	departure	172	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=184 last_flag_src=0 arrived_at=1134285
+20260930-122930	winter_cleared	1	357274	1163674	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_cleared	1	357274	1163674	every_applied	20	probe:release surface
+20260930-122930	winter_cleared	1	357274	1163674	departure	173	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1134285
+20260930-122930	winter_cleared	1	357837	1164237	arrival	246	BIRD_KESTREL caste=MALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=26738 vanish=0 flag_src=1 flag_nf=1 pos=134,159,113 listed_at=1164237
+20260930-122930	winter_cleared	1	357837	1164237	arrival	247	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20351 vanish=0 flag_src=1 flag_nf=1 pos=1,6,104 listed_at=1164237
+20260930-122930	winter_cleared	1	357837	1164237	departure	178	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 last_countdown=0 last_flag_src=0 arrived_at=1138106
+20260930-122930	winter_cleared	1	357837	1164237	departure	184	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1142037
+20260930-122930	winter_cleared	1	359001	1165401	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	359001	1165401	every_applied	21	probe:release surface
+20260930-122930	winter_cleared	1	359001	1165401	departure	180	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1140051
+20260930-122930	winter_cleared	1	359001	1165401	departure	181	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1140051
+20260930-122930	winter_cleared	1	359600	1166000	arrival	248	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=24699 vanish=0 flag_src=1 flag_nf=1 pos=9,65,112 listed_at=1166000
+20260930-122930	winter_cleared	1	359600	1166000	arrival	249	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23789 vanish=0 flag_src=1 flag_nf=1 pos=162,182,104 listed_at=1166000
+20260930-122930	winter_cleared	1	359600	1166000	arrival	250	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22716 vanish=0 flag_src=1 flag_nf=1 pos=156,185,104 listed_at=1166000
+20260930-122930	winter_cleared	1	359600	1166000	arrival	251	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26326 vanish=0 flag_src=1 flag_nf=1 pos=161,190,104 listed_at=1166000
+20260930-122930	winter_cleared	1	359600	1166000	arrival	252	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23240 vanish=0 flag_src=1 flag_nf=1 pos=148,183,104 listed_at=1166000
+20260930-122930	winter_cleared	1	360304	1166704	departure	167	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1130338
+20260930-122930	winter_cleared	1	360900	1167300	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_cleared	1	360900	1167300	every_applied	22	probe:release surface
+20260930-122930	winter_cleared	1	360900	1167300	departure	182	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1140051
+20260930-122930	winter_cleared	1	360900	1167300	departure	185	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1142037
+20260930-122930	winter_cleared	1	361463	1167863	arrival	253	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23365 vanish=0 flag_src=1 flag_nf=1 pos=6,190,104 listed_at=1167863
+20260930-122930	winter_cleared	1	361463	1167863	arrival	254	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21325 vanish=0 flag_src=1 flag_nf=1 pos=7,176,104 listed_at=1167863
+20260930-122930	winter_cleared	1	362622	1169022	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	1	362622	1169022	every_applied	23	probe:release surface
+20260930-122930	winter_cleared	1	363254	1169654	arrival	255	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=26805 vanish=0 flag_src=1 flag_nf=1 pos=93,160,110 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	256	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=24428 vanish=0 flag_src=1 flag_nf=1 pos=72,147,104 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	257	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=25645 vanish=0 flag_src=1 flag_nf=1 pos=114,160,119 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	258	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=29236 vanish=0 flag_src=1 flag_nf=1 pos=89,185,105 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	259	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=24835 vanish=0 flag_src=1 flag_nf=1 pos=124,136,119 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	260	BIRD_RAVEN caste=MALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=22737 vanish=0 flag_src=1 flag_nf=1 pos=113,153,117 listed_at=1169654
+20260930-122930	winter_cleared	1	363254	1169654	arrival	261	BIRD_RAVEN caste=FEMALE ref6=29,20,-1,-1,-1,53 layer=surface countdown=28254 vanish=0 flag_src=1 flag_nf=1 pos=79,176,105 listed_at=1169654
+20260930-122930	winter_cleared	1	363950	1170350	departure	186	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1143907
+20260930-122930	winter_cleared	1	364523	1170923	manipulation	probe:release surface	released 7 unit(s) [surface]
+20260930-122930	winter_cleared	1	364523	1170923	every_applied	24	probe:release surface
+20260930-122930	winter_cleared	1	364523	1170923	departure	187	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1143907
+20260930-122930	winter_cleared	1	364523	1170923	departure	189	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=183 last_flag_src=0 arrived_at=1145863
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->354 max 354->354 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->24 max 24->24 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	3510	CAVE_BLOB ref6=28,20,-1,25,-1,15 quantity 437->433 max 437->437 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->218 max 216->216 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->312 max 308->308 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4703	BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->330 max 339->339 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4704	BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->335 max 334->334 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3501 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->469 max 20->20 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->327 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->378 max 381->381 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4733	WOLF ref6=29,20,-1,-1,-1,101 quantity 12->6 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4747	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->13 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->424 max 429->429 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->431 max 436->436 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->402 max 403->403 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4756	ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->38 max 43->43 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->381 max 387->387 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4773	CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->151 max 147->147 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->321 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->207 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4783	TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->9 max 14->14 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4794	REACHER ref6=29,20,-1,13,-1,30 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4796	TROLL ref6=29,20,-1,13,-1,32 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->33 max 33->33 discovered 1->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->251 max 336->336 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4839	DEMON_16 ref6=29,20,-1,43,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4841	DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	pool_delta	4947	TOAD_GIANT_CAVE ref6=29,21,-1,8,-1,12 quantity 12->13 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	1	364523	1170923	end	summary	{"arm": "winter_cleared", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 122, "departures": 56, "deaths": 1, "ticks": 45323, "wall_s": 165.6, "stop": null, "ticks_per_s": 273.7, "save_untouched": true}
+20260930-122930	winter_cleared	2	16800	823200	baseline	wild_present	13
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-122930	winter_cleared	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-122930	winter_cleared	2	16800	823200	manipulation	df.global.cur_year_tick=319200; df.global.cur_season=3; df.global.cur_season_tick=1680; print(('eco: season %d year tick %d'):format(df.global.cur_season, df.global.cur_year_tick))	eco: season 3 year tick 319200
+20260930-122930	winter_cleared	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'GROUNDHOG'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 2 entries stocked at 500
+20260930-122930	winter_cleared	2	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 1 named species set, 13 other land species at frequency 1
+20260930-122930	winter_cleared	2	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then for _,k in ipairs(cr.caste) do k.flags.NO_WINTER=false end; print('eco: GROUNDHOG NO_WINTER cleared') end end	eco: GROUNDHOG NO_WINTER cleared
+20260930-122930	winter_cleared	2	16800	823200	manipulation	for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='GROUNDHOG' then print(('eco: GROUNDHOG NO_WINTER=%s season=%d'):format(tostring(cr.caste[0].flags.NO_WINTER), df.global.cur_season)) end end	eco: GROUNDHOG NO_WINTER=false season=3
+20260930-122930	winter_cleared	2	319860	1126260	arrival	139	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21567 vanish=0 flag_src=1 flag_nf=1 pos=174,8,104 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	140	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27649 vanish=0 flag_src=1 flag_nf=1 pos=178,4,103 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	141	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25362 vanish=0 flag_src=1 flag_nf=1 pos=181,2,103 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	142	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22486 vanish=0 flag_src=1 flag_nf=1 pos=176,2,103 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	143	BIRD_SWALLOW_CAVE_GIANT caste=FEMALE ref6=29,20,-1,8,-1,18 layer=cavern countdown=27192 vanish=0 flag_src=1 flag_nf=0 pos=23,81,42 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	144	VORACIOUS_CAVE_CRAWLER caste=FEMALE ref6=29,21,-1,13,-1,20 layer=cavern countdown=23097 vanish=0 flag_src=1 flag_nf=0 pos=12,170,31 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	145	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=25533 vanish=0 flag_src=1 flag_nf=0 pos=105,17,7 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	146	DEMON_3 caste=DEFAULT ref6=29,20,-1,43,-1,0 layer=deep countdown=27721 vanish=0 flag_src=1 flag_nf=0 pos=112,10,6 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	147	OLM_GIANT caste=MALE ref6=29,20,-1,8,-1,9 layer=cavern countdown=25399 vanish=0 flag_src=1 flag_nf=0 pos=101,190,44 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	148	BLIND_CAVE_OGRE caste=MALE ref6=29,20,-1,13,-1,29 layer=cavern countdown=25263 vanish=0 flag_src=1 flag_nf=0 pos=182,162,33 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	149	BLIND_CAVE_OGRE caste=MALE ref6=29,20,-1,13,-1,29 layer=cavern countdown=24481 vanish=0 flag_src=1 flag_nf=0 pos=187,159,33 listed_at=1126260
+20260930-122930	winter_cleared	2	319860	1126260	arrival	150	BLIND_CAVE_OGRE caste=MALE ref6=29,20,-1,13,-1,29 layer=cavern countdown=29277 vanish=0 flag_src=1 flag_nf=0 pos=191,154,33 listed_at=1126260
+20260930-122930	winter_cleared	2	321256	1127656	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	321256	1127656	every_applied	1	probe:release surface
+20260930-122930	winter_cleared	2	322091	1128491	arrival	151	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21290 vanish=0 flag_src=1 flag_nf=1 pos=4,110,104 listed_at=1128491
+20260930-122930	winter_cleared	2	322091	1128491	arrival	152	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27625 vanish=0 flag_src=1 flag_nf=1 pos=6,102,104 listed_at=1128491
+20260930-122930	winter_cleared	2	323308	1129708	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	323308	1129708	every_applied	2	probe:release surface
+20260930-122930	winter_cleared	2	323943	1130343	arrival	153	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26511 vanish=0 flag_src=1 flag_nf=1 pos=176,185,104 listed_at=1130343
+20260930-122930	winter_cleared	2	323943	1130343	arrival	154	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26712 vanish=0 flag_src=1 flag_nf=1 pos=2,95,104 listed_at=1130343
+20260930-122930	winter_cleared	2	323943	1130343	arrival	155	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21603 vanish=0 flag_src=1 flag_nf=1 pos=1,92,104 listed_at=1130343
+20260930-122930	winter_cleared	2	325157	1131557	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	325157	1131557	every_applied	3	probe:release surface
+20260930-122930	winter_cleared	2	325736	1132136	arrival	156	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21392 vanish=0 flag_src=1 flag_nf=1 pos=9,75,104 listed_at=1132136
+20260930-122930	winter_cleared	2	325736	1132136	arrival	157	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21554 vanish=0 flag_src=1 flag_nf=1 pos=4,75,104 listed_at=1132136
+20260930-122930	winter_cleared	2	325736	1132136	arrival	158	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22838 vanish=0 flag_src=1 flag_nf=1 pos=2,77,104 listed_at=1132136
+20260930-122930	winter_cleared	2	327266	1133666	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	327266	1133666	every_applied	4	probe:release surface
+20260930-122930	winter_cleared	2	327855	1134255	arrival	159	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20299 vanish=0 flag_src=1 flag_nf=1 pos=103,186,104 listed_at=1134255
+20260930-122930	winter_cleared	2	327855	1134255	arrival	160	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21865 vanish=0 flag_src=1 flag_nf=1 pos=104,188,104 listed_at=1134255
+20260930-122930	winter_cleared	2	327855	1134255	arrival	161	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27371 vanish=0 flag_src=1 flag_nf=1 pos=95,191,104 listed_at=1134255
+20260930-122930	winter_cleared	2	327855	1134255	arrival	162	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21786 vanish=0 flag_src=1 flag_nf=1 pos=96,191,104 listed_at=1134255
+20260930-122930	winter_cleared	2	329307	1135707	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	329307	1135707	every_applied	5	probe:release surface
+20260930-122930	winter_cleared	2	330006	1136406	arrival	163	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22047 vanish=0 flag_src=1 flag_nf=1 pos=131,181,104 listed_at=1136406
+20260930-122930	winter_cleared	2	330006	1136406	arrival	164	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23097 vanish=0 flag_src=1 flag_nf=1 pos=129,189,104 listed_at=1136406
+20260930-122930	winter_cleared	2	330006	1136406	arrival	165	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21624 vanish=0 flag_src=1 flag_nf=1 pos=127,189,104 listed_at=1136406
+20260930-122930	winter_cleared	2	330006	1136406	arrival	166	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23089 vanish=0 flag_src=1 flag_nf=1 pos=126,189,104 listed_at=1136406
+20260930-122930	winter_cleared	2	331430	1137830	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	331430	1137830	every_applied	6	probe:release surface
+20260930-122930	winter_cleared	2	332100	1138500	arrival	167	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=20839 vanish=0 flag_src=1 flag_nf=1 pos=1,174,118 listed_at=1138500
+20260930-122930	winter_cleared	2	332100	1138500	arrival	168	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=26196 vanish=0 flag_src=1 flag_nf=1 pos=75,44,119 listed_at=1138500
+20260930-122930	winter_cleared	2	333498	1139898	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	333498	1139898	every_applied	7	probe:release surface
+20260930-122930	winter_cleared	2	334157	1140557	arrival	169	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=27878 vanish=0 flag_src=1 flag_nf=1 pos=22,186,104 listed_at=1140557
+20260930-122930	winter_cleared	2	334157	1140557	arrival	170	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28582 vanish=0 flag_src=1 flag_nf=1 pos=190,19,104 listed_at=1140557
+20260930-122930	winter_cleared	2	335455	1141855	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	335455	1141855	every_applied	8	probe:release surface
+20260930-122930	winter_cleared	2	336087	1142487	arrival	171	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22194 vanish=0 flag_src=1 flag_nf=1 pos=8,47,104 listed_at=1142487
+20260930-122930	winter_cleared	2	336087	1142487	arrival	172	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28018 vanish=0 flag_src=1 flag_nf=1 pos=5,36,104 listed_at=1142487
+20260930-122930	winter_cleared	2	336087	1142487	arrival	173	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20444 vanish=0 flag_src=1 flag_nf=1 pos=2,33,104 listed_at=1142487
+20260930-122930	winter_cleared	2	336087	1142487	arrival	174	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23667 vanish=0 flag_src=1 flag_nf=1 pos=1,37,104 listed_at=1142487
+20260930-122930	winter_cleared	2	337424	1143824	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	337424	1143824	every_applied	9	probe:release surface
+20260930-122930	winter_cleared	2	338114	1144514	arrival	175	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25182 vanish=0 flag_src=1 flag_nf=1 pos=98,185,104 listed_at=1144514
+20260930-122930	winter_cleared	2	338114	1144514	arrival	176	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23941 vanish=0 flag_src=1 flag_nf=1 pos=103,185,104 listed_at=1144514
+20260930-122930	winter_cleared	2	339415	1145815	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	339415	1145815	every_applied	10	probe:release surface
+20260930-122930	winter_cleared	2	339970	1146370	arrival	177	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=23241 vanish=0 flag_src=1 flag_nf=1 pos=163,79,115 listed_at=1146370
+20260930-122930	winter_cleared	2	339970	1146370	arrival	178	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26339 vanish=0 flag_src=1 flag_nf=1 pos=168,75,113 listed_at=1146370
+20260930-122930	winter_cleared	2	339970	1146370	arrival	179	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=23103 vanish=0 flag_src=1 flag_nf=1 pos=171,72,114 listed_at=1146370
+20260930-122930	winter_cleared	2	339970	1146370	arrival	180	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26687 vanish=0 flag_src=1 flag_nf=1 pos=174,69,114 listed_at=1146370
+20260930-122930	winter_cleared	2	341306	1147706	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	341306	1147706	every_applied	11	probe:release surface
+20260930-122930	winter_cleared	2	341971	1148371	arrival	181	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=29347 vanish=0 flag_src=1 flag_nf=1 pos=7,122,104 listed_at=1148371
+20260930-122930	winter_cleared	2	341971	1148371	arrival	182	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=19888 vanish=0 flag_src=1 flag_nf=1 pos=1,119,104 listed_at=1148371
+20260930-122930	winter_cleared	2	341971	1148371	arrival	183	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=29174 vanish=0 flag_src=1 flag_nf=1 pos=1,115,104 listed_at=1148371
+20260930-122930	winter_cleared	2	342550	1148950	departure	139	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126260
+20260930-122930	winter_cleared	2	342550	1148950	death	144	VORACIOUS_CAVE_CRAWLER ref6=29,21,-1,13,-1,20 last_countdown=986 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	342550	1148950	death	167	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=10968 last_flag_src=0 arrived_at=1138500
+20260930-122930	winter_cleared	2	343200	1149600	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	343200	1149600	every_applied	12	probe:release surface
+20260930-122930	winter_cleared	2	343200	1149600	death	149	BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 last_countdown=1791 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	343200	1149600	death	154	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=8105 last_flag_src=0 arrived_at=1130343
+20260930-122930	winter_cleared	2	343851	1150251	arrival	184	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22480 vanish=0 flag_src=1 flag_nf=1 pos=121,184,104 listed_at=1150251
+20260930-122930	winter_cleared	2	343851	1150251	arrival	185	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23662 vanish=0 flag_src=1 flag_nf=1 pos=112,185,104 listed_at=1150251
+20260930-122930	winter_cleared	2	345154	1151554	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	345154	1151554	every_applied	13	probe:release surface
+20260930-122930	winter_cleared	2	345866	1152266	arrival	186	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=29219 vanish=0 flag_src=1 flag_nf=1 pos=103,7,104 listed_at=1152266
+20260930-122930	winter_cleared	2	345866	1152266	arrival	187	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24061 vanish=0 flag_src=1 flag_nf=1 pos=100,4,104 listed_at=1152266
+20260930-122930	winter_cleared	2	345866	1152266	arrival	188	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21110 vanish=0 flag_src=1 flag_nf=1 pos=101,3,104 listed_at=1152266
+20260930-122930	winter_cleared	2	346553	1152953	departure	126	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=236 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	346553	1152953	departure	127	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	346553	1152953	departure	151	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1128491
+20260930-122930	winter_cleared	2	347222	1153622	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	347222	1153622	every_applied	14	probe:release surface
+20260930-122930	winter_cleared	2	347222	1153622	departure	128	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	347222	1153622	departure	129	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	347222	1153622	departure	155	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1130343
+20260930-122930	winter_cleared	2	347889	1154289	arrival	189	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28456 vanish=0 flag_src=1 flag_nf=1 pos=12,108,104 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	190	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26556 vanish=0 flag_src=1 flag_nf=1 pos=187,75,104 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	191	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21905 vanish=0 flag_src=1 flag_nf=1 pos=184,82,104 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	192	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26540 vanish=0 flag_src=1 flag_nf=1 pos=179,66,104 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	193	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=26693 vanish=0 flag_src=1 flag_nf=0 pos=11,66,8 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	194	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=20210 vanish=0 flag_src=1 flag_nf=0 pos=3,61,4 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	arrival	195	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=21208 vanish=0 flag_src=1 flag_nf=0 pos=0,65,4 listed_at=1154289
+20260930-122930	winter_cleared	2	347889	1154289	departure	130	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=284 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	347889	1154289	departure	131	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	347889	1154289	departure	145	DEMON_3 ref6=29,20,-1,43,-1,0 last_countdown=0 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	348529	1154929	arrival	196	MOLEMARIAN caste=FEMALE ref6=29,20,-1,25,-1,20 layer=cavern countdown=20282 vanish=0 flag_src=1 flag_nf=0 pos=24,1,26 listed_at=1154929
+20260930-122930	winter_cleared	2	348529	1154929	arrival	197	MOLEMARIAN caste=FEMALE ref6=29,20,-1,25,-1,20 layer=cavern countdown=25511 vanish=0 flag_src=1 flag_nf=0 pos=0,4,26 listed_at=1154929
+20260930-122930	winter_cleared	2	348529	1154929	arrival	198	TROLL caste=FEMALE ref6=29,20,-1,13,-1,32 layer=cavern countdown=24159 vanish=0 flag_src=1 flag_nf=0 pos=0,52,31 listed_at=1154929
+20260930-122930	winter_cleared	2	348529	1154929	departure	132	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	348529	1154929	departure	133	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-122930	winter_cleared	2	348529	1154929	departure	140	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126260
+20260930-122930	winter_cleared	2	348529	1154929	departure	148	BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 last_countdown=0 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	349195	1155595	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	349195	1155595	every_applied	15	probe:release surface
+20260930-122930	winter_cleared	2	349195	1155595	departure	141	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126260
+20260930-122930	winter_cleared	2	349195	1155595	departure	142	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1126260
+20260930-122930	winter_cleared	2	349855	1156255	arrival	199	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=19839 vanish=0 flag_src=1 flag_nf=1 pos=132,16,107 listed_at=1156255
+20260930-122930	winter_cleared	2	349855	1156255	arrival	200	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20541 vanish=0 flag_src=1 flag_nf=1 pos=11,25,104 listed_at=1156255
+20260930-122930	winter_cleared	2	349855	1156255	arrival	201	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24510 vanish=0 flag_src=1 flag_nf=1 pos=9,22,104 listed_at=1156255
+20260930-122930	winter_cleared	2	349855	1156255	arrival	202	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24474 vanish=0 flag_src=1 flag_nf=1 pos=8,14,104 listed_at=1156255
+20260930-122930	winter_cleared	2	351177	1157577	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-122930	winter_cleared	2	351177	1157577	every_applied	16	probe:release surface
+20260930-122930	winter_cleared	2	351177	1157577	departure	146	DEMON_3 ref6=29,20,-1,43,-1,0 last_countdown=0 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	351177	1157577	departure	152	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1128491
+20260930-122930	winter_cleared	2	351177	1157577	departure	153	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1130343
+20260930-122930	winter_cleared	2	351177	1157577	departure	156	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1132136
+20260930-122930	winter_cleared	2	351177	1157577	departure	159	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1134255
+20260930-122930	winter_cleared	2	351177	1157577	departure	160	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1134255
+20260930-122930	winter_cleared	2	351831	1158231	arrival	203	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24228 vanish=0 flag_src=1 flag_nf=1 pos=184,65,104 listed_at=1158231
+20260930-122930	winter_cleared	2	351831	1158231	arrival	204	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22018 vanish=0 flag_src=1 flag_nf=1 pos=6,134,104 listed_at=1158231
+20260930-122930	winter_cleared	2	351831	1158231	arrival	205	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25269 vanish=0 flag_src=1 flag_nf=1 pos=5,119,104 listed_at=1158231
+20260930-122930	winter_cleared	2	353113	1159513	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	353113	1159513	every_applied	17	probe:release surface
+20260930-122930	winter_cleared	2	353113	1159513	departure	157	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1132136
+20260930-122930	winter_cleared	2	353795	1160195	arrival	206	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=21018 vanish=0 flag_src=1 flag_nf=1 pos=135,151,104 listed_at=1160195
+20260930-122930	winter_cleared	2	353795	1160195	arrival	207	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26112 vanish=0 flag_src=1 flag_nf=1 pos=93,191,109 listed_at=1160195
+20260930-122930	winter_cleared	2	353795	1160195	arrival	208	CROCODILE_CAVE caste=MALE ref6=29,20,-1,13,-1,14 layer=cavern countdown=20918 vanish=0 flag_src=1 flag_nf=0 pos=191,56,30 listed_at=1160195
+20260930-122930	winter_cleared	2	353795	1160195	departure	150	BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 last_countdown=0 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	353795	1160195	departure	158	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1132136
+20260930-122930	winter_cleared	2	353795	1160195	departure	163	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136406
+20260930-122930	winter_cleared	2	354466	1160866	departure	143	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 last_countdown=0 last_flag_src=1 arrived_at=1126260
+20260930-122930	winter_cleared	2	354466	1160866	departure	164	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136406
+20260930-122930	winter_cleared	2	355142	1161542	arrival	209	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=28281 vanish=0 flag_src=1 flag_nf=0 pos=178,17,49 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	210	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=28055 vanish=0 flag_src=1 flag_nf=0 pos=161,2,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	211	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=20862 vanish=0 flag_src=1 flag_nf=0 pos=164,1,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	212	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=20265 vanish=0 flag_src=1 flag_nf=0 pos=164,0,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	213	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=26092 vanish=0 flag_src=1 flag_nf=0 pos=160,0,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	214	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=29001 vanish=0 flag_src=1 flag_nf=0 pos=165,2,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	216	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=24503 vanish=0 flag_src=1 flag_nf=0 pos=160,1,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	217	TROGLODYTE caste=MALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=28476 vanish=0 flag_src=1 flag_nf=0 pos=161,1,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	arrival	218	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=22068 vanish=0 flag_src=1 flag_nf=0 pos=163,1,45 listed_at=1160866
+20260930-122930	winter_cleared	2	355142	1161542	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	355142	1161542	every_applied	18	probe:release surface
+20260930-122930	winter_cleared	2	355142	1161542	departure	165	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136406
+20260930-122930	winter_cleared	2	355142	1161542	departure	166	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1136406
+20260930-122930	winter_cleared	2	355812	1162212	arrival	219	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22342 vanish=0 flag_src=1 flag_nf=1 pos=9,91,104 listed_at=1162212
+20260930-122930	winter_cleared	2	355812	1162212	arrival	220	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=24565 vanish=0 flag_src=1 flag_nf=1 pos=66,184,104 listed_at=1162212
+20260930-122930	winter_cleared	2	355812	1162212	arrival	221	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28264 vanish=0 flag_src=1 flag_nf=1 pos=65,191,104 listed_at=1162212
+20260930-122930	winter_cleared	2	355812	1162212	arrival	222	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28462 vanish=0 flag_src=1 flag_nf=1 pos=67,189,104 listed_at=1162212
+20260930-122930	winter_cleared	2	355812	1162212	departure	161	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=83 last_flag_src=0 arrived_at=1134255
+20260930-122930	winter_cleared	2	356446	1162846	departure	162	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1134255
+20260930-122930	winter_cleared	2	357127	1163527	arrival	215	TROGLODYTE caste=FEMALE ref6=29,20,-1,8,-1,19 layer=cavern countdown=28008 vanish=0 flag_src=1 flag_nf=0 pos=161,1,45 listed_at=1160866
+20260930-122930	winter_cleared	2	357127	1163527	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_cleared	2	357127	1163527	every_applied	19	probe:release surface
+20260930-122930	winter_cleared	2	357832	1164232	arrival	223	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=22901 vanish=0 flag_src=0 flag_nf=0 pos=65,191,104 listed_at=1162212
+20260930-122930	winter_cleared	2	357832	1164232	arrival	224	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23642 vanish=0 flag_src=1 flag_nf=1 pos=118,180,104 listed_at=1164232
+20260930-122930	winter_cleared	2	357832	1164232	arrival	225	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=25565 vanish=0 flag_src=1 flag_nf=1 pos=115,190,104 listed_at=1164232
+20260930-122930	winter_cleared	2	357832	1164232	arrival	226	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=20152 vanish=0 flag_src=1 flag_nf=1 pos=119,190,104 listed_at=1164232
+20260930-122930	winter_cleared	2	357832	1164232	arrival	227	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26649 vanish=0 flag_src=1 flag_nf=1 pos=124,189,104 listed_at=1164232
+20260930-122930	winter_cleared	2	357832	1164232	arrival	228	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=27576 vanish=0 flag_src=1 flag_nf=1 pos=174,17,107 listed_at=1164232
+20260930-122930	winter_cleared	2	359101	1165501	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-122930	winter_cleared	2	359101	1165501	every_applied	20	probe:release surface
+20260930-122930	winter_cleared	2	359681	1166081	arrival	229	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23741 vanish=0 flag_src=1 flag_nf=1 pos=7,154,104 listed_at=1166081
+20260930-122930	winter_cleared	2	359681	1166081	arrival	230	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26307 vanish=0 flag_src=1 flag_nf=1 pos=3,153,104 listed_at=1166081
+20260930-122930	winter_cleared	2	359681	1166081	arrival	231	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21062 vanish=0 flag_src=1 flag_nf=1 pos=3,156,104 listed_at=1166081
+20260930-122930	winter_cleared	2	359681	1166081	departure	168	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 last_countdown=0 last_flag_src=0 arrived_at=1138500
+20260930-122930	winter_cleared	2	360839	1167239	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	360839	1167239	every_applied	21	probe:release surface
+20260930-122930	winter_cleared	2	361386	1167786	arrival	232	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=28502 vanish=0 flag_src=1 flag_nf=1 pos=12,184,104 listed_at=1167786
+20260930-122930	winter_cleared	2	361386	1167786	arrival	233	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23878 vanish=0 flag_src=1 flag_nf=1 pos=1,178,104 listed_at=1167786
+20260930-122930	winter_cleared	2	361386	1167786	departure	171	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1142487
+20260930-122930	winter_cleared	2	362642	1169042	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-122930	winter_cleared	2	362642	1169042	every_applied	22	probe:release surface
+20260930-122930	winter_cleared	2	363257	1169657	arrival	234	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=21151 vanish=0 flag_src=1 flag_nf=1 pos=36,187,104 listed_at=1169657
+20260930-122930	winter_cleared	2	363257	1169657	arrival	235	GROUNDHOG caste=MALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=23756 vanish=0 flag_src=1 flag_nf=1 pos=43,183,104 listed_at=1169657
+20260930-122930	winter_cleared	2	363257	1169657	arrival	236	GROUNDHOG caste=FEMALE ref6=29,20,-1,-1,-1,80 layer=surface countdown=26049 vanish=0 flag_src=1 flag_nf=1 pos=46,187,104 listed_at=1169657
+20260930-122930	winter_cleared	2	364434	1170834	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-122930	winter_cleared	2	364434	1170834	every_applied	23	probe:release surface
+20260930-122930	winter_cleared	2	364434	1170834	departure	170	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1140557
+20260930-122930	winter_cleared	2	364434	1170834	departure	175	GROUNDHOG ref6=29,20,-1,-1,-1,80 last_countdown=0 last_flag_src=0 arrived_at=1144514
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->354 max 354->354 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->15 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	3205	GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	3538	DEMON_3 ref6=28,20,-1,44,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->218 max 216->216 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->307 max 308->308 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->334 max 334->334 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->257 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->3623 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4722	GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->459 max 20->20 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->331 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->382 max 381->381 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4744	OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->430 max 429->429 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->423 max 436->436 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->407 max 403->403 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4753	BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->22 max 22->22 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4754	TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->4 max 14->14 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->376 max 387->387 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4778	CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->443 max 442->442 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->322 max 331->331 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->199 max 257->257 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4793	BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->3 max 4->4 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4796	TROLL ref6=29,20,-1,13,-1,32 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4818	MOLEMARIAN ref6=29,20,-1,25,-1,20 quantity 15->13 max 15->15 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->35 max 33->33 discovered 1->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->249 max 336->336 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->342 max 421->421 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4836	DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	pool_delta	4984	VORACIOUS_CAVE_CRAWLER ref6=29,21,-1,13,-1,20 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-122930	winter_cleared	2	364434	1170834	end	summary	{"arm": "winter_cleared", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 98, "departures": 36, "deaths": 4, "ticks": 45234, "wall_s": 163.7, "stop": null, "ticks_per_s": 276.2, "save_untouched": true}
