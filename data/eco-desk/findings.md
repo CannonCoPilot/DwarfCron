@@ -175,3 +175,8 @@ ECO2-G (fresh 7-dwarf embarks FPS2E1..E6, tool on + preset, 40k t, 2 reps; group
 VR (CTRL, vspot surface 134,42,104; 4,000 t, 1 rep): the densest vermin spot is a BUMBLEBEE colony (17,820 in the
   count); cat, peregrine, duck x4 each: count 17,820 -> 17,822 / 17,820 / 17,820 -> no catch visible. A colony is not
   hunted like loose vermin; vspot should skip colony vermin (VERMIN_SOIL_COLONY / hive) -> VR is vacuous for predation.
+VRL / VRR (LAKE, RIVER4 vspot): the densest spots were TERMITE colonies (14,539 / 18,943); cat, peregrine, duck x4:
+  colony counts unchanged; a fly swarm (145-193) came and went independently -> no catch visible, vacuous.
+VRC (BOATS cavern vspot): 1-2 vermin at the spot and the predators failed to place (CAT x0, RAT_GIANT x0) -> vacuous.
+  => all ECO2 vermin blocks vacuous: vspot must skip colony vermin and require loose vermin >= ~20 within 12 tiles;
+  cavern vermin are sparse (<= 2 near any spot seen). Vermin predation stays untested; rule C remains bookkeeping.
