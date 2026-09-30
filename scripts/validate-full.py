@@ -712,6 +712,10 @@ def phase_v65():
 
 def phase_v68():
     log("== v6.8: roster and seasons from the console")
+    # the roster has active species only while rotation runs (full run 124923: all four roster checks NOT-TESTABLE)
+    en0 = luaj("print(json.encode({on=reqscript('seasonal-wildlife').loadConfig().enabled}))", timeout=60)
+    was_on = isinstance(en0, dict) and bool(en0.get("on"))
+    if not was_on: cmd("enable", timeout=240)
     probe = """
 local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg); local one,off
 for _,e in ipairs(pool) do if e.inEmbark and not e.locked then
@@ -758,6 +762,7 @@ print(json.encode({one=one, off=off}))"""
         rec("cli.seasons.activate", "PASS" if isinstance(s7, dict) and s7.get("allow") is True and s7.get("assign") == [3] else "FAIL",
             "allow true, seasons [3]", f"{off}: {json.dumps(s7)}\n{o7}")
         cmd("roster", off, "inactive")
+    if not was_on: cmd("disable", timeout=240)
 
 def phase_v69():
     log("== v6.9: the ecology as the ECO suite measured it")
@@ -894,8 +899,9 @@ def phase_v68_web():
     def curl(path, method="GET", host=None):
         a = ["curl", "-s", "-m", "10", "-o", "-", "-w", "\n%{http_code}", "-X", method]
         if host: a += ["-H", f"Host: {host}"]
-        p = subprocess.run(a + [f"http://127.0.0.1:{port}{path}"], capture_output=True, text=True)
-        body, _, code = p.stdout.rpartition("\n")
+        # bytes, not text: /gfx serves PNGs, which are not UTF-8 (full run 125003 raised UnicodeDecodeError here)
+        p = subprocess.run(a + [f"http://127.0.0.1:{port}{path}"], capture_output=True)
+        body, _, code = p.stdout.decode("latin-1").rpartition("\n")
         return (int(code) if code.isdigit() else 0), body
     time.sleep(1)
     c1, page = curl("/")

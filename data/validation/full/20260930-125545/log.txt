@@ -1,0 +1,30 @@
+12:55:45 validate-full run 20260930-125545 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-125545
+12:55:45 == SETUP: restore and load CTRL
+12:56:03   loaded: tick 16800 season 0 citizens 7 land 0 water 0 cavern 8 deep 5
+12:56:03 == v6.8: roster and seasons from the console
+12:56:03   [PASS             ] cli.roster: `roster` prints one line per layer with its active, in-season and inac
+12:56:03   [NOT-TESTABLE-HERE] cli.roster.state: `roster KEY inactive` leaves the species inactive with no seasons; `ro
+12:56:03   [NOT-TESTABLE-HERE] cli.seasons.set: `seasons KEY SpAu` sets exactly those seasons; `seasons KEY none` is r
+12:56:03   [NOT-TESTABLE-HERE] cli.roster.undo: `undo` after a console roster or seasons edit restores the state befor
+12:56:03   [NOT-TESTABLE-HERE] cli.seasons.activate: `seasons KEY Wi` on an inactive species makes it active in Winter
+12:56:03 == v6.8: the companion server
+12:56:03   [PASS             ] web.snapshot: `seasonal-wildlife-web snapshot` prints one JSON state with the fort, 
+12:56:24   [FAIL             ] web.serve: `seasonal-wildlife-web start` serves the page and /state.json to a bro
+12:56:24       expected: GET / 200 with the page; GET /state.json 200 with loaded state
+      got: start: already serving: http://127.0.0.1:8642/?t=5443b0933d919e9b1f74; page 0 (0 bytes); state 0 (0 bytes)
+12:56:44   [FAIL             ] web.gfx: the snapshot carries sprite sheets, the font and a 16-colour palette, 
+12:56:44       expected: palette 16, sheets, font; >=80% sprites, >=95% glyphs; /gfx/font and a sheet are PNGs
+      got: palette 16, sheets 343, sprites 24/24, glyphs 24/24; font 0 ''; sheet CREATURES_SURFACE 0 ''
+12:57:15   [FAIL             ] web.guard: the server refuses a request without the token, a verb off its list, a
+12:57:15       expected: 403 bad token; 400 preset (not on the list); 403 wrong Host
+      got: bad token 0; preset 0; wrong host 0
+12:57:25   [FAIL             ] web.cmd: a POST /cmd with the token runs the console verb and returns its reply
+12:57:25       expected: 200, ok, the roster summary in the reply
+      got: 0
+12:57:25    serving http://127.0.0.1:8642/?t=5443b0933d919e9b1f74  requests 3 (commands 0, refused 0, errors 10321); poll last 1 ms, worst 15 ms; snapshot last 17 ms, worst 198 ms; last error: ...m\steamapps\common\DFHack\hack\lua\plugins\luasocket.lua:27: Cannot invoke field (global).luasocket.lua_socket_set_b
+12:57:25   [PASS             ] web.stop: `seasonal-wildlife-web stop` closes the port
+12:57:25   [PASS             ] w0.overlay: a validation run leaves DFHack's overlay settings as it found them (se
+12:57:25 == TEARDOWN
+12:57:33   [PASS             ] mech.save.untouched: a full session of console and GUI use leaves the save byte-identical (
+12:57:33 == DONE /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-125545
+   FAIL 4  NOT-TESTABLE-HERE 4  PASS 5

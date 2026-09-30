@@ -1,0 +1,22 @@
+12:58:13 validate-full run 20260930-125813 -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-125813
+12:58:13 == SETUP: restore and load CTRL
+12:58:32   loaded: tick 16800 season 0 citizens 7 land 0 water 0 cavern 8 deep 5
+12:58:32 == v6.8: roster and seasons from the console
+12:58:32   [PASS             ] cli.roster: `roster` prints one line per layer with its active, in-season and inac
+12:58:33   [PASS             ] cli.roster.state: `roster KEY inactive` leaves the species inactive with no seasons; `ro
+12:58:34   [PASS             ] cli.seasons.set: `seasons KEY SpAu` sets exactly those seasons; `seasons KEY none` is r
+12:58:34   [PASS             ] cli.roster.undo: `undo` after a console roster or seasons edit restores the state befor
+12:58:35   [NOT-TESTABLE-HERE] cli.seasons.activate: `seasons KEY Wi` on an inactive species makes it active in Winter
+12:58:35 == v6.8: the companion server
+12:58:35   [PASS             ] web.snapshot: `seasonal-wildlife-web snapshot` prints one JSON state with the fort, 
+12:58:36   [PASS             ] web.serve: `seasonal-wildlife-web start` serves the page and /state.json to a bro
+12:58:36   [PASS             ] web.gfx: the snapshot carries sprite sheets, the font and a 16-colour palette, 
+12:58:36   [PASS             ] web.guard: the server refuses a request without the token, a verb off its list, a
+12:58:36   [PASS             ] web.cmd: a POST /cmd with the token runs the console verb and returns its reply
+12:58:37    serving http://127.0.0.1:8642/?t=5443b0933d919e9b1f74  requests 11 (commands 2, refused 2, errors 11517); poll last 2 ms, worst 23 ms; snapshot last 0 ms, worst 198 ms; last error: ...m\steamapps\common\DFHack\hack\lua\plugins\luasocket.lua:27: Cannot invoke field (global).luasocket.lua_socket_set_b
+12:58:37   [PASS             ] web.stop: `seasonal-wildlife-web stop` closes the port
+12:58:37   [PASS             ] w0.overlay: a validation run leaves DFHack's overlay settings as it found them (se
+12:58:37 == TEARDOWN
+12:58:45   [PASS             ] mech.save.untouched: a full session of console and GUI use leaves the save byte-identical (
+12:58:45 == DONE /Users/nathanielcannon/Claude/Projects/DwarfCron/data/validation/full/20260930-125813
+   NOT-TESTABLE-HERE 1  PASS 12
