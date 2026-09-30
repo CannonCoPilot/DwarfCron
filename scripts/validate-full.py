@@ -23,7 +23,7 @@ opened) with one excursion to LAKE for the water layer, which is dormant everywh
 Runs only when the rig is free; leaves it at the title with the forts byte-identical.
 Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui]
 """
-import argparse, json, os, re, subprocess, sys, time
+import argparse, json, math, os, re, subprocess, sys, time
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -228,6 +228,7 @@ CLAIMS = [
     ("mech.v69.pelagic", "MECH", "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY", "user 30 Sep; ECO O/DEPTH", "shipped v6.9"),
     ("cli.alerts", "CLI", "`alerts off|on` switches quiet wildlife fights and says so; on by default", "ECO A1/A2", "shipped v6.9"),
     ("cli.curious", "CLI", "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused", "ECO B/CB", "shipped v6.9"),
+    ("mech.v69.autogroups", "MECH", "land groups at once default to floor(sqrt(embark tiles)) + 1 and `limits land groups N` sets a number instead", "user 29 Sep; ECO2-G", "shipped v6.9"),
     ("cli.scavenge", "CLI", "`scavenge on|off|now` switches scavenging, runs one pass on demand and reports it; off by default", "ECO S/S2; PLAN scavenging", "shipped v6.9"),
     ("mech.v69.guild", "MECH", "the engine's guild for each natural species agrees with the ECO desk's guild table (data/eco-desk/v2/guilds/species2.tsv) for at least 95% of them", "ECO desk v2 guild design", "shipped v6.9"),
     ("mech.v69.exhaust", "MECH", "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change", "ECO N1", "shipped v6.9"),
@@ -842,6 +843,11 @@ print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, p
         rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
             json.dumps(x)[:800])
     cmd("ledger", "8")
+    tj = luaj("local m=df.global.world.map; print(json.encode({t=(m.x_count//48)*(m.y_count//48)}))", timeout=60)
+    want = (int(math.isqrt(tj["t"])) + 1) if isinstance(tj, dict) and tj.get("t") else None
+    rc, a0 = cmd("limits", "land", "groups", "auto"); rc, a1 = cmd("limits", "land", "groups", "4"); rc, a2 = cmd("limits", "land", "groups", "auto")
+    ok = want is not None and f"land auto ({want}) group(s) at once" in a0 and "land 4 group(s) at once" in a1 and f"land auto ({want})" in a2
+    rec("mech.v69.autogroups", "PASS" if ok else "FAIL", f"auto ({want}) for {tj.get('t') if isinstance(tj, dict) else '?'} embark tiles; 4 when set; auto again", a0 + a1 + a2)
     rc, s0 = cmd("scavenge"); rc, s1 = cmd("scavenge", "on"); rc, s2 = cmd("scavenge", "now"); rc, s3 = cmd("scavenge", "off")
     ok = ("scavenging: off" in s0 and "scavenging: on" in s1 and re.search(r"scavenge: \d+ eaten", s2) and "scavenging: off" in s3
           and "error" not in (s1 + s2).lower())
@@ -2124,7 +2130,9 @@ def phase_static():
         if cid == "bl.largestmale":
             note = "the leader rule in the shipped code is lowest-id (verified live in mech.leader.lowest)"
         if cid == "bl.concurrency":
-            m = re.search(r"max_concurrent\s*=\s*(\d+)", src); note = f"max_concurrent is a fixed default ({m.group(1) if m else '?'}); no √tiles expression in the script"
+            m = re.search(r"max_concurrent\s*=\s*(\d+)", src)
+            note = ("shipped in v6.9: QUOTA.autoGroups, land default auto (see mech.v69.autogroups)" if "function QUOTA.autoGroups" in src
+                    else f"max_concurrent is a fixed default ({m.group(1) if m else '?'}); no √tiles expression in the script")
         if cid == "bl.frequency":
             note = "no per-species frequency field in the roster config; frequency is written only by the cavern ceiling (CAVERN) and the pack-size lever"
         rec(cid, "BACKLOG", "unscheduled by the Backlog's own terms", "", note=note)
