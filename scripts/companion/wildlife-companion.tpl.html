@@ -750,16 +750,25 @@ function renderWeb() {
   const prey = all.filter(n => n.role !== 'predator' && used.has(n.id)).sort(ord);
   const alone = vis.filter(s => !isVermin(s) && !used.has(s.key));
   const g = LAYERS.map(l => [0, 1, 2, 3].map(k => arr(D.pairs).some(([p, q]) => BY[p] && BY[q] && !isVermin(BY[q]) && BY[p].layer === l && BY[q].layer === l && inSeason(BY[p], k) && inSeason(BY[q], k))));
-  const RH = 20, top = 36, W = 700, colL = 200, colR = W - 240;
+  const RH = 24, top = 38, W = 720, colL = 214, colR = W - 250, TS = 18, GAP = 13;
   const H = top + Math.max(preds.length, prey.length, 1) * RH + 12;
   const yP = new Map(preds.map((n, i) => [n.id, top + i * RH + RH / 2]));
   const yQ = new Map(prey.map((n, i) => [n.id, top + i * RH + RH / 2]));
   const svgEdges = edges.map(e => { const y1 = yP.get(e.p), y2 = yQ.get(e.q);
-    return `<path data-p="${esc(e.p)}" data-q="${esc(e.q)}" class="${e.live ? 'live' : ''} ${e.vermin ? 'vermin' : ''}" d="M${colL} ${y1} C ${(colL + colR) / 2} ${y1}, ${(colL + colR) / 2} ${y2}, ${colR} ${y2}"/>`; }).join('');
+    return `<path data-p="${esc(e.p)}" data-q="${esc(e.q)}" class="${e.live ? 'live' : ''} ${e.vermin ? 'vermin' : ''}" d="M${colL + GAP} ${y1} C ${(colL + colR) / 2} ${y1}, ${(colL + colR) / 2} ${y2}, ${colR - GAP} ${y2}"/>`; }).join('');
   const label = n => { const t = n.fam ? `${n.name} (${n.members.length})` : n.name; const cap = n.fam ? 34 : 26; return esc(t.length > cap ? t.slice(0, cap - 1) + '…' : t); };
-  const node = (n, x, y, anchor) => `<g class="node ${n.fam ? 'fam' : ''}" data-key="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(n.name)}">${n.fam
-      ? `<rect x="${x - 4}" y="${y - 4}" width="8" height="8" rx="1.5" fill="none" stroke="var(--${n.layer})" stroke-width="2"/>`
-      : `<circle cx="${x}" cy="${y}" r="${n.live ? 5 : 4}" fill="var(--${n.layer})" ${n.live ? 'stroke="var(--accent)" stroke-width="2"' : ''}/>`}<text x="${anchor === 'end' ? x - 10 : x + 10}" y="${y + 4}" text-anchor="${anchor}" style="text-transform:${n.fam ? 'none' : 'capitalize'}">${label(n)}</text></g>`;
+  // each node is its creature's tile (a vermin family shows its most plentiful member inside a dashed square), a
+  // small layer dot on the outer side, and the name; the tile sits in a foreignObject so both tilesets render as HTML
+  const rep = n => n.fam ? n.members.slice().sort((a, b) => b.stock - a.stock)[0] : n.s;
+  const node = (n, x, y, anchor) => {
+    const out = anchor === 'end' ? -1 : 1, lx = x + out * (TS / 2 + 14), dx = x - out * 0;
+    return `<g class="node ${n.fam ? 'fam' : ''}" data-key="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(n.name)}">
+      ${n.fam ? `<rect x="${x - TS / 2 - 3}" y="${y - TS / 2 - 3}" width="${TS + 6}" height="${TS + 6}" rx="3" fill="none" stroke="var(--${n.layer})" stroke-width="1.5" stroke-dasharray="3 2"/>`
+              : n.live ? `<rect x="${x - TS / 2 - 3}" y="${y - TS / 2 - 3}" width="${TS + 6}" height="${TS + 6}" rx="4" fill="none" stroke="var(--accent)" stroke-width="2"/>` : ''}
+      <foreignObject x="${x - TS / 2 - 4}" y="${y - TS / 2}" width="${TS + 8}" height="${TS}"><div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;height:${TS}px">${tile(rep(n), TS)}</div></foreignObject>
+      <circle cx="${dx - out * (TS / 2 + 7) * -1}" cy="${y}" r="3" fill="var(--${n.layer})"/>
+      <text x="${lx}" y="${y + 4}" text-anchor="${anchor}" style="text-transform:${n.fam ? 'none' : 'capitalize'}">${label(n)}</text></g>`;
+  };
   const svg = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Food web: predators on the left, prey and vermin on the right">
     <text class="colhead" x="${colL - 10}" y="20" text-anchor="end">PREDATORS (${preds.length})</text><text class="colhead" x="${colR + 10}" y="20">PREY AND VERMIN (${prey.length})</text>
     ${svgEdges}${preds.map(n => node(n, colL, yP.get(n.id), 'end')).join('')}${prey.map(n => node(n, colR, yQ.get(n.id), 'start')).join('')}</svg>`;
@@ -794,7 +803,7 @@ function renderWeb() {
   };
   const side = id => {
     const el = P.querySelector('#webSide'), n = id && nodes.get(id);
-    if (!n) { el.innerHTML = `<h2>Trace a species</h2><p class="sub" style="margin:0">Hover a name to see what it eats and what eats it. Click to keep it selected. Squares are vermin families.</p>`; return; }
+    if (!n) { el.innerHTML = `<h2>Trace a species</h2><p class="sub" style="margin:0">Hover a name to see what it eats and what eats it. Click to keep it selected. Dashed squares are vermin families, shown by their most plentiful member; a violet ring is on the map now.</p>`; return; }
     const hunters = [...new Set(edges.filter(e => e.q === id).map(e => e.p))];
     if (n.fam) {
       el.innerHTML = `<span class="mono sub">vermin &middot; ${LNAME[n.layer] || n.layer}</span><h3 style="font-family:var(--serif);font-weight:400;font-size:24px;margin:2px 0 8px">${esc(n.name)}</h3>
@@ -820,7 +829,7 @@ function renderWeb() {
   });
   if (st.webFocus && !nodes.has(st.webFocus)) st.webFocus = null;
   focus(st.webFocus);
-  if (st.webFocus) { const n = web.querySelector(`.node[data-key="${CSS.escape(st.webFocus)}"]`); if (n) { const c = n.querySelector('circle,rect'); web.scrollTop = Math.max(0, +(c.getAttribute('cy') || c.getAttribute('y')) - 120); } }
+  if (st.webFocus) { const n = web.querySelector(`.node[data-key="${CSS.escape(st.webFocus)}"]`); if (n) { const c = n.querySelector('circle'); web.scrollTop = Math.max(0, +c.getAttribute('cy') - 120); } }
 }
 
 // ---- Ledger & settings ----
