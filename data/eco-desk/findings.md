@@ -193,3 +193,18 @@ ECO2-W rerun (CTRL set to Winter, tool disarmed, GROUNDHOG FREQUENCY 100 + stock
   2 reps; waves after the first sample): natural NO_WINTER: 0 of 42 and 0 of 44 surface waves were groundhogs;
   NO_WINTER cleared: 21 of 32 and 19 of 25. => the raw flag beats any roster/stock/FREQUENCY the tool writes; a
   NO_<season> species dealt that season never arrives by DF's draw (v6.9 fits seasons to the flags).
+ECO3 PK (CTRL, n written WOLF vs 4 prey at one spot, 3,000 t, 2 reps; kills of prey / wolves lost, summed over reps;
+  attacks rep1/rep2):
+  DEER (gate needs 1):   n1 0 (0/0 att)  n3 0 (9/3)   n5 1 (141/0)  n7 1 (144/4)
+  ELK (needs 2):         n1 0 (0/0)      n3 0, 2 wolves lost (3/1)  n5 0 (0/1)  n7 2 (4/345)
+  MOOSE (needs 4):       n1 0 (1/0)      n3 0 (0/0)   n5 0 (6/158)  n7 1, 2 wolves lost (21/262)
+  WATER_BUFFALO (9):     n1 0 (1/0)      n3 0 (62/8)  n5 0 (265/10) n7 2 (485/196)
+  => DF's combat is driven by pack size, not prey size: a lone wolf does nothing even to deer; kills come at 5-7
+  wolves on every prey up to buffalo (25x one wolf, which the 5x gate forbids). Attack counts rise steeply with n.
+  The 5x upper bound is conservative against DF (buffalo fell to 7 wolves in both reps) and says nothing about the
+  lower end (lone predators near-inert). Kill rates are low (<= 2 of 4 prey per 3,000 t) -> prey is not wiped out.
+ECO3 WB (OCEAN2 shore, 4 SHARK_TIGER vs 6 birds placed in water, 3,000 t, 2 reps):
+  BIRD_DUCK: DF alone 0 / 0 attacks; written 5 of 6 killed in both reps (25 / 27 attacks). Ducks end dry (wet 0) -> they
+  are caught while swimming, then the survivors fly/walk out.
+  BIRD_PENGUIN: DF alone 0 attacks (1 penguin died per rep, not by a spawned killer: cause unrecorded); written 2 and 3 of
+  6 killed. => aquatic predators DO take swimming waterbirds (the reach table's 'untested' cell -> yes, in water).

@@ -315,6 +315,15 @@ def colo(steps_pre, pred="WOLF", prey="DEER", np=6, nq=10, write=True, pm="land"
     if write:
         st.append(f"rel {pred} {prey}")
     return dict(steps=st, ticks=3000)
+# PK (user 30 Sep): does the 5x effective-mass gate match DF's own combat? n written wolves vs 4 prey at one spot.
+BLOCKS["PK"] = dict(fort="CTRL", spot="land", cells={
+    f"wolf{n}_{p}": dict(steps=[f"spawn {p} 4 {{X}} {{Y}} {{Z}} 3", f"spawn WOLF {n} {{X}} {{Y}} {{Z}} 4", f"rel WOLF {p}"], ticks=3000)
+    for p in ("DEER", "ELK", "MOOSE", "WATER_BUFFALO") for n in (1, 3, 5, 7)})
+# WB (user 30 Sep): do sharks take swimming waterbirds? (ducks/penguins carry SWIMS_INNATE, no water breathing)
+BLOCKS["WB"] = dict(fort="OCEAN2", spot="shore", cells={
+    **{f"{s}_{b}_{'w' if w else 'df'}": dict(steps=[f"spawn {b} 6 {{X}} {{Y}} {{Z}} 4 water", f"spawn {s} 4 {{X}} {{Y}} {{Z}} 5 water"] + ([f"rel {s} {b}"] if w else []), ticks=3000)
+       for s in ("SHARK_TIGER",) for b in ("BIRD_DUCK", "BIRD_PENGUIN") for w in (False, True)},
+})
 BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
     "ctl": colo([]),
     **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},
