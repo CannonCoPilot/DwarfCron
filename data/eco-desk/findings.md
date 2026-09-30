@@ -180,3 +180,12 @@ VRL / VRR (LAKE, RIVER4 vspot): the densest spots were TERMITE colonies (14,539 
 VRC (BOATS cavern vspot): 1-2 vermin at the spot and the predators failed to place (CAT x0, RAT_GIANT x0) -> vacuous.
   => all ECO2 vermin blocks vacuous: vspot must skip colony vermin and require loose vermin >= ~20 within 12 tiles;
   cavern vermin are sparse (<= 2 near any spot seen). Vermin predation stays untested; rule C remains bookkeeping.
+TV2 (CTRL, every cell at one shared spot, 3,000 t, 2 reps; WOLF x6 written against DEER x10 unless noted):
+  control: 7 / 3 wolf attacks, 0 kills (wolves barely engage at this spot).
+  PRONE_TO_RAGE on DEER 25: deer 18 / 36 attacks, 2 / 1 wolves killed; 100: 98 / 94, 4 / 4 wolves killed -> REPLICATED dose.
+  VIEWRANGE on DEER 5: 168 / 7 wolf attacks (3 / 0 kills); 40: 3 / 0 -> longer sight, fewer attacks in both reps.
+  VISION_ARC narrow: 5 / 147 attacks; FLEEQUICK: 3 / 158 -> not replicated (T1's 2 vs 64 was noise).
+  MEANDERER off (10 DEER alone): spread 71.9 / 64.7 vs control 39.4 / 42.2 -> REPLICATED: off = wider scatter.
+  LOOSE_CLUSTERS on (10 KANGAROO): 37.2 / 38.8 vs 41.8 / 40.6 -> no effect.
+  GIANT_FOX (BENIGN in raws) x DEER: 0 / 0; BENIGN off: 2 / 10 attacks, 0 / 1 kill -> BENIGN is the switch for giants too.
+  GIANT_WOLF x DEER: 11 / 24 attacks, 1 / 1 kill. AMBUSHPREDATOR on WOLF: 0 / 0 (control 0 / 0) -> nothing.
