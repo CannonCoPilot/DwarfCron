@@ -220,3 +220,15 @@ ECO CAL (CTRL, one spot, 6 prey + n written predators, 30,000 t, sustain per cel
   3 to wolves, 8 to 10 hyenas); deer escape. Solitary hunters are inert over 30k t. Predation thins, never wipes
   out (max 5 of 6 in 30k t). A mass-ratio gate has no basis in DF's combat; group size is the lever.
   Attempt 1 (withered by thirst at ~330k t) is data/experiments/ECO/CAL-20260930-135309 (rep 1 wolf cells valid).
+ECO STL (CTRL, 1 COUGAR or LION vs 6 DEER / WATER_BUFFALO, written, 30,000 t, sustain per cell, 2 reps; per arm over
+  8 cell-reps: hunter attacks on its prey / prey killed / hunters lost; scripts/stl-tally.py):
+  ctl 17/0/0; sneak (unit SNEAK 10) 112/3/0; nslow (sneak + stealth_slows 0) 21/1/1; ambush (AMBUSHPREDATOR) 29/1/0.
+  Hidden (flags1.hidden_in_ambush|hidden_ambusher) 0 of 186 samples in every arm -> wild AI never sneaks; the skill acts
+  in the fight, not by hiding. All 5 kills by LION (deer 3, buffalo 2); COUGAR (speed 195, slower than both prey) 0.
+  Cell-reps with a kill: treated 4/24, ctl 0/8 (CAL lone hunters 1/12) -> repeats, but small n; STL2 doubles it.
+  OFF-TARGET: tool OFF on CTRL (probe tool: enabled 0, scheduled 0) and `rel` writes only spawned-a x spawned-b, yet
+  over 30k t placed hunters attack natives never related: STL ambush 103 attacks / 5 native kills (ctl 0); CAL packs
+  745 attacks / 53 native kills (BADGER 30, EMU 6, KANGAROO 6, WOMBAT 4, ...). P1's 'no relation, no hunting' was 3,000 t.
+  STL2 (running) adds norel (no relation written), fight (MELEE_COMBAT, BITE, GRASP_STRIKE, WRESTLING, DODGING 10), all.
+  Prey speed (ticks/100 tiles; lower faster): lion 109, elk 122, deer 137, wolf 149, moose 157, tiger 157, buffalo 183,
+  cougar 195, elephant 488; CAL kills rose as prey slowed (deer 1, moose 4, buffalo 7, elephant 11).

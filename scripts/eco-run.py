@@ -368,6 +368,30 @@ def stl(pred, prey, arm):
     return dict(steps=st, ticks=10, nowatch=True, post=post)
 BLOCKS["STL"] = dict(fort="CTRL", spot="land", cells={
     f"{p.lower()}_{q}_{a}": stl(p, q, a) for p in ("COUGAR", "LION") for q in ("DEER", "WATER_BUFFALO") for a in ("ctl", "sneak", "nslow", "ambush")})
+# STL2 (user 30 Sep: "two kills in a row ... use skills"): STL's 2 solitary kills came in the sneak and ambush arms,
+# never in ctl. Same pairs, 30k t, skills written on the placed hunter at rating 10 (what NATURAL_SKILL:<skill>:10 gives
+# a new unit). Arms: ctl; norel = ctl with NO relation written (STL/CAL hunters attacked and killed natives they were never
+# related to over 30k t: DF's own, or the write?); sneak (STL replicate); fight = the attack skills; all = sneak + fight +
+# observer + AMBUSHPREDATOR.
+_STL2_SKILLS = ("lua:local utils=require('utils'); local k=0; local S={{S}}; for _,u in ipairs(df.global.world.units.active) do"
+                " local c=df.creature_raw.find(u.race) if c and c.creature_id=='{P}' and not dfhack.units.isDead(u) and u.status.current_soul then"
+                " for _,s in ipairs(S) do utils.insert_or_update(u.status.current_soul.skills, {new=true, id=df.job_skill[s], rating=10}, 'id') end;"
+                " k=k+1 end end; print(('eco skills token={P} units=%d set=%s'):format(k, table.concat(S,'+')))")
+_STL2_ARMS = {"ctl": [], "norel": [], "sneak": ["SNEAK"],
+              "fight": ["MELEE_COMBAT", "BITE", "GRASP_STRIKE", "WRESTLING", "DODGING"],
+              "all": ["SNEAK", "MELEE_COMBAT", "BITE", "GRASP_STRIKE", "WRESTLING", "DODGING", "SITUATIONAL_AWARENESS"]}
+def stl2(pred, prey, arm):
+    P, S = pred, _STL2_ARMS[arm]
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')"]
+    if arm == "all": st.append(f"flag {P} AMBUSHPREDATOR on")
+    st += [f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 4", f"spawn {P} 1 {{X}} {{Y}} {{Z}} 5"] + ([] if arm == "norel" else [f"rel {P} {prey}"])
+    if S: st.append(_STL2_SKILLS.replace("{P}", P).replace("{S}", ",".join(f"'{s}'" for s in S)))
+    st.append("watch")
+    for _ in range(6):
+        st += ["step:5000", _STL_SAMPLE.replace("{P}", P)]
+    return dict(steps=st, ticks=10, nowatch=True)
+BLOCKS["STL2"] = dict(fort="CTRL", spot="land", cells={
+    f"{p.lower()}_{q}_{a}": stl2(p, q, a) for p in ("COUGAR", "LION") for q in ("DEER", "WATER_BUFFALO") for a in _STL2_ARMS})
 BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
     "ctl": colo([]),
     **{f"rage{v}": colo([f"misc DEER prone_to_rage {v}"]) for v in (25, 100)},
