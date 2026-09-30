@@ -1,0 +1,415 @@
+run	arm	rep	tick	abs_tick	event	subject	detail
+20260930-003517	f100_50_25_12	1	16800	823200	baseline	wild_present	13
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	126	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	127	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	128	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	129	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	130	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	131	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	132	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	133	ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	134	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=27544 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	135	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=26285 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	136	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=25307 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	137	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=24994 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	present_at_start	138	MAGMA_CRAB ref6=29,20,-1,34,-1,0 countdown=21557 flag_src=1
+20260930-003517	f100_50_25_12	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')	tool disarmed
+20260930-003517	f100_50_25_12	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE','WOMBAT','EMU'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))	eco: 6 entries stocked at 500
+20260930-003517	f100_50_25_12	1	16800	823200	manipulation	local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=50; n=n+1 elseif cr.creature_id=='WOMBAT' then cr.frequency=25; n=n+1 elseif cr.creature_id=='EMU' then cr.frequency=12; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))	eco: 3 named species set, 11 other land species at frequency 1
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	139	BIRD_KESTREL caste=MALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=26337 vanish=0 flag_src=1 flag_nf=1 pos=152,83,118 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	140	ELK_BIRD caste=MALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=21035 vanish=0 flag_src=1 flag_nf=0 pos=61,189,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	141	ELK_BIRD caste=MALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=25742 vanish=0 flag_src=1 flag_nf=0 pos=65,184,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	142	ELK_BIRD caste=FEMALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=25458 vanish=0 flag_src=1 flag_nf=0 pos=61,191,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	146	VORACIOUS_CAVE_CRAWLER caste=MALE ref6=29,21,-1,13,-1,20 layer=cavern countdown=22737 vanish=0 flag_src=1 flag_nf=0 pos=0,185,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	147	DEMON_1 caste=DEFAULT ref6=28,20,-1,44,-1,3 layer=deep countdown=19977 vanish=0 flag_src=1 flag_nf=0 pos=9,45,7 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	148	DEMON_1 caste=DEFAULT ref6=28,20,-1,44,-1,3 layer=deep countdown=27147 vanish=0 flag_src=1 flag_nf=0 pos=0,13,7 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	149	DEMON_1 caste=DEFAULT ref6=28,20,-1,44,-1,3 layer=deep countdown=19693 vanish=0 flag_src=1 flag_nf=0 pos=1,12,6 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	150	DEMON_1 caste=DEFAULT ref6=28,20,-1,44,-1,3 layer=deep countdown=22674 vanish=0 flag_src=1 flag_nf=0 pos=0,12,6 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	151	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=19619 vanish=0 flag_src=1 flag_nf=1 pos=177,59,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	152	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=21015 vanish=0 flag_src=1 flag_nf=1 pos=182,54,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	153	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=21948 vanish=0 flag_src=1 flag_nf=1 pos=183,49,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	154	BADGER caste=MALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=19894 vanish=0 flag_src=1 flag_nf=1 pos=184,35,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	155	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=23610 vanish=0 flag_src=1 flag_nf=1 pos=182,28,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	156	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=24019 vanish=0 flag_src=1 flag_nf=1 pos=174,24,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	157	BADGER caste=MALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=28135 vanish=0 flag_src=1 flag_nf=1 pos=177,23,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	158	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=20185 vanish=0 flag_src=1 flag_nf=1 pos=179,21,104 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	159	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=21271 vanish=0 flag_src=1 flag_nf=1 pos=187,11,103 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	160	BADGER caste=FEMALE ref6=29,20,-1,-1,-1,82 layer=surface countdown=20405 vanish=0 flag_src=1 flag_nf=1 pos=191,9,103 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	161	TROLL caste=FEMALE ref6=29,20,-1,8,-1,27 layer=cavern countdown=23431 vanish=0 flag_src=1 flag_nf=0 pos=15,181,57 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	162	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=20564 vanish=0 flag_src=1 flag_nf=0 pos=191,109,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	163	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=22322 vanish=0 flag_src=1 flag_nf=0 pos=189,109,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	164	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=22057 vanish=0 flag_src=1 flag_nf=0 pos=185,102,30 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	165	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=25676 vanish=0 flag_src=1 flag_nf=0 pos=186,103,30 listed_at=823814
+20260930-003517	f100_50_25_12	1	17414	823814	arrival	166	ELK_BIRD caste=MALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=22712 vanish=0 flag_src=1 flag_nf=0 pos=191,111,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	18175	824575	arrival	143	ELK_BIRD caste=FEMALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=24124 vanish=0 flag_src=1 flag_nf=0 pos=65,181,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	18175	824575	arrival	144	ELK_BIRD caste=FEMALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=21021 vanish=0 flag_src=1 flag_nf=0 pos=66,189,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	18175	824575	arrival	145	ELK_BIRD caste=FEMALE ref6=29,21,-1,8,-1,21 layer=cavern countdown=29130 vanish=0 flag_src=1 flag_nf=0 pos=62,188,40 listed_at=823814
+20260930-003517	f100_50_25_12	1	18175	824575	arrival	167	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=24575 vanish=0 flag_src=1 flag_nf=0 pos=184,116,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	18175	824575	arrival	168	ELK_BIRD caste=FEMALE ref6=29,20,-1,13,-1,25 layer=cavern countdown=22794 vanish=0 flag_src=1 flag_nf=0 pos=191,112,31 listed_at=823814
+20260930-003517	f100_50_25_12	1	18874	825274	manipulation	probe:release surface	released 11 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	18874	825274	every_applied	1	probe:release surface
+20260930-003517	f100_50_25_12	1	19550	825950	arrival	169	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23917 vanish=0 flag_src=1 flag_nf=1 pos=174,187,104 listed_at=825950
+20260930-003517	f100_50_25_12	1	19550	825950	arrival	170	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26714 vanish=0 flag_src=1 flag_nf=1 pos=178,187,104 listed_at=825950
+20260930-003517	f100_50_25_12	1	21040	827440	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	21040	827440	every_applied	2	probe:release surface
+20260930-003517	f100_50_25_12	1	21668	828068	arrival	171	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=20967 vanish=0 flag_src=1 flag_nf=1 pos=136,27,116 listed_at=828068
+20260930-003517	f100_50_25_12	1	21668	828068	arrival	172	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29004 vanish=0 flag_src=1 flag_nf=1 pos=132,23,117 listed_at=828068
+20260930-003517	f100_50_25_12	1	21668	828068	arrival	173	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=23672 vanish=0 flag_src=1 flag_nf=1 pos=129,19,116 listed_at=828068
+20260930-003517	f100_50_25_12	1	22902	829302	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	22902	829302	every_applied	3	probe:release surface
+20260930-003517	f100_50_25_12	1	23498	829898	arrival	174	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24824 vanish=0 flag_src=1 flag_nf=1 pos=132,182,104 listed_at=829898
+20260930-003517	f100_50_25_12	1	23498	829898	arrival	175	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23150 vanish=0 flag_src=1 flag_nf=1 pos=133,186,104 listed_at=829898
+20260930-003517	f100_50_25_12	1	23498	829898	arrival	176	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27131 vanish=0 flag_src=1 flag_nf=1 pos=132,190,104 listed_at=829898
+20260930-003517	f100_50_25_12	1	23498	829898	arrival	177	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22622 vanish=0 flag_src=1 flag_nf=1 pos=129,189,104 listed_at=829898
+20260930-003517	f100_50_25_12	1	23498	829898	arrival	178	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=26776 vanish=0 flag_src=1 flag_nf=1 pos=101,6,104 listed_at=829898
+20260930-003517	f100_50_25_12	1	24694	831094	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	24694	831094	every_applied	4	probe:release surface
+20260930-003517	f100_50_25_12	1	25310	831710	arrival	179	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=28592 vanish=0 flag_src=1 flag_nf=1 pos=88,180,104 listed_at=831710
+20260930-003517	f100_50_25_12	1	25310	831710	arrival	180	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21947 vanish=0 flag_src=1 flag_nf=1 pos=179,32,104 listed_at=831710
+20260930-003517	f100_50_25_12	1	25310	831710	arrival	181	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26024 vanish=0 flag_src=1 flag_nf=1 pos=188,33,104 listed_at=831710
+20260930-003517	f100_50_25_12	1	25310	831710	arrival	182	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26600 vanish=0 flag_src=1 flag_nf=1 pos=189,32,104 listed_at=831710
+20260930-003517	f100_50_25_12	1	25310	831710	arrival	183	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=29205 vanish=0 flag_src=1 flag_nf=1 pos=190,36,104 listed_at=831710
+20260930-003517	f100_50_25_12	1	26460	832860	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	26460	832860	every_applied	5	probe:release surface
+20260930-003517	f100_50_25_12	1	27048	833448	arrival	184	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20696 vanish=0 flag_src=1 flag_nf=1 pos=10,82,104 listed_at=833448
+20260930-003517	f100_50_25_12	1	27048	833448	arrival	185	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22519 vanish=0 flag_src=1 flag_nf=1 pos=5,87,104 listed_at=833448
+20260930-003517	f100_50_25_12	1	28267	834667	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	28267	834667	every_applied	6	probe:release surface
+20260930-003517	f100_50_25_12	1	28868	835268	arrival	186	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21971 vanish=0 flag_src=1 flag_nf=1 pos=8,186,104 listed_at=835268
+20260930-003517	f100_50_25_12	1	28868	835268	arrival	187	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26994 vanish=0 flag_src=1 flag_nf=1 pos=7,189,104 listed_at=835268
+20260930-003517	f100_50_25_12	1	28868	835268	arrival	188	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26522 vanish=0 flag_src=1 flag_nf=1 pos=6,189,104 listed_at=835268
+20260930-003517	f100_50_25_12	1	30065	836465	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	30065	836465	every_applied	7	probe:release surface
+20260930-003517	f100_50_25_12	1	30653	837053	arrival	189	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=22010 vanish=0 flag_src=1 flag_nf=1 pos=181,102,104 listed_at=837053
+20260930-003517	f100_50_25_12	1	30653	837053	arrival	190	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22194 vanish=0 flag_src=1 flag_nf=1 pos=105,187,104 listed_at=837053
+20260930-003517	f100_50_25_12	1	30653	837053	arrival	191	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19637 vanish=0 flag_src=1 flag_nf=1 pos=107,189,104 listed_at=837053
+20260930-003517	f100_50_25_12	1	31846	838246	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	31846	838246	every_applied	8	probe:release surface
+20260930-003517	f100_50_25_12	1	32430	838830	arrival	192	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=20271 vanish=0 flag_src=1 flag_nf=1 pos=178,8,103 listed_at=838830
+20260930-003517	f100_50_25_12	1	32430	838830	arrival	193	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=22350 vanish=0 flag_src=1 flag_nf=1 pos=77,0,114 listed_at=838830
+20260930-003517	f100_50_25_12	1	33662	840062	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	33662	840062	every_applied	9	probe:release surface
+20260930-003517	f100_50_25_12	1	34248	840648	arrival	194	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19812 vanish=0 flag_src=1 flag_nf=1 pos=182,179,104 listed_at=840648
+20260930-003517	f100_50_25_12	1	34248	840648	arrival	195	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22673 vanish=0 flag_src=1 flag_nf=1 pos=183,186,104 listed_at=840648
+20260930-003517	f100_50_25_12	1	34248	840648	arrival	196	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21490 vanish=0 flag_src=1 flag_nf=1 pos=183,189,104 listed_at=840648
+20260930-003517	f100_50_25_12	1	35430	841830	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	35430	841830	every_applied	10	probe:release surface
+20260930-003517	f100_50_25_12	1	36010	842410	arrival	197	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25948 vanish=0 flag_src=1 flag_nf=1 pos=9,85,104 listed_at=842410
+20260930-003517	f100_50_25_12	1	36010	842410	arrival	198	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28655 vanish=0 flag_src=1 flag_nf=1 pos=4,84,104 listed_at=842410
+20260930-003517	f100_50_25_12	1	36010	842410	arrival	199	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28580 vanish=0 flag_src=1 flag_nf=1 pos=4,86,104 listed_at=842410
+20260930-003517	f100_50_25_12	1	36010	842410	arrival	200	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27773 vanish=0 flag_src=1 flag_nf=1 pos=12,95,104 listed_at=842410
+20260930-003517	f100_50_25_12	1	36010	842410	arrival	201	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=21621 vanish=0 flag_src=1 flag_nf=1 pos=41,187,104 listed_at=842410
+20260930-003517	f100_50_25_12	1	37200	843600	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	37200	843600	every_applied	11	probe:release surface
+20260930-003517	f100_50_25_12	1	37822	844222	arrival	202	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26634 vanish=0 flag_src=1 flag_nf=1 pos=85,0,104 listed_at=844222
+20260930-003517	f100_50_25_12	1	37822	844222	arrival	203	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20329 vanish=0 flag_src=1 flag_nf=1 pos=88,1,104 listed_at=844222
+20260930-003517	f100_50_25_12	1	37822	844222	arrival	204	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25559 vanish=0 flag_src=1 flag_nf=1 pos=87,1,104 listed_at=844222
+20260930-003517	f100_50_25_12	1	37822	844222	arrival	205	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20751 vanish=0 flag_src=1 flag_nf=1 pos=91,1,104 listed_at=844222
+20260930-003517	f100_50_25_12	1	37822	844222	departure	151	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	38471	844871	departure	147	DEMON_1 ref6=28,20,-1,44,-1,3 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	38471	844871	departure	162	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=153 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	39057	845457	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	39057	845457	every_applied	12	probe:release surface
+20260930-003517	f100_50_25_12	1	39057	845457	departure	140	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	39057	845457	departure	152	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	39745	846145	arrival	206	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27829 vanish=0 flag_src=1 flag_nf=1 pos=181,83,104 listed_at=846145
+20260930-003517	f100_50_25_12	1	39745	846145	arrival	207	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22272 vanish=0 flag_src=1 flag_nf=1 pos=182,79,104 listed_at=846145
+20260930-003517	f100_50_25_12	1	39745	846145	arrival	208	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22024 vanish=0 flag_src=1 flag_nf=1 pos=178,74,104 listed_at=846145
+20260930-003517	f100_50_25_12	1	39745	846145	departure	153	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=305 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	39745	846145	departure	154	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	40470	846870	departure	163	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	40470	846870	departure	164	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	41181	847581	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	41181	847581	every_applied	13	probe:release surface
+20260930-003517	f100_50_25_12	1	41741	848141	arrival	209	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=21957 vanish=0 flag_src=1 flag_nf=1 pos=12,178,104 listed_at=848141
+20260930-003517	f100_50_25_12	1	41741	848141	arrival	210	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27825 vanish=0 flag_src=1 flag_nf=1 pos=33,65,104 listed_at=848141
+20260930-003517	f100_50_25_12	1	41741	848141	arrival	211	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27423 vanish=0 flag_src=1 flag_nf=1 pos=29,66,104 listed_at=848141
+20260930-003517	f100_50_25_12	1	41741	848141	arrival	212	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24129 vanish=0 flag_src=1 flag_nf=1 pos=33,68,104 listed_at=848141
+20260930-003517	f100_50_25_12	1	41741	848141	arrival	213	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27867 vanish=0 flag_src=1 flag_nf=1 pos=9,7,104 listed_at=848141
+20260930-003517	f100_50_25_12	1	41741	848141	departure	155	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	41741	848141	departure	156	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=252 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	42304	848704	departure	146	VORACIOUS_CAVE_CRAWLER ref6=29,21,-1,13,-1,20 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	43003	849403	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	43003	849403	every_applied	14	probe:release surface
+20260930-003517	f100_50_25_12	1	43003	849403	departure	161	TROLL ref6=29,20,-1,8,-1,27 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	43579	849979	arrival	214	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28707 vanish=0 flag_src=1 flag_nf=1 pos=75,3,104 listed_at=849979
+20260930-003517	f100_50_25_12	1	43579	849979	arrival	215	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19589 vanish=0 flag_src=1 flag_nf=1 pos=69,11,104 listed_at=849979
+20260930-003517	f100_50_25_12	1	43579	849979	arrival	216	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21793 vanish=0 flag_src=1 flag_nf=1 pos=74,7,104 listed_at=849979
+20260930-003517	f100_50_25_12	1	43579	849979	arrival	217	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20761 vanish=0 flag_src=1 flag_nf=1 pos=78,6,104 listed_at=849979
+20260930-003517	f100_50_25_12	1	43579	849979	departure	141	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=152 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	43579	849979	departure	142	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	43579	849979	departure	143	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=0 last_flag_src=1 arrived_at=824575
+20260930-003517	f100_50_25_12	1	43579	849979	death	212	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=22867 last_flag_src=1 arrived_at=848141
+20260930-003517	f100_50_25_12	1	44155	850555	arrival	218	TOAD_GIANT_CAVE caste=MALE ref6=29,20,-1,8,-1,12 layer=cavern countdown=28413 vanish=0 flag_src=1 flag_nf=0 pos=191,108,39 listed_at=850555
+20260930-003517	f100_50_25_12	1	44155	850555	departure	139	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 last_countdown=172 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	44155	850555	departure	144	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=0 last_flag_src=1 arrived_at=824575
+20260930-003517	f100_50_25_12	1	44155	850555	departure	165	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	44722	851122	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	44722	851122	every_applied	15	probe:release surface
+20260930-003517	f100_50_25_12	1	44722	851122	departure	126	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	44722	851122	departure	166	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	44722	851122	departure	167	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=824575
+20260930-003517	f100_50_25_12	1	44722	851122	departure	171	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=828068
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	219	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27020 vanish=0 flag_src=1 flag_nf=1 pos=181,126,104 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	220	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27859 vanish=0 flag_src=1 flag_nf=1 pos=182,125,104 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	221	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28138 vanish=0 flag_src=1 flag_nf=1 pos=183,127,104 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	222	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27054 vanish=0 flag_src=1 flag_nf=1 pos=180,122,104 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	223	TOAD_GIANT_CAVE caste=FEMALE ref6=29,21,-1,13,-1,10 layer=cavern countdown=28074 vanish=0 flag_src=1 flag_nf=0 pos=65,183,30 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	arrival	224	OLM_GIANT caste=FEMALE ref6=29,20,-1,13,-1,13 layer=cavern countdown=29016 vanish=0 flag_src=1 flag_nf=0 pos=186,32,33 listed_at=851678
+20260930-003517	f100_50_25_12	1	45278	851678	departure	168	ELK_BIRD ref6=29,20,-1,13,-1,25 last_countdown=0 last_flag_src=1 arrived_at=824575
+20260930-003517	f100_50_25_12	1	45278	851678	departure	169	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=825950
+20260930-003517	f100_50_25_12	1	45848	852248	departure	127	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	45848	852248	departure	128	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	45848	852248	departure	148	DEMON_1 ref6=28,20,-1,44,-1,3 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	46489	852889	arrival	225	DEMON_10 caste=FEMALE ref6=29,20,-1,43,-1,5 layer=deep countdown=28036 vanish=0 flag_src=1 flag_nf=0 pos=154,191,4 listed_at=852889
+20260930-003517	f100_50_25_12	1	46489	852889	arrival	226	DEMON_10 caste=MALE ref6=29,20,-1,43,-1,5 layer=deep countdown=26374 vanish=0 flag_src=1 flag_nf=0 pos=153,191,4 listed_at=852889
+20260930-003517	f100_50_25_12	1	46489	852889	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	46489	852889	every_applied	16	probe:release surface
+20260930-003517	f100_50_25_12	1	46489	852889	departure	129	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	46489	852889	departure	130	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	46489	852889	departure	131	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	46489	852889	departure	132	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	46489	852889	departure	149	DEMON_1 ref6=28,20,-1,44,-1,3 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	46489	852889	departure	157	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	46489	852889	departure	158	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	46489	852889	departure	159	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	46489	852889	departure	160	BADGER ref6=29,20,-1,-1,-1,82 last_countdown=0 last_flag_src=0 arrived_at=823814
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	227	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=20128 vanish=0 flag_src=1 flag_nf=1 pos=11,14,114 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	228	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=27469 vanish=0 flag_src=1 flag_nf=0 pos=2,6,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	229	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=25901 vanish=0 flag_src=1 flag_nf=0 pos=0,7,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	230	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=19755 vanish=0 flag_src=1 flag_nf=0 pos=0,8,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	231	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=26619 vanish=0 flag_src=1 flag_nf=0 pos=0,5,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	232	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=26607 vanish=0 flag_src=1 flag_nf=0 pos=1,5,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	237	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=25861 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	arrival	244	WOMBAT caste=FEMALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=21020 vanish=0 flag_src=1 flag_nf=1 pos=22,13,104 listed_at=853521
+20260930-003517	f100_50_25_12	1	47121	853521	departure	133	ELK_BIRD ref6=29,20,-1,25,-1,21 last_countdown=0 last_flag_src=1 arrived_at=pre
+20260930-003517	f100_50_25_12	1	47121	853521	departure	150	DEMON_1 ref6=28,20,-1,44,-1,3 last_countdown=0 last_flag_src=1 arrived_at=823814
+20260930-003517	f100_50_25_12	1	47668	854068	arrival	236	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=25001 vanish=0 flag_src=1 flag_nf=0 pos=0,4,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47668	854068	arrival	242	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=28401 vanish=0 flag_src=1 flag_nf=0 pos=0,5,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	47668	854068	arrival	245	TROLL caste=MALE ref6=29,20,-1,8,-1,27 layer=cavern countdown=26913 vanish=0 flag_src=1 flag_nf=0 pos=101,191,43 listed_at=854068
+20260930-003517	f100_50_25_12	1	47668	854068	departure	145	ELK_BIRD ref6=29,21,-1,8,-1,21 last_countdown=183 last_flag_src=1 arrived_at=824575
+20260930-003517	f100_50_25_12	1	47668	854068	departure	170	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=825950
+20260930-003517	f100_50_25_12	1	48220	854620	arrival	233	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=26862 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	48220	854620	arrival	239	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=23208 vanish=0 flag_src=1 flag_nf=0 pos=0,4,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	48220	854620	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	48220	854620	every_applied	17	probe:release surface
+20260930-003517	f100_50_25_12	1	48220	854620	departure	180	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=831710
+20260930-003517	f100_50_25_12	1	48774	855174	arrival	234	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=25400 vanish=0 flag_src=1 flag_nf=0 pos=1,5,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	48774	855174	arrival	238	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=23591 vanish=0 flag_src=1 flag_nf=0 pos=0,8,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	48774	855174	arrival	246	PORCUPINE caste=FEMALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=23684 vanish=0 flag_src=1 flag_nf=1 pos=15,121,104 listed_at=855174
+20260930-003517	f100_50_25_12	1	48774	855174	arrival	247	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26980 vanish=0 flag_src=1 flag_nf=1 pos=11,11,104 listed_at=855174
+20260930-003517	f100_50_25_12	1	48774	855174	departure	184	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=833448
+20260930-003517	f100_50_25_12	1	49430	855830	arrival	235	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=27459 vanish=0 flag_src=1 flag_nf=0 pos=0,6,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	50120	856520	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	50120	856520	every_applied	18	probe:release surface
+20260930-003517	f100_50_25_12	1	50826	857226	arrival	240	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=28569 vanish=0 flag_src=1 flag_nf=0 pos=1,7,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	50826	857226	arrival	241	CRUNDLE caste=MALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=25198 vanish=0 flag_src=1 flag_nf=0 pos=0,7,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	50826	857226	arrival	250	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=28973 vanish=0 flag_src=1 flag_nf=1 pos=170,15,104 listed_at=857226
+20260930-003517	f100_50_25_12	1	50826	857226	arrival	251	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=26824 vanish=0 flag_src=1 flag_nf=1 pos=191,177,104 listed_at=857226
+20260930-003517	f100_50_25_12	1	50826	857226	arrival	252	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20034 vanish=0 flag_src=1 flag_nf=1 pos=191,180,104 listed_at=857226
+20260930-003517	f100_50_25_12	1	51429	857829	departure	174	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=829898
+20260930-003517	f100_50_25_12	1	51429	857829	departure	178	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=829898
+20260930-003517	f100_50_25_12	1	52009	858409	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	52009	858409	every_applied	19	probe:release surface
+20260930-003517	f100_50_25_12	1	52009	858409	departure	172	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=828068
+20260930-003517	f100_50_25_12	1	52009	858409	departure	173	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 last_countdown=0 last_flag_src=0 arrived_at=828068
+20260930-003517	f100_50_25_12	1	52629	859029	arrival	253	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=28260 vanish=0 flag_src=1 flag_nf=1 pos=92,191,104 listed_at=859029
+20260930-003517	f100_50_25_12	1	52629	859029	arrival	254	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23736 vanish=0 flag_src=1 flag_nf=1 pos=184,25,104 listed_at=859029
+20260930-003517	f100_50_25_12	1	52629	859029	arrival	255	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19840 vanish=0 flag_src=1 flag_nf=1 pos=191,52,104 listed_at=859029
+20260930-003517	f100_50_25_12	1	52629	859029	arrival	256	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23607 vanish=0 flag_src=1 flag_nf=1 pos=190,46,104 listed_at=859029
+20260930-003517	f100_50_25_12	1	52629	859029	departure	175	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=829898
+20260930-003517	f100_50_25_12	1	52629	859029	departure	185	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=833448
+20260930-003517	f100_50_25_12	1	52629	859029	departure	186	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=835268
+20260930-003517	f100_50_25_12	1	53196	859596	departure	176	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=829898
+20260930-003517	f100_50_25_12	1	53196	859596	departure	190	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=218 last_flag_src=0 arrived_at=837053
+20260930-003517	f100_50_25_12	1	53780	860180	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	53780	860180	every_applied	20	probe:release surface
+20260930-003517	f100_50_25_12	1	53780	860180	departure	181	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=831710
+20260930-003517	f100_50_25_12	1	53780	860180	departure	191	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=837053
+20260930-003517	f100_50_25_12	1	54426	860826	arrival	243	CRUNDLE caste=FEMALE ref6=29,20,-1,25,-1,12 layer=cavern countdown=21005 vanish=0 flag_src=1 flag_nf=0 pos=0,8,26 listed_at=853521
+20260930-003517	f100_50_25_12	1	54426	860826	arrival	248	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25621 vanish=0 flag_src=0 flag_nf=0 pos=5,0,104 listed_at=855174
+20260930-003517	f100_50_25_12	1	54426	860826	arrival	249	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20810 vanish=0 flag_src=0 flag_nf=0 pos=6,0,104 listed_at=855174
+20260930-003517	f100_50_25_12	1	54426	860826	arrival	257	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=29171 vanish=0 flag_src=1 flag_nf=1 pos=190,191,105 listed_at=860826
+20260930-003517	f100_50_25_12	1	54426	860826	arrival	258	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=25653 vanish=0 flag_src=1 flag_nf=1 pos=9,184,104 listed_at=860826
+20260930-003517	f100_50_25_12	1	54426	860826	departure	182	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=831710
+20260930-003517	f100_50_25_12	1	54426	860826	departure	189	WOMBAT ref6=29,20,-1,-1,-1,96 last_countdown=0 last_flag_src=0 arrived_at=837053
+20260930-003517	f100_50_25_12	1	55067	861467	departure	177	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=829898
+20260930-003517	f100_50_25_12	1	55067	861467	departure	183	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=89 last_flag_src=0 arrived_at=831710
+20260930-003517	f100_50_25_12	1	55641	862041	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	55641	862041	every_applied	21	probe:release surface
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	259	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=23367 vanish=0 flag_src=1 flag_nf=1 pos=2,19,119 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	260	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29353 vanish=0 flag_src=1 flag_nf=1 pos=0,46,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	261	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=25512 vanish=0 flag_src=1 flag_nf=1 pos=0,42,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	262	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=27733 vanish=0 flag_src=1 flag_nf=1 pos=0,43,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	263	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=20951 vanish=0 flag_src=1 flag_nf=1 pos=0,40,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	264	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29282 vanish=0 flag_src=1 flag_nf=1 pos=0,41,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	266	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26477 vanish=0 flag_src=1 flag_nf=1 pos=0,45,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	arrival	268	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=20843 vanish=0 flag_src=1 flag_nf=1 pos=0,44,118 listed_at=862641
+20260930-003517	f100_50_25_12	1	56241	862641	departure	179	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=831710
+20260930-003517	f100_50_25_12	1	56241	862641	departure	192	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=838830
+20260930-003517	f100_50_25_12	1	56840	863240	departure	187	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=835268
+20260930-003517	f100_50_25_12	1	57413	863813	manipulation	probe:release surface	released 10 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	57413	863813	every_applied	22	probe:release surface
+20260930-003517	f100_50_25_12	1	57413	863813	departure	188	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=835268
+20260930-003517	f100_50_25_12	1	57413	863813	departure	194	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=840648
+20260930-003517	f100_50_25_12	1	58028	864428	arrival	269	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21594 vanish=0 flag_src=1 flag_nf=1 pos=134,186,104 listed_at=864428
+20260930-003517	f100_50_25_12	1	58028	864428	arrival	270	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=19852 vanish=0 flag_src=1 flag_nf=1 pos=135,170,104 listed_at=864428
+20260930-003517	f100_50_25_12	1	58028	864428	arrival	271	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21424 vanish=0 flag_src=1 flag_nf=1 pos=129,177,104 listed_at=864428
+20260930-003517	f100_50_25_12	1	58657	865057	departure	195	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=840648
+20260930-003517	f100_50_25_12	1	59228	865628	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	59228	865628	every_applied	23	probe:release surface
+20260930-003517	f100_50_25_12	1	59228	865628	departure	193	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=838830
+20260930-003517	f100_50_25_12	1	59228	865628	departure	196	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=840648
+20260930-003517	f100_50_25_12	1	59852	866252	arrival	272	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=27477 vanish=0 flag_src=1 flag_nf=1 pos=183,132,104 listed_at=866252
+20260930-003517	f100_50_25_12	1	59852	866252	arrival	273	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=21024 vanish=0 flag_src=1 flag_nf=1 pos=10,169,114 listed_at=866252
+20260930-003517	f100_50_25_12	1	61070	867470	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	61070	867470	every_applied	24	probe:release surface
+20260930-003517	f100_50_25_12	1	61693	868093	arrival	274	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=27510 vanish=0 flag_src=1 flag_nf=1 pos=74,182,104 listed_at=868093
+20260930-003517	f100_50_25_12	1	61693	868093	arrival	275	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24075 vanish=0 flag_src=1 flag_nf=1 pos=67,181,104 listed_at=868093
+20260930-003517	f100_50_25_12	1	61693	868093	arrival	276	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23577 vanish=0 flag_src=1 flag_nf=1 pos=65,184,104 listed_at=868093
+20260930-003517	f100_50_25_12	1	61693	868093	departure	201	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=842410
+20260930-003517	f100_50_25_12	1	62941	869341	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	62941	869341	every_applied	25	probe:release surface
+20260930-003517	f100_50_25_12	1	63549	869949	arrival	277	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=22030 vanish=0 flag_src=1 flag_nf=1 pos=187,106,104 listed_at=869949
+20260930-003517	f100_50_25_12	1	63549	869949	arrival	278	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21129 vanish=0 flag_src=1 flag_nf=1 pos=179,92,104 listed_at=869949
+20260930-003517	f100_50_25_12	1	63549	869949	arrival	279	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20757 vanish=0 flag_src=1 flag_nf=1 pos=191,101,104 listed_at=869949
+20260930-003517	f100_50_25_12	1	63549	869949	arrival	280	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25422 vanish=0 flag_src=1 flag_nf=1 pos=190,97,104 listed_at=869949
+20260930-003517	f100_50_25_12	1	64176	870576	departure	197	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=842410
+20260930-003517	f100_50_25_12	1	64810	871210	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	64810	871210	every_applied	26	probe:release surface
+20260930-003517	f100_50_25_12	1	64810	871210	departure	209	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=848141
+20260930-003517	f100_50_25_12	1	65441	871841	arrival	281	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=20587 vanish=0 flag_src=1 flag_nf=1 pos=54,181,119 listed_at=871841
+20260930-003517	f100_50_25_12	1	65441	871841	arrival	282	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=23964 vanish=0 flag_src=1 flag_nf=1 pos=1,86,104 listed_at=871841
+20260930-003517	f100_50_25_12	1	65441	871841	departure	198	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=842410
+20260930-003517	f100_50_25_12	1	65441	871841	departure	199	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=842410
+20260930-003517	f100_50_25_12	1	65441	871841	departure	202	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=844222
+20260930-003517	f100_50_25_12	1	65441	871841	departure	203	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=844222
+20260930-003517	f100_50_25_12	1	66052	872452	departure	200	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=842410
+20260930-003517	f100_50_25_12	1	66052	872452	departure	204	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=844222
+20260930-003517	f100_50_25_12	1	66052	872452	departure	205	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=844222
+20260930-003517	f100_50_25_12	1	66770	873170	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	66770	873170	every_applied	27	probe:release surface
+20260930-003517	f100_50_25_12	1	66770	873170	departure	208	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=846145
+20260930-003517	f100_50_25_12	1	66770	873170	departure	215	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=849979
+20260930-003517	f100_50_25_12	1	66770	873170	departure	216	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=849979
+20260930-003517	f100_50_25_12	1	66770	873170	departure	217	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=849979
+20260930-003517	f100_50_25_12	1	67387	873787	arrival	283	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21890 vanish=0 flag_src=1 flag_nf=1 pos=74,9,104 listed_at=873787
+20260930-003517	f100_50_25_12	1	67387	873787	arrival	284	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24352 vanish=0 flag_src=1 flag_nf=1 pos=83,7,104 listed_at=873787
+20260930-003517	f100_50_25_12	1	67387	873787	arrival	285	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28141 vanish=0 flag_src=1 flag_nf=1 pos=82,9,104 listed_at=873787
+20260930-003517	f100_50_25_12	1	67387	873787	departure	207	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=846145
+20260930-003517	f100_50_25_12	1	67387	873787	departure	230	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=106 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	68053	874453	departure	227	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 last_countdown=0 last_flag_src=0 arrived_at=853521
+20260930-003517	f100_50_25_12	1	68639	875039	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	68639	875039	every_applied	28	probe:release surface
+20260930-003517	f100_50_25_12	1	69225	875625	arrival	286	BIRD_OWL_GREAT_HORNED caste=FEMALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=26194 vanish=0 flag_src=1 flag_nf=1 pos=184,162,119 listed_at=875625
+20260930-003517	f100_50_25_12	1	69225	875625	arrival	287	WOMBAT caste=MALE ref6=29,20,-1,-1,-1,96 layer=surface countdown=23046 vanish=0 flag_src=1 flag_nf=1 pos=58,9,104 listed_at=875625
+20260930-003517	f100_50_25_12	1	69225	875625	departure	211	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=525 last_flag_src=0 arrived_at=848141
+20260930-003517	f100_50_25_12	1	70350	876750	manipulation	probe:release surface	released 2 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	70350	876750	every_applied	29	probe:release surface
+20260930-003517	f100_50_25_12	1	70350	876750	departure	244	WOMBAT ref6=29,20,-1,-1,-1,96 last_countdown=0 last_flag_src=0 arrived_at=853521
+20260930-003517	f100_50_25_12	1	71020	877420	arrival	288	BIRD_KESTREL caste=FEMALE ref6=28,19,-1,-1,-1,60 layer=surface countdown=25767 vanish=0 flag_src=1 flag_nf=1 pos=114,187,118 listed_at=877420
+20260930-003517	f100_50_25_12	1	71020	877420	arrival	289	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=29115 vanish=0 flag_src=1 flag_nf=1 pos=149,80,119 listed_at=877420
+20260930-003517	f100_50_25_12	1	71020	877420	arrival	290	BIRD_RAVEN caste=MALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=26752 vanish=0 flag_src=1 flag_nf=1 pos=131,59,118 listed_at=877420
+20260930-003517	f100_50_25_12	1	71020	877420	arrival	291	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=24806 vanish=0 flag_src=1 flag_nf=1 pos=142,66,118 listed_at=877420
+20260930-003517	f100_50_25_12	1	71020	877420	arrival	292	BIRD_RAVEN caste=FEMALE ref6=28,19,-1,-1,-1,53 layer=surface countdown=22838 vanish=0 flag_src=1 flag_nf=1 pos=75,7,119 listed_at=877420
+20260930-003517	f100_50_25_12	1	71020	877420	departure	206	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=846145
+20260930-003517	f100_50_25_12	1	71020	877420	departure	210	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=848141
+20260930-003517	f100_50_25_12	1	71020	877420	departure	213	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=848141
+20260930-003517	f100_50_25_12	1	71570	877970	departure	239	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=407 last_flag_src=1 arrived_at=854620
+20260930-003517	f100_50_25_12	1	72143	878543	manipulation	probe:release surface	released 5 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	72143	878543	every_applied	30	probe:release surface
+20260930-003517	f100_50_25_12	1	72755	879155	arrival	293	PORCUPINE caste=MALE ref6=29,20,-1,-1,-1,90 layer=surface countdown=21190 vanish=0 flag_src=1 flag_nf=1 pos=14,96,104 listed_at=879155
+20260930-003517	f100_50_25_12	1	72755	879155	arrival	294	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21718 vanish=0 flag_src=1 flag_nf=1 pos=188,155,104 listed_at=879155
+20260930-003517	f100_50_25_12	1	72755	879155	arrival	295	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=25996 vanish=0 flag_src=1 flag_nf=1 pos=181,138,104 listed_at=879155
+20260930-003517	f100_50_25_12	1	72755	879155	departure	236	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=525 last_flag_src=1 arrived_at=854068
+20260930-003517	f100_50_25_12	1	72755	879155	departure	238	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=221 last_flag_src=1 arrived_at=855174
+20260930-003517	f100_50_25_12	1	73333	879733	arrival	296	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=23155 vanish=0 flag_src=1 flag_nf=0 pos=9,11,6 listed_at=879733
+20260930-003517	f100_50_25_12	1	73333	879733	arrival	297	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=21885 vanish=0 flag_src=1 flag_nf=0 pos=0,8,5 listed_at=879733
+20260930-003517	f100_50_25_12	1	73333	879733	arrival	298	DEMON_3 caste=DEFAULT ref6=28,20,-1,44,-1,5 layer=deep countdown=22647 vanish=0 flag_src=1 flag_nf=0 pos=0,6,5 listed_at=879733
+20260930-003517	f100_50_25_12	1	73333	879733	departure	219	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=851678
+20260930-003517	f100_50_25_12	1	73333	879733	departure	226	DEMON_10 ref6=29,20,-1,43,-1,5 last_countdown=106 last_flag_src=1 arrived_at=852889
+20260930-003517	f100_50_25_12	1	73333	879733	departure	229	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=266 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	73953	880353	arrival	299	CAVE_FLOATER caste=DEFAULT ref6=29,21,-1,13,-1,22 layer=cavern countdown=20723 vanish=0 flag_src=1 flag_nf=0 pos=7,191,30 listed_at=880353
+20260930-003517	f100_50_25_12	1	73953	880353	arrival	300	CAVE_FLOATER caste=DEFAULT ref6=29,21,-1,13,-1,22 layer=cavern countdown=23088 vanish=0 flag_src=1 flag_nf=0 pos=3,191,31 listed_at=880353
+20260930-003517	f100_50_25_12	1	73953	880353	manipulation	probe:release surface	released 3 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	73953	880353	every_applied	31	probe:release surface
+20260930-003517	f100_50_25_12	1	73953	880353	departure	214	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=849979
+20260930-003517	f100_50_25_12	1	73953	880353	departure	223	TOAD_GIANT_CAVE ref6=29,21,-1,13,-1,10 last_countdown=17 last_flag_src=1 arrived_at=851678
+20260930-003517	f100_50_25_12	1	73953	880353	departure	231	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=406 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	73953	880353	departure	232	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=395 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	73953	880353	departure	246	PORCUPINE ref6=29,20,-1,-1,-1,90 last_countdown=0 last_flag_src=0 arrived_at=855174
+20260930-003517	f100_50_25_12	1	74508	880908	arrival	301	CAVE_FLOATER caste=DEFAULT ref6=29,21,-1,13,-1,22 layer=cavern countdown=20156 vanish=0 flag_src=1 flag_nf=0 pos=1,189,31 listed_at=880353
+20260930-003517	f100_50_25_12	1	74508	880908	arrival	302	BIRD_OWL_GREAT_HORNED caste=MALE ref6=28,19,-1,-1,-1,61 layer=surface countdown=21586 vanish=0 flag_src=1 flag_nf=1 pos=98,4,117 listed_at=880908
+20260930-003517	f100_50_25_12	1	74508	880908	arrival	303	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21557 vanish=0 flag_src=1 flag_nf=1 pos=187,152,104 listed_at=880908
+20260930-003517	f100_50_25_12	1	74508	880908	arrival	304	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=20249 vanish=0 flag_src=1 flag_nf=1 pos=183,149,104 listed_at=880908
+20260930-003517	f100_50_25_12	1	74508	880908	arrival	305	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21888 vanish=0 flag_src=1 flag_nf=1 pos=187,148,104 listed_at=880908
+20260930-003517	f100_50_25_12	1	74508	880908	departure	234	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=219 last_flag_src=1 arrived_at=855174
+20260930-003517	f100_50_25_12	1	75071	881471	departure	225	DEMON_10 ref6=29,20,-1,43,-1,5 last_countdown=15 last_flag_src=1 arrived_at=852889
+20260930-003517	f100_50_25_12	1	75071	881471	departure	228	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=77 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	75071	881471	departure	237	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=0 last_flag_src=1 arrived_at=853521
+20260930-003517	f100_50_25_12	1	75680	882080	manipulation	probe:release surface	released 4 unit(s) [surface]
+20260930-003517	f100_50_25_12	1	75680	882080	every_applied	32	probe:release surface
+20260930-003517	f100_50_25_12	1	75680	882080	departure	222	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=851678
+20260930-003517	f100_50_25_12	1	75680	882080	departure	233	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=10 last_flag_src=1 arrived_at=854620
+20260930-003517	f100_50_25_12	1	76278	882678	arrival	306	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=21273 vanish=0 flag_src=1 flag_nf=1 pos=190,75,104 listed_at=882678
+20260930-003517	f100_50_25_12	1	76278	882678	arrival	307	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=24049 vanish=0 flag_src=1 flag_nf=1 pos=175,88,104 listed_at=882678
+20260930-003517	f100_50_25_12	1	76278	882678	arrival	308	KANGAROO caste=FEMALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=28906 vanish=0 flag_src=1 flag_nf=1 pos=191,86,104 listed_at=882678
+20260930-003517	f100_50_25_12	1	76278	882678	arrival	309	KANGAROO caste=MALE ref6=29,20,-1,-1,-1,88 layer=surface countdown=23444 vanish=0 flag_src=1 flag_nf=1 pos=188,63,104 listed_at=882678
+20260930-003517	f100_50_25_12	1	76278	882678	departure	220	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=851678
+20260930-003517	f100_50_25_12	1	76278	882678	departure	241	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=343 last_flag_src=1 arrived_at=857226
+20260930-003517	f100_50_25_12	1	76278	882678	departure	242	CRUNDLE ref6=29,20,-1,25,-1,12 last_countdown=388 last_flag_src=1 arrived_at=854068
+20260930-003517	f100_50_25_12	1	76869	883269	arrival	310	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=23390 vanish=0 flag_src=1 flag_nf=0 pos=1,113,41 listed_at=883269
+20260930-003517	f100_50_25_12	1	76869	883269	arrival	311	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=22076 vanish=0 flag_src=1 flag_nf=0 pos=0,113,41 listed_at=883269
+20260930-003517	f100_50_25_12	1	76869	883269	arrival	313	ELK_BIRD caste=MALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=26491 vanish=0 flag_src=1 flag_nf=0 pos=0,116,41 listed_at=883269
+20260930-003517	f100_50_25_12	1	76869	883269	arrival	314	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=28610 vanish=0 flag_src=1 flag_nf=0 pos=0,114,41 listed_at=883269
+20260930-003517	f100_50_25_12	1	76869	883269	arrival	316	ELK_BIRD caste=FEMALE ref6=29,20,-1,8,-1,21 layer=cavern countdown=29272 vanish=0 flag_src=1 flag_nf=0 pos=0,112,41 listed_at=883269
+20260930-003517	f100_50_25_12	1	76869	883269	departure	221	KANGAROO ref6=29,20,-1,-1,-1,88 last_countdown=0 last_flag_src=0 arrived_at=851678
+20260930-003517	f100_50_25_12	1	76869	883269	departure	245	TROLL ref6=29,20,-1,8,-1,27 last_countdown=0 last_flag_src=1 arrived_at=854068
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3186	BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->352 max 354->354 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3191	BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->23 max 24->24 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3192	BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->13 max 16->16 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3209	KANGAROO ref6=28,19,-1,-1,-1,88 quantity 21->500 max 21->21 discovered 0->0 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3210	PORCUPINE ref6=28,19,-1,-1,-1,90 quantity 25->500 max 25->25 discovered 0->0 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3212	WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->500 max 15->15 discovered 0->0 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3536	DEMON_1 ref6=28,20,-1,44,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	3538	DEMON_3 ref6=28,20,-1,44,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4700	Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->245 max 241->241 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4701	Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->216 max 216->216 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4702	Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->309 max 308->308 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4706	Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->337 max 334->334 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4707	Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->260 max 257->257 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4714	Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->2616 max 3530->3530 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4717	Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4723	BADGER ref6=29,20,-1,-1,-1,82 quantity 16->16 max 16->16 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4724	Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->330 max 331->331 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4725	Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->383 max 381->381 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4726	KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->469 max 20->20 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4727	PORCUPINE ref6=29,20,-1,-1,-1,90 quantity 24->496 max 24->24 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4729	WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->497 max 14->14 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4734	Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->239 max 275->275 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4747	TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4748	Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->230 max 231->231 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4750	Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->437 max 429->429 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4751	Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->435 max 436->436 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4752	Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->404 max 403->403 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4756	ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->33 max 43->43 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4760	Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->258 max 265->265 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4761	Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->386 max 387->387 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4762	TROLL ref6=29,20,-1,8,-1,27 quantity 5->5 max 5->5 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4777	OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->8 max 9->9 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4779	Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->441 max 442->442 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4781	Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->332 max 331->331 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4782	Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->233 max 257->257 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4789	ELK_BIRD ref6=29,20,-1,13,-1,25 quantity 43->44 max 43->43 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4790	Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->279 max 313->313 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4810	CRUNDLE ref6=29,20,-1,25,-1,12 quantity 174->175 max 174->174 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4819	ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->35 max 33->33 discovered 1->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4829	Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->258 max 336->336 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4831	MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->35 max 38->38 discovered 1->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4835	Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4841	DEMON_10 ref6=29,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4956	ELK_BIRD ref6=29,21,-1,8,-1,21 quantity 43->46 max 43->43 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4974	TOAD_GIANT_CAVE ref6=29,21,-1,13,-1,10 quantity 11->11 max 11->11 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4984	VORACIOUS_CAVE_CRAWLER ref6=29,21,-1,13,-1,20 quantity 16->17 max 16->16 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	pool_delta	4986	CAVE_FLOATER ref6=29,21,-1,13,-1,22 quantity 46->43 max 46->46 discovered 0->1 extinct 0->0
+20260930-003517	f100_50_25_12	1	76869	883269	end	summary	{"arm": "f100_50_25_12", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 174, "departures": 110, "deaths": 1, "ticks": 60069, "wall_s": 228.9, "stop": null, "ticks_per_s": 262.4, "save_untouched": true}

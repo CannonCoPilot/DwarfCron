@@ -1,0 +1,78 @@
+{
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 500,
+  "combat": false,
+  "tool_must_be": {
+    "enabled": 0
+  },
+  "id": "ECO-T2",
+  "tick_budget": 45000,
+  "title": "Spawn-time flags at run time: UBIQUITOUS (acts as FREQUENCY 100 at the pick, per the wiki) on one of two species held at frequency 5 among others at 25, swapped between arms; NO_SPRING on a dominant KANGAROO (frequency 100, others 1) in spring.",
+  "fork": "does DF read these flags at the fortress pick, after worldgen?",
+  "predictions": [
+    {
+      "model": "UBIQUITOUS read at the pick",
+      "expects": "the flagged frequency-5 species takes far more waves than the unflagged one, in both arms"
+    },
+    {
+      "model": "NO_SPRING read at the pick",
+      "expects": "no kangaroo wave in spring (F1 control arm: kangaroo ~half the waves)"
+    }
+  ],
+  "kill_criterion": "flagged and unflagged frequency-5 species within 1 wave of each other in both arms",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "ubiq_WOMBAT",
+      "replicates": 1,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE','WOMBAT','EMU'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='WOMBAT' then cr.frequency=5; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=5; n=n+1 elseif land[i] then cr.frequency=25; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 25'):format(n,o))",
+        "for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='WOMBAT' then cr.flags.UBIQUITOUS=true; print('eco: WOMBAT creature flag UBIQUITOUS on') end end"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    },
+    {
+      "name": "ubiq_PORCUPINE",
+      "replicates": 1,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO','PORCUPINE','WOMBAT','EMU'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='WOMBAT' then cr.frequency=5; n=n+1 elseif cr.creature_id=='PORCUPINE' then cr.frequency=5; n=n+1 elseif land[i] then cr.frequency=25; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 25'):format(n,o))",
+        "for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='PORCUPINE' then cr.flags.UBIQUITOUS=true; print('eco: PORCUPINE creature flag UBIQUITOUS on') end end"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    },
+    {
+      "name": "nospring_KANGAROO",
+      "replicates": 1,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 500'):format(n))",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))",
+        "for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='KANGAROO' then for _,k in ipairs(cr.caste) do k.flags.NO_SPRING=true end; print('eco: KANGAROO caste flag NO_SPRING on') end end"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface"
+        ]
+      }
+    }
+  ]
+}

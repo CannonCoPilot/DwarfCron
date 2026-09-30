@@ -1,0 +1,56 @@
+=== chain-eco start 00:27:28
+00:27:28 == block S2 on CTRL: 2 cells x 1 rep(s)
+Traceback (most recent call last):
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/eco-run.py", line 301, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/eco-run.py", line 227, in main
+    sh("load", b["fort"], timeout=1200)
+  File "/Users/nathanielcannon/Claude/Projects/DwarfCron/scripts/eco-run.py", line 27, in sh
+    raise RuntimeError(f"cx-lifecycle {' '.join(map(str, args))} rc={p.returncode}: {out.strip()[-400:]}")
+RuntimeError: cx-lifecycle load CTRL rc=1: [cx-lifecycle] ERROR: save list never showed 'Folder: CTRL' (scrolled 12 times)
+=== eco blocks exit 1
+=== manifest ECO-F1 00:28:25
+00:28:25 run ECO-F1 20260930-002825: FREQUENCY as a balancing lever: four CTRL land species at 100/50/25/12, every other land species at 1, all four stocked at 500; the surface released every 1,500 ticks. Wave shares vs the wiki model (uniform pick from the region list, accept on d100 <= FREQUENCY).
+00:28:25   [rig] DF already running (pid 94457), port 5555
+00:28:25 == ECO-F1 arm=f100_50_25_12 rep=1 fort=CTRL budget=60000 every=500
+00:28:25   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+00:28:25   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+00:29:10   REPLICATE FAILED: cx-lifecycle load CTRL failed rc=1
+[cx-lifecycle] ERROR: save list never showed 'Folder: CTRL' (scrolled 12 times)
+00:29:54 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/ECO-F1/20260930-002825
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/ECO-F1/20260930-002825
+
+# ECO-F1 -- FREQUENCY as a balancing lever: four CTRL land species at 100/50/25/12, every other land species at 1, all four stocked at 500; the surface released every 1,500 ticks. Wave shares vs the wiki model (uniform pick from the region list, accept on d100 <= FREQUENCY).
+run 20260930-002825 fort CTRL backup CTRL.preverify
+DF None DFHack None world None site None tiles None seed None
+commits: DwarfCron 44bb7e1 seasonal-wildlife 04c06aa fps cap 1000
+
+## Predictions (written before the run)
+- uniform pick + d100 accept: shares ~ f/sum(f): 53/27/13/6% of the four (plus a little for the frequency-1 others)
+- frequency ignored at the pick: ~equal shares
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+f100_50_25_12 | 1 | False | None |  |  |  |  |  |  | exception: cx-lifecycle load CTRL failed rc=1
+[cx-lifecycle] ERROR: save list never showed 'Folder: CTRL' (scrolled 12 times)
+
+culled: [('f100_50_25_12', 1)]
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+
+## Waves (0; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+
+## Pool entries that changed between load and end of replicate (0; the second instrument)
+
+=== manifest ECO-F1 exit 0
+=== manifest ECO-T2 00:29:54
+00:29:54 run ECO-T2 20260930-002954: Spawn-time flags at run time: UBIQUITOUS (acts as FREQUENCY 100 at the pick, per the wiki) on one of two species held at frequency 5 among others at 25, swapped between arms; NO_SPRING on a dominant KANGAROO (frequency 100, others 1) in spring.
+00:29:55   [rig] DF already running (pid 94457), port 5555
+00:29:55 == ECO-T2 arm=ubiq_WOMBAT rep=1 fort=CTRL budget=45000 every=500
+00:29:55   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+00:29:55   restored CTRL.preverify -> CTRL sha256 74de0271bab7

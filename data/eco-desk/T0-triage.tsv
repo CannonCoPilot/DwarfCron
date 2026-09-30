@@ -1,0 +1,114 @@
+token	runtime field	vanilla count all/wildlife (all = 967 raws incl. extinct/persons/giants; wildlife = 363)	wiki effect (short)	fortress-mode wildlife relevance	tool reads it (SW = seasonal-wildlife.lua v6.8.0)	test route	set-group use
+ALL_ACTIVE	caste flag ALL_ACTIVE	445/183	any time of day; overrides DIURNAL/NOCTURNAL/CREPUSCULAR/MATUTINAL/VESPERTINE	none documented (siblings are adventure-mode only)	no	T1 activity arm (exploratory: movement per 100 t over 1,200 t)	activity label only (183 wild); no documented fort effect
+AMBUSHPREDATOR	caste flag AMBUSHPREDATOR	1/1	starts hidden, stays near origin until prey near; +WEBBER lays webs (embark-present only)	behaviour	yes: role DIET SW:988; e.ambush -> takeOf x1.5 SW:1349	T1 flip (WOLF vs DEER: attacks, starts hidden)	ambusher (1 wild: SPIDER_CAVE_GIANT) - too small to be a group
+AMPHIBIOUS	caste flag CAN_BREATHE_WATER (compiled name inferred)	87/28	breathes in and out of water	behaviour (survival in water)	yes: MODEL.habitat -> semiaquatic SW:1099	measured X6 (CAN_BREATHE_WATER put albatrosses in water 24/13%); T1 flip on DEER at LAKE	shore/semiaquatic guild (28 wild)
+AQUATIC	caste flags CAN_BREATHE_WATER + CANNOT_BREATHE_AIR (compiled names inferred); AQUATIC_UNDERSWIM comes from UNDERSWIM	148/83	breathes water, air-drowns on land	behaviour (survival)	yes: CANNOT_BREATHE_AIR -> aquatic SW:1092	T2/W1 placement only (a flip on a land animal kills it on land)	aquatic guild (83 wild; 80 with IMMOBILE_LAND)
+ARTIFICIAL_HIVEABLE	creature flag ARTIFICIAL_HIVEABLE	1/1	kept in artificial hives	none documented (husbandry)	no	no documented effect -> skip	none
+AT_PEACE_WITH_WILDLIFE	caste flag AT_PEACE_WITH_WILDLIFE	1/0	does not attack or frighten NATURAL creatures	behaviour	no	T1 flip (WOLF, relation written)	not a group (CAT only); candidate per-species DISARM lever, inverse of the relation write
+BEACH_FREQUENCY	caste misc beach_frequency	7/3	may strand on shore and air-drown (AQUATIC requirement unverified)	behaviour (ocean shore)	no	O-block exploratory on OCEAN2, else skip	marker for large pelagics (ORCA, SPERM_WHALE, JELLYFISH_SEA_NETTLE) -> deep-ocean guild signal
+BENIGN	caste flag BENIGN	486/163	non-aggressive; flees non-friendly creatures; defends only when enraged	behaviour	no (comments only SW:961,983,986,3233,3336; never read)	measured T4 (BENIGN predators ignore the written relation); T1 flip (on WOLF; off DEER)	prey-eligible set; NEVER-ARM set (16 wild predators by diet are BENIGN)
+BLOODSUCKER	not in the measured caste flag list	0/0	sucks blood of unconscious victims	behaviour	no	no vanilla user -> skip	none
+BONECARN	caste flag BONECARN	125/41	eats bones, implies CARNIVORE; "does not work" (bug 11069, adventurer)	unclear	yes: role predator via DIET SW:988	S1 corpse exposure (WOLF arm)	mesocarnivore = BONECARN minus LP (22 wild); scavenger candidate (Q2)
+CAN_LEARN	caste flag CAN_LEARN	311/10	skills/professions; needs; +MEANDERER slows pathing	none for wildlife	no	no documented wildlife effect -> skip	exclusion filter (civ race = CAN_SPEAK+CAN_LEARN)
+CAN_SPEAK	caste flag CAN_SPEAK	300/0	can talk; friends; values	none for wildlife	no	no documented wildlife effect -> skip	exclusion filter
+CANNOT_CLIMB	caste flag CANNOT_CLIMB	0/0	cannot climb	behaviour (movement)	no	no vanilla user -> skip	none
+CANNOT_JUMP	caste flag CANNOT_JUMP	284/132	cannot jump	behaviour (movement)	no	movement only -> skip	none
+CARNIVORE	caste flag CARNIVORE	193/46	only eats meat; devours kills in worldgen rampages	diet (tame feeding); devouring is worldgen-only	yes: role DIET SW:988; eco class SW:939; e.carnivore SW:1065 (stored, unused)	no wild-feeding effect documented -> skip (predators covered by P1)	carnivore diet guild (46 wild) - diet, not aggression
+CAVE_ADAPT	caste flag CAVE_ADAPT	1/0	cave adaptation	none for wildlife	no	no wildlife user -> skip	none
+CLUSTER_NUMBER	creature field cluster_number	697/198	creatures per spawned cluster	spawn (group size)	yes: group midpoint SW:1056-1057 (eats); coupling pack write SW:2864-2898; ENGINE.groupSize SW:3890	measured E12 (read at the draw); no new test	group-size class (solitary 1 / pair-small / herd); feeds cohesion
+COMMON_DOMESTIC	caste flag COMMON_DOMESTIC	24/11	civ always domesticates it	none (civ)	no	no wildlife effect -> skip	none
+CRAZED	caste flag CRAZED	0/0	berserk: attacks everything but CRAZED kin	behaviour	no	T1 flip (DEER beside RABBIT)	none; candidate "rabid" event lever
+CREPUSCULAR	caste flag CREPUSCULAR	64/21	dawn/evening "in Adventurer mode"	adventure-only documented	no	T1 activity arm (exploratory) else skip	activity label only
+CURIOUSBEAST_EATER	caste flag CURIOUS_BEAST_EATER	50/19	steals edible item, leaves by map edge	behaviour (fort-directed)	no	T1 flip (WOLF near CTRL food) + S1	thief/scavenger guild (19 wild)
+CURIOUSBEAST_GUZZLER	caste flag CURIOUS_BEAST_GUZZLER	20/10	drinks/spills alcohol on the spot	behaviour (fort-directed)	no	T1 (cheap add to the EATER cell) else skip	thief guild (10 wild)
+CURIOUSBEAST_ITEM	caste flag CURIOUS_BEAST_ITEM	26/8	steals highest-value item, leaves by map edge	behaviour (fort-directed)	no	T1 (as EATER)	thief guild (8 wild)
+DIE_WHEN_VERMIN_BITE	caste flag DIE_WHEN_VERMIN_BITE	1/1	dies upon attacking (bees)	behaviour (vermin)	no	vermin only -> skip	none
+DIURNAL	caste flag DIURNAL	350/122	day only "in Adventurer mode"	adventure-only documented	no	T1 activity arm (DEER vs DEER+NOCTURNAL)	activity label only
+DIVE_HUNTS_VERMIN	caste flag DIVE_HUNTS_VERMIN	2/1	hunts vermin by diving from the air	behaviour	yes: HUNT writes it on waterbirds/predatory birds SW:4588-4597	measured X5 (no effect on wild birds at low exposure)	bird-of-prey guild lever
+EXTRAVISION	caste flag EXTRAVISION	77/33	360 vision; sees invisible	behaviour (detection)	no	no ecological use -> skip	none
+FISHITEM	caste flag FISHITEM	42/39	corpse is one raw fish item	none (item form)	no	no behaviour -> skip	none
+FLEEQUICK	caste flag FLEEQUICK	1/0	flees at first resistance	behaviour	no	T1 flip (DEER near WOLF)	none in wildlife (kobold only); prey-trait lever
+FLIER	caste flag FLIER	166/60	can fly	behaviour (movement)	yes: habitat SW:1093; HAS_ANY_FLIER SW:1050; cohesion flock SW:4229; SW:4356	not flippable on a land body (design: skipped)	flier / waterbird / bird-of-prey guilds; flock cohesion
+GAIT	caste gait tables (not a flag)	959/360	movement gaits with speeds and energy	behaviour (speed)	no	no test planned -> skip	none (speed could order chase/flee later)
+GNAWER	caste flag GNAWER	9/5	gnaws out of traps and cages	behaviour (captivity)	no	captivity only -> skip	none
+GOBBLE_VERMIN_CLASS	caste field (not in the measured list)	15/7	eats vermin of the class (one sentence)	unclear	no	skip (X5: no vermin-hunting effect on wild animals)	vermin-eater marker (with ROOT_AROUND; 7 wild)
+GOBBLE_VERMIN_CREATURE	caste field	0/0	eats a specified vermin	unclear	no	no vanilla user -> skip	none
+GOOD	creature flag GOOD	8/5	only good biomes; ignores FREQUENCY epicenters	spawn (worldgen lists)	yes: ecologyClass -> mythic SW:944 (locked by default)	not runtime-testable (worldgen)	class filter (already used)
+GRASSTRAMPLE	caste misc grasstrample	41/13	grass trample rate	environment	no	no ecological use -> skip	none
+GRAZER	caste flag GRAZER + misc grazer	0/0	tame: needs pasture; hunger per grass	documented for tame animals	yes: roleWhy label SW:1107; eco class SW:939	skip	grazer guild (via STANDARD_GRAZER, which compiles to it - inferred)
+HUNTS_VERMIN	caste flag HUNTS_VERMIN	1/0	hunts vermin around food piles	behaviour	yes: HUNT writes it on small land predators SW:4588-4597	measured X5 (no effect)	small-predator lever
+IMMOBILE	caste flag IMMOBILE	2/1	cannot move; no breeding	behaviour	no	skip (sponge)	sessile set: exclude from placement/cohesion
+IMMOBILE_LAND	caste flag IMMOBILE_LAND	93/80	immobile on land (AQUATIC only)	behaviour	yes: habitat aquatic SW:1092	covered by habitat -> skip	aquatic guild (80/83 AQUATIC)
+LARGE_PREDATOR	caste flag LARGE_PREDATOR	161/60	attacks smaller creatures; one LP group per map (two savage); 7-slot LP list	behaviour + spawn pool	yes: DIET SW:988; largePred SW:1064; ecoArmed SW:3236; coupling filter SW:2834; cohesion pack SW:4230; takeOf SW:1349	measured T4/E32b; T1 flip (COYOTE on, WOLF off)	apex guild; the only ARM set
+LARGE_ROAMING	creature flag LARGE_ROAMING	818/248	core spawn tag for wild animals	spawn	no (tool keys on population types POP_TYPES SW:781)	not runtime-testable (region lists at worldgen)	LR vs vermin partition
+LAYS_EGGS	caste flag LAYS_EGGS	307/77	lays eggs	reproduction	no	skip	none
+LAYS_UNUSUAL_EGGS	caste flag LAYS_UNUSUAL_EGGS	0/0	lays a given item	reproduction	no	no vanilla user -> skip	none
+LOOSE_CLUSTERS	creature flag LOOSE_CLUSTERS	30/12	scatter if present, tight packs if absent	behaviour (spacing)	no	T1 flip (KANGAROO alone: spread)	cohesion "loose" label (12 wild: monkeys, vultures, raccoon)
+LOW_LIGHT_VISION	caste value (not in the measured list)	42/28	dark vision	behaviour	no	skip	night/cave marker
+HAUL_REFUSE	none (dwarf labor 5, not a creature token)	0/0	dwarves haul refuse	none for creatures	no	S3 (labor on a wild unit)	none
+MATUTINAL	caste flag MATUTINAL	0/0	dawn only "in Adventurer mode"	adventure-only	no	no vanilla user -> skip	none
+MEANDERER	caste flag MEANDERER	252/125	slowly strolls unless in combat/job	behaviour	no	T1 flip off DEER (distance moved)	grazer/herd marker (125 wild)
+MISCHIEVOUS / MISCHIEVIOUS	caste flag MISCHIEVOUS	1/0	stealthed, pulls levers	behaviour	no	not wildlife (gremlin) -> skip	none
+MOUNT	caste flag MOUNT	5/5	can be a mount (sieges, adventure)	none for wildlife	no	skip	none
+MULTIPART_FULL_VISION	caste flag MULTIPART_FULL_VISION	2/0	all-round vision with several heads	behaviour	no	no wildlife user -> skip	none
+MUNDANE	creature flag MUNDANE	400/286	real-life creature; age names only	none	no	skip	"real animal" filter for the realm table (label only)
+NATURAL	caste flag NATURAL_ANIMAL (compiled name inferred; the measured list has no NATURAL)	908/331	does not engage AT_PEACE_WITH_WILDLIFE creatures	behaviour (only vs AT_PEACE)	no	T1 flip off WOLF	none (331/363 wild)
+NATURAL_ANIMAL	caste flag NATURAL_ANIMAL	0/0	alias of NATURAL	as NATURAL	no	as NATURAL	none
+NO_AUTUMN	caste flag NO_AUTUMN	4/2	does not appear in autumn	spawn/pick	no	T2 manifest (as NO_SPRING)	season constraint the roster should honour
+NO_DRINK	caste flag NO_DRINK	152/95	no need to drink	survival	yes: unliving class if also NO_EAT SW:939	skip	none
+NO_SPRING	caste flag NO_SPRING	1/1	does not appear in spring	spawn/pick	no	T2 manifest (KANGAROO in spring)	season constraint
+NO_SUMMER	caste flag NO_SUMMER	0/0	does not appear in summer	spawn/pick	no	T2 (same mechanism; no vanilla user)	season constraint
+NO_WINTER	caste flag NO_WINTER	63/22	does not appear in winter	spawn/pick	no (season dealing is by climate lean, coldest to Winter first: ROSTER.quarterOf SW:1459, deal SW:1463)	T2 manifest	season constraint (22 wild incl. BEAR_GRIZZLY/BLACK, RABBIT, BADGER)
+NOBREATHE	caste flag NOBREATHE	18/17	no breathing; cannot drown	survival	no	skip	none
+NOCTURNAL	caste flag NOCTURNAL	156/52	night only "in Adventurer mode"	adventure-only documented	no	T1 activity arm	activity label only
+NOMEAT	caste flag NOMEAT	1/1	not hunted or fed to wild beasts	behaviour (hunter targets)	no	skip (grimeling only)	prey-eligibility exclusion
+ODOR_LEVEL	caste value (not in the measured list)	6/6	how easily smelled	behaviour (detection)	no	skip	none
+OPPOSED_TO_LIFE	caste flag OPPOSED_TO_LIFE	0/0	hostile to all living creatures	behaviour	no	T1 flip (DEER beside RABBIT)	none; candidate "rabid" lever
+PACK_ANIMAL	caste flag PACK_ANIMAL	67/8	merchant pack animal	none for wildlife	no	skip	none
+PET	caste flag PET	62/50	tameable	none for wildlife	no	skip	none
+PET_EXOTIC	caste flag PET_EXOTIC	455/172	tameable, not domesticated	none for wildlife	no	skip	none
+PETVALUE	caste misc petvalue	585/288	value when tame	none	no	skip	none
+POPULATION_NUMBER	creature field population_number (seeds world_population quantity)	937/363	per region-tile count; deaths/kept captures deplete it -> locally extinct	spawn cap	not by name; works on pop.quantity/quantity_max/extinct (RESERVE SW:1767, applyLive)	N1 manifest	rarity (the stock is the lever)
+PRONE_TO_RAGE	caste misc prone_to_rage	12/4	% chance to flip out at non-friendly; strength bonus	behaviour	no	T1 flip (DEER attacked by WOLF)	"fights back" prey trait (4 wild: BADGER, HONEY BADGER, WOLVERINE, BLACK_MAMBA)
+RETURNS_VERMIN_KILLS_TO_OWNER	caste flag RETURNS_VERMIN_KILLS_TO_OWNER	1/0	drops vermin kills at owner	pets only	no	skip	none
+ROOT_AROUND	caste field (not in the measured list)	16/7	roots for insects; in fort spawns vermin edible for it	behaviour	no	skip (X5 found no vermin effect)	vermin-eater marker
+SAVAGE	creature flag SAVAGE	571/8	only savage biomes; follows epicenters	spawn (worldgen)	stored only: e.savage SW:1061/1208, never used	not runtime-testable	none
+SENSE_CREATURE_CLASS	caste field	0/0	senses a class through walls	behaviour	no	no vanilla user -> skip	none
+SMALL_REMAINS	caste flag (not in the measured list)	131/115	leaves remains, not a corpse	death product	no	skip	vermin marker (remains vs corpse for S-block)
+SMELL_TRIGGER	creature/caste value	16/9	smell keenness (use undocumented)	unclear	no	skip	none
+SPECIFIC_FOOD	caste field	6/2	only in biomes with that plant/creature	spawn (worldgen)	no	not runtime-testable	none
+STANCE_CLIMBER	caste flag STANCE_CLIMBER	209/73	climbs with stance parts	behaviour (movement)	no (groundTile refuses tree tiles SW:3409 for the nudge canopy trap)	skip	arboreal marker (73 wild)
+STANDARD_GRAZER	caste flag GRAZER + misc grazer (compiled name inferred)	107/32	grazer hunger by size	hunger (documented for tame)	yes, as GRAZER (label SW:1107)	skip	grazer guild (32 wild)
+SWIMS_INNATE	caste flags CAN_SWIM_INNATE + CAN_SWIM (inferred)	829/294	swims without skill; "fortress AI never paths into water"	behaviour	read into e.swims SW:1065, never used	T1 flip off DEER at LAKE	none (294/363 wild - no discrimination)
+SWIMS_LEARNED	caste flag CAN_SWIM (inferred)	26/17	swims by skill	behaviour	no	skip	none
+THICKWEB	caste flag THICKWEB	1/1	webs catch larger creatures	behaviour	no	skip	none
+TRAINABLE	caste flags TRAINABLE_HUNTING + TRAINABLE_WAR	75/15	shortcut for both	none for wildlife	no	skip	none
+TRAINABLE_HUNTING	caste flag TRAINABLE_HUNTING	6/2	trainable hunter	none for wildlife	no	skip	none
+TRAINABLE_WAR	caste flag TRAINABLE_WAR	55/1	trainable war beast	none for wildlife	no	skip	none
+TRAPAVOID	caste flag TRAPAVOID	2/0	never triggers traps	behaviour	no	no wildlife user -> skip	none
+TRIGGERABLE_GROUP	creature field	5/5	vermin swarm disturbed (adventure)	unclear	no	skip	none
+UBIQUITOUS	creature flag UBIQUITOUS	9/9	every region with the biome; passes the spawn roll	spawn	no	T2 manifest (DINGO)	"common" rarity class (9 wild, all vermin insects)
+UNDERGROUND_DEPTH	creature fields underground layer min/max (compiled names inferred)	67/56	cavern layer 1-3, magma 4, HFS 5	spawn layer	no (layer from pop cave_id depth SW:759)	not runtime-testable	cavern guild by depth (56 wild)
+UNDERSWIM	caste flag AQUATIC_UNDERSWIM	191/95	shown blue in 7/7 water (display only)	none	only in isAquatic SW:883-896, which nothing calls	no effect -> skip	none (do not use as habitat)
+VERMIN_BITE	caste field	11/7	vermin bite injects material	behaviour (vermin)	no	skip	none
+VERMIN_EATER	creature flag VERMIN_EATER	7/7	vermin eats exposed food	behaviour (fort)	yes: vermin category SW:1049	skip	vermin family
+VERMIN_FISH	creature flag VERMIN_FISH	32/29	appears in water; fishable	spawn	yes: SW:1049; family fish SW:1884	skip	vermin family
+VERMIN_GROUNDER	creature flag VERMIN_GROUNDER	107/93	ground vermin; one of 5 region lists	spawn	yes: SW:1048	skip	vermin family
+VERMIN_HATEABLE	caste flag VERMIN_HATEABLE	22/22	dwarves hate it	dwarf thoughts only	no	skip	none
+VERMIN_MICRO	caste flag VERMIN_MICRO	9/5	moves in a swarm	behaviour (vermin)	yes: family flies SW:1885	skip	vermin family
+VERMIN_NOFISH	caste flag VERMIN_NOFISH	7/1	cannot be fished	capture only	no	skip	none
+VERMIN_NOROAM	caste flag VERMIN_NOROAM	1/1	not seen roaming	behaviour (vermin)	no	skip	none
+VERMIN_NOTRAP	caste flag VERMIN_NOTRAP	59/58	not caught in baited traps	capture only	no	skip	none
+VERMIN_ROTTER	creature flag VERMIN_ROTTER	5/5	attracted to rot and loose food (no consumption documented)	behaviour	yes: SW:1048, family SW:1885; never-write-0 guard SW:2174	S1 exploratory (flies at corpses)	rot-attracted set (5 wild)
+VERMIN_SOIL	creature flag VERMIN_SOIL	9/9	near dirt/mud	spawn	yes: SW:1048, family SW:1887	skip	vermin family
+VERMIN_SOIL_COLONY	creature flag VERMIN_SOIL_COLONY	4/4	single-tile colony	spawn form	yes: family colony SW:1886	skip	vermin family
+VERMINHUNTER	raw-only shorthand (expands to 4 flags)	0/0	= AT_PEACE_WITH_WILDLIFE + RETURNS_VERMIN_KILLS + HUNTS_VERMIN + ADOPTS_OWNER	via components	no	no vanilla user -> skip	none
+VESPERTINE	caste flag VESPERTINE	3/1	evening only "in Adventurer mode"	adventure-only	no	skip	none
+VIEWRANGE	caste misc viewrange	0/0	"should" set how close before it attacks (hedged)	unclear	no	T1 exploratory (WOLF viewrange up/down vs DEER: first-attack distance)	none
+VISION_ARC	caste misc vision_arc_min/max	125/42	vision arc widths	behaviour (detection)	no	skip	none
+WAGON_PULLER	caste flag WAGON_PULLER	30/4	pulls wagons	none for wildlife	no	skip	none
+WEBBER	caste flag WEBBER	6/4	makes webs; +AMBUSH giant webs at spawn	behaviour	no	skip	none
+WEBIMMUNE	caste flag WEBIMMUNE	7/5	not caught in thick webs	behaviour	no	skip	none
+FREQUENCY	creature field frequency	399/174	territory size + d100 spawn roll after a uniform pick	spawn/pick	yes: CAVERN.apply SW:2202-2260; ENGINE draw weight SW:3881	measured X3; F1 manifest	rarity class
+BIOME	creature flags BIOME_* (compiled from sets)	946/363	biomes it may appear in	spawn (worldgen region lists)	yes: biomeFlag SW:861, rawBiomes SW:1078, MODEL.waters SW:1109, habitat SW:1095	not runtime-testable (roster filter only)	biome groups; realm table (Q9)
+CURIOUSBEAST (bare)	none (not a token; spawn pool CURIOUS_BEAST undocumented)	53/21	no anchor on the wiki; a CURIOUS_BEAST wave pool is named	unclear	no	skip	use the three CURIOUSBEAST_* flags

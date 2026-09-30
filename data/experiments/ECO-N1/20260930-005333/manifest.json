@@ -1,0 +1,43 @@
+{
+  "fort": "CTRL",
+  "backup": "CTRL.preverify",
+  "fps": 1000,
+  "sample_every": 500,
+  "combat": false,
+  "tool_must_be": {
+    "enabled": 0
+  },
+  "id": "ECO-N1",
+  "tick_budget": 60000,
+  "title": "POPULATION exhaustion and niche replacement: KANGAROO dominant (frequency 100, others 1) with its entry at 3; every wild kangaroo on the map is killed each 1,500 ticks; when the entry reaches 0 the prototype hook raises WOMBAT (the nearest niche on CTRL: land grazer, small-medium) to frequency 100 and stock 500.",
+  "fork": "does an exhausted entry stop the species, and does the replacement take its waves at once?",
+  "predictions": [
+    {
+      "model": "quantity is the gate (E24)",
+      "expects": "kangaroo waves stop once the entry is 0; wombat waves follow the hook"
+    }
+  ],
+  "kill_criterion": "kangaroo waves continue with the entry at 0",
+  "culling": [
+    "drop a replicate on any breach or changed save"
+  ],
+  "arms": [
+    {
+      "name": "exhaust_replace",
+      "replicates": 1,
+      "pre": [
+        "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched(); print('tool disarmed')",
+        "_G.ECO_N1_REPLACED=nil; print('eco: n1 reset')",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local want={}; for _,t in ipairs({'KANGAROO'}) do want[t]=true end; local n=0; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race); if cr and want[cr.creature_id] and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=3; pop.flags.extinct=false; n=n+1 end end; print(('eco: %d entries stocked at 3'):format(n))",
+        "local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); local land={}; for _,pop in ipairs(df.global.world.populations.all) do if sw.managedPop(pop, rs, sw.LAYER_SET.land) and df.world_population_type[pop.type]=='Animal' then land[pop.race]=true end end; local n,o=0,0; for i,cr in ipairs(df.global.world.raws.creatures.all) do if false then elseif cr.creature_id=='KANGAROO' then cr.frequency=100; n=n+1 elseif land[i] then cr.frequency=1; o=o+1 end end; print(('eco: %d named species set, %d other land species at frequency 1'):format(n,o))"
+      ],
+      "every": {
+        "ticks": 1500,
+        "do": [
+          "probe:release surface",
+          "local n=0 for _,u in ipairs(df.global.world.units.active) do local cr=df.creature_raw.find(u.race) if cr and cr.creature_id=='KANGAROO' and not dfhack.units.isDead(u) and dfhack.units.isWildlife(u) then u.body.blood_count=0; n=n+1 end end; local q,ex=-1,false; local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions(); for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race) if cr and cr.creature_id=='KANGAROO' and sw.managedPop(pop, rs, sw.LAYER_SET.land) then q=pop.quantity; ex=pop.flags.extinct end end; local rep='' if q==0 and not _G.ECO_N1_REPLACED then _G.ECO_N1_REPLACED=true; for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id=='WOMBAT' then cr.frequency=100 end end; for _,pop in ipairs(df.global.world.populations.all) do local cr=df.creature_raw.find(pop.race) if cr and cr.creature_id=='WOMBAT' and sw.managedPop(pop, rs, sw.LAYER_SET.land) then pop.quantity=500; pop.flags.extinct=false end end; rep=' REPLACED by WOMBAT' end; print(('eco: killed %d kangaroo; entry %d extinct %s%s'):format(n,q,tostring(ex),rep))"
+        ]
+      }
+    }
+  ]
+}
