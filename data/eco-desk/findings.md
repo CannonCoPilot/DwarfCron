@@ -172,3 +172,6 @@ ECO2-G (fresh 7-dwarf embarks FPS2E1..E6, tool on + preset, 40k t, 2 reps; group
   Surface waves 5x5 4.0 -> 5.5, 6x6 3.0 -> 5.0. t/s no cost (6x6 223 vs 261). Cavern groups unchanged by the cavern
   limit (4.8-8.7, above the limit: residents and ungated sources count) -> the cavern limit is not binding.
   => DEFAULT land groups at once = sqrt(embark)+1 (v6.9); cavern left at 2.
+VR (CTRL, vspot surface 134,42,104; 4,000 t, 1 rep): the densest vermin spot is a BUMBLEBEE colony (17,820 in the
+  count); cat, peregrine, duck x4 each: count 17,820 -> 17,822 / 17,820 / 17,820 -> no catch visible. A colony is not
+  hunted like loose vermin; vspot should skip colony vermin (VERMIN_SOIL_COLONY / hive) -> VR is vacuous for predation.

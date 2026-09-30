@@ -8,6 +8,7 @@ Per cell, from the block TSVs eco-run.py wrote:
   groups  = alive/dead/gone, spread (mean tiles from the group's centroid) and units standing in water, at the end
 P1 is printed as predator x prey matrices (DF only / relation written); every other block as one row per cell.
 """
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -33,7 +34,10 @@ def load(path):
         elif kind == "spawn":
             c["spawn"][d["token"]] = c["spawn"].get(d["token"], 0) + int(d.get("placed", 0))
         elif kind == "attacks":
-            a, b = d["pair"].split(">")
+            # a raw id may hold a space ('RIVER OTTER'), which kv() splits on: read the pair between 'pair=' and ' n='
+            m = re.search(r"pair=(.+?)>(.+?) n=(\d+)", rest)
+            if not m: continue
+            a, b = m.group(1), m.group(2); d["n"] = m.group(3)
             if a in c["spawn"] and b in c["spawn"]:
                 c["attacks"][(a, b)] += int(d["n"])
         elif kind == "death":
