@@ -515,8 +515,13 @@ leave_site_screen() {
 open_site_screen() {
     local world="$1"
     ensure_title || err "could not reach the title screen"
-    local wname; wname=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$world" '$1==f {print $2; exit}')
+    local ws wname; ws=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r")
+    wname=$(echo "$ws" | awk -F'\t' -v f="$world" '$1==f {print $2; exit}')
     [ -n "$wname" ] || err "DF lists no world in folder '$world'"
+    # DF names a world from its seed and the list is clicked by name: two worlds of one seed (FPS6 reuses seeds
+    # across cells) would open whichever is listed first -- 29 Sep 2026 the pilot's survey+embark ran on region8
+    [ "$(echo "$ws" | awk -F'\t' -v n="$wname" '$2==n' | wc -l | tr -d ' ')" = 1 ] ||
+        err "world name '$wname' is shared by folders $(echo "$ws" | awk -F'\t' -v n="$wname" '$2==n {printf "%s ", $1}')-- move the others out of the save dir"
     click_when_drawn "Start new game in existing world" || err "title never showed 'Start new game in existing world'"
     click_when_drawn "World: $wname" || err "world list never showed 'World: $wname'"
     wait_state screen viewscreen_choose_game_typest 90 || err "world did not load to the game-type screen (state: $(ui_state))"
@@ -590,27 +595,40 @@ cmd_embark() {
         cmd_cmd cx-embark size "$CX_EMBARK_SIZE" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
         sleep 1
     fi
+    # The square FOLLOWS THE POINTER (hover, no click) and a click EMBARKS wherever it sits: the warnings dialog
+    # (Confirm/Abort) when the area has any (aquifer, savagery...), else straight to preparation. So place it
+    # by moving the pointer and reading back, and click exactly once, on the target. (Until 29 Sep 2026 the loop
+    # clicked to adjust: each miss was an embark attempt -- the FPS6 pilot's 3x3 on a warning-free tile went
+    # to preparation from the "adjusting" click, or converged with no dialog and was never confirmed.)
     local tx=$((rx * 16 + ox)) ty=$((ry * 16 + oy)) px="$CX_MAP_CENTER_PX" py="$CX_MAP_CENTER_PY" mx my
     for i in 1 2 3 4 5; do
         # never post a pointer event outside the DF window
         { [ "$px" -ge 0 ] && [ "$px" -lt 1920 ] && [ "$py" -ge 0 ] && [ "$py" -lt 1072 ]; } || err "placement pixel $px,$py is off the window; refusing"
         "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
-        df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer clicks"
-        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" click "$px" "$py" >/dev/null 2>&1
+        df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer events"
+        "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" move "$px" "$py" >/dev/null 2>&1
         sleep 1
         rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
         mx=$(echo "$rd" | sed -n 's/.*mm_min=\([0-9-]*\),.*/\1/p'); my=$(echo "$rd" | sed -n 's/.*mm_min=[0-9-]*,\([0-9-]*\) .*/\1/p')
-        log "placement $i: click $px,$py -> $rd"
+        log "placement $i: hover $px,$py -> $rd"
         [ -n "$mx" ] && [ -n "$my" ] || err "could not read the placement (state: $(ui_state))"
-        case "$rd" in *choosing=true*|*confirm=true*) ;; *) err "left placement mode unexpectedly: $rd";; esac
-        if [ "$mx" = "$tx" ] && [ "$my" = "$ty" ]; then
-            case "$rd" in *confirm=true*) cmd_ui click "Confirm" >/dev/null 2>&1 ;; esac
-            break
-        fi
-        case "$rd" in *confirm=true*) cmd_ui click "Abort" >/dev/null 2>&1; sleep 1 ;; esac
+        case "$rd" in *choosing=true*) ;; *) err "left placement mode unexpectedly: $rd";; esac
+        [ "$mx" = "$tx" ] && [ "$my" = "$ty" ] && break
         px=$((px + (tx - mx) * CX_MM_PX)); py=$((py + (ty - my) * CX_MM_PX))
         [ "$i" = 5 ] && err "placement did not converge on $tx,$ty (last $mx,$my)"
     done
+    "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" activate >/dev/null 2>&1
+    df_frontmost || err "Dwarf Fortress is not the frontmost app; refusing to send pointer clicks"
+    "$CX_PYTHON" "$SCRIPT_DIR/cx-mouse.py" click "$px" "$py" >/dev/null 2>&1
+    sleep 1
+    if [ "$(ui_get screen)" != "viewscreen_setupdwarfgamest" ]; then
+        rd=$(cmd_cmd cx-embark read 2>/dev/null | tr -d "\r" | tail -1)
+        log "embark click $px,$py -> $rd"
+        case "$rd" in
+            *mm_min=$tx,$ty*confirm=true*) cmd_ui click "Confirm" >/dev/null 2>&1 ;;
+            *confirm=true*) cmd_ui click "Abort" >/dev/null 2>&1; err "the click embarked at the wrong spot (want $tx,$ty): $rd; aborted" ;;
+        esac
+    fi
     wait_state screen viewscreen_setupdwarfgamest 30 || err "Confirm did not open the preparation screen (state: $(ui_state))"
     click_when_drawn "Play now!" || err "no 'Play now!' on the preparation screen"
     wait_state map true "$CX_LOAD_TIMEOUT" || err "map never loaded (state: $(ui_state))"

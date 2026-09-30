@@ -107,6 +107,17 @@ def pick_site(rows, W, H):
             return best, level, len(q)
     return None, 0, 0
 
+def archive_world(folder, tag):
+    """Move a world folder out of the save dir under a unique name: DF reuses regionN once a folder is gone, so the
+    bare folder name collides in the archive (and was then left behind in the save dir)."""
+    src = SAVE_DIR / folder
+    if not src.is_dir():
+        return
+    ARCHIVE.mkdir(parents=True, exist_ok=True)
+    dst = ARCHIVE / f"{tag}-{folder}-{time.strftime('%m%d%H%M%S')}"
+    src.rename(dst)
+    f5.log(f"    world folder {folder} -> {dst}")
+
 def gen_world(w, write):
     key = w["world"]; save = f"FPS6{key}"
     vals: dict[str, Any] = dict(w, save=save, status="FAILED")
@@ -165,9 +176,7 @@ def gen_world(w, write):
         sh("save-backup", save, "preverify")
         vals["save_mb"] = du_mb(SAVE_DIR / save)
         # the fort's save carries its own copy of the world; the pristine folder only lengthens DF's world list
-        ARCHIVE.mkdir(parents=True, exist_ok=True)
-        if (SAVE_DIR / folder).is_dir() and not (ARCHIVE / folder).exists():
-            (SAVE_DIR / folder).rename(ARCHIVE / folder)
+        archive_world(folder, key)
         vals["status"] = "ok"
         f5.log(f"    embarked 3x3 -> {save} ({vals['save_mb']} MB) in {vals['embark_wall_s']} s; world {folder} archived")
     except Exception as e:
@@ -175,6 +184,10 @@ def gen_world(w, write):
         f5.log(f"  !! world {key} FAILED: {e!r}")
         try: f5.restart()
         except Exception as e2: f5.log(f"  !! restart failed too: {e2!r}")
+        # a failed world left in the save dir shares its display name with the next world of its seed, and the
+        # verbs open worlds by name (29 Sep: the pilot's survey and embark ran on the smoke world's folder)
+        if vals.get("folder"):
+            archive_world(vals["folder"], f"FAILED-{key}")
     write(vals)
     return vals["status"] == "ok"
 
