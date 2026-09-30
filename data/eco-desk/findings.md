@@ -140,3 +140,20 @@ HCP (BOATS cavern pool 63:38 z60): cavern pools behave like surface water (W1L/W
   corpses beside a pool croc: 0 held/moved.
   => MODEL.reaches' habitat rules hold underground unchanged; cavern-pool species belong with the water rules (the
   user's 'cavern edge water = water layer'), gated by DF's cavern pick.
+HR (RIVER4, 3,000 t, 1 rep): DF-only 0 attacks in every pair -> the surface rule (P1) holds on rivers.
+  Written: SHARK_BULL x FISH_PIKE 8/8 killed (150 attacks); FISH_LAMPREY_SEA x PIKE 590 attacks, 0 kills (lamprey
+  latches, never kills in 3,000 t -> not a real predator for the web's accounting); ALLIGATOR(water) x DEER 1 kill (17);
+  WOLF x BEAVER 1 attack (beavers stayed ashore); WOLF given CAN_BREATHE_WATER + CAN_SWIM_INNATE x PIKE: 2 attacks,
+  0 kills -> swim flags do not make a land predator fish.
+  Schools: 10 PIKE spread none 47.3 / lowest 2.4 / largest male 4.3 -> cohesion works in water too.
+  River vermin cells vacuous (1-2 vermin) -> VRR (vspot).
+HO (OCEAN2 shore, 1 rep, written relations only):
+  ORCA x HARP_SEAL (orca BENIGN in the raws): 0 attacks; with BENIGN cleared: 45 attacks, 4 of 8 seals killed ->
+  BENIGN blocks even a curated apex; the apex boost must clear BENIGN (desk v2's 20 BENIGN apexes), as T1 showed on land.
+  SHARK_BLUE made BENIGN x HARP_SEAL: 0 (seals stayed ashore, wet 0).
+  Schools: 10 MILKFISH spread none 47.2 / lowest 2.1 / largest male 2.0. With 5 written TIGER sharks: killed 5 / 10 / 1
+  -> in water a tight school is no protection (unlike the led deer herd, L2); n=1.
+  VIEWRANGE on the prey: 5 -> 7 of 8 milkfish killed; 40 -> 4 of 8 (longer sight, fewer caught; direction as expected, n=1).
+  corpses_SHARK_GREAT_WHITE / walkeat_SHARK_BLUE: 0 units placed (radius-2 water spawn found no tiles) -> vacuous.
+HL (LAKE shore): 10 FISH_CARP spread none 34.3 / lowest 1.8 / largest male 2.3. Vermin cells (duck, peregrine, control)
+  vacuous. corpses_ALLIGATOR (2 placed): 0 held/moved; walkeat_ALLIGATOR placed 0 -> vacuous.
