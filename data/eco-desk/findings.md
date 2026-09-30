@@ -132,3 +132,11 @@ HC3 (BOATS cavern 3, 46:38): DF-only 0 attacks in both pairs; written: JABBERER 
   VORACIOUS_CAVE_CRAWLER x CRUNDLE (crundle not BENIGN, fought back); not: JABBERER, BLIND_CAVE_OGRE (CAN_LEARN, EVIL),
   TOAD_GIANT_CAVE. No single token separates them (CAN_LEARN on ogre too; NATURAL on both sides). Caverns 1-2 hold
   native wildlife that may start fights (spot) -- untested; n=1.
+HCP (BOATS cavern pool 63:38 z60): cavern pools behave like surface water (W1L/W1O).
+  CROCODILE_CAVE from the pool x ELK_BIRD on land: df 1 kill (7 attacks); written 5/8 killed -> amphibious crosses out.
+  OLM_GIANT (pool) x CRUNDLE: df 0; written 8/8 crundles killed (crundles fought back 50 attacks).
+  POND_GRABBER (aquatic; 5/5 stayed wet) x GORLAK: df 0, written 1 attack -> aquatic predators never leave cavern water.
+  CROCODILE_CAVE x GORLAK (both land): df 98+50 attacks (gorlak a native fighter again); written: all 8 gorlaks killed.
+  corpses beside a pool croc: 0 held/moved.
+  => MODEL.reaches' habitat rules hold underground unchanged; cavern-pool species belong with the water rules (the
+  user's 'cavern edge water = water layer'), gated by DF's cavern pick.
