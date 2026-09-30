@@ -15,10 +15,10 @@ play  each world twice, in two shuffled passes (every world's first session befo
       `cx-load sustain`, a 4 x 8 s stopwatch baseline, then one season (100,800 ticks) in steps of 16,800 with FPS5's
       full reading and `cx-load guests` at every step, into rows.tsv (FPS5's columns plus the world's).
 
-Site rule, level 1: GRASSLAND/SAVANNA/SHRUBLAND_TEMPERATE; savagery < 33; evilness <= 66; no river, lake, site or
-volcano on the tile; no river or ocean on its ring; >= 5 of 8 neighbours the same biome. Level 2 (recorded): the same
-biomes, savagery < 50, evilness <= 66, no river, lake or site on the tile, no ocean on the ring. Among the tiles that
-qualify, the one nearest the world's centre.
+Site rule (pick_site): GRASSLAND/SAVANNA/SHRUBLAND_TEMPERATE, not evil, no lake, site or volcano, no ocean on the ring;
+level 1 also no water of any kind on the tile or ring, savagery < 33, >= 5 of 8 neighbours alike; levels 2-5 admit
+savagery < 50/66, then a brook, then a major river. Among the tiles a level admits, the one nearest the world's centre;
+the level and the site's water are recorded per world.
 
 Usage: fps6-run.py gen  [--append <dir>] [--worlds M500a,S5b,...]
        fps6-run.py play --append <dir> [--sessions 2] [--play 100800] [--every 16800] [--worlds ...]
@@ -41,7 +41,7 @@ BIOMES = ("GRASSLAND_TEMPERATE", "SAVANNA_TEMPERATE", "SHRUBLAND_TEMPERATE")
 WORLD_COLS = ["world", "size_name", "world_dim", "years", "seed"]
 f5.COLS = f5.COLS + WORLD_COLS + ["merchants", "visitors", "invaders"]
 WORLDS_COLS = WORLD_COLS + ["status", "folder", "save", "gen_wall_s", "rejection", "rx", "ry", "biome", "sav", "evil", "same8",
-                            "rule_level", "qualifying", "embark_wall_s", "save_mb", "note"]
+                            "rule_level", "qualifying", "water", "embark_wall_s", "save_mb", "note"]
 LOADS_COLS = WORLD_COLS + ["session", "load_wall_s", "save_mb", "df_footprint_mb", "df_resident_mb", "dims", "year", "hf", "hf_alive",
                            "events", "collections", "entities", "civs", "sites", "artifacts", "armies", "army_controllers",
                            "units_all", "near_civ", "near_civ_sites", "near_civ_hf", "near_civ_race"]
@@ -84,15 +84,23 @@ def du_mb(p):
     return f"{int(out[0]) / 1024:.0f}" if out else ""
 
 def pick_site(rows, W, H):
-    def ok(r, level):
-        if r["biome"] not in BIOMES or int(r["evil"]) > 66 or r["lake"] != "0" or r["site"] != "0" or r["river"] != "0":
-            return False
-        if level == 1:
-            return int(r["sav"]) < 33 and r["volcano"] == "0" and r["nbr_river"] == "0" and r["nbr_ocean"] == "0" and int(r["same8"]) >= 5
-        return int(r["sav"]) < 50 and r["nbr_ocean"] == "0"
+    """The FPS6 site rule, strictest level first; among the tiles a level admits, the one nearest the world's centre.
+    Level 1 (the design): no river of any kind on the tile or its ring, savagery < 33, >= 5 of 8 neighbours alike.
+    The SMALLER smoke world (29 Sep) had the combined river flag on 485 of 493 temperate tiles and no savagery under
+    33, so the fallbacks admit water in steps -- a brook, then a major river -- and every world records its level."""
+    B = lambda r: r["biome"] in BIOMES and int(r["evil"]) <= 66 and r["lake"] == "0" and r["site"] == "0" and r.get("volcano", "0") == "0"
+    brook = lambda r: r.get("brook", "0") == "1"
+    major = lambda r: r.get("major", "0") == "1" or (r["river"] == "1" and not brook(r) and "major" not in r)
+    levels = [
+        lambda r: B(r) and r["river"] == "0" and r["nbr_river"] == "0" and r["nbr_ocean"] == "0" and int(r["sav"]) < 33 and int(r["same8"]) >= 5,
+        lambda r: B(r) and r["river"] == "0" and r["nbr_ocean"] == "0" and int(r["sav"]) < 50,
+        lambda r: B(r) and not major(r) and r.get("nbr_major", "0") == "0" and r["nbr_ocean"] == "0" and int(r["sav"]) < 50,
+        lambda r: B(r) and not major(r) and r["nbr_ocean"] == "0" and int(r["sav"]) < 66,
+        lambda r: B(r) and r["nbr_ocean"] == "0" and int(r["sav"]) < 66,
+    ]
     cx, cy = (W - 1) / 2, (H - 1) / 2
-    for level in (1, 2):
-        q = [r for r in rows if ok(r, level)]
+    for level, ok in enumerate(levels, 1):
+        q = [r for r in rows if ok(r)]
         if q:
             best = min(q, key=lambda r: ((int(r["x"]) - cx) ** 2 + (int(r["y"]) - cy) ** 2, int(r["y"]), int(r["x"])))
             return best, level, len(q)
@@ -129,9 +137,10 @@ def gen_world(w, write):
         vals.update(rule_level=level, qualifying=nq)
         if not tile:
             raise RuntimeError(f"no tile meets the site rule at either level ({len(rows)} TEMPERATE tiles surveyed)")
-        vals.update(rx=tile["x"], ry=tile["y"], biome=tile["biome"], sav=tile["sav"], evil=tile["evil"], same8=tile["same8"])
+        water = "major river" if tile.get("major") == "1" else "brook" if tile.get("brook") == "1" else "river" if tile["river"] == "1" else "none"
+        vals.update(rx=tile["x"], ry=tile["y"], biome=tile["biome"], sav=tile["sav"], evil=tile["evil"], same8=tile["same8"], water=water)
         f5.log(f"    site {tile['x']},{tile['y']} {tile['biome']} sav {tile['sav']} evil {tile['evil']} same8 {tile['same8']} "
-               f"(rule level {level}, {nq} qualifying of {len(rows)} TEMPERATE)")
+               f"water {water} (rule level {level}, {nq} qualifying of {len(rows)} TEMPERATE)")
         t0 = time.monotonic()
         sh("embark", folder, tile["x"], tile["y"], save, 6, 6, timeout=1200, env={"CX_EMBARK_SIZE": "3"})
         vals["embark_wall_s"] = f"{time.monotonic() - t0:.0f}"

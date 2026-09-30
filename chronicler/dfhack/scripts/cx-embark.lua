@@ -125,36 +125,41 @@ elseif cmd == 'survey' then
         return {
             biome = (ok2 and bt and df.biome_type[bt]) or '?',
             river = flag(e, 'has_river') or flag(e, 'is_brook') or flag(e, 'temp_river'),
+            brook = flag(e, 'is_brook'), major = flag(e, 'has_river') and not flag(e, 'is_brook'),
             lake = flag(e, 'is_lake') or flag(e, 'new_lake'),
             site = flag(e, 'has_site'), peak = flag(e, 'is_peak'),
             sav = e.savagery, evil = e.evilness, elev = e.elevation, volc = e.volcanism,
         }
     end
-    -- TSV, one row per tile: x y biome river lake site sav evil elev volc same8 nbr_river nbr_ocean
+    -- TSV, one row per tile: x y biome river lake site sav evil elev volc same8 nbr_river nbr_ocean volcano brook major nbr_major
+    -- (brook/major/nbr_major added 29 Sep 2026 for FPS6's site rule: on a SMALLER world 485 of 493 temperate tiles had
+    -- the combined river flag, so 'no river' left no site; a brook and a major river are told apart)
     -- volcanoes: world_data.mountain_peaks carries every peak with an is_volcano flag
     local volcano = {}
     for _, pk in ipairs(wd.mountain_peaks) do
         if flag(pk, 'is_volcano') then volcano[pk.pos.x .. ',' .. pk.pos.y] = true end
     end
-    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean\tvolcano')
+    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean\tvolcano\tbrook\tmajor\tnbr_major')
     for y = 0, H - 1 do
         for x = 0, W - 1 do
             local t = info(x, y)
             if t and (not filter or t.biome:find(filter, 1, true)) then
-                local same, riv, ocean = 0, 0, 0
+                local same, riv, ocean, maj = 0, 0, 0, 0
                 for dy = -1, 1 do for dx = -1, 1 do
                     if dx ~= 0 or dy ~= 0 then
                         local n = info(x + dx, y + dy)
                         if n then
                             if n.biome == t.biome then same = same + 1 end
                             if n.river then riv = riv + 1 end
+                            if n.major then maj = maj + 1 end
                             if n.biome:find('OCEAN', 1, true) then ocean = ocean + 1 end
                         end
                     end
                 end end
-                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
+                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
                     x, y, t.biome, t.river and 1 or 0, t.lake and 1 or 0, t.site and 1 or 0,
-                    t.sav, t.evil, t.elev, t.volc, same, riv, ocean, volcano[x .. ',' .. y] and 1 or 0))
+                    t.sav, t.evil, t.elev, t.volc, same, riv, ocean, volcano[x .. ',' .. y] and 1 or 0,
+                    t.brook and 1 or 0, t.major and 1 or 0, maj))
             end
         end
     end
