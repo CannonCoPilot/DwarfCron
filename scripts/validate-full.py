@@ -228,6 +228,7 @@ CLAIMS = [
     ("mech.v69.pelagic", "MECH", "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY", "user 30 Sep; ECO O/DEPTH", "shipped v6.9"),
     ("cli.alerts", "CLI", "`alerts off|on` switches quiet wildlife fights and says so; on by default", "ECO A1/A2", "shipped v6.9"),
     ("cli.curious", "CLI", "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused", "ECO B/CB", "shipped v6.9"),
+    ("mech.v69.guild", "MECH", "the engine's guild for each natural species agrees with the ECO desk's guild table (data/eco-desk/v2/guilds/species2.tsv) for at least 95% of them", "ECO desk v2 guild design", "shipped v6.9"),
     ("mech.v69.exhaust", "MECH", "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change", "ECO N1", "shipped v6.9"),
     ("web.cmd", "MECH", "a POST /cmd with the token runs the console verb and returns its reply", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
@@ -840,6 +841,24 @@ print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, p
         rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
             json.dumps(x)[:800])
     cmd("ledger", "8")
+    desk = {}
+    tsv = ROOT / "data/eco-desk/v2/guilds/species2.tsv"
+    if tsv.exists():
+        import csv
+        for r in csv.DictReader(open(tsv), delimiter="\t"):
+            desk[r["id"]] = "V" if r["guild"].startswith("V") else r["guild"]
+    gj = luaj("""
+local sw=reqscript('seasonal-wildlife'); local out={}
+for _,cr in ipairs(df.global.world.raws.creatures.all) do local c=sw.classify(cr); if c and c.guild then out[cr.creature_id]=c.guild end end
+print(json.encode(out))""", timeout=300)
+    if not desk or not isinstance(gj, dict):
+        rec("mech.v69.guild", "NOT-TESTABLE-HERE", "the desk table and the engine's guilds", f"desk {len(desk)}, engine {type(gj).__name__}")
+    else:
+        both = [k for k in desk if k in gj]
+        diff = [f"{k}:{desk[k]}/{gj[k]}" for k in both if desk[k] != gj[k]]
+        agree = 1 - len(diff) / max(1, len(both))
+        rec("mech.v69.guild", "PASS" if both and agree >= 0.95 else "FAIL", ">= 95% of shared species in the same guild",
+            f"shared {len(both)}, agree {agree:.1%}; first differences (desk/engine): {diff[:25]}", data={"shared": len(both), "agree": agree, "diff": diff[:200]})
 
 def phase_v68_web():
     log("== v6.8: the companion server")

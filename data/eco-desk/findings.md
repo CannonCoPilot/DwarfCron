@@ -97,3 +97,38 @@ O (OCEAN2 depth): 21,328 water columns: depth 1: 9,116, depth 2: 12,212, depth >
   levels deep everywhere. SHARK_WHALE x2 + SHARK_BLUE x3 placed in it: all alive, wet, moving (spread 13 / 43) after 3,000 t.
   => there is no deep water on this ocean embark; a deep/shallow split cannot key on column depth here (maybe distance
   from shore / ocean share of the map / region ocean tiles instead). BOATS and OD pending.
+== ECO2 (30 Sep, run data/experiments/ECO/ECO2-*) ==
+CURIOUS mechanism (BOATS trace, interactive): placed RACCOON goal WildernessCuriousStealTarget -> walked ~35 tiles to the
+  fort's wagon pile (306 items), took 1 item (a rope), leave_countdown 199,600 -> 0, goal SeekStation to the map edge,
+  walked off with it -> removed from the world. Grizzlies on BOATS wandered (MarauderMill) 2,400 t, no theft.
+CB (CTRL, raccoons 12 tiles from a citizen, 3,000 t): default 4/4 gone; leave_countdown+goal reset every 300 t: 4/4
+  gone anyway; CURIOUS_BEAST* flags off: 4/4 stay (wandering). => remedy = clear the flags species-wide while resident.
+A2 (humanoid alert filter, CTRL): WOLF x DEER written: 3 dropped, 0 left; WOLF_MAN x DEER: kept (1, 0 dropped); GOBLIN x DEER: kept.
+TV (CTRL, 10 tiles apart, 1 rep): control WOLF x DEER written 0 attacks (P1 273, T1 64) -> encounter noise dominates at 1 rep.
+  PRONE_TO_RAGE on DEER (written wolves): 25 -> deer 17 attacks, 1 wolf killed; 50 -> 81, 1; 100 -> 98 attacks, 4 of 6
+  wolves killed, 0 deer lost. Dose-response. VIEWRANGE 5/40 (1 vs 156 attacks), VISION_ARC narrow (89), FLEEQUICK r2
+  (34 attacks, deer killed 2 wolves) -> inconclusive under the noise. GIANT_FOX written: 0 attacks; BENIGN off: 1.
+  Vermin cells vacuous (0 vermin within 12 tiles of the spot). -> redo values co-located (same centre) x2 reps; vermin at
+  a vermin-dense spot.
+HC1 (BOATS cavern 72:64 z71, 3,000 t, 1 rep): caverns fight WITHOUT a written relation, unlike the surface (P1 df 0/40).
+  TROLL x GORLAK df-only: 143 / 141 attacks, 0 kills; written: 180 / 107, trolls 4 dead, gorlaks 5 dead.
+  TROLL x ELK_BIRD df-only: 4 attacks, 1 kill; written: 15, 4 kills. TOAD_GIANT_CAVE x ELK_BIRD df-only 0; written 9, 2 kills.
+  BENIGN ON TROLL does NOT pacify it (df 85 troll attacks, written 57) -- surface BENIGN wolf made 0. Trolls/gorlaks fight
+  as hostiles, not as predators; BENIGN is not the switch for them.
+  Leaders (10 GORLAK): spread none 33.0 / lowest 9.3 / largest male 7.5 -> cohesion replicates underground. With 5 written
+  TROLL: gorlaks killed all 5 trolls in every arm (led or not) -> the gorlak herd outguns its 'predator'.
+  corpses x TROLL / RAT_GIANT 4,000 t: 0 held, 0 moved (surface result holds). walkeat_TROLL (460 t by design): walkto moved no
+  troll within 3 tiles in 400 t (0/5 twice; surface hyenas 3/6) -> the cavern path failed; eat still removed 15 corpses
+  that lay within 2 tiles of trolls (the cavern holds 70+ old corpses) -> walk-and-delete needs a path check underground. rage50 GORLAK: gorlak attacks 10 (written control 107) -> no rage effect
+  at n=1 against trolls. Cavern vermin cells vacuous (vermin total 0-1) -> VRC (vspot) decides.
+HC2 (BOATS cavern 2, 63:59): same as HC1 -- cavern hunting needs no written relation.
+  TROGLODYTE x ELK_BIRD df-only: 101 attacks, 2 kills (trogs also 48 on each other); written: 36 attacks, 1 kill.
+  VORACIOUS_CAVE_CRAWLER x CRUNDLE df-only: 8/8 crundles killed; written: 7/8. The write adds nothing underground.
+  Leaders (8 TROGLODYTE): spread none 40.6 / lowest 5.2 / largest male 2.9.
+  (HC3 overturns 'the write is redundant underground': see HC3.)
+HC3 (BOATS cavern 3, 46:38): DF-only 0 attacks in both pairs; written: JABBERER x REACHER 7/8 reachers killed;
+  BLIND_CAVE_OGRE x RUTHERER 3 killed. => native cavern fighting is species- or spot-dependent, NOT a cavern rule: keep
+  the cavern relation write. Native fighters seen: TROLL, GORLAK (BENIGN + CAN_SPEAK!), TROGLODYTE (also each other),
+  VORACIOUS_CAVE_CRAWLER x CRUNDLE (crundle not BENIGN, fought back); not: JABBERER, BLIND_CAVE_OGRE (CAN_LEARN, EVIL),
+  TOAD_GIANT_CAVE. No single token separates them (CAN_LEARN on ogre too; NATURAL on both sides). Caverns 1-2 hold
+  native wildlife that may start fights (spot) -- untested; n=1.
