@@ -1779,13 +1779,19 @@ local function get_fortress_state()
         state.fortress_depth = map.z_count_current or 0
     end)
 
-    -- Current temperature at fort (approximation from weather)
+    -- Weather at the fort. current_weather is a 5x5 grid of the region tiles around the map, and the fort's own cell
+    -- is [biome_x - map.region_x/16 + 1][...], NOT the centre: [2][2] is usually a neighbouring region's weather. DFHack
+    -- 53.16-r2 fixed exactly this lookup in World::ReadCurrentWeather and added dfhack.maps.getCurrentWeather([pos])
+    -- (LuaApi.cpp:3136, Maps.cpp:999; data/dfhack-r2/REPORT.md section 2.2). Use it when present; [2][2] stays as the
+    -- r1.1 fallback, where no correct reader exists.
     pcall(function()
-        local weather = df.global.current_weather
-        if weather then
-            -- Weather is a 5x5 grid; average the center
-            state.weather_type = weather[2][2]
+        local getw = dfhack.maps and dfhack.maps.getCurrentWeather
+        if getw then
+            local ok, w = pcall(getw)
+            if ok and w ~= nil then state.weather_type = w; return end
         end
+        local weather = df.global.current_weather
+        if weather then state.weather_type = weather[2][2] end
     end)
 
     return state
