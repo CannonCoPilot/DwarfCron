@@ -342,3 +342,8 @@ GPKW (OCEAN2 shore) and GPKR (RIVER4): 4 GIANT_CROCODILE_SALTWATER x 2 HIPPO: bo
 BEAR_GRIZZLY x3 and TIGER x3 with CAN_SWIM_INNATE written (as v7 fishers does) x 8 FISH_PIKE in the river; WOLF x5 control.
 Attacks 0 in all 6 runs; all pike alive and wet. Grizzlies left the map (gone 2, 1: curious-beast departure). With FISH
 (wolves, water-breathing too: 0 kills) the fishers feature has no measured effect -> v7.0 default OFF (seasonal-wildlife).
+
+## FVA — FLEEQUICK and VISION_ARC, 2 more reps (item 24; 30 Sep night, CTRL, 6 WOLF written x 10 DEER)
+Wolf attacks (kills): ctl 135 (1), 3 (0); VISION_ARC narrow 103 (1), 3 (0); FLEEQUICK 10 (0), 3 (0). Rep 2 was quiet in every
+arm including the control, so replicate variance swamps the tokens. All runs to date: FLEEQUICK 2 (T1), 3 / 158 (TV2), 10 / 3;
+VISION_ARC 89, 5 / 147, 103 / 3. => no reliable effect of either token; the tool does not use them (item 24 closed: park).
