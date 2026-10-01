@@ -1,0 +1,362 @@
+<title>ECO Wildlife Study</title>
+
+
+<style>
+:root{
+  --bg:#F2F4F1; --panel:#FFFFFF; --panel2:#E9EEEA; --ink:#17201C; --ink2:#46524C; --ink3:#717D77;
+  --rule:#D6DDD8; --moss:#2E6A4E; --moss-soft:#DDEAE2; --code:#E7ECE8;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --muted:#A3ACA7; --grid:#E3E8E4; --axis:#9AA59F;
+  --good:#2F7D4A; --warn:#A06A00; --crit:#B83A39;
+  --display:"Archivo", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --ui:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1512; --panel:#161E1A; --panel2:#1C2621; --ink:#E2E9E5; --ink2:#B2BEB8; --ink3:#8A978F;
+  --rule:#27322C; --moss:#7CC39C; --moss-soft:#1E3328; --code:#1D2722;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9a2f; --s7:#9085e9; --s8:#e66767;
+  --muted:#5E6A64; --grid:#222C27; --axis:#4E5A54; --good:#6CC08A; --warn:#E0B25A; --crit:#EF7B7A; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0F1512; --panel:#161E1A; --panel2:#1C2621; --ink:#E2E9E5; --ink2:#B2BEB8; --ink3:#8A978F;
+  --rule:#27322C; --moss:#7CC39C; --moss-soft:#1E3328; --code:#1D2722;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9a2f; --s7:#9085e9; --s8:#e66767;
+  --muted:#5E6A64; --grid:#222C27; --axis:#4E5A54; --good:#6CC08A; --warn:#E0B25A; --crit:#EF7B7A; color-scheme:dark; }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg); color:var(--ink); font:16px/1.6 var(--body); margin:0; padding-inline:clamp(16px,2.4vw,36px); padding-block:24px 80px}
+.page{display:grid; grid-template-columns:220px minmax(0,1fr); gap:clamp(20px,2.6vw,44px); max-width:1760px; margin:0 auto}
+nav.toc{position:sticky; top:calc(env(safe-area-inset-top,0px) + 16px); align-self:start; max-height:calc(100vh - 32px); overflow:auto; font:500 13px/1.35 var(--ui); padding-right:6px}
+nav.toc .tt{font:700 12px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase; color:var(--ink3); margin:0 0 10px}
+nav.toc ol{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+nav.toc a{display:block; color:var(--ink2); text-decoration:none; padding:4px 8px; border-radius:4px}
+nav.toc a:hover{background:var(--panel2); color:var(--ink)}
+nav.toc a.on{background:var(--moss-soft); color:var(--moss)}
+nav.toc ol ol{padding-left:10px; font-weight:400; font-size:12.5px}
+main{display:grid; gap:56px; min-width:0}
+h1,h2,h3,h4{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.12; font-stretch:88%}
+h1{font-size:clamp(32px,3.6vw,52px); font-weight:800; letter-spacing:-.01em}
+h2{font-size:clamp(24px,2.2vw,32px); font-weight:750}
+h3{font-size:19px; font-weight:700; margin-top:6px}
+h4{font:700 13px/1.3 var(--ui); letter-spacing:.06em; text-transform:uppercase; color:var(--ink3)}
+p{margin:0 0 .75em; max-width:70ch}
+a{color:var(--moss)}
+a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--moss); outline-offset:2px}
+code{font:.82em/1 var(--mono); background:var(--code); padding:2px 5px; border-radius:3px; overflow-wrap:anywhere}
+b,strong{font-weight:600}
+.eyebrow{font:600 12px/1 var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--moss)}
+.secnum{font:700 13px/1 var(--mono); color:var(--moss); margin-right:10px}
+/* header */
+.hero{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:clamp(20px,3vw,48px); align-items:end; border-bottom:2px solid var(--ink); padding-bottom:22px}
+.hero .lede{font-size:18.5px; color:var(--ink2); max-width:62ch}
+.hero .meta{font:13px/1.55 var(--ui); color:var(--ink3); display:grid; gap:8px}
+.facts{display:flex; flex-wrap:wrap; gap:8px 22px; font:600 13px/1 var(--ui); color:var(--ink2)}
+.facts span b{font:700 22px/1 var(--display); color:var(--ink); display:block; margin-bottom:4px; font-stretch:80%}
+/* key findings */
+.keys{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px}
+.key{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px; display:grid; gap:6px; align-content:start}
+.key .claim{font:700 16.5px/1.25 var(--display); font-stretch:90%}
+.key p{font-size:14.5px; margin:0; color:var(--ink2)}
+.key .src{font:500 11.5px/1 var(--mono); color:var(--ink3)}
+/* sections */
+section.sec{display:grid; gap:18px; scroll-margin-top:16px}
+.sechead{display:grid; gap:8px; border-top:1px solid var(--rule); padding-top:18px}
+.sechead .answer{font-size:18px; color:var(--ink2); max-width:80ch}
+.split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:clamp(18px,2.4vw,40px); align-items:start}
+.split > .prose{min-width:0}
+.split > .figs{display:grid; gap:16px; min-width:0}
+.prose ul,.prose ol{margin:0 0 .9em; padding-left:20px; display:grid; gap:6px; max-width:70ch}
+.prose li{padding-left:2px}
+.full{min-width:0}
+.gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:16px; align-items:start}
+.gallery.stack{grid-template-columns:minmax(0,1fr)}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(560px,1fr))}
+.gallery > .fig.span{grid-column:1 / -1}
+.subsec{display:grid; gap:14px; padding-top:6px}
+/* figures */
+.fig{margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px 12px; display:grid; gap:6px; min-width:0}
+.fig .ft{font:700 15px/1.3 var(--display); font-stretch:92%; text-wrap:balance}
+.fig .fs{font:13px/1.4 var(--ui); color:var(--ink3)}
+.fig .plot{min-height:120px; overflow-x:auto}
+.fig .facet-h{font:700 11.5px/1 var(--ui); letter-spacing:.06em; text-transform:uppercase; color:var(--ink3); margin:10px 0 2px}
+.fig .plot svg{max-width:100%; height:auto; overflow:visible}
+.fig .fc{font:12px/1.45 var(--ui); color:var(--ink3); border-top:1px solid var(--rule); padding-top:6px}
+.fig .fn{font:12.5px/1.45 var(--ui); color:var(--ink2)}
+.fig details summary{font:500 12px var(--ui); color:var(--moss); cursor:pointer}
+.fig .tbl{max-height:280px; overflow:auto; margin-top:6px}
+.fig.err .plot{font:13px var(--ui); color:var(--crit)}
+/* tables */
+.tbl{overflow-x:auto; min-width:0}
+table{border-collapse:collapse; width:100%; font:14px/1.45 var(--ui); font-variant-numeric:tabular-nums}
+th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{font:700 11.5px/1.25 var(--ui); letter-spacing:.05em; text-transform:uppercase; color:var(--ink3); background:var(--panel); position:sticky; top:0}
+td.n,th.n{text-align:right}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:16px 18px}
+.note{background:var(--moss-soft); border-radius:6px; padding:12px 16px; font:14.5px/1.5 var(--ui); color:var(--ink)}
+.note b{color:var(--moss)}
+.caveat{border-left:3px solid var(--warn); padding:4px 0 4px 12px; font:14.5px/1.5 var(--ui); color:var(--ink2)}
+/* glossary */
+dl.gloss{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px 22px; margin:0}
+dl.gloss div{display:grid; gap:2px}
+dl.gloss dt{font:600 13px/1.3 var(--mono); color:var(--moss)}
+dl.gloss dd{margin:0; font:14px/1.45 var(--ui); color:var(--ink2)}
+/* open items */
+.oi-bar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; font:13px var(--ui)}
+.oi-bar button{font:600 12.5px var(--ui); border:1px solid var(--rule); background:var(--panel); color:var(--ink2); padding:6px 11px; border-radius:16px; cursor:pointer}
+.oi-bar button[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.oi-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:12px}
+.oi{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px 14px; display:grid; gap:6px; align-content:start}
+.oi .h{display:flex; gap:8px; align-items:baseline; justify-content:space-between}
+.oi .t{font:700 15px/1.3 var(--display); font-stretch:92%}
+.oi .d{font:13.5px/1.5 var(--ui); color:var(--ink2); margin:0}
+.oi .nx{font:13px/1.45 var(--ui); color:var(--ink)}
+.oi .nx b{color:var(--moss)}
+.oi .src{font:11.5px/1.4 var(--mono); color:var(--ink3); overflow-wrap:anywhere}
+.chip{font:700 10.5px/1 var(--ui); letter-spacing:.06em; text-transform:uppercase; padding:4px 7px; border-radius:10px; white-space:nowrap}
+.chip.high{background:color-mix(in srgb,var(--crit) 16%,transparent); color:var(--crit)}
+.chip.medium{background:color-mix(in srgb,var(--warn) 18%,transparent); color:var(--warn)}
+.chip.low{background:var(--panel2); color:var(--ink3)}
+.chip.cat{background:var(--moss-soft); color:var(--moss)}
+.oi-cat{display:grid; gap:10px}
+.oi-cat > h3 .count{font:600 13px var(--mono); color:var(--ink3); margin-left:8px}
+details.appx{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px 16px}
+details.appx summary{font:700 16px var(--display); cursor:pointer}
+details.appx[open] summary{margin-bottom:10px}
+footer{border-top:1px solid var(--rule); padding-top:14px; font:12.5px/1.5 var(--ui); color:var(--ink3)}
+@media (max-width:1180px){ .page{grid-template-columns:1fr} nav.toc{position:static; max-height:none; border-bottom:1px solid var(--rule); padding-bottom:12px} nav.toc ol ol{display:none} nav.toc > ol{display:flex; flex-wrap:wrap; gap:4px} }
+@media (max-width:980px){ .hero,.split{grid-template-columns:1fr} .gallery,.gallery.wide{grid-template-columns:1fr} }
+@media (max-width:520px){ .oi-grid,.keys{grid-template-columns:1fr} body{font-size:15.5px} }
+</style>
+
+<div class="page">
+<nav class="toc" aria-label="Contents">
+  <p class="tt">Contents</p>
+  
+</nav>
+<main>
+<div class="figs" style="display:grid;gap:16px"><figure class="fig" data-fig="coh-flock-school-pod" id="fig-coh-flock-school-pod"><div class="ft">A leader holds flocks and schools to about 5-30 tiles; unled they spread 97-149, and a led orca pod halves to ~47</div><div class="fs">Mean bounding-box width (tiles) over 15,000 ticks, largest male leading vs no leader, per replicate</div><div class="plot"></div><div class="fc">COH CTRL, COHO OCEAN2, COHR RIVER4; `lead` verb, 15,000 t, 2 replicates; data/experiments/ECO/COH-20261001-000915 (coh-tally.py) · Duck flock rep 2 loosened late (width 48-62 after t9,000). Widget coh-width rows reused; coh-tally.py reproduces them.</div><details><summary>Data (16 rows)</summary><div class="tbl"><table><thead><tr><th>group</th><th>fort</th><th>arm</th><th class=n>rep</th><th class=n>width</th></tr></thead><tbody><tr><td>Duck flock x12</td><td>CTRL</td><td>leader</td><td class=n>1</td><td class=n>5.2</td></tr><tr><td>Duck flock x12</td><td>CTRL</td><td>leader</td><td class=n>2</td><td class=n>30.3</td></tr><tr><td>Duck flock x12</td><td>CTRL</td><td>none</td><td class=n>1</td><td class=n>139.7</td></tr><tr><td>Duck flock x12</td><td>CTRL</td><td>none</td><td class=n>2</td><td class=n>112.6</td></tr><tr><td>Milkfish school x12</td><td>OCEAN2</td><td>leader</td><td class=n>1</td><td class=n>6.6</td></tr><tr><td>Milkfish school x12</td><td>OCEAN2</td><td>leader</td><td class=n>2</td><td class=n>6.4</td></tr><tr><td>Milkfish school x12</td><td>OCEAN2</td><td>none</td><td class=n>1</td><td class=n>114.0</td></tr><tr><td>Milkfish school x12</td><td>OCEAN2</td><td>none</td><td class=n>2</td><td class=n>96.7</td></tr><tr><td>Orca pod x6</td><td>OCEAN2</td><td>leader</td><td class=n>1</td><td class=n>49.3</td></tr><tr><td>Orca pod x6</td><td>OCEAN2</td><td>leader</td><td class=n>2</td><td class=n>44.0</td></tr><tr><td>Orca pod x6</td><td>OCEAN2</td><td>none</td><td class=n>1</td><td class=n>99.6</td></tr><tr><td>Orca pod x6</td><td>OCEAN2</td><td>none</td><td class=n>2</td><td class=n>86.8</td></tr><tr><td>Pike school x12</td><td>RIVER4</td><td>leader</td><td class=n>1</td><td class=n>8.7</td></tr><tr><td>Pike school x12</td><td>RIVER4</td><td>leader</td><td class=n>2</td><td class=n>22.5</td></tr><tr><td>Pike school x12</td><td>RIVER4</td><td>none</td><td class=n>1</td><td class=n>148.8</td></tr><tr><td>Pike school x12</td><td>RIVER4</td><td>none</td><td class=n>2</td><td class=n>141.8</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="n1-exhaustion-replacement" id="fig-n1-exhaustion-replacement"><div class="ft">When the kangaroo entry hit 0 no kangaroo came again, and the wombat stand-in took 25 of the next 26 non-bird waves</div><div class="fs">Cumulative surface non-bird waves by species over the run; kangaroo f100 with entry 3, every wild kangaroo killed each 1,500 t</div><div class="plot"></div><div class="fc">ECO-N1 CTRL, 60,000 t, 1 replicate; data/experiments/ECO-N1/20260930-005333/waves.tsv · Extinct flag stayed FALSE: quantity 0 alone gates. First wombat wave +2,090 t after the kangaroo wave.</div><details><summary>Data (84 rows)</summary><div class="tbl"><table><thead><tr><th class=n>ticks</th><th>species</th><th class=n>cumulative_waves</th></tr></thead><tbody><tr><td class=n>620</td><td>KANGAROO</td><td class=n>0</td></tr><tr><td class=n>620</td><td>WOMBAT</td><td class=n>0</td></tr><tr><td class=n>620</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>2400</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>2400</td><td>WOMBAT</td><td class=n>0</td></tr><tr><td class=n>2400</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>4490</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>4490</td><td>WOMBAT</td><td class=n>1</td></tr><tr><td class=n>4490</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>6350</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>6350</td><td>WOMBAT</td><td class=n>2</td></tr><tr><td class=n>6350</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>8114</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>8114</td><td>WOMBAT</td><td class=n>3</td></tr><tr><td class=n>8114</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>10063</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>10063</td><td>WOMBAT</td><td class=n>4</td></tr><tr><td class=n>10063</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>12112</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>12112</td><td>WOMBAT</td><td class=n>5</td></tr><tr><td class=n>12112</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>14146</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>14146</td><td>WOMBAT</td><td class=n>6</td></tr><tr><td class=n>14146</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>19565</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>19565</td><td>WOMBAT</td><td class=n>7</td></tr><tr><td class=n>19565</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>21494</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>21494</td><td>WOMBAT</td><td class=n>8</td></tr><tr><td class=n>21494</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>23320</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>23320</td><td>WOMBAT</td><td class=n>9</td></tr><tr><td class=n>23320</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>25222</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>25222</td><td>WOMBAT</td><td class=n>10</td></tr><tr><td class=n>25222</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>27102</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>27102</td><td>WOMBAT</td><td class=n>11</td></tr><tr><td class=n>27102</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>28853</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>28853</td><td>WOMBAT</td><td class=n>12</td></tr><tr><td class=n>28853</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>30814</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>30814</td><td>WOMBAT</td><td class=n>13</td></tr><tr><td class=n>30814</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>32602</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>32602</td><td>WOMBAT</td><td class=n>14</td></tr><tr><td class=n>32602</td><td>GROUNDHOG</td><td class=n>1</td></tr><tr><td class=n>34450</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>34450</td><td>WOMBAT</td><td class=n>14</td></tr><tr><td class=n>34450</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>36406</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>36406</td><td>WOMBAT</td><td class=n>15</td></tr><tr><td class=n>36406</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>38226</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>38226</td><td>WOMBAT</td><td class=n>16</td></tr><tr><td class=n>38226</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>40252</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>40252</td><td>WOMBAT</td><td class=n>17</td></tr><tr><td class=n>40252</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>41981</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>41981</td><td>WOMBAT</td><td class=n>18</td></tr><tr><td class=n>41981</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>43846</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>43846</td><td>WOMBAT</td><td class=n>19</td></tr><tr><td class=n>43846</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>45661</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>45661</td><td>WOMBAT</td><td class=n>20</td></tr><tr><td class=n>45661</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>47403</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>47403</td><td>WOMBAT</td><td class=n>21</td></tr><tr><td class=n>47403</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>51060</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>51060</td><td>WOMBAT</td><td class=n>22</td></tr><tr><td class=n>51060</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>52857</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>52857</td><td>WOMBAT</td><td class=n>23</td></tr><tr><td class=n>52857</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>56400</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>56400</td><td>WOMBAT</td><td class=n>24</td></tr><tr><td class=n>56400</td><td>GROUNDHOG</td><td class=n>2</td></tr><tr><td class=n>60114</td><td>KANGAROO</td><td class=n>1</td></tr><tr><td class=n>60114</td><td>WOMBAT</td><td class=n>25</td></tr><tr><td class=n>60114</td><td>GROUNDHOG</td><td class=n>2</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="rels-who-writes" id="fig-rels-who-writes"><div class="ft">DF aims every non-wild unit at each new wild arrival (323 of 370 entries); surface wildlife almost never at each other (5)</div><div class="fs">PREDATOR_OR_PREY entries DF wrote itself, by writer and target class</div><div class="plot"></div><div class="fc">RELS CTRL tool off, rel_map sampled every 3k t; nat 100,800 t + 6 subject cells 30,000 t, 2 replicates; data/experiments/ECO/RELS-20260930-195031 (rels-tally.py); widget rels-writers · Arrivals answer BENIGN_ANIMAL (662) or DANGEROUS_ANIMAL (15). Median first-seen distance 35-85 tiles. Released groups lose the roaming flag (releaseGroup :3197, placement :3559), so they become non-wild to DF: the CAL/STL/LONE off-target kills are this artefact.</div><details><summary>Data (6 rows)</summary><div class="tbl"><table><thead><tr><th>writer</th><th>target</th><th class=n>n</th><th>entry</th></tr></thead><tbody><tr><td>Dwarves</td><td>surface wild arrival</td><td class=n>159</td><td>Dwarves → new arrival</td></tr><tr><td>Livestock and pets</td><td>surface wild arrival</td><td class=n>107</td><td>Livestock, pets → new arrival</td></tr><tr><td>Placed animals (not flagged wild)</td><td>surface wild arrival</td><td class=n>57</td><td>Placed animals → new arrival</td></tr><tr><td>Cavern wildlife</td><td>cavern wildlife</td><td class=n>38</td><td>Cavern → cavern wildlife</td></tr><tr><td>Surface wildlife</td><td>surface wildlife</td><td class=n>5</td><td>Surface → surface wildlife</td></tr><tr><td>Cavern and surface wildlife</td><td>each other</td><td class=n>4</td><td>Cavern ↔ surface wildlife</td></tr></tbody></table></div></details></figure></div>
+</main>
+</div>
+
+<script src="/private/tmp/claude-501/-Users-nathanielcannon-Claude-Projects-DwarfCron/6c601b1a-073b-42c6-a27d-44f793ddcd7d/scratchpad/fig-diag/lib/d3.min.js"></script>
+<script src="/private/tmp/claude-501/-Users-nathanielcannon-Claude-Projects-DwarfCron/6c601b1a-073b-42c6-a27d-44f793ddcd7d/scratchpad/fig-diag/lib/plot.umd.min.js"></script>
+<script id="figdata" type="application/json">[{"series": "arm", "facet": null, "log": false, "notes": "Duck flock rep 2 loosened late (width 48-62 after t9,000). Widget coh-width rows reused; coh-tally.py reproduces them.", "id": "coh-flock-school-pod", "block": "COH", "section": "groups", "title": "A leader holds flocks and schools to about 5-30 tiles; unled they spread 97-149, and a led orca pod halves to ~47", "subtitle": "Mean bounding-box width (tiles) over 15,000 ticks, largest male leading vs no leader, per replicate", "caption": "COH CTRL, COHO OCEAN2, COHR RIVER4; `lead` verb, 15,000 t, 2 replicates; data/experiments/ECO/COH-20261001-000915 (coh-tally.py)", "form": "dot", "x": "group", "y": "width", "unit": "tiles", "rows": [{"group": "Duck flock x12", "fort": "CTRL", "arm": "leader", "rep": 1, "width": 5.2}, {"group": "Duck flock x12", "fort": "CTRL", "arm": "leader", "rep": 2, "width": 30.3}, {"group": "Duck flock x12", "fort": "CTRL", "arm": "none", "rep": 1, "width": 139.7}, {"group": "Duck flock x12", "fort": "CTRL", "arm": "none", "rep": 2, "width": 112.6}, {"group": "Milkfish school x12", "fort": "OCEAN2", "arm": "leader", "rep": 1, "width": 6.6}, {"group": "Milkfish school x12", "fort": "OCEAN2", "arm": "leader", "rep": 2, "width": 6.4}, {"group": "Milkfish school x12", "fort": "OCEAN2", "arm": "none", "rep": 1, "width": 114.0}, {"group": "Milkfish school x12", "fort": "OCEAN2", "arm": "none", "rep": 2, "width": 96.7}, {"group": "Orca pod x6", "fort": "OCEAN2", "arm": "leader", "rep": 1, "width": 49.3}, {"group": "Orca pod x6", "fort": "OCEAN2", "arm": "leader", "rep": 2, "width": 44.0}, {"group": "Orca pod x6", "fort": "OCEAN2", "arm": "none", "rep": 1, "width": 99.6}, {"group": "Orca pod x6", "fort": "OCEAN2", "arm": "none", "rep": 2, "width": 86.8}, {"group": "Pike school x12", "fort": "RIVER4", "arm": "leader", "rep": 1, "width": 8.7}, {"group": "Pike school x12", "fort": "RIVER4", "arm": "leader", "rep": 2, "width": 22.5}, {"group": "Pike school x12", "fort": "RIVER4", "arm": "none", "rep": 1, "width": 148.8}, {"group": "Pike school x12", "fort": "RIVER4", "arm": "none", "rep": 2, "width": 141.8}]}, {"series": "species", "facet": null, "log": false, "notes": "Extinct flag stayed FALSE: quantity 0 alone gates. First wombat wave +2,090 t after the kangaroo wave.", "id": "n1-exhaustion-replacement", "block": "N1", "section": "spawn", "title": "When the kangaroo entry hit 0 no kangaroo came again, and the wombat stand-in took 25 of the next 26 non-bird waves", "subtitle": "Cumulative surface non-bird waves by species over the run; kangaroo f100 with entry 3, every wild kangaroo killed each 1,500 t", "caption": "ECO-N1 CTRL, 60,000 t, 1 replicate; data/experiments/ECO-N1/20260930-005333/waves.tsv", "form": "line", "x": "ticks", "y": "cumulative_waves", "unit": null, "rows": [{"ticks": 620, "species": "KANGAROO", "cumulative_waves": 0}, {"ticks": 620, "species": "WOMBAT", "cumulative_waves": 0}, {"ticks": 620, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 2400, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 2400, "species": "WOMBAT", "cumulative_waves": 0}, {"ticks": 2400, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 4490, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 4490, "species": "WOMBAT", "cumulative_waves": 1}, {"ticks": 4490, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 6350, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 6350, "species": "WOMBAT", "cumulative_waves": 2}, {"ticks": 6350, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 8114, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 8114, "species": "WOMBAT", "cumulative_waves": 3}, {"ticks": 8114, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 10063, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 10063, "species": "WOMBAT", "cumulative_waves": 4}, {"ticks": 10063, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 12112, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 12112, "species": "WOMBAT", "cumulative_waves": 5}, {"ticks": 12112, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 14146, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 14146, "species": "WOMBAT", "cumulative_waves": 6}, {"ticks": 14146, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 19565, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 19565, "species": "WOMBAT", "cumulative_waves": 7}, {"ticks": 19565, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 21494, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 21494, "species": "WOMBAT", "cumulative_waves": 8}, {"ticks": 21494, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 23320, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 23320, "species": "WOMBAT", "cumulative_waves": 9}, {"ticks": 23320, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 25222, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 25222, "species": "WOMBAT", "cumulative_waves": 10}, {"ticks": 25222, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 27102, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 27102, "species": "WOMBAT", "cumulative_waves": 11}, {"ticks": 27102, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 28853, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 28853, "species": "WOMBAT", "cumulative_waves": 12}, {"ticks": 28853, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 30814, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 30814, "species": "WOMBAT", "cumulative_waves": 13}, {"ticks": 30814, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 32602, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 32602, "species": "WOMBAT", "cumulative_waves": 14}, {"ticks": 32602, "species": "GROUNDHOG", "cumulative_waves": 1}, {"ticks": 34450, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 34450, "species": "WOMBAT", "cumulative_waves": 14}, {"ticks": 34450, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 36406, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 36406, "species": "WOMBAT", "cumulative_waves": 15}, {"ticks": 36406, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 38226, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 38226, "species": "WOMBAT", "cumulative_waves": 16}, {"ticks": 38226, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 40252, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 40252, "species": "WOMBAT", "cumulative_waves": 17}, {"ticks": 40252, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 41981, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 41981, "species": "WOMBAT", "cumulative_waves": 18}, {"ticks": 41981, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 43846, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 43846, "species": "WOMBAT", "cumulative_waves": 19}, {"ticks": 43846, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 45661, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 45661, "species": "WOMBAT", "cumulative_waves": 20}, {"ticks": 45661, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 47403, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 47403, "species": "WOMBAT", "cumulative_waves": 21}, {"ticks": 47403, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 51060, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 51060, "species": "WOMBAT", "cumulative_waves": 22}, {"ticks": 51060, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 52857, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 52857, "species": "WOMBAT", "cumulative_waves": 23}, {"ticks": 52857, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 56400, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 56400, "species": "WOMBAT", "cumulative_waves": 24}, {"ticks": 56400, "species": "GROUNDHOG", "cumulative_waves": 2}, {"ticks": 60114, "species": "KANGAROO", "cumulative_waves": 1}, {"ticks": 60114, "species": "WOMBAT", "cumulative_waves": 25}, {"ticks": 60114, "species": "GROUNDHOG", "cumulative_waves": 2}], "reference": [{"value": 2400, "axis": "x", "label": "kangaroo wave of 3 (entry 3 -> 0)"}], "yLabel": "waves so far", "xLabel": "ticks", "curve": "step-after"}, {"series": null, "facet": null, "log": false, "notes": "Arrivals answer BENIGN_ANIMAL (662) or DANGEROUS_ANIMAL (15). Median first-seen distance 35-85 tiles. Released groups lose the roaming flag (releaseGroup :3197, placement :3559), so they become non-wild to DF: the CAL/STL/LONE off-target kills are this artefact.", "id": "rels-who-writes", "block": "RELS", "section": "relations", "title": "DF aims every non-wild unit at each new wild arrival (323 of 370 entries); surface wildlife almost never at each other (5)", "subtitle": "PREDATOR_OR_PREY entries DF wrote itself, by writer and target class", "caption": "RELS CTRL tool off, rel_map sampled every 3k t; nat 100,800 t + 6 subject cells 30,000 t, 2 replicates; data/experiments/ECO/RELS-20260930-195031 (rels-tally.py); widget rels-writers", "form": "bar", "x": "entry", "y": "n", "unit": "entries", "highlight": "Placed animals \u2192 new arrival", "rows": [{"writer": "Dwarves", "target": "surface wild arrival", "n": 159, "entry": "Dwarves \u2192 new arrival"}, {"writer": "Livestock and pets", "target": "surface wild arrival", "n": 107, "entry": "Livestock, pets \u2192 new arrival"}, {"writer": "Placed animals (not flagged wild)", "target": "surface wild arrival", "n": 57, "entry": "Placed animals \u2192 new arrival"}, {"writer": "Cavern wildlife", "target": "cavern wildlife", "n": 38, "entry": "Cavern \u2192 cavern wildlife"}, {"writer": "Surface wildlife", "target": "surface wildlife", "n": 5, "entry": "Surface \u2192 surface wildlife"}, {"writer": "Cavern and surface wildlife", "target": "each other", "n": 4, "entry": "Cavern \u2194 surface wildlife"}]}]</script>
+<script id="oidata" type="application/json">{}</script>
+<script>
+(function(){
+const FIGS = JSON.parse(document.getElementById('figdata').textContent);
+const BYID = Object.fromEntries(FIGS.map(f => [f.id, f]));
+const css = () => { const s = getComputedStyle(document.documentElement); const g = n => s.getPropertyValue(n).trim();
+  return {ink:g('--ink'), ink2:g('--ink2'), ink3:g('--ink3'), grid:g('--grid'), axis:g('--axis'), muted:g('--muted'), panel:g('--panel'),
+          pal:[g('--s1'),g('--s2'),g('--s3'),g('--s4'),g('--s5'),g('--s6'),g('--s7'),g('--s8')], mono:g('--mono'), ui:g('--ui')}; };
+const num = v => typeof v === 'number' ? v : (v != null && v !== '' && !isNaN(+v) ? +v : v);
+const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 1000 ? v.toLocaleString('en-US', {maximumFractionDigits:0}) : (Number.isInteger(v) ? String(v) : v.toLocaleString('en-US', {maximumFractionDigits:2}))) : String(v);
+const uniq = (rows, k) => k ? [...new Set(rows.map(r => r[k]).filter(v => v != null))] : [];
+const longest = arr => arr.reduce((m, s) => Math.max(m, String(s).length), 0);
+function logOf(spec, axis){ const l = spec.log; if (!l) return false; if (l === true) return axis === (spec.form === 'scatter' ? 'both' : 'value') || l === true; return l === axis || l === 'both'; }
+function colorScale(spec, rows, C){
+  const s = spec.series; if (!s) return null;
+  const dom = spec.seriesOrder || uniq(rows, s);
+  if (dom.length > 8) return {type:'ordinal', domain:dom, range:dom.map((d,i) => i < 7 ? C.pal[i] : C.muted)};
+  return {type:'ordinal', domain:dom, range:C.pal.slice(0, dom.length), legend:true};
+}
+function tipText(spec, r){ const keys = Object.keys(r).filter(k => !k.startsWith('_')).slice(0, 8); return keys.map(k => `${k}: ${fmt(r[k])}`).join('\n'); }
+
+function build(spec, width){
+  const C = css(); const rows = (spec.rows || []).map(r => { const o = {}; for (const k in r) o[k] = num(r[k]); return o; });
+  let x = spec.x, y = spec.y; const s = spec.series || null, fct = spec.facet || null, form = spec.form;
+  // Categorical forms read spec.x as the category and spec.y as the value. A spec written the other way round
+  // (numeric x, text y) used to plot text on a linear scale: every mark NaN, an empty frame. Swap it and say so.
+  if (['bar','dot','dumbbell','box','strip','stackedBar','groupedBar','range'].includes(form) && rows.length && x && y
+      && rows.every(r => typeof r[x] === 'number') && rows.some(r => typeof r[y] === 'string')){
+    console.warn('figure', spec.id, ': x/y swapped (x must be the category)'); [x, y] = [y, x]; }
+  const color = colorScale(spec, rows, C);
+  const hi = spec.highlight;
+  const base = {width, style:{background:'transparent', color:C.ink2, fontFamily:C.ui, fontSize:'12px', overflow:'visible'},
+                marginTop:16, marginRight:28, marginBottom:40, grid:false};
+  const accent = C.pal[0];
+  const single = r => (hi != null && (r[x] === hi || r[s] === hi)) ? accent : (hi != null ? C.muted : accent);
+  const refs = (spec.reference || []).map(rf => rf);
+  const cats = uniq(rows, x);
+  const lm = Math.min(280, 18 + 7.6 * longest(cats));
+  const T = r => tipText(spec, r);
+  const unit = spec.unit && !String(spec.yLabel || spec.y || '').includes(spec.unit) ? ` (${spec.unit})` : '';
+  let marks = [], opt = {};
+  const valueLog = spec.log === true || spec.log === 'value' || spec.log === 'x' && ['bar','dot','box','range','dumbbell'].includes(form);
+  switch(form){
+    case 'bar': {
+      const horiz = cats.length > 5 || longest(cats) > 9;
+      if (horiz){
+        marks = [Plot.barX(rows, {x:y, y:x, fill: s ? s : single, sort: spec.sort === false ? undefined : {y:'-x'}, title:T, rx:2}),
+                 Plot.text(rows, {x:y, y:x, text:d => fmt(d[y]), dx:4, textAnchor:'start', fill:C.ink2, fontSize:11}),
+                 Plot.ruleX([0], {stroke:C.axis})];
+        opt = {marginLeft:lm, height:Math.max(110, 26 * cats.length + 50), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log' : 'linear'}, y:{label:null}};
+      } else {
+        marks = [Plot.barY(rows, {x:x, y:y, fill: s ? s : single, title:T, rx:2}),
+                 Plot.text(rows, {x:x, y:y, text:d => fmt(d[y]), dy:-7, fill:C.ink2, fontSize:11}), Plot.ruleY([0], {stroke:C.axis})];
+        opt = {height:280, x:{label:null, domain:cats}, y:{label:(spec.yLabel || y) + unit, grid:true}};
+      }
+      break; }
+    case 'groupedBar': {
+      const ser = uniq(rows, s);
+      if (cats.length * ser.length > 10 || longest(cats) > 9){
+        marks = [Plot.barX(rows, {x:y, y:s, fy:x, fill:s, title:T, rx:2}), Plot.text(rows, {x:y, y:s, fy:x, text:d => fmt(d[y]), dx:4, textAnchor:'start', fill:C.ink2, fontSize:10.5}), Plot.ruleX([0], {stroke:C.axis})];
+        opt = {marginLeft:Math.min(260, 18 + 7.4*longest(cats)), height:Math.max(140, cats.length * (ser.length*15 + 12) + 50), x:{label:(spec.yLabel || y) + unit, grid:true}, y:{axis:null, domain:ser}, fy:{label:null, domain:cats, padding:.18}};
+      } else {
+        marks = [Plot.barY(rows, {fx:x, x:s, y:y, fill:s, title:T, rx:2}), Plot.text(rows, {fx:x, x:s, y:y, text:d => fmt(d[y]), dy:-7, fill:C.ink2, fontSize:10.5}), Plot.ruleY([0], {stroke:C.axis})];
+        opt = {height:290, x:{axis:null, domain:ser}, fx:{label:null, domain:cats}, y:{label:(spec.yLabel || y) + unit, grid:true}};
+      }
+      break; }
+    case 'stackedBar': {
+      marks = [Plot.barX(rows, {x:y, y:x, fill:s, title:T, inset:0.5}), Plot.ruleX([0], {stroke:C.axis})];
+      opt = {marginLeft:lm, height:Math.max(120, 28 * cats.length + 60), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'dot': {
+      const hasRep = rows.some(r => r.rep != null);
+      marks = [Plot.ruleY(cats, {stroke:C.grid}),
+               Plot.dot(rows, {x:y, y:x, fill: s ? s : accent, r:5, stroke:C.panel, strokeWidth:1, title:T})];
+      // replicate mean: one tick per category AND series (one tick pooled over both arms meant nothing)
+      if (hasRep) marks.push(Plot.tickX(rows, Plot.groupY({x:'mean'}, s ? {x:y, y:x, z:s, stroke:s, strokeWidth:2} : {x:y, y:x, stroke:C.ink, strokeWidth:2})));
+      opt = {marginLeft:lm, height:Math.max(110, 26 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'dumbbell': {
+      const ser = uniq(rows, s).slice(0, 2);
+      const byCat = d3.rollups(rows, v => v, d => d[x]);
+      const links = byCat.map(([k, v]) => { const a = d3.mean(v.filter(r => r[s] === ser[0]), r => r[y]), b = d3.mean(v.filter(r => r[s] === ser[1]), r => r[y]); return {k, a, b}; });
+      marks = [Plot.link(links, {x1:'a', x2:'b', y1:'k', y2:'k', stroke:C.axis, strokeWidth:2}),
+               Plot.dot(rows, {x:y, y:x, fill:s, r:5.5, stroke:C.panel, strokeWidth:1, title:T})];
+      opt = {marginLeft:lm, height:Math.max(110, 30 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'heatmap': {
+      const v = spec.value || spec.z || (rows[0] && ('value' in rows[0] ? 'value' : (s && typeof rows[0][s] === 'number' ? s : y)));
+      const xs = uniq(rows, x), ys = uniq(rows, y === v ? (s || y) : y);
+      const yk = y === v ? s : y;
+      const vmax = d3.max(rows, d => +d[v] || 0) || 1;
+      const big = spec.cellText === false || xs.length > 24;
+      const xd = spec.xOrder || xs, yd = spec.yOrder || ys;
+      marks = [Plot.cell(rows, {x:x, y:yk, fill:v, title:T, inset: big ? 0.5 : 1})];
+      if (!big) marks.push(Plot.text(rows, {x:x, y:yk, text:d => d[v] == null ? '' : fmt(d[v]), fill:d => ((+d[v] || 0) / vmax > 0.5 ? '#ffffff' : '#17201C'), fontSize:10.5, fontWeight:500}));
+      const ml = Math.min(260, 18 + 7.4*longest(ys)), mb = big ? Math.min(200, 18 + 7.4*longest(xs)) : Math.min(150, 24 + 6.4*longest(xs));
+      const side = big ? Math.max(9, Math.floor((width - ml - 20) / xd.length)) : 26;    // square cells for a big matrix
+      opt = {marginLeft:ml, marginBottom:mb, marginRight: big ? 20 : 28,
+             width: big ? ml + side * xd.length + 20 : width,
+             height: big ? side * yd.length + mb + 16 : Math.max(160, 26 * ys.length + 110),
+             x:{label:null, tickRotate: big ? -90 : (longest(xs) > 5 ? -40 : 0), domain:xd}, y:{label:null, domain:yd},
+             color:{type: spec.colorType || 'linear', scheme:'blues', legend:true, label:(spec.valueLabel || v) + (spec.unit && !(spec.valueLabel || v).includes(spec.unit) ? ` (${spec.unit})` : '')}};
+      const node = Plot.plot({...base, ...opt, marks});
+      if (big && spec.blocks){   // outline each block on the diagonal; a block is {from, to, label}, first and last token in the order
+        const sx = node.scale('x'), sy = node.scale('y');
+        const svg = node.tagName.toLowerCase() === 'svg' ? node : [...node.querySelectorAll('svg')].pop();
+        const g = d3.select(svg).append('g').attr('aria-label', 'blocks');
+        for (const bk of spec.blocks){
+          const i = xd.indexOf(bk.from), j = xd.indexOf(bk.to); if (i < 0 || j < 0) continue;
+          const x0 = sx.apply(xd[i]), x1 = sx.apply(xd[j]) + sx.bandwidth, y0 = sy.apply(yd[yd.indexOf(bk.from)]), y1 = sy.apply(yd[yd.indexOf(bk.to)]) + sy.bandwidth;
+          g.append('rect').attr('x', x0).attr('y', y0).attr('width', x1 - x0).attr('height', y1 - y0).attr('fill', 'none').attr('stroke', C.ink).attr('stroke-width', 1.6)
+           .append('title').text(bk.label);
+          if (bk.tag) g.append('text').attr('x', x1 + 3).attr('y', y0 - 3).attr('font-size', 11.5).attr('font-weight', 700).attr('fill', C.ink)
+             .attr('stroke', C.panel).attr('stroke-width', 3).attr('paint-order', 'stroke').text(bk.tag);
+        }
+      }
+      return node;
+    }
+    case 'line': {
+      marks = [Plot.line(rows, {x:x, y:y, stroke: s || accent, strokeWidth:2, curve: spec.curve || 'monotone-x'}), Plot.dot(rows, {x:x, y:y, fill: s || accent, r:3, title:T})];
+      opt = {height:280, x:{label:(spec.xLabel || x), grid:false}, y:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}};
+      break; }
+    case 'scatter': {
+      const lx = spec.log === true || spec.log === 'x' || spec.log === 'both', ly = spec.log === 'y' || spec.log === 'both';
+      marks = [Plot.dot(rows, {x:x, y:y, fill: s || accent, r:4, fillOpacity:.8, stroke:C.panel, strokeWidth:.6, title:T})];
+      if (spec.labelField) marks.push(Plot.text(rows.filter(r => r._label || r.label), {x:x, y:y, text: spec.labelField, dx:6, textAnchor:'start', fontSize:10.5, fill:C.ink2}));
+      opt = {height:340, x:{label:(spec.xLabel || x), type: lx ? 'log':'linear', grid:true}, y:{label:(spec.yLabel || y) + unit, type: ly ? 'log':'linear', grid:true}};
+      break; }
+    case 'box': {
+      marks = [Plot.boxX(rows, {x:y, y:x, fill:C.pal[0], fillOpacity:.25, stroke:C.ink2})];
+      opt = {marginLeft:lm, height:Math.max(130, 30 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'strip': {
+      marks = [Plot.dot(rows, {x:y, y:x, fill: s || accent, r:2.6, fillOpacity:.55, title:T}),
+               Plot.tickX(rows, Plot.groupY({x:'median'}, {x:y, y:x, stroke:C.ink, strokeWidth:2}))];
+      opt = {marginLeft:lm, height:Math.max(130, 28 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'histogram': {
+      const lx = valueLog;
+      marks = [Plot.rectY(rows, Plot.binX({y:'count'}, {x:x, fill: s || accent, title: d => '', thresholds: spec.bins || 'auto'})), Plot.ruleY([0], {stroke:C.axis})];
+      opt = {height:260, x:{label:(spec.xLabel || x) + unit, type: lx ? 'log':'linear'}, y:{label:'species', grid:true}};
+      break; }
+    case 'range': {
+      const lo = spec.lo || ('min' in (rows[0]||{}) ? 'min' : 'lo'), hi2 = spec.hi || ('max' in (rows[0]||{}) ? 'max' : 'hi');
+      marks = [Plot.ruleY(cats, {stroke:C.grid}), Plot.link(rows, {x1:lo, x2:hi2, y1:x, y2:x, stroke: s || accent, strokeWidth:5, strokeLinecap:'round', title:T})];
+      if (y && y !== lo) marks.push(Plot.dot(rows, {x:y, y:x, fill:C.ink, r:3}));
+      opt = {marginLeft:lm, height:Math.max(110, 24 * cats.length + 54), x:{label:(spec.yLabel || 'range') + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    default: return null;
+  }
+  refs.forEach((rf, ri) => { const vv = rf.value; const horizontal = rf.axis === 'x' && ['line','scatter','histogram'].includes(form) ? true :
+      ['bar','dot','dumbbell','box','strip','stackedBar','range'].includes(form) && (form !== 'bar' || cats.length > 5 || longest(cats) > 9);
+    if (horizontal){ marks.push(Plot.ruleX([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {x:d => d, frameAnchor:'top', dy:-2 + ri * 12, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'start', dx:4})); }
+    else { marks.push(Plot.ruleY([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {y:d => d, frameAnchor:'right', dy:-6, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'end'})); } });
+  if (fct){ opt.fy = undefined; }
+  return Plot.plot({...base, ...opt, color: color || undefined, marks});
+}
+
+function tableOf(spec){
+  const rows = spec.rows || []; if (!rows.length) return '<p>No rows.</p>';
+  const keys = Object.keys(rows[0]).filter(k => !k.startsWith('_'));
+  const esc = v => String(v == null ? '' : v).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return '<table><thead><tr>' + keys.map(k => `<th${typeof rows[0][k] === 'number' ? ' class="n"' : ''}>${esc(k)}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + keys.map(k => `<td${typeof r[k] === 'number' ? ' class="n"' : ''}>${esc(typeof r[k] === 'number' ? fmt(r[k]) : r[k])}</td>`).join('') + '</tr>').join('') + '</tbody></table>';
+}
+
+function render(el){
+  const spec = BYID[el.dataset.fig]; if (!spec) { el.remove(); return; }
+  const plot = el.querySelector('.plot'); if (!plot) return;
+  const w = Math.max(280, Math.floor(plot.clientWidth || el.clientWidth - 32));
+  if (el._w === w && el._theme === document.documentElement.dataset.theme + matchMedia('(prefers-color-scheme: dark)').matches) return;
+  el._w = w; el._theme = document.documentElement.dataset.theme + matchMedia('(prefers-color-scheme: dark)').matches;
+  plot.innerHTML = '';
+  if (spec.form === 'table' || typeof Plot === 'undefined'){ plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>'; return; }
+  try {
+    const fv = spec.facet ? [...new Set((spec.rows || []).map(r => r[spec.facet]))] : [];
+    if (fv.length > 1 && fv.length <= 6){
+      // one small panel per facet value, same scales' domains for the categories
+      for (const v of fv){
+        const h = document.createElement('div'); h.className = 'facet-h'; h.textContent = v; plot.appendChild(h);
+        const sub = Object.assign({}, spec, {rows: spec.rows.filter(r => r[spec.facet] === v), facet: null,
+                                              seriesOrder: spec.series ? [...new Set(spec.rows.map(r => r[spec.series]))] : undefined});
+        const node = build(sub, w); if (node){ node.setAttribute('role','img'); node.setAttribute('aria-label', (spec.title || '') + ' — ' + v); plot.appendChild(node); }
+      }
+    } else {
+      const node = build(spec, w); if (node){ node.setAttribute('role','img'); node.setAttribute('aria-label', spec.title || ''); plot.appendChild(node); } else plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>';
+    }
+  }
+  catch(e){ el.classList.add('err'); plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>'; console.warn('figure', spec.id, e); }
+}
+const all = () => document.querySelectorAll('.fig[data-fig]');
+function renderAll(force){ all().forEach(el => { if (force) el._w = 0; render(el); }); }
+if (typeof ResizeObserver !== 'undefined'){ const ro = new ResizeObserver(es => es.forEach(e => render(e.target.closest('.fig')))); all().forEach(el => ro.observe(el.querySelector('.plot') || el)); }
+renderAll(true);
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => renderAll(true));
+      new MutationObserver(() => renderAll(true)).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']}); } catch(e){}
+
+/* open items filter */
+const bar = document.querySelector('.oi-bar');
+if (bar){
+  const items = [...document.querySelectorAll('.oi')];
+  let pr = 'all';
+  bar.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return;
+    pr = b.dataset.p; bar.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    items.forEach(it => { it.hidden = !(pr === 'all' || it.dataset.p === pr); });
+    document.querySelectorAll('.oi-cat').forEach(c => { c.hidden = !c.querySelector('.oi:not([hidden])'); });
+  });
+}
+/* toc highlight */
+const links = [...document.querySelectorAll('nav.toc a')]; const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+if ('IntersectionObserver' in window){ const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ links.forEach(a => a.classList.remove('on')); const a = map.get(e.target.id); if (a) a.classList.add('on'); } }), {rootMargin:'-10% 0px -80% 0px'});
+  document.querySelectorAll('section.sec[id], .subsec[id]').forEach(s => io.observe(s)); }
+})();
+</script>
+<script>setTimeout(()=>{const o=[];document.querySelectorAll('.fig').forEach(el=>{const sv=el.querySelector('.plot svg');
+o.push(el.dataset.fig+' err='+el.classList.contains('err')+' svgs='+el.querySelectorAll('.plot svg').length+' circles='+el.querySelectorAll('.plot circle').length+' rects='+el.querySelectorAll('.plot rect').length+' paths='+el.querySelectorAll('.plot path').length+' table='+!!el.querySelector('.plot table')+(sv?' w='+sv.getAttribute('width')+' h='+sv.getAttribute('height'):'')+' yticks='+[...el.querySelectorAll('[aria-label="y-axis tick label"] text')].map(t=>t.textContent).slice(0,12).join('|')+' xticks='+[...el.querySelectorAll('[aria-label="x-axis tick label"] text')].map(t=>t.textContent).slice(0,12).join('|'))});
+const p=document.createElement('pre');p.id='diag';p.textContent=o.join('\n');document.body.appendChild(p);},300);</script>

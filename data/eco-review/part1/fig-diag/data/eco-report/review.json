@@ -1,0 +1,508 @@
+{
+  "generated": "2026-10-01, adversarial review of eco-report.md (921 lines, Oct 1 export) against data/eco-desk/findings.md (580 lines) and spot-checks of raw data (LONE10 via scripts/lone-tally.py, VRM3b via scripts/vrm-tally.py, RELS2b via scripts/rels2-tally.py, BOATS DEPTH.tsv, git log for v6.9 validation). Report line numbers refer to the markdown export.",
+
+  "factual": [
+    {
+      "where": "Summary bullet 'Lone hunters need dense prey' (l.20) and 'A lone hunter among 48 prey (LONE)' > LONE10 paragraph (l.620)",
+      "report": "'the skill package lifted a cougar's kills from 14 to 29 over 10 seasons each (LONE10, p = 0.025), mostly on native animals' and 'Kills 29 against 14 ... Most of the lift is on native wildlife the cougar met on its own (20 against 7); on the 48 placed prey the two arms were close (9 against 7)'. Per-run lists: package 7,2,3,3,4,12,8,0,7,3; control 2,1,5,0,2,2,0,0,4,5.",
+      "truth": "lone-tally.py on LONE10-20260930-212000: placed-prey kills ctl 14, pkg 29; native kills ctl 7, pkg 20; all kills 21 vs 49. The per-run lists quoted are ALL kills (they sum to 49 and 21, not 29 and 14). So the lift on the 48 placed prey is 14 -> 29, not '9 against 7', and it is NOT mostly on natives. One-sided permutation p recomputed: all kills 0.024 (this is the quoted 0.025), placed kills 0.07, native kills 0.17. The headline pairs the placed-kill numbers (14 -> 29) with the all-kill p-value. findings.md has no LONE10 paragraph at all.",
+      "source": "data/experiments/ECO/LONE10-20260930-212000/LONE.tsv via scripts/lone-tally.py (arm table: ctl 10 runs 664 attacks 14 kills 7 native, pkg 1393 / 29 / 20); scripts/lone-tally.py splits 'kill' (victim_spawned=1) from 'nat'",
+      "fix": "Rewrite: 'Over 10 seasons per arm the package cougar killed 49 animals against 21 (one-sided permutation p = 0.024): 29 against 14 of the 48 placed prey (p = 0.07) and 20 against 7 natives (p = 0.17).' Add the RELS row-3 caveat (native kills exist only because a placed cougar is non-wild to DF). Add a LONE10 paragraph to findings.md."
+    },
+    {
+      "where": "Summary bullet 'Amphibious predators cross the shoreline; aquatic ones never leave the water' (l.11)",
+      "report": "'Sharks and lampreys made 0 attacks on land prey.'",
+      "truth": "W1O: SHARK_BLUE x HARP_SEAL placed on land: 53 attacks, 1 kill (only seals that entered the water). The report's own boundary table (l.79) shows 53 / 0 and 1 killed.",
+      "source": "findings.md l.90; report l.79",
+      "fix": "'Sharks and lampreys never attacked deer on land; sharks took shore seals only when the seals entered the water (53 attacks, 1 kill).'"
+    },
+    {
+      "where": "Token effects > NO_<season> bullet (l.189) and Recommendation 5 (l.827)",
+      "report": "'NO_SPRING stopped 19 of 19 spring kangaroo waves (T2)' and 'NO_SPRING set at run time stopped 100% of spring waves'",
+      "truth": "T2: 'nospring_KANGAROO ... 0 kangaroo of 19 waves'. There were 19 surface waves in spring and none was kangaroo; spring waves were not stopped, the kangaroo was.",
+      "source": "findings.md l.67-68",
+      "fix": "'With NO_SPRING set at run time, a FREQUENCY-100 kangaroo took 0 of 19 spring waves (61% of waves without the flag in F1).'"
+    },
+    {
+      "where": "Domestic animals as prey (DOM, v7.0), first bullet (l.662)",
+      "report": "'On: the wolves were related to all 11 fort animals and attacked them (37 and 88 attacks)'",
+      "truth": "DOM2: 'attacks 37 and 88 (DOG>WOLF 29/38, WOLF>DOG 5/24, WOLF>PIG 15, WOLF>CAVY 2/5, WOLF>CHICKEN 3)'. The totals include the dogs' 29 and 38 attacks on the wolves; wolves made roughly 8 and 50.",
+      "source": "findings.md l.295-297",
+      "fix": "'On: the wolves were related to all 11 fort animals; the fights totalled 37 and 88 attacks, of which the dogs made 29 and 38 on the wolves.'"
+    },
+    {
+      "where": "Solitary hunters > 'Why deer escape: speed' (l.433-446)",
+      "report": "'Wolf kills in CAL rose as the prey got slower' with the table column 'Killed by wolves in CAL': deer 1, moose 4, water buffalo 7, elephant 3",
+      "truth": "By the report's own column, wolf kills fall from buffalo (7, speed 183) to elephant (3, speed 488), so wolf kills are not monotonic in speed. findings.md's monotonic series (deer 1, moose 4, buffalo 7, elephant 11) adds the 8 elephants killed by 10 hyenas.",
+      "source": "findings.md l.234 and l.212-219",
+      "fix": "'Kills rose with prey slowness up to water buffalo; elephants, the slowest, fell to 7-wolf packs 3 times and to 10-hyena clans 8 times.' Or show wolf and hyena columns separately."
+    },
+    {
+      "where": "A season on v7.0 with the roster builder, table column 'Deaths per surface arrival' (l.761-766)",
+      "report": "S8C 0.87, 0.59; S8B 1.28, 0.24; S8O 0.76, 0.61; S8Cb 0.51, 0.62",
+      "truth": "The arithmetic is right (deaths / surface units) but the numerator is all deaths on the map, mostly cavern natives: S8C 'Deaths 39 and 20, all cavern natives'; S8Cb 'Deaths 19 and 23, all cavern natives'; S8B deaths include 33 plump helmet men (cavern). The column does not measure predation on surface arrivals.",
+      "source": "findings.md l.435, l.445-446, l.455, l.522",
+      "fix": "Replace with 'surface deaths per surface arrival', or drop the column and state that S8C/S8Cb deaths were all cavern natives."
+    },
+    {
+      "where": "Groups section table and text (l.207-214), Recommendation 13 (l.835)",
+      "report": "'A largest-male rule ... holds a group together as well as the lowest-id rule does' and 'Both hold a herd within 2-4 tiles'",
+      "truth": "L1 (no predators, 1 rep): deer 1.7 / 3.6, wolves 10.0 / 3.4. L2 (deer herd with written wolves, 1 rep): spread none 69, lowest-id 11.7, largest male 41.9. In L2 the largest-male herd was 3.6x wider than the lowest-id herd. The wolf pack under lowest-id was 10.0 tiles, not 2-4.",
+      "source": "findings.md l.24, l.47-49",
+      "fix": "Add an L2 spread row (69 / 11.7 / 41.9) to the table and say: 'Both leader rules tightened groups against no leader; which works better is unresolved (single runs disagree).'"
+    },
+    {
+      "where": "Summary bullet 'Leaders hold groups together and protect prey' (l.13)",
+      "report": "'A led herd spread 2-4 tiles against 52 without a leader'",
+      "truth": "L1 led herd 1.7 and 3.6 tiles (deer only); 1 rep. The same herd under wolf pressure (L2) spread 11.7 and 41.9 when led.",
+      "source": "findings.md l.24, l.47",
+      "fix": "'Without predators, a led deer herd stayed within 2-4 tiles against 52 unled (1 run).'"
+    },
+    {
+      "where": "Summary bullet 'A leader holds flocks and schools too' (l.25)",
+      "report": "'against 100-150 without a leader'",
+      "truth": "Unled widths 139.7, 112.6 (duck), 114.0, 96.7 (milkfish), 148.8, 141.8 (pike): 97-149.",
+      "source": "findings.md l.358-361",
+      "fix": "'about 100-150' or '97-149'."
+    },
+    {
+      "where": "Overnight blocks table, FSH2 row (l.705)",
+      "report": "'two grizzlies left the map'",
+      "truth": "'Grizzlies left the map (gone 2, 1)': three grizzlies over two replicates.",
+      "source": "findings.md l.343",
+      "fix": "'three grizzlies left the map (2 and 1)'."
+    },
+    {
+      "where": "Vermin predation (VRM), opening paragraph (l.636)",
+      "report": "'Placed vermin persist: with no consumer near, all 40 roaches and 20 grasshoppers are still on the map 6,000 ticks later.'",
+      "truth": "True only of VRM's control (0/0). VRM2's control lost 14 roaches and 18 grasshoppers in rep 1 (cats), and VRM3b's no-consumer arm lost vermin in 2 of 6 reps (12/15, 7/12).",
+      "source": "findings.md l.275, l.283, l.286-288; scripts/vrm-tally.py on VRM3b-20260930-205050",
+      "fix": "'With no consumer and no pet cats nearby, all 40 roaches and 20 grasshoppers stayed for 6,000 ticks (VRM control; VRM3b 4 of 6 reps).'"
+    },
+    {
+      "where": "Solitary hunters (STL, STL2), closing paragraph (l.483) versus third-round table (l.543)",
+      "report": "l.483 'pooled p = 0.35' after l.429 '10 of 48 runs and unchanged hunters in 2 of 16'; l.543 'unchanged ones in 3 of 28 (Fisher's exact test, p = 0.35)'",
+      "truth": "Recomputed: 10/48 vs 3/28 two-sided Fisher p = 0.35 (one-sided 0.21); 10/48 vs 2/16 one-sided p = 0.37, two-sided 0.71. The p = 0.35 belongs to the 3-of-28 comparison (STL+STL2+CAL), not the 2-of-16 one it follows at l.483. Sidedness is never stated.",
+      "source": "scipy.stats.fisher_exact on the report's counts; findings.md l.228, l.238",
+      "fix": "State one comparison, its denominators and sidedness: 'skilled 10 of 48 runs with a kill vs unchanged 3 of 28 (STL, STL2 and CAL lone hunters; two-sided Fisher p = 0.35)'."
+    },
+    {
+      "where": "Every layer > 'Native cavern fighting depends on the species or the spot' (l.116)",
+      "report": "'Jabberers, blind cave ogres and cave toads did not.'",
+      "truth": "HC4 second spot: TOAD_GIANT_CAVE x ELK_BIRD 7 / 18 attacks, 1 / 3 kills; VORACIOUS_CAVE_CRAWLER x CRUNDLE 0, 0 (fought at spot 1, not spot 2). Cave toads and crawlers move with the spot; jabberers, ogres and olms never fight.",
+      "source": "findings.md l.323-332",
+      "fix": "'Trolls with gorlaks and troglodytes with elk birds fought at both spots; jabberers, blind cave ogres and giant olms never did; cave toads, cave crawlers and cave crocodiles fought at one spot only (HC4, 2 reps at the second spot).'"
+    },
+    {
+      "where": "Token effects intro (l.161) and T0 bullets (l.185)",
+      "report": "'Of the ~95 tokens asked about' and '39 affect behaviour ... 10 affect the spawn pick ... 14 have no documented wildlife effect ... and 7 are unclear' (= 70)",
+      "truth": "T0-triage.tsv has 113 token rows; its relevance column reads behaviour 49, spawn 13 + spawn/pick 5, none 19, unclear 7, adventure-only 5, other 9. Neither 95 nor the 39/10/14/7 split matches the file now in the repo.",
+      "source": "data/eco-desk/T0-triage.tsv (column 5)",
+      "fix": "Recount from T0-triage.tsv and quote one total; if the report counts an earlier subset, say which."
+    },
+    {
+      "where": "Geography > Realms (l.303)",
+      "report": "'A realm table assigns the 308 surface species to 13 realms: Nearctic 75, Palearctic 48, Africa 35, Indomalaya 33, Neotropics 27, Australasia 17, Arctic 13, New Zealand 4, Madagascar 3, Antarctic 4, oceanic 55, cosmopolitan 44, DF-invented 24.'",
+      "truth": "The listed counts sum to 382, not 308. Either species sit in several realms (unstated) or a count is wrong.",
+      "source": "arithmetic on the report's own numbers; data/eco-desk/Q9-realms.md",
+      "fix": "State that a species can belong to more than one realm (382 assignments over 308 species), or correct the counts."
+    },
+    {
+      "where": "Geography guild table, 'Cavern fauna' row (l.299)",
+      "report": "'39 ... 24 of 55 are LP'",
+      "truth": "The row gives 39 wildlife species but '24 of 55' in the same row; one denominator is wrong or they count different populations (wildlife vs all cavern creatures).",
+      "source": "report l.299",
+      "fix": "Use one denominator and say what it counts."
+    },
+    {
+      "where": "Guild-first rebuild table, row 'Unit pairs with prey >= 3x the eater' (l.364) versus 'With the fixes' (l.346)",
+      "report": "v1 with fixes: 8,190 (table) versus 'pairs with prey 3x the predator's size fall from 5,756 to 601' (text)",
+      "truth": "findings.md l.56-57: 5,756 -> 601 with the ratio test. The table's 8,190 for the same 'v1 with fixes' column does not match; probably a different denominator (all embarks/variants).",
+      "source": "findings.md l.56-57",
+      "fix": "Make both figures the same measure, or label what each counts."
+    },
+    {
+      "where": "The imposed roster > intro (l.311)",
+      "report": "'68,000 of them, for 7 embark types x 7 layers x 4 seasons x 20 seeds, under 34 rule variants'",
+      "truth": "7 x 7 x 4 x 20 x 34 = 133,280, not 68,000. Presumably not every layer exists on every embark, but the report doesn't say so (findings.md repeats the same figures).",
+      "source": "findings.md l.54",
+      "fix": "Give the real cell count or say that only the layers each embark has were built."
+    },
+    {
+      "where": "Groups section (l.205) and third-round table row 'On smaller maps DF's own supply runs out first' (l.540)",
+      "report": "'on smaller maps DF never had more groups on the map than the old limit of 3, so raising it changed nothing' / 'Up to 4x4 embarks, DF never had more groups on the map than the old limit of 3'",
+      "truth": "SW3B on CTRL, which is a 4x4: land groups present under auto (limit 5) 4.7 and 3.6 (max 5), under cap 3 3.6 and 2.6, under cap 1 1.4 and 2.4: '1 < 3 <= auto'. On CTRL the old limit of 3 was exceeded and the cap had an effect. (ECO2-G counted species x population on fresh embarks, while SW3B counts the tool's tracked land groups, so the measures differ, but 'never' is wrong.)",
+      "source": "findings.md l.553-557; CTRL is 4x4 (experiments/FPS2.json, wilderpop model r15-r17)",
+      "fix": "'On fresh embarks up to 4x4 (ECO2-G), the land limit made no difference; on CTRL, an established 4x4, the auto limit held about one more group than a cap of 3 (SW3B).'"
+    },
+    {
+      "where": "Relations section (l.675) versus item-27 table row 4 (l.749)",
+      "report": "l.675 'or DANGEROUS_ANIMAL when it is the bigger animal (15, an owl toward the lion)'",
+      "truth": "RELS2: 'BENIGN species > cougar BENIGN_ANIMAL ... non-BENIGN > cougar DANGEROUS_ANIMAL (wolf 3, owl 1)'. The rule is BENIGN versus not, as row 4 says. An owl is not bigger than a lion, so the l.675 wording contradicts its own example.",
+      "source": "findings.md l.302-304",
+      "fix": "'or DANGEROUS_ANIMAL when the arrival is not BENIGN (15 entries, for example an owl toward the lion).'"
+    },
+    {
+      "where": "Item-27 table row 3 (l.748)",
+      "report": "'How often: Often'",
+      "truth": "RELS3: 'Totals overlap (P_O_P new pairs 33,53 off vs 17,82 on): the mechanism is real, small.' RELS: 57 of 370 entries.",
+      "source": "findings.md l.306-308, l.259-261",
+      "fix": "'Sometimes (57 of 370 entries in RELS; a small effect in RELS3)'."
+    },
+    {
+      "where": "Summary (l.7) and How the suite ran (l.36, l.45)",
+      "report": "'Over 300 cells and 10 spawn-time runs, with one or two replicates, tested it ... on 29-30 Sep 2026' and 'from TV2 on, cells ran 2 replicates (LONE 5)'",
+      "truth": "Runs continued through the 1 Oct night and morning (SW1R, SW2R, SW3B, SCV2b, validation at 07:48 on 1 Oct). Replicates: LONE 5, LONE10 10, VRM3b 6. Single-run blocks after or around TV2: HC1-HC3, HCP, HR, HO, HL, ECO2-FC, RELP, SLOTV, LAKEP. The '300 cells' figure is not traceable to any tally.",
+      "source": "findings.md l.113-166, l.242, l.268, l.318, l.530-580",
+      "fix": "'About N cells in M blocks, 29 Sep - 1 Oct 2026; 1 replicate in the first-day blocks, 2 in most later ones (LONE 5, LONE10 10, VRM3b 6)', with N and M counted from the logs."
+    },
+    {
+      "where": "Data, code and sources (l.902, l.913, l.920)",
+      "report": "'Everything is in the DwarfCron repository, commit f7949f3 on branch Dev' and 'Tool behaviour comes from seasonal-wildlife v6.8.0 source; the rig ran v6.7.0'",
+      "truth": "f7949f3 is the 29-30 Sep suite commit. The overnight data, findings and validator changes came later (HEAD is 8143fb8, 'validate-full v7.0: 214 PASS'). The rig ran v6.9 and then v7.0 (1e65e03) for the later blocks and validation.",
+      "source": "git log (f7949f3, 8143fb8, 28bf2bf, 77f5bd8); findings.md l.574",
+      "fix": "Cite the final commit, and list the tool version that ran each block group (v6.7 for the first-day cells, v6.9, v7.0)."
+    },
+    {
+      "where": "Threshold sweep table, SW2 row, versus findings.md SW2R",
+      "report": "'Placed prey killed over 4 replicates: 0-4 per arm'",
+      "truth": "The range is consistent, but findings.md's pooled 'ctl 4' (l.549) contradicts its own rows: SW2 ctl 0, 0 plus SW2R ctl 0, 3 = 3. Worth fixing at the source before anyone quotes per-arm totals.",
+      "source": "findings.md l.390, l.544, l.549",
+      "fix": "Correct findings.md to ctl 3; the report's range can stay."
+    },
+    {
+      "where": "Overnight blocks table, VRM4 row (l.701)",
+      "report": "'ate 4 and 6 of 20 grasshoppers carrying that class; the control ate 0 and 0'",
+      "truth": "VRM4: 'Cells share a load within a rep, so the gobble cell starts with 40 (the ctl's 20 remain); removal is read from the map count' and 'all within the first 250 t'. 'Of 20' understates the vermin available. Also vrm4-tally.py misparses the receipt row.",
+      "source": "findings.md l.313-316",
+      "fix": "'removed 4 and 6 grasshoppers (40 on the map, 20 placed for the cell), all in the first 250 ticks; the control removed 0 and 0.'"
+    }
+  ],
+
+  "contradictions": [
+    {
+      "a": "Summary l.26: 'One fixed value moves the map: the predator ladder.'",
+      "b": "Sweep table SW3/SW3B (l.787): 'cap 1 at 1.4 and 2.4, below auto in both orders'; SW5 (l.789): '14-16 cavern groups at caps 1 and 2 against 24-27 at auto, the same in both orders'.",
+      "current": "b. The land and cavern group limits also move how many groups are present (SW3B, SW5, both counterbalanced). Only kills and fights did not move.",
+      "fix": "'Only the predator ladder changed what the map holds in predators (x0.5 -> about 2%); the group limits changed how many groups are present but not fights or kills; cadence, nudge, pack-mass floor, sneak bonus and the x3 pack bonus showed no effect.'"
+    },
+    {
+      "a": "Summary l.17: 'so column depth cannot separate deep-ocean species from shallow ones.'",
+      "b": "Oceans section l.257: 'So \"deep ocean\" can key on the map ... draw open-water species rarely unless the map has columns 3 or more levels deep'; item 18 (l.882): v7.0 surveys deep columns at load and keeps the pelagic slot shut on OCEAN2.",
+      "current": "b. Depth cannot separate species by where each one lives, but map-level depth (BOATS has 33% at 3+ levels, OCEAN2 0%) is the gate v7.0 uses.",
+      "fix": "'Fortress-map water is shallow (OCEAN2 1-2 levels, LAKE 91% one level), so the tool gates open-water species by whether the map has any column 3+ levels deep (BOATS 33%, OCEAN2 0%).'"
+    },
+    {
+      "a": "Summary l.23: 'DF never pairs surface wild with surface wild.' Also l.9: 'on the surface only from non-wild units toward wild arrivals'.",
+      "b": "Item-27 table row 5 (l.750): 'Almost never | RELS 5; RELS2b a wild cougar with an owl and a kestrel, one entry each, in one replicate'; RELS l.676 '5 entries, 3 of them between one wild great horned owl ... and a wombat and a skunk'.",
+      "current": "b ('almost never': 5 of 370 entries in RELS, 2 in RELS2b).",
+      "fix": "Use 'almost never (5 of 370 entries)' in the summary and on l.9."
+    },
+    {
+      "a": "Predation intro l.49: 'written by the tool or, over longer runs, by DF itself (RELP)'; STL side finding l.467: 'So DF writes relations itself'; LONE l.615: 'DF wrote those relations itself (RELP), so a placed hunter also preys on the fort's own wildlife'.",
+      "b": "RELS l.670/l.678 and item 27: DF aims non-wild units (dwarves, livestock, script-placed or tool-released animals) at each wild arrival; surface wild-wild almost never. 'The CAL/STL/LONE off-target kills are this placement artefact' (findings l.267).",
+      "current": "b. DF's writes come from the unit being non-wild. A wild-drawn predator does not get them.",
+      "fix": "Rewrite l.49, l.467 and l.615 to: 'DF writes a predator relation from every non-wild unit, including any animal a script places, toward each new wild arrival (RELS). That is why placed hunters killed native wildlife; a DF-drawn hunter would not.'"
+    },
+    {
+      "a": "Every layer section l.123: 'Vermin predation is still untested, so rule C stays bookkeeping. VRM now places loose vermin itself...'",
+      "b": "VRM2 (l.645-652) and VRM4 (l.701): native gobblers and badgers given a written token took roaches only; DF honours a vermin class the tool writes at runtime.",
+      "current": "b. Vermin predation is measured. Rule C (birds eat insects) is still bookkeeping only for the insect/bird stock transfer.",
+      "fix": "Replace l.123's last two sentences with a pointer to the VRM section."
+    },
+    {
+      "a": "Token effects l.161: 'three flags and one value change wildlife behaviour measurably within 3,000 ticks: BENIGN, CRAZED, OPPOSED_TO_LIFE, and PRONE_TO_RAGE at 25 or more.'",
+      "b": "l.181 and l.187: 'MEANDERER off repeated'; 'VIEWRANGE also held'.",
+      "current": "Partly b. MEANDERER (off -> wider scatter) replicated in TV2. VIEWRANGE did not clearly replicate (see overclaims).",
+      "fix": "'Four flags and one value changed behaviour measurably: BENIGN, CRAZED, OPPOSED_TO_LIFE, MEANDERER (movement only) and PRONE_TO_RAGE at 25 or more. VIEWRANGE leaned the expected way.'"
+    },
+    {
+      "a": "Design-history decisions l.374: 'x3 pick bonus for group hunters? ... Decided (30 Sep): yes'",
+      "b": "Sweep SW7 (l.791) and Open questions l.855: 'Remove the builder's x3 pack bonus'",
+      "current": "Pending user decision. v7.0 still has the x3; the sweep recommends removing it, on a weak test (SW7: 20 of 28 wanted species absent on CTRL).",
+      "fix": "Mark l.374 'Decided 30 Sep; reopened by SW7 (recommend removal, weak evidence)'."
+    },
+    {
+      "a": "PK paragraph l.400: 'CAL then settled it: no upper gate, and a 5% pack-mass floor with a sneak bonus for packs at 25% or more'; Rec 4 (l.826) 'v7.0: ... a sneak bonus at 25%'; tracker item 1 'sneak bonus at 25%; built in v7.0'",
+      "b": "SW2/SW2R (l.786) and l.854: 'Recommend pack_sneak 0 and retiring the per-unit SNEAK write'",
+      "current": "b as the recommendation (no measurable effect in 4 replicates); a as what v7.0 currently ships. The floor and bonus also came from a user ruling, not from CAL.",
+      "fix": "l.400: 'The user then set a 5% pack-mass floor and a sneak bonus at 25% (30 Sep); the sweep later found no effect of either (SW2, SW2R).'"
+    },
+    {
+      "a": "Spawn levers l.245/l.251: 'NO_<season> flags work when the tool sets them' / 'The tool can gate seasons with DF's own flags rather than only with stock and FREQUENCY'; Rec 5 headline 'Respect the raw NO_<season> flags when dealing seasons'; mechanistic version step 5 'Seasons from DF's own NO_<season> flags'",
+      "b": "Token effects l.189, third-round table l.539, validation l.813: v7.0 clears NO_<season> on managed species so the tool's own deal wins.",
+      "current": "b (v7.0, user ruling). The finding (DF honours the flag at the pick) stands; the recommendation to use the flags as the gate is superseded.",
+      "fix": "Keep the measurement in Spawn levers and move the 'use the flag as a gate' advice to the design-history appendix. Retitle Rec 5 'Seasons: the tool's deal overrides NO_<season> (v7.0)'."
+    },
+    {
+      "a": "Summary l.32, third-round l.530/l.559 ('goes onto the rig once the queued experiments finish, with 17 new validator checks'), data table l.918 'Tool v7.0 (not deployed)', Rec 14 status 'its port into v7.0 is next', Rec 15 'Open', Rec 17 'needs a good and an evil fort test', Rec 12 'no depth survey yet', Rec 20 'v7.0, on; I recommend off'",
+      "b": "Validation l.809 (214 PASS on v7.0 1e65e03), item 5 (port done, 0d030b2), item 6 (GOODF/EVILF done), item 18 (depth survey done), item 21 (realms built, e8cbda7), item 32 ('23 new validator checks'), item 33 / FSH2 (fishers default off, 3ca528c), l.861 (nothing pushed).",
+      "current": "b. v7.0 is on the rig and validated (214 PASS, 0 FAIL), not merged, released or pushed; the builder port, realms, depth survey, good/evil handling are built; fishers default off. The validator check count is inconsistent (17 vs 23).",
+      "fix": "Give one status line everywhere: 'v7.0 (1e65e03): built, run on the rig for all 1 Oct blocks, validate-full 214 PASS 0 FAIL; not yet merged, released or pushed.' Update the Rec table's status column from the tracker and reconcile 17 vs 23 checks."
+    },
+    {
+      "a": "Tracker item 4 (l.868): 'Skills for solitary hunters (STL2) | Answered: no. ... Done'; item 7 (l.871) 'LONE leans its way (22 against 14 kills, p = 0.13); 10 runs per arm would settle it'; Rec 16 evidence 'LONE: 22 kills against 14 in 5 seasons each (p = 0.13)'",
+      "b": "Item 34 / LONE10 (l.620, l.898): 'kills 29 against 14 (p = 0.025)'",
+      "current": "Neither as written (see factual #1). Current: at 10 runs per arm, all kills 49 vs 21 (p = 0.024); placed-prey kills 29 vs 14 (p = 0.07); STL/STL2's encounter-limited test found no lift.",
+      "fix": "Collapse items 4, 7 and 34 and Rec 16 into one corrected LONE10 statement."
+    },
+    {
+      "a": "Overnight intro l.697: 'The overnight blocks closed every open item in the tracker except the final validation.'",
+      "b": "Validation of v7.0 (l.809) and item 32: done, 214 PASS.",
+      "current": "b.",
+      "fix": "'The overnight blocks and the morning reruns closed every tracker item, including validation.'"
+    },
+    {
+      "a": "Mechanistic version l.684: 'The v2.1, v2.2 and third-round sections below carry the current rules.'",
+      "b": "Those sections are above it (l.487-598).",
+      "current": "They are above.",
+      "fix": "Change 'below' to 'above', or delete the section (see stale)."
+    },
+    {
+      "a": "Summary l.12 and Scavenging l.193: 'walking scavengers to corpses with a full path and deleting the corpses works' / 'Both steps worked'",
+      "b": "SCV (l.726-727): jackals and vultures never got near (0); alligators can't be walked, wolves on the bank couldn't reach water corpses; HC1 (l.122): 0 of 5 trolls arrived in the cavern.",
+      "current": "b. The rig's walk works for walking pack scavengers on open land (hyenas 3 of 6, wolves). It fails for jackals, fliers, swimmers and in caverns. The tool's own pass (SCV2b) clears land and water remains, but which species ate is unknown.",
+      "fix": "'Nothing in DF eats remains. The tool's scavenging pass clears carcasses on land and in water within about 2,400 ticks (SCV2b); a scripted walk reaches corpses only for walking pack scavengers on open ground.'"
+    },
+    {
+      "a": "Every layer l.121: 'Only on land did cohesion protect prey: tiger sharks killed 5, 10 and 1 milkfish (no leader, lowest id, largest male).'",
+      "b": "The same numbers show the largest-male school lost 1 of 10 against 5 unled, i.e. protection under one leader rule; HC1 shows gorlaks killing all 5 trolls in every arm (no protection needed).",
+      "current": "Unresolved at n = 1. Neither 'cohesion protects' nor 'only on land' is supported.",
+      "fix": "'Whether a led school is protected is unresolved: in one run tiger sharks killed 5 unled, 10 lowest-id-led and 1 largest-male-led milkfish.'"
+    },
+    {
+      "a": "Guild-first rebuild l.368: 'The temperate lake has no apex half the time (v2.2 fills it with fishing land predators, whose fishing FISH did not confirm).'",
+      "b": "FSH2 (l.705) and item 33: fishers default off in v7.0.",
+      "current": "b. With fishers off, the lake-apex gap is back.",
+      "fix": "'... has no apex half the time; v2.2's fix (fishing land predators) is off by default after FSH2, so the gap is open.' Add it to open decisions."
+    },
+    {
+      "a": "Token census l.142: 'AQUATIC, IMMOBILE_LAND, NO_DRINK and UNDERSWIM travel together on 77 species'",
+      "b": "Oceans l.266: 'UNDERSWIM is on 79 of 83 aquatic creatures'",
+      "current": "Both can hold (77 carry all four; 79 carry UNDERSWIM), but the reader sees two numbers for 'the aquatic core'.",
+      "fix": "Say once: 'Of 83 AQUATIC creatures, 79 are UNDERSWIM, 80 IMMOBILE_LAND, 82 NO_DRINK; 77 carry all four' (groupings.md l.12)."
+    },
+    {
+      "a": "Token census l.145: '25 of 32 STANDARD_GRAZER species'",
+      "b": "Guild table l.290: 'Grazer herd | STANDARD_GRAZER | 31'",
+      "current": "Probably 32 creatures vs 31 wildlife. Unstated.",
+      "fix": "Label each count (all creatures vs wildlife)."
+    },
+    {
+      "a": "How the suite ran l.45: 'from TV2 on, cells ran 2 replicates (LONE 5)'",
+      "b": "Every layer section l.96: 'Each cell: ... 1 replicate' (HC1-HL ran on 30 Sep alongside TV2); RELP, SLOTV, LAKEP single runs; overnight intro l.697 'Every block ran 2 replicates except LAKEP'.",
+      "current": "b. Several 30 Sep blocks are single runs.",
+      "fix": "Put a replicate column in a master block table (see structure)."
+    },
+    {
+      "a": "Header l.7 / l.32 talk about v6.9 'released 30 Sep' and Rec table header 'v6.9 (released 30 Sep; validate-full 192 PASS, 0 FAIL)'",
+      "b": "Data section l.920: 'the rig ran v6.7.0'",
+      "current": "a (192 PASS confirmed by commit 2d808ed). l.920 describes the first-day cells only.",
+      "fix": "'The first-day cells (29-30 Sep) ran on v6.7.0; later blocks on v6.9 and v7.0.'"
+    },
+    {
+      "a": "Ocean l.265: 'Big fish do not suffer in shallow water. Two whale sharks ... alive, wet and moving 3,000 ticks later.'",
+      "b": "S8/COHO l.774: 'Placed orcas do strand ... 3 of 12 orcas died of drowning within 15,000 ticks' on the same OCEAN2.",
+      "current": "Both hold, at different time scales and species. Unled pelagics on shallow OCEAN2 strand over 15,000 ticks.",
+      "fix": "Qualify l.265 with '(over 3,000 ticks; unled orcas stranded over 15,000, see COHO)'."
+    }
+  ],
+
+  "overclaims": [
+    {
+      "claim": "Summary l.20 / LONE10 l.620: 'LONE10 ... settles it: the package lifts kills' (p = 0.025)",
+      "problem": "The significant metric (all kills, 49 vs 21) includes native kills that exist only because a placed cougar is non-wild to DF (RELS row 3). On the 48 placed prey, the clean measure, p = 0.07 (29 vs 14). One-sided test, one fort, one species (cougar), no correction for the three metrics tested in LONE.",
+      "fix": "'The package raised kills on the placed prey from 14 to 29 over 10 seasons per arm (one-sided p = 0.07); counting natives, which a placed hunter meets only because DF treats it as a fort animal, 21 to 49 (p = 0.024). One species, one fort.'"
+    },
+    {
+      "claim": "CAL, STL, STL2, LONE, PK, GPK, SW1/SW2 arena results stated as how DF predators behave",
+      "problem": "Every hunter in these blocks was placed by script, and placed units are non-wild to DF: DF aims them at each wild arrival (RELS row 3). Off-target hunting, prey choice in the SW2 elephant test and native kills in LONE are artefacts of that. The report says so only in the RELS section and item-27 preamble, never next to the results it qualifies.",
+      "fix": "State in Methods: 'Placed animals are non-wild to DF, which therefore writes predator relations from them toward each wild arrival. Results on placed-unit hunting of natives, and on prey choice, may not carry over to DF-drawn wildlife.' Footnote each affected table."
+    },
+    {
+      "claim": "Token effects l.187: 'VIEWRANGE also held: deer that see 40 tiles drew 3 and 0 attacks, against 168 and 7 at 5 tiles.'",
+      "problem": "TV2's control drew 7 and 3 attacks. The 40-tile arm (3, 0) is at control level, and the 5-tile arm's replicate 2 (7) matches the control too. The effect rests on one replicate (168). FVA then showed replicate variance swamping similar vision tokens.",
+      "fix": "'VIEWRANGE leaned the expected way (5 tiles: 168 and 7 attacks; 40 tiles: 3 and 0; control 7 and 3) but is not separable from replicate noise.'"
+    },
+    {
+      "claim": "Summary l.27 and S8 l.768: 'The apex FREQUENCY doesn't bring apexes ... Apexes have to be placed or stocked'",
+      "problem": "Evidence is 2 replicates per fort, where CTRL's supply is mostly ravens (S8Cb) and the apex FREQUENCY was only 4-8 (SW4) or 13-27 (S8). It measured presence or arrivals of one cheetah, anaconda or cougar per roster. 'Have to be ... stocked' was never tested.",
+      "fix": "'At FREQUENCY 4-27, apexes arrived 0-3 times a season (2 replicates per fort, 4 forts) and the apex step did not visibly change that; placement or stock is the proposed alternative (untested).'"
+    },
+    {
+      "claim": "Summary l.28 / INV2: 'DF never draws a SAVAGE species onto a calm map'",
+      "problem": "One species (CENOZOIC_SMILODON), one fort (CTRL), 2 runs. The block logged only the subject, so the gate's other releases in the window are not on record (findings caveat l.416-417). The first run (INV) was vacuous.",
+      "fix": "'DF did not draw the one SAVAGE species tested (smilodon) onto calm CTRL in a season, in 2 runs, even with its population entry present.'"
+    },
+    {
+      "claim": "Sweep: 'Cadence, nudge, pack-mass floor, sneak bonus and the x3 pack bonus showed no effect once cell order was controlled'",
+      "problem": "SW1/SW2 first runs were order-confounded; even pooled with the reversed runs, kills per arm are 0-4 over 4 replicates, so the test could not detect anything but a large effect. The floor and sneak tests use placed (non-wild) wolves whose targets DF itself sets (SW2R note). SW7 had 20 of 28 roster species missing on CTRL. SW6 had 2 replicates with one holding.",
+      "fix": "'showed no detectable effect at this power (4 replicates, 0-4 kills per arm); SW7 and SW6 are weak tests.' Keep the recommended defaults but label them low-evidence."
+    },
+    {
+      "claim": "Groups section / Summary: 'Leaders hold groups together and protect prey' (L2: 1 attack against 88)",
+      "problem": "The protection claim rests on one run (L2). HO milkfish contradicts it under one leader rule, and HC1 gorlaks didn't need it. The largest-male leader in L2 still let the herd spread to 41.9 tiles.",
+      "fix": "'Leaders hold groups together (replicated in COH, 2 reps). Protection was seen in one land run and not in water; unreplicated.'"
+    },
+    {
+      "claim": "Spawn levers l.249: 'FREQUENCY is a balancing lever you can compute with' (F1) and ECO2-FC per-layer",
+      "problem": "F1: 1 replicate, 38 waves; ECO2-FC: 1 replicate. SW4 found observed predator share 'runs above f/sum f' (14.0% and 10.6% against 6.4% predicted) because present counts differ from arrivals.",
+      "fix": "Add '(1 run each)' and the SW4 caveat that presence on the map does not follow the FREQUENCY share."
+    },
+    {
+      "claim": "Summary l.15 / N1: 'a replacement takes over within ~2,000 ticks'",
+      "problem": "One exhaustion event, one replacement, one run.",
+      "fix": "'In one run, a replacement's first wave came 2,090 ticks after the hook fired.'"
+    },
+    {
+      "claim": "Summary l.10 'Deer made non-BENIGN killed 2 wolves, and capybaras killed 5 of 5 wolves'; T1 token flips (CRAZED, OPPOSED_TO_LIFE, AT_PEACE, BENIGN wolf); boundary table; every-layer table",
+      "problem": "All single runs (T1, W1L, W1O, HC1-3, HCP, HR, HO). The report gives the replicate count in some embedded captions but not in the summary or the tables.",
+      "fix": "Add an 'n' column to every table and '(1 run)' to every summary bullet that rests on one."
+    },
+    {
+      "claim": "Summary l.18 / Alerts: 'Animal-vs-animal combat alerts can be filtered safely'",
+      "problem": "A1: 1 wild fight (1 alert vs 0), 1 fort fight, 1 save/reload; A2: one cell per humanoid. That shows the filter works, not that it's safe in general.",
+      "fix": "'In a prototype test (one fight per case), the filter dropped wild-only alerts and kept fights with dwarves, wolf men and goblins.'"
+    },
+    {
+      "claim": "Summary l.30 / E23e: 'the trigger needs real excavation, wealth or population'",
+      "problem": "The block only shows flags did not trigger an invasion; the cause is speculation.",
+      "fix": "'Flags alone did not trigger one; what does is untested.'"
+    },
+    {
+      "claim": "Item-27 table row 1: dwarves toward 'Each new surface wild arrival ... Every arrival, within about 3,000 ticks'",
+      "problem": "Based on RELS (370 entries, one fort) and RELS2b (2 reps, one cougar). 'Every' is not shown per arrival; RELS2 even had no dwarf row toward the cougar (an artefact, but still a counterexample).",
+      "fix": "'Most arrivals in RELS and RELS2b'."
+    },
+    {
+      "claim": "VRM2: 'The written token works.'",
+      "problem": "2 replicates for the class write and 1 usable replicate for the creature write (rep 2 contaminated by the fort's cats). VRM4 adds 2 more for a runtime class. It's a modest claim but the n should be stated.",
+      "fix": "'... in 2 of 2 replicates (class) and the 1 cat-free replicate (creature); VRM4 repeated it for a new runtime class (2 of 2).'"
+    },
+    {
+      "claim": "Every layer l.116: 'BENIGN on a troll did not stop it (85 attacks)'",
+      "problem": "1 run; trolls were fighting gorlaks, which attack unprompted (HC1, HC4). The attacks may be defence or mutual hostility, not predation.",
+      "fix": "Add '(1 run, against gorlaks, which attack trolls unprompted)'."
+    },
+    {
+      "claim": "Spawn levers l.251: 'where without the flag it took 61%'",
+      "problem": "The 61% is from F1, a different run where the others were at 50/25/12. In T2 the others were at FREQUENCY 1, so the unflagged expectation is above 90%. The comparison is across runs with different settings (it actually strengthens the result, but it is not a control).",
+      "fix": "'... took 0 of 19 spring waves, though at FREQUENCY 100 against others at 1 it would be expected in most of them.'"
+    },
+    {
+      "claim": "Summary l.19 'Over 30,000 ticks, bigger and slower prey died more often (CAL, PK)'",
+      "problem": "Size and slowness are confounded in the 4 prey species. Elephant (slowest) died less often to wolves than buffalo. Prey also differ in BENIGN and fighting back.",
+      "fix": "'In CAL, deer (fast) rarely died and buffalo and elephants (slow) died more; size and speed are confounded across the 4 prey species.'"
+    }
+  ],
+
+  "stale": [
+    {"where": "Every layer section, last bullet (l.123): 'Vermin predation is still untested ... VRM now places loose vermin itself'", "why": "Superseded by VRM2, VRM3b and VRM4.", "action": "rewrite"},
+    {"where": "Token effects, l.186 'not 9'", "why": "Answers an earlier draft's number that the reader never sees.", "action": "rewrite"},
+    {"where": "Token effects l.189 NO_<season> paragraph: history from v6.8 through v6.9 to v7.0 in one paragraph", "why": "The current rule (v7.0 clears the flags) is at the end of 180 words of history.", "action": "rewrite"},
+    {"where": "Spawn levers l.251 'The tool can gate seasons with DF's own flags'", "why": "Superseded by v7.0 (tool's deal overrides NO_<season>).", "action": "rewrite"},
+    {"where": "Section 'The imposed roster and food-web rules' > Rule by rule, Algorithm steps 0-8, Contradictions actually hit, With the fixes (l.309-350)", "why": "This is the v1 rule critique. Three of its fixes were reversed (italic note l.350), and the builder is now v2.2 in v7.0.", "action": "move-to-appendix"},
+    {"where": "Guild-first rebuild (v2) (l.352-379), including the v1-vs-v2 table and the four decisions", "why": "Historic v2.0 numbers interleaved with v2.1/v2.2 parentheticals; decisions are resolved or reopened.", "action": "move-to-appendix"},
+    {"where": "'The 5x size gate, drawn' (l.381-387) and its embedded chart", "why": "Self-declared 'Superseded by CAL'.", "action": "move-to-appendix"},
+    {"where": "'v2.1: your answers worked through (30 Sep)' (l.487-526)", "why": "v2.1 round; its 'what got worse' items were all fixed in v2.2. Only the GOOD/EVIL/FANCIFUL audit is still current, and it is superseded by item 6 and the GOOD/EVIL table.", "action": "move-to-appendix"},
+    {"where": "'Third round (30 Sep evening): your notes worked through' table (l.528-559)", "why": "A Q&A log. Many 'What changed' cells describe experiments as queued (REACH, LONE 5 reps, RELS) that have since run, and fishers 'on' that is now off. The current state belongs in the per-topic results.", "action": "move-to-appendix"},
+    {"where": "Third round l.559: 'It goes onto the rig once the queued experiments finish, with 17 new validator checks.'", "why": "v7.0 is on the rig and validated; the check count is 23 elsewhere.", "action": "cut"},
+    {"where": "'A mechanistic version for a new embark' (l.682-693)", "why": "Self-declared superseded in part (uniform picks, BENIGN cleared, seasons, ladder). Steps 3-6 now state the wrong rules.", "action": "move-to-appendix"},
+    {"where": "PK paragraph l.400 'CAL then settled it: ... sneak bonus for packs at 25% or more'", "why": "The sneak bonus was then found to have no effect (SW2/SW2R) and is recommended for retirement.", "action": "rewrite"},
+    {"where": "LONE (5 reps) section l.600-618 as a standalone result", "why": "Superseded by LONE10; keep only as 'first five runs' within a single LONE result.", "action": "rewrite"},
+    {"where": "Sweep section l.799 'the reruns land in SWR-*'", "why": "The reruns ran (SW1R, SW2R, SW3B).", "action": "cut"},
+    {"where": "Overnight intro l.697 '... except the final validation'", "why": "Validation done.", "action": "rewrite"},
+    {"where": "Recommended changes table, status column (l.821-843): Rec 11 'Superseded', Rec 12 'no depth survey yet', Rec 14 'port into v7.0 is next', Rec 15 'Open', Rec 16 p = 0.13, Rec 17 'needs a good and an evil fort test', Rec 20 'on; I recommend off'", "why": "Out of date against tracker items 5, 6, 18, 21, 33, 34.", "action": "rewrite"},
+    {"where": "Open questions: the 34-row tracker table (l.863-898), every row 'Done'", "why": "A work log, not a finding. Several cells duplicate or contradict results sections (items 4, 7).", "action": "move-to-appendix"},
+    {"where": "Open questions item 5 'Pushing. Nothing from tonight is pushed' (l.861)", "why": "Session status, not a research question.", "action": "move-to-appendix"},
+    {"where": "Summary l.32 'The next steps are in the tracker at the end.'", "why": "Every tracker item is done; the next steps are the pending decisions.", "action": "rewrite"},
+    {"where": "Data section l.902, l.913, l.915, l.920 (commit f7949f3; 'Later blocks (ECO2, ... SLOTV)'; tallies for lone-hunter blocks only; rig ran v6.7.0)", "why": "Omit every overnight block (DOM, LAKEP, HC4, GPK, FSH2, FVA, INV/INV2, COH, SCV*, SW*, S8*, T9c, E23e) and their tally scripts (rels*, vrm*, sweep, s8, coh, inv, lakep, t9c, e23e, cal).", "action": "rewrite"},
+    {"where": "Groups section l.222: \"'As residents' means ...\" and l.218 'as you expected'", "why": "Reply to a chat question, not report text.", "action": "rewrite"},
+    {"where": "Every-layer table 'Cavern 2 | voracious cave crawler x crundle | 8 of 8 killed' and l.116 cave toad as a non-fighter", "why": "HC4 found these move with the spot.", "action": "rewrite"}
+  ],
+
+  "missing": [
+    {"where": "Throughout (P1, P2, T1, T2, TV, TV2, S, S2, B, CB, L1, L2, A1, A2, W1L, W1O, O, DEPTH(L), HC1-HC4, HCP, HR, HO, HL, F1, N1, G1, ECO2-G/-FC/-W, PK, WB, CAL, STL, STL2, RELP, LONE, LONE10, REACH, FISH, VRM, VRM2-4, RELS, RELS2, RELS2b, RELS3, SLOTV, DOM, DOM2, LAKEP, GPK, FSH2, FVA, INV, INV2, COH, SCV*, SW1-SW7, SW1R, SW2R, SW3B, S8C/S8B/S8O/S8Cb, T9c, E23e, E11c, X4, FPS1, T8g, E42c, Wilderpop §8)", "what": "Block codes are used as citations but never defined. A reader can't tell what FISH vs FSH2 vs REACH covered, or what E11c, X4, T8g, E42c are.", "fix": "Add an appendix block index: code, question, fort, cells x replicates, ticks, tool version/state, data path, tally script."},
+    {"where": "DOM section l.658 'land apex hunters (AL), ground mesocarnivores (ML)'; S8 'cavern shore-prey slot'; 'apex step'/'APX'; findings uses SH, AW, FC, FF, PE", "what": "Guild codes are never mapped to the guild table.", "fix": "Add a code column to the guild table (AL apex land, AW apex water, ML mesocarnivore land, GZ grazer, FC coastal fish, FF freshwater fish, PE pelagic, SH shore, ...) and use names in the text."},
+    {"where": "Methods: forts", "what": "No fort descriptions. CTRL is a 4x4 temperate-shrubland embark (region4 29,20), tool off or disarmed in most blocks; BOATS is the user's 6x6 copy (ocean, salt river, three caverns, 29 citizens); LAKE 192x192; OCEAN2 shelf; RIVER4; FPS2E1-E6 fresh 7-dwarf embarks 1x1-6x6; GOODF/EVILF on region6 seed 424242. Embark size matters to the groups-at-once results.", "fix": "Add a fort table: name, world/tile, embark size, biome, water bodies, caverns, citizens, tool state."},
+    {"where": "Methods: time", "what": "Ticks to game time is given once (30,000 = about 25 days) and nowhere else.", "fix": "State 1,200 ticks = 1 day; 3,000 = 2.5 days; 30,000 = 25 days; 100,800 = one season (84 days); 201,600 = two seasons."},
+    {"where": "Methods: placement artefact", "what": "That placed and tool-released animals are non-wild to DF (roaming flag cleared) and get DF's predator relations toward wild arrivals.", "fix": "One paragraph in Methods, cited by every placed-unit result."},
+    {"where": "Methods: cell-order confound", "what": "Cells of a replicate share one fort load, so later cells accumulate native arrivals. This confounded SW1/SW2 and VRM, and the fix (alternate order, placed-only readout) applied only from the overnight reruns.", "fix": "Describe it in Methods, and mark which blocks are counterbalanced."},
+    {"where": "Methods: vacuous-run receipts", "what": "INV, SCV2, S8C, SW3, the ECO2 vermin cells, HO/HL corpse cells and the first VRM were vacuous or flawed, and why.", "fix": "A short 'runs that tested nothing' list with the cause and the rerun."},
+    {"where": "Sweep table: 'nudge', 'cadence', '40 / 3,000 / r6', 'tight', 'busy-ness', 'B 1.47'", "what": "The nudge (what it moves, the meaning of 40/3,000/r6) and the busy-ness score are undefined.", "fix": "Define each lever and metric in a line under the table."},
+    {"where": "Relations section and tables", "what": "PREDATOR_OR_PREY, BENIGN_ANIMAL, DANGEROUS_ANIMAL, STRANGER, NONE, enemy_status slots, 'rel_map', 'roaming flag', and 'writer's row' are used without a definition. findings uses P_O_P.", "fix": "One paragraph on DF's relation table: per-unit slots, the values, who writes them."},
+    {"where": "Spawn levers and groups", "what": "'population entry', 'stock', 'gate', 'surface gate released every 1,500 ticks', 'Driver B', 'the preset', 'sustain per cell', 'tool disarmed' vs 'off'.", "fix": "A glossary."},
+    {"where": "Roster sections", "what": "'calm' vs 'savage' map, SAVAGE token, 'apex boost', 'ladder', 'link guard', 'pair fallback', 'Isolated' worldgen setting, D8, R9, R11, R13, 'Docket', eats(), ecoWrite, ecoArmed, fb_safe.", "fix": "Glossary plus an inline gloss on first use."},
+    {"where": "Summary bullets and most result tables", "what": "Replicate counts per claim.", "fix": "Add 'n' to every table and to each summary bullet."},
+    {"where": "Statistics (STL pooled, LONE, LONE10)", "what": "Test sidedness, which metric, and that three metrics were tested on the same data.", "fix": "State test, sidedness, metric and the multiple-comparison context."},
+    {"where": "REACH section (l.622-632)", "what": "The headline numbers: crocodile on swimming beavers 12/12, on capybaras 15 tiles inland 10/12; owl on stork 1/12; giant cave swallow on bugbats 4/12; giant bat on bugbats 1/12.", "fix": "Add a REACH results table like the boundary table."},
+    {"where": "Groups section, 'spread in tiles'; COH 'width'", "what": "The metric (mean bounding-box width over samples?) and the sampling interval.", "fix": "Define spread once."},
+    {"where": "Scavenging (item 19)", "what": "That CTRL's native ravens count as scavengers in the tool's pass, so SCV2b's clearance can't be credited to the placed species.", "fix": "Already partly in l.733; move it into the summary caveat."},
+    {"where": "ECO2-G table", "what": "Wave counts and t/s other than 5x5/6x6 aren't in findings.md; the source tally (scripts/eco-g-tally.py) isn't cited.", "fix": "Cite the tally script and run path."},
+    {"where": "Recommended changes", "what": "The overnight recommendations (cadence 3,000, nudge off, sneak 0, remove x3, drop apex step, cavern-limit relabel, plump-helmet group cap, Add invasive placement, swimmer scavengers, lake-apex gap after fishers off) are not in the recommendations table; they're only in Open questions.", "fix": "Merge into one recommendations table with status and evidence strength."}
+  ],
+
+  "structure": {
+    "proposed_outline": [
+      {"section": "1. Summary", "contains": ["One paragraph: the core rule (predation needs a written relation and a non-BENIGN attacker; DF writes relations only from non-wild units toward arrivals, plus cavern wild-wild)", "12-15 ranked findings, each with block code and n", "Status line: v7.0 built, validated 214 PASS / 0 FAIL, not merged or pushed", "The decisions pending"]},
+      {"section": "2. Methods", "contains": ["Rig (DF 53.16, DFHack 53.16-r1.1), instrument cx-eco.lua, runner eco-run.py, fight log definition (kill, attack)", "Fort table (CTRL 4x4, LAKE, OCEAN2, BOATS 6x6, RIVER4, FPS2E1-E6, GOODF/EVILF)", "Cell design: placement, distances, arms (DF alone / written), ticks with days, replicates", "Spawn-time design (driver, gate releases, FREQUENCY pinning)", "Known biases: placed units are non-wild (RELS row 3); cell-order confound and the counterbalancing fix; pet cats; vacuous-run receipts", "Statistics used", "Desk work: wiki token table, raws census, tool audit, roster simulator"]},
+      {"section": "3. Predation: the relation rule", "contains": ["P1, P2, T1 BENIGN/LP/AT_PEACE/CRAZED/OPPOSED_TO_LIFE flips, TV/TV2 giant fox", "DF's own relation writes: RELP -> RELS -> RELS2/2b/3, the six-row table, SLOTV (NONE not STRANGER)", "LAKEP (lake units writable)"]},
+      {"section": "4. Reach: land, water, air, caverns", "contains": ["W1L/W1O boundary table, WB, REACH (croc, shark, fliers, cavern fliers)", "Land predators don't fish: HR, REACH/FISH, FSH2", "Every-layer table (HC1-HC3, HCP, HR, HO) merged with HC4 second-spot results", "Orca BENIGN (HO)"]},
+      {"section": "5. Group size, prey size and lone hunters", "contains": ["PK, CAL (tables), speed table corrected", "GPK/GPKW/GPKR giant packs", "STL, STL2, LONE + LONE10 as one corrected lone-hunter result"]},
+      {"section": "6. Groups: leaders, cohesion, curious beasts, groups at once", "contains": ["L1/L2 (with L2 spreads), HC/HR/HO/HL school spreads, COH/COHO/COHR, orca stranding", "Curious beasts: B, CB, BOATS raccoon trace", "Groups at once: G1, ECO2-G, SW3B, SW5, SW6 (reconciled)"]},
+      {"section": "7. What DF draws: spawn levers", "contains": ["F1, ECO2-FC (FREQUENCY per layer)", "T2, ECO2-W (NO_<season>), UBIQUITOUS", "N1 exhaustion/replacement", "INV/INV2 SAVAGE on calm", "SW4 ladder multiplier, S8 apex arrivals", "T9c cavern gate, E23e cavern invasions"]},
+      {"section": "8. Token census and token effects", "contains": ["Census tables (absent tokens, blocks, values)", "Token effects table with n column (T1, TV, TV2, FVA)"]},
+      {"section": "9. Scavenging and vermin", "contains": ["S, S2, HC1 cavern walk, SCV/SCVW/SCVC, SCV2b/SCV2Wb", "VRM -> VRM2 -> VRM3b -> VRM4"]},
+      {"section": "10. Water depth and pelagics", "contains": ["DEPTH/DEPTHL/O table, whale shark survival, S8O depth survey, COHO stranding"]},
+      {"section": "11. The tool in a season (v7.0 + builder)", "contains": ["S8C/S8B/S8O/S8Cb table with corrected deaths metric", "DOM/DOM2 domestic prey", "Good/evil forts (item 6)", "Alert filter (A1, A2) and fight log"]},
+      {"section": "12. Roster and food-web design (current rules only)", "contains": ["Guild table with codes", "Current builder rules as in v2.2/v7.0 (uniform pick, ladder, 5% floor, civ races, flying apex, vegetation link, pelagic slot)", "Realms (with the multi-realm note)", "GOOD/EVIL/FANCIFUL table"]},
+      {"section": "13. Recommendations and decisions", "contains": ["One table: change, evidence (block, n), strength, status in v7.0", "Decisions pending: sweep defaults, x3, sneak, apex step, swimmer scavengers, plump-helmet cap, SAVAGE placement, lake-apex gap", "Not recommended (CRAZED, OPPOSED_TO_LIFE, UBIQUITOUS)"]},
+      {"section": "14. Open questions", "contains": ["Which species ate in SCV2b; cavern-fighting token; fly-to and swim-to scavenging; vermin rule C transfer; lone-hunter effect on DF-drawn (wild) hunters; leader rule comparison"]},
+      {"section": "Appendix A. Block index", "contains": ["Every block: code, date, fort, question, cells x reps, ticks, tool version and state, data path, tally script, valid/vacuous"]},
+      {"section": "Appendix B. Glossary", "contains": ["Block codes, guild codes, DF relation values, tool terms, ticks to days"]},
+      {"section": "Appendix C. Design history", "contains": ["v1 rule critique (rules A-G, steps 0-8, nine fixes)", "5x size gate", "v2 guild-first, v2.1 round, third round Q&A", "Mechanistic version (superseded)", "Decisions log with dates"]},
+      {"section": "Appendix D. Tracker (items 1-34)", "contains": ["The 34-row tracker as a work log"]},
+      {"section": "Appendix E. Data, code and versions", "contains": ["Final commit, tool commits per version, every data path and tally script"]}
+    ],
+    "notes": "The report reads as a lab notebook appended over three days: results for one topic sit in three or four places (predation in sections 'Predation', 'Solitary hunters', 'LONE', 'RELS', 'Relations for arrivals'; groups at once in 'Groups', the third-round table, the sweep). Merge by topic, putting first-day single-run results and their overnight replications in the same table with an n column so the reader sees what replicated (MEANDERER, PRONE_TO_RAGE, cohesion) and what didn't (FLEEQUICK, VISION_ARC, VIEWRANGE, cave toad, crawler). Move every 'your note / your ruling / your call' Q&A into the design-history appendix and write the body in the third person ('the user ruled on 30 Sep'). Keep one status for v7.0 and one recommendations table. The summary should lead with the relation rule and its placement caveat, then the five or six results that drive the tool (BENIGN switch, reach, group size, leader cohesion, FREQUENCY proportional, ladder x0.5), each with n."
+  },
+
+  "prose": [
+    {"where": "Summary l.7", "before": "Over 300 cells and 10 spawn-time runs, with one or two replicates, tested it and the questions below on the rig on 29–30 Sep 2026.", "after": "The rig tested this rule and the questions below in about N cells and M spawn-time runs between 29 Sep and 1 Oct 2026, mostly with one or two replicates."},
+    {"where": "Summary l.7", "before": "The one refinement: DF itself relates every unit that isn't flagged wild (dwarves, livestock, placed animals, and groups the tool releases) to each new wild arrival, so placed hunters attacked native wildlife the test never related them to (RELS).", "after": "One caveat: DF treats any animal a script places, or the tool releases, as a fort animal. It then writes a predator relation from it toward each new wild arrival, which is why placed hunters attacked native wildlife (RELS)."},
+    {"where": "Summary l.26", "before": "One fixed value moves the map: the predator ladder.", "after": "Of the tool's fixed values, only the predator FREQUENCY ladder changed how many predators the map holds."},
+    {"where": "Summary l.32", "before": "v6.9 (released 30 Sep) fixed the ecology write: it now checks reach, arms any non-BENIGN carnivore. Builder v2.2 has been run offline, and tool v7.0 is built on a branch but not yet deployed; in v7.0 the tool's own season deal overrides NO_<season>.", "after": "v6.9 (released 30 Sep) checks reach before writing a relation and arms any non-BENIGN carnivore. v7.0 adds the roster builder and lets the tool's season deal override NO_<season>; it passes the full validator (214 PASS, 0 FAIL) but is not yet merged or pushed."},
+    {"where": "Predation l.49", "before": "DF hunts only on a predator relation, written by the tool or, over longer runs, by DF itself (RELP), and any attacker that is not BENIGN carries it out.", "after": "An animal hunts only when it holds a predator relation toward its prey and is not BENIGN. On the surface, only the tool writes such relations between wild animals."},
+    {"where": "Boundary l.65", "before": "Up to v6.8 the tool's ecology write got this wrong both ways.", "after": "Up to v6.8 the tool left amphibious predators out of the ecology and wrote ocean predators against land prey."},
+    {"where": "Every layer l.96", "before": "The surface rules hold on every water body. Underground, some species fight with no relation written and others do not, so the tool keeps writing cavern relations.", "after": "Rivers, lakes, oceans and cavern pools follow the surface rules. In the caverns some species fight with no relation written, so the tool still writes cavern relations for the rest."},
+    {"where": "Token effects l.161", "before": "Of the ~95 tokens asked about, three flags and one value change wildlife behaviour measurably within 3,000 ticks: BENIGN, CRAZED, OPPOSED_TO_LIFE, and PRONE_TO_RAGE at 25 or more.", "after": "Within 3,000 ticks, five tokens changed behaviour in a way that replicated or was unmistakable: BENIGN, CRAZED, OPPOSED_TO_LIFE, MEANDERER and PRONE_TO_RAGE at 25 or more."},
+    {"where": "Token effects l.186", "before": "16 of the tokens asked about appear in no creature definition, not 9, and 6 of those still exist in play.", "after": "Sixteen of the tokens appear in no creature definition; six of them still occur in play, added by world generation or by syndromes."},
+    {"where": "Token effects l.189 (opening)", "before": "Raw NO_<season> flag or the tool: which wins depends on who brings the animal. DF's own pick honours the flag even when it is set at run time: NO_SPRING stopped 19 of 19 spring kangaroo waves (T2).", "after": "DF's pick honours NO_<season> even when it is set at run time: a FREQUENCY-100 kangaroo with NO_SPRING took 0 of 19 spring waves (T2). v7.0 therefore clears the flag on the species it manages, so its own season deal wins."},
+    {"where": "Groups l.222", "before": "'As residents' means animals meant to stay on the map for their season, whether the tool placed them or DF drew them.", "after": "A resident is an animal meant to stay on the map for its season, whether the tool placed it or DF drew it."},
+    {"where": "Groups l.239", "before": "On land and in the caverns, DF draws every group; the tool only opens or closes the gate (the limit, stock, FREQUENCY, seasons). The tool draws water groups itself (Driver B), and places animals only on a command (`place`).", "after": "DF draws every land and cavern group; the tool only controls whether they come (limit, stock, FREQUENCY, seasons). The tool draws water groups itself and places animals only when told to."},
+    {"where": "Geography l.281", "before": "Activity time only shatters the guilds into one-species cells and has no documented fortress effect.", "after": "Activity time (diurnal, nocturnal) splits the guilds into single-species groups and has no documented effect in fortress mode, so it is left out."},
+    {"where": "Roster l.311", "before": "The rules are sound in intent. As written, they never finish filling their slots, and they demote the classic pack hunters to vermin-eaters.", "after": "The rules are sound in intent, but as written they never fill their slots, and their size bands class wolves, hyenas and cougars as small predators that may eat only vermin."},
+    {"where": "Guild-first l.354", "before": "Over 54,560 builds (11 embark types × every layer × 4 seasons × 20 seeds × 11 configurations), no roster had an isolated or split animal (v2.0; v2.1 split cavern rosters, v2.2 restored 0%), mutual predation, or a humanoid-rule break.", "after": "In 54,560 builds, no v2.0 or v2.2 roster had an isolated animal, mutual predation or a broken humanoid rule. v2.1 split every cavern roster, which v2.2 fixed."},
+    {"where": "5x gate l.383", "before": "The gate let a group of n hunters take prey up to 5 × one hunter's mass × n^0.75, so the pack needed grows as (prey/predator ÷ 5)^4/3.", "after": "The gate allowed a pack of n hunters to take prey up to 5 × n^0.75 times one hunter's mass. Prey 25 times a wolf's mass therefore needed a pack of about 9."},
+    {"where": "PK l.400", "before": "DF's combat turns on pack size, not prey size.", "after": "In DF's combat, the number of hunters mattered more than the size of the prey."},
+    {"where": "CAL l.424 (item 3)", "before": "At the first proposal (apex 1 against prey 8) an apex group would arrive about once in four seasons, too rare to see predation at all. Kill rates are low enough that prey can afford a larger predator share: even a 10-hyena clan takes about 13 prey a season, against 30–40 prey arriving.", "after": "At apex 1 against prey 8, an apex group would arrive about once in four seasons, too rarely to see. Kill rates leave room for more predators: a 10-hyena clan takes about 13 prey a season, while 30–40 arrive."},
+    {"where": "STL l.460", "before": "Whatever the skill does, it works in the fight.", "after": "So the Sneak skill, if it helps at all, helps in combat, not by hiding the hunter."},
+    {"where": "STL l.467", "before": "P1's rule still holds as stated: hunting needs a PREDATOR_OR_PREY entry. But DF adds such entries on its own over time, and the tool's writes come on top of them. How fast and between whom is a new tracker item.", "after": "Hunting still needs a PREDATOR_OR_PREY entry, but DF wrote one here for the placed hunter on its own. RELS later showed why: DF treats placed animals as fort animals."},
+    {"where": "v2.1 l.489", "before": "Every pelagic species now has a predator, and every BENIGN attacker the roster arms is cleared, so DF can act on every unit edge except the 19% whose reach is untested.", "after": "Every pelagic species now has a predator and every armed predator has BENIGN cleared. DF can act on 81% of unit edges; the other 19% have untested reach."},
+    {"where": "Third round l.530", "before": "Builder v2.2 (offline) and tool v7.0 (committed on a local branch, not deployed) take your design principle: where the tool manages an ecological space, it overrides vanilla DF instead of running alongside it.", "after": "Builder v2.2 and tool v7.0 follow the user's principle: where the tool manages part of the ecology, it overrides DF rather than running alongside it."},
+    {"where": "Third round l.557", "before": "Flying stays at 19% because a flying roster holds an apex and 1–2 raptors against at most 4 bird species; going lower needs a smaller raptor slot, not FREQUENCY.", "after": "Flying stays at 19% predators because a flying roster has one apex and one or two raptors against at most four bird species. Only a smaller raptor slot, not FREQUENCY, would lower it."},
+    {"where": "LONE10 l.620", "before": "LONE10 (10 runs per arm, 30 Sep night) settles it: the package lifts kills.", "after": "With 10 runs per arm (LONE10), the package cougar killed more: 49 animals against 21 (p = 0.024), 29 against 14 of them placed prey (p = 0.07)."},
+    {"where": "RELS l.678", "before": "Its filter still sees released groups, because DFHack's wildlife test reads the population reference, not the wild flag. Its refought counter will show how often DF writes them back.", "after": "The sweep still recognises released groups as wildlife, because DFHack's wildlife test reads the population reference rather than the wild flag. A counter records how often DF writes a cleared pair back."},
+    {"where": "Overnight l.697", "before": "The overnight blocks closed every open item in the tracker except the final validation. Five of them needed a rerun after the first pass tested nothing or was confounded: SW3, SCV2 and S8C tested nothing, and SW1 and SW2 were confounded by cell order.", "after": "The overnight and morning blocks closed every tracker item. Six needed a rerun: INV, SW3, SCV2 and S8C tested nothing, and SW1 and SW2 were confounded by cell order."},
+    {"where": "Scavenging (item 19) l.722", "before": "DF's own behaviour and the rig's walk-and-eat verbs cleared them only for wolves on land. What the night didn't measure is which species did the eating.", "after": "DF removed no carcasses on its own, and the rig's walk-and-eat verbs worked only for wolves on land. Which species ate in the tool's pass was not recorded."},
+    {"where": "Relations table l.742", "before": "Each row reads \"the writer's row holds this toward the target\".", "after": "Each row gives the relation the writer holds toward the target in DF's relation table."},
+    {"where": "Sweep l.793", "before": "What the night taught the method. The first sweep cells shared one fort load per replicate and always ran in the same order.", "after": "The first sweep runs had a design flaw: the cells of a replicate shared one fort load and always ran in the same order."},
+    {"where": "Open questions l.849", "before": "Every item below is done; v7.0 validates at 214 PASS, 0 FAIL. What remains are your decisions on what the night found. None of them is applied to the tool yet:", "after": "All tracker items are done (Appendix D). These decisions remain, none yet applied to the tool:"},
+    {"where": "Scavenging l.735", "before": "Almost no vanilla swimmer counts as a scavenger. The tool counts a creature as a scavenger only if it eats bone or curious-beast food, or is on a short named list.", "after": "The tool counts a creature as a scavenger only if it is BONECARN, a CURIOUSBEAST_EATER or on a short named list, which leaves just three vanilla swimmers: pond grabbers, sea serpents and sea monsters."},
+    {"where": "Speed l.447", "before": "The lion is faster than every prey here and still made 1 kill in 4 CAL cells. A solitary hunter's problem is engaging at all, not catching up.", "after": "The lion outruns every prey here yet killed once in 4 CAL cells: a lone hunter's problem is finding prey, not catching it."},
+    {"where": "DOM l.664", "before": "A gap the first run found: dogs, cats, pigs and chickens have no BIOME in the raws, so the tool classed them 'unclassified' and its forgotten-beast safety filter (`fb_safe`) kept them out of every pairing.", "after": "The first run exposed a bug: dogs, cats, pigs and chickens have no BIOME in the raws, so the tool's safety filter for forgotten beasts (`fb_safe`) excluded them from every pairing."},
+    {"where": "S8 l.759", "before": "Giant jackal packs carried the overshoot on BOATS: wave counts stayed modest, but each pack is large. CTRL undershoots because its supply is mostly ravens.", "after": "On BOATS, giant jackal packs caused the overshoot: few waves, but large packs. CTRL undershot because DF sends it mostly ravens."}
+  ],
+
+  "summary": "1. LONE10 is misreported (l.20, l.620, Rec 16, items 4/7/34). Placed-prey kills were 14 -> 29 (p = 0.07), not '9 against 7'. The quoted p = 0.025 belongs to all kills (21 -> 49), and the native share of those is a placement artefact. Restate it with both metrics and the caveat, and add LONE10 to findings.md. 2. The placed-units-are-non-wild caveat (RELS row 3) must move into Methods and be footnoted on CAL, STL/STL2, LONE/LONE10, PK, GPK and the SW1/SW2 arena. It explains the off-target kills and weakens the floor/sneak and prey-choice conclusions. Rewrite the RELP-era 'DF writes relations itself over time' lines (l.49, l.467, l.615). 3. Give v7.0 one status everywhere: on the rig, validated 214/0, not merged or pushed. Then fix the stale recommendation statuses (Rec 12 depth survey, 14 port, 15 realms, 16 p-value, 17 good/evil, 20 fishers on) and reconcile 17 vs 23 validator checks. 4. Correct the summary overstatements: sharks did attack shore seals (53 attacks, 1 kill); surface wild-wild relations are 'almost never' (5 of 370), not 'never'; 'one fixed value moves the map' ignores SW3B/SW5; 'depth cannot separate' contradicts the depth-gated pelagic rule; 'DF never draws SAVAGE' rests on one species, one fort, 2 runs. 5. Fix the NO_SPRING misstatement: the kangaroo took 0 of 19 spring waves; spring waves were not stopped. It is wrong on l.189 and in Rec 5 ('100% of spring waves'). 6. Update the stale results: vermin predation is tested (VRM2/VRM4, not 'untested'); cave toads and crawlers fight at one spot (HC4); MEANDERER replicated (so not 'three flags and one value'); VIEWRANGE did not clearly replicate (its 40-tile arm equals the control). 7. Fix the leader claims: in L2 the largest-male herd spread 41.9 tiles against 11.7 for lowest-id, so 'as well as' and 'both within 2-4 tiles' are wrong. Protection rests on one land run, and the water run contradicts it. 8. Mark superseded design decisions as such: the x3 pack bonus ('Decided yes' vs SW7 remove), the sneak bonus (vs SW2 retire), 'gate seasons with NO_<season>' (vs v7.0), the 5x gate, v1 rules, v2/v2.1/third-round Q&A and the mechanistic version all go to a design-history appendix. The lake-apex gap reopens now that fishers are off. 9. Fix the numeric slips: DOM2's 37/88 attacks include the dogs' 29/38; S8's 'deaths per surface arrival' divides cavern-native deaths by surface arrivals; wolf kills do not rise monotonically with prey slowness (elephant 3 < buffalo 7); the realm counts sum to 382, not 308; the roster cell count (68,000 vs 133,280) and 8,190 vs 601 don't reconcile; the triage counts don't match T0-triage.tsv; FSH2 lost three grizzlies, not two; the Fisher p = 0.35 is for 3/28, not 2/16. 10. Restructure as summary (findings with n) -> methods (forts, ticks to days, placement and cell-order biases, vacuous runs) -> results by topic (merge first-day single runs with their replications) -> one recommendations table with evidence strength and current status -> pending decisions -> appendices (block index, glossary of block and guild codes, design history, tracker, data/versions). Write the body in the third person rather than 'your ruling'."
+}

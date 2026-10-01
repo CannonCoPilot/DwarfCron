@@ -1,0 +1,12 @@
+--- a/scripts/eco-report/build.py
++++ b/scripts/eco-report/build.py
+@@ -39,7 +39,8 @@
+ 
+ def fig_card(f):
+     cap = " · ".join(x for x in [f.get("caption"), f.get("notes")] if x)
+-    return (f'<figure class="fig" data-fig="{esc(f["id"])}" id="fig-{esc(f["id"])}">'
++    span = " span" if f.get("layout") == "full" else ""   # full: the card spans every column of its gallery
++    return (f'<figure class="fig{span}" data-fig="{esc(f["id"])}" id="fig-{esc(f["id"])}">'
+             f'<div class="ft">{esc(f.get("title"))}</div>'
+             + (f'<div class="fs">{esc(f.get("subtitle"))}</div>' if f.get("subtitle") else "")
+             + '<div class="plot"></div>'

@@ -1,0 +1,475 @@
+<header class="hero" id="top">
+  <div style="display:grid;gap:14px">
+    <span class="eyebrow">ECO study · Dwarf Fortress 53.16 · DFHack 53.16-r1.1 · seasonal-wildlife v6.9–v7.0</span>
+    <h1>How Dwarf Fortress wildlife really behaves, and what it means for seasonal-wildlife</h1>
+    <p class="lede">Wild animals in DF 53.16 hunt only when a predator relation exists, and only a non-BENIGN animal acts on one. On the surface DF almost never writes such a relation between two wild animals, so hunting between wild animals there needs the tool. Group size, not prey size, decides kills; leaders hold groups together. Of the tool's fixed values, only the predator FREQUENCY ladder changed how many predators the map holds, and the group limits how many groups it holds. None changed kills measurably.</p>
+  </div>
+  <div class="meta">
+    <div class="facts">
+      <span><b>{{blockcount}}</b>experiment blocks charted</span>
+      <span><b>8</b>test forts</span>
+      <span><b>{{figcount}}</b>figures</span>
+      <span><b>{{oicount}}</b>open items</span>
+    </div>
+    <div>Rig runs 29 Sep – 1 Oct 2026 on the CrossOver test rig; desk work over the 767 vanilla creatures. Released: v6.9.0 (master 1abe109, pushed 30 Sep). v7.0 (1e65e03) is deployed on the rig and passes the full validator, 214 PASS, 0 FAIL (run 20261001-074833), but is not merged, released or pushed, and the validator has no claims yet for its roster builder, ladder, gobble, scav_ext, outgun or realm parts.</div>
+    <div class="caveat"><b>DFHack version.</b> Every block here and the v7.0 validation ran on DFHack 53.16-r1.1. The rig was upgraded to 53.16-r2 (02e77acf) on 1 Oct at about 08:55; nothing has run on r2 yet, and an r2 re-validation is pending. r2 changes teleport occupancy (placement, the nudge) and site data on reclaimed forts; a code check found its setPathGoal, isCitizen and timestream-breathing changes do not reach the tool or the harness (data/dfhack-r2/REPORT.md).</div>
+    <div>Every number comes from <code>DwarfCron/data/eco-desk/findings.md</code> and the run directories under <code>data/experiments/</code>. Hover a chart for values; each figure's Data row lists its rows.</div>
+  </div>
+</header>
+
+<section class="sec" id="findings" data-toc="Key findings">
+  <div class="sechead"><h2><span class="secnum">1</span>Key findings</h2>
+  <p class="answer">Twenty results the tool's design rests on. Each names the block that measured it; the sections below hold the evidence.</p></div>
+  <div class="keys">
+    <div class="key"><div class="claim">No relation, no hunting.</div><p>0 attacks in 48 placed predator pairs over 3,000 ticks without a PREDATOR_OR_PREY relation. Written, every non-BENIGN predator attacked. One run per pair; the pattern holds across the 40-cell matrix.</p><span class="src">P1 · 1 run per cell</span></div>
+    <div class="key"><div class="claim">BENIGN is the switch, not LARGE_PREDATOR.</div><p>A BENIGN wolf never attacked; a coyote (not LARGE_PREDATOR) made 343 attacks on deer. Non-BENIGN prey fights back: capybaras killed 5 of 5 wolves (1 run).</p><span class="src">P1 · T1 · HO · 1 run per cell</span></div>
+    <div class="key"><div class="claim">On the surface, DF almost never pairs wild with wild.</div><p>DF aims citizens, livestock and placed animals at new arrivals. Between surface wild animals it wrote 5 of 370 entries in RELS. In the caverns it pairs natives freely.</p><span class="src">RELS · RELS2b · RELS3 · 2 reps</span></div>
+    <div class="key"><div class="claim">Pack size decides kills, not prey size.</div><p>A lone wolf barely engages a deer; 7 wolves and 10 hyenas killed elephants. Deer escaped by running. Wolves alone killed deer 1, moose 4, buffalo 7 and elephants 3, so kills did not simply follow prey speed either; size, speed and fighting back are confounded across the four prey.</p><span class="src">PK · CAL · 2 reps</span></div>
+    <div class="key"><div class="claim">Savage giant packs take megafauna.</div><p>10 giant hyenas killed both elephants in both runs; 4 giant saltwater crocodiles killed both hippos in all 4 runs.</p><span class="src">GPK · GPKW · GPKR · 2 reps</span></div>
+    <div class="key"><div class="claim">Lone hunters need dense prey.</div><p>Spread out, they rarely meet any. Among 48 placed prey, the skill package doubled a cougar's kills of them, 14 to 29 over 10 seasons per arm (one-sided p = 0.07, suggestive only); counting natives, 21 to 49 (p = 0.024). The harness wrote the skills; the tool's own caste write is untested on the rig.</p><span class="src">STL · STL2 · LONE10 · 10 runs per arm</span></div>
+    <div class="key"><div class="claim">Amphibious predators cross the shore; aquatic ones never leave the water.</div><p>Alligators killed 5 of 8 deer from the water and went 15 tiles inland. Sharks never attacked deer on land and took shore seals only when they entered the water. Wolves never caught fish, even breathing water.</p><span class="src">W1L · W1O · REACH · FISH</span></div>
+    <div class="key"><div class="claim">Leaders hold every kind of group.</div><p>Flocks and schools held to 5–30 tiles with a leader against 97–149 without (2 reps); orca pods half as wide. Without predators a led deer herd stayed within 2–4 tiles against 52 (1 run).</p><span class="src">L1 · COH</span></div>
+    <div class="key"><div class="claim">FREQUENCY is proportional.</div><p>Wave shares 61 / 24 / 13% at FREQUENCY 100 / 50 / 25 (1 run), per layer in the caverns too. Halving the predator ladder cut predators to about 2% of land animals in both cell orders.</p><span class="src">F1 · ECO2-FC · SW4</span></div>
+    <div class="key"><div class="claim">The apex FREQUENCY doesn't bring apexes.</div><p>At FREQUENCY 4–27, 0–3 apex units arrived per season run, and none in all 4 CTRL runs (2 reps per fort). Placing them is the likelier route; stocking or placing apexes has not been tested.</p><span class="src">S8 · SW4</span></div>
+    <div class="key"><div class="claim">Raw NO_&lt;season&gt; flags win unless cleared.</div><p>A NO_WINTER groundhog took 0 of 86 winter waves over 2 runs; with the flag cleared, 40 of 57. v7.0 clears the flag on managed species.</p><span class="src">T2 · ECO2-W</span></div>
+    <div class="key"><div class="claim">DF didn't draw a SAVAGE species onto a calm map.</div><p>The one species tested, the smilodon, never came to calm CTRL in a season (2 runs), though its population entry was added. Add invasive has to place such species itself.</p><span class="src">INV2 · 1 species, 1 fort</span></div>
+    <div class="key"><div class="claim">An emptied entry stops a species at once.</div><p>DF never sets the extinct flag; watch the entry's quantity. In one run a replacement's first wave came 2,090 ticks after the hook fired.</p><span class="src">N1 · 1 run</span></div>
+    <div class="key"><div class="claim">Nothing in DF eats remains; the tool's pass does.</div><p>No animal moved or ate a corpse on any layer. With the tool on, v7.0's scavenging pass cleared land and water carcasses within about 2,400 ticks.</p><span class="src">S · SCV · SCV2b</span></div>
+    <div class="key"><div class="claim">Gobbling is class-specific, and a written token works.</div><p>Badgers given GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG took 7 and 10 roaches and no grasshoppers (2 of 2 reps); DF honours a class the tool writes onto vermin at run time (2 of 2).</p><span class="src">VRM2 · VRM4</span></div>
+    <div class="key"><div class="claim">Curious beasts come to steal, then leave.</div><p>18 of 18 placed bears and raccoons left within 3,000 ticks; with the CURIOUS_BEAST flags cleared, 0 of 10.</p><span class="src">CB</span></div>
+    <div class="key"><div class="claim">Most of the tool's dials don't move the map.</div><p>Ecology cadence, nudge, pack-mass floor, sneak bonus and the ×3 pack bonus showed no effect on kills once cell order was controlled. Kills were 0–4 per arm, so only a large effect could have shown, and the arena used placed wolves that DF aims itself; no lever was tried on natural arrivals.</p><span class="src">SW1–SW7 · reruns</span></div>
+    <div class="key"><div class="claim">Flags don't start cavern invasions.</div><p>Two seasons with caverns discovered and irritation pinned raised none, even with 334 animal-person populations below; what does trigger one is untested. A halved cavern gate brought no extra traffic.</p><span class="src">E23e · T9c · 2 reps</span></div>
+    <div class="key"><div class="claim">Fortress water is shallow.</div><p>OCEAN2 has no column 3 levels deep, so v7.0 gives it no pelagic boost, and its optional pelagic slot came out empty. Placed orcas strand when unled: 3 of 12 drowned in 15,000 ticks.</p><span class="src">DEPTH · S8O · COHO</span></div>
+    <div class="key"><div class="claim">Wild-only combat alerts can be dropped safely.</div><p>In a prototype test (one fight per case), the filter dropped wild-only alerts, kept fights with dwarves, wolf men and goblins, and survived a save and reload.</p><span class="src">A1 · A2</span></div>
+  </div>
+</section>
+
+<section class="sec" id="method" data-toc="How the study ran">
+  <div class="sechead"><h2><span class="secnum">2</span>How the study ran</h2>
+  <p class="answer">Small, fast cells on saved test forts that are restored before every block and never saved. From 30 Sep most blocks ran 2 replicates (LONE 5, LONE10 10, VRM3b 6). The first-day matrices and several 30 Sep probes ran once (P1, P2, T1, W1L, W1O, HC1–HC3, HCP, HR, HO, HL, F1, ECO2-FC, RELP, SLOTV, LAKEP); their conclusions rest on the pattern across cells, and the text says "1 run" where one result stands alone.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>A cell</h3>
+      <p>A cell places two groups of animals side by side, steps the game, reads who attacked and killed whom, and clears its animals. The usual cell was 6 predators and 10 prey placed 10 tiles apart, at least 30 tiles from any dwarf, for 3,000 ticks (2.5 in-game days). Longer cells ran 30,000 ticks (CAL, STL) or a full season of 100,800 ticks (LONE, S8).</p>
+      <ul>
+        <li><b>An attack</b> is one DFHack <code>UNIT_ATTACK</code> event. <b>A kill</b> is a death incident whose killer and victim were both placed animals. Natives and cavern fights are counted apart.</li>
+        <li><b>Arms.</b> Most pairs ran with DF alone and with the predator relation written the way the tool's ecology job writes it.</li>
+        <li><b>Spawn questions</b> (F1, T2, N1, INV2, S8) watched DF's own arrivals with the surface gate released every 1,500 ticks.</li>
+        <li><b>Desk work</b> covered the wiki definition of every token asked about, a census of all 967 creatures in the two creature folders (767 vanilla plus 200 modded extinct), an audit of the tool's code, and about 68,000 simulated rosters. The token census counted 363 wild species; the population figures in section 18 use a wider filter, 736 wildlife species including 185 animal people and 178 giants.</li>
+      </ul>
+      <h3>Three traps the night exposed, and how they are handled</h3>
+      <div class="caveat"><b>Placed animals aren't wild to DF.</b> A script-placed animal has DF's wild flag cleared, so DF aims it at every later arrival (RELS). That is why placed hunters killed the fort's native wildlife in CAL, STL and LONE. Kills here count placed pairs only.</div>
+      <div class="caveat"><b>Cells that share a load run in order.</b> Natives arrive during a replicate and pile into the later cells. SW1 and SW2 first read as lever effects; reversed-order reruns showed cell position. The runner now alternates the order between replicates.</div>
+      <div class="caveat"><b>A verb can say "on" while doing nothing.</b> The first scavenging and season runs (SCV2, S8C) tested nothing: the tool was off, or a loop never ran. Each was rerun with a receipt printed every pass.</div>
+    </div>
+    <div class="figs">
+      <div class="card tbl"><table>
+        <thead><tr><th>Fort</th><th>What it is</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><b>CTRL</b></td><td>Temperate shrubland, 4×4, caverns closed</td><td>Most land cells, sweeps, spawn runs</td></tr>
+          <tr><td><b>BOATS</b></td><td>Ocean coast and salt river, 6×6, three open caverns</td><td>Caverns, cavern pools, a full season</td></tr>
+          <tr><td><b>OCEAN2</b></td><td>Ocean shelf, 1–2 levels deep</td><td>Sharks, seals, orcas, schools</td></tr>
+          <tr><td><b>LAKE</b></td><td>Freshwater lake, 91% one level deep</td><td>Shoreline predation, lake species</td></tr>
+          <tr><td><b>RIVER4</b></td><td>River banks</td><td>Fishing, river schools, water scavenging</td></tr>
+          <tr><td><b>FPS2E1–E6</b></td><td>Fresh 7-dwarf embarks, 1×1 to 6×6</td><td>Groups at once by embark size</td></tr>
+          <tr><td><b>GOODF, EVILF</b></td><td>Fresh good and evil embarks on region6</td><td>GOOD/EVIL management</td></tr>
+        </tbody></table></div>
+      <div class="card">
+        <h4 style="margin-bottom:10px">Glossary</h4>
+        <dl class="gloss">
+          <div><dt>Relation, P_O_P</dt><dd>A <code>PREDATOR_OR_PREY</code> entry in DF's per-unit relation table. Hunting needs one.</dd></div>
+          <div><dt>Armed</dt><dd>A predator the tool writes relations for; v7.0 also clears its BENIGN flag.</dd></div>
+          <div><dt>Tick</dt><dd>1,200 ticks = 1 day; 100,800 = 1 season (84 days); 403,200 = 1 year.</dd></div>
+          <div><dt>Wave, group</dt><dd>A wave is one arrival event; a group is one species from one population on the map.</dd></div>
+          <div><dt>Replicate</dt><dd>One independent run of a cell from a restored save.</dd></div>
+          <div><dt>Guilds</dt><dd><b>AL</b> apex land · <b>AW</b> water apex · <b>RP</b> raptor · <b>ML</b> ground mesocarnivore · <b>MW</b> water mesopredator · <b>GZ</b> grazer · <b>PL</b> other land prey · <b>SH</b> shore / semiaquatic · <b>PE</b> pelagic · <b>FC</b> coastal fish · <b>FF</b> freshwater fish · <b>WB</b> waterbird · <b>LB</b> land bird.</dd></div>
+          <div><dt>Calm, savage</dt><dd>DF's region savagery. SAVAGE species (giants, animal people, most extinct ones) appear only on savage regions.</dd></div>
+          <div><dt>Builder</dt><dd>The roster builder: picks each layer's species by guild slots and writes the FREQUENCY ladder (v2.2 offline; ROSTER.build in v7.0 is a partial port with the v2.1 ladder and three layers).</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="predation" data-toc="Predation and BENIGN">
+  <div class="sechead"><h2><span class="secnum">3</span>Predation: what DF carries out</h2>
+  <p class="answer">DF hunts only on a PREDATOR_OR_PREY relation, and any attacker that isn't BENIGN carries it out. LARGE_PREDATOR doesn't decide it, and most fights end in flight rather than a kill.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>DF alone never hunted.</b> 0 attacks in the 40 predator × prey pairs and 0 in 8 predator × predator pairs, wolf packs side by side included (P1, 3,000 ticks, 1 replicate per cell).</li>
+        <li><b>LARGE_PREDATOR isn't needed once the relation is written.</b> The coyote made 343 attacks on deer. Flipping LARGE_PREDATOR on a coyote or off a wolf changed nothing without the relation.</li>
+        <li><b>BENIGN blocks it.</b> The fox made 0 attacks in every cell; a wolf made BENIGN made 0 against 64 for the control. The BENIGN orca ignored written seals until the flag was cleared, then killed 4 of 8 (HO). A giant fox attacked deer only with BENIGN cleared.</li>
+        <li><b>Prey that isn't BENIGN fights back</b> (1 run each). Water buffalo killed a lion; deer made non-BENIGN killed 2 of 6 wolves; capybaras killed all 5 wolves on the lake shore.</li>
+        <li><b>AT_PEACE_WITH_WILDLIFE doesn't stop a written relation:</b> 328 attacks, 2 kills (1 run).</li>
+        <li><b>CRAZED and OPPOSED_TO_LIFE aim wildlife at the fort.</b> CRAZED deer ignored the rabbits beside them, crossed 30 tiles and killed 3 dwarves.</li>
+        <li><b>Kills are few for the attacks made:</b> 0–3 of 10 prey per cell, even at 300 attacks.</li>
+      </ul>
+      <p>Over longer runs DF also writes relations itself, but on the surface only from units that aren't wild toward wild arrivals (section 4). So "no relation, no hunting" holds for DF's own arrivals, and every surface hunt between two wild animals needs the tool's write.</p>
+    </div>
+    <div class="figs">{{gallery:predation stack 2}}</div>
+  </div>
+  {{gallery:predation}}
+</section>
+
+<section class="sec" id="relations" data-toc="Who DF aims at whom">
+  <div class="sechead"><h2><span class="secnum">4</span>Who DF aims at whom</h2>
+  <p class="answer">DF writes PREDATOR_OR_PREY from every unit that isn't wild (citizens, livestock, placed animals, groups the tool releases) toward each new wild arrival. Between surface wild animals it writes almost nothing; between cavern natives it writes freely.</p></div>
+  <div class="split">
+    <div class="prose">
+      <div class="tbl"><table>
+        <thead><tr><th>Writer</th><th>Target</th><th>Relation</th><th>How often</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td>Citizen dwarves</td><td>Each new surface arrival</td><td>PREDATOR_OR_PREY</td><td>Most arrivals, within ~3,000 ticks</td><td>RELS 159 of 370 entries; RELS2b toward the cougar and kestrels</td></tr>
+          <tr><td>Livestock and pets</td><td>Each new arrival</td><td>PREDATOR_OR_PREY</td><td>Most arrivals</td><td>RELS 107; RELS2b horse, yak, reindeer</td></tr>
+          <tr><td>Placed or tool-released units (wild flag cleared)</td><td>Later wild arrivals</td><td>PREDATOR_OR_PREY</td><td>Sometimes</td><td>RELS 57 of 370; RELS3: a small effect (released ravens toward skunks and kestrels)</td></tr>
+          <tr><td>The arrival</td><td>Fort units</td><td>BENIGN_ANIMAL if BENIGN, else DANGEROUS_ANIMAL</td><td>Every arrival</td><td>RELS 662 / 15; RELS2b cougar → dwarves DANGEROUS</td></tr>
+          <tr><td>Surface wild</td><td>Surface wild</td><td>PREDATOR_OR_PREY</td><td>Almost never</td><td>RELS 5 of 370; RELS2b 1 each</td></tr>
+          <tr><td>Cavern wild</td><td>Cavern wild</td><td>PREDATOR_OR_PREY</td><td>Yes, both ways</td><td>RELS 38; giant olm ⇄ crundle 9 / 7</td></tr>
+        </tbody></table></div>
+      <ul>
+        <li><b>Tokens don't matter, the wild flag does.</b> A placed lion as it is, BENIGN, without LARGE_PREDATOR or with AMBUSHPREDATOR all got the same entries, and so did placed deer and badgers.</li>
+        <li><b>A forced release makes everything non-wild.</b> RELS2 released each arrival by script, which clears the roaming flag; DF then aimed arrivals at one another (kangaroo → raven 56). RELS2b dropped the release and the rows above held.</li>
+        <li><b>The tool's own releases do the same.</b> When it adopts a DF wave into a tracked group or places animals, it clears the wild flag, so DF aims those groups at later arrivals. The v7.0 sweep clears entries the roster doesn't pair.</li>
+        <li><b>Empty relation slots read NONE (−1)</b>, never STRANGER (0); v7.0 writes −1 when it clears a slot (SLOTV).</li>
+        <li><b>Domestic animals as prey (DOM2)</b>, behind v7.0's <code>domestic</code> switch (off by default): on, wolves were related to all 11 fort animals. The fights totalled 37 and 88 attacks, 29 and 38 of them the dogs' attacks on the wolves; the wolves killed a cavy in each replicate and a chicken, and the dogs killed a wolf in each. Off, no fort animal was touched.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:relations stack 2}}{{gallery:domestic stack 2}}</div>
+  </div>
+  {{gallery:relations}}{{gallery:domestic}}
+</section>
+
+<section class="sec" id="reach" data-toc="Reach across land, water, air">
+  <div class="sechead"><h2><span class="secnum">5</span>Reach: across the shoreline, in the air and underground</h2>
+  <p class="answer">Amphibious predators hunt across the shoreline both ways. Aquatic predators take prey only in the water, and land predators never fish. Fliers take fliers, and cavern fliers take cavern prey. The same rules hold in cavern pools, rivers, lakes and the sea.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Crocodilians leave the water to hunt.</b> Alligators killed 5 of 8 deer and 5 of 8 capybaras from the water; saltwater crocodiles killed 4 of 8 water buffalo. In REACH, 1–3 of 3 crocodiles stood on dry ground in every sample, 15 tiles inland.</li>
+        <li><b>Sharks hunt only in the water.</b> Blue sharks killed 4 of 8 seals placed in the water. Seals placed on the shore drew 53 attacks and lost 1, a seal that entered the water; seals fled onto land. Tiger sharks took 5 of 6 swimming ducks in both replicates (WB). Sharks and lampreys never attacked deer on land.</li>
+        <li><b>Land predators don't fish.</b> Wolves already swim; with water-breathing added they touched pike 1–2 times, never killing one. Grizzlies and tigers given swimming made 0 attacks on pike in 4 runs, and the wolf control 0 in 2 (FSH2), so v7.0's fishing switch now defaults off.</li>
+        <li><b>Fliers take fliers.</b> A kea flock killed 5 of 12 parrots; a BENIGN-cleared eagle killed 2 of 12 ravens but never engaged a rabbit, so raptor-on-land-prey edges stay rare.</li>
+        <li><b>Cavern fliers take cavern prey:</b> giant bats killed 5 of 12 crundles.</li>
+        <li><b>Lake species are surface units</b> and take a written relation: 21 of 21 alligator–carp pairs held to 3,000 ticks (LAKEP).</li>
+        <li><b>Cavern natives fight mostly by species.</b> 5 of 8 pairs behaved the same at a second spot (HC4): trolls × gorlaks and troglodytes × elk birds fought at both; jabberers, blind cave ogres and giant olms at neither. Cave toads, cave crawlers and cave crocodiles moved with the spot. The tool keeps writing cavern relations.</li>
+      </ul>
+      <p><b>What the tool got wrong before v6.9.</b> Water-layer units were left out of the ecology, ocean species drawn from surface entries counted as land, and only 42% of the 2,599 pairs it would write passed its own <code>eats()</code> rules. v6.9 filters the write by reach and size.</p>
+    </div>
+    <div class="figs">{{gallery:reach stack 2}}</div>
+  </div>
+  {{gallery:reach}}
+  {{gallery:boundary wide}}
+  {{gallery:layers wide}}
+</section>
+
+<section class="sec" id="packs" data-toc="Group hunting">
+  <div class="sechead"><h2><span class="secnum">6</span>Group hunting: pack size decides</h2>
+  <p class="answer">DF's combat turns on how many hunters there are, not how big the prey is. Savage giant packs took elephants, rhinoceros and hippos. Predation thins herds; it never wiped one out.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>A lone wolf barely engages even a deer</b> (0–1 attacks). Kills start at 5–7 wolves, up to water buffalo (PK, 3,000 ticks, 2 replicates).</li>
+        <li><b>Deer escape by running.</b> Across CAL's wolf cells the kills were deer 1, moose 4, water buffalo 7, elephants 3, and ten hyenas killed 8 elephants over 2 replicates. Speed in ticks per 100 tiles (lower is faster): elk 122, deer 137, wolf 149, moose 157, buffalo 183, elephant 488. With wolves alone the order is not the speed order (buffalo 7, elephants 3), so size, speed and fighting back stay confounded across these four prey.</li>
+        <li><b>Predation thins, never wipes out:</b> at most 5 of 6 prey in 25 days. The best rate was 1.3 kills per 10,000 ticks (10 hyenas on elephants).</li>
+        <li><b>Savage giant packs take megafauna (GPK).</b> 10 giant hyenas killed both elephants in both runs; 10 giant dingoes 1 of 2 rhinoceros per run; 4 giant saltwater crocodiles both hippos in all 4 runs. No hunter was lost.</li>
+        <li><b>The pack-mass floor.</b> In CAL, hunts below 5% of the prey's mass made 0 kills and lost 4 hunters; 5–20% made 15 kills. At your ruling v7.0 writes an edge only at 5% or more, using the group actually present, with a sneak bonus at 25%. The sweep couldn't separate either from noise (SW2, SW2R).</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:pack stack 2}}</div>
+  </div>
+  {{gallery:pack}}
+</section>
+
+<section class="sec" id="solitary" data-toc="Solitary hunters">
+  <div class="sechead"><h2><span class="secnum">7</span>Solitary hunters</h2>
+  <p class="answer">A lone hunter's problem is meeting prey. Among 48 placed prey, the skill package v7.0 adopted doubled a cougar's kills of them over 10 seasons per arm (29 against 14, one-sided p = 0.07: suggestive, not decisive). Spread out, skills made no measurable difference. The harness wrote the skills onto the placed cougar; v7.0's own caste NATURAL_SKILL write has not been checked on the rig.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Spread out, lone hunters rarely kill.</b> In CAL's 12 solitary cells there was 1 kill. Pooling STL and STL2 (64 runs of 30,000 ticks), skilled or AMBUSHPREDATOR hunters killed in 10 of 48 runs and unchanged ones in 2 of 16; adding CAL's lone cells, 3 of 28 (Fisher's exact, p = 0.35).</li>
+        <li><b>Wild animals never sneak.</b> 0 of 426 samples showed a hidden hunter, with or without Sneak 10 or AMBUSHPREDATOR.</li>
+        <li><b>Combat skills raise engagement, not kills:</b> the fight arm made the most attacks (315) at the others' kill rate.</li>
+        <li><b>Without a relation, a hunter ignores its placed prey</b> (0 attacks in 8 runs).</li>
+        <li><b>Dense prey changes it (LONE, LONE10).</b> One cougar among 6 each of 8 species, one season per run. Kills of the placed prey: 14 unchanged against 29 with the package (one-sided permutation p = 0.07). Native kills: 7 against 20. All kills: 21 against 49 (p = 0.024). Attacks 664 against 1,393. The natives were hunted only because a placed cougar is non-wild to DF, so the placed-prey figure is the clean one. The package cougar never died; the control died once.</li>
+        <li><b>FLEEQUICK and VISION_ARC</b> showed no reliable effect over 4 replicates (FVA); the tool doesn't use them.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:solitary stack 2}}</div>
+  </div>
+  {{gallery:solitary}}
+</section>
+
+<section class="sec" id="tokens" data-toc="Tokens: census and effects">
+  <div class="sechead"><h2><span class="secnum">8</span>Creature tokens: what the raws hold and what they do</h2>
+  <p class="answer">Of the tokens tested, four flags and one value changed wild behaviour within 3,000 ticks: BENIGN, CRAZED, OPPOSED_TO_LIFE, MEANDERER (movement only), and PRONE_TO_RAGE at 25 or more. The CURIOUS_BEAST flags decide whether an animal stays, and NO_&lt;season&gt; changes what DF draws. Sixteen tokens asked about appear in no creature definition.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>PRONE_TO_RAGE works by dose.</b> Deer at 25, 50 and 100 made 17, 81 and 98 attacks on written wolves; at 100 they killed 4 of 6 wolves in both replicates (TV2). At 1, the badger's raw value, nothing happened.</li>
+        <li><b>VIEWRANGE leaned the expected way but isn't separable from noise.</b> Deer that see 40 tiles drew 3 and 0 attacks, those that see 5 drew 168 and 7, and the control 7 and 3. VIEWRANGE is never set in the raws, so every creature sees 20 tiles.</li>
+        <li><b>MEANDERER off scattered deer</b> over 72 and 65 tiles against 39 and 42, repeated in TV2. LOOSE_CLUSTERS made no difference.</li>
+        <li><b>UBIQUITOUS set at run time is ignored at the pick</b> (0 of 13 and 0 of 23 waves); its role is worldgen.</li>
+        <li><b>The activity tokens</b> (DIURNAL, NOCTURNAL…) are documented for Adventurer mode only.</li>
+        <li><b>Sixteen tokens appear in no creature definition.</b> Six still exist in play: CRAZED (werebeasts), SENSE_CREATURE_CLASS (night trolls), BLOODSUCKER (vampire curse), OPPOSED_TO_LIFE (undead syndromes), NATURAL_ANIMAL (DF's name for [NATURAL]) and CANNOT_CLIMB (an announcement). The other ten exist nowhere, including GOBBLE_VERMIN_CREATURE and NO_SUMMER.</li>
+        <li><b>Token blocks.</b> AQUATIC, IMMOBILE_LAND, NO_DRINK and UNDERSWIM travel together on 77 species. 25 of 32 grazers carry VISION_ARC 50:310, the only value in the raws. 11 of 12 LOOSE_CLUSTERS species are thieves. LARGE_PREDATOR belongs to no block and never co-occurs with BENIGN; 26 of the 60 wild predators carry neither CARNIVORE nor BONECARN.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:tokens stack 2}}</div>
+  </div>
+  {{gallery:tokens}}
+</section>
+
+<section class="sec" id="groups" data-toc="Groups, leaders, curious beasts">
+  <div class="sechead"><h2><span class="secnum">9</span>Groups, leaders and curious beasts</h2>
+  <p class="answer">A leader holds herds, packs, flocks, schools and pods together on every layer. Whether it protects prey is open: one land run says yes, one water run says no. A groups-at-once limit of √(embark tiles) + 1 adds about one group on 5×5 and 6×6 maps. Curious beasts visit to steal, then leave, unless their flags are cleared.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Leaders on land (1 run each; untested beyond that).</b> Without predators (L1), a led deer herd stayed within 2–4 tiles against 52 unled, and a led wolf pack within 3–10 tiles against 46. Under wolf attack (L2), herds led by the lowest id and by the largest male spread 12 and 42 tiles against 69 unled, and took 1 attack each against 88. Which member leads made no consistent difference; v7.0 makes the largest adult male the leader at your ruling.</li>
+        <li><b>Every layer.</b> Led gorlaks, troglodytes, pike, milkfish and carp spread 2–9 tiles against 33–47 (HC, HR, HO, HL). Flocks and schools held to 5–30 tiles against 97–149, in both replicates; a led orca pod was about half as wide (COH). Protection in water is unresolved: in one run tiger sharks killed 5, 10 and 1 milkfish from unled, lowest-id and largest-male schools.</li>
+        <li><b>Groups at once (ECO2-G).</b> At 5×5 and 6×6 every √ + 1 replicate (3.12–3.81 groups) held more than every default one (1.77–2.85); up to 4×4 the two were within noise, with no speed cost anywhere. On CTRL, a 4×4, auto held 3.6–4.7 land groups and a limit of 1 held 1.4–2.4, in both cell orders (SW3B), so the limit binds there too.</li>
+        <li><b>Who brings the groups.</b> On land and in the caverns DF draws every group; the tool only opens or closes the gate. It draws water groups itself and places animals only on command. So a higher limit fills only when DF has groups to send.</li>
+        <li><b>Curious beasts.</b> A placed raccoon walked about 35 tiles to the wagon pile, took a rope, and its leave countdown dropped to 0. 18 of 18 placed bears and raccoons left within 3,000 ticks; resetting the countdown didn't hold them, clearing the CURIOUS_BEAST flags did (0 of 10 left). v6.9's <code>curious TOKEN resident|thief</code> picks per species.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:groups stack 2}}</div>
+  </div>
+  {{gallery:groups}}
+</section>
+
+<section class="sec" id="spawn" data-toc="Arrivals and FREQUENCY">
+  <div class="sechead"><h2><span class="secnum">10</span>Arrivals: FREQUENCY, seasons, exhaustion, invasives</h2>
+  <p class="answer">FREQUENCY sets a species' share of DF's waves in proportion, per layer in the caverns. Raw NO_&lt;season&gt; flags win unless cleared. An emptied population entry stops a species, and DF never draws a SAVAGE species onto a calm map.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>FREQUENCY is proportional</b> (1 run each). Four species at 100, 50, 25 and 12 took 61, 24, 13 and 0% of land waves against 53, 27, 13 and 6% predicted (F1, 38 waves). In cavern 3, FREQUENCY 50, 25 and 12 gave 55, 26 and 18% against 57, 29 and 14% (ECO2-FC). Each cavern layer draws from its own pool. Arrival shares aren't presence: in SW4 predators made 11–14% of the animals present against 6% of FREQUENCY, because they stay while prey move on.</li>
+        <li><b>The predator ladder is the one lever that moves the map.</b> Halving the predator FREQUENCY cut predators to 1.8% and 1.9% of land animals in both cell orders; doubling wasn't reliably above ×1 (SW4).</li>
+        <li><b>NO_&lt;season&gt; wins unless cleared.</b> With NO_SPRING set at run time, a FREQUENCY-100 kangaroo took 0 of 19 spring waves, though with the other species at FREQUENCY 1 it would otherwise have taken most (T2). A winter groundhog with NO_WINTER took 0 of 42 and 0 of 44 waves; cleared, 21 of 32 and 19 of 25 (ECO2-W). v7.0 clears the flag on managed species so the tool's own season deal wins, and restores it when switched off.</li>
+        <li><b>Exhaustion.</b> A kangaroo entry of 3 went to 0 with its one wave and no kangaroo came after, though DF left the extinct flag false. A replacement's first wave came 2,090 ticks later, and it took 25 of the next 26 non-bird surface waves (N1, 1 run).</li>
+        <li><b>SAVAGE invasives on calm maps.</b> The yeti was refused on biome (INV). The smilodon's entry was added in both runs of INV2, yet DF drew none in a season. That is one species on one fort, and the block didn't log the gate's other releases; still, Add invasive should place such species itself.</li>
+        <li><b>Apex FREQUENCY.</b> Apex arrivals were 0 in all 4 CTRL season runs and 0–3 on BOATS and OCEAN2 at FREQUENCY 13–27, and an apex was present in 1 run of 6 in SW4 at any multiplier. DF may draw large predators from their own pool. Placing them is the likelier route; neither placing nor stocking apexes for a season has been tested.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:spawn stack 2}}</div>
+  </div>
+  {{gallery:spawn}}
+</section>
+
+<section class="sec" id="season" data-toc="A season on v7.0">
+  <div class="sechead"><h2><span class="secnum">11</span>A season on v7.0 with the roster builder</h2>
+  <p class="answer">The builder fills every slot it has candidates for and names the gaps. Surface predators made 5–42% of arriving units. v7.0 carries the v2.1 FREQUENCY ladder, which the offline builder predicts gives about 31% predators on land; the 14–18% target belongs to the v2.2 ladder, which isn't ported yet. Giant jackal packs pushed BOATS up; CTRL's raven-heavy supply held it down whatever the roster said.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>On CTRL the builder barely moves the surface.</b> Builder off: 45 and 34 surface units, predators 4% and 0%. Builder on: 37 and 37, predators 5% and 5%. Ravens were most of both.</li>
+        <li><b>On BOATS the roster differs per run.</b> Picks are uniform, and replicate 2 seated giraffe men and elephant men as grazers (72 giraffe men arrived). Water slots stayed empty: no water apex or freshwater fish exists in BOATS's pool, and the build output says so.</li>
+        <li><b>Plump helmet men swamp BOATS's caverns:</b> 54 and 180 arrived, about 15 per wave. That slot needs a group-size cap.</li>
+        <li><b>No pelagics on OCEAN2.</b> The v7.0 survey found 0 of 5,374 OCEAN2 columns 3 or more levels deep. The pelagic slot is optional (0–1) on a shallow ocean and rises to 0–2 with triple weight where deep columns exist; on OCEAN2 it came out empty, so nothing could strand. Placed orcas do strand: 3 of 12 drowned in 15,000 ticks when unled, none with a leader (COHO).</li>
+        <li><b>A deep layer delivered demons on CTRL</b>: 15 and 16 units in 4–5 groups, which the tool leaves unmanaged by design.</li>
+      </ul>
+      <p class="caveat">The first S8C run built no roster: its setup looped over a string instead of a list. It stands as the builder-off control; S8Cb is the builder-on run.</p>
+    </div>
+    <div class="figs">{{gallery:season stack 2}}</div>
+  </div>
+  {{gallery:season}}
+</section>
+
+<section class="sec" id="sweep" data-toc="Threshold sweep">
+  <div class="sechead"><h2><span class="secnum">12</span>Threshold sweep: which fixed values matter</h2>
+  <p class="answer">Only the predator ladder changed how many predators the map holds, and the group limits how many groups. No value changed kills measurably once cell order was controlled, but kills were so few (0–4 per arm over 4 replicates) that only a large effect could have shown. The cavern cap trims only the tool's own groups; the water cap rarely binds.</p></div>
+  <div class="split">
+    <div class="prose">
+      <div class="tbl"><table>
+        <thead><tr><th>Block</th><th>Value (current in bold)</th><th>Result</th><th>Suggested default</th></tr></thead>
+        <tbody>
+          <tr><td>SW1, SW1R</td><td>Cadence 500 / <b>1,500</b> / 6,000; nudge off / <b>current</b> / tight</td><td>No effect. Placed prey killed 0–3 per arm over 4 replicates; the busy-ness gap followed cell position</td><td>Cadence 3,000 (half the passes); nudge off</td></tr>
+          <tr><td>SW2, SW2R</td><td>Floor 0 / <b>0.05</b> / 0.20; sneak 0 / <b>0.25</b> / 1.0</td><td>No effect in either order; 0 kills at sneak 1.0. The 0.20 floor's shift off the elephant didn't repeat</td><td>Sneak 0, retire the SNEAK write; keep floor 0.05</td></tr>
+          <tr><td>SW3B</td><td>Land groups 1 / 3 / <b>auto</b></td><td>1.4–2.4 groups at 1 against 3.6–4.7 at auto, both orders; no fights in any cell</td><td>Keep auto</td></tr>
+          <tr><td>SW4</td><td>Predator ladder ×0.5 / <b>×1</b> / ×2</td><td>Predators 1.8–1.9% at ×0.5, 10.6–14.0% at ×1; ×2 gave 20.1% and 6.9% by order. Apex present in 1 run of 6</td><td>Keep ×1; drop the apex step</td></tr>
+          <tr><td>SW5</td><td>Cavern groups 1 / 2 / <b>auto</b></td><td>14–16 groups at caps 1–2 against 24–27 at auto, both orders. DF's natives (4–5 per depth) stay</td><td>Keep auto; relabel as a soft target</td></tr>
+          <tr><td>SW6</td><td>Water groups 1 / 2 / <b>auto</b></td><td>BOATS gets 2–5 water groups; cap 2 matched auto</td><td>Optional 2; thin evidence</td></tr>
+          <tr><td>SW7</td><td>×3 pack bonus 1 / <b>3</b> / 5</td><td>20 of ~28 wanted species are absent from CTRL's pool, so the test is weak; no difference</td><td>Remove the ×3 weight</td></tr>
+        </tbody></table></div>
+      <p class="caveat">The sweep arenas use placed wolves, which DF aims at targets itself (section 4), so a lever that only changes the tool's own writes can be masked there. The no-effect results mean "no effect visible on a placed pack against herds 45–60 tiles away".</p>
+    </div>
+    <div class="figs">{{gallery:sweep stack 2}}</div>
+  </div>
+  {{gallery:sweep}}
+</section>
+
+<section class="sec" id="scavenging" data-toc="Scavenging">
+  <div class="sechead"><h2><span class="secnum">13</span>Scavenging</h2>
+  <p class="answer">No creature in DF eats or moves remains, on any layer. The tool can do it: v7.0's scavenging pass cleared carcasses on land and in water within about 2,400 ticks. Which species did the eating wasn't recorded.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Nothing scavenges on its own.</b> Six fresh corpses beside vultures, hyenas, black bears, raccoons and wolves for 4,000 ticks: none moved or held one. The same held in caverns, pools and the sea, and in 4,000 ticks DF removed none of 7 cavern corpses (SCVC; findings.md says 3,000, but the cell ran 4,000: eco-run.py corpses2).</li>
+        <li><b>A full path works where a destination alone doesn't.</b> Given a tile-by-tile path, 3 of 6 hyenas reached the corpses within 300 ticks, and deleting the corpses survived a save and reload (S2).</li>
+        <li><b>The rig's own walk-and-eat verbs</b> fed wolves on land (6 and 2 carcasses) but not jackals, vultures or anything at the water (SCV, SCVW).</li>
+        <li><b>The tool's pass with the tool on</b> left 0–1 of 6 carcasses in every land cell and 0 in every water cell (SCV2b, SCV2Wb). The pass saw 6–21 scavengers, including CTRL's native ravens, and its teleport fallbacks never fired, so scav_ext's flier, swimmer and wanderer paths are still untested.</li>
+        <li><b>Who counts as a scavenger is the tool's rule</b>: BONECARN, CURIOUS_BEAST_EATER or a short named list. In vanilla that leaves only pond grabbers, sea serpents and sea monsters among swimmers.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:scavenging stack 2}}</div>
+  </div>
+  {{gallery:scavenging}}
+</section>
+
+<section class="sec" id="vermin" data-toc="Vermin">
+  <div class="sechead"><h2><span class="secnum">14</span>Vermin predation</h2>
+  <p class="answer">DF's gobbling is real and class-specific, and a token the tool writes carries it: onto a predator that lacks it, and onto vermin as a runtime class. With no consumer and no pet cats near, placed vermin stayed put.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Native gobblers took roaches only.</b> Ducks and hedgehogs carry <code>GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG</code>: they removed 3–8 roaches per replicate and no grasshoppers, which aren't in that class.</li>
+        <li><b>A written token works (VRM2).</b> Badgers given the class took 7 and 10 roaches and no grasshoppers (2 of 2 replicates); naming the roach creature did the same in the one replicate the cats left alone. Badgers with no token took nothing selectively.</li>
+        <li><b>Cats take everything:</b> 38 and 39 roaches, 20 and 19 grasshoppers. CTRL's own two cats were the background eater that spoiled 3 of 14 replicates, caught by VRM3b's 250-tick unit log.</li>
+        <li><b>A runtime class on the vermin works (VRM4).</b> Badgers with a matching gobble class removed 4 and 6 grasshoppers carrying the written class SWV_TEST (40 on the map), all within the first 250 ticks; the control removed 0 and 0. So v7.0's own vermin classes can drive gobbling.</li>
+        <li><b>Where vermin live.</b> The densest surface spots are bumblebee and termite colonies (14,000–19,000 each) that nothing hunts; caverns hold at most 2 vermin near any spot.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:vermin stack 2}}</div>
+  </div>
+  {{gallery:vermin}}
+</section>
+
+<section class="sec" id="oceans" data-toc="Oceans and water">
+  <div class="sechead"><h2><span class="secnum">15</span>Oceans and water depth</h2>
+  <p class="answer">Fortress-map water is 1–4 levels deep, and deep columns exist on some maps and not others. Depth can't sort species, since the raws carry no depth token, but it can sort maps: v7.0 widens the pelagic slot and triples its weight only where 3+-level columns exist.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>Depth by fort.</b> LAKE is 91% one level; OCEAN2 43% one and 57% two levels; BOATS has 23% at three and 9% at four.</li>
+        <li><b>Big fish don't suffer in shallow water over a few days:</b> two whale sharks and three blue sharks in OCEAN2's 1–2-level water were alive and moving 3,000 ticks later. Over 15,000 ticks unled orcas did strand (below).</li>
+        <li><b>The raws hold no depth token.</b> UNDERSWIM is on 79 of 83 aquatic creatures. The usable signals are AMPHIBIOUS in an ocean biome (shore dwellers), body size, and BEACH_FREQUENCY.</li>
+        <li><b>Placed orcas strand when they roam.</b> Orcas are AQUATIC with BEACH_FREQUENCY:10; 3 of 12 in unled pods drowned within 15,000 ticks, none of 12 in led pods.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:oceans stack 2}}</div>
+  </div>
+  {{gallery:oceans}}
+</section>
+
+<section class="sec" id="forts" data-toc="Caverns, alignment, invasions">
+  <div class="sechead"><h2><span class="secnum">16</span>Caverns, alignment and invasions</h2>
+  <p class="answer">On good and evil forts the map's own alignment counts as natural and is managed, while the opposite alignment and night creatures stay locked. Flags alone don't start a cavern invasion, and a halved cavern gate brings no extra traffic.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>GOODF and EVILF (region6).</b> GOODF manages fluffy wamblers, pixies and fairies; EVILF manages harpies, ogres, blood gnats, knuckle worms and demon rats. Each fort locks the other alignment as mythic, and all 10 night creatures stay locked. Cavern evil species (blind cave ogre, gorlak) class as natural once the cavern layer is on; it's off by default on a fresh embark.</li>
+        <li><b>Cavern invasions (E23e).</b> BOATS's caverns hold 334 animal-person and civ-race populations. Two seasons with the caverns marked discovered, irritation pinned at 300,000 and three dwarves on the cavern floor raised 0 invaders in all four runs. Flags alone don't do it; what does is untested (excavation into a cavern, wealth and population are the candidates).</li>
+        <li><b>The halved cavern gate (T9c).</b> Under pressure, the scheduled gap shortened from 8–20 days to 3–9, but waves then sat overdue for up to 42 days, and cavern animals were no more numerous (18–20 against 21–25).</li>
+        <li><b>Cavern limits (SW5).</b> A cap of 1 or 2 per cavern held 14–16 groups against 24–27 at auto. DF's natives sit outside the tool's limit.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:forts stack 2}}</div>
+  </div>
+  {{gallery:forts}}
+</section>
+
+<section class="sec" id="alerts" data-toc="Combat alerts">
+  <div class="sechead"><h2><span class="secnum">17</span>Combat alerts and the fight log</h2>
+  <p class="answer">Animal-vs-animal combat alerts can be dropped safely; DF's own announcement settings can't do it, because they switch per report type (43 COMBAT_* types), not per who is fighting.</p></div>
+  <div class="split">
+    <div class="prose">
+      <ul>
+        <li><b>The filter</b> drops each COMBAT alert in which no unit is a citizen, of the fort's civilisation, or fort-controlled. In a prototype test, one fight per case: a wild fight gave 1 alert with the filter off and 0 with it on (3 dropped); wolves set on dwarves kept their alert; fights with wolf men and goblins kept theirs (A2); a save and reload with the filter running was fine.</li>
+        <li><b>The fight log</b> takes attacks from DFHack's <code>UNIT_ATTACK</code> event and deaths from the incident list. It gave every count in this report. It's blind to fights in caverns nobody has opened, where DF writes no reports; deaths still appear.</li>
+        <li>v6.9 ships the filter on by default, with a Panel switch and <code>alerts on|off</code>; humanoid fights always alert.</li>
+      </ul>
+    </div>
+    <div class="figs">{{gallery:alerts stack 2}}</div>
+  </div>
+  {{gallery:alerts}}
+</section>
+
+<section class="sec" id="raws" data-toc="What the vanilla raws hold">
+  <div class="sechead"><h2><span class="secnum">18</span>What the vanilla raws hold</h2>
+  <p class="answer">The population the tool works with: every vanilla wildlife species by guild, size, frequency, group size, seasons, biomes, locomotion and behaviour tokens. These distributions explain most of what the rig found: why surface predators are rare, why so few swimmers scavenge, and why apexes barely arrive.</p></div>
+  {{gallery:raws}}
+</section>
+
+<section class="sec" id="builder" data-toc="Roster builder and food web">
+  <div class="sechead"><h2><span class="secnum">19</span>The roster builder and food-web rules</h2>
+  <p class="answer">Built guild-first, every roster closes: over 54,560 offline builds, no isolated or split animal, no mutual predation, no humanoid-rule break. Guilds decide which species may meet; size and group bonuses only weight what the guilds allow. v7.0 carries a partial port as ROSTER.build; the v2.2 pieces it lacks are listed below.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>How a roster is built (v2.2, ROSTER.build in v7.0)</h3>
+      <ol>
+        <li><b>Pool</b> per layer: the region's population entries, by guild. Caverns by UNDERGROUND_DEPTH; GOOD/EVIL species on matching regions, cavern ones always.</li>
+        <li><b>Slots</b> per layer and guild (land: 1 apex, 1–2 mesocarnivores, grazers, other prey, shore; water, flying and cavern tables of their own). Picks are uniform, ×3 for pack hunters.</li>
+        <li><b>Edges</b> follow guild diet rules within reach, with BENIGN cleared on every armed predator and a 5% pack-mass floor. Animal people and cavern civ races hunt and are prey; forgotten beasts and megabeasts are never written.</li>
+        <li><b>Guards.</b> A species no predator can take drops out unless the map's vegetation supports it. Every unfilled slot is reported by cause; when a pass adds nothing, a new predator–prey pair is seeded.</li>
+        <li><b>FREQUENCY ladder</b> last. v2.2 scales each roster so its commonest member sits at DF's cap of 100, giving predators 16% of land arrivals, 10% ocean and lake, 12% river, 19% flying and 15–16% in the caverns (offline). v7.0 still carries the v2.1 ladder (about 31% on land); porting v2.2 is an open item. Within a guild, body mass<sup>−0.75</sup>, clamped 0.25–4×.</li>
+      </ol>
+      <h3>What the rules got wrong as first written</h3>
+      <ul>
+        <li>Fixed size bands made wolf, dingo, hyena, cougar and cheetah "small", barring them from deer.</li>
+        <li>Every giant has PETVALUE 500, so "high value" meant giants, which seeded 75% of land webs.</li>
+        <li>Animal people were 37–44% of surface pools; only 43% of surface predator links were ones DF can act on.</li>
+        <li>The cap table spanned classes some layers can't hold, so no web ever finished on its own.</li>
+      </ul>
+      <p>Nine fixes, then the guild-first rebuild, closed those. The temperate lake has no apex in about half its rosters; v2.2 filled it with fishing land predators, which are off by default since FSH2, so that gap is open again. The full history of each round, with your rulings, is in the appendix.</p>
+      <h3>What v7.0's port leaves out</h3>
+      <ul>
+        <li>The v2.2 ladder: ROSTER.LADDER is the v2.1 table (land apex 3, meso 3, grazer 6), predicted ~31% land predators against v2.2's 16%.</li>
+        <li>Separate ocean, lake and river tables and cavern 1–3 and cavern-water tables: v7.0 has three layers (land, water, cavern).</li>
+        <li>A flying layer and its apex slot: raptors and land birds sit in the land table.</li>
+        <li>The SNP slot for prey-guild animal people, and the giant boost by flag (v7.0 boosts by mass only).</li>
+        <li>The builder's GOBBLE_VERMIN edge table and vermin stock links.</li>
+      </ul>
+      <p>Sources: seasonal-wildlife.lua (v7.0 1e65e03) ROSTER.SLOTS and ROSTER.LADDER, and the port's own comments; design.md section 9.</p>
+    </div>
+    <div class="figs">{{gallery:builder stack 2}}
+      <div class="card tbl"><table>
+        <thead><tr><th>Measure (surface)</th><th class="n">v1 with fixes</th><th class="n">v2 guild-first</th></tr></thead>
+        <tbody>
+          <tr><td>Rosters with an isolated or split animal</td><td class="n">2%</td><td class="n">0%</td></tr>
+          <tr><td>Giants / animal people on a calm map</td><td class="n">75% / 20%</td><td class="n">0% / 0%</td></tr>
+          <tr><td>Edges DF or the tool carries out</td><td class="n">77%</td><td class="n">90%</td></tr>
+          <tr><td>Pack-and-herd check</td><td class="n">75%</td><td class="n">62% (×3 bonus)</td></tr>
+          <tr><td>Seasonal breaks before the guard</td><td class="n">20%</td><td class="n">4%</td></tr>
+          <tr><td>Roster overlap between seeds, land</td><td class="n">0.17</td><td class="n">0.32</td></tr>
+          <tr><td>Unit pairs with prey ≥ 3× the eater</td><td class="n">8,190</td><td class="n">1,808</td></tr>
+        </tbody></table></div>
+  </div>
+  {{gallery:builder}}
+  </div>
+</section>
+
+<section class="sec" id="recs" data-toc="Recommendations and status">
+  <div class="sechead"><h2><span class="secnum">20</span>Recommendations and where they stand</h2>
+  <p class="answer">Every recommendation from the study is now built: in v6.9 (released 30 Sep) or in v7.0 (deployed on the rig, not merged or released). The full validator passes v7.0, but five v7.0 rows have no validator claim yet and two are covered only in part; they are marked so. The changes the sweep supports are proposals awaiting your decision (section 21).</p></div>
+  <div class="full tbl card">{{rectable}}</div>
+  <p class="caveat" style="max-width:none">Not recommended: CRAZED or OPPOSED_TO_LIFE as predation levers (they send wildlife at the fort), and UBIQUITOUS at run time (it does nothing at the pick).</p>
+</section>
+
+<section class="sec" id="open" data-toc="Open items and decisions">
+  <div class="sechead"><h2><span class="secnum">21</span>Open items and decisions</h2>
+  <p class="answer">Everything still incomplete, proposed, untested or awaiting your call, gathered from this report, the findings log, the design notes, the tool's plan and code, the validator and the backlog. Decisions come first. Items the 1 Oct review closed stay listed with the status "done" and are not counted as open.</p></div>
+  {{openitems}}
+</section>
+
+<section class="sec" id="validation" data-toc="Validation">
+  <div class="sechead"><h2><span class="secnum">22</span>Validation of v7.0</h2>
+  <p class="answer">The full validator passes v7.0 (commit 1e65e03): 214 PASS, 0 FAIL, 0 DEAD, 30 not testable on the forts it loads, 13 backlog. That run used DFHack 53.16-r1.1; the rig now runs 53.16-r2, and v7.0 and the harness have not yet been re-validated on it.</p></div>
+  <div class="split">
+    <div class="prose">
+      <p>The first full run failed 4 claims, all written before v7.0 and contradicted by its intended changes: the largest male now leads groups; per-water-body and per-cavern limits word their output differently; and the tool's season deal overrides NO_&lt;season&gt;. Those claims are now v7.0-aware, and the v7.0 claims testing the new behaviour directly pass, including <code>mech.v70.seasons_own</code>. Two doc-drift notes are release steps: the USAGE.md header still says v6.9.0, and the Docket (r15) still reads "@ 1e23b0a (v6.6.0)".</p>
+      <p><b>What 214/0 does not cover.</b> Phase v70 has no claim for the roster builder (ROSTER.build, the ladder, the unfilled report, the vegetation and deep-water surveys), vermin gobble and the SWV classes, scav_ext's fallbacks, outgun, realms, gate_drain or the caste NATURAL_SKILL write; <code>mech.v70.solo_raws</code> checks AMBUSHPREDATOR only. The validator's BACKLOG register still lists seven items v6.5–v7.0 shipped (frequency, popnumber, largestmale, concurrency, deepwater, realm, quiet). USAGE.md, README.md and the GUI carry no v7.0 content; the v7 switches are console-only.</p>
+    </div>
+    <div class="figs">{{gallery:validation stack 2}}</div>
+  </div>
+  {{gallery:validation}}
+</section>
+
+<section class="sec" id="appendix" data-toc="Appendix">
+  <div class="sechead"><h2><span class="secnum">A</span>Appendix</h2></div>
+  {{appendix}}
+  {{gallery:other wide}}
+</section>
+
+<footer>ECO study report, rebuilt 1 Oct 2026 from <code>DwarfCron/scripts/eco-report/build.py</code>. Data: <code>data/eco-report/experiments.json</code>, <code>raws.json</code>, <code>open-items.json</code>. The editable Claude Doc version holds the earlier single-column text and its comment threads; it has not been corrected.<br>
+Revisions. Page rev 2, 1 October 2026: review pass. DFHack note (results on 53.16-r1.1; the rig now runs r2, re-validation pending); release state in the header (v6.9.0 released and pushed; v7.0 deployed, unmerged); 13 figure captions corrected against their data (CAL speed, LONE attacks, LONE10, L2 school, FSH2 run count, S8 aim and pelagic slot, SW2 control kills, E23e samples, Docket line, alert filter, sweep position, COH widths, raws BEACH_FREQUENCY); ECO2-G range, SCVC length, FSH2 runs and the apex wording in the text; single-run and harness-written results labelled; v7.0 rows without a validator claim marked; the port's missing v2.2 pieces listed; open items updated (done items no longer counted as open). Page rev 1, 1 October 2026 (morning): rebuilt as a wide multi-column page from doc rev 326.</footer>

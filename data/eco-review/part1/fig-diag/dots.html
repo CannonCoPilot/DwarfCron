@@ -1,0 +1,362 @@
+<title>ECO Wildlife Study</title>
+
+
+<style>
+:root{
+  --bg:#F2F4F1; --panel:#FFFFFF; --panel2:#E9EEEA; --ink:#17201C; --ink2:#46524C; --ink3:#717D77;
+  --rule:#D6DDD8; --moss:#2E6A4E; --moss-soft:#DDEAE2; --code:#E7ECE8;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --muted:#A3ACA7; --grid:#E3E8E4; --axis:#9AA59F;
+  --good:#2F7D4A; --warn:#A06A00; --crit:#B83A39;
+  --display:"Archivo", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  --body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --ui:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1512; --panel:#161E1A; --panel2:#1C2621; --ink:#E2E9E5; --ink2:#B2BEB8; --ink3:#8A978F;
+  --rule:#27322C; --moss:#7CC39C; --moss-soft:#1E3328; --code:#1D2722;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9a2f; --s7:#9085e9; --s8:#e66767;
+  --muted:#5E6A64; --grid:#222C27; --axis:#4E5A54; --good:#6CC08A; --warn:#E0B25A; --crit:#EF7B7A; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0F1512; --panel:#161E1A; --panel2:#1C2621; --ink:#E2E9E5; --ink2:#B2BEB8; --ink3:#8A978F;
+  --rule:#27322C; --moss:#7CC39C; --moss-soft:#1E3328; --code:#1D2722;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2f9a2f; --s7:#9085e9; --s8:#e66767;
+  --muted:#5E6A64; --grid:#222C27; --axis:#4E5A54; --good:#6CC08A; --warn:#E0B25A; --crit:#EF7B7A; color-scheme:dark; }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg); color:var(--ink); font:16px/1.6 var(--body); margin:0; padding-inline:clamp(16px,2.4vw,36px); padding-block:24px 80px}
+.page{display:grid; grid-template-columns:220px minmax(0,1fr); gap:clamp(20px,2.6vw,44px); max-width:1760px; margin:0 auto}
+nav.toc{position:sticky; top:calc(env(safe-area-inset-top,0px) + 16px); align-self:start; max-height:calc(100vh - 32px); overflow:auto; font:500 13px/1.35 var(--ui); padding-right:6px}
+nav.toc .tt{font:700 12px/1 var(--ui); letter-spacing:.09em; text-transform:uppercase; color:var(--ink3); margin:0 0 10px}
+nav.toc ol{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+nav.toc a{display:block; color:var(--ink2); text-decoration:none; padding:4px 8px; border-radius:4px}
+nav.toc a:hover{background:var(--panel2); color:var(--ink)}
+nav.toc a.on{background:var(--moss-soft); color:var(--moss)}
+nav.toc ol ol{padding-left:10px; font-weight:400; font-size:12.5px}
+main{display:grid; gap:56px; min-width:0}
+h1,h2,h3,h4{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.12; font-stretch:88%}
+h1{font-size:clamp(32px,3.6vw,52px); font-weight:800; letter-spacing:-.01em}
+h2{font-size:clamp(24px,2.2vw,32px); font-weight:750}
+h3{font-size:19px; font-weight:700; margin-top:6px}
+h4{font:700 13px/1.3 var(--ui); letter-spacing:.06em; text-transform:uppercase; color:var(--ink3)}
+p{margin:0 0 .75em; max-width:70ch}
+a{color:var(--moss)}
+a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--moss); outline-offset:2px}
+code{font:.82em/1 var(--mono); background:var(--code); padding:2px 5px; border-radius:3px; overflow-wrap:anywhere}
+b,strong{font-weight:600}
+.eyebrow{font:600 12px/1 var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--moss)}
+.secnum{font:700 13px/1 var(--mono); color:var(--moss); margin-right:10px}
+/* header */
+.hero{display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:clamp(20px,3vw,48px); align-items:end; border-bottom:2px solid var(--ink); padding-bottom:22px}
+.hero .lede{font-size:18.5px; color:var(--ink2); max-width:62ch}
+.hero .meta{font:13px/1.55 var(--ui); color:var(--ink3); display:grid; gap:8px}
+.facts{display:flex; flex-wrap:wrap; gap:8px 22px; font:600 13px/1 var(--ui); color:var(--ink2)}
+.facts span b{font:700 22px/1 var(--display); color:var(--ink); display:block; margin-bottom:4px; font-stretch:80%}
+/* key findings */
+.keys{display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr)); gap:14px}
+.key{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px; display:grid; gap:6px; align-content:start}
+.key .claim{font:700 16.5px/1.25 var(--display); font-stretch:90%}
+.key p{font-size:14.5px; margin:0; color:var(--ink2)}
+.key .src{font:500 11.5px/1 var(--mono); color:var(--ink3)}
+/* sections */
+section.sec{display:grid; gap:18px; scroll-margin-top:16px}
+.sechead{display:grid; gap:8px; border-top:1px solid var(--rule); padding-top:18px}
+.sechead .answer{font-size:18px; color:var(--ink2); max-width:80ch}
+.split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:clamp(18px,2.4vw,40px); align-items:start}
+.split > .prose{min-width:0}
+.split > .figs{display:grid; gap:16px; min-width:0}
+.prose ul,.prose ol{margin:0 0 .9em; padding-left:20px; display:grid; gap:6px; max-width:70ch}
+.prose li{padding-left:2px}
+.full{min-width:0}
+.gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:16px; align-items:start}
+.gallery.stack{grid-template-columns:minmax(0,1fr)}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(560px,1fr))}
+.gallery > .fig.span{grid-column:1 / -1}
+.subsec{display:grid; gap:14px; padding-top:6px}
+/* figures */
+.fig{margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px 12px; display:grid; gap:6px; min-width:0}
+.fig .ft{font:700 15px/1.3 var(--display); font-stretch:92%; text-wrap:balance}
+.fig .fs{font:13px/1.4 var(--ui); color:var(--ink3)}
+.fig .plot{min-height:120px; overflow-x:auto}
+.fig .facet-h{font:700 11.5px/1 var(--ui); letter-spacing:.06em; text-transform:uppercase; color:var(--ink3); margin:10px 0 2px}
+.fig .plot svg{max-width:100%; height:auto; overflow:visible}
+.fig .fc{font:12px/1.45 var(--ui); color:var(--ink3); border-top:1px solid var(--rule); padding-top:6px}
+.fig .fn{font:12.5px/1.45 var(--ui); color:var(--ink2)}
+.fig details summary{font:500 12px var(--ui); color:var(--moss); cursor:pointer}
+.fig .tbl{max-height:280px; overflow:auto; margin-top:6px}
+.fig.err .plot{font:13px var(--ui); color:var(--crit)}
+/* tables */
+.tbl{overflow-x:auto; min-width:0}
+table{border-collapse:collapse; width:100%; font:14px/1.45 var(--ui); font-variant-numeric:tabular-nums}
+th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--rule); vertical-align:top}
+thead th{font:700 11.5px/1.25 var(--ui); letter-spacing:.05em; text-transform:uppercase; color:var(--ink3); background:var(--panel); position:sticky; top:0}
+td.n,th.n{text-align:right}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:16px 18px}
+.note{background:var(--moss-soft); border-radius:6px; padding:12px 16px; font:14.5px/1.5 var(--ui); color:var(--ink)}
+.note b{color:var(--moss)}
+.caveat{border-left:3px solid var(--warn); padding:4px 0 4px 12px; font:14.5px/1.5 var(--ui); color:var(--ink2)}
+/* glossary */
+dl.gloss{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px 22px; margin:0}
+dl.gloss div{display:grid; gap:2px}
+dl.gloss dt{font:600 13px/1.3 var(--mono); color:var(--moss)}
+dl.gloss dd{margin:0; font:14px/1.45 var(--ui); color:var(--ink2)}
+/* open items */
+.oi-bar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; font:13px var(--ui)}
+.oi-bar button{font:600 12.5px var(--ui); border:1px solid var(--rule); background:var(--panel); color:var(--ink2); padding:6px 11px; border-radius:16px; cursor:pointer}
+.oi-bar button[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.oi-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:12px}
+.oi{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px 14px; display:grid; gap:6px; align-content:start}
+.oi .h{display:flex; gap:8px; align-items:baseline; justify-content:space-between}
+.oi .t{font:700 15px/1.3 var(--display); font-stretch:92%}
+.oi .d{font:13.5px/1.5 var(--ui); color:var(--ink2); margin:0}
+.oi .nx{font:13px/1.45 var(--ui); color:var(--ink)}
+.oi .nx b{color:var(--moss)}
+.oi .src{font:11.5px/1.4 var(--mono); color:var(--ink3); overflow-wrap:anywhere}
+.chip{font:700 10.5px/1 var(--ui); letter-spacing:.06em; text-transform:uppercase; padding:4px 7px; border-radius:10px; white-space:nowrap}
+.chip.high{background:color-mix(in srgb,var(--crit) 16%,transparent); color:var(--crit)}
+.chip.medium{background:color-mix(in srgb,var(--warn) 18%,transparent); color:var(--warn)}
+.chip.low{background:var(--panel2); color:var(--ink3)}
+.chip.cat{background:var(--moss-soft); color:var(--moss)}
+.oi-cat{display:grid; gap:10px}
+.oi-cat > h3 .count{font:600 13px var(--mono); color:var(--ink3); margin-left:8px}
+details.appx{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px 16px}
+details.appx summary{font:700 16px var(--display); cursor:pointer}
+details.appx[open] summary{margin-bottom:10px}
+footer{border-top:1px solid var(--rule); padding-top:14px; font:12.5px/1.5 var(--ui); color:var(--ink3)}
+@media (max-width:1180px){ .page{grid-template-columns:1fr} nav.toc{position:static; max-height:none; border-bottom:1px solid var(--rule); padding-bottom:12px} nav.toc ol ol{display:none} nav.toc > ol{display:flex; flex-wrap:wrap; gap:4px} }
+@media (max-width:980px){ .hero,.split{grid-template-columns:1fr} .gallery,.gallery.wide{grid-template-columns:1fr} }
+@media (max-width:520px){ .oi-grid,.keys{grid-template-columns:1fr} body{font-size:15.5px} }
+</style>
+
+<div class="page">
+<nav class="toc" aria-label="Contents">
+  <p class="tt">Contents</p>
+  
+</nav>
+<main>
+<div class="figs" style="display:grid;gap:16px"><figure class="fig" data-fig="size-gate-model" id="fig-size-gate-model"><div class="ft">Under the 5x mass gate, 4 wolves can take a moose but an elephant would need 74 -- while CAL saw 7 wolves kill 3 elephants</div><div class="fs">Hunters a kill needs under the gate (dot) against the group size DF sends (bar), per predator x prey pair; log scale</div><div class="plot"></div><div class="fc">Desk model (builder gate formula); widget pack-size-gate (43733c9d-7906); rig comparison in pk-pack-size and cal-group-size · needed = 1 if mass ratio &lt;= 5 else ceil((ratio/5)^(4/3)). Builder counts floor((cmin+cmax)/2). Not a rig experiment; PK/CAL/GPK show DF&#x27;s combat ignores prey mass.</div><details><summary>Data (12 rows)</summary><div class="tbl"><table><thead><tr><th>pair</th><th class=n>pm</th><th class=n>qm</th><th class=n>cmin</th><th class=n>cmax</th><th class=n>hunters_needed</th><th class=n>group_counted</th><th>edge_written</th></tr></thead><tbody><tr><td>wolf on deer</td><td class=n>40000</td><td class=n>140000</td><td class=n>3</td><td class=n>7</td><td class=n>1</td><td class=n>5</td><td>True</td></tr><tr><td>wolf on elk</td><td class=n>40000</td><td class=n>300000</td><td class=n>3</td><td class=n>7</td><td class=n>2</td><td class=n>5</td><td>True</td></tr><tr><td>wolf on moose</td><td class=n>40000</td><td class=n>525000</td><td class=n>3</td><td class=n>7</td><td class=n>4</td><td class=n>5</td><td>True</td></tr><tr><td>wolf on water buffalo</td><td class=n>40000</td><td class=n>1000000</td><td class=n>3</td><td class=n>7</td><td class=n>9</td><td class=n>5</td><td>False</td></tr><tr><td>wolf on elephant</td><td class=n>40000</td><td class=n>5000000</td><td class=n>3</td><td class=n>7</td><td class=n>74</td><td class=n>5</td><td>False</td></tr><tr><td>lion on giraffe</td><td class=n>200000</td><td class=n>1000000</td><td class=n>1</td><td class=n>3</td><td class=n>1</td><td class=n>2</td><td>True</td></tr><tr><td>lion on rhinoceros</td><td class=n>200000</td><td class=n>3000000</td><td class=n>1</td><td class=n>3</td><td class=n>5</td><td class=n>2</td><td>False</td></tr><tr><td>lion on elephant</td><td class=n>200000</td><td class=n>5000000</td><td class=n>1</td><td class=n>3</td><td class=n>9</td><td class=n>2</td><td>False</td></tr><tr><td>hyena on water buffalo</td><td class=n>60000</td><td class=n>1000000</td><td class=n>5</td><td class=n>15</td><td class=n>5</td><td class=n>10</td><td>True</td></tr><tr><td>hyena on elephant</td><td class=n>60000</td><td class=n>5000000</td><td class=n>5</td><td class=n>15</td><td class=n>43</td><td class=n>10</td><td>False</td></tr><tr><td>dingo on camel</td><td class=n>20000</td><td class=n>500000</td><td class=n>3</td><td class=n>12</td><td class=n>9</td><td class=n>7</td><td>False</td></tr><tr><td>tiger on water buffalo</td><td class=n>225000</td><td class=n>1000000</td><td class=n>1</td><td class=n>1</td><td class=n>1</td><td class=n>1</td><td>True</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="vrm2-gobble-tokens" id="fig-vrm2-gobble-tokens"><div class="ft">A written gobble token made badgers take roaches only (7 and 10 of 40, 0 grasshoppers), like the native duck and hedgehog</div><div class="fs">Share of placed vermin removed in 6,000 ticks per arm and replicate (40 ROACH_LARGE = edible ground bug, 20 GRASSHOPPER = not)</div><div class="plot"></div><div class="fc">VRM2 CTRL tool off, one fresh load per arm, 4 consumers, 6,000 t, 2 replicates; data/experiments/ECO/VRM2-20260930-202822 (vrm-tally.py); widget vrm2-removed · Read a selective arm only where grasshoppers held (grasshoppers_held): non-selective losses are CTRL&#x27;s two pet cats (units 117, 118) wandering in. VRM (first run) flawed: vermin piled up across cells.</div><details><summary>Data (28 rows)</summary><div class="tbl"><table><thead><tr><th>arm</th><th class=n>rep</th><th>vermin</th><th class=n>removed</th><th class=n>share</th><th>grasshoppers_held</th></tr></thead><tbody><tr><td>badger, no token</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>badger, no token</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>badger, no token</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>9</td><td class=n>0.225</td><td>False</td></tr><tr><td>badger, no token</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>11</td><td class=n>0.55</td><td>False</td></tr><tr><td>badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>7</td><td class=n>0.175</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>10</td><td class=n>0.25</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>6</td><td class=n>0.15</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>15</td><td class=n>0.375</td><td>False</td></tr><tr><td>badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>15</td><td class=n>0.75</td><td>False</td></tr><tr><td>cat (hunts any vermin)</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>38</td><td class=n>0.95</td><td>False</td></tr><tr><td>cat (hunts any vermin)</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>20</td><td class=n>1.0</td><td>False</td></tr><tr><td>cat (hunts any vermin)</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>39</td><td class=n>0.975</td><td>False</td></tr><tr><td>cat (hunts any vermin)</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>19</td><td class=n>0.95</td><td>False</td></tr><tr><td>duck (native gobbler)</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>4</td><td class=n>0.1</td><td>True</td></tr><tr><td>duck (native gobbler)</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>duck (native gobbler)</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>4</td><td class=n>0.1</td><td>True</td></tr><tr><td>duck (native gobbler)</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>hedgehog (native gobbler)</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>4</td><td class=n>0.1</td><td>True</td></tr><tr><td>hedgehog (native gobbler)</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>hedgehog (native gobbler)</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>3</td><td class=n>0.075</td><td>True</td></tr><tr><td>hedgehog (native gobbler)</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>control (nothing placed)</td><td class=n>1</td><td>roach (40 placed)</td><td class=n>14</td><td class=n>0.35</td><td>False</td></tr><tr><td>control (nothing placed)</td><td class=n>1</td><td>grasshopper (20 placed)</td><td class=n>18</td><td class=n>0.9</td><td>False</td></tr><tr><td>control (nothing placed)</td><td class=n>2</td><td>roach (40 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr><tr><td>control (nothing placed)</td><td class=n>2</td><td>grasshopper (20 placed)</td><td class=n>0</td><td class=n>0.0</td><td>True</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="hc4-species-or-spot" id="fig-hc4-species-or-spot"><div class="ft">Native cavern fighting is mostly species: 5 of 8 pairs behaved the same at a second spot, 3 moved with the spot</div><div class="fs">Attacks between the two placed species (both directions) with no relation written, first spot vs second spot; 3,000 ticks</div><div class="plot"></div><div class="fc">BOATS, second spot per cavern, 3,000 t, 2 replicates (first spot: HC1-HCP, 1 rep); data/experiments/ECO/HC4-20260930-233321 · Fight at both: TROLL x GORLAK (243+142 / 221+140, 3/2 gorlaks killed), TROGLODYTE x ELK_BIRD (162 / 144). Never: JABBERER, OGRE, OLM. Moved with the spot: TOAD (0 -&gt; 7/18 att), CRAWLER x CRUNDLE (8/8 killed -&gt; 0), CAVE CROC x ELK_BIRD (7 -&gt; 26/24 att). Spawned pairs only; raw attacks include natives.</div><details><summary>Data (24 rows)</summary><div class="tbl"><table><thead><tr><th>pair</th><th>spot</th><th class=n>rep</th><th class=n>attacks_both</th><th class=n>attacks</th><th class=n>kills</th></tr></thead><tbody><tr><td>TROLL x GORLAK</td><td>second spot</td><td class=n>1</td><td class=n>385</td><td class=n>243</td><td class=n>3</td></tr><tr><td>TOAD_GIANT_CAVE x ELK_BIRD</td><td>second spot</td><td class=n>1</td><td class=n>7</td><td class=n>7</td><td class=n>1</td></tr><tr><td>TROLL x GORLAK</td><td>second spot</td><td class=n>2</td><td class=n>361</td><td class=n>221</td><td class=n>2</td></tr><tr><td>TOAD_GIANT_CAVE x ELK_BIRD</td><td>second spot</td><td class=n>2</td><td class=n>18</td><td class=n>18</td><td class=n>3</td></tr><tr><td>TROGLODYTE x ELK_BIRD</td><td>second spot</td><td class=n>1</td><td class=n>162</td><td class=n>93</td><td class=n>0</td></tr><tr><td>VORACIOUS_CAVE_CRAWLER x CRUNDLE</td><td>second spot</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>TROGLODYTE x ELK_BIRD</td><td>second spot</td><td class=n>2</td><td class=n>144</td><td class=n>75</td><td class=n>0</td></tr><tr><td>VORACIOUS_CAVE_CRAWLER x CRUNDLE</td><td>second spot</td><td class=n>2</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>JABBERER x REACHER</td><td>second spot</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>BLIND_CAVE_OGRE x RUTHERER</td><td>second spot</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>JABBERER x REACHER</td><td>second spot</td><td class=n>2</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>BLIND_CAVE_OGRE x RUTHERER</td><td>second spot</td><td class=n>2</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>CROCODILE_CAVE x ELK_BIRD</td><td>second spot</td><td class=n>1</td><td class=n>26</td><td class=n>26</td><td class=n>5</td></tr><tr><td>OLM_GIANT x CRUNDLE</td><td>second spot</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>CROCODILE_CAVE x ELK_BIRD</td><td>second spot</td><td class=n>2</td><td class=n>25</td><td class=n>24</td><td class=n>4</td></tr><tr><td>OLM_GIANT x CRUNDLE</td><td>second spot</td><td class=n>2</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>TROLL x GORLAK</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>284</td><td class=n>143</td><td class=n>0</td></tr><tr><td>TOAD_GIANT_CAVE x ELK_BIRD</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>TROGLODYTE x ELK_BIRD</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>174</td><td class=n>101</td><td class=n>2</td></tr><tr><td>VORACIOUS_CAVE_CRAWLER x CRUNDLE</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>39</td><td class=n>29</td><td class=n>8</td></tr><tr><td>JABBERER x REACHER</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>BLIND_CAVE_OGRE x RUTHERER</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr><tr><td>CROCODILE_CAVE x ELK_BIRD</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>7</td><td class=n>7</td><td class=n>1</td></tr><tr><td>OLM_GIANT x CRUNDLE</td><td>first spot (HC1-HCP)</td><td class=n>1</td><td class=n>0</td><td class=n>0</td><td class=n>0</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="leader-spread" id="fig-leader-spread"><div class="ft">A leader pulls every group from 33-53 tiles apart to 10 or fewer, on land, underground and in water</div><div class="fs">Group spread (mean tiles from centroid) after 3,000 ticks, no leader vs lowest-id leader vs largest-male leader</div><div class="plot"></div><div class="fc">L1 CTRL, HC1/HC2 BOATS caverns, HR RIVER4, HO OCEAN2, HL LAKE; 3,000 t, 1 replicate each; widget leader-spread (afc7d648-d85e) · 10 animals placed except wolf pack and troglodytes (8). Which member leads made no consistent difference at n=1; v7.0 picks the largest male.</div><details><summary>Data (21 rows)</summary><div class="tbl"><table><thead><tr><th>group</th><th>block</th><th>arm</th><th class=n>spread</th></tr></thead><tbody><tr><td>Deer herd (land)</td><td>L1</td><td>none</td><td class=n>52.5</td></tr><tr><td>Deer herd (land)</td><td>L1</td><td>lowest id</td><td class=n>1.7</td></tr><tr><td>Deer herd (land)</td><td>L1</td><td>largest male</td><td class=n>3.6</td></tr><tr><td>Wolf pack x8 (land)</td><td>L1</td><td>none</td><td class=n>45.6</td></tr><tr><td>Wolf pack x8 (land)</td><td>L1</td><td>lowest id</td><td class=n>10.0</td></tr><tr><td>Wolf pack x8 (land)</td><td>L1</td><td>largest male</td><td class=n>3.4</td></tr><tr><td>Gorlaks (cavern 1)</td><td>HC1</td><td>none</td><td class=n>33.0</td></tr><tr><td>Gorlaks (cavern 1)</td><td>HC1</td><td>lowest id</td><td class=n>9.3</td></tr><tr><td>Gorlaks (cavern 1)</td><td>HC1</td><td>largest male</td><td class=n>7.5</td></tr><tr><td>Troglodytes x8 (cavern 2)</td><td>HC2</td><td>none</td><td class=n>40.6</td></tr><tr><td>Troglodytes x8 (cavern 2)</td><td>HC2</td><td>lowest id</td><td class=n>5.2</td></tr><tr><td>Troglodytes x8 (cavern 2)</td><td>HC2</td><td>largest male</td><td class=n>2.9</td></tr><tr><td>Pike school (river)</td><td>HR</td><td>none</td><td class=n>47.3</td></tr><tr><td>Pike school (river)</td><td>HR</td><td>lowest id</td><td class=n>2.4</td></tr><tr><td>Pike school (river)</td><td>HR</td><td>largest male</td><td class=n>4.3</td></tr><tr><td>Milkfish school (ocean)</td><td>HO</td><td>none</td><td class=n>47.2</td></tr><tr><td>Milkfish school (ocean)</td><td>HO</td><td>lowest id</td><td class=n>2.1</td></tr><tr><td>Milkfish school (ocean)</td><td>HO</td><td>largest male</td><td class=n>2.0</td></tr><tr><td>Carp school (lake)</td><td>HL</td><td>none</td><td class=n>34.3</td></tr><tr><td>Carp school (lake)</td><td>HL</td><td>lowest id</td><td class=n>1.8</td></tr><tr><td>Carp school (lake)</td><td>HL</td><td>largest male</td><td class=n>2.3</td></tr></tbody></table></div></details></figure><figure class="fig" data-fig="sw2-elephant-choice" id="fig-sw2-elephant-choice"><div class="ft">The 0.20 floor did not reliably move wolves off the elephant: 38% of their attacks in SW2 but 68% in SW2R</div><div class="fs">Wolf attacks on ELEPHANT as a share of their attacks on the placed herds, by arm, SW2 (fixed order) vs SW2R (reversed)</div><div class="plot"></div><div class="fc">SW2/SW2R CTRL arena, 2 reps pooled per block (values from findings.md) · SW2 rep 1 floor20: ELEPHANT 4, WATER_BUFFALO 33 attacks vs ctl 52, 6 -- not repeated. Five wolves sit at ~5% of an elephant&#x27;s mass. Placed units are non-wild to DF, which aims them itself (RELS).</div><details><summary>Data (10 rows)</summary><div class="tbl"><table><thead><tr><th>arm</th><th>block</th><th class=n>elephant_share</th></tr></thead><tbody><tr><td>ctl</td><td>SW2</td><td class=n>0.93</td></tr><tr><td>ctl</td><td>SW2R</td><td class=n>0.55</td></tr><tr><td>floor0</td><td>SW2</td><td class=n>0.78</td></tr><tr><td>floor0</td><td>SW2R</td><td class=n>0.81</td></tr><tr><td>floor20</td><td>SW2</td><td class=n>0.38</td></tr><tr><td>floor20</td><td>SW2R</td><td class=n>0.68</td></tr><tr><td>sneak0</td><td>SW2</td><td class=n>0.88</td></tr><tr><td>sneak0</td><td>SW2R</td><td class=n>0.32</td></tr><tr><td>sneak100</td><td>SW2</td><td class=n>0.68</td></tr><tr><td>sneak100</td><td>SW2R</td><td class=n>0.94</td></tr></tbody></table></div></details></figure></div>
+</main>
+</div>
+
+<script src="/private/tmp/claude-501/-Users-nathanielcannon-Claude-Projects-DwarfCron/6c601b1a-073b-42c6-a27d-44f793ddcd7d/scratchpad/fig-diag/lib/d3.min.js"></script>
+<script src="/private/tmp/claude-501/-Users-nathanielcannon-Claude-Projects-DwarfCron/6c601b1a-073b-42c6-a27d-44f793ddcd7d/scratchpad/fig-diag/lib/plot.umd.min.js"></script>
+<script id="figdata" type="application/json">[{"series": null, "facet": null, "log": true, "notes": "needed = 1 if mass ratio <= 5 else ceil((ratio/5)^(4/3)). Builder counts floor((cmin+cmax)/2). Not a rig experiment; PK/CAL/GPK show DF's combat ignores prey mass.", "id": "size-gate-model", "block": "BUILDER", "section": "pack", "title": "Under the 5x mass gate, 4 wolves can take a moose but an elephant would need 74 -- while CAL saw 7 wolves kill 3 elephants", "subtitle": "Hunters a kill needs under the gate (dot) against the group size DF sends (bar), per predator x prey pair; log scale", "caption": "Desk model (builder gate formula); widget pack-size-gate (43733c9d-7906); rig comparison in pk-pack-size and cal-group-size", "form": "dot", "x": "pair", "y": "hunters_needed", "unit": "hunters", "rows": [{"pair": "wolf on deer", "pm": 40000, "qm": 140000, "cmin": 3, "cmax": 7, "hunters_needed": 1, "group_counted": 5, "edge_written": true}, {"pair": "wolf on elk", "pm": 40000, "qm": 300000, "cmin": 3, "cmax": 7, "hunters_needed": 2, "group_counted": 5, "edge_written": true}, {"pair": "wolf on moose", "pm": 40000, "qm": 525000, "cmin": 3, "cmax": 7, "hunters_needed": 4, "group_counted": 5, "edge_written": true}, {"pair": "wolf on water buffalo", "pm": 40000, "qm": 1000000, "cmin": 3, "cmax": 7, "hunters_needed": 9, "group_counted": 5, "edge_written": false}, {"pair": "wolf on elephant", "pm": 40000, "qm": 5000000, "cmin": 3, "cmax": 7, "hunters_needed": 74, "group_counted": 5, "edge_written": false}, {"pair": "lion on giraffe", "pm": 200000, "qm": 1000000, "cmin": 1, "cmax": 3, "hunters_needed": 1, "group_counted": 2, "edge_written": true}, {"pair": "lion on rhinoceros", "pm": 200000, "qm": 3000000, "cmin": 1, "cmax": 3, "hunters_needed": 5, "group_counted": 2, "edge_written": false}, {"pair": "lion on elephant", "pm": 200000, "qm": 5000000, "cmin": 1, "cmax": 3, "hunters_needed": 9, "group_counted": 2, "edge_written": false}, {"pair": "hyena on water buffalo", "pm": 60000, "qm": 1000000, "cmin": 5, "cmax": 15, "hunters_needed": 5, "group_counted": 10, "edge_written": true}, {"pair": "hyena on elephant", "pm": 60000, "qm": 5000000, "cmin": 5, "cmax": 15, "hunters_needed": 43, "group_counted": 10, "edge_written": false}, {"pair": "dingo on camel", "pm": 20000, "qm": 500000, "cmin": 3, "cmax": 12, "hunters_needed": 9, "group_counted": 7, "edge_written": false}, {"pair": "tiger on water buffalo", "pm": 225000, "qm": 1000000, "cmin": 1, "cmax": 1, "hunters_needed": 1, "group_counted": 1, "edge_written": true}]}, {"series": "vermin", "facet": null, "log": false, "notes": "Read a selective arm only where grasshoppers held (grasshoppers_held): non-selective losses are CTRL's two pet cats (units 117, 118) wandering in. VRM (first run) flawed: vermin piled up across cells.", "id": "vrm2-gobble-tokens", "block": "VRM2", "section": "vermin", "title": "A written gobble token made badgers take roaches only (7 and 10 of 40, 0 grasshoppers), like the native duck and hedgehog", "subtitle": "Share of placed vermin removed in 6,000 ticks per arm and replicate (40 ROACH_LARGE = edible ground bug, 20 GRASSHOPPER = not)", "caption": "VRM2 CTRL tool off, one fresh load per arm, 4 consumers, 6,000 t, 2 replicates; data/experiments/ECO/VRM2-20260930-202822 (vrm-tally.py); widget vrm2-removed", "form": "dot", "x": "arm", "y": "share", "unit": "share removed", "rows": [{"arm": "badger, no token", "rep": 1, "vermin": "roach (40 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "badger, no token", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "badger, no token", "rep": 2, "vermin": "roach (40 placed)", "removed": 9, "share": 0.225, "grasshoppers_held": false}, {"arm": "badger, no token", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 11, "share": 0.55, "grasshoppers_held": false}, {"arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG", "rep": 1, "vermin": "roach (40 placed)", "removed": 7, "share": 0.175, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG", "rep": 2, "vermin": "roach (40 placed)", "removed": 10, "share": 0.25, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE", "rep": 1, "vermin": "roach (40 placed)", "removed": 6, "share": 0.15, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE", "rep": 2, "vermin": "roach (40 placed)", "removed": 15, "share": 0.375, "grasshoppers_held": false}, {"arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 15, "share": 0.75, "grasshoppers_held": false}, {"arm": "cat (hunts any vermin)", "rep": 1, "vermin": "roach (40 placed)", "removed": 38, "share": 0.95, "grasshoppers_held": false}, {"arm": "cat (hunts any vermin)", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 20, "share": 1.0, "grasshoppers_held": false}, {"arm": "cat (hunts any vermin)", "rep": 2, "vermin": "roach (40 placed)", "removed": 39, "share": 0.975, "grasshoppers_held": false}, {"arm": "cat (hunts any vermin)", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 19, "share": 0.95, "grasshoppers_held": false}, {"arm": "duck (native gobbler)", "rep": 1, "vermin": "roach (40 placed)", "removed": 4, "share": 0.1, "grasshoppers_held": true}, {"arm": "duck (native gobbler)", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "duck (native gobbler)", "rep": 2, "vermin": "roach (40 placed)", "removed": 4, "share": 0.1, "grasshoppers_held": true}, {"arm": "duck (native gobbler)", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "hedgehog (native gobbler)", "rep": 1, "vermin": "roach (40 placed)", "removed": 4, "share": 0.1, "grasshoppers_held": true}, {"arm": "hedgehog (native gobbler)", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "hedgehog (native gobbler)", "rep": 2, "vermin": "roach (40 placed)", "removed": 3, "share": 0.075, "grasshoppers_held": true}, {"arm": "hedgehog (native gobbler)", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "control (nothing placed)", "rep": 1, "vermin": "roach (40 placed)", "removed": 14, "share": 0.35, "grasshoppers_held": false}, {"arm": "control (nothing placed)", "rep": 1, "vermin": "grasshopper (20 placed)", "removed": 18, "share": 0.9, "grasshoppers_held": false}, {"arm": "control (nothing placed)", "rep": 2, "vermin": "roach (40 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}, {"arm": "control (nothing placed)", "rep": 2, "vermin": "grasshopper (20 placed)", "removed": 0, "share": 0.0, "grasshoppers_held": true}]}, {"series": "spot", "facet": null, "log": false, "notes": "Fight at both: TROLL x GORLAK (243+142 / 221+140, 3/2 gorlaks killed), TROGLODYTE x ELK_BIRD (162 / 144). Never: JABBERER, OGRE, OLM. Moved with the spot: TOAD (0 -> 7/18 att), CRAWLER x CRUNDLE (8/8 killed -> 0), CAVE CROC x ELK_BIRD (7 -> 26/24 att). Spawned pairs only; raw attacks include natives.", "id": "hc4-species-or-spot", "block": "HC4", "section": "layers", "title": "Native cavern fighting is mostly species: 5 of 8 pairs behaved the same at a second spot, 3 moved with the spot", "subtitle": "Attacks between the two placed species (both directions) with no relation written, first spot vs second spot; 3,000 ticks", "caption": "BOATS, second spot per cavern, 3,000 t, 2 replicates (first spot: HC1-HCP, 1 rep); data/experiments/ECO/HC4-20260930-233321", "form": "dumbbell", "x": "pair", "y": "attacks_both", "unit": "attacks (both directions)", "rows": [{"pair": "TROLL x GORLAK", "spot": "second spot", "rep": 1, "attacks_both": 385, "attacks": 243, "kills": 3}, {"pair": "TOAD_GIANT_CAVE x ELK_BIRD", "spot": "second spot", "rep": 1, "attacks_both": 7, "attacks": 7, "kills": 1}, {"pair": "TROLL x GORLAK", "spot": "second spot", "rep": 2, "attacks_both": 361, "attacks": 221, "kills": 2}, {"pair": "TOAD_GIANT_CAVE x ELK_BIRD", "spot": "second spot", "rep": 2, "attacks_both": 18, "attacks": 18, "kills": 3}, {"pair": "TROGLODYTE x ELK_BIRD", "spot": "second spot", "rep": 1, "attacks_both": 162, "attacks": 93, "kills": 0}, {"pair": "VORACIOUS_CAVE_CRAWLER x CRUNDLE", "spot": "second spot", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "TROGLODYTE x ELK_BIRD", "spot": "second spot", "rep": 2, "attacks_both": 144, "attacks": 75, "kills": 0}, {"pair": "VORACIOUS_CAVE_CRAWLER x CRUNDLE", "spot": "second spot", "rep": 2, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "JABBERER x REACHER", "spot": "second spot", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "BLIND_CAVE_OGRE x RUTHERER", "spot": "second spot", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "JABBERER x REACHER", "spot": "second spot", "rep": 2, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "BLIND_CAVE_OGRE x RUTHERER", "spot": "second spot", "rep": 2, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "CROCODILE_CAVE x ELK_BIRD", "spot": "second spot", "rep": 1, "attacks_both": 26, "attacks": 26, "kills": 5}, {"pair": "OLM_GIANT x CRUNDLE", "spot": "second spot", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "CROCODILE_CAVE x ELK_BIRD", "spot": "second spot", "rep": 2, "attacks_both": 25, "attacks": 24, "kills": 4}, {"pair": "OLM_GIANT x CRUNDLE", "spot": "second spot", "rep": 2, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "TROLL x GORLAK", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 284, "attacks": 143, "kills": 0}, {"pair": "TOAD_GIANT_CAVE x ELK_BIRD", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "TROGLODYTE x ELK_BIRD", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 174, "attacks": 101, "kills": 2}, {"pair": "VORACIOUS_CAVE_CRAWLER x CRUNDLE", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 39, "attacks": 29, "kills": 8}, {"pair": "JABBERER x REACHER", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "BLIND_CAVE_OGRE x RUTHERER", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}, {"pair": "CROCODILE_CAVE x ELK_BIRD", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 7, "attacks": 7, "kills": 1}, {"pair": "OLM_GIANT x CRUNDLE", "spot": "first spot (HC1-HCP)", "rep": 1, "attacks_both": 0, "attacks": 0, "kills": 0}]}, {"series": "arm", "facet": null, "log": false, "notes": "10 animals placed except wolf pack and troglodytes (8). Which member leads made no consistent difference at n=1; v7.0 picks the largest male.", "id": "leader-spread", "block": "L1", "section": "groups", "title": "A leader pulls every group from 33-53 tiles apart to 10 or fewer, on land, underground and in water", "subtitle": "Group spread (mean tiles from centroid) after 3,000 ticks, no leader vs lowest-id leader vs largest-male leader", "caption": "L1 CTRL, HC1/HC2 BOATS caverns, HR RIVER4, HO OCEAN2, HL LAKE; 3,000 t, 1 replicate each; widget leader-spread (afc7d648-d85e)", "form": "dumbbell", "x": "group", "y": "spread", "unit": "tiles", "highlight": "largest male", "rows": [{"group": "Deer herd (land)", "block": "L1", "arm": "none", "spread": 52.5}, {"group": "Deer herd (land)", "block": "L1", "arm": "lowest id", "spread": 1.7}, {"group": "Deer herd (land)", "block": "L1", "arm": "largest male", "spread": 3.6}, {"group": "Wolf pack x8 (land)", "block": "L1", "arm": "none", "spread": 45.6}, {"group": "Wolf pack x8 (land)", "block": "L1", "arm": "lowest id", "spread": 10.0}, {"group": "Wolf pack x8 (land)", "block": "L1", "arm": "largest male", "spread": 3.4}, {"group": "Gorlaks (cavern 1)", "block": "HC1", "arm": "none", "spread": 33.0}, {"group": "Gorlaks (cavern 1)", "block": "HC1", "arm": "lowest id", "spread": 9.3}, {"group": "Gorlaks (cavern 1)", "block": "HC1", "arm": "largest male", "spread": 7.5}, {"group": "Troglodytes x8 (cavern 2)", "block": "HC2", "arm": "none", "spread": 40.6}, {"group": "Troglodytes x8 (cavern 2)", "block": "HC2", "arm": "lowest id", "spread": 5.2}, {"group": "Troglodytes x8 (cavern 2)", "block": "HC2", "arm": "largest male", "spread": 2.9}, {"group": "Pike school (river)", "block": "HR", "arm": "none", "spread": 47.3}, {"group": "Pike school (river)", "block": "HR", "arm": "lowest id", "spread": 2.4}, {"group": "Pike school (river)", "block": "HR", "arm": "largest male", "spread": 4.3}, {"group": "Milkfish school (ocean)", "block": "HO", "arm": "none", "spread": 47.2}, {"group": "Milkfish school (ocean)", "block": "HO", "arm": "lowest id", "spread": 2.1}, {"group": "Milkfish school (ocean)", "block": "HO", "arm": "largest male", "spread": 2.0}, {"group": "Carp school (lake)", "block": "HL", "arm": "none", "spread": 34.3}, {"group": "Carp school (lake)", "block": "HL", "arm": "lowest id", "spread": 1.8}, {"group": "Carp school (lake)", "block": "HL", "arm": "largest male", "spread": 2.3}]}, {"series": "block", "facet": null, "log": false, "notes": "SW2 rep 1 floor20: ELEPHANT 4, WATER_BUFFALO 33 attacks vs ctl 52, 6 -- not repeated. Five wolves sit at ~5% of an elephant's mass. Placed units are non-wild to DF, which aims them itself (RELS).", "id": "sw2-elephant-choice", "block": "SW2R", "section": "sweep", "title": "The 0.20 floor did not reliably move wolves off the elephant: 38% of their attacks in SW2 but 68% in SW2R", "subtitle": "Wolf attacks on ELEPHANT as a share of their attacks on the placed herds, by arm, SW2 (fixed order) vs SW2R (reversed)", "caption": "SW2/SW2R CTRL arena, 2 reps pooled per block (values from findings.md)", "form": "dumbbell", "x": "arm", "y": "elephant_share", "unit": "share of attacks", "highlight": "floor20", "rows": [{"arm": "ctl", "block": "SW2", "elephant_share": 0.93}, {"arm": "ctl", "block": "SW2R", "elephant_share": 0.55}, {"arm": "floor0", "block": "SW2", "elephant_share": 0.78}, {"arm": "floor0", "block": "SW2R", "elephant_share": 0.81}, {"arm": "floor20", "block": "SW2", "elephant_share": 0.38}, {"arm": "floor20", "block": "SW2R", "elephant_share": 0.68}, {"arm": "sneak0", "block": "SW2", "elephant_share": 0.88}, {"arm": "sneak0", "block": "SW2R", "elephant_share": 0.32}, {"arm": "sneak100", "block": "SW2", "elephant_share": 0.68}, {"arm": "sneak100", "block": "SW2R", "elephant_share": 0.94}]}]</script>
+<script id="oidata" type="application/json">{}</script>
+<script>
+(function(){
+const FIGS = JSON.parse(document.getElementById('figdata').textContent);
+const BYID = Object.fromEntries(FIGS.map(f => [f.id, f]));
+const css = () => { const s = getComputedStyle(document.documentElement); const g = n => s.getPropertyValue(n).trim();
+  return {ink:g('--ink'), ink2:g('--ink2'), ink3:g('--ink3'), grid:g('--grid'), axis:g('--axis'), muted:g('--muted'), panel:g('--panel'),
+          pal:[g('--s1'),g('--s2'),g('--s3'),g('--s4'),g('--s5'),g('--s6'),g('--s7'),g('--s8')], mono:g('--mono'), ui:g('--ui')}; };
+const num = v => typeof v === 'number' ? v : (v != null && v !== '' && !isNaN(+v) ? +v : v);
+const fmt = v => typeof v === 'number' ? (Math.abs(v) >= 1000 ? v.toLocaleString('en-US', {maximumFractionDigits:0}) : (Number.isInteger(v) ? String(v) : v.toLocaleString('en-US', {maximumFractionDigits:2}))) : String(v);
+const uniq = (rows, k) => k ? [...new Set(rows.map(r => r[k]).filter(v => v != null))] : [];
+const longest = arr => arr.reduce((m, s) => Math.max(m, String(s).length), 0);
+function logOf(spec, axis){ const l = spec.log; if (!l) return false; if (l === true) return axis === (spec.form === 'scatter' ? 'both' : 'value') || l === true; return l === axis || l === 'both'; }
+function colorScale(spec, rows, C){
+  const s = spec.series; if (!s) return null;
+  const dom = spec.seriesOrder || uniq(rows, s);
+  if (dom.length > 8) return {type:'ordinal', domain:dom, range:dom.map((d,i) => i < 7 ? C.pal[i] : C.muted)};
+  return {type:'ordinal', domain:dom, range:C.pal.slice(0, dom.length), legend:true};
+}
+function tipText(spec, r){ const keys = Object.keys(r).filter(k => !k.startsWith('_')).slice(0, 8); return keys.map(k => `${k}: ${fmt(r[k])}`).join('\n'); }
+
+function build(spec, width){
+  const C = css(); const rows = (spec.rows || []).map(r => { const o = {}; for (const k in r) o[k] = num(r[k]); return o; });
+  let x = spec.x, y = spec.y; const s = spec.series || null, fct = spec.facet || null, form = spec.form;
+  // Categorical forms read spec.x as the category and spec.y as the value. A spec written the other way round
+  // (numeric x, text y) used to plot text on a linear scale: every mark NaN, an empty frame. Swap it and say so.
+  if (['bar','dot','dumbbell','box','strip','stackedBar','groupedBar','range'].includes(form) && rows.length && x && y
+      && rows.every(r => typeof r[x] === 'number') && rows.some(r => typeof r[y] === 'string')){
+    console.warn('figure', spec.id, ': x/y swapped (x must be the category)'); [x, y] = [y, x]; }
+  const color = colorScale(spec, rows, C);
+  const hi = spec.highlight;
+  const base = {width, style:{background:'transparent', color:C.ink2, fontFamily:C.ui, fontSize:'12px', overflow:'visible'},
+                marginTop:16, marginRight:28, marginBottom:40, grid:false};
+  const accent = C.pal[0];
+  const single = r => (hi != null && (r[x] === hi || r[s] === hi)) ? accent : (hi != null ? C.muted : accent);
+  const refs = (spec.reference || []).map(rf => rf);
+  const cats = uniq(rows, x);
+  const lm = Math.min(280, 18 + 7.6 * longest(cats));
+  const T = r => tipText(spec, r);
+  const unit = spec.unit && !String(spec.yLabel || spec.y || '').includes(spec.unit) ? ` (${spec.unit})` : '';
+  let marks = [], opt = {};
+  const valueLog = spec.log === true || spec.log === 'value' || spec.log === 'x' && ['bar','dot','box','range','dumbbell'].includes(form);
+  switch(form){
+    case 'bar': {
+      const horiz = cats.length > 5 || longest(cats) > 9;
+      if (horiz){
+        marks = [Plot.barX(rows, {x:y, y:x, fill: s ? s : single, sort: spec.sort === false ? undefined : {y:'-x'}, title:T, rx:2}),
+                 Plot.text(rows, {x:y, y:x, text:d => fmt(d[y]), dx:4, textAnchor:'start', fill:C.ink2, fontSize:11}),
+                 Plot.ruleX([0], {stroke:C.axis})];
+        opt = {marginLeft:lm, height:Math.max(110, 26 * cats.length + 50), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log' : 'linear'}, y:{label:null}};
+      } else {
+        marks = [Plot.barY(rows, {x:x, y:y, fill: s ? s : single, title:T, rx:2}),
+                 Plot.text(rows, {x:x, y:y, text:d => fmt(d[y]), dy:-7, fill:C.ink2, fontSize:11}), Plot.ruleY([0], {stroke:C.axis})];
+        opt = {height:280, x:{label:null, domain:cats}, y:{label:(spec.yLabel || y) + unit, grid:true}};
+      }
+      break; }
+    case 'groupedBar': {
+      const ser = uniq(rows, s);
+      if (cats.length * ser.length > 10 || longest(cats) > 9){
+        marks = [Plot.barX(rows, {x:y, y:s, fy:x, fill:s, title:T, rx:2}), Plot.text(rows, {x:y, y:s, fy:x, text:d => fmt(d[y]), dx:4, textAnchor:'start', fill:C.ink2, fontSize:10.5}), Plot.ruleX([0], {stroke:C.axis})];
+        opt = {marginLeft:Math.min(260, 18 + 7.4*longest(cats)), height:Math.max(140, cats.length * (ser.length*15 + 12) + 50), x:{label:(spec.yLabel || y) + unit, grid:true}, y:{axis:null, domain:ser}, fy:{label:null, domain:cats, padding:.18}};
+      } else {
+        marks = [Plot.barY(rows, {fx:x, x:s, y:y, fill:s, title:T, rx:2}), Plot.text(rows, {fx:x, x:s, y:y, text:d => fmt(d[y]), dy:-7, fill:C.ink2, fontSize:10.5}), Plot.ruleY([0], {stroke:C.axis})];
+        opt = {height:290, x:{axis:null, domain:ser}, fx:{label:null, domain:cats}, y:{label:(spec.yLabel || y) + unit, grid:true}};
+      }
+      break; }
+    case 'stackedBar': {
+      marks = [Plot.barX(rows, {x:y, y:x, fill:s, title:T, inset:0.5}), Plot.ruleX([0], {stroke:C.axis})];
+      opt = {marginLeft:lm, height:Math.max(120, 28 * cats.length + 60), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'dot': {
+      const hasRep = rows.some(r => r.rep != null);
+      marks = [Plot.ruleY(cats, {stroke:C.grid}),
+               Plot.dot(rows, {x:y, y:x, fill: s ? s : accent, r:5, stroke:C.panel, strokeWidth:1, title:T})];
+      // replicate mean: one tick per category AND series (one tick pooled over both arms meant nothing)
+      if (hasRep) marks.push(Plot.tickX(rows, Plot.groupY({x:'mean'}, s ? {x:y, y:x, z:s, stroke:s, strokeWidth:2} : {x:y, y:x, stroke:C.ink, strokeWidth:2})));
+      opt = {marginLeft:lm, height:Math.max(110, 26 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'dumbbell': {
+      const ser = uniq(rows, s).slice(0, 2);
+      const byCat = d3.rollups(rows, v => v, d => d[x]);
+      const links = byCat.map(([k, v]) => { const a = d3.mean(v.filter(r => r[s] === ser[0]), r => r[y]), b = d3.mean(v.filter(r => r[s] === ser[1]), r => r[y]); return {k, a, b}; });
+      marks = [Plot.link(links, {x1:'a', x2:'b', y1:'k', y2:'k', stroke:C.axis, strokeWidth:2}),
+               Plot.dot(rows, {x:y, y:x, fill:s, r:5.5, stroke:C.panel, strokeWidth:1, title:T})];
+      opt = {marginLeft:lm, height:Math.max(110, 30 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'heatmap': {
+      const v = spec.value || spec.z || (rows[0] && ('value' in rows[0] ? 'value' : (s && typeof rows[0][s] === 'number' ? s : y)));
+      const xs = uniq(rows, x), ys = uniq(rows, y === v ? (s || y) : y);
+      const yk = y === v ? s : y;
+      const vmax = d3.max(rows, d => +d[v] || 0) || 1;
+      const big = spec.cellText === false || xs.length > 24;
+      const xd = spec.xOrder || xs, yd = spec.yOrder || ys;
+      marks = [Plot.cell(rows, {x:x, y:yk, fill:v, title:T, inset: big ? 0.5 : 1})];
+      if (!big) marks.push(Plot.text(rows, {x:x, y:yk, text:d => d[v] == null ? '' : fmt(d[v]), fill:d => ((+d[v] || 0) / vmax > 0.5 ? '#ffffff' : '#17201C'), fontSize:10.5, fontWeight:500}));
+      const ml = Math.min(260, 18 + 7.4*longest(ys)), mb = big ? Math.min(200, 18 + 7.4*longest(xs)) : Math.min(150, 24 + 6.4*longest(xs));
+      const side = big ? Math.max(9, Math.floor((width - ml - 20) / xd.length)) : 26;    // square cells for a big matrix
+      opt = {marginLeft:ml, marginBottom:mb, marginRight: big ? 20 : 28,
+             width: big ? ml + side * xd.length + 20 : width,
+             height: big ? side * yd.length + mb + 16 : Math.max(160, 26 * ys.length + 110),
+             x:{label:null, tickRotate: big ? -90 : (longest(xs) > 5 ? -40 : 0), domain:xd}, y:{label:null, domain:yd},
+             color:{type: spec.colorType || 'linear', ...(big ? {domain:[0, 1], range:[C.grid, C.pal[0]]} : {scheme:'blues'}), legend:true, label:(spec.valueLabel || v) + (spec.unit && !(spec.valueLabel || v).includes(spec.unit) ? ` (${spec.unit})` : '')}};
+      const node = Plot.plot({...base, ...opt, marks});
+      if (big && spec.blocks){   // outline each block on the diagonal; a block is {from, to, label}, first and last token in the order
+        const sx = node.scale('x'), sy = node.scale('y');
+        const svg = node.tagName.toLowerCase() === 'svg' ? node : [...node.querySelectorAll('svg')].pop();
+        const g = d3.select(svg).append('g').attr('aria-label', 'blocks');
+        for (const bk of spec.blocks){
+          const i = xd.indexOf(bk.from), j = xd.indexOf(bk.to); if (i < 0 || j < 0) continue;
+          const x0 = sx.apply(xd[i]), x1 = sx.apply(xd[j]) + sx.bandwidth, y0 = sy.apply(yd[yd.indexOf(bk.from)]), y1 = sy.apply(yd[yd.indexOf(bk.to)]) + sy.bandwidth;
+          g.append('rect').attr('x', x0).attr('y', y0).attr('width', x1 - x0).attr('height', y1 - y0).attr('fill', 'none').attr('stroke', C.ink).attr('stroke-width', 1.6)
+           .append('title').text(bk.label);
+          if (bk.tag) g.append('text').attr('x', x1 + 3).attr('y', y0 - 3).attr('font-size', 11.5).attr('font-weight', 700).attr('fill', C.ink)
+             .attr('stroke', C.panel).attr('stroke-width', 3).attr('paint-order', 'stroke').text(bk.tag);
+        }
+      }
+      return node;
+    }
+    case 'line': {
+      marks = [Plot.line(rows, {x:x, y:y, stroke: s || accent, strokeWidth:2, curve: spec.curve || 'monotone-x'}), Plot.dot(rows, {x:x, y:y, fill: s || accent, r:3, title:T})];
+      opt = {height:280, x:{label:(spec.xLabel || x), grid:false}, y:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}};
+      break; }
+    case 'scatter': {
+      const lx = spec.log === true || spec.log === 'x' || spec.log === 'both', ly = spec.log === 'y' || spec.log === 'both';
+      marks = [Plot.dot(rows, {x:x, y:y, fill: s || accent, r:4, fillOpacity:.8, stroke:C.panel, strokeWidth:.6, title:T})];
+      if (spec.labelField) marks.push(Plot.text(rows.filter(r => r._label || r.label), {x:x, y:y, text: spec.labelField, dx:6, textAnchor:'start', fontSize:10.5, fill:C.ink2}));
+      opt = {height:340, x:{label:(spec.xLabel || x), type: lx ? 'log':'linear', grid:true}, y:{label:(spec.yLabel || y) + unit, type: ly ? 'log':'linear', grid:true}};
+      break; }
+    case 'box': {
+      marks = [Plot.boxX(rows, {x:y, y:x, fill:C.pal[0], fillOpacity:.25, stroke:C.ink2})];
+      opt = {marginLeft:lm, height:Math.max(130, 30 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'strip': {
+      marks = [Plot.dot(rows, {x:y, y:x, fill: s || accent, r:2.6, fillOpacity:.55, title:T}),
+               Plot.tickX(rows, Plot.groupY({x:'median'}, {x:y, y:x, stroke:C.ink, strokeWidth:2}))];
+      opt = {marginLeft:lm, height:Math.max(130, 28 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    case 'histogram': {
+      const lx = valueLog;
+      marks = [Plot.rectY(rows, Plot.binX({y:'count'}, {x:x, fill: s || accent, title: d => '', thresholds: spec.bins || 'auto'})), Plot.ruleY([0], {stroke:C.axis})];
+      opt = {height:260, x:{label:(spec.xLabel || x) + unit, type: lx ? 'log':'linear'}, y:{label:'species', grid:true}};
+      break; }
+    case 'range': {
+      const lo = spec.lo || ('min' in (rows[0]||{}) ? 'min' : 'lo'), hi2 = spec.hi || ('max' in (rows[0]||{}) ? 'max' : 'hi');
+      marks = [Plot.ruleY(cats, {stroke:C.grid}), Plot.link(rows, {x1:lo, x2:hi2, y1:x, y2:x, stroke: s || accent, strokeWidth:5, strokeLinecap:'round', title:T})];
+      if (y && y !== lo) marks.push(Plot.dot(rows, {x:y, y:x, fill:C.ink, r:3}));
+      opt = {marginLeft:lm, height:Math.max(110, 24 * cats.length + 54), x:{label:(spec.yLabel || 'range') + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
+      break; }
+    default: return null;
+  }
+  refs.forEach((rf, ri) => { const vv = rf.value; const horizontal = rf.axis === 'x' && ['line','scatter','histogram'].includes(form) ? true :
+      ['bar','dot','dumbbell','box','strip','stackedBar','range'].includes(form) && (form !== 'bar' || cats.length > 5 || longest(cats) > 9);
+    if (horizontal){ marks.push(Plot.ruleX([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {x:d => d, frameAnchor:'top', dy:-2 + ri * 12, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'start', dx:4})); }
+    else { marks.push(Plot.ruleY([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {y:d => d, frameAnchor:'right', dy:-6, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'end'})); } });
+  if (fct){ opt.fy = undefined; }
+  return Plot.plot({...base, ...opt, color: color || undefined, marks});
+}
+
+function tableOf(spec){
+  const rows = spec.rows || []; if (!rows.length) return '<p>No rows.</p>';
+  const keys = Object.keys(rows[0]).filter(k => !k.startsWith('_'));
+  const esc = v => String(v == null ? '' : v).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return '<table><thead><tr>' + keys.map(k => `<th${typeof rows[0][k] === 'number' ? ' class="n"' : ''}>${esc(k)}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + keys.map(k => `<td${typeof r[k] === 'number' ? ' class="n"' : ''}>${esc(typeof r[k] === 'number' ? fmt(r[k]) : r[k])}</td>`).join('') + '</tr>').join('') + '</tbody></table>';
+}
+
+function render(el){
+  const spec = BYID[el.dataset.fig]; if (!spec) { el.remove(); return; }
+  const plot = el.querySelector('.plot'); if (!plot) return;
+  const w = Math.max(280, Math.floor(plot.clientWidth || el.clientWidth - 32));
+  if (el._w === w && el._theme === document.documentElement.dataset.theme + matchMedia('(prefers-color-scheme: dark)').matches) return;
+  el._w = w; el._theme = document.documentElement.dataset.theme + matchMedia('(prefers-color-scheme: dark)').matches;
+  plot.innerHTML = '';
+  if (spec.form === 'table' || typeof Plot === 'undefined'){ plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>'; return; }
+  try {
+    const fv = spec.facet ? [...new Set((spec.rows || []).map(r => r[spec.facet]))] : [];
+    if (fv.length > 1 && fv.length <= 6){
+      // one small panel per facet value, same scales' domains for the categories
+      for (const v of fv){
+        const h = document.createElement('div'); h.className = 'facet-h'; h.textContent = v; plot.appendChild(h);
+        const sub = Object.assign({}, spec, {rows: spec.rows.filter(r => r[spec.facet] === v), facet: null,
+                                              seriesOrder: spec.series ? [...new Set(spec.rows.map(r => r[spec.series]))] : undefined});
+        const node = build(sub, w); if (node){ node.setAttribute('role','img'); node.setAttribute('aria-label', (spec.title || '') + ' — ' + v); plot.appendChild(node); }
+      }
+    } else {
+      const node = build(spec, w); if (node){ node.setAttribute('role','img'); node.setAttribute('aria-label', spec.title || ''); plot.appendChild(node); } else plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>';
+    }
+  }
+  catch(e){ el.classList.add('err'); plot.innerHTML = '<div class="tbl">' + tableOf(spec) + '</div>'; console.warn('figure', spec.id, e); }
+}
+const all = () => document.querySelectorAll('.fig[data-fig]');
+function renderAll(force){ all().forEach(el => { if (force) el._w = 0; render(el); }); }
+if (typeof ResizeObserver !== 'undefined'){ const ro = new ResizeObserver(es => es.forEach(e => render(e.target.closest('.fig')))); all().forEach(el => ro.observe(el.querySelector('.plot') || el)); }
+renderAll(true);
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => renderAll(true));
+      new MutationObserver(() => renderAll(true)).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']}); } catch(e){}
+
+/* open items filter */
+const bar = document.querySelector('.oi-bar');
+if (bar){
+  const items = [...document.querySelectorAll('.oi')];
+  let pr = 'all';
+  bar.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return;
+    pr = b.dataset.p; bar.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    items.forEach(it => { it.hidden = !(pr === 'all' || it.dataset.p === pr); });
+    document.querySelectorAll('.oi-cat').forEach(c => { c.hidden = !c.querySelector('.oi:not([hidden])'); });
+  });
+}
+/* toc highlight */
+const links = [...document.querySelectorAll('nav.toc a')]; const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+if ('IntersectionObserver' in window){ const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ links.forEach(a => a.classList.remove('on')); const a = map.get(e.target.id); if (a) a.classList.add('on'); } }), {rootMargin:'-10% 0px -80% 0px'});
+  document.querySelectorAll('section.sec[id], .subsec[id]').forEach(s => io.observe(s)); }
+})();
+</script>
+<script>setTimeout(()=>{const o=[];document.querySelectorAll('.fig').forEach(el=>{const sv=el.querySelector('.plot svg');
+o.push(el.dataset.fig+' err='+el.classList.contains('err')+' svgs='+el.querySelectorAll('.plot svg').length+' circles='+el.querySelectorAll('.plot circle').length+' rects='+el.querySelectorAll('.plot rect').length+' paths='+el.querySelectorAll('.plot path').length+' table='+!!el.querySelector('.plot table')+(sv?' w='+sv.getAttribute('width')+' h='+sv.getAttribute('height'):'')+' yticks='+[...el.querySelectorAll('[aria-label="y-axis tick label"] text')].map(t=>t.textContent).slice(0,12).join('|')+' xticks='+[...el.querySelectorAll('[aria-label="x-axis tick label"] text')].map(t=>t.textContent).slice(0,12).join('|'))});
+const p=document.createElement('pre');p.id='diag';p.textContent=o.join('\n');document.body.appendChild(p);},300);</script>
