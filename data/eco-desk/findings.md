@@ -407,3 +407,11 @@ DANGEROUS_ANIMAL (5, 6); wild cougar > wild owl / kestrel P_O_P one entry each i
 pairs as before (giant olm <> crundle 9/7). Kangaroo cells: no subject pairs (a kangaroo listed in rep 1 only).
 => the directional rows hold without the release artefact: fort side > arrival P_O_P, arrival > fort BENIGN/DANGEROUS,
 surface wild-wild almost never, cavern wild-wild yes. Report: directional table in 'Relations for arrivals' (doc rev 260).
+
+## INV2 — Add invasive with a SAVAGE species on a calm map, CENOZOIC_SMILODON (item 17; 1 Oct night, CTRL, 100,800 t, 2 reps)
+CTRL's tiles read calm live (2 tiles, 0 savage, pre and post). addNewSpecies (force) added the entry both reps
+(reason "28:19:present", "29:20:present"). CENOZOIC_SMILODON alive on the map: 0 at all 21 samples in both reps.
+=> DF did not draw a SAVAGE species onto a calm map in a full season even with its population entry present. Add
+invasive cannot rely on DF's draw for SAVAGE species on calm land; the tool must place them (or hold the entry and
+release via its own placement). Caveat: this block logs only the subject, so other arrivals in the window (gate open)
+are not on record here; T8g/SW3 show CTRL's gate releasing groups under the same conditions. Data: data/experiments/ECO/INV2-20261001-014121.
