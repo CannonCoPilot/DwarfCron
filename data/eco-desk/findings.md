@@ -481,3 +481,9 @@ Per depth (3 caverns) means ~8 under auto, ~4-7 under a cap of 1 or 2. => the ca
 about 40%, but never comes near itself: DF's native cavern populations (4-5 groups per depth) are not the tool's to cap.
 Cap 1 = cap 2. Attacks follow groups (auto 189/359 vs c2 91/27). Design outcome: the cavern limit is a soft target on
 the tool's share, not a ceiling: relabel it so on the Layers tab, keep auto as the default.
+
+## SW6 — water groups at once 1 / 2 / auto per body (item 11; 1 Oct night, BOATS natural, layer_groups on, 50,400 t, 2 reps counterbalanced)
+Water groups present (mean): auto 4.8, 2.1; w1 1.0, 2.1; w2 3.1, 2.3. Max per body: ocean 0-5, river 1-4, lake/pool 0.
+Rep 2 (reversed order) sits at ~2 in every arm: BOATS's water supply is 2-5 groups, so the cap rarely binds; w1 held exactly
+1 only in rep 1. Receipt: water-layer units present in every cell (the vacuous-run trap did not recur). => cap 2 = auto on
+this map; per the design table the default could drop to 2 (less placement) with no visible cost, but the evidence is thin.
