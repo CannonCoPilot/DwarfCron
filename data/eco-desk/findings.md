@@ -243,3 +243,9 @@ RELP (data/experiments/ECO/RELP-20260930-174328; CTRL, 1 run): enemy_status slot
   SAME_RACE / SAME_CULTURE / STRANGER. +3,000 t: DF itself wrote PREDATOR_OR_PREY LION(placed, no rel)>BIRD_KESTREL(wild),
   and dwarves/yak/horse/pig/reindeer > kestrel. => DF writes PREDATOR_OR_PREY on its own over time; that is how placed
   hunters attack unrelated natives in 30k-t cells. P1 (3,000 t, 0 attacks without a write) stands as a short-run result.
+ECO LONE (data/experiments/ECO/LONE-20260930-184842; CTRL tool off, 1 COUGAR among 6 x RABBIT HARE GROUNDHOG GOAT_MOUNTAIN KANGAROO DEER ELK WATER_BUFFALO r20,
+  rel to all 8, 100,800 t, 5 reps): cougar alive in all 21 samples of all 10 runs (no early death). Placed-prey kills
+  ctl 5 (2,0,1,0,2) vs pkg 11 (1,2,6,0,2); native kills 9 vs 11; attacks on placed prey 139 vs 290, all attacks 390 vs 472.
+  One-sided permutation p: placed kills .25, all kills .13, placed attacks .20 -> direction favours pkg, n=5 too few.
+  Kills: groundhog 8, goat 5, kangaroo 1, rabbit 1, elk 1 (pkg); no deer/buffalo kills. At density a lone hunter hunts
+  (~3 kills/season unchanged): encounter, not ability, limited STL/CAL.
