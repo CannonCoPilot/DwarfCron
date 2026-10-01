@@ -38,10 +38,23 @@ through one plant node. v21's 100% cavern split is gone. The flying layer's meas
   prey. Cave raptors stay mesopredators (the flying-apex rule is surface-only).
 - **Surface:** 0% split on calm and good/evil maps. On savage maps 7% have a prey-guild animal person with no allowed attacker
   that the vegetation link keeps (e.g. GRAY_LANGUR_MAN); joined through the plants, 0%.
-- **Never placeable in any layer of the embark-season (the true singletons): 20 species-cells, all five cavern civ races**
-  (TROGLODYTE, RODENT MAN, AMPHIBIAN_MAN, REPTILE_MAN, SERPENT_MAN). They are apex-tier (nothing may eat them: no apex-on-apex)
-  and sentient non-animal-people (kept out of attacker roles in v2.1). **Irreducible under the current rules; your call.**
-  With `civ_attack` (config `v22_civ`, not a ruling) they hunt by guild and the count is 0.
+- **v2.2 civ (user 30 Sep: "both, let them hunt and also be prey of cavern apexes"): true singletons 20 -> 0** in every
+  config (`civ22.py` -> `civ22.out`). Civ races = the 8 sentient non-animal-person cavern races: TROGLODYTE, RODENT MAN,
+  AMPHIBIAN_MAN, REPTILE_MAN, SERPENT_MAN (apex in the raws), ANT_MAN, GREMLIN (meso), PLUMP_HELMET_MAN (prey, BENIGN).
+  - **Tier choice:** a civ race ranks as **meso (tier 2) for edge direction** (`civ_prey`), not an apex exception, so edges stay
+    strictly downward: 0 mutual predation and 0 apex-on-apex in all v22 configs. They hunt by their guild (`civ_attack`, civ
+    races only), and every cavern apex (tier 3) above them may take them, subject to the AL/AW humanoid rule (R7) and the 5% floor.
+  - **Slot fix (`monster_slot`):** trolls and blind cave ogres are sentient EVIL apexes and sat in the single SN slot, so they
+    almost never shared a roster with a civ race (troll 1 edge onto civ, blind cave ogre 2). A sentient GOOD/EVIL apex now takes
+    the apex slot: troll 31, blind cave ogre 38, cave dragon 13, blood man 54 edges onto civ races (v22, summed over builds).
+  - **v22, per cavern depth** (civ on rosters / civ->x unit edges / cavern apex->civ / civ->civ): cav1 80/320/80/0;
+    cav2 109/316/109/29; cav3 132/393/132/51; cavw1 80/80/80/0; cavw2 158/80/158/78; cavw3 160/160/0/80 (cavern-water 3 has no
+    non-civ apex, so its civ races link to each other: serpent/reptile men over plump helmet men).
+  - Other apex attackers of civ races (v22): giant olm 78, pond grabber 78, giant cave toad 72, cave crocodile 65, molemarian 37,
+    blind cave bear 24, helmet snake 22, giant cave spider 21, voracious cave crawler 19, jabberer 7.
+  - Switch off = `v22_nociv` (civ_attack, civ_prey, monster_slot off): 20 singletons, as before. `v22_civ` = hunt only.
+  - Forgotten beasts / megabeasts are not in any roster (D8 classes) and the builder writes no edge for them; their targeting
+    of civ races is DF's own (see the tool audit, `v7.civ.fb_safe`).
 - Pool-level leftovers in v22 (placeable in another layer, so not singletons): GIANT_FLY / GIANT_MOSQUITO in savage lake pools
   (eaten in the flying layer). Fixed on the way: ANT / BUMBLEBEE / HONEY_BEE colonies were in the flying pool with no consumer
   (120 cells) -> moved to the land VC slot; lake ducks, carp, milkfish, stingray, tigerfish with no predator (temperate lake had

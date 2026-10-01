@@ -46,7 +46,7 @@ CONFIGS.update({
 # v2.2 (user rulings 30 Sep evening): pack-mass floor 5% (+ sneak bonus at 25%), cavern fliers fed (bats on vermin, cave
 # raptors on bats and cave land prey), flying apex + flying animal people, fishers, GOBBLE-based vermin links, vegetation
 # link for predator-less herbivores, GOOD/EVIL species on matching regions, ladder22.
-V22 = replace(V21, v22=True, mass_floor=0.05, veg=True, ladder21=True, label='v22')
+V22 = replace(V21, v22=True, mass_floor=0.05, veg=True, ladder21=True, civ_attack=True, civ_prey=True, monster_slot=True, label='v22')   # v2.2 civ default
 CONFIGS.update({
     'v22': V22,
     'v22_savage': replace(V22, savage=True, label='v22_savage'),
@@ -55,7 +55,8 @@ CONFIGS.update({
     'v22_evil_savage': replace(V22, align='evil', savage=True, label='v22_evil_savage'),
     'v22_floor20': replace(V22, mass_floor=0.2, label='v22_floor20'),
     'v22_noveg': replace(V22, veg=False, label='v22_noveg'),
-    'v22_civ': replace(V22, civ_attack=True, label='v22_civ'),          # cavern civ races as attackers (not a ruling yet)
+    'v22_civ': replace(V22, civ_prey=False, label='v22_civ'),           # civ races hunt only (the earlier test config)
+    'v22_nociv': replace(V22, civ_attack=False, civ_prey=False, monster_slot=False, label='v22_nociv'),   # v2.2 before the civ ruling (switch off)
 })
 
 def jobs():

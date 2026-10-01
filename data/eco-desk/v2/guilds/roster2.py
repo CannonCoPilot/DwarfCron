@@ -43,6 +43,9 @@ def _sp22():
     for z in S.values():
         z.fisher = z.id in FISHERS
         z.monster = (z.good or z.evil or z.fanciful) and not z.vermin      # GOOD/EVIL wildlife: attacks by its guild even if it speaks
+        # v2.2 civ (user 30 Sep: "let them hunt and also be prey of cavern apexes"): the sentient, non-animal-person cavern races
+        z.civ = (z.sentient and z.kind != 'animal_person' and not z.monster and not z.vermin
+                 and any(is_sub(x) for x in z.biomes))
         if z.guild == 'RP' and not z.vermin and not z.sentient and not z.apex and z.mass >= FLY_APEX_MIN and z.id not in SCAV \
                 and not any(is_sub(x) for x in z.biomes):                  # cave raptors stay mesopredators (they eat bats)
             z.apex = True; z.apex_why = 'v2.2 flying apex (%d g)' % z.mass
@@ -158,6 +161,9 @@ class Cfg:
     sneak_ratio: float = 0.25     # edges whose group mass >= this x prey mass carry the sneak bonus (tool gives the pack SNEAK)
     veg: bool = False             # vegetation link: a herbivore with no predator is kept when the embark's vegetation supports it
     civ_attack: bool = False      # cavern civ races (troglodytes, amphibian/reptile/serpent/rodent/ant men...) attack by guild
+    civ_prey: bool = False        # v2.2 civ: cavern civ races rank as meso (tier 2) for edges, so cavern apexes (tier 3) may eat them
+    monster_slot: bool = False    # v2.2 civ: a sentient GOOD/EVIL apex (troll, blind cave ogre, ogre...) takes the apex slot, not SN,
+                                  # so it can share a roster with the civ races it hunts
 
 PREF_RATIO = {'AL': 0.8, 'AW': 0.5, 'ML': 0.3, 'MW': 0.2, 'RP': 0.3}   # preferred prey / effective predator mass
 
@@ -225,7 +231,8 @@ def pool(ekey, layer, season, cfg):
 # ------------------------------------------------------------------ slot key and diet matrix
 def slot_of(s, layer, cfg=None):
     if s.vermin: return s.vclass
-    if s.sentient: return 'SNP' if (cfg is not None and cfg.v22 and tier(s) == 1) else 'SN'
+    if s.sentient and not (cfg is not None and cfg.monster_slot and getattr(s, 'monster', False) and s.apex):
+        return 'SNP' if (cfg is not None and cfg.v22 and tier(s) == 1) else 'SN'
     if cfg is not None and cfg.pelagic_apex and layer == 'ocean' and s.id in PEL_APEX: return 'APE'
     if s.apex: return 'APX'
     g = s.guild
@@ -284,10 +291,16 @@ def reach(p, x):
     if x.flier: return 'untested'
     return 'ok'
 
+def etier(s, cfg):
+    """Tier for edge direction. v2.2 civ: a cavern civ race ranks as meso (2), not apex, so it hunts prey below it and
+    is hunted by the cavern apexes above it; strict downward edges keep mutual predation and apex-on-apex at 0."""
+    t = tier(s)
+    return 2 if (cfg is not None and cfg.civ_prey and getattr(s, 'civ', False) and t > 2) else t
+
 def edge(p, x, cfg, layer=None):
     """(allowed, pref_weight, kind) where kind in {'unit', 'stock'}; None if not an edge."""
     if p.id == x.id: return None
-    if tier(p) <= tier(x): return None                          # strict downward: no mutual, no apex-on-apex
+    if etier(p, cfg) <= etier(x, cfg): return None              # strict downward: no mutual, no apex-on-apex
     if p.vermin:
         return (1.0, 'stock') if x.vermin and x.vclass in VERMIN_DIET.get(p.vclass, ()) else None
     g = p.guild
@@ -299,7 +312,8 @@ def edge(p, x, cfg, layer=None):
     if xs not in diet: return None
     if x.sentient and cfg.humanoid_rule and not attack_ok_on_sentient(p, cfg, x): return None
     if p.sentient and not (cfg.sentient_attack or (cfg.ap_attack and p.kind == 'animal_person')
-                           or (cfg.v22 and getattr(p, 'monster', False)) or cfg.civ_attack): return None
+                           or (cfg.v22 and getattr(p, 'monster', False)) or (cfg.civ_attack and getattr(p, 'civ', False))):
+        return None
     if x.vermin: return (1.0, 'stock')
     if reach(p, x) is None: return None
     if cfg.mass_floor:

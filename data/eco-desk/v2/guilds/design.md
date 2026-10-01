@@ -7,6 +7,9 @@
 (+ `v22_savage`, `v22_good`, `v22_evil`, `v22_evil_savage`, `v22_floor20`, `v22_noveg`, `v22_civ`); numbers: `results22.md`,
 `tables22.md`, `analyze22.out`. The v2.1 text is kept in `runs/design.v21.md.bak`.
 
+**1 Oct 2026 review:** sections 5-8 now carry the answers the ECO night gave (block IDs from `../../findings.md`), and a new
+section 9 records which v2.2 pieces seasonal-wildlife v7.0's ROSTER.build does not carry. The rules above are unchanged.
+
 Files only. The code is `roster2.py` (builder), `species2.py` (species table, guilds, apex rule) and `realms2.py` (realm table).
 The numbers behind every choice are in `results.md`, `tables2.md`, `apex.md` and `realms.md`.
 
@@ -139,6 +142,7 @@ Section 2 gives the tables.
   horned and snowy owls, BIRD_OSPREY; savage adds Quetzalcoatlus, Sinopterus, Rhamphorhynchus to the boosted giant raptors).
   It eats RP below it (intraguild) and flying sentients (R7). BENIGN cleared (R12.5).
 - **Tiers:** apex 3 > meso/raptor 2 > prey 1 > bird vermin 0.5 > other vermin 0. An edge must go strictly down a tier.
+  - *v2.2 civ:* edge direction uses `etier()`: a cavern civ race counts as 2 (meso) even when the raws make it an apex.
   - This makes mutual predation and apex-on-apex impossible by construction: 0 of 36,026 main edges.
   - No size threshold is involved.
   - DF itself makes rival predators fight as STRANGERs [E11c]; the tool writes no such relation.
@@ -154,8 +158,12 @@ Section 2 gives the tables.
 - *v2.2:* **the flying apex may take a flying sentient**, and a prey-guild animal person gets its own slot **SNP 0-1** beside
   SN on every layer (attacker animal people keep SN). Insect and bird men: 0 -> 880 of 880 savage flying rosters, all eaten;
   prey-guild animal people on savage land rosters 148 -> 866 of 880.
-- Cavern civ races are apex-tier and non-attackers, so nothing may eat them and they eat nothing: **the only remaining
-  singletons** (20 species-cells). `civ_attack` (config `v22_civ`) lets them hunt by guild; not a ruling.
+- *v2.2 civ* (user 30 Sep: "both, let them hunt and also be prey of cavern apexes"): the 8 cavern civ races (TROGLODYTE,
+  RODENT MAN, AMPHIBIAN_MAN, REPTILE_MAN, SERPENT_MAN, ANT_MAN, GREMLIN, PLUMP_HELMET_MAN) **attack by their guild**
+  (`civ_attack`) and **rank as meso (tier 2) for edge direction** (`civ_prey`), so every cavern apex above them may take them
+  (AL/AW humanoid rule and the 5% floor still apply). A sentient GOOD/EVIL apex (troll, blind cave ogre, ogre) takes the apex
+  slot, not SN (`monster_slot`), so it can share a roster with them. Singletons 20 -> 0; mutual predation and apex-on-apex stay 0.
+  The builder never writes an edge for a forgotten beast, megabeast or other D8 class: their targeting stays DF's.
 
 ### R8. DF reach (measured) decides whether an edge can exist at all
 
@@ -327,7 +335,7 @@ LARGE_PREDATOR, and with or without BENIGN.
 
 | slot | f | note |
 |---|---|---|
-| APX | 4 | DF's own LPs sit at 2-5. **LARGE_PREDATOR is a separate DF wave pool (wiki)**, so whether this number competes with prey is untested |
+| APX | 4 | DF's own LPs sit at 2-5. **LARGE_PREDATOR is a separate DF wave pool (wiki)**, so whether this number competes with prey is untested. *1 Oct:* the apex f does not visibly steer apex presence: 0 apex units in all 4 CTRL season runs, 0-3 on BOATS/OCEAN2 at f 13-27 [S8Cb], apex present in 1 of 6 SW4 runs at x0.5/x1/x2. Whether that is a separate pool or just rarity is still open (open item lp-separate-pool); the proposal is to drop the step (open item ladder-drop-apx-step, the user's call) |
 | ML / RP / MW | 12 | |
 | GZ / FC / FF | 50 | |
 | PL / LB | 40 | |
@@ -340,6 +348,9 @@ Measured depths:
 - Ocean embarks are 1-2 levels deep [O: 0 columns ≥ 3].
 - A lake reaches 3 [DEPTHL: 1,334 columns].
 - So the deep boost fires on lakes, and on an ocean only when a deeper map is found. The wiki documents no depth placement.
+- *1 Oct:* BOATS (ocean coast) has 33% of its water columns 3-4 levels deep [DEPTH: d3 8,564, d4 3,481 of 36,650]; v7.0's survey
+  (ENGINE.deepColumns) found 0 of 5,374 ocean columns ≥ 3 on OCEAN2 [S8O]. v7.0 keys the PE boost on ocean columns, not lakes, so
+  the lake case above does not arise in v7.0.
 
 Resulting predator share of arrivals (main): land 0.14, ocean 0.06, river 0.13, caverns 0.08-0.15. Lake (0.54) and cavern water
 (0.44) are predator-heavy, because their prey is mostly vermin.
@@ -348,67 +359,147 @@ Resulting predator share of arrivals (main): land 0.14, ocean 0.06, river 0.13, 
 
 ## 6. Water and cavern specifics
 
+*1 Oct 2026 review:* each question below now carries its answer and the block that settled it (findings.md block IDs).
+
 ### Ocean
 
 - Shark apex, pelagic class and coastal fish; shore species (seals, walrus, penguins) sit on the boundary.
-- ORCA and SPERM_WHALE are armable only as boosted apex with BENIGN cleared.
-- Aquatic attackers never target land-only species [R8].
-- BEACH_FREQUENCY species (ORCA, SPERM_WHALE) may strand (wiki). This is untested for tool placement.
+- ORCA and SPERM_WHALE are armable only as boosted apex with BENIGN cleared. **Answered:** the BENIGN orca made 0 attacks on
+  written seals; with BENIGN cleared it killed 4 of 8 [HO, 1 run].
+- Aquatic attackers never target land-only species [R8]. **Confirmed:** blue sharks took seals only in water (4/8; 1 of 8 ashore,
+  one that entered the water) and never attacked deer [W1O]; tiger sharks 4/12 seals in water, 0/12 on shore [REACH, 2 reps].
+- BEACH_FREQUENCY species (ORCA, SPERM_WHALE) may strand (wiki). **Answered for placed orcas:** 3 of 12 in unled pods drowned out of
+  water within 15,000 t, 0 of 12 in led pods [COHO, 2 reps, small n]. The tool's own pelagic draw has never fired (the PE slot came
+  out empty on OCEAN2 [S8O]), so `pelagic_beached` is untested. Open items orca-stranding-n, pelagic-slot-shallow-maps.
+- Tiger sharks take swimming waterbirds: ducks 5 of 6 in both reps, penguins 2 and 3 of 6 [WB].
 
 ### Lake and river
 
 - The apex is FISH_LAMPREY_SEA (temperate), ALLIGATOR, or CROCODILE_SALTWATER (tropical river). The temperate lake has no apex
   50% of the time.
+  - **The lamprey is not a real apex:** 590 attacks on pike, 0 kills in 3,000 t [HR] (open item lamprey-not-apex).
+  - **v2.2's fishers do not fill the gap:** grizzlies and tigers given CAN_SWIM_INNATE made 0 attacks on river pike in 4 runs, and
+    wolves with swim and water-breathing flags never killed a pike [FSH2, FISH, HR]. v7.0 ships `fishers` off, so the temperate lake
+    is apex-less about half the time again (open item lake-apex-gap, the user's call).
 - Unit fish are few (4 FF species). Vermin fish carry most of the base, as stock.
-- **Open question:** are lake species feature entries (no realm, so unwritable) or surface entries (realm land)? W2 found the
-  tool's own notes contradict each other. This decides writability.
+- ~~Open question: are lake species feature entries or surface entries?~~ **Answered [LAKEP, 1 run]:** lake wild units are feature
+  entries (layer 'water') that the tool puts in the surface realm ('land', since v6.9); 24 alligator x carp pairs were written and
+  21 of 21 (with 7 carp alive) still held at every 500-t read to 3,000 t. Lake species are writable.
+- Amphibious predators cross the shore both ways: alligators killed 5 of 8 deer and 5 of 8 capybaras from the water [W1L];
+  saltwater crocodiles went ashore for 10 of 12 capybaras and took 12 of 12 swimming beavers [REACH]. Bull sharks took 8 of 8 pike
+  in a river [HR]. Flow effects are untested.
 
 ### Cavern land
 
-- Depth range is a hard gate; the bizarre score is a preference.
+- Depth range is a hard gate; the bizarre score is a preference. FREQUENCY steers each cavern layer's own pool in proportion
+  [ECO2-FC, 1 run: cavern 3 55/26/18% vs 57/29/14% predicted].
 - `cav_ceiling` (dmin..3) makes cavw3 non-empty (80 more rosters) and grows cav3 from 8.1 to 10.0 species, but lowers DF-actable
   edges from 69% to 60%.
-- cav1 has no non-sentient group hunter. With `sentient_attack` on, the civ races become the packs.
+- cav1 has no non-sentient group hunter. With `sentient_attack` on, the civ races become the packs (v2.2 civ: `civ_attack`).
+- **Measured:** cavern natives fight without a written relation for some pairs only: troll x gorlak and troglodyte x elk bird fought at
+  two spots; jabberers, blind cave ogres and giant olms never fought unwritten but hunted when written (7/8 reachers, 3 rutherers);
+  cave toads, crawlers and cave crocodiles moved with the spot [HC1-HC3 1 run, HC4 2 reps]. Keep the cavern relation write.
+- Plump helmet men arrive as cavern herds of ~15 per wave (54 and 180 units a season on BOATS [S8B]): open item
+  cavern-animal-person-group-cap (the user's call).
 
 ### Cavern water
 
 - Four amphibious or aquatic LPs; sentients and vermin fish are the only in-pool prey.
-- The amphibious ones hunt the cavern land layer's prey across the edge. This is the same reach as the surface shore, and it is
-  untested underground: E41 found a croc was not pulled from water, and E41f found a croc killing toads in the same water.
+- ~~The cross-edge reach is untested underground.~~ **Answered [HCP, 1 run; HC4 2 reps]:** cavern pools behave like surface water.
+  CROCODILE_CAVE left the pool to kill 5 of 8 elk birds (and 5 and 4 at a second spot [HC4]); OLM_GIANT killed 7 crundles with a
+  placed killer on record (8 died) when written; POND_GRABBER stayed wet 5/5 and made 1 attack: aquatic predators never leave
+  cavern water. MODEL.reaches' habitat rules hold underground unchanged.
 
 ### Deep
 
 - Degenerate (IMP_FIRE → MAGMA_CRAB). Only 2 natural species exist.
+- **Seen on CTRL:** a deep layer delivered DEMON_* groups (15 and 16 units in 4-5 waves) in both S8C runs; the tool leaves them
+  unmanaged by design (D8; open item deep-layer-demons). IMP_FIRE vs MAGMA_CRAB is still unmeasured.
 
 ---
 
 ## 7. What must be tested on the rig, per layer
 
-Legend: ✔ measured (block); ○ open; the arm design follows the two-replicates-per-arm rule.
+Legend: ✔ measured (block); ○ open; the arm design follows the two-replicates-per-arm rule. *1 Oct review:* cells measured on
+30 Sep – 1 Oct are marked ✔ with their block; "1 run" marks a cell with one replicate. Cells still ○ are collected in open item
+design-s7-unmeasured-cells.
 
 | item | land | flying | ocean | lake | river | cav1-3 | cavern water | deep |
 |---|---|---|---|---|---|---|---|---|
-| **Hunting on a written relation** | ✔ P1/T1: non-BENIGN acts, LP not needed. ○ boosted BENIGN-cleared giant (GIANT_FOX vs RABBIT/DEER). ○ intraguild apex→meso (WOLF vs COYOTE) | ○ **everything**: non-BENIGN raptor (BIRD_BUZZARD/KEA) vs land bird; boosted giant raptor with BENIGN cleared; raptor vs a land prey across layers | ✔ W1O shark x seal (water only) / x milkfish. ○ ORCA and SPERM_WHALE cleared; ○ shark vs penguin / waterbird in water; ○ OCTOPUS (MW) as attacker | ✔ W1L alligator. ○ FISH_LAMPREY_SEA vs BEAVER in water; ○ **are lake species writable at all** (feature vs surface entry) | ○ CROCODILE_SALTWATER vs HIPPO in a flowing river (RIVER3/4); ○ flow effect | ✔ E41e (kills via incidents). ○ per level: cavern LP vs cavern prey; ○ LP vs a sentient civ-race group without the fort joining | ○ cave croc/olm/toad across the pool edge vs cavern land prey; ○ POND_GRABBER never leaves water | ○ IMP_FIRE vs MAGMA_CRAB (MAGMA fort) |
-| **Groups, leaders, packs, herds** | ✔ L1/L2: a leader gives cohesion; a led herd was barely attacked. ○ a led **pack** vs a led herd | ○ flock cohesion with a leader (follow 12) | ○ school cohesion (follow 5); ○ ORCA pod 3:9 | ○ school | ○ school in flow | ○ one group at a time (wiki) vs tool limit 2; ○ civ-race groups 5:10 | ○ | ○ IMP_FIRE 3:4 |
-| **Vermin eating (stock transfer)** | ✔ X5: HUNTS_VERMIN has no effect. ○ the tool's stock debit shows in df.vermin counts and sightings | ○ bird vermin → insect debit; DIVE_HUNTS_VERMIN | ○ VF debit vs fishing yield | ○ VF debit (aquatic vermin do not restock: wiki bug 2780) | ○ same | ○ cave spider stock | ○ cave fish / olm stock | n/a |
-| **Eating remains (walk + delete)** | ✔ S2: hyenas walk, eat, reload-safe. ○ with a pack after a kill; ○ JACKAL (not LP) | ○ vulture/buzzard (fliers: a path to the ground) | ○ corpses in water: persist, sink? ○ aquatic walk-to in water | ○ | ○ corpses carried by flow | ○ underground remains make miasma: priority; ○ path in caverns | ○ | ○ remains in magma burn? |
-| **Relative frequencies** | ✔ F1: land/surface non-bird pick ∝ FREQUENCY. ○ **the LP pool is separate**: does APX f matter? ○ the ladder reproduces predicted shares with 5+ species | ○ the flier pool (13 bird waves in F1) ∝ FREQUENCY? | ○ water waves ∝ FREQUENCY? (ocean species come from surface entries, W2); ○ deep boost on a ≥3-level map | ○ lake waves ∝ FREQUENCY | ○ | ○ CAVERN.apply clamp ≥ 1; does the bizarre preference show in waves? | ○ | ○ 3 deep waves in F1 only |
-| **Group counts by embark size** | ✔ G1 (4x4 vs 6x6, surface): +1 concurrent group from the limit; supply-limited. ○ savage map: 2 LP groups? | ○ | ○ water limit 2/12: DF's own cap unknown | ○ | ○ | ✔ CTRL: cavern gate saturates at 2 groups. ○ by cavern size | ○ | ○ |
-| **Token and value effects** | ✔ NO_<season> honoured, UBIQUITOUS not (T2); quantity 0 stops (N1); BENIGN clear (T1); LP flip (E32b); CURIOUS_BEAST flags off keep bears (B); AT_PEACE overridden by a write (T1). ○ PRONE_TO_RAGE above 1; ○ LOOSE_CLUSTERS (weak at n=1); ○ CLUSTER_NUMBER written at run time; ○ SAVAGE/GIANT admission on a calm map via Add invasive | ○ FLIER-specific: none tested | ○ BEACH_FREQUENCY stranding of placed ORCA/SPERM_WHALE; ○ IMMOBILE_LAND | ○ | ○ | ○ UNDERGROUND_DEPTH: a species placed deeper than dmax stays? (`cav_ceiling`) | ○ | ○ NOBREATHE / FIREIMMUNE (placement only) |
+| **Hunting on a written relation** | ✔ P1/T1: non-BENIGN acts, LP not needed. ✔ boosted BENIGN-cleared giant: GIANT_FOX 0/0 attacks as in raws, 2/10 with BENIGN off [TV2]. ✔ giant packs take megafauna [GPK]. ○ intraguild apex→meso (WOLF vs COYOTE; P2 placed them side by side unwritten: 0 attacks) | ✔ REACH: kea x parrot 5/12; eagle (BENIGN off) x raven 2/12, x rabbit 0/12 (0 attacks); owl x stork 1/12. ○ boosted giant raptor with BENIGN cleared | ✔ W1O shark x seal (water only) / x milkfish. ✔ ORCA cleared 4/8 seals [HO, 1 run]. ✔ shark x duck 5/6, x penguin 2-3/6 [WB]. ○ SPERM_WHALE cleared; ○ OCTOPUS (MW) as attacker | ✔ W1L alligator. ✔ lake species writable [LAKEP]. ○ FISH_LAMPREY_SEA vs BEAVER in water | ✔ bull shark x pike 8/8, lamprey 590 attacks 0 kills [HR, 1 run]. ✔ giant crocodiles x hippo 2/2 in all reps [GPKR]. ○ flow effect | ✔ E41e. ✔ written cavern pairs hunt; some natives fight unwritten [HC1-3, HC4]. ✔ giant bat x crundle 5/12 [REACH]. ○ LP vs a sentient civ-race group without the fort joining | ✔ cave croc crosses out 5/8; pond grabber never leaves water [HCP, HC4] | ○ IMP_FIRE vs MAGMA_CRAB (MAGMA fort) |
+| **Groups, leaders, packs, herds** | ✔ L1/L2: a leader gives cohesion; a led herd was barely attacked (L2 1 run). ○ a led **pack** vs a led herd | ✔ flock cohesion with a leader: ducks 5-30 tiles vs 113-140 unled [COH] | ✔ school 6-7 vs 97-114 [COHO]; ✔ orca pod about half as wide (44-49 vs 87-100) [COHO]. In water a led school was not protected: sharks took 10 and 1 of led schools vs 5 unled [HO, 1 run] | ✔ carp school 1.8-2.3 vs 34 [HL, 1 run] | ✔ pike school 9-23 vs 142-149 [COHR] | ✔ gorlak/troglodyte cohesion [HC1/HC2, 1 run]. ✔ cavern groups-at-once: cap 1-2 trims the tool's groups ~40%, natives stay [SW5]. ○ civ-race groups 5:10 | ○ | ○ IMP_FIRE 3:4 |
+| **Vermin eating (stock transfer)** | ✔ X5: HUNTS_VERMIN has no effect. ✔ GOBBLE class is specific; a written class or creature token works on the eater [VRM2] and a runtime class on the vermin [VRM4]. ○ the tool's stock debit shows in df.vermin counts | ○ bird vermin → insect debit; DIVE_HUNTS_VERMIN | ○ VF debit vs fishing yield | ○ VF debit (aquatic vermin do not restock: wiki bug 2780) | ○ same | ○ cave spider stock (caverns hold ≤ 2 vermin near any spot [VRC]) | ○ cave fish / olm stock | n/a |
+| **Eating remains (walk + delete)** | ✔ S2: hyenas walk, eat, reload-safe. ✔ wolves ate 6 and 2 after a kill; ✔ JACKAL (borrowed ref) and vulture never got near [SCV]. ✔ tool pass clears land carcasses in ~2,400 t [SCV2b] | ✔ vulture walk fails [SCV]; ○ scav_ext's fliers-land path (never fired) | ○ corpses in water persist? (none removed by DF) | ✔ alligator walkto moves no swimmer; wolf on the bank cannot reach water corpses [SCVW] | ✔ tool pass clears river carcasses (pond grabber cell 6 → 0) [SCV2Wb] | ✔ DF removes no cavern corpse in 4,000 t [SCVC]; the troll walk failed underground [HC1]. ○ miasma | ○ | ○ remains in magma burn? |
+| **Relative frequencies** | ✔ F1: land/surface non-bird pick ∝ FREQUENCY (1 run). ✔ predator multiplier x0.5 cuts predators to ~2% [SW4]. ✔ the apex step does not visibly steer apexes [S8, SW4] (LP pool mechanism still open) | ○ the flier pool ∝ FREQUENCY? Ravens dominate CTRL whatever the builder writes [S8C, S8Cb] (open item flier-pool-steering) | ○ water waves ∝ FREQUENCY? ✔ deep survey: OCEAN2 0 columns ≥ 3, PE slot empty [S8O] | ○ lake waves ∝ FREQUENCY | ○ | ✔ ∝ FREQUENCY per cavern layer [ECO2-FC, 1 run]. ○ does the bizarre preference show in waves? | ○ | ✔ deep waves on CTRL are demons [S8C]; ○ IMP/CRAB |
+| **Group counts by embark size** | ✔ G1 + ECO2-G: √+1 adds ~1 group on 5x5/6x6 only. ✔ CTRL 4x4: cap 1 < 3 ≤ auto [SW3B]. ○ savage map: 2 LP groups? | ○ | ✔ water cap 2 = auto on BOATS (supply 2-5 groups) [SW6] | ○ | ○ | ✔ cavern limit soft: cap trims tool groups only [SW5] | ○ | ○ |
+| **Token and value effects** | ✔ NO_<season> honoured, UBIQUITOUS not (T2, ECO2-W); quantity 0 stops (N1); BENIGN clear (T1); LP flip (E32b); CURIOUS_BEAST flags off keep bears (B, CB); AT_PEACE overridden by a write (T1). ✔ PRONE_TO_RAGE dose 25-100 [TV2]. ✔ LOOSE_CLUSTERS no effect [TV2]. ✔ FLEEQUICK, VISION_ARC no reliable effect [FVA]. ✔ SAVAGE smilodon not drawn on a calm map with its entry added [INV2]. ○ CLUSTER_NUMBER written at run time | ○ FLIER-specific: none tested | ✔ BEACH_FREQUENCY: placed unled orcas strand [COHO]. ○ IMMOBILE_LAND | ○ | ○ | ○ UNDERGROUND_DEPTH: a species placed deeper than dmax stays? (`cav_ceiling`) | ○ | ○ NOBREATHE / FIREIMMUNE (placement only) |
 
 **Never used:** CRAZED and OPPOSED_TO_LIFE. Both aim at the fort, never at wildlife [T1].
 
 **Prerequisites before any water or cavern-water arm**
-- The tool must write water-layer units (R12.8).
-- The run must carry a manifest subject receipt, so no arm runs vacuously (memory: three did).
+- ~~The tool must write water-layer units (R12.8).~~ Done in v6.9 (water units join the ecology in the surface realm; LAKEP shows
+  the write sticks).
+- The run must carry a manifest subject receipt, so no arm runs vacuously (memory: three did; SCV2, S8C and INV run 1 were vacuous
+  again on 30 Sep – 1 Oct and were rerun).
+
+**A trap that applies to every land cell above.** A placed or tool-released unit loses DF's wild flag, so DF aims it at later wild
+arrivals itself [RELS, RELS3]. Long cells with placed hunters (CAL, STL, LONE) killed natives this way. Score placed-only pairs.
 
 ---
 
 ## 8. Known limits
 
-- Realm tables are external knowledge. DF has no realms (see realms.md).
-- The flying layer's DF actability is unknown until the raptor block runs. Every raptor edge is `df?` or `no`.
-- The ladder's apex f may be moot if DF draws LPs from their own pool (wiki). If so, the tool controls apex presence by placement
-  and quantity, not by FREQUENCY.
-- Whether Add invasive can put a SAVAGE species (giant, extinct) on a calm embark, and whether DF keeps waving it, is untested
-  (Q9 cross-biome question, same mechanism).
+*1 Oct review:* each limit as it stands now.
+
+- Realm tables are external knowledge. DF has no realms (see realms.md). v7.0 carries the realm table behind `realms` (off by
+  default, `realm` sets the embark's realm; seasonal-wildlife e8cbda7, 466baec). It has never run on the rig and has no validator
+  claim (open item realms-built-untested).
+- ~~The flying layer's DF actability is unknown until the raptor block runs.~~ **Answered [REACH, 2 reps]:** fliers take fliers
+  (kea x parrot 5/12; BENIGN-cleared eagle x raven 2/12; owl x stork 1/12) and cavern fliers take cavern prey (giant bat x crundle
+  5/12), but a BENIGN-cleared eagle made 0 attacks on rabbits: raptor-on-land-prey edges are `df?` at best and should stay rare
+  (open item builder-reach-table-refresh).
+- ~~The ladder's apex f may be moot if DF draws LPs from their own pool.~~ **Answered in effect [S8Cb, SW4]:** apex arrivals were 0
+  in all 4 CTRL season runs and 0-3 units elsewhere at f 13-27; in SW4 an apex was present in 1 run of 6 at any multiplier. The
+  apex f does not visibly steer apex presence, whatever the mechanism (separate pool or rarity: open item lp-separate-pool).
+  Proposal: drop the APX step and steer apexes by placement and stock (open item ladder-drop-apx-step, the user's call). Steering
+  by placement or stock is itself untested (open item apex-placement-stock-test).
+- ~~Whether Add invasive can put a SAVAGE species on a calm embark is untested.~~ **Answered for one species [INV2, 2 reps]:** with
+  CENOZOIC_SMILODON's population entry added on calm CTRL, DF drew none in a full season (0 at 21 of 21 samples, both reps). Add
+  invasive must place SAVAGE species itself on calm maps (open item add-invasive-savage-placement, the user's call). One species on
+  one fort; INV run 1 (YETI) was vacuous (refused on biome).
+- **New limits found 30 Sep – 1 Oct:**
+  - The v2.1 ladder overshoots predators on land by pack size, not wave count (BOATS rep 1: giant jackals 27 units, 42% of surface
+    units) [S8B]; a unit-share ladder is open (open item ladder-units-vs-waves).
+  - On CTRL the roster barely moves the surface: ravens are most arrivals with or without the builder [S8C, S8Cb].
+  - The sweep found no effect of cadence, nudge, floor, sneak or the x3 pack bonus [SW1/SW1R, SW2/SW2R, SW7], in an arena of placed
+    wolves that DF aims itself; untested on natural arrivals (SW8).
+
+---
+
+## 9. What v7.0 carries of v2.2 (1 Oct review)
+
+v7.0's ROSTER.build (seasonal-wildlife branch v7.0 @ 1e65e03, merged from roster-port 0d030b2) is a partial port. Read from the code
+(seasonal-wildlife.lua ~5052-5100 ROSTER.SLOTS and the port's comments, ~5413 ROSTER.LADDER):
+
+| v2.2 piece | in v7.0? | note |
+|---|---|---|
+| Guild-first slots, uniform pick, link guard, no-progress stop, unfilled report | yes | three layers only |
+| Separate ocean / lake / river tables | **no** | one `water` table (AW, FC, FF, SH, MW, PE, WB) |
+| Separate cav1-3 and cavw1-3 tables | **no** | one `cavern` table; per-depth groups-at-once exist (`layer_groups`) |
+| Flying layer and flying apex (R6, v2.2) | **no** | RP 0-2 and LB 0-2 sit in the land table |
+| SNP slot for prey-guild animal people (v2.2) | **no** | no SN/SNP slot; v7.0's `civ_hunt`/`civ_prey` switches cover cavern civ races |
+| Apex boost for GIANT_* by flag (R4) | **no** | boost by mass ≥ 1,000,000 cm³ only (documented gap) |
+| ladder22 (R13 v2.2) | **no** | ROSTER.LADDER is v2.1 (land AL 3, ML 3, GZ 6, PL 5, SH 4), rescaled so the roster max is 100; predicted ~31% land predators vs 16% (open item builder-port-vs-v22) |
+| PE slot 0-1, 1-2 with ×3 weight on maps with ≥ 3-level ocean columns | yes | ENGINE.deepColumns; came out empty on OCEAN2 [S8O] |
+| Vegetation link (R12.1 v2.2) | yes | V7.vegSupports, same formula |
+| x3 pack bonus (R11 v2.1) | yes | SW7: no measurable effect; removal proposed (open item builder-drop-x3-pack-bonus) |
+| 5% pack-mass floor, 25% sneak bonus | yes (tool switches `pack_floor`, `pack_sneak`) | SW2/SW2R: no measurable effect |
+| v2.2 civ rules (civ races hunt and are prey; never write FB/megabeasts) | yes | `civ_hunt`, `civ_prey`, `fb_safe` |
+| BENIGN clear on every armed predator (R12.5) | yes | |
+| GOBBLE_VERMIN edge table (R14 v2.2 'write' links) and vermin stock links | **no** | v7.0 `gobble` writes runtime SWV_* classes by VERMIN.GOBBLE_RULES, not the builder's per-roster table (open item port-gobble-edge-table); stock transfers unbuilt (vermin-stock-bookkeeping) |
+| Outgun warning (item 23) | yes (`outgun`, `roster outgun`) | no validator claim |
+| Realm table | yes, off by default | never rig-tested |
+| Season guard (R12.4) | partly | v7.0 `seasons_own` clears NO_<season> on managed species so the tool's season deal wins; the per-predator guard as written is not separately validated |
+
+The validator (run 20261001-074833, 214 PASS) has no claim for ROSTER.build, the ladder, the unfilled report, the vegetation or
+deep-water surveys, outgun or realms (open item validator-v70-coverage).
