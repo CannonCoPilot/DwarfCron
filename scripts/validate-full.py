@@ -225,7 +225,7 @@ CLAIMS = [
     # ---- v6.9 (ECO suite, 29-30 Sep 2026): the ecology as measured
     ("mech.v69.armed", "MECH", "a food-web predator is armed exactly when it is not BENIGN (LARGE_PREDATOR is not the switch)", "ECO P1/T1: coyote hunted, BENIGN wolf never", "shipped v6.9"),
     ("mech.v69.reach", "MECH", "the relation write reaches only where the predator can: a shark never takes a deer; an alligator and a wolf do", "ECO W1L/W1O", "shipped v6.9"),
-    ("mech.v69.fitseason", "MECH", "the season deal never gives a species a season its raws forbid (NO_SPRING/SUMMER/AUTUMN/WINTER) unless they forbid every season", "ECO T2; user 30 Sep", "shipped v6.9"),
+    ("mech.v69.fitseason", "MECH", "the season deal never gives a species a season its raws forbid (NO_SPRING/SUMMER/AUTUMN/WINTER) unless they forbid every season -- v6.9; v7.0's seasons_own overrides the raws by design", "ECO T2; user 30 Sep", "shipped v6.9"),
     ("mech.v69.pelagic", "MECH", "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY", "user 30 Sep; ECO O/DEPTH", "shipped v6.9"),
     ("cli.alerts", "CLI", "`alerts off|on` switches quiet wildlife fights and says so; on by default", "ECO A1/A2", "shipped v6.9"),
     ("cli.curious", "CLI", "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused", "ECO B/CB", "shipped v6.9"),
@@ -825,8 +825,14 @@ print(json.encode({bad=bad, armed=armed, benign=benign, reach=r, dealt=#list, fo
         r = j.get("reach") or {}
         rec("mech.v69.reach", "PASS" if r.get("shark_deer") is False and r.get("gator_deer") is True and r.get("wolf_deer") is True else "FAIL",
             "shark x deer false; alligator x deer true; wolf x deer true", json.dumps(r))
-        rec("mech.v69.fitseason", "PASS" if j["dealt"] > 0 and not j["forbidden"] else ("NOT-TESTABLE-HERE" if j["dealt"] == 0 else "FAIL"),
-            "every species with a NO_<season> flag dealt an allowed season", f"dealt {j['dealt']}, forbidden {j['forbidden'][:12]}, all four barred {j['allbarred']}")
+        if V70:
+            # v7.0 seasons_own (default on; user 30 Sep: the tool supersedes NO_<season> where it manages): the deal may
+            # give a raws-forbidden season; the flag clear/restore itself is mech.v70.seasons_own's claim
+            rec("mech.v69.fitseason", "PASS" if j["dealt"] > 0 else "NOT-TESTABLE-HERE",
+                "v7.0: species dealt seasons; NO_<season> overridden by seasons_own (see mech.v70.seasons_own)", f"dealt {j['dealt']}, raws-forbidden dealt {j['forbidden'][:12]}, all four barred {j['allbarred']}")
+        else:
+            rec("mech.v69.fitseason", "PASS" if j["dealt"] > 0 and not j["forbidden"] else ("NOT-TESTABLE-HERE" if j["dealt"] == 0 else "FAIL"),
+                "every species with a NO_<season> flag dealt an allowed season", f"dealt {j['dealt']}, forbidden {j['forbidden'][:12]}, all four barred {j['allbarred']}")
         w = j.get("w") or {}
         big = [w[t] for t in ("SHARK_WHALE", "WHALE_SPERM") if t in w]; small = [w[t] for t in ("FISH_COD", "FISH_MILKFISH") if t in w]
         ok = (big and small and all(b["weight"] < max(1, b["freq"]) and b["weight"] >= max(1, int(0.1 * b["freq"] + 0.5)) for b in big if b["mass"] > 1000000 and b["habitat"] == "aquatic")
