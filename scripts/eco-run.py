@@ -754,6 +754,26 @@ BLOCKS["SCVW"] = dict(fort="RIVER4", spot="shore", cells={
     "corpse_in_water_alligator": walkeat("ALLIGATOR", "water", "FISH_CARP", pmed="water"),
     "corpse_in_water_wolf_bank": walkeat("WOLF", "land", "FISH_CARP", pmed="water"),
 })
+# SCV2 (1 Oct night): the TOOL's scavenging pass (SCAV, v7.0 scav_ext: fliers land, swimmers reach water corpses, land
+# scavengers wade, wanderers fall back), not the rig's own walkto/eat verbs that SCV/SCVW drove. Tool scavenging on, a pass
+# every 300 ticks (`scavenge now`), 6 carcasses, 5 scavengers 8 tiles off, items counted before and after each pass.
+def scavtool(scav, medium, prey, pmed=None, passes=8):
+    pm = pmed or medium
+    st = [SUSTAIN, "lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.scavenge.enabled=true; c.v7.scav_ext=true; "
+          "sw.saveConfig(c); print('eco scavcfg on=1 ext='..tostring(sw.loadConfig().v7.scav_ext))",
+          f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 2 {pm}", f"corpse {{ids:{prey}}}", "step:50", "items {X} {Y} {Z} 6 before",
+          f"spawn {scav} 5 {{X+8}} {{Y}} {{Z}} 2 {medium}"]
+    for i in range(passes):
+        st += ["lua:local ok,o=pcall(dfhack.run_command_silent,'seasonal-wildlife','scavenge','now'); print('eco scavpass '..tostring(o):gsub('\\n',' | '):sub(1,200))",
+               "step:300", f"items {{X}} {{Y}} {{Z}} 6 p{i + 1}"]
+    st.append("lua:local sw=reqscript('seasonal-wildlife'); local ok,s=pcall(sw.SCAV.status, sw.loadConfig()); print('eco scavstatus '..tostring(s):gsub('\\n',' | '):sub(1,300))")
+    return dict(steps=st, ticks=10)
+BLOCKS["SCV2"] = dict(fort="CTRL", spot="land", cells={
+    "wolf": scavtool("WOLF", "land", "KANGAROO"), "jackal": scavtool("JACKAL", "land", "KANGAROO"),
+    "vulture": scavtool("BIRD_VULTURE", "land", "KANGAROO")})
+BLOCKS["SCV2W"] = dict(fort="RIVER4", spot="shore", cells={
+    "alligator_water": scavtool("ALLIGATOR", "water", "FISH_CARP", pmed="water"),
+    "wolf_bank": scavtool("WOLF", "land", "FISH_CARP", pmed="water")})
 BLOCKS["SCVC"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={"cavern_miasma_troll": corpses2("TROLL", "cave", "ELK_BIRD")})
 
 # SW1/SW2/SW3 (coordinator, 30 Sep: threshold sweep, experiments/SWEEP-design.md). Shared SW1/SW2 arena: tool on, 5
