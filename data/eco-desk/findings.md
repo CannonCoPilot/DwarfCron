@@ -306,3 +306,11 @@ toward the cougar. -> RELS2b reruns it without the forced release (cougar vs kan
 RELS3 (tool on with ecology OFF vs tool off, 30,000 t, 2 reps): tool-released surface arrivals ('other') held
 PREDATOR_OR_PREY toward later wild arrivals (RAVEN(other) > SKUNK 2, > KESTREL 8; cavern ELK_BIRD(other) > TROGLODYTE 11);
 tool off had no released-surface rows. Totals overlap (P_O_P new pairs 33,53 off vs 17,82 on): the mechanism is real, small.
+
+## VRM4 — a runtime-written vermin class is honoured (30 Sep night, CTRL, tool off)
+CREATURE_CLASS:SWV_TEST written onto both GRASSHOPPER castes in both arms (receipts castes=2), 20 placed per cell, 4 BADGER;
+gobble arm also writes GOBBLE_VERMIN_CLASS:SWV_TEST on the badgers. 3,000 t, 2 reps, units within 6 tiles logged (only the
+badgers came near; no cats). Map count removed: ctl 0, 0 (of 20); gobble 4, 6 (all within the first 250 t, before the
+badgers spread out). Cells share a load within a rep, so the gobble cell starts with 40 (the ctl's 20 remain); removal is
+read from the map count. => DF matches a class the tool writes at runtime: the v7.0 SWV_* gobble writes can work.
+(vrm4-tally.py misparses the class receipt row as None; the rows themselves show the write.)
