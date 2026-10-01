@@ -337,3 +337,8 @@ GPK (CTRL): 10 GIANT_HYENA x 2 ELEPHANT: both elephants killed in both reps (475
 GPKW (OCEAN2 shore) and GPKR (RIVER4): 4 GIANT_CROCODILE_SALTWATER x 2 HIPPO: both hippos killed in all 4 runs
   (49/56 and 85/99 attacks; hippos 5-6 back), no crocodile lost.
 => savage giant packs take the largest prey: the builder may seat them as apexes over megafauna on savage maps.
+
+## FSH2 — land predators that fish (item 33; 30 Sep night, RIVER4 bank, relation written, 3,000 t, 2 reps)
+BEAR_GRIZZLY x3 and TIGER x3 with CAN_SWIM_INNATE written (as v7 fishers does) x 8 FISH_PIKE in the river; WOLF x5 control.
+Attacks 0 in all 6 runs; all pike alive and wet. Grizzlies left the map (gone 2, 1: curious-beast departure). With FISH
+(wolves, water-breathing too: 0 kills) the fishers feature has no measured effect -> v7.0 default OFF (seasonal-wildlife).
