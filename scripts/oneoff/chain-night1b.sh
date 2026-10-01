@@ -4,3 +4,6 @@ cd "$(dirname "$0")/../.."
 log=data/logs/RELS2b.log; echo "=== RELS2b start $(date +%H:%M:%S)" | tee -a $log
 .venv/bin/python scripts/eco-run.py RELS2b --run data/experiments/ECO/RELS2b-$(date +%Y%m%d-%H%M%S) --reps 2 >> $log 2>&1
 echo "=== RELS2b exit $?" | tee -a $log
+log=data/logs/INV2.log; echo "=== INV2 start $(date +%H:%M:%S)" | tee -a $log
+.venv/bin/python scripts/eco-run.py INV2 --run data/experiments/ECO/INV2-$(date +%Y%m%d-%H%M%S) --reps 2 >> $log 2>&1
+echo "=== INV2 exit $?" | tee -a $log

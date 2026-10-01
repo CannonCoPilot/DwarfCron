@@ -698,9 +698,9 @@ BLOCKS["FSH2"] = dict(fort="RIVER4", spot="shore", cells={
 # the vanilla [SAVAGE]+[LARGE_PREDATOR] creature whose biomes are the ones most certainly absent from CTRL's own
 # (temperate) embark, unlike SASQUATCH's ANY_TEMPERATE_FOREST which CTRL may already have. 100,800 ticks (one season),
 # 20 samples every 5,040 ticks via the existing _ALIVE reader.
-def inv():
-    W = "YETI=1"
-    st = [SUSTAIN, inline("inv_savagery.lua", TAG="pre"), inline("inv_add.lua", TOKEN="YETI", CMIN=5, CMAX=10),
+def inv(token="YETI"):
+    W = f"{token}=1"
+    st = [SUSTAIN, inline("inv_savagery.lua", TAG="pre"), inline("inv_add.lua", TOKEN=token, CMIN=5, CMAX=10),
           "watch", _ALIVE.replace("{W}", W)]
     for i in range(20):
         st += ["step:5040", _ALIVE.replace("{W}", W)]
@@ -708,6 +708,9 @@ def inv():
     st.append(inline("inv_savagery.lua", TAG="post"))
     return dict(steps=st, ticks=10, nowatch=True)
 BLOCKS["INV"] = dict(fort="CTRL", spot="land", cells={"yeti": inv()})
+# INV2 (1 Oct night): INV's YETI was refused by addNewSpecies ("28:19:biome": mountain/tundra on temperate shrubland), so
+# no subject. CENOZOIC_SMILODON is SAVAGE with SHRUBLAND_TEMPERATE in its biomes (python search of the raws; grep misses it).
+BLOCKS["INV2"] = dict(fort="CTRL", spot="land", cells={"smilodon": inv("CENOZOIC_SMILODON")})
 
 # COH: schools/flocks/pods with a leader. "Cohesion on/off" is implemented, as everywhere else in this file, via the
 # established cx-eco `lead` verb (largest-male vs none) -- the task's own documented substitution for a dedicated

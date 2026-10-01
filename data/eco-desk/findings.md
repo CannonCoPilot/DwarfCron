@@ -347,3 +347,8 @@ Attacks 0 in all 6 runs; all pike alive and wet. Grizzlies left the map (gone 2,
 Wolf attacks (kills): ctl 135 (1), 3 (0); VISION_ARC narrow 103 (1), 3 (0); FLEEQUICK 10 (0), 3 (0). Rep 2 was quiet in every
 arm including the control, so replicate variance swamps the tokens. All runs to date: FLEEQUICK 2 (T1), 3 / 158 (TV2), 10 / 3;
 VISION_ARC 89, 5 / 147, 103 / 3. => no reliable effect of either token; the tool does not use them (item 24 closed: park).
+
+## INV — Add invasive with a SAVAGE species on a calm map (item 17): run 1 VACUOUS
+YETI via addNewSpecies (force): added 0, reason "28:19:biome" (YETI is mountain/tundra; CTRL's tiles are temperate shrubland),
+so no yeti could arrive (0 in 20 samples x 2 reps). The block agent had swapped in YETI because grep missed
+CENOZOIC_SMILODON in the raws. -> INV2: CENOZOIC_SMILODON (SAVAGE, SHRUBLAND_TEMPERATE), queued after RELS2b.
