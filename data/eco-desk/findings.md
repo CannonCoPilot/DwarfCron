@@ -286,3 +286,12 @@ badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG 7,10 / 0,0; badger + GOBBLE_VERMI
 - The non-selective losses (both kinds) are CTRL's two pet cats (units 117, 118) wandering to the spot: VRM3b (6 reps,
   units within 6 tiles every 250 t) lost vermin in exactly the 2 reps the cats visited (from t2250, t2500), none in the 4
   they didn't. Read a selective arm only where the grasshoppers held. Tally: scripts/vrm-tally.py <run>.
+
+## DOM / DOM2 — domestic prey, v7.0 (30 Sep 2026, CTRL, tool on, ecology on, livestock-as-prey off)
+3 WOLF (AL) teleported onto the fort animal nearest the spot; `groups ecology now` every 1,500 t, 12,000 t; v7.domestic off vs on, 2 reps.
+DOM (802a82e): on wrote wolf -> 5 of 11 fort animals (15/33 pairs); off 0. fb_safe classed DOG, CAT, PIG, BIRD_CHICKEN
+'unclassified' (no BIOME) and kept them out -> fixed 6c79f32 (a tame animal of the fort's own passes). DOM's attack log
+was reset by the harness's end-of-cell watch (nowatch now set).
+DOM2 (6c79f32): off 0 relations, 0 attacks by/on the wolves, both reps. On 33/33 relations both reps; attacks 37 and 88
+(DOG>WOLF 29/38, WOLF>DOG 5/24, WOLF>PIG 15, WOLF>CAVY 2/5, WOLF>CHICKEN 3); wolves killed a cavy (both reps) and a
+chicken; the fort's dogs killed one wolf each rep. Cavern-native deaths in the same runs are CTRL's caverns, not the test.
