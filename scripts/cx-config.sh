@@ -35,6 +35,15 @@ DF_EXE_NAME="${DF_EXE_NAME:-Dwarf Fortress.exe}"
 DF_USER_DIR="${DF_USER_DIR:-$CX_BOTTLE_DIR/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress}"
 DF_SAVE_DIR="${DF_SAVE_DIR:-$DF_USER_DIR/save}"
 
+# --- the test world (user ruling R11, 1 Oct 2026) ----------------------------
+# ALL testing and experimentation from 1 Oct 2026 uses the world in save folder region8: Snospdastrasp, "The Last
+# Planets". New test forts are embarked FROM it (scripts/b1-forts.py; experiments/HARNESS-v71.md); the world folder
+# itself is never written -- every embark saves under its own new name, and b1-forts.py checks region8's bytes
+# before and after each one. It is also the user's own game world: run nothing while DF is the user's game.
+CX_TEST_WORLD="${CX_TEST_WORLD:-region8}"
+CX_TEST_WORLD_NAME="${CX_TEST_WORLD_NAME:-Snospdastrasp}"
+CX_TEST_WORLD_TAG="${CX_TEST_WORLD_TAG:-R8}"   # the seedtag in test-fort names: B1-R8-<BIOME>-<rx>_<ry>
+
 # --- DFHack RPC -----------------------------------------------------------
 # ⚠️ 5000 is DFHack's default and is ALSO macOS ControlCenter's AirPlay
 # Receiver port. On this machine 5000 is taken, so the default here is not

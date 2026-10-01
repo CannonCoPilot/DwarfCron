@@ -1442,7 +1442,7 @@ def _b1_blocks(path=ROOT / "data/forts/b1-forts.tsv"):
     for r in rows[1:]:
         d = dict(zip(head, r))
         if d.get("save") and d.get("status", "ok") == "ok":
-            BLOCKS[f"B1BASE_{d['save']}"] = dict(fort=d["save"], spot="land" if d.get("land", "1") != "0" else "water",
+            BLOCKS[f"B1BASE_{d['save']}"] = dict(fort=d["save"], spot=d.get("spot") or "land",
                                                   cells={"baseline": b1base()}, wipe=False,
                                                   wipe_why="natural arrivals on a fresh test fort are the subject")
 _b1_blocks()

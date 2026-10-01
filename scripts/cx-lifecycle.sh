@@ -26,6 +26,8 @@
 #   cx-lifecycle.sh wait <text>  # block until <text> is drawn
 #   cx-lifecycle.sh screen [y0 y1]
 #   cx-lifecycle.sh save-delete <folder>
+#   cx-lifecycle.sh survey [world=region8] [filter] / rivers [world=region8]   # R11: the test world by default
+#   cx-lifecycle.sh embark1 <rx> <ry> <name> [ox=7 oy=7]   # a 1x1 test fort from the test world (b1-forts.py)
 #   cx-lifecycle.sh ui <args>    # drive the UI by on-screen text
 #   cx-lifecycle.sh probe <args> # cx-probe: clock|units|pops|tool|provenance|release|setq|countdown
 #   cx-lifecycle.sh lua <script> # run Lua in the running game
@@ -525,8 +527,8 @@ open_site_screen() {
 # savagery, evilness, elevation, volcanism, and how many of the 8 neighbours
 # share the biome, carry a river, or are ocean. Returns to the title.
 cmd_rivers() {
-    local world="${1:-}"
-    [ -n "$world" ] || err "usage: rivers <world-folder>"
+    local world="${1:-$CX_TEST_WORLD}"   # R11: the test world by default
+    [ -n "$world" ] || err "usage: rivers [world-folder=$CX_TEST_WORLD]"
     is_running || err "start the session first"
     open_site_screen "$world"
     cmd_cmd cx-embark rivers 2>/dev/null | tr -d "\r"
@@ -534,8 +536,8 @@ cmd_rivers() {
 }
 
 cmd_survey() {
-    local world="${1:-}" filter="${2:-}"
-    [ -n "$world" ] || err "usage: survey <world-folder> [biome-substring]"
+    local world="${1:-$CX_TEST_WORLD}" filter="${2:-}"   # R11: the test world by default
+    [ -n "$world" ] || err "usage: survey [world-folder=$CX_TEST_WORLD] [biome-substring]"
     is_running || err "start the session first"
     open_site_screen "$world"
     cmd_cmd cx-embark survey $filter 2>/dev/null | tr -d "\r"
@@ -609,6 +611,17 @@ cmd_embark() {
     case "$rd" in *"mm_min=$tx,$ty "*) ;; *) err "the fort is not where it was placed (want $tx,$ty): $rd";; esac
     cmd_save "$name"
     log "embarked: world $world tile $rx,$ry size ${CX_EMBARK_SIZE:-4} -> save $name ($(ui_state))"
+}
+
+# embark1 <rx> <ry> <save-name> [off-x=7] [off-y=7]
+# R11 + B-dials section 10: a 1x1 test fort embarked from the test world ($CX_TEST_WORLD, region8). The 1x1 square is
+# one mid-level tile; 7,7 is the centre of the region tile, so the 9 region_offset neighbours a block can draw from
+# (memory df-region-draw-tiles) are as far from other biomes as a 1x1 can be. An edge offset (0 or 15) puts a
+# shoreline fort on the side facing the water. scripts/b1-forts.py drives this for the whole programme.
+cmd_embark1() {
+    local rx="${1:-}" ry="${2:-}" name="${3:-}" ox="${4:-7}" oy="${5:-7}"
+    [ -n "$rx" ] && [ -n "$ry" ] && [ -n "$name" ] || err "usage: embark1 <region-x> <region-y> <save-name> [off-x=7] [off-y=7]"
+    CX_EMBARK_SIZE=1 cmd_embark "$CX_TEST_WORLD" "$rx" "$ry" "$name" "$ox" "$oy"
 }
 
 cmd_state() { ui_state; }
@@ -910,6 +923,7 @@ case "${1:-status}" in
     rivers)    shift; cmd_rivers "$@" ;;
     facts)     shift; cmd_facts "$@" ;;
     embark)    shift; cmd_embark "$@" ;;
+    embark1)   shift; cmd_embark1 "$@" ;;
     fps)       shift; cmd_fps "$@" ;;
     state)     cmd_state ;;
     pause)     cmd_pause ;;
