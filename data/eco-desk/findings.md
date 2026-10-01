@@ -526,3 +526,15 @@ supply is ravens whatever the roster says. Item 8 overall: predator share of sur
 Item 15: apex arrivals 0 in all 4 CTRL runs and 0-3 elsewhere at FREQUENCY 13-27; with SW4 (apex in 1 run of 6 at any
 multiplier) the apex FREQUENCY does not visibly steer apex presence -> drop the APX step from the ladder, steer apexes by
 placement and stock (design.md section 8). Data: data/experiments/S8C/20261001-062036.
+
+## SW1R — SW1 in reversed cell order (item 11; 1 Oct morning, same arena, 2 reps)
+Placed-only (wolf attacks on placed herds | placed prey killed | wolves lost | share of all attacks), order tight, off, 6000, 500, ctl:
+  nudge_tight 54|0|1|76%, 96|1|2|81%   nudge_off 41|1|0|95%, 45|1|1|92%   cad6000 31|0|2|30%, 27|0|1|59%
+  cad500 13|0|1|16%, 55|1|1|38%   ctl 22|0|3|23%, 24|0|2|22%
+The share of attacks made by the placed wolves follows cell POSITION (first cell ~80-95%, last ~22%) whatever the arm: ctl
+was 89-94% first in SW1 and 22-23% last here; nudge_tight the reverse. Busy-ness flags flip with order (nudge_off high in
+SW1, low in SW1R). Pooled over SW1+SW1R (4 reps): wolf attacks on placed herds ctl 174, cad500 243, cad6000 145,
+nudge_off 179, nudge_tight 198; placed prey killed 1, 2, 0, 3, 1. => neither the ecology cadence (500 / 1,500 / 6,000)
+nor the nudge (off / current / tight) has a measurable effect on a wolf pack against herds 45-60 tiles away. Per the
+design table: cadence 6,000 ~ 1,500 -> a 3,000 default halves the passes at no cost; nudge off ~ current -> default the
+nudge off (no visible teleports). Both are recommendations for the user, not applied.
