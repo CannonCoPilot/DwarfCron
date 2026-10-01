@@ -295,3 +295,14 @@ was reset by the harness's end-of-cell watch (nowatch now set).
 DOM2 (6c79f32): off 0 relations, 0 attacks by/on the wolves, both reps. On 33/33 relations both reps; attacks 37 and 88
 (DOG>WOLF 29/38, WOLF>DOG 5/24, WOLF>PIG 15, WOLF>CAVY 2/5, WOLF>CHICKEN 3); wolves killed a cavy (both reps) and a
 chicken; the fort's dogs killed one wolf each rep. Cavern-native deaths in the same runs are CTRL's caverns, not the test.
+
+## RELS2 / RELS3 — how DF writes relations for arrivals (30 Sep night, CTRL)
+RELS2 (FREQUENCY steered to COUGAR / DEER / ELK, tool off, `cx-probe release` every 1,500 t, 30,000 t, 2 reps): the forced
+release clears each arrival's roaming flag, so every arrival was 'other' (non-wild) to DF and DF aimed them at one another
+(KANGAROO>RAVEN 56, WOLF>BADGER 36 ...). Cougars arrived (both reps), deer and elk never did. Each animal's own row follows its
+nature: COUGAR > badger/raven/kestrel/wolf/owl/porcupine PREDATOR_OR_PREY (2 ravens DANGEROUS_ANIMAL); BENIGN species >
+cougar BENIGN_ANIMAL (badger 7, raven 2, porcupine 1); non-BENIGN > cougar DANGEROUS_ANIMAL (wolf 3, owl 1). No dwarf row
+toward the cougar. -> RELS2b reruns it without the forced release (cougar vs kangaroo).
+RELS3 (tool on with ecology OFF vs tool off, 30,000 t, 2 reps): tool-released surface arrivals ('other') held
+PREDATOR_OR_PREY toward later wild arrivals (RAVEN(other) > SKUNK 2, > KESTREL 8; cavern ELK_BIRD(other) > TROGLODYTE 11);
+tool off had no released-surface rows. Totals overlap (P_O_P new pairs 33,53 off vs 17,82 on): the mechanism is real, small.
