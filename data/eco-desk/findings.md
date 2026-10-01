@@ -487,3 +487,10 @@ Water groups present (mean): auto 4.8, 2.1; w1 1.0, 2.1; w2 3.1, 2.3. Max per bo
 Rep 2 (reversed order) sits at ~2 in every arm: BOATS's water supply is 2-5 groups, so the cap rarely binds; w1 held exactly
 1 only in rep 1. Receipt: water-layer units present in every cell (the vacuous-run trap did not recur). => cap 2 = auto on
 this map; per the design table the default could drop to 2 (less placement) with no visible cost, but the evidence is thin.
+
+## SW7 — x3 pack bonus 1 / 3 / 5 rosters on CTRL (item 11; 1 Oct night, natural, 50,400 t, 2 reps counterbalanced)
+The desk rosters (D1) apply only in part on CTRL: 7-8 of 27-29 wanted species are in CTRL's pool (sw7apply missing=20-21).
+Land groups present 3.1/1.6 (p1), 2.2/2.2 (p3), 3.3/2.8 (p5); attacks 0 in all six cells; deaths 4-13, cavern natives.
+(land_groups read live: ~3 land beside 15 cavern groups -- the SW3 fix works.) => no measurable effect of the pack bonus on
+CTRL; with most of each roster missing the test is weak. The design's own rule then applies: the x3 is a contrived weight
+with no rig effect -> remove it from the builder (simpler; design.md R11 already demotes it).
