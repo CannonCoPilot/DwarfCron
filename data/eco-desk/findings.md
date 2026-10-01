@@ -277,3 +277,12 @@ ECO VRM (data/experiments/ECO/VRM-20260930-201741; CTRL, 40 ROACH_LARGE (EDIBLE_
   creature 28,34 / 26,52 (grasshoppers fell as much -> not attributable). CAT 68,71 roaches / 45,41 grasshoppers (29
   roaches in the first 500 t). Gobble writes landed (castes=2) and were restored. Hunger timers read 0/0 throughout.
   -> rerun as VRM2: one block per arm (fresh load each), same start for every arm.
+
+## VRM2 / VRM3 / VRM3b — vermin predation, clean rerun (30 Sep 2026, CTRL, tool off)
+One fresh CTRL load per arm, 40 ROACH_LARGE + 20 GRASSHOPPER placed, 4 consumers, 6,000 ticks, 2 reps (VRM2-20260930-202822).
+Removed roach / grasshopper per rep: none 14,0 / 18,0; duck 4,4 / 0,0; hedgehog 4,3 / 0,0; badger 0,9 / 0,11;
+badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG 7,10 / 0,0; badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE 6,15 / 0,15; cat 38,39 / 20,19.
+- A written gobble token makes a badger take exactly the class/creature named, like the native gobblers.
+- The non-selective losses (both kinds) are CTRL's two pet cats (units 117, 118) wandering to the spot: VRM3b (6 reps,
+  units within 6 tiles every 250 t) lost vermin in exactly the 2 reps the cats visited (from t2250, t2500), none in the 4
+  they didn't. Read a selective arm only where the grasshoppers held. Tally: scripts/vrm-tally.py <run>.

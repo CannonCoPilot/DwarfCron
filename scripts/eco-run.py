@@ -521,6 +521,18 @@ def _vrm3():
     c["steps"] = out
     return c
 BLOCKS["VRM3_none"] = dict(fort="CTRL", spot="land", cells={"none": _vrm3()})
+# VRM3b (30 Sep): VRM3's 2 reps had no event (the eater hit 3 of 14 VRM2 reps). Same control, 6 reps, every 250 ticks,
+# units within 6 tiles of any placed vermin.
+def _vrm3b():
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')",
+          inline("vermin_create.lua", RACE="ROACH_LARGE", N=40, R=6), inline("vermin_create.lua", RACE="GRASSHOPPER", N=20, R=6)]
+    for i in range(25):
+        tag = f"t{i*250}"
+        st += [inline("vermin_count.lua", RACE="ROACH_LARGE", R=8, TAG=tag), inline("vermin_count.lua", RACE="GRASSHOPPER", R=8, TAG=tag),
+               inline("vermin_near_units.lua", R=6, TAG=tag)]
+        if i < 24: st.append("step:250")
+    return dict(steps=st, ticks=10, nowatch=True)
+BLOCKS["VRM3b_none"] = dict(fort="CTRL", spot="land", cells={"none": _vrm3b()})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.
