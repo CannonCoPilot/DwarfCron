@@ -17,6 +17,33 @@
 --   cx-eco lead TOKEN lowest|largest-male|none   make one member lead the rest (following / PACK_LEADER)
 --   cx-eco alerts drop-wild on|off           drop COMBAT alerts whose units are all non-fort (prototype filter)
 --
+-- v7.1 harness (1 Oct 2026; Part 1 plan H2-H6, review R15). Classes: an ANIMAL is a live on-map unit that is not
+-- fort-side (citizen/resident, livestock/pet/fort-controlled), not a guest (merchant, diplomat, visitor, invader, any
+-- other civ's member), not non-natural (megabeast, FB, titan, demon, night creature, undead, GENERATED: fb_safe) and
+-- not on the deep layers (magma sea, underworld: R60). Its ORIGIN is placed (spawned by this file), drawn (carries
+-- DF's roaming flag: DF brought it) or released (no flag and not ours: released by the tool or cx-probe, or placed
+-- by the tool).
+--   cx-eco wipe [livestock] [close]          vanish every animal on the map (no corpse, gone next tick) BEFORE a cell
+--                                            places its groups (R15); livestock only when asked; close = also close
+--                                            the site's Animal pool entries (no new natives). Receipt by origin.
+--   cx-eco wipecheck [livestock]             animals still on the map (remaining) and still vanishing (pending)
+--   cx-eco spawn ... [countdown] [roam]      11th arg 'roam' KEEPS DF's roaming flag, so DF treats the unit as wild
+--                                            (isolates DF's own aiming of non-wild units, H4); default clears it
+--   cx-eco watch [bout_gap=100] [wildpred]   as before, plus a timestamped attack log (attacker/defender origin) and
+--                                            hidden_in_ambush/hidden_ambusher sampled every 10 t on placed units and
+--                                            recent attackers (wildpred: every wild carnivore too) (H6)
+--   cx-eco read [tag]                        as before, plus attacks_o (pair by origin), atk (each attack), bout /
+--                                            bouts (attacks with gaps < bout_gap; per hunter-day) and hidden rows
+--   cx-eco groups3 base|reset|[tag]          ONE group definition, three sources (H5): live animals sharing species +
+--                                            population entry (ref6) + arrival sample, against the tool's group record
+--                                            and the entries' debits since `base`
+--   cx-eco adopt TOKEN...                    seasonal-wildlife `groups adopt <ids>` on every spawned TOKEN (one group
+--                                            per token, H3); the receipt reads the tool's own record
+--   cx-eco cfg PATH...                       the tool's persisted config value at each dotted path (H2 receipts)
+--   cx-eco skill TOKEN SKILL                 on-map TOKEN units, how many hold SKILL, the highest rating (H2)
+--   cx-eco relcount A B                      PREDATOR_OR_PREY cells now standing between live spawned A and B (H2)
+--   cx-eco ecostate                          the tool's group and ecology counters (groups by layer, pairs, nudges)
+--
 -- Output lines are "eco <kind> key=value ..." so the driver can parse them without guessing.
 
 local eventful = require('plugins.eventful')
@@ -100,6 +127,111 @@ local function column(x, y)
         if t and df.tiletype.attrs[t].shape ~= df.tiletype_shape.EMPTY then return nil end
     end
 end
+
+-- ------------------------------------------------------- unit classes (v7.1) ----
+-- One place for who a unit is, so wipe, wipecheck, the watch's origin split and groups3 all read the same classes.
+local function ucall(name, u)
+    local f = dfhack.units[name]
+    if not f then return false end
+    local ok, v = pcall(f, u)
+    return ok and v or false
+end
+local function uflag(t, k)
+    local ok, v = pcall(function() return t[k] end)
+    return ok and v or false
+end
+-- layer_depth 0-2 are the caverns, 3 the magma sea, 4 the underworld (cx-probe cave_depth, 18 Sep 2026)
+local depth_cache = {}
+local function cave_depth(cid)
+    if depth_cache[cid] == nil then
+        local ur = df.global.world.world_data.underground_regions
+        local reg = (cid >= 0 and cid < #ur) and ur[cid] or nil
+        depth_cache[cid] = reg and reg.layer_depth or -1
+    end
+    return depth_cache[cid]
+end
+local function ulayer(u)
+    local r = u.animal.population
+    if r.feature_idx >= 0 then return 'feature' end
+    if r.cave_id >= 0 then return cave_depth(r.cave_id) >= 3 and 'deep' or 'cavern' end
+    if r.population_idx < 0 then
+        local d = dfhack.maps.getTileFlags(u.pos)
+        return (d and d.outside) and 'surface' or 'underground'
+    end
+    return 'surface'
+end
+local function ref6(r)
+    return ('%d,%d,%d,%d,%d,%d'):format(r.region_x, r.region_y, r.feature_idx, r.cave_id, r.site_id, r.population_idx)
+end
+-- fb_safe: the tool never writes a non-natural unit, and neither does the harness's wipe (R60: demons untouched)
+local function nonnatural(u)
+    for _, f in ipairs({ 'isMegabeast', 'isSemiMegabeast', 'isTitan', 'isDemon', 'isNightCreature', 'isUndead', 'isForgottenBeast' }) do
+        if ucall(f, u) then return f end
+    end
+    local c = df.creature_raw.find(u.race)
+    if c then
+        if uflag(c.flags, 'GENERATED') then return 'GENERATED' end
+        local cs = c.caste[u.caste]
+        if cs then
+            for _, k in ipairs({ 'MEGABEAST', 'SEMIMEGABEAST', 'FEATURE_BEAST', 'TITAN', 'DEMON', 'UNIQUE_DEMON', 'NIGHT_CREATURE_ANY' }) do
+                if uflag(cs.flags, k) then return k end
+            end
+        end
+    end
+    return nil
+end
+-- R23: DF's invasions are off in this build; the test is a guard (mirrors the tool's WILD.onMap, addendum 49)
+local function is_invader(u)
+    local ok, v = pcall(function() return u.invasion_id end)
+    if ok and type(v) == 'number' and v >= 0 then return true end
+    return uflag(u.flags1, 'active_invader') or uflag(u.flags1, 'invader_origin')
+end
+-- 'citizen' | 'guest' | 'livestock' | nil (nil = an animal: drawn, placed or released)
+local function side(u)
+    if ucall('isCitizen', u) or ucall('isResident', u) then return 'citizen' end
+    if is_invader(u) or uflag(u.flags1, 'merchant') or uflag(u.flags1, 'diplomat') or uflag(u.flags1, 'forest')
+        or ucall('isVisitor', u) then return 'guest' end
+    if uflag(u.flags1, 'tame') or ucall('isPet', u) or ucall('isFortControlled', u) or ucall('isOwnCiv', u) then return 'livestock' end
+    if u.civ_id >= 0 then return 'guest' end
+    return nil
+end
+local function origin(u)
+    if not u then return '?' end
+    if S.spawned[u.id] then return 'placed' end
+    if u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature then return 'drawn' end
+    if side(u) then return side(u) end
+    return 'released'
+end
+local function onmap(u) return not dfhack.units.isDead(u) and not u.flags1.inactive and u.pos.x >= 0 end
+-- an animal the wipe may take: on the map, not fort-side (livestock only when asked), natural, not deep
+local function wipeable(u, livestock)
+    if not onmap(u) then return false, 'off' end
+    local sd = side(u)
+    if sd == 'citizen' or sd == 'guest' then return false, sd end
+    if sd == 'livestock' and not livestock then return false, 'livestock' end
+    if nonnatural(u) then return false, 'nonnatural' end
+    if ulayer(u) == 'deep' then return false, 'deep' end
+    return true, sd == 'livestock' and 'livestock' or origin(u)
+end
+-- every Animal entry the site's map can draw from: its region tiles and their ring, every layer (cx-load sitePools)
+local function closePools()
+    local site = df.world_site.find(df.global.plotinfo.site_id)
+    if not site then return 0 end
+    local x0, x1 = site.global_min_x // 16, site.global_max_x // 16
+    local y0, y1 = site.global_min_y // 16, site.global_max_y // 16
+    local n = 0
+    for _, p in ipairs(df.global.world.populations.all) do
+        local r = p.population
+        if p.type == df.world_population_type.Animal and r.region_x >= x0 - 1 and r.region_x <= x1 + 1
+            and r.region_y >= y0 - 1 and r.region_y <= y1 + 1 then p.quantity = 0; p.flags.extinct = true; n = n + 1 end
+    end
+    return n
+end
+local function tool()
+    local ok, sw = pcall(reqscript, 'seasonal-wildlife')
+    if ok and type(sw) == 'table' then return sw end
+end
+local function word(s) return (tostring(s or ''):gsub('[%s=]+', '_')):sub(1, 80) end
 
 -- ------------------------------------------------------------------ verbs ----
 if cmd == 'spot' then
@@ -338,6 +470,9 @@ elseif cmd == 'spawn' then
     local x0, y0, z0 = tonumber(args[4]), tonumber(args[5]), tonumber(args[6])
     local radius, medium, sex = tonumber(args[7]) or 3, args[8] or 'land', args[9] or 'any'
     local countdown = tonumber(args[10]) or 200000
+    -- 'roam' keeps DF's roaming flag: DF then treats the unit as wild (it is not aimed at newcomers as a fort-side
+    -- unit, and it counts toward DF's surface gate). Default clears it, as every block before v7.1 did (H4).
+    local roam = args[11] == 'roam'
     local craw, ridx = raw_of(token or '')
     if not craw then do return fail('no creature ' .. tostring(token)) end end
     -- a population reference: the species' own site entry when it has one, else any Animal entry (borrowed:
@@ -379,8 +514,8 @@ elseif cmd == 'spawn' then
             ap.region_x, ap.region_y = r.region_x, r.region_y
             ap.feature_idx, ap.cave_id, ap.site_id, ap.population_idx = r.feature_idx, r.cave_id, r.site_id, r.population_idx
             u.animal.leave_countdown = countdown
-            u.flags2.roaming_wilderness_population_source = false
-            u.flags2.roaming_wilderness_population_source_not_a_map_feature = false
+            u.flags2.roaming_wilderness_population_source = roam
+            u.flags2.roaming_wilderness_population_source_not_a_map_feature = roam
             u.pos:assign(pos); u.idle_area:assign(pos)
             df.global.world.units.active:insert('#', u)
             local blk = dfhack.maps.getTileBlock(pos)
@@ -402,7 +537,7 @@ elseif cmd == 'spawn' then
         end
     end
     out('spawn', { { 'token', token }, { 'asked', n }, { 'placed', #ids }, { 'medium', medium }, { 'at', x0 .. ',' .. y0 .. ',' .. z0 },
-        { 'borrowed_ref', borrowed and 1 or 0 }, { 'ids', table.concat(ids, ',') } })
+        { 'borrowed_ref', borrowed and 1 or 0 }, { 'roam', roam and 1 or 0 }, { 'ids', table.concat(ids, ',') } })
 
 elseif cmd == 'corpse' then
     -- corpse IDS: every listed spawned unit dies on the spot (blood drained, as exterminate's destroy does) and
@@ -446,14 +581,66 @@ elseif cmd == 'rel' then
 
 elseif cmd == 'watch' then
     S.attacks, S.inc0, S.watch, S.t0, S.dropped = {}, #df.global.world.incidents.all, true, tick(), 0
+    -- H6: every attack with its tick and both sides' origin; hidden flags sampled every 10 t on the subjects
+    S.attacks_o, S.atk, S.atk_over, S.ring, S.hstat, S.lastatk = {}, {}, 0, {}, {}, {}
+    S.bout_gap = tonumber(args[2]) or 100
+    S.wildpred = args[3] == 'wildpred' or args[2] == 'wildpred'
+    S.watchn = {}
+    for id, tok in pairs(S.spawned) do
+        local u = df.unit.find(id)
+        if u and not dfhack.units.isDead(u) then S.watchn[tok] = (S.watchn[tok] or 0) + 1 end
+    end
     eventful.enableEvent(eventful.eventType.UNIT_ATTACK, 1)
     eventful.onUnitAttack.cx_eco = function(att, def)
-        if not _G.CX_ECO.watch then return end
+        local E = _G.CX_ECO
+        if not E.watch then return end
         local ua, ud = df.unit.find(att), df.unit.find(def)
-        local k = (ua and race_of(ua) or '?') .. '>' .. (ud and race_of(ud) or '?')
-        _G.CX_ECO.attacks[k] = (_G.CX_ECO.attacks[k] or 0) + 1
+        local ra, rd = ua and race_of(ua) or '?', ud and race_of(ud) or '?'
+        local k = ra .. '>' .. rd
+        E.attacks[k] = (E.attacks[k] or 0) + 1
+        local ao, dor = origin(ua), origin(ud)
+        local ko = ra .. '(' .. ao .. ')>' .. rd .. '(' .. dor .. ')'
+        E.attacks_o[ko] = (E.attacks_o[ko] or 0) + 1
+        local t = df.global.cur_year * 403200 + df.global.cur_year_tick
+        -- the attacker's approach: hidden samples in the 300 t before this attack
+        local hn, hh = 0, 0
+        for _, smp in ipairs(E.ring[att] or {}) do if t - smp[1] <= 300 then hn = hn + 1; hh = hh + smp[2] end end
+        E.lastatk[att] = t
+        if #E.atk < 5000 then
+            E.atk[#E.atk + 1] = { t - (E.t0 or t), att, ra, ao, def, rd, dor, hh, hn }
+        else E.atk_over = E.atk_over + 1 end
     end
-    out('watch', { { 'incidents0', S.inc0 }, { 't0', S.t0 } })
+    local repeatUtil = require('repeat-util')
+    repeatUtil.scheduleEvery('cx_eco_hidden', 10, 'ticks', function()
+        local E = _G.CX_ECO
+        if not E.watch then return end
+        local t = df.global.cur_year * 403200 + df.global.cur_year_tick
+        local ids = {}
+        for id in pairs(E.spawned) do ids[id] = true end
+        for id, lt in pairs(E.lastatk) do if t - lt <= 300 then ids[id] = true end end
+        if E.wildpred then
+            for _, u in ipairs(df.global.world.units.active) do
+                if u.flags2.roaming_wilderness_population_source and not dfhack.units.isDead(u) then
+                    local c = df.creature_raw.find(u.race); local cs = c and c.caste[u.caste]
+                    if cs and (cs.flags.CARNIVORE or cs.flags.LARGE_PREDATOR) then ids[u.id] = true end
+                end
+            end
+        end
+        for id in pairs(ids) do
+            local u = df.unit.find(id)
+            if u and not dfhack.units.isDead(u) then
+                local h = (uflag(u.flags1, 'hidden_in_ambush') or uflag(u.flags1, 'hidden_ambusher')) and 1 or 0
+                local r = E.ring[id] or {}; E.ring[id] = r
+                r[#r + 1] = { t, h }; if #r > 30 then table.remove(r, 1) end
+                local st = E.hstat[id] or { n = 0, h = 0, nn = 0, nh = 0, tok = race_of(u) }; E.hstat[id] = st
+                st.n = st.n + 1; st.h = st.h + h
+                local lt = E.lastatk[id]
+                if lt and t - lt <= 100 then st.nn = st.nn + 1; st.nh = st.nh + h end
+            end
+        end
+    end)
+    out('watch', { { 'incidents0', S.inc0 }, { 't0', S.t0 }, { 'bout_gap', S.bout_gap }, { 'hidden_every', 10 },
+        { 'wildpred', S.wildpred and 1 or 0 } })
 
 elseif cmd == 'read' then
     local tag = args[2] or '-'
@@ -496,6 +683,37 @@ elseif cmd == 'read' then
                 { 'dt', (function() local ok, v = pcall(function() return it.event_year * 403200 + it.event_time - (S.t0 or 0) end); return ok and v or -1 end)() } })
         end
     end
+    -- H6: attacks by origin, each attack, bouts (attacks with gaps < bout_gap) and hidden samples
+    for k, c in pairs(S.attacks_o or {}) do out('attacks_o', { { 'tag', tag }, { 'pair', k }, { 'n', c } }) end
+    local per = {}
+    for _, a in ipairs(S.atk or {}) do
+        out('atk', { { 'tag', tag }, { 't', a[1] }, { 'a', a[2] }, { 'atok', a[3] }, { 'aor', a[4] }, { 'd', a[5] }, { 'dtok', a[6] },
+            { 'dor', a[7] }, { 'hid', a[8] }, { 'hn', a[9] } })
+        local p = per[a[2]] or { tok = a[3], aor = a[4], ts = {} }; per[a[2]] = p
+        p.ts[#p.ts + 1] = a[1]
+    end
+    if (S.atk_over or 0) > 0 then out('atk_over', { { 'tag', tag }, { 'dropped', S.atk_over } }) end
+    local gap, ticks = S.bout_gap or 100, tick() - (S.t0 or tick())
+    local bt = {}
+    for id, p in pairs(per) do
+        table.sort(p.ts)
+        local b = 0
+        for i, t in ipairs(p.ts) do if i == 1 or t - p.ts[i - 1] >= gap then b = b + 1 end end
+        out('bout', { { 'tag', tag }, { 'a', id }, { 'atok', p.tok }, { 'aor', p.aor }, { 'attacks', #p.ts }, { 'bouts', b },
+            { 'first', p.ts[1] }, { 'last', p.ts[#p.ts] } })
+        local s2 = bt[p.tok] or { attackers = 0, attacks = 0, bouts = 0 }; bt[p.tok] = s2
+        s2.attackers = s2.attackers + 1; s2.attacks = s2.attacks + #p.ts; s2.bouts = s2.bouts + b
+    end
+    for tok, s2 in pairs(bt) do
+        local hunters = (S.watchn or {})[tok] or s2.attackers
+        local days = math.max(ticks, 1) / 1200
+        out('bouts', { { 'tag', tag }, { 'atok', tok }, { 'hunters', hunters }, { 'attackers', s2.attackers }, { 'attacks', s2.attacks },
+            { 'bouts', s2.bouts }, { 'ticks', ticks }, { 'per_hunter_day', ('%.3f'):format(s2.bouts / (math.max(hunters, 1) * days)) } })
+    end
+    for id, st in pairs(S.hstat or {}) do
+        out('hidden', { { 'tag', tag }, { 'id', id }, { 'token', st.tok }, { 'samples', st.n }, { 'hidden', st.h },
+            { 'near', st.nn }, { 'near_hidden', st.nh } })
+    end
     local al = 0
     for _, a in ipairs(df.global.world.status.announcement_alert) do if a.type == df.announcement_alert_type.COMBAT then al = al + 1 end end
     out('alerts', { { 'tag', tag }, { 'combat', al }, { 'dropped', S.dropped or 0 }, { 'ticks', tick() - (S.t0 or tick()) } })
@@ -508,6 +726,7 @@ elseif cmd == 'clear' then
     end
     S.spawned, S.watch = {}, false
     eventful.onUnitAttack.cx_eco = nil
+    require('repeat-util').cancel('cx_eco_hidden')
     out('clear', { { 'vanished', n } })
 
 elseif cmd == 'flag' then
@@ -606,6 +825,228 @@ elseif cmd == 'alerts' then
     else repeatUtil.cancel('cx_eco_alerts') end
     out('alerts_filter', { { 'on', on }, { 'mode', mode } })
 
+elseif cmd == 'wipe' then
+    -- R15 (user, 1 Oct 2026): every cell rep starts with NO animals on the map -- drawn, placed or released -- before
+    -- the experiment places its groups, so natives and earlier cells' units cannot pile into a later cell (SW1R).
+    -- Exterminate's method: vanish_countdown 1, gone on the next tick, no corpse. Citizens, guests, non-natural and
+    -- deep-layer units are never touched; livestock only with the 'livestock' word.
+    local opt = {}
+    for i = 2, #args do opt[args[i]] = true end
+    local C = { drawn = 0, placed = 0, released = 0, livestock = 0 }
+    local K = { citizen = 0, guest = 0, livestock = 0, nonnatural = 0, deep = 0 }
+    local marked = 0
+    for _, u in ipairs(df.global.world.units.active) do
+        local ok, why = wipeable(u, opt.livestock)
+        if ok then
+            C[why] = (C[why] or 0) + 1
+            u.animal.vanish_countdown = 1
+            S.spawned[u.id] = nil
+            marked = marked + 1
+        elseif K[why] then K[why] = K[why] + 1 end
+    end
+    local closed = opt.close and closePools() or -1
+    S.wiped = (S.wiped or 0) + marked
+    out('wipe', { { 'marked', marked }, { 'drawn', C.drawn }, { 'placed', C.placed }, { 'released', C.released },
+        { 'livestock', C.livestock }, { 'kept_citizen', K.citizen }, { 'kept_guest', K.guest }, { 'kept_livestock', K.livestock },
+        { 'kept_nonnatural', K.nonnatural }, { 'kept_deep', K.deep }, { 'pools_closed', closed } })
+
+elseif cmd == 'wipecheck' then
+    local livestock = args[2] == 'livestock'
+    local rem, pend, by = 0, 0, {}
+    for _, u in ipairs(df.global.world.units.active) do
+        if wipeable(u, livestock) then
+            if u.animal.vanish_countdown > 0 then pend = pend + 1
+            else rem = rem + 1; local k = race_of(u); by[k] = (by[k] or 0) + 1 end
+        end
+    end
+    local parts = { { 'remaining', rem }, { 'pending', pend } }
+    local ks = {}
+    for k in pairs(by) do ks[#ks + 1] = k end
+    table.sort(ks)
+    for i = 1, math.min(8, #ks) do parts[#parts + 1] = { ks[i], by[ks[i]] } end
+    out('wipecheck', parts)
+
+elseif cmd == 'groups3' then
+    -- H5: ONE definition of a group, checked three ways. A group is the live, on-map animals that share species,
+    -- population entry (ref6) and arrival sample (the first groups3 call that saw them; units on the map at `base`
+    -- share that sample). Against it: (2) the tool's record (sw.loadGroups: which canonical groups each tool group's
+    -- live members fall in) and (3) DF's population entries (quantity now against the reading at `base`; a net
+    -- figure: debits, refunds and regrowth all move it -- trap 16).
+    local tag = args[2] or '-'
+    if tag == 'reset' then S.g3seen, S.g3pop0 = nil, nil; out('g3', { { 'tag', 'reset' } }); return end
+    local t = tick()
+    S.g3seen = S.g3seen or {}
+    if tag == 'base' or not S.g3pop0 then
+        S.g3pop0 = {}
+        for _, p in ipairs(df.global.world.populations.all) do
+            if p.type == df.world_population_type.Animal then S.g3pop0[p.race .. '|' .. ref6(p.population)] = p.quantity end
+        end
+    end
+    local live, unitKey = {}, {}
+    for _, u in ipairs(df.global.world.units.active) do
+        if onmap(u) and not side(u) and not nonnatural(u) then
+            local L = ulayer(u)
+            if L ~= 'deep' then
+                local seen = S.g3seen[u.id]
+                if not seen then seen = t; S.g3seen[u.id] = t end
+                local rf = ref6(u.animal.population)
+                local k = race_of(u) .. '|' .. rf .. '|' .. seen
+                local g = live[k]
+                if not g then g = { tok = race_of(u), race = u.race, ref = rf, seen = seen, layer = L, n = 0, o = {} }; live[k] = g end
+                g.n = g.n + 1
+                local o = origin(u); g.o[o] = (g.o[o] or 0) + 1
+                unitKey[u.id] = k
+            end
+        end
+    end
+    local pop = {}
+    for _, p in ipairs(df.global.world.populations.all) do
+        if p.type == df.world_population_type.Animal then pop[p.race .. '|' .. ref6(p.population)] = p end
+    end
+    local sw, groups = tool(), nil
+    if sw and sw.loadGroups then
+        local ok, g = pcall(sw.loadGroups)
+        if ok and type(g) == 'table' then groups = g.groups end
+    end
+    local toolOf, sum = {}, {}
+    local function S3(L) sum[L] = sum[L] or { live = 0, tool = 0, match = 0, untracked = 0, split = 0, merged = 0, stale = 0, nopop = 0, debited = 0 }; return sum[L] end
+    for gi, grp in ipairs(groups or {}) do
+        local keys, nk, nlive = {}, 0, 0
+        for _, id in ipairs(grp.ids or {}) do
+            local k = unitKey[id]
+            if k then
+                nlive = nlive + 1
+                if not keys[k] then keys[k] = true; nk = nk + 1 end
+                toolOf[k] = toolOf[k] or {}; toolOf[k][gi] = true
+            end
+        end
+        local v = nlive == 0 and 'stale' or (nk > 1 and 'merged' or 'ok')
+        local L = grp.layer or 'land'
+        local st = S3('tool:' .. L); st.tool = st.tool + 1
+        if v ~= 'ok' then st[v] = st[v] + 1 end
+        out('g3tool', { { 'tag', tag }, { 'gid', grp.id or gi }, { 'token', grp.token or '?' }, { 'layer', L },
+            { 'members', #(grp.ids or {}) }, { 'live', nlive }, { 'groups', nk }, { 'verdict', v } })
+    end
+    for k, g in pairs(live) do
+        local tg = 0
+        for _ in pairs(toolOf[k] or {}) do tg = tg + 1 end
+        local pk = g.race .. '|' .. g.ref
+        local p = pop[pk]
+        local q = p and p.quantity or -1
+        local debit = (p and S.g3pop0[pk]) and (S.g3pop0[pk] - q) or 0
+        local v = (not groups) and 'notool' or (tg == 0 and 'untracked' or (tg > 1 and 'split' or 'match'))
+        local st = S3(g.layer)
+        st.live = st.live + 1
+        if st[v] then st[v] = st[v] + 1 end
+        if not p then st.nopop = st.nopop + 1 end
+        if debit ~= 0 then st.debited = st.debited + 1 end
+        out('g3', { { 'tag', tag }, { 'layer', g.layer }, { 'token', g.tok }, { 'ref6', g.ref }, { 'arrived', g.seen - (S.t0 or g.seen) },
+            { 'live', g.n }, { 'drawn', g.o.drawn or 0 }, { 'placed', g.o.placed or 0 }, { 'released', g.o.released or 0 },
+            { 'tool_groups', tg }, { 'pop_q', q }, { 'debit', debit }, { 'verdict', v } })
+    end
+    for L, st in pairs(sum) do
+        out('g3sum', { { 'tag', tag }, { 'layer', L }, { 'live_groups', st.live }, { 'tool_groups', st.tool }, { 'match', st.match },
+            { 'untracked', st.untracked }, { 'split', st.split }, { 'merged', st.merged }, { 'stale', st.stale },
+            { 'nopop', st.nopop }, { 'debited', st.debited }, { 'tool', groups and 1 or 0 } })
+    end
+
+elseif cmd == 'adopt' then
+    -- H3: a placed pack must be ONE tracked group to the tool (SW2's floor and sneak weighed one wolf: cx-eco spawn
+    -- clears the roaming flag and the tool's discoverGroups only adopts flagged units). v7.1's `groups adopt <ids>`
+    -- takes them by id whatever the flag; the receipt is read from the tool's own record, not from its reply.
+    for i = 2, #args do
+        local tok, ids, roam = args[i], {}, 0
+        for id, t in pairs(S.spawned) do
+            if t == tok then
+                local u = df.unit.find(id)
+                if u and not dfhack.units.isDead(u) then
+                    ids[#ids + 1] = id
+                    if u.flags2.roaming_wilderness_population_source then roam = roam + 1 end
+                end
+            end
+        end
+        table.sort(ids)
+        local reply = 'none'
+        if #ids > 0 then
+            local sargs = {}
+            for j, id in ipairs(ids) do sargs[j] = tostring(id) end
+            local ok, o = pcall(dfhack.run_command_silent, 'seasonal-wildlife', 'groups', 'adopt', table.unpack(sargs))
+            reply = ok and tostring(o or '') or ('error ' .. tostring(o))
+            reply = reply:match('^[^\n]*') or reply
+        end
+        local groups, members = 0, 0
+        local sw = tool()
+        if sw and sw.loadGroups and #ids > 0 then
+            local want = {}
+            for _, id in ipairs(ids) do want[id] = true end
+            local ok, g = pcall(sw.loadGroups)
+            if ok and type(g) == 'table' then
+                for _, grp in ipairs(g.groups or {}) do
+                    local hit = 0
+                    for _, id in ipairs(grp.ids or {}) do if want[id] then hit = hit + 1 end end
+                    if hit > 0 then groups = groups + 1; members = members + hit end
+                end
+            end
+        end
+        out('adopt', { { 'token', tok }, { 'asked', #ids }, { 'groups', groups }, { 'members', members },
+            { 'adopted', (#ids > 0 and groups == 1 and members == #ids) and 1 or 0 }, { 'roam', roam }, { 'reply', word(reply) } })
+    end
+
+elseif cmd == 'cfg' then
+    local sw = tool()
+    if not (sw and sw.loadConfig) then do return fail('seasonal-wildlife is not loadable') end end
+    local c = sw.loadConfig()
+    for i = 2, #args do
+        local v = c
+        for part in args[i]:gmatch('[^.]+') do if type(v) == 'table' then v = v[part] else v = nil end end
+        out('cfg', { { 'path', args[i] }, { 'value', type(v) == 'table' and 'table' or word(v) } })
+    end
+
+elseif cmd == 'skill' then
+    local tok, sk = args[2], df.job_skill[args[3] or 'SNEAK']
+    if not sk then do return fail('no skill ' .. tostring(args[3])) end end
+    local n, with, max = 0, 0, 0
+    for _, u in ipairs(df.global.world.units.active) do
+        if onmap(u) and race_of(u) == tok then
+            n = n + 1
+            local soul = u.status.current_soul
+            if soul then
+                for _, s in ipairs(soul.skills) do
+                    if s.id == sk then with = with + 1; if s.rating > max then max = s.rating end end
+                end
+            end
+        end
+    end
+    out('skill', { { 'token', tok }, { 'skill', args[3] or 'SNEAK' }, { 'units', n }, { 'with', with }, { 'max', max } })
+
+elseif cmd == 'relcount' then
+    local a, b = args[2], args[3]
+    local cache, v, n, cells = df.global.world.enemy_status_cache, df.unit_reaction_type.PREDATOR_OR_PREY, 0, 0
+    for ida, ta in pairs(S.spawned) do if ta == a then
+        local ua = df.unit.find(ida)
+        for idb, tb in pairs(S.spawned) do if tb == b then
+            local ub = df.unit.find(idb)
+            local sa, sb = ua and ua.enemy.enemy_status_slot or -1, ub and ub.enemy.enemy_status_slot or -1
+            if sa >= 0 and sb >= 0 and not dfhack.units.isDead(ua) and not dfhack.units.isDead(ub) then
+                n = n + 1
+                if cache.rel_map[sa][sb].ur == v then cells = cells + 1 end
+            end
+        end end
+    end end
+    out('relcount', { { 'a', a }, { 'b', b }, { 'pairs', n }, { 'written', cells } })
+
+elseif cmd == 'ecostate' then
+    local sw = tool()
+    if not (sw and sw.loadGroups) then do return fail('seasonal-wildlife is not loadable') end end
+    local g = sw.loadGroups()
+    local L = { land = 0, cavern = 0, water = 0 }
+    for _, grp in ipairs(g.groups or {}) do local k = grp.layer or 'land'; L[k] = (L[k] or 0) + 1 end
+    local e = g.ecology or {}
+    local last = e.last or {}
+    out('ecostate', { { 'groups', #(g.groups or {}) }, { 'land', L.land }, { 'cavern', L.cavern }, { 'water', L.water },
+        { 'pairs', last.pairs or 0 }, { 'nudges_total', e.nudges or 0 }, { 'last_nudged', last.nudged or 0 },
+        { 'last_slotted', last.slotted or 0 } })
+
 else
-    do return fail('usage: cx-eco spot|spawn|rel|watch|read|clear|flag|restore|lead|alerts ...') end
+    do return fail('usage: cx-eco spot|spawn|rel|watch|read|clear|flag|restore|lead|alerts|wipe|wipecheck|groups3|adopt|cfg|skill|relcount|ecostate ...') end
 end

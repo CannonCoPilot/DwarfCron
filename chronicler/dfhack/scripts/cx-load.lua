@@ -11,6 +11,11 @@
 --                                    9 region tiles and its caverns (quantity 0, extinct) -- in memory only, never saved
 --   cx-load constwild <n>            FPS5: clearwild, then place n PREY land animals, close the pools again, and set every
 --                                    wild unit's leave countdown to 10,000,000 -- the same wild load on any map, held
+--   cx-load wipe [livestock] [close] R15 (1 Oct 2026): every animal on the map -- drawn, placed or released, every
+--                                    layer but the deep ones -- vanishes next tick; citizens, guests and non-natural
+--                                    units never, livestock only when asked. One implementation: this forwards to
+--                                    `cx-eco wipe` (its receipt line, counts by origin). clearwild stays as it was
+--                                    (isWildlife only, always closes the pools) for the FPS series that used it.
 --   cx-load hold                     every wild unit's leave countdown to 10,000,000 (nobody leaves)
 --   cx-load sustain                  every living citizen's thirst and hunger timers to 0 (FPS5b: fresh embarks at
 --                                    region4 29,20 have no water; in the first year-long session all 20 dwarves died
@@ -115,6 +120,12 @@ elseif cmd == 'clearwild' then
         if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then u.animal.vanish_countdown = 1; v = v + 1 end
     end
     print(('clearwild: %d wild unit(s) set to vanish next tick; %d pool entries closed'):format(v, closePools()))
+
+elseif cmd == 'wipe' then
+    local rest = {}
+    for i = 2, #args do rest[#rest + 1] = args[i] end
+    local ok, o = pcall(dfhack.run_command_silent, 'cx-eco', 'wipe', table.unpack(rest))
+    print(ok and (tostring(o or ''):gsub('%s+$', '')) or ('eco error wipe: ' .. tostring(o)))
 
 elseif cmd == 'sustain' then
     local n = 0
@@ -406,5 +417,5 @@ elseif cmd == 'guests' then
     print(('guests: merchants %d visitors %d invaders %d'):format(merch, visit, inv))
 
 else
-    print('usage: cx-load line | sustain | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk | world | guests')
+    print('usage: cx-load line | sustain | wipe [livestock] [close] | clearwild | constwild <n> | hold | wild <n> [species] [prey] | citizens <n> | work [side] | breach <zlo-zhi,...> [n] [dry] | walk | world | guests')
 end
