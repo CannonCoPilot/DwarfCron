@@ -1,26 +1,72 @@
 #!/usr/bin/env python3
-"""ECO: small behaviour experiments for seasonal-wildlife (design: experiments/ECO-design.md).
+"""ECO: small behaviour experiments for seasonal-wildlife (design: experiments/ECO-design.md; v7.1 harness:
+experiments/HARNESS-v71.md).
 
-A block = one fort, restored from its .preverify backup, loaded on a fresh DF, then cells run in sequence in that one
-load. A cell = cx-eco verbs (spawn, rel, flag, lead, ...), `watch`, a step of N ticks, `read`, then `clear` + `restore`
-so nothing carries into the next cell. The fort is never saved. Every `eco ...` line the game prints is written to
-data/experiments/ECO/<run>/<block>.tsv as: block, cell, rep, kind, then the line's key=value pairs.
+A block = one fort and a set of cells (arms). v7.1 defaults (user rulings R12, R15; Part 1 plan H1-H6):
+  * n = 5 replicates per arm (--reps), short reps (--tick-scale shrinks every step and cell length);
+  * a FRESH load per arm (--load arm): the fort is restored from its .preverify backup and loaded on a fresh DF for
+    every cell of every rep, so nothing carries from cell to cell (SW1R's cell-position confound);
+  * the cell order counterbalanced across reps (--order counterbalance: even reps reversed; rotate = Latin rows);
+  * every cell starts by WIPING every animal on the map (cx-eco wipe, receipt by origin, then wipecheck == 0) before
+    it places its groups (R15); a block that observes natives opts out with wipe=False and a reason;
+  * a MANIPULATION CHECK: every receipt that proves a dial reached its subject is checked as the cell runs (a spawn
+    that placed 0, a relation written to no pair, a pack the tool did not adopt, a cfg value that did not change,
+    any explicit 'check:' step). The first failure aborts the block (--manip abort) and is printed first;
+  * placed units keep DF's roaming flag (--isolate roam), so DF does not aim them as fort-side units (H4), and are
+    placed the way the tool's PLACE.one places (NONE enemy-status row, own entry, debited); --placement legacy
+    reproduces the pre-v7.1 rig exactly (STRANGER row, first entry, no debit).
+A cell = cx-eco verbs (spawn, rel, flag, lead, adopt ...), `watch`, a step of N ticks, `read`, then `clear` + `restore`.
+The fort is never saved. Every `eco ...` line the game prints is written to data/experiments/ECO/RUN/BLOCK.tsv as:
+block, cell, rep, kind, then the line's key=value pairs.
 
 Placeholders in a verb: {X} {Y} {Z} = the block's spot; {X+N} / {X-N} / {Y+N} / {Y-N} offsets; {ids:TOKEN} = the ids
 the last spawn of TOKEN printed (for `corpse`).
-Step forms: 'spawn ...' (any cx-eco verb), 'lua:<code>', 'step:<ticks>', 'read:<tag>'.
+Step forms: 'spawn ...' (any cx-eco verb), 'lua:CODE', 'step:TICKS', 'read:TAG', 'check:KIND[k=v].KEY OP VALUE'.
 
-Usage: eco-run.py <block>[,<block>...] [--run <dir>] [--reps N] [--only cell,cell]
+Usage: eco-run.py BLOCK[,BLOCK...] [--run DIR] [--reps 5] [--only cell,cell] [--load arm|rep]
+                  [--order counterbalance|rotate|fixed] [--no-wipe] [--manip abort|skip] [--isolate roam|none]
+                  [--placement tool|legacy] [--tick-scale F] [--dry-run]
        eco-run.py list
+       eco-run.py plan BLOCK[,BLOCK...] [--reps 5] [--load arm|rep] [--tick-scale F]   # wall-time estimate, no rig
 """
 import argparse, os, re, subprocess, sys, time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ecolib  # noqa: E402
+from ecolib import ManipFail  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LC = ROOT / "scripts" / "cx-lifecycle.sh"
 ENV = dict(os.environ, CX_RPC_TIMEOUT="180")
 
+DRY = []   # --dry-run: every rig call is recorded here and answered with a canned receipt; nothing touches DF
+
+def _dry_eco(args):
+    v = args[0] if args else ""
+    if v in ("spot", "cavespot", "vspot", "fortspot"):
+        return [f"eco spot kind={'fort' if v == 'fortspot' else 'dry'} x=100 y=100 z=50"]
+    if v == "spawn":
+        n = int(args[2]) if len(args) > 2 and str(args[2]).isdigit() else 1
+        return [f"eco spawn token={args[1]} asked={n} placed={n} ids=" + ",".join(str(9000 + i) for i in range(n))]
+    if v == "wipe":
+        return ["eco wipe marked=0 drawn=0 placed=0 released=0 livestock=0"]
+    if v == "wipecheck":
+        return ["eco wipecheck remaining=0 pending=0"]
+    if v in ("rel", "relfort"):
+        return [f"eco {v} a={args[1] if len(args) > 1 else '?'} pairs=1"]
+    if v == "adopt":
+        return [f"eco adopt token={t} asked=1 groups=1 members=1 adopted=1 roam=1" for t in args[1:]]
+    if v == "lead":
+        return [f"eco lead token={args[1]} how={args[2] if len(args) > 2 else 'lowest'} leader=1 members=1"]
+    if v == "cfg":
+        return [f"eco cfg path={x} value=dry" for x in args[1:]]
+    return []
+
 def sh(*args, timeout=900, check=True):
+    if DRY:
+        DRY.append(" ".join(map(str, args))[:200])
+        return ""
     p = subprocess.run([str(LC), *map(str, args)], capture_output=True, text=True, timeout=timeout, env=ENV, cwd=ROOT)
     out = (p.stdout + p.stderr).replace("\r", "")
     if check and p.returncode != 0:
@@ -28,6 +74,9 @@ def sh(*args, timeout=900, check=True):
     return out
 
 def eco(*args):
+    if DRY:
+        DRY.append("cmd cx-eco " + " ".join(map(str, args))[:200])
+        return _dry_eco([str(a) for a in args])
     out = sh("cmd", "cx-eco", *args, timeout=300)
     lines = [l for l in out.splitlines() if l.startswith("eco ")]
     for l in lines:
@@ -811,8 +860,10 @@ def sw_arena():
             "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
             "spawn WOLF 5 {X} {Y} {Z} 3", "spawn DEER 6 {X+50} {Y} {Z} 5", "spawn WATER_BUFFALO 6 {X-50} {Y} {Z} 5",
             "spawn ELEPHANT 4 {X} {Y+55} {Z} 5",
-            "lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local n=sw.discoverGroups(g); sw.saveGroups(g);"
-            " print(('eco swdiscover n=%d'):format(n))"]
+            # H3 (Part 1 plan): SW1/SW2's discoverGroups found n=0 in all 40 cells -- spawn cleared the roaming flag and
+            # the tool only adopts flagged units -- so the pack was never a tracked group. v7.1's `groups adopt <ids>`
+            # takes them by id; cx-eco adopt reads the tool's record back and the auto check needs adopted=1.
+            "adopt WOLF", "ecostate"]
 def sw1(arm):
     st = sw_arena()
     if arm == "cad500": st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.ecology.cadence=500; sw.saveConfig(c);"
@@ -822,6 +873,10 @@ def sw1(arm):
     elif arm == "nudge_off": st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.ecology.nudge=false; sw.saveConfig(c);"
                                         " dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); print('eco swcfg nudge_bool=false ok=1')")
     elif arm == "nudge_tight": st.append("lua:dfhack.run_command('seasonal-wildlife', 'groups', 'nudge', '20', '1500', '6'); print('eco swnudge set=20,1500,6')")
+    st.append("cfg ecology.cadence ecology.nudge ecology.far_tiles")   # H2: the dial as the tool now holds it
+    st += {"cad500": ["check:cfg[path=ecology.cadence].value==500"], "cad6000": ["check:cfg[path=ecology.cadence].value==6000"],
+           "nudge_off": ["check:cfg[path=ecology.nudge].value==false"],
+           "nudge_tight": ["check:cfg[path=ecology.far_tiles].value==20"]}.get(arm, [])
     st.append("watch")
     for i in range(20):
         st += ["step:1500", _SW_STATUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
@@ -834,9 +889,15 @@ def sw2(arm):
     floor, sneak = SW2_ARMS[arm]
     st = sw_arena() + [f"lua:dfhack.run_command('seasonal-wildlife', 'v7', 'pack_floor', '{floor}'); print('eco swv7 key=pack_floor value={floor}')",
                        f"lua:dfhack.run_command('seasonal-wildlife', 'v7', 'pack_sneak', '{sneak}'); print('eco swv7 key=pack_sneak value={sneak}')",
+                       "cfg v7.pack_floor v7.pack_sneak",   # H2: the dial as the tool holds it, not the echo
+                       f"check:cfg[path=v7.pack_floor].value=={floor}", f"check:cfg[path=v7.pack_sneak].value=={sneak}",
                        "watch"]
     for i in range(20):
         st += ["step:1500", _SW_STATUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
+        if i == 0:   # H2: no SW2 arm ever wrote SNEAK (one wolf weighed 22% of a deer); after one pass it must show
+            st.append("skill WOLF SNEAK")
+            if arm == "sneak0": st.append("check:skill.with==0")
+            if arm == "sneak100": st.append("check:skill.with>0")
         if i == 9: st.append(SUSTAIN)
     return dict(steps=st, ticks=10, nowatch=True, post=[_SW_CFG_RESTORE])
 BLOCKS["SW2"] = dict(fort="CTRL", spot="land", cells={a: sw2(a) for a in SW2_ARMS})
@@ -856,9 +917,12 @@ def sw3(arm):
     else:
         n = {"g1": "1", "g3": "3"}[arm]
         st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', '{n}'); print('eco swlimits land={n}')")
-    st.append("watch")
+    st.append("cfg limits.land.groups limits.land.auto")
+    st += (["check:cfg[path=limits.land.auto].value==true"] if arm == "auto" else
+           [f"check:cfg[path=limits.land.groups].value=={ {'g1': 1, 'g3': 3}[arm] }", "check:cfg[path=limits.land.auto].value==false"])
+    st += ["groups3 base", "watch"]
     for i in range(1, 11):
-        st += ["step:5040", _SW_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        st += ["step:5040", _SW_STATUS.replace("{TAG}", f"t{i * 5040}"), f"groups3 t{i * 5040}"]   # H5: three-source groups
         if i == 5: st.append(SUSTAIN)
     return dict(steps=st, ticks=10, nowatch=True,
                 post=["lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', 'auto'); print('eco swlimits restored=auto')",
@@ -912,7 +976,8 @@ _SW4_CENSUS = ("lua:local sw=reqscript('seasonal-wildlife'); local C={AL=0,ML=0,
                ":format(total, C.AL, C.ML, C.GZ, C.PL, C.SH, C.LB, C.other))")
 def sw4(arm):
     mult = SW4_MULT[arm]
-    st = [SUSTAIN, _SW4_DISARM, _sw4_freq_lua(mult, "set"), "watch", _SW4_CENSUS.replace("{TAG}", "t0")]
+    st = [SUSTAIN, _SW4_DISARM, _sw4_freq_lua(mult, "set"), "cfg enabled", "check:cfg[path=enabled].value==false",
+          "check:swladder[phase=set].al_n>0", "watch", _SW4_CENSUS.replace("{TAG}", "t0")]
     for i in range(40):   # 40 x 1,500 t = 60,000 t (design row f)
         st += ["step:1500", _SW4_RELEASE, _SW4_CENSUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
         if i == 19: st.append(SUSTAIN)
@@ -954,9 +1019,12 @@ def sw5(arm):
     else:
         n = {"c1": "1", "c2": "2"}[arm]
         st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'cavern', 'groups', '{n}'); print('eco swlimits cavern={n}')")
-    st += ["watch", _sw_layer_receipt("cavern")]
+    st += ["cfg v7.layer_groups limits.cavern.groups limits.cavern.auto", "check:cfg[path=v7.layer_groups].value==true"]
+    st += (["check:cfg[path=limits.cavern.auto].value==true"] if arm == "auto" else
+           [f"check:cfg[path=limits.cavern.groups].value=={ {'c1': 1, 'c2': 2}[arm] }"])
+    st += ["groups3 base", "watch", _sw_layer_receipt("cavern")]
     for i in range(1, 11):
-        st += ["step:5040", _SW_CAVERN_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        st += ["step:5040", _SW_CAVERN_STATUS.replace("{TAG}", f"t{i * 5040}"), f"groups3 t{i * 5040}"]
         if i == 5: st.append(SUSTAIN)
     return dict(steps=st, ticks=10, nowatch=True,
                 post=["lua:dfhack.run_command('seasonal-wildlife', 'limits', 'cavern', 'groups', 'auto'); print('eco swlimits restored=auto')",
@@ -975,9 +1043,12 @@ def sw6(arm):
     else:
         n = {"w1": "1", "w2": "2"}[arm]
         st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'water', 'groups', '{n}'); print('eco swlimits water={n}')")
-    st += ["watch", _sw_layer_receipt("water")]
+    st += ["cfg v7.layer_groups limits.water.groups limits.water.auto", "check:cfg[path=v7.layer_groups].value==true"]
+    st += (["check:cfg[path=limits.water.auto].value==true"] if arm == "auto" else
+           [f"check:cfg[path=limits.water.groups].value=={ {'w1': 1, 'w2': 2}[arm] }"])
+    st += ["groups3 base", "watch", _sw_layer_receipt("water")]
     for i in range(1, 11):
-        st += ["step:5040", _SW_WATER_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        st += ["step:5040", _SW_WATER_STATUS.replace("{TAG}", f"t{i * 5040}"), f"groups3 t{i * 5040}"]
         if i == 5: st.append(SUSTAIN)
     return dict(steps=st, ticks=10, nowatch=True,
                 post=["lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.limits.water.auto=true; sw.saveConfig(c);"
@@ -1087,88 +1158,190 @@ def prune_autosaves(save, say):
         if len(r) > 2 and r[1].startswith("autosave") and world and r[2] == world:
             sh("save-delete", r[1], check=False); say(f"  pruned {r[1]} (world {world})")
 
+def fresh_load(fort, say):
+    """H1: restore the fort's .preverify backup and load it on a fresh DF. Nothing from an earlier cell survives."""
+    sh("title", timeout=300)
+    prune_autosaves(fort, say)
+    sh("save-restore", f"{fort}.preverify", timeout=600)
+    sh("stop", timeout=120, check=False); sh("start", timeout=300)
+    sh("load", fort, timeout=1200)
+    sh("fps", 1000, 10)
+
+
+def locate(b):
+    sp = b["spot"].split(":")
+    if sp[0] in ("cavern", "cavepool"):
+        skip = int(sp[3]) if len(sp) > 3 else 0   # HC4: a 4th colon-segment picks the Nth match, not just the top
+        spot = kv(eco("cavespot", sp[0], skip, *sp[1:3])[-1])
+    elif sp[0] == "vermin":
+        spot = kv(eco("vspot", *sp[1:])[-1])
+    else:
+        spot = kv(eco("spot", sp[0])[-1])
+    return int(spot["x"]), int(spot["y"]), int(spot["z"])
+
+
+def wipe_map(b, say):
+    """R15: every animal off the map before the cell places anything; proven by wipecheck == 0 (ManipFail if not)."""
+    extra = ["livestock"] if b.get("wipe_livestock") else []
+    rows = eco("wipe", *extra)
+    sh("step", 5, timeout=300)
+    chk = eco("wipecheck", *extra)
+    d = kv(chk[-1]) if chk else {}
+    if d and (int(d.get("remaining", 0)) or int(d.get("pending", 0))):   # an arrival in those 5 ticks: once more
+        rows += chk + eco("wipe", *extra)
+        sh("step", 5, timeout=300)
+        chk = eco("wipecheck", *extra)
+    rows += chk
+    bad = ecolib.auto_failures([l for l in chk if l.startswith("eco wipecheck")])
+    if bad:
+        raise ManipFail("wipe left animals on the map: " + "; ".join(bad))
+    return rows
+
+
+def plan(names, a):
+    print(f"{'block':<16} {'fort':<10} {'cells':>5} {'reps':>4} {'loads':>5} {'ticks/rep':>10} {'minutes':>8}  wipe")
+    tot = 0.0
+    for bname in names:
+        b = BLOCKS[bname]
+        e = ecolib.estimate(b, a.reps, a.load, tps=a.tps, scale=a.tick_scale, wipe=b.get("wipe", True) and not a.no_wipe)
+        tot += e["minutes"]
+        print(f"{bname:<16} {b['fort']:<10} {e['cells']:>5} {e['reps']:>4} {e['loads']:>5} {e['ticks_per_rep']:>10,} {e['minutes']:>8}  "
+              f"{'yes' if b.get('wipe', True) and not a.no_wipe else 'no (' + b.get('wipe_why', '--no-wipe') + ')'}")
+    print(f"total about {tot / 60:.1f} h at {a.tps:.0f} t/s, {a.load}-level loads, tick scale {a.tick_scale}")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("blocks")
-    ap.add_argument("--run"); ap.add_argument("--reps", type=int, default=1); ap.add_argument("--only")
+    ap.add_argument("blocks", help="BLOCK[,BLOCK...], or list, or plan")
+    ap.add_argument("more", nargs="?", help="with plan: the blocks")
+    ap.add_argument("--run")
+    ap.add_argument("--reps", type=int, default=5, help="replicates per arm (R12: 5)")
+    ap.add_argument("--only")
+    ap.add_argument("--load", choices=["arm", "rep"], default="arm", help="H1: a fresh load per arm (default) or per rep (pre-v7.1)")
+    ap.add_argument("--order", choices=list(ecolib.ORDERS), default="counterbalance", help="H1: cell order across reps")
+    ap.add_argument("--no-wipe", action="store_true", help="R15 off: do not wipe the map's animals before each cell")
+    ap.add_argument("--manip", choices=["abort", "skip"], default="abort", help="H2: on a failed check abort the block, or skip the cell")
+    ap.add_argument("--isolate", choices=["roam", "none"], default="roam", help="H4: placed units keep DF's roaming flag (roam)")
+    ap.add_argument("--placement", choices=["tool", "legacy"], default="tool",
+                    help="tool: NONE slot row, own entry, debited (PLACE.one); legacy: the pre-v7.1 rig (STRANGER, first entry, no debit)")
+    ap.add_argument("--tick-scale", type=float, default=1.0, help="R12: multiply every step and cell length (short reps)")
+    ap.add_argument("--tps", type=float, default=450.0, help="plan: assumed ticks per second")
+    ap.add_argument("--dry-run", action="store_true", help="walk every step with canned receipts; no rig call is made")
     a = ap.parse_args()
     if a.blocks == "list":
         for k, b in BLOCKS.items():
-            print(f"{k}: {b['fort']} {len(b['cells'])} cells")
+            print(f"{k}: {b['fort']} {len(b['cells'])} cells{'' if b.get('wipe', True) else ' (no wipe: ' + b.get('wipe_why', '') + ')'}")
         return 0
-    run = Path(a.run) if a.run else ROOT / "data/experiments/ECO" / time.strftime("%Y%m%d-%H%M%S")
+    if a.blocks == "plan":
+        names = (a.more or "").split(",") if a.more else list(BLOCKS)
+        unknown = [n for n in names if n not in BLOCKS]
+        if unknown:
+            sys.exit(f"no block {', '.join(unknown)}")
+        return plan(names, a)
+    names = a.blocks.split(",")
+    unknown = [n for n in names if n not in BLOCKS]
+    if unknown:
+        sys.exit(f"no block {', '.join(unknown)} (eco-run.py list)")
+    if a.dry_run:
+        DRY.append("dry-run")
+    run = Path(a.run) if a.run else ROOT / "data/experiments/ECO" / (("dry-" if a.dry_run else "") + time.strftime("%Y%m%d-%H%M%S"))
     run.mkdir(parents=True, exist_ok=True)
     log = open(run / "log.txt", "a")
+
     def say(m):
         line = f"{time.strftime('%H:%M:%S')} {m}"; print(line, flush=True); log.write(line + "\n"); log.flush()
     only = set(a.only.split(",")) if a.only else None
-    for bname in a.blocks.split(","):
+    say(f"eco-run v7.1 harness: reps {a.reps}, load per {a.load}, order {a.order}, wipe {'off' if a.no_wipe else 'on'}, "
+        f"manip {a.manip}, isolate {a.isolate}, placement {a.placement}, tick scale {a.tick_scale}{', DRY RUN' if a.dry_run else ''}")
+    for bname in names:
         b = BLOCKS[bname]
         out = open(run / f"{bname}.tsv", "a")
-        say(f"== block {bname} on {b['fort']}: {len(b['cells'])} cells x {a.reps} rep(s)")
+        wipe = b.get("wipe", True) and not a.no_wipe
+        cells = {k: v for k, v in b["cells"].items() if not only or k in only}
+        say(f"== block {bname} on {b['fort']}: {len(cells)} cells x {a.reps} rep(s); wipe "
+            f"{'on' if wipe else 'off (' + b.get('wipe_why', '--no-wipe') + ')'}")
+        # H2, printed first: what each cell must prove before its outcome counts
+        for cname, c in cells.items():
+            explicit = [st[6:] for st in c["steps"] if st.startswith("check:")]
+            auto = sorted({st.split()[0] for st in c["steps"] if st.split() and st.split()[0] in ecolib.AUTO})
+            say(f"  manip {cname}: " + ("; ".join(explicit) or "-") + f" | auto: {', '.join(auto + (['wipecheck'] if wipe else [])) or '-'}")
+            for chk in explicit:
+                ecolib.parse_check(chk)   # a malformed check fails here, before any rig time is spent
+        aborted = False
         for rep in range(1, a.reps + 1):
-            sh("title", timeout=300)
-            prune_autosaves(b["fort"], say)
-            sh("save-restore", f"{b['fort']}.preverify", timeout=600)
-            sh("stop", timeout=120, check=False); sh("start", timeout=300)
-            sh("load", b["fort"], timeout=1200)
-            sh("fps", 1000, 10)
-            sp = b["spot"].split(":")
-            if sp[0] in ("cavern", "cavepool"):
-                skip = int(sp[3]) if len(sp) > 3 else 0   # HC4: a 4th colon-segment picks the Nth match, not just the top
-                spot = kv(eco("cavespot", sp[0], skip, *sp[1:3])[-1])
-            elif sp[0] == "vermin":
-                spot = kv(eco("vspot", *sp[1:])[-1])
-            else:
-                spot = kv(eco("spot", sp[0])[-1])
-            X, Y, Z = int(spot["x"]), int(spot["y"]), int(spot["z"])
-            say(f"  rep {rep}: spot {b['spot']} {X},{Y},{Z}")
-            ids, temps = {}, []
-            V = {"X": X, "Y": Y, "Z": Z, "FX": X, "FY": Y, "FZ": Z}
-            def fill(s):
-                s = re.sub(r"\{ids:(\w+)\}", lambda m: ids.get(m.group(1), ""), s)
-                s = re.sub(r"\{(F?[XYZ])([+-]\d+)?\}", lambda m: str(V[m.group(1)] + int(m.group(2) or 0)), s)
-                return s
-            # counterbalance (1 Oct, SW1): cells of a rep share one load and natives pile into the later ones, so a
-            # block flagged counterbalance runs its even reps in reversed cell order -- each arm early once, late once
-            order = list(b["cells"].items())
-            if b.get("counterbalance") and rep % 2 == 0:
-                order.reverse()
-                say(f"  rep {rep}: cell order reversed (counterbalance)")
-            for cname, c in order:
-                if only and cname not in only:
-                    continue
+            order = ecolib.arm_order(list(cells), rep, a.order)
+            say(f"  rep {rep}: order {', '.join(order)}")
+            temps = []
+            X = Y = Z = None
+            if a.load == "rep":
+                fresh_load(b["fort"], say)
+                X, Y, Z = locate(b)
+                say(f"  rep {rep}: spot {b['spot']} {X},{Y},{Z}")
+            for cname in order:
+                c = cells[cname]
                 t0 = time.monotonic()
+                manip_rows, rows = [], []
                 try:
+                    if a.load == "arm":
+                        fresh_load(b["fort"], say)
+                        X, Y, Z = locate(b)
+                    ids = {}
+                    V = {"X": X, "Y": Y, "Z": Z, "FX": X, "FY": Y, "FZ": Z}
+
+                    def fill(st):
+                        st = re.sub(r"\{ids:(\w+)\}", lambda m: ids.get(m.group(1), ""), st)
+                        st = re.sub(r"\{(F?[XYZ])([+-]\d+)?\}", lambda m: str(V[m.group(1)] + int(m.group(2) or 0)), st)
+                        return st
                     eco("clear"); eco("restore")
-                    rows = []
+                    if wipe:
+                        manip_rows += wipe_map(b, say)
                     for st in c["steps"]:
-                        st = fill(st)
+                        st = ecolib.scale_step(fill(st), a.tick_scale)
+                        if st.startswith("check:"):
+                            ok, msg = ecolib.eval_check(ecolib.parse_check(st[6:]), manip_rows + rows)
+                            if not ok and DRY:   # canned receipts cannot carry the dial's value: record, do not judge
+                                manip_rows.append(f"eco manip ok=dry check={msg.replace(' ', '_')}")
+                                continue
+                            manip_rows.append(f"eco manip ok={int(ok)} check={msg.replace(' ', '_')}")
+                            if not ok:
+                                raise ManipFail(msg)
+                            continue
                         if st.startswith("lua:"):
-                            rows += [l for l in sh("lua", st[4:], timeout=300).splitlines() if l.startswith("eco ")]
+                            got = [l for l in sh("lua", st[4:], timeout=300).splitlines() if l.startswith("eco ")]
                         elif st.startswith("step:"):
-                            sh("step", st[5:], timeout=900)
+                            sh("step", st[5:], timeout=900); continue
                         elif st.startswith("read:"):
-                            rows += eco("read", st[5:])
+                            rows += eco("read", st[5:]); continue
                         elif st.startswith("save:"):
-                            sh("save", st[5:], timeout=900)
+                            sh("save", st[5:], timeout=900); continue
                         elif st.startswith("load:"):
                             # the loaded save cannot be deleted (save-delete refuses with a map loaded), and left behind
                             # it hides the fort in DF's Continue list (ECO S2, 30 Sep): delete it at the block's end
                             sh("load", st[5:], timeout=1200); temps.append(st[5:])
-                            rows.append(f"eco reload save={st[5:]} ok=1")
+                            rows.append(f"eco reload save={st[5:]} ok=1"); continue
                         else:
+                            if st.startswith("spawn "):
+                                opts = (["roam"] if a.isolate == "roam" else []) + (["legacy"] if a.placement == "legacy" else [])
+                                if opts:
+                                    st = ecolib.spawn_opts(st, *opts)
                             got = eco(*st.split())
-                            rows += got
                             for l in got:
                                 d = kv(l)
                                 if l.startswith("eco spawn") and d.get("ids"):
                                     ids[d["token"]] = d["ids"]
                                 if l.startswith("eco spot") and d.get("kind") == "fort":
                                     V.update(FX=int(d["x"]), FY=int(d["y"]), FZ=int(d["z"]))
+                        # H2: every receipt that proves a manipulation reached its subject, checked as it prints
+                        bad = ecolib.auto_failures(got)
+                        recs = [l for l in got if l.split()[1:2] and l.split()[1] in ecolib.RECEIPTS]
+                        manip_rows += recs
+                        rows += [l for l in got if l not in recs]
+                        if bad:
+                            raise ManipFail("; ".join(bad))
                     if not c.get("nowatch"):
                         rows += eco("watch")
-                    sh("step", c["ticks"], timeout=900)
+                    sh("step", max(1, int(round(c["ticks"] * a.tick_scale))), timeout=900)
                     rows += eco("read", cname)
                     for st in c.get("post", []):
                         st = fill(st)
@@ -1177,15 +1350,31 @@ def main():
                         else:
                             rows += eco(*st.split())
                     eco("clear"); eco("restore")
-                    for l in rows:
-                        p = l.split()
-                        out.write("\t".join([bname, cname, str(rep), p[1], " ".join(p[2:])]) + "\n")
+                    for l in manip_rows + rows:   # the manipulation receipts first (H2)
+                        p_ = l.split()
+                        out.write("\t".join([bname, cname, str(rep), p_[1], " ".join(p_[2:])]) + "\n")
                     out.flush()
                     k = [kv(l) for l in rows]
                     deaths = sum(1 for l in rows if l.startswith("eco death"))
-                    att = sum(int(d.get("n", 0)) for l, d in zip(rows, k) if l.startswith("eco attacks"))
-                    placed = "/".join(d["placed"] for l, d in zip(rows, k) if l.startswith("eco spawn"))
-                    say(f"    {cname}: placed {placed}, attacks {att}, deaths {deaths} ({time.monotonic() - t0:.0f} s)")
+                    att = sum(int(d.get("n", 0)) for l, d in zip(rows, k) if l.startswith("eco attacks "))
+                    placed = "/".join(kv(l)["placed"] for l in manip_rows if l.startswith("eco spawn"))
+                    wiped = next((kv(l).get("marked") for l in manip_rows if l.startswith("eco wipe ")), "-")
+                    say(f"    {cname}: manip ok ({len(manip_rows)} receipts, wiped {wiped}), placed {placed or '-'}, "
+                        f"attacks {att}, deaths {deaths} ({time.monotonic() - t0:.0f} s)")
+                except ManipFail as e:
+                    say(f"    !! MANIP-FAIL {cname}: {e}"[:600])
+                    for l in manip_rows:
+                        p_ = l.split()
+                        out.write("\t".join([bname, cname, str(rep), p_[1], " ".join(p_[2:])]) + "\n")
+                    out.write("\t".join([bname, cname, str(rep), "MANIPFAIL", str(e)[:300]]) + "\n"); out.flush()
+                    try:
+                        eco("clear"); eco("restore")
+                    except Exception:
+                        pass
+                    if a.manip == "abort":
+                        say(f"  !! block {bname} aborted: a dial did not reach its subject (H2); its outcomes would be vacuous")
+                        aborted = True
+                        break
                 except Exception as e:
                     say(f"    !! {cname} FAILED: {e!r}"[:600])
                     out.write("\t".join([bname, cname, str(rep), "FAILED", repr(e)[:300]]) + "\n"); out.flush()
@@ -1193,18 +1382,70 @@ def main():
                         eco("clear"); eco("restore")
                     except Exception:
                         say("    !! clear failed too; stopping the block")
+                        aborted = True
                         break
             sh("title", timeout=300, check=False)
             for t in temps:
                 say("  " + sh("save-delete", t, timeout=300, check=False).strip()[-120:])
-        say(f"== block {bname} done")
+            if aborted:
+                break
+        say(f"== block {bname} {'ABORTED' if aborted else 'done'}")
+    if a.dry_run:
+        (run / "dry-calls.txt").write_text("\n".join(DRY[1:]) + "\n")
+        say(f"dry run: {len(DRY) - 1} rig calls recorded in {run / 'dry-calls.txt'}")
     say("=== eco exit")
     return 0
 
 
-# 1 Oct 01:20: counterbalance the not-yet-run sweep blocks (see the cell loop in main)
+# 1 Oct 01:20: counterbalance the not-yet-run sweep blocks (see the cell loop in main). v7.1: every block is
+# counterbalanced by default (--order); the flag is kept so old run logs still read.
 for _b in ("SW3", "SW3B", "SW4", "SW5", "SW6", "SW7"):
     BLOCKS[_b]["counterbalance"] = True
+
+# R15 (user, 1 Oct): every cell rep wipes ALL animals before it places its groups. Blocks whose SUBJECT is the natives
+# themselves -- what DF draws, writes or holds -- opt out; each says why. Everything else wipes (cx-eco wipe).
+WIPE_OPT_OUT = {
+    "RELS": "the subject is DF's own relations among natives",
+    "RELS2": "the subject is DF's own arrivals", "RELS2b": "the subject is DF's own arrivals",
+    "RELS3": "the subject is DF's reaction to released natives", "RELP": "the subject is natives' relations",
+    "SLOTV": "the subject is DF's slots on natives", "LAKEP": "the first read surveys the lake's natives",
+    "SW3": "natural arrivals are the subject", "SW3B": "natural arrivals are the subject",
+    "SW4": "natural arrivals are the subject", "SW5": "natural arrivals are the subject",
+    "SW6": "natural arrivals are the subject", "SW7": "natural arrivals are the subject",
+    "DEPTH": "a survey; nothing placed", "DEPTHL": "a survey; nothing placed", "O": "a survey cell; nothing placed",
+}
+for _b, _why in WIPE_OPT_OUT.items():
+    if _b in BLOCKS:
+        BLOCKS[_b]["wipe"] = False; BLOCKS[_b]["wipe_why"] = _why
+
+# R11 + B-dials section 10: the 1x1-per-biome test forts embarked from region8 (scripts/b1-forts.py). One baseline
+# block per registered fort: tool on with per-layer groups, natural arrivals for 50,400 t (half a season), groups
+# counted three ways (H5) every 5,040 t. Read from data/forts/b1-forts.tsv when it exists; absent, no B1 blocks.
+def b1base():
+    st = [SUSTAIN, "lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'v7', 'layer_groups', 'on'); print('eco swv7 key=layer_groups value=on')",
+          "cfg enabled v7.layer_groups", "check:cfg[path=enabled].value==true", "check:cfg[path=v7.layer_groups].value==true",
+          "groups3 base", "ecostate", "watch"]
+    for i in range(1, 11):
+        st += ["step:5040", f"groups3 t{i * 5040}", "ecostate"]
+        if i == 5: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, post=["lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
+
+def _b1_blocks(path=ROOT / "data/forts/b1-forts.tsv"):
+    if not path.exists():
+        return
+    rows = [l.rstrip("\n").split("\t") for l in path.read_text().splitlines() if l.strip()]
+    if not rows:
+        return
+    head = rows[0]
+    for r in rows[1:]:
+        d = dict(zip(head, r))
+        if d.get("save") and d.get("status", "ok") == "ok":
+            BLOCKS[f"B1BASE_{d['save']}"] = dict(fort=d["save"], spot="land" if d.get("land", "1") != "0" else "water",
+                                                  cells={"baseline": b1base()}, wipe=False,
+                                                  wipe_why="natural arrivals on a fresh test fort are the subject")
+_b1_blocks()
 
 if __name__ == "__main__":
     sys.exit(main())
