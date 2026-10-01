@@ -1114,7 +1114,13 @@ def main():
                 s = re.sub(r"\{ids:(\w+)\}", lambda m: ids.get(m.group(1), ""), s)
                 s = re.sub(r"\{(F?[XYZ])([+-]\d+)?\}", lambda m: str(V[m.group(1)] + int(m.group(2) or 0)), s)
                 return s
-            for cname, c in b["cells"].items():
+            # counterbalance (1 Oct, SW1): cells of a rep share one load and natives pile into the later ones, so a
+            # block flagged counterbalance runs its even reps in reversed cell order -- each arm early once, late once
+            order = list(b["cells"].items())
+            if b.get("counterbalance") and rep % 2 == 0:
+                order.reverse()
+                say(f"  rep {rep}: cell order reversed (counterbalance)")
+            for cname, c in order:
                 if only and cname not in only:
                     continue
                 t0 = time.monotonic()
@@ -1179,6 +1185,11 @@ def main():
         say(f"== block {bname} done")
     say("=== eco exit")
     return 0
+
+
+# 1 Oct 01:20: counterbalance the not-yet-run sweep blocks (see the cell loop in main)
+for _b in ("SW3", "SW4", "SW5", "SW6", "SW7"):
+    BLOCKS[_b]["counterbalance"] = True
 
 if __name__ == "__main__":
     sys.exit(main())
