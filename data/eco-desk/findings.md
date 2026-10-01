@@ -545,7 +545,7 @@ floor20 64|2|3|74%, 9|0|0|8%; floor0 22|0|2|12%, 46|0|2|67%; ctl 3|0|1|2%, 41|3|
 Prey choice (wolf attacks on ELEPHANT as a share of attacks on the placed herds), SW2 then SW2R: ctl 93%, 55%; floor0 78%,
 81%; floor20 38%, 68%; sneak0 88%, 32%; sneak100 68%, 94%. The 0.20 floor does not reliably move wolves off the elephant
 (SW2's rep-1 shift did not repeat), so the wolves' choice of target is not set by the tool's written pair alone (placed
-units are non-wild to DF, which aims them itself: RELS row 3). Placed prey killed over 4 reps: ctl 4, floor0 1, floor20 3,
+units are non-wild to DF, which aims them itself: RELS row 3). Placed prey killed over 4 reps: ctl 3, floor0 1, floor20 3,
 sneak0 4, sneak100 0. => neither the pack-mass floor (0 / 0.05 / 0.20) nor the sneak bonus (0 / 0.25 / 1.0) has a
 measurable effect here. Per the design table: sneak 0 ~ 0.25 ~ 1.0 -> default pack_sneak 0 and retire the per-unit SNEAK
 write; the floor stays at 0.05 (no evidence either way; the arena cannot isolate it from DF's own aiming).
@@ -578,3 +578,16 @@ the limit 'per water body' / 'per cavern' and sets cavern groups to auto), mech.
 NO_<season> by design; mech.v70.seasons_own PASS). Claims made v7.0-aware (28bf2bf, +fitseason). Run 2
 (20261001-074833): 214 PASS, 0 FAIL, 0 DEAD, 30 NOT-TESTABLE-HERE, 13 BACKLOG, 2 DOC-DRIFT (USAGE.md header version and
 the Docket's v5.5 line: release steps).
+
+## LONE10 — the solitary package, 10 runs per arm (items 7, 34; 30 Sep night, CTRL, tool off, one season per run)
+Entry added 1 Oct during the report review (it was reported in the doc but missing here). One COUGAR among 6 each of
+rabbit, hare, groundhog, mountain goat, kangaroo, deer, elk, water buffalo; relations written to all 8; 100,800 t.
+scripts/lone-tally.py data/experiments/ECO/LONE10-20260930-212000:
+  placed-prey kills per run  ctl 2,1,2,0,2,0,0,0,4,3 = 14   pkg 7,2,3,0,3,2,7,0,2,3 = 29   (one-sided permutation p = 0.07)
+  native kills per run       ctl 0,0,3,0,0,2,0,0,0,2 = 7    pkg 0,0,0,3,1,10,1,0,5,0 = 20  (p = 0.17)
+  all kills                  ctl 21                         pkg 49                         (p = 0.024)
+  attacks 664 vs 1,393; hunter died: ctl 1, pkg 0.
+=> the package doubles kills on the placed prey (p = 0.07) and on natives; the all-kills comparison (p = 0.024) includes
+native kills, which happen only because a placed cougar is non-wild to DF (RELS). CORRECTION: the doc's LONE10 paragraph
+said "kills 29 against 14 ... p = 0.025 ... on the 48 placed prey the two arms were close (9 against 7)": 29/14 are the
+placed-prey kills (p = 0.07); 0.025 belongs to all kills (49/21).
