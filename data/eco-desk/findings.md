@@ -265,3 +265,7 @@ ECO RELS (data/experiments/ECO/RELS-20260930-195031; CTRL tool off, rel_map samp
   caverns write wild-wild (HC). The tool's releaseGroup (:3197) and placement (:3559) clear the roaming flag, so released
   groups become 'non-wild' to DF and get aimed at later arrivals; isWildlife reads population_idx, so the v7.0 sweep
   still sees them. The CAL/STL/LONE off-target kills are this placement artefact.
+ECO SLOTV (data/experiments/ECO/SLOTV-20260930-201623; CTRL, 1 run, reads at 0/100/3000/9000 t): unused enemy-status rows = NONE (-1) in all 10,000 cells
+  read each time; pairs among slotted units: NONE 1,007 + WE_ARE_SAME_RACE 183 at +100 t, then SAME_CULTURE /
+  PREDATOR_OR_PREY / BENIGN_ANIMAL appear; STRANGER never a default. => the tool's 0 (STRANGER) clears in
+  PLACE.enemySlot and ecoClearDeparted were wrong; fixed to -1 on seasonal-wildlife v7.0 (3c26941).
