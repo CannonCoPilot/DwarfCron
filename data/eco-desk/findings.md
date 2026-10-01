@@ -504,4 +504,5 @@ good species become mythic and locked (WAMBLER_FLUFFY, PIXIE, UNICORN, FAIRY); n
 managed 5. => the v7.0 alignment rule works both ways: a map's own alignment is natural, the opposite is locked.
 On-map aligned units at t30000 were all unmanaged (managed=nil): demons on both forts (D8), and on EVILF a BLIND_CAVE_OGRE
 and 2 GORLAK -- cavern EVIL species outside the tool's pool on this embark (open: v7.0 meant cavern GOOD/EVIL to class as
-natural; check whether EVILF's cavern pool lists them). No aligned surface arrival in 30,000 t on either fort.
+natural; check whether EVILF's cavern pool lists them). managed=nil in align_probe = no pool entry at all, not a lock --
+likely the fresh embark's caverns are closed, so the cavern pool is empty (as CTRL's `roster build cavern` was). No aligned surface arrival in 30,000 t on either fort.
