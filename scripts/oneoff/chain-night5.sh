@@ -3,6 +3,10 @@
 cd "$(dirname "$0")/../.."
 L=data/logs/E23e.log; echo "=== E23e start $(date +%H:%M:%S)" | tee -a $L
 .venv/bin/python scripts/cx-experiment.py run experiments/E23e.json >> $L 2>&1; echo "=== E23e exit $?" | tee -a $L
+# S8Cb (1 Oct 02:05): S8C rerun with the builder actually run -- the 01:55 S8C pre looped ipairs('land','cavern') (a
+# string, zero iterations), so no roster was built; that run stays as the builder-off control
+L=data/logs/S8Cb.log; echo "=== S8Cb start $(date +%H:%M:%S)" | tee -a $L
+.venv/bin/python scripts/cx-experiment.py run experiments/S8C.json >> $L 2>&1; echo "=== S8Cb exit $?" | tee -a $L
 # SW1R/SW2R (added 1 Oct 01:00): SW1/SW2 arms in reversed cell order (lever vs cell position); SW3B = SW3 rerun with land_groups
 R=data/experiments/ECO/SWR-$(date +%Y%m%d-%H%M%S)
 for b in SW1R SW2R SW3B; do L=data/logs/$b.log; echo "=== $b start $(date +%H:%M:%S)" | tee -a $L

@@ -424,3 +424,8 @@ CURIOUS_BEAST_EATER, not in SCAV.TEXT); WOLF, JACKAL, BIRD_VULTURE carry BONECAR
 POND_GRABBER, SEA_SERPENT, SEA_MONSTER (+ the two modded spinosaurs) -> scav_ext's swimmer path has almost no vanilla
 users; a design question for the user (count CARNIVORE swimmers as scavengers?). Rerun: SCV2b/SCV2Wb (tool enabled,
 scavLast printed per pass, POND_GRABBER for the water cell) queued in chain-night5.
+
+## S8C run 20261001-015556 — builder never ran (manifest bug), kept as the builder-off control
+The pre looped `ipairs('land','cavern')`: a string, so zero iterations and no `roster build` (no 's8 build' line). Tool
+on, gate_drain on, builder switch on but no built roster: a v7.0 season on the existing roster. Fixed in S8C/S8B/S8O
+(ipairs({...})) before S8B/S8O ran; S8Cb (builder on) queued in chain-night5.
