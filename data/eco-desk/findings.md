@@ -549,3 +549,9 @@ units are non-wild to DF, which aims them itself: RELS row 3). Placed prey kille
 sneak0 4, sneak100 0. => neither the pack-mass floor (0 / 0.05 / 0.20) nor the sneak bonus (0 / 0.25 / 1.0) has a
 measurable effect here. Per the design table: sneak 0 ~ 0.25 ~ 1.0 -> default pack_sneak 0 and retire the per-unit SNEAK
 write; the floor stays at 0.05 (no evidence either way; the arena cannot isolate it from DF's own aiming).
+
+## SW3B — land groups at once 1 / 3 / auto, counted on land_groups (item 11; 1 Oct morning, CTRL natural, 50,400 t, 2 reps counterbalanced)
+Land groups present (mean; max): auto 4.7, 3.6 (5); g1 1.4, 2.4 (4); g3 3.6, 2.6 (6). g1 sits below auto in both orders;
+g3 slightly below. The cap is not a hard ceiling (g1 reached 4, g3 6: groups listed before the cap bites or released by
+DF's own gate -- not split here). Attacks 0 in every cell; deaths are cavern natives. => 1 < 3 <= auto, as ECO2-G found on
+a 4x4: keep auto (the design table's first outcome). The land limit shapes how many groups are present, not fights.
