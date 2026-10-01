@@ -384,3 +384,13 @@ The placed wolves' share of all attacks falls from ~90% (ctl) to 12-58% (nudge c
 the lever. No level of cadence (500/1,500/6,000) or nudge (off/current/tight) changes kills on the placed herds (0-1 per
 run everywhere). -> SW1R/SW2R rerun the arms in reversed order (queued in chain-night5). sweep-tally now needs a
 same-side 2-of-2 (cad500 had one rep above, one below the control range and was flagged) and prints the placed-only panel.
+
+## SW2 — pack-mass floor and sneak bonus (item 11; 1 Oct night, CTRL arena as SW1, 30,000 t, 2 reps, fixed cell order)
+Levers confirmed in each cell (swv7 receipts). Placed-only (wolf attacks on placed herds | placed prey killed | wolves lost | share):
+  ctl 58|0|1|91%, 45|0|1|92%   floor0 97|1|0|92%, 72|0|1|81%   floor20 38|1|0|88%, 22|0|1|22%
+  sneak0 24|0|1|32%, 17|0|1|10%   sneak100 9|0|2|16%, 28|0|1|18%
+Same cell-position pattern as SW1 (later cells fill with natives). Prey choice: floor20 moved the wolves off the elephant in
+rep 1 (ELEPHANT 4, WATER_BUFFALO 33 vs ctl 52, 6) but not in rep 2 (19, 3); floor0 kept them on the elephant (97; 35+36
+buffalo). Five wolves against an elephant sit at ~5% of its mass, so the 0.05 floor admits the pair and 0.20 forbids it --
+the direction fits, but floor20 is the 3rd cell. Kills on placed prey 0-1 per run in every arm; sneak 0 / 1.0 no lift
+(as STL/STL2). Read with SW2R (reversed order) before changing a default.
