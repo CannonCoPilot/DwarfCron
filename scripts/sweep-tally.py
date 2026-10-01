@@ -38,8 +38,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-WINDOW_TICKS = {"SW1": 30000, "SW2": 30000, "SW3": 50400, "SW5": 50400, "SW6": 50400, "SW7": 50400}
-CONTROL_ARM = {"SW1": "ctl", "SW2": "ctl", "SW3": "auto", "SW5": "auto", "SW6": "auto", "SW7": "p3"}
+WINDOW_TICKS = {"SW1": 30000, "SW2": 30000, "SW1R": 30000, "SW2R": 30000, "SW3": 50400, "SW5": 50400, "SW6": 50400, "SW7": 50400}
+CONTROL_ARM = {"SW1": "ctl", "SW2": "ctl", "SW1R": "ctl", "SW2R": "ctl", "SW3": "auto", "SW5": "auto", "SW6": "auto", "SW7": "p3"}
 
 
 def kv(s):
@@ -48,7 +48,7 @@ def kv(s):
 
 def load(path):
     """-> {(cell, rep): {"series": [(tag, total_groups)...], "attacks": n, "deaths": n, "failed": str|None}}"""
-    cells = defaultdict(lambda: dict(series=[], attacks=0, deaths=0, failed=None))
+    cells = defaultdict(lambda: dict(series=[], attacks=0, deaths=0, failed=None, pairs=[], dead=[]))
     for line in open(path):
         p = line.rstrip("\n").split("\t")
         if len(p) < 5:
@@ -65,8 +65,10 @@ def load(path):
             m = re.search(r"n=(\d+)", rest)
             if m:
                 c["attacks"] += int(m.group(1))
+                c["pairs"].append((d.get("pair", "?"), int(m.group(1))))
         elif kind == "death":
             c["deaths"] += 1
+            c["dead"].append((d.get("victim", "?"), d.get("victim_spawned") == "1"))
     return cells
 
 
@@ -90,6 +92,28 @@ def busyness(g, w, a, k, g0, w0, a0, k0):
     for t in terms:
         p *= t
     return p ** 0.25
+
+
+ARENA_HUNTER = "WOLF"
+ARENA_PREY = {"DEER", "WATER_BUFFALO", "ELEPHANT"}
+
+
+def arena_panel(by_arm, order):
+    """SW1/SW2 placed-only readout (1 Oct): A and K above count every attack and death the watch saw, and natives
+    that arrive during a rep (badgers, kangaroos, cavern troglodytes) dominate the later cells of the fixed cell
+    order. Here: the placed wolves' attacks on the placed herds, placed prey killed, placed wolves lost."""
+    print("   placed-only (wolf attacks on placed herds | placed prey killed | wolves lost | share of all attacks):")
+    for arm in order:
+        if arm not in by_arm:
+            continue
+        parts = []
+        for rep, c in sorted(by_arm[arm], key=lambda x: x[0]):
+            ap = sum(n for pr, n in c["pairs"] if pr.split(">")[0] == ARENA_HUNTER and pr.split(">")[-1] in ARENA_PREY)
+            kp = sum(1 for v, sp in c["dead"] if sp and v in ARENA_PREY)
+            wl = sum(1 for v, sp in c["dead"] if sp and v == ARENA_HUNTER)
+            share = ap / c["attacks"] if c["attacks"] else 0.0
+            parts.append(f"r{rep} {ap:4d} | {kp} | {wl} | {share:.0%}")
+        print(f"     {arm:<13} " + "   ".join(parts))
 
 
 def main():
@@ -118,6 +142,7 @@ def main():
         ctl_lo, ctl_hi = (min(ctl_b), max(ctl_b)) if ctl_b else (1.0, 1.0)
         print(f"\n== {b}  (window {ticks} t, control={ctl_name}, G0={g0:.2f} W0={w0:.2f} A0={a0:.2f} K0={k0:.2f})")
         print(f"   control B per rep: {[f'{x:.2f}' for x in ctl_b]}  range [{ctl_lo:.2f}, {ctl_hi:.2f}]")
+        order = list(dict.fromkeys(cell for (cell, _rep) in cells))   # first-seen = the block's cell order
         for arm in sorted(by_arm):
             rows = []
             for rep, c in sorted(by_arm[arm], key=lambda x: x[0]):
@@ -137,9 +162,14 @@ def main():
                 parts.append(f"r{rep} G={g:.2f} W={w:.2f} A={a:.2f} K={k:.2f} B={b_i:.2f}")
                 outside.append(b_i < ctl_lo or b_i > ctl_hi)
             tag = ""
-            if arm != ctl_name and outside and all(outside) and len(outside) >= 2:
+            # 2-of-2 AND the same side of the control range (SW1, 1 Oct: an arm with one rep above and one below
+            # the range was flagged as "differs", which is noise, not an effect)
+            sides = [comp[4] > ctl_hi for _, comp, err in rows if not err]
+            if arm != ctl_name and outside and all(outside) and len(outside) >= 2 and len(set(sides)) == 1:
                 tag = "  ** differs from control (2-of-2 outside control range) **"
             print(f"   {arm:14s} " + " | ".join(parts) + tag)
+        if b.rstrip("R") in ("SW1", "SW2"):
+            arena_panel(by_arm, order)
 
 
 if __name__ == "__main__":

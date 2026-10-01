@@ -3,6 +3,10 @@
 cd "$(dirname "$0")/../.."
 L=data/logs/E23e.log; echo "=== E23e start $(date +%H:%M:%S)" | tee -a $L
 .venv/bin/python scripts/cx-experiment.py run experiments/E23e.json >> $L 2>&1; echo "=== E23e exit $?" | tee -a $L
+# SW1R/SW2R (added 1 Oct 01:10): SW1/SW2's arms in reversed cell order, to separate lever from cell position
+R=data/experiments/ECO/SWR-$(date +%Y%m%d-%H%M%S)
+for b in SW1R SW2R; do L=data/logs/$b.log; echo "=== $b start $(date +%H:%M:%S)" | tee -a $L
+.venv/bin/python scripts/eco-run.py $b --run $R --reps 2 >> $L 2>&1; echo "=== $b exit $?" | tee -a $L; done
 scripts/cx-lifecycle.sh title > /dev/null 2>&1
 L=data/logs/validate-night.log; echo "=== validate-full start $(date +%H:%M:%S)" | tee -a $L
 .venv/bin/python scripts/validate-full.py >> $L 2>&1; echo "=== validate-full exit $?" | tee -a $L

@@ -826,6 +826,11 @@ def sw2(arm):
         if i == 9: st.append(SUSTAIN)
     return dict(steps=st, ticks=10, nowatch=True, post=[_SW_CFG_RESTORE])
 BLOCKS["SW2"] = dict(fort="CTRL", spot="land", cells={a: sw2(a) for a in SW2_ARMS})
+# SW1R/SW2R (1 Oct): the same arms in REVERSED cell order. Cells of a rep share one load, so natives arriving over the
+# rep (badgers, kangaroos, cavern troglodytes) pile into the later cells; SW1 showed the last two arms' attacks were
+# mostly on natives. An effect that holds in both orders is the lever; one that flips is the cell position.
+BLOCKS["SW1R"] = dict(fort="CTRL", spot="land", cells={a: sw1(a) for a in ("nudge_tight", "nudge_off", "cad6000", "cad500", "ctl")})
+BLOCKS["SW2R"] = dict(fort="CTRL", spot="land", cells={a: sw2(a) for a in reversed(list(SW2_ARMS))})
 
 # SW3: natural arrivals (no placed subject), v7.gate_drain now fixes the surface gate stalls T8g found, so this is no
 # longer confounded (coordinator's note). `limits land groups N|auto` via CLI, 50,400 ticks (half a season).

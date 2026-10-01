@@ -373,3 +373,14 @@ SCVC (BOATS cavern 1, 6 ELK_BIRD): corpse count 7 before and after with TROLL pr
   are the proxy: DF removes none in 3,000 t.
 => v7.0's scavenging works for walking pack scavengers on land; extend: a fly-to for fliers, a swim-to/eat-in-water path for
    aquatic scavengers, and a jackal check (borrowed entry). Item 19: measured; extensions are code for a later release.
+
+## SW1 — ecology cadence and nudge (item 11; 1 Oct night, CTRL arena, tool on, 5 WOLF vs DEER/BUFFALO/ELEPHANT herds 45-60 tiles off, 30,000 t, 2 reps)
+sweep-tally B flagged nudge_off and nudge_tight as busier (B 1.47/1.25, 1.34/1.29 vs ctl 0.99/1.00), but the cells of a
+rep share one load and run in a fixed order (ctl, cad500, cad6000, nudge_off, nudge_tight): natives arriving over the rep
+(badgers, wombats, skunks, kangaroos, dogs; cavern troglodytes and elk birds dying) fill the later cells. Placed-only
+readout (wolf attacks on the placed herds | placed prey killed | wolves lost):
+  ctl 70|0|2, 58|1|2   cad500 127|1|2, 48|0|0   cad6000 47|0|1, 40|0|3   nudge_off 22|1|1, 71|1|2   nudge_tight 16|0|2, 32|0|3
+The placed wolves' share of all attacks falls from ~90% (ctl) to 12-58% (nudge cells): the B gap is cell position, not
+the lever. No level of cadence (500/1,500/6,000) or nudge (off/current/tight) changes kills on the placed herds (0-1 per
+run everywhere). -> SW1R/SW2R rerun the arms in reversed order (queued in chain-night5). sweep-tally now needs a
+same-side 2-of-2 (cad500 had one rep above, one below the control range and was flagged) and prints the placed-only panel.
