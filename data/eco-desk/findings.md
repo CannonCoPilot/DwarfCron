@@ -591,3 +591,15 @@ scripts/lone-tally.py data/experiments/ECO/LONE10-20260930-212000:
 native kills, which happen only because a placed cougar is non-wild to DF (RELS). CORRECTION: the doc's LONE10 paragraph
 said "kills 29 against 14 ... p = 0.025 ... on the 48 placed prey the two arms were close (9 against 7)": 29/14 are the
 placed-prey kills (p = 0.07); 0.025 belongs to all kills (49/21).
+
+## Corrections found by the 1 Oct report review (code and raw re-reads)
+- S8O / item 18: "the pelagic slot PE stays closed (design R13)" is wrong for v7.0. ROSTER's PE slot is min 0, max 1 on any
+  ocean, raised to max 2 (and its ladder value x3) only when ENGINE.deepColumns finds a 3+-level column. On OCEAN2 the slot
+  was simply left empty (min 0); nothing pelagic arrived.
+- S8 runs: v7.0's ROSTER.LADDER is the v2.1 table (land AL 3, ML 3, GZ 6, PL 5, SH 4), whose offline prediction is ~31%
+  predators on land; the 14-18% target quoted beside S8 is v2.2's. Porting the v2.2 ladder is open.
+- N1: "wombats took 27 of the next 29 waves" -- waves.tsv shows 25 wombat waves of the next 26 non-bird surface waves.
+- CAL "deer 1, moose 4, buffalo 7, elephant 11": buffalo 7 is wolves only, elephant 11 = wolves 3 + 10 hyenas 8 (the
+  5-hyena cell's 2 left out). Wolves alone: deer 1, moose 4, buffalo 7, elephant 3 -- not monotonic in speed.
+- HC4 TROGLODYTE x ELK_BIRD: first-spot 101 is one direction (174 both ways); second-spot 162/144 are both directions.
+- SW5 "auto 189/359 vs c2 91/27" are attacks per 10,000 t, not counts; c1 rep 1 (379) is above both auto reps.
