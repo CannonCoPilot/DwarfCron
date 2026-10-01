@@ -319,3 +319,14 @@ read from the map count. => DF matches a class the tool writes at runtime: the v
 Lake wild units are feature entries (feature_idx 0, cave_id -1: layer 'water') and the tool puts them in the surface realm
 ('land', since v6.9): 7 at the start (FISH_STINGRAY, ALLIGATOR x2, HIPPO x4), 17 at t3000, all 'land'. 3 placed ALLIGATOR x 8
 placed FISH_CARP in the lake: 24 pairs written; with 7 carp alive, 21 of 21 still held at every 500-tick read to t3000. => item 12 answered: lake species are surface-realm units and the relation write sticks.
+
+## HC4 — cavern fighting with no relation: species or spot? (item 14; 30 Sep night, BOATS, 2nd spot per cavern, 2 reps)
+DF-only (no relation written), 3,000 t, spawned pairs only (eco-analyze), first spot (HC1-HCP, 1 rep) -> second spot:
+  TROLL x GORLAK 143/141 att, 0 kills -> 243+142 / 221+140 att, 3 / 2 gorlaks killed (fights at both)
+  TROGLODYTE x ELK_BIRD 101 att, 2 kills -> 162 / 144 att, 0 kills (fights at both)
+  JABBERER x REACHER 0 -> 0, 0; BLIND_CAVE_OGRE x RUTHERER 0 -> 0, 0; OLM_GIANT x CRUNDLE 0 -> 0, 0 (never fight)
+  TOAD_GIANT_CAVE x ELK_BIRD 0 -> 7 / 18 att, 1 / 3 kills; VORACIOUS_CAVE_CRAWLER x CRUNDLE 8/8 killed -> 0, 0;
+  CROCODILE_CAVE x ELK_BIRD (pool) 7 att 1 kill -> 26 / 24 att, 5 / 4 kills (these three move with the spot)
+=> mostly species (5 of 8 pairs the same at both spots), the spot shifts 3. Keep the cavern relation write: the non-fighters
+   hunt only when written (HC3: written jabberers 7/8 reachers, ogres 3). Raw 'attacks' in the log include the caverns'
+   own natives (crundles, troglodytes, creeping eyes, fire imp x magma crab): read spawned pairs only.
