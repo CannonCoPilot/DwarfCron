@@ -474,3 +474,10 @@ ML pack made rep 1's 20%). Observed share runs above f/sum f at x1: predators li
 not arrivals). Apex (AL) present: 0 in 5 of 6 runs, mean 1.7 units in x2 rep 2 -> the AL FREQUENCY barely moves apex
 presence at f 4-8 (item 15: consistent with LARGE_PREDATOR being drawn from its own pool, or simply rare at these f).
 For the ladder: x1 already overshoots the v2.2 target band on presence; no case for x2. Data: data/experiments/ECO/SW4-20261001-030441/.
+
+## SW5 — cavern groups at once 1 / 2 / auto per cavern (item 11; 1 Oct night, BOATS natural, layer_groups on, 50,400 t, 2 reps counterbalanced)
+Cavern groups present (mean over samples): auto 24.0, 27.3; c1 16.0, 13.7; c2 13.8, 13.9 -- the same in both cell orders.
+Per depth (3 caverns) means ~8 under auto, ~4-7 under a cap of 1 or 2. => the cap trims the tool's own cavern groups by
+about 40%, but never comes near itself: DF's native cavern populations (4-5 groups per depth) are not the tool's to cap.
+Cap 1 = cap 2. Attacks follow groups (auto 189/359 vs c2 91/27). Design outcome: the cavern limit is a soft target on
+the tool's share, not a ceiling: relabel it so on the Layers tab, keep auto as the default.
