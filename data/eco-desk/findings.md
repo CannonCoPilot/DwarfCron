@@ -567,3 +567,14 @@ tool's pass clears remains on land and in water within ~2,400 ticks. NOT measure
 count is in the ledger ('scavenged N remains (TOK n ...)'), not captured by these cells. Diagnostic bug: SCAV.run returns
 before writing CACHE.scavLast when no remains are left, so the status line keeps the last non-empty pass (seen as a
 repeated 'units=9 remains=6 eaten=6' line). Data: data/experiments/ECO/SCV2b-20261001-073510/.
+Item 6 open point CLOSED (1 Oct 07:56, EVILF probe, not saved): EVILF's config has layers.cavern=false (fresh install,
+initialized=false), so buildPool held 280 land entries and no cavern ones -- hence managed=nil. With layers.cavern=true the
+cavern pool is 43 entries and BLIND_CAVE_OGRE and GORLAK are both natural and unlocked: the v7.0 cave_aligned fix works.
+
+## validate-full on v7.0 1e65e03 (1 Oct 07:42 and 07:48, after the night's blocks)
+Run 1 (20261001-074210): 210 PASS, 4 FAIL, 30 NOT-TESTABLE-HERE, 13 BACKLOG, 2 DOC-DRIFT. All 4 FAILs were pre-v7.0
+claims: mech.leader.lowest (v7.0 picks the largest male), mech.quota.water and mech.limits (layer_groups default on words
+the limit 'per water body' / 'per cavern' and sets cavern groups to auto), mech.v69.fitseason (seasons_own overrides
+NO_<season> by design; mech.v70.seasons_own PASS). Claims made v7.0-aware (28bf2bf, +fitseason). Run 2
+(20261001-074833): 214 PASS, 0 FAIL, 0 DEAD, 30 NOT-TESTABLE-HERE, 13 BACKLOG, 2 DOC-DRIFT (USAGE.md header version and
+the Docket's v5.5 line: release steps).
