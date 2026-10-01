@@ -533,6 +533,18 @@ def _vrm3b():
         if i < 24: st.append("step:250")
     return dict(steps=st, ticks=10, nowatch=True)
 BLOCKS["VRM3b_none"] = dict(fort="CTRL", spot="land", cells={"none": _vrm3b()})
+# DOM (30 Sep, v7.0 802a82e): domestic prey. The tool on CTRL with ecology on and livestock-as-prey off; v7.domestic on vs
+# off. 3 WOLF (AL) placed and moved onto the fort animal nearest the spot; an ecology pass every 1,500 ticks, 12,000 ticks.
+# On: the pass writes wolf -> each fort animal; off: none. Attacks and deaths from the watch.
+def dom(on):
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')",
+          inline("dom_setup.lua", ON="true" if on else "false"), "spawn WOLF 3 {X} {Y} {Z} 3",
+          inline("dom_bring.lua", IDS="{ids:WOLF}"), "watch"]
+    for i in range(9):
+        st.append(inline("dom_sample.lua", IDS="{ids:WOLF}", TAG=f"t{i*1500}"))
+        if i < 8: st.append("step:1500")
+    return dict(steps=st, ticks=10, nowatch=True)   # nowatch: the harness's own watch at the cell end reset this one's log (DOM run 1)
+BLOCKS["DOM"] = dict(fort="CTRL", spot="land", cells={"off": dom(False), "on": dom(True)})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.
