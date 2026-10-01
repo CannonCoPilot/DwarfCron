@@ -5,7 +5,18 @@ The apparatus the Wilderpop Model (section 7) specifies, built as data-in,
 data-out:
 
     cx-experiment.py run experiments/E9a.json [--reps N] [--arm NAME] [--budget T]
+                     [--order counterbalance|interleave|blocked] [--manifest-reps]
     cx-experiment.py report data/experiments/E9a/<run-id>
+
+v7.1 harness defaults (1 Oct 2026; user R12, R15; Part 1 plan H1):
+  * every arm runs n = 5 replicates (R12) unless --reps N is given, or --manifest-reps keeps each arm's own
+    "replicates" (to reproduce an old run), or the manifest sets "reps_locked": true;
+  * the order is counterbalanced: rep r runs every arm, in the written order for odd r and reversed for even r
+    (--order interleave = the old FPS1 interleave; blocked = all reps of an arm, then the next arm);
+  * an arm that PLACES animals (a pre step calling cx-eco spawn, cx-load wild or cx-probe spawn/spawn2) first wipes
+    every animal on the map (cx-eco wipe; wipecheck must read 0, else the replicate is invalid) -- R15. "wipe": true
+    forces it for any arm, "wipe": false turns it off (a manifest whose subject is the natives).
+Every replicate is already a fresh restore + load of the fort.
 
 One replicate = restore the fort's backup, load it, prove the wildlife tool is
 disarmed, read provenance, take a baseline, apply the arm's manipulations, then
@@ -234,6 +245,30 @@ def apply_manipulation(rig: Rig, out: Out, ctx, tick, abs_tick, m: str):
     out.event(ctx, tick, abs_tick, "manipulation", m, receipt)
 
 
+PLACING = re.compile(r"cx-eco'?,?\s*'?spawn|cx-load'?,?\s*'?wild\b|^probe:spawn|cx-probe'?,?\s*'?spawn")
+
+
+def wants_wipe(man: dict, arm: dict) -> bool:
+    """R15: wipe before an arm that places animals; an explicit "wipe" on the arm or manifest wins."""
+    for src in (arm, man):
+        if "wipe" in src:
+            return bool(src["wipe"])
+    return any(PLACING.search(m) for m in arm.get("pre", []))
+
+
+def arm_order(arms: list, mode: str) -> list:
+    """(arm, rep) pairs. counterbalance: rep r runs every arm, reversed on even r (H1); interleave: rep r runs every
+    arm in the written order (FPS1); blocked: every rep of an arm, then the next arm (pre-v7.1 default)."""
+    reps = max(int(x.get("replicates", 1)) for x in arms)
+    if mode == "blocked":
+        return [(arm, r) for arm in arms for r in range(1, int(arm.get("replicates", 1)) + 1)]
+    out = []
+    for r in range(1, reps + 1):
+        row = [arm for arm in arms if r <= int(arm.get("replicates", 1))]
+        out += [(arm, r) for arm in (row[::-1] if mode == "counterbalance" and r % 2 == 0 else row)]
+    return out
+
+
 def stop_rule_fires(rule: dict | None, stats: dict) -> str | None:
     if not rule:
         return None
@@ -306,6 +341,17 @@ def run_replicate(rig: Rig, out: Out, man: dict, arm: dict, rep: int, run_id: st
     out.event(ctx, tick, abs_tick, "baseline", "wild_present", str(len(present)))
     for u in present.values():
         out.event(ctx, tick, abs_tick, "present_at_start", u["id"], f"{u['species']} ref6={u['ref6']} countdown={u['countdown']} flag_src={u['flag_src']}")
+
+    # 4b. R15: an arm that places animals starts from a map with none (cx-eco wipe; the receipt must read 0 left)
+    if wants_wipe(man, arm):
+        receipt = rig.lua("dfhack.run_command('cx-eco', 'wipe')").strip()
+        rig.step(5, 60)
+        check = rig.lua("dfhack.run_command('cx-eco', 'wipecheck')").strip()
+        out.log(f"  wipe: {receipt} | {check}")
+        out.event(ctx, tick, abs_tick, "wipe", "cx-eco", f"{receipt} | {check}")
+        m_ = re.search(r"remaining=(\d+) pending=(\d+)", check)
+        if not m_ or int(m_.group(1)) or int(m_.group(2)):
+            raise RuntimeError(f"wipe left animals on the map ({check}); the arm would place into a populated map")
 
     # 5. manipulations at t0.
     for m in arm.get("pre", []):
@@ -529,6 +575,9 @@ def cmd_run(a):
     if a.reps:
         for arm in man["arms"]:
             arm["replicates"] = a.reps
+    elif not (a.manifest_reps or man.get("reps_locked")):
+        for arm in man["arms"]:   # R12: five replicates for every arm
+            arm["replicates"] = 5
     if a.arm:
         man["arms"] = [x for x in man["arms"] if x["name"] in a.arm.split(",")]
         if not man["arms"]:
@@ -555,12 +604,10 @@ def cmd_run(a):
         "replicates": [],
     }
     rig.must("start", timeout=200)
-    # FPS1 (28 Sep): "interleave" runs rep 1 of every arm, then rep 2 of every arm, so warm-up and heat are shared
-    if man.get("interleave"):
-        order = [(arm, r) for r in range(1, max(int(x.get("replicates", 1)) for x in man["arms"]) + 1)
-                 for arm in man["arms"] if r <= int(arm.get("replicates", 1))]
-    else:
-        order = [(arm, r) for arm in man["arms"] for r in range(1, int(arm.get("replicates", 1)) + 1)]
+    # FPS1 (28 Sep): "interleave" runs rep 1 of every arm, then rep 2 of every arm, so warm-up and heat are shared.
+    # v7.1 (H1): counterbalanced by default -- interleaved, and every even rep in reversed arm order.
+    order = arm_order(man["arms"], a.order or ("interleave" if man.get("interleave") else "counterbalance"))
+    man["order"] = a.order or ("interleave" if man.get("interleave") else "counterbalance")
     for arm, rep in order:
         try:
             s = run_replicate(rig, out, man, arm, rep, run_id, prov)
@@ -749,6 +796,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run"); r.add_argument("manifest"); r.add_argument("--reps", type=int); r.add_argument("--arm"); r.add_argument("--budget", type=int)
+    r.add_argument("--order", choices=["counterbalance", "interleave", "blocked"], help="arm order across reps (default counterbalance)")
+    r.add_argument("--manifest-reps", action="store_true", help="keep each arm's own replicates (default: 5 for every arm, R12)")
     r.set_defaults(fn=cmd_run)
     p = sub.add_parser("report"); p.add_argument("run_dir"); p.set_defaults(fn=cmd_report)
     a = ap.parse_args()
