@@ -465,3 +465,12 @@ control (the halving works on the schedule), but once p1 >= 0.5 the next wave sa
 -42 days) and cavern units were not higher: mean 18.4 / 20.2 under pressure vs 20.9 / 24.5 control (max 25-29 vs 33-46).
 => the gate is not what limits cavern traffic under pressure; the draw itself (DF's cavern supply, or the cap counting
 the irruption groups) is. Item 25's T9c closed: halving the gate is harmless but buys no extra traffic.
+
+## SW4 — ladder predator multiplier x0.5 / x1 / x2 (items 11, 15; 1 Oct night, CTRL, tool disarmed, FREQUENCY written, surface released every 1,500 t, 60,000 t, 2 reps counterbalanced)
+Predator (AL+ML) share of land units present, mean over 40 samples (predicted f/sum f in brackets):
+  x1 (ctl) 14.0%, 10.6% (6.4%)   x0.5 1.8%, 1.9% (3.3%)   x2 20.1% (last cell), 6.9% (first cell) (12.1%)
+=> halving the predator FREQUENCY cuts predators to ~2% in both orders; doubling is not reliably more than x1 (one 19-strong
+ML pack made rep 1's 20%). Observed share runs above f/sum f at x1: predators linger, prey come and go (present counts,
+not arrivals). Apex (AL) present: 0 in 5 of 6 runs, mean 1.7 units in x2 rep 2 -> the AL FREQUENCY barely moves apex
+presence at f 4-8 (item 15: consistent with LARGE_PREDATOR being drawn from its own pool, or simply rare at these f).
+For the ladder: x1 already overshoots the v2.2 target band on presence; no case for x2. Data: data/experiments/ECO/SW4-20261001-030441/.
