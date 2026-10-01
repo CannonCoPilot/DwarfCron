@@ -433,3 +433,15 @@ S8C builder-off tally (scripts/s8-tally.py): surface 45 units / 7 waves (rep 1),
 surface units (2 kestrels); ravens 40 and 24 units. Cavern 96 / 29 and 41 / 25, predators 65% and 95% of units (troglodytes,
 jabberers, pond grabbers, blood men). A 'deep' layer delivered DEMON_* groups (15 and 16 units, 4-5 waves) on CTRL both reps.
 Deaths 39 and 20, all cavern natives (elk birds, troglodytes). pelagic_beached 0 (no water layer on CTRL).
+
+## S8B — a season of v7.0 with the builder on BOATS (items 8, 15; 1 Oct night, land+cavern+water, 100,800 t, 2 reps)
+Builder ran on all three layers both reps (receipts in log.txt); rosters differ by rep (uniform pick): rep 1 land CHEETAH /
+EAGLE_MAN, KESTREL / CAVY, ELEPHANT / PANGOLIN, WILD_BOAR_MAN / GIANT_JACKAL, HONEY BADGER; rep 2 GIANT_OSPREY, EAGLE /
+GIRAFFE_MAN, ELEPHANT_MAN. Water: AW, FC, FF UNFILLED (no candidate in BOATS's pool), FISH_STINGRAY/MILKFISH dropped as
+isolated; the builder reports it.
+Surface: 76 units / 19 waves (rep 1), 122 / 18 (rep 2); predators 42% (GIANT_JACKAL 27 units) and 14% of units, 47% and 39%
+of waves -- the v2.2 ladder aims at 14-18% of arrivals; rep 1 overshoots on pack size, not wave count. Apex (CHEETAH,
+FREQUENCY 13): 0 and 3 units. Cavern: PLUMP_HELMET_MAN 54 and 180 units (SH guild, 7 and 12 waves) dominate -- an animal-
+person herd of ~15 per wave; balance question. Deaths 97 (33 plump helmet men, 10 giant jackals, 5 elephants, 4 cavies,
+4 pangolins...) and 29 (8 giant jackals, 3 cheetahs...): kills per surface arrival 1.28 and 0.24. Sponges counted as
+'feature' units in the harness arrivals (40, 48): ignore. pelagic_beached 0 (no pelagic picked: PE slot empty).
