@@ -13,4 +13,5 @@ for m in S8C S8B S8O T9c; do
     echo "=== ${m} exit $?" | tee -a "$log"
 done
 sh scripts/oneoff/chain-night3.sh
+sh scripts/oneoff/chain-night4.sh
 echo "=== chain-night2 done $(date +%H:%M:%S)"
