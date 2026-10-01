@@ -555,3 +555,15 @@ Land groups present (mean; max): auto 4.7, 3.6 (5); g1 1.4, 2.4 (4); g3 3.6, 2.6
 g3 slightly below. The cap is not a hard ceiling (g1 reached 4, g3 6: groups listed before the cap bites or released by
 DF's own gate -- not split here). Attacks 0 in every cell; deaths are cavern natives. => 1 < 3 <= auto, as ECO2-G found on
 a 4x4: keep auto (the design table's first outcome). The land limit shapes how many groups are present, not fights.
+
+## SCV2b / SCV2Wb — the tool's own scavenging pass, tool enabled (item 19; 1 Oct morning, 8 passes x 300 t, 2 reps)
+CTRL land (6 KANGAROO carcasses, 5 placed scavengers): corpses 6 -> 1, 7 -> 0, 2 -> 0 (rep 1 wolf, jackal, vulture cells);
+6 -> 0 in all three rep-2 cells. The pass saw 6-21 scavengers (the placed 5 plus CTRL's natives: BIRD_RAVEN is in
+SCAV.TEXT), 2-6 walking per pass; fallbacks 0 in every cell (remains were gone before the 600-tick WAIT ran out).
+RIVER4 water (6 FISH_CARP carcasses in the river): 6 -> 0 in all 4 cells (POND_GRABBER in the water; WOLF on the bank);
+in pondgrabber rep 1 all 6 went in the first pass with 0 walking and 0 fallbacks -- something was already in reach (wet
+reach 2 tiles, z +-1). Against SCV/SCVW (the rig's own walk+eat verbs: only wolves on land ate; nothing in water), the
+tool's pass clears remains on land and in water within ~2,400 ticks. NOT measured: which species ate -- the per-species
+count is in the ledger ('scavenged N remains (TOK n ...)'), not captured by these cells. Diagnostic bug: SCAV.run returns
+before writing CACHE.scavLast when no remains are left, so the status line keeps the last non-empty pass (seen as a
+repeated 'units=9 remains=6 eaten=6' line). Data: data/experiments/ECO/SCV2b-20261001-073510/.
