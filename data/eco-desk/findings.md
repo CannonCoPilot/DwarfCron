@@ -415,3 +415,12 @@ CTRL's tiles read calm live (2 tiles, 0 savage, pre and post). addNewSpecies (fo
 invasive cannot rely on DF's draw for SAVAGE species on calm land; the tool must place them (or hold the entry and
 release via its own placement). Caveat: this block logs only the subject, so other arrivals in the window (gate open)
 are not on record here; T8g/SW3 show CTRL's gate releasing groups under the same conditions. Data: data/experiments/ECO/INV2-20261001-014121.
+
+## SCV2 — the tool's own scavenging pass (scav_ext), run 1 (item 19; 1 Oct night, CTRL): VACUOUS
+8 `scavenge now` passes x 300 t per cell; 0 eaten, 0 fallbacks, corpses 6 -> 6 in every cell. Cause: SCAV.run returns 0
+unless cfg.enabled, and the cells never switched the tool on (CTRL's tool is off); the status line said "on" because it
+reads cfg.scavenge.enabled only. Also: ALLIGATOR (SCV2W) is not a scavenger to SCAV.is (no BONECARN /
+CURIOUS_BEAST_EATER, not in SCAV.TEXT); WOLF, JACKAL, BIRD_VULTURE carry BONECARN. Vanilla's only aquatic scavengers:
+POND_GRABBER, SEA_SERPENT, SEA_MONSTER (+ the two modded spinosaurs) -> scav_ext's swimmer path has almost no vanilla
+users; a design question for the user (count CARNIVORE swimmers as scavengers?). Rerun: SCV2b/SCV2Wb (tool enabled,
+scavLast printed per pass, POND_GRABBER for the water cell) queued in chain-night5.

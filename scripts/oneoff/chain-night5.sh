@@ -7,6 +7,10 @@ L=data/logs/E23e.log; echo "=== E23e start $(date +%H:%M:%S)" | tee -a $L
 R=data/experiments/ECO/SWR-$(date +%Y%m%d-%H%M%S)
 for b in SW1R SW2R SW3B; do L=data/logs/$b.log; echo "=== $b start $(date +%H:%M:%S)" | tee -a $L
 .venv/bin/python scripts/eco-run.py $b --run $R --reps 2 >> $L 2>&1; echo "=== $b exit $?" | tee -a $L; done
+# SCV2b/SCV2Wb (1 Oct 02:00): SCV2 reruns with the tool enabled (SCAV.run is a no-op while cfg.enabled is false)
+R=data/experiments/ECO/SCV2b-$(date +%Y%m%d-%H%M%S)
+for b in SCV2b SCV2Wb; do L=data/logs/$b.log; echo "=== $b start $(date +%H:%M:%S)" | tee -a $L
+.venv/bin/python scripts/eco-run.py $b --run $R --reps 2 >> $L 2>&1; echo "=== $b exit $?" | tee -a $L; done
 scripts/cx-lifecycle.sh title > /dev/null 2>&1
 L=data/logs/validate-night.log; echo "=== validate-full start $(date +%H:%M:%S)" | tee -a $L
 .venv/bin/python scripts/validate-full.py >> $L 2>&1; echo "=== validate-full exit $?" | tee -a $L

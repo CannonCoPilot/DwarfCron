@@ -759,20 +759,32 @@ BLOCKS["SCVW"] = dict(fort="RIVER4", spot="shore", cells={
 # every 300 ticks (`scavenge now`), 6 carcasses, 5 scavengers 8 tiles off, items counted before and after each pass.
 def scavtool(scav, medium, prey, pmed=None, passes=8):
     pm = pmed or medium
-    st = [SUSTAIN, "lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.scavenge.enabled=true; c.v7.scav_ext=true; "
-          "sw.saveConfig(c); print('eco scavcfg on=1 ext='..tostring(sw.loadConfig().v7.scav_ext))",
+    # 1 Oct: SCAV.run returns 0 unless cfg.enabled (the tool switched on) -- SCV2 rep 1-2 never enabled it on CTRL,
+    # where the tool is off, so every pass was a no-op. Enable first, then the scavenge keys; print CACHE.scavLast
+    # (units seen, remains seen, walking, eaten) after every pass so a no-op names itself.
+    st = [SUSTAIN, "lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.scavenge.enabled=true; c.v7.scav_ext=true; "
+          "sw.saveConfig(c); local k=sw.loadConfig(); print('eco scavcfg on=1 enabled='..tostring(k.enabled)..' ext='..tostring(k.v7.scav_ext))",
           f"spawn {prey} 6 {{X}} {{Y}} {{Z}} 2 {pm}", f"corpse {{ids:{prey}}}", "step:50", "items {X} {Y} {Z} 6 before",
           f"spawn {scav} 5 {{X+8}} {{Y}} {{Z}} 2 {medium}"]
     for i in range(passes):
         st += ["lua:local ok,o=pcall(dfhack.run_command_silent,'seasonal-wildlife','scavenge','now'); print('eco scavpass '..tostring(o):gsub('\\n',' | '):sub(1,200))",
+               "lua:local sw=reqscript('seasonal-wildlife'); local l=sw.CACHE.scavLast or {}; print(('eco scavlast units=%s remains=%s walking=%s eaten=%s t=%s'):format(tostring(l.units), tostring(l.remains), tostring(l.walking), tostring(l.eaten), tostring(l.t)))",
                "step:300", f"items {{X}} {{Y}} {{Z}} 6 p{i + 1}"]
     st.append("lua:local sw=reqscript('seasonal-wildlife'); local ok,s=pcall(sw.SCAV.status, sw.loadConfig()); print('eco scavstatus '..tostring(s):gsub('\\n',' | '):sub(1,300))")
-    return dict(steps=st, ticks=10)
+    return dict(steps=st, ticks=10, post=["lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
 BLOCKS["SCV2"] = dict(fort="CTRL", spot="land", cells={
     "wolf": scavtool("WOLF", "land", "KANGAROO"), "jackal": scavtool("JACKAL", "land", "KANGAROO"),
     "vulture": scavtool("BIRD_VULTURE", "land", "KANGAROO")})
 BLOCKS["SCV2W"] = dict(fort="RIVER4", spot="shore", cells={
     "alligator_water": scavtool("ALLIGATOR", "water", "FISH_CARP", pmed="water"),
+    "wolf_bank": scavtool("WOLF", "land", "FISH_CARP", pmed="water")})
+# SCV2b/SCV2Wb (1 Oct): reruns with the tool enabled. ALLIGATOR is not a scavenger to SCAV.is (no BONECARN /
+# CURIOUS_BEAST_EATER, not in SCAV.TEXT); vanilla's only aquatic scavengers are POND_GRABBER, SEA_SERPENT, SEA_MONSTER
+# (python search of the raws), so the swimmer path is tested with a pond grabber in RIVER4's water.
+BLOCKS["SCV2b"] = dict(fort="CTRL", spot="land", cells=dict(BLOCKS["SCV2"]["cells"]))
+BLOCKS["SCV2Wb"] = dict(fort="RIVER4", spot="shore", cells={
+    "pondgrabber_water": scavtool("POND_GRABBER", "water", "FISH_CARP", pmed="water"),
     "wolf_bank": scavtool("WOLF", "land", "FISH_CARP", pmed="water")})
 BLOCKS["SCVC"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={"cavern_miasma_troll": corpses2("TROLL", "cave", "ELK_BIRD")})
 
