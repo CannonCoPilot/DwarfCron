@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-01 (W2:Urist subagent; read-only sweep of the ECO report, findings.md, guilds v2, research, experiments/, seasonal-wildlife v7.0 docs and code, wilderpop/backlog pages, the Urist scratchpad, validate-full claims and run 20261001-074833, and both git logs)",
+ "generated": "2026-10-01 (W2:Urist subagent; read-only sweep of the ECO report, findings.md, guilds v2, research, experiments/, seasonal-wildlife v7.0 docs and code, wilderpop/backlog pages, the Urist scratchpad, validate-full claims and run 20261001-074833, and both git logs); updated 1 Oct review (eco): statuses, corrected numbers and 4 new items",
  "categories": [
   {
    "id": "decisions",
@@ -216,11 +216,11 @@
    "id": "push-repos",
    "category": "decisions",
    "title": "Push DwarfCron Dev and seasonal-wildlife v7.0 (nothing pushed tonight)",
-   "detail": "DwarfCron Dev is 75 commits ahead of origin/Dev (last push 2d808ed, 30 Sep) and seasonal-wildlife v7.0 is 26 commits ahead of origin/master (v6.9.0, 1abe109) and not merged. The night's rule was to ask before pushing.",
+   "detail": "DwarfCron Dev is 80 commits ahead of origin/Dev at the 1 Oct review (last push 2d808ed, 30 Sep; the count grows with each commit) and seasonal-wildlife v7.0 is 26 commits ahead of master (v6.9.0, 1abe109, which IS on origin) and not merged. The night's rule was to ask before pushing.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):861",
     "Project_Aion/.claude/context/.scratchpad.urist.md:52, :54-58",
-    "git rev-list origin/Dev..Dev = 75",
+    "git rev-list origin/Dev..Dev = 80 (1 Oct review; 75 at the sweep)",
     "git rev-list origin/master..v7.0 = 26"
    ],
    "evidence": "DwarfCron Dev HEAD 8143fb8; seasonal-wildlife v7.0 HEAD 1e65e03",
@@ -396,7 +396,7 @@
    "id": "sw8-confirm",
    "category": "experiments",
    "title": "SW8: confirm the chosen defaults together before they ship",
-   "detail": "The sweep design says each change is checked in SW8 (all chosen values against all current, CTRL and BOATS, 100,800 t) before it ships, and SW8's B per season is the number reported as 'how busy the map is now'. It has not run; the scratchpad left it as a decision once the defaults are chosen.",
+   "detail": "The sweep design says each change is checked in SW8 (all chosen values against all current, CTRL and BOATS, 100,800 t) before it ships, and SW8's B per season is the number reported as 'how busy the map is now'. It has not run; the scratchpad left it as a decision once the defaults are chosen. SW8 would also be the first test of cadence 3,000, nudge off and pack_sneak 0 on natural arrivals: SW1/SW2 measured them only in an arena of placed wolves, which DF aims itself (RELS), so their no-effect result is untested outside it.",
    "source": [
     "DwarfCron/experiments/SWEEP-design.md:241, :249, section 4 last line",
     "Project_Aion/.claude/context/.scratchpad.urist.md:93-95 ('SW8 decision')"
@@ -404,7 +404,7 @@
    "evidence": "no SW8 run dir under data/experiments/ECO",
    "status": "blocked",
    "priority": "medium",
-   "next": "After the user rules on the default decisions, run SW8 (2 reps, counterbalanced, ~86 min).",
+   "next": "After the user rules on the default decisions, run SW8 as designed in SWEEP-design.md section 5 (2 reps, counterbalanced, subject receipt, ~86 min).",
    "effort": "M"
   },
   {
@@ -444,11 +444,12 @@
    "id": "solo-package-natural-density",
    "category": "experiments",
    "title": "Solitary package at natural prey density",
-   "detail": "LONE10 showed the package lifts a cougar's kills (29 vs 14, p = 0.025) among 48 placed prey, mostly on natives; the report says 'the season test will show its effect at real densities', but no season isolated it.",
+   "detail": "LONE10 showed the package lifts a cougar's kills of 48 placed prey (29 vs 14, one-sided p = 0.07; all kills 49 vs 21, p = 0.024, natives 20 vs 7); the report says 'the season test will show its effect at real densities', but no season isolated it.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):616 (LONE, for the tool)",
     "eco-report.md (scratchpad export, 1 Oct):890 (tracker 34)",
-    "DwarfCron data/experiments/ECO/LONE10-*"
+    "DwarfCron data/experiments/ECO/LONE10-*",
+    "DwarfCron/data/eco-desk/findings.md:582-593 (LONE10, corrected p values)"
    ],
    "evidence": "LONE10 natives 20 vs 7; S8 runs did not compare solo on/off",
    "status": "open",
@@ -460,14 +461,15 @@
    "id": "builder-port-vs-v22",
    "category": "questions",
    "title": "Builder port: marked Done, but v7.0 writes the v2.1 ladder and omits v2.2 pieces",
-   "detail": "Tracker 5 says the port is Done (0d030b2) while recommendation 14 says 'its port into v7.0 is next'. The code confirms a partial port: ROSTER.LADDER uses v2.1 base values (land AL 3, ML 3, GZ 6) rather than ladder22 (AL 4, ML 2, GZ 10.5), which the desk predicts gives about 31% land predators instead of 16%, yet S8 was read against the v2.2 14-18% target. The port also collapses ocean/lake/river and cav1-3 into three layers, has no flying apex or SNP slot, and boosts giants by mass only.",
+   "detail": "Tracker 5 says the port is Done (0d030b2) while recommendation 14 says 'its port into v7.0 is next'. The code confirms a partial port: ROSTER.LADDER uses v2.1 base values (land AL 3, ML 3, GZ 6) rather than ladder22 (AL 4, ML 2, GZ 10.5), which the desk predicts gives about 31% land predators instead of 16%, yet S8 was read against the v2.2 14-18% target. The port also collapses ocean/lake/river and cav1-3 into three layers, has no flying apex or SNP slot, and boosts giants by mass only. Also absent (1 Oct review, ROSTER.SLOTS at seasonal-wildlife.lua v7.0 ~5070): a flying layer (RP and LB sit in the land table), the SNP slot, the GOBBLE_VERMIN edge table and vermin stock links. design.md section 9 lists them.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):836 (rec 14)",
     "eco-report.md (scratchpad export, 1 Oct):869 (tracker 5)",
     "seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5354-5358, :5413-5417 (ROSTER.LADDER v2.1)",
     "seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5052-5066 (documented gaps)",
     "DwarfCron/data/eco-desk/v2/guilds/design.md R13 (ladder22)",
-    "DwarfCron/data/eco-desk/v2/guilds/results22.md section 2"
+    "DwarfCron/data/eco-desk/v2/guilds/results22.md section 2",
+    "DwarfCron/data/eco-desk/v2/guilds/design.md section 9 (1 Oct review)"
    ],
    "evidence": "S8B 42%/14%, S8O 18%/39%, S8C(b) 5% predators of surface units vs 14-18% target",
    "status": "open",
@@ -478,12 +480,12 @@
   {
    "id": "realms-built-untested",
    "category": "questions",
-   "title": "Realm table: 'Open' in the recommendations, 'Done' in the tracker, never run on the rig",
-   "detail": "Recommendation 15 still reads Open, tracker 21 says Built in v7.0 (e8cbda7) behind the `realms` switch (off by default) with `realm` setting the embark's realm, 'Not rig-tested'. V7.REALMS's vanilla-match checks were fixed after a macOS grep miss (466ac00), and the validator has no realm claim.",
+   "title": "Realm table: built in v7.0 behind an off switch, never run on the rig, no validator claim",
+   "detail": "The doc's recommendation 15 still reads Open (the page now says built, never run, no claim); tracker 21 says Built in v7.0 (e8cbda7) behind the `realms` switch (off by default) with `realm` setting the embark's realm, 'Not rig-tested'. V7.REALMS's vanilla-match checks were fixed after a macOS grep miss (466baec), and the validator has no realm claim.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):837 (rec 15)",
     "eco-report.md (scratchpad export, 1 Oct):885 (tracker 21)",
-    "seasonal-wildlife git 466ac00, e8cbda7",
+    "seasonal-wildlife git 466baec, e8cbda7",
     "seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):98-101, :497"
    ],
    "evidence": "no rig run, no validator claim",
@@ -496,7 +498,7 @@
    "id": "natural-skill-unverified",
    "category": "questions",
    "title": "Solitary package: Done in the tracker, the caste NATURAL_SKILL write unverified on the rig",
-   "detail": "Tracker 7 says the tool writes NATURAL_SKILL on solitary hunters (Done), while STATE addendum 96 says natural_skill_id/_lvl/_exp are 'unverified on the rig: written under pcall and counted'. LONE/STL wrote unit skills directly through the harness, not the tool's caste write, and the validator's solo_raws claim checks only AMBUSHPREDATOR. VERMIN.legless (gait read) and SWV_SMALL_BIRD membership are flagged the same way.",
+   "detail": "Tracker 7 says the tool writes NATURAL_SKILL on solitary hunters (Done), while STATE addendum 96 says natural_skill_id/_lvl/_exp are 'unverified on the rig: written under pcall and counted'. LONE/STL wrote unit skills directly through the harness, not the tool's caste write, and the validator's solo_raws claim checks only AMBUSHPREDATOR. VERMIN.legless (gait read) and SWV_SMALL_BIRD membership are flagged the same way. LONE10's package was written by the harness (unit skills), so the page's 'v7.0 package' result is the harness's, not the tool's write.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):871 (tracker 7)",
     "seasonal-wildlife/STATE.md addendum 96 (Solitary package row)",
@@ -656,21 +658,21 @@
    "evidence": "validate-full 20261001-074833: 214 PASS, 2 DOC-DRIFT",
    "status": "blocked",
    "priority": "high",
-   "next": "Decide which defaults go in first; then merge v7.0 -> master, docket r16, rerun validate-full, publish, prune realm-pair/roster-port/scav-ext/vermin-gobble/v6.x branches, push on the user's word.",
+   "next": "Decide which defaults go in first; re-validate on DFHack 53.16-r2 (revalidate-dfhack-r2); then merge v7.0 -> master, docket r16, rerun validate-full, publish, prune realm-pair/roster-port/scav-ext/vermin-gobble/v6.x branches, push on the user's word.",
    "effort": "M"
   },
   {
    "id": "usage-v7-docs",
    "category": "release",
    "title": "USAGE.md has no v7.0 content at all",
-   "detail": "The user guide's header still says v6.9.0 (DOC-DRIFT) and grep finds no v7 material: the roster builder (`roster build`), `seasonal-wildlife v7` switches, domestic prey, sponges, vermin gobble and `vermin classes`, scav_ext, realms/`realm`, outgun, per-body and per-depth groups, tool-owned seasons and fishers default off are undocumented. The last USAGE commit is v6.9.0.",
+   "detail": "The user guide's header still says v6.9.0 (DOC-DRIFT) and grep finds no v7 material: the roster builder (`roster build`), `seasonal-wildlife v7` switches, domestic prey, sponges, vermin gobble and `vermin classes`, scav_ext, realms/`realm`, outgun, per-body and per-depth groups, tool-owned seasons and fishers default off are undocumented. The last USAGE commit is v6.9.0. Done 1 Oct: a \"v7.0 (unreleased, on branch v7.0)\" section drafted from the verb dispatcher and defaultConfig, and v6.x drift fixed (limits auto, exhaust/scavenge verbs, place depth, groups cavern). Finalise at release.",
    "source": [
     "seasonal-wildlife/USAGE.md:10",
     "DwarfCron/data/validation/full/20261001-074833/results.json (doc.usage.version DOC-DRIFT)",
     "git log -- USAGE.md (1abe109 last)"
    ],
    "evidence": "grep -c v7 USAGE.md = 0",
-   "status": "open",
+   "status": "done",
    "priority": "high",
    "next": "Write a v7.0 section (each switch, default, verb, what the ECO evidence says) and update the header; rerun doc.usage.version.",
    "effort": "M"
@@ -679,7 +681,7 @@
    "id": "commit-uncommitted-work",
    "category": "release",
    "title": "Commit the uncommitted v2.2 civ desk work and night leftovers",
-   "detail": "DwarfCron has uncommitted edits to the guild builder (design.md, results22.md, roster2.py, run2.py, tables22.md, analyze22.out) with civ22.py/civ22.out untracked, the v2.2 civ ruling the report already cites. Also untracked: the FPS6 partial run, chain-night and fps6 attempt logs, and three 30 Sep v7.0 validation run dirs.",
+   "detail": "DwarfCron has uncommitted edits to the guild builder (design.md, results22.md, roster2.py, run2.py, tables22.md, analyze22.out) with civ22.py/civ22.out untracked, the v2.2 civ ruling the report already cites. Also untracked: the FPS6 partial run, chain-night and fps6 attempt logs, and three 30 Sep v7.0 validation run dirs. The 1 Oct review adds edits to design.md (sections 6-9), ECO-design.md, SWEEP-design.md, findings.md (three dated corrections) and the report sources (content.html, recs.py, build.py, experiments.json, raws.json, open-items.json).",
    "source": [
     "git status (DwarfCron, session start)",
     "DwarfCron/data/eco-desk/v2/guilds/ (civ22.py untracked)"
@@ -694,12 +696,12 @@
    "id": "state-addenda-refresh",
    "category": "release",
    "title": "STATE.md: stale 'not merged' addenda, no addendum for the night",
-   "detail": "Addenda 96e (vermin-gobble) and 97 (scav-ext) say 'branch ... not merged', but both are merged into v7.0. Nothing records the night's results that changed v7.0 decisions or its validation (S8, SW1-SW7, SCV2b, item 6, validate-full 214/0).",
+   "detail": "Addenda 96e (vermin-gobble) and 97 (scav-ext) say 'branch ... not merged', but both are merged into v7.0. Nothing records the night's results that changed v7.0 decisions or its validation (S8, SW1-SW7, SCV2b, item 6, validate-full 214/0). Done 1 Oct: \"Status, 1 Oct\" notes under addenda 96, 96e, 97 and Addendum 98 (the overnight blocks; validations 074210 with 4 FAIL, then 074833 214 PASS).",
    "source": [
     "seasonal-wildlife/STATE.md:3950, :3985"
    ],
    "evidence": "git log v7.0..vermin-gobble and v7.0..scav-ext empty",
-   "status": "open",
+   "status": "done",
    "priority": "medium",
    "next": "Write addendum 98 (night results, validation, open decisions) and correct the two headers.",
    "effort": "S"
@@ -708,32 +710,32 @@
    "id": "report-stale-cells",
    "category": "release",
    "title": "ECO report: stale status cells and source table",
-   "detail": "The Summary says v7.0 is 'built on a branch but not yet deployed', but it ran on the rig all night and is unreleased rather than undeployed. Recommendation rows 12 ('no depth survey yet'), 14 ('port is next'), 15 ('Open'), 17 ('needs a good and an evil fort test') and 20 ('on; I recommend off') predate the night. The sources table cites commit f7949f3, tool v6.8.0 / rig v6.7.0 and v7.0 49fde90 (HEAD is 1e65e03; Dev 8143fb8). Fixed in the rebuilt page (sections 20-22); see claude-doc-sync for the doc.",
+   "detail": "The Summary says v7.0 is 'built on a branch but not yet deployed', but it ran on the rig all night and is unreleased rather than undeployed. Recommendation rows 12 ('no depth survey yet'), 14 ('port is next'), 15 ('Open'), 17 ('needs a good and an evil fort test') and 20 ('on; I recommend off') predate the night. The sources table cites commit f7949f3, tool v6.8.0 / rig v6.7.0 and v7.0 49fde90 (HEAD is 1e65e03; Dev 8143fb8). Fixed in the rebuilt page (sections 20-22); see claude-doc-sync for the doc. 1 Oct review (page rev 2): the header now states the release state (v6.9.0 released and pushed; v7.0 deployed, unmerged, validated 214/0 at 20261001-074833), section 20 marks the v7.0 rows the validator does not cover, section 22 lists what 214/0 omits, and 13 figure captions were corrected against their rows. The doc's own cells stay with claude-doc-sync.",
    "source": [
     "eco-report.md (scratchpad export, 1 Oct):32",
     "eco-report.md (scratchpad export, 1 Oct):834-842",
     "eco-report.md (scratchpad export, 1 Oct):902, :918"
    ],
    "evidence": "git heads; tracker rows 5, 6, 18, 21, 33 Done",
-   "status": "open",
+   "status": "done",
    "priority": "medium",
-   "next": "Update those cells in the report doc (dc2b8dce...) and the summary sentence.",
+   "next": "Done on the page. For the doc, see claude-doc-sync.",
    "effort": "S"
   },
   {
    "id": "design-md-stale",
    "category": "release",
    "title": "Builder design.md sections 6-8 still list questions the night answered",
-   "detail": "Section 6 keeps lake writability as an open question (LAKEP answered) and BEACH_FREQUENCY stranding as untested (COHO). Section 8 says flying actability is unknown (REACH), the apex FREQUENCY may be moot (SW4/S8) and Add invasive SAVAGE is untested (INV2). Many section 7 cells are still marked open though measured.",
+   "detail": "Section 6 keeps lake writability as an open question (LAKEP answered) and BEACH_FREQUENCY stranding as untested (COHO). Section 8 says flying actability is unknown (REACH), the apex FREQUENCY may be moot (SW4/S8) and Add invasive SAVAGE is untested (INV2). Many section 7 cells are still marked open though measured. 1 Oct review: sections 6-8 now answer each question with its block and source, section 7's cells are marked, and a new section 9 records which v2.2 pieces v7.0 does not carry.",
    "source": [
     "DwarfCron/data/eco-desk/v2/guilds/design.md section 6 (Lake and river; Ocean)",
     "DwarfCron/data/eco-desk/v2/guilds/design.md section 7 table",
     "DwarfCron/data/eco-desk/v2/guilds/design.md section 8"
    ],
    "evidence": "LAKEP, COHO, REACH, SW4, S8Cb, INV2",
-   "status": "open",
+   "status": "done",
    "priority": "low",
-   "next": "Mark each cell with its block and verdict; move what remains into this list's parked item.",
+   "next": "Done (design.md, uncommitted, with the v2.2 civ edits). Remaining unmeasured cells stay under design-s7-unmeasured-cells.",
    "effort": "S"
   },
   {
@@ -971,7 +973,7 @@
    "detail": "Still open: IMP_FIRE vs MAGMA_CRAB on the deep layer, OCTOPUS as attacker, lamprey vs beaver, intraguild WOLF vs COYOTE (predator-on-predator was deferred 19 Sep), a led pack vs a led herd, a cavern LP vs a civ-race group without the fort joining, two LP groups on a savage map, a species placed below its UNDERGROUND_DEPTH, remains in magma or carried by flow, and aquatic vermin restocking (wiki bug 2780).",
    "source": [
     "DwarfCron/data/eco-desk/v2/guilds/design.md section 7",
-    "seasonal-wildlife/PLAN.md 'Deferred \u2014 predator-on-predator'"
+    "seasonal-wildlife/PLAN.md 'Deferred — predator-on-predator'"
    ],
    "evidence": "table cells marked open",
    "status": "parked",
@@ -1069,7 +1071,7 @@
    "id": "alpha-cli-round-and-playtest",
    "category": "parked",
    "title": "Alpha trial phase two (console verbs) and the playtest page republish",
-   "detail": "The alpha walkthroughs cover the UI only; the console-verb round is still to write. The playtest page was rebuilt locally on 27 Sep (10 MB) but not republished. Both predate v7.0, which adds many verbs.",
+   "detail": "The alpha walkthroughs cover the UI only; the console-verb round is still to write. The playtest page was rebuilt locally on 27 Sep (10 MB) but not republished. Both predate v7.0, which adds many verbs. 1 Oct: the console-verb round is written into Alpha Three (https://claude.ai/artifact/7Y8RELyxkHxUV2bfPAeMei); only the playtest page republish stays parked.",
    "source": [
     "memory alpha-walkthrough.md",
     "Project_Aion/.claude/context/.scratchpad.urist.md:479"
@@ -1084,7 +1086,7 @@
    "id": "animal-person-mass",
    "category": "questions",
    "title": "Animal people carry their root animal's mass in the builder's species table",
-   "detail": "species2.tsv gives each animal person its root animal's body size, but every ANIMAL_PERSON variation applies GRAVITATE_BODY_SIZE:70000, which pulls the in-game size toward 70,000 cm\u00b3. So a damselfly man reads 10 cm\u00b3 in the builder. Size bands, the 5% pack-mass floor and prey choice for all 185 animal people rest on the wrong mass. 64 species also disagree between species2 and the raws (tiny bugs, their giants, ANT_MAN castes).",
+   "detail": "species2.tsv gives each animal person its root animal's body size, but every ANIMAL_PERSON variation applies GRAVITATE_BODY_SIZE:70000, which pulls the in-game size toward 70,000 cm³. So a damselfly man reads 10 cm³ in the builder. Size bands, the 5% pack-mass floor and prey choice for all 185 animal people rest on the wrong mass. 64 species also disagree between species2 and the raws (tiny bugs, their giants, ANT_MAN castes).",
    "source": [
     "data/eco-report/raws.json counts.caveats",
     "data/eco-desk/v2/guilds/species2.py"
@@ -1113,7 +1115,7 @@
    "id": "lake-apex-gap",
    "category": "decisions",
    "title": "The temperate lake has no apex about half the time again",
-   "detail": "v2.2 filled the lake's apex slot with fishing land predators (bears, tiger, jaguar). FSH2 found they never attack fish (0 attacks in 6 runs), so v7.0 turned fishers off by default, which reopens the gap: about half of temperate lake rosters have no apex.",
+   "detail": "v2.2 filled the lake's apex slot with fishing land predators (bears, tiger, jaguar). FSH2 found they never attack fish (0 attacks in 4 runs; the wolf control 0 in 2 more), so v7.0 turned fishers off by default, which reopens the gap: about half of temperate lake rosters have no apex.",
    "source": [
     "eco-report section 19",
     "findings.md FSH2"
@@ -1128,7 +1130,7 @@
    "id": "claude-doc-sync",
    "category": "release",
    "title": "The Claude Doc version of the report still has the uncorrected text",
-   "detail": "The editable doc (rev 326) keeps the LONE10 mislabelling (29 vs 14 paired with p = 0.025), the NO_SPRING wording, the leader and shark overstatements and stale v7.0 status cells. The rebuilt page corrects them; the doc and its comment threads still read the old text. A banner at the top of the doc now points to this page and states the LONE10 correction.",
+   "detail": "The editable doc (rev 326) keeps the LONE10 mislabelling (29 vs 14 paired with p = 0.025), the NO_SPRING wording, the leader and shark overstatements and stale v7.0 status cells. The rebuilt page corrects them; the doc and its comment threads still read the old text. A banner at the top of the doc now points to this page and states the LONE10 correction. Page rev 2 (1 Oct review) corrected further captions and status cells that the doc also carries in its older form.",
    "source": [
     "review.json factual 1-25",
     "Claude Doc dc2b8dce rev 326"
@@ -1143,16 +1145,231 @@
    "id": "findings-small-discrepancies",
    "category": "method",
    "title": "Three small findings.md slips still uncorrected",
-   "detail": "P1 says 'every LP attacked (up to 306 attacks/cell)' while the coyote cell had 343 (the coyote isn't LP); HCP's 8 dead crundles have a placed killer on record for 7; ECO2-G's 6\u00d76 \u221a+1 rep 2 is 3.12, below the stated 3.16\u20133.81 range (the conclusion holds). N1, CAL, HC4, SW5, SW2R and the pelagic slot are already corrected.",
+   "detail": "P1 says 'every LP attacked (up to 306 attacks/cell)' while the coyote cell had 343 (the coyote isn't LP); HCP's 8 dead crundles have a placed killer on record for 7; ECO2-G's 6×6 √+1 rep 2 is 3.12, below the stated 3.16–3.81 range (the conclusion holds). N1, CAL, HC4, SW5, SW2R and the pelagic slot are already corrected. 1 Oct review: all three corrected in findings.md with dated notes (P1, HCP, ECO2-G). Three further slips are a new item, findings-more-slips.",
    "source": [
     "data/eco-report/experiments.json discrepancies",
     "findings.md"
    ],
    "evidence": "experiments agent cross-check",
+   "status": "done",
+   "priority": "low",
+   "next": "Done.",
+   "effort": "S"
+  },
+  {
+   "id": "findings-more-slips",
+   "category": "method",
+   "title": "Three more findings.md slips found by the 1 Oct review",
+   "detail": "SCVC: findings says DF removed no cavern corpse 'in 3,000 t', but the cell ran 4,000 t (eco-run.py corpses2 ticks=4000). validate-full v7.0: findings calls the second DOC-DRIFT 'the Docket's v5.5 line'; results.json doc.docket reads docket-r15.html '@ 1e23b0a (v6.6.0)'. S8O: 'apex (ANACONDA) 2 and 1 units' counts AL only; s8-tally's surface apex count (AL + AW) is 3 and 2, which the page plots. The page is corrected; findings.md is not (outside this review's remit).",
+   "source": [
+    "DwarfCron/data/eco-desk/findings.md:372-373 (SCVC)",
+    "DwarfCron/scripts/eco-run.py:213-216, :789",
+    "DwarfCron/data/eco-desk/findings.md:579-580",
+    "DwarfCron/data/validation/full/20261001-074833/results.json (doc.docket)",
+    "DwarfCron/data/eco-desk/findings.md:453-454 (S8O)",
+    "scripts/s8-tally.py data/experiments/S8O/20261001-022543"
+   ],
+   "evidence": "re-read 1 Oct review",
    "status": "open",
    "priority": "low",
-   "next": "Append corrections to findings.md.",
+   "next": "Append dated corrections to findings.md.",
    "effort": "S"
+  },
+  {
+   "id": "apex-placement-stock-test",
+   "category": "experiments",
+   "title": "Steering apexes by placement or stock is untested",
+   "detail": "The proposal to drop the apex step from the ladder (ladder-drop-apx-step) says apexes should be steered by placement and stock instead. Neither has been measured: no run placed an apex group or raised its entry and watched it hold, hunt and persist for a season, and the tool's 'one LP group per map' guard (design.md R12.7) rests on the wiki.",
+   "source": [
+    "DwarfCron/data/eco-desk/findings.md:519-528 (S8Cb item 15)",
+    "DwarfCron/data/eco-desk/findings.md:469-476 (SW4)",
+    "DwarfCron/data/eco-desk/v2/guilds/design.md R12.7, section 8",
+    "scripts/eco-report/content.html section 10 (apex FREQUENCY)"
+   ],
+   "evidence": "S8 apex units 0-3 per run; SW4 apex present 1 of 6",
+   "status": "open",
+   "priority": "medium",
+   "next": "APX1 in ECO-design.md section 'Next experiments': CTRL season, arms stock-only vs placed group vs control, 2 reps, counterbalanced, subject receipt.",
+   "effort": "M"
+  },
+  {
+   "id": "single-run-defaults",
+   "category": "experiments",
+   "title": "Shipped defaults that rest on one run",
+   "detail": "Several results the tool ships on were measured once: the alert filter (A1/A2, one fight per case, on by default in v6.9), leader protection (L2 deer herd 1 attack vs 88; HO milkfish schools lost 10 and 1 vs 5 unled), exhaustion replacement timing (N1, 2,090 t), lake writability (LAKEP) and the empty-slot value (SLOTV). The page labels each '1 run'; none has a second replicate.",
+   "source": [
+    "DwarfCron/data/eco-desk/findings.md:27-29 (A1), :106 (A2), :47-49 (L2), :150-155 (HO), :71-74 (N1), :318-321 (LAKEP), :268-271 (SLOTV)",
+    "memory two-reps-per-arm.md"
+   ],
+   "evidence": "1 replicate each",
+   "status": "open",
+   "priority": "low",
+   "next": "L3 (leader protection, land and water) and A3 (alert filter over natural fights) in ECO-design.md 'Next experiments'; N1/LAKEP/SLOTV only if a change depends on them.",
+   "effort": "M"
+  },
+  {
+   "id": "report-done-count",
+   "category": "method",
+   "title": "The page counted done items as open",
+   "detail": "The hero's open-item count was the length of open-items.json, so items marked done still counted. build.py now counts items whose status is not 'done'; done items still show, with their status, in section 21.",
+   "source": [
+    "DwarfCron/scripts/eco-report/build.py main() ({{oicount}})"
+   ],
+   "evidence": "1 Oct review",
+   "status": "done",
+   "priority": "low",
+   "next": "Done.",
+   "effort": "S"
+  },
+  {
+   "id": "revalidate-dfhack-r2",
+   "category": "release",
+   "title": "Re-validate v7.0 and the harness on DFHack 53.16-r2",
+   "detail": "The user upgraded the rig to DFHack 53.16-r2 (02e77acf) on 1 Oct at about 08:55 (verified from the installed dfhack.dll). Every ECO block, v6.9.0's 192 PASS and v7.0's 214 PASS (20261001-074833) ran on 53.16-r1.1; nothing has run on r2. r2 changes that could shift results: Units::teleport occupancy (the tool's placement and the nudge, and the harness's spawn and tp: a tile now stays occupied while another unit stands on it, and each call scans every active unit) and site data on reclaimed forts. Checked and not reaching our code (data/dfhack-r2/REPORT.md section 2): setPathGoal (SCAV writes path fields itself), isCitizen/isResident (no caller passes include_insane), the timestream breathing fix (the harness never runs timestream; it matters to Chronicler's speed modes). One real bug r2 exposes: chronicler-bridge.lua:1784 reads current_weather[2][2]; use dfhack.maps.getCurrentWeather().",
+   "source": [
+    "BRIEF.md Versions (1 Oct review)",
+    "coordinator note 1 Oct ~09:00",
+    "DwarfCron/data/validation/full/20261001-074833 (r1.1)",
+    "DwarfCron/data/dfhack-r2/REPORT.md (code review of 53.16-r1.1..53.16-r2, 1 Oct)"
+   ],
+   "evidence": "installed dfhack.dll reports 53.16-r2",
+   "status": "open",
+   "priority": "high",
+   "next": "Run validate-full on v7.0 under r2 and diff claim by claim against 20261001-074833; smoke the cx-* scripts (cx-eco spawn/tp/walkto, cx-probe); rerun one placement-heavy block (COHO or REACH) and SCV2b, 2 reps each, before trusting ECO numbers on r2. Gate the v7.0 release on it.",
+   "effort": "M"
+  },
+  {
+   "id": "state-v68-v69-addenda",
+   "category": "release",
+   "priority": "low",
+   "status": "open",
+   "title": "STATE.md has no addendum for v6.8.0 or v6.9.0",
+   "detail": "v6.8 (roster/seasons verbs, the web server) and v6.9.0 (water draw honours NO_<season>, pelagic weights, EXHAUST, MODEL.guild, groups auto, SCAV, ALERTS, CURIOUS) are recorded only in commits 3070dba..1abe109 and the validations 20260930-124923. Write one addendum covering both, in STATE style.",
+   "source": [
+    "review logs plans.md, model-design.md, docket-backlog.md (1 Oct)",
+    "seasonal-wildlife git log v6.7.0..1abe109"
+   ],
+   "evidence": "grep of STATE.md headings: addendum 95 (v6.7.0) is followed by 96 (v7.0.0)",
+   "next": "Write one addendum covering v6.8.0 and v6.9.0 from commits 3070dba..1abe109 and validate-full 20260930-124923 (192 PASS), --only v68/v69 (12 PASS each).",
+   "effort": "S"
+  },
+  {
+   "id": "cache-world-switch-stale",
+   "category": "bugs",
+   "priority": "medium",
+   "status": "open",
+   "title": "Two caches survive a world switch: CACHE.depth and per-copy raceCache",
+   "detail": "CACHE.depth (engine :891) is not cleared by CACHE.drop (:7140), so a second world loaded in the same DFHack session keeps the first world's cave depths. raceCache (:2316) lives per script copy; CACHE.drop resets only the copy owning the onStateChange handler, so the window and job copies keep old race indices (the dfhack-script-copies trap). Also SCAV.wait (:6802) is per copy and never prunes departed ids.",
+   "next": "Clear CACHE.depth in CACHE.drop; move raceCache and SCAV.wait into the shared _G CACHE keyed by release; prune SCAV.wait on departure. Rig check: load world A, then B, in one session; compare cavern depths and a race lookup from the window copy.",
+   "evidence": "Code read, 1 Oct (no rig)",
+   "effort": "S",
+   "source": [
+    "DwarfCron/data/perf/SW-PERF-ANALYSIS.md section 5, correctness notes",
+    "seasonal-wildlife v7.0 1e65e03 :891 :2316 :6802 :7140"
+   ]
+  },
+  {
+   "id": "web-cluster-order",
+   "category": "bugs",
+   "priority": "low",
+   "status": "open",
+   "title": "Web server sends cluster_number[0] as the group minimum; that slot is the maximum",
+   "detail": "seasonal-wildlife-web reports cluster_number[0] as min and [1] as max, so a wolf pack reads \"7 to 3\" on the companion page (the page now sorts them). Engine :1287 reads the raw the same way; check which slot DF uses before fixing either.",
+   "next": "One rig line: print WOLF cluster_number[0], [1] against the raw [CLUSTER_NUMBER:a:b]; then fix the server (and the engine if it shares the error).",
+   "evidence": "Companion review, 1 Oct",
+   "effort": "S",
+   "source": [
+    "scratchpad review/atlas-companion.md",
+    "seasonal-wildlife scripts/seasonal-wildlife-web.lua"
+   ]
+  },
+  {
+   "id": "web-v7-state",
+   "category": "tool",
+   "priority": "low",
+   "status": "proposed",
+   "title": "The web companion serves no v7.0 state",
+   "detail": "seasonal-wildlife-web is unchanged since v6.8: no guild, v7 switches, builder output, per-body/per-cavern groups, scavenging or gobble readings, and accepts no v7 verbs. The companion page (rev 6) lists what it lacks.",
+   "next": "After v7.0 release: extend the snapshot with the v7 status block; re-check luasocket on DFHack r2 first.",
+   "evidence": "Companion review, 1 Oct",
+   "effort": "M",
+   "source": [
+    "https://claude.ai/artifact/37peWN5mcaFfmXC4mYYUhx",
+    "scratchpad review/atlas-companion.md"
+   ]
+  },
+  {
+   "id": "antman-civ-class",
+   "category": "questions",
+   "priority": "low",
+   "status": "open",
+   "title": "ANT_MAN classes as an animal person, so it is not a civ race though the code comment says it is",
+   "detail": "V7.isCivRaw excludes animal people; ANT_MAN carries an ANIMAL_PERSON variation of root ANT, so civ_hunt/civ_prey never apply to it, contrary to the STATE 96b list. Animal people also copy a vermin root's vermin category.",
+   "next": "Decide whether ANT_MAN belongs in the civ set; one rig line `roster ANT_MAN` shows its class.",
+   "evidence": "Atlas review, 1 Oct",
+   "effort": "S",
+   "source": [
+    "scratchpad review/atlas-companion.md",
+    "STATE.md addendum 96b"
+   ]
+  },
+  {
+   "id": "perf-v71-caching",
+   "category": "tool",
+   "priority": "medium",
+   "status": "proposed",
+   "title": "Performance for v7.1: instrument, memoize classification, keep groups/undo in CACHE, overlay from cache, one unit census, stagger jobs",
+   "detail": "The jobs average about 1% of wall time; what players feel are spikes (groups 67-149 ms, ecology 58-71 ms) and jobs landing on shared ticks, plus the overlay decoding JSON and scanning pairs every render frame, and the undo ring re-encoded per edit. Lua runs on DF's one simulation thread, so the levers are avoided work, native scans and staggering, not threads. Proposals P0-P7 of the analysis.",
+   "next": "P0 instrumentation first, then P1-P7; validate together with PERF0 (bench), PERF1 (a month on BOATS) and PERF2 (overlay), two replicates per arm, fresh DF per rep, on DFHack r2.",
+   "evidence": "Code read and host JSON benchmark, 1 Oct",
+   "effort": "L",
+   "source": [
+    "DwarfCron/data/perf/SW-PERF-ANALYSIS.md sections 2-6"
+   ]
+  },
+  {
+   "id": "perf-v72-native-slicing",
+   "category": "tool",
+   "priority": "low",
+   "status": "proposed",
+   "title": "Performance for v7.2: forEachTile surveys, coroutine slicing, eventful arrivals, shared pool memo",
+   "detail": "P8-P12: memoize buildPool; replace the Lua tile loops in vegSurvey, WET/CAVE survey, waterTiles and PLACE.tiles with dfhack.maps.forEachTile (r2, experimental; feature-detect with the Lua loop as fallback for r1.1 players); slice load-time work with coroutines holding ids only across yields; onUnitNewActive instead of unit rescans; web snapshot and scavenging caches.",
+   "next": "After v7.1 perf lands and is measured.",
+   "evidence": "Code read, 1 Oct",
+   "effort": "L",
+   "source": [
+    "DwarfCron/data/perf/SW-PERF-ANALYSIS.md section 4-5",
+    "DwarfCron/data/dfhack-r2/REPORT.md section 3.1"
+   ]
+  },
+  {
+   "id": "perf3-unit-count",
+   "category": "experiments",
+   "priority": "medium",
+   "status": "proposed",
+   "title": "PERF3: what sponges and per-layer groups cost DF in frame rate",
+   "detail": "At about 0.07% per wild unit (fps-load-facts), up to 128 sponges could cost about 9%, ten times all the tool's Lua. Immobile units may cost less. Unmeasured.",
+   "next": "OCEAN fort, fresh DF per rep, 30,000 ticks, stopwatch t/s; arm A v7 defaults, arm B sponges off and layer_groups off; split only if A differs from B. Two reps per arm, on r2.",
+   "evidence": "Estimate, 1 Oct",
+   "effort": "M",
+   "source": [
+    "DwarfCron/data/perf/SW-PERF-ANALYSIS.md P13",
+    "memory fps-load-facts"
+   ]
+  },
+  {
+   "id": "chronicler-weather-lookup",
+   "category": "bugs",
+   "priority": "low",
+   "status": "open",
+   "title": "Chronicler bridge reads current_weather[2][2], the lookup DFHack r2 fixed as broken",
+   "detail": "chronicler-bridge.lua:1784 indexes the 5x5 weather grid at [2][2]; the right cell is biome_x - map.region_x/16 + 1, so it usually reports a neighbouring region's weather. Chronicler, not seasonal-wildlife.",
+   "next": "Use dfhack.maps.getCurrentWeather() when present, [2][2] as the r1.1 fallback.",
+   "evidence": "DFHack r2 code review, 1 Oct",
+   "effort": "S",
+   "source": [
+    "DwarfCron/data/dfhack-r2/REPORT.md section 2.2"
+   ]
   }
  ]
 }

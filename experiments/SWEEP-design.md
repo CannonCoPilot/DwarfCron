@@ -1,6 +1,10 @@
 # SWEEP: tuning seasonal-wildlife v7.0's fixed values against how busy the map is (tracker item 11)
 
-**Status:** design only (30 Sep 2026). Nothing here has been run.
+**Status (1 Oct 2026 review):** SW1–SW7 ran on the night of 30 Sep – 1 Oct, with reruns SW1R, SW2R (reversed cell order) and SW3B
+(SW3 counted the wrong groups), all on DFHack 53.16-r1.1 against v7.0 (deployed, unmerged). Desk D1 ran (`experiments/SWEEP-D1.md`).
+SW8 has not run: it waits on the user's decisions about the defaults. Results and verdicts are in section 5; the new designs the
+results call for are in section 6. The rig moved to DFHack 53.16-r2 on 1 Oct, so SW8 and anything new run only after the r2
+re-validation (open item revalidate-dfhack-r2). The original design text (sections 0–4) is kept as written on 30 Sep.
 
 **What it does:** tunes each hard-coded value of seasonal-wildlife v7.0 against one measure of how busy the map is. Each value
 gets 3 levels, always including the current one. The rule is **two replicates per arm**, with as few arms as possible.
@@ -274,3 +278,70 @@ it could reach about 8.5 h.
 
 Each change is checked in SW8 before it ships, and SW8's B, per season, is the number reported to the user as "how busy the
 map is now".
+
+---
+
+## 5. What ran and what it found (1 Oct 2026 review)
+
+Sources: `data/eco-desk/findings.md` (SW1–SW7, SW1R, SW2R, SW3B entries), `scripts/sweep-tally.py`, run dirs
+`data/experiments/ECO/SW-20261001-003336` (SW1, SW2, SW3), `SW4-20261001-030441`, `SW-rig2-20261001-033105` (SW5, SW6, SW7),
+`SWR-20261001-063950` (SW1R, SW2R, SW3B). Figures: ECO page section 12.
+
+| run | ran | verdict | per section 4 | open |
+|---|---|---|---|---|
+| SW1 + SW1R cadence, nudge | 2 + 2 reps, fixed then reversed order | No level of cadence (500 / 1,500 / 6,000) or nudge (off / current / tight) changed placed-prey kills (0–1 a run; pooled over 4 reps 1, 2, 0, 3, 1). SW1's B flags were cell position, not the lever (placed wolves' share of attacks 76–94% in a load's first cell, 2–30% in its last) | 6,000 ≈ 1,500 → cadence 3,000; off ≈ current → nudge off | Proposed, not applied (decisions dflt-ecology-cadence-3000, dflt-nudge-off) |
+| SW2 + SW2R floor, sneak | 2 + 2 reps | Placed prey killed over 4 reps: ctl 3, floor0 1, floor20 3, sneak0 4, sneak100 0. The 0.20 floor's shift off the elephant (SW2 rep 1) did not repeat | sneak 0 ≈ 0.25 ≈ 1.0 → pack_sneak 0, retire the SNEAK write; floor stays 0.05 (no evidence either way) | Decision dflt-pack-sneak-0 |
+| SW3 land groups | 2 reps, counterbalanced | **Uninformative**: the status line counted every tracked group (mostly cavern) | – | Rerun as SW3B |
+| SW3B land groups | 2 reps, counterbalanced | Land groups 1.4 / 2.4 at cap 1, 3.6 / 2.6 at cap 3, 4.7 / 3.6 at auto; caps not hard (max 4 at cap 1); 0 attacks in every cell | 1 < 3 ≤ auto → keep auto | – |
+| SW4 ladder multiplier | 2 reps, counterbalanced, 60,000 t | Predators 1.8% / 1.9% of land units at ×0.5, 14.0% / 10.6% at ×1; ×2 gave 20.1% (last cell) and 6.9% (first cell). Apex present in 1 run of 6 | Share follows ×0.5 but not reliably ×2; apex share flat → drop the APX step | Decision ladder-drop-apx-step; lp-separate-pool |
+| SW5 cavern groups | 2 reps, counterbalanced, BOATS | Cavern groups 24.0 / 27.3 at auto vs 13.8–16.0 at caps 1–2; DF's natives (4–5 per depth) stay. Attacks per 10,000 t do not simply follow groups (c1 rep 1 379 > auto) | Caverns partly ignore the limit → keep auto, relabel a soft target | Decision cavern-limit-soft-target |
+| SW6 water groups | 2 reps, counterbalanced, BOATS | Water groups 4.8 / 2.1 auto, 1.0 / 2.1 w1, 3.1 / 2.3 w2; BOATS's supply is 2–5 groups, so the cap rarely binds | 2 ≈ auto → optional default 2 (thin) | Decision water-groups-default-2 |
+| SW7 pack bonus | 2 reps, counterbalanced | Land groups 3.1 / 1.6, 2.2 / 2.2, 3.3 / 2.8 at ×1 / ×3 / ×5; 0 attacks; only 7–8 of 27–29 wanted species exist in CTRL's pool (weak test) | No measurable effect → remove the ×3 | Decision builder-drop-x3-pack-bonus |
+| SW8 confirm | **not run** | – | – | Blocked on the decisions (sw8-confirm) |
+
+**Departures from the design, and what they mean for the verdicts.**
+- **The B index was not used for verdicts.** Cell position confounded B in SW1/SW2 (memory experiment-readout-traps 20); the verdicts
+  rest on placed-only readouts (attacks on the placed herds, placed prey killed, wolves lost) and on the group and share counts.
+  The guards (fort harm, speed, persistence, visibility) were not tallied per arm. **Untested:** whether any lever changes speed or
+  fort harm.
+- **Counterbalancing came late.** SW1 and SW2 ran in a fixed order; SW1R/SW2R reversed it. SW3–SW7 were flagged `counterbalance`
+  (eco-run.py: even reps reversed). Reversal balances position over two reps but does not remove the pile-up of natives.
+- **The arena cannot isolate the tool's write.** The placed wolves are non-wild to DF, which aims them at targets itself (RELS
+  row 3), so a lever that only changes the tool's written pairs (floor, sneak) can be masked. The no-effect verdicts for SW1/SW2 hold
+  for "a placed 5-wolf pack against herds 45–60 tiles away", not for natural arrivals. **Untested:** the same levers on DF-drawn
+  predators.
+- **Power.** Kills were 0–4 per arm over 4 reps, so only a large effect could show. "No effect" means "none large enough to see".
+- **The detachOldest stall (section 0, from T8g) is fixed in v7.0** as `gate_drain` (V7.drainGate, seasonal-wildlife.lua ~3593,
+  default on): after a release it keeps releasing the next-oldest gated group until at most one flagged animal remains. SW3B ran on
+  v7.0, so the fix was in place unless a cell switched it off; no SW3B receipt prints gate_drain, and the validator has no
+  gate_drain claim (open item validator-v70-coverage). **Unchecked per cell.**
+- **D2 and D3 (desk receipts) were not written up.** The arena's mass bands were not confirmed with the tool's own masses before
+  SW2 (SW2's own note: five wolves sit at ~5% of an elephant). D3 (`PRED` is read only to order lists) stands as written in note 2.
+
+## 6. Next sweep designs (1 Oct 2026 review)
+
+Same rules as section 2: two replicates per arm, the current value as control, counterbalanced order (rep 2 reversed) and a
+**fresh fort load per arm** for arena blocks so natives cannot pile into later cells; a subject receipt per replicate (memory
+manifest-subject-receipt); placed-only scoring wherever anything is placed. Run on DFHack 53.16-r2 only after the r2 re-validation.
+
+**SW8 CONFIRM (revised).** After the user rules on the defaults (cadence 3,000; nudge off; pack_sneak 0; ×3 bonus removed; APX
+step dropped; cavern limit soft):
+- Arms: all chosen values vs all current values. CTRL and BOATS, natural arrivals (no arena), 100,800 t, 2 reps each, arm order
+  reversed in rep 2, DF restarted before each run.
+- Receipt per replicate: a `v7` print of every switched value from inside the scheduled job (memory dfhack-script-copies), the
+  ecology job's last-run counters (pairs written, nudges, cadence) every 3,000 t, and land/cavern/water group counts in the status line.
+- Readout: the four B components per layer and season window and B itself, now that no shared-load cells are involved; the four
+  guards (fort harm, stopwatch speed ≥ 90% of control, persistence, nudges per season); predator share of surface units.
+- This is the first test of cadence, nudge and sneak on DF-drawn predators. Wall time ≈ 86 min (section 3).
+
+**SW9 TOOL-ONLY WRITE (optional, only if a floor or sneak decision needs evidence).** Isolate the tool's written pair from DF's
+own aiming: the predators are DF arrivals, not placed units.
+- CTRL, FREQUENCY steered so a wolf pack arrives (F1 design), herds placed as prey; arms: pack_floor 0.05 vs 0.20, the prey herd
+  of mass chosen so the pair falls between the floors.
+- Receipt: the arriving pack is wild (roaming flag true) and tracked as one group; the tool's ecology line shows the pair written
+  (0.05) or refused (0.20).
+- Readout: DF's own rel rows toward the herd (RELS method) and attacks on the herd per arm.
+
+**SW10 ladder22 (after the port; open item builder-port-vs-v22).** The SW4 design re-run on the ported v2.2 ladder: ×1 v2.1 vs ×1
+v2.2 on CTRL and BOATS, 60,000 t, 2 reps each, predator share of units and of waves against the 14–18% target. ECO-design.md S8L
+is the full-season version.

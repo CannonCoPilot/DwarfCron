@@ -1,0 +1,1165 @@
+<title>Seasonal Wildlife Alpha Three</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#EEF0EB; --paper-2:#E3E7DF; --ink:#1F2A22; --ink-2:#4A554D; --rule:#C9D0C4;
+  --moss:#3F6B36; --moss-soft:#DCE8D4; --rust:#A6491F; --rust-soft:#F1DDD2; --amber:#8A6A12; --amber-soft:#F0E6C6;
+  --pass:#3F6B36; --skip:#6A756E; --card:#F7F8F5; --kbd-bg:#FFFFFF; --kbd-edge:#B8C1B4; --focus:#2F5F9E;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A16; --paper-2:#1D241F; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+    --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+    --pass:#8FBF7A; --skip:#8B968D; --card:#1A211C; --kbd-bg:#242C26; --kbd-edge:#4A5750; --focus:#7FAEE6;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A16; --paper-2:#1D241F; --ink:#E4E8E1; --ink-2:#A8B2A9; --rule:#33403A;
+  --moss:#8FBF7A; --moss-soft:#243325; --rust:#E08A5E; --rust-soft:#3B241A; --amber:#D9B24A; --amber-soft:#33301A;
+  --pass:#8FBF7A; --skip:#8B968D; --card:#1A211C; --kbd-bg:#242C26; --kbd-edge:#4A5750; --focus:#7FAEE6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--moss)}
+h1,h2,h3{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-0.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,4vw,3rem);line-height:1.05}
+h2{font-size:1.65rem;line-height:1.15}
+h3{font-size:1.15rem;line-height:1.25}
+p{margin:0}
+kbd{font:600 0.82em/1 "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;background:var(--kbd-bg);border:1px solid var(--kbd-edge);border-bottom-width:2px;border-radius:4px;padding:2px 6px;white-space:nowrap;color:var(--ink)}
+code{font:0.9em "JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;background:var(--paper-2);padding:1px 5px;border-radius:3px}
+.eyebrow{font:600 0.72rem/1 "Source Sans 3",sans-serif;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-2)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.masthead{padding:44px 0 28px;border-bottom:1px solid var(--rule)}
+.masthead .eyebrow{margin-bottom:14px}
+.masthead .lede{margin-top:16px;max-width:62ch;font-size:1.08rem;color:var(--ink-2)}
+.masthead .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:20px;font-size:0.92rem;color:var(--ink-2)}
+.masthead .facts b{color:var(--ink);font-weight:600}
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;padding:32px 0 80px}
+@media (max-width:860px){.layout{grid-template-columns:1fr}.rail{position:static!important}}
+.rail{position:sticky;top:20px;align-self:start;font-size:0.92rem}
+.rail ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--rule)}
+.rail li a{display:block;padding:6px 0 6px 14px;color:var(--ink-2);text-decoration:none;border-left:2px solid transparent;margin-left:-1px}
+.rail li a:hover{color:var(--ink)}
+.rail li a.on{color:var(--ink);border-left-color:var(--moss)}
+.rail .tally{margin-top:22px;padding:14px;background:var(--card);border:1px solid var(--rule);border-radius:6px;font-variant-numeric:tabular-nums}
+.rail .tally div{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+.rail .tally .n{font-weight:600}
+main{min-width:0}
+.phase{padding:10px 0 34px;border-bottom:1px solid var(--rule);margin-bottom:26px}
+.phase-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline;margin-bottom:8px}
+.phase-head .num{font-family:"Newsreader",Georgia,serif;font-size:2.2rem;line-height:1;color:var(--moss);font-variant-numeric:tabular-nums}
+.phase-head .why{grid-column:2;color:var(--ink-2);max-width:66ch;margin-top:6px}
+.phase-head .need{grid-column:2;margin-top:10px;font-size:0.9rem;color:var(--ink-2)}
+.phase-head .need b{color:var(--ink)}
+.steps{display:grid;gap:12px;margin-top:20px}
+.step{display:grid;grid-template-columns:54px minmax(0,1fr);gap:0 14px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:14px 16px 14px 12px}
+.step .id{font:600 0.8rem/1.2 "JetBrains Mono",ui-monospace,monospace;color:var(--ink-2);padding-top:4px}
+.step .body{display:grid;gap:8px;min-width:0}
+.step h3{font-family:"Source Sans 3",sans-serif;font-weight:600;font-size:1.02rem}
+.step .do,.step .expect,.step .watch{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;font-size:0.95rem}
+.step .do>span:first-child,.step .expect>span:first-child,.step .watch>span:first-child{font:600 0.7rem/1.9 "Source Sans 3",sans-serif;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2)}
+.step .watch>span:last-child{color:var(--ink-2)}
+.step .expect b{color:var(--moss);font-weight:600}
+.step .keys{display:flex;flex-wrap:wrap;gap:6px 6px;align-items:center}
+.step .verdict{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px;padding-top:10px;border-top:1px dashed var(--rule)}
+.step .verdict label{display:inline-flex;align-items:center;gap:6px;font-size:0.88rem;cursor:pointer;padding:4px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--paper)}
+.step .verdict input{margin:0}
+.step .verdict label.p:has(input:checked){background:var(--moss-soft);border-color:var(--pass);color:var(--pass)}
+.step .verdict label.a:has(input:checked){background:var(--rust-soft);border-color:var(--rust);color:var(--rust)}
+.step .verdict label.s:has(input:checked){background:var(--paper-2);border-color:var(--skip);color:var(--skip)}
+.step textarea{width:100%;min-height:38px;resize:vertical;font:0.9rem/1.4 "Source Sans 3",sans-serif;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:6px 8px;margin-top:6px}
+.step textarea:focus,.step .verdict input:focus-visible+span,button:focus-visible,select:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.step.anom{border-left:3px solid var(--rust)}
+.step.pass{border-left:3px solid var(--pass)}
+.step.skip{border-left:3px solid var(--skip)}
+.note{background:var(--amber-soft);border-left:3px solid var(--amber);padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.95rem;max-width:72ch}
+.note b{font-weight:600}
+.callout{background:var(--moss-soft);border-left:3px solid var(--moss);padding:10px 14px;border-radius:0 6px 6px 0;font-size:0.95rem;max-width:72ch}
+table.sev{border-collapse:collapse;font-size:0.93rem;margin-top:14px;max-width:72ch}
+table.sev th,table.sev td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.sev th{font-weight:600;color:var(--ink-2);font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase}
+.report{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:18px}
+.report .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+button{font:600 0.9rem "Source Sans 3",sans-serif;color:var(--paper);background:var(--moss);border:0;border-radius:5px;padding:8px 14px;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+.report textarea{width:100%;min-height:260px;font:0.85rem/1.45 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:10px}
+.tester{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
+.tester label{display:grid;gap:4px;font-size:0.85rem;color:var(--ink-2)}
+.tester input{font:0.95rem "Source Sans 3",sans-serif;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:6px 8px}
+.muted{color:var(--ink-2)}
+@media (prefers-reduced-motion: no-preference){.step{transition:border-color .15s}}
+
+.recheck{border-collapse:collapse;font-size:0.93rem;margin-top:14px;width:100%}
+.recheck th,.recheck td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.recheck th{font-weight:600;color:var(--ink-2);font-size:0.8rem;letter-spacing:0.06em;text-transform:uppercase}
+.recheck td:first-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace;color:var(--rust)}
+.recheck td:last-child{white-space:nowrap;font:600 0.85rem "JetBrains Mono",ui-monospace,monospace}
+.tablewrap{overflow-x:auto}
+.load textarea{width:100%;min-height:90px;font:0.85rem/1.45 "JetBrains Mono",ui-monospace,monospace;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:8px}
+.step .tag{display:inline-block;font:600 0.68rem/1.6 "Source Sans 3",sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--rust);background:var(--rust-soft);border-radius:3px;padding:0 6px;margin-left:8px;vertical-align:0.1em}
+
+.recheck.wide td:first-child,.recheck.wide td:last-child{white-space:normal;font:inherit;color:inherit}
+.recheck.wide td:first-child{font-weight:600;min-width:9ch}
+.recheck.wide td{min-width:14ch}
+.tag.new{color:var(--moss);background:var(--moss-soft)}
+.tag.r2{color:var(--amber);background:var(--amber-soft)}
+.step .basis,.step .pend{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;font-size:0.86rem}
+.step .basis>span:first-child,.step .pend>span:first-child{font:600 0.7rem/1.9 "Source Sans 3",sans-serif;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2)}
+.step .basis>span:last-child{color:var(--ink-2)}
+.step .pend>span:last-child{background:var(--amber-soft);border-left:3px solid var(--amber);padding:4px 8px;border-radius:0 4px 4px 0}
+code{overflow-wrap:anywhere}
+.cmdref{border-collapse:collapse;font-size:0.88rem;margin-top:14px;width:100%}
+.cmdref th,.cmdref td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+.cmdref th{font-weight:600;color:var(--ink-2);font-size:0.78rem;letter-spacing:0.06em;text-transform:uppercase}
+.cmdref td:first-child{font:0.82rem "JetBrains Mono",ui-monospace,monospace;min-width:16ch}
+.phase .note+.note,.phase .note+.callout,.phase .callout+.note,.phase .callout+h3,.phase .note+h3{margin-top:12px}
+.phase h3.sub{margin-top:22px}
+ul.plain{margin:10px 0 0;padding-left:20px;max-width:72ch}
+ul.plain li{margin:4px 0}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .step{grid-template-columns:1fr;padding:12px}
+  .step .id{padding:0 0 4px}
+  .step .do,.step .expect,.step .watch,.step .basis,.step .pend{grid-template-columns:1fr;gap:2px}
+  .phase-head{grid-template-columns:1fr;gap:6px}
+  .phase-head .why,.phase-head .need{grid-column:1}
+}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Alpha trial three · window and console · v7.0 build</div>
+    <h1>Seasonal Wildlife Alpha Three</h1>
+    <p class="lede">A play-order walkthrough of the <em>Seasonal Wildlife</em> window and, for the first time, its console verbs, as of the unreleased v7.0 build on the test rig, running on DFHack 53.16-r2. Work through it on a copy of a live fort, mark each step, and compile the report at the end. <b>re-check</b> tags test Alpha Two’s round-one anomalies; <b>new</b> tags mark what v6.8 to v7.0 added; <b>r2</b> tags rest on something DFHack 53.16-r2 changed.</p>
+    <div class="facts">
+      <span>Plugin <b>seasonal-wildlife v7.0.0</b> (branch v7.0 @ 1e65e03, unreleased)</span>
+      <span>Game <b>Dwarf Fortress 53.16</b> · <b>DFHack 53.16-r2</b></span>
+      <span>Validated <b>214 pass, 0 fail</b> on 53.16-r1.1 (run 074833); <b>none yet on r2</b></span>
+      <span>Open decisions <b>13</b></span>
+      <span>Steps <b id="stepcount">110</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="rail" aria-label="Phases">
+    <ol id="railList"></ol>
+    <div class="tally" aria-live="polite">
+      <div><span>Pass</span><span class="n" id="tPass">0</span></div>
+      <div><span>Anomaly</span><span class="n" id="tAnom">0</span></div>
+      <div><span>Skipped</span><span class="n" id="tSkip">0</span></div>
+      <div><span>Unmarked</span><span class="n" id="tOpen">0</span></div>
+    </div>
+  </nav>
+
+  <main id="main">
+
+    <div class="note" style="margin-bottom:26px"><b>How to read a step.</b> <b>Do</b> is what to press or type; <b>Expect</b> is what you should see; <b>Watch</b> is what tends to go wrong. <b>Pending</b> names an open decision that would change the result. <b>Basis</b> is where the expectation comes from: “run 074833” is validate-full 20261001-074833 on v7.0 (DwarfCron data/validation/full), with its claim ids and screen dumps; ECO names are entries in data/eco-desk/findings.md; addenda are in the tool’s STATE.md. Mark <b>Pass</b> when what you saw matches, <b>Anomaly</b> for anything else (say what you pressed, saw and expected), <b>Skipped</b> when your fort cannot show it.</div>
+
+    <section class="phase" id="pchanges">
+      <div class="phase-head"><span class="num">Δ</span><h2>What changed since Alpha Two</h2>
+        <p class="why">Alpha Two tested v6.6.0. Four builds later the rig runs v7.0, and the user upgraded DFHack to 53.16-r2 on 1 October. Read this before you start; the tables are the map from Alpha Two to this page.</p></div>
+      <div class="note"><b>Unreleased build.</b> This page targets <code>seasonal-wildlife</code> branch <b>v7.0 @ 1e65e03</b> as deployed on the test rig. v7.0 is not merged to master and not pushed; the released version is v6.9.0 (master 1abe109). Thirteen decisions about its defaults are open. A step whose result depends on one says which, and what each choice would change.</div><div class="note"><b>DFHack 53.16-r2.</b> The rig moved from 53.16-r1.1 to 53.16-r2 (02e77acf) at about 08:55 on 1 October. Every validation so far, v7.0’s 214 passes included, ran on r1.1; nothing has run on r2. Steps tagged <b>r2</b> rest on something r2 changed: Units::teleport occupancy (the nudge, the water draw and placement, scavenging fallbacks), the persistent site-data fix on reclaimed forts, and gui/launcher (it hides “unavailable” tools unless dev mode, Ctrl-D, is on).</div><h3 class="sub">Four releases since v6.6</h3><div class="tablewrap"><table class="recheck wide"><thead><tr><th>Release</th><th>When, commit</th><th>What a player sees</th><th>Record</th></tr></thead><tbody>
+<tr><td>v6.7.0</td><td>28 Sep, c3b85c7 (master)</td><td>The Roster’s ODDS column shows an out-of-season species’ in-season share in brackets, <code>(12%)</code>. Add invasive leaves the new species active with one season (or inactive) at once. Animal people take role, habitat, size, mass, group and diet from their root animal.</td><td>STATE addendum 95; validate-full 20260928-145349: 178 pass, 0 fail</td></tr>
+<tr><td>v6.8.0</td><td>29 Sep, b450362, 58a667e, f82be91, 04c06aa (master)</td><td>Console verbs <code>roster [KEY [active|inactive]]</code> and <code>seasons KEY &lt;SpSuAuWi|all&gt;</code> under the one roster rule. The browser companion <code>seasonal-wildlife-web</code>: a page on 127.0.0.1 with Status, Species, Food web and Ledger &amp; settings tabs, Steam or ASCII tiles.</td><td>No STATE addendum (engine changelog only); validate-full 20260930-125813 (<code>--only v68</code>): roster and seasons verbs pass, web serve/guard/cmd/stop pass</td></tr>
+<tr><td>v6.9.0</td><td>30 Sep, 1abe109 (master, released and pushed)</td><td>A predator is armed when it is not BENIGN; the relation write reaches only where the predator can go. Water draws honour NO_&lt;season&gt;; pelagic giants draw less often. Land groups at once default to auto, floor(√embark tiles)+1. Three new Panel rows: Exhaustion and replacement (on), Scavenging (opt-in), Quiet wildlife fights (on). Console verbs <code>exhaust</code>, <code>alerts</code>, <code>curious</code>, <code>scavenge</code>, <code>limits … groups auto</code>.</td><td>No STATE addendum (engine changelog, git log); validate-full 20260930-124923: 192 pass, 0 fail</td></tr>
+<tr><td>v7.0.0</td><td>1 Oct, branch v7.0 @ 1e65e03; 26 commits past master</td><td>Twenty-six <code>cfg.v7</code> switches, console only (<code>seasonal-wildlife v7</code>): alignment-managed good and evil wildlife, the largest male leads, groups at once per layer, water body and cavern, the tool owns seasons, the solitary-hunter package, a pack-mass floor, map-wide scavenging and its water and flier fallbacks, fishers (off), cavern civ races hunt and are hunted, forgotten-beast safety, the relation sweep, domestic prey (off), sponges, gate drain, vermin gobble, the roster builder (<code>roster build</code>), outgun warnings, realms (off).</td><td>STATE addenda 96, 96b, 96d, 96e, 97 (their “not deployed” and “not merged” notes are stale: merged and deployed); validate-full 20261001-074833: 214 pass, 0 fail, 30 not testable on the rig fort, 13 backlog, 2 doc drift</td></tr>
+</tbody></table></div><h3 class="sub">Alpha Two’s round-one anomalies, and where to re-check them</h3><p class="muted" style="margin-top:6px;max-width:72ch">The rig played round 1 on BOATS (data/alpha2/round1: 59 pass, 3 anomalies). Steps here are renumbered; this table and the <b>re-check</b> tags point to the new numbers.</p><div class="tablewrap"><table class="recheck"><thead><tr><th>Alpha 2</th><th>What round 1 found (v6.6.0, 28 Sep)</th><th>Fix</th><th>Re-check at</th></tr></thead><tbody>
+<tr><td>4.3</td><td>Alt+O stored the odds, but the ODDS column showed <code>-</code> for every species out of season, so the key looked dead.</td><td>v6.7.0 c3b85c7: the in-season share in brackets; column five wide</td><td>2.1, 4.3</td></tr>
+<tr><td>8.1</td><td>Add invasive put AARDVARK_MAN on the embark with no roster state at all until a later pass.</td><td>v6.7.0 c3b85c7: the roster pass runs at once; the status line names the result</td><td>8.1</td></tr>
+<tr><td>10.1</td><td>The pyramid draws no level labels (the page was corrected); animal people and odd pairs showed as prey.</td><td>v6.7.0 c3b85c7: animal people mirror their root animal (addendum 95); the otter–jaguar-man pair left as is</td><td>3.2, 10.1, 10.2</td></tr>
+<tr><td>5.1</td><td>Fill to targets with no target named Shift-B, a target retired in v6.4.</td><td>e507876 (v6.6.0, during the round)</td><td>5.1</td></tr>
+<tr><td>17.1</td><td>The reload’s ledger showed a reset line still saying “abundances to 50”.</td><td>f80d072 (v6.6.0, during the round)</td><td>7.2</td></tr>
+</tbody></table></div><h3 class="sub">The thirteen open decisions</h3><div class="tablewrap"><table class="recheck"><thead><tr><th>Decision</th><th>What is proposed (open-items.json, category decisions)</th><th>Steps whose result depends on it</th></tr></thead><tbody>
+<tr><td>cadence</td><td>Ecology pass every 3,000 ticks instead of 1,500 (SW1/SW1R: no effect of 500, 1,500 or 6,000).</td><td>1.2, 1.3, 11.2</td></tr>
+<tr><td>nudge</td><td>Nudge off by default (SW1/SW1R: no effect).</td><td>1.2, 11.2, 12.1</td></tr>
+<tr><td>sneak</td><td>pack_sneak 0 and retire the per-unit SNEAK write (SW2/SW2R, STL/STL2).</td><td>0.4, 19.2</td></tr>
+<tr><td>x3</td><td>Remove the builder’s x3 pack-hunter pick bonus (SW7; design R11).</td><td>20.2, 20.3</td></tr>
+<tr><td>apex</td><td>Drop the apex step from the FREQUENCY ladder; steer apexes by placement and stock (SW4, S8Cb).</td><td>20.2</td></tr>
+<tr><td>cavern cap</td><td>Relabel cavern groups at once as a soft target (SW5: caps 1 and 2 never bind on DF’s natives).</td><td>11.3, 12.1</td></tr>
+<tr><td>water 2</td><td>Optional: water groups at once default 2 per body (SW6, thin evidence).</td><td>11.3, 18.1</td></tr>
+<tr><td>swimmers</td><td>Should carnivorous swimmers (alligators, crocodiles, sharks) count as scavengers?</td><td>18.5, 21.8</td></tr>
+<tr><td>AP cap</td><td>A group-size cap for animal people in caverns (plump helmet men: 54 and 180 a season on BOATS).</td><td>20.4, 21.4</td></tr>
+<tr><td>savage</td><td>Add invasive places SAVAGE species on calm maps itself, or refuses them (INV2: DF drew none).</td><td>8.2</td></tr>
+<tr><td>push</td><td>Push DwarfCron Dev and seasonal-wildlife v7.0 (nothing pushed; v7.0 unmerged).</td><td>0.4 (the build you can get)</td></tr>
+<tr><td>FPS6</td><td>FPS6 (world size x history on fort speed) is on hold.</td><td>23.2</td></tr>
+<tr><td>lake apex</td><td>The temperate lake has no apex about half the time again, since fishers went off.</td><td>20.4, 21.3</td></tr>
+</tbody></table></div><h3 class="sub">Window keys: what changed</h3><p style="margin-top:6px;max-width:72ch">None. The GUI script’s HotkeyLabels are identical between v6.6 (f22fa30) and v7.0 (1e65e03); the window changed in four places only: the ODDS column, the Live tab’s groups line, the Fill hint, and the Add invasive status line. Two keys Alpha Two never named are stepped here: <kbd>Alt</kbd>+<kbd>P</kbd> (the Panel from any tab) and <kbd>W</kbd> on the Live tab. Three hotkey labels on the Roster and two on the species detail draw clipped (2.1, 3.1); they were clipped on v6.6 too and round 1 passed them.</p>
+    </section>
+    <section class="phase" id="p0">
+      <div class="phase-head"><span class="num">0</span><h2>Before you start</h2>
+        <p class="why">Pick a fort, back it up, and check you are on the build and the DFHack this page describes.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="0.1"><div class="id">0.1</div><div class="body"><h3>Choose the fort</h3>
+          <div class="do"><span>Do</span><span>Use a copy of a fort with surface wildlife and, ideally, an ocean or river and a cavern your dwarves have opened. An ocean fort exercises sponges and the water bodies; an open cavern exercises civ races and per-cavern groups.</span></div>
+          <div class="expect"><span>Expect</span><span>Nothing yet. Note the biomes, the embark size in tiles (4x4 = 16), whether water touches the map, and whether a cavern is open.</span></div>
+          <div class="watch"><span>Watch</span><span>Write the population, year and season in the note. The rig’s forts: CTRL (4x4 temperate shrubland, 7 dwarves, no water on the surface layer), BOATS (tropical shrubland, ocean, salt river), OCEAN2 (ocean).</span></div>
+          <div class="basis"><span>Basis</span><span>Fort facts: ctrl-fort-facts; ECO S8B/S8O fort list (findings.md).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.2"><div class="id">0.2</div><div class="body"><h3>Back it up</h3>
+          <div class="do"><span>Do</span><span>Copy the save folder before you open the window.</span></div>
+          <div class="expect"><span>Expect</span><span>A fort that never opens the window is never touched, so the copy is your control.</span></div>
+          <div class="watch"><span>Watch</span><span>v7.0 writes many more raws than v6.6 while it runs: All off on CTRL restored 743 v7 raw writes. Steps 7.2, 20.2 and 21.2 change a lot; do them on the copy.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.save.untouched PASS; screen C0c-panel-alloff.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.3"><div class="id">0.3</div><div class="body"><h3>Check DFHack is 53.16-r2<span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Open the launcher (<kbd>`</kbd>) and read its title, or type <code>help</code> in the DFHack console; then type <code>seasonal-wildlife status</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The version reads <b>53.16-r2</b>. <code>status</code> prints its Biomes, Layers and limits lines with no Lua error. If the launcher does not offer <code>gui/seasonal-wildlife</code>, r2 may be hiding it as unavailable: turn on dev mode with <kbd>Ctrl</kbd>+<kbd>D</kbd> in the launcher, or type the command.</span></div>
+          <div class="watch"><span>Watch</span><span>Any red traceback naming seasonal-wildlife; the DF console log (stderr.log in the game folder) holds it. Nothing on this page has been seen on r2 yet.</span></div>
+          <div class="basis"><span>Basis</span><span>BRIEF (1 Oct): DFHack upgraded 08:55, dfhack.dll reports 53.16-r2; cli.status PASS on r1.1 (run 074833).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.4"><div class="id">0.4</div><div class="body"><h3>Check the tool is v7.0<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife v7</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>Twenty-seven lines, one per v7 setting with its value (aligned, builder, cave_aligned, civ_hunt, civ_prey, domestic, fanciful, fb_safe, fish_breathe, fisher_list, fishers, gate_drain, gobble, gobble_creature_fallback, layer_groups, leader_male, outgun, outgun_cap, pack_floor, pack_sneak, realms, scav_ext, scav_mapwide, seasons_own, solo, sponges, sweep), then <b>embark alignment: …</b>. Defaults: fishers, fish_breathe, domestic, outgun_cap and realms <b>false</b>; pack_floor 0.05, pack_sneak 0.25, outgun 2.0, gobble_creature_fallback 3; the rest <b>true</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>If the tool prints its Usage line instead, you are on v6.9 or older and phases 19 to 21 do not apply. gobble_creature_fallback is wider than its column and pushes its value right.</span></div>
+          <div class="pend"><span>Pending</span><span><b>sneak</b>: if pack_sneak 0 is adopted, that line reads 0. <b>push</b>: until v7.0 is merged and pushed, only the rig has this build.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.v70.v7 PASS (the list as printed); engine defaultConfig line 499.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="0.5"><div class="id">0.5</div><div class="body"><h3>Turn on the frame counter</h3>
+          <div class="do"><span>Do</span><span>In Settings, show the frame rate. Read it unpaused for a minute at your usual speed.</span></div>
+          <div class="expect"><span>Expect</span><span>A baseline for phase 23. A paused game shows a meaningless high number.</span></div>
+          <div class="watch"><span>Watch</span><span>Two loads of the same fort differ by 10–15 % on their own, and one long session loses up to 28 % by itself.</span></div>
+          <div class="basis"><span>Basis</span><span>fps-load-facts (session length dominates: 300k ticks in one process −28 %).</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p1">
+      <div class="phase-head"><span class="num">1</span><h2>First open: Overview and Panel</h2>
+        <p class="why">The window opens on the Overview. The Panel lists every switch the window has and how long each job takes. v6.9 added three rows; no v7 switch is on it.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="1.1"><div class="id">1.1</div><div class="body"><h3>Open the window<span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>gui/seasonal-wildlife</code> in the console, or pick it in the launcher.</span></div>
+          <div class="expect"><span>Expect</span><span>A window titled <b>Seasonal Wildlife</b> with nine tabs on one row: Overview, Panel, Roster, Seasons, Food web, Live, Layers, Vermin, Ledger. All text plain ASCII.</span></div>
+          <div class="watch"><span>Watch</span><span>On r2 the launcher may hide the tool unless dev mode is on (0.3).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.open, gui.layout, w0.ascii PASS; screen C0-overview.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.2"><div class="id">1.2</div><div class="body"><h3>Read the Panel<span class="tag new">new v6.9</span></h3>
+          <div class="do"><span>Do</span><span>Click <b>Panel</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>SWITCHES: 18 rows plus Map overlay, each <b>[ON]</b> or <b>[off]</b>. New since Alpha Two: <b>Exhaustion and replacement</b> (on), <b>Scavenging</b> (opt-in, off), <b>Quiet wildlife fights</b> (on). Then JOBS with five rows: season roster every 1200 t, groups and gate 300 t, ecology 1500 t, quiet fights 10 t, scavenging 200 t.</span></div>
+          <div class="watch"><span>Watch</span><span>The v7 switches are console-only (phase 19). Opt-in rows say <b>(opt-in)</b>: coupling, livestock, scavenging, vermin hunting, irruptions.</span></div>
+          <div class="pend"><span>Pending</span><span><b>nudge</b>: if adopted, the Nudge row reads [off] on a new fort. <b>cadence</b>: if adopted, the ecology job reads every 3000 t.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.panel PASS; screen C0b-panel; engine PANEL.SWITCHES and PANEL.jobs.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.3"><div class="id">1.3</div><div class="body"><h3>Read the job timings<span class="tag">re-check R4</span></h3>
+          <div class="do"><span>Do</span><span>Leave the window open a game day, then press <kbd>R</kbd> on the Panel.</span></div>
+          <div class="expect"><span>Expect</span><span>Each job shows last and worst in milliseconds against a 50 ms budget; <b>over</b> counts passes above it; every <b>fuse</b> reads intact. On CTRL the rig saw groups worst 79 ms (2 of 107 over), ecology worst 42 ms, quiet fights worst 17 ms over 2,880 runs.</span></div>
+          <div class="watch"><span>Watch</span><span>A tripped fuse. A large fort with many groups may push groups and ecology over 50 ms.</span></div>
+          <div class="pend"><span>Pending</span><span><b>cadence</b>: at 3,000 ticks the ecology job runs half as often; its worst pass should not change.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: w0.timing.jobs PASS; screen C0b-panel.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.4"><div class="id">1.4</div><div class="body"><h3>All off, then all on<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>X</kbd> (All off) and answer Yes; read the status line; then <kbd>A</kbd> (All on).</span></div>
+          <div class="expect"><span>Expect</span><span>Each asks first. All off turns every job off and reports what it put back: <b>All off: every job stopped; restored N cavern frequencies, N curious-beast flags, N v7 raw writes.</b> (CTRL: 31, 4, 743). The layer rows and Map overlay keep their state: they are settings, not jobs. All on brings the switches back as they were.</span></div>
+          <div class="watch"><span>Watch</span><span>A job row still [ON] after All off. A v7 raw left written cannot be seen here; 19.3 counts them.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.panel.alloff, mech.v70.restore_all PASS; screen C0c-panel-alloff.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.5"><div class="id">1.5</div><div class="body"><h3>The Panel from any tab</h3>
+          <div class="do"><span>Do</span><span>From the Roster, press <kbd>Alt</kbd>+<kbd>P</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The Panel opens. A tripped job shows a banner on the Overview: <b>JOB STOPPED: … -- Alt+P, Enter on the job re-arms it</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Alpha Two never named this key; it has existed since v6.3.</span></div>
+          <div class="basis"><span>Basis</span><span>GUI onInput CUSTOM_ALT_P (gui line 294) and fuseBanner; no validator claim (untested by the validator).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="1.6"><div class="id">1.6</div><div class="body"><h3>Read the Overview</h3>
+          <div class="do"><span>Do</span><span>Click <b>Overview</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>The date and switches line, the patterns line, a table of what each layer holds (wild animals, groups “N of M”, when the gate reopens), recent groups, the land mass ratio, what is in season, the next boundary with its arrivals and departures, and the last ledger lines.</span></div>
+          <div class="watch"><span>Watch</span><span>Two cells use old numbers. The water column reads “N of 12 target”: animals against the water ceiling, with a word retired in v6.5. The caverns column reads “of 2” from the old cavern count, while the Live tab’s limits line says auto per cavern. Note what yours say.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.overview PASS; screen C0-overview (“1 of 12 target”, “6 of 2”); GUI refreshOverview line 1840.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p2">
+      <div class="phase-head"><span class="num">2</span><h2>The roster rule</h2>
+        <p class="why">One rule since v6.3: an active species has at least one season; inactive is the only way to keep one away, on every layer.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="2.1"><div class="id">2.1</div><div class="body"><h3>Read the columns<span class="tag">re-check 4.3</span></h3>
+          <div class="do"><span>Do</span><span>Click <b>Roster</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns CREATURE, ROLE, SIZE, HAB, BIOME, SEASON, STOCK, ODDS, act, WHY. ODDS is five wide: an in-season species shows its share, <b>12%</b>; an active one out of season shows the share it would have, in brackets, <b>(12%)</b>. A <b>w</b> after a name marks an aquatic species, <b>~</b> a marsupial. The header counts active species per role and the special creatures left to DF.</span></div>
+          <div class="watch"><span>Watch</span><span>Three key labels under the list draw into the next one: <b>Ctrl+f: Send off + ne</b>, <b>Ctrl+w: Stock (row</b>, <b>Ctrl+g: Stock (filte</b>. They were the same on v6.6. Mark it if it misleads you.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.roster, gui.odds.bracket PASS; screens C0-roster, C12-roster-keys; addendum 95.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.2"><div class="id">2.2</div><div class="body"><h3>Filters</h3>
+          <div class="do"><span>Do</span><span>Cycle <kbd>V</kbd> (View: Current, Default, Add invasive), <kbd>C</kbd> (category and habitats), <kbd>B</kbd> (biome), <kbd>N</kbd> (season).</span></div>
+          <div class="expect"><span>Expect</span><span>Each changes the rows. Default shows the roster as the embark was first found.</span></div>
+          <div class="watch"><span>Watch</span><span>A filter that empties the list without saying why.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.V, gui.k.C, gui.k.B, gui.k.N PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.3"><div class="id">2.3</div><div class="body"><h3>Make a species inactive<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Select an active species and press <kbd>Enter</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>act turns to <b>-</b>, SEASON clears, WHY reads <b>you</b> and today’s date.</span></div>
+          <div class="watch"><span>Watch</span><span>Remember the species: 22.1 checks it never arrives.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.enter, w0.roster.inactive PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.4"><div class="id">2.4</div><div class="body"><h3>Make it active again<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Enter</kbd> on the same row.</span></div>
+          <div class="expect"><span>Expect</span><span>act turns to <b>Y</b> with <b>exactly one</b> season, from its climate.</span></div>
+          <div class="watch"><span>Watch</span><span>No season, or all four.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: w0.roster.activate PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.5"><div class="id">2.5</div><div class="body"><h3>Cycle seasons</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>E</kbd> (or <kbd>Shift</kbd>+<kbd>Enter</kbd>) on an active row several times.</span></div>
+          <div class="expect"><span>Expect</span><span>Single seasons and pairs in turn; never none.</span></div>
+          <div class="watch"><span>Watch</span><span>A row left with no season.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.shiftenter, w0.roster.cycle PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.6"><div class="id">2.6</div><div class="body"><h3>Try to remove the last season</h3>
+          <div class="do"><span>Do</span><span>On a species with one season, press that season’s key (<kbd>S</kbd> <kbd>U</kbd> <kbd>A</kbd> <kbd>W</kbd>).</span></div>
+          <div class="expect"><span>Expect</span><span>Refused: <b>the last season stays: make the species inactive instead</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>The row going to no season.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: w0.roster.lastseason PASS; engine line 2253.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="2.7"><div class="id">2.7</div><div class="body"><h3>Cycle the layer<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>L</kbd> five times.</span></div>
+          <div class="expect"><span>Expect</span><span>The title reads Land, Water, Cavern (with how many are found), Deep, then All layers again; the rows follow.</span></div>
+          <div class="watch"><span>Watch</span><span>Nothing starts recording a macro (Ctrl+L was DF’s macro key until v6.3).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.altL, w0.keys PASS; screens C1-altL-*; GUI LAYER_CYCLE line 203.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p3">
+      <div class="phase-head"><span class="num">3</span><h2>One creature: the species detail</h2>
+        <p class="why">One species’ controls in one place. Since v6.7 an animal person stands where its root animal stands.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="3.1"><div class="id">3.1</div><div class="body"><h3>Open the detail</h3>
+          <div class="do"><span>Do</span><span>Select an animal and press <kbd>I</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Rows species, habitat, role, body (adult volume in cm³ and its band), embark, allowed, stock, odds, group size, seasons, eats, eaten by, on the map, history. Keys at the foot: H habitat, R role, C call, G group size, O odds, K stock; Enter, S U A W, Q hold, X dismiss.</span></div>
+          <div class="watch"><span>Watch</span><span>Two foot labels overlap: <b>Enter: active/inacti</b> runs into <b>s: Sp</b>, and <b>k:</b> (stock) is cut at the right edge. Same on v6.6.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.species.detail PASS; screen C2b-detail.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.2"><div class="id">3.2</div><div class="body"><h3>An animal person mirrors its root<span class="tag">re-check 10.1</span></h3>
+          <div class="do"><span>Do</span><span>Open the detail of an animal person on your roster (ADDER_MAN, JAGUAR_MAN, OTTER_MAN, BADGER MAN…).</span></div>
+          <div class="expect"><span>Expect</span><span>The role line names the root: <b>predator (as its root animal ADDER)</b>. Habitat, size band, mass, group and eats match the root’s own detail page; the name, class and seasons are its own.</span></div>
+          <div class="watch"><span>Watch</span><span>An animal person whose role or size differs from its root.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.animalperson PASS (ALBATROSS_MAN, JAGUAR_MAN, OTTER_MAN: 0 differences in 275 checks); screen C2b-detail; addendum 95.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.3"><div class="id">3.3</div><div class="body"><h3>Habitat and role come from the raws<span class="tag">re-check R2</span></h3>
+          <div class="do"><span>Do</span><span>Open an orca or giant orca, an albatross, and a dingo if your world has them.</span></div>
+          <div class="expect"><span>Expect</span><span>Orca: aquatic predator (armed: v6.9 clears its BENIGN while ecology runs). Albatross: waterbird, not aquatic. Dingo: land predator, small.</span></div>
+          <div class="watch"><span>Watch</span><span>If one reads wrong, <kbd>H</kbd> cycles habitat and <kbd>R</kbd> role; the row then says <b>you</b>.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.model.habitat, mech.model.role, mech.model.band, mech.v69.armed PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.4"><div class="id">3.4</div><div class="body"><h3>Set its stock</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>K</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The stock line reads <b>N in the region, M come back in season (you set it)</b>. Before you set it, an out-of-season species reads <b>N in the region, M held while out of season</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Stock is how many remain to arrive; it does not make a species likelier.</span></div>
+          <div class="basis"><span>Basis</span><span>engine speciesDetail lines 7255–7257; mech.stock.reserve NOT-TESTABLE-HERE in run 074833 (Alpha Two round 1 3.3 passed on v6.6).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.5"><div class="id">3.5</div><div class="body"><h3>Set its odds</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>O</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The odds line reads <b>weight W, P% of the land layer</b>, with <b>(if it were in season)</b> when it is out of season, and <b>(you set it)</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>A roster build (phase 20) writes odds for every species it picks.</span></div>
+          <div class="basis"><span>Basis</span><span>screen C2b-detail; mech.odds NOT-TESTABLE-HERE in run 074833; round 1 3.4 passed.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.6"><div class="id">3.6</div><div class="body"><h3>Set its group size</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>G</kbd> and enter a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The group size line says <b>(you set it)</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>DF sometimes sends one more, never two more (X4).</span></div>
+          <div class="basis"><span>Basis</span><span>addendum 94 (X4); mech.groupsize NOT-TESTABLE-HERE in run 074833.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="3.7"><div class="id">3.7</div><div class="body"><h3>Call a wave</h3>
+          <div class="do"><span>Do</span><span>For an active land species in season, press <kbd>C</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The next land wave is that species; the ledger records the call.</span></div>
+          <div class="watch"><span>Watch</span><span>Round 1 saw a call answered by a group of 12 elephants in one window: likely two draws.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 3.6 pass; mech.call NOT-TESTABLE-HERE in run 074833.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p4">
+      <div class="phase-head"><span class="num">4</span><h2>Stock and odds on the Roster</h2>
+        <p class="why">The same two controls for one row or every row the filter shows.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="4.1"><div class="id">4.1</div><div class="body"><h3>Stock for one row</h3>
+          <div class="do"><span>Do</span><span>Select a row and press <kbd>Ctrl</kbd>+<kbd>W</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>A prompt <b>Stock for</b> the species; the STOCK column changes.</span></div>
+          <div class="watch"><span>Watch</span><span>The label on screen reads “Stock (row” (clipped).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlW PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="4.2"><div class="id">4.2</div><div class="body"><h3>Stock for the filter</h3>
+          <div class="do"><span>Do</span><span>Filter to one category and press <kbd>Ctrl</kbd>+<kbd>G</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Every row shown takes the number.</span></div>
+          <div class="watch"><span>Watch</span><span>Rows outside the filter changing.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlG PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="4.3"><div class="id">4.3</div><div class="body"><h3>Odds for one row<span class="tag">re-check 4.3</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>O</kbd> on an active row that is out of season, enter a number, then on one in season.</span></div>
+          <div class="expect"><span>Expect</span><span>Out of season the ODDS cell changes to the new share in brackets, <b>(N%)</b>; in season, without brackets.</span></div>
+          <div class="watch"><span>Watch</span><span>A cell that stays <b>-</b> on an active species: that was round 1’s anomaly.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.odds.bracket PASS (cells (1%), (8%), (25%) …); addendum 95; c3b85c7.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p5">
+      <div class="phase-head"><span class="num">5</span><h2>Whole-roster tools</h2>
+        <p class="why">Each rewrites many species, so each asks first.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="5.1"><div class="id">5.1</div><div class="body"><h3>Every tool asks<span class="tag">re-check 5.1</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>M</kbd> (Matrix assign), <kbd>O</kbd> (Co-align), <kbd>F</kbd> (Fill to targets), <kbd>Y</kbd> and <kbd>D</kbd>, answering No each time.</span></div>
+          <div class="expect"><span>Expect</span><span>A yes/no question every time; No changes nothing. With no target set, F does not ask and says so: <b>No target set on the land layer: Shift-P/R/V set one; F leaves unset categories alone.</b></span></div>
+          <div class="watch"><span>Watch</span><span>A hint that names Shift-B (retired in v6.4).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.M, gui.k.O, gui.k.F, gui.k.Y, gui.k.D PASS; e507876.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.2"><div class="id">5.2</div><div class="body"><h3>Matrix assign</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>M</kbd> and answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Every active species gets one season by climate; each season of each habitat group keeps a predator with prey it eats. WHY reads <b>matrix</b> or <b>pair</b>. The ledger: <b>matrix: N active species dealt one season each by climate rank within realm, habitat and role</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>One season holding more than half the roster.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.matrix.balance, mech.pair.guarantee PASS; screen C17h-ledger.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.3"><div class="id">5.3</div><div class="body"><h3>Co-align<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>O</kbd> and answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Partners within one adjacent season; seasons only added. Ledger: <b>co-align: N partner(s) given one adjacent season (read from a snapshot)</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Most species ending on all four seasons.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.coalign.bounded PASS; screen C17h-ledger.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.4"><div class="id">5.4</div><div class="body"><h3>Fill natural prey and predators<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Y</kbd>, then <kbd>D</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Each adds only direct partners where a pairing is missing; the ledger says how many.</span></div>
+          <div class="watch"><span>Watch</span><span>A fill that activates species with no partner.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.Y, gui.k.D PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="5.5"><div class="id">5.5</div><div class="body"><h3>Category targets</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Shift</kbd>+<kbd>P</kbd>, <kbd>Shift</kbd>+<kbd>R</kbd> or <kbd>Shift</kbd>+<kbd>V</kbd> to set a target, then <kbd>Alt</kbd>+<kbd>F</kbd> to fill a category to a number.</span></div>
+          <div class="expect"><span>Expect</span><span>The P / R / V line shows the targets; the header says Thin when a category is under target.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.targets, gui.k.thin, gui.k.altF PASS.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p6">
+      <div class="phase-head"><span class="num">6</span><h2>Apply, send off, rotation</h2>
+        <p class="why">The roster reaches DF at each season boundary or by hand.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="6.1"><div class="id">6.1</div><div class="body"><h3>Dry run</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>D</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The Dry-run season table opens; nothing changes.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlD PASS; screen C4-dryrun.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.2"><div class="id">6.2</div><div class="body"><h3>Apply now</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>A</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The announcement reads <b>&lt;Season&gt; wildlife applied (N active).</b></span></div>
+          <div class="watch"><span>Watch</span><span>If the filter box has focus, Ctrl+A may select its text.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlA PASS; GUI line 1464.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.3"><div class="id">6.3</div><div class="body"><h3>Send off and next</h3>
+          <div class="do"><span>Do</span><span>With wild animals on the surface, press <kbd>Ctrl</kbd>+<kbd>F</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The groups on the map are told to leave; DF may send the next wave.</span></div>
+          <div class="watch"><span>Watch</span><span>Its label reads “Send off + ne” (clipped).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlF PASS; round 1 6.3 (8 tied units → 0).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="6.4"><div class="id">6.4</div><div class="body"><h3>Rotation off and on</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Ctrl</kbd>+<kbd>E</kbd> twice.</span></div>
+          <div class="expect"><span>Expect</span><span>The header reads rotation off, then ON.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ctrlE PASS.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p7">
+      <div class="phase-head"><span class="num">7</span><h2>Reset</h2>
+        <p class="why">Two levels: the roster, or everything.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="7.1"><div class="id">7.1</div><div class="body"><h3>Reset the roster<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>Alt</kbd>+<kbd>R</kbd>, choose <b>The roster</b>, answer Yes.</span></div>
+          <div class="expect"><span>Expect</span><span>Every species as first found: active natural species, one season each (a predator may keep a second for a pair). Stock and settings kept. Ledger: <b>reset the roster to the embark as first found: N species active, one season each</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Odds a roster build wrote are settings, so they survive this reset.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.altR PASS; screens C11-reset-choice, C17h-ledger.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="7.2"><div class="id">7.2</div><div class="body"><h3>Reset everything<span class="tag">re-check 17.1</span></h3>
+          <div class="do"><span>Do</span><span>On the copy, press <kbd>Alt</kbd>+<kbd>R</kbd>, choose <b>Everything</b>, answer Yes. Then type <code>seasonal-wildlife v7</code> and read the Ledger’s last line.</span></div>
+          <div class="expect"><span>Expect</span><span>Stock back to the worldgen snapshot and every setting to its default, the v7 switches and the realm included. The ledger line talks of stock, not abundances.</span></div>
+          <div class="watch"><span>Watch</span><span>That the v7 switches return to their defaults is read from the code (resetToDefault copies defaultConfig whole); no test has looked.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 17.1 and f80d072; engine resetToDefault line 3214 (untested for cfg.v7).</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p8">
+      <div class="phase-head"><span class="num">8</span><h2>Add an invasive species</h2>
+        <p class="why">A species not native to the embark can be brought in live. v6.7 puts it on the roster at once.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="8.1"><div class="id">8.1</div><div class="body"><h3>Add invasive<span class="tag">re-check 8.1</span></h3>
+          <div class="do"><span>Do</span><span>Press <kbd>V</kbd> until View reads Add invasive, select a species, press <kbd>Ctrl</kbd>+<kbd>X</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The status line reads <b>TOKEN added to N region(s) (a-b), live: active, Sp. Enter makes it inactive.</b> (or <b>inactive</b>). The species is on the Roster at once, active with exactly one season or inactive; the ledger records the add.</span></div>
+          <div class="watch"><span>Watch</span><span>An added species with no state until you reopen the window: that was round 1’s anomaly.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.addnew.whole, gui.k.ctrlX PASS; GUI act_addnew; addendum 95.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="8.2"><div class="id">8.2</div><div class="body"><h3>A savage species on a calm map</h3>
+          <div class="do"><span>Do</span><span>If your map is calm (no savage region), add a SAVAGE species that matches its biome (on temperate shrubland, CENOZOIC_SMILODON) and play a season.</span></div>
+          <div class="expect"><span>Expect</span><span>Today: the add succeeds and DF never draws the species. On CTRL, with the entry added, 0 smilodons in a full season, both replicates.</span></div>
+          <div class="watch"><span>Watch</span><span>Mark it Pass if the page’s description holds; the gap is a design question.</span></div>
+          <div class="pend"><span>Pending</span><span><b>savage</b>: if the tool is to place SAVAGE species itself, the species should appear as a placed group; if it is to refuse them, the add should be refused with a reason. Until decided, nothing arrives.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO INV2 (findings.md).</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p9">
+      <div class="phase-head"><span class="num">9</span><h2>Seasons tab</h2>
+        <p class="why">Every active species under its level across the four seasons, editable.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="9.1"><div class="id">9.1</div><div class="body"><h3>Read it</h3>
+          <div class="do"><span>Do</span><span>Click <b>Seasons</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns Spring to Winter; <b>+</b> arrives that season, <b>-</b> leaves after it, <b>X</b> stays, <b>.</b> not present.</span></div>
+          <div class="watch"><span>Watch</span><span>Names over 20 letters run into the Spring column with no gap (BIRD_SWALLOW_CAVE_GI.).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.seasons PASS; screens C18-seasons, C18e-help.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="9.2"><div class="id">9.2</div><div class="body"><h3>Edit from the grid</h3>
+          <div class="do"><span>Do</span><span>Select a row and press <kbd>S</kbd>, <kbd>U</kbd>, <kbd>A</kbd> or <kbd>W</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>That season flips; the header names the species with its seasons.</span></div>
+          <div class="watch"><span>Watch</span><span>Removing the last season should be refused here too.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.seasons.edit PASS; screen C18d-seasons-S.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p10">
+      <div class="phase-head"><span class="num">10</span><h2>Food web</h2>
+        <p class="why">Who eats whom, from role, habitat and size; animal people now as their root animal.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="10.1"><div class="id">10.1</div><div class="body"><h3>The pyramid<span class="tag">re-check 10.1</span></h3>
+          <div class="do"><span>Do</span><span>Click <b>Food web</b> and press <kbd>N</kbd> to pick a season.</span></div>
+          <div class="expect"><span>Expect</span><span>A trophic pyramid of unlabelled tiers with <b>^</b> between them, apex at the top, vermin at the base; an aquatic chain below it, each line a predator <b>----&gt;</b> what it eats.</span></div>
+          <div class="watch"><span>Watch</span><span>A tier missing on a fort that has its animals.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.foodweb, gui.k.webN PASS; screen C16-foodweb; round 1 10.1 (page corrected).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="10.2"><div class="id">10.2</div><div class="body"><h3>Animal people as prey and predator<span class="tag">re-check 10.1</span></h3>
+          <div class="do"><span>Do</span><span>Find an animal person in the pyramid or chain, and its root animal.</span></div>
+          <div class="expect"><span>Expect</span><span>Each sits where its root sits: what eats JAGUAR eats JAGUAR_MAN; what the root eats, the person eats. A giant otter still eats a jaguar man, because it eats the jaguar (left as is by the user).</span></div>
+          <div class="watch"><span>Watch</span><span>An animal person placed differently from its root.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.animalperson PASS; addendum 95 (“Left as is”).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="10.3"><div class="id">10.3</div><div class="body"><h3>Diet follows habitat<span class="tag">re-check R3</span></h3>
+          <div class="do"><span>Do</span><span>Look for a land predator eating a sea creature, or a bird eating a large fish.</span></div>
+          <div class="expect"><span>Expect</span><span>None. A lion takes no shark, an eagle no tuna, a great white no deer; an osprey takes small sea fish.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.diet.habitat, mech.v69.reach PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="10.4"><div class="id">10.4</div><div class="body"><h3>The four modes</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>G</kbd> to step Pyramid, Graph, By season; <kbd>L</kbd> for Layers side by side.</span></div>
+          <div class="expect"><span>Expect</span><span>Graph shows arrows and live pairs; By season four columns; By layer the layers side by side.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.webG, gui.k.webL PASS; screens C16b–C16d.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p11">
+      <div class="phase-head"><span class="num">11</span><h2>Live</h2>
+        <p class="why">What is on the map, where it came from, and the ecology line, which in v7.0 carries the relation sweep.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="11.1"><div class="id">11.1</div><div class="body"><h3>Origins</h3>
+          <div class="do"><span>Do</span><span>Click <b>Live</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>A <b>Wild on map</b> line, then each animal by origin: DF wave, tool-drawn, resident, born here, untracked, deep.</span></div>
+          <div class="watch"><span>Watch</span><span>An animal counted twice or in no origin. Sponges are never listed: they are scenery.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.live, mech.v70.sponges PASS; screen C17-live; mech.origin NOT-TESTABLE-HERE.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.2"><div class="id">11.2</div><div class="body"><h3>The ecology line and the sweep<span class="tag new">new v7.0</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Read the line that starts <code>ecology:</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>ecology: on  last write day D: P predator(s) x T target(s), N pair(s) written …; livestock safe; nudge on; sweep: last N cleared (N refought) of N managed, N ms; total N cleared, N refought</b>. The sweep clears DF’s own predator-prey cells between two managed wild animals that the roster’s web does not pair.</span></div>
+          <div class="watch"><span>Watch</span><span>A sweep that never clears anything is normal on a quiet surface (RELS2b: wild-wild surface relations almost never arise); caverns give it work. <b>nudged</b> counts teleports, which rest on r2’s changed teleport.</span></div>
+          <div class="pend"><span>Pending</span><span><b>cadence</b>: at 3,000 ticks the “last write day” moves half as often. <b>nudge</b>: if off, the line reads “nudge off” and nudged stays 0.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.sweep PASS (0 cleared on CTRL), gui.tab.live; screen C17-live; ECO RELS2b, HC4.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.3"><div class="id">11.3</div><div class="body"><h3>The limits line<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Read the line that starts <code>limits:</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>limits: land auto (N) group(s) at once, ceiling none; water auto (N) group(s) at once per water body, ceiling 12; cavern auto (N) group(s) at once per cavern, ceiling none</b>, with N = floor(√embark tiles) + 1: 5 on a 4x4, 7 on a 6x6.</span></div>
+          <div class="watch"><span>Watch</span><span>A number instead of auto means someone set it (18.1).</span></div>
+          <div class="pend"><span>Pending</span><span><b>water 2</b>: if adopted, water reads “2 group(s) at once per water body”. <b>cavern cap</b>: if adopted, the cavern part is relabelled as a soft target; the number stays.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.groups_auto_all, groups_water_body, groups_cavern_depth, mech.v69.autogroups PASS; screen C17-live.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.4"><div class="id">11.4</div><div class="body"><h3>Groups and their leaders<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Scroll to <b>Groups:</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>The line <b>Groups: ON   N at once   gap 5-20 days   released N   departed N</b>, then one row per group: species, size, how it came, its day, and <b>led by #id</b> for a herd, pack, flock or school.</span></div>
+          <div class="watch"><span>Watch</span><span>v7.0 picks the largest adult male as leader. You can spot-check: <kbd>F</kbd> (11.6) follows a member; DF’s unit sheet shows sex and size.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.leader_male PASS; mech.leader.lowest (v7.0-aware) PASS; ECO COH.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.5"><div class="id">11.5</div><div class="body"><h3>Hold and send off</h3>
+          <div class="do"><span>Do</span><span>Select a group; press <kbd>Q</kbd> (hold 30 days), then <kbd>X</kbd> (send off).</span></div>
+          <div class="expect"><span>Expect</span><span>The row reads <b>held N more days</b>, then <b>dismissed</b>; the ledger has both.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.liveQ, gui.k.liveX PASS; screens C17c, C17d.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.6"><div class="id">11.6</div><div class="body"><h3>Follow and centre</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>F</kbd> on a group, then <kbd>Enter</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>The camera follows a member; Enter centres the map on the group.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.liveF, gui.k.liveEnter PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.7"><div class="id">11.7</div><div class="body"><h3>Send off and next from Live</h3>
+          <div class="do"><span>Do</span><span>With a gated land group on the map, press <kbd>W</kbd> on the Live tab.</span></div>
+          <div class="expect"><span>Expect</span><span>Every gated land group is sent off and the gate opens, as the Roster’s Ctrl+F does.</span></div>
+          <div class="watch"><span>Watch</span><span>Alpha Two never stepped this key. The validator could not test it on CTRL (no gated group at the time).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.liveW NOT-TESTABLE-HERE; v6.live.hotkeys PASS; GUI line 456.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="11.8"><div class="id">11.8</div><div class="body"><h3>Herds and packs</h3>
+          <div class="do"><span>Do</span><span>Read the Herds &amp; packs block.</span></div>
+          <div class="expect"><span>Expect</span><span>Each tracked species is herd, pack, flock or school, with the reason from its raws.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: v6.herds PASS; screen C17-live.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p12">
+      <div class="phase-head"><span class="num">12</span><h2>Layers</h2>
+        <p class="why">One column per layer with the same words on each. This tab has not caught up with v6.9’s auto and v7.0’s per-body and per-cavern counts.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="12.1"><div class="id">12.1</div><div class="body"><h3>Read the table</h3>
+          <div class="do"><span>Do</span><span>Click <b>Layers</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Columns LAND, WATER, CAVERN, DEEP; rows layer, drawn by, groups at once, ceiling, gap, pattern, coupling, cohesion, ecology switch, nudge after, pack size, irruptions, cavern pressure.</span></div>
+          <div class="watch"><span>Watch</span><span>The groups-at-once row shows the stored number, not auto: on CTRL it read 3, 2, 2 while the Live tab said auto (5) per cavern. Compare with 11.3 and mark a mismatch.</span></div>
+          <div class="pend"><span>Pending</span><span><b>cavern cap</b>: the decision is to relabel this cavern cell as a soft target. <b>nudge</b>: the nudge row reads its distances either way.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.layers PASS; screen C17e-layers vs C17-live; GUI refreshLayers line 1217.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.2"><div class="id">12.2</div><div class="body"><h3>Change a limit</h3>
+          <div class="do"><span>Do</span><span>Press <kbd>L</kbd> to pick the land column, then <kbd>C</kbd> and enter 3. Then read the Live tab’s limits line.</span></div>
+          <div class="expect"><span>Expect</span><span>The cell reads 3, the ledger records <b>land groups at once 3</b>, and Live’s limits line reads <b>land 3 group(s) at once</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Read from the code: this key stores the number but does not turn auto off, so Live most likely still reads auto (N), and the engine keeps using auto. If so, mark an anomaly; <code>seasonal-wildlife limits land groups 3</code> does turn it off (18.1).</span></div>
+          <div class="basis"><span>Basis</span><span>GUI act_lay_concurrent line 1283 (QUOTA.set, auto untouched); engine QUOTA.groupsFor; round 1 12.2 passed on v6.6 (no auto then). Untested on v7.0.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.3"><div class="id">12.3</div><div class="body"><h3>The water line<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Read the line under the table that starts <code>water:</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>water: draws on  N of M per body group(s) at once, N of 12 animals; water ocean … river … (salt N / fresh N); next draw in D days</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>A fort with water that reads dormant. The table’s water cell says 2 while this line says per body.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: screen C17e-layers; mech.water.live PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="12.4"><div class="id">12.4</div><div class="body"><h3>Caverns</h3>
+          <div class="do"><span>Do</span><span>Read the Caverns block.</span></div>
+          <div class="expect"><span>Expect</span><span>Each cavern <b>not yet found</b> until your dwarves reach it, then its species and groups.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: v6.caverns PASS; screen C17e-layers.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p13">
+      <div class="phase-head"><span class="num">13</span><h2>Vermin, and vermin hunting</h2>
+        <p class="why">Vermin by family. In v7.0 the Vermin tab lists no locked species.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="13.1"><div class="id">13.1</div><div class="body"><h3>Families</h3>
+          <div class="do"><span>Do</span><span>Click <b>Vermin</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>One row per family present (fish, flies, fliers, mammals, soil, colony, crawlers) with n, active, season, stock and layers.</span></div>
+          <div class="watch"><span>Watch</span><span>A good or evil species your map does not match listed here (v7.0 dropped them).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.tab.vermin, mech.v70.vermin_nolocked PASS; screen C18b-vermin.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.2"><div class="id">13.2</div><div class="body"><h3>Open a family</h3>
+          <div class="do"><span>Do</span><span>Select a family and press <kbd>E</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>Its species appear under it, each with active, seasons, stock and layer.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.vermin.species PASS; screen C18c-vermin-open.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.3"><div class="id">13.3</div><div class="body"><h3>Edit one vermin species</h3>
+          <div class="do"><span>Do</span><span>On a species row press <kbd>Enter</kbd>, a season key, or <kbd>Shift</kbd>+<kbd>W</kbd> (stock).</span></div>
+          <div class="expect"><span>Expect</span><span>That species alone changes.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 13.3 pass.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="13.4"><div class="id">13.4</div><div class="body"><h3>Vermin hunting on</h3>
+          <div class="do"><span>Do</span><span>On the Panel, turn on <b>Vermin hunting</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Predatory and water birds get DIVE_HUNTS_VERMIN, small land predators HUNTS_VERMIN, while the switch is on.</span></div>
+          <div class="watch"><span>Watch</span><span>X5 saw no effect of these flags on wild animals. The v7.0 gobble (21.7) is the mechanism that worked.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.hunt PASS; addendum 94 (X5).</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p14">
+      <div class="phase-head"><span class="num">14</span><h2>Ledger, undo, help</h2>
+        <p class="why">Every write the tool makes is in the ledger; edits can be undone.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="14.1"><div class="id">14.1</div><div class="body"><h3>Filter the ledger</h3>
+          <div class="do"><span>Do</span><span>Click <b>Ledger</b>; press <kbd>K</kbd> (kind) and <kbd>L</kbd> (layer).</span></div>
+          <div class="expect"><span>Expect</span><span>The list narrows; the count line reads <b>N of M recorded</b> with the filter.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ledgerK PASS; screen C17h-ledger.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="14.2"><div class="id">14.2</div><div class="body"><h3>Undo<span class="tag">re-check 9.2</span></h3>
+          <div class="do"><span>Do</span><span>Make three roster edits, then press <kbd>Z</kbd> three times.</span></div>
+          <div class="expect"><span>Expect</span><span>Each undone in reverse order; the label shows how many remain, <b>Undo last edit (N)</b>; fifty deep.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.k.ledgerZ PASS; screen C17h-ledger-undo.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="14.3"><div class="id">14.3</div><div class="body"><h3>Help on every tab</h3>
+          <div class="do"><span>Do</span><span>On each tab press <kbd>Alt</kbd>+<kbd>H</kbd>.</span></div>
+          <div class="expect"><span>Expect</span><span>A help page for the tab, then the vocabulary: active, seasons, stock, odds, group size, groups at once, ceiling, gap, cohesion, coupling, ecology, nudge, hold, send off, call, seasonal rotation, Add invasive, agitated, special creatures.</span></div>
+          <div class="watch"><span>Watch</span><span>A word in the window the help does not explain. None of the v6.9 or v7.0 words (exhaustion, scavenging, sweep, builder) is in the help.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: gui.help PASS; screen C18e-help; GUI HELP table.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p15">
+      <div class="phase-head"><span class="num">15</span><h2>The map overlay</h2>
+        <p class="why">Group markers and predator-prey links on the map.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="15.1"><div class="id">15.1</div><div class="body"><h3>Turn it on<span class="tag">re-check R5</span></h3>
+          <div class="do"><span>Do</span><span>Open <code>gui/control-panel</code> (or the Panel’s Map overlay row) and enable <code>seasonal-wildlife.groups</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>Markers on tracked groups on the level you view, and lines between related predators and prey.</span></div>
+          <div class="watch"><span>Watch</span><span>All off does not turn the overlay off (1.4); turn it off yourself at the end.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.overlay, mech.overlay.links, w0.overlay PASS; screen C0c-panel-alloff.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p16">
+      <div class="phase-head"><span class="num">16</span><h2>Console, part one: the roster from the console</h2>
+        <p class="why">Phase two of the alpha, promised since alpha one: the console verbs. v6.8 added the Roster’s two edits as verbs, for the browser companion. Type each line in the DFHack console with the window closed, then reopen the window to see the effect.</p></div>
+      <h3 class="sub" style="margin-top:0">Every console verb, from the engine’s dispatcher</h3><p class="muted" style="margin-top:6px;max-width:72ch">The script’s own help (<code>help seasonal-wildlife</code>) omits <code>limits</code>, <code>stock</code>, <code>odds</code>, <code>size</code>, <code>call</code>, <code>sendoff</code>, <code>undo</code>, <code>preset</code>, <code>irruption</code>, <code>hunting</code>, <code>sponges</code>, <code>roster KEY</code> and <code>seasons</code>, and still lists retired forms. This table is read from the code instead.</p><div class="tablewrap"><table class="cmdref"><thead><tr><th>Verb (type after <code>seasonal-wildlife</code>)</th><th>What it does</th><th>Step</th></tr></thead><tbody>
+<tr><td>status</td><td>biomes, layers, limits, patterns, ledger, cavern, water, hunting, gobble and fuse lines, the map’s counts, the embark subset</td><td>16.1</td></tr>
+<tr><td>now · enable · disable</td><td>apply the season’s roster once; rotation on or off</td><td>16.1</td></tr>
+<tr><td>roster [KEY [active|inactive]]</td><td>counts per layer, or one species’ state (v6.8)</td><td>16.2, 16.3</td></tr>
+<tr><td>seasons KEY &lt;SpSuAuWi|all&gt;</td><td>set seasons; <code>none</code> is refused (v6.8)</td><td>16.4, 16.5</td></tr>
+<tr><td>undo</td><td>undo the last roster edit, window or console</td><td>16.6</td></tr>
+<tr><td>stock|odds|size KEY [N|clear] · call KEY</td><td>one species’ stock, odds, group size; call a wave</td><td>16.7</td></tr>
+<tr><td>limits [land|water|cavern] [groups N|auto] [ceiling N]</td><td>groups at once and ceiling; <code>auto</code> refused on water; <code>quota</code> is the retired alias</td><td>18.1</td></tr>
+<tr><td>pattern [land|water|cavern] &lt;steady|burst|trickle|dawn|follow&gt;</td><td>arrival pattern per layer</td><td>16.8</td></tr>
+<tr><td>sendoff [land|cavern]</td><td>every gated group of a layer walks off</td><td>16.8</td></tr>
+<tr><td>layer &lt;land|water|cavern|deep&gt; on|off</td><td>a layer on or off</td><td>16.8</td></tr>
+<tr><td>ledger [N] [kind] [land|water|cavern] | clear</td><td>the tool’s writes</td><td>16.8</td></tr>
+<tr><td>groups [on|off|coupling on|off|ecology on|off|now|cavern on|off|max N|livestock on|off|nudge T K R|pack N|cohesion …|hold TOKEN DAYS|dismiss TOKEN]</td><td>groups, the ecology switch and its levers</td><td>21.1</td></tr>
+<tr><td>water [on|off|now|survey|countdown N]</td><td>the water draw (<code>target</code>, <code>cadence</code> retired)</td><td>16.8</td></tr>
+<tr><td>caverns [survey] · cavern</td><td>cavern bands; <code>cavern</code> prints “retired in v6.5”</td><td>16.8</td></tr>
+<tr><td>vermin [classes|defaults|&lt;family&gt; [on|off|seasons …|abundance N]]</td><td>vermin by family; <code>classes</code> is v7.0</td><td>21.7</td></tr>
+<tr><td>hunting [on|off] · irruption [on|off|…]</td><td>vermin-hunting flags; cavern irruptions</td><td>16.8</td></tr>
+<tr><td>exhaust [on|off|now] · alerts [on|off] · curious [TOKEN resident|thief] · scavenge [on|off|now|radius N]</td><td>v6.9 jobs</td><td>18.2–18.5</td></tr>
+<tr><td>v7 [KEY on|off|N | fisher TOKEN on|off | apply]</td><td>the v7 switches (numbers 0 to 10)</td><td>19.1–19.4</td></tr>
+<tr><td>roster build [land|water|cavern] · roster outgun [land|water|cavern]</td><td>the roster builder; the outgun survey</td><td>20.1–20.5</td></tr>
+<tr><td>realm [name|auto|off]</td><td>the embark’s realm for the builder</td><td>20.6</td></tr>
+<tr><td>sponges [now]</td><td>sponge ribbons on the ocean floor</td><td>21.6</td></tr>
+<tr><td>classes · class TOKEN natural|auto · preset · place TOKEN [n] [layer [depth]]</td><td>class review and override; re-apply the biome preset; headless placement (a test tool)</td><td>not stepped</td></tr>
+</tbody></table></div>
+      <div class="steps">
+        <div class="step" data-id="16.1"><div class="id">16.1</div><div class="body"><h3>Status and apply<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife status</code>, then <code>seasonal-wildlife now</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><code>status</code>: Biomes, Layers, the limits line, patterns, ledger, caverns, cavern map, water, vermin hunting, <b>vermin gobble</b>, fuse, <b>On the map now</b>, the invasion field, then the embark subset. <code>now</code>: <b>active: N  [N ms]</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Before the rotation runs this session, the gobble line reads <b>vermin gobble: on, not yet applied this session (`v7 apply` or enable the rotation)</b>.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.status, cli.now PASS (output quoted in results.json).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.2"><div class="id">16.2</div><div class="body"><h3>Roster counts<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife roster</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>One line per layer: <b>roster land     24 active (0 in season now),   0 inactive</b>.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.roster PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.3"><div class="id">16.3</div><div class="body"><h3>Inactive and active from the console<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Pick an active species with a one-word key (BADGER, or cavern:CRUNDLE) and type <code>seasonal-wildlife roster BADGER inactive</code>, then <code>seasonal-wildlife roster BADGER active</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>BADGER inactive, seasons -  [guild: ground mesocarnivore]</b>, then <b>BADGER active, seasons Au  [guild: …]</b>: one season. Each is one ledger line and one undo step; the Roster shows it when reopened.</span></div>
+          <div class="watch"><span>Watch</span><span>Raw ids with a space or comma (HONEY BADGER, RIVER OTTER, “BADGER, GIANT”) cannot be named: the console splits them. Quoting is untested.</span></div>
+          <div class="basis"><span>Basis</span><span>validate-full 20260930-125813 (v6.9): cli.roster.state PASS; NOT-TESTABLE-HERE on run 074833 (no fit species on CTRL); open-items bug spaced-raw-ids-cli.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.4"><div class="id">16.4</div><div class="body"><h3>Set seasons<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife seasons BADGER SpAu</code>, then <code>seasonal-wildlife seasons BADGER none</code>, then <code>seasonal-wildlife seasons BADGER Xy</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>BADGER active, seasons SpAu</b>. <code>none</code> is refused: <b>seasons: an active species keeps at least one season; to keep BADGER away: seasonal-wildlife roster BADGER inactive</b>. A bad code prints <b>usage: seasonal-wildlife seasons BADGER &lt;SpSuAuWi|all&gt;   e.g. SpAu, Wi, all</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>On v6.9 a species whose raws forbid a season printed “note: … has NO_SPRING in its raws”. With v7.0’s seasons_own on, no note: the tool clears NO_&lt;season&gt; (19.4).</span></div>
+          <div class="basis"><span>Basis</span><span>20260930-125813: cli.seasons.set PASS; engine dispatcher (seasons branch).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.5"><div class="id">16.5</div><div class="body"><h3>Seasons on an inactive species<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Make a species inactive (16.3), then type <code>seasonal-wildlife seasons KEY Wi</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>It becomes active, in Winter only.</span></div>
+          <div class="watch"><span>Watch</span><span>No validator run has tested this: mark what you see.</span></div>
+          <div class="basis"><span>Basis</span><span>cli.seasons.activate NOT-TESTABLE-HERE in every run (125813, 124923, 074833). Untested.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.6"><div class="id">16.6</div><div class="body"><h3>Undo from the console</h3>
+          <div class="do"><span>Do</span><span>After 16.4, type <code>seasonal-wildlife undo</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>undid: seasons  (N more to undo)</b>; the species is back as before. With nothing left: <b>undo: nothing to undo</b>.</span></div>
+          <div class="basis"><span>Basis</span><span>20260930-125813: cli.roster.undo PASS; run 074833: cli.undo PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.7"><div class="id">16.7</div><div class="body"><h3>Stock, odds, size and call</h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife stock BADGER 40</code>, <code>seasonal-wildlife odds BADGER 20</code>, <code>seasonal-wildlife size BADGER 2</code>, <code>seasonal-wildlife call BADGER</code>, then <code>seasonal-wildlife stock BADGER clear</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>Each prints its line from the species detail (<b>stock …</b>, <b>odds …</b>, <b>group size …</b>) and writes one ledger line. <code>call</code> prints <b>called BADGER: …</b> or <b>cannot call BADGER: …</b> with the reason. <code>clear</code> hands it back to the raws.</span></div>
+          <div class="watch"><span>Watch</span><span>An unknown key prints the usage with the key forms: TOKEN, water:TOKEN, cavern:TOKEN, deep:TOKEN.</span></div>
+          <div class="basis"><span>Basis</span><span>engine dispatcher (stock/odds/size/call); mech.stock.reserve, mech.odds, mech.groupsize, mech.call NOT-TESTABLE-HERE in run 074833.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="16.8"><div class="id">16.8</div><div class="body"><h3>The other settings verbs</h3>
+          <div class="do"><span>Do</span><span>Try <code>seasonal-wildlife pattern land burst</code> and <code>seasonal-wildlife pattern land steady</code>; <code>seasonal-wildlife ledger 10 edit</code>; <code>seasonal-wildlife layer water on</code>; <code>seasonal-wildlife water</code>; <code>seasonal-wildlife caverns</code>; <code>seasonal-wildlife hunting</code>; <code>seasonal-wildlife irruption</code>; <code>seasonal-wildlife sendoff land</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>patterns: land=burst  water=steady  cavern=steady</b>; ten ledger lines then <b>ledger: 10 of N recorded shown  kind=edit</b>; <b>layers: land=on water=on …</b>; the water status and its groups line; one line per cavern band; <b>vermin hunting: off</b>; the irruption status (off); <b>sent off N gated land group(s); the gate is open</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>Retired words still answer: <code>water target</code> and <code>cavern</code> print that they were retired in v6.5. The verb list printed for an unknown verb is stale (it offers quota and water target).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.pattern, cli.ledger, cli.water, cli.caverns, cli.irruption, cli.usage PASS; mech.sendoff NOT-TESTABLE-HERE; engine dispatcher.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p17">
+      <div class="phase-head"><span class="num">17</span><h2>The browser companion</h2>
+        <p class="why">v6.8’s web page: the tool’s state in a browser on the same machine, refreshed every two seconds; every change is sent as one console verb.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="17.1"><div class="id">17.1</div><div class="body"><h3>Start it<span class="tag new">new v6.8</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife-web start</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>start: serving the companion at http://127.0.0.1:8642/?t=&lt;token&gt;  (copied to the clipboard)  [tiles: N creatures, N sheets, read in N ms]</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>It needs DFHack’s luasocket. Only 127.0.0.1 is served. Under CrossOver, open the address in a browser on the Mac.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: web.serve PASS on r1.1 (page 200, 75,201 bytes; state 200).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="17.2"><div class="id">17.2</div><div class="body"><h3>Read the page<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Open the address.</span></div>
+          <div class="expect"><span>Expect</span><span>The fort’s name and date, a layer selector, Steam or ASCII tiles, and four tabs: Status, Species, Food web, Ledger &amp; settings. It updates every two seconds.</span></div>
+          <div class="watch"><span>Watch</span><span>A blank page or a stale date.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: web.snapshot (24 species, 87 pairs, built in 26 ms), web.gfx PASS; seasonal-wildlife-web.html TABS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="17.3"><div class="id">17.3</div><div class="body"><h3>Change something from the page<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>On Species, switch one species’ <b>Active</b> off. Then reopen the window’s Roster and the Ledger.</span></div>
+          <div class="expect"><span>Expect</span><span>The page says the species is inactive; the window shows it inactive with WHY <b>you</b>; the ledger has the edit. Switch it back on.</span></div>
+          <div class="watch"><span>Watch</span><span>The page’s Hold is 3 days; the window’s Q holds 30.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: web.cmd PASS (POST /cmd ran “seasonal-wildlife roster”).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="17.4"><div class="id">17.4</div><div class="body"><h3>The token guard<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Open the same address with the <code>?t=…</code> part removed.</span></div>
+          <div class="expect"><span>Expect</span><span>The page or its data is refused.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: web.guard PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="17.5"><div class="id">17.5</div><div class="body"><h3>Its cost, then stop it<span class="tag new">new v6.8</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife-web status</code>, then <code>seasonal-wildlife-web stop</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>serving http://… requests N (commands N, refused N, errors N); poll last N ms, worst N ms; snapshot last N ms, worst N ms</b>; then the port closes and the page stops updating.</span></div>
+          <div class="watch"><span>Watch</span><span>A worst poll or snapshot near a frame (20 ms at 50 fps) would show as stutter.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: web.stop PASS; seasonal-wildlife-web.lua status().</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p18">
+      <div class="phase-head"><span class="num">18</span><h2>Console, part two: the v6.9 jobs</h2>
+        <p class="why">v6.9 turned five ECO findings into features. Two have Panel rows; all five have verbs.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="18.1"><div class="id">18.1</div><div class="body"><h3>Groups at once: auto and a number<span class="tag new">new v6.9</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife limits</code>; <code>seasonal-wildlife limits land groups 3</code>; <code>seasonal-wildlife limits land groups auto</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The limits line (11.3) and <b>on the map now: land N  water N  cavern N  deep N</b>; then <b>land 3 group(s) at once</b>; then <b>land auto (N)</b> again.</span></div>
+          <div class="watch"><span>Watch</span><span>Water cannot go back to auto: <code>seasonal-wildlife limits water groups auto</code> prints the usage. Once water is set to a number, only Reset everything restores auto (read from the code).</span></div>
+          <div class="pend"><span>Pending</span><span><b>water 2</b>: if adopted, water reads 2 per body by default and this gap matters less.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v69.autogroups PASS; ECO2-G, SW3B (1 < 3 ≤ auto); engine limits branch.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="18.2"><div class="id">18.2</div><div class="body"><h3>Exhaustion and replacement<span class="tag new">new v6.9</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife exhaust</code>. Then pick an active species in season, type <code>seasonal-wildlife stock KEY 0</code> and <code>seasonal-wildlife exhaust now</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>exhaustion watch: on; exhausted this season: none; replacements: none</b>; then <b>exhaust: 1 replacement(s) made</b> and a ledger line <b>KEY exhausted (stock 0): OTHER takes its niche for the rest of &lt;Season&gt;</b>. In N1 the replacement’s waves began about 2,000 ticks later.</span></div>
+          <div class="watch"><span>Watch</span><span>Look at what replaces what. On CTRL the validator’s run logged BIRD_OSPREY → DINGO and FISH_LAMPREY_SEA → RIVER OTTER: a niche crossing habitat.</span></div>
+          <div class="basis"><span>Basis</span><span>validate-full 20260930-124844: mech.v69.exhaust PASS; NOT-TESTABLE-HERE in run 074833; screen C17h-ledger (074833); ECO N1.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="18.3"><div class="id">18.3</div><div class="body"><h3>Quiet wildlife fights<span class="tag new">new v6.9</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife alerts</code>. Watch a fight between two wild animals, and one involving a dwarf or an animal person.</span></div>
+          <div class="expect"><span>Expect</span><span><b>quiet wildlife fights: on (combat alerts with no humanoid in them are dropped)</b>. The wild-only fight raises no combat alert; the other still does. The fight stays in each animal’s own log.</span></div>
+          <div class="watch"><span>Watch</span><span>A dwarf fight that raises no alert. r2 changed isCitizen to exclude the dead; the filter’s humanoid test reads it.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.alerts PASS; ECO A1, A2 (wolves x deer: 3 dropped, 0 left; wolf men kept).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="18.4"><div class="id">18.4</div><div class="body"><h3>Curious beasts as residents<span class="tag new">new v6.9</span></h3>
+          <div class="do"><span>Do</span><span>If a curious beast lives near you (raccoon, grizzly), type <code>seasonal-wildlife curious RACCOON resident</code>; then <code>seasonal-wildlife curious DEER resident</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>curious beasts kept as residents (flags cleared while the tool runs): RACCOON</b>; the raccoons wander and stay instead of stealing and leaving. DEER is refused: <b>curious: DEER is not a curious beast (no CURIOUSBEAST_EATER/ITEM/GUZZLER)</b>. <code>seasonal-wildlife curious RACCOON thief</code> puts DF’s way back.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.curious PASS (flags 4 → 0 → 4); ECO CB (4 of 4 stayed with the flags off).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="18.5"><div class="id">18.5</div><div class="body"><h3>Scavenging<span class="tag new">new v6.9</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>With remains of a wild kill on the map, type <code>seasonal-wildlife scavenge on</code>, then <code>seasonal-wildlife scavenge now</code>, then <code>seasonal-wildlife scavenge</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>scavenge: N eaten</b>; status <b>scavenging: on  map-wide, off stockpiles and buildings  last pass: N scavenger(s), N remains, N walking, N eaten  fallbacks: 0</b>. On CTRL and RIVER4 the pass cleared every carcass on land and in water within about 2,400 ticks.</span></div>
+          <div class="watch"><span>Watch</span><span>Two known lies in the status line: “last pass” repeats the last non-empty pass, and “on” shows even when the rotation is off, when nothing runs. The walk uses setPathGoal, which r2 fixed.</span></div>
+          <div class="pend"><span>Pending</span><span><b>swimmers</b>: if carnivorous swimmers count as scavengers, alligators, crocodiles and sharks join the pass; today only pond grabbers and sea serpents do among swimmers.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.scavenge PASS; ECO SCV, SCV2b/SCV2Wb; open-items bug scav-status-diagnostics.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p19">
+      <div class="phase-head"><span class="num">19</span><h2>Console, part three: the v7 switches</h2>
+        <p class="why">Every v7.0 item is a switch in <code>cfg.v7</code>, set only from the console. Raw writes happen while the rotation is on and are put back on off, All off and unload.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="19.1"><div class="id">19.1</div><div class="body"><h3>The embark’s alignment<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife v7</code> and read its last line.</span></div>
+          <div class="expect"><span>Expect</span><span><b>embark alignment: good</b>, <b>evil</b> or <b>neutral (N region tiles read)</b>. On a good map, good natural species (fluffy wamblers, pixies) are on the Roster and evil ones locked; an evil map the mirror. Cavern good or evil species (trolls, gorlaks, blind cave ogres) are ordinary cavern life everywhere.</span></div>
+          <div class="watch"><span>Watch</span><span>A good or evil species on the Roster of a map whose alignment does not match.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.align, mech.v70.cave_aligned, mech.v70.fanciful PASS; ECO item 6 (GOODF, EVILF).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="19.2"><div class="id">19.2</div><div class="body"><h3>Change one switch<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>With the rotation on, type <code>seasonal-wildlife v7 domestic on</code>, then <code>seasonal-wildlife v7 domestic maybe</code>, then <code>seasonal-wildlife v7 domestic off</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The switch flips and the tool rewrites its raws: <b>v7 raws: NO_&lt;season&gt; cleared N; solitary package on N species (natural skills N of N, gaits N, units N); fishers N; gobble N class(es) tagged, N consumer write(s), N fallback write(s)</b>, then the list. A bad value prints <b>usage: seasonal-wildlife v7 domestic on|off</b>. Numbers take 0 to 10 (<code>seasonal-wildlife v7 outgun 3</code>).</span></div>
+          <div class="watch"><span>Watch</span><span>With the rotation off it prints <b>v7: rotation is off, so no raw is written</b>.</span></div>
+          <div class="pend"><span>Pending</span><span><b>sneak</b>: if adopted, <code>seasonal-wildlife v7 pack_sneak 0</code> becomes the default.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.v70.v7, mech.v70.restore_all PASS (CTRL: cleared 8; package on 2 species, skills 28 of 28, gaits 54; gobble 4, 6, 6).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="19.3"><div class="id">19.3</div><div class="body"><h3>Apply and count the raws<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife v7 apply</code>, then <code>seasonal-wildlife status</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The same <b>v7 raws: …</b> line; the ledger records it. <code>status</code> now reads <b>vermin gobble: on  N species class-tagged  consumers by class (written/members): …</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>All off (1.4) should report the same raw writes restored.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.restore_all PASS; engine VERMIN.gobbleStatus.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="19.4"><div class="id">19.4</div><div class="body"><h3>The tool owns seasons<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Read the <b>NO_&lt;season&gt; cleared N</b> count in 19.3. Then type <code>seasonal-wildlife v7 seasons_own off</code> and repeat 16.4 on a species whose raws forbid a season; then <code>seasonal-wildlife v7 seasons_own on</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>With seasons_own on, NO_&lt;season&gt; is cleared on every managed species and the roster’s seasons stand. Off, the raw flags return and <code>seasons</code> prints its NO_ note again.</span></div>
+          <div class="watch"><span>Watch</span><span>Whether DF then brings a species in a season its raws forbid has not been measured since the change.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.seasons_own PASS (BADGER flags 2 → 0 → 2); ECO T2 (DF honours NO_ at the pick).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="19.5"><div class="id">19.5</div><div class="body"><h3>The solitary package<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Read <b>solitary package on N species</b> in 19.3.</span></div>
+          <div class="expect"><span>Expect</span><span>Each armed hunter that travels alone (raw group 1) gets natural skill 10 in sneak, melee, bite, grasp, wrestling, dodging and awareness, silent gaits and AMBUSHPREDATOR. You cannot see the skills in the window.</span></div>
+          <div class="watch"><span>Watch</span><span>LONE10 measured it: a cougar with the package killed 29 placed prey in 10 runs against 14 without (p = 0.07).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.solo_raws PASS; ECO LONE10.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="19.6"><div class="id">19.6</div><div class="body"><h3>Switch everything off<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Press All off on the Panel (1.4), then All on.</span></div>
+          <div class="expect"><span>Expect</span><span>All off reports the v7 raw writes restored; All on writes them again.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.panel.alloff PASS; screen C0c-panel-alloff (743 v7 raw writes).</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p20">
+      <div class="phase-head"><span class="num">20</span><h2>Console, part four: the roster builder</h2>
+        <p class="why">v7.0’s builder fills a fixed table of guild slots per layer from the embark’s own candidates and writes a FREQUENCY ladder as odds. It replaces the whole roster of a layer. Use the copy.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="20.1"><div class="id">20.1</div><div class="body"><h3>The builder switch<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife v7 builder off</code>, <code>seasonal-wildlife roster build</code>, then <code>seasonal-wildlife v7 builder on</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>roster build: the 'builder' switch is off (v7 builder=false)</b>; on again, the matrix and manual roster are untouched.</span></div>
+          <div class="basis"><span>Basis</span><span>engine dispatcher (roster build); no validator claim.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="20.2"><div class="id">20.2</div><div class="body"><h3>Build the land roster<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife roster build land</code>. Read the receipt; open the Roster; then type <code>seasonal-wildlife undo</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>roster build land -- seed TOKEN</b>; one line per slot, <b>AL  1 (min 1, max 1)  COUGAR</b>, then RP, GZ, PL, ML, LB, WB, SH; any <b>UNFILLED</b> slot with its reason; <b>OUTGUNNED</b> pairs; <b>ladder:</b> one weight per pick, the largest 100; <b>vegetation index N (region N, grass N% of N surface tiles, N shrub, N tree)</b>; and <b>N previously-active land species deactivated</b> if it dropped any. The Roster shows the picks active and the rest inactive, ODDS from the ladder. <code>undo</code> prints <b>undid: roster build land</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>On CTRL the builder barely changed what arrived: its surface supply is ravens whatever the roster says (S8Cb vs S8C). The ladder is the v2.1 table, predicted ~31 % predators on land; the 14–18 % target is v2.2’s, not ported.</span></div>
+          <div class="pend"><span>Pending</span><span><b>x3</b>: removing the pack-hunter bonus makes pack hunters less likely in RP/ML picks. <b>apex</b>: dropping the apex step changes the AL line’s ladder weight; apexes would then be steered by placement and stock.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO S8Cb receipts (data/experiments/S8C/20261001-062036/log.txt); S8C, S8B, S8O; findings “Corrections” (ladder v2.1). No validator claim.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="20.3"><div class="id">20.3</div><div class="body"><h3>Build again<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife roster build land</code> a second time and compare.</span></div>
+          <div class="expect"><span>Expect</span><span>The picks can differ: the builder picks uniformly within a slot. On CTRL two builds gave GROUNDHOG, KANGAROO / PORCUPINE, BIRD_KAKAPO and KANGAROO, GROUNDHOG / BIRD_EMU, PORCUPINE.</span></div>
+          <div class="watch"><span>Watch</span><span>Undo both builds before going on.</span></div>
+          <div class="pend"><span>Pending</span><span><b>x3</b>: see 20.2.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO S8Cb rep 1 vs rep 2 receipts; roster-builder-decisions (uniform selection).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="20.4"><div class="id">20.4</div><div class="body"><h3>Build the cavern and water rosters<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>With a cavern open, type <code>seasonal-wildlife roster build cavern</code>; on a water fort, <code>seasonal-wildlife roster build water</code>. Undo each.</span></div>
+          <div class="expect"><span>Expect</span><span>Cavern slots AL, AW, PL, ML, RP, LB, SH, MW, FF. Water prints <b>deep water: N/T ocean column(s) at or past 3 levels</b>; with none, the pelagic slot stays empty (OCEAN2: 0/5374). Slots with no candidate read UNFILLED (BOATS: AW, FC, FF).</span></div>
+          <div class="watch"><span>Watch</span><span>With no cavern open the cavern pool is empty and the build has nothing to pick.</span></div>
+          <div class="pend"><span>Pending</span><span><b>AP cap</b>: with the builder, plump helmet men filled the cavern SH slot and came about 15 a wave; a cap would shrink their groups. <b>lake apex</b>: on a temperate lake the water apex slot is unfilled about half the time.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO S8Cb, S8B, S8O; findings “Corrections” (PE slot min 0, max 1).</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="20.5"><div class="id">20.5</div><div class="body"><h3>Outgunned pairs<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife roster outgun land</code> (and cavern). Then <code>seasonal-wildlife v7 outgun_cap on</code>, build again, read the OUTGUNNED lines, undo, and <code>seasonal-wildlife v7 outgun_cap off</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>roster outgun land -- N pair(s) (factor &gt;= 2.0)</b> with lines <b>outgunned: WOLF pack vs CAPYBARA herd 3.1x</b>, or <b>-- none found</b>. Nothing is written. With outgun_cap on, a build’s OUTGUNNED lines end <b>-- capped to N</b> and the prey’s group size is set.</span></div>
+          <div class="watch"><span>Watch</span><span>CTRL’s cavern build found REACHER vs CREEPING_EYE 4.3x and REACHER vs FLESH_BALL 3.0x.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO S8Cb rep 2 receipt; CAL and P1 (capybaras killed 5 of 5 wolves). No validator claim; the cap’s effect on fights is unmeasured.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="20.6"><div class="id">20.6</div><div class="body"><h3>Realms<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife realm</code>; <code>seasonal-wildlife realm XYZ</code>; <code>seasonal-wildlife realm auto</code>; <code>seasonal-wildlife realm</code>; then <code>seasonal-wildlife v7 realms on</code>, build land, undo, <code>seasonal-wildlife v7 realms off</code> and <code>seasonal-wildlife realm off</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>realm: unset (`seasonal-wildlife realm &lt;name|auto|off&gt;`)</b> and <b>(the 'realms' switch is off -- `seasonal-wildlife v7 realms on`)</b>. XYZ prints the usage with the eleven codes NEA, PAL, IND, AFR, NEO, AUS, ARC, NZ, MAD, ANT, OCE. <code>realm auto</code> then <code>realm</code>: <b>realm: auto -&gt; NEA</b> (or another). With realms on, the build’s first line ends <b>, realm NEA</b> and species of other realms are not seated together.</span></div>
+          <div class="watch"><span>Watch</span><span>Realms have never run on the rig.</span></div>
+          <div class="basis"><span>Basis</span><span>engine dispatcher (realm), V7.REALM_ORDER line 1640; bl.realm BACKLOG in run 074833. Untested.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p21">
+      <div class="phase-head"><span class="num">21</span><h2>v7.0 in play</h2>
+        <p class="why">The rest of v7.0 acts on animals, not on a screen. Each step names what you can see and where; 24 lists what you cannot.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="21.1"><div class="id">21.1</div><div class="body"><h3>Run the ecology pass by hand<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife groups ecology now</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The ecology line of 11.2, with the sweep’s numbers, written at once.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: cli.groups.ecology, mech.v70.sweep PASS.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.2"><div class="id">21.2</div><div class="body"><h3>Domestic prey (on the copy)<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>With a land apex or a cavern predator on the map, type <code>seasonal-wildlife v7 domestic on</code> and play a few days; then <code>seasonal-wildlife v7 domestic off</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>The ecology line reads <b>livestock prey of AL/ML/cavern hunters</b> instead of <b>safe</b>. Your dogs, cats, pigs and chickens become targets of land apexes, ground mesocarnivores and cavern predators only. In DOM2 wolves killed a cavy and a chicken, and the fort’s dogs killed one wolf each run.</span></div>
+          <div class="watch"><span>Watch</span><span>It costs animals. Off, nothing of yours is targeted (0 relations in DOM2).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.domestic PASS; ECO DOM, DOM2 (fb_safe fix 6c79f32); engine ecologyStatus line 5623.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.3"><div class="id">21.3</div><div class="body"><h3>Fishers stay off<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Read <b>fishers false</b> in <code>seasonal-wildlife v7</code>. Optionally <code>seasonal-wildlife v7 fishers on</code> and <code>seasonal-wildlife v7 apply</code>, then off.</span></div>
+          <div class="expect"><span>Expect</span><span>Off by default. Turned on, the raws line reads <b>fishers 0</b> on vanilla: every listed fisher (grizzly, black and polar bear, tiger, jaguar, raccoon) already swims.</span></div>
+          <div class="watch"><span>Watch</span><span>Fishing bears and tigers made 0 attacks on river pike in FSH2.</span></div>
+          <div class="pend"><span>Pending</span><span><b>lake apex</b>: fishers off is what reopened the temperate lake’s apex gap.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.fishers_flags NOT-TESTABLE-HERE (RACCOON already swims: 2 → 2); ECO FSH2; 3ca528c.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.4"><div class="id">21.4</div><div class="body"><h3>Cavern civ races<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>With a cavern open, type <code>seasonal-wildlife roster cavern:TROGLODYTE</code> (or another civ race on your roster).</span></div>
+          <div class="expect"><span>Expect</span><span>It is a managed cavern species, active or inactive like any other, with its guild: <b>[guild: …]</b>. Troglodytes, rodent, amphibian, reptile, serpent and ant men, gremlins and plump helmet men hunt by their guild and are prey of cavern apexes only.</span></div>
+          <div class="watch"><span>Watch</span><span>Who hunts whom is not shown in the window; the validator found no civ race on CTRL’s roster.</span></div>
+          <div class="pend"><span>Pending</span><span><b>AP cap</b>: plump helmet man groups would shrink.</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.civ_hunt, mech.v70.civ_prey NOT-TESTABLE-HERE; addendum 96b.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.5"><div class="id">21.5</div><div class="body"><h3>Gate drain<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Play a few days with land arrivals. On the Ledger press <kbd>K</kbd> to kind <b>wave</b>.</span></div>
+          <div class="expect"><span>Expect</span><span>Now and then <b>also detached TOKEN xN so the gate can open (gate_drain)</b> (or <b>… in cavern N …</b>): after a release, older gated groups go too until at most one flagged animal remains, which is when DF opens its gate.</span></div>
+          <div class="watch"><span>Watch</span><span>Long waits between waves (10 days or more) were what T8g found before this.</span></div>
+          <div class="basis"><span>Basis</span><span>engine lines 6188–6218 and V7.drainGate (T8g: 27 of 36 slow releases had freed a one-animal group, p = 5e-6). No validator claim.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.6"><div class="id">21.6</div><div class="body"><h3>Sponges<span class="tag new">new v7.0</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>On an ocean fort with the water layer on, type <code>seasonal-wildlife sponges now</code>, then <code>seasonal-wildlife sponges</code>.</span></div>
+          <div class="expect"><span>Expect</span><span><b>sponges: on  N on the ocean floor of T  -- last: …</b>: ribbons of 8–16 sponges along the floor, 2–8 ribbons by the ocean’s size, topped up daily below half. They never appear on the Live tab or in any count.</span></div>
+          <div class="watch"><span>Watch</span><span>Without an ocean: <b>sponges: on  0 on the ocean floor</b>. With the water layer off: <b>the water layer is off</b>. Placement uses teleport (r2).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.sponges PASS; cli.v70.sponges NOT-TESTABLE-HERE (no ocean on CTRL); ECO S8B/S8O (sponges persisted); engine V7.spongeStatus.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.7"><div class="id">21.7</div><div class="body"><h3>Vermin classes and gobble<span class="tag new">new v7.0</span></h3>
+          <div class="do"><span>Do</span><span>Type <code>seasonal-wildlife vermin classes</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>A table <b>CLASS  n  LABEL</b> for the eight tool classes (SWV_GROUND_BUG, SWV_SOIL, SWV_FLYING_INSECT, SWV_SMALL_BIRD, SWV_SMALL_MAMMAL, SWV_HERP, SWV_SMALL_FISH, SWV_OTHER) with their members, then the gobble status line. Consumers (small land insectivores, waterbirds, raptors, bats and land birds, snakes) get GOBBLE_VERMIN_CLASS for their classes.</span></div>
+          <div class="watch"><span>Watch</span><span>You cannot watch vermin being eaten in the window; pet cats eat placed vermin, which hides it.</span></div>
+          <div class="basis"><span>Basis</span><span>ECO VRM2, VRM3b, VRM4 (a runtime-written class is honoured); addendum 96e. No validator claim for the verb.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="21.8"><div class="id">21.8</div><div class="body"><h3>Scavenging past the walk<span class="tag new">new v7.0</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>With scavenging on (18.5) and remains in water or a flier scavenger on the map, run <code>seasonal-wildlife scavenge now</code> a few times and read <code>seasonal-wildlife scavenge</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>Remains in water are eaten from the bank or by a swimmer; a flier that cannot close in is landed beside the remains. The status ends <b>fallbacks: VULTURE 1, …</b> when a fallback fired, <b>fallbacks: 0</b> when none did; the ledger logs <b>scavenging: TOKEN landed beside a corpse (fallback)</b>.</span></div>
+          <div class="watch"><span>Watch</span><span>In SCV2b the remains were gone before any fallback was needed. Fallbacks teleport (r2) and walks use setPathGoal (r2).</span></div>
+          <div class="pend"><span>Pending</span><span><b>swimmers</b>: see 18.5.</span></div>
+          <div class="basis"><span>Basis</span><span>addendum 97; ECO SCV2b/SCV2Wb (6 → 0 in every water cell); scav_ext 1e65e03. No validator claim.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p22">
+      <div class="phase-head"><span class="num">22</span><h2>A season boundary</h2>
+        <p class="why">Let the game run into the next season. This is where the roster meets DF.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="22.1"><div class="id">22.1</div><div class="body"><h3>Inactive stays away<span class="tag">re-check R1</span></h3>
+          <div class="do"><span>Do</span><span>Play through at least one boundary; watch for the species you made inactive in 2.3.</span></div>
+          <div class="expect"><span>Expect</span><span>It never arrives on any layer. X1 on v6.4 let no inactive animal in across two runs where v6.2.1 let in 32 and 12; round 1 saw none in 91,581 ticks.</span></div>
+          <div class="watch"><span>Watch</span><span>Any inactive or out-of-season arrival: species, layer, date.</span></div>
+          <div class="basis"><span>Basis</span><span>addendum 94 (X1); round 1 16.1; mech.season.boundary NOT-TESTABLE-HERE in run 074833.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="22.2"><div class="id">22.2</div><div class="body"><h3>The boundary itself</h3>
+          <div class="do"><span>Do</span><span>At the change of season read the announcements and the Ledger.</span></div>
+          <div class="expect"><span>Expect</span><span>An announcement <b>&lt;Season&gt; wildlife roster applied.</b> and a season line in the ledger.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 16.2; engine line 3378.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="22.3"><div class="id">22.3</div><div class="body"><h3>Water groups per body<span class="tag new">new v7.0</span><span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>If your map has an ocean and a river or lake, watch the water line and the Live tab over a few days.</span></div>
+          <div class="expect"><span>Expect</span><span>Each water body draws its own groups to its own count; groups swim together and leave on their countdown.</span></div>
+          <div class="watch"><span>Watch</span><span>An animal placed on dry land. Placement teleports (r2).</span></div>
+          <div class="basis"><span>Basis</span><span>run 074833: mech.v70.groups_water_body, mech.engine.draw PASS; ECO SW6.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p23">
+      <div class="phase-head"><span class="num">23</span><h2>Persistence and cost</h2>
+        <p class="why">Does everything survive a reload, and what does the tool cost.</p></div>
+      
+      <div class="steps">
+        <div class="step" data-id="23.1"><div class="id">23.1</div><div class="body"><h3>Save, quit, reload<span class="tag r2">r2</span></h3>
+          <div class="do"><span>Do</span><span>Note an inactive species, a stock you set, a v7 switch you changed and the ledger’s last line. Save, return to the title, load, open the window and type <code>seasonal-wildlife v7</code>.</span></div>
+          <div class="expect"><span>Expect</span><span>All four as you left them; undo still works; the v7 list shows your change.</span></div>
+          <div class="watch"><span>Watch</span><span>Settings back at defaults, or a ledger that restarted. r2 fixed persistent site data on reclaimed forts; a normal save should not be affected. The v7 switches across a reload are untested.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 17.1; mech.save.untouched PASS (config in persistent site data). v7 persistence untested.</span></div>
+          <div class="verdict"></div></div></div>
+        <div class="step" data-id="23.2"><div class="id">23.2</div><div class="body"><h3>Frame rate on and off</h3>
+          <div class="do"><span>Do</span><span>Unpaused, read the frame rate for a minute with the tool on; then All off and read it again, in the same session.</span></div>
+          <div class="expect"><span>Expect</span><span>Within the load noise: round 1 read 189 t/s on and 203 off (one reading each).</span></div>
+          <div class="watch"><span>Watch</span><span>Ignore the first seconds after a switch. Wild animal count matters more than the tool: 500 more wild animals cost 38 %.</span></div>
+          <div class="pend"><span>Pending</span><span><b>cadence</b>: halves the ecology passes. <b>FPS6</b>: the world-size study that would say what a lived-in fort costs is on hold.</span></div>
+          <div class="basis"><span>Basis</span><span>round 1 17.2; fps-load-facts.</span></div>
+          <div class="verdict"></div></div></div>
+      </div>
+    </section>
+    <section class="phase" id="p24">
+      <div class="phase-head"><span class="num">24</span><h2>What this page cannot check</h2>
+        <p class="why">A walkthrough sees the window and the console. These parts of v7.0 act inside DF, and only experiments measure them.</p></div>
+      <div class="tablewrap"><table class="recheck wide"><thead><tr><th>What</th><th>Why the window cannot show it</th><th>What covers it</th></tr></thead><tbody>
+<tr><td>Predators hunt because of the written relation</td><td>Relations live in DF’s tables</td><td>RELS, RELS2, RELS2b, RELS3; CAL; LONE10; SW1/SW1R; mech.ecology.write</td></tr>
+<tr><td>Pack-mass floor and sneak bonus</td><td>No readout; placed units are non-wild to DF</td><td>SW2/SW2R, STL/STL2; mech.v70.pack_floor and pack_sneak not testable on CTRL</td></tr>
+<tr><td>Solitary package</td><td>Caste skills and gaits</td><td>LONE10 (29 vs 14 placed-prey kills, p = 0.07); mech.v70.solo_raws</td></tr>
+<tr><td>The leader is the largest male; how tight groups stay</td><td>Sex and size per unit</td><td>mech.v70.leader_male; COH, COHO, COHR; L1</td></tr>
+<tr><td>Gate drain shortens waits</td><td>Days between waves over many releases</td><td>T8g analysis before the change; <b>no run since: needed</b></td></tr>
+<tr><td>A species arrives in a season its raws forbid</td><td>Rare; needs whole seasons</td><td>T2 (DF honours NO_ at the pick); mech.v70.seasons_own; <b>arrival test since the change: needed</b></td></tr>
+<tr><td>Which vermin each consumer eats</td><td>Vermin are not units</td><td>VRM2, VRM3b, VRM4</td></tr>
+<tr><td>The relation sweep changes fights</td><td>Cells cleared are counted, fights are not</td><td>mech.v70.sweep (0 cleared on CTRL); RELS2b; HC4</td></tr>
+<tr><td>Civ races hunt and are hunted; forgotten beasts untouched</td><td>Needs a civ race and a beast on the map</td><td>mech.v70.civ_hunt, civ_prey not testable; mech.v70.civ_fb_safe (static); E23e</td></tr>
+<tr><td>Fishers fish</td><td>No attack log in the window</td><td>FSH2 (0 attacks)</td></tr>
+<tr><td>The builder changes what arrives over a season</td><td>Needs whole seasons</td><td>S8C, S8Cb, S8B, S8O; SW4 (apex FREQUENCY does not steer apexes)</td></tr>
+<tr><td>Outgun cap changes fights</td><td>No fight measure</td><td>CAL, P1 (the reason for it); <b>no run of the cap: needed</b></td></tr>
+<tr><td>Realms</td><td>Nothing to see but the build’s picks</td><td><b>No rig run: needed</b>; bl.realm backlog</td></tr>
+<tr><td>Groups at once shape the map</td><td>Counts over a season</td><td>ECO2-G, SW3B, SW5, SW6</td></tr>
+<tr><td>Who scavenged</td><td>Only in the ledger’s per-species count</td><td>SCV, SCV2b/SCV2Wb (species not captured)</td></tr>
+<tr><td>Exhaustion timing</td><td>Waves after a niche change</td><td>N1</td></tr>
+<tr><td>A savage invasive on a calm map</td><td>DF’s draw</td><td>INV2</td></tr>
+<tr><td>Quiet fights and curious residents in long play</td><td>Partly visible</td><td>A1, A2; CB</td></tr>
+<tr><td>Cavern traffic under pressure; cavern invasions</td><td>Needs whole seasons</td><td>T9c; E23e (negative)</td></tr>
+<tr><td>Cost on a lived-in fort</td><td>One fort, one session</td><td>fps-load-facts; FPS1 sketched; FPS6 on hold</td></tr>
+<tr><td>Anything on DFHack 53.16-r2</td><td>All runs so far were r1.1</td><td><b>validate-full on v7.0 under r2: needed first</b></td></tr>
+</tbody></table></div>
+    </section>
+
+    <section class="phase" id="p25">
+      <div class="phase-head"><span class="num">25</span><h2>Compile the report</h2>
+        <p class="why">Everything you marked and wrote becomes one report. Copy it out and send it; nothing leaves this page on its own.</p></div>
+      <div class="report">
+        <div class="tester">
+          <label>Tester<input id="tName" placeholder="name or handle"></label>
+          <label>Fort<input id="tFort" placeholder="fort name, biomes, embark size"></label>
+          <label>Game &amp; DFHack<input id="tVer" placeholder="53.16 · 53.16-r2 · plugin v7.0 @ 1e65e03"></label>
+          <label>Date<input id="tDate" placeholder="YYYY-MM-DD"></label>
+        </div>
+        <div class="bar" style="margin-top:14px">
+          <button id="btnCompile">Compile report</button>
+          <button class="ghost" id="btnCopy">Copy to clipboard</button>
+          <button class="ghost" id="btnClear">Clear all marks</button>
+          <span class="muted" id="copyMsg"></span>
+        </div>
+        <textarea id="reportOut" readonly placeholder="Press Compile report. The text is Markdown: the tally, then every anomaly with its note, then skipped steps, then passes."></textarea>
+        <details class="load" style="margin-top:16px"><summary>Load a round from its marks file</summary>
+          <p class="muted" style="margin:10px 0 6px">Paste the contents of a round’s <code>marks.json</code>. Its marks and notes replace what is on this page for the steps it covers. A file for this page carries <code>"_meta": {"page": "alpha3"}</code>; Alpha Two’s files are refused, because the step numbers differ.</p>
+          <textarea id="marksIn" placeholder='{"0.1": {"v": "p", "n": "note"}, "_meta": {"page": "alpha3", "tName": "..."}}'></textarea>
+          <div class="bar" style="margin-top:8px"><button class="ghost" id="btnLoad">Load marks</button><span class="muted" id="loadMsg"></span></div>
+        </details>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  var KEY='sw-alpha-three-v1';
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){state={}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+  var steps=Array.prototype.slice.call(document.querySelectorAll('.step[data-id]'));
+  document.getElementById('stepcount').textContent=steps.length;
+
+  steps.forEach(function(st){
+    var id=st.getAttribute('data-id'); var v=st.querySelector('.verdict');
+    var s=state[id]||{};
+    var html='';
+    [['p','Pass'],['a','Anomaly'],['s','Skipped']].forEach(function(o){
+      html+='<label class="'+o[0]+'"><input type="radio" name="v-'+id+'" value="'+o[0]+'"'+(s.v===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>';
+    });
+    html+='<textarea placeholder="Note: what you pressed, what you saw, what you expected; screenshot names">'+(s.n?esc(s.n):'')+'</textarea>';
+    v.innerHTML=html;
+    paint(st,s.v);
+    v.querySelectorAll('input[type=radio]').forEach(function(r){r.addEventListener('change',function(){state[id]=state[id]||{};state[id].v=r.value;save();paint(st,r.value);tally();})});
+    var ta=v.querySelector('textarea'); ta.addEventListener('input',function(){state[id]=state[id]||{};state[id].n=ta.value;save();});
+  });
+  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function paint(st,v){st.classList.remove('pass','anom','skip'); if(v==='p')st.classList.add('pass'); if(v==='a')st.classList.add('anom'); if(v==='s')st.classList.add('skip');}
+  function tally(){var p=0,a=0,s=0,o=0;steps.forEach(function(st){var v=(state[st.getAttribute('data-id')]||{}).v; if(v==='p')p++;else if(v==='a')a++;else if(v==='s')s++;else o++;});
+    document.getElementById('tPass').textContent=p;document.getElementById('tAnom').textContent=a;document.getElementById('tSkip').textContent=s;document.getElementById('tOpen').textContent=o;}
+  tally();
+
+  ['tName','tFort','tVer','tDate'].forEach(function(k){var el=document.getElementById(k); el.value=(state._meta||{})[k]||''; el.addEventListener('input',function(){state._meta=state._meta||{};state._meta[k]=el.value;save();});});
+
+  var phases=Array.prototype.slice.call(document.querySelectorAll('.phase'));
+  var rail=document.getElementById('railList');
+  phases.forEach(function(ph){var h=ph.querySelector('h2'); var li=document.createElement('li'); var a=document.createElement('a'); a.href='#'+ph.id; a.textContent=ph.querySelector('.num').textContent+'  '+h.textContent; li.appendChild(a); rail.appendChild(li);});
+  var links=rail.querySelectorAll('a');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(l){l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});
+    phases.forEach(function(ph){io.observe(ph)});
+  }
+
+  function compile(){
+    var m=state._meta||{}; var lines=[];
+    lines.push('# Seasonal Wildlife alpha trial three (window and console, v7.0 on DFHack 53.16-r2)');
+    lines.push('');
+    lines.push('- Tester: '+(m.tName||'')); lines.push('- Fort: '+(m.tFort||'')); lines.push('- Game / DFHack / plugin: '+(m.tVer||'')); lines.push('- Date: '+(m.tDate||'')); lines.push('- Page: Alpha Three (build v7.0 @ 1e65e03, unreleased; 13 decisions open)');
+    var p=[],a=[],s=[],o=[];
+    steps.forEach(function(st){var id=st.getAttribute('data-id'); var h=st.querySelector('h3').cloneNode(true); h.querySelectorAll('.tag').forEach(function(x){x.remove()}); var t=h.textContent; var v=state[id]||{}; var row={id:id,t:t,n:(v.n||'').trim()};
+      if(v.v==='p')p.push(row);else if(v.v==='a')a.push(row);else if(v.v==='s')s.push(row);else o.push(row);});
+    lines.push(''); lines.push('Tally: '+p.length+' pass · '+a.length+' anomaly · '+s.length+' skipped · '+o.length+' unmarked of '+steps.length+' steps.');
+    function block(title,rows,withNote){ if(!rows.length)return; lines.push(''); lines.push('## '+title); rows.forEach(function(r){lines.push('- **'+r.id+' '+r.t+'**'+(withNote&&r.n?': '+r.n.replace(/\n+/g,' '):'')); if(!withNote&&r.n){lines.push('  - '+r.n.replace(/\n+/g,' '))}}); }
+    block('Anomalies',a,true); block('Skipped (and why)',s,true); block('Passes',p,false); block('Unmarked',o,false);
+    return lines.join('\n');
+  }
+  document.getElementById('btnCompile').addEventListener('click',function(){document.getElementById('reportOut').value=compile();});
+  document.getElementById('btnCopy').addEventListener('click',function(){var t=document.getElementById('reportOut'); if(!t.value)t.value=compile(); var msg=document.getElementById('copyMsg');
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(function(){msg.textContent='Copied.'},function(){t.select();msg.textContent='Select the text and copy it.'})}else{t.select();msg.textContent='Select the text and copy it.'}
+    setTimeout(function(){msg.textContent=''},2500);});
+  var armed=false,armT=null;document.getElementById('btnClear').addEventListener('click',function(){var b=this;if(!armed){armed=true;b.textContent='Press again to clear every mark';clearTimeout(armT);armT=setTimeout(function(){armed=false;b.textContent='Clear all marks'},4000);return;}armed=false;b.textContent='Clear all marks';var meta=state._meta; state={_meta:meta}; save(); steps.forEach(function(st){st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=false}); st.querySelector('textarea').value=''; paint(st,null);}); tally(); document.getElementById('reportOut').value='';});
+  document.getElementById('btnLoad').addEventListener('click',function(){
+    var msg=document.getElementById('loadMsg'), m;
+    try{m=JSON.parse(document.getElementById('marksIn').value)}catch(e){msg.textContent='That is not valid JSON: paste the whole marks.json.';return}
+    var mt=m._meta||{};
+    if((mt.page&&mt.page!=='alpha3')||(!mt.page&&/v6\./.test(mt.tVer||''))){msg.textContent='These marks are for another page (Alpha Two or earlier): its step numbers do not match this one. Nothing loaded.';return}
+    var n=0;
+    steps.forEach(function(st){var id=st.getAttribute('data-id'), x=m[id]; if(!x||!/^[pas]$/.test(x.v||''))return;
+      state[id]={v:x.v,n:x.n||''}; n++;
+      st.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=(r.value===x.v)});
+      st.querySelector('.verdict textarea').value=x.n||''; paint(st,x.v);});
+    if(m._meta){state._meta=m._meta; ['tName','tFort','tVer','tDate'].forEach(function(k){document.getElementById(k).value=m._meta[k]||''});}
+    save(); tally(); msg.textContent='Loaded '+n+' step marks.';
+  });
+})();
+</script>

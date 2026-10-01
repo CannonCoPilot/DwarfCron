@@ -85,17 +85,17 @@ td.n{text-align:right}
   <header>
     <div>
       <div class="mark"><h1>Bestiary Atlas</h1><span class="glyphs" aria-hidden="true">d W ö A e</span></div>
-      <p class="lede">Every creature raw Dwarf Fortress ships, vanilla and extinct, read the way the game reads them, and the way seasonal-wildlife reads them: habitat, role, size band. Pick a question on the left or build any chart from any two variables.</p>
+      <p class="lede">Every creature raw Dwarf Fortress ships, vanilla and extinct, read the way the game reads them, and the way seasonal-wildlife v7.0 reads them: habitat, role, size band, guild, armed or BENIGN, scavenger, vermin class. Pick a question on the left or build any chart from any two variables.</p>
     </div>
     <div class="tiles" id="tiles"></div>
   </header>
 
   <div class="filters" id="filters">
     <label>Source<select id="f-source"><option value="">all</option><option value="vanilla">vanilla (Holocene)</option><option value="extinct">extinct</option></select></label>
-    <label>Class<select id="f-class"><option value="natural">natural wildlife</option><option value="">every creature</option><option value="special">special (DF's own)</option></select></label>
+    <label>Class<select id="f-class"><option value="natural">natural wildlife</option><option value="eco">ECO wildlife set (736)</option><option value="">every creature</option><option value="special">special (DF's own)</option></select></label>
     <label>Habitat<select id="f-habitat"><option value="">all</option></select></label>
     <label>Category<select id="f-category"><option value="">all</option></select></label>
-    <label>Size band<select id="f-band"><option value="">all</option><option>small</option><option>medium</option><option>large</option></select></label>
+    <label>Size band (tool)<select id="f-band"><option value="">all</option><option>small</option><option>medium</option><option>large</option></select></label>
     <label>Period<select id="f-period"><option value="">all</option></select></label>
     <label>Biome family<select id="f-biome"><option value="">all</option></select></label>
     <label class="check"><input type="checkbox" id="f-fort"> on the trial fort</label>
@@ -144,7 +144,8 @@ const SEASONS = ["Spring","Summer","Autumn","Winter"];
 // ---- derived fields
 for (const r of ROWS){
   r.cluster_mid = (r.cluster_min!=null && r.cluster_max!=null) ? (r.cluster_min + r.cluster_max)/2 : null;
-  r.group = r.cluster_mid ? Math.max(1, Math.floor(r.cluster_mid)) : 1;
+  if (r.group == null) r.group = r.cluster_mid ? Math.max(1, Math.floor(r.cluster_mid)) : 1;   // rev 2: the builder's, mirrored for animal people
+  if (r.tool_mass == null) r.tool_mass = r.adult_size;
   r.clutch_mid = (r.clutch_min!=null && r.clutch_max!=null) ? (r.clutch_min + r.clutch_max)/2 : null;
   r.lifespan = (r.maxage_min!=null && r.maxage_max!=null) ? (r.maxage_min + r.maxage_max)/2 : null;
   r.pop_mid = (r.pop_min!=null && r.pop_max!=null) ? (r.pop_min + r.pop_max)/2 : null;
@@ -157,17 +158,20 @@ for (const r of ROWS){
 }
 // ---- variables
 const Q = [ // quantitative
-  ["adult_size","adult body size (cm³)",true],["cluster_max","group size, most",false],["cluster_min","group size, fewest",false],["cluster_mid","group size, middle",false],
+  ["adult_size","adult body size, raw BODY_SIZE (cm³)",true],["tool_mass","body size as the tool reads it (cm³)",true],["cluster_max","group size, most",false],["cluster_min","group size, fewest",false],["cluster_mid","group size, middle",false],
   ["pop_mid","population number (worldgen, middle)",true],["frequency","frequency (odds weight)",false],["clutch_mid","clutch size (middle)",false],
   ["lifespan","lifespan (years, middle)",false],["child_age","years as a child",false],["pet_value","pet value",true],["difficulty","difficulty",false],
   ["walk_kph","top land speed (kph)",false],["swim_kph","top swim speed (kph)",false],["fly_kph","top flight speed (kph)",false],["climb_kph","top climb speed (kph)",false],
   ["n_biomes","number of biomes",false],["climate_lean","climate lean (cold −1 … hot +1)",false],
+  ["beach_frequency","BEACH_FREQUENCY",false],["depth_min","UNDERGROUND_DEPTH, shallowest",false],
   ["boats_stock","stock on the trial fort",true],["x1_arrivals","arrivals in X1 (trial fort, one season)",false]];
 const C = [ // categorical; multi = a creature counts once per value
-  ["category","category (role or vermin)"],["role","role"],["habitat","habitat"],["band","size band"],["source","source"],["period","period"],["class","class"],["special","special kind"],
+  ["category","category (role or vermin)"],["role","role"],["habitat","habitat"],["band","size band (tool)"],["guild_name","guild (the tool's MODEL.guild)"],["desk_guild","guild (ECO desk v2)"],
+  ["armed","armed (not BENIGN)"],["scavenger","scavenger (SCAV.is)"],["swv","vermin class (SWV, gobble)"],["seasons_raw","season the raws allow",true],["alignment","GOOD / EVIL"],
+  ["layer_family","layer family (ECO)"],["civ_race","cavern civilisation race (v7)"],["pelagic","pelagic (guild PE)"],["apex","apex (desk)"],["realms","realm (desk table)",true],["source","source"],["period","period"],["class","class"],["special","special kind"],
   ["eggs","lays eggs or live young"],["biome_families","biome family",true],["climates","climate",true],["fort_seasons","season on the trial fort",true],
   ["fort_status","active on the trial fort"],["boats_layers","layer on the trial fort",true],["realm","realm"],
-  ["savage","savage"],["nocturnal","nocturnal"],["large_predator","large predator (behaviour)"],["benign","benign"],["grazer","grazer"],["flier","flies"],["amphibious","amphibious"],
+  ["savage","savage"],["nocturnal","nocturnal"],["large_predator","LARGE_PREDATOR token (not the hunting switch)"],["benign","BENIGN token"],["grazer","grazer"],["flier","flies"],["amphibious","amphibious"],
   ["pet","pet"],["large_roaming","large roaming"],["animal_person","animal person"],["giant","giant"]];
 const QL = Object.fromEntries(Q.map(q=>[q[0],q[1]])), QLOG = Object.fromEntries(Q.map(q=>[q[0],q[2]]));
 const CL = Object.fromEntries(C.map(c=>[c[0],c[1]])), CMULTI = Object.fromEntries(C.map(c=>[c[0],!!c[2]]));
@@ -183,7 +187,7 @@ fill($("f-biome"), [...new Set(ROWS.flatMap(r=>r.biome_families))].sort());
 function filtered(){
   const src=$("f-source").value, cls=$("f-class").value, hab=$("f-habitat").value, cat=$("f-category").value, band=$("f-band").value,
         per=$("f-period").value, bio=$("f-biome").value, fort=$("f-fort").checked, people=$("f-people").checked, q=$("f-q").value.trim().toLowerCase();
-  return ROWS.filter(r => (!src||r.source===src) && (!cls||r.class===cls) && (!hab||r.habitat===hab) && (!cat||r.category===cat) && (!band||r.band===band)
+  return ROWS.filter(r => (!src||r.source===src) && (!cls||(cls==="eco" ? r.eco_wildlife : r.class===cls)) && (!hab||r.habitat===hab) && (!cat||r.category===cat) && (!band||r.band===band)
     && (!per||r.period===per) && (!bio||r.biome_families.includes(bio)) && (!fort||r.on_fort) && (!people||!r.animal_person)
     && (!q || r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)));
 }
@@ -275,23 +279,32 @@ function heat(rows){
 // predator-prey: the seasonal-wildlife diet test (v6.4), habitat reach, water body, realm, mass and numbers
 const REACH = { land:{land:1,flier:1,waterbird:1,semiaquatic:1}, flier:{land:1,flier:1,waterbird:1,semiaquatic:1},
   waterbird:{land:1,flier:1,waterbird:1,semiaquatic:1,aquatic:1}, semiaquatic:{land:1,waterbird:1,semiaquatic:1,aquatic:1}, aquatic:{waterbird:1,semiaquatic:1,aquatic:1} };
-const take = e => e.adult_size * Math.pow(e.group, .75) * ((e.large_predator||e.ambushpredator) ? 1.5 : 1);
-const need = p => p.adult_size * (p.group > 1 ? .9 : .6);
-function eats(e,p){
-  if (e===p || e.category!=="predator" || e.class!=="natural" || p.class!=="natural") return false;
-  if (e.adult_size<=0 || p.adult_size<=0 || e.realm!==p.realm) return false;
+// rev 2: masses are the tool's (tool_mass, cm³) and groups the builder's (an animal person's are its root's)
+const take = e => e.tool_mass * Math.pow(e.group, .75) * ((e.large_predator||e.ambushpredator) ? 1.5 : 1);
+const need = p => p.tool_mass * (p.group > 1 ? .9 : .6);
+function reaches(e,p){   // MODEL.reaches (v6.9): realm, habitat reach, shared water; no size test
+  if (e===p || e.class!=="natural" || p.class!=="natural" || e.realm!==p.realm) return false;
   if (!(REACH[e.habitat]||REACH.land)[p.habitat]) return false;
   const wet = h => h==="aquatic"||h==="semiaquatic";
   if (wet(e.habitat) && wet(p.habitat) && e.bodies.length && p.bodies.length && !e.bodies.some(b=>p.bodies.includes(b))) return false;
-  if (p.category==="predator" && p.adult_size >= e.adult_size*.5) return false;
+  return true;
+}
+function eats(e,p){   // the roster's pairing test (eats): reach, no peer of half its mass, mass x numbers
+  if (e.category!=="predator" || e.tool_mass<=0 || p.tool_mass<=0 || !reaches(e,p)) return false;
+  if (p.category==="predator" && p.tool_mass >= e.tool_mass*.5) return false;
   return take(e) >= need(p);
 }
-function network(rows){
+function writes(e,p){   // the relation the ecology writes (v6.9 + v7.0 pack_floor): armed predator, reach, group mass >= 5% of the prey's
+  if (e.role!=="predator" || e.armed!=="yes" || e.tool_mass<=0 || p.tool_mass<=0 || !reaches(e,p)) return false;
+  return e.group * e.tool_mass >= .05 * p.tool_mass;
+}
+function network(rows, rel){
   const lay = baseLayout();
   const nodes = rows.filter(r=>r.class==="natural" && !r.vermin);
   if (nodes.length > 320) return [[], Object.assign(lay,{annotations:[{text:`${nodes.length} creatures: narrow the filters to 320 or fewer for the web (try "on the trial fort", a biome family or a period)`, showarrow:false, font:{color:tok("--muted"), size:15}, xref:"paper", yref:"paper", x:.5, y:.5}], xaxis:{visible:false}, yaxis:{visible:false}}), "too many to draw"];
   const idx = new Map(nodes.map((n,i)=>[n,i])); const edges=[];
-  for (const e of nodes) if (e.category==="predator") for (const p of nodes) if (eats(e,p)) edges.push([idx.get(e), idx.get(p)]);
+  const test = rel ? writes : eats;
+  for (const e of nodes) if (e.role==="predator") for (const p of nodes) if (test(e,p)) edges.push([idx.get(e), idx.get(p)]);
   const deg = new Array(nodes.length).fill(0); edges.forEach(([a,b])=>{deg[a]++;deg[b]++;});
   // A size-structured web: one column per realm and habitat, height = adult body size (log10), so a predator
   // sits above the prey it can take and the edges read downward. Within a column, species spread by size rank.
@@ -299,53 +312,64 @@ function network(rows){
   const cols = [];
   for (const realm of ["surface","underground"]) for (const h of HAB) if (nodes.some(r=>r.realm===realm && r.habitat===h)) cols.push(realm+"|"+h);
   const pos = new Array(nodes.length);
-  cols.forEach((c,ci)=>{ const [realm,h]=c.split("|"); const mem = nodes.filter(r=>r.realm===realm && r.habitat===h).sort((a,b)=>a.adult_size-b.adult_size);
-    mem.forEach((r,m)=>{ const off = ((m*0.61803) % 1) - .5; pos[idx.get(r)] = [ci + off*.8, Math.log10(Math.max(1,r.adult_size))]; }); });
+  cols.forEach((c,ci)=>{ const [realm,h]=c.split("|"); const mem = nodes.filter(r=>r.realm===realm && r.habitat===h).sort((a,b)=>a.tool_mass-b.tool_mass);
+    mem.forEach((r,m)=>{ const off = ((m*0.61803) % 1) - .5; pos[idx.get(r)] = [ci + off*.8, Math.log10(Math.max(1,r.tool_mass))]; }); });
   lay.annotations = cols.map((c,ci)=>({ x:ci, y:1.02, xref:"x", yref:"paper", text:c.replace("surface|","").replace("underground|","cavern ")+"", showarrow:false, font:{color:tok("--muted"), size:12} }));
   const ex=[], ey=[]; for (const [a,b] of edges){ ex.push(pos[a][0],pos[b][0],null); ey.push(pos[a][1],pos[b][1],null); }
   const g = S.g || "habitat"; const keys = groupsOf(nodes,g); const cm = colourMap(keys);
   const traces = [{ type:"scatter", mode:"lines", x:ex, y:ey, line:{color:tok("--faint"), width:.6}, opacity:.3, hoverinfo:"skip", showlegend:false }];
   for (const key of keys){ const sub = nodes.filter(r=>gkey(r,g,keys)===key);
     traces.push({ type:"scatter", mode:"markers", name:key, x:sub.map(r=>pos[idx.get(r)][0]), y:sub.map(r=>pos[idx.get(r)][1]),
-      text:sub.map(r=>{ const i=idx.get(r); const eatsN=edges.filter(e=>e[0]===i).length, eatenN=edges.filter(e=>e[1]===i).length; return `${r.name} (${r.id})<br>${r.habitat} ${r.role}, ${r.band}<br>eats ${eatsN} · eaten by ${eatenN}`; }),
-      marker:{color:cm[key], size:sub.map(r=>6+Math.max(0,Math.log10(Math.max(1,r.adult_size))-2)*2.4), line:{color:tok("--panel"), width:1.5}},
+      text:sub.map(r=>{ const i=idx.get(r); const eatsN=edges.filter(e=>e[0]===i).length, eatenN=edges.filter(e=>e[1]===i).length; return `${r.name} (${r.id})<br>${r.habitat} ${r.role}, ${r.band}, ${r.guild_name||""}${r.armed==="yes"?"":" · BENIGN"}<br>${rel?"writes against":"eats"} ${eatsN} · ${rel?"written against by":"eaten by"} ${eatenN}`; }),
+      marker:{color:cm[key], size:sub.map(r=>6+Math.max(0,Math.log10(Math.max(1,r.tool_mass))-2)*2.4), line:{color:tok("--panel"), width:1.5}},
       hovertemplate:"%{text}<extra></extra>" }); }
-  lay.xaxis={visible:false, range:[-.6, cols.length-.4]}; lay.yaxis.title.text="adult body size (cm³, log scale)";
+  lay.xaxis={visible:false, range:[-.6, cols.length-.4]}; lay.yaxis.title.text="body size as the tool reads it (cm³, log scale)";
   const ymax=Math.ceil(Math.max(...pos.map(p=>p[1]))); lay.yaxis.tickvals=[...Array(ymax+1).keys()]; lay.yaxis.ticktext=lay.yaxis.tickvals.map(e=> e>=6 ? (10**(e-6))+"M" : e>=3 ? (10**(e-3))+"k" : String(10**e));
   lay.showlegend=true; lay.margin={l:64,r:10,t:30,b:40};
-  return [traces, lay, `${nodes.length} creatures, ${edges.length} predator→prey edges (the tool's diet test: habitat reach, water body, realm, mass × numbers)`];
+  return [traces, lay, rel ? `${nodes.length} creatures, ${edges.length} relations the ecology would write (v6.9/v7.0: every predator not wholly BENIGN, against every species it reaches, when its group weighs at least 5% of the prey; no other size test)`
+                           : `${nodes.length} creatures, ${edges.length} predator→prey edges (the roster's pairing test, eats: habitat reach, water body, realm, mass × numbers)`];
 }
 // ---- presets: the questions asked for
 const PRESETS = [
   {k:"#", t:"How big do groups get?", d:"The largest group each species arrives in (CLUSTER_NUMBER), by category. A solitary animal is 1.", s:{type:"hist", x:"cluster_max", g:"category", logx:false, logy:false, bins:30}},
   {k:"o", t:"Who lays eggs?", d:"Egg-layers and live-bearers in each habitat; the clutch-size chart follows from Colour by → eggs.", s:{type:"bars", x:"habitat", g:"eggs", agg:"count", logy:false}},
   {k:"0", t:"Clutch sizes", d:"Eggs per clutch (middle of CLUTCH_SIZE) for every egg-layer, by habitat.", s:{type:"hist", x:"clutch_mid", g:"habitat", logx:false, logy:false, bins:30}},
-  {k:"B", t:"Body sizes", d:"Adult body volume in cm³ on a log scale, coloured by the three size bands (small < 150,000, medium < 1,000,000, large).", s:{type:"hist", x:"adult_size", g:"band", logx:true, logy:false, bins:45}},
-  {k:"*", t:"Size against group size", d:"Adult body size against the largest group, both log: pack hunters and herds against solitary giants.", s:{type:"scatter", x:"adult_size", y:"cluster_max", g:"role", logx:true, logy:true}},
-  {k:"=", t:"Size by habitat", d:"The spread of adult body size in each habitat, every creature a point.", s:{type:"box", x:"habitat", y:"adult_size", logy:true}},
+  {k:"B", t:"Body sizes", d:"Body volume in cm³ as the tool reads it (DF stores tens of cm³, at least 10; an animal person takes its root's), log scale, coloured by the tool's size bands (small < 150,000, medium < 1,000,000, large).", s:{type:"hist", x:"tool_mass", g:"band", logx:true, logy:false, bins:45}},
+  {k:"*", t:"Size against group size", d:"Adult body size against the largest group, both log: pack hunters and herds against solitary giants.", s:{type:"scatter", x:"tool_mass", y:"cluster_max", g:"role", logx:true, logy:true}},
+  {k:"=", t:"Size by habitat", d:"The spread of adult body size in each habitat, every creature a point.", s:{type:"box", x:"habitat", y:"tool_mass", logy:true}},
   {k:"~", t:"Speed by habitat", d:"Top land speed in each habitat (from the gaits: 8,800 ÷ the sprint value, as the raws' own comments give it).", s:{type:"box", x:"habitat", y:"walk_kph", logy:false}},
-  {k:"&", t:"Who eats whom on the trial fort", d:"The predator–prey web of Boatsbowed's species by the tool's diet test, one column per habitat, height by body size: predators sit above what they can take. Hover a node for what it eats and what eats it.", s:{type:"network", g:"role"}, f:{fort:true}},
+  {k:"&", t:"Who eats whom on the trial fort", d:"The predator–prey web of Boatsbowed's species by the roster's pairing test (eats), one column per habitat, height by body size: predators sit above what they can take. Hover a node for what it eats and what eats it.", s:{type:"network", g:"role"}, f:{fort:true}},
+  {k:"@", t:"Relations the tool writes on the trial fort", d:"The same species under the rule the ecology writes by since v6.9 (and v7.0's pack floor): every predator not wholly BENIGN, against every species it can reach, when its group weighs at least 5% of the prey. Far wider than the pairing test. ECO RELS: wild animals hunt only along written relations.", s:{type:"relations", g:"armed"}, f:{fort:true}},
+  {k:"s", t:"Types by season, from the raws", d:"Species of each category in each season the raws allow (NO_SPRING … NO_WINTER), ECO wildlife set. NO_WINTER is the only gate in common use. Since v7.0 (seasons_own) the tool deals seasons itself and clears these flags on the species it manages.", s:{type:"bars", x:"seasons_raw", g:"category", agg:"count", logy:false}, f:{cls:"eco"}},
+  {k:"%", t:"Biome × season, from the raws", d:"Species per biome family and allowed season, ECO wildlife set (a species counts in every family and season it has).", s:{type:"heat", x:"seasons_raw", g:"biome_families"}, f:{cls:"eco"}},
   {k:"S", t:"Types by season on the trial fort", d:"How many species of each category the tool's roster puts in each season on Boatsbowed (a species counts in each of its seasons).", s:{type:"bars", x:"fort_seasons", g:"category", agg:"count", logy:false}, f:{fort:true}},
   {k:"b", t:"Types by biome family", d:"How many creatures of each habitat live in each biome family (a creature counts in every family it has).", s:{type:"bars", x:"biome_families", g:"habitat", agg:"count", logy:false}},
-  {k:"%", t:"Biome × season on the trial fort", d:"Species per biome family and season in the tool's roster on Boatsbowed.", s:{type:"heat", x:"fort_seasons", g:"biome_families"}, f:{fort:true}},
-  {k:"f", t:"Relative frequency", d:"The FREQUENCY weight each species carries into DF's pick, the odds control's raw value; most sit at 50.", s:{type:"hist", x:"frequency", g:"category", logx:false, logy:true, bins:40}},
+  {k:"¤", t:"Biome × season on the trial fort", d:"Species per biome family and season in the tool's roster on Boatsbowed.", s:{type:"heat", x:"fort_seasons", g:"biome_families"}, f:{fort:true}},
+  {k:"f", t:"Relative frequency", d:"The FREQUENCY weight each species carries into DF's pick, the odds control's raw value (giants at half their root's: CHANGE_FREQUENCY_PERC 50). 250 of the 736 ECO wildlife species sit at 50. v7.0's roster builder rewrites it per slot from its ladder (v2.1 values).", s:{type:"hist", x:"frequency", g:"category", logx:false, logy:true, bins:40}, f:{cls:"eco"}},
   {k:"!", t:"What actually arrived", d:"Arrivals on Boatsbowed across one season of X1 (the tool on, v6.3), by category.", s:{type:"bars", x:"category", g:"habitat", agg:"sum", y:"x1_arrivals", logy:false}, f:{fort:true}},
   {k:"$", t:"Stock by category, overlaid", d:"The regional stock each species holds on Boatsbowed, log scale, one overlaid histogram per category.", s:{type:"overlay", x:"boats_stock", g:"category", logx:true, logy:false, bins:30}, f:{fort:true}},
   {k:"£", t:"Stock by season, overlaid", d:"The same stock, one histogram per season the roster gives the species.", s:{type:"overlay", x:"boats_stock", g:"fort_seasons", logx:true, logy:false, bins:30}, f:{fort:true}},
+  {k:"¥", t:"Stock by habitat, overlaid", d:"The same stock, one histogram per habitat.", s:{type:"overlay", x:"boats_stock", g:"habitat", logx:true, logy:false, bins:30}, f:{fort:true}},
+  {k:"P", t:"Population numbers by category, overlaid", d:"Every species' worldgen POPULATION_NUMBER (middle), the raws' own stock, log scale, one overlaid histogram per category. Vermin sit at 250-500 per region entry; most large animals at 5-30.", s:{type:"overlay", x:"pop_mid", g:"category", logx:true, logy:false, bins:30}, f:{cls:"eco"}},
+  {k:"G", t:"Guilds, as the tool reads them", d:"MODEL.guild (v6.9): one guild per species from the raws alone, in precedence (vermin, water apex, raptor, land apex, water and ground mesopredators, grazers, birds, pelagic, coastal and freshwater fish, shore, land prey), after an animal person takes its root's standing. ECO wildlife set; the desk's guilds differ on 2 species (ANT_MAN, CAVE_FISH_MAN: the desk reads the person's own tokens).", s:{type:"bars", x:"guild_name", g:"band", agg:"count", logy:false}, f:{cls:"eco"}},
+  {k:"A", t:"Armed or BENIGN, by guild", d:"Since v6.9 a predator counts as armed unless every caste is BENIGN (ECO RELS: the coyote hunted on a written relation, the BENIGN fox never did). 45 of the 234 predator-guild species carry BENIGN (the ECO page's figure 8 says 45 of 235: the desk puts ANT_MAN among the raptors); the tool counts the orca and giant orca armed (curated), so 43 are BENIGN as it reads them.", s:{type:"bars", x:"guild_name", g:"armed", agg:"count", logy:false}, f:{cls:"eco"}},
+  {k:"L", t:"LARGE_PREDATOR is not the switch", d:"Predators by the LARGE_PREDATOR token against armed: the coyote (no LARGE_PREDATOR) attacked on a written relation, the fox (BENIGN) never did. LARGE_PREDATOR only sets the land apex guild and a 1.5× take in the pairing test.", s:{type:"heat", x:"armed", g:"large_predator"}, f:{cls:"eco", cat:"predator"}},
+  {k:"C", t:"Who can scavenge", d:"SCAV.is (v6.9): BONECARN, CURIOUSBEAST_EATER, or the seven whose descriptions eat carrion; never a humanoid. 90 of the ECO wildlife set. Walk-and-delete worked only for walking pack scavengers (wolves); v7.0's scav_ext adds wading, swimming and fallbacks.", s:{type:"bars", x:"guild_name", g:"scavenger", agg:"count", logy:false}, f:{cls:"eco"}},
+  {k:"v", t:"Vermin by gobble class", d:"VERMIN.swvClass (v7.0): the tool's own vermin classes, which its gobble writes as GOBBLE_VERMIN_CLASS on matched consumers. DF wires one class natively (EDIBLE_GROUND_BUG: ant, beetle, roach, thrips).", s:{type:"bars", x:"swv", g:"habitat", agg:"count", logy:false}, f:{cls:"eco", cat:"vermin"}},
   {k:"T", t:"The extinct periods", d:"The extinct module's creatures by geological period and habitat.", s:{type:"bars", x:"period", g:"habitat", agg:"count", logy:false}, f:{source:"extinct"}},
 ];
-const TYPES = [["hist","Histogram"],["overlay","Overlaid histograms"],["scatter","Scatter"],["box","Box plot"],["bars","Bars"],["heat","Heatmap"],["network","Food web"]];
+const TYPES = [["hist","Histogram"],["overlay","Overlaid histograms"],["scatter","Scatter"],["box","Box plot"],["bars","Bars"],["heat","Heatmap"],["network","Food web"],["relations","Relations written"]];
 function fillSelect(sel, opts, allowNone){ sel.innerHTML=""; if (allowNone){ const o=document.createElement("option"); o.value=""; o.textContent="(nothing)"; sel.appendChild(o);} for (const [v,l] of opts){ const o=document.createElement("option"); o.value=v; o.textContent=l; sel.appendChild(o);} }
 function syncBuilder(){
   const t=S.type, xQ = (t==="hist"||t==="overlay"||t==="scatter");
   fillSelect($("b-x"), xQ ? Q : C); $("b-x").value = S.x;
   if (xQ && !QL[S.x]) { S.x="adult_size"; $("b-x").value=S.x; } if (!xQ && !CL[S.x]) { S.x="habitat"; $("b-x").value=S.x; }
   fillSelect($("b-y"), Q); $("b-y").value = S.y;
-  fillSelect($("b-g"), C, t!=="heat" && t!=="network"); $("b-g").value = S.g || "";
+  fillSelect($("b-g"), C, t!=="heat" && t!=="network" && t!=="relations"); $("b-g").value = S.g || "";
   $("l-x").firstChild.textContent = t==="box" ? "Group by" : (t==="heat" ? "Columns" : "X");
   $("l-g").firstChild.textContent = t==="heat" ? "Rows" : "Colour by";
   $("l-y").hidden = !(t==="scatter"||t==="box"||(t==="bars" && S.agg!=="count"));
-  $("l-x").hidden = t==="network"; $("l-agg").hidden = t!=="bars"; $("l-bins").hidden = !(t==="hist"||t==="overlay");
+  $("l-x").hidden = t==="network" || t==="relations"; $("l-agg").hidden = t!=="bars"; $("l-bins").hidden = !(t==="hist"||t==="overlay");
   $("b-agg").value=S.agg; $("b-bins").value=S.bins; $("b-logx").checked=S.logx; $("b-logy").checked=S.logy;
   $("b-logx").parentElement.hidden = !(t==="hist"||t==="overlay"||t==="scatter");
   document.querySelectorAll("#types button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.t===t)));
@@ -354,16 +378,16 @@ function syncBuilder(){
 function draw(){
   const rows = filtered();
   $("count").textContent = `${rows.length} of ${ROWS.length} creatures`;
-  const fn = {hist:r=>hist(r,false), overlay:r=>hist(r,true), scatter, box, bars, heat, network}[S.type];
+  const fn = {hist:r=>hist(r,false), overlay:r=>hist(r,true), scatter, box, bars, heat, network:r=>network(r,false), relations:r=>network(r,true)}[S.type];
   const [traces, lay, note] = fn(rows);
   const p = S.preset!=null ? PRESETS[S.preset] : null;
-  $("c-title").textContent = p ? p.t : ({hist:"Histogram", overlay:"Overlaid histograms", scatter:"Scatter", box:"Box plot", bars:"Bars", heat:"Heatmap", network:"Food web"}[S.type] + ": " + (S.type==="scatter" ? `${QL[S.y]} against ${QL[S.x]}` : S.type==="box" ? `${QL[S.y]} by ${CL[S.x]}` : S.type==="heat" ? `${CL[S.g||"habitat"]} × ${CL[S.x]}` : S.type==="network" ? "predators and prey" : (QL[S.x]||CL[S.x]||"")));
+  $("c-title").textContent = p ? p.t : ({hist:"Histogram", overlay:"Overlaid histograms", scatter:"Scatter", box:"Box plot", bars:"Bars", heat:"Heatmap", network:"Food web", relations:"Relations written"}[S.type] + ": " + (S.type==="scatter" ? `${QL[S.y]} against ${QL[S.x]}` : S.type==="box" ? `${QL[S.y]} by ${CL[S.x]}` : S.type==="heat" ? `${CL[S.g||"habitat"]} × ${CL[S.x]}` : (S.type==="network"||S.type==="relations") ? "predators and prey" : (QL[S.x]||CL[S.x]||"")));
   $("c-desc").textContent = (p ? p.d + " " : "") + note + ".";
   Plotly.react("chart", traces, lay, CFG);
   table(rows);
 }
 // ---- table
-const TCOLS = [["tile",""],["name","name"],["id","token"],["source","source"],["period","period"],["habitat","habitat"],["category","category"],["band","band"],["adult_size","size cm³"],["cluster_min","group min"],["cluster_max","group max"],["frequency","freq"],["clutch_mid","clutch"],["lifespan","lifespan"],["walk_kph","kph"],["n_biomes","biomes"],["boats_stock","fort stock"],["boats_seasons","fort seasons"],["x1_arrivals","X1 arrivals"]];
+const TCOLS = [["tile",""],["name","name"],["id","token"],["root","root"],["source","source"],["period","period"],["habitat","habitat"],["category","category"],["guild","guild"],["armed","armed"],["scavenger","scav"],["swv","vermin class"],["band","band"],["adult_size","raw cm³"],["tool_mass","tool cm³"],["cluster_min","group min"],["cluster_max","group max"],["frequency","freq"],["clutch_mid","clutch"],["lifespan","lifespan"],["walk_kph","kph"],["n_biomes","biomes"],["boats_stock","fort stock"],["boats_seasons","fort seasons"],["x1_arrivals","X1 arrivals"]];
 let sortKey="name", sortDir=1;
 function table(rows){
   $("t-n").textContent = rows.length;
@@ -379,7 +403,7 @@ $("tablecard").addEventListener("toggle", ()=>table(filtered()));
 const pres = $("presets");
 PRESETS.forEach((p,i)=>{ const b=document.createElement("button"); b.type="button"; b.innerHTML=`<span class="k" aria-hidden="true">${p.k}</span><span>${p.t}</span>`;
   b.addEventListener("click", ()=>{ Object.assign(S, {g:"", y:S.y, agg:"count"}, p.s, {preset:i});
-    const f = p.f || {}; $("f-fort").checked = !!f.fort; $("f-source").value = f.source || ""; syncBuilder(); draw(); }); pres.appendChild(b); });
+    const f = p.f || {}; $("f-fort").checked = !!f.fort; $("f-source").value = f.source || ""; $("f-class").value = f.cls || "natural"; $("f-category").value = f.cat || ""; syncBuilder(); draw(); }); pres.appendChild(b); });
 const ty = $("types");
 TYPES.forEach(([t,l])=>{ const b=document.createElement("button"); b.type="button"; b.dataset.t=t; b.textContent=l; b.addEventListener("click", ()=>{ S.type=t; S.preset=null;
   if ((t==="box"||t==="bars"||t==="heat") && QL[S.x]) S.x = "habitat"; if ((t==="hist"||t==="overlay"||t==="scatter") && CL[S.x]) S.x="adult_size";
@@ -390,10 +414,10 @@ for (const [id,key] of [["b-logx","logx"],["b-logy","logy"]]) $(id).addEventList
 document.querySelectorAll("#filters select, #filters input").forEach(el=>el.addEventListener(el.type==="search"?"input":"change", draw));
 // tiles and notes
 const nat = ROWS.filter(r=>r.class==="natural");
-$("tiles").innerHTML = [["creatures",ROWS.length],["natural",nat.length],["extinct",ROWS.filter(r=>r.source==="extinct").length],["special",ROWS.filter(r=>r.class==="special").length],["on the trial fort",ROWS.filter(r=>r.on_fort).length]]
+$("tiles").innerHTML = [["creatures",ROWS.length],["natural",nat.length],["ECO wildlife",ROWS.filter(r=>r.eco_wildlife).length],["extinct",ROWS.filter(r=>r.source==="extinct").length],["special",ROWS.filter(r=>r.class==="special").length],["on the trial fort",ROWS.filter(r=>r.on_fort).length]]
   .map(([l,v])=>`<div class="tile"><b>${v.toLocaleString()}</b><span>${l}</span></div>`).join("");
-$("about").innerHTML = `<b>How the readings are made.</b> Habitat: aquatic if it cannot move on land or breathe air; waterbird if it flies and has a water biome; flier; semiaquatic if it breathes water or lives only in water; else land. Role: predator on a carnivore's diet or a predator's behaviour tag, else prey. Size band by adult volume. Special: megabeasts, titans, night creatures, demons, forgotten beasts, mythic, unliving (DF's own; the tool does not manage them).`;
-$("foot").textContent = "Source: the DF 53.16 raws on the DwarfCron rig (vanilla_creatures, vanilla_creatures_extinct), with COPY_TAGS_FROM and creature variations resolved as DF does. Trial-fort columns: Boatsbowed, experiment X1 (26 Sep 2026). Built by DwarfCron scripts/bestiary/build_bestiary.py.";
+$("about").innerHTML = `<b>How the readings are made</b> (seasonal-wildlife v7.0; they match the live tool's MODEL.audit on all 963 creatures both hold). Habitat: aquatic if it cannot move on land or breathe air; waterbird if it flies and has a water biome; flier; semiaquatic if it breathes water or lives only in water; else land. Role: predator on CARNIVORE, BONECARN, LARGE_PREDATOR or AMBUSHPREDATOR (and a curated four: the orca and giant orca and giant cuttlefish hunt, the whale shark does not), else prey. Size: DF keeps body size in tens of cm³ (at least 10); the tool and these bands read cm³ (small &lt; 150,000, medium &lt; 1,000,000). An animal person takes its root animal's role, habitat, size, group and flight (v6.7). Guild: MODEL.guild (v6.9). Armed: not BENIGN in every caste (v6.9). Scavenger: SCAV.is. Vermin class: VERMIN.swvClass (v7.0 gobble). Special: megabeasts, titans, night creatures, demons, forgotten beasts, mythic, unliving (DF's own; the tool does not manage them). ECO wildlife set: the 736 vanilla species the ECO report counts (every BIOME holder less 8 megabeasts and 2 sponges); its figures and this page give the same counts for the same question.`;
+$("foot").textContent = "Source: the DF 53.16 raws on the DwarfCron rig (vanilla_creatures, vanilla_creatures_extinct, read as files), with COPY_TAGS_FROM and creature variations resolved as DF does; DF's biome groups as the ECO census reads them. Checked against the tool's MODEL.audit fixture (data/fixtures/species-model.tsv, read live on DFHack 53.16-r1.1; the rig runs r2 since 1 Oct) and the ECO report's raws.json. Trial-fort columns: Boatsbowed, experiment X1 run 20260926-202637. Built by DwarfCron scripts/bestiary/build_bestiary.py. Revisions: rev 1, 26 September 2026: first build. rev 2, 1 October 2026: biome groups corrected (NOT_FREEZING, ANY_TEMPERATE, ANY_TROPICAL and ALL_MAIN no longer take in water biomes; 25 species were waterbirds that the tool reads as fliers, 83 had wrong biome lists); giants' FREQUENCY no longer halved twice (217 species); size bands on the tool's cm³ reading (19 giant insects were medium, the tool says large); colony insects counted as vermin; animal people mirror their root (ORCA_MAN a predator, ANT_MAN prey); X1 arrivals from the finished run (20 species were under-counted from a run still writing); new readings: guild, desk guild, armed, scavenger, vermin class, allowed seasons, alignment, civilisation race, root, realms; new questions on guilds, BENIGN, LARGE_PREDATOR, scavengers, vermin classes, seasons and biomes from the raws, population numbers, and the relations the ecology writes.";
 // theme changes redraw with the new tokens
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
 new MutationObserver(draw).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});

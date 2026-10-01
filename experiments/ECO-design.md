@@ -10,6 +10,14 @@ Baselines gathered first (no rig): the wiki's functional definition of every tok
 already do (`eco/capabilities.md`); a pilot fight (`eco/pilot-P0.md`). Token effects are taken from the wiki or measured —
 never inferred from a name.
 
+**Status (1 Oct 2026 review).** Every block below ran, 29 Sep night – 1 Oct morning, and many more were added (ECO2, ECO3,
+the 30 Sep night queue, the SWEEP blocks). Results: `data/eco-desk/findings.md` (authority) and the ECO Wildlife Study page
+(https://claude.ai/artifact/Qq4zH3VFQPmTaUPownxDyw, built by `scripts/eco-report/`). Section "Results by question" at the end maps
+each question to its blocks and verdict; "Next experiments" holds the designs the open questions call for. All of it ran on DFHack
+53.16-r1.1; the rig moved to 53.16-r2 on 1 Oct (~08:55), so a re-validation comes before any new block (open item
+revalidate-dfhack-r2). The "1–2 reps" of the original ask became 2 reps per arm from 30 Sep (memory two-reps-per-arm); the
+first-day matrices (P1, P2, T1, W1L, W1O, the HC/HR/HO/HL probes, F1) ran once.
+
 ## Instrument (new)
 
 `chronicler/dfhack/scripts/cx-eco.lua` — one atomic verb per RPC call, state in `_G.CX_ECO`:
@@ -140,3 +148,66 @@ species over time from the TSVs.
 A1 → P1/P2 → T1 → S1–S3 → L1 (CTRL, one load each block) → W1 (LAKE, OCEAN2) → O1/O2 → T2, F1, N1 (manifests) → G1.
 About four hours of rig time. Each block writes its TSV; analysis `scripts/eco-analyze.py`; results and the changes they
 suggest for seasonal-wildlife go into a report.
+
+---
+
+## Results by question (1 Oct 2026 review)
+
+Block IDs are findings.md's. "1 run" = one replicate. Where a later block overturned an earlier reading, the later one is given.
+
+| Q | ran | answer | still open |
+|---|---|---|---|
+| Q1 scavenging | S1, S2, S3; SCV, SCVW, SCVC; SCV2 (vacuous), SCV2b/SCV2Wb | Nothing in DF eats or moves remains on any layer (S1, HC1, HCP, SCVC 4,000 t). Walk + delete works and survives reload (S2). The rig's walk works for wolves only (SCV). v7.0's own pass clears land and water carcasses in ~2,400 t (SCV2b, 2 reps). HAUL_REFUSE gives no job (S3). | Who ate (ledger not captured); scav_ext's flier, swimmer and wanderer fallbacks never fired; underground walk fails (HC1). Open item scav-attribution-and-fallbacks; SCV3 below |
+| Q2 scavenger tags | desk Q2-scavenger-sets.md | SCAV.is = BONECARN, CURIOUSBEAST_EATER or a named list: 90 species, 3 aquatic (raws figure 9) | Count carnivorous swimmers? (decision scav-carnivorous-swimmers) |
+| Q3 predator–prey | P1, P2; ECO3 PK; CAL; GPK/GPKW/GPKR | No relation, no hunting within 3,000 t (P1 0/40, P2 0/8, 1 run). Any non-BENIGN attacker acts on a written relation. Kills follow group size, not prey mass (PK, CAL); savage giant packs take megafauna (GPK). Over long cells DF itself aims placed units at natives (RELP, RELS) | Intraguild WOLF vs COYOTE written (design-s7-unmeasured-cells) |
+| Q4 land/water boundary, tool audit | W1L, W1O (1 run); HR, HO, HL (1 run); HCP; REACH; WB; FISH, FSH2; LAKEP; W2 audit | Amphibious predators cross the shore both ways; aquatic ones never leave the water; land predators never fish, even with swim and breathe flags (FISH, FSH2: v7.0 fishers off). W2: 58% of written pairs failed eats() → v6.9 filters the write and brings water units in | OCTOPUS as attacker; flow effects |
+| Q5 token effects | T0 desk; T1 (1 run); TV (1 run); TV2; FVA; B; CB; T2 (1 run); ECO2-W | BENIGN is the switch (T1, HO, TV2); AT_PEACE does not stop a write; CRAZED/OPPOSED aim at the fort; PRONE_TO_RAGE by dose (TV2); MEANDERER off scatters (TV2); LOOSE_CLUSTERS, FLEEQUICK, VISION_ARC, AMBUSHPREDATOR: no reliable effect; CURIOUS_BEAST flags make placed bears and raccoons leave (B, CB); NO_<season> honoured at the pick (T2, ECO2-W); UBIQUITOUS not read at run time (T2) | DIURNAL/NOCTURNAL and the swim-flag shore cells of the T1 list have no result in findings.md (CURIOUS_BEAST_EATER on WOLF ran: nothing in 3,000 t); CLUSTER_NUMBER at run time |
+| Q6 tag set-groups | desk Q6-setgroups.md → guild builder v2–v2.2 | 15 set-groups became the 13 guilds of `v2/guilds/design.md` | – |
+| Q7 combat alerts | A1, A2 (1 run each) | The filter drops wild-only alerts, keeps fort, animal-person and goblin fights, survives reload → v6.9 ships it on | Natural fights over a season (A3 below; open item single-run-defaults) |
+| Q8 deep vs shallow ocean | O, DEPTHL, DEPTH (BOATS); OS; COHO; S8O | Fortress water is 1–4 levels: OCEAN2 never ≥ 3, LAKE 91% one level, BOATS 33% at 3–4. Big fish live in 1–2-level water for 3,000 t; placed unled orcas strand (3 of 12 in 15,000 t). v7.0 widens the PE slot only where ≥ 3-level ocean columns exist; on OCEAN2 it came out empty | Why the PE slot is empty (pelagic-slot-shallow-maps); PEL1 below |
+| Q9 geographic groups | desk Q9-realms.md | Realm table built into v7.0 behind `realms` (off) | Never run on the rig, no validator claim (realms-built-untested); REALM1 below |
+| Q10 exhaustion and replacement | N1 (1 run) | Entry quantity 0 stops a species; the extinct flag stays false; a replacement's first wave came 2,090 t after the hook (25 of the next 26 non-bird waves) → v6.9 EXHAUST | Second replicate (single-run-defaults) |
+| Q11 FREQUENCY | F1 (1 run); ECO2-FC (1 run); SW4; S8C/S8Cb/S8B/S8O | Shares ∝ FREQUENCY on land and per cavern layer; ×0.5 predator ladder cuts predators to ~2%. The apex step does not visibly steer apexes | Does FREQUENCY steer the flier pool (flier-pool-steering)? Is LP a separate pool (lp-separate-pool)? Apex by placement/stock (APX1 below) |
+| Q12 groups at once | G1 (1 run); ECO2-G; SW3B; SW5; SW6 | √(embark)+1 adds ~1 group on 5×5 and 6×6 only (v6.9 default); on CTRL 1 < 3 ≤ auto; the cavern cap trims only the tool's groups; water cap 2 = auto on BOATS | Savage map with 2 LP groups |
+| Q13 leader | L1, L2 (1 run); HC1–HL (1 run); COH/COHO/COHR | A leader holds herds, packs, flocks, schools and pods on every layer; which member leads made no consistent difference → v7.0 largest adult male | Does a leader protect prey? Land 1 run says yes, water 1 run says no (L3 below) |
+| Q14 fight log | all blocks | UNIT_ATTACK + incident log gave every count; blind in unopened caverns (deaths still appear) | – |
+
+Blocks added beyond the original list and where they are reported: RELS, RELS2, RELS2b, RELS3, RELP, SLOTV (who DF aims at whom);
+STL, STL2, LONE, LONE10 (solitary hunters); VRM, VRM2, VRM3, VRM3b, VRM4 (vermin); DOM, DOM2 (domestic prey); INV, INV2 (SAVAGE
+invasives); T9c, E23e, item 6 GOODF/EVILF (caverns, alignment); S8C, S8Cb, S8B, S8O (a v7.0 season with the builder); SW1–SW7,
+SW1R, SW2R, SW3B (experiments/SWEEP-design.md).
+
+Vacuous or flawed runs, kept as lessons: TV/HL/HO/VR* vermin cells (no vermin at the spot or colonies only), VRM (vermin piled up
+across cells), INV run 1 (yeti refused on biome), SCV2 (tool off), S8C (loop over a string; kept as the builder-off control), SW3
+(status line counted cavern groups). Each was rerun with a receipt.
+
+Untested assumptions the results carry (labelled on the page):
+- Placed and tool-released units are non-wild to DF, which aims them at arrivals itself (RELS). Long cells with placed hunters and
+  the SW1/SW2 arena cannot separate the tool's written pair from DF's aiming.
+- Cells sharing one load run in order and natives pile into later cells (SW1); only the SWEEP blocks from SW3 on and the reruns
+  were counterbalanced. Earlier multi-cell blocks (P1, T1, TV2, HC*, REACH, FSH2, COH) ran in a fixed order: their later cells may
+  carry more natives. Their readouts count placed pairs only, which limits but does not remove the bias.
+- LONE10's skill package was written by the harness; v7.0's own caste NATURAL_SKILL write is unverified (natural-skill-unverified).
+- One species, one fort: INV2 (smilodon on CTRL); one fort: CB, A1/A2, N1.
+
+## Next experiments (1 Oct 2026 review)
+
+Every design: **2 replicates per arm**, as few arms as the question needs; **counterbalanced order** (rep 2 runs the arms in reverse;
+a fresh fort load per arm where cells would otherwise share a load); a **manifest subject receipt** in the pre and every pass
+(the subject's own count, the forced state, the tool's job counters), and a replicate that fails it is reported vacuous, not zero
+(memory manifest-subject-receipt, experiment-readout-traps 20–21). Score placed-only pairs where anything is placed. First: the DFHack
+53.16-r2 re-validation (open item revalidate-dfhack-r2), because teleport, setPathGoal and breathing changed under every block below.
+
+| id | question (open item) | fort, window | arms | receipt | readout | priority |
+|---|---|---|---|---|---|---|
+| **R2V** | Do the harness and v7.0 behave the same on r2? (revalidate-dfhack-r2) | validate-full forts; then CTRL/OCEAN2 | validate-full once; COHO (unled pods) and SCV2b re-run as in ECO, 2 reps | dfhack version string in every log; cx-eco spawn/tp receipts | claim-by-claim diff vs 20261001-074833; orca drowning and corpse clearance vs the r1.1 numbers | high |
+| **APX1** | Can placement or stock steer apexes, if the ladder's apex step goes? (apex-placement-stock-test, ladder-drop-apx-step) | CTRL, builder on, 100,800 t | control; stock (apex entry ×5, FREQUENCY as built); placed (tool places one COUGAR group at t0) | apex entry quantity before/after the pre; placed arm: apex units on map at +300 t; tool enabled and ecology counters per pass | apex units present per sample; kills by apex (placed prey excluded); departures; fort harm | high |
+| **S8L** | Does the v2.2 ladder hit 14–18% predators once ported? (builder-port-vs-v22) | BOATS and CTRL, 100,800 t | ladder v2.1 (current) vs v2.2 | `roster build` lines with the ladder values printed; same seed both arms | predator share of surface units and waves; apex units; giant-pack overshoot | high, after the port |
+| **E23f** | What starts a cavern invasion; does the invasion exclusion hold? (invasion-exclusion-unvalidated) | BOATS copy, 201,600 t | dig-now into cavern 1 + aquifer seal + citizens on the floor vs control | the cavern connection exists (path probe); irritation re-pinned and read before each re-pin | invaders; WILD.onMap counts with and without invaders | medium |
+| **SOLO1** | Does v7.0's own solitary package work at natural density? (natural-skill-unverified, solo-package-natural-density) | CTRL, 100,800 t | v7.solo on vs off | a newly arrived solitary hunter's caste NATURAL_SKILL fields read on arrival | kills by armed solitary hunters; native-only (no placed units) | medium |
+| **L3** | Does a leader protect prey? Land said yes, water no (single-run-defaults) | CTRL (10 DEER vs 6 WOLF written), OCEAN2 (12 MILKFISH vs 5 SHARK_TIGER), 6,000 t, fresh load per arm | none vs largest-male | lead receipt (leader id); relation rows > 0 at +100 t | attacks and kills on the herd/school; spread | medium |
+| **SCV3** | Which species scavenge, and do scav_ext's fallbacks fire? (scav-attribution-and-fallbacks) | CTRL land, RIVER4 water, 8 × 300 t passes | vulture-only (natives culled), jackal on a fort with a real jackal entry, POND_GRABBER in water | `ledger` dump with the scavenging kind; SCAV last-run counters per pass | eaten per species; fallbacks fired | medium |
+| **FLY1** | Does FREQUENCY or the stop list steer DF's flier pool? (flier-pool-steering) | CTRL, F1 design, 60,000 t | ravens native vs FREQUENCY 1 vs entry 0 | raven entry and FREQUENCY printed after the pre | raven share of bird waves | medium |
+| **A3** | Does the alert filter keep every fort fight over natural fights? (single-run-defaults) | BOATS, 50,400 t | filter on vs off | COMBAT report count read each pass | alerts kept/dropped; any fight with a citizen (incidents) whose alert was dropped | low |
+| **PEL1** | Why is the PE slot empty on OCEAN2; does a pelagic fill on a deep map? (pelagic-slot-shallow-maps, orca-stranding-n) | desk first (buildPool PE candidates for OCEAN2 and BOATS); rig BOATS, 100,800 t | builder on, 1 arm | deep-column count; PE candidates printed | PE slot fill; pelagic_beached | low |
+| **REALM1** | Does `realm` co-seat only same-realm species? (realms-built-untested) | CTRL and OCEAN2, roster build only (no stepping) | realms off vs `realm auto` vs one forced realm | `roster build` output | species per realm; then add mech.v70.realms | low |

@@ -262,7 +262,8 @@ def main():
             if re.match(r"^[A-Z][A-Za-z0-9_\-]*$", t.strip()) and t.strip() not in ("CTRL", "BOATS", "BUILDER", "T0", "VALIDATE"):
                 blocks.add(t.strip())
     content = content.replace("{{blockcount}}", str(len(blocks)))
-    content = content.replace("{{oicount}}", str(len(oi.get("items") or [])))
+    open_n = sum(1 for i in (oi.get("items") or []) if i.get("status") != "done")   # done items show, but are not open
+    content = content.replace("{{oicount}}", str(open_n))
     content = content.replace("{{figcount}}", str(len(placed)))
     unplaced = [f["id"] for f in figs if f["id"] not in placed]
     if unplaced:
@@ -275,7 +276,7 @@ def main():
     out = DATA / "eco-report.html"
     out.write_text(page)
     print(f"wrote {out} ({len(page)/1024:.0f} KB): {len(placed)} figures placed, {len(unplaced)} unplaced, "
-          f"{len(oi.get('items') or [])} open items")
+          f"{open_n} open items ({len(oi.get('items') or [])} listed)")
 
 
 if __name__ == "__main__":

@@ -603,3 +603,12 @@ placed-prey kills (p = 0.07); 0.025 belongs to all kills (49/21).
   5-hyena cell's 2 left out). Wolves alone: deer 1, moose 4, buffalo 7, elephant 3 -- not monotonic in speed.
 - HC4 TROGLODYTE x ELK_BIRD: first-spot 101 is one direction (174 both ways); second-spot 162/144 are both directions.
 - SW5 "auto 189/359 vs c2 91/27" are attacks per 10,000 t, not counts; c1 rep 1 (379) is above both auto reps.
+
+## Corrections, 1 Oct review (the three slips listed in open-items.json 'findings-small-discrepancies')
+- P1 (line 5), corrected 1 Oct 2026: "every LP attacked (up to 306 attacks/cell)" -- 306 is the largest LARGE_PREDATOR cell
+  (HYENA x WATER_BUFFALO). The largest written cell overall is COYOTE x DEER, 343, and the coyote is not LP. Better: every
+  non-BENIGN predator attacked on a written relation (7 of 8; FOX 0), up to 343 attacks a cell. Source: P1.tsv via eco-analyze.
+- HCP (line 137), corrected 1 Oct 2026: "OLM_GIANT x CRUNDLE ... written 8/8 crundles killed" -- 8 crundles died, but only 7 deaths
+  have a placed killer (OLM_GIANT>CRUNDLE) on record; the eighth has none. Strict kill count 7 of 8. Source: HCP.tsv.
+- ECO2-G (line 170), corrected 1 Oct 2026: "every root+1 rep (3.16-3.81)" -- the 6x6 root+1 rep 2 mean is 3.12, so the range is
+  3.12-3.81. Every root+1 rep at 5x5/6x6 still beats every default rep (1.77-2.85); the conclusion holds. Source: g-tally.json.

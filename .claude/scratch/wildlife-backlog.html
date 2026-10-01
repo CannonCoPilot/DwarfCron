@@ -13,6 +13,7 @@
     --measure:68ch;
   }
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    color-scheme:dark;
     --paper:#0E1218; --card:#161B23; --sunk:#1F2630; --rule:#2C3542; --rule-soft:#232B36;
     --ink:#E3E8EF; --ink-mid:#A6B0BE; --ink-faint:#78828F;
     --accent:#7FA3D8; --accent-deep:#A8C3E8; --accent-wash:#16202E;
@@ -21,6 +22,7 @@
     --assumed:#E08A78; --assumed-wash:#261512;
   }}
   :root[data-theme="dark"]{
+    color-scheme:dark;
     --paper:#0E1218; --card:#161B23; --sunk:#1F2630; --rule:#2C3542; --rule-soft:#232B36;
     --ink:#E3E8EF; --ink-mid:#A6B0BE; --ink-faint:#78828F;
     --accent:#7FA3D8; --accent-deep:#A8C3E8; --accent-wash:#16202E;
@@ -35,7 +37,8 @@
     font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
     font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:min(var(--measure), calc(100vw - 3rem)); margin:0 auto; padding:3.5rem 0 6rem;}
+  .wrap{max-width:min(var(--measure), calc(100vw - 2rem)); margin:0 auto; padding-block:3.5rem 6rem;}
+  .wide{max-width:min(96ch, calc(100vw - 2rem));}
 
   .eyebrow{
     font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -48,11 +51,12 @@
     font-size:clamp(2rem,5vw,2.9rem); line-height:1.12; letter-spacing:-.015em;
     text-wrap:balance; margin:1.6rem 0 .8rem;
   }
-  .standfirst{font-size:1.06rem; color:var(--ink-mid); margin:0 0 2.4rem; text-wrap:pretty;}
+  .standfirst{font-size:1.06rem; color:var(--ink-mid); margin:0 0 1.2rem; text-wrap:pretty;}
+  .companions{font-size:.92rem; color:var(--ink-mid); margin:0 0 2.4rem;}
 
   .decided{
     background:var(--accent-wash); border-left:3px solid var(--accent);
-    padding:1.1rem 1.3rem; margin:0 0 3rem;
+    padding:1.1rem 1.3rem; margin:0 0 2rem;
     display:flex; flex-direction:column; gap:.5rem;
   }
   .decided .tag{
@@ -64,7 +68,12 @@
   h2{
     font-family:"IBM Plex Serif",Georgia,serif; font-weight:600;
     font-size:1.5rem; letter-spacing:-.01em; margin:3.2rem 0 .4rem; text-wrap:balance;
+    display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap;
   }
+  /* the stage number is real: the stages run in this order */
+  .stage-n{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.95rem; font-weight:600; color:var(--accent);
+    border:1px solid var(--accent); padding:.05rem .45rem; line-height:1.3;}
+  .count{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.8rem; font-weight:500; color:var(--ink-faint);}
   .lede{color:var(--ink-mid); margin:0 0 1.8rem; font-size:.97rem;}
 
   .items{display:flex; flex-direction:column; gap:2rem;}
@@ -73,16 +82,20 @@
     padding-left:1.15rem;
     display:flex; flex-direction:column; gap:.65rem;
   }
-  .item-head{display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap;}
+  .item-head{display:flex; align-items:baseline; gap:.5rem .7rem; flex-wrap:wrap;}
   .chip{
     font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
     font-size:.68rem; letter-spacing:.1em; text-transform:uppercase;
     color:var(--grade,var(--ink-faint)); background:var(--grade-wash,var(--sunk));
     padding:.16rem .5rem; white-space:nowrap;
   }
+  .chip.st{color:var(--ink-mid); background:var(--sunk);}
+  .chip.st-user{color:var(--accent-deep); background:var(--accent-wash); font-weight:600;}
+  .chip.st-done{color:var(--measured); background:var(--measured-wash);}
+  .chip.st-blocked{color:var(--assumed); background:var(--assumed-wash);}
   h3{
     font-family:"IBM Plex Serif",Georgia,serif; font-weight:600;
-    font-size:1.13rem; margin:0; letter-spacing:-.005em; text-wrap:balance;
+    font-size:1.13rem; margin:0; letter-spacing:-.005em; text-wrap:balance; flex-basis:100%;
   }
   .claim{margin:0; color:var(--ink); font-size:1rem;}
   dl{margin:.2rem 0 0; display:flex; flex-direction:column; gap:.55rem;}
@@ -92,6 +105,8 @@
   }
   dd{margin:.1rem 0 0; color:var(--ink-mid); font-size:.95rem;}
   dd strong{color:var(--ink); font-weight:600;}
+  dd.note1{color:var(--ink); border-left:2px solid var(--inferred); padding-left:.6rem;}
+  .meta{margin:0; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.72rem; color:var(--ink-faint); overflow-wrap:anywhere;}
   code{
     font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;
     font-size:.87em; background:var(--sunk); padding:.06em .32em; color:var(--ink);
@@ -99,6 +114,21 @@
   .grade-measured{--grade:var(--measured); --grade-wash:var(--measured-wash);}
   .grade-inferred{--grade:var(--inferred); --grade-wash:var(--inferred-wash);}
   .grade-assumed{--grade:var(--assumed); --grade-wash:var(--assumed-wash);}
+  .grade-parked{--grade:var(--ink-faint); --grade-wash:var(--sunk);}
+  /* priority sets the stripe: high red, medium amber, low the plain rule */
+  .pri-high{--grade:var(--assumed); --grade-wash:var(--assumed-wash);}
+  .pri-medium{--grade:var(--inferred); --grade-wash:var(--inferred-wash);}
+  .pri-low{--grade:var(--rule); --grade-wash:var(--sunk);}
+  .pri-low .chip.pri{color:var(--ink-faint);}
+
+  .scroll{overflow-x:auto; margin:0 0 1rem;}
+  table{border-collapse:collapse; width:100%; font-size:.9rem; min-width:34rem;}
+  caption{caption-side:top; text-align:left; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.72rem; color:var(--ink-faint); padding-bottom:.5rem;}
+  th,td{text-align:left; vertical-align:top; padding:.5rem .8rem .5rem 0; border-bottom:1px solid var(--rule-soft);}
+  thead th{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); font-weight:500; border-bottom:1px solid var(--rule);}
+  tbody th{font-weight:600;}
+  td{color:var(--ink-mid);}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:.8rem; font-variant-numeric:tabular-nums; overflow-wrap:anywhere;}
 
   footer{
     margin-top:4.5rem; padding-top:1.4rem; border-top:1px solid var(--rule);
@@ -110,194 +140,979 @@
 
 <div class="wrap">
   <div class="eyebrow">
-    <span>Backlog</span><span>seasonal-wildlife</span><span>beyond v6.2</span>
-    <span>22 September 2026 (first drawn 18 September)</span><span>W2:Urist</span>
+    <span>Backlog</span><span>seasonal-wildlife</span><span>v7.0 and after</span>
+    <span>1 October 2026 (first drawn 18 September)</span><span>W2:Urist</span>
   </div>
 
   <h1>The Wildlife Backlog</h1>
-  <p class="standfirst">Thirteen candidates for versions after the planned run — which ended on 21 September 2026 with v6.2.0: the eight tabs, irruptions, and the last two design items all shipped and measured (Wilderpop §5: T8–T8e, T9). Each item below says what the run left it: shipped, part-built, or untouched. Each one says what is already measured, so the next planning pass can tell the items that are ready to build from the ones that still need a rig night or a decision. Nothing here is scheduled.</p>
-  <p class="companions"><strong>Companion reports:</strong> <a href="https://claude.ai/code/artifact/6cebd06e-eafd-44a8-aa6e-d3c108e5fcba">The Wilderpop Model</a> (the measurements, rev 32) · <a href="https://claude.ai/code/artifact/a61b06b2-4687-41ea-91f0-2216220d7111">The Seasonal Wildlife Plugin</a> (the design, rev 21) · <a href="https://claude.ai/code/artifact/3f8ce1ed-4db3-4482-97fa-c27b2eaded7e">Seasonal Wildlife Playtest</a> (v6.2.1).</p>
+  <p class="standfirst">The work queue for seasonal-wildlife on 1 October 2026. It holds all 84 items in the ECO report's register (78 open, 6 done during the 1 October review), with their ids, priority, sources and evidence, plus three gaps this review added. The thirteen candidates this page carried on 22 September are checked against STATE addenda 90&ndash;97 and git: seven are shipped, three part-built, the rest parked. The queue runs in four stages: re-validate on DFHack 53.16-r2 and release v7.0, the user's decisions, the v7.1 build, then the experiments, with two replicates per arm. 13 items wait on the user.</p>
+  <p class="companions"><strong>Companion pages:</strong> <a href="https://claude.ai/code/artifact/4dac86e8-4f3c-4480-a8d4-8eed3deb5672">The Fortress Docket</a> (where this sits among all DF work) · <a href="https://claude.ai/artifact/Qq4zH3VFQPmTaUPownxDyw">ECO Wildlife Study</a> (the night's evidence) · <a href="https://claude.ai/code/artifact/6cebd06e-eafd-44a8-aa6e-d3c108e5fcba">The Wilderpop Model</a> (the measurements) · <a href="https://claude.ai/code/artifact/a61b06b2-4687-41ea-91f0-2216220d7111">The Seasonal Wildlife Plugin</a> (the design) · <a href="https://claude.ai/code/artifact/3f8ce1ed-4db3-4482-97fa-c27b2eaded7e">Seasonal Wildlife Playtest</a> · <a href="https://claude.ai/artifact/3qMtYL2M5K4CRUEwSGKR4W">Alpha Two</a> (walkthrough for v6.6) · <a href="https://claude.ai/artifact/7Y8RELyxkHxUV2bfPAeMei">Alpha Three</a> (walkthrough for v7.0 on DFHack 53.16-r2)</p>
 
   <div class="decided">
-    <span class="tag">Decided · applies now</span>
-    <p><strong>A managed cavern raid is an <em>irruption</em>.</strong> The word "raid" belongs to Dwarf Fortress's own invasion machinery, which this tool never touches; what the tool does is raise pressure on a cavern layer until a wave arrives angry. Irruption is the ecological term for exactly that — a population surging out of its usual range — and it keeps the tool's vocabulary honest about what it is doing. The v6.1 package is renamed <strong>Cavern pressure and irruptions</strong>, and the term carries through the plugin's console, its guide and both reports.</p>
+    <span class="tag">State · 1 October 2026</span>
+    <p><strong>Released:</strong> v6.9.0, master <code>1abe109</code>, 30 September; validate-full 20260930-124923, 192 PASS, 0 FAIL; pushed to a private GitHub repository.</p>
+    <p><strong>On the rig, not released:</strong> v7.0.0, branch <code>v7.0</code> at <code>1e65e03</code>, 26 commits past master, with roster-port, realm-pair, scav-ext and vermin-gobble merged in. Validate-full 20261001-074833: 214 PASS, 0 FAIL, 30 not testable here, 13 BACKLOG, 2 DOC-DRIFT (USAGE's header and the Docket's version line; the Docket is fixed in rev 16). Not merged, not pushed. <strong>Both runs were on DFHack 53.16-r1.1.</strong> The rig has run <strong>53.16-r2</strong> (02e77acf) since about 08:55 on 1 October, and nothing has been validated on it yet.</p>
+    <p><strong>v7.0 defaults</strong> (engine line 499): on &mdash; aligned, cave_aligned, fanciful, leader_male, layer_groups, seasons_own, solo, scav_mapwide, scav_ext, civ_hunt, civ_prey, fb_safe, sweep, sponges, gate_drain, gobble, builder; pack_floor 0.05, pack_sneak 0.25, outgun 2.0, gobble_creature_fallback 3. Off &mdash; fishers, fish_breathe, domestic, outgun_cap, realms. Ecology cadence 1,500. All set from the console only (<code>seasonal-wildlife v7</code>).</p>
   </div>
 
   <div class="decided">
-    <span class="tag">Changed by measurement · 18 September</span>
-    <p><strong>The cavern layer was never actually managed, and the lever that reaches it is the raws.</strong> Everything the tool does to a population entry — the seasonal roster, the per-layer ceiling, the whole cavern design — was written against a mechanism that does not operate underground. Measured directly: with the tool switched off and all 109 managed local entries held at zero for 12,071 ticks, and separately all 914 cave master entries, the entries stayed at zero and cavern life kept arriving at full rate. <strong>Zeroing a cavern entry does not gate a cavern wave.</strong> <code>creature_raw.frequency</code> does, totally and reversibly. Two consequences land here: the per-layer cavern ceiling has to be rebuilt on that lever rather than on entry quantity, and <em>v6.1 irruptions cannot work as described above</em> — raising pressure by opening entries does nothing down there, so the package needs redesigning around frequency before it is planned further. A second correction came with it: half of what the tool counted as cavern wildlife was the <strong>magma sea and the underworld</strong> — magma crabs and demons kilometres below an untroubled fort — which is now excluded from the count.</p>
+    <span class="tag">Decided · still applies</span>
+    <p><strong>A managed cavern raid is an <em>irruption</em>.</strong> The word "raid" belongs to Dwarf Fortress's own invasion machinery, which this tool never touches; what the tool does is raise pressure on a cavern layer until a wave arrives angry. Irruption is the ecological term for exactly that — a population surging out of its usual range — and it keeps the tool's vocabulary honest about what it is doing. The v6.1 package is named <strong>Cavern pressure and irruptions</strong>, and the term carries through the plugin's console, its guide and the reports.</p>
   </div>
 
-  <h2>The answer is already in hand</h2>
-  <p class="lede">Five items where the measurement exists and the remaining work is code. These could be picked up in any version.</p>
-
-  <div class="items">
-
-    <div class="item grade-measured">
-      <div class="item-head"><span class="chip">Measured</span><h3>Frequency as the balance lever</h3></div>
-      <p class="claim">Use each creature's <code>FREQUENCY</code> to tune how often it is drawn, instead of only opening and closing entries.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>The token does two separate jobs: it places a species' distribution epicentre on the world map, and it sets the odds at a wave draw — the game picks a species from the region's list, then rolls a d100 against its frequency. That second role is why armed predators are scarce on the rig: a dingo is <code>FREQUENCY:5</code> and fails nineteen rolls in twenty, which is most of why E18's packs arrived late and why only one large-predator group holds a map at a time. The tool already rewrites a raw in memory and restores it — that is how <strong>pack sizes</strong> have worked since v5.5.</dd>
-        <dt>Measured, 18 September 2026 — and it is stronger than we thought</dt>
-        <dd>The experiment happened, and frequency turned out to be the lever the <em>cavern</em> layer needs, not just a surface refinement. <strong>E34:</strong> seven common cavern species set to frequency 0 produced <strong>zero arrivals</strong> across two suppressed half-seasons, while 27 and 39 other cavern animals arrived beside them; restored at the half-way tick they came straight back (28 and 15); and an untouched control had those same species arriving freely in the same window (29 and 43), which rules out a timing effect. So an in-memory frequency change <em>is</em> read at the draw, exactly as <code>cluster_number</code> is. A raw edit also cannot outlive the world — set, unload, reload, and the originals read back — so a crash cannot leave a player's world altered.</dd>
-        <dt>⚠️ One creature will freeze the game, and the fix is trivial</dt>
-        <dd><strong>Never write frequency 0. Write 1.</strong> Zeroing <code>CREEPY_CRAWLER</code> — on its own, with nothing else touched — freezes Dwarf Fortress silently and unrecoverably: no crash, no log entry, the game log stops growing and the process has to be killed. It is the only creature in the raws carrying <code>VERMIN_ROTTER</code> with any underground range; the other four rotters are surface-only. Removing the last underground rotter is what breaks it, not the number of species suppressed — thirteen assorted cavern species can be zeroed with no effect at all. Setting that same creature to <strong>1</strong> instead of 0 runs at full speed, and 1 against a typical 50 or 100 is suppression for every practical purpose. The rule costs nothing and removes the whole class of hazard without needing to know which creature is load-bearing on a given world.</dd>
-        <dt>What it would take</dt>
-        <dd>A per-species frequency override in the roster, written at the same moment as the cluster size and restored with the pool, never writing a bare zero. Still open before a <em>balance</em> rule can be written: whether frequency is an independent per-species probability or a <strong>comparative weight</strong> competing for a shared spawn budget — the wiki says comparative, and E34 hinted at it, since the other cavern species fell 39 → 0 and 27 → 12 across the restore while the control's held steady. If it is comparative, raising one species quietly lowers every other, and a roster sets proportions rather than rates. <strong>Answered since (E36, E21b; STATE addenda 55–56):</strong> comparative. Frequency is a weight on a shared spawn budget, and a big suppression thins the whole layer by more than its share — which is why the cavern roster holds total in-season frequency mass roughly constant. The per-species override in the roster is still unbuilt; the ceiling (v5.8.1) and the pack lever are the only frequency writers.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-measured">
-      <div class="item-head"><span class="chip">Measured</span><h3>Population number needs no adjustment</h3></div>
-      <p class="claim">The tool is already editing exactly this number; only the wording around it is wrong.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>The token sets how many of a creature live in <em>each world-map tile of the region</em>, not how many may ever visit a fortress. That regional stock is precisely what the tool's quantity control writes, and E15 showed the game debits it exactly, at every size, when it draws a wave. So there is nothing to compensate for.</dd>
-        <dt>What it would take</dt>
-        <dd>Wording, not code. The roster should say <strong>regional stock</strong> where it now implies a per-fort budget, so a player reading "quantity 100" understands it as the region's herd rather than a hundred animals queued to visit.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-measured">
-      <div class="item-head"><span class="chip">Measured</span><h3>Solitary, pack or herd for every creature</h3></div>
-      <p class="claim">Scan the whole creature list once and publish the grouping table, with overrides.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>v5.7 already labels a group from its flags — a flier is a flock, a <code>LARGE_PREDATOR</code> caste a pack, anything else a herd — and T5 proved the raws' cluster size is <em>not</em> a safe gate: a cougar is <code>CLUSTER_NUMBER:1:1</code> yet the coupling had made a pack of six, which went unled until the rule stopped deferring to the raws. The full token reference, all 377 of them, is already in the repository.</dd>
-        <dt>What it would take</dt>
-        <dd>One pass over every creature combining cluster size, population number and the behaviour flags, emitted as a reviewable table with a per-species override — the same shape the ecology classes already use for their unclassified review list. <strong>Part-built (v5.11.2):</strong> the Live tab&rsquo;s Herds &amp; packs block gives every <em>tracked</em> species its label and the raw reason behind it; the whole-list table and the override are still to do.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-measured">
-      <div class="item-head"><span class="chip">Measured</span><h3>The largest male leads</h3></div>
-      <p class="claim">Pick a group's leader by body size and sex rather than by the lowest unit id.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>E28 settled that a leader is the lever that holds a group together — mean spread of five tiles against ten untouched, with the pack still roaming as far — and the current rule picks the lowest id purely because it is stable and re-picks cleanly when the leader leaves. Body size already sits on the caste, and the tool reads it as <code>adultSize</code> for the predation model.</dd>
-        <dt>What it would take</dt>
-        <dd>A comparator, plus a tie-break for groups that are all female or single-caste, and a re-pick rule that does not thrash when two animals are the same size. Small, and it would make the choice visible in the status line.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-measured">
-      <div class="item-head"><span class="chip">Measured</span><h3>Concurrency from the size of the embark</h3></div>
-      <p class="claim">Let the number of groups on the map scale with the map, rather than sitting at three.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>The cap is a fixed three today. The proposal — the square root of the embark's tile count, plus one — gives five on a four-by-four, three on a two-by-two and seven on a six-by-six, which is the right direction. The site's tile bounds are already read at load for biome detection. E21 matters here: one scheduler serves the surface and cavern layers without starving either, so raising the cap is a question of density, not fairness.</dd>
-        <dt>What it would take</dt>
-        <dd>One expression and a player override, plus a re-read when the cap changes mid-game. Worth a season on a large embark to see whether the fort's frame rate minds. <strong>Since v5.11.3</strong> the Layers tab exposes the count as a setting per layer (C), so the override exists; the expression does not.</dd>
-      </dl>
-    </div>
-
+  <div class="decided">
+    <span class="tag">Standing rule · since 18 September</span>
+    <p><strong>Never write FREQUENCY 0. Write 1.</strong> Zeroing <code>CREEPY_CRAWLER</code>, the only underground <code>VERMIN_ROTTER</code>, freezes DF silently and for good; 1 against a typical 50 or 100 suppresses as well and is safe. The 18 September finding that "the cavern layer was never actually managed" is resolved: the cavern ceiling holds managed species at frequency 1 (v5.8.1), and irruptions shipped armed, not aimed, on what E29 and E23 allow (v6.1; T9 and T9b passed 2 of 2). Engine v7.0 :2954 still carries the rule.</p>
   </div>
 
-  <h2>One experiment away</h2>
-  <p class="lede">Four items where a specific, designed test would settle the question. Each names the test.</p>
-
-  <div class="items">
-
-    <div class="item grade-inferred">
-      <div class="item-head"><span class="chip">Needs a test</span><h3>Deep water is a property of the map, not the species</h3></div>
-      <p class="claim">Keep deep-ocean creatures rare unless the embark actually has deep tiles.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>The split cannot key off biome: the raws carry only <code>OCEAN_ARCTIC</code>, <code>OCEAN_TEMPERATE</code> and <code>OCEAN_TROPICAL</code>, with no deep or shallow variant. It has to key off the map, and E25 already measures the thing that matters — water depth relative to the land-entry surface. Two ocean forts differ sharply on it: one has open water two to three levels below the surface, the other's nearest deep water is thirty-nine levels down, which is why the detector calls the second dormant.</dd>
-        <dt>The test</dt>
-        <dd>Classify each ocean species by the depth of water it is found in at embark across the ocean and lake forts, then gate the deep ones on the map holding deep tiles at all. The survey is a single pass; the gate is then a filter on the roster.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-inferred">
-      <div class="item-head"><span class="chip">Needs a test</span><h3>Migrants are not broken</h3></div>
-      <p class="claim">The forcing triggers do nothing useful; the migration itself works.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>E22 found that <code>force Migrants</code> twice and <code>migrants-now</code> twice all returned success and not one migrant reached the map in 36,000 ticks, with the population stuck at seven. That looked like a broken feature. T6 then ran the lake fort for a full year without touching any trigger and the fort grew from <strong>seven citizens to eighteen</strong>. So migration is healthy and arrives on the game's own schedule; what fails is the forcing, inside a trial window.</dd>
-        <dt>The test</dt>
-        <dd>A narrower question now: what does the trigger actually schedule, and is there a wealth or population gate in front of it. Run a fort a year with the trigger and a year without, and compare when waves land rather than whether they land.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-inferred">
-      <div class="item-head"><span class="chip">Needs a test</span><h3>Birds already perch</h3></div>
-      <p class="claim">Before adding a lever, find out whether more perching is even wanted.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>This one is measured in the opposite direction from the way it was asked. Ravens sit still for five to twenty thousand ticks in every arm of E28, T4b and T5 — so consistently that the v5.7 stuck sweep had to exempt fliers outright, or it would have spent the season dragging perched birds out of trees.</dd>
-        <dt>The test</dt>
-        <dd>Sample the perched fraction by species across a season and see what it really is. Only then decide whether a lever is wanted, and whether the complaint is about time perched or about where they perch.</dd>
-      </dl>
-    </div>
-
-    <div class="item grade-inferred">
-      <div class="item-head"><span class="chip">Needs a test</span><h3>The creature that showed as <code>r2</code> and <code>r4</code></h3></div>
-      <p class="claim">Identify it, then decide whether it matters.</p>
-      <dl>
-        <dt>What we know</dt>
-        <dd>Nothing in the run data names it. The rig reads the screen by glyph, and a lowercase <code>r</code> is the game's rodent tile, so the likely reading is a rodent-class creature appearing in groups of two and four — which would make the digits a group count, not part of a name.</dd>
-        <dt>The test</dt>
-        <dd>Cheap and opportunistic: the next time it appears, probe the units on the map and match the glyph against each creature's tile in the raws. No dedicated run needed.</dd>
-      </dl>
-    </div>
-
+  <h2>The sequence at a glance</h2>
+  <p class="lede">Each stage needs the one before it, except where an item's &ldquo;Depends on&rdquo; says otherwise. Desk reads in stage 4 can run any time.</p>
+  <div class="scroll">
+    <table>
+      <caption>Open items by stage · priorities: 10 high, 28 medium, 46 low</caption>
+      <thead><tr><th scope="col">Stage</th><th scope="col">What</th><th scope="col">Items</th><th scope="col">High</th><th scope="col">Your call</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><th scope="row"><a href="#s1">Release v7.0</a></th><td class="mono">10</td><td class="mono">5</td><td class="mono">0</td></tr>
+        <tr><td class="mono">1b</td><th scope="row"><a href="#s1b">Paperwork beside the release</a></th><td class="mono">6</td><td class="mono">0</td><td class="mono">0</td></tr>
+        <tr><td class="mono">2</td><th scope="row"><a href="#s2">Decisions for the user</a></th><td class="mono">15</td><td class="mono">4</td><td class="mono">13</td></tr>
+        <tr><td class="mono">3</td><th scope="row"><a href="#s3">Build v7.1</a></th><td class="mono">21</td><td class="mono">1</td><td class="mono">0</td></tr>
+        <tr><td class="mono">4</td><th scope="row"><a href="#s4">Experiments</a></th><td class="mono">16</td><td class="mono">0</td><td class="mono">0</td></tr>
+        <tr><td class="mono">&ndash;</td><th scope="row"><a href="#s5">Parked</a></th><td class="mono">16</td><td class="mono">0</td><td class="mono">0</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <h2>Open questions</h2>
-  <p class="lede">Four items that need a decision or a mechanism before any test would mean anything. These are the expensive ones.</p>
+  <h2 id="old">The old backlog, checked</h2>
+  <p class="lede">The thirteen candidates of 22 September, each with what happened to it and the open item that carries what is left. Nothing was dropped.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th scope="col">Candidate (22 Sep)</th><th scope="col">1 Oct</th><th scope="col">Where</th><th scope="col">Open item now</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Frequency as the balance lever</th><td><span class="chip grade-measured">Done</span></td><td>v6.5.0: <code>odds</code> is the raw's FREQUENCY per species; the tool writes 1, never 0 (engine v7.0 :3004, :3080). Comparative weight confirmed (E36, E21b; X3 on the surface).</td><td class="mono">validator-backlog-stale (bl.frequency)</td></tr>
+        <tr><th scope="row">Population number needs no adjustment</th><td><span class="chip grade-measured">Done</span></td><td>v6.5.0: <code>stock</code> is the reserve in the region, debited per arrival and refunded on leaving (STATE 94; USAGE &ldquo;Stock is the reserve&rdquo;; gui line 1493).</td><td class="mono">validator-backlog-stale (bl.popnumber)</td></tr>
+        <tr><th scope="row">Solitary, pack or herd for every creature</th><td><span class="chip grade-inferred">Part-built</span></td><td>The Live tab labels tracked species with the raw reason (v5.11.2). The whole-list table and per-species override are unbuilt.</td><td class="mono">bl-grouping-table</td></tr>
+        <tr><th scope="row">The largest male leads</th><td><span class="chip grade-measured">Done</span></td><td>v7.0.0 <code>leader_male</code>, on (STATE 96; 49fde90). Rig: largest-male and lowest-id leaders hold a group equally well (L2, COH).</td><td class="mono">validator-backlog-stale (bl.largestmale); leader-size-in-fight</td></tr>
+        <tr><th scope="row">Concurrency from the size of the embark</th><td><span class="chip grade-measured">Done</span></td><td>v6.9.0: land groups at once <code>auto</code> = floor(&radic;tiles) + 1 (058d0b2); v7.0.0 <code>layer_groups</code> per water body and cavern depth. Measured: cap 1 &lt; 3 &le; auto (SW3, SW3B).</td><td class="mono">validator-backlog-stale (bl.concurrency); cavern-limit-soft-target</td></tr>
+        <tr><th scope="row">Deep water is a property of the map</th><td><span class="chip grade-inferred">Part-built</span></td><td>v7.0.0: the roster builder surveys ocean columns (<code>water.deep_levels</code> 3; df0aa83) and raises the pelagic slot only where deep columns exist. Never seen on a deep map: OCEAN2 had none.</td><td class="mono">pelagic-slot-shallow-maps; orca-stranding-n</td></tr>
+        <tr><th scope="row">Migrants are not broken</th><td><span class="chip grade-parked">Parked</span></td><td>Unchanged. Migration works on DF's schedule; the forcing trigger is the open question.</td><td class="mono">bl-misc-curiosities</td></tr>
+        <tr><th scope="row">Birds already perch</th><td><span class="chip grade-parked">Parked</span></td><td>Unchanged.</td><td class="mono">bl-misc-curiosities</td></tr>
+        <tr><th scope="row">The creature that showed as r2 and r4</th><td><span class="chip grade-parked">Parked</span></td><td>Unchanged.</td><td class="mono">bl-misc-curiosities</td></tr>
+        <tr><th scope="row">Grouping creatures by where on Earth they belong</th><td><span class="chip grade-inferred">Part-built</span></td><td>v7.0.0: the realm table (308 species, 13 realms) behind <code>realms</code>, off by default, with <code>realm &lt;name|auto|off&gt;</code> (e8cbda7, 466baec). Not run on the rig.</td><td class="mono">realms-built-untested; realm-placement-path</td></tr>
+        <tr><th scope="row">Quieting animal-on-animal combat</th><td><span class="chip grade-measured">Done</span></td><td>v6.9.0 ALERTS, <code>alerts on</code> by default: combat alerts with no humanoid are dropped, the reports stay in the log (engine :6726; ECO A2: wolf &times; deer 3 dropped, 0 left; wolf man kept).</td><td class="mono">validator-backlog-stale (bl.quiet)</td></tr>
+        <tr><th scope="row">A record of who eats whom, over time</th><td><span class="chip grade-parked">Parked</span></td><td>Ledger, Food web graph and overlay exist; the kill tally per pair is unbuilt.</td><td class="mono">bl-eats-history</td></tr>
+        <tr><th scope="row">Placement is even; survival is not</th><td><span class="chip grade-parked">Parked</span></td><td>Unchanged. The water stocking job still places round-robin (engine :4494).</td><td class="mono">bl-water-balance</td></tr>
+      </tbody>
+    </table>
+  </div>
 
+  <h2 id="s1"><span class="stage-n">1</span>Release v7.0 <span class="count">10</span></h2>
+  <p class="lede">Ship what is on the rig now, with today&#x27;s defaults, after re-validating it on DFHack 53.16-r2. Nothing here changes tool behaviour. Only the push needs the user.</p>
   <div class="items">
-
-    <div class="item grade-assumed">
-      <div class="item-head"><span class="chip">Open</span><h3>Grouping creatures by where on Earth they belong</h3></div>
-      <p class="claim">Marsupials with marsupials, old world with old world — and arctic never with antarctic.</p>
+    <div class="item pri-high" id="revalidate-dfhack-r2">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st">Open</span><h3>Re-validate v7.0 and the harness on DFHack 53.16-r2</h3></div>
+      <p class="claim">The user upgraded the rig to DFHack 53.16-r2 (02e77acf) on 1 Oct at about 08:55 (verified from the installed dfhack.dll). Every ECO block, v6.9.0&#x27;s 192 PASS and v7.0&#x27;s 214 PASS (20261001-074833) ran on 53.16-r1.1; nothing has run on r2. r2 changes that could shift results: Units::teleport occupancy (the tool&#x27;s placement and the nudge, and the harness&#x27;s spawn and tp: a tile now stays occupied while another unit stands on it, and each call scans every active unit) and site data on reclaimed forts. Checked and not reaching our code (data/dfhack-r2/REPORT.md section 2): setPathGoal (SCAV writes path fields itself), isCitizen/isResident (no caller passes include_insane), the timestream breathing fix (the harness never runs timestream; it matters to Chronicler&#x27;s speed modes). One real bug r2 exposes: chronicler-bridge.lua:1784 reads current_weather[2][2]; use dfhack.maps.getCurrentWeather().</p>
       <dl>
-        <dt>Why it is hard</dt>
-        <dd>The game's raws carry no continent, realm or hemisphere token. Biome tokens describe climate, not geography, which is why a temperate forest in one corner of a world is indistinguishable from one on the far side. The arctic-versus-antarctic case is the sharpest: there is only <code>OCEAN_ARCTIC</code>, and no southern equivalent at all, so the distinction the request asks for does not exist in the data to be read out of it.</dd>
-        <dt>The routes</dt>
-        <dd>Three, none cheap. Creature classes carry some signal. Name and clade heuristics carry a little more, and the tool already does clade detection for its ecology classes. The honest route is probably a <strong>curated realm table shipped with the tool</strong>, which makes this a content project rather than a code one — hundreds of species assigned by hand, then a roster filter that prefers within-realm partners. Worth scoping before committing.</dd>
+        <dt>Evidence</dt><dd>installed dfhack.dll reports 53.16-r2</dd>
+        <dt>Next</dt><dd>Run validate-full on v7.0 under r2 and diff claim by claim against 20261001-074833; smoke the cx-* scripts (cx-eco spawn/tp/walkto, cx-probe); rerun one placement-heavy block (COHO or REACH) and SCV2b, 2 reps each, before trusting ECO numbers on r2. Gate the v7.0 release on it.</dd>
+        <dt>Depends on</dt><dd>Nothing. Do first: every later rig run, ECO number and the release validation depend on it.</dd>
       </dl>
+      <p class="meta"><code>revalidate-dfhack-r2</code> · Release and housekeeping · effort M · BRIEF.md Versions (1 Oct review) · coordinator note 1 Oct ~09:00 · DwarfCron/data/validation/full/20261001-074833 (r1.1) · DwarfCron/data/dfhack-r2/REPORT.md (code review of 53.16-r1.1..53.16-r2, 1 Oct)</p>
     </div>
-
-    <div class="item grade-assumed">
-      <div class="item-head"><span class="chip">Open</span><h3>Quieting animal-on-animal combat</h3></div>
-      <p class="claim">Keep the fights in the log, out of the player's face.</p>
+    <div class="item pri-high" id="commit-uncommitted-work">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st">Open</span><h3>Commit the uncommitted v2.2 civ desk work and night leftovers</h3></div>
+      <p class="claim">DwarfCron has uncommitted edits to the guild builder (design.md, results22.md, roster2.py, run2.py, tables22.md, analyze22.out) with civ22.py/civ22.out untracked, the v2.2 civ ruling the report already cites. Also untracked: the FPS6 partial run, chain-night and fps6 attempt logs, and three 30 Sep v7.0 validation run dirs. The 1 Oct review adds edits to design.md (sections 6-9), ECO-design.md, SWEEP-design.md, findings.md (three dated corrections) and the report sources (content.html, recs.py, build.py, experiments.json, raws.json, open-items.json).</p>
       <dl>
-        <dt>Why it is hard</dt>
-        <dd>The game's announcement configuration filters by <em>event type</em>, not by who is fighting. Every combat line is written as <code>[COMBAT_*:A_D:UCR]</code>, where the first flag sends it to the on-screen log and the second ties it to the unit combat report. There is no participant filter anywhere in that file, so no edit to it can separate two dingoes from a dwarf and a dingo.</dd>
-        <dt>The routes</dt>
-        <dd>A tool-side filter is the only way: read the reports the game is accumulating and suppress those whose participants are all non-citizens, leaving the game's own log file untouched. That is mechanically possible and needs a decision first — suppressing reports means a player loses the record on screen, and a wildlife kill near the fort is sometimes exactly what they wanted to see.</dd>
+        <dt>Evidence</dt><dd>10 modified files, 12+ untracked paths</dd>
+        <dt>Next</dt><dd>Commit the guilds desk changes with civ22.*, then data/logs and validation dirs in a separate commit.</dd>
+        <dt>Depends on</dt><dd>Nothing. Do early: the night&#x27;s data and the v2.2 civ desk work are uncommitted.</dd>
       </dl>
+      <p class="meta"><code>commit-uncommitted-work</code> · Release and housekeeping · effort S · git status (DwarfCron, session start) · DwarfCron/data/eco-desk/v2/guilds/ (civ22.py untracked)</p>
     </div>
-
-    <div class="item grade-assumed">
-      <div class="item-head"><span class="chip">Open</span><h3>A record of who eats whom, over time</h3></div>
-      <p class="claim">Turn the fights into a species-interaction history the player can look at.</p>
+    <div class="item pri-high" id="validator-v70-coverage">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st">Open</span><h3>Validator has no claims for v7.0 features merged after phase v70</h3></div>
+      <p class="claim">Phase v70 has 25 claims, but none for the roster builder (ROSTER.build, `roster build`, ladder, unfilled report, vegetation and deep surveys), vermin gobble and SWV classes, scav_ext&#x27;s fallbacks, outgun/outgun_cap, realms, gate_drain or the caste NATURAL_SKILL write. 214/0 therefore says nothing about those parts.</p>
       <dl>
-        <dt>Why it is hard</dt>
-        <dd>Not technically hard — the rig already does most of it. Every experiment writes a combat table naming the attacker, the victim and the text, and the tally that attributes a kill to its killer was written for T4 and reused for every run since. The game also writes its own log continuously, which is the source a shipped tool would have to parse instead.</dd>
-        <dt>The routes</dt>
-        <dd>A parser for the combat lines, a rolling tally per species pair, and somewhere to show it. The real question is where it belongs: this is the most product-shaped item on the list and it wants the window that v6.0 builds, so it should follow rather than lead. <strong>Part-built since:</strong> the Ledger (v5.9.9, its tab v5.11.4) records every write and why; the Food web&rsquo;s Graph mode (v5.11.1) counts the live predator–prey pairs DF&rsquo;s table holds now; the overlay (v6.2.0) draws them. What is still missing is the kill tally per pair from the combat log. It also pairs naturally with the item above — the same filter that decides what to quiet decides what to count.</dd>
+        <dt>Evidence</dt><dd>grep of validate-full.py: gobble 0, scav_ext 0, outgun 0, gate_drain 0, builder 0, natural_skill 0</dd>
+        <dt>Next</dt><dd>Add mech.v70.builder, .gobble, .scav_ext, .outgun, .realms, .gate_drain, .solo_skill claims before the v7.0 release run.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2 for the run itself. Must land before the release validation run, or 214 PASS still says nothing about the builder, gobble or scav_ext.</dd>
       </dl>
+      <p class="meta"><code>validator-v70-coverage</code> · Harness, validator and method · effort M · DwarfCron/scripts/validate-full.py (v70 claim ids) · eco-report.md (scratchpad export, 1 Oct):896 (tracker 32)</p>
     </div>
-
-    <div class="item grade-assumed">
-      <div class="item-head"><span class="chip">Open</span><h3>Placement is even; survival is not</h3></div>
-      <p class="claim">The one debt the water layer shipped with, carried here so it is not lost.</p>
+    <div class="item pri-high" id="usage-v7-docs">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-done">Done 1 Oct</span><h3>USAGE.md has no v7.0 content at all</h3></div>
+      <p class="claim">The user guide&#x27;s header still says v6.9.0 (DOC-DRIFT) and grep finds no v7 material: the roster builder (`roster build`), `seasonal-wildlife v7` switches, domestic prey, sponges, vermin gobble and `vermin classes`, scav_ext, realms/`realm`, outgun, per-body and per-depth groups, tool-owned seasons and fishers default off are undocumented. The last USAGE commit is v6.9.0. Done 1 Oct: a &quot;v7.0 (unreleased, on branch v7.0)&quot; section drafted from the verb dispatcher and defaultConfig, and v6.x drift fixed (limits auto, exhaust/scavenge verbs, place depth, groups cavern). Finalise at release.</p>
       <dl>
-        <dt>Why it is hard</dt>
-        <dd>The water job places round-robin, one animal per species in turn, and E33 showed that still drifts: tigerfish finished as five of eleven in both replicates of a season. Even placement does not produce an even lake, because the species do not survive at the same rate, and nothing in the placement rule can see that.</dd>
-        <dt>The routes</dt>
-        <dd>Weight the next placement by what is actually swimming rather than by what was last placed — a stocking target per species instead of one target for the layer. That needs a view on what the right balance <em>is</em>, which is really the same question the geographic grouping above asks, one layer down.</dd>
+        <dt>Evidence</dt><dd>grep -c v7 USAGE.md = 0</dd>
+        <dt>Next</dt><dd>Write a v7.0 section (each switch, default, verb, what the ECO evidence says) and update the header; rerun doc.usage.version.</dd>
+        <dt>Depends on</dt><dd>Nothing. Clears doc.usage.version.</dd>
+        <dt>Checked 1 October</dt><dd class="note1">README.md and the window script carry no v7.0 content either (brief, 1 Oct).</dd>
       </dl>
+      <p class="meta"><code>usage-v7-docs</code> · Release and housekeeping · effort M · seasonal-wildlife/USAGE.md:10 · DwarfCron/data/validation/full/20261001-074833/results.json (doc.usage.version DOC-DRIFT) · git log -- USAGE.md (1abe109 last)</p>
     </div>
+    <div class="item pri-medium" id="state-addenda-refresh">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-done">Done 1 Oct</span><h3>STATE.md: stale &#x27;not merged&#x27; addenda, no addendum for the night</h3></div>
+      <p class="claim">Addenda 96e (vermin-gobble) and 97 (scav-ext) say &#x27;branch ... not merged&#x27;, but both are merged into v7.0. Nothing records the night&#x27;s results that changed v7.0 decisions or its validation (S8, SW1-SW7, SCV2b, item 6, validate-full 214/0). Done 1 Oct: &quot;Status, 1 Oct&quot; notes under addenda 96, 96e, 97 and Addendum 98 (the overnight blocks; validations 074210 with 4 FAIL, then 074833 214 PASS).</p>
+      <dl>
+        <dt>Evidence</dt><dd>git log v7.0..vermin-gobble and v7.0..scav-ext empty</dd>
+        <dt>Next</dt><dd>Write addendum 98 (night results, validation, open decisions) and correct the two headers.</dd>
+        <dt>Depends on</dt><dd>Nothing. Addendum 98 should cite the release validation run, so write it last in this stage.</dd>
+        <dt>Checked 1 October</dt><dd class="note1">Done 1 Oct (status notes under 96, 96e, 97; Addendum 98). The missing v6.8.0/v6.9.0 addendum is now its own item, state-v68-v69-addenda.</dd>
+      </dl>
+      <p class="meta"><code>state-addenda-refresh</code> · Release and housekeeping · effort S · seasonal-wildlife/STATE.md:3950, :3985</p>
+    </div>
+    <div class="item pri-low" id="state-v68-v69-addenda">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>STATE.md has no addendum for v6.8.0 or v6.9.0</h3></div>
+      <p class="claim">v6.8 (roster/seasons verbs, the web server) and v6.9.0 (water draw honours NO_&lt;season&gt;, pelagic weights, EXHAUST, MODEL.guild, groups auto, SCAV, ALERTS, CURIOUS) are recorded only in commits 3070dba..1abe109 and the validations 20260930-124923. Write one addendum covering both, in STATE style.</p>
+      <dl>
+        <dt>Evidence</dt><dd>grep of STATE.md headings: addendum 95 (v6.7.0) is followed by 96 (v7.0.0)</dd>
+        <dt>Next</dt><dd>Write one addendum covering v6.8.0 and v6.9.0 from commits 3070dba..1abe109 and validate-full 20260930-124923 (192 PASS), --only v68/v69 (12 PASS each).</dd>
+        <dt>Depends on</dt><dd>Nothing. One addendum for v6.8.0 and v6.9.0 from their commits and the 20260930-124923 validations.</dd>
+      </dl>
+      <p class="meta"><code>state-v68-v69-addenda</code> · Release and housekeeping · effort S · review logs plans.md, model-design.md, docket-backlog.md (1 Oct) · seasonal-wildlife git log v6.7.0..1abe109</p>
+    </div>
+    <div class="item pri-medium" id="validator-backlog-stale">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Validator &#x27;backlog&#x27; register lists seven things v6.5-v7.0 already shipped</h3></div>
+      <p class="claim">bl.frequency, bl.popnumber, bl.largestmale, bl.concurrency, bl.deepwater, bl.realm and bl.quiet are still recorded as BACKLOG, though odds/stock (v6.5), alerts (v6.9), sqrt+1 groups (v6.9), largest-male leader, the deep-water survey and the realm table (v7.0) shipped; bl.largestmale&#x27;s note still says the leader is lowest-id. Only migrants, perch, r2r4, grouping, eats and balance remain genuinely unbuilt.</p>
+      <dl>
+        <dt>Evidence</dt><dd>validate-full 20261001-074833: 13 BACKLOG records</dd>
+        <dt>Next</dt><dd>Move the shipped seven to &#x27;shipped vX&#x27; (pointing at their mech.* claims) and refresh the Wildlife Backlog page.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+        <dt>Checked 1 October</dt><dd class="note1">This page now records the seven as shipped (see &quot;The old backlog, checked&quot;); the validator register still says BACKLOG.</dd>
+      </dl>
+      <p class="meta"><code>validator-backlog-stale</code> · Open questions · effort S · DwarfCron/scripts/validate-full.py:314-327 · DwarfCron/data/validation/full/20261001-074833/results.json (13 BACKLOG) · wildlife-backlog.html</p>
+    </div>
+    <div class="item pri-low" id="gobble-stale-comment">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Gobble code comment still calls the runtime-class question open</h3></div>
+      <p class="claim">The vermin-gobble section says whether DF honours a runtime-written CREATURE_CLASS is an &#x27;OPEN QUESTION for the rig&#x27; and keeps a native EDIBLE_GROUND_BUG write as a safety net. VRM4 answered it: yes (4 and 6 grasshoppers eaten vs 0 and 0).</p>
+      <dl>
+        <dt>Evidence</dt><dd>VRM4</dd>
+        <dt>Next</dt><dd>Update the comment; decide whether the native safety-net write stays (harmless) or goes.</dd>
+        <dt>Depends on</dt><dd>Nothing (a comment; rides with the release commit).</dd>
+      </dl>
+      <p class="meta"><code>gobble-stale-comment</code> · Release and housekeeping · effort S · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):6567-6571 · DwarfCron/data/eco-desk/findings.md:310 (VRM4)</p>
+    </div>
+    <div class="item pri-low" id="validator-cli-water-dup">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>cli.water is recorded twice</h3></div>
+      <p class="claim">A driver nit noted on 22 Sep and still present: cli.water appears twice in every results.json, so recorded and distinct claim counts differ.</p>
+      <dl>
+        <dt>Evidence</dt><dd>duplicate id in 20261001-074833</dd>
+        <dt>Next</dt><dd>Rename the second record or dedupe at rec().</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>validator-cli-water-dup</code> · Harness, validator and method · effort S · Project_Aion/.claude/context/.scratchpad.urist.md:632 · DwarfCron/data/validation/full/20261001-074833/results.json</p>
+    </div>
+    <div class="item pri-high" id="v70-release-steps">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-blocked">Blocked</span><h3>Release v7.0: merge, Docket, deploy master, validate-report, push</h3></div>
+      <p class="claim">v7.0 validates at 214 PASS / 0 FAIL but is unreleased: not merged to master, Docket still at &#x27;@ 1e23b0a (v6.6.0)&#x27; (DOC-DRIFT open since v6.7), no validate-report published, merged feature branches still present. The release recipe is merge, cache key, docket rev with hash, validate-full, STATE addendum, validate-report.py, publish, commit, push.</p>
+      <dl>
+        <dt>Evidence</dt><dd>validate-full 20261001-074833: 214 PASS, 2 DOC-DRIFT</dd>
+        <dt>Next</dt><dd>Decide which defaults go in first; re-validate on DFHack 53.16-r2 (revalidate-dfhack-r2); then merge v7.0 -&gt; master, docket r16, rerun validate-full, publish, prune realm-pair/roster-port/scav-ext/vermin-gobble/v6.x branches, push on the user&#x27;s word.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2 and all of the above; the push waits on push-repos (stage 2). The Docket rev 16 already names v7.0.0 @ 1e65e03, so doc.docket passes on the deployed script.</dd>
+        <dt>Checked 1 October</dt><dd class="note1">Sequenced here as re-validate on r2, then release with today&#x27;s defaults, and the default changes in v7.1. The item&#x27;s own next step puts the default decisions first; which order to take is the user&#x27;s call.</dd>
+      </dl>
+      <p class="meta"><code>v70-release-steps</code> · Release and housekeeping · effort M · eco-report.md (scratchpad export, 1 Oct):815 (Validation of v7.0) · eco-report.md (scratchpad export, 1 Oct):896 (tracker 32 &#x27;Release steps left&#x27;) · DwarfCron/data/validation/full/20261001-074833/results.json (doc.docket DOC-DRIFT) · Project_Aion/.claude/context/.scratchpad.urist.md:638 (release recipe)</p>
+    </div>
+  </div>
+  <h2 id="s1b"><span class="stage-n">1b</span>Paperwork beside the release <span class="count">6</span></h2>
+  <p class="lede">Documents that cite the night. No tool change; any order. Four were done during the 1 October review and stay listed.</p>
+  <div class="items">
+    <div class="item pri-low" id="findings-more-slips">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Three more findings.md slips found by the 1 Oct review</h3></div>
+      <p class="claim">SCVC: findings says DF removed no cavern corpse &#x27;in 3,000 t&#x27;, but the cell ran 4,000 t (eco-run.py corpses2 ticks=4000). validate-full v7.0: findings calls the second DOC-DRIFT &#x27;the Docket&#x27;s v5.5 line&#x27;; results.json doc.docket reads docket-r15.html &#x27;@ 1e23b0a (v6.6.0)&#x27;. S8O: &#x27;apex (ANACONDA) 2 and 1 units&#x27; counts AL only; s8-tally&#x27;s surface apex count (AL + AW) is 3 and 2, which the page plots. The page is corrected; findings.md is not (outside this review&#x27;s remit).</p>
+      <dl>
+        <dt>Evidence</dt><dd>re-read 1 Oct review</dd>
+        <dt>Next</dt><dd>Append dated corrections to findings.md.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>findings-more-slips</code> · Harness, validator and method · effort S · DwarfCron/data/eco-desk/findings.md:372-373 (SCVC) · DwarfCron/scripts/eco-run.py:213-216, :789 · DwarfCron/data/eco-desk/findings.md:579-580 · DwarfCron/data/validation/full/20261001-074833/results.json (doc.docket) · DwarfCron/data/eco-desk/findings.md:453-454 (S8O) · scripts/s8-tally.py data/experiments/S8O/20261001-022543</p>
+    </div>
+    <div class="item pri-low" id="report-done-count">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-done">Done 1 Oct</span><h3>The page counted done items as open</h3></div>
+      <p class="claim">The hero&#x27;s open-item count was the length of open-items.json, so items marked done still counted. build.py now counts items whose status is not &#x27;done&#x27;; done items still show, with their status, in section 21.</p>
+      <dl>
+        <dt>Evidence</dt><dd>1 Oct review</dd>
+        <dt>Next</dt><dd>Done.</dd>
+        <dt>Depends on</dt><dd>Done.</dd>
+      </dl>
+      <p class="meta"><code>report-done-count</code> · Harness, validator and method · effort S · DwarfCron/scripts/eco-report/build.py main() ({{oicount}})</p>
+    </div>
+    <div class="item pri-medium" id="report-stale-cells">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-done">Done 1 Oct</span><h3>ECO report: stale status cells and source table</h3></div>
+      <p class="claim">The Summary says v7.0 is &#x27;built on a branch but not yet deployed&#x27;, but it ran on the rig all night and is unreleased rather than undeployed. Recommendation rows 12 (&#x27;no depth survey yet&#x27;), 14 (&#x27;port is next&#x27;), 15 (&#x27;Open&#x27;), 17 (&#x27;needs a good and an evil fort test&#x27;) and 20 (&#x27;on; I recommend off&#x27;) predate the night. The sources table cites commit f7949f3, tool v6.8.0 / rig v6.7.0 and v7.0 49fde90 (HEAD is 1e65e03; Dev 8143fb8). Fixed in the rebuilt page (sections 20-22); see claude-doc-sync for the doc. 1 Oct review (page rev 2): the header now states the release state (v6.9.0 released and pushed; v7.0 deployed, unmerged, validated 214/0 at 20261001-074833), section 20 marks the v7.0 rows the validator does not cover, section 22 lists what 214/0 omits, and 13 figure captions were corrected against their rows. The doc&#x27;s own cells stay with claude-doc-sync.</p>
+      <dl>
+        <dt>Evidence</dt><dd>git heads; tracker rows 5, 6, 18, 21, 33 Done</dd>
+        <dt>Next</dt><dd>Done on the page. For the doc, see claude-doc-sync.</dd>
+        <dt>Depends on</dt><dd>Done on the page; the doc is claude-doc-sync.</dd>
+      </dl>
+      <p class="meta"><code>report-stale-cells</code> · Release and housekeeping · effort S · eco-report.md (scratchpad export, 1 Oct):32 · eco-report.md (scratchpad export, 1 Oct):834-842 · eco-report.md (scratchpad export, 1 Oct):902, :918</p>
+    </div>
+    <div class="item pri-low" id="design-md-stale">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-done">Done 1 Oct</span><h3>Builder design.md sections 6-8 still list questions the night answered</h3></div>
+      <p class="claim">Section 6 keeps lake writability as an open question (LAKEP answered) and BEACH_FREQUENCY stranding as untested (COHO). Section 8 says flying actability is unknown (REACH), the apex FREQUENCY may be moot (SW4/S8) and Add invasive SAVAGE is untested (INV2). Many section 7 cells are still marked open though measured. 1 Oct review: sections 6-8 now answer each question with its block and source, section 7&#x27;s cells are marked, and a new section 9 records which v2.2 pieces v7.0 does not carry.</p>
+      <dl>
+        <dt>Evidence</dt><dd>LAKEP, COHO, REACH, SW4, S8Cb, INV2</dd>
+        <dt>Next</dt><dd>Done (design.md, uncommitted, with the v2.2 civ edits). Remaining unmeasured cells stay under design-s7-unmeasured-cells.</dd>
+        <dt>Depends on</dt><dd>Done; uncommitted (commit-uncommitted-work).</dd>
+      </dl>
+      <p class="meta"><code>design-md-stale</code> · Release and housekeeping · effort S · DwarfCron/data/eco-desk/v2/guilds/design.md section 6 (Lake and river; Ocean) · DwarfCron/data/eco-desk/v2/guilds/design.md section 7 table · DwarfCron/data/eco-desk/v2/guilds/design.md section 8</p>
+    </div>
+    <div class="item pri-low" id="findings-small-discrepancies">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-done">Done 1 Oct</span><h3>Three small findings.md slips still uncorrected</h3></div>
+      <p class="claim">P1 says &#x27;every LP attacked (up to 306 attacks/cell)&#x27; while the coyote cell had 343 (the coyote isn&#x27;t LP); HCP&#x27;s 8 dead crundles have a placed killer on record for 7; ECO2-G&#x27;s 6×6 √+1 rep 2 is 3.12, below the stated 3.16–3.81 range (the conclusion holds). N1, CAL, HC4, SW5, SW2R and the pelagic slot are already corrected. 1 Oct review: all three corrected in findings.md with dated notes (P1, HCP, ECO2-G). Three further slips are a new item, findings-more-slips.</p>
+      <dl>
+        <dt>Evidence</dt><dd>experiments agent cross-check</dd>
+        <dt>Next</dt><dd>Done.</dd>
+        <dt>Depends on</dt><dd>Done.</dd>
+      </dl>
+      <p class="meta"><code>findings-small-discrepancies</code> · Harness, validator and method · effort S · data/eco-report/experiments.json discrepancies · findings.md</p>
+    </div>
+    <div class="item pri-low" id="claude-doc-sync">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>The Claude Doc version of the report still has the uncorrected text</h3></div>
+      <p class="claim">The editable doc (rev 326) keeps the LONE10 mislabelling (29 vs 14 paired with p = 0.025), the NO_SPRING wording, the leader and shark overstatements and stale v7.0 status cells. The rebuilt page corrects them; the doc and its comment threads still read the old text. A banner at the top of the doc now points to this page and states the LONE10 correction. Page rev 2 (1 Oct review) corrected further captions and status cells that the doc also carries in its older form.</p>
+      <dl>
+        <dt>Evidence</dt><dd>review.json</dd>
+        <dt>Next</dt><dd>Leave the doc as history, or apply the corrections there too if its comment threads stay in use.</dd>
+        <dt>Depends on</dt><dd>Nothing. Low value unless the doc&#x27;s comment threads stay in use.</dd>
+      </dl>
+      <p class="meta"><code>claude-doc-sync</code> · Release and housekeeping · effort S · review.json factual 1-25 · Claude Doc dc2b8dce rev 326</p>
+    </div>
+  </div>
+  <h2 id="s2"><span class="stage-n">2</span>Decisions for the user <span class="count">15</span></h2>
+  <p class="lede">Thirteen rulings from the open-items register, plus two questions that also need the user. None is decided here. Each names what it unblocks.</p>
+  <div class="items">
+    <div class="item pri-high" id="push-repos">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-user">Your call</span><h3>Push DwarfCron Dev and seasonal-wildlife v7.0 (nothing pushed tonight)</h3></div>
+      <p class="claim">DwarfCron Dev is 80 commits ahead of origin/Dev at the 1 Oct review (last push 2d808ed, 30 Sep; the count grows with each commit) and seasonal-wildlife v7.0 is 26 commits ahead of master (v6.9.0, 1abe109, which IS on origin) and not merged. The night&#x27;s rule was to ask before pushing.</p>
+      <dl>
+        <dt>Evidence</dt><dd>DwarfCron Dev HEAD 8143fb8; seasonal-wildlife v7.0 HEAD 1e65e03</dd>
+        <dt>Next</dt><dd>Ask the user; push DwarfCron Dev first (data and validator), then seasonal-wildlife after the v7.0 release steps.</dd>
+        <dt>Depends on</dt><dd>Stage 1. Blocks the release&#x27;s last step and a public repository.</dd>
+        <dt>Checked 1 October</dt><dd class="note1">Checked 1 Oct: the seasonal-wildlife GitHub repository is private (gh repo view), so a push alone publishes nothing; going public belongs to the same call (rv-public-release).</dd>
+      </dl>
+      <p class="meta"><code>push-repos</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):861 · Project_Aion/.claude/context/.scratchpad.urist.md:52, :54-58 · git rev-list origin/Dev..Dev = 80 (1 Oct review; 75 at the sweep) · git rev-list origin/master..v7.0 = 26</p>
+    </div>
+    <div class="item pri-medium" id="dflt-ecology-cadence-3000">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>Default: ecology cadence 1,500 -&gt; 3,000 ticks</h3></div>
+      <p class="claim">The sweep found no effect of the ecology pass cadence on a wolf pack against herds 45-60 tiles away, in both cell orders. A 3,000-tick default halves the passes and their fuse time at no measured cost. Not applied to v7.0 (cfg.ecology.cadence is still 1500).</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW1+SW1R, 4 reps: wolf attacks on placed herds ctl 174, cad500 243, cad6000 145; placed prey killed 1/2/0</dd>
+        <dt>Next</dt><dd>On a yes, set ecology.cadence=3000 in the v7.0 defaults, add a changelog line and a validator default check; include in SW8.</dd>
+        <dt>Depends on</dt><dd>Unblocks the v7.1 default; checked again in SW8.</dd>
+      </dl>
+      <p class="meta"><code>dflt-ecology-cadence-3000</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):785 (sweep table SW1) · eco-report.md (scratchpad export, 1 Oct):851 (Open questions, defaults) · DwarfCron/data/eco-desk/findings.md:530 (SW1R) · DwarfCron/experiments/SWEEP-design.md section 4 · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):475</p>
+    </div>
+    <div class="item pri-medium" id="dflt-nudge-off">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>Default: ecology nudge off</h3></div>
+      <p class="claim">Neither the current nudge (40 tiles / 3,000 t / r6) nor a tighter one changed kills or attacks against off, once cell order was controlled. RELS shows DF brings the fight itself once a relation exists, and off means no visible teleports. Not applied (ecology.nudge=true).</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW1+SW1R pooled: nudge_off 179 attacks / 3 placed kills vs ctl 174 / 1; nudge_tight 198 / 1</dd>
+        <dt>Next</dt><dd>On a yes, default ecology.nudge=false; keep the `groups nudge` verb for players who want it.</dd>
+        <dt>Depends on</dt><dd>Unblocks the v7.1 default; SW8.</dd>
+      </dl>
+      <p class="meta"><code>dflt-nudge-off</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):785 · eco-report.md (scratchpad export, 1 Oct):851 · DwarfCron/data/eco-desk/findings.md:530 (SW1R) · DwarfCron/experiments/SWEEP-design.md section 4 · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):475</p>
+    </div>
+    <div class="item pri-medium" id="dflt-pack-sneak-0">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>Default: pack_sneak 0 and retire the per-unit SNEAK write</h3></div>
+      <p class="claim">Sneak bonus 0 / 0.25 / 1.0 made no measurable difference in either cell order, matching STL/STL2 (wild AI never hides). Setting pack_sneak 0 removes one class of unit writes; the 0.05 pack-mass floor stays because the arena cannot isolate it from DF&#x27;s own aiming of placed units.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW2+SW2R placed prey killed over 4 reps: ctl 4, sneak0 4, sneak100 0; STL/STL2 hidden 0 of 426 samples</dd>
+        <dt>Next</dt><dd>Set v7.pack_sneak=0 and delete the unit SNEAK write path in ecoWrite; update mech.v70.pack_sneak claim.</dd>
+        <dt>Depends on</dt><dd>Unblocks the v7.1 default and the removal of the SNEAK write; SW8.</dd>
+      </dl>
+      <p class="meta"><code>dflt-pack-sneak-0</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):786-787 (SW2 row) · eco-report.md (scratchpad export, 1 Oct):851 · DwarfCron/data/eco-desk/findings.md:542 (SW2R) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):500 (pack_sneak=0.25) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):4176-4179 (ecoWrite floor/sneak)</p>
+    </div>
+    <div class="item pri-medium" id="builder-drop-x3-pack-bonus">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>Remove the builder&#x27;s x3 pack-hunter pick bonus</h3></div>
+      <p class="claim">SW7 rosters built with bonus 1, 3 and 5 gave the same land groups and fights on CTRL; design rule R11 already treats the x3 as a contrived weight. The rig test was weak (only 7-8 of 27-29 wanted species exist in CTRL&#x27;s pool), while the desk D1 shows rosters change at every level (pack-hunt presence 57% -&gt; 77%).</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW7: land groups 3.1/1.6 (x1), 2.2/2.2 (x3), 3.3/2.8 (x5), attacks 0 in all cells; D1: 100% of CTRL keys change</dd>
+        <dt>Next</dt><dd>On a yes, drop ROSTER.packBonus and roster2.py pack_pref, rerun run2.py to restate v2.2 metrics.</dd>
+        <dt>Depends on</dt><dd>Unblocks the ladder port (stage 3) and the v2.2 restatement.</dd>
+      </dl>
+      <p class="meta"><code>builder-drop-x3-pack-bonus</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):791 (SW7 row) · eco-report.md (scratchpad export, 1 Oct):851 · DwarfCron/data/eco-desk/findings.md:491 (SW7) · DwarfCron/experiments/SWEEP-D1.md (verdict) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5094 (ROSTER.packBonus) · DwarfCron/data/eco-desk/v2/guilds/design.md R11</p>
+    </div>
+    <div class="item pri-high" id="ladder-drop-apx-step">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-user">Your call</span><h3>Drop the apex step from the FREQUENCY ladder; steer apexes by placement and stock</h3></div>
+      <p class="claim">The apex FREQUENCY does not visibly bring apexes: 0 apex arrivals in all 4 CTRL season runs, 0-3 elsewhere, and apex present in 1 of 6 SW4 runs at any predator multiplier. Steering apexes then needs a mechanism the tool lacks today: a placed or stocked apex group (one LP group per map, two on savage maps, design R12.7).</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8C/S8Cb CTRL apex 0,0,0,0; S8B 0,3 cheetah; S8O 2,1 anaconda; SW4 apex present 1 of 6</dd>
+        <dt>Next</dt><dd>Decide yes/no; if yes, design an apex placement/stock job (cadence, max groups, season gate) and remove AL/AW from ROSTER.LADDER.</dd>
+        <dt>Depends on</dt><dd>Unblocks the ladder port; if kept, lp-separate-pool becomes worth running; if dropped, an apex placement job needs designing.</dd>
+      </dl>
+      <p class="meta"><code>ladder-drop-apx-step</code> · Decisions for you · effort M · eco-report.md (scratchpad export, 1 Oct):768 (season section) · eco-report.md (scratchpad export, 1 Oct):851 · eco-report.md (scratchpad export, 1 Oct):879 (tracker 15) · DwarfCron/data/eco-desk/findings.md:469 (SW4) · DwarfCron/data/eco-desk/findings.md:519 (S8Cb) · DwarfCron/data/eco-desk/v2/guilds/design.md section 8 (apex f may be moot) · DwarfCron/experiments/SWEEP-design.md section 4 (ladder row)</p>
+    </div>
+    <div class="item pri-low" id="cavern-limit-soft-target">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-user">Your call</span><h3>Relabel the cavern groups-at-once limit as a soft target</h3></div>
+      <p class="claim">Caps of 1 and 2 cut the tool&#x27;s own cavern groups by about 40% but never approach the cap, because DF&#x27;s native cavern populations (4-5 groups per depth) are not the tool&#x27;s to gate. The Layers tab presents it as a ceiling, which misleads.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW5: cavern groups 24.0/27.3 at auto vs 13.7-16.0 at caps 1 and 2, same in both orders</dd>
+        <dt>Next</dt><dd>Reword the Layers tab and `limits` output (&#x27;target for the tool&#x27;s own cavern groups&#x27;); keep auto.</dd>
+        <dt>Depends on</dt><dd>Wording only once ruled.</dd>
+      </dl>
+      <p class="meta"><code>cavern-limit-soft-target</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):789 (SW5 row) · eco-report.md (scratchpad export, 1 Oct):851 · DwarfCron/data/eco-desk/findings.md:478 (SW5)</p>
+    </div>
+    <div class="item pri-low" id="water-groups-default-2">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-user">Your call</span><h3>Optional: water groups-at-once default 2 per body</h3></div>
+      <p class="claim">On BOATS the water supply is only 2-5 groups, so cap 2 matched auto and the cap rarely binds; a default of 2 would mean less placement. Evidence is thin: one map, and cap 1 held exactly only in one replicate.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW6: water groups auto 4.8/2.1, w2 3.1/2.3, w1 1.0/2.1</dd>
+        <dt>Next</dt><dd>Leave auto unless the user wants fewer placements; if changed, confirm on OCEAN2 or LAKE first.</dd>
+        <dt>Depends on</dt><dd>Leave auto unless ruled; confirm on OCEAN2 or LAKE if changed.</dd>
+      </dl>
+      <p class="meta"><code>water-groups-default-2</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):790 (SW6 row) · DwarfCron/data/eco-desk/findings.md:485 (SW6)</p>
+    </div>
+    <div class="item pri-medium" id="scav-carnivorous-swimmers">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>Should carnivorous swimmers count as scavengers?</h3></div>
+      <p class="claim">SCAV.is counts a scavenger only if it is BONECARN, a CURIOUS_BEAST_EATER or on SCAV.TEXT; among vanilla swimmers that leaves only POND_GRABBER, SEA_SERPENT and SEA_MONSTER, so alligators, crocodiles and sharks never scavenge and scav_ext&#x27;s swimmer path has almost no vanilla users. Water carcasses were cleared in SCV2Wb with pond grabbers or wolves on the bank.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SCV2Wb: 6 -&gt; 0 carp carcasses in all 4 cells; SCVW: alligators walked 0 of 5</dd>
+        <dt>Next</dt><dd>Ask the user; if yes, add CARNIVORE + aquatic/semiaquatic (or a curated list) to SCAV.is and rerun a water cell with crocodiles.</dd>
+        <dt>Depends on</dt><dd>If yes, a water cell with crocodiles joins scav-attribution-and-fallbacks.</dd>
+      </dl>
+      <p class="meta"><code>scav-carnivorous-swimmers</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):735 · eco-report.md (scratchpad export, 1 Oct):858 · DwarfCron/data/eco-desk/findings.md:419 (SCV2) · DwarfCron/data/eco-desk/findings.md:559 (SCV2b/SCV2Wb) · seasonal-wildlife/STATE.md addendum 97</p>
+    </div>
+    <div class="item pri-high" id="cavern-animal-person-group-cap">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-user">Your call</span><h3>Group-size cap for animal people (plump helmet men) in caverns</h3></div>
+      <p class="claim">With the builder on, plump helmet men filled the cavern shore-prey slot and arrived about 15 per wave, 54 and 180 units in a season on BOATS (33 died in rep 1). The ladder sets wave share, not unit share, so a large-cluster species swamps the layer. A cap via cfg.group_size (the mechanism v7 outgun_cap already writes) is the obvious lever.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8B BOATS: PLUMP_HELMET_MAN 54 and 180 units, 7 and 12 waves</dd>
+        <dt>Next</dt><dd>Ask the user for the rule (cap for animal-person/civ prey, e.g. &lt;=5, or ladder divided by mean cluster); build it behind a v7 switch and rerun S8B one rep.</dd>
+        <dt>Depends on</dt><dd>Unblocks a v7 switch and one S8B rerun replicate pair.</dd>
+      </dl>
+      <p class="meta"><code>cavern-animal-person-group-cap</code> · Decisions for you · effort S · eco-report.md (scratchpad export, 1 Oct):772 · eco-report.md (scratchpad export, 1 Oct):859 · DwarfCron/data/eco-desk/findings.md:437 (S8B) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):91-95 (outgun_cap writes cfg.group_size)</p>
+    </div>
+    <div class="item pri-high" id="add-invasive-savage-placement">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st-user">Your call</span><h3>Add invasive must place SAVAGE species on calm maps itself</h3></div>
+      <p class="claim">With CENOZOIC_SMILODON&#x27;s population entry added on calm CTRL, DF drew none in a full season in either replicate, so Add invasive cannot rely on DF&#x27;s draw for SAVAGE species. Options: place them with the headless placement path (dfhack.units.create + six writes), or refuse SAVAGE species on calm maps with an explanation. Not built.</p>
+      <dl>
+        <dt>Evidence</dt><dd>INV2: entry &#x27;present&#x27; both reps; smilodon 0 at all 21 samples x 2</dd>
+        <dt>Next</dt><dd>Get the user&#x27;s choice; if placing, define group count/cadence/season gate and add a validator claim; rerun INV2 with the tool placing.</dd>
+        <dt>Depends on</dt><dd>Unblocks either a placement path or a refusal message, then an INV2 rerun.</dd>
+      </dl>
+      <p class="meta"><code>add-invasive-savage-placement</code> · Decisions for you · effort M · eco-report.md (scratchpad export, 1 Oct):860 · eco-report.md (scratchpad export, 1 Oct):881 (tracker 17) · DwarfCron/data/eco-desk/findings.md:411 (INV2) · DwarfCron/data/eco-desk/v2/guilds/design.md section 8 (last bullet) · memory headless-unit-placement.md</p>
+    </div>
+    <div class="item pri-medium" id="lake-apex-gap">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-user">Your call</span><h3>The temperate lake has no apex about half the time again</h3></div>
+      <p class="claim">v2.2 filled the lake&#x27;s apex slot with fishing land predators (bears, tiger, jaguar). FSH2 found they never attack fish (0 attacks in 4 runs; the wolf control 0 in 2 more), so v7.0 turned fishers off by default, which reopens the gap: about half of temperate lake rosters have no apex.</p>
+      <dl>
+        <dt>Evidence</dt><dd>FSH2, results22.md</dd>
+        <dt>Next</dt><dd>Choose: leave lakes apex-less, seat an amphibious apex (alligator, crocodile) where the biome allows, or allow a curated aquatic apex.</dd>
+        <dt>Depends on</dt><dd>Ties to lamprey-not-apex (stage 3).</dd>
+      </dl>
+      <p class="meta"><code>lake-apex-gap</code> · Decisions for you · effort S · eco-report section 19 · findings.md FSH2</p>
+    </div>
+    <div class="item pri-low" id="fps6-resume-or-drop">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st-user">Your call</span><h3>FPS6 (world size x history length on fort speed) is on hold</h3></div>
+      <p class="claim">The user paused FPS6 on 29 Sep 23:4x for the ECO suite; a partial run (data/experiments/FPS6/20260929-224114) and four attempt logs sit uncommitted. On resume the in-script embark&#x27;s no-warning path has not been re-verified, so a smoke (X5a) comes first.</p>
+      <dl>
+        <dt>Evidence</dt><dd>20 worlds planned (9 cells x 2 seeds + 2 LARGE probes), ~3-4 h worldgen</dd>
+        <dt>Next</dt><dd>Ask the user resume or drop; if resume, smoke X5a then relaunch fps6-run.py all --append.</dd>
+        <dt>Depends on</dt><dd>Independent of the tool. If resumed: smoke X5a first.</dd>
+      </dl>
+      <p class="meta"><code>fps6-resume-or-drop</code> · Decisions for you · effort L · DwarfCron/experiments/ECO-design.md:5 · DwarfCron/experiments/FPS6-design.md · Project_Aion/.claude/context/.scratchpad.urist.md:295-298</p>
+    </div>
+    <div class="item pri-medium" id="ladder-units-vs-waves">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Should the ladder target units rather than waves?</h3></div>
+      <p class="claim">FREQUENCY sets each species&#x27; share of waves, but the overshoot on BOATS came from pack size: giant jackal packs made 27 units with modest wave counts, putting predators at 42% of surface units in one replicate. Dividing a group species&#x27; FREQUENCY by its mean cluster size would target unit share; the same issue drives the plump-helmet-man swamp.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8B rep 1: GIANT_JACKAL 27 units, predators 47% of waves / 42% of units</dd>
+        <dt>Next</dt><dd>Decide with the user; prototype in roster2.py and compare predicted unit shares.</dd>
+        <dt>Depends on</dt><dd>Decide with the ladder port; the same question drives the plump-helmet-man swamp.</dd>
+      </dl>
+      <p class="meta"><code>ladder-units-vs-waves</code> · Open questions · effort S · eco-report.md (scratchpad export, 1 Oct):759-761 · DwarfCron/data/eco-desk/findings.md:437 (S8B) · DwarfCron/data/eco-desk/findings.md:469 (SW4: presence above f/sum f)</p>
+    </div>
+    <div class="item pri-low" id="deep-layer-demons">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Demons arriving on CTRL&#x27;s deep layer are left unmanaged (D8)</h3></div>
+      <p class="claim">In the builder-off control, 15 and 16 demon units in 4-5 groups arrived on the deep layer per season on CTRL. D8 keeps demons unmanaged and the report states it, but whether they count against any limit or skew S8&#x27;s tallies is not stated.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8C: DEMON_* 15 and 16 units both reps</dd>
+        <dt>Next</dt><dd>Confirm WILD.onMap and the S8 tally exclude demons; ask the user if D8 stands.</dd>
+        <dt>Depends on</dt><dd>Ask whether D8 stands; a desk check of the S8 tallies can run now.</dd>
+      </dl>
+      <p class="meta"><code>deep-layer-demons</code> · Open questions · effort S · eco-report.md (scratchpad export, 1 Oct):775 · DwarfCron/data/eco-desk/findings.md:428 (S8C) · memory roster-builder-decisions / alpha1-root-causes (D8)</p>
+    </div>
+  </div>
+  <h2 id="s3"><span class="stage-n">3</span>Build v7.1 <span class="count">21</span></h2>
+  <p class="lede">The chosen defaults, the ladder port, the bugs, the performance pass, and the harness and validator work the experiments need. Order inside the stage follows the dependencies.</p>
+  <div class="items">
+    <div class="item pri-medium" id="scav-status-diagnostics">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Scavenging status line lies two ways (stale scavLast; &#x27;on&#x27; while the tool is off)</h3></div>
+      <p class="claim">SCAV.run returns before writing CACHE.scavLast when there are no scavengers or no remains, so the status repeats the last non-empty pass (seen as a repeated &#x27;units=9 remains=6 eaten=6&#x27;). SCAV.status also prints &#x27;on&#x27; from cfg.scavenge.enabled alone while SCAV.run needs cfg.enabled too, which made the first SCV2 run vacuous unnoticed.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SCV2 vacuous (tool off, status &#x27;on&#x27;); SCV2b repeated last-pass line</dd>
+        <dt>Next</dt><dd>Write scavLast (zero counts, timestamp) on every return path and print &#x27;off (tool disabled)&#x27; when cfg.enabled is false; add a validator claim.</dd>
+        <dt>Depends on</dt><dd>Nothing. Fix before scav-attribution-and-fallbacks reads the status line again.</dd>
+      </dl>
+      <p class="meta"><code>scav-status-diagnostics</code> · Known bugs and diagnostics · effort S · eco-report.md (scratchpad export, 1 Oct):736 · DwarfCron/data/eco-desk/findings.md:419 (SCV2) · DwarfCron/data/eco-desk/findings.md:559 (SCV2b) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):6862-6992 (SCAV.run) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):6999-7010 (SCAV.status)</p>
+    </div>
+    <div class="item pri-medium" id="cache-world-switch-stale">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Two caches survive a world switch: CACHE.depth and per-copy raceCache</h3></div>
+      <p class="claim">CACHE.depth (engine :891) is not cleared by CACHE.drop (:7140), so a second world loaded in the same DFHack session keeps the first world&#x27;s cave depths. raceCache (:2316) lives per script copy; CACHE.drop resets only the copy owning the onStateChange handler, so the window and job copies keep old race indices (the dfhack-script-copies trap). Also SCAV.wait (:6802) is per copy and never prunes departed ids.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Code read, 1 Oct (no rig)</dd>
+        <dt>Next</dt><dd>Clear CACHE.depth in CACHE.drop; move raceCache and SCAV.wait into the shared _G CACHE keyed by release; prune SCAV.wait on departure. Rig check: load world A, then B, in one session; compare cavern depths and a race lookup from the window copy.</dd>
+        <dt>Depends on</dt><dd>Nothing. Small; rides with any v7.1 build.</dd>
+      </dl>
+      <p class="meta"><code>cache-world-switch-stale</code> · Known bugs and diagnostics · effort S · DwarfCron/data/perf/SW-PERF-ANALYSIS.md section 5, correctness notes · seasonal-wildlife v7.0 1e65e03 :891 :2316 :6802 :7140</p>
+    </div>
+    <div class="item pri-medium" id="perf-v71-caching">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Proposed</span><h3>Performance for v7.1: instrument, memoize classification, keep groups/undo in CACHE, overlay from cache, one unit census, stagger jobs</h3></div>
+      <p class="claim">The jobs average about 1% of wall time; what players feel are spikes (groups 67-149 ms, ecology 58-71 ms) and jobs landing on shared ticks, plus the overlay decoding JSON and scanning pairs every render frame, and the undo ring re-encoded per edit. Lua runs on DF&#x27;s one simulation thread, so the levers are avoided work, native scans and staggering, not threads. Proposals P0-P7 of the analysis.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Code read and host JSON benchmark, 1 Oct</dd>
+        <dt>Next</dt><dd>P0 instrumentation first, then P1-P7; validate together with PERF0 (bench), PERF1 (a month on BOATS) and PERF2 (overlay), two replicates per arm, fresh DF per rep, on DFHack r2.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2 (measure on r2). P0 instrumentation lands first; P1-P7 then validate together (PERF0, PERF1, PERF2).</dd>
+      </dl>
+      <p class="meta"><code>perf-v71-caching</code> · Proposed tool changes (not applied) · effort L · DwarfCron/data/perf/SW-PERF-ANALYSIS.md sections 2-6</p>
+    </div>
+    <div class="item pri-low" id="web-cluster-order">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Web server sends cluster_number[0] as the group minimum; that slot is the maximum</h3></div>
+      <p class="claim">seasonal-wildlife-web reports cluster_number[0] as min and [1] as max, so a wolf pack reads &quot;7 to 3&quot; on the companion page (the page now sorts them). Engine :1287 reads the raw the same way; check which slot DF uses before fixing either.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Companion review, 1 Oct</dd>
+        <dt>Next</dt><dd>One rig line: print WOLF cluster_number[0], [1] against the raw [CLUSTER_NUMBER:a:b]; then fix the server (and the engine if it shares the error).</dd>
+        <dt>Depends on</dt><dd>One rig line to read which slot is the minimum.</dd>
+      </dl>
+      <p class="meta"><code>web-cluster-order</code> · Known bugs and diagnostics · effort S · scratchpad review/atlas-companion.md · seasonal-wildlife scripts/seasonal-wildlife-web.lua</p>
+    </div>
+    <div class="item pri-low" id="chronicler-weather-lookup">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Chronicler bridge reads current_weather[2][2], the lookup DFHack r2 fixed as broken</h3></div>
+      <p class="claim">chronicler-bridge.lua:1784 indexes the 5x5 weather grid at [2][2]; the right cell is biome_x - map.region_x/16 + 1, so it usually reports a neighbouring region&#x27;s weather. Chronicler, not seasonal-wildlife.</p>
+      <dl>
+        <dt>Evidence</dt><dd>DFHack r2 code review, 1 Oct</dd>
+        <dt>Next</dt><dd>Use dfhack.maps.getCurrentWeather() when present, [2][2] as the r1.1 fallback.</dd>
+        <dt>Depends on</dt><dd>Nothing (Chronicler bridge, not the tool).</dd>
+      </dl>
+      <p class="meta"><code>chronicler-weather-lookup</code> · Known bugs and diagnostics · effort S · DwarfCron/data/dfhack-r2/REPORT.md section 2.2</p>
+    </div>
+    <div class="item pri-medium" id="spaced-raw-ids-cli">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Console verbs cannot name the 36 raw ids with a space or comma</h3></div>
+      <p class="claim">Ids such as SEA OTTER, HONEY BADGER, RIVER OTTER, GIGANTIC SQUID and &#x27;BADGER, GIANT&#x27; are split by the whitespace argument parser, so `stock`, `odds`, `roster`, `seasons` and the rig verbs cannot address them; REACH had to swap the sea otter out. Design R12.9 requires creature-index addressing and tracker 5 listed it, but no index addressing was found in v7.0.</p>
+      <dl>
+        <dt>Evidence</dt><dd>W1O and REACH could not place SEA OTTER; grep of v7.0 finds no index lookup</dd>
+        <dt>Next</dt><dd>Accept &#x27;#&lt;creature index&gt;&#x27; or an underscore form in every verb that takes a TOKEN; add a claim using HONEY BADGER.</dd>
+        <dt>Depends on</dt><dd>Nothing. REACH and W1O needed it.</dd>
+      </dl>
+      <p class="meta"><code>spaced-raw-ids-cli</code> · Known bugs and diagnostics · effort S · DwarfCron/data/eco-desk/v2/guilds/design.md R12.9 · eco-report.md (scratchpad export, 1 Oct):869 (tracker 5 &#x27;index addressing for the 36 ids&#x27;) · DwarfCron/data/eco-desk/findings.md:93 (SEA OTTER trap) · seasonal-wildlife/HANDOFF.md section 7 (whitespace-split subcommands)</p>
+    </div>
+    <div class="item pri-medium" id="animal-person-mass">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Animal people carry their root animal&#x27;s mass in the builder&#x27;s species table</h3></div>
+      <p class="claim">species2.tsv gives each animal person its root animal&#x27;s body size, but every ANIMAL_PERSON variation applies GRAVITATE_BODY_SIZE:70000, which pulls the in-game size toward 70,000 cm³. So a damselfly man reads 10 cm³ in the builder. Size bands, the 5% pack-mass floor and prey choice for all 185 animal people rest on the wrong mass. 64 species also disagree between species2 and the raws (tiny bugs, their giants, ANT_MAN castes).</p>
+      <dl>
+        <dt>Evidence</dt><dd>raws figure 11: 4 animal people of bug roots have no prey</dd>
+        <dt>Next</dt><dd>Apply GRAVITATE_BODY_SIZE when resolving animal-person mass in species2.py and in the tool&#x27;s MODEL.rawOf, then rerun the v2.2 builder tables.</dd>
+        <dt>Depends on</dt><dd>Nothing. Do before any builder table rerun.</dd>
+      </dl>
+      <p class="meta"><code>animal-person-mass</code> · Open questions · effort S · data/eco-report/raws.json counts.caveats · data/eco-desk/v2/guilds/species2.py</p>
+    </div>
+    <div class="item pri-low" id="animal-person-freq-zero">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>19 animal people round to FREQUENCY 0 and may never spawn</h3></div>
+      <p class="claim">The animal-person variation multiplies FREQUENCY by 10%, and small root values round to 0. Those 19 species can&#x27;t be drawn by DF at all unless the tool writes a FREQUENCY for them.</p>
+      <dl>
+        <dt>Evidence</dt><dd>raws census</dd>
+        <dt>Next</dt><dd>List the 19; decide whether the builder should give them a floor FREQUENCY when it seats them.</dd>
+        <dt>Depends on</dt><dd>animal-person-mass (same raws pass).</dd>
+      </dl>
+      <p class="meta"><code>animal-person-freq-zero</code> · Open questions · effort S · data/eco-report/raws.json (figure 3)</p>
+    </div>
+    <div class="item pri-high" id="builder-port-vs-v22">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st">Open</span><h3>Builder port: marked Done, but v7.0 writes the v2.1 ladder and omits v2.2 pieces</h3></div>
+      <p class="claim">Tracker 5 says the port is Done (0d030b2) while recommendation 14 says &#x27;its port into v7.0 is next&#x27;. The code confirms a partial port: ROSTER.LADDER uses v2.1 base values (land AL 3, ML 3, GZ 6) rather than ladder22 (AL 4, ML 2, GZ 10.5), which the desk predicts gives about 31% land predators instead of 16%, yet S8 was read against the v2.2 14-18% target. The port also collapses ocean/lake/river and cav1-3 into three layers, has no flying apex or SNP slot, and boosts giants by mass only. Also absent (1 Oct review, ROSTER.SLOTS at seasonal-wildlife.lua v7.0 ~5070): a flying layer (RP and LB sit in the land table), the SNP slot, the GOBBLE_VERMIN edge table and vermin stock links. design.md section 9 lists them.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8B 42%/14%, S8O 18%/39%, S8C(b) 5% predators of surface units vs 14-18% target</dd>
+        <dt>Next</dt><dd>Port LADDER22 (scaled to max 100) and decide the apex step at the same time; rerun one S8 fort for 2 reps; record the remaining layer-collapse gaps in the report.</dd>
+        <dt>Depends on</dt><dd>ladder-drop-apx-step, builder-drop-x3-pack-bonus, ladder-units-vs-waves; then one S8 fort, two replicates.</dd>
+      </dl>
+      <p class="meta"><code>builder-port-vs-v22</code> · Open questions · effort M · eco-report.md (scratchpad export, 1 Oct):836 (rec 14) · eco-report.md (scratchpad export, 1 Oct):869 (tracker 5) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5354-5358, :5413-5417 (ROSTER.LADDER v2.1) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5052-5066 (documented gaps) · DwarfCron/data/eco-desk/v2/guilds/design.md R13 (ladder22) · DwarfCron/data/eco-desk/v2/guilds/results22.md section 2 · DwarfCron/data/eco-desk/v2/guilds/design.md section 9 (1 Oct review)</p>
+    </div>
+    <div class="item pri-medium" id="builder-reach-table-refresh">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Proposed</span><h3>Update the builder&#x27;s reach table with REACH/WB/HO results; make raptor-on-land-prey edges rare</h3></div>
+      <p class="claim">The v2.2 metrics still call flier-on-flier and aquatic-on-waterbird edges &#x27;untested&#x27; (19% of surface unit edges; the flying layer at 0% measured reach) although REACH and WB have since measured them. REACH also found an eagle never engaged a rabbit, so raptor-on-land-prey edges should be rare or dropped.</p>
+      <dl>
+        <dt>Evidence</dt><dd>REACH: kea 5/12 parrots, eagle 2/12 ravens, 0/12 rabbits; WB: tiger sharks 5/6 ducks both reps; HO: sharks take seals in water</dd>
+        <dt>Next</dt><dd>Mark those reach cells measured in roster2.py, weight raptor-&gt;land prey down, rerun run2.py and restate the shares.</dd>
+        <dt>Depends on</dt><dd>Desk; run with the ladder port.</dd>
+      </dl>
+      <p class="meta"><code>builder-reach-table-refresh</code> · Proposed tool changes (not applied) · effort S · eco-report.md (scratchpad export, 1 Oct):496 · eco-report.md (scratchpad export, 1 Oct):630 · DwarfCron/data/eco-desk/v2/guilds/results22.md:16-31 (flying measured reach 0%) · DwarfCron/data/eco-desk/v2/guilds/design.md R8 table</p>
+    </div>
+    <div class="item pri-low" id="flying-raptor-slot">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Flying-layer predator share stays at 19%; needs a smaller raptor slot</h3></div>
+      <p class="claim">Even at prey x5 the flying roster holds an apex and 1-2 raptors against 1-4 bird species, so FREQUENCY cannot bring the predator share down to the 14-18% target. Results22 says lowering it needs RP 1-1.</p>
+      <dl>
+        <dt>Evidence</dt><dd>v2.2 ladder: flying 0.19 / apex 0.06</dd>
+        <dt>Next</dt><dd>Try RP max 1 in roster2.py and in ROSTER.SLOTS.land; compare shares.</dd>
+        <dt>Depends on</dt><dd>The ladder port.</dd>
+      </dl>
+      <p class="meta"><code>flying-raptor-slot</code> · Proposed tool changes (not applied) · effort S · DwarfCron/data/eco-desk/v2/guilds/results22.md section 2</p>
+    </div>
+    <div class="item pri-low" id="lamprey-not-apex">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Do not seat the sea lamprey as a lake/river apex</h3></div>
+      <p class="claim">The sea lamprey latches and attacks but never killed in 3,000 ticks, and the report says it should not count as an apex, yet design.md section 6 still names FISH_LAMPREY_SEA the temperate lake apex and v2.1 seats it as a coastal APX.</p>
+      <dl>
+        <dt>Evidence</dt><dd>W1L/HR: lamprey attacks, 0 kills</dd>
+        <dt>Next</dt><dd>Demote FISH_LAMPREY_SEA to MW in roster2.py and the tool&#x27;s guild read; accept &#x27;no apex&#x27; on temperate lakes.</dd>
+        <dt>Depends on</dt><dd>lake-apex-gap.</dd>
+      </dl>
+      <p class="meta"><code>lamprey-not-apex</code> · Proposed tool changes (not applied) · effort S · eco-report.md (scratchpad export, 1 Oct):119 · DwarfCron/data/eco-desk/v2/guilds/design.md section 6 &#x27;Lake and river&#x27; · DwarfCron/data/eco-desk/v2/guilds/results21.md (pelagic apex, coastal APX)</p>
+    </div>
+    <div class="item pri-low" id="port-gobble-edge-table">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Port the builder&#x27;s GOBBLE_VERMIN edge table into v7.0</h3></div>
+      <p class="claim">v7.0 derives vermin consumers from its own guild-rule table (VERMIN.GOBBLE_RULES) &#x27;until the roster builder&#x27;s own GOBBLE_VERMIN edge table (v2.2) reaches this engine&#x27;. So the tool&#x27;s vermin links differ from the desk&#x27;s (92% &#x27;write&#x27; links, about 6.4 per calm roster).</p>
+      <dl>
+        <dt>Evidence</dt><dd>VRM2/VRM4: written class and creature tokens are honoured</dd>
+        <dt>Next</dt><dd>Generate per-roster GOBBLE_VERMIN_CREATURE edges in ROSTER.build and apply them through V7.rec.</dd>
+        <dt>Depends on</dt><dd>The ladder port; gobble-feeds for the vermin-on-vermin share.</dd>
+      </dl>
+      <p class="meta"><code>port-gobble-edge-table</code> · Proposed tool changes (not applied) · effort M · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):6560-6571 · DwarfCron/data/eco-desk/v2/guilds/design.md R14 · seasonal-wildlife/STATE.md addendum 96e</p>
+    </div>
+    <div class="item pri-low" id="tool-pred-cfg">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Tool size preference PRED has no cfg key</h3></div>
+      <p class="claim">PRED (ideal 0.4, sigma 1.2) is a local table exported as sw.PRED that only orders lists; the sweep design (row k, D3) said to make it a cfg key or delete it from the runtime path before any rig use. Neither was done.</p>
+      <dl>
+        <dt>Evidence</dt><dd>code read</dd>
+        <dt>Next</dt><dd>Delete PRED from the runtime path, or add cfg.ecology.pred with a receipt.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>tool-pred-cfg</code> · Proposed tool changes (not applied) · effort S · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):1912 · DwarfCron/experiments/SWEEP-design.md section 1 row k and section 4</p>
+    </div>
+    <div class="item pri-low" id="v7-switches-on-panel">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Expose the v7 switches in the GUI Panel</h3></div>
+      <p class="claim">Every v7.0 feature (builder, domestic, fishers, realms, outgun, gobble, scav_ext, sponges, layer_groups) is a cfg.v7 switch set only from the console `seasonal-wildlife v7`; the Panel shows none of them, so a GUI-only player cannot see or change them.</p>
+      <dl>
+        <dt>Evidence</dt><dd>code read</dd>
+        <dt>Next</dt><dd>Add a v7 section to the Panel tab with the switches and their defaults; add GUI claims.</dd>
+        <dt>Depends on</dt><dd>The default rulings, so the Panel shows the final set.</dd>
+      </dl>
+      <p class="meta"><code>v7-switches-on-panel</code> · Proposed tool changes (not applied) · effort M · Project_Aion/.claude/context/.scratchpad.urist.md:153 (&#x27;NOT on Panel (v7 switches are CLI only)&#x27;) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):495-503</p>
+    </div>
+    <div class="item pri-medium" id="arena-order-and-wildness">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Proposed</span><h3>Arena blocks: make counterbalancing the default and isolate the tool&#x27;s write from DF&#x27;s aiming</h3></div>
+      <p class="claim">Cells sharing one load pick up natives over time, so position decided the &#x27;busy&#x27; flags in SW1/SW2. Counterbalancing (even reps reversed) is opt-in and set only for SW3-SW7. Placed units are non-wild to DF (RELS row 3), which aims them itself, so arena cells cannot separate the tool&#x27;s written pair from DF&#x27;s (why SW2 could not test the pack floor). With 2 reps, reversal balances position but does not remove the pile-up.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW1/SW1R placed-wolf share ~90% first cell vs ~22% last</dd>
+        <dt>Next</dt><dd>Default counterbalance on for every multi-cell block; prefer a fresh load per arm (as VRM2) for arena blocks; read DF&#x27;s rel rows in arena cells.</dd>
+        <dt>Depends on</dt><dd>Nothing. Before any new arena block.</dd>
+      </dl>
+      <p class="meta"><code>arena-order-and-wildness</code> · Harness, validator and method · effort S · eco-report.md (scratchpad export, 1 Oct):793-797 · DwarfCron/data/eco-desk/findings.md:542 (SW2R) · DwarfCron/scripts/eco-run.py:1132-1137, :1205-1207 · memory experiment-readout-traps.md (trap 20)</p>
+    </div>
+    <div class="item pri-low" id="cx-probe-invasion-exclusion">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>cx-probe does not exclude DF&#x27;s invasions from wildlife counts</h3></div>
+      <p class="claim">PLAN section 5 says the tool&#x27;s cavern layer excludes units with invasion_id &gt;= 0 but &#x27;cx-probe does not yet&#x27;, so rig counts would include invaders once a real invasion happens (see E23f).</p>
+      <dl>
+        <dt>Evidence</dt><dd>doc statement; not re-checked in cx-probe</dd>
+        <dt>Next</dt><dd>Mirror WILD.onMap&#x27;s invasion_id test in cx-probe before E23f.</dd>
+        <dt>Depends on</dt><dd>Nothing. Before E23f.</dd>
+      </dl>
+      <p class="meta"><code>cx-probe-invasion-exclusion</code> · Harness, validator and method · effort S · seasonal-wildlife/PLAN.md:170</p>
+    </div>
+    <div class="item pri-low" id="harness-readout-nits">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Small readout defects in tallies and harness</h3></div>
+      <p class="claim">vrm4-tally.py misparses the class receipt row as None. The harness lists sponges as &#x27;feature&#x27; arrivals on OCEAN2 and BOATS (40-71 per run), which s8-tally users must ignore by hand. INV2 logs only the subject, so other arrivals during the window are not on record.</p>
+      <dl>
+        <dt>Evidence</dt><dd>as cited</dd>
+        <dt>Next</dt><dd>Fix the vrm4 parser, drop sponges from harness arrival lists, add an all-arrivals sample to INV-style blocks.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>harness-readout-nits</code> · Harness, validator and method · effort S · DwarfCron/data/eco-desk/findings.md:310 (VRM4) · DwarfCron/data/eco-desk/findings.md:437, :449 (S8B/S8O sponges) · DwarfCron/data/eco-desk/findings.md:411 (INV2 caveat)</p>
+    </div>
+    <div class="item pri-medium" id="validator-v70-nt-forts">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Six v7.0 claims are not testable on the validator&#x27;s forts</h3></div>
+      <p class="claim">civ_hunt and civ_prey find no cavern civ race (CTRL&#x27;s caverns are closed), pack_floor and pack_sneak saw no qualifying pair that pass, fishers_flags&#x27; subject RACCOON already swims and fishers now default off, and sponges needs an ocean. They pass nowhere yet.</p>
+      <dl>
+        <dt>Evidence</dt><dd>validate-full 20261001-074833: 6 v70 NOT-TESTABLE-HERE</dd>
+        <dt>Next</dt><dd>Add a BOATS/OCEAN2 pass (civ, sponges), an arena probe for pack floor/sneak, and switch fishers on for its claim.</dd>
+        <dt>Depends on</dt><dd>Nothing; needs a BOATS or OCEAN2 pass in the validator.</dd>
+      </dl>
+      <p class="meta"><code>validator-v70-nt-forts</code> · Harness, validator and method · effort M · DwarfCron/data/validation/full/20261001-074833/results.json (NOT-TESTABLE-HERE v70 rows)</p>
+    </div>
+    <div class="item pri-low" id="validator-full-run-nt">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Eleven core claims are never exercised by a full validator run</h3></div>
+      <p class="claim">mech.stock.reserve, mech.odds, mech.groupsize, mech.deep, mech.origin, mech.call, cli.roster.state/undo, cli.seasons.set/activate and mech.v69.exhaust return {none} and read NOT-TESTABLE-HERE in both the v6.9 and v7.0 full runs; they pass only in --only phases with rotation on.</p>
+      <dl>
+        <dt>Evidence</dt><dd>same 11 NT in both runs</dd>
+        <dt>Next</dt><dd>Have the full run set up their subjects (rotation on, an in-season species) or chain the --only phases into it.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>validator-full-run-nt</code> · Harness, validator and method · effort M · DwarfCron/data/validation/full/20261001-074833/results.json · DwarfCron/data/validation/full/20260930-124923/results.json</p>
+    </div>
+    <div class="item pri-medium" id="v70-job-cost-and-sweep">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Read v7.0&#x27;s job costs and sweep counters over a season</h3></div>
+      <p class="claim">On v6.3 the groups pass hit 149 ms against a 50 ms budget, and v6.6 added FUSE laps to name the slow part, but nobody has read them after a season. v7.0 adds per-body water ticks, the relation sweep, gobble and scav_ext. The sweep&#x27;s &#x27;refought&#x27; counter (how often DF writes back pairs it clears) was also meant to be read.</p>
+      <dl>
+        <dt>Evidence</dt><dd>X7: groups worst 149 ms (v6.3)</dd>
+        <dt>Next</dt><dd>Grep the S8 logs for FUSE.stats and sweep lines; if absent, add a status dump to the next season run.</dd>
+        <dt>Depends on</dt><dd>A desk read of the S8 logs can run now; otherwise a status dump in the next season run.</dd>
+      </dl>
+      <p class="meta"><code>v70-job-cost-and-sweep</code> · Harness, validator and method · effort S · Project_Aion/.claude/context/.scratchpad.urist.md:482 (&#x27;groups pass over budget&#x27;) · seasonal-wildlife git 158750b (FUSE.lap) · eco-report.md (scratchpad export, 1 Oct):632 (refought counter) · memory fail-fast-mandate.md</p>
+    </div>
+  </div>
+  <h2 id="s4"><span class="stage-n">4</span>Experiments <span class="count">16</span></h2>
+  <p class="lede">Two replicates per arm, counterbalanced when cells share a load. Desk reads first where an item has one.</p>
+  <div class="items">
+    <div class="item pri-medium" id="natural-skill-unverified">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Solitary package: Done in the tracker, the caste NATURAL_SKILL write unverified on the rig</h3></div>
+      <p class="claim">Tracker 7 says the tool writes NATURAL_SKILL on solitary hunters (Done), while STATE addendum 96 says natural_skill_id/_lvl/_exp are &#x27;unverified on the rig: written under pcall and counted&#x27;. LONE/STL wrote unit skills directly through the harness, not the tool&#x27;s caste write, and the validator&#x27;s solo_raws claim checks only AMBUSHPREDATOR. VERMIN.legless (gait read) and SWV_SMALL_BIRD membership are flagged the same way. LONE10&#x27;s package was written by the harness (unit skills), so the page&#x27;s &#x27;v7.0 package&#x27; result is the harness&#x27;s, not the tool&#x27;s write.</p>
+      <dl>
+        <dt>Evidence</dt><dd>mech.v70.solo_raws PASS on AMBUSHPREDATOR only</dd>
+        <dt>Next</dt><dd>Probe: with v7.solo on, read a newly arrived solitary hunter&#x27;s unit skills; check `vermin classes` for SWV_HERP/SWV_SMALL_BIRD; extend solo_raws to read the caste skill fields.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2; then a short probe on the v7.0 rig.</dd>
+      </dl>
+      <p class="meta"><code>natural-skill-unverified</code> · Open questions · effort S · eco-report.md (scratchpad export, 1 Oct):871 (tracker 7) · seasonal-wildlife/STATE.md addendum 96 (Solitary package row) · DwarfCron/scripts/validate-full.py:1158-1173 (solo_raws) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):6633-6640 (legless) · DwarfCron/scripts/eco-run.py:342, :372, :403-416</p>
+    </div>
+    <div class="item pri-medium" id="perf3-unit-count">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Proposed</span><h3>PERF3: what sponges and per-layer groups cost DF in frame rate</h3></div>
+      <p class="claim">At about 0.07% per wild unit (fps-load-facts), up to 128 sponges could cost about 9%, ten times all the tool&#x27;s Lua. Immobile units may cost less. Unmeasured.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Estimate, 1 Oct</dd>
+        <dt>Next</dt><dd>OCEAN fort, fresh DF per rep, 30,000 ticks, stopwatch t/s; arm A v7 defaults, arm B sponges off and layer_groups off; split only if A differs from B. Two reps per arm, on r2.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2. Its result decides whether sponge and per-layer group defaults change in v7.2.</dd>
+      </dl>
+      <p class="meta"><code>perf3-unit-count</code> · Experiments to run or rerun · effort M · DwarfCron/data/perf/SW-PERF-ANALYSIS.md P13 · memory fps-load-facts</p>
+    </div>
+    <div class="item pri-low" id="antman-civ-class">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>ANT_MAN classes as an animal person, so it is not a civ race though the code comment says it is</h3></div>
+      <p class="claim">V7.isCivRaw excludes animal people; ANT_MAN carries an ANIMAL_PERSON variation of root ANT, so civ_hunt/civ_prey never apply to it, contrary to the STATE 96b list. Animal people also copy a vermin root&#x27;s vermin category.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Atlas review, 1 Oct</dd>
+        <dt>Next</dt><dd>Decide whether ANT_MAN belongs in the civ set; one rig line `roster ANT_MAN` shows its class.</dd>
+        <dt>Depends on</dt><dd>Nothing; one rig line, then a ruling.</dd>
+      </dl>
+      <p class="meta"><code>antman-civ-class</code> · Open questions · effort S · scratchpad review/atlas-companion.md · STATE.md addendum 96b</p>
+    </div>
+    <div class="item pri-medium" id="pelagic-slot-shallow-maps">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Why OCEAN2&#x27;s optional pelagic slot came out empty</h3></div>
+      <p class="claim">The report first said the pelagic slot &#x27;stays closed&#x27; on shallow maps; the code keeps it optional (min 0, max 1) on any ocean and raises it to 2 with triple weight only where deep columns exist. The report is corrected. Still open: on OCEAN2 the slot was left empty in both builds. No pelagic candidate in OCEAN2&#x27;s pool, or the builder&#x27;s min 0 skipping it, would both explain it.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8O build: PE empty both reps; deep water 0/5374</dd>
+        <dt>Next</dt><dd>Print OCEAN2&#x27;s PE candidates from buildPool; if any exist, decide whether a shallow ocean should seat one.</dd>
+        <dt>Depends on</dt><dd>Nothing; a desk print of OCEAN2&#x27;s pool comes first.</dd>
+      </dl>
+      <p class="meta"><code>pelagic-slot-shallow-maps</code> · Open questions · effort M · eco-report.md (scratchpad export, 1 Oct):773 · eco-report.md (scratchpad export, 1 Oct):894 (tracker 18) · DwarfCron/data/eco-desk/findings.md:449 (S8O) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):5082, :5091 (PE max) · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):4900-4910 (ENGINE.weight) · DwarfCron/data/experiments/S8O/20261001-022543 log.txt (&#x27;PE 0 (min 0, max 1) (empty)&#x27;)</p>
+    </div>
+    <div class="item pri-low" id="cavern-traffic-limit">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>What limits cavern traffic under pressure?</h3></div>
+      <p class="claim">T9c showed the halved cavern gate shortens the schedule (3-9 days vs 8-20) but waves then sat overdue up to 42 days and cavern animals were no more numerous. The limit is either DF&#x27;s cavern supply or the cap counting the irruption groups, and which one is not split.</p>
+      <dl>
+        <dt>Evidence</dt><dd>T9c cavern units 18.4/20.2 under pressure vs 20.9/24.5 control</dd>
+        <dt>Next</dt><dd>Desk read of T9c logs: was the cavern cap saturated while waves were overdue?</dd>
+        <dt>Depends on</dt><dd>Nothing; a desk read of the T9c logs.</dd>
+      </dl>
+      <p class="meta"><code>cavern-traffic-limit</code> · Open questions · effort S · eco-report.md (scratchpad export, 1 Oct):805 · DwarfCron/data/eco-desk/findings.md:460 (T9c)</p>
+    </div>
+    <div class="item pri-medium" id="realms-built-untested">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Realm table: built in v7.0 behind an off switch, never run on the rig, no validator claim</h3></div>
+      <p class="claim">The doc&#x27;s recommendation 15 still reads Open (the page now says built, never run, no claim); tracker 21 says Built in v7.0 (e8cbda7) behind the `realms` switch (off by default) with `realm` setting the embark&#x27;s realm, &#x27;Not rig-tested&#x27;. V7.REALMS&#x27;s vanilla-match checks were fixed after a macOS grep miss (466baec), and the validator has no realm claim.</p>
+      <dl>
+        <dt>Evidence</dt><dd>no rig run, no validator claim</dd>
+        <dt>Next</dt><dd>Rig test `realm auto` and a forced realm on CTRL and OCEAN2: roster build co-seats only same-realm species; add mech.v70.realms.</dd>
+        <dt>Depends on</dt><dd>A mech.v70.realms claim (validator-v70-coverage).</dd>
+      </dl>
+      <p class="meta"><code>realms-built-untested</code> · Open questions · effort S · eco-report.md (scratchpad export, 1 Oct):837 (rec 15) · eco-report.md (scratchpad export, 1 Oct):885 (tracker 21) · seasonal-wildlife git 466baec, e8cbda7 · seasonal-wildlife/scripts/seasonal-wildlife.lua (v7.0 1e65e03):98-101, :497</p>
+    </div>
+    <div class="item pri-medium" id="scav-attribution-and-fallbacks">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Measure which species scavenged, and exercise scav_ext&#x27;s fallbacks</h3></div>
+      <p class="claim">Tracker 19 is marked Done, but SCV2b did not record which species ate: the per-species count is in the ledger (&#x27;scavenged N remains (TOK n ...)&#x27;), not captured, and the pass also counted CTRL&#x27;s native ravens (BIRD_RAVEN is in SCAV.TEXT). The fallbacks (fliers landing, wanderers&#x27; last step) never fired because carcasses were gone within the 600-tick wait. The jackal result in SCV used a borrowed population ref, so the &#x27;wanderer&#x27; case is one confounded cell.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SCV2b: 6-21 scavengers seen per pass, fallbacks 0 in every cell; SCV jackal 0/5 near</dd>
+        <dt>Next</dt><dd>Rerun SCV2b with the scavenging ledger kind dumped, natives tallied apart, carcasses placed far from scavengers (or SCAV.WAIT shortened) and jackals on a fort with a real jackal entry; 2 reps.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2 (r2 changes teleport occupancy, which the fallbacks use; setPathGoal is not used by the walks); scav-status-diagnostics; scav-carnivorous-swimmers if the answer is yes.</dd>
+      </dl>
+      <p class="meta"><code>scav-attribution-and-fallbacks</code> · Experiments to run or rerun · effort M · eco-report.md (scratchpad export, 1 Oct):733-734 · eco-report.md (scratchpad export, 1 Oct):883 (tracker 19) · DwarfCron/data/eco-desk/findings.md:366 (SCV) · DwarfCron/data/eco-desk/findings.md:559 (SCV2b) · seasonal-wildlife/STATE.md addendum 97 · memory experiment-readout-traps.md (ledger dumps print only the kinds asked)</p>
+    </div>
+    <div class="item pri-medium" id="flier-pool-steering">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Does the roster steer DF&#x27;s flier draws? Ravens dominate CTRL whatever the builder writes</h3></div>
+      <p class="claim">On CTRL ravens made most surface arrivals with or without the builder (S8C 40 and 24, S8Cb 25 and 23 units), so the builder barely moved the surface. F1 showed fliers draw from a separate pool; whether FREQUENCY or the stop list (quantity 0) steers that pool is untested, and design section 7 leaves &#x27;the flier pool proportional to FREQUENCY?&#x27; open.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8Cb predators 5% of surface units both reps; ravens 25/37 and 23/37</dd>
+        <dt>Next</dt><dd>Check whether BIRD_RAVEN is on CTRL&#x27;s built roster and its entry quantity; then a 2-arm F1-style block with ravens at FREQUENCY 1 vs native.</dd>
+        <dt>Depends on</dt><dd>A desk check of CTRL&#x27;s raven entry first.</dd>
+      </dl>
+      <p class="meta"><code>flier-pool-steering</code> · Experiments to run or rerun · effort M · eco-report.md (scratchpad export, 1 Oct):768 · DwarfCron/data/eco-desk/findings.md:519 (S8Cb) · DwarfCron/data/eco-desk/findings.md:428 (S8C) · DwarfCron/data/eco-desk/v2/guilds/design.md section 7 (Relative frequencies, flying)</p>
+    </div>
+    <div class="item pri-medium" id="invasion-exclusion-unvalidated">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>E23e is Done, but the invasion exclusion is still not validated end to end</h3></div>
+      <p class="claim">Tracker 25 marks E23e Done (no invasion from flags in two seasons with animal people present), yet Wilderpop section 8 set E23e&#x27;s purpose as validating addendum 49&#x27;s invasion_id exclusion against a real invader, which never arrived. The trigger needs real excavation, wealth or population, which makes it a fort-construction item; memory fort-load-levers records a cavern breach via dig-now plus an aquifer seal.</p>
+      <dl>
+        <dt>Evidence</dt><dd>E23e: 0 invaders in 67-68 samples x 4 runs; E23b/c/d earlier also 0</dd>
+        <dt>Next</dt><dd>E23f on a BOATS copy: dig-now into cavern 1, seal the aquifer, citizens on the floor, irritation pinned, two seasons, 2 reps; read WILD.onMap exclusion.</dd>
+        <dt>Depends on</dt><dd>cx-probe-invasion-exclusion; a BOATS copy with a cavern breach (fort-load-levers).</dd>
+      </dl>
+      <p class="meta"><code>invasion-exclusion-unvalidated</code> · Open questions · effort M · eco-report.md (scratchpad export, 1 Oct):30 · eco-report.md (scratchpad export, 1 Oct):803 · DwarfCron/data/eco-desk/findings.md:510 (E23e) · wilderpop-model-r17.html section 8 (E23e row) · seasonal-wildlife/PLAN.md section 5 · memory fort-load-levers.md</p>
+    </div>
+    <div class="item pri-low" id="gobble-feeds">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Does gobbling feed the eater, and debit the vermin population?</h3></div>
+      <p class="claim">Written gobble tokens remove the named vermin, but hunger timers read 0/0 throughout VRM, so whether gobbling feeds the consumer is unknown. Design R14&#x27;s &#x27;tool&#x27; links (vermin on vermin, 8%) assume the tool debits stock itself and are unbuilt.</p>
+      <dl>
+        <dt>Evidence</dt><dd>VRM: hunger timers 0/0; VRM2/VRM4 removal confirmed</dd>
+        <dt>Next</dt><dd>Read the vermin population entry before and after a VRM4-style cell; read a tame chicken&#x27;s hunger timer.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>gobble-feeds</code> · Open questions · effort S · DwarfCron/data/eco-desk/findings.md:272-279 (VRM) · DwarfCron/data/eco-desk/v2/research/vermin.md section 2 · DwarfCron/data/eco-desk/v2/guilds/design.md R14</p>
+    </div>
+    <div class="item pri-low" id="solo-package-natural-density">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Solitary package at natural prey density</h3></div>
+      <p class="claim">LONE10 showed the package lifts a cougar&#x27;s kills of 48 placed prey (29 vs 14, one-sided p = 0.07; all kills 49 vs 21, p = 0.024, natives 20 vs 7); the report says &#x27;the season test will show its effect at real densities&#x27;, but no season isolated it.</p>
+      <dl>
+        <dt>Evidence</dt><dd>LONE10 natives 20 vs 7; S8 runs did not compare solo on/off</dd>
+        <dt>Next</dt><dd>A season on CTRL with v7.solo on vs off, 2 reps, counting kills by armed solitary hunters.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>solo-package-natural-density</code> · Experiments to run or rerun · effort M · eco-report.md (scratchpad export, 1 Oct):616 (LONE, for the tool) · eco-report.md (scratchpad export, 1 Oct):890 (tracker 34) · DwarfCron data/experiments/ECO/LONE10-* · DwarfCron/data/eco-desk/findings.md:582-593 (LONE10, corrected p values)</p>
+    </div>
+    <div class="item pri-low" id="orca-stranding-n">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Orca stranding rests on a small sample</h3></div>
+      <p class="claim">Tracker 16 is Done on COHO alone: 3 of 12 unled placed orcas drowned (out of water) in 15,000 ticks, none of 12 led. One fort, placed rather than drawn, two replicates; the tool&#x27;s own pelagic draw and its pelagic_beached counter have never fired.</p>
+      <dl>
+        <dt>Evidence</dt><dd>COHO unled 1 and 2 drowned of 6 each; led 0/12</dd>
+        <dt>Next</dt><dd>Fold into the deep-ocean test: more pods, a full season, led vs unled; decide whether pelagic pods always get a leader.</dd>
+        <dt>Depends on</dt><dd>revalidate-dfhack-r2 (r2&#x27;s breathing fix may change stranding); a fort with deep ocean columns; OCEAN2 has none (0 of 5,374).</dd>
+      </dl>
+      <p class="meta"><code>orca-stranding-n</code> · Experiments to run or rerun · effort M · eco-report.md (scratchpad export, 1 Oct):774 · eco-report.md (scratchpad export, 1 Oct):880 (tracker 16) · DwarfCron/data/eco-desk/findings.md:449 (S8O, item 16 paragraph)</p>
+    </div>
+    <div class="item pri-medium" id="apex-placement-stock-test">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Open</span><h3>Steering apexes by placement or stock is untested</h3></div>
+      <p class="claim">The proposal to drop the apex step from the ladder (ladder-drop-apx-step) says apexes should be steered by placement and stock instead. Neither has been measured: no run placed an apex group or raised its entry and watched it hold, hunt and persist for a season, and the tool&#x27;s &#x27;one LP group per map&#x27; guard (design.md R12.7) rests on the wiki.</p>
+      <dl>
+        <dt>Evidence</dt><dd>S8 apex units 0-3 per run; SW4 apex present 1 of 6</dd>
+        <dt>Next</dt><dd>APX1 in ECO-design.md section &#x27;Next experiments&#x27;: CTRL season, arms stock-only vs placed group vs control, 2 reps, counterbalanced, subject receipt.</dd>
+        <dt>Depends on</dt><dd>Nothing; run before or with the ladder-drop-apx-step ruling, which assumes placement and stock can steer apexes.</dd>
+      </dl>
+      <p class="meta"><code>apex-placement-stock-test</code> · Experiments to run or rerun · effort M · DwarfCron/data/eco-desk/findings.md:519-528 (S8Cb item 15) · DwarfCron/data/eco-desk/findings.md:469-476 (SW4) · DwarfCron/data/eco-desk/v2/guilds/design.md R12.7, section 8 · scripts/eco-report/content.html section 10 (apex FREQUENCY)</p>
+    </div>
+    <div class="item pri-low" id="single-run-defaults">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Shipped defaults that rest on one run</h3></div>
+      <p class="claim">Several results the tool ships on were measured once: the alert filter (A1/A2, one fight per case, on by default in v6.9), leader protection (L2 deer herd 1 attack vs 88; HO milkfish schools lost 10 and 1 vs 5 unled), exhaustion replacement timing (N1, 2,090 t), lake writability (LAKEP) and the empty-slot value (SLOTV). The page labels each &#x27;1 run&#x27;; none has a second replicate.</p>
+      <dl>
+        <dt>Evidence</dt><dd>1 replicate each</dd>
+        <dt>Next</dt><dd>L3 (leader protection, land and water) and A3 (alert filter over natural fights) in ECO-design.md &#x27;Next experiments&#x27;; N1/LAKEP/SLOTV only if a change depends on them.</dd>
+        <dt>Depends on</dt><dd>Nothing; L3 and A3 in ECO-design.md &#x27;Next experiments&#x27;.</dd>
+      </dl>
+      <p class="meta"><code>single-run-defaults</code> · Experiments to run or rerun · effort M · DwarfCron/data/eco-desk/findings.md:27-29 (A1), :106 (A2), :47-49 (L2), :150-155 (HO), :71-74 (N1), :318-321 (LAKEP), :268-271 (SLOTV) · memory two-reps-per-arm.md</p>
+    </div>
+    <div class="item pri-low" id="lp-separate-pool">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Open</span><h3>Is LARGE_PREDATOR drawn from its own DF wave pool?</h3></div>
+      <p class="claim">The wiki says so; SW4 is consistent with a separate pool or with apexes simply being rare at FREQUENCY 4-8, and the mechanism is unresolved. It matters only if the apex ladder step is kept.</p>
+      <dl>
+        <dt>Evidence</dt><dd>SW4 apex present 1 of 6 runs at x0.5/x1/x2</dd>
+        <dt>Next</dt><dd>Only if the APX step stays: an F1-style block with one LP at FREQUENCY 100 against prey at 100.</dd>
+        <dt>Depends on</dt><dd>Only if ladder-drop-apx-step keeps the apex step.</dd>
+      </dl>
+      <p class="meta"><code>lp-separate-pool</code> · Open questions · effort M · DwarfCron/data/eco-desk/findings.md:469 (SW4) · DwarfCron/data/eco-desk/v2/guilds/design.md section 5 (APX row) and section 8</p>
+    </div>
+    <div class="item pri-medium" id="sw8-confirm">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st-blocked">Blocked</span><h3>SW8: confirm the chosen defaults together before they ship</h3></div>
+      <p class="claim">The sweep design says each change is checked in SW8 (all chosen values against all current, CTRL and BOATS, 100,800 t) before it ships, and SW8&#x27;s B per season is the number reported as &#x27;how busy the map is now&#x27;. It has not run; the scratchpad left it as a decision once the defaults are chosen. SW8 would also be the first test of cadence 3,000, nudge off and pack_sneak 0 on natural arrivals: SW1/SW2 measured them only in an arena of placed wolves, which DF aims itself (RELS), so their no-effect result is untested outside it.</p>
+      <dl>
+        <dt>Evidence</dt><dd>no SW8 run dir under data/experiments/ECO</dd>
+        <dt>Next</dt><dd>After the user rules on the default decisions, run SW8 as designed in SWEEP-design.md section 5 (2 reps, counterbalanced, subject receipt, ~86 min).</dd>
+        <dt>Depends on</dt><dd>Every default ruling and the v7.1 build. Last before v7.1 ships.</dd>
+      </dl>
+      <p class="meta"><code>sw8-confirm</code> · Experiments to run or rerun · effort M · DwarfCron/experiments/SWEEP-design.md:241, :249, section 4 last line · Project_Aion/.claude/context/.scratchpad.urist.md:93-95 (&#x27;SW8 decision&#x27;)</p>
+    </div>
+  </div>
+  <h2 id="s5"><span class="stage-n">&ndash;</span>Parked <span class="count">16</span></h2>
+  <p class="lede">Recorded so they are not lost. None scheduled.</p>
+  <div class="items">
+    <div class="item pri-low" id="realm-placement-path">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Realm rosters outside a realm&#x27;s home climate need a new placement path</h3></div>
+      <p class="claim">Add invasive will not place a species in a biome its raws do not list, so a realm roster that brings absent members into a foreign climate needs its own placement. Realm content also has gaps: New Zealand, Madagascar and the Antarctic have no armable predator, and Africa has none outside the tropics.</p>
+      <dl>
+        <dt>Evidence</dt><dd>desk realm table (308 species, 13 realms)</dd>
+        <dt>Next</dt><dd>Revisit after the realms switch is rig-tested.</dd>
+        <dt>Depends on</dt><dd>realms-built-untested.</dd>
+      </dl>
+      <p class="meta"><code>realm-placement-path</code> · Parked or backlog · effort L · eco-report.md (scratchpad export, 1 Oct):303-307 (Realms) · DwarfCron/experiments/ECO-design.md Q9</p>
+    </div>
+    <div class="item pri-low" id="perf-v72-native-slicing">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>Performance for v7.2: forEachTile surveys, coroutine slicing, eventful arrivals, shared pool memo</h3></div>
+      <p class="claim">P8-P12: memoize buildPool; replace the Lua tile loops in vegSurvey, WET/CAVE survey, waterTiles and PLACE.tiles with dfhack.maps.forEachTile (r2, experimental; feature-detect with the Lua loop as fallback for r1.1 players); slice load-time work with coroutines holding ids only across yields; onUnitNewActive instead of unit rescans; web snapshot and scavenging caches.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Code read, 1 Oct</dd>
+        <dt>Next</dt><dd>After v7.1 perf lands and is measured.</dd>
+        <dt>Depends on</dt><dd>perf-v71-caching measured; forEachTile needs the r1.1 fallback.</dd>
+      </dl>
+      <p class="meta"><code>perf-v72-native-slicing</code> · Proposed tool changes (not applied) · effort L · DwarfCron/data/perf/SW-PERF-ANALYSIS.md section 4-5 · DwarfCron/data/dfhack-r2/REPORT.md section 3.1</p>
+    </div>
+    <div class="item pri-low" id="web-v7-state">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Proposed</span><h3>The web companion serves no v7.0 state</h3></div>
+      <p class="claim">seasonal-wildlife-web is unchanged since v6.8: no guild, v7 switches, builder output, per-body/per-cavern groups, scavenging or gobble readings, and accepts no v7 verbs. The companion page (rev 6) lists what it lacks.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Companion review, 1 Oct</dd>
+        <dt>Next</dt><dd>After v7.0 release: extend the snapshot with the v7 status block; re-check luasocket on DFHack r2 first.</dd>
+        <dt>Depends on</dt><dd>v70-release-steps; luasocket checked on r2.</dd>
+      </dl>
+      <p class="meta"><code>web-v7-state</code> · Proposed tool changes (not applied) · effort M · https://claude.ai/artifact/37peWN5mcaFfmXC4mYYUhx · scratchpad review/atlas-companion.md</p>
+    </div>
+    <div class="item pri-low" id="vermin-stock-bookkeeping">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>R14 vermin-on-vermin stock transfers (rule C) unbuilt</h3></div>
+      <p class="claim">Design R14 makes bird-&gt;insect and other vermin-on-vermin links tool bookkeeping (debit the prey family&#x27;s stock with a floor and ceiling); in v2.2 these are 8% of vermin links. No such transfer exists in v7.0.</p>
+      <dl>
+        <dt>Evidence</dt><dd>grep of v7.0: no stock-transfer code</dd>
+        <dt>Next</dt><dd>Build after gobble-feeds is answered.</dd>
+        <dt>Depends on</dt><dd>gobble-feeds.</dd>
+      </dl>
+      <p class="meta"><code>vermin-stock-bookkeeping</code> · Parked or backlog · effort M · DwarfCron/data/eco-desk/v2/guilds/design.md R14 · eco-report.md (scratchpad export, 1 Oct):319 (rule C)</p>
+    </div>
+    <div class="item pri-low" id="bl-eats-history">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Who-eats-whom kill tally per species pair</h3></div>
+      <p class="claim">The Ledger, the Food web graph and the overlay exist, but the kill tally per pair from the combat log is still missing (bl.eats).</p>
+      <dl>
+        <dt>Evidence</dt><dd>backlog</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>bl-eats-history</code> · Parked or backlog · effort M · wildlife-backlog.html (A record of who eats whom) · DwarfCron/scripts/validate-full.py:326</p>
+    </div>
+    <div class="item pri-low" id="bl-water-balance">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Water placement weighted by what is swimming</h3></div>
+      <p class="claim">Round-robin placement still drifts because species survive at different rates (tigerfish ended 5 of 11 in both E33 replicates); a per-species stocking target would fix it (bl.balance).</p>
+      <dl>
+        <dt>Evidence</dt><dd>E33</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>bl-water-balance</code> · Parked or backlog · effort M · wildlife-backlog.html (Placement is even; survival is not) · DwarfCron/scripts/validate-full.py:327</p>
+    </div>
+    <div class="item pri-low" id="bl-grouping-table">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Whole-list solitary/pack/herd table with overrides</h3></div>
+      <p class="claim">The Live tab labels tracked species with the raw reason, but the reviewable whole-list table and per-species override (bl.grouping) were never built.</p>
+      <dl>
+        <dt>Evidence</dt><dd>part-built v5.11.2</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>bl-grouping-table</code> · Parked or backlog · effort S · wildlife-backlog.html (Solitary, pack or herd) · DwarfCron/scripts/validate-full.py:317</p>
+    </div>
+    <div class="item pri-low" id="bl-misc-curiosities">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Migrant-trigger timing, perched-fraction survey, the &#x27;r2/r4&#x27; creature</h3></div>
+      <p class="claim">Three small backlog items: what the migrant force actually schedules, how much birds really perch before any perch lever, and identifying the glyph seen as r2/r4. None bears on ECO.</p>
+      <dl>
+        <dt>Evidence</dt><dd>E22, E28/T4b/T5</dd>
+        <dt>Next</dt><dd>Opportunistic only.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>bl-misc-curiosities</code> · Parked or backlog · effort S · wildlife-backlog.html (One experiment away) · DwarfCron/scripts/validate-full.py:321-323</p>
+    </div>
+    <div class="item pri-low" id="design-s7-unmeasured-cells">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Design section 7 cells never measured</h3></div>
+      <p class="claim">Still open: IMP_FIRE vs MAGMA_CRAB on the deep layer, OCTOPUS as attacker, lamprey vs beaver, intraguild WOLF vs COYOTE (predator-on-predator was deferred 19 Sep), a led pack vs a led herd, a cavern LP vs a civ-race group without the fort joining, two LP groups on a savage map, a species placed below its UNDERGROUND_DEPTH, remains in magma or carried by flow, and aquatic vermin restocking (wiki bug 2780).</p>
+      <dl>
+        <dt>Evidence</dt><dd>table cells marked open</dd>
+        <dt>Next</dt><dd>Pick up only if a tool feature needs one.</dd>
+        <dt>Depends on</dt><dd>A tool feature that needs one.</dd>
+      </dl>
+      <p class="meta"><code>design-s7-unmeasured-cells</code> · Parked or backlog · effort M · DwarfCron/data/eco-desk/v2/guilds/design.md section 7 · seasonal-wildlife/PLAN.md &#x27;Deferred — predator-on-predator&#x27;</p>
+    </div>
+    <div class="item pri-low" id="fva-parked">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>FLEEQUICK and VISION_ARC</h3></div>
+      <p class="claim">Across all runs neither token had a reliable effect (replicate variance swamped them) and the tool does not use them; item 24 was closed as parked.</p>
+      <dl>
+        <dt>Evidence</dt><dd>FLEEQUICK 2, 3/158, 10/3; VISION_ARC 89, 5/147, 103/3</dd>
+        <dt>Next</dt><dd>None.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>fva-parked</code> · Parked or backlog · effort S · DwarfCron/data/eco-desk/findings.md:346 (FVA) · eco-report.md (scratchpad export, 1 Oct):888 (tracker 24)</p>
+    </div>
+    <div class="item pri-low" id="leader-size-in-fight">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Does the leader&#x27;s size matter in a fight?</h3></div>
+      <p class="claim">Largest-male and lowest-id leaders hold a group equally well; whether a larger leader helps the group fight was not tested.</p>
+      <dl>
+        <dt>Evidence</dt><dd>L2, COH</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>leader-size-in-fight</code> · Parked or backlog · effort S · eco-report.md (scratchpad export, 1 Oct):214</p>
+    </div>
+    <div class="item pri-low" id="otter-eats-jaguar-man">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Animal people mirror their root animal&#x27;s prey (giant otter eats jaguar man)</h3></div>
+      <p class="claim">Left as is in v6.7: an animal person takes its root&#x27;s role, so a giant otter that eats jaguars also eats jaguar men; whether that pair is right is the size rule&#x27;s question.</p>
+      <dl>
+        <dt>Evidence</dt><dd>mech.animalperson</dd>
+        <dt>Next</dt><dd>Revisit with the pack-mass floor if a player objects.</dd>
+        <dt>Depends on</dt><dd>A player objection.</dd>
+      </dl>
+      <p class="meta"><code>otter-eats-jaguar-man</code> · Parked or backlog · effort S · seasonal-wildlife/STATE.md addendum 95 (&#x27;Left as is&#x27;)</p>
+    </div>
+    <div class="item pri-low" id="old-wilderpop-e27b-e31c">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>E27b (ColonyInsect vermin entries) and E31c (the one draining feature entry)</h3></div>
+      <p class="claim">Never run: whether the Vermin panel can reach the world&#x27;s ColonyInsect entries (bees, ants were never tested, so the panel must not offer them), and what makes feature entry Vermin:537 drain about 5% a year.</p>
+      <dl>
+        <dt>Evidence</dt><dd>E27, E31a</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>old-wilderpop-e27b-e31c</code> · Parked or backlog · effort S · wilderpop-model-r17.html section 8 (E27b, E31c rows)</p>
+    </div>
+    <div class="item pri-low" id="irruption-aimed">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Irruptions: pairing the agitated flag with relation writes to citizens</h3></div>
+      <p class="claim">E29 showed the agitated flag makes wildlife lethal but does not aim it at the fort; pairing it with relations toward citizens to make a directed irruption remains untested.</p>
+      <dl>
+        <dt>Evidence</dt><dd>E29</dd>
+        <dt>Next</dt><dd>None scheduled.</dd>
+        <dt>Depends on</dt><dd>Nothing.</dd>
+      </dl>
+      <p class="meta"><code>irruption-aimed</code> · Parked or backlog · effort M · seasonal-wildlife-plugin-design.html (cavern pressure, E29)</p>
+    </div>
+    <div class="item pri-low" id="createunit-upstream">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Upstream DFHack: port modtools/create-unit onto dfhack.units.create</h3></div>
+      <p class="claim">create-unit still reads world.arena_spawn (renamed in 53.x); the Docket flags DFHack issue #4619 (closing #2856) as a good first contribution, and HANDOFF notes the defect is worth an issue.</p>
+      <dl>
+        <dt>Evidence</dt><dd>E30 headless placement</dd>
+        <dt>Next</dt><dd>User&#x27;s call.</dd>
+        <dt>Depends on</dt><dd>The user.</dd>
+      </dl>
+      <p class="meta"><code>createunit-upstream</code> · Parked or backlog · effort M · docket-r15.html (Good first contribution) · seasonal-wildlife/HANDOFF.md section 7</p>
+    </div>
+    <div class="item pri-low" id="alpha-cli-round-and-playtest">
+      <div class="item-head"><span class="chip pri">low</span><span class="chip st">Parked</span><h3>Alpha trial phase two (console verbs) and the playtest page republish</h3></div>
+      <p class="claim">The alpha walkthroughs cover the UI only; the console-verb round is still to write. The playtest page was rebuilt locally on 27 Sep (10 MB) but not republished. Both predate v7.0, which adds many verbs. 1 Oct: the console-verb round is written into Alpha Three (https://claude.ai/artifact/7Y8RELyxkHxUV2bfPAeMei); only the playtest page republish stays parked.</p>
+      <dl>
+        <dt>Evidence</dt><dd>as cited</dd>
+        <dt>Next</dt><dd>Write after USAGE v7 docs exist.</dd>
+        <dt>Depends on</dt><dd>usage-v7-docs.</dd>
+      </dl>
+      <p class="meta"><code>alpha-cli-round-and-playtest</code> · Parked or backlog · effort M · memory alpha-walkthrough.md · Project_Aion/.claude/context/.scratchpad.urist.md:479</p>
+    </div>
+  </div>
 
+  <h2 id="added">Added by the 1 October review <span class="count">3</span></h2>
+  <p class="lede">Gaps not in the open-items register.</p>
+  <div class="items">
+    <div class="item pri-high" id="rv-public-release">
+      <div class="item-head"><span class="chip pri">high</span><span class="chip st">Added 1 Oct</span><h3>The repository is private; nothing is public yet</h3></div>
+      <p class="claim">github.com/CannonCoPilot/seasonal-wildlife exists (master v6.9.0, pushed 30 Sep) but its visibility is PRIVATE. The Docket's ship-first verdict needs a public repository and a post in the r/dwarffortress thread (1ut4t9k); neither is an open item.</p>
+      <dl>
+        <dt>Evidence</dt><dd>gh repo view: visibility PRIVATE, pushedAt 2026-09-30</dd>
+        <dt>Next</dt><dd>Ask the user with push-repos: go public at v7.0, and who writes the post.</dd>
+        <dt>Depends on</dt><dd>push-repos; v70-release-steps</dd>
+      </dl>
+      <p class="meta"><code>rv-public-release</code> · added by the 1 October review · not in open-items.json</p>
+    </div>
+    <div class="item pri-medium" id="rv-stale-plan-docs">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Added 1 Oct</span><h3>HANDOFF.md and PLAN.md describe tools that no longer exist</h3></div>
+      <p class="claim">HANDOFF.md describes the v3.1 engine and the v4 plan; PLAN.md is the v6 plan, rev 2 of 17 Sep, stopping around v6.0. A new reader meets them before STATE.md.</p>
+      <dl>
+        <dt>Evidence</dt><dd>brief, 1 Oct</dd>
+        <dt>Next</dt><dd>Done 1 Oct: PLAN.md rev 3 (current state v5.11&ndash;v7.0, 26 v7 switches, 39 requirements with status, steps in order; rev 2 kept as Appendix A) and HANDOFF.md rewritten for v7.0. Keep PLAN.md current at each release.</dd>
+        <dt>Depends on</dt><dd>usage-v7-docs</dd>
+      </dl>
+      <p class="meta"><code>rv-stale-plan-docs</code> · added by the 1 October review · not in open-items.json</p>
+    </div>
+    <div class="item pri-medium" id="rv-alpha-three">
+      <div class="item-head"><span class="chip pri">medium</span><span class="chip st">Added 1 Oct</span><h3>Alpha Three: a walkthrough for v7.0</h3></div>
+      <p class="claim">Done 1 Oct (published). A GUI-only tester still needs the switches on the Panel (v7-switches-on-panel); the console steps use the USAGE v7.0 section drafted the same day.</p>
+      <dl>
+        <dt>Evidence</dt><dd>Alpha Two covered v6.6 (62 steps, round 1: 59 pass, 3 anomalies)</dd>
+        <dt>Next</dt><dd>Published 1 Oct: <a href="https://claude.ai/artifact/7Y8RELyxkHxUV2bfPAeMei">Alpha Three</a> (v7.0 on DFHack 53.16-r2, 110 steps, console verbs included). Next: play round 1 after the r2 re-validation.</dd>
+        <dt>Depends on</dt><dd>usage-v7-docs; v7-switches-on-panel</dd>
+      </dl>
+      <p class="meta"><code>rv-alpha-three</code> · added by the 1 October review · not in open-items.json</p>
+    </div>
   </div>
 
   <footer>
-    <div>Companion to <em>The Wilderpop Model</em> (the measurements) and <em>The Seasonal Wildlife Plugin</em> (the design). Every measurement cited here is recorded in one of those two, or in the plugin's own state log as a numbered addendum.</div>
-    <div>Nothing on this page is scheduled. The planned run, v5.6 through v6.2, is complete; these are what comes after, or what gets folded in when a version happens to pass nearby.</div>
+    <div>Items, ids, priorities, statuses, evidence and sources are from DwarfCron <code>data/eco-report/open-items.json</code> (2026-10-01; categories: Decisions for you 13, Proposed tool changes (not applied) 9, Known bugs and diagnostics 5, Experiments to run or rerun 8, Open questions 14, Release and housekeeping 10, Harness, validator and method 11, Parked or backlog 14). Stage, &ldquo;Depends on&rdquo; and the &ldquo;Checked 1 October&rdquo; notes are this page's.</div>
+    <div>Revisions: first drawn 18 September (thirteen candidates beyond v6.2); 22 September, part-built notes after v6.2.0; 1 October, rebuilt around the open-items register after v7.0 and the ECO study, the old candidates kept in the table above.</div>
+    <div>Experiments here run two replicates per arm. No rig was run to write this page. Validation figures quoted are from DFHack 53.16-r1.1; the rig runs 53.16-r2 since 1 October.</div>
   </footer>
 </div>

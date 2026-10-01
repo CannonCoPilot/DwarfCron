@@ -2342,13 +2342,13 @@
    "series": null,
    "facet": null,
    "log": false,
-   "notes": "Hunter speeds for reference: lion 109, wolf 149, tiger 157, cougar 195 (cougar slower than both its STL prey). Counting bases differ, see discrepancy.",
+   "notes": "Corrected 1 Oct review: the earlier version plotted findings.md's mixed counts (buffalo 7 wolves only; elephant 11 = wolves 3 + 10 hyenas 8). With 10 hyenas the elephant toll is 8, with 5 hyenas 2. Hunter speeds for reference: lion 109, wolf 149, tiger 157, cougar 195.",
    "id": "cal-prey-speed",
    "block": "CAL",
    "section": "pack",
-   "title": "Slower prey died more often in CAL: deer (137 ticks/100 tiles) 1 kill, elephant (488) 11",
-   "subtitle": "Prey speed (ticks per 100 tiles; higher = slower) against CAL kills of that prey",
-   "caption": "Speeds from the raws (findings.md STL paragraph); kills from CAL (findings.md basis)",
+   "title": "Kills did not follow prey speed with wolves alone: deer (137 ticks/100 tiles) 1, moose 4, buffalo 7, elephant (488) 3",
+   "subtitle": "Prey speed (ticks per 100 tiles; higher = slower) against CAL kills of that prey by wolves (3, 5 and 7 per cell), 2 replicates",
+   "caption": "Speeds from the raws (findings.md STL paragraph); kills from CAL rows (cal-tally.py), wolves only, so every prey has the same hunters",
    "form": "scatter",
    "x": "ticks_per_100_tiles",
    "y": "cal_kills",
@@ -2372,7 +2372,7 @@
     {
      "prey": "ELEPHANT",
      "ticks_per_100_tiles": 488,
-     "cal_kills": 11
+     "cal_kills": 3
     }
    ]
   },
@@ -3225,7 +3225,7 @@
    "series": "kind",
    "facet": "arm",
    "log": false,
-   "notes": "Native kills 9 vs 11; attacks on placed prey 139 vs 290, all attacks 390 vs 472. Permutation p: placed kills .25, all kills .13, placed attacks .20. Kills by species: groundhog 8, goat 5, kangaroo 1, rabbit 1, elk 1; no deer/buffalo. Cougar alive at all 21 samples in all 10 runs.",
+   "notes": "Native kills 9 vs 11; attacks on placed prey 139 vs 290, all attacks 390 vs 472. Permutation p: placed kills .25, all kills .13, placed attacks .20. Kills by species: groundhog 8, goat 5, kangaroo 1, rabbit 1, elk 1; no deer/buffalo. Cougar alive at all 21 samples in all 10 runs. The attack column is the cougar's attacks on everything (390 vs 472 in all), not on the placed prey alone (139 vs 290); it was labelled as placed-prey attacks before the 1 Oct review.",
    "id": "lone-cougar",
    "block": "LONE",
    "section": "solitary",
@@ -3243,7 +3243,7 @@
      "run": 1,
      "kind": "placed prey",
      "kills": 2,
-     "attacks": 180
+     "all_attacks": 180
     },
     {
      "block": "LONE",
@@ -3251,7 +3251,7 @@
      "run": 1,
      "kind": "natives",
      "kills": 3,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3259,7 +3259,7 @@
      "run": 2,
      "kind": "placed prey",
      "kills": 0,
-     "attacks": 26
+     "all_attacks": 26
     },
     {
      "block": "LONE",
@@ -3267,7 +3267,7 @@
      "run": 2,
      "kind": "natives",
      "kills": 1,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3275,7 +3275,7 @@
      "run": 3,
      "kind": "placed prey",
      "kills": 1,
-     "attacks": 38
+     "all_attacks": 38
     },
     {
      "block": "LONE",
@@ -3283,7 +3283,7 @@
      "run": 3,
      "kind": "natives",
      "kills": 1,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3291,7 +3291,7 @@
      "run": 4,
      "kind": "placed prey",
      "kills": 0,
-     "attacks": 61
+     "all_attacks": 61
     },
     {
      "block": "LONE",
@@ -3299,7 +3299,7 @@
      "run": 4,
      "kind": "natives",
      "kills": 2,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3307,7 +3307,7 @@
      "run": 5,
      "kind": "placed prey",
      "kills": 2,
-     "attacks": 85
+     "all_attacks": 85
     },
     {
      "block": "LONE",
@@ -3315,7 +3315,7 @@
      "run": 5,
      "kind": "natives",
      "kills": 2,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3323,7 +3323,7 @@
      "run": 1,
      "kind": "placed prey",
      "kills": 1,
-     "attacks": 73
+     "all_attacks": 73
     },
     {
      "block": "LONE",
@@ -3331,7 +3331,7 @@
      "run": 1,
      "kind": "natives",
      "kills": 5,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3339,7 +3339,7 @@
      "run": 2,
      "kind": "placed prey",
      "kills": 2,
-     "attacks": 159
+     "all_attacks": 159
     },
     {
      "block": "LONE",
@@ -3347,7 +3347,7 @@
      "run": 2,
      "kind": "natives",
      "kills": 1,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3355,7 +3355,7 @@
      "run": 3,
      "kind": "placed prey",
      "kills": 6,
-     "attacks": 134
+     "all_attacks": 134
     },
     {
      "block": "LONE",
@@ -3363,7 +3363,7 @@
      "run": 3,
      "kind": "natives",
      "kills": 1,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3371,7 +3371,7 @@
      "run": 4,
      "kind": "placed prey",
      "kills": 0,
-     "attacks": 83
+     "all_attacks": 83
     },
     {
      "block": "LONE",
@@ -3379,7 +3379,7 @@
      "run": 4,
      "kind": "natives",
      "kills": 4,
-     "attacks": null
+     "all_attacks": null
     },
     {
      "block": "LONE",
@@ -3387,7 +3387,7 @@
      "run": 5,
      "kind": "placed prey",
      "kills": 2,
-     "attacks": 23
+     "all_attacks": 23
     },
     {
      "block": "LONE",
@@ -3395,7 +3395,7 @@
      "run": 5,
      "kind": "natives",
      "kills": 0,
-     "attacks": null
+     "all_attacks": null
     }
    ]
   },
@@ -3403,7 +3403,7 @@
    "series": "kind",
    "facet": "arm",
    "log": false,
-   "notes": "NOT IN findings.md: numbers from lone-tally.py only. Unchanged arm: 664 attacks, 14 placed + 7 native kills, 1 cougar died (r1, t2862, BADGER/SUFFOCATE); package: 1,393 attacks, 29 placed + 20 native kills.",
+   "notes": "findings.md LONE10 entry (added 1 Oct) and lone-tally.py agree. Permutation p, one-sided: placed kills .07, native kills .17, all kills .024. Unchanged arm: 664 attacks, 14 placed + 7 native kills, 1 cougar died (r1, t2862, BADGER/SUFFOCATE); package: 1,393 attacks, 29 placed + 20 native kills.",
    "id": "lone10-cougar",
    "block": "LONE10",
    "section": "solitary",
@@ -4870,11 +4870,11 @@
    "series": "block",
    "facet": null,
    "log": false,
-   "notes": "Grizzlies left the map (gone 2, 1: curious-beast departure). v7.0 fishers feature default OFF.",
+   "notes": "Grizzlies left the map (gone 2, 1: curious-beast departure). v7.0 fishers feature default OFF. Runs: FISH 6 (wolves), FSH2 6 (grizzlies 2, tigers 2, wolf control 2), HR 1.",
    "id": "land-predators-fish",
    "block": "FSH2",
    "section": "boundary",
-   "title": "Swim flags never made a land predator fish: 0 pike killed in 15 runs of wolves, grizzlies and tigers",
+   "title": "Swim flags never made a land predator fish: 0 pike killed in 13 runs of wolves, grizzlies and tigers",
    "subtitle": "Attacks on 8 FISH_PIKE in the river by land predators with and without written swim flags, per run; 3,000 ticks",
    "caption": "RIVER4 bank, relation written, 3,000 t; FSH2-20260930-235459 (2 reps), REACH FISH (2 reps), HR (1 rep)",
    "form": "dot",
@@ -16998,7 +16998,7 @@
    "series": "rep",
    "facet": "fort",
    "log": false,
-   "notes": "Jackal (borrowed population ref) and vulture never got near (0/5). Alligator walkto moved 0 units; wolf on the bank reached 5/5 but corpses in water were out of eat reach. SCVC (BOATS cavern 1, troll present): corpse count 7 before and after 4,000 t in both reps -- DF removes none.",
+   "notes": "Jackal (borrowed population ref) and vulture never got near (0/5). Alligator walkto moved 0 units; wolf on the bank reached 5/5 but corpses in water were out of eat reach. SCVC (BOATS cavern 1, troll present): corpse count 7 before and after 4,000 t in both reps (eco-run.py corpses2 ticks=4000; findings.md says 3,000) -- DF removes none.",
    "id": "scv-walk-eat-species",
    "block": "SCV",
    "section": "scavenging",
@@ -18089,11 +18089,11 @@
    "series": "layer",
    "facet": null,
    "log": false,
-   "notes": "Deer spread none 69 / lowest 11.7 / largest male 41.9. Cavern: the gorlak herd killed all 5 trolls in every arm (predators_killed). n=1 throughout.",
+   "notes": "Deer spread none 69 / lowest 11.7 / largest male 41.9. Cavern: the gorlak herd killed all 5 trolls in every arm (predators_killed). n=1 throughout. Single runs: L2 and HO are 1 replicate each, so whether a leader protects prey is untested beyond them.",
    "id": "led-group-protection",
    "block": "L2",
    "section": "groups",
-   "title": "A led deer herd was barely attacked (1 attack vs 88 unled), but a led milkfish school lost 10 of 10 to sharks",
+   "title": "A led deer herd was barely attacked (1 attack vs 88 unled), but in water a leader did not protect: led milkfish schools lost 10 and 1 against 5 unled",
    "subtitle": "Prey killed and predator attacks with no leader vs a leader, written predators, 3,000 ticks",
    "caption": "L2 CTRL (20260929-235553), HO OCEAN2 and HC1 BOATS (ECO2-20260930-103132); 1 replicate each",
    "form": "groupedBar",
@@ -18177,7 +18177,7 @@
    "id": "coh-flock-school-pod",
    "block": "COH",
    "section": "groups",
-   "title": "A leader holds flocks and schools to about 5-30 tiles; unled they spread 100-150, and a led orca pod halves to ~47",
+   "title": "A leader holds flocks and schools to about 5-30 tiles; unled they spread 97-149, and a led orca pod halves to ~47",
    "subtitle": "Mean bounding-box width (tiles) over 15,000 ticks, largest male leading vs no leader, per replicate",
    "caption": "COH CTRL, COHO OCEAN2, COHR RIVER4; `lead` verb, 15,000 t, 2 replicates; data/experiments/ECO/COH-20261001-000915 (coh-tally.py)",
    "form": "dot",
@@ -20797,7 +20797,7 @@
    "series": "version",
    "facet": null,
    "log": false,
-   "notes": "Compare the rig: S8 surface predator share of units 5% (CTRL), 14-42% (BOATS), 18-39% (OCEAN2).",
+   "notes": "Compare the rig: S8 surface predator share of units 5% (CTRL), 14-42% (BOATS), 18-39% (OCEAN2). v7.0 writes the v2.1 values (land 0.31 here); the v2.2 ladder is not ported.",
    "id": "builder-predator-share-desk",
    "block": "BUILDER",
    "section": "spawn",
@@ -20946,11 +20946,11 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "Overshoots are pack size (BOATS rep 1: GIANT_JACKAL 27 units; jackals on OCEAN2); CTRL undershoots on supply (ravens 23-40 units whatever the roster). Cavern: PLUMP_HELMET_MAN 54 and 180 units on BOATS (SH guild). Sponges in harness arrivals excluded (feature layer). pelagic_beached 0 everywhere; OCEAN2 0/5374 columns >=3 deep -> PE closed.",
+   "notes": "Overshoots are pack size (BOATS rep 1: GIANT_JACKAL 27 units; jackals on OCEAN2); CTRL undershoots on supply (ravens 23-40 units whatever the roster). Cavern: PLUMP_HELMET_MAN 54 and 180 units on BOATS (SH guild). Sponges in harness arrivals excluded (feature layer). pelagic_beached 0 everywhere; OCEAN2 0/5374 columns >=3 deep, so the pelagic slot kept its max of 1 (min 0) and came out empty in both builds; it is not closed. The 14-18% band is the v2.2 ladder's offline prediction; v7.0's ROSTER.LADDER is v2.1.",
    "id": "s8-season-predator-share",
    "block": "S8B",
    "section": "season",
-   "title": "A v7.0 season with the builder put predators at 5% of surface units on CTRL, 14-42% on BOATS and 18-39% on OCEAN2, against a 14-18% aim",
+   "title": "A v7.0 season with the builder put predators at 5% of surface units on CTRL, 14-42% on BOATS and 18-39% on OCEAN2; v7.0 writes the v2.1 ladder (~31% predicted), not v2.2's 14-18%",
    "subtitle": "Predator share of surface arrival units per replicate, builder off vs on, three forts",
    "caption": "100,800 t per replicate, 2 replicates; S8C off 20261001-015556 (builder never ran), S8Cb 20261001-062036, S8B 20261001-020551, S8O 20261001-022543 (s8-tally.py)",
    "form": "dot",
@@ -21094,7 +21094,7 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "Item 15: drop the APX step from the ladder; steer apexes by placement and stock. SW4 values are means over samples (units present), S8 values are arrivals.",
+   "notes": "Item 15: drop the APX step from the ladder; steer apexes by placement and stock. SW4 values are means over samples (units present), S8 values are arrivals. S8O counts AL + AW units on the surface (3, 2); findings.md's 'ANACONDA 2 and 1' counts AL only.",
    "id": "apex-arrivals",
    "block": "S8Cb",
    "section": "season",
@@ -22015,7 +22015,7 @@
    "id": "alert-filter",
    "block": "A1",
    "section": "alerts",
-   "title": "The alert filter dropped wild-only fights (3 alerts) and kept fights involving the fort, werewolf-kin or goblins",
+   "title": "The alert filter dropped wild-only fights (3 alerts) and kept fights involving the fort, wolf men (animal people) or goblins",
    "subtitle": "COMBAT alerts kept vs dropped per cell with the prototype filter",
    "caption": "A1 CTRL (repeat-util every tick), 20260929-235553/A1.tsv; A2 humanoid mode CTRL, ECO2-20260930-103132/A2.tsv; 1 replicate",
    "form": "stackedBar",
@@ -22725,7 +22725,7 @@
    "id": "sweep-position-share",
    "block": "SW1R",
    "section": "sweep",
-   "title": "Cell position, not the arm, set the placed wolves' share of all attacks: ~80-95% in the first cell of a load, ~2-30% in the last",
+   "title": "Cell position, not the arm, set the placed wolves' share of all attacks: 76-94% in the first cell of a load, ~2-30% in the last",
    "subtitle": "Placed wolves' share of all attacks in the cell against the cell's position in its replicate (1 = first after load)",
    "caption": "SW1, SW1R, SW2, SW2R (sweep-tally.py placed-only panels); 2 reps each",
    "form": "scatter",
@@ -23179,7 +23179,7 @@
    "series": "order",
    "facet": null,
    "log": false,
-   "notes": "Placed prey killed over 4 reps: ctl 4, floor0 1, floor20 3, sneak0 4, sneak100 0. Recommendation: pack_sneak 0, retire the per-unit SNEAK write; floor stays 0.05.",
+   "notes": "Placed prey killed over 4 reps: ctl 3, floor0 1, floor20 3, sneak0 4, sneak100 0. Recommendation: pack_sneak 0, retire the per-unit SNEAK write; floor stays 0.05.",
    "id": "sw2-floor-sneak",
    "block": "SW2",
    "section": "sweep",
@@ -23748,7 +23748,7 @@
    "id": "e23e-cavern-invasion",
    "block": "E23e",
    "section": "forts",
-   "title": "Opening the caverns and pinning irritation at 300,000 raised no invasion in two seasons: 0 invaders at all 268 samples",
+   "title": "Opening the caverns and pinning irritation at 300,000 raised no invasion in two seasons: 0 invaders at all 270 samples (134 in the invaded arm)",
    "subtitle": "Peak cavern units and invaders seen per replicate, invaded arm vs control",
    "caption": "E23e BOATS (334 cavern animal-person populations listed), 201,600 t, 2 replicates; data/experiments/E23e/20261001-044227 (e23e-tally.py)",
    "form": "groupedBar",
@@ -24122,7 +24122,7 @@
    "series": "status",
    "facet": null,
    "log": false,
-   "notes": "FAILs: mech.leader.lowest, mech.quota.water, mech.limits, mech.v69.fitseason (fixed 28bf2bf + fitseason). DOC-DRIFT: USAGE.md header version, Docket v5.5 line.",
+   "notes": "FAILs: mech.leader.lowest, mech.quota.water, mech.limits, mech.v69.fitseason (fixed 28bf2bf + fitseason). DOC-DRIFT: USAGE.md header version, Docket r15 still reading '@ 1e23b0a (v6.6.0)' (results.json doc.docket; findings.md's 'v5.5 line' is a slip).",
    "id": "validate-full-v70",
    "block": "VALIDATE",
    "section": "validation",
@@ -24320,5 +24320,6 @@
    "raw": "sweep-tally A (attacks per 10,000 t): auto 189.29/359.33, c1 379.37/161.71, c2 90.87/26.98",
    "note": "Values are rates per 10k ticks, not counts; c1 rep 1 (379) exceeds both auto reps, so 'follow groups' holds for c2 only."
   }
- ]
+ ],
+ "review_1oct": "Captions checked against rows on 1 Oct review (eco): cal-prey-speed, lone-cougar, lone10-cougar, led-group-protection, coh-flock-school-pod, land-predators-fish, s8-season-predator-share, sw2-floor-sneak, e23e-cavern-invasion, validate-full-v70, alert-filter, sweep-position-share, apex-arrivals, scv-walk-eat-species, builder-predator-share-desk corrected or annotated."
 }

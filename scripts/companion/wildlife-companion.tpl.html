@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Wildlife Companion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,6 +63,7 @@ button{cursor:pointer}
 .conn i{width:8px;height:8px;border-radius:50%;background:var(--warn);display:inline-block}
 .seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:2px}
 .seg button{border:0;background:transparent;padding:5px 11px;border-radius:6px;font-size:13px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+.seg[hidden]{display:none}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 .dot.land{background:var(--land)} .dot.water{background:var(--water)} .dot.cavern{background:var(--cavern)}
@@ -259,7 +261,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <div class="wrap">
 <div class="top">
   <div class="top-row">
-    <div class="fort"><h1 id="fortName">&nbsp;</h1><span class="tool">seasonal-wildlife 6.8</span></div>
+    <div class="fort"><h1 id="fortName">&nbsp;</h1><span class="tool">seasonal-wildlife · web 1</span></div>
     <div class="clock" id="clock"></div>
     <div class="spacer"></div>
     <span class="conn" id="conn"><i></i><span id="connText">Loading</span></span>
@@ -317,6 +319,9 @@ let D, SP = [], BY = {}, eats = {}, eatenBy = {}, onMap = new Set(), GROUPS = []
 const CP437 = ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼' + Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i)).join('') + '⌂'
   + 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■\u00a0';
 const cpChar = n => [...CP437][n] || '?';
+// DF's default colors.txt, in DF's colour order: the glyph colours when no install palette is sent (the sample page)
+const DFPAL = ['#000000', '#000080', '#008000', '#008080', '#800000', '#800080', '#808000', '#c0c0c0',
+               '#808080', '#0000ff', '#00ff00', '#00ffff', '#ff0000', '#ff00ff', '#ffff00', '#ffffff'];
 const withTok = u => LIVEMODE && u && u.startsWith('/') ? u + (u.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(TOKEN) : u;
 function prepareFont() {           // white glyphs on transparent, from DF's font sheet (magenta or black ground)
   const f = GFX && GFX.font; if (!f || !f.url || MASKFOR === f.url) return;
@@ -352,7 +357,7 @@ function tile(s, h = 24, big = false) {
   }
   const a = s.ascii;
   if (!a) return `<span class="tile none" style="width:${h}px;height:${h}px"></span>`;
-  const pal = (GFX && GFX.palette) || [], fg = pal[a.fg + (a.br ? 8 : 0)] || '#c0c0c0', bg = pal[a.bg] || '#000';
+  const pal = (GFX && GFX.palette) || DFPAL, fg = pal[a.fg + (a.br ? 8 : 0)] || '#c0c0c0', bg = pal[a.bg] || '#000';
   const gw = MASK ? MASK.gw : 8, gh = MASK ? MASK.gh : 12, k = h / gh, w = Math.round(gw * k);
   if (!MASK) return `<span class="tile ascii" role="img" aria-label="${esc(s.name)}" style="width:${w}px;height:${h}px;background:${bg}"><b style="color:${fg};font-size:${Math.round(h * 0.8)}px">${esc(cpChar(a.ch))}</b></span>`;
   const col = a.ch % 16, row = Math.floor(a.ch / 16);
@@ -501,7 +506,7 @@ function renderStatus() {
     : '<p class="sub" style="margin:0">No job has run in this session yet.</p>';
   const banner = LIVEMODE
     ? `<b>Live from ${esc(D.fort)}.</b> The page reads the game every two seconds (the last read took ${D.ms ?? '?'} ms inside DF). Each change you make is sent as one console command, and the Commands drawer shows the game's reply.`
-    : `<b>A prototype on sample data.</b> The roster is a saved snapshot of Boatsbowed (26 Sep): 115 managed species and the vermin its biomes hold. Groups, limits, jobs and history are made up to show the layout. Nothing here talks to a game.`;
+    : `<b>A prototype on sample data.</b> The roster is a saved snapshot of Boatsbowed (26 Sep): 115 managed species and the vermin its biomes hold, read as seasonal-wildlife v7.0 reads them. Groups, limits, jobs and history are made up to show the layout. Nothing here talks to a game. The page in the tool (seasonal-wildlife-web, unchanged since v6.8) has no v7.0 controls yet: see Ledger &amp; settings.`;
   document.getElementById('p-status').innerHTML = `
     <div class="banner"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" style="flex:none;margin-top:1px"><circle cx="10" cy="10" r="8"/><path d="M10 9v5M10 6.2v.2"/></svg><span>${banner}</span></div>
     ${D.enabled === false ? '<div class="banner" style="border-color:var(--warn)"><b>Seasonal rotation is off.</b>&nbsp;The roster is kept, but nothing is applied until it is switched on (Panel, or <span class="mono">seasonal-wildlife enable</span>).</div>' : ''}
@@ -643,7 +648,7 @@ function renderDetail() {
   el.innerHTML = `
     <div class="dtile">${tile(s, st.tiles === 'steam' ? 64 : 48, true)}</div>
     <div class="dhead"><span class="mono sub">${esc(s.key)}</span><h3>${nm(s)}</h3>
-      <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span><span class="chip">${vm ? 'vermin: ' + esc(FAM[s.family] || s.family || '') : s.role}</span>${s.band ? `<span class="chip">${s.band}</span>` : ''}${s.animal_person ? '<span class="chip">animal person</span>' : ''}${onMap.has(s.key) ? '<span class="chip accent">on the map</span>' : ''}</div></div>
+      <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span>${s.guild ? `<span class="chip" title="MODEL.guild (v6.9)">${esc(s.guild)}</span>` : ''}<span class="chip">${vm ? 'vermin: ' + esc(FAM[s.family] || s.family || '') : s.role}</span>${s.band ? `<span class="chip">${s.band}</span>` : ''}${s.animal_person ? '<span class="chip">animal person</span>' : ''}${onMap.has(s.key) ? '<span class="chip accent">on the map</span>' : ''}</div></div>
     <div class="row" style="justify-content:space-between"><span style="font-weight:600">${s.active ? 'Active: may arrive in its seasons' : 'Inactive: never arrives'}</span>
       <button class="switch" role="switch" aria-checked="${s.active}" aria-label="Active" id="dAct"></button></div>
     <div class="field"><span class="lab">Seasons</span>
@@ -657,7 +662,7 @@ function renderDetail() {
     <div class="field"><label for="dOdds">Odds</label>
       <input id="dOdds" type="range" min="1" max="${Math.max(200, s.freq)}" value="${s.freq}" ${s.active ? '' : 'disabled'}>
       <div class="share"><span>Weight <b class="mono" id="dOddsV">${s.freq}</b>${s.odds_set ? ' <span class="sub">(you set it)</span>' : ''}</span><span id="dShare">${shareLine(s, sh)}</span></div></div>
-    <div class="field"><span class="lab">Group size</span><span>${s.gmin === s.gmax ? s.gmin : `${s.gmin} to ${s.gmax}`}</span></div>`}
+    <div class="field"><span class="lab">Group size</span><span>${s.gmin === s.gmax ? s.gmin : `${Math.min(s.gmin, s.gmax)} to ${Math.max(s.gmin, s.gmax)}`}</span></div>`}
     <div class="field"><span class="lab">Food web</span>
       <div class="ego"><div class="col"><h4>Eaten by (${(eatenBy[s.key] || []).length})</h4>${egoList(eatenBy[s.key], 8)}</div>
         <div class="mid">${nm(s)}</div>
@@ -683,37 +688,21 @@ function renderDetail() {
     od.oninput = () => { const v = +od.value; el.querySelector('#dOddsV').textContent = v; el.querySelector('#dShare').textContent = shareLine(s, share(s, v)); };
     od.onchange = () => { const v = +od.value; if (!LIVEMODE) { s.freq = v; renderList(); } od.blur(); send(['odds', s.key, String(v)], `${s.name}: odds ${v}`); };
   }
-  el.querySelectorAll('[data-scav]').forEach(b => b.onclick = () => {
-    const cur = new Set(scavOf(s)), k = b.dataset.scav; cur.has(k) ? cur.delete(k) : cur.add(k);
-    st.scav[s.key] = cur; renderDetail();
-    const t = new Date().toTimeString().slice(0, 8);
-    st.cmds.unshift({ t, cmd: `seasonal-wildlife scavenge ${s.key} ${cur.size ? [...cur].join(',') : 'none'}`, res: 'planned: no such verb yet' }); renderConsole();
-  });
   const call = el.querySelector('#dCall'); if (call) call.onclick = () => send(['call', s.key], `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be ${s.name}`);
   el.querySelector('#dWeb').onclick = () => { st.webFocus = vm ? famId(s) : s.key; st.webActive = false; go('web'); };
   el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { st.sel = b.dataset.go; renderList(); renderDetail(); });
 }
-// Scavenging (pinned for later development, 29 Sep): which vermin and remains a species takes. The categories are
-// suggested from what the raws say it is; the tool has no verb for them yet, so in live mode they are shown, not sent.
-const SCAV = [['bugs', 'Eats bugs', ['flies', 'colony']], ['fish', 'Eats fish', ['fish']], ['crawlers', 'Eats crawlers', ['crawlers']],
-              ['fliers', 'Eats fliers', ['fliers']], ['remains', 'Eats remains', []]];
-function scavSuggest(s) {
-  const d = s.diet || {}, small = s.band === 'small', pred = s.role === 'predator', out = new Set();
-  if ((s.habitat === 'waterbird' || s.habitat === 'semiaquatic' || s.habitat === 'aquatic') && (pred || small)) out.add('fish');
-  if (s.habitat === 'flier' && pred) out.add('fliers');
-  if (pred && small && (s.habitat === 'land' || s.habitat === 'semiaquatic')) out.add('crawlers');
-  if (s.habitat === 'waterbird') out.add('crawlers');
-  if (small && (s.habitat === 'flier' || s.habitat === 'land') && !d.grazer) out.add('bugs');
-  if (d.bonecarn || (d.carnivore && s.band !== 'small')) out.add('remains');
-  return out;
-}
-function scavOf(s) { return st.scav[s.key] || scavSuggest(s); }
+// Scavenging and vermin eating, as seasonal-wildlife v6.9/v7.0 read them (rev 6, 1 Oct 2026; replaces the planned
+// per-species buttons of 29 Sep). SCAV.is (v6.9) decides who eats remains, VERMIN.GOBBLE_RULES (v7.0 gobble) which vermin
+// classes a species' guild takes; both are console switches, not per-species choices. The live server (web 1) does not
+// send guild, scav or gobble yet, so the live page says so instead of guessing.
 function scavField(s) {
-  const on = scavOf(s), mine = !!st.scav[s.key];
-  const nFam = fams => SP.filter(v => isVermin(v) && v.layer === s.layer && fams.includes(v.family)).length;
-  return `<div class="field"><span class="lab">Scavenging<span class="planned">planned</span></span>
-    <div class="scav">${SCAV.map(([k, n, fams]) => `<button type="button" data-scav="${k}" aria-pressed="${on.has(k)}" ${LIVEMODE ? 'disabled' : ''} title="${k === 'remains' ? 'Picks up remains near it; they are removed from the game' : 'Vermin: ' + fams.map(f => FAM[f]).join(', ')}">${n}<small>${k === 'remains' ? 'corpses' : nFam(fams) + ' here'}</small></button>`).join('')}</div>
-    <span class="sub">${mine ? 'Set by you on this page.' : 'Suggested from the raws: ' + (on.size ? [...on].map(k => SCAV.find(x => x[0] === k)[1].toLowerCase()).join(', ') : 'none') + '.'} Eating remains works like a haul: it walks to remains nearby, picks them up, and they are removed. Not in the tool yet${LIVEMODE ? '' : '; changes here only show the command it would take'}.</span></div>`;
+  if (s.guild === undefined && s.scav === undefined) return `<div class="field"><span class="lab">Scavenging and vermin</span>
+    <span class="sub">The game's server does not send this species' guild, scavenger reading or gobble classes yet (web 1). In the game: <span class="mono">seasonal-wildlife scavenge</span> and <span class="mono">seasonal-wildlife vermin classes</span>.</span></div>`;
+  const g = arr(s.gobble);
+  return `<div class="field"><span class="lab">Scavenging and vermin</span>
+    <div class="readings">${s.guild ? `<span class="chip" title="MODEL.guild (v6.9)">guild ${esc(s.guild)}</span>` : ''}<span class="chip ${s.scav ? 'good' : ''}">${s.scav ? 'scavenger' : 'not a scavenger'}</span>${g.map(c => `<span class="chip fam" title="v7.0 gobble: GOBBLE_VERMIN_CLASS written on this species">eats ${esc(c)}</span>`).join('')}</div>
+    <span class="sub">${s.scav ? 'With scavenging on (<span class="mono">scavenge on</span>, off by default) it walks to wild remains and they are removed; v7.0 reaches them map-wide, wading and swimming. ' : ''}${g.length ? 'With v7.0 gobble (on by default) it is given these vermin classes to eat, by its guild. ' : 'No gobble rule matches its guild. '}Both are console switches; this page cannot send them yet.</span></div>`;
 }
 function shareLine(s, r) { return r ? (r.now ? `${pct(r.pct)} of ${SEASONS[NOW]}'s ${(LNAME[s.layer] || '').toLowerCase()} waves` : `(${pct(r.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : 'inactive: no share'; }
 
@@ -780,7 +769,8 @@ function renderWeb() {
       <label class="chip" style="cursor:pointer"><input type="checkbox" id="webVermin" ${st.webVermin ? 'checked' : ''} style="margin:0"> Vermin</label>
       <span class="sub">${edges.length - nv} pairs${st.webVermin ? `, ${nv} vermin links (dashed)` : ''} &middot; <span style="color:var(--accent)">violet</span>: both on the map now</span>
     </div>
-    ${st.webVermin && nv && !D.hunting ? `<div class="banner"><span><b>Vermin hunting is off.</b> The dashed links are what these hunters would take once it is switched on (Panel, or <span class="mono">seasonal-wildlife hunting on</span>). DF only lets a species with the hunting flag catch vermin.</span></div>` : ''}
+    ${st.webVermin && nv && !D.hunting ? `<div class="banner"><span><b>Vermin hunting is off.</b> The dashed links are what these hunters would take once it is switched on (Panel, or <span class="mono">seasonal-wildlife hunting on</span>). DF only lets a species with the hunting flag catch vermin. v7.0's gobble is a separate switch (on by default) that writes GOBBLE_VERMIN_CLASS by guild; its classes show on each species page.</span></div>` : ''}
+    <p class="sub" style="margin:0">Solid links are the roster's pairing test (who can take whom by reach, water body and the pack's mass against the prey's). Since v6.9 the ecology writes a wider set: every predator not wholly BENIGN against every species it reaches, and v7.0 drops a pair only when the hunting group weighs under 5% of the prey. That set is not shown here.</p>
     <div class="webwrap">
       <div class="web ${st.webFocus ? 'focus' : ''}" id="web">${edges.length ? svg : '<p class="sub" style="padding:16px">No predator and prey meet under these filters.</p>'}</div>
       <div style="display:grid;gap:16px">
@@ -846,7 +836,17 @@ function renderLedger() {
         <div class="kv"><label for="g-${l}">Groups at once</label><input id="g-${l}" type="number" min="1" max="12" value="${L.groups ?? 1}" data-l="${l}" data-f="groups">
           <label for="c-${l}">Ceiling</label><input id="c-${l}" type="number" min="0" max="400" value="${L.ceiling ?? 0}" data-l="${l}" data-f="ceiling">
           <label for="p-${l}">Pattern</label><select id="p-${l}" data-l="${l}" data-f="pattern">${['steady', 'burst', 'trickle', 'dawn', 'follow'].map(p => `<option ${p === L.pattern ? 'selected' : ''}>${p}</option>`).join('')}</select></div></div>`; }).join('')}</div>
-      <p class="sub" style="margin:10px 0 0">Groups at once: how many wild groups a layer holds. Ceiling: the most wild animals of that layer on the map; 0 is none.</p></div></div>`;
+      <p class="sub" style="margin:10px 0 0">Groups at once: how many wild groups a layer holds (land defaults to auto, the square root of the embark's tiles + 1, since v6.9; with v7.0's layer_groups each water body and each cavern keeps its own count, which this page does not show yet). Ceiling: the most wild animals of that layer on the map; 0 means no ceiling.</p></div></div>
+    ${LIVEMODE ? '' : `<div class="panel"><h2>Not on this page yet (seasonal-wildlife v7.0)</h2>
+      <p class="sub" style="margin:0 0 8px">The tool's v7.0 features are console-only, and the server (web 1, unchanged since v6.8) neither sends their state nor accepts their verbs.</p>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);display:grid;gap:4px">
+        <li>The v7 switches (<span class="mono">v7 KEY on|off|N</span>): builder, gobble, sweep, civ_hunt, civ_prey, fb_safe, domestic, sponges, fishers, outgun, realms, pack_floor, pack_sneak and the rest.</li>
+        <li>The roster builder (<span class="mono">roster build [layer]</span>) and its outgun warnings (<span class="mono">roster outgun</span>); the guild of each species and the slot it fills.</li>
+        <li>Scavenging (<span class="mono">scavenge on|off|now|radius N</span>, v6.9; map-wide and wading/swimming in v7.0) and the vermin gobble classes (<span class="mono">vermin classes</span>).</li>
+        <li>Groups at once per water body and per cavern (v7.0 layer_groups); <span class="mono">limits LAYER groups auto</span>.</li>
+        <li>The embark's realm (<span class="mono">realm</span>) and alignment; exhaustion, alerts, curious beasts, sponges.</li>
+        <li>The relations the ecology writes (every armed predator against every species it reaches, v6.9; the pack floor, v7.0), beside the pairing test the food web shows.</li></ul>
+      <p class="sub" style="margin:10px 0 0">Revisions: v1 to v5, 28-30 September 2026 (prototype, live mode, vermin, creature tiles). rev 6, 1 October 2026: sample rebuilt from the corrected bestiary (sizes, frequencies and guilds as v7.0 reads them); food-web pairs by the engine's own pairing test; published without the Steam sprites (ASCII glyphs from the raws instead); guild, scavenger and gobble readings in place of the planned scavenging buttons; group size shown low to high; this list.</p></div>`}`;
   P.querySelector('#undo').onclick = () => send(['undo'], 'Undid the last edit');
   P.querySelectorAll('[data-f]').forEach(inp => inp.onchange = () => {
     const l = inp.dataset.l, f = inp.dataset.f, L = LIM[l] || (LIM[l] = {});
