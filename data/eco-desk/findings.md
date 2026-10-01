@@ -330,3 +330,10 @@ DF-only (no relation written), 3,000 t, spawned pairs only (eco-analyze), first 
 => mostly species (5 of 8 pairs the same at both spots), the spot shifts 3. Keep the cavern relation write: the non-fighters
    hunt only when written (HC3: written jabberers 7/8 reachers, ogres 3). Raw 'attacks' in the log include the caverns'
    own natives (crundles, troglodytes, creeping eyes, fire imp x magma crab): read spawned pairs only.
+
+## GPK / GPKW / GPKR — giant packs against megafauna (item 10; 30 Sep night, relation written, 30,000 t, 2 reps)
+GPK (CTRL): 10 GIANT_HYENA x 2 ELEPHANT: both elephants killed in both reps (475/477 attacks; elephants 2/1 back), no hyena lost.
+  10 GIANT_DINGO x 2 RHINOCEROS: 1 of 2 rhinos killed each rep (271/282 attacks), no dingo lost.
+GPKW (OCEAN2 shore) and GPKR (RIVER4): 4 GIANT_CROCODILE_SALTWATER x 2 HIPPO: both hippos killed in all 4 runs
+  (49/56 and 85/99 attacks; hippos 5-6 back), no crocodile lost.
+=> savage giant packs take the largest prey: the builder may seat them as apexes over megafauna on savage maps.
