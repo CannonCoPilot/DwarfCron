@@ -593,6 +593,18 @@ def rels2(subject, layer="land", ticks=30000):
     return dict(steps=st, ticks=10, post=[inline("freq_restore.lua")])   # watch kept: read gives attacks/deaths by pair, as RELS
 BLOCKS["RELS2"] = dict(fort="CTRL", spot="land", cells={s.lower(): rels2(s) for s in ("COUGAR", "DEER", "ELK")})
 
+# RELS2b (30 Sep night): RELS2 forced the surface gate open with `cx-probe release`, which clears every arrival's roaming
+# flag -- so every arrival was 'other' (non-wild) to DF and was aimed at the next, and the deer and elk never arrived.
+# The clean version: tool off, NO forced release (DF's own gate), FREQUENCY steered to the subject, arrivals stay wild.
+# Subjects: COUGAR (arrived in RELS2) and KANGAROO (a grazer that arrives on CTRL; deer never did). 51,000 ticks.
+def rels2b(subject, ticks=51000):
+    st = [SUSTAIN, rel("reset"), inline("freq_steer.lua", SUBJECT=subject, LAYER="land"), "watch"]
+    for i in range(ticks // 1500):
+        st += ["step:1500", rel(f"t{(i + 1) * 1500}")]
+        if i % 10 == 9: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True, post=[inline("freq_restore.lua")])
+BLOCKS["RELS2b"] = dict(fort="CTRL", spot="land", cells={s.lower(): rels2b(s) for s in ("COUGAR", "KANGAROO")})
+
 # RELS3: are groups the TOOL releases (seasonal-wildlife enable, groups on) treated as non-wild the same way? Ecology
 # OFF isolates the release/gate mechanism from the ecology writer, so any PREDATOR_OR_PREY rel_sample catches here is
 # DF's own engine reacting to "non-wild" status, not an ecology-pass write. tool_off is the untouched control.
