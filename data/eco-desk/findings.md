@@ -538,3 +538,14 @@ nudge_off 179, nudge_tight 198; placed prey killed 1, 2, 0, 3, 1. => neither the
 nor the nudge (off / current / tight) has a measurable effect on a wolf pack against herds 45-60 tiles away. Per the
 design table: cadence 6,000 ~ 1,500 -> a 3,000 default halves the passes at no cost; nudge off ~ current -> default the
 nudge off (no visible teleports). Both are recommendations for the user, not applied.
+
+## SW2R — SW2 in reversed cell order (item 11; 1 Oct morning, 2 reps)
+Placed-only, order sneak100, sneak0, floor20, floor0, ctl: sneak100 181|0|2|93%, 92|0|2|91%; sneak0 63|1|3|76%, 40|3|0|100%;
+floor20 64|2|3|74%, 9|0|0|8%; floor0 22|0|2|12%, 46|0|2|67%; ctl 3|0|1|2%, 41|3|2|30% -- position again dominates the share.
+Prey choice (wolf attacks on ELEPHANT as a share of attacks on the placed herds), SW2 then SW2R: ctl 93%, 55%; floor0 78%,
+81%; floor20 38%, 68%; sneak0 88%, 32%; sneak100 68%, 94%. The 0.20 floor does not reliably move wolves off the elephant
+(SW2's rep-1 shift did not repeat), so the wolves' choice of target is not set by the tool's written pair alone (placed
+units are non-wild to DF, which aims them itself: RELS row 3). Placed prey killed over 4 reps: ctl 4, floor0 1, floor20 3,
+sneak0 4, sneak100 0. => neither the pack-mass floor (0 / 0.05 / 0.20) nor the sneak bonus (0 / 0.25 / 1.0) has a
+measurable effect here. Per the design table: sneak 0 ~ 0.25 ~ 1.0 -> default pack_sneak 0 and retire the per-unit SNEAK
+write; the floor stays at 0.05 (no evidence either way; the arena cannot isolate it from DF's own aiming).
