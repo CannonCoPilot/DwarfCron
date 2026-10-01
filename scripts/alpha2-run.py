@@ -44,6 +44,23 @@ def sh(*args, timeout=180):
 def lua(code, timeout=120):
     return sh("lua", code, timeout=timeout)[1]
 
+_VER = {}
+def versions() -> str:
+    """'DF · DFHack · vTOOL @ sha', read at runtime (was hard-coded '53.16 · 53.16-r1.1 · v6.6.0 @ f22fa30'; the rig
+    runs DFHack 53.16-r2 from 1 Oct 2026). The tool version is the deployed engine's newest changelog line."""
+    if not _VER:
+        out = lua("print('DFVER='..tostring(dfhack.getDFVersion and dfhack.getDFVersion() or '?')"
+                  "..' HACKVER='..tostring(dfhack.getDFHackVersion and dfhack.getDFHackVersion() or '?'))")
+        m = re.search(r"DFVER=(\S+) HACKVER=(\S+)", out or "")
+        dep = Path.home() / ("Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/"
+                             "common/Dwarf Fortress/dfhack-config/scripts/seasonal-wildlife.lua")
+        tv = re.search(r"^-- v(\d+\.\d+\.\d+) \u2014", dep.read_text(errors="replace"), re.M) if dep.exists() else None
+        repo = Path(os.environ.get("SW_TOOL", str(Path.home() / "Claude/Projects/seasonal-wildlife")))
+        sha = subprocess.run(["git", "-C", str(repo), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+        _VER["s"] = (f"{m.group(1) if m else '?'} · {m.group(2) if m else '?'} · v{tv.group(1) if tv else '?'}"
+                     f" @ {sha or '?'}")
+    return _VER["s"]
+
 def luaj(code, timeout=120) -> Any:
     out = lua("local json=require('json'); " + code, timeout=timeout)
     starts = [k for k in (out.find("{"), out.find("[")) if k != -1]
@@ -947,7 +964,7 @@ def report():
     rs = sorted(results, key=lambda r: [int(x) for x in r["id"].split(".")])
     p = [r for r in rs if r["v"] == "p"]; a = [r for r in rs if r["v"] == "a"]; s = [r for r in rs if r["v"] == "s"]
     L = ["# Seasonal Wildlife alpha trial two (UI, v6.6)", "", "- Tester: W2:Urist (the rig, driven by scripts/alpha2-run.py)",
-         f"- Fort: BOATS (the rig's copy of the alpha one fort, restored from {BACKUP})", "- Game / DFHack / plugin: 53.16 · 53.16-r1.1 · v6.6.0 @ f22fa30",
+         f"- Fort: BOATS (the rig's copy of the alpha one fort, restored from {BACKUP})", f"- Game / DFHack / plugin: {versions()}",
          f"- Date: {datetime.now().strftime('%Y-%m-%d')} (run {RUN})", "",
          f"Tally: {len(p)} pass · {len(a)} anomaly · {len(s)} skipped · {62 - len(rs)} unmarked of 62 steps."]
     for title, rows, note in (("Anomalies", a, True), ("Skipped (and why)", s, True), ("Passes", p, True)):
@@ -970,7 +987,7 @@ def main():
             mark(sid, title, "a", f"the driver failed at this step: {type(e).__name__}: {e}")
         (OUT / "results.json").write_text(json.dumps(results, indent=1))
     marks = {r["id"]: {"v": r["v"], "n": r["note"]} for r in results}
-    marks["_meta"] = {"tName": "W2:Urist (rig)", "tFort": "BOATS (alpha one fort copy)", "tVer": "53.16 · 53.16-r1.1 · v6.6.0 @ f22fa30", "tDate": datetime.now().strftime("%Y-%m-%d")}
+    marks["_meta"] = {"tName": "W2:Urist (rig)", "tFort": "BOATS (alpha one fort copy)", "tVer": versions(), "tDate": datetime.now().strftime("%Y-%m-%d")}
     (OUT / "marks.json").write_text(json.dumps(marks, indent=1))
     (OUT / "report.md").write_text(report())
     close_window()

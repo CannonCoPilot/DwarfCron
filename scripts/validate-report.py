@@ -7,7 +7,7 @@ JPEG data URI so the page can be published as a single artifact.
 
 Usage: validate-report.py [run_dir] [-o out.html]
 """
-import base64, html, json, sys
+import base64, html, json, re, sys
 from pathlib import Path
 from collections import OrderedDict
 
@@ -219,9 +219,18 @@ headline = (f"{tally['PASS']} of the {tally['PASS'] + tally['FAIL'] + tally['DEA
             + f". {tally['UNWIRED']} promised views and packages have no code behind them, {tally['DOC-DRIFT']} documents contradict the code, and {tally['BACKLOG']} backlog items are recorded so nothing promised is missing.")
 
 run_id = run_dir.name
+# versions from the run, not hard-coded (the label said v6.2.0 / DFHack 53.16-r1.1 for every run, and the rig moved to
+# r2 on 1 Oct 2026): rig.json (validate-full v7.1+), else the doc.usage.version row's own text
+_rv = json.loads((run_dir / "rig.json").read_text()) if (run_dir / "rig.json").exists() else {}
+_du = next((r.get("got", "") for r in results if r.get("id") == "doc.usage.version"), "")
+_m = re.search(r"the rig is DF (\S+) / DFHack (\S+)", _du)
+_t = re.search(r"newest changelog entry is v([\d.]+)", _du)
+RIG_DF = _rv.get("df") or (_m.group(1) if _m else "?")
+RIG_HACK = _rv.get("dfhack") or (_m.group(2) if _m else "?")
+TOOL_V = _t.group(1) if _t else "?"
 summary = f"""
 <section id="summary">
-  <p class="eyebrow">Functional playtest · seasonal-wildlife v6.2.0 · DF 53.16 / DFHack 53.16-r1.1 · run {esc(run_id)}</p>
+  <p class="eyebrow">Functional playtest · seasonal-wildlife v{esc(TOOL_V)} · DF {esc(RIG_DF)} / DFHack {esc(RIG_HACK)} · run {esc(run_id)}</p>
   <h1>Seasonal Wildlife Playtest</h1>
   <p class="lede">{esc(headline)}</p>
   <p class="companions"><strong>Companion reports:</strong> <a href="https://claude.ai/code/artifact/a61b06b2-4687-41ea-91f0-2216220d7111">The Seasonal Wildlife Plugin</a> (the design, rev 21) · <a href="https://claude.ai/code/artifact/6cebd06e-eafd-44a8-aa6e-d3c108e5fcba">The Wilderpop Model</a> (the measurements, rev 32) · <a href="https://claude.ai/code/artifact/e0abf11b-c4ce-46dc-9d38-95826b9ea512">The Wildlife Backlog</a> (beyond v6.2).</p>

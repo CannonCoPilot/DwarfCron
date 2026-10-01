@@ -42,7 +42,8 @@
 --
 -- Wild = dfhack.units.isWildlife: population_idx >= 0 and not merchant / forest / fort-controlled.
 -- It does NOT key on the roaming flag, so a released resident stays in the table (checked in
--- DFHack Units.cpp, 2026-09-16).
+-- DFHack Units.cpp, 2026-09-16). An invader (invasion_id >= 0) is never wild here: `units` lists it with
+-- wild=0 invader=1, and wild_alive/release skip it (R23: invasions are off in this DF build; the test is a guard).
 --
 -- ⚠️ This runs with the core suspended (RPC). It never waits; the runner sequences steps.
 
@@ -104,10 +105,20 @@ local function is_pred(u)  -- SURFACE large predators only: cavern troglodytes a
     local c = cr and cr.caste[u.caste]
     return (c and c.flags.LARGE_PREDATOR and layer_of(u.animal.population) == 'surface') or false
 end
+-- Invasions (R23, user 1 Oct 2026): DF's invasions are disabled in the game code of this build, so none can arrive and
+-- E23f (a real invader to validate against) is not run. The exclusion stays as one cheap test, mirroring the tool's
+-- WILD.onMap (unit.invasion_id >= 0, STATE addendum 49), so a future DF that re-enables them cannot inflate any wild
+-- count here (open item cx-probe-invasion-exclusion). Fields a build lacks read as not-an-invader, never an error.
+local function is_invader(u)
+    local ok, v = pcall(function() return u.invasion_id end)
+    if ok and type(v) == 'number' and v >= 0 then return true end
+    local ok2, f = pcall(function() return u.flags1.active_invader or u.flags1.invader_origin end)
+    return (ok2 and f) and true or false
+end
 local function wild_alive()
     local t = {}
     for _, u in ipairs(df.global.world.units.active) do
-        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then t[#t+1] = u end
+        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not is_invader(u) then t[#t+1] = u end
     end
     return t
 end
@@ -123,7 +134,7 @@ if cmd == 'clock' then
 -- ------------------------------------------------------------------ units --
 elseif cmd == 'units' then
     row('id', 'species', 'caste', 'x', 'y', 'z', 'ref6', 'layer', 'countdown', 'vanish',
-        'flag_src', 'flag_nf', 'dead', 'inactive', 'civ', 'tame', 'wild', 'mother')
+        'flag_src', 'flag_nf', 'dead', 'inactive', 'civ', 'tame', 'wild', 'mother', 'invader')
     for _, u in ipairs(df.global.world.units.all) do
         local wild = dfhack.units.isWildlife(u)
         -- keep everything with a population reference; the runner filters on `wild`
@@ -134,8 +145,8 @@ elseif cmd == 'units' then
                 b(u.flags2.roaming_wilderness_population_source),
                 b(u.flags2.roaming_wilderness_population_source_not_a_map_feature),
                 b(dfhack.units.isDead(u)),
-                b(u.flags1.inactive), u.civ_id, b(u.flags1.tame), b(wild),
-                u.relationship_ids[df.unit_relationship_type.Mother])
+                b(u.flags1.inactive), u.civ_id, b(u.flags1.tame), b(wild and not is_invader(u)),
+                u.relationship_ids[df.unit_relationship_type.Mother], b(is_invader(u)))
         end
     end
 
@@ -200,7 +211,7 @@ elseif cmd == 'release' then
     end
     local n = 0
     for _, u in ipairs(df.global.world.units.active) do
-        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) then
+        if dfhack.units.isWildlife(u) and not dfhack.units.isDead(u) and not is_invader(u) then
             local want
             if next(ids) then want = ids[u.id]
             elseif mode == 'all' then want = true
