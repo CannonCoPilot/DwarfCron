@@ -122,7 +122,7 @@ CLAIMS = [
     ("mech.force", "MECH", "Force wave clears the current group and a new wave arrives within a few thousand ticks", "USAGE.md; E1/E8", "shipped"),
     ("mech.groups.track", "MECH", "resident groups tracks wildlife groups on the map (gated/resident rows with arrival day)", "USAGE.md Resident groups", "shipped"),
     ("mech.cohesion", "MECH", "cohesion picks a leader per herd/pack/flock group and sets followers", "USAGE.md v5.7; E28", "shipped"),
-    ("mech.leader.lowest", "MECH", "the leader is the lowest-id member (NOT the largest male — that is backlog)", "USAGE.md; Backlog", "shipped"),
+    ("mech.leader.lowest", "MECH", "the leader is the lowest-id member up to v6.9; from v7.0 a group member chosen by size (largest male: mech.v70.leader_male)", "USAGE.md; Backlog; v7.0 item 22", "shipped"),
     ("mech.hold", "MECH", "hold raises leave_countdown on every member to ≥ DAYS×1200 ticks", "USAGE.md v5.7; E9c/E19", "shipped"),
     ("mech.dismiss", "MECH", "dismiss zeroes leave_countdown and clears the leader", "USAGE.md v5.7", "shipped"),
     ("mech.ecology.write", "MECH", "the ecology write relates every LARGE_PREDATOR to every target in DF's reaction cache, slotting any unit DF has not (v5.9.7), and reports the pair count", "USAGE.md v5.6/v5.9.7; E11c/T4", "shipped"),
@@ -1870,9 +1870,14 @@ def phase_mechanics():
         note="" if rows else "no tracked group of a herd/pack/flock species was on the map in this session")
     # leader is the lowest id (backlog says largest-male is NOT built)
     lead = luaj("local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups and sw.loadGroups() or nil; local out={}; "
-                "if g then for _,grp in ipairs(g.groups) do if grp.leader then local mn=math.huge; for _,i in ipairs(grp.ids) do if i<mn then mn=i end end; "
-                "out[#out+1]={token=grp.token, leader=grp.leader, lowest=mn, n=#grp.ids} end end end; print(json.encode(out))", timeout=120)
-    if isinstance(lead, list) and lead:
+                "if g then for _,grp in ipairs(g.groups) do if grp.leader then local mn,mem=math.huge,false; for _,i in ipairs(grp.ids) do if i<mn then mn=i end; if i==grp.leader then mem=true end end; "
+                "out[#out+1]={token=grp.token, leader=grp.leader, lowest=mn, member=mem, n=#grp.ids} end end end; print(json.encode(out))", timeout=120)
+    if isinstance(lead, list) and lead and V70:
+        # v7.0 (item 22, user ruling): the largest male leads (V7.leaderOf), so lowest-id no longer holds; the size rule
+        # itself is mech.v70.leader_male's claim -- here only that every leader is one of its group's members
+        rec("mech.leader.lowest", "PASS" if all(x.get("member") for x in lead) else "FAIL",
+            "v7.0: every led group's leader is one of its members (size rule: mech.v70.leader_male)", json.dumps(lead), data=lead)
+    elif isinstance(lead, list) and lead:
         rec("mech.leader.lowest", "PASS" if all(x["leader"] == x["lowest"] for x in lead) else "FAIL",
             "every led group's leader == its lowest member id", json.dumps(lead), data=lead)
     else:
@@ -2033,9 +2038,10 @@ def phase_mechanics():
         rc, out = cmd("limits", "land", "groups", "2")
         rec("mech.quota.land", "PASS" if "land 2 group(s) at once" in out else "FAIL", "'land 2 group(s) at once'", out)
         rc, out = cmd("quota", "water", "25")
-        rec("mech.quota.water", "PASS" if "retired" in out and "water 3 group(s) at once, ceiling 25" in out else "FAIL", "the quota alias sets the water ceiling and says quota is retired", out)
+        # v7.0's layer_groups (default on) words the limit per body / per cavern and sets cavern groups to auto (N)
+        rec("mech.quota.water", "PASS" if "retired" in out and re.search(r"water 3 group\(s\) at once( per water body)?, ceiling 25", out) else "FAIL", "the quota alias sets the water ceiling and says quota is retired", out)
         rc, out = cmd("limits", "cavern", "ceiling", "7"); rc2, out2 = cmd("limits", "bogus")
-        rec("mech.limits", "PASS" if "cavern 2 group(s) at once, ceiling 7" in out and "usage" in out2.lower() else "FAIL",
+        rec("mech.limits", "PASS" if re.search(r"cavern (2|auto \(\d+\)) group\(s\) at once( per cavern)?, ceiling 7", out) and "usage" in out2.lower() else "FAIL",
             "`limits cavern ceiling 7` reads back; a bad layer prints usage", out + out2)
         cmd("limits", "land", "groups", "3"); cmd("limits", "water", "groups", "2", "ceiling", "12"); cmd("limits", "cavern", "ceiling", "0")
     else:
