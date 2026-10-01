@@ -314,3 +314,8 @@ badgers came near; no cats). Map count removed: ctl 0, 0 (of 20); gobble 4, 6 (a
 badgers spread out). Cells share a load within a rep, so the gobble cell starts with 40 (the ctl's 20 remain); removal is
 read from the map count. => DF matches a class the tool writes at runtime: the v7.0 SWV_* gobble writes can work.
 (vrm4-tally.py misparses the class receipt row as None; the rows themselves show the write.)
+
+## LAKEP — lake species are writable (item 12; 30 Sep night, LAKE, 1 run)
+Lake wild units are feature entries (feature_idx 0, cave_id -1: layer 'water') and the tool puts them in the surface realm
+('land', since v6.9): 7 at the start (FISH_STINGRAY, ALLIGATOR x2, HIPPO x4), 17 at t3000, all 'land'. 3 placed ALLIGATOR x 8
+placed FISH_CARP in the lake: 24 pairs written; with 7 carp alive, 21 of 21 still held at every 500-tick read to t3000. => item 12 answered: lake species are surface-realm units and the relation write sticks.
