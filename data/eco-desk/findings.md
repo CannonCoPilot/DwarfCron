@@ -352,3 +352,13 @@ VISION_ARC 89, 5 / 147, 103 / 3. => no reliable effect of either token; the tool
 YETI via addNewSpecies (force): added 0, reason "28:19:biome" (YETI is mountain/tundra; CTRL's tiles are temperate shrubland),
 so no yeti could arrive (0 in 20 samples x 2 reps). The block agent had swapped in YETI because grep missed
 CENOZOIC_SMILODON in the raws. -> INV2: CENOZOIC_SMILODON (SAVAGE, SHRUBLAND_TEMPERATE), queued after RELS2b.
+
+## COH / COHO / COHR — flock, school and pod cohesion with a leader (item 20; 1 Oct night, `lead` verb, 15,000 t, 2 reps)
+Mean bounding-box width in tiles, largest male leading vs no leader (rep 1, rep 2):
+  flock  BIRD_DUCK x12 (CTRL)        5.2, 30.3   vs  139.7, 112.6
+  school FISH_MILKFISH x12 (OCEAN2)  6.6, 6.4    vs  114.0, 96.7
+  pod    ORCA x6 (OCEAN2)            49.3, 44.0  vs  99.6, 86.8
+  school FISH_PIKE x12 (RIVER4)      8.7, 22.5   vs  148.8, 141.8
+=> a leader holds flocks and schools within a few tiles (as herds and packs on land); a led orca pod is about half as wide
+   but still loose (open ocean). The duck flock in rep 2 loosened late (width 48-62 after t9,000). Cohesion works on water
+   and in the air; item 20 closed.
