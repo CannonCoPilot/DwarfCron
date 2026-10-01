@@ -494,3 +494,14 @@ Land groups present 3.1/1.6 (p1), 2.2/2.2 (p3), 3.3/2.8 (p5); attacks 0 in all s
 (land_groups read live: ~3 land beside 15 cavern groups -- the SW3 fix works.) => no measurable effect of the pack bonus on
 CTRL; with most of each roster missing the test is weak. The design's own rule then applies: the x3 is a contrived weight
 with no rig effect -> remove it from the builder (simpler; design.md R11 already demotes it).
+
+## Item 6 — good and evil forts (1 Oct night, region6 seed 424242, GOODF 11,1 TUNDRA / EVILF 7,5 SHRUBLAND_TEMPERATE, tool on 30,000 t)
+align_probe (data/logs/align.log): GOODF reads good=true evil=false (3 tiles); EVILF good=false evil=true (4 tiles).
+GOODF: good natural species managed and unlocked (WAMBLER_FLUFFY, PIXIE in embark; FAIRY); evil mythic (WOLF_ICE,
+BLIZZARD_MAN) and generated night creatures (10) locked; pool aligned 15, managed 3.
+EVILF: the mirror -- evil natural species managed and unlocked (HARPY, OGRE, GNAT_BLOOD in embark; WORM_KNUCKLE, RAT_DEMON);
+good species become mythic and locked (WAMBLER_FLUFFY, PIXIE, UNICORN, FAIRY); night creatures locked; pool aligned 19,
+managed 5. => the v7.0 alignment rule works both ways: a map's own alignment is natural, the opposite is locked.
+On-map aligned units at t30000 were all unmanaged (managed=nil): demons on both forts (D8), and on EVILF a BLIND_CAVE_OGRE
+and 2 GORLAK -- cavern EVIL species outside the tool's pool on this embark (open: v7.0 meant cavern GOOD/EVIL to class as
+natural; check whether EVILF's cavern pool lists them). No aligned surface arrival in 30,000 t on either fort.
