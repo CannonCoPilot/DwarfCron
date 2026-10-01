@@ -38,7 +38,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-LAND_ONLY = {"SW3": True, "SW3B": True, "SW7": True}
+# the layer each block's limit acts on (1 Oct): total_groups mixes caverns into land blocks and land into cavern ones
+LAYER_KEY = {"SW3": "land_groups", "SW3B": "land_groups", "SW7": "land_groups", "SW5": "cavern_groups", "SW6": "water_groups"}
 WINDOW_TICKS = {"SW3B": 50400, "SW1": 30000, "SW2": 30000, "SW1R": 30000, "SW2R": 30000, "SW3": 50400, "SW5": 50400, "SW6": 50400, "SW7": 50400}
 CONTROL_ARM = {"SW3B": "auto", "SW1": "ctl", "SW2": "ctl", "SW1R": "ctl", "SW2R": "ctl", "SW3": "auto", "SW5": "auto", "SW6": "auto", "SW7": "p3"}
 
@@ -62,7 +63,8 @@ def load(path):
         d = kv(rest)
         if kind == "swstatus":
             # land-layer blocks count land groups when the status carries them (1 Oct; total_groups is mostly caverns)
-            key = "land_groups" if (LAND_ONLY.get(Path(path).stem) and "land_groups" in d) else "total_groups"
+            key = LAYER_KEY.get(Path(path).stem, "total_groups")
+            key = key if key in d else "total_groups"
             c["series"].append((d.get("tag", "?"), int(d.get(key, 0))))
         elif kind == "attacks":
             m = re.search(r"n=(\d+)", rest)
