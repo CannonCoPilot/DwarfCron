@@ -3,6 +3,12 @@
 + data/eco-report/{experiments,raws,open-items}.json -> data/eco-report/eco-report.html (one self-contained page).
 
   python3 scripts/eco-report/build.py            # writes data/eco-report/eco-report.html, prints placement stats
+  python3 scripts/eco-report/build.py --allow-bad-figs   # write it even when a placed figure fails figcheck (marked)
+
+H7 (Part 1 plan, 1 Oct 2026): every placed figure is checked by figcheck.py before the page is written. A value-first
+spec (numeric x, text y on a categorical form), a spec with no rows, a named field no row has, or a spec that would
+draw zero marks fails the build (exit 2) and names the figure. Eight specs on the 1 Oct page were value-first and drew
+empty frames; nothing caught it.
 """
 import html
 import json
@@ -209,7 +215,9 @@ def normalize_raw(f):
     return out
 
 
-def main():
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    allow_bad = "--allow-bad-figs" in argv
     exp, raws, oi = load("experiments.json"), load("raws.json"), load("open-items.json")
     figs = []
     for f in exp.get("figures", []):
@@ -269,6 +277,15 @@ def main():
     if unplaced:
         print(f"  unplaced figures ({len(unplaced)}): {', '.join(unplaced)}", file=sys.stderr)
     used = [byid[i] for i in placed]
+    import figcheck
+    problems = figcheck.check_all(used)
+    for sev, code, msg in problems:
+        print(f"  figcheck {sev} {code}: {msg}", file=sys.stderr)
+    bad = [p for p in problems if p[0] == "error"]
+    if bad and not allow_bad:
+        print(f"  !! figcheck: {len(bad)} placed figure(s) would render empty or wrong; page NOT written "
+              f"(fix the specs, or pass --allow-bad-figs to write it anyway)", file=sys.stderr)
+        return 2
     tpl = (HERE / "template.html").read_text()
     page = (tpl.replace("{{TOC}}", toc_html(content)).replace("{{CONTENT}}", content)
                .replace("{{FIGS}}", json.dumps(used, separators=(",", ":")).replace("</", "<\\/"))
@@ -280,4 +297,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
