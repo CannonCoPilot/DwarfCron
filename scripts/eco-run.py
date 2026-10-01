@@ -578,6 +578,239 @@ BLOCKS["TV2"] = dict(fort="CTRL", spot="land", cells={
 BLOCKS["DEPTH"] = dict(fort="BOATS", spot="water", cells={"depth_survey": dict(steps=["depth BOATS"], ticks=10)})
 BLOCKS["DEPTHL"] = dict(fort="LAKE", spot="water", cells={"depth_survey": dict(steps=["depth LAKE"], ticks=10)})
 
+# ================================================================== eco-night (30 Sep): 12 new blocks + SW1-3 =====
+SUSTAIN = "lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')"
+
+# RELS2 (genuine DF arrivals, not spawn): steer the raw FREQUENCY ladder toward one subject per cell (freq_steer.lua,
+# the ECO-F1 pattern already used by nothing else in this file yet) so DF's own wave pick draws it; the tool is OFF,
+# so a gated arrival never releases on its own -- cx-probe release surface forces the clear every sample window (the
+# same roaming-flag clear a `spawn`-based cell gets automatically). rel_sample.lua as in RELS; frequencies restored.
+def rels2(subject, layer="land", ticks=30000):
+    st = [SUSTAIN, rel("reset"), inline("freq_steer.lua", SUBJECT=subject, LAYER=layer), "watch"]
+    for i in range(ticks // 1500):
+        st += ["step:1500", "lua:dfhack.run_command('cx-probe', 'release', 'surface'); print('eco release ok=1')", rel(f"t{(i + 1) * 1500}")]
+        if i == 9: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, post=[inline("freq_restore.lua")])   # watch kept: read gives attacks/deaths by pair, as RELS
+BLOCKS["RELS2"] = dict(fort="CTRL", spot="land", cells={s.lower(): rels2(s) for s in ("COUGAR", "DEER", "ELK")})
+
+# RELS3: are groups the TOOL releases (seasonal-wildlife enable, groups on) treated as non-wild the same way? Ecology
+# OFF isolates the release/gate mechanism from the ecology writer, so any PREDATOR_OR_PREY rel_sample catches here is
+# DF's own engine reacting to "non-wild" status, not an ecology-pass write. tool_off is the untouched control.
+def rels3(tool_on):
+    st = [SUSTAIN, rel("reset")]
+    if tool_on:
+        st += ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+               "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+               "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'off'); print('eco ecologyoff ok=1')"]
+    st.append("watch")
+    for i in range(20):
+        st += ["step:1500", rel(f"t{(i + 1) * 1500}")]
+        if i == 9: st.append(SUSTAIN)
+    post = ["lua:dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); print('eco ecologyon ok=1')",
+            "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"] if tool_on else []
+    return dict(steps=st, ticks=10, post=post)
+BLOCKS["RELS3"] = dict(fort="CTRL", spot="land", cells={"tool_on": rels3(True), "tool_off": rels3(False)})
+
+# VRM4: a runtime CREATURE_CLASS matched by GOBBLE_VERMIN_CLASS. class_write.lua puts CREATURE_CLASS:SWV_TEST on every
+# GRASSHOPPER caste; gobble_write.lua(KIND=class) puts GOBBLE_VERMIN_CLASS:SWV_TEST on BADGER in the "gobble" arm only
+# ("ctl" = the class alone, no matching gobble tag -- ordinary BADGER never gobbles this class). Placed 30 tiles off
+# the block's land spot (CTRL's two pet cats eat placed vermin at the usual spot -- the eco-night task's own trap
+# note); vermin_near_units.lua already names ANY unit near ROACH_LARGE/GRASSHOPPER, so no edit needed there.
+def _at(name, dx, dy, **kw):
+    ox = ("{X%+d}" % dx) if dx else "{X}"
+    oy = ("{Y%+d}" % dy) if dy else "{Y}"
+    return inline(name, X=ox, Y=oy, **kw)
+def vrm4(arm):
+    st = [SUSTAIN, inline("class_write.lua", P="GRASSHOPPER", CLS="SWV_TEST"),
+          _at("vermin_create.lua", 30, 30, RACE="GRASSHOPPER", N=20, R=6)]
+    if arm == "gobble":
+        st.append(inline("gobble_write.lua", P="BADGER", KIND="class", CLS="SWV_TEST"))
+    st.append("spawn BADGER 4 {X+30} {Y+30} {Z} 3")
+    for i in range(13):
+        tag = f"t{i * 250}"
+        st += [_at("vermin_count.lua", 30, 30, RACE="GRASSHOPPER", R=8, TAG=tag), inline("vermin_near_units.lua", R=6, TAG=tag)]
+        if i < 12: st.append("step:250")
+    post = [inline("class_restore.lua", P="GRASSHOPPER")]
+    if arm == "gobble": post.append(inline("gobble_restore.lua", P="BADGER"))
+    return dict(steps=st, ticks=10, nowatch=True, post=post)
+BLOCKS["VRM4"] = dict(fort="CTRL", spot="land", cells={"ctl": vrm4("ctl"), "gobble": vrm4("gobble")})
+
+# LAKEP: lake-layer wild unit survey (lake_wild.lua: feature_idx/cave_id, WILD.layerOf, hand-computed ecoRealm) either
+# side of a written predator-prey relation, plus does the write itself persist in enemy_status_cache over 3,000 ticks
+# at the lake's own shore/water spot (lake_persist.lua). ONE run (no natural replicate variance to average here --
+# documented exception to the two-reps default; invoke with --reps 1).
+def lakep():
+    st = [SUSTAIN, inline("lake_wild.lua", TAG="pre"),
+          "spawn ALLIGATOR 3 {X} {Y} {Z} 5 water", "spawn FISH_CARP 8 {X} {Y} {Z} 5 water", "rel ALLIGATOR FISH_CARP", "watch"]
+    for i in range(6):
+        st += ["step:500", inline("lake_persist.lua", A="ALLIGATOR", B="FISH_CARP", AIDS="{ids:ALLIGATOR}", BIDS="{ids:FISH_CARP}", TAG=f"t{(i + 1) * 500}")]
+    st.append(inline("lake_wild.lua", TAG="t3000"))
+    return dict(steps=st, ticks=10)
+BLOCKS["LAKEP"] = dict(fort="LAKE", spot="shore", cells={"survey_and_persist": lakep()})
+
+# HC4: the HC1-3/HCP "fighting with no relation" pairs again, at the SECOND cavespot of each cavern/pool (the 4th
+# colon-segment of `spot` now selects the skip index main() passes to cx-eco's cavespot verb -- see main()'s fix).
+def nowrite_pair(a, na, b, nb, am="cave", bm="cave", ticks=3000):
+    return dict(steps=[f"spawn {a} {na} {{X}} {{Y}} {{Z}} 5 {am}", f"spawn {b} {nb} {{X}} {{Y}} {{Z}} 5 {bm}"], ticks=ticks)
+BLOCKS["HC4_1"] = dict(fort="BOATS", spot=BOATS_CAVES["1"] + ":1", cells={
+    "TROLLxGORLAK_df": nowrite_pair("TROLL", 5, "GORLAK", 8), "TOAD_GIANT_CAVExELK_BIRD_df": nowrite_pair("TOAD_GIANT_CAVE", 5, "ELK_BIRD", 8)})
+BLOCKS["HC4_2"] = dict(fort="BOATS", spot=BOATS_CAVES["2"] + ":1", cells={
+    "TROGLODYTExELK_BIRD_df": nowrite_pair("TROGLODYTE", 5, "ELK_BIRD", 8), "CRAWLERxCRUNDLE_df": nowrite_pair("VORACIOUS_CAVE_CRAWLER", 5, "CRUNDLE", 8)})
+BLOCKS["HC4_3"] = dict(fort="BOATS", spot=BOATS_CAVES["3"] + ":1", cells={
+    "JABBERERxREACHER_df": nowrite_pair("JABBERER", 5, "REACHER", 8), "OGRExRUTHERER_df": nowrite_pair("BLIND_CAVE_OGRE", 5, "RUTHERER", 8)})
+BLOCKS["HC4_P"] = dict(fort="BOATS", spot="cavepool:63:38:1", cells={
+    "CROC_CAVExELK_BIRD_df": nowrite_pair("CROCODILE_CAVE", 5, "ELK_BIRD", 8, am="cavewater"),
+    "OLM_GIANTxCRUNDLE_df": nowrite_pair("OLM_GIANT", 5, "CRUNDLE", 8, am="cavewater")})
+
+# GPK: giant packs, written relation, 30,000 ticks (CAL's calibration pattern). All three tokens on each side verified
+# present in vanilla DF raws (creature_large_tropical.txt/creature_large_riverlake.txt/creature_temperate_new.txt) --
+# no substitution needed, unlike the task's own hedge. The crocodilian pair at shore on both saltwater-biome forts.
+def gpk(pred, n, prey, nq, pm="land", qm="land"):
+    return dict(steps=[SUSTAIN, f"spawn {prey} {nq} {{X}} {{Y}} {{Z}} 5 {qm}", f"spawn {pred} {n} {{X}} {{Y}} {{Z}} 6 {pm}", f"rel {pred} {prey}"], ticks=30000)
+BLOCKS["GPK"] = dict(fort="CTRL", spot="land", cells={
+    "giant_hyena_pack_x_elephant": gpk("GIANT_HYENA", 10, "ELEPHANT", 2), "giant_dingo_pack_x_rhinoceros": gpk("GIANT_DINGO", 10, "RHINOCEROS", 2)})
+BLOCKS["GPKW"] = dict(fort="OCEAN2", spot="shore", cells={"giant_crocodile_saltwater_x_hippo": gpk("GIANT_CROCODILE_SALTWATER", 4, "HIPPO", 2, pm="water", qm="water")})
+BLOCKS["GPKR"] = dict(fort="RIVER4", spot="shore", cells={"giant_crocodile_saltwater_x_hippo": gpk("GIANT_CROCODILE_SALTWATER", 4, "HIPPO", 2, pm="water", qm="water")})
+
+# FSH2: CAN_SWIM_INNATE written onto two land apex predators vs FISH_PIKE, same bank as FISH; wolf_ctl_pike repeats
+# FISH's own unflagged control exactly (same name) so the three can be read side by side.
+BLOCKS["FSH2"] = dict(fort="RIVER4", spot="shore", cells={
+    "grizzly_swim_pike": wcell("BEAR_GRIZZLY", "land", "FISH_PIKE", "water", n=3, nq=8, ticks=3000, extra=["flag BEAR_GRIZZLY CAN_SWIM_INNATE on"]),
+    "tiger_swim_pike": wcell("TIGER", "land", "FISH_PIKE", "water", n=3, nq=8, ticks=3000, extra=["flag TIGER CAN_SWIM_INNATE on"]),
+    "wolf_ctl_pike": wcell("WOLF", "land", "FISH_PIKE", "water", n=5, nq=8, ticks=3000),
+})
+
+# INV: add an invasive SAVAGE species via the live addNewSpecies path (inv_add.lua, opts.force=true), on CTRL -- whose
+# savagery is read live, not assumed (inv_savagery.lua; V7.alignment() never reads it). YETI (vanilla [SAVAGE]
+# [LARGE_PREDATOR], biomes MOUNTAIN/GLACIER/TUNDRA -- confirmed against the vanilla raws) is the chosen token: it is
+# the vanilla [SAVAGE]+[LARGE_PREDATOR] creature whose biomes are the ones most certainly absent from CTRL's own
+# (temperate) embark, unlike SASQUATCH's ANY_TEMPERATE_FOREST which CTRL may already have. 100,800 ticks (one season),
+# 20 samples every 5,040 ticks via the existing _ALIVE reader.
+def inv():
+    W = "YETI=1"
+    st = [SUSTAIN, inline("inv_savagery.lua", TAG="pre"), inline("inv_add.lua", TOKEN="YETI", CMIN=5, CMAX=10),
+          "watch", _ALIVE.replace("{W}", W)]
+    for i in range(20):
+        st += ["step:5040", _ALIVE.replace("{W}", W)]
+        if i == 9: st.append(SUSTAIN)
+    st.append(inline("inv_savagery.lua", TAG="post"))
+    return dict(steps=st, ticks=10, nowatch=True)
+BLOCKS["INV"] = dict(fort="CTRL", spot="land", cells={"yeti": inv()})
+
+# COH: schools/flocks/pods with a leader. "Cohesion on/off" is implemented, as everywhere else in this file, via the
+# established cx-eco `lead` verb (largest-male vs none) -- the task's own documented substitution for a dedicated
+# tool-side cohesion toggle, which exists in spirit (`seasonal-wildlife groups cohesion`) but re-applies on the
+# TOOL's schedule, not a cx-eco cell's own step loop, so `lead` is the only way this harness can drive and SAMPLE it
+# deterministically every 1,500 ticks. leader_dist.lua (existing) + group_spread.lua (new) sample both ends: member
+# distance to the chosen leader, and the group's own bounding-box spread. No dolphin token exists anywhere in vanilla
+# DF raws (grepped, zero matches) -- the pod arm uses ORCA only; this gap is in the vanilla raws, not the harness.
+def coh(tok, n, medium, how, ticks=15000):
+    st = [f"spawn {tok} {n} {{X}} {{Y}} {{Z}} 4 {medium}", "watch"]
+    for i in range(ticks // 1500):
+        st += [f"lead {tok} {how}", "step:1500", inline("leader_dist.lua", TOKEN=tok, HOW=how, TAG=f"t{(i + 1) * 1500}"),
+               inline("group_spread.lua", TOKEN=tok, TAG=f"t{(i + 1) * 1500}")]
+    return dict(steps=st, ticks=10, nowatch=True)
+BLOCKS["COH"] = dict(fort="CTRL", spot="land", cells={f"flock_duck_{h}": coh("BIRD_DUCK", 12, "land", h) for h in ("largest-male", "none")})
+BLOCKS["COHO"] = dict(fort="OCEAN2", spot="shore", cells={
+    **{f"school_milkfish_{h}": coh("FISH_MILKFISH", 12, "water", h) for h in ("largest-male", "none")},
+    **{f"pod_orca_{h}": coh("ORCA", 6, "water", h) for h in ("largest-male", "none")},
+})
+BLOCKS["COHR"] = dict(fort="RIVER4", spot="shore", cells={f"school_pike_{h}": coh("FISH_PIKE", 12, "water", h) for h in ("largest-male", "none")})
+
+# FVA: TV2's two cells whose 2 replicates disagreed (visionarc_narrow, fleequick), plus TV2's own ctl, rerun for 2
+# MORE replicates (run this block with --reps 2; TV2's original reps are untouched).
+BLOCKS["FVA"] = dict(fort="CTRL", spot="land", cells={
+    "ctl": colo([]),
+    "visionarc_narrow": colo(["misc DEER vision_arc_min 10", "misc DEER vision_arc_max 10"]),
+    "fleequick": colo(["flag DEER FLEEQUICK on"]),
+})
+
+# SCV: scavenging extensions on the S/S2/S3 "walk + delete" recipe (walkeat/corpses2, already proven working -- S2:
+# "'eating remains' = walk + delete, works"). Wolf pack, jackals, a flier (BIRD_VULTURE -- vanilla has it, confirmed;
+# no raven substitution needed), a water-fort corpse, and a cavern corpse. No miasma-tile-count verb exists anywhere
+# in cx-eco/cx-probe, so the cavern cell reuses the same before/after items proxy as S1/corpses2 -- true miasma-tile
+# detection is NOT doable with the current tooling (documented, not invented).
+BLOCKS["SCV"] = dict(fort="CTRL", spot="land", cells={
+    "wolfpack_kill": walkeat("WOLF", "land", "KANGAROO"),
+    "jackal_kill": walkeat("JACKAL", "land", "KANGAROO"),
+    "vulture_kill": walkeat("BIRD_VULTURE", "land", "KANGAROO"),
+})
+BLOCKS["SCVW"] = dict(fort="RIVER4", spot="shore", cells={
+    "corpse_in_water_alligator": walkeat("ALLIGATOR", "water", "FISH_CARP", pmed="water"),
+    "corpse_in_water_wolf_bank": walkeat("WOLF", "land", "FISH_CARP", pmed="water"),
+})
+BLOCKS["SCVC"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={"cavern_miasma_troll": corpses2("TROLL", "cave", "ELK_BIRD")})
+
+# SW1/SW2/SW3 (coordinator, 30 Sep: threshold sweep, experiments/SWEEP-design.md). Shared SW1/SW2 arena: tool on, 5
+# WOLF at the spot, DEER/WATER_BUFFALO/ELEPHANT herds 45-60 tiles off (beyond the 40-tile far_tiles default, so nudge
+# is in play); sw.discoverGroups (exported, confirmed by grep: _ENV.discoverGroups at seasonal-wildlife.lua:6544)
+# adopts the pack as one tracked group immediately rather than waiting on the schedule. _SW_STATUS is the manifest
+# subject receipt every sample: WOLF group membership, cumulative ecology pairs/nudges, and the last pass's own
+# counts -- reads g.ecology.last / g.ecology.nudges directly (loadGroups()), not a re-derived rel_map scan.
+_SW_STATUS = ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local wolfgrp,wolfn=0,0;"
+              " for _,grp in ipairs(g.groups) do if grp.token=='WOLF' then wolfgrp=wolfgrp+1; wolfn=wolfn+#grp.ids end end;"
+              " local e=g.ecology or {}; local last=e.last or {};"
+              " print(('eco swstatus tag={TAG} wolf_groups=%d wolf_members=%d total_groups=%d eco_pairs=%d eco_nudges_total=%d last_nudged=%d last_slotted=%d')"
+              ":format(wolfgrp, wolfn, #g.groups, last.pairs or 0, e.nudges or 0, last.nudged or 0, last.slotted or 0))")
+_SW_CFG_RESTORE = ("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig();"
+                   " c.ecology.cadence=1500; c.ecology.nudge=true; c.ecology.far_tiles=40; c.ecology.far_ticks=3000; c.ecology.radius=6;"
+                   " c.v7.pack_floor=0.05; c.v7.pack_sneak=0.25; sw.saveConfig(c);"
+                   " dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); dfhack.run_command('seasonal-wildlife', 'disable');"
+                   " print('eco swcfg restored=1')")
+def sw_arena():
+    return ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+            "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+            "spawn WOLF 5 {X} {Y} {Z} 3", "spawn DEER 6 {X+50} {Y} {Z} 5", "spawn WATER_BUFFALO 6 {X-50} {Y} {Z} 5",
+            "spawn ELEPHANT 4 {X} {Y+55} {Z} 5",
+            "lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local n=sw.discoverGroups(g); sw.saveGroups(g);"
+            " print(('eco swdiscover n=%d'):format(n))"]
+def sw1(arm):
+    st = sw_arena()
+    if arm == "cad500": st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.ecology.cadence=500; sw.saveConfig(c);"
+                                   " dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); print('eco swcfg cadence=500 ok=1')")
+    elif arm == "cad6000": st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.ecology.cadence=6000; sw.saveConfig(c);"
+                                      " dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); print('eco swcfg cadence=6000 ok=1')")
+    elif arm == "nudge_off": st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.ecology.nudge=false; sw.saveConfig(c);"
+                                        " dfhack.run_command('seasonal-wildlife', 'groups', 'ecology', 'on'); print('eco swcfg nudge_bool=false ok=1')")
+    elif arm == "nudge_tight": st.append("lua:dfhack.run_command('seasonal-wildlife', 'groups', 'nudge', '20', '1500', '6'); print('eco swnudge set=20,1500,6')")
+    st.append("watch")
+    for i in range(20):
+        st += ["step:1500", _SW_STATUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
+        if i == 9: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True, post=[_SW_CFG_RESTORE])
+BLOCKS["SW1"] = dict(fort="CTRL", spot="land", cells={a: sw1(a) for a in ("ctl", "cad500", "cad6000", "nudge_off", "nudge_tight")})
+
+SW2_ARMS = {"ctl": (0.05, 0.25), "floor0": (0.0, 0.25), "floor20": (0.20, 0.25), "sneak0": (0.05, 0.0), "sneak100": (0.05, 1.0)}
+def sw2(arm):
+    floor, sneak = SW2_ARMS[arm]
+    st = sw_arena() + [f"lua:dfhack.run_command('seasonal-wildlife', 'v7', 'pack_floor', '{floor}'); print('eco swv7 key=pack_floor value={floor}')",
+                       f"lua:dfhack.run_command('seasonal-wildlife', 'v7', 'pack_sneak', '{sneak}'); print('eco swv7 key=pack_sneak value={sneak}')",
+                       "watch"]
+    for i in range(20):
+        st += ["step:1500", _SW_STATUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
+        if i == 9: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True, post=[_SW_CFG_RESTORE])
+BLOCKS["SW2"] = dict(fort="CTRL", spot="land", cells={a: sw2(a) for a in SW2_ARMS})
+
+# SW3: natural arrivals (no placed subject), v7.gate_drain now fixes the surface gate stalls T8g found, so this is no
+# longer confounded (coordinator's note). `limits land groups N|auto` via CLI, 50,400 ticks (half a season).
+def sw3(arm):
+    st = ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')"]
+    if arm == "auto":
+        st.append("lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', 'auto'); print('eco swlimits land=auto')")
+    else:
+        n = {"g1": "1", "g3": "3"}[arm]
+        st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', '{n}'); print('eco swlimits land={n}')")
+    st.append("watch")
+    for i in range(1, 11):
+        st += ["step:5040", _SW_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        if i == 5: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True,
+                post=["lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', 'auto'); print('eco swlimits restored=auto')",
+                      "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
+BLOCKS["SW3"] = dict(fort="CTRL", spot="land", cells={a: sw3(a) for a in ("g1", "g3", "auto")})
+
 def prune_autosaves(save, say):
     """DF autosaves at season changes, and an autosave of the fort hides the fort in the Continue list (ECO P2, 30 Sep:
     'save list never showed Folder: CTRL' after P1's 240k ticks). Delete the autosaves of THIS save's world only."""
@@ -614,8 +847,13 @@ def main():
             sh("load", b["fort"], timeout=1200)
             sh("fps", 1000, 10)
             sp = b["spot"].split(":")
-            spot = kv(eco("cavespot", sp[0], 0, *sp[1:])[-1] if sp[0] in ("cavern", "cavepool")
-                      else eco("vspot", *sp[1:])[-1] if sp[0] == "vermin" else eco("spot", sp[0])[-1])
+            if sp[0] in ("cavern", "cavepool"):
+                skip = int(sp[3]) if len(sp) > 3 else 0   # HC4: a 4th colon-segment picks the Nth match, not just the top
+                spot = kv(eco("cavespot", sp[0], skip, *sp[1:3])[-1])
+            elif sp[0] == "vermin":
+                spot = kv(eco("vspot", *sp[1:])[-1])
+            else:
+                spot = kv(eco("spot", sp[0])[-1])
             X, Y, Z = int(spot["x"]), int(spot["y"]), int(spot["z"])
             say(f"  rep {rep}: spot {b['spot']} {X},{Y},{Z}")
             ids, temps = {}, []
