@@ -429,3 +429,7 @@ scavLast printed per pass, POND_GRABBER for the water cell) queued in chain-nigh
 The pre looped `ipairs('land','cavern')`: a string, so zero iterations and no `roster build` (no 's8 build' line). Tool
 on, gate_drain on, builder switch on but no built roster: a v7.0 season on the existing roster. Fixed in S8C/S8B/S8O
 (ipairs({...})) before S8B/S8O ran; S8Cb (builder on) queued in chain-night5.
+S8C builder-off tally (scripts/s8-tally.py): surface 45 units / 7 waves (rep 1), 34 / 10 (rep 2); predators 4% and 0% of
+surface units (2 kestrels); ravens 40 and 24 units. Cavern 96 / 29 and 41 / 25, predators 65% and 95% of units (troglodytes,
+jabberers, pond grabbers, blood men). A 'deep' layer delivered DEMON_* groups (15 and 16 units, 4-5 waves) on CTRL both reps.
+Deaths 39 and 20, all cavern natives (elk birds, troglodytes). pelagic_beached 0 (no water layer on CTRL).
