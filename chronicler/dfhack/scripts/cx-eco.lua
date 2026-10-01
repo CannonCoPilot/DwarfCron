@@ -27,8 +27,10 @@
 --                                            places its groups (R15); livestock only when asked; close = also close
 --                                            the site's Animal pool entries (no new natives). Receipt by origin.
 --   cx-eco wipecheck [livestock]             animals still on the map (remaining) and still vanishing (pending)
---   cx-eco spawn ... [countdown] [roam]      11th arg 'roam' KEEPS DF's roaming flag, so DF treats the unit as wild
---                                            (isolates DF's own aiming of non-wild units, H4); default clears it
+--   cx-eco spawn ... [countdown] [opts]      opts after the 10 positionals: roam (keep DF's roaming flag: DF treats
+--                                            the unit as wild, H4), slot=none|stranger, ref=site|first, debit=1|0,
+--                                            legacy (= slot=stranger ref=first debit=0, the pre-v7.1 rig). Defaults
+--                                            match the tool's PLACE.one: NONE row, the site's own entry, debited.
 --   cx-eco watch [bout_gap=100] [wildpred]   as before, plus a timestamped attack log (attacker/defender origin) and
 --                                            hidden_in_ambush/hidden_ambusher sampled every 10 t on placed units and
 --                                            recent attackers (wildpred: every wild carnivore too) (H6)
@@ -470,23 +472,67 @@ elseif cmd == 'spawn' then
     local x0, y0, z0 = tonumber(args[4]), tonumber(args[5]), tonumber(args[6])
     local radius, medium, sex = tonumber(args[7]) or 3, args[8] or 'land', args[9] or 'any'
     local countdown = tonumber(args[10]) or 200000
-    -- 'roam' keeps DF's roaming flag: DF then treats the unit as wild (it is not aimed at newcomers as a fort-side
-    -- unit, and it counts toward DF's surface gate). Default clears it, as every block before v7.1 did (H4).
-    local roam = args[11] == 'roam'
+    -- Options after the 10 positionals (v7.1 harness, 1 Oct 2026; ANSWERS.md R1 "the rig placed"):
+    --   roam        keep DF's roaming flag: DF then treats the unit as wild -- it is not aimed at newcomers as a
+    --               fort-side unit, and it counts toward DF's surface gate (H4). Default clears it, as before.
+    --   slot=none   (default) the new enemy-status row/column is NONE (-1), as the tool's PLACE.enemySlot writes
+    --               since v7.0 (SLOTV). slot=stranger is the pre-v7.1 rig: 0 = STRANGER, which predators fight
+    --               (E11c) -- every rig-placed hunter before 1 Oct 2026 started with that row.
+    --   ref=site    (default) the race's own Animal entry on the site's region tiles (+1 ring), on the medium's
+    --               layer when there is one; else its first entry anywhere; else a borrowed surface entry of another
+    --               species. ref=first is the pre-v7.1 rig: the race's first entry anywhere, else borrowed.
+    --   debit=1     (default) take 1 from the referenced entry per unit (floor 0), as PLACE.fromEntry does; never
+    --               when the entry is borrowed (it is another species' stock). debit=0 is the pre-v7.1 rig.
+    --   legacy      all three pre-v7.1 behaviours at once (slot=stranger ref=first debit=0): reproduces old blocks.
+    -- The countdown stays the rig's own (200,000 by default, so subjects stay for the whole cell; the tool's
+    -- PLACE.one uses 25,000): pass a 10th positional to match the tool.
+    local opt = { slot = 'none', ref = 'site', debit = '1' }
+    for i = 11, #args do
+        local k, v = tostring(args[i]):match('^(%w+)=(%w+)$')
+        if k then opt[k] = v
+        elseif args[i] == 'legacy' then opt.slot, opt.ref, opt.debit = 'stranger', 'first', '0'
+        else opt[args[i]] = true end
+    end
+    local roam = opt.roam == true
     local craw, ridx = raw_of(token or '')
     if not craw then do return fail('no creature ' .. tostring(token)) end end
-    -- a population reference: the species' own site entry when it has one, else any Animal entry (borrowed:
-    -- only the refund target on departure changes; runs are short and never saved)
-    local ref, borrowed
-    for _, p in ipairs(df.global.world.populations.all) do
-        if p.type == df.world_population_type.Animal and p.race == ridx then ref = p; break end
+    -- the population reference (see ref= above). Only the refund target on departure and the unit's membership of
+    -- an entry change with it; the fort is never saved.
+    local ref, refkind
+    if opt.ref == 'site' then
+        local site = df.world_site.find(df.global.plotinfo.site_id)
+        if site then
+            local sx0, sx1 = site.global_min_x // 16 - 1, site.global_max_x // 16 + 1
+            local sy0, sy1 = site.global_min_y // 16 - 1, site.global_max_y // 16 + 1
+            local wantCave = medium == 'cave' or medium == 'cavewater'
+            local any
+            for _, p in ipairs(df.global.world.populations.all) do
+                local r = p.population
+                if p.type == df.world_population_type.Animal and p.race == ridx and r.region_x >= sx0 and r.region_x <= sx1
+                    and r.region_y >= sy0 and r.region_y <= sy1 then
+                    any = any or p
+                    if (r.cave_id >= 0) == wantCave then ref = p; break end
+                end
+            end
+            ref = ref or any
+            if ref then refkind = 'site' end
+        end
     end
     if not ref then
         for _, p in ipairs(df.global.world.populations.all) do
-            if p.type == df.world_population_type.Animal and p.population.feature_idx == -1 and p.population.cave_id == -1 then ref, borrowed = p, true; break end
+            if p.type == df.world_population_type.Animal and p.race == ridx then ref, refkind = p, 'world'; break end
+        end
+    end
+    if not ref then
+        for _, p in ipairs(df.global.world.populations.all) do
+            if p.type == df.world_population_type.Animal and p.population.feature_idx == -1 and p.population.cave_id == -1 then ref, refkind = p, 'borrowed'; break end
         end
     end
     if not ref then do return fail('no Animal population entry to reference') end end
+    local borrowed = refkind == 'borrowed'
+    local slotval = opt.slot == 'stranger' and 0 or -1
+    local debit = opt.debit ~= '0' and not borrowed
+    local debited = 0
     local castes = {}
     for ci, cst in ipairs(craw.caste) do
         if sex == 'any' or (sex == 'male' and cst.sex == 1) or (sex == 'female' and cst.sex == 0) then castes[#castes + 1] = ci end
@@ -526,18 +572,20 @@ elseif cmd == 'spawn' then
             for i = 0, #cache.slot_used - 1 do
                 if not cache.slot_used[i] then
                     cache.slot_used[i] = true
-                    for j = 0, #cache.slot_used - 1 do cache.rel_map[i][j].ur = 0; cache.rel_map[j][i].ur = 0 end
+                    for j = 0, #cache.slot_used - 1 do cache.rel_map[i][j].ur = slotval; cache.rel_map[j][i].ur = slotval end
                     u.enemy.enemy_status_slot = i
                     if cache.next_slot <= i then cache.next_slot = i + 1 end
                     break
                 end
             end
+            if debit and ref.quantity > 0 then ref.quantity = ref.quantity - 1; debited = debited + 1 end
             ids[#ids + 1] = u.id
             S.spawned[u.id] = token
         end
     end
     out('spawn', { { 'token', token }, { 'asked', n }, { 'placed', #ids }, { 'medium', medium }, { 'at', x0 .. ',' .. y0 .. ',' .. z0 },
-        { 'borrowed_ref', borrowed and 1 or 0 }, { 'roam', roam and 1 or 0 }, { 'ids', table.concat(ids, ',') } })
+        { 'borrowed_ref', borrowed and 1 or 0 }, { 'ref', refkind }, { 'slot', slotval }, { 'debited', debited },
+        { 'countdown', countdown }, { 'roam', roam and 1 or 0 }, { 'ids', table.concat(ids, ',') } })
 
 elseif cmd == 'corpse' then
     -- corpse IDS: every listed spawned unit dies on the spot (blood drained, as exterminate's destroy does) and
