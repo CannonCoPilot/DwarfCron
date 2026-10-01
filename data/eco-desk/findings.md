@@ -249,3 +249,9 @@ ECO LONE (data/experiments/ECO/LONE-20260930-184842; CTRL tool off, 1 COUGAR amo
   One-sided permutation p: placed kills .25, all kills .13, placed attacks .20 -> direction favours pkg, n=5 too few.
   Kills: groundhog 8, goat 5, kangaroo 1, rabbit 1, elk 1 (pkg); no deer/buffalo kills. At density a lone hunter hunts
   (~3 kills/season unchanged): encounter, not ability, limited STL/CAL.
+ECO REACH (data/experiments/ECO/REACH-20260930-193803; relation written, 3 pred vs 6 prey, 2 reps; kills summed of 12): CROCODILE_SALTWATER x swimming BEAVER
+  12/12; x CAPYBARA placed r15 on land 10/12 (1-3 of 3 crocs on dry tiles in every 1k sample -> crocs go ashore; capybaras
+  49 attacks back, 0 crocs lost). SHARK_TIGER x HARP_SEAL in water 4/12 (0,4), on shore 0/12. BIRD_KEA x GREY_PARROT 5/12;
+  BIRD_EAGLE (BENIGN off) x RAVEN 2/12, x RABBIT 0/12 (0 attacks); OWL_GREAT_HORNED x STORK 1/12. BOATS cav1: BAT_GIANT x
+  BUGBAT 1/12, x CRUNDLE 5/12 (1 bat lost each in rep 2); SWALLOW_CAVE_GIANT (BENIGN off) x BUGBAT 4/12. RIVER4 WOLF x5 vs
+  PIKE x8: swim-only 0 att, swim+breathe 1 att/rep, ctl 0 -> 0/16 kills every arm: swim flags do NOT make a wolf fish.

@@ -490,6 +490,20 @@ BLOCKS["RELS"] = dict(fort="CTRL", spot="land", cells={
     "nat": rels(ticks=100800), "lion": rels("LION"), "lion_benign": rels("LION", flags=("BENIGN on",)),
     "lion_nolp": rels("LION", flags=("LARGE_PREDATOR off",)), "lion_ambush": rels("LION", flags=("AMBUSHPREDATOR on",)),
     "deer": rels("DEER"), "badger": rels("BADGER", 4)})
+# SLOTV (user 30 Sep: "verify on the rig then fix both paths"): what value does DF itself leave in rel_map? The tool's
+# PLACE.enemySlot and ecoClearDeparted write 0 (STRANGER) across a slot's row and column; the sweep writes -1 (NONE).
+# Histograms of ur: pairs among slotted units, rows of unused slots, and rows of slots DF allocated since the last read.
+_SLOTV = ("lua:local c=df.global.world.enemy_status_cache; local n=#c.slot_used; _G.__slotv_prev=_G.__slotv_prev or {};"
+          " local P=_G.__slotv_prev; local S={}; for _,u in ipairs(df.global.world.units.active) do local sl=u.enemy.enemy_status_slot"
+          " if sl>=0 and not dfhack.units.isDead(u) then S[#S+1]=sl end end; local function h(tag,cells) local H={} for _,v in ipairs(cells) do"
+          " H[v]=(H[v] or 0)+1 end; for v,k in pairs(H) do print(('eco slotv tag={T} scope=%s ur=%s n=%d'):format(tag,tostring(df.unit_reaction_type[v] or v),k)) end end;"
+          " local pc={}; for i=1,#S do for j=1,#S do if i~=j then pc[#pc+1]=c.rel_map[S[i]][S[j]].ur end end end; h('pairs',pc);"
+          " local uc={}; local nu=0; for i=0,n-1 do if not c.slot_used[i] and nu<20 then nu=nu+1; for j=0,n-1 do uc[#uc+1]=c.rel_map[i][j].ur end end end; h('unused',uc);"
+          " local nc={}; local nn=0; for _,sl in ipairs(S) do if not P[sl] then nn=nn+1; for _,o in ipairs(S) do if o~=sl then nc[#nc+1]=c.rel_map[sl][o].ur end end end end; h('new',nc);"
+          " for _,sl in ipairs(S) do P[sl]=true end; print(('eco slotv tag={T} slotted=%d unused_rows=%d new_slots=%d next=%d'):format(#S,nu,nn,c.next_slot))")
+BLOCKS["SLOTV"] = dict(fort="CTRL", spot="land", cells={"probe": dict(steps=[
+    "lua:_G.__slotv_prev=nil; print('eco slotv reset=1')", _SLOTV.replace("{T}", "t0"), "step:100", _SLOTV.replace("{T}", "t100"),
+    "step:2900", _SLOTV.replace("{T}", "t3000"), "step:6000", _SLOTV.replace("{T}", "t9000")], ticks=10, nowatch=True)})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.
