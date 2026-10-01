@@ -394,3 +394,9 @@ rep 1 (ELEPHANT 4, WATER_BUFFALO 33 vs ctl 52, 6) but not in rep 2 (19, 3); floo
 buffalo). Five wolves against an elephant sit at ~5% of its mass, so the 0.05 floor admits the pair and 0.20 forbids it --
 the direction fits, but floor20 is the 3rd cell. Kills on placed prey 0-1 per run in every arm; sneak 0 / 1.0 no lift
 (as STL/STL2). Read with SW2R (reversed order) before changing a default.
+
+## SW3 — land groups at once 1 / 3 / auto (item 11; 1 Oct night, CTRL natural arrivals, 50,400 t, 2 reps, counterbalanced)
+UNINFORMATIVE: the status line counted every tracked group (total_groups ~13-23, mostly cavern groups), so the land limit
+cannot show in G or W; attacks 0 in 5 of 6 cells, deaths are cavern natives. Limit receipts land=1/3/auto present in every
+cell. Fix: _SW_STATUS now prints land_groups/cavern_groups/water_groups and sweep-tally scores SW3/SW3B/SW7 on land_groups;
+SW3B (same arms) queued in chain-night5.

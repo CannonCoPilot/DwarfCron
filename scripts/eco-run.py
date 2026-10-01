@@ -782,11 +782,13 @@ BLOCKS["SCVC"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={"cavern_miasma
 # adopts the pack as one tracked group immediately rather than waiting on the schedule. _SW_STATUS is the manifest
 # subject receipt every sample: WOLF group membership, cumulative ecology pairs/nudges, and the last pass's own
 # counts -- reads g.ecology.last / g.ecology.nudges directly (loadGroups()), not a re-derived rel_map scan.
-_SW_STATUS = ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local wolfgrp,wolfn=0,0;"
-              " for _,grp in ipairs(g.groups) do if grp.token=='WOLF' then wolfgrp=wolfgrp+1; wolfn=wolfn+#grp.ids end end;"
+# 1 Oct: + land/cavern/water group counts (SW3 rep 1-2 could not see the land limit in total_groups: ~15 cavern groups)
+_SW_STATUS = ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local wolfgrp,wolfn=0,0; local L={land=0,cavern=0,water=0};"
+              " for _,grp in ipairs(g.groups) do if grp.token=='WOLF' then wolfgrp=wolfgrp+1; wolfn=wolfn+#grp.ids end;"
+              " local k=grp.layer or 'land'; L[k]=(L[k] or 0)+1 end;"
               " local e=g.ecology or {}; local last=e.last or {};"
-              " print(('eco swstatus tag={TAG} wolf_groups=%d wolf_members=%d total_groups=%d eco_pairs=%d eco_nudges_total=%d last_nudged=%d last_slotted=%d')"
-              ":format(wolfgrp, wolfn, #g.groups, last.pairs or 0, e.nudges or 0, last.nudged or 0, last.slotted or 0))")
+              " print(('eco swstatus tag={TAG} wolf_groups=%d wolf_members=%d total_groups=%d land_groups=%d cavern_groups=%d water_groups=%d eco_pairs=%d eco_nudges_total=%d last_nudged=%d last_slotted=%d')"
+              ":format(wolfgrp, wolfn, #g.groups, L.land, L.cavern, L.water, last.pairs or 0, e.nudges or 0, last.nudged or 0, last.slotted or 0))")
 _SW_CFG_RESTORE = ("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig();"
                    " c.ecology.cadence=1500; c.ecology.nudge=true; c.ecology.far_tiles=40; c.ecology.far_ticks=3000; c.ecology.radius=6;"
                    " c.v7.pack_floor=0.05; c.v7.pack_sneak=0.25; sw.saveConfig(c);"
@@ -850,6 +852,7 @@ def sw3(arm):
                 post=["lua:dfhack.run_command('seasonal-wildlife', 'limits', 'land', 'groups', 'auto'); print('eco swlimits restored=auto')",
                       "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
 BLOCKS["SW3"] = dict(fort="CTRL", spot="land", cells={a: sw3(a) for a in ("g1", "g3", "auto")})
+BLOCKS["SW3B"] = dict(fort="CTRL", spot="land", cells={a: sw3(a) for a in ("g1", "g3", "auto")})   # rerun with land_groups
 
 # SW4 LADDER (coordinator, 30 Sep: SWEEP-design.md row f). Follows the F1 design (experiments/ECO-F1.json) exactly:
 # tool disarmed by cfg (cfg.enabled/groups.enabled/ecology.enabled=false + disableSched -- NOT `seasonal-wildlife
@@ -1188,7 +1191,7 @@ def main():
 
 
 # 1 Oct 01:20: counterbalance the not-yet-run sweep blocks (see the cell loop in main)
-for _b in ("SW3", "SW4", "SW5", "SW6", "SW7"):
+for _b in ("SW3", "SW3B", "SW4", "SW5", "SW6", "SW7"):
     BLOCKS[_b]["counterbalance"] = True
 
 if __name__ == "__main__":
