@@ -1,0 +1,46 @@
+{
+ "id": "S8B",
+ "title": "Item 8: a season of v7.0 with the roster builder on BOATS (surface, open caverns, salt river).",
+ "fork": "v7.0 with the roster builder on: do arrivals by guild follow the ladder, how many kills per arrival, what predator share, and (OCEAN2) do placed pelagic apexes strand.",
+ "fort": "BOATS",
+ "backup": "BOATS.preverify",
+ "fps": 1000,
+ "sample_every": 5000,
+ "tick_budget": 100800,
+ "combat": true,
+ "tool_must_be": {
+  "enabled": 1,
+  "scheduled": 1,
+  "groups_enabled": 1
+ },
+ "predictions": [
+  {
+   "model": "ladder",
+   "expects": "arrival shares by guild track the builder's FREQUENCY ladder within a few points; apex and meso arrivals are rare"
+  },
+  {
+   "model": "predator share",
+   "expects": "predator arrivals near the builder's target (~15% on land), kills per arrival under 1"
+  }
+ ],
+ "kill_criterion": "the tool off or the builder unfilled on every layer (no 's8 build' line with filled slots) voids the run",
+ "culling": [
+  "the first sample (pre-existing units are listed as 'new' at t0)"
+ ],
+ "arms": [
+  {
+   "name": "v70",
+   "replicates": 2,
+   "pre": [
+    "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.cavern=true; cfg.layers.water=true; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.ecology.enabled=true; cfg.water.enabled=true; cfg.v7.builder=true; sw.saveConfig(cfg); for _,l in ipairs('land','cavern','water') do local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','roster','build',l); print(('s8 build %s: %s'):format(l, (out or '?'):gsub('\\n',' | '):sub(1,1500))) end; dfhack.run_command_silent('seasonal-wildlife','enable'); local c2=sw.loadConfig(); print(('s8 cfg enabled=%s builder=%s gate_drain=%s domestic=%s'):format(tostring(c2.enabled),tostring(c2.v7.builder),tostring(c2.v7.gate_drain),tostring(c2.v7.domestic)))",
+    "_G.__s8seen=nil; print('s8 seen reset')"
+   ],
+   "every": {
+    "ticks": 5000,
+    "do": [
+     "local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds))"
+    ]
+   }
+  }
+ ]
+}
