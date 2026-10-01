@@ -8,7 +8,8 @@ Precedence (design.md section 1): layer pool -> guild slot table -> diet matrix 
 import math, random, hashlib, copy
 from dataclasses import dataclass, replace
 from collections import Counter, defaultdict
-from species2 import load, is_water, is_wetland, is_sub, SEASONS, boosted, tier, PRED_GUILDS
+from species2 import load, is_water, is_wetland, is_sub, SEASONS, boosted, tier, PRED_GUILDS, SCAV, ECO as _ECO
+import csv as _csv
 
 SP = load()
 
@@ -21,8 +22,34 @@ def _sp21():
         z = S[sid]; z.guild = 'MW'; z.apex = False; z.apex_why = 'v2.1: water meso (%d cm3)' % z.mass
     return S
 SP21 = _sp21()
-def species(cfg): return SP21 if cfg.v21 else SP
-def species_for(label): return SP21 if label.startswith('v21') else SP
+
+# ------------------------------------------------------------------ v2.2 species (user rulings 30 Sep 2026, evening)
+FLY_APEX_MIN = 2000           # flying apex: a non-scavenger raptor of at least 2 kg (calm: eagle, owls, osprey; savage adds giants, pterosaurs)
+FISHERS = {'BEAR_GRIZZLY', 'BEAR_BLACK', 'TIGER', 'JAGUAR'}   # land apexes that fish; the tool writes swim flags on them
+def _gobble():
+    """DF's own vermin-eating tokens from the census: consumer -> set of GOBBLE_VERMIN_CLASS; vermin -> creature classes."""
+    G, C = {}, {}
+    for r in _csv.DictReader(open(_ECO / 'tokens-by-creature.tsv'), delimiter='\t'):
+        if r['GOBBLE_VERMIN_CLASS'] not in ('', '0'): G[r['id']] = set(r['GOBBLE_VERMIN_CLASS'].replace('some:', '').split('|'))
+        C[r['id']] = set(x for x in r['creature_classes'].split(',') if x)
+    return G, C
+GOBBLE, CCLASS = _gobble()
+def _sp22():
+    """natural class + GOOD/EVIL species (tool class mythic/unliving) + the FANCIFUL-only wildlife (yeti, sasquatch)."""
+    S = load(include_classes=('natural', 'mythic', 'unliving'))
+    S = {k: v for k, v in S.items() if v.eco == 'natural' or v.good or v.evil or (v.fanciful and v.lr)}
+    for sid in MW_NOT_APEX:
+        if sid in S: z = S[sid]; z.guild = 'MW'; z.apex = False; z.apex_why = 'v2.1: water meso (%d cm3)' % z.mass
+    for z in S.values():
+        z.fisher = z.id in FISHERS
+        z.monster = (z.good or z.evil or z.fanciful) and not z.vermin      # GOOD/EVIL wildlife: attacks by its guild even if it speaks
+        if z.guild == 'RP' and not z.vermin and not z.sentient and not z.apex and z.mass >= FLY_APEX_MIN and z.id not in SCAV \
+                and not any(is_sub(x) for x in z.biomes):                  # cave raptors stay mesopredators (they eat bats)
+            z.apex = True; z.apex_why = 'v2.2 flying apex (%d g)' % z.mass
+    return S
+SP22 = _sp22()
+def species(cfg): return SP22 if cfg.v22 else SP21 if cfg.v21 else SP
+def species_for(label): return SP22 if label.startswith('v22') else SP21 if label.startswith('v21') else SP
 
 # ------------------------------------------------------------------ embarks (v1's 7 + 4 water/deep extras)
 EMBARKS = {
@@ -56,8 +83,11 @@ SLOTS = {
     'cavw':   [('APX', 1, 1), ('FF', 0, 2), ('SH', 0, 2), ('MW', 0, 1), ('SN', 0, 1), ('VF', 1, 3)],
     'deep':   [('APX', 0, 1), ('PL', 0, 2), ('ML', 0, 1)],
 }
+SLOTS22 = dict(SLOTS, cav=SLOTS['cav'] + [('VI', 0, 2)])     # v2.2: cavern flying insects (none in vanilla pools; kept for mods)
+def _with_snp(t): return [x for k in t for x in ([k, ('SNP', 0, 1)] if k[0] == 'SN' else [k])]
+SLOTS22 = {k: _with_snp(v) for k, v in SLOTS22.items()}   # v2.2: a prey-guild animal person gets its own slot (insect/bird men)
 def slot_table(layer, cfg, deep_cols):
-    t = SLOTS['cav' if layer.startswith('cav') and not layer.startswith('cavw') else 'cavw' if layer.startswith('cavw') else layer]
+    t = (SLOTS22 if cfg.v22 else SLOTS)['cav' if layer.startswith('cav') and not layer.startswith('cavw') else 'cavw' if layer.startswith('cavw') else layer]
     out = []
     for k, lo, hi in t:
         if k == 'APX' and layer == 'land' and cfg.savage: hi = 2                     # wiki: 2 LP groups on savage maps
@@ -76,6 +106,12 @@ LADDER21 = {
     'flying': {'APX': 2, 'RP': 2, 'LB': 6, 'WB': 6},
     'water':  {'APX': 2, 'APE': 2, 'AW': 2, 'MW': 3, 'ML': 3, 'FC': 8, 'FF': 8, 'PE': 2, 'SH': 4, 'WB': 6},
     'cav':    {'APX': 3, 'ML': 3, 'GZ': 6, 'PL': 5, 'SH': 4, 'RP': 2, 'LB': 6, 'WB': 6, 'AL': 3, 'AW': 2},
+}
+LADDER22 = {   # v2.2: searched so predators are ~14-18% of land arrivals and ~8-10% of ocean ones (results22.md section 2)
+    'land':   {'APX': 4, 'AL': 4, 'AW': 4, 'ML': 2, 'GZ': 10.5, 'PL': 8.75, 'SH': 7},          # prey x1.75 of v2.1
+    'flying': {'APX': 2, 'RP': 2, 'LB': 30, 'WB': 30},                                      # prey x5: still ~19%
+    'water':  {'APX': 3, 'APE': 3, 'AW': 3, 'MW': 2, 'ML': 2, 'FC': 12, 'FF': 12, 'PE': 2, 'SH': 6, 'WB': 9},   # prey x1.5
+    'cav':    {'APX': 3, 'AL': 3, 'AW': 3, 'ML': 2, 'RP': 2, 'GZ': 12, 'PL': 10, 'SH': 8, 'LB': 12, 'WB': 12},  # prey x2
 }
 def ladder_family(layer):
     if layer in ('ocean', 'lake', 'river') or layer.startswith('cavw'): return 'water'
@@ -116,6 +152,12 @@ class Cfg:
     pelagic_apex: bool = False    # ocean: one coastal apex + one pelagic apex (APE)
     ladder21: bool = False        # FREQUENCY written = LADDER21 x within-slot mass scaling
     mass_floor: float = 0.0       # v2.1 pack-mass floor: hunting group's total mass >= this x prey mass (0 = off; CAL)
+    # v2.2 switches (user rulings 30 Sep evening)
+    v22: bool = False             # v2.2 species (GOOD/EVIL, fishers, flying apex) and diet (cavern fliers, gobble, fishers)
+    align: str = ''               # '' calm-aligned region | 'good' | 'evil': GOOD / EVIL species admitted on matching regions
+    sneak_ratio: float = 0.25     # edges whose group mass >= this x prey mass carry the sneak bonus (tool gives the pack SNEAK)
+    veg: bool = False             # vegetation link: a herbivore with no predator is kept when the embark's vegetation supports it
+    civ_attack: bool = False      # cavern civ races (troglodytes, amphibian/reptile/serpent/rodent/ant men...) attack by guild
 
 PREF_RATIO = {'AL': 0.8, 'AW': 0.5, 'ML': 0.3, 'MW': 0.2, 'RP': 0.3}   # preferred prey / effective predator mass
 
@@ -139,6 +181,7 @@ def in_layer(s, bset, layer, cfg):
     hit = s.biomes & bset
     if not hit: return False
     if layer == 'flying':
+        if cfg is not None and cfg.v22 and s.vermin and s.vclass == 'VC': return False   # v2.2: hives sit on land (VC slot)
         return s.flier and (s.lr or s.vermin)
     if layer == 'land':
         if s.flier: return False
@@ -146,6 +189,9 @@ def in_layer(s, bset, layer, cfg):
         return s.lr and not s.aquatic and bool({b for b in hit if not is_water(b)})
     key = {'ocean': 'OCEAN', 'lake': 'LAKE', 'river': 'RIVER'}[layer]
     wh = {b for b in hit if b.startswith(key)}
+    if cfg is not None and cfg.v22 and getattr(s, 'fisher', False) and any(b.startswith(key) for b in bset) \
+            and _land_biomes(s) & bset:
+        return True                                           # v2.2: a land apex that fishes joins the water web on its shore
     if not wh: return False
     if s.vermin: return s.vclass == 'VF'
     if not s.lr: return False
@@ -154,7 +200,7 @@ def in_layer(s, bset, layer, cfg):
 
 _POOL = {}
 def pool(ekey, layer, season, cfg):
-    k = (ekey, layer, season, cfg.savage, cfg.savage_filter, cfg.extinct, cfg.cav_mode, cfg.allow, cfg.realm, cfg.v21)
+    k = (ekey, layer, season, cfg.savage, cfg.savage_filter, cfg.extinct, cfg.cav_mode, cfg.allow, cfg.realm, cfg.v21, cfg.v22, cfg.align)
     if k not in _POOL:
         bset = EMBARKS[ekey][0] if ekey in EMBARKS else set()
         out = []
@@ -164,7 +210,10 @@ def pool(ekey, layer, season, cfg):
             if s.source == 'extinct' and not cfg.extinct: continue
             if cfg.savage_filter and s.savage and not cfg.savage and not (layer.startswith('cav') or layer == 'deep'):
                 continue       # wiki: SAVAGE "will only show up in savage biomes"; "no effect on cavern creatures"
-            if s.good or s.evil: continue
+            if s.good or s.evil:
+                if not cfg.v22: continue
+                under = layer.startswith('cav') or layer == 'deep'      # audit: GOOD/EVIL tags only limit taming underground
+                if not under and not ((s.good and cfg.align == 'good') or (s.evil and cfg.align == 'evil')): continue
             if cfg.allow is not None and s.id not in cfg.allow: continue
             if cfg.realm is not None:
                 ok = set(cfg.realm) | {'COS', 'CAVE'} | ({'OCE'} if layer in WATER_LAYERS else set())
@@ -176,7 +225,7 @@ def pool(ekey, layer, season, cfg):
 # ------------------------------------------------------------------ slot key and diet matrix
 def slot_of(s, layer, cfg=None):
     if s.vermin: return s.vclass
-    if s.sentient: return 'SN'
+    if s.sentient: return 'SNP' if (cfg is not None and cfg.v22 and tier(s) == 1) else 'SN'
     if cfg is not None and cfg.pelagic_apex and layer == 'ocean' and s.id in PEL_APEX: return 'APE'
     if s.apex: return 'APX'
     g = s.guild
@@ -191,6 +240,21 @@ DIET = {   # eater guild -> prey guilds (same layer). Intraguild predation only 
     'RP': {'LB', 'WB', 'RP', 'SN', 'VB', 'VI'},
 }
 VERMIN_DIET = {'VB': {'VI'}}
+CAVE_LB_DIET = {'VB', 'VI', 'VG'}       # v2.2: cavern bats / floaters eat flying (and ground) vermin: never left as singletons
+CAVE_RP_EXTRA = {'PL', 'GZ', 'SH'}      # v2.2 (user: yes): cavern raptors also take cavern land prey (reach to be tested)
+def is_cave(layer): return bool(layer) and (layer.startswith('cav') and not layer.startswith('cavw') or layer == 'deep')
+def diet_of(p, layer, cfg):
+    d = DIET.get(p.guild)
+    if not (cfg is not None and cfg.v22): return d
+    d = set(d or ())
+    if p.guild == 'RP' and is_cave(layer): d |= CAVE_RP_EXTRA
+    if p.guild == 'LB' and is_cave(layer): d |= CAVE_LB_DIET
+    if getattr(p, 'fisher', False) and layer in WATER_LAYERS: d |= {'FF', 'FC', 'SH', 'WB'}   # fish, and shore animals/birds at the edge
+    if p.id in GOBBLE: d |= {'VG', 'VC'}              # DF's own GOBBLE_VERMIN_CLASS eaters (fowl, hedgehog, pangolin)
+    return d or None
+def gobble_native(p, x):
+    """True when DF's raws already make p eat vermin x (GOBBLE_VERMIN_CLASS matches x's creature class)."""
+    return bool(GOBBLE.get(p.id, set()) & CCLASS.get(x.id, set()))
 
 def cleared(p, cfg):
     """BENIGN is cleared by the tool: boosted apex always (T1); v2.1 every predator-guild member it arms."""
@@ -201,13 +265,15 @@ def eff_mass(p, cfg=None):
     g = p.cmid if (p.cmax > 1 and not (eff_benign(p, cfg) if cfg is not None and cfg.v21 else p.benign)) else 1
     return p.mass * g ** 0.75
 
-def attack_ok_on_sentient(p, cfg=None):
+def attack_ok_on_sentient(p, cfg=None, x=None):
+    if cfg is not None and cfg.v22 and p.apex and p.guild == 'RP' and x is not None and x.flier: return True   # v2.2 flying apex
     if cfg is not None and cfg.humanoid_guilds: return p.guild in cfg.humanoid_guilds
     return p.lp or (p.giant and (p.carn or p.bonecarn))
 
 def reach(p, x):
     """DF reach (W1L/W1O): 'ok' measured pattern, 'untested', or None = impossible (no edge)."""
     if x.vermin or p.vermin: return 'stock'
+    if getattr(p, 'fisher', False) and x.aquatic: return 'untested'   # v2.2: swim flags written by the tool (HR wolf: 2 attacks)
     if p.aquatic:
         if x.aquatic or x.amphib: return 'ok'
         if x.guild in ('SH', 'WB'): return 'untested'          # penguins / waterbirds in water
@@ -218,7 +284,7 @@ def reach(p, x):
     if x.flier: return 'untested'
     return 'ok'
 
-def edge(p, x, cfg):
+def edge(p, x, cfg, layer=None):
     """(allowed, pref_weight, kind) where kind in {'unit', 'stock'}; None if not an edge."""
     if p.id == x.id: return None
     if tier(p) <= tier(x): return None                          # strict downward: no mutual, no apex-on-apex
@@ -226,12 +292,14 @@ def edge(p, x, cfg):
         return (1.0, 'stock') if x.vermin and x.vclass in VERMIN_DIET.get(p.vclass, ()) else None
     g = p.guild
     xs = 'SN' if x.sentient else ('MW' if (x.guild == 'ML' and x.amphib and x.aquatic) else x.guild)
-    diet = DIET.get(g)
+    diet = diet_of(p, layer, cfg)
     if diet is None: return None
     if boosted(p): diet = diet | {g}                           # boosted apex eats its own home guild (giant fox > fox)
+    if x.vermin and cfg.v22 and p.id in GOBBLE and not gobble_native(p, x) and g not in DIET: return None   # gobblers: their class only
     if xs not in diet: return None
-    if x.sentient and cfg.humanoid_rule and not attack_ok_on_sentient(p, cfg): return None
-    if p.sentient and not (cfg.sentient_attack or (cfg.ap_attack and p.kind == 'animal_person')): return None
+    if x.sentient and cfg.humanoid_rule and not attack_ok_on_sentient(p, cfg, x): return None
+    if p.sentient and not (cfg.sentient_attack or (cfg.ap_attack and p.kind == 'animal_person')
+                           or (cfg.v22 and getattr(p, 'monster', False)) or cfg.civ_attack): return None
     if x.vermin: return (1.0, 'stock')
     if reach(p, x) is None: return None
     if cfg.mass_floor:
@@ -262,9 +330,9 @@ def relations(ekey, layer, season, cfg):
         E = {}
         for p in P:
             if p.vermin and p.vclass not in VERMIN_DIET: continue
-            if not p.vermin and p.guild not in DIET: continue
+            if not p.vermin and diet_of(p, layer, cfg) is None: continue
             for x in P:
-                e = edge(p, x, cfg)
+                e = edge(p, x, cfg, layer)
                 if e: E[(p.id, x.id)] = e
         nb = defaultdict(set)
         for (a, b) in E: nb[a].add(b); nb[b].add(a)
@@ -276,10 +344,10 @@ BIZ_TARGET = {1: 2, 2: 4, 3: 7}
 
 def freq21(roster, slot, layer, deep_cols, cfg):
     """v2.1: LADDER21 base by slot (a sentient or TH member uses its trophic slot) x within-slot mass scaling."""
-    lad = LADDER21[ladder_family(layer)]
+    lad = (LADDER22 if cfg.v22 else LADDER21)[ladder_family(layer)]
     def key(s):
         k = slot[s.id]
-        if k in ('SN', 'TH'): k = 'APX' if s.apex else s.guild
+        if k in ('SN', 'TH', 'SNP'): k = 'APX' if s.apex else s.guild
         return k
     groups = defaultdict(list)
     for s in roster:
@@ -291,12 +359,44 @@ def freq21(roster, slot, layer, deep_cols, cfg):
         gm = math.exp(sum(math.log(max(1, m.mass)) for m in mem) / len(mem))
         for m in mem:
             sc = min(4.0, max(0.25, (max(1, m.mass) / gm) ** -0.75))
-            out[m.id] = min(100, max(1, round(10 * base * sc)))
+            out[m.id] = 10 * base * sc if cfg.v22 else min(100, max(1, round(10 * base * sc)))
+    if cfg.v22 and out:     # v2.2: DF caps FREQUENCY at 100; scale the roster so its commonest member is 100 (ratios kept)
+        top = max(out.values()); k = 100 / top if top > 100 else 1
+        out = {sid: max(1, round(v * k)) for sid, v in out.items()}
     return out
 
 def freq_of(s, slot, deep_cols, cfg):
     if s.deep and not s.apex and slot in ('PE', 'FC', 'MW'): return pelagic_freq(s.mass, deep_cols, cfg)
     return LADDER.get(slot) or 10
+
+# v2.2 vegetation link. DF exposes per map: the region tiles' vegetation index (world_data.region_map[x][y].vegetation, 0-100),
+# grass per tile (block_square_event_grassst amounts), and shrubs/trees (world.plants). Here the index is approximated per biome
+# (EXTERNAL knowledge of DF's biome rules: deserts < 10, grassland/savanna/shrubland 10-65, forests and wetlands 66+); the tool
+# would read the embark's own tiles instead (in-tool survey: mean vegetation of the embark region tiles + grass-tile share).
+VEG_BIOME = {'MOUNTAIN': 10, 'GLACIER': 0, 'TUNDRA': 15, 'FOREST_TAIGA': 70}
+def veg_index(b):
+    if b in VEG_BIOME: return VEG_BIOME[b]
+    if b.startswith(('SWAMP', 'MARSH')): return 75
+    if b.startswith('FOREST'): return 85
+    if b.startswith('GRASSLAND'): return 50
+    if b.startswith('SAVANNA'): return 45
+    if b.startswith('SHRUBLAND'): return 30
+    if b.startswith('DESERT'): return 5
+    if b.startswith('SUBTERRANEAN'): return 40     # cavern floor fungus (moss, tower caps): assumed mid
+    return 0
+def veg_need(mass): return max(10.0, min(90.0, 20 + 15 * math.log10(max(1, mass) / 1e5)))   # 100 kg 20, 1 t 35, 5 t 45, 40 t 59
+def herbivore(s): return not s.vermin and tier(s) == 1 and s.guild in ('GZ', 'PL', 'SH') and not s.diet_pred
+VEG_W = 0.05      # weight of the vegetation link: below any animal edge, so a hunted herbivore is always preferred
+def veg_supports(ekey, layer, s):
+    if layer == 'land':
+        bs = EMBARKS[ekey][0] if ekey in EMBARKS else set()
+        cand = [veg_index(b) for b in (s.biomes & bs) if not is_water(b)]
+    elif is_cave(layer): cand = [veg_index('SUBTERRANEAN_CHASM')]
+    elif layer in ('lake', 'river', 'ocean'):            # a shore grazer (hippo, capybara) feeds on the embark's land
+        bs = EMBARKS[ekey][0] if ekey in EMBARKS else set()
+        cand = [veg_index(b) for b in bs if not is_water(b)]
+    else: return False
+    return bool(cand) and max(cand) >= veg_need(s.mass)
 
 def build(ekey, layer, season, seed, cfg=Cfg()):
     rng = _rng(ekey, layer, season, seed, cfg.label)
@@ -306,6 +406,7 @@ def build(ekey, layer, season, seed, cfg=Cfg()):
     tmax = {k: hi for k, lo, hi in table}; tmin = {k: lo for k, lo, hi in table}
     slot = {s.id: slot_of(s, layer, cfg) for s in P}
     E, nb = relations(ekey, layer, season, cfg)
+    veg_ok = {s.id for s in P if cfg.veg and herbivore(s) and veg_supports(ekey, layer, s)}
     L = int(layer[-1]) if layer[-1].isdigit() else 0
     def pick_w(s):
         w = max(1, s.freq) if cfg.weight == 'frequency' else 1
@@ -323,13 +424,14 @@ def build(ekey, layer, season, seed, cfg=Cfg()):
     def add(s, k):
         roster.append(s); ids.add(s.id); count[k] += 1
     def link_w(s):
-        return sum(E[(s.id, r.id)][0] if (s.id, r.id) in E else E[(r.id, s.id)][0] for r in roster if r.id in nb[s.id])
+        return sum(E[(s.id, r.id)][0] if (s.id, r.id) in E else E[(r.id, s.id)][0] for r in roster if r.id in nb[s.id]) \
+            + (VEG_W if s.id in veg_ok else 0)
     res = dict(embark=ekey, layer=layer, season=season, seed=seed, cfg=cfg.label, pool_n=len(P), deep_cols=deep_cols,
                pool_slots=dict(Counter(slot.values())), slots={k: [lo, hi] for k, lo, hi in table})
     # seed: first slot in precedence with a linked candidate (seed with >= 1 relation)
     seed_sp = None
     for k, lo, hi in table:
-        c = [s for s in P if (slot[s.id] == k or (k == 'TH' and (s.cb or s.scav))) and nb[s.id]]
+        c = [s for s in P if (slot[s.id] == k or (k == 'TH' and (s.cb or s.scav))) and (nb[s.id] or s.id in veg_ok)]
         if c:
             seed_sp = rng.choices(c, weights=[pick_w(s) for s in c])[0]
             add(seed_sp, slot[seed_sp.id]); break
@@ -379,7 +481,7 @@ def build(ekey, layer, season, seed, cfg=Cfg()):
     res['terminated'] = 'max' if all(fill_count(k) >= hi for k, lo, hi in table) else 'no_progress'
     # all allowed edges among the roster (step 5 equivalent)
     RE = {(a, b): E[(a, b)] for (a, b) in E if a in ids and b in ids}
-    touched = {a for e in RE for a in e}
+    touched = {a for e in RE for a in e} | (veg_ok & ids)
     iso = [s.id for s in roster if s.id not in touched]
     # isolation repair: swap an isolated member for a same-slot candidate that links, else drop it
     repaired, dropped = [], []
@@ -394,13 +496,26 @@ def build(ekey, layer, season, seed, cfg=Cfg()):
         else:
             dropped.append(sid)
     RE = {(a, b): E[(a, b)] for (a, b) in E if a in ids and b in ids}
-    touched = {a for e in RE for a in e}
+    touched = {a for e in RE for a in e} | (veg_ok & ids)
     res['isolated_pre'] = iso; res['repaired'] = repaired; res['dropped'] = dropped
     res['isolated'] = [s.id for s in roster if s.id not in touched] if len(roster) > 1 else [s.id for s in roster]
     res['roster'] = [s.id for s in roster]
     res['slot'] = {s.id: slot[s.id] for s in roster}
     S = species(cfg)
     res['edges'] = sorted([a, b, round(w, 3), kind, actable(S[a], S[b], cfg)] for (a, b), (w, kind) in RE.items())
+    if cfg.v22:
+        res['veg'] = sorted(veg_ok & ids)                                          # herbivores the vegetation supports
+        animal = {a for e in RE for a in e}
+        res['veg_only'] = sorted((veg_ok & ids) - animal)                          # kept by the vegetation link alone
+        sn = []
+        for a, b, w, k, act in res['edges']:
+            if k != 'unit': continue
+            p, x = S[a], S[b]
+            grp = p.cmid if (p.cmax > 1 and not eff_benign(p, cfg)) else 1
+            if p.mass * grp >= cfg.sneak_ratio * x.mass: sn.append([a, b])
+        res['sneak'] = sn                                                          # the tool gives these hunters unit SNEAK
+        res['vlinks'] = [[a, b, ('native' if gobble_native(S[a], S[b]) else 'write') if not S[a].vermin else 'tool']
+                         for a, b, w, k, act in res['edges'] if k == 'stock']
     # frequency ladder the tool writes, and the arrival share it implies (F1: shares proportional to FREQUENCY)
     fq = (freq21(roster, slot, layer, deep_cols, cfg) if cfg.ladder21 else
           {s.id: freq_of(s, slot[s.id], deep_cols, cfg) for s in roster if not s.vermin})
@@ -425,9 +540,11 @@ def build(ekey, layer, season, seed, cfg=Cfg()):
     res['season_break'] = br
     return res
 
-def components(res):
+def components(res, veg=False):
     adj = defaultdict(set)
     for a, b, *_ in res['edges']: adj[a].add(b); adj[b].add(a)
+    if veg and res.get('veg'):                     # every vegetation-supported herbivore eats the same plants: one node
+        for v in res['veg']: adj[v].add('~VEG'); adj['~VEG'].add(v)
     seen, n = set(), 0
     for s in res['roster']:
         if s in seen: continue

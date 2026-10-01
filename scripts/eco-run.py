@@ -392,6 +392,104 @@ def stl2(pred, prey, arm):
     return dict(steps=st, ticks=10, nowatch=True)
 BLOCKS["STL2"] = dict(fort="CTRL", spot="land", cells={
     f"{p.lower()}_{q}_{a}": stl2(p, q, a) for p in ("COUGAR", "LION") for q in ("DEER", "WATER_BUFFALO") for a in _STL2_ARMS})
+# LONE (user 30 Sep: "scale up the map full of prey and then a single solitary hunter and let it run ... until he dies or
+# for max one season, then repeat x5"). One COUGAR among 8 prey species x 6 (r 20), relation written to each, 100,800 t
+# (one season), sustain at 0 and 50k. Arms: ctl; pkg = the solitary package the user chose (unit SNEAK + fight +
+# SITUATIONAL_AWARENESS 10, every gait stealth_slows 0, AMBUSHPREDATOR). Alive counts sampled every 5,040 t.
+LONE_PREY = ("RABBIT", "HARE", "GROUNDHOG", "GOAT_MOUNTAIN", "KANGAROO", "DEER", "ELK", "WATER_BUFFALO")
+_ALIVE = ("lua:local W={{W}}; local C={}; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then"
+          " local r=df.creature_raw.find(u.race); if r and W[r.creature_id] then C[r.creature_id]=(C[r.creature_id] or 0)+1 end end end;"
+          " local t={}; for k in pairs(W) do t[#t+1]=k..'='..(C[k] or 0) end; table.sort(t); print('eco alive '..table.concat(t,' '))")
+def lone(pred, arm):
+    W = ",".join(f"{t}=1" for t in (pred,) + LONE_PREY)
+    sus = "lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')"
+    st = [sus]
+    if arm == "pkg":
+        st += [f"flag {pred} AMBUSHPREDATOR on", _STL_SLOW.replace("{P}", pred).replace("{V}", "0")]
+    st += [f"spawn {q} 6 {{X}} {{Y}} {{Z}} 20" for q in LONE_PREY] + [f"spawn {pred} 1 {{X}} {{Y}} {{Z}} 3"]
+    st += [f"rel {pred} {q}" for q in LONE_PREY]
+    if arm == "pkg":
+        st.append(_STL2_SKILLS.replace("{P}", pred).replace("{S}", ",".join(f"'{s}'" for s in _STL2_ARMS["all"])))
+    st += ["watch", _ALIVE.replace("{W}", W)]
+    for i in range(20):
+        st += ["step:5040", _ALIVE.replace("{W}", W)] + ([sus] if i == 9 else [])
+    return dict(steps=st, ticks=10, nowatch=True, post=[_STL_RESTORE.replace("{P}", pred)] if arm == "pkg" else [])
+BLOCKS["LONE"] = dict(fort="CTRL", spot="land", cells={f"cougar_{a}": lone("COUGAR", a) for a in ("ctl", "pkg")})
+# REACH* (user 30 Sep: "Test all"): the untested reach cells. 2 reps, relation written in every cell.
+_ONLAND = ("lua:local n,l=0,0; for _,u in ipairs(df.global.world.units.active) do local r=df.creature_raw.find(u.race)"
+           " if r and r.creature_id=='{P}' and not dfhack.units.isDead(u) then n=n+1; local f=dfhack.maps.getTileFlags(u.pos)"
+           " if f and f.flow_size==0 then l=l+1 end end end; print(('eco onland token={P} n=%d dry=%d'):format(n,l))")
+def wcell(pred, pm, prey, qm, n=3, nq=6, rq=5, ticks=5000, extra=(), dry=False):
+    st = list(extra) + [f"spawn {prey} {nq} {{X}} {{Y}} {{Z}} {rq} {qm}", f"spawn {pred} {n} {{X}} {{Y}} {{Z}} 4 {pm}", f"rel {pred} {prey}"]
+    if not dry:
+        return dict(steps=st, ticks=ticks)
+    st.append("watch")
+    for _ in range(ticks // 1000):
+        st += ["step:1000", _ONLAND.replace("{P}", pred)]
+    return dict(steps=st, ticks=10, nowatch=True)
+BLOCKS["REACHW"] = dict(fort="OCEAN2", spot="shore", cells={
+    "croc_beaver_swim": wcell("CROCODILE_SALTWATER", "water", "BEAVER", "water", dry=True),
+    "croc_capybara_inland": wcell("CROCODILE_SALTWATER", "water", "CAPYBARA", "land", rq=15, dry=True),
+    "shark_seal_swim": wcell("SHARK_TIGER", "water", "HARP_SEAL", "water"),
+    "shark_seal_shore": wcell("SHARK_TIGER", "water", "HARP_SEAL", "land"),
+})
+BLOCKS["REACHF"] = dict(fort="CTRL", spot="land", cells={
+    "kea_parrot": wcell("BIRD_KEA", "land", "BIRD_PARROT_GREY", "land", n=6, ticks=3000),
+    "eagle_raven": wcell("BIRD_EAGLE", "land", "BIRD_RAVEN", "land", n=2, ticks=3000, extra=["flag BIRD_EAGLE BENIGN off"]),
+    "eagle_rabbit": wcell("BIRD_EAGLE", "land", "RABBIT", "land", n=2, ticks=3000, extra=["flag BIRD_EAGLE BENIGN off"]),
+    "owl_stork": wcell("BIRD_OWL_GREAT_HORNED", "land", "BIRD_STORK_WHITE", "land", n=2, ticks=3000),
+})
+BLOCKS["REACHC"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={
+    "gbat_bugbat": wcell("BAT_GIANT", "cave", "BUGBAT", "cave", n=2, ticks=3000),
+    "gbat_crundle": wcell("BAT_GIANT", "cave", "CRUNDLE", "cave", n=2, ticks=3000),
+    "gswallow_bugbat": wcell("BIRD_SWALLOW_CAVE_GIANT", "cave", "BUGBAT", "cave", n=2, ticks=3000, extra=["flag BIRD_SWALLOW_CAVE_GIANT BENIGN off"]),
+})
+BLOCKS["FISH"] = dict(fort="RIVER4", spot="shore", cells={
+    "wolf_swim_pike": wcell("WOLF", "land", "FISH_PIKE", "water", n=5, nq=8, ticks=3000, extra=["flag WOLF CAN_SWIM_INNATE on"]),
+    "wolf_swimbreathe_pike": wcell("WOLF", "land", "FISH_PIKE", "water", n=5, nq=8, ticks=3000,
+                                   extra=["flag WOLF CAN_SWIM_INNATE on", "flag WOLF CAN_BREATHE_WATER on"]),
+    "wolf_ctl_pike": wcell("WOLF", "land", "FISH_PIKE", "water", n=5, nq=8, ticks=3000),
+})
+# VRM + RELS (user 30 Sep: vermin predation "a huge hole ... high priority", GOBBLE_VERMIN "use it"; "DF also writes some
+# relations on its own ... Explore further"). Designs and Lua: data/eco-desk/v2/research/{vermin,relations}.md, lua/.
+import pathlib
+
+VRM = pathlib.Path(__file__).resolve().parents[1] / "data/eco-desk/v2/research/lua"
+def inline(name, **kw):
+    s = " ".join(l.strip() for l in (VRM / name).read_text().splitlines() if l.strip() and not l.strip().startswith("--"))
+    for k, v in kw.items(): s = s.replace("{" + k + "}", str(v))
+    return "lua:" + s
+def vrm(consumer=None, gob=None, n=4):
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')",
+          inline("vermin_create.lua", RACE="ROACH_LARGE", N=40, R=6), inline("vermin_create.lua", RACE="GRASSHOPPER", N=20, R=6)]
+    if gob: st.append(inline("gobble_write.lua", P=consumer, KIND=gob[0], CLS=gob[1]))
+    if consumer: st.append(f"spawn {consumer} {n} {{X}} {{Y}} {{Z}} 3")
+    for i in range(13):
+        st += [inline("vermin_count.lua", RACE="ROACH_LARGE", R=8, TAG=f"t{i*500}"),
+               inline("vermin_count.lua", RACE="GRASSHOPPER", R=8, TAG=f"t{i*500}")]
+        if consumer: st.append(inline("hunger.lua", P=consumer, TAG=f"t{i*500}"))
+        if i < 12: st.append("step:500")
+    post = [inline("gobble_restore.lua", P=consumer)] if gob else []
+    return dict(steps=st, ticks=10, nowatch=True, post=post)
+BLOCKS["VRM"] = dict(fort="CTRL", spot="land", cells={
+    "none": vrm(), "duck": vrm("BIRD_DUCK"), "hedgehog": vrm("HEDGEHOG"), "badger": vrm("BADGER"),
+    "badger_cls": vrm("BADGER", ("class", "EDIBLE_GROUND_BUG")), "badger_cre": vrm("BADGER", ("creature", "ROACH_LARGE")),
+    "cat": vrm("CAT")})
+
+def rel(tag): return inline("rel_sample.lua", TAG=tag)      # inline() as in vermin.md
+def rels(subject=None, n=1, flags=(), ticks=30000):
+    st = ["lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')", rel("reset")]
+    st += [f"flag {subject} {f}" for f in flags]
+    if subject: st.append(f"spawn {subject} {n} {{X}} {{Y}} {{Z}} 5")
+    st.append("watch")
+    for i in range(ticks // 3000):
+        st += ["step:3000", rel(f"t{(i+1)*3000}")]
+        if i % 10 == 9: st.append("lua:dfhack.run_command('cx-load','sustain'); print('eco sustain ok=1')")
+    return dict(steps=st, ticks=10)        # watch kept: read gives attacks/deaths by pair
+BLOCKS["RELS"] = dict(fort="CTRL", spot="land", cells={
+    "nat": rels(ticks=100800), "lion": rels("LION"), "lion_benign": rels("LION", flags=("BENIGN on",)),
+    "lion_nolp": rels("LION", flags=("LARGE_PREDATOR off",)), "lion_ambush": rels("LION", flags=("AMBUSHPREDATOR on",)),
+    "deer": rels("DEER"), "badger": rels("BADGER", 4)})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.

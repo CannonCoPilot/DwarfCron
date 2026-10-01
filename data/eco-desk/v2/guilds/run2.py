@@ -43,6 +43,21 @@ CONFIGS.update({
     'v21_savage_floor05': replace(V21, savage=True, mass_floor=0.05, label='v21_savage_floor05'),
 })
 
+# v2.2 (user rulings 30 Sep evening): pack-mass floor 5% (+ sneak bonus at 25%), cavern fliers fed (bats on vermin, cave
+# raptors on bats and cave land prey), flying apex + flying animal people, fishers, GOBBLE-based vermin links, vegetation
+# link for predator-less herbivores, GOOD/EVIL species on matching regions, ladder22.
+V22 = replace(V21, v22=True, mass_floor=0.05, veg=True, ladder21=True, label='v22')
+CONFIGS.update({
+    'v22': V22,
+    'v22_savage': replace(V22, savage=True, label='v22_savage'),
+    'v22_good': replace(V22, align='good', label='v22_good'),
+    'v22_evil': replace(V22, align='evil', label='v22_evil'),
+    'v22_evil_savage': replace(V22, align='evil', savage=True, label='v22_evil_savage'),
+    'v22_floor20': replace(V22, mass_floor=0.2, label='v22_floor20'),
+    'v22_noveg': replace(V22, veg=False, label='v22_noveg'),
+    'v22_civ': replace(V22, civ_attack=True, label='v22_civ'),          # cavern civ races as attackers (not a ruling yet)
+})
+
 def jobs():
     for e in EMBARKS:
         for l in SURFACE:
@@ -58,6 +73,7 @@ def run(label):
     for e, l, s, sd in jobs():
         r = build(e, l, s, sd, cfg)
         r['components'] = components(r)
+        if cfg.v22: r['components_veg'] = components(r, veg=True)
         rows.append(r)
     with open(OUT / 'runs' / (label + '.jsonl'), 'w') as f:
         for r in rows:
@@ -101,6 +117,7 @@ def derive(r):
     return d
 
 def layer_rows(R, embarks=None):
+    SP = species_for(R[0]['cfg']) if R else species_for('main')
     rows = []
     for L in LAYERS:
         X = [r for r in R if r['layer'] == L and (embarks is None or r['embark'] in embarks or r['embark'] == 'UNDER')]
@@ -130,6 +147,7 @@ def layer_rows(R, embarks=None):
     return md(head, rows)
 
 def slotfill_rows(R, embarks=None):
+    SP = species_for(R[0]['cfg']) if R else species_for('main')
     SL = ['APX', 'ML', 'MW', 'RP', 'GZ', 'PL', 'SH', 'FC', 'FF', 'PE', 'LB', 'WB', 'TH', 'SN', 'VG', 'VC', 'VF', 'VB', 'VI']
     rows = []
     for L in LAYERS:
@@ -213,5 +231,6 @@ if __name__ == '__main__':
         if lb in ('main', 'savage'):
             P.append('### %s: seed sensitivity\n' % lb)
             P.append(sensitivity(ALL[lb]) + '\n')
-    name = 'tables21.md' if any(lb.startswith('v21') or lb.endswith('clearbenign') for lb in labels) else 'tables2.md'
+    name = ('tables22.md' if any(lb.startswith('v22') for lb in labels) else
+            'tables21.md' if any(lb.startswith('v21') or lb.endswith('clearbenign') for lb in labels) else 'tables2.md')
     (OUT / name).write_text('\n'.join(P))

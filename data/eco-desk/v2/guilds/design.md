@@ -3,6 +3,10 @@
 **v2.1 (30 Sep 2026):** rules marked *v2.1* below follow the user's rulings and ECO CAL. Code: `roster2.py` config `v21`
 (`run2.py`); numbers: `results21.md`, `tables21.md`. The v2 text is kept in `runs/v2-orig/design.md`.
 
+**v2.2 (30 Sep 2026, evening):** rules marked *v2.2* follow the user's second round of rulings. Code: `roster2.py` config `v22`
+(+ `v22_savage`, `v22_good`, `v22_evil`, `v22_evil_savage`, `v22_floor20`, `v22_noveg`, `v22_civ`); numbers: `results22.md`,
+`tables22.md`, `analyze22.out`. The v2.1 text is kept in `runs/design.v21.md.bak`.
+
 Files only. The code is `roster2.py` (builder), `species2.py` (species table, guilds, apex rule) and `realms2.py` (realm table).
 The numbers behind every choice are in `results.md`, `tables2.md`, `apex.md` and `realms.md`.
 
@@ -28,6 +32,10 @@ weight choices that the guild rules have already allowed.
   - This one rule removes v1's two largest distortions: giant seeds, and animal people as 37-44% of the pool.
 - **GOOD/EVIL gate.** GOOD and EVIL species appear only on matching regions. No natural-class species carries either tag, so
   the gate changes nothing for the tool today.
+- *v2.2:* **the universe adds the GOOD and EVIL wildlife** (the tool's `mythic`/`unliving` classes: 8 GOOD, 23 EVIL with a
+  BIOME) and the FANCIFUL-only yeti and sasquatch. GOOD species enter pools on good regions (`align='good'`), EVIL on evil ones;
+  underground they enter whatever the surface alignment (the audit: the tags only limit taming there). Sentient GOOD/EVIL
+  wildlife (ogre, troll, blendec, blizzard man, harpy, nightwing) hunts by its guild (a `monster` overlay).
 
 ### R1. Layer pool
 
@@ -42,6 +50,8 @@ Every layer and water type is its own ecosystem. Pool rules (`roster2.in_layer`)
 | cavw1 / cavw2 / cavw3 (cavern pools, managed as water) | SUBTERRANEAN_WATER and AQUATIC, AMPHIBIOUS or shore; same depth gate | VF |
 | deep (magma sea) | SUBTERRANEAN_LAVA, or a depth range that includes 4 | - |
 
+- *v2.2:* colony vermin (VC: ants, bees) stay out of the flying pool (they sit on land in the VC slot); a **fisher** (BEAR_GRIZZLY,
+  BEAR_BLACK, TIGER, JAGUAR) joins the ocean/lake/river pool where its land biome meets that water.
 - LARGE_ROAMING species never go in pools (wiki).
 - The cavern layers and the deep layer are season-free: no cavern species carries a NO_<season> flag.
 
@@ -120,6 +130,14 @@ Section 2 gives the tables.
 
 - \* SN targets only under R7.
 - *v2.1:* ocean adds the APE slot (pelagic apex: tier 3, eats with its own guild's list: AW or MW).
+- *v2.2:* in the caverns **RP also eats PL, GZ, SH** (cave land prey; reach to be tested) and **LB (bugbats, floaters) eats
+  VB, VI, VG** (cave vermin). This rejoins the cavern webs: 100% split in v2.1 -> 0%.
+- *v2.2:* a **fisher** in a water pool also eats FF, FC, SH and WB (reach `untested`: the tool writes swim flags).
+- *v2.2:* a creature with DF's own **GOBBLE_VERMIN_CLASS** (fowl, kiwi, hedgehog, pangolin: all EDIBLE_GROUND_BUG) gets stock
+  edges to the vermin of that class (thrips, roach, beetle, ant) even when its guild has no diet.
+- *v2.2:* **flying apex.** A surface raptor of at least 2 kg that is not a scavenger is an apex (calm: BIRD_EAGLE, the great
+  horned and snowy owls, BIRD_OSPREY; savage adds Quetzalcoatlus, Sinopterus, Rhamphorhynchus to the boosted giant raptors).
+  It eats RP below it (intraguild) and flying sentients (R7). BENIGN cleared (R12.5).
 - **Tiers:** apex 3 > meso/raptor 2 > prey 1 > bird vermin 0.5 > other vermin 0. An edge must go strictly down a tier.
   - This makes mutual predation and apex-on-apex impossible by construction: 0 of 36,026 main edges.
   - No size threshold is involved.
@@ -132,7 +150,12 @@ Section 2 gives the tables.
   out (user ruling). v2 allowed any LARGE_PREDATOR, or a giant CARNIVORE/BONECARN.
 - **Animal people are attackers** by their own trophic guild (`ap_attack`; user 30 Sep: "let them be predators"). Civ races
   (AMPHIBIAN_MAN, REPTILE_MAN, SERPENT_MAN, RODENT MAN, TROGLODYTE, ANT_MAN, GREMLIN, PLUMP_HELMET_MAN) are never attackers.
-- Consequence: flying-layer animal people (insect-men, bird-men) have no allowed attacker there and never make a roster.
+- Consequence (v2.1): flying-layer animal people (insect-men, bird-men) had no allowed attacker there and never made a roster.
+- *v2.2:* **the flying apex may take a flying sentient**, and a prey-guild animal person gets its own slot **SNP 0-1** beside
+  SN on every layer (attacker animal people keep SN). Insect and bird men: 0 -> 880 of 880 savage flying rosters, all eaten;
+  prey-guild animal people on savage land rosters 148 -> 866 of 880.
+- Cavern civ races are apex-tier and non-attackers, so nothing may eat them and they eat nothing: **the only remaining
+  singletons** (20 species-cells). `civ_attack` (config `v22_civ`) lets them hunt by guild; not a ruling.
 
 ### R8. DF reach (measured) decides whether an edge can exist at all
 
@@ -156,6 +179,9 @@ Edge classes:
   (mass x mid cluster size, non-BENIGN) must be at least `mass_floor` x prey mass. Default 20% (the earlier proposal); 5% is
   the lowest measured kill, and results21.md shows 20% forbids kills DF makes. **User to choose.** No floor at all admits
   inert solitary edges (river otter -> hippo).
+- *v2.2:* **floor 5%** (user). Edges whose group mass is at least **25%** of the prey's carry a **sneak bonus** flag (`res['sneak']`):
+  the tool gives those hunters unit SNEAK. 87-100% of edges carry it; the 13% without are the 5-25% stretch hunts. CAL: below 5%
+  DF only lost hunters (0 kills, 4 lost in 4 cell-reps); 5-20% gave 15 kills and 6 losses in 10.
 - v2 (kept for reference): prey heavier than 5x the attacker's effective mass was not an edge. Effective mass = mass x
   (group mid-size)^0.75 for a non-BENIGN group hunter.
 - **Lower bound:** a unit 10,000x lighter is not a unit hunt; a vermin stock link covers it.
@@ -185,6 +211,9 @@ Edge classes:
 ### R12. Guards (tool actions attached to every roster)
 
 1. **Link guard.** Every member must have an edge. An isolated member is swapped for a same-slot candidate that links, or dropped.
+   *v2.2:* **vegetation link.** A herbivore (GZ/PL/SH, prey tier, no CARNIVORE) with no predator still links, to one plant node,
+   when the embark's vegetation index for its biomes is at least 20 + 15 x log10(mass / 100 kg). Weight 0.05, below any animal
+   edge. In-tool survey: mean `vegetation` of the embark's region tiles and the grass-tile share, read at load.
 2. **No-progress stop.** The fill ends when a pass adds nothing.
 3. **Stop list.** Every pool species not on the roster has its population entry set to quantity 0. That stops the species [N1];
    exhaustion is detected by entry quantity, not the extinct flag [N1].
@@ -207,6 +236,11 @@ Edge classes:
 - *v2.1:* the ladder is apex 3, meso 3, grazer 6, other land prey 5, shore 4; raptor 2, other birds 6; water apex 2, water
   meso 3, fish 8, pelagic 2; caverns the same tiers. Within a slot it is scaled by (mass / slot geometric mean)^-0.75,
   clamped 0.25-4, and written x10 (shares unchanged). Section 5's table is the v2 ladder.
+- *v2.2:* **ladder22** (predators 31% of land arrivals in v2.1 was too high): land apex 4, meso 2, grazer 10.5, other prey 8.75,
+  shore 7; flying apex 2, raptor 2, birds 30; water apex 3 (coastal and pelagic), meso 2, fish 12, shore 6, waterbirds 9,
+  pelagic 2; caverns apex 3, meso 2, grazer 12, land prey 10, shore 8, birds 12. Each roster is scaled so its commonest member is
+  100 (DF's cap). Calm predator share / apex share: land 0.16 / 0.07, flying 0.19 / 0.06, ocean 0.10 / 0.07, lake 0.10, river
+  0.12, caverns 0.15-0.16.
 - The tool writes this FREQUENCY per roster species. Arrival share = f / Σf per layer and pool [F1].
 - Section 5 gives the values.
 
@@ -215,10 +249,16 @@ Edge classes:
 - No unit fights a vermin. The tool debits the prey family's stock in proportion to consumer presence, with a floor and a ceiling
   (v1 roster-reasoning rule C).
 - Every VG/VC/VF/VB/VI edge is `stock`.
+- *v2.2:* every vermin link is labelled (`res['vlinks']`): **native** (DF's GOBBLE_VERMIN_CLASS already covers it: 0.2%),
+  **write** (the tool writes GOBBLE_VERMIN_CREATURE:<vermin>:<caste> on the consumer: 92%, about 6.4 per calm roster), or
+  **tool** (vermin on vermin, pure bookkeeping: 8%).
 
 ---
 
 ## 2. Per-layer slot tables (slot: min-max, in fill order)
+
+*v2.2:* every layer gains **SNP 0-1** (prey-guild animal person) right after SN; the cavern table gains **VI 0-2** (no vanilla
+cavern flying insect exists, so it stays empty). The flying APX 0-1 slot now fills on calm maps (flying apex, R6).
 
 | layer | APX | then |
 |---|---|---|
