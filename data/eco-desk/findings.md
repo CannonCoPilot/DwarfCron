@@ -255,3 +255,13 @@ ECO REACH (data/experiments/ECO/REACH-20260930-193803; relation written, 3 pred 
   BIRD_EAGLE (BENIGN off) x RAVEN 2/12, x RABBIT 0/12 (0 attacks); OWL_GREAT_HORNED x STORK 1/12. BOATS cav1: BAT_GIANT x
   BUGBAT 1/12, x CRUNDLE 5/12 (1 bat lost each in rep 2); SWALLOW_CAVE_GIANT (BENIGN off) x BUGBAT 4/12. RIVER4 WOLF x5 vs
   PIKE x8: swim-only 0 att, swim+breathe 1 att/rep, ctl 0 -> 0/16 kills every arm: swim flags do NOT make a wolf fish.
+ECO RELS (data/experiments/ECO/RELS-20260930-195031; CTRL tool off, rel_map sampled every 3k t; nat 100,800 t, lion / lion_benign / lion_nolp / lion_ambush /
+  deer / 4 badgers 30k t, 2 reps): 370 PREDATOR_OR_PREY entries written by DF: dwarves > surface wild arrival 159,
+  livestock/pets > arrival 107, script-placed units (roaming flag false) > arrival 57, cavern wild <> cavern wild 38,
+  surface wild > surface wild 5 (3 = one wild great horned owl with a wombat and a skunk), cavern <> surface wild 4.
+  Arrivals answer BENIGN_ANIMAL (662) or DANGEROUS_ANIMAL (15). Median first-seen distance 35-85 tiles; entries cleared
+  again within a few 3k samples. Tokens irrelevant: lion as-is / BENIGN / no LP / AMBUSH, deer and badgers all got them.
+  => DF aims every non-wild unit at each new wild arrival; surface wild-wild almost never (P1 holds for DF's arrivals);
+  caverns write wild-wild (HC). The tool's releaseGroup (:3197) and placement (:3559) clear the roaming flag, so released
+  groups become 'non-wild' to DF and get aimed at later arrivals; isWildlife reads population_idx, so the v7.0 sweep
+  still sees them. The CAL/STL/LONE off-target kills are this placement artefact.
