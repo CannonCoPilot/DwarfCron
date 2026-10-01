@@ -445,3 +445,14 @@ FREQUENCY 13): 0 and 3 units. Cavern: PLUMP_HELMET_MAN 54 and 180 units (SH guil
 person herd of ~15 per wave; balance question. Deaths 97 (33 plump helmet men, 10 giant jackals, 5 elephants, 4 cavies,
 4 pangolins...) and 29 (8 giant jackals, 3 cheetahs...): kills per surface arrival 1.28 and 0.24. Sponges counted as
 'feature' units in the harness arrivals (40, 48): ignore. pelagic_beached 0 (no pelagic picked: PE slot empty).
+
+## S8O — a season of v7.0 with the builder on OCEAN2 (items 8, 16, 18; 1 Oct night, land+water, 100,800 t, 2 reps)
+Builder ran both reps (same roster both: land ANACONDA / EAGLE, OSPREY / WATER_BUFFALO...; water CROCODILE_SALTWATER /
+STINGRAY, MILKFISH / PLATYPUS, HIPPO; FF unfilled). The deep-water survey at load (item 18) reads "0/5374 ocean columns
+at or past 3 levels", so the pelagic slot PE stays closed (design R13): no pelagic apex is ever drawn on OCEAN2, and
+pelagic_beached is 0. Surface: 49 / 12 waves and 41 / 12; predators 18% and 39% of units (jackals 6 and 13), apex
+(ANACONDA) 2 and 1 units. Water arrivals small (milkfish 5-6, stingray few). Cavern predators ~75% (hungry heads, gorlaks).
+Deaths 37 and 25 (bonobos 13, jackals 6-10, gorlaks). Sponges again in harness arrivals (71, 60): ignore.
+Item 16 from COHO (same fort, 6 ORCA placed, 15,000 t, 2 reps): unled pods lost 1 and 2 orcas, cause DROWN, killer none;
+led pods 0 of 12. ORCA is AQUATIC + IMMOBILE_LAND + BEACH_FREQUENCY:10, so a drowned orca was out of water: placed
+orcas strand, about 1 in 8 within 15,000 t when they roam unled, none when held by a leader (n small). Survivors all wet.
