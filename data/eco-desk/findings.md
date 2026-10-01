@@ -362,3 +362,14 @@ Mean bounding-box width in tiles, largest male leading vs no leader (rep 1, rep 
 => a leader holds flocks and schools within a few tiles (as herds and packs on land); a led orca pod is about half as wide
    but still loose (open ocean). The duck flock in rep 2 loosened late (width 48-62 after t9,000). Cohesion works on water
    and in the air; item 20 closed.
+
+## SCV / SCVW / SCVC — scavenging extensions (item 19; 1 Oct night, 6 carcasses drained, walkto + eat, 2 reps)
+SCV (CTRL, after a kill of 6 KANGAROO): WOLF pack walked in (near 4/5, 1/5) and ate 6 and 2 corpses; JACKAL (borrowed
+  population ref) and BIRD_VULTURE never got near (0/5 both reps, spread 36-52) and ate 0 -> the walk fails for jackals
+  (wander) and for fliers.
+SCVW (LAKE, 6 FISH_CARP carcasses in water): ALLIGATOR walkto moved 0 units (the walk does not apply to swimmers), ate 0;
+  WOLF on the bank reached the spot (5/5) but ate 0 (corpses in water out of the eat reach). Water corpses are not scavenged.
+SCVC (BOATS cavern 1, 6 ELK_BIRD): corpse count 7 before and after with TROLL present; no miasma counter exists, corpses
+  are the proxy: DF removes none in 3,000 t.
+=> v7.0's scavenging works for walking pack scavengers on land; extend: a fly-to for fliers, a swim-to/eat-in-water path for
+   aquatic scavengers, and a jackal check (borrowed entry). Item 19: measured; extensions are code for a later release.
