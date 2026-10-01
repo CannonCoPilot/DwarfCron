@@ -823,6 +823,218 @@ def sw3(arm):
                       "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
 BLOCKS["SW3"] = dict(fort="CTRL", spot="land", cells={a: sw3(a) for a in ("g1", "g3", "auto")})
 
+# SW4 LADDER (coordinator, 30 Sep: SWEEP-design.md row f). Follows the F1 design (experiments/ECO-F1.json) exactly:
+# tool disarmed by cfg (cfg.enabled/groups.enabled/ecology.enabled=false + disableSched -- NOT `seasonal-wildlife
+# disable`, since F1 reads raw FREQUENCY while the scheduler is off, not cfg.enabled), land FREQUENCY written by
+# guild from design.md section 5's table (the FREQUENCY the tool writes: AL=4, ML=12, GZ=50, PL=40, SH=30, LB=40),
+# the predator multiplier (0.5/1/2) on AL/ML only, prey guilds fixed, surface released every 1,500 t to 60,000 t.
+# Built as an eco-run.py block, not a cx-experiment.py manifest: cx-experiment.py has no "post" hook at all (grepped;
+# only `arm.get("pre", [])`), so it cannot literally satisfy "restoring config/raws in post" -- its implicit reset is
+# a full save-restore+load every replicate instead. An eco-run.py block keeps the raws-restore explicit (post always
+# re-writes the x1 ladder) and keeps SW4 on the same CLI, TSV shape and coordinator as SW1-3/SW5/SW6.
+# Every arm writes an ABSOLUTE frequency (X3.json's own convention, not a relative multiply of whatever is already in
+# the raws) because this DF process is never restarted between cells of one rep -- a relative write would let x0.5
+# leak into x2's baseline.
+# Receipt: the tool's own group engine is inert while disarmed (sw.loadGroups() cannot be used, unlike SW1-3), so
+# the subject receipt here is a guild census read straight off the map (sw.WILD.onMap/layerOf, both cfg-independent)
+# every 1,500 t -- present count by guild, which is also the raw series the predator-share readout comes from.
+SW4_MULT = {"ctl": 1.0, "half": 0.5, "double": 2.0}
+SW4_BASE = {"AL": 4, "ML": 12, "GZ": 50, "PL": 40, "SH": 30, "LB": 40}   # design.md S5, LADDER22 scale
+SW4_PRED_GUILDS = ("AL", "ML")
+def _sw4_freq_lua(mult, phase):
+    base = ", ".join(f"{g}={v}" for g, v in SW4_BASE.items())
+    pred = ", ".join(f"{g}=true" for g in SW4_PRED_GUILDS)
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local rs=sw.getEmbarkRegions();"
+            f" local mult={mult}; local BASE={{{base}}}; local PREDG={{{pred}}}; local n={{}};"
+            " for _,pop in ipairs(df.global.world.populations.all) do"
+            " if df.world_population_type[pop.type]=='Animal' and sw.managedPop(pop, rs, sw.LAYER_SET.land) then"
+            " local cr=df.creature_raw.find(pop.race);"
+            " if cr then local g=sw.classify(cr).guild; local f=BASE[g];"
+            " if f then if PREDG[g] then f=math.max(1, math.floor(f*mult+0.5)) end; cr.frequency=f; n[g]=(n[g] or 0)+1 end end"
+            " end end;"
+            f" print(('eco swladder phase={phase} mult=%.2f al_f=%d ml_f=%d al_n=%d ml_n=%d gz_n=%d pl_n=%d sh_n=%d lb_n=%d')"
+            ":format(mult, math.floor(BASE.AL*mult+0.5), math.floor(BASE.ML*mult+0.5),"
+            " n.AL or 0, n.ML or 0, n.GZ or 0, n.PL or 0, n.SH or 0, n.LB or 0))")
+_SW4_DISARM = ("lua:local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig();"
+               " if not cfg.initialized then sw.captureDefault(cfg) end;"
+               " cfg.enabled=false; cfg.groups.enabled=false; cfg.ecology.enabled=false; sw.saveConfig(cfg); sw.disableSched();"
+               " print('eco swladder phase=disarmed armed=0')")
+_SW4_RELEASE = "lua:dfhack.run_command('cx-probe', 'release', 'surface'); print('eco release ok=1')"
+_SW4_CENSUS = ("lua:local sw=reqscript('seasonal-wildlife'); local C={AL=0,ML=0,GZ=0,PL=0,SH=0,LB=0,other=0}; local total=0;"
+               " for _,u in ipairs(df.global.world.units.active) do"
+               " if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' then"
+               " local r=df.creature_raw.find(u.race); local g=(r and sw.classify(r).guild) or 'other'; if C[g]==nil then g='other' end;"
+               " C[g]=C[g]+1; total=total+1 end end;"
+               " print(('eco swladder tag={TAG} total=%d al=%d ml=%d gz=%d pl=%d sh=%d lb=%d other=%d')"
+               ":format(total, C.AL, C.ML, C.GZ, C.PL, C.SH, C.LB, C.other))")
+def sw4(arm):
+    mult = SW4_MULT[arm]
+    st = [SUSTAIN, _SW4_DISARM, _sw4_freq_lua(mult, "set"), "watch", _SW4_CENSUS.replace("{TAG}", "t0")]
+    for i in range(40):   # 40 x 1,500 t = 60,000 t (design row f)
+        st += ["step:1500", _SW4_RELEASE, _SW4_CENSUS.replace("{TAG}", f"t{(i + 1) * 1500}")]
+        if i == 19: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True, post=[_sw4_freq_lua(1.0, "restore")])
+BLOCKS["SW4"] = dict(fort="CTRL", spot="land", cells={a: sw4(a) for a in ("ctl", "half", "double")})
+
+# SW5 GROUPS-CAVERN / SW6 GROUPS-WATER (coordinator, 30 Sep: SWEEP-design.md rows g/h). Natural arrivals on BOATS,
+# tool on, same shape as SW3 (no placed subject) but with `v7 layer_groups on` first, since that flag is what makes
+# each cavern depth / water body its own limit (section 0's table; confirmed in seasonal-wildlife.lua: QUOTA.groupsFor
+# keys off cfg.limits[parent] per layer only when V7.on(cfg,'layer_groups')). `limits cavern groups N|auto` is valid
+# CLI for every N and for auto (grepped: the 7095-7134 handler only special-cases water). `limits water groups auto`
+# is REJECTED by that same handler (lay ~= 'water' guard on the auto branch) -- SW6's auto arm instead writes
+# cfg.limits.water.auto=true directly (the handler's own numeric branch, QUOTA.set, is what a CLI `groups N` call
+# runs; auto has no verb for water so the cfg field is set the same way SW1/SW2 set levers with no CLI verb).
+# Subject receipt (manifest-subject-receipt; design row h names this explicitly after 3 prior vacuous runs):
+# sw.WILD.countByLayer() at t0, cfg-independent, must show >0 cavern (SW5) / water (SW6) units before the status
+# series is read as meaningful. Per-sample status breaks groups down by depth (SW5) or body (SW6) but keeps the
+# `total_groups` key _SW_STATUS also uses, so sweep-tally.py's existing swstatus loader (G component) needs no change.
+def _sw_layer_receipt(layer):
+    return (f"lua:local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer();"
+            f" print(('eco swreceipt layer={layer} present=%d land=%d water=%d cavern=%d deep=%d')"
+            f":format(by.{layer}, by.land, by.water, by.cavern, by.deep))")
+_SW_CAVERN_STATUS = ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local byd={}; local n=0;"
+                     " for _,grp in ipairs(g.groups) do if grp.layer=='cavern' then n=n+1; local d=grp.depth or -1; byd[d]=(byd[d] or 0)+1 end end;"
+                     " local e=g.ecology or {}; local last=e.last or {};"
+                     " print(('eco swstatus tag={TAG} cavern_groups=%d d0=%d d1=%d d2=%d total_groups=%d eco_pairs=%d eco_nudges_total=%d')"
+                     ":format(n, byd[0] or 0, byd[1] or 0, byd[2] or 0, #g.groups, last.pairs or 0, e.nudges or 0))")
+_SW_WATER_STATUS = ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local byb={}; local n=0;"
+                    " for _,grp in ipairs(g.groups) do if grp.layer=='water' then n=n+1; local b=grp.body or 'none'; byb[b]=(byb[b] or 0)+1 end end;"
+                    " local e=g.ecology or {}; local last=e.last or {};"
+                    " print(('eco swstatus tag={TAG} water_groups=%d ocean=%d lake=%d river=%d pool=%d total_groups=%d eco_pairs=%d eco_nudges_total=%d')"
+                    ":format(n, byb.ocean or 0, byb.lake or 0, byb.river or 0, byb.pool or 0, #g.groups, last.pairs or 0, e.nudges or 0))")
+def sw5(arm):
+    st = ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'v7', 'layer_groups', 'on'); print('eco swv7 key=layer_groups value=on')"]
+    if arm == "auto":
+        st.append("lua:dfhack.run_command('seasonal-wildlife', 'limits', 'cavern', 'groups', 'auto'); print('eco swlimits cavern=auto')")
+    else:
+        n = {"c1": "1", "c2": "2"}[arm]
+        st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'cavern', 'groups', '{n}'); print('eco swlimits cavern={n}')")
+    st += ["watch", _sw_layer_receipt("cavern")]
+    for i in range(1, 11):
+        st += ["step:5040", _SW_CAVERN_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        if i == 5: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True,
+                post=["lua:dfhack.run_command('seasonal-wildlife', 'limits', 'cavern', 'groups', 'auto'); print('eco swlimits restored=auto')",
+                      "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
+BLOCKS["SW5"] = dict(fort="BOATS", spot=BOATS_CAVES["1"], cells={a: sw5(a) for a in ("c1", "c2", "auto")})
+
+def sw6(arm):
+    st = ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'v7', 'layer_groups', 'on'); print('eco swv7 key=layer_groups value=on')"]
+    if arm == "auto":
+        # no CLI verb takes `groups auto` for water (seasonal-wildlife.lua ~7112 rejects it); write the cfg field
+        # QUOTA.set's own numeric branch flips (cfg.limits.water.auto) directly instead.
+        st.append("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.limits.water.auto=true; sw.saveConfig(c);"
+                   " print('eco swlimits water=auto')")
+    else:
+        n = {"w1": "1", "w2": "2"}[arm]
+        st.append(f"lua:dfhack.run_command('seasonal-wildlife', 'limits', 'water', 'groups', '{n}'); print('eco swlimits water={n}')")
+    st += ["watch", _sw_layer_receipt("water")]
+    for i in range(1, 11):
+        st += ["step:5040", _SW_WATER_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        if i == 5: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True,
+                post=["lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); c.limits.water.auto=true; sw.saveConfig(c);"
+                      " print('eco swlimits restored=auto')",
+                      "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
+BLOCKS["SW6"] = dict(fort="BOATS", spot="water", cells={a: sw6(a) for a in ("w1", "w2", "auto")})
+
+# SW7 BUILDER (coordinator, 30 Sep: SWEEP-design.md row i / section 3 item 7). D1 (experiments/SWEEP-D1.md) found
+# CTRL's and BOATS's rosters change at every level tested against the current value (3) -- 100% of 80 CTRL
+# embark/season/seed keys differ at levels 1, 2 and 5, and pack-hunt presence moves monotonically (56.8% to
+# 76.7%), so per the design's rule ("Goes to the rig (SW7) only if CTRL's roster changes") this block is required.
+#
+# The pack bonus itself has NO live lever: v7.0.0's own roster port (ROSTER.build / ROSTER.packBonus, ~line 5090)
+# hard-codes the x3 multiplier (`ROSTER.packBonus(e) and 3 or 1`) with no cfg field, V7 switch or CLI verb -- grepped,
+# confirmed absent. This matches design.md section 0's own row for this value ("lives in: builder only (pick
+# weight)... set it with: desk config. A roster reaches the fort via `roster`/`seasons` verbs (cfg `allow`,
+# `assign`)"): the sweep does not vary a tool setting here, it pushes three different DESK-computed rosters onto the
+# live fort through the same roster/seasons mechanism DF already uses for any manual roster edit.
+#
+# Rosters were precomputed once, offline (python3 -c import only, no DF contact), at CTRL's own identity
+# (TEMP_GRASS_FOREST/land, seed 1 -- roster2.py's own __main__ default, established in D1), one roster2.build() call
+# per season per level, unioned into an active-species -> seasons-selected set. This is the same convention SW4's
+# FREQUENCY ladder already established: a desk artifact embedded as literal data, not computed in Lua. All three
+# arms (including p3, the current/control value) go through the identical push mechanism, so the comparison is
+# push-vs-push, not push-vs-untouched -- "rosters applied" per the design's own phrasing for this row.
+#
+# Known data quirk, not introduced here: the census `tokens-by-creature.tsv` (data/eco-desk/) spells the red panda's
+# id with a literal space ("RED PANDA"), unlike every other token sampled (WOLF, DEER, PANDA, BIRD_EMU, ...). DF raw
+# CREATURE_IDs never contain a space, so this is normalized to RED_PANDA below; if the live KEY still does not
+# match, the apply step's own miss= count in its printed line catches it (a missed species is silently not pushed,
+# never a crash -- the CLI's own `roster KEY ...` path no-ops with a usage line on an unknown key).
+#
+# Window: 50,400 t, same as the groups-at-once blocks (this is also a natural-arrival read, not an encounter
+# lever). CTRL natural (tool on, groups on, no forced placement -- SW3's own shape). _SW_STATUS is reused unchanged
+# (SW3 already reuses this wolf-group-counting reader for a non-wolf natural scenario; wolf_groups/wolf_members read
+# 0 here and total_groups/eco_pairs/eco_nudges_total -- the keys sweep-tally.py actually parses -- stay meaningful).
+# Receipt: sw.WILD.countByLayer().land > 0 after the push (manifest-subject-receipt). Post: ROSTER.resetRoster
+# (exported, "reset the roster to the embark as first found") across every layer, not just land, so a later block
+# never inherits this one's push.
+SW7_ROSTER = {
+    1: [("BEAR_BLACK", "Su"), ("BIRD_EMU", "SpSu"), ("BIRD_KAKAPO", "AuWi"), ("BIRD_KIWI", "Wi"),
+        ("BOBCAT", "SpAuWi"), ("COUGAR", "Au"), ("COYOTE", "SpSuAu"), ("DINGO", "SpWi"),
+        ("FOX", "Wi"), ("KANGAROO", "SuAu"), ("KOALA", "Au"), ("LIZARD", "Sp"),
+        ("LOUSE", "Sp"), ("MACAQUE_RHESUS", "SpSu"), ("MOOSE", "Sp"), ("PANDA", "SpWi"),
+        ("RAT", "SuAu"), ("RATTLESNAKE", "Su"), ("RED_PANDA", "AuWi"), ("SKINK", "AuWi"),
+        ("SPIDER_BROWN_RECLUSE", "AuWi"), ("SPIDER_JUMPING", "Sp"), ("SQUIRREL_FLYING", "Su"), ("SQUIRREL_RED", "Su"),
+        ("TERMITE", "SpSuAuWi"), ("WOMBAT", "Su"), ("WORM", "Wi")],
+    3: [("ADDER", "Su"), ("BADGER", "SpAu"), ("BEETLE", "Sp"), ("BIRD_EMU", "AuWi"),
+        ("BOBCAT", "Wi"), ("CHIPMUNK", "Sp"), ("COYOTE", "SpSuAuWi"), ("DEER", "Au"),
+        ("DINGO", "SpAuWi"), ("GRASSHOPPER", "Su"), ("GRAY_LANGUR", "SuAuWi"), ("HAMSTER", "AuWi"),
+        ("HARE", "Wi"), ("IBEX", "Wi"), ("MUSKOX", "Su"), ("OPOSSUM", "Sp"),
+        ("PANDA", "Sp"), ("RAT", "SpAu"), ("RED_PANDA", "Su"), ("SKINK", "Su"),
+        ("SKUNK", "Su"), ("SLUG", "Au"), ("SNAIL", "Wi"), ("SQUIRREL_FLYING", "Su"),
+        ("TERMITE", "SpSuAuWi"), ("WILD_BOAR", "Sp"), ("WOLF", "Su"), ("WOMBAT", "SpAu"),
+        ("WORM", "Wi")],
+    5: [("ADDER", "Wi"), ("BADGER", "SpSuAu"), ("BEAR_GRIZZLY", "Au"), ("BEETLE", "Wi"),
+        ("BIRD_EMU", "SuAu"), ("BOBCAT", "Su"), ("CHIPMUNK", "Su"), ("COYOTE", "SpAuWi"),
+        ("DINGO", "SpWi"), ("ECHIDNA", "Au"), ("ELK", "SpWi"), ("GRASSHOPPER", "Sp"),
+        ("HAMSTER", "Au"), ("KANGAROO", "SuAu"), ("KOALA", "Wi"), ("LOUSE", "SpSuAu"),
+        ("MACAQUE_RHESUS", "Su"), ("MUSKOX", "Au"), ("PANDA", "Sp"), ("SKINK", "Wi"),
+        ("SKUNK", "Sp"), ("SQUIRREL_FLYING", "Wi"), ("SQUIRREL_GRAY", "Au"), ("SQUIRREL_RED", "Su"),
+        ("TERMITE", "SpSuAuWi"), ("TICK", "Sp"), ("WILD_BOAR", "SpWi"), ("WOLF", "Su"),
+        ("WOMBAT", "SuWi")],
+}
+def _sw7_apply_lua(lvl):
+    rows = ", ".join(f"{{t='{t}',s='{s}'}}" for t, s in SW7_ROSTER[lvl])
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local pool=sw.buildPool(c);"
+            f" local WANT={{{rows}}}; local want={{}}; for _,r in ipairs(WANT) do want[r.t]=r.s end;"
+            " local applied,found=0,{};"
+            " for _,e in ipairs(pool) do"
+            " if e.inEmbark and not e.locked and e.layer=='land' then"
+            " found[e.key]=true;"
+            " local s=want[e.key];"
+            " if s then sw.ROSTER.setActive(c, pool, e, true, 'sw7: desk roster pack');"
+            f" local arr=sw.VERMIN.parseSeasons(s); if arr then sw.setAssign(c, e.key, arr); sw.whySet(c, e.key, 'sw7: desk roster pack') end;"
+            " applied=applied+1"
+            " else sw.ROSTER.setActive(c, pool, e, false, 'sw7: desk roster pack (not selected)') end"
+            " end end;"
+            " local miss={}; for t,_ in pairs(want) do if not found[t] then miss[#miss+1]=t end end;"
+            " sw.saveConfig(c);"
+            f" print(('eco sw7apply level={lvl} applied=%d wanted=%d missing=%d miss=%s')"
+            ":format(applied, #WANT, #miss, table.concat(miss, ',')))")
+_SW7_RECEIPT = ("lua:local sw=reqscript('seasonal-wildlife'); local by=sw.WILD.countByLayer();"
+                " print(('eco swreceipt layer=land present=%d land=%d water=%d cavern=%d deep=%d')"
+                ":format(by.land, by.land, by.water, by.cavern, by.deep))")
+_SW7_RESET = ("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig();"
+              " local n=sw.ROSTER.resetRoster(c, sw.buildPool(c)); sw.saveConfig(c);"
+              " print(('eco sw7reset active=%d'):format(n))")
+def sw7(arm):
+    lvl = {"p1": 1, "p3": 3, "p5": 5}[arm]
+    st = ["lua:dfhack.run_command('seasonal-wildlife', 'enable'); print('eco toolenable on=1')",
+          "lua:dfhack.run_command('seasonal-wildlife', 'groups', 'on'); print('eco groupson ok=1')",
+          _sw7_apply_lua(lvl), "watch", _SW7_RECEIPT]
+    for i in range(1, 11):
+        st += ["step:5040", _SW_STATUS.replace("{TAG}", f"t{i * 5040}")]
+        if i == 5: st.append(SUSTAIN)
+    return dict(steps=st, ticks=10, nowatch=True,
+                post=[_SW7_RESET, "lua:dfhack.run_command('seasonal-wildlife', 'disable'); print('eco tooldisable ok=1')"])
+BLOCKS["SW7"] = dict(fort="CTRL", spot="land", cells={a: sw7(a) for a in ("p1", "p3", "p5")})
+
 def prune_autosaves(save, say):
     """DF autosaves at season changes, and an autosave of the fort hides the fort in the Continue list (ECO P2, 30 Sep:
     'save list never showed Folder: CTRL' after P1's 240k ticks). Delete the autosaves of THIS save's world only."""
