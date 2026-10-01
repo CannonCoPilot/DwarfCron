@@ -110,6 +110,7 @@ CLAIMS = [
     ("cli.quota", "CLI", "`quota [land|water|cavern] N` sets a per-layer ceiling; 0 unsets; status shows effective values and what is on the map", "USAGE.md", "shipped"),
     ("cli.quota.cavern", "CLI", "`quota cavern N` warns that the ceiling is enforced on FREQUENCY and brakes arrivals rather than culling", "STATE addendum 57", "shipped"),
     ("cli.water", "CLI", "`water [on|off|now|target N|cadence N|countdown N]` controls the water job; status names live/dormant with the reason", "USAGE.md", "shipped"),
+    ("cli.water.now", "CLI", "`water now` on a dormant layer answers at once with 'placed 0' and the reason (the wet-edge verdict is cached at load)", "USAGE.md; v5.8.2", "shipped"),
     ("cli.place", "CLI", "`place TOKEN [n] [layer]` places wild animals headlessly and debits the entry", "USAGE.md", "shipped"),
     ("cli.usage", "CLI", "an unknown verb prints usage rather than a stack trace", "script", "shipped"),
     ("cli.errors", "CLI", "bad arguments to water/quota/class/hold/place print a usage line and change nothing", "script", "shipped"),
@@ -311,18 +312,20 @@ CLAIMS = [
     ("plan.patterns", "MECH", "arrival-pattern library on the scheduler: steady, burst, trickle, dawn, follow", "PLAN 3.5", "planned v5.9"),
     ("plan.irruptions", "MECH", "cavern pressure score and irruptions (opt-in), never touching plotinfo.invasions", "PLAN 3.6b", "planned v6.1"),
     ("plan.arming", "MECH", "the 'arming step' of trigger/pre-load/set-the-table", "design §2", "gap noted"),
-    # ---- Backlog (unscheduled, recorded for completeness)
-    ("bl.frequency", "MECH", "per-species frequency override in the roster (never writing 0)", "Backlog", "backlog"),
-    ("bl.popnumber", "DOC", "roster wording: 'regional stock' not per-fort budget", "Backlog", "backlog"),
+    # ---- Backlog (unscheduled, recorded for completeness). 1 Oct 2026 (open item validator-backlog-stale): seven of
+    # the thirteen shipped in v6.5-v7.0 and are recorded from the claim that exercises each (SHIPPED_BACKLOG below);
+    # only grouping, migrants, perch, r2r4, eats and balance remain genuinely unbuilt.
+    ("bl.frequency", "MECH", "per-species frequency override in the roster (never writing 0)", "Backlog; shipped as `odds` (v6.5)", "shipped v6.5"),
+    ("bl.popnumber", "DOC", "roster wording: 'regional stock' not per-fort budget", "Backlog; shipped with `stock` (v6.5)", "shipped v6.5"),
     ("bl.grouping", "MECH", "published solitary/pack/herd table with overrides", "Backlog", "backlog"),
-    ("bl.largestmale", "MECH", "leader chosen by body size and sex", "Backlog", "backlog"),
-    ("bl.concurrency", "MECH", "max concurrent groups scaled from embark size (√tiles+1)", "Backlog", "backlog"),
-    ("bl.deepwater", "MECH", "deep-ocean species gated on the map having deep tiles", "Backlog", "backlog"),
+    ("bl.largestmale", "MECH", "leader chosen by body size and sex", "Backlog; shipped as v7.leader_male (v7.0)", "shipped v7.0"),
+    ("bl.concurrency", "MECH", "max concurrent groups scaled from embark size (√tiles+1)", "Backlog; shipped as QUOTA.autoGroups (v6.9)", "shipped v6.9"),
+    ("bl.deepwater", "MECH", "deep-ocean species gated on the map having deep tiles", "Backlog; shipped as the deep-water survey (v7.0)", "shipped v7.0"),
     ("bl.migrants", "MECH", "migrant-trigger timing study", "Backlog", "backlog"),
     ("bl.perch", "MECH", "perched-fraction survey before any perch lever", "Backlog", "backlog"),
     ("bl.r2r4", "MECH", "identify the 'r2/r4' creature", "Backlog", "backlog"),
-    ("bl.realm", "MECH", "geographic/realm grouping of species", "Backlog", "backlog"),
-    ("bl.quiet", "MECH", "tool-side filter to quiet animal-on-animal combat reports", "Backlog", "backlog"),
+    ("bl.realm", "MECH", "geographic/realm grouping of species", "Backlog; shipped as the realm table (v7.0)", "shipped v7.0"),
+    ("bl.quiet", "MECH", "tool-side filter to quiet animal-on-animal combat reports", "Backlog; shipped as `alerts` (v6.9)", "shipped v6.9"),
     ("bl.eats", "MECH", "a who-eats-whom history", "Backlog", "backlog"),
     ("bl.balance", "MECH", "water placement weighted by what is swimming", "Backlog", "backlog"),
     # ---- Documentation claims that must match the code
@@ -351,6 +354,18 @@ def rec(cid, verdict, expected, got, shots=(), data=None, note=""):
     log(f"  [{verdict:<17}] {cid}: {c[2][:70]}")
     if verdict == "FAIL":
         log(f"      expected: {expected}\n      got: {(got or '').strip()[:300]}")
+
+_RIG_VER = {}
+def rig_versions():
+    """DF and DFHack as the running rig reports them (read once per run). The rig moved from DFHack 53.16-r1.1 to
+    53.16-r2 on 1 Oct 2026; a hard-coded label would have mislabelled every run after that."""
+    if not _RIG_VER:
+        out = lua("print('DFVER='..tostring(dfhack.getDFVersion and dfhack.getDFVersion() or '?')"
+                  "..' HACKVER='..tostring(dfhack.getDFHackVersion and dfhack.getDFHackVersion() or '?')"
+                  "..' RELEASE='..tostring(dfhack.getDFHackRelease and dfhack.getDFHackRelease() or '?'))")
+        m = re.search(r"DFVER=(\S+) HACKVER=(\S+) RELEASE=(\S+)", out or "")
+        _RIG_VER.update(df=m.group(1) if m else "?", dfhack=m.group(2) if m else "?", release=m.group(3) if m else "?")
+    return _RIG_VER
 
 RPC_TIMEOUT = "45"   # 22 Sep 2026: `groups` right after a full-speed 6,000-tick step twice missed cx-rpc's 15 s default (0.15 s by hand)
 RETRIED = []
@@ -1679,6 +1694,9 @@ def phase_setup(fort):
         log("could not load the fort: " + out[:400]); sys.exit(1)
     time.sleep(1)
     g = ground("A0-baseline")
+    rv = rig_versions()
+    log(f"  rig: DF {rv['df']} / DFHack {rv['dfhack']} ({rv['release']})")
+    (OUT / "rig.json").write_text(json.dumps(rv))
     s = shot("A0-map-baseline")
     log(f"  loaded: tick {g.get('tick')} season {g.get('season')} citizens {g.get('citizens')} "
         f"land {g.get('land')} water {g.get('water')} cavern {g.get('cavern')} deep {g.get('deep')}")
@@ -2033,7 +2051,7 @@ def phase_mechanics():
     subprocess.run([str(ROOT / ".venv/bin/python"), str(ROOT / "scripts/cx-rpc.py"), "--port", "5555", "--timeout", "600",
                     "--lua", "print('drained')"], capture_output=True, text=True, timeout=660, cwd=ROOT)
     log(f"  water now: {secs:.0f} s (server drained)")
-    rec("cli.water", "PASS" if secs < 5 and ("placed 0" in out or "dormant" in out or "drew nothing" in out) else "FAIL",
+    rec("cli.water.now", "PASS" if secs < 5 and ("placed 0" in out or "dormant" in out or "drew nothing" in out) else "FAIL",
         "'water now' on a dormant layer returns at once (the wet-edge verdict is cached at load) with 'placed 0' and the reason",
         f"{secs:.1f} s\n{out}", data={"seconds": round(secs, 1)},
         note="" if secs < 5 else ("the verb did not answer inside the cap; whether the server was busy is settled by the drain call that follows — if it returned at once, the core was free and the reply was never sent (v5.8.2 removed the whole-map scan)"))
@@ -2669,22 +2687,13 @@ def phase_static():
             "no matching identifier in seasonal-wildlife.lua" if is_absent else "an identifier matched — inspect before calling this built",
             note=f"claimed as: {CLAIM[cid][4]}")
     # backlog: recorded, with the two that are directly refutable from code
-    for cid in [c[0] for c in CLAIMS if c[4] == "backlog"]:
-        note = ""
-        if cid == "bl.largestmale":
-            note = "the leader rule in the shipped code is lowest-id (verified live in mech.leader.lowest)"
-        if cid == "bl.concurrency":
-            m = re.search(r"max_concurrent\s*=\s*(\d+)", src)
-            note = ("shipped in v6.9: QUOTA.autoGroups, land default auto (see mech.v69.autogroups)" if "function QUOTA.autoGroups" in src
-                    else f"max_concurrent is a fixed default ({m.group(1) if m else '?'}); no √tiles expression in the script")
-        if cid == "bl.frequency":
-            note = "no per-species frequency field in the roster config; frequency is written only by the cavern ceiling (CAVERN) and the pack-size lever"
-        rec(cid, "BACKLOG", "unscheduled by the Backlog's own terms", "", note=note)
+    for cid in [c[0] for c in CLAIMS if c[4] == "backlog"]:   # the shipped seven are resolved at the end of main
+        rec(cid, "BACKLOG", "unscheduled by the Backlog's own terms", "")
     # doc drift
     m = re.search(r"\*\*Status:\*\*\s*v([\d.]+).*?DF ([\d.]+)\s*/\s*DFHack ([\d.r-]+)", usage, re.S)
     ver = re.search(r"--\s*v(\d+\.\d+(?:\.\d+)?)\s*—", src)   # v6.1.1: any major, not only v5
     rec("doc.usage.version", "DOC-DRIFT" if m and ver and m.group(1) != ver.group(1) else "PASS",
-        "USAGE.md's Status header names the shipped version", f"USAGE.md says v{m.group(1) if m else '?'} / DF {m.group(2) if m else '?'}; the script's newest changelog entry is v{ver.group(1) if ver else '?'}; the rig is DF 53.16 / DFHack 53.16-r1.1")
+        "USAGE.md's Status header names the shipped version", f"USAGE.md says v{m.group(1) if m else '?'} / DF {m.group(2) if m else '?'}; the script's newest changelog entry is v{ver.group(1) if ver else '?'}; the rig is DF {rig_versions()['df']} / DFHack {rig_versions()['dfhack']}")
     cav_doc = "WITHDRAWN" in usage and "inert" in usage
     cav_code = "held at frequency" in src
     rec("doc.usage.cavernquota", "DOC-DRIFT" if cav_doc and cav_code else "PASS",
@@ -2701,6 +2710,54 @@ def phase_static():
     rec("doc.docket", "PASS" if dm and ver and dm.group(2) == ver.group(1) else "DOC-DRIFT", "the Docket's source line names the shipped version",
         f"{dk[-1].name if dk else 'no docket source'}: '@ {dm.group(1) if dm else '?'} (v{dm.group(2) if dm else '?'})'; the script's newest change line is v{ver.group(1) if ver else '?'}")
 
+# Seven Backlog items that shipped (open item validator-backlog-stale). Each is recorded from the claim(s) that
+# exercise it in the same run: PASS when every one passed, FAIL when one failed, otherwise NOT-TESTABLE-HERE naming
+# the claim (two point at v7.0 claims that are still TODO in phase_v71).
+SHIPPED_BACKLOG = {
+    "bl.frequency": ["mech.odds"],
+    "bl.popnumber": ["mech.stock.reserve"],
+    "bl.largestmale": ["mech.v70.leader_male"],
+    "bl.concurrency": ["mech.v69.autogroups"],
+    "bl.deepwater": ["mech.v70.builder"],     # the deep-water survey is part of the builder's surveys: TODO in phase_v71
+    "bl.realm": ["mech.v70.realms"],          # TODO in phase_v71
+    "bl.quiet": ["cli.alerts"],
+}
+
+def resolve_shipped_backlog():
+    got = {r["id"]: r["verdict"] for r in results}
+    for cid, via in SHIPPED_BACKLOG.items():
+        vs = [got.get(v) for v in via]
+        if vs and all(v == "PASS" for v in vs):
+            verdict, note = "PASS", f"{CLAIM[cid][4]}; verified this run by {', '.join(via)}"
+        elif "FAIL" in vs:
+            verdict, note = "FAIL", f"{CLAIM[cid][4]}; {', '.join(v for v, x in zip(via, vs) if x == 'FAIL')} failed this run"
+        else:
+            todo = [v for v in via if v in V71_TODO]
+            verdict = "NOT-TESTABLE-HERE"
+            note = (f"{CLAIM[cid][4]}; its claim {', '.join(todo)} is TODO (phase_v71)" if todo
+                    else f"{CLAIM[cid][4]}; {', '.join(via)} did not run in this session")
+        rec(cid, verdict, f"shipped: {', '.join(via)} passes", "; ".join(f"{v}={x}" for v, x in zip(via, vs)), note=note)
+
+# ============================================================================== v7.1 (stub) ====
+# Validator claims for the v7.0 features merged after phase v70 and for v7.1 come in a later wave (open item
+# validator-v70-coverage: 'grep of validate-full.py: gobble 0, scav_ext 0, outgun 0, gate_drain 0, builder 0,
+# natural_skill 0'). The ids are reserved here so the backlog resolver and the report can name them; none is in
+# CLAIMS yet, so no run counts them until its check is written.
+V71_TODO = {
+    "mech.v70.builder": "ROSTER.build / `roster build`: the ladder, the unfilled report, the vegetation and deep surveys",
+    "mech.v70.gobble": "GOBBLE_RULES / GOBBLE_VERMIN edges and the SWV vermin classes",
+    "mech.v70.scav_ext": "scav_ext's fallbacks: fliers land, swimmers reach water corpses, land scavengers wade, wanderers",
+    "mech.v70.outgun": "outgun / outgun_cap",
+    "mech.v70.realms": "the realm table (308 species, 13 realms) and the realms switch",
+    "mech.v70.gate_drain": "v7.gate_drain releases the next-oldest gated group until <= 1 flagged unit remains",
+    "mech.v70.solo_skill": "the caste NATURAL_SKILL write on solitary hunters, read on a newly arrived unit (open item natural-skill-unverified)",
+}
+
+def phase_v71():
+    log("== v7.1: STUB -- claims not written yet (validator wave 2); reserved ids:")
+    for cid, what in V71_TODO.items():
+        log(f"  TODO {cid}: {what}")
+
 def phase_teardown(fort):
     log("== TEARDOWN")
     sh("title", timeout=180)
@@ -2716,7 +2773,7 @@ def phase_teardown(fort):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "v70", "gui"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "v70", "v71", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     a = ap.parse_args()
     log(f"validate-full run {RUN} -> {OUT}")
@@ -2742,6 +2799,8 @@ def main():
         if a.only == "v70":   # alignment, leader, per-layer groups, the v7 raws, pack mass, sweep, civ races, domestic, sponges
             try: phase_v70()
             except Exception as e: log(f"!! phase_v70 raised: {e!r}")
+        if a.only == "v71":   # stub: lists the reserved claim ids (validator wave 2)
+            phase_v71()
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
             except Exception as e: log(f"!! phase_gui raised: {e!r}")
@@ -2780,6 +2839,8 @@ def main():
         if not a.only and V70:
             try: phase_v70()
             except Exception as e: log(f"!! phase_v70 raised: {e!r}")
+        if not a.only and V >= (7, 1, 0):
+            phase_v71()
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
@@ -2794,12 +2855,15 @@ def main():
             f"before: enabled={was}; after: enabled={now}")
         try: phase_teardown(a.fort)
         except Exception as e: log(f"!! teardown raised: {e!r}")
+    if not a.only:
+        resolve_shipped_backlog()
     # every claim gets a row, even ones no check reached
     seen = {r["id"] for r in results}
     for c in CLAIMS:
         if c[0] not in seen and not a.only:
             rec(c[0], "NOT-TESTABLE-HERE", "a check reached this claim", "", note="no check ran for this claim in this session")
     (OUT / "results.json").write_text(json.dumps(results, indent=1))
+    (OUT / "v71-todo.json").write_text(json.dumps(V71_TODO, indent=1))
     (OUT / "claims.json").write_text(json.dumps([dict(zip(("id", "surface", "claim", "source", "claimed"), c)) for c in CLAIMS], indent=1))
     tally = {}
     for r in results:
