@@ -506,3 +506,12 @@ On-map aligned units at t30000 were all unmanaged (managed=nil): demons on both 
 and 2 GORLAK -- cavern EVIL species outside the tool's pool on this embark (open: v7.0 meant cavern GOOD/EVIL to class as
 natural; check whether EVILF's cavern pool lists them). managed=nil in align_probe = no pool entry at all, not a lock --
 likely the fresh embark's caverns are closed, so the cavern pool is empty (as CTRL's `roster build cavern` was). No aligned surface arrival in 30,000 t on either fort.
+
+## E23e — cavern invasion on a fort whose caverns hold animal people (item 25; 1 Oct night, BOATS, 201,600 t = two seasons, 2 reps)
+Receipt: 334 cavern animal-person / civ-race populations listed at the pre (PLUMP_HELMET_MAN, BLOOD_MAN, FIREFLY_MAN,
+BUTTERFLY_MONARCH_MAN, BARK_SCORPION_MAN ...). Invaded arm: 3 cavern features marked Discovered, first-cavern announcement
+set, irritation pinned at 300,000, 3 citizens on cavern 1's floor; control untouched. Invaders 0 at every sample in all
+four runs (67-68 samples each); cavern units peak 61-72 in both arms alike. => with animal people present, opening the
+caverns and pinning irritation still raises no invasion in two seasons: the trigger needs something these flags do not
+give (wealth, population, or real excavation into the cavern). E23e closed negative; cavern invasions stay a
+fort-construction item (dig into a cavern, not a flag write). Data: data/experiments/E23e/20261001-044227, tallied by scripts/e23e-tally.py.
