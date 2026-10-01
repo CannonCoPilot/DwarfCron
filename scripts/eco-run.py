@@ -509,6 +509,18 @@ BLOCKS["SLOTV"] = dict(fort="CTRL", spot="land", cells={"probe": dict(steps=[
 # every block reloads CTRL fresh, so each arm starts from the same 40 roaches + 20 grasshoppers at the same session age.
 for _k, _c in BLOCKS["VRM"]["cells"].items():
     BLOCKS[f"VRM2_{_k}"] = dict(fort="CTRL", spot="land", cells={_k: _c})
+# VRM3 (30 Sep): VRM2's control lost 14 roaches and 18 grasshoppers in rep 1 (from t3,000) and none in rep 2, with no
+# consumer placed. Same control, plus every unit within 3 tiles of a placed vermin each 500 ticks, to name the eater.
+def _vrm3():
+    c, out = vrm(), []
+    for x in c["steps"]:
+        out.append(x)
+        if x.startswith("lua:") and "GRASSHOPPER" in x and "vcount" in x:
+            tag = x.split("tag=")[1].split(" ")[0]
+            out.append(inline("vermin_near_units.lua", R=3, TAG=tag))
+    c["steps"] = out
+    return c
+BLOCKS["VRM3_none"] = dict(fort="CTRL", spot="land", cells={"none": _vrm3()})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.
