@@ -1,4 +1,15 @@
-"""sweep-tally: the SWEEP design's busy-ness index B (experiments/SWEEP-design.md section 1) for SW1/SW2/SW3.
+"""sweep-tally: the SWEEP design's busy-ness index B (experiments/SWEEP-design.md section 1) for
+SW1/SW2/SW3/SW5/SW6/SW7.
+
+SW5 (cavern) and SW6 (water) are natural-arrival blocks shaped exactly like SW3 (same eco-run.py cell pattern,
+`nowatch=True` + a terminal `read`), so they land in the same <BLOCK>.tsv shape. Their per-sample status lines
+(_SW_CAVERN_STATUS / _SW_WATER_STATUS in eco-run.py) carry a `total_groups` key alongside their own per-depth /
+per-body breakdown, so the `swstatus` loader below needs no change for G; only WINDOW_TICKS/CONTROL_ARM below are
+extended. SW7 (the roster-builder push, D1-triggered) reuses SW3's own `_SW_STATUS` reader unchanged (arms p1/p3/p5,
+control p3 -- the current pack-bonus level), so it needs the same no-op treatment: just an entry in WINDOW_TICKS/
+CONTROL_ARM. SW4 (the ladder) is not covered here: it runs disarmed (no `swstatus`/groups engine at all) and reads a
+guild census instead (`swladder` lines) -- a different metric (predator share of guild counts, not busy-ness B) and,
+per the task, left as a documented follow-up rather than bent into this script's B.
 
 B = (G/G0 . (W+1/2)/(W0+1/2) . (A+2)/(A0+2) . (K+1/2)/(K0+1/2)) ^ (1/4), a geometric mean of each arm's ratio to its
 run's own control arm (SW1/SW2: "ctl"; SW3: "auto", the current default). Decision rule: an arm differs from control
@@ -27,8 +38,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-WINDOW_TICKS = {"SW1": 30000, "SW2": 30000, "SW3": 50400}
-CONTROL_ARM = {"SW1": "ctl", "SW2": "ctl", "SW3": "auto"}
+WINDOW_TICKS = {"SW1": 30000, "SW2": 30000, "SW3": 50400, "SW5": 50400, "SW6": 50400, "SW7": 50400}
+CONTROL_ARM = {"SW1": "ctl", "SW2": "ctl", "SW3": "auto", "SW5": "auto", "SW6": "auto", "SW7": "p3"}
 
 
 def kv(s):
@@ -83,7 +94,7 @@ def busyness(g, w, a, k, g0, w0, a0, k0):
 
 def main():
     run = Path(sys.argv[1])
-    blocks = sys.argv[2:] or [b for b in ("SW1", "SW2", "SW3") if (run / f"{b}.tsv").exists()]
+    blocks = sys.argv[2:] or [b for b in ("SW1", "SW2", "SW3", "SW5", "SW6", "SW7") if (run / f"{b}.tsv").exists()]
     for b in blocks:
         f = run / f"{b}.tsv"
         if not f.exists():
