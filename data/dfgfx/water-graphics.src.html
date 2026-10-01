@@ -1,0 +1,263 @@
+<title>DF Water Graphics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F2F5F4; --panel:#FFFFFF; --ink:#16232A; --ink2:#46575F; --ink3:#6F7F86;
+  --rule:#D5DEDD; --tide:#0E6F78; --tide-soft:#DCEDEE; --sand:#B07F3D; --sand-soft:#F4E8D6;
+  --ok:#2F7D4A; --warn:#9A6A12; --code:#EAF0EF;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E171B; --panel:#152127; --ink:#E2EBEC; --ink2:#AEBEC2; --ink3:#86989D;
+  --rule:#26363C; --tide:#5BBFC7; --tide-soft:#16343A; --sand:#D9A866; --sand-soft:#3A2D1C;
+  --ok:#6CC08A; --warn:#E0B25A; --code:#1B2A30; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0E171B; --panel:#152127; --ink:#E2EBEC; --ink2:#AEBEC2; --ink3:#86989D;
+  --rule:#26363C; --tide:#5BBFC7; --tide-soft:#16343A; --sand:#D9A866; --sand-soft:#3A2D1C;
+  --ok:#6CC08A; --warn:#E0B25A; --code:#1B2A30; color-scheme:dark; }
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 var(--body); margin:0; padding-inline:clamp(16px,3vw,40px); padding-block:28px 64px}
+.wrap{max-width:1500px; margin:0 auto; display:grid; gap:28px}
+h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.15}
+h1{font-size:clamp(28px,3.4vw,44px); font-weight:700; letter-spacing:-.01em}
+h2{font-size:22px; font-weight:700; margin-bottom:10px}
+h3{font-size:16px; font-weight:700}
+p{margin:0 0 .7em; max-width:72ch}
+code,.mono{font-family:var(--mono); font-size:.86em}
+code{background:var(--code); padding:1px 5px; border-radius:3px}
+.eyebrow{font:500 12px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--tide)}
+header{display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:28px; align-items:end; border-bottom:1px solid var(--rule); padding-bottom:22px}
+header .lede{color:var(--ink2); font-size:17px}
+.meta{font:13px/1.5 var(--mono); color:var(--ink3)}
+.answers{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px}
+.answer{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:20px 22px; display:grid; gap:10px; align-content:start}
+.answer .q{font:600 13px/1.4 var(--body); color:var(--ink3)}
+.verdict{display:inline-flex; align-items:center; gap:8px; font:600 13px/1 var(--mono); padding:6px 10px; border-radius:20px; width:max-content}
+.verdict.yes{background:var(--tide-soft); color:var(--tide)}
+.verdict.part{background:var(--sand-soft); color:var(--sand)}
+.answer ol{margin:0; padding-left:20px; display:grid; gap:6px}
+.grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:24px}
+.s4{grid-column:span 4} .s5{grid-column:span 5} .s6{grid-column:span 6} .s7{grid-column:span 7} .s8{grid-column:span 8} .s12{grid-column:span 12}
+section{display:grid; gap:12px; align-content:start}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:18px 20px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:13.5px; font-variant-numeric:tabular-nums}
+th,td{text-align:left; padding:7px 10px; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font:600 12px/1.3 var(--body); color:var(--ink3); text-transform:uppercase; letter-spacing:.04em}
+td.num{text-align:right}
+.tag{font:500 11px/1 var(--mono); padding:3px 6px; border-radius:3px; white-space:nowrap}
+.tag.v{background:var(--tide-soft); color:var(--tide)} .tag.i{background:var(--sand-soft); color:var(--sand)}
+figure{margin:0; display:grid; gap:8px}
+figcaption{font-size:12.5px; color:var(--ink3)}
+.pix{image-rendering:pixelated; width:100%; height:auto; border:1px solid var(--rule); border-radius:4px; background:repeating-conic-gradient(var(--rule) 0 25%, transparent 0 50%) 0 0/16px 16px}
+pre{background:var(--code); border-radius:5px; padding:14px 16px; overflow-x:auto; font:12.5px/1.55 var(--mono); margin:0}
+ul.plain{margin:0; padding-left:18px; display:grid; gap:6px}
+.steps{counter-reset:s; display:grid; gap:10px; margin:0; padding:0; list-style:none}
+.steps li{counter-increment:s; display:grid; grid-template-columns:28px 1fr; gap:10px}
+.steps li::before{content:counter(s); font:600 13px/26px var(--mono); text-align:center; background:var(--tide-soft); color:var(--tide); border-radius:50%; width:26px; height:26px}
+svg text{fill:var(--ink2); font:12px var(--body)}
+.foot{border-top:1px solid var(--rule); padding-top:14px; font-size:12.5px; color:var(--ink3)}
+a{color:var(--tide)}
+a:focus-visible{outline:2px solid var(--tide); outline-offset:2px}
+@media (max-width:1000px){ header,.answers{grid-template-columns:1fr} .s4,.s5,.s6,.s7,.s8{grid-column:span 12} }
+</style>
+
+<div class="wrap">
+<header>
+  <div style="display:grid;gap:12px">
+    <span class="eyebrow">Dwarf Fortress 53.16 · Steam graphics · DFHack 53.16-r1.1</span>
+    <h1>Translucent water, ocean waves and mist in graphics mode</h1>
+    <p class="lede">Translucent water is an ordinary graphics mod: re-point the seven water-depth tiles at a lower-alpha copy of the sheet. Ocean waves need a DFHack overlay. The game still simulates them, but graphics mode has no tile token to draw them with.</p>
+  </div>
+  <div class="meta">Research 1 Oct 2026, read-only on the installed game.<br>Sources: the free classic build <code>df_53_16_win.zip</code>, the Steam install's <code>data/vanilla/vanilla_environment/graphics</code>, DFHack's structure definitions, and the four Steam Workshop mods you linked.<br>Prototypes: <code>DwarfCron/data/dfgfx/proto_mods/</code></div>
+</header>
+
+<div class="answers">
+  <article class="answer">
+    <div class="q">1 · Can water be made semi-transparent, like z-level fog and glass floors?</div>
+    <span class="verdict yes">Yes · a raws and PNG mod</span>
+    <p>Water is drawn as a layer over the floor of the same cell, and the three shallowest depths are already partly transparent. A mod folder that re-binds <code>UNDERWATER_1</code>–<code>UNDERWATER_7</code> to a lower-alpha sheet shows the floor through ponds, channels and cisterns. It costs nothing at run time.</p>
+    <ol>
+      <li><b>Recommended:</b> a raws mod re-binding the seven depth tiles and their depth labels. A working prototype exists.</li>
+      <li>Rivers and brooks have their own animated sheets, which need the same alpha edit.</li>
+      <li>A DFHack overlay can only tint on top; it cannot reveal what is underneath.</li>
+    </ol>
+    <p class="meta">Untested: what shows through deep ocean or lake water with no floor in the cell. Lower z-levels under fog, or black? That needs one look in a test world.</p>
+  </article>
+  <article class="answer">
+    <div class="q">2 · Can we add the ocean waves and mist that ASCII mode shows?</div>
+    <span class="verdict part">Mist: a PNG edit · Waves: a DFHack overlay</span>
+    <p>The rumour holds up. The executable carries the ocean-wave and sea-foam objects, and DFHack's structure definitions name them. But graphics mode's 10 <code>FLOW_*</code> tokens don't include either, so no sprite exists to re-bind. Mist does have a token, <code>FLOW_WATER_MIST</code>, and can be restyled with a PNG edit.</p>
+    <ol>
+      <li><b>Mist:</b> edit the mist column of <code>event_flows.png</code> through a mod folder.</li>
+      <li><b>Waves:</b> a script-only DFHack overlay, built like the Rain Visuals mod. It reads wave fronts and wave/foam flows in the visible blocks a few times a second and paints animated translucent sprites there. A prototype passes a syntax check but has never run.</li>
+      <li>A C++ plugin or an exe patch could draw waves in the right layer. Neither is recommended.</li>
+    </ol>
+  </article>
+</div>
+
+<div class="grid">
+  <section class="s7">
+    <h2>What the Steam graphics hold for water, fog and glass</h2>
+    <p>Every token below is in the Steam install's <code>vanilla_environment/graphics</code> raws. Alpha was read from the PNGs per tile. The classic zip ships no tile graphics at all: its seven <code>*_graphics</code> folders hold only <code>info.txt</code>.</p>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>What</th><th>Token</th><th>Sheet</th><th>Alpha</th></tr></thead>
+        <tbody>
+          <tr><td>Water, depth 7 to 1</td><td><code>LIQUIDS:0:0..6:UNDERWATER_7..1</code></td><td><code>liquids.png</code></td><td>255 for depths 7–4; 230 / 204 / 179 for 3 / 2 / 1</td></tr>
+          <tr><td>Depth digits</td><td><code>UNDERWATER_n_LABEL</code></td><td><code>liquids.png</code></td><td>as the depth tiles</td></tr>
+          <tr><td>Shore outline</td><td><code>UNDERWATER_EDGE_*</code></td><td><code>liquids.png</code></td><td>edge sprites</td></tr>
+          <tr><td>River and brook animation</td><td><code>FLOWS*:..:RIVER_TO_* / BROOK_TO_*:1:1..16</code></td><td>river / brook sheets</td><td>16 frames</td></tr>
+          <tr><td>River and brook beds</td><td><code>RIVER_BED_* / BROOK_BED_*</code></td><td>river / brook sheets</td><td>opaque</td></tr>
+          <tr><td>Water as a floor</td><td><code>FLOORS:6:2:WATER</code></td><td>floors sheet</td><td>opaque</td></tr>
+          <tr><td>Water mist</td><td><code>EVENT_FLOWS:2:0..3:FLOW_WATER_MIST:1..4</code></td><td><code>event_flows.png</code></td><td>translucent, up to 199</td></tr>
+          <tr><td>Z-level fog</td><td><code>MULTILEVEL_OVERLAY:3:3:MULTILEVEL_AIR</code></td><td>multilevel sheet</td><td>96, sky blue, stacked once per lower level</td></tr>
+          <tr><td>Glass floors</td><td><code>FLOOR_GLASS:0..2:0:GLASS_{GREEN,CLEAR,CRYSTAL}_FLOOR</code></td><td>floors sheet</td><td>about 170</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Fog and glass are translucent because their sprites carry alpha, and the mods that change them simply re-bind the token to a new sheet. Water works the same way: DF's map is drawn floor first, then the liquid layer on top in the same cell. The shallow tiles' existing alpha only makes sense in that order. That's read from DFHack's structure definitions, not yet screen-tested.</p>
+  </section>
+
+  <section class="s5">
+    <h2>Alpha by depth, vanilla and the prototype</h2>
+    <div class="card">
+      <svg id="alpha" viewBox="0 0 520 250" role="img" aria-label="Water tile alpha by depth: vanilla 255 for depths 7 to 4, 230, 204, 179 for 3 to 1; prototype 150 down to 90"></svg>
+    </div>
+    <figure>
+      <img class="pix" src="__WATER_COMPARE__" alt="Top row: vanilla water tiles depth 1 to 7 over a sand floor, opaque teal. Bottom row: the prototype's tiles over the same floor, with the sand ripples visible through every depth.">
+      <figcaption>A sand floor (left), then the seven water tiles composited over it. Top row: vanilla. Bottom row: the prototype, with the sand's ripples visible at every depth. Composited offline from the game's own sprites; this is not an in-game screenshot.</figcaption>
+    </figure>
+  </section>
+
+  <section class="s6">
+    <h2>The wave rumour: simulated, but never drawn</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Evidence</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>The Steam exe knows exactly 10 <code>FLOW_*</code> graphics tokens: BOILING, DRAGONFIRE, DUST, FIRE, ITEM, LAVA_MIST, MIASMA, SMOKE, VAPOR, WATER_MIST. The vanilla raws use all 10.</td><td><span class="tag v">verified</span></td></tr>
+          <tr><td><code>OCEAN_WAVE</code>, <code>OCEAN_FOAM</code>, <code>SEA_FOAM</code>, <code>WAVE_</code> and <code>FOAM</code> appear nowhere in the exe as tokens.</td><td><span class="tag v">verified</span></td></tr>
+          <tr><td>The exe has the game text "into the ocean wave" and "into the sea foam". The objects exist in the simulation.</td><td><span class="tag v">verified</span></td></tr>
+          <tr><td>DFHack's structure definitions list <code>flow_type</code> <code>OceanWave</code> and <code>SeaFoam</code>, and <code>world.event.ocean_waves</code>: wave fronts with position, z and a visibility timer. <code>dfhack.dll</code> carries the names too.</td><td><span class="tag v">verified</span></td></tr>
+          <tr><td>The classic and Steam exes have identical keyword-string sets, so the same simulation runs in both.</td><td><span class="tag v">verified</span></td></tr>
+          <tr><td>Waves actually spawn while the game runs in graphics mode.</td><td><span class="tag i">not yet observed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The author of the Flowing Water mod hit the same wall: "can't fix the invisible waves at the beach. If they release tokens for the waves, I'll animate them too."</p>
+  </section>
+
+  <section class="s6">
+    <h2>How the four Workshop mods work</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Mod</th><th>Method</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2978122014">Transparent (Glass) Floors</a></td><td>Re-binds the three glass-floor tokens to <code>glass_floor_new.png</code>, with alpha variants to choose from.</td></tr>
+          <tr><td><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2899337501">Grey &amp; Reduced Z-Level Fog</a></td><td>Re-binds <code>MULTILEVEL_AIR</code> to a greyer, lower-alpha fog. White Z Fog, Dark Depths and Black ZFog do the same.</td></tr>
+          <tr><td><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3419529410">Flowing Water</a></td><td>Re-binds all 16 <code>RIVER_TO_*</code> and <code>BROOK_TO_*</code> animation frames. Beach waves were out of reach: no token.</td></tr>
+          <tr><td><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3779888168">Rain Visuals</a></td><td>A script-only DFHack overlay (<code>rain-visuals.rain</code>) that paints animated rain over the map. This is the model for waves. Not installed here, so only its page was read.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The first three are the same trick as translucent water: a mod folder with a new tile page plus raws that point the vanilla token at it.</p>
+  </section>
+
+  <section class="s12">
+    <h2>Approaches, ranked</h2>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Approach</th><th>For</th><th>What it can do</th><th>What it cannot do</th><th>Run-time cost</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td><b>Raws mod:</b> new tile page + re-bound <code>UNDERWATER_*</code></td><td>Translucent water</td><td>Shows the floor through standing water at any depth. Survives updates as long as the tokens keep their names.</td><td>Show anything when the cell has no floor; deep ocean depends on how DF draws lower levels.</td><td>None</td><td>Prototype built</td></tr>
+          <tr><td><b>Same, for river and brook sheets</b></td><td>Translucent rivers</td><td>Keeps flowing water consistent with standing water.</td><td>Make the opaque riverbeds transparent; they are the floor.</td><td>None</td><td>To do</td></tr>
+          <tr><td><b>PNG edit of the mist column</b> in <code>event_flows.png</code></td><td>Mist</td><td>Restyles waterfall and spray mist: colour, density, frames.</td><td>Add mist where DF makes none.</td><td>None</td><td>To do</td></tr>
+          <tr><td><b>DFHack overlay</b> reading <code>world.event.ocean_waves</code> and wave/foam/mist flows</td><td>Ocean waves, foam</td><td>Animated translucent crests and foam on the cells DF simulates. Optionally ambient surf along salt-water shores.</td><td>Draw below units or on lower z-levels; it draws on the current level, above units, snapped to tiles.</td><td>Est. well under 1%: rescan 4× a second, paint visible tiles</td><td>Prototype written, never run</td></tr>
+          <tr><td>DFHack tint overlay on water</td><td>Water look</td><td>Recolour water.</td><td>Reveal what is beneath.</td><td>Low</td><td>Not recommended</td></tr>
+          <tr><td>C++ plugin or exe patch</td><td>Both</td><td>Draw waves in DF's own layer order and on lower levels.</td><td>Survive DF and DFHack updates reliably; the liquid renderer is undocumented.</td><td>Low</td><td>Not recommended</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="s6">
+    <h2>Prototype 1 · translucent_water</h2>
+    <p>A complete mod folder: <code>info.txt</code>, a tile page and the graphics raws. The sheet <code>liquids_translucent.png</code> is vanilla's with alpha 150, 140, 130, 120, 110, 100, 90 for depths 7 to 1. It was built by <code>make_translucent_water.py</code>, so other alpha curves are a one-line change.</p>
+<pre>[OBJECT:TILE_PAGE]
+[TILE_PAGE:LIQUIDS_TRANSLUCENT]
+	[FILE:images/liquids_translucent.png]
+	[TILE_DIM:32:32]
+	[PAGE_DIM_PIXELS:224:224]
+
+[OBJECT:GRAPHICS]
+[TILE_GRAPHICS:LIQUIDS_TRANSLUCENT:0:0:UNDERWATER_7]
+[TILE_GRAPHICS:LIQUIDS_TRANSLUCENT:0:1:UNDERWATER_6]
+  … through UNDERWATER_1, then the same for UNDERWATER_7_LABEL … _1_LABEL</pre>
+  </section>
+
+  <section class="s6">
+    <h2>Prototype 2 · ocean_waves_overlay</h2>
+    <p>A script-only DFHack mod: <code>scripts_modactive/ocean-waves.lua</code> plus an 8-frame × 2-row sprite sheet. Row one is the wave crest; row two is foam and mist. The overlay rescans 4 times a second: wave fronts on the current level, plus <code>OceanWave</code>, <code>SeaFoam</code> and <code>Mist</code> flows in the visible blocks. It then paints the matching frame with <code>renderMapOverlay</code>, keeping the tile underneath.</p>
+    <figure>
+      <img class="pix" src="__WAVES__" alt="Sprite sheet: eight frames of white wave crests on the top row and eight frames of foam bubbles on the bottom row, on a transparent background.">
+      <figcaption><code>images/waves.png</code>, 256 × 64 px, eight 32 × 32 frames per row, white on transparent.</figcaption>
+    </figure>
+    <p class="meta">Never run in DF. Before it can, it needs three things checked against DFHack 53.16-r1.1: the <code>renderMapOverlay</code> callback's return shape, <code>getModSourcePath('ocean_waves_overlay')</code> matching the mod ID, and whether texture handles survive a world reload.</p>
+  </section>
+
+  <section class="s7">
+    <h2>Testing it on the rig</h2>
+    <ol class="steps">
+      <li><span>Copy <code>translucent_water</code> into the Steam <code>mods</code> folder on a throwaway copy of the OCEAN2 and LAKE saves, enable it at world load, and screenshot a channel, a pond and open ocean. This settles the open question: is it seabed through fog, or black?</span></li>
+      <li><span>If deep ocean shows black, keep depths 7–5 near opaque and make only the shallows translucent.</span></li>
+      <li><span>On OCEAN2 with no mod, run a DFHack probe for a few thousand ticks. Count <code>world.event.ocean_waves</code> entries and <code>OceanWave</code>/<code>SeaFoam</code> flows. This confirms waves spawn in graphics mode and shows how many there are.</span></li>
+      <li><span>Fix the three overlay checks, enable <code>ocean_waves_overlay</code>, and time it the way the FPS series did, with and without the overlay. If DF's own waves are sparse, add the optional shoreline surf.</span></li>
+      <li><span>Restyle mist last, once the waves' look is settled, so the two match.</span></li>
+    </ol>
+  </section>
+
+  <section class="s5">
+    <h2>Limits worth knowing</h2>
+    <ul class="plain">
+      <li>DFHack's renderer hooks (<code>map-render</code>, <code>rendermax</code>) are marked unavailable in this build, so a script can draw on top of DF's map but cannot change how DF draws water.</li>
+      <li>An overlay paints above units. A swimming dwarf under a wave crest is covered by it for the frames it shows.</li>
+      <li>Tokens are stable across recent releases, but a sheet layout can change. The raws mod re-binds by name, so only the PNG would need rework.</li>
+      <li>Nothing in the Steam install, the DFHack prefs or any save was changed during this research.</li>
+    </ul>
+  </section>
+
+  <div class="s12 foot">Files: <code>DwarfCron/data/dfgfx/</code> holds <code>proto_mods/translucent_water</code>, <code>proto_mods/ocean_waves</code>, <code>water_compare.png</code>, <code>exestrings.json</code> (string sets from the Steam exe, the classic exe and <code>dfhack.dll</code>), <code>exestrings.py</code> and <code>make_translucent_water.py</code>. The Steam graphics raws read are <code>graphics_fluids.txt</code>, <code>graphics_flows.txt</code>, <code>graphics_tiles.txt</code>, <code>graphics_vision_shadows.txt</code> and <code>tile_page_environment.txt</code>.</div>
+</div>
+</div>
+
+<script>
+(function(){
+  const vanilla=[255,255,255,255,230,204,179], proto=[150,140,130,120,110,100,90];
+  const svg=document.getElementById('alpha'); const NS='http://www.w3.org/2000/svg';
+  const W=520,H=250,x0=46,y0=24,pw=440,ph=170, band=pw/7;
+  const y=v=>y0+ph-(v/255)*ph;
+  function el(t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e}
+  const cs=getComputedStyle(document.documentElement);
+  const c=n=>cs.getPropertyValue(n).trim();
+  function draw(){
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    [0,64,128,192,255].forEach(t=>{el('line',{x1:x0,x2:x0+pw,y1:y(t),y2:y(t),stroke:c('--rule')});el('text',{x:x0-8,y:y(t)+4,'text-anchor':'end'},t)});
+    for(let i=0;i<7;i++){
+      const d=7-i, bx=x0+i*band+band*0.16, bw=band*0.3;
+      const r1=el('rect',{x:bx,y:y(vanilla[i]),width:bw,height:y0+ph-y(vanilla[i]),fill:c('--ink3'),rx:2}); r1.appendChild(document.createElementNS(NS,'title')).textContent=`Vanilla depth ${d}: alpha ${vanilla[i]}`;
+      const r2=el('rect',{x:bx+bw+3,y:y(proto[i]),width:bw,height:y0+ph-y(proto[i]),fill:c('--tide'),rx:2}); r2.appendChild(document.createElementNS(NS,'title')).textContent=`Prototype depth ${d}: alpha ${proto[i]}`;
+      el('text',{x:x0+i*band+band/2,y:y0+ph+18,'text-anchor':'middle'},'depth '+d);
+    }
+    el('text',{x:x0,y:14,'font-weight':'600'},'Tile alpha (0 = clear, 255 = opaque)');
+    el('rect',{x:x0,y:H-18,width:10,height:10,fill:c('--ink3'),rx:2}); el('text',{x:x0+15,y:H-9},'vanilla liquids.png');
+    el('rect',{x:x0+160,y:H-18,width:10,height:10,fill:c('--tide'),rx:2}); el('text',{x:x0+175,y:H-9},'translucent_water prototype');
+  }
+  draw();
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+       new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
+})();
+</script>
