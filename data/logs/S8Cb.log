@@ -1,0 +1,1005 @@
+=== S8Cb start 06:20:36
+06:20:36 run S8C 20261001-062036: Item 8: a season of v7.0 with the roster builder on CTRL (surface; caverns closed).
+06:20:36   [rig] DF already running (pid 33346), port 5555
+06:20:36 == S8C arm=v70 rep=1 fort=CTRL budget=100800 every=5000
+06:20:36   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+06:20:36   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+06:21:41   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+06:21:41   [rig] loaded after 21s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+06:21:41   [rig] drained 0 queued popup(s)
+06:21:42   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+06:21:43   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.cavern=true; cfg.layers.water=false; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.ecology.enabled=true; cfg.water.enabled=false; cfg.v7.builder=true; sw.saveConfig(cfg); for _,l in ipairs({'land','cavern'}) do local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','roster','build',l); print(('s8 build %s: %s'):format(l, (out or '?'):gsub('\n',' | '):sub(1,1500))) end; dfhack.run_command_silent('seasonal-wildlife','enable'); local c2=sw.loadConfig(); print(('s8 cfg enabled=%s builder=%s gate_drain=%s domestic=%s'):format(tostring(c2.enabled),tostring(c2.v7.builder),tostring(c2.v7.gate_drain),tostring(c2.v7.domestic))) -> s8 build land: roster build land -- seed COUGAR |   AL  1 (min 1, max 1)  COUGAR |   RP  2 (min 0, max 2)  BIRD_OWL_GREAT_HORNED, BIRD_KESTREL |   GZ  2 (min 1, max 2)  GROUNDHOG, KANGAROO |   PL  2 (min 1, max 2)  PORCUPINE, BIRD_KAKAPO |   ML  1 (min 1, max 2)  BADGER |   LB  1 (min 0, max 2)  BIRD_RAVEN |   WB  0 (min 0, max 1)  (empty) |   SH  0 (min 0, max 1)  (empty) |   ladder: |     BADGER                   14 |     BIRD_KAKAPO              35 |     BIRD_KESTREL             20 |     BIRD_OWL_GREAT_HORNED    4 |     BIRD_RAVEN               28 |     COUGAR                   14 |     GROUNDHOG                100 |     KANGAROO                 8 |     PORCUPINE                15 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) | 
+s8 build cavern: roster build cavern -- seed BLIND_CAVE_OGRE |   AL  1 (min 1, max 1)  BLIND_CAVE_OGRE |   AW  1 (min 0, max 1)  TOAD_GIANT_CAVE |   PL  3 (min 1, max 3)  RAT_LARGE, GIANT_EARTHWORM, RUTHERER |   ML  1 (min 0, max 1)  CRUNDLE |   RP  1 (min 0, max 1)  BIRD_SWALLOW_CAVE_GIANT |   LB  1 (min 0, max 1)  CAVE_FLOATER |   SH  2 (min 0, max 2)  FLESH_BALL, PLUMP_HELMET_MAN |   MW  0 (min 0, max 1)  (empty) |   FF  0 (min 0, max 2)  (empty) |   ladder: |     cavern:BIRD_SWALLOW_CAVE_GIANT 10 |     cavern:BLIND_CAVE_OGRE   15 |     cavern:CAVE_FLOATER      30 |     cavern:CRUNDLE           15 |     cavern:FLESH_BALL        18 |     cavern:GIANT_EARTHWORM   29 |     cavern:PLUMP_HELMET_MAN  23 |     cavern:RAT_LARGE         100 |     cavern:RUTHERER          6 |     cavern:TOAD_GIANT_CAVE   15 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) | 
+s8 cfg enabled=true builder=true gate_drain=true domestic=false
+06:21:43   manipulation: _G.__s8seen=nil; print('s8 seen reset') -> s8 seen reset
+06:21:43   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+06:22:17   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=21859 units cavern:AL=4 cavern:AW=5 cavern:GZ=9 cavern:ML=1 deep:-=11 land:LB=6 land:PL=2 | new cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER deep:-:DEMON_10 land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:AL:JABBERER deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 land:PL:SKUNK cavern:AL:JABBERER cavern:AL:JABBERER cavern:ML:REACHER cavern:AL:TROLL cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD | pelagic_beached=0 | odds_n=19
+06:22:38   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=26999 units cavern:AL=5 cavern:AW=5 cavern:GZ=4 cavern:ML=1 cavern:PL=1 deep:-=11 land:LB=6 land:PL=2 | new cavern:PL:GIANT_EARTHWORM cavern:AL:TROLL | pelagic_beached=0 | odds_n=19
+06:23:00   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=32071 units cavern:AL=10 cavern:AW=5 cavern:GZ=3 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE land:RP:BIRD_KESTREL land:PL:SKUNK | pelagic_beached=0 | odds_n=19
+06:23:22   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=37137 units cavern:AL=10 cavern:AW=5 cavern:GZ=2 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+06:23:44   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=42263 units cavern:AL=8 cavern:AW=5 cavern:GZ=1 cavern:ML=1 deep:-=9 land:LB=5 land:PL=2 land:RP=1 | new cavern:AL:JABBERER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+06:24:04   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=47400 units cavern:AL=7 cavern:AW=3 deep:-=9 land:LB=2 land:PL=2 land:RP=1 | new land:PL:SKUNK cavern:AL:ELEMENTMAN_MUD cavern:AL:JABBERER deep:-:DEMON_1 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 cavern:AW:TOAD_GIANT_CAVE | pelagic_beached=0 | odds_n=19
+06:24:21   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=52453 units cavern:AL=6 cavern:AW=1 deep:-=10 land:LB=1 land:PL=2 land:RP=1 | new deep:-:DEMON_4 | pelagic_beached=0 | odds_n=19
+06:24:40   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=57503 units cavern:AL=5 cavern:AW=2 deep:-=10 land:PL=3 land:RP=1 | new cavern:AW:CROCODILE_CAVE cavern:AW:CROCODILE_CAVE land:PL:SKUNK cavern:AL:SPIDER_CAVE_GIANT | pelagic_beached=0 | odds_n=19
+06:24:58   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=62671 units cavern:AL=9 cavern:AW=2 cavern:RP=1 deep:-=9 land:PL=2 | new cavern:AL:BLOOD_MAN cavern:RP:BIRD_SWALLOW_CAVE_GIANT cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN | pelagic_beached=0 | odds_n=19
+06:25:18   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=67829 units cavern:AL=8 cavern:AW=2 cavern:RP=1 deep:-=9 land:PL=2 | new  | pelagic_beached=0 | odds_n=19
+06:25:18   + 51029 ticks | wild  22 | arrivals  57 | departures  31 | deaths 17 | 269 t/s
+06:25:38   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=73030 units cavern:AL=6 cavern:AW=2 cavern:ML=1 cavern:RP=1 deep:-=7 land:LB=9 land:PL=1 | new cavern:ML:REACHER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+06:26:00   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=78135 units cavern:AL=7 cavern:AW=2 cavern:ML=2 cavern:RP=1 deep:-=9 land:LB=9 land:PL=2 land:RP=1 | new cavern:AW:TOAD_GIANT_CAVE cavern:AL:JABBERER cavern:ML:REACHER land:PL:SKUNK land:RP:BIRD_KESTREL deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 | pelagic_beached=0 | odds_n=19
+06:26:22   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=83245 units cavern:AL=5 cavern:AW=1 cavern:ML=3 cavern:RP=1 deep:-=9 land:LB=9 land:PL=1 land:RP=1 | new cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+06:26:44   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=88291 units cavern:AL=2 cavern:AW=4 cavern:ML=3 cavern:RP=1 deep:-=9 land:LB=9 land:PL=1 land:RP=1 | new cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER | pelagic_beached=0 | odds_n=19
+06:27:06   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=93387 units cavern:AL=2 cavern:AW=5 cavern:ML=4 deep:-=9 land:LB=8 land:PL=1 land:RP=1 | new cavern:AW:POND_GRABBER cavern:AL:SPIDER_CAVE_GIANT cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+06:27:32   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=98467 units cavern:AL=2 cavern:AW=5 cavern:ML=3 deep:-=9 land:LB=15 land:PL=1 land:RP=1 | new land:LB:BIRD_RAVEN cavern:AW:POND_GRABBER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+06:27:57   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=103494 units cavern:AL=10 cavern:AW=5 cavern:ML=4 deep:-=7 land:LB=10 land:PL=1 | new cavern:AL:JABBERER cavern:ML:REACHER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+06:28:22   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=108587 units cavern:AL=9 cavern:AW=5 cavern:ML=3 deep:-=7 land:GZ=4 land:LB=10 | new deep:-:DEMON_13 land:GZ:KANGAROO land:GZ:KANGAROO land:GZ:KANGAROO deep:-:DEMON_13 land:GZ:KANGAROO deep:-:DEMON_13 | pelagic_beached=0 | odds_n=19
+06:28:46   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=113698 units cavern:AL=9 cavern:AW=5 cavern:ML=3 deep:-=7 land:GZ=4 land:LB=10 | new cavern:AL:TROLL cavern:AL:ELEMENTMAN_MUD | pelagic_beached=0 | odds_n=19
+06:29:11   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=118803 units cavern:AL=9 cavern:AW=2 cavern:ML=1 cavern:SH=4 deep:-=7 land:GZ=4 land:LB=9 | new cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:AL:TROLL | pelagic_beached=0 | odds_n=19
+06:29:11   +102003 ticks | wild  36 | arrivals 118 | departures  76 | deaths 19 | 210 t/s
+06:29:20   [rig] back at the title screen
+06:29:20   done: {"arm": "v70", "rep": 1, "valid": true, "breaches": [], "control": null, "arrivals": 118, "departures": 76, "deaths": 19, "ticks": 102003, "wall_s": 438.5, "stop": null, "ticks_per_s": 232.6, "save_untouched": true}
+06:29:20 == S8C arm=v70 rep=2 fort=CTRL budget=100800 every=5000
+06:29:20   [rig] restored CTRL.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/CTRL
+06:29:20   restored CTRL.preverify -> CTRL sha256 74de0271bab7
+06:30:29   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+06:30:29   [rig] loaded after 24s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+06:30:29   [rig] drained 0 queued popup(s)
+06:30:30   baseline: 13 wild units on map, 762 pool entries, tick 16800 year 2
+06:30:31   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.cavern=true; cfg.layers.water=false; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.ecology.enabled=true; cfg.water.enabled=false; cfg.v7.builder=true; sw.saveConfig(cfg); for _,l in ipairs({'land','cavern'}) do local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','roster','build',l); print(('s8 build %s: %s'):format(l, (out or '?'):gsub('\n',' | '):sub(1,1500))) end; dfhack.run_command_silent('seasonal-wildlife','enable'); local c2=sw.loadConfig(); print(('s8 cfg enabled=%s builder=%s gate_drain=%s domestic=%s'):format(tostring(c2.enabled),tostring(c2.v7.builder),tostring(c2.v7.gate_drain),tostring(c2.v7.domestic))) -> s8 build land: roster build land -- seed COUGAR |   AL  1 (min 1, max 1)  COUGAR |   RP  2 (min 0, max 2)  BIRD_OWL_GREAT_HORNED, BIRD_KESTREL |   GZ  2 (min 1, max 2)  KANGAROO, GROUNDHOG |   PL  2 (min 1, max 2)  BIRD_EMU, PORCUPINE |   ML  1 (min 1, max 2)  BADGER |   LB  1 (min 0, max 2)  BIRD_RAVEN |   WB  0 (min 0, max 1)  (empty) |   SH  0 (min 0, max 1)  (empty) |   ladder: |     BADGER                   14 |     BIRD_EMU                 14 |     BIRD_KESTREL             20 |     BIRD_OWL_GREAT_HORNED    4 |     BIRD_RAVEN               28 |     COUGAR                   14 |     GROUNDHOG                100 |     KANGAROO                 8 |     PORCUPINE                39 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) | 
+s8 build cavern: roster build cavern -- seed BLIND_CAVE_OGRE |   AL  1 (min 1, max 1)  BLIND_CAVE_OGRE |   AW  1 (min 0, max 1)  POND_GRABBER |   PL  3 (min 1, max 3)  RAT_LARGE, CREEPING_EYE, MOLE_DOG_NAKED |   ML  1 (min 0, max 1)  REACHER |   RP  1 (min 0, max 1)  BIRD_SWALLOW_CAVE_GIANT |   LB  1 (min 0, max 1)  CAVE_FLOATER |   SH  2 (min 0, max 2)  PLUMP_HELMET_MAN, FLESH_BALL |   MW  0 (min 0, max 1)  (empty) |   FF  0 (min 0, max 2)  (empty) |   OUTGUNNED: REACHER pack vs CREEPING_EYE herd 4.3x |   OUTGUNNED: REACHER pack vs FLESH_BALL herd 3.0x |   ladder: |     cavern:BIRD_SWALLOW_CAVE_GIANT 29 |     cavern:BLIND_CAVE_OGRE   43 |     cavern:CAVE_FLOATER      86 |     cavern:CREEPING_EYE      100 |     cavern:FLESH_BALL        51 |     cavern:MOLE_DOG_NAKED    44 |     cavern:PLUMP_HELMET_MAN  65 |     cavern:POND_GRABBER      43 |     cavern:RAT_LARGE         85 |     cavern:REACHER           43 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) | 
+s8 cfg enabled=true builder=true gate_drain=true domestic=false
+06:30:31   manipulation: _G.__s8seen=nil; print('s8 seen reset') -> s8 seen reset
+06:30:31   tool state ok: {'enabled': '1', 'groups_enabled': '1', 'scheduled': '1', 'initialized': '1'}
+06:31:10   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=22012 units cavern:AL=4 cavern:AW=8 cavern:GZ=3 cavern:PL=1 deep:-=11 land:LB=2 land:PL=2 land:RP=1 | new cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB land:PL:SKUNK cavern:AL:TROLL cavern:AL:JABBERER cavern:AL:MOLEMARIAN deep:-:DEMON_9 land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:JABBERER deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 land:RP:BIRD_KESTREL land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:PL:GREEN_DEVOURER | pelagic_beached=0 | odds_n=19
+06:31:30   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=27122 units cavern:AL=8 cavern:AW=11 cavern:GZ=1 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new land:PL:SKUNK land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:ML:REACHER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN | pelagic_beached=0 | odds_n=19
+06:31:51   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=32142 units cavern:AL=8 cavern:AW=11 cavern:GZ=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+06:32:12   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=37244 units cavern:AL=6 cavern:AW=11 cavern:GZ=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+06:32:34   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=42303 units cavern:AL=12 cavern:AW=8 cavern:ML=1 cavern:PL=1 deep:-=11 land:LB=4 land:PL=2 land:RP=1 | new cavern:AL:TROGLODYTE cavern:AL:SPIDER_CAVE_GIANT cavern:PL:GORLAK cavern:ML:REACHER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+06:32:56   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=47358 units cavern:AL=12 cavern:AW=8 cavern:ML=2 cavern:PL=2 deep:-=6 land:LB=4 land:PL=2 | new land:PL:SKUNK cavern:PL:MANERA cavern:AL:JABBERER cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+06:33:20   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=52477 units cavern:AL=10 cavern:AW=8 cavern:ML=2 cavern:PL=2 deep:-=7 land:LB=10 land:PL=1 | new deep:-:DEMON_19 deep:-:DEMON_19 cavern:PL:GREEN_DEVOURER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+06:33:44   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=57556 units cavern:AL=11 cavern:AW=8 cavern:ML=3 cavern:PL=1 deep:-=7 land:LB=7 land:PL=1 | new cavern:ML:REACHER cavern:AL:SPIDER_CAVE_GIANT land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+06:34:06   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=62622 units cavern:AL=10 cavern:AW=8 cavern:ML=1 cavern:PL=2 deep:-=7 land:LB=7 land:PL=1 | new cavern:PL:MANERA cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+06:34:33   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=67667 units cavern:AL=11 cavern:AW=5 cavern:ML=2 cavern:RP=1 deep:-=7 land:LB=17 | new cavern:AL:JABBERER cavern:RP:BIRD_SWALLOW_CAVE_GIANT cavern:ML:REACHER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+06:34:33   + 50867 ticks | wild  43 | arrivals  79 | departures  32 | deaths 17 | 190 t/s
+06:34:57   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=72731 units cavern:AL=4 cavern:AW=9 cavern:ML=1 cavern:RP=1 deep:-=8 land:LB=17 | new cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER deep:-:DEMON_1 deep:-:DEMON_1 cavern:AL:JABBERER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+06:35:22   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=77807 units cavern:AL=4 cavern:AW=5 cavern:ML=1 cavern:RP=1 deep:-=7 land:LB=14 | new  | pelagic_beached=0 | odds_n=19
+06:35:47   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=82916 units cavern:AL=4 cavern:AW=7 cavern:ML=1 cavern:PL=1 cavern:RP=1 deep:-=7 land:LB=10 land:PL=1 land:RP=1 | new land:RP:BIRD_KESTREL land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:PL:MANERA | pelagic_beached=0 | odds_n=19
+06:36:14   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=88045 units cavern:AL=4 cavern:AW=7 cavern:ML=2 cavern:RP=1 deep:-=7 land:LB=9 land:PL=1 land:RP=1 | new cavern:ML:REACHER cavern:ML:REACHER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+06:36:34   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=93086 units cavern:AL=4 cavern:AW=6 cavern:ML=2 deep:-=7 land:LB=3 land:PL=2 land:RP=1 | new land:PL:SKUNK | pelagic_beached=0 | odds_n=19
+06:36:54   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=98150 units cavern:AL=4 cavern:AW=4 cavern:ML=3 deep:-=7 land:PL=2 land:RP=1 | new deep:-:DEMON_3 cavern:AL:TROLL cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+06:37:14   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=103223 units cavern:AL=4 cavern:AW=4 cavern:ML=3 deep:-=9 land:PL=2 | new deep:-:DEMON_16 deep:-:DEMON_16 deep:-:DEMON_16 cavern:AL:ELEMENTMAN_MUD | pelagic_beached=0 | odds_n=19
+06:37:35   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=108300 units cavern:AL=10 cavern:AW=3 cavern:ML=1 deep:-=9 land:GZ=3 land:PL=1 | new cavern:AL:TROGLODYTE land:GZ:KANGAROO cavern:AL:TROLL cavern:AL:TROGLODYTE cavern:AW:TOAD_GIANT_CAVE cavern:AL:VORACIOUS_CAVE_CRAWLER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE land:GZ:KANGAROO land:GZ:KANGAROO | pelagic_beached=0 | odds_n=19
+06:37:57   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=113383 units cavern:AL=10 cavern:AW=3 cavern:ML=1 deep:-=9 land:GZ=6 | new land:GZ:KANGAROO land:GZ:KANGAROO land:GZ:KANGAROO | pelagic_beached=0 | odds_n=19
+06:38:19   manipulation: local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) -> s8 tick=118497 units cavern:AL=21 cavern:AW=3 deep:-=9 land:GZ=6 | new cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+06:38:19   +101697 ticks | wild  39 | arrivals 129 | departures  80 | deaths 23 | 234 t/s
+06:38:28   [rig] back at the title screen
+06:38:28   done: {"arm": "v70", "rep": 2, "valid": true, "breaches": [], "control": null, "arrivals": 129, "departures": 80, "deaths": 23, "ticks": 101697, "wall_s": 458.2, "stop": null, "ticks_per_s": 221.9, "save_untouched": true}
+06:39:42   [rig] clicked through to CTRL (world: Gomathkar); waiting for the map
+06:39:42   [rig] loaded after 27s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=2 tick=16800 season=0 units=31)
+06:39:50   [rig] back at the title screen
+06:39:50 run complete -> /Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/S8C/20261001-062036
+/Users/nathanielcannon/Claude/Projects/DwarfCron/data/experiments/S8C/20261001-062036
+
+# S8C -- Item 8: a season of v7.0 with the roster builder on CTRL (surface; caverns closed).
+run 20261001-062036 fort CTRL backup CTRL.preverify
+DF v0.53.16 win64 STEAM DFHack 53.16-r1.1 world The Legendary Dimension site 32 tiles 29..29,20..20 seed WILDERPOP1
+commits: DwarfCron 1e82841 seasonal-wildlife 1e65e03 fps cap 1000
+
+## Predictions (written before the run)
+- ladder: arrival shares by guild track the builder's FREQUENCY ladder within a few points; apex and meso arrivals are rare
+- predator share: predator arrivals near the builder's target (~15% on land), kills per arrival under 1
+
+## Replicates
+arm | rep | valid | control | ticks | t/s | arrivals | departures | deaths | stop | breaches
+v70 | 1 | True | None | 102003 | 232.6 | 118 | 76 | 19 |  | 
+v70 | 2 | True | None | 101697 | 221.9 | 129 | 80 | 23 |  | 
+
+## Arrivals (new unit ids, attributed by the six-tuple they carry)
+arm | rep | tick | species | ref6 | n | countdown at first sighting | departed at (rel ticks) | outcome
+v70 | 1 | +5059 | SKUNK | 29,20,-1,-1,-1,92 | 2 | 16166,20809 | 25541,20404 | departure
+v70 | 1 | +5059 | POND_GRABBER | 29,21,-1,13,-1,12 | 5 | 16439,17550,17714,19063,21559 | 30594,25541,25541,25541,30594 | departure
+v70 | 1 | +5059 | DEMON_10 | 30,20,-1,43,-1,5 | 1 | 16852 | 20404 | departure
+v70 | 1 | +5059 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 6 | 15378,16836,17122,17161,19169,20618 | 30594,20404,25541,35644,25541,25541 | departure
+v70 | 1 | +5059 | JABBERER | 29,20,-1,25,-1,18 | 2 | 22027,24992 | 25541,25541 | departure
+v70 | 1 | +5059 | DEMON_4 | 29,20,-1,43,-1,6 | 5 | 17477,21921,22211,24119,24708 | 20404,25541,25541,25541,25541 | departure
+v70 | 1 | +5059 | JABBERER | 29,20,-1,13,-1,21 | 1 | 16250 | 20404 | departure
+v70 | 1 | +5059 | REACHER | 29,21,-1,13,-1,30 | 1 | 24163 | 25541 | departure
+v70 | 1 | +5059 | TROLL | 29,21,-1,8,-1,27 | 1 | 22107 | 30594 | departure
+v70 | 1 | +5059 | ELK_BIRD | 29,21,-1,8,-1,21 | 3 | 19775,23155,26322 | 5140,5140,5140 | death
+v70 | 1 | +10199 | GIANT_EARTHWORM | 30,20,-1,8,-1,24 | 1 | 22944 | 5072 | death
+v70 | 1 | +10199 | TROLL | 30,20,-1,8,-1,27 | 1 | 22182 | 30504 | departure
+v70 | 1 | +15271 | TROGLODYTE | 30,20,-1,8,-1,19 | 5 | 21038,21686,23024,24167,25390 | 10192,15329,25432,10192,10192 | death
+v70 | 1 | +15271 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 25297 | 30600 | departure
+v70 | 1 | +15271 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 26592 | 30600 | departure
+v70 | 1 | +25463 | JABBERER | 29,21,-1,13,-1,21 | 1 | 21030 | 25566 | departure
+v70 | 1 | +25463 | JABBERER | 29,20,-1,25,-1,18 | 1 | 20069 | 20408 | departure
+v70 | 1 | +30600 | TOAD_GIANT_CAVE | 29,21,-1,8,-1,12 | 1 | 20710 | 10103 | death
+v70 | 1 | +30600 | ELEMENTMAN_MUD | 29,20,-1,25,-1,16 | 1 | 18983 | 25630 | departure
+v70 | 1 | +30600 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 23448 | 25630 | departure
+v70 | 1 | +30600 | JABBERER | 29,20,-1,13,-1,21 | 1 | 20653 | 25630 | departure
+v70 | 1 | +30600 | DEMON_1 | 28,20,-1,44,-1,3 | 1 | 21831 | 25630 | departure
+v70 | 1 | +30600 | DEMON_4 | 30,20,-1,43,-1,6 | 3 | 24613,24955,25890 | 25630,30735,30735 | departure
+v70 | 1 | +35653 | DEMON_4 | 30,20,-1,43,-1,6 | 1 | 24165 | 25682 | departure
+v70 | 1 | +40703 | CROCODILE_CAVE | 29,21,-1,8,-1,10 | 1 | 19039 | 20632 | departure
+v70 | 1 | +40703 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 22036 | 25742 | departure
+v70 | 1 | +40703 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 1 | 21701 | 25742 | departure
+v70 | 1 | +40703 | CROCODILE_CAVE | 30,20,-1,8,-1,10 | 1 | 21177 | 25742 | departure
+v70 | 1 | +45871 | BIRD_SWALLOW_CAVE_GIANT | 30,20,-1,8,-1,18 | 1 | 21511 | 30716 | departure
+v70 | 1 | +45871 | BLOOD_MAN | 29,20,-1,25,-1,30 | 5 | 20427,20851,23552,23974,26497 | 20574,30716,25620,25620,25620 | departure
+v70 | 1 | +56230 | REACHER | 29,20,-1,13,-1,30 | 1 | 19955 | 25437 | departure
+v70 | 1 | +56230 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 9 | 17207,19498,19867,21460,21746,23228,24562,26330,26630 | 30464,25437,25437,25437,30464,20357,30464,30464,30464 | departure
+v70 | 1 | +61335 | TOAD_GIANT_CAVE | 30,20,-1,8,-1,12 | 1 | 17418 | 20332 | departure
+v70 | 1 | +61335 | REACHER | 29,20,-1,25,-1,28 | 1 | 24695 | 30452 | departure
+v70 | 1 | +61335 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 27648 | 30452 | departure
+v70 | 1 | +61335 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 22975 | 25359 | departure
+v70 | 1 | +61335 | JABBERER | 29,20,-1,13,-1,21 | 1 | 27752 | 30452 | departure
+v70 | 1 | +61335 | DEMON_4 | 29,20,-1,43,-1,6 | 5 | 21720,21844,24340,25261,26419 | 25359,25359,30452,30452,30452 | departure
+v70 | 1 | +66445 | REACHER | 29,20,-1,25,-1,28 | 1 | 23523 | 35558 | departure
+v70 | 1 | +71491 | POND_GRABBER | 29,20,-1,8,-1,11 | 3 | 19973,21910,26852 | 30512,30512 | departure/present
+v70 | 1 | +76587 | POND_GRABBER | 29,20,-1,8,-1,11 | 1 | 19579 | 25416 | departure
+v70 | 1 | +76587 | SPIDER_CAVE_GIANT | 29,20,-1,25,-1,24 | 1 | 19185 | 20311 | departure
+v70 | 1 | +76587 | REACHER | 29,20,-1,13,-1,30 | 1 | 20991 | 25416 | departure
+v70 | 1 | +81667 | POND_GRABBER | 29,20,-1,8,-1,11 | 1 | 17210 | - | present
+v70 | 1 | +81667 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 10 | 17047,17952,18891,20224,22200,23832,24229,24333,24758,25170 | 20336 | departure/present
+v70 | 1 | +86694 | JABBERER | 29,20,-1,25,-1,18 | 1 | 25597 | 10204 | death
+v70 | 1 | +86694 | REACHER | 29,20,-1,13,-1,30 | 1 | 17279 | - | present
+v70 | 1 | +86694 | TROGLODYTE | 29,20,-1,8,-1,19 | 7 | 23394,25483,25602,25675,27762,28247,28725 | - | present
+v70 | 1 | +91787 | KANGAROO | 29,20,-1,-1,-1,88 | 4 | 17092,22152,22449,24283 | - | present
+v70 | 1 | +91787 | DEMON_13 | 29,20,-1,43,-1,4 | 3 | 18258,24689,25671 | - | present
+v70 | 1 | +96898 | TROLL | 29,20,-1,25,-1,27 | 1 | 25067 | - | present
+v70 | 1 | +96898 | ELEMENTMAN_MUD | 29,20,-1,25,-1,16 | 1 | 26909 | 5105 | death
+v70 | 1 | +102003 | PLUMP_HELMET_MAN | 29,20,-1,13,-1,11 | 4 | 16672,20855,25008,25258 | - | present
+v70 | 1 | +102003 | TROLL | 29,20,-1,25,-1,27 | 1 | 23181 | - | present
+v70 | 2 | +5212 | SKUNK | 29,20,-1,-1,-1,92 | 2 | 15845,20099 | 25346,20291 | departure
+v70 | 2 | +5212 | TROLL | 29,21,-1,8,-1,27 | 1 | 21154 | 25346 | departure
+v70 | 2 | +5212 | JABBERER | 29,20,-1,13,-1,21 | 1 | 17596 | 20291 | departure
+v70 | 2 | +5212 | MOLEMARIAN | 29,20,-1,25,-1,20 | 1 | 18382 | 5110 | death
+v70 | 2 | +5212 | DEMON_9 | 29,20,-1,43,-1,2 | 1 | 24557 | 25346 | departure
+v70 | 2 | +5212 | POND_GRABBER | 29,21,-1,13,-1,12 | 3 | 16030,16296,16703 | 20291,20291,20291 | departure
+v70 | 2 | +5212 | JABBERER | 29,20,-1,25,-1,18 | 1 | 15441 | 20291 | departure
+v70 | 2 | +5212 | DEMON_4 | 30,20,-1,43,-1,6 | 5 | 20601,21010,21245,23147,24994 | 25346,25346,25346,25346,30465 | departure
+v70 | 2 | +5212 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 20527 | 25346 | departure
+v70 | 2 | +5212 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 2 | 16520,16638 | 20291,20291 | departure
+v70 | 2 | +5212 | POND_GRABBER | 29,20,-1,8,-1,11 | 5 | 18398,21469,21676,24128,25334 | 45655,45655,60904,55795,55795 | departure
+v70 | 2 | +5212 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 1 | 20947 | 5110 | death
+v70 | 2 | +10322 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 21885 | 25355 | departure
+v70 | 2 | +10322 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 4 | 16784,17221,23922,25323 | 30434,30434,30434,30434 | departure
+v70 | 2 | +10322 | REACHER | 29,20,-1,25,-1,28 | 1 | 19461 | 5020 | death
+v70 | 2 | +10322 | POND_GRABBER | 28,20,-1,13,-1,12 | 3 | 19877,23073,27719 | 40545,50685,50685 | departure
+v70 | 2 | +10322 | BLOOD_MAN | 29,20,-1,25,-1,30 | 5 | 19867,20173,20204,20452,20799 | 25355,10122,35500,10122,25355 | death/departure
+v70 | 2 | +25503 | REACHER | 29,20,-1,13,-1,30 | 1 | 24638 | 20319 | death
+v70 | 2 | +25503 | GORLAK | 30,20,-1,8,-1,28 | 1 | 17632 | 25364 | departure
+v70 | 2 | +25503 | SPIDER_CAVE_GIANT | 29,21,-1,13,-1,28 | 1 | 19831 | 20319 | departure
+v70 | 2 | +25503 | TROGLODYTE | 30,20,-1,8,-1,19 | 7 | 19869,21902,23287,24157,24423,26523,27359 | 30428,30428,30428,30428,30428,30428,30428 | departure
+v70 | 2 | +30558 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 17620 | 20309 | departure
+v70 | 2 | +30558 | MANERA | 29,20,-1,13,-1,31 | 1 | 21629 | 5119 | death
+v70 | 2 | +30558 | JABBERER | 29,20,-1,25,-1,18 | 1 | 22550 | 25373 | departure
+v70 | 2 | +30558 | REACHER | 29,20,-1,25,-1,28 | 1 | 27243 | 25373 | death
+v70 | 2 | +35677 | DEMON_19 | 28,20,-1,44,-1,0 | 2 | 15628,18398 | 25330,20254 | departure
+v70 | 2 | +35677 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 1 | 19826 | 5079 | death
+v70 | 2 | +35677 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 6 | 20998,21294,22027,26092,26632,27110 | 25330,25330,30439,25330,30439,30439 | departure
+v70 | 2 | +40756 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 1 | 20255 | 25360 | departure
+v70 | 2 | +40756 | REACHER | 29,20,-1,13,-1,30 | 1 | 17619 | 5066 | death
+v70 | 2 | +40756 | SPIDER_CAVE_GIANT | 29,20,-1,25,-1,24 | 1 | 20881 | 15175 | death
+v70 | 2 | +45822 | JABBERER | 29,20,-1,13,-1,21 | 1 | 20020 | - | present
+v70 | 2 | +45822 | MANERA | 29,20,-1,13,-1,31 | 1 | 25949 | 5045 | death
+v70 | 2 | +50867 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 10 | 16631,18893,19122,19308,20252,20370,21541,23523,24944,25603 | 25419,25419,25419,25419,25419,30483,30483,25419,20378,30483 | departure
+v70 | 2 | +50867 | REACHER | 29,20,-1,13,-1,30 | 1 | 18918 | 20378 | departure
+v70 | 2 | +50867 | JABBERER | 29,20,-1,13,-1,21 | 1 | 19425 | 20378 | departure
+v70 | 2 | +50867 | BIRD_SWALLOW_CAVE_GIANT | 30,20,-1,8,-1,18 | 1 | 23150 | 25419 | departure
+v70 | 2 | +55931 | DEMON_1 | 28,20,-1,44,-1,3 | 2 | 22191,25472 | 30492,25419 | departure
+v70 | 2 | +55931 | JABBERER | 29,20,-1,25,-1,18 | 2 | 23063,27134 | 25419,30492 | departure
+v70 | 2 | +55931 | POND_GRABBER | 29,20,-1,8,-1,11 | 4 | 18819,21429,22037,26221 | 25419,20355,25419,35569 | death/departure
+v70 | 2 | +66116 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 1 | 17354 | 20307 | departure
+v70 | 2 | +66116 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 20830 | 25384 | departure
+v70 | 2 | +66116 | POND_GRABBER | 29,21,-1,8,-1,11 | 3 | 18473,21072,21633 | 25384 | departure/present
+v70 | 2 | +66116 | MANERA | 29,20,-1,13,-1,31 | 1 | 23069 | 5129 | death
+v70 | 2 | +71245 | REACHER | 29,20,-1,13,-1,30 | 2 | 22334,24996 | 20255,30452 | death/departure
+v70 | 2 | +71245 | JABBERER | 29,20,-1,25,-1,18 | 1 | 17670 | 20255 | departure
+v70 | 2 | +76286 | SKUNK | 29,20,-1,-1,-1,92 | 1 | 19820 | 20297 | departure
+v70 | 2 | +81350 | TROLL | 29,21,-1,8,-1,27 | 1 | 20782 | - | present
+v70 | 2 | +81350 | REACHER | 29,21,-1,13,-1,30 | 1 | 22935 | 10150 | death
+v70 | 2 | +81350 | DEMON_3 | 29,20,-1,43,-1,0 | 1 | 26076 | - | present
+v70 | 2 | +86423 | DEMON_16 | 29,20,-1,43,-1,3 | 3 | 16390,21860,21941 | - | present
+v70 | 2 | +86423 | ELEMENTMAN_MUD | 29,20,-1,25,-1,16 | 1 | 22532 | - | present
+v70 | 2 | +91500 | TROGLODYTE | 29,20,-1,13,-1,19 | 5 | 19246,19890,20193,21996,25449 | - | present
+v70 | 2 | +91500 | TOAD_GIANT_CAVE | 29,20,-1,8,-1,12 | 1 | 21767 | - | present
+v70 | 2 | +91500 | TROLL | 29,20,-1,25,-1,27 | 1 | 22999 | - | present
+v70 | 2 | +91500 | VORACIOUS_CAVE_CRAWLER | 29,20,-1,25,-1,17 | 1 | 24796 | - | present
+v70 | 2 | +91500 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 20583,22021,22459 | - | present
+v70 | 2 | +96583 | KANGAROO | 29,20,-1,-1,-1,88 | 3 | 17563,21303,24102 | - | present
+v70 | 2 | +101697 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 | 17506,17756,20785,21082,21744,22210 | - | present
+v70 | 2 | +101697 | TROGLODYTE | 29,21,-1,13,-1,19 | 5 | 20332,24052,29188,29457,29690 | - | present
+
+## Waves (110; per-wave summary written to waves.tsv, keyed on first-listed tick)
+arm | rep | listed | species | layer | n | departed | died | present
+v70 | 1 | +5059 | SKUNK | surface | 2 | 2 | 0 | 0
+v70 | 1 | +5059 | POND_GRABBER | cavern | 5 | 5 | 0 | 0
+v70 | 1 | +5059 | DEMON_10 | deep | 1 | 1 | 0 | 0
+v70 | 1 | +5059 | BIRD_RAVEN | surface | 6 | 6 | 0 | 0
+v70 | 1 | +5059 | JABBERER | cavern | 2 | 2 | 0 | 0
+v70 | 1 | +5059 | DEMON_4 | deep | 5 | 5 | 0 | 0
+v70 | 1 | +5059 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +5059 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +5059 | TROLL | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +5059 | ELK_BIRD | cavern | 3 | 0 | 3 | 0
+v70 | 1 | +10199 | GIANT_EARTHWORM | cavern | 1 | 0 | 1 | 0
+v70 | 1 | +10199 | TROLL | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +15271 | TROGLODYTE | cavern | 5 | 0 | 5 | 0
+v70 | 1 | +15271 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+v70 | 1 | +15271 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 1 | +25463 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +25463 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +30600 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 1 | 0
+v70 | 1 | +30600 | ELEMENTMAN_MUD | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +30600 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 1 | +30600 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +30600 | DEMON_1 | deep | 1 | 1 | 0 | 0
+v70 | 1 | +30600 | DEMON_4 | deep | 4 | 4 | 0 | 0
+v70 | 1 | +40703 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +40703 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 1 | +40703 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +40703 | CROCODILE_CAVE | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +45871 | BIRD_SWALLOW_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +45871 | BLOOD_MAN | cavern | 5 | 5 | 0 | 0
+v70 | 1 | +56230 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +56230 | BIRD_RAVEN | surface | 9 | 9 | 0 | 0
+v70 | 1 | +61335 | TOAD_GIANT_CAVE | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +61335 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +61335 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 1 | +61335 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+v70 | 1 | +61335 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +61335 | DEMON_4 | deep | 5 | 5 | 0 | 0
+v70 | 1 | +66445 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +71491 | POND_GRABBER | cavern | 5 | 3 | 0 | 2
+v70 | 1 | +76587 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +76587 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 1 | +81667 | BIRD_RAVEN | surface | 10 | 1 | 0 | 9
+v70 | 1 | +86694 | JABBERER | cavern | 1 | 0 | 1 | 0
+v70 | 1 | +86694 | REACHER | cavern | 1 | 0 | 0 | 1
+v70 | 1 | +86694 | TROGLODYTE | cavern | 7 | 0 | 0 | 7
+v70 | 1 | +91787 | KANGAROO | surface | 4 | 0 | 0 | 4
+v70 | 1 | +91787 | DEMON_13 | deep | 3 | 0 | 0 | 3
+v70 | 1 | +96898 | TROLL | cavern | 1 | 0 | 0 | 1
+v70 | 1 | +96898 | ELEMENTMAN_MUD | cavern | 1 | 0 | 1 | 0
+v70 | 1 | +102003 | PLUMP_HELMET_MAN | cavern | 4 | 0 | 0 | 4
+v70 | 1 | +102003 | TROLL | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +5212 | SKUNK | surface | 2 | 2 | 0 | 0
+v70 | 2 | +5212 | TROLL | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +5212 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +5212 | MOLEMARIAN | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +5212 | DEMON_9 | deep | 1 | 1 | 0 | 0
+v70 | 2 | +5212 | POND_GRABBER | cavern | 3 | 3 | 0 | 0
+v70 | 2 | +5212 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +5212 | DEMON_4 | deep | 5 | 5 | 0 | 0
+v70 | 2 | +5212 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+v70 | 2 | +5212 | BIRD_RAVEN | surface | 2 | 2 | 0 | 0
+v70 | 2 | +5212 | POND_GRABBER | cavern | 5 | 5 | 0 | 0
+v70 | 2 | +5212 | GREEN_DEVOURER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +10322 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 2 | +10322 | BIRD_RAVEN | surface | 4 | 4 | 0 | 0
+v70 | 2 | +10322 | REACHER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +10322 | POND_GRABBER | cavern | 3 | 3 | 0 | 0
+v70 | 2 | +10322 | BLOOD_MAN | cavern | 5 | 3 | 2 | 0
+v70 | 2 | +25503 | REACHER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +25503 | GORLAK | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +25503 | SPIDER_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +25503 | TROGLODYTE | cavern | 7 | 7 | 0 | 0
+v70 | 2 | +30558 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 2 | +30558 | MANERA | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +30558 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +30558 | REACHER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +30558 | DEMON_19 | deep | 2 | 2 | 0 | 0
+v70 | 2 | +35677 | GREEN_DEVOURER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +35677 | BIRD_RAVEN | surface | 7 | 7 | 0 | 0
+v70 | 2 | +40756 | REACHER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +40756 | SPIDER_CAVE_GIANT | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +45822 | JABBERER | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +45822 | MANERA | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +50867 | BIRD_RAVEN | surface | 10 | 10 | 0 | 0
+v70 | 2 | +50867 | REACHER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +50867 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +50867 | BIRD_SWALLOW_CAVE_GIANT | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +55931 | DEMON_1 | deep | 2 | 2 | 0 | 0
+v70 | 2 | +55931 | JABBERER | cavern | 2 | 2 | 0 | 0
+v70 | 2 | +55931 | POND_GRABBER | cavern | 4 | 3 | 1 | 0
+v70 | 2 | +66116 | BIRD_KESTREL | surface | 1 | 1 | 0 | 0
+v70 | 2 | +66116 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 2 | +66116 | POND_GRABBER | cavern | 3 | 1 | 0 | 2
+v70 | 2 | +66116 | MANERA | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +71245 | REACHER | cavern | 2 | 1 | 1 | 0
+v70 | 2 | +71245 | JABBERER | cavern | 1 | 1 | 0 | 0
+v70 | 2 | +76286 | SKUNK | surface | 1 | 1 | 0 | 0
+v70 | 2 | +81350 | TROLL | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +81350 | REACHER | cavern | 1 | 0 | 1 | 0
+v70 | 2 | +81350 | DEMON_3 | deep | 1 | 0 | 0 | 1
+v70 | 2 | +86423 | DEMON_16 | deep | 3 | 0 | 0 | 3
+v70 | 2 | +86423 | ELEMENTMAN_MUD | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +91500 | TROGLODYTE | cavern | 5 | 0 | 0 | 5
+v70 | 2 | +91500 | TOAD_GIANT_CAVE | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +91500 | TROLL | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +91500 | VORACIOUS_CAVE_CRAWLER | cavern | 1 | 0 | 0 | 1
+v70 | 2 | +91500 | KANGAROO | surface | 3 | 0 | 0 | 3
+v70 | 2 | +96583 | KANGAROO | surface | 3 | 0 | 0 | 3
+v70 | 2 | +101697 | TROGLODYTE | cavern | 6 | 0 | 0 | 6
+v70 | 2 | +101697 | TROGLODYTE | cavern | 5 | 0 | 0 | 5
+
+## Countdown behaviour per arrived unit (first reading -> last reading over ticks)
+v70 | 1 | unit 139 SKUNK: 20809 -> 401 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 158 SKUNK: 16166 -> 888 over 15278 ticks (slope -1.000/tick)
+v70 | 1 | unit 140 POND_GRABBER: 19063 -> 0 over 25541 ticks (slope -0.746/tick)
+v70 | 1 | unit 141 POND_GRABBER: 21559 -> 1155 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 145 DEMON_10: 16852 -> 1574 over 15278 ticks (slope -1.000/tick)
+v70 | 1 | unit 146 BIRD_RAVEN: 20618 -> 0 over 25541 ticks (slope -0.807/tick)
+v70 | 1 | unit 147 BIRD_RAVEN: 16836 -> 1558 over 15278 ticks (slope -1.000/tick)
+v70 | 1 | unit 152 JABBERER: 24992 -> 4588 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 160 JABBERER: 22027 -> 1622 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 153 DEMON_4: 17477 -> 2199 over 15278 ticks (slope -1.000/tick)
+v70 | 1 | unit 154 DEMON_4: 24119 -> 3715 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 159 JABBERER: 16250 -> 970 over 15278 ticks (slope -1.000/tick)
+v70 | 1 | unit 161 REACHER: 24163 -> 3757 over 20404 ticks (slope -1.000/tick)
+v70 | 1 | unit 162 TROLL: 22107 -> 0 over 25541 ticks (slope -0.866/tick)
+v70 | 1 | unit 173 TROLL: 22182 -> 0 over 25454 ticks (slope -0.871/tick)
+v70 | 1 | unit 174 TROGLODYTE: 21038 -> 15972 over 5066 ticks (slope -1.000/tick)
+v70 | 1 | unit 175 TROGLODYTE: 24167 -> 13973 over 10192 ticks (slope -1.000/tick)
+v70 | 1 | unit 180 BIRD_KESTREL: 25297 -> 0 over 25432 ticks (slope -0.995/tick)
+v70 | 1 | unit 181 SKUNK: 26592 -> 1159 over 25432 ticks (slope -1.000/tick)
+v70 | 1 | unit 182 JABBERER: 21030 -> 620 over 20408 ticks (slope -1.000/tick)
+v70 | 1 | unit 183 JABBERER: 20069 -> 4829 over 15240 ticks (slope -1.000/tick)
+v70 | 1 | unit 184 TOAD_GIANT_CAVE: 20710 -> 15655 over 5053 ticks (slope -1.000/tick)
+v70 | 1 | unit 185 ELEMENTMAN_MUD: 18983 -> 0 over 20429 ticks (slope -0.929/tick)
+v70 | 1 | unit 186 SKUNK: 23448 -> 3018 over 20429 ticks (slope -1.000/tick)
+v70 | 1 | unit 187 JABBERER: 20653 -> 220 over 20429 ticks (slope -1.000/tick)
+v70 | 1 | unit 188 DEMON_1: 21831 -> 1402 over 20429 ticks (slope -1.000/tick)
+v70 | 1 | unit 189 DEMON_4: 24955 -> 4526 over 20429 ticks (slope -1.000/tick)
+v70 | 1 | unit 190 DEMON_4: 24613 -> 0 over 25630 ticks (slope -0.960/tick)
+v70 | 1 | unit 192 DEMON_4: 24165 -> 3588 over 20577 ticks (slope -1.000/tick)
+v70 | 1 | unit 193 CROCODILE_CAVE: 19039 -> 3512 over 15527 ticks (slope -1.000/tick)
+v70 | 1 | unit 197 SKUNK: 22036 -> 1404 over 20632 ticks (slope -1.000/tick)
+v70 | 1 | unit 198 SPIDER_CAVE_GIANT: 21701 -> 1068 over 20632 ticks (slope -1.000/tick)
+v70 | 1 | unit 199 CROCODILE_CAVE: 21177 -> 545 over 20632 ticks (slope -1.000/tick)
+v70 | 1 | unit 200 BIRD_SWALLOW_CAVE_GIANT: 21511 -> 0 over 25620 ticks (slope -0.840/tick)
+v70 | 1 | unit 201 BLOOD_MAN: 20427 -> 4960 over 15464 ticks (slope -1.000/tick)
+v70 | 1 | unit 202 BLOOD_MAN: 26497 -> 875 over 25620 ticks (slope -1.000/tick)
+v70 | 1 | unit 206 REACHER: 19955 -> 0 over 20357 ticks (slope -0.980/tick)
+v70 | 1 | unit 207 BIRD_RAVEN: 19867 -> 0 over 25437 ticks (slope -0.781/tick)
+v70 | 1 | unit 208 BIRD_RAVEN: 23228 -> 2871 over 20357 ticks (slope -1.000/tick)
+v70 | 1 | unit 216 TOAD_GIANT_CAVE: 17418 -> 2166 over 15252 ticks (slope -1.000/tick)
+v70 | 1 | unit 217 REACHER: 24695 -> 0 over 25359 ticks (slope -0.974/tick)
+v70 | 1 | unit 218 SKUNK: 27648 -> 2289 over 25359 ticks (slope -1.000/tick)
+v70 | 1 | unit 219 BIRD_KESTREL: 22975 -> 2643 over 20332 ticks (slope -1.000/tick)
+v70 | 1 | unit 220 JABBERER: 27752 -> 2392 over 25359 ticks (slope -1.000/tick)
+v70 | 1 | unit 221 DEMON_4: 21844 -> 1512 over 20332 ticks (slope -1.000/tick)
+v70 | 1 | unit 226 REACHER: 23523 -> 0 over 30453 ticks (slope -0.772/tick)
+v70 | 1 | unit 227 POND_GRABBER: 21910 -> 0 over 25407 ticks (slope -0.862/tick)
+v70 | 1 | unit 228 POND_GRABBER: 19579 -> 0 over 20311 ticks (slope -0.964/tick)
+v70 | 1 | unit 232 SPIDER_CAVE_GIANT: 19185 -> 3979 over 15200 ticks (slope -1.000/tick)
+v70 | 1 | unit 233 REACHER: 20991 -> 679 over 20311 ticks (slope -1.000/tick)
+v70 | 1 | unit 231 POND_GRABBER: 17210 -> 0 over 20336 ticks (slope -0.846/tick)
+v70 | 1 | unit 234 BIRD_RAVEN: 23832 -> 3496 over 20336 ticks (slope -1.000/tick)
+v70 | 1 | unit 244 JABBERER: 25597 -> 20504 over 5093 ticks (slope -1.000/tick)
+v70 | 1 | unit 245 REACHER: 17279 -> 1970 over 15309 ticks (slope -1.000/tick)
+v70 | 1 | unit 246 TROGLODYTE: 25675 -> 10365 over 15309 ticks (slope -1.000/tick)
+v70 | 1 | unit 253 KANGAROO: 22449 -> 12233 over 10216 ticks (slope -1.000/tick)
+v70 | 1 | unit 257 DEMON_13: 25671 -> 15455 over 10216 ticks (slope -1.000/tick)
+v70 | 1 | unit 261 TROLL: 25067 -> 19962 over 5105 ticks (slope -1.000/tick)
+v70 | 2 | unit 139 SKUNK: 20099 -> 0 over 20291 ticks (slope -0.991/tick)
+v70 | 2 | unit 140 TROLL: 21154 -> 863 over 20291 ticks (slope -1.000/tick)
+v70 | 2 | unit 141 JABBERER: 17596 -> 2361 over 15232 ticks (slope -1.000/tick)
+v70 | 2 | unit 145 DEMON_9: 24557 -> 4266 over 20291 ticks (slope -1.000/tick)
+v70 | 2 | unit 147 POND_GRABBER: 16703 -> 1471 over 15232 ticks (slope -1.000/tick)
+v70 | 2 | unit 150 JABBERER: 15441 -> 204 over 15232 ticks (slope -1.000/tick)
+v70 | 2 | unit 151 DEMON_4: 20601 -> 310 over 20291 ticks (slope -1.000/tick)
+v70 | 2 | unit 156 BIRD_KESTREL: 20527 -> 236 over 20291 ticks (slope -1.000/tick)
+v70 | 2 | unit 158 BIRD_RAVEN: 16520 -> 1288 over 15232 ticks (slope -1.000/tick)
+v70 | 2 | unit 160 POND_GRABBER: 21676 -> 0 over 40610 ticks (slope -0.534/tick)
+v70 | 2 | unit 166 SKUNK: 21885 -> 1646 over 20236 ticks (slope -1.000/tick)
+v70 | 2 | unit 167 BIRD_RAVEN: 23922 -> 0 over 25355 ticks (slope -0.943/tick)
+v70 | 2 | unit 172 POND_GRABBER: 19877 -> 0 over 35500 ticks (slope -0.560/tick)
+v70 | 2 | unit 175 BLOOD_MAN: 19867 -> 0 over 20236 ticks (slope -0.982/tick)
+v70 | 2 | unit 180 REACHER: 24638 -> 9384 over 15253 ticks (slope -1.000/tick)
+v70 | 2 | unit 181 GORLAK: 17632 -> 0 over 20319 ticks (slope -0.868/tick)
+v70 | 2 | unit 182 SPIDER_CAVE_GIANT: 19831 -> 4577 over 15253 ticks (slope -1.000/tick)
+v70 | 2 | unit 183 TROGLODYTE: 27359 -> 1993 over 25364 ticks (slope -1.000/tick)
+v70 | 2 | unit 190 SKUNK: 17620 -> 2355 over 15264 ticks (slope -1.000/tick)
+v70 | 2 | unit 192 JABBERER: 22550 -> 2240 over 20309 ticks (slope -1.000/tick)
+v70 | 2 | unit 193 REACHER: 27243 -> 6929 over 20309 ticks (slope -1.000/tick)
+v70 | 2 | unit 194 DEMON_19: 18398 -> 0 over 20254 ticks (slope -0.908/tick)
+v70 | 2 | unit 197 BIRD_RAVEN: 21294 -> 1040 over 20254 ticks (slope -1.000/tick)
+v70 | 2 | unit 201 BIRD_RAVEN: 20255 -> 4 over 20251 ticks (slope -1.000/tick)
+v70 | 2 | unit 205 SPIDER_CAVE_GIANT: 20881 -> 10763 over 10111 ticks (slope -1.001/tick)
+v70 | 2 | unit 206 JABBERER: 20020 -> 0 over 55875 ticks (slope -0.358/tick)
+v70 | 2 | unit 208 BIRD_RAVEN: 19308 -> 0 over 20378 ticks (slope -0.947/tick)
+v70 | 2 | unit 218 REACHER: 18918 -> 3668 over 15249 ticks (slope -1.000/tick)
+v70 | 2 | unit 219 JABBERER: 19425 -> 4173 over 15249 ticks (slope -1.000/tick)
+v70 | 2 | unit 220 BIRD_SWALLOW_CAVE_GIANT: 23150 -> 2772 over 20378 ticks (slope -1.000/tick)
+v70 | 2 | unit 221 DEMON_1: 25472 -> 53 over 25419 ticks (slope -1.000/tick)
+v70 | 2 | unit 223 JABBERER: 23063 -> 2708 over 20355 ticks (slope -1.000/tick)
+v70 | 2 | unit 224 POND_GRABBER: 18819 -> 0 over 20355 ticks (slope -0.925/tick)
+v70 | 2 | unit 229 BIRD_KESTREL: 17354 -> 2120 over 15234 ticks (slope -1.000/tick)
+v70 | 2 | unit 230 SKUNK: 20830 -> 522 over 20307 ticks (slope -1.000/tick)
+v70 | 2 | unit 231 POND_GRABBER: 21633 -> 0 over 35581 ticks (slope -0.608/tick)
+v70 | 2 | unit 235 REACHER: 22334 -> 7155 over 15178 ticks (slope -1.000/tick)
+v70 | 2 | unit 237 JABBERER: 17670 -> 2490 over 15178 ticks (slope -1.000/tick)
+v70 | 2 | unit 239 SKUNK: 19820 -> 4606 over 15214 ticks (slope -1.000/tick)
+v70 | 2 | unit 240 TROLL: 20782 -> 434 over 20347 ticks (slope -1.000/tick)
+v70 | 2 | unit 241 REACHER: 22935 -> 17862 over 5073 ticks (slope -1.000/tick)
+v70 | 2 | unit 242 DEMON_3: 26076 -> 5729 over 20347 ticks (slope -1.000/tick)
+v70 | 2 | unit 243 DEMON_16: 16390 -> 1116 over 15274 ticks (slope -1.000/tick)
+v70 | 2 | unit 246 ELEMENTMAN_MUD: 22532 -> 7253 over 15274 ticks (slope -1.000/tick)
+v70 | 2 | unit 247 TROGLODYTE: 25449 -> 15252 over 10197 ticks (slope -1.000/tick)
+v70 | 2 | unit 253 TOAD_GIANT_CAVE: 21767 -> 11568 over 10197 ticks (slope -1.000/tick)
+v70 | 2 | unit 254 TROLL: 22999 -> 12802 over 10197 ticks (slope -1.000/tick)
+v70 | 2 | unit 255 VORACIOUS_CAVE_CRAWLER: 24796 -> 14599 over 10197 ticks (slope -1.000/tick)
+v70 | 2 | unit 256 KANGAROO: 22021 -> 11824 over 10197 ticks (slope -1.000/tick)
+v70 | 2 | unit 259 KANGAROO: 21303 -> 16189 over 5114 ticks (slope -1.000/tick)
+
+## Entry quantity around each departure or death (sample before -> sample of the event -> next sample)
+arm | rep | event | unit | species | ref6 | quantity before -> at -> after
+v70 | 1 | death | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 1 | death | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 1 | death | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | death | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | death | 165 | ELK_BIRD | 29,21,-1,8,-1,21 | 35 -> 36 -> 36
+v70 | 1 | death | 170 | ELK_BIRD | 29,21,-1,8,-1,21 | 35 -> 36 -> 36
+v70 | 1 | death | 171 | ELK_BIRD | 29,21,-1,8,-1,21 | 35 -> 36 -> 36
+v70 | 1 | death | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | death | 172 | GIANT_EARTHWORM | 30,20,-1,8,-1,24 | 24 -> 24 -> 24
+v70 | 1 | death | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | death | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | departure | 145 | DEMON_10 | 30,20,-1,43,-1,5 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 147 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 355 -> 358
+v70 | 1 | departure | 153 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 158 | SKUNK | 29,20,-1,-1,-1,92 | 12 -> 13 -> 13
+v70 | 1 | departure | 159 | JABBERER | 29,20,-1,13,-1,21 | 20 -> 21 -> 20
+v70 | 1 | death | 174 | TROGLODYTE | 30,20,-1,8,-1,19 | 8 -> 8 -> 9
+v70 | 1 | death | 178 | TROGLODYTE | 30,20,-1,8,-1,19 | 8 -> 8 -> 9
+v70 | 1 | death | 179 | TROGLODYTE | 30,20,-1,8,-1,19 | 8 -> 8 -> 9
+v70 | 1 | departure | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 1 | departure | 139 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 13 -> 13
+v70 | 1 | departure | 141 | POND_GRABBER | 29,21,-1,13,-1,12 | 10 -> 13 -> 15
+v70 | 1 | departure | 142 | POND_GRABBER | 29,21,-1,13,-1,12 | 10 -> 13 -> 15
+v70 | 1 | departure | 143 | POND_GRABBER | 29,21,-1,13,-1,12 | 10 -> 13 -> 15
+v70 | 1 | departure | 148 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 355 -> 358 -> 359
+v70 | 1 | departure | 150 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 355 -> 358 -> 359
+v70 | 1 | departure | 151 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 355 -> 358 -> 359
+v70 | 1 | departure | 152 | JABBERER | 29,20,-1,25,-1,18 | 14 -> 16 -> 16
+v70 | 1 | departure | 154 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 155 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 156 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 157 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 160 | JABBERER | 29,20,-1,25,-1,18 | 14 -> 16 -> 16
+v70 | 1 | departure | 161 | REACHER | 29,21,-1,13,-1,30 | 9 -> 10 -> 10
+v70 | 1 | death | 175 | TROGLODYTE | 30,20,-1,8,-1,19 | 8 -> 9 -> 9
+v70 | 1 | departure | 140 | POND_GRABBER | 29,21,-1,13,-1,12 | 13 -> 15 -> 15
+v70 | 1 | departure | 144 | POND_GRABBER | 29,21,-1,13,-1,12 | 13 -> 15 -> 15
+v70 | 1 | departure | 146 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 358 -> 359 -> 360
+v70 | 1 | departure | 162 | TROLL | 29,21,-1,8,-1,27 | 4 -> 5 -> 5
+v70 | 1 | departure | 149 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 359 -> 360 -> 360
+v70 | 1 | departure | 173 | TROLL | 30,20,-1,8,-1,27 | 4 -> 5 -> 5
+v70 | 1 | death | 177 | TROGLODYTE | 30,20,-1,8,-1,19 | 9 -> 9 -> 9
+v70 | 1 | death | 184 | TOAD_GIANT_CAVE | 29,21,-1,8,-1,12 | 11 -> 11 -> 11
+v70 | 1 | departure | 134 | MAGMA_CRAB | 29,20,-1,34,-1,0 | 34 -> 35 -> 36
+v70 | 1 | departure | 180 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 22 -> 23 -> 23
+v70 | 1 | departure | 181 | SKUNK | 29,20,-1,-1,-1,92 | 12 -> 13 -> 13
+v70 | 1 | departure | 183 | JABBERER | 29,20,-1,25,-1,18 | 16 -> 17 -> 17
+v70 | 1 | departure | 182 | JABBERER | 29,21,-1,13,-1,21 | 21 -> 22 -> 22
+v70 | 1 | departure | 185 | ELEMENTMAN_MUD | 29,20,-1,25,-1,16 | 13 -> 14 -> 14
+v70 | 1 | departure | 186 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 14 -> 13
+v70 | 1 | departure | 187 | JABBERER | 29,20,-1,13,-1,21 | 20 -> 21 -> 20
+v70 | 1 | departure | 188 | DEMON_1 | 28,20,-1,44,-1,3 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 189 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 190 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 191 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 192 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 193 | CROCODILE_CAVE | 29,21,-1,8,-1,10 | 8 -> 9 -> 9
+v70 | 1 | departure | 197 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 14 -> 14
+v70 | 1 | departure | 198 | SPIDER_CAVE_GIANT | 29,20,-1,13,-1,28 | 2 -> 3 -> 3
+v70 | 1 | departure | 199 | CROCODILE_CAVE | 30,20,-1,8,-1,10 | 8 -> 9 -> 9
+v70 | 1 | departure | 201 | BLOOD_MAN | 29,20,-1,25,-1,30 | 14 -> 15 -> 18
+v70 | 1 | departure | 203 | BLOOD_MAN | 29,20,-1,25,-1,30 | 15 -> 18 -> 19
+v70 | 1 | departure | 204 | BLOOD_MAN | 29,20,-1,25,-1,30 | 15 -> 18 -> 19
+v70 | 1 | departure | 205 | BLOOD_MAN | 29,20,-1,25,-1,30 | 15 -> 18 -> 19
+v70 | 1 | departure | 200 | BIRD_SWALLOW_CAVE_GIANT | 30,20,-1,8,-1,18 | 20 -> 21 -> 21
+v70 | 1 | departure | 202 | BLOOD_MAN | 29,20,-1,25,-1,30 | 18 -> 19 -> 19
+v70 | 1 | departure | 212 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 336 -> 339 -> 332
+v70 | 1 | departure | 206 | REACHER | 29,20,-1,13,-1,30 | 8 -> 9 -> 0
+v70 | 1 | departure | 208 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 332 -> 0
+v70 | 1 | departure | 209 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 332 -> 0
+v70 | 1 | departure | 210 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 332 -> 0
+v70 | 1 | departure | 216 | TOAD_GIANT_CAVE | 30,20,-1,8,-1,12 | 11 -> 12 -> 12
+v70 | 1 | departure | 207 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 0 -> 0
+v70 | 1 | departure | 211 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 0 -> 0
+v70 | 1 | departure | 213 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 0 -> 0
+v70 | 1 | departure | 214 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 0 -> 0
+v70 | 1 | departure | 215 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 332 -> 0 -> 0
+v70 | 1 | departure | 219 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 22 -> 0 -> 0
+v70 | 1 | departure | 221 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 222 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 217 | REACHER | 29,20,-1,25,-1,28 | 0 -> 0 -> 0
+v70 | 1 | departure | 218 | SKUNK | 29,20,-1,-1,-1,92 | 0 -> 0 -> 0
+v70 | 1 | departure | 220 | JABBERER | 29,20,-1,13,-1,21 | 0 -> 0 -> 0
+v70 | 1 | departure | 223 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 224 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 225 | DEMON_4 | 29,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 1 | departure | 232 | SPIDER_CAVE_GIANT | 29,20,-1,25,-1,24 | 0 -> 0 -> 0
+v70 | 1 | death | 244 | JABBERER | 29,20,-1,25,-1,18 | 0 -> 0 -> 0
+v70 | 1 | departure | 226 | REACHER | 29,20,-1,25,-1,28 | 0 -> 0 -> -
+v70 | 1 | departure | 227 | POND_GRABBER | 29,20,-1,8,-1,11 | 0 -> 0 -> -
+v70 | 1 | departure | 228 | POND_GRABBER | 29,20,-1,8,-1,11 | 0 -> 0 -> -
+v70 | 1 | departure | 230 | POND_GRABBER | 29,20,-1,8,-1,11 | 0 -> 0 -> -
+v70 | 1 | departure | 233 | REACHER | 29,20,-1,13,-1,30 | 0 -> 0 -> -
+v70 | 1 | departure | 238 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 0 -> 0 -> -
+v70 | 1 | death | 262 | ELEMENTMAN_MUD | 29,20,-1,25,-1,16 | 13 -> 13 -> -
+v70 | 2 | death | 126 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 2 | death | 127 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 2 | death | 128 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 2 | death | 132 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 2 | death | 133 | ELK_BIRD | 29,20,-1,25,-1,21 | 25 -> 0 -> 0
+v70 | 2 | death | 129 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 2 | death | 130 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 2 | death | 143 | MOLEMARIAN | 29,20,-1,25,-1,20 | 12 -> 12 -> 12
+v70 | 2 | death | 165 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 11 -> 11 -> 11
+v70 | 2 | death | 171 | REACHER | 29,20,-1,25,-1,28 | 11 -> 11 -> 11
+v70 | 2 | death | 176 | BLOOD_MAN | 29,20,-1,25,-1,30 | 14 -> 14 -> 14
+v70 | 2 | death | 178 | BLOOD_MAN | 29,20,-1,25,-1,30 | 14 -> 14 -> 14
+v70 | 2 | departure | 131 | ELK_BIRD | 29,20,-1,25,-1,21 | 0 -> 0 -> 0
+v70 | 2 | departure | 141 | JABBERER | 29,20,-1,13,-1,21 | 20 -> 21 -> 21
+v70 | 2 | departure | 146 | SKUNK | 29,20,-1,-1,-1,92 | 12 -> 13 -> 13
+v70 | 2 | departure | 147 | POND_GRABBER | 29,21,-1,13,-1,12 | 12 -> 15 -> 15
+v70 | 2 | departure | 148 | POND_GRABBER | 29,21,-1,13,-1,12 | 12 -> 15 -> 15
+v70 | 2 | departure | 149 | POND_GRABBER | 29,21,-1,13,-1,12 | 12 -> 15 -> 15
+v70 | 2 | departure | 150 | JABBERER | 29,20,-1,25,-1,18 | 15 -> 16 -> 15
+v70 | 2 | departure | 158 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 341 -> 341
+v70 | 2 | departure | 159 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 339 -> 341 -> 341
+v70 | 2 | departure | 139 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 13 -> 14
+v70 | 2 | departure | 140 | TROLL | 29,21,-1,8,-1,27 | 4 -> 5 -> 5
+v70 | 2 | departure | 145 | DEMON_9 | 29,20,-1,43,-1,2 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 151 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 152 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 153 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 154 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 156 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 23 -> 24 -> 24
+v70 | 2 | departure | 155 | DEMON_4 | 30,20,-1,43,-1,6 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 166 | SKUNK | 29,20,-1,-1,-1,92 | 13 -> 14 -> 14
+v70 | 2 | departure | 175 | BLOOD_MAN | 29,20,-1,25,-1,30 | 14 -> 16 -> 16
+v70 | 2 | departure | 179 | BLOOD_MAN | 29,20,-1,25,-1,30 | 14 -> 16 -> 16
+v70 | 2 | death | 191 | MANERA | 29,20,-1,13,-1,31 | 26 -> 26 -> 26
+v70 | 2 | departure | 167 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 358 -> 358
+v70 | 2 | departure | 168 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 358 -> 358
+v70 | 2 | departure | 169 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 358 -> 358
+v70 | 2 | departure | 170 | BIRD_RAVEN | 28,19,-1,-1,-1,53 | 354 -> 358 -> 358
+v70 | 2 | death | 196 | GREEN_DEVOURER | 29,20,-1,13,-1,23 | 10 -> 10 -> 10
+v70 | 2 | departure | 177 | BLOOD_MAN | 29,20,-1,25,-1,30 | 16 -> 17 -> 17
+v70 | 2 | death | 180 | REACHER | 29,20,-1,13,-1,30 | 8 -> 8 -> 7
+v70 | 2 | departure | 182 | SPIDER_CAVE_GIANT | 29,21,-1,13,-1,28 | 2 -> 3 -> 3
+v70 | 2 | death | 204 | REACHER | 29,20,-1,13,-1,30 | 8 -> 8 -> 7
+v70 | 2 | departure | 160 | POND_GRABBER | 29,20,-1,8,-1,11 | 9 -> 11 -> 7
+v70 | 2 | departure | 161 | POND_GRABBER | 29,20,-1,8,-1,11 | 9 -> 11 -> 7
+v70 | 2 | departure | 172 | POND_GRABBER | 28,20,-1,13,-1,12 | 12 -> 13 -> 13
+v70 | 2 | departure | 181 | GORLAK | 30,20,-1,8,-1,28 | 12 -> 13 -> 13
+v70 | 2 | departure | 190 | SKUNK | 29,20,-1,-1,-1,92 | 14 -> 15 -> 15
+v70 | 2 | death | 207 | MANERA | 29,20,-1,13,-1,31 | 25 -> 25 -> 25
+v70 | 2 | departure | 183 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 184 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 185 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 186 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 187 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 188 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 189 | TROGLODYTE | 30,20,-1,8,-1,19 | 6 -> 13 -> 13
+v70 | 2 | departure | 192 | JABBERER | 29,20,-1,25,-1,18 | 16 -> 15 -> 15
+v70 | 2 | death | 193 | REACHER | 29,20,-1,25,-1,28 | 12 -> 12 -> 12
+v70 | 2 | departure | 195 | DEMON_19 | 28,20,-1,44,-1,0 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | death | 205 | SPIDER_CAVE_GIANT | 29,20,-1,25,-1,24 | 1 -> 1 -> 1
+v70 | 2 | departure | 163 | POND_GRABBER | 29,20,-1,8,-1,11 | 7 -> 9 -> 10
+v70 | 2 | departure | 164 | POND_GRABBER | 29,20,-1,8,-1,11 | 7 -> 9 -> 10
+v70 | 2 | departure | 173 | POND_GRABBER | 28,20,-1,13,-1,12 | 13 -> 15 -> 15
+v70 | 2 | departure | 174 | POND_GRABBER | 28,20,-1,13,-1,12 | 13 -> 15 -> 15
+v70 | 2 | departure | 194 | DEMON_19 | 28,20,-1,44,-1,0 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 197 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 330 -> 336 -> 340
+v70 | 2 | departure | 198 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 330 -> 336 -> 340
+v70 | 2 | departure | 200 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 330 -> 336 -> 340
+v70 | 2 | departure | 162 | POND_GRABBER | 29,20,-1,8,-1,11 | 9 -> 10 -> 10
+v70 | 2 | departure | 199 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 336 -> 340 -> 341
+v70 | 2 | departure | 201 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 336 -> 340 -> 341
+v70 | 2 | departure | 202 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 336 -> 340 -> 341
+v70 | 2 | departure | 203 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 336 -> 340 -> 341
+v70 | 2 | departure | 216 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 340 -> 341 -> 347
+v70 | 2 | departure | 218 | REACHER | 29,20,-1,13,-1,30 | 7 -> 7 -> 7
+v70 | 2 | departure | 219 | JABBERER | 29,20,-1,13,-1,21 | 20 -> 21 -> 21
+v70 | 2 | death | 234 | MANERA | 29,20,-1,13,-1,31 | 24 -> 24 -> 25
+v70 | 2 | departure | 208 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 209 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 210 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 211 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 212 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 215 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 341 -> 347 -> 350
+v70 | 2 | departure | 220 | BIRD_SWALLOW_CAVE_GIANT | 30,20,-1,8,-1,18 | 20 -> 21 -> 21
+v70 | 2 | death | 225 | POND_GRABBER | 29,20,-1,8,-1,11 | 10 -> 10 -> 12
+v70 | 2 | departure | 213 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 347 -> 350 -> 0
+v70 | 2 | departure | 214 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 347 -> 350 -> 0
+v70 | 2 | departure | 217 | BIRD_RAVEN | 29,20,-1,-1,-1,53 | 347 -> 350 -> 0
+v70 | 2 | departure | 222 | DEMON_1 | 28,20,-1,44,-1,3 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 223 | JABBERER | 29,20,-1,25,-1,18 | 14 -> 15 -> 0
+v70 | 2 | departure | 224 | POND_GRABBER | 29,20,-1,8,-1,11 | 10 -> 12 -> 0
+v70 | 2 | departure | 226 | POND_GRABBER | 29,20,-1,8,-1,11 | 10 -> 12 -> 0
+v70 | 2 | departure | 221 | DEMON_1 | 28,20,-1,44,-1,3 | 10000001 -> 10000001 -> 10000001
+v70 | 2 | departure | 228 | JABBERER | 29,20,-1,25,-1,18 | 15 -> 0 -> 0
+v70 | 2 | departure | 229 | BIRD_KESTREL | 29,20,-1,-1,-1,60 | 23 -> 0 -> 0
+v70 | 2 | departure | 227 | POND_GRABBER | 29,20,-1,8,-1,11 | 0 -> 0 -> 0
+v70 | 2 | departure | 230 | SKUNK | 29,20,-1,-1,-1,92 | 0 -> 0 -> 1
+v70 | 2 | departure | 233 | POND_GRABBER | 29,21,-1,8,-1,11 | 11 -> 12 -> 12
+v70 | 2 | death | 235 | REACHER | 29,20,-1,13,-1,30 | 0 -> 0 -> 0
+v70 | 2 | departure | 237 | JABBERER | 29,20,-1,25,-1,18 | 0 -> 0 -> 0
+v70 | 2 | death | 241 | REACHER | 29,21,-1,13,-1,30 | 9 -> 9 -> 9
+v70 | 2 | departure | 239 | SKUNK | 29,20,-1,-1,-1,92 | 0 -> 1 -> 0
+v70 | 2 | departure | 238 | REACHER | 29,20,-1,13,-1,30 | 0 -> 0 -> -
+
+## Manipulations applied
+v70 | 1 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.cavern=true; cfg.layers.water=false; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.ecology.enabled=true; cfg.water.enabled=false; cfg.v7.builder=true; sw.saveConfig(cfg); for _,l in ipairs({'land','cavern'}) do local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','roster','build',l); print(('s8 build %s: %s'):format(l, (out or '?'):gsub('\n',' | '):sub(1,1500))) end; dfhack.run_command_silent('seasonal-wildlife','enable'); local c2=sw.loadConfig(); print(('s8 cfg enabled=%s builder=%s gate_drain=%s domestic=%s'):format(tostring(c2.enabled),tostring(c2.v7.builder),tostring(c2.v7.gate_drain),tostring(c2.v7.domestic))) | s8 build land: roster build land -- seed COUGAR |   AL  1 (min 1, max 1)  COUGAR |   RP  2 (min 0, max 2)  BIRD_OWL_GREAT_HORNED, BIRD_KESTREL |   GZ  2 (min 1, max 2)  GROUNDHOG, KANGAROO |   PL  2 (min 1, max 2)  PORCUPINE, BIRD_KAKAPO |   ML  1 (min 1, max 2)  BADGER |   LB  1 (min 0, max 2)  BIRD_RAVEN |   WB  0 (min 0, max 1)  (empty) |   SH  0 (min 0, max 1)  (empty) |   ladder: |     BADGER                   14 |     BIRD_KAKAPO              35 |     BIRD_KESTREL             20 |     BIRD_OWL_GREAT_HORNED    4 |     BIRD_RAVEN               28 |     COUGAR                   14 |     GROUNDHOG                100 |     KANGAROO                 8 |     PORCUPINE                15 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) |  | s8 build cavern: roster build cavern -- seed BLIND_CAVE_OGRE |   AL  1 (min 1, max 1)  BLIND_CAVE_OGRE |   AW  1 (min 0, max 1)  TOAD_GIANT_CAVE |   PL  3 (min 1, max 3)  RAT_LARGE, GIANT_EARTHWORM, RUTHERER |   ML  1 (min 0, max 1)  CRUNDLE |   RP  1 (min 0, max 1)  BIRD_SWALLOW_CAVE_GIANT |   LB  1 (min 0, max 1)  CAVE_FLOATER |   SH  2 (min 0, max 2)  FLESH_BALL, PLUMP_HELMET_MAN |   MW  0 (min 0, max 1)  (empty) |   FF  0 (min 0, max 2)  (empty) |   ladder: |     cavern:BIRD_SWALLOW_CAVE_GIANT 10 |     cavern:BLIND_CAVE_OGRE   15 |     cavern:CAVE_FLOATER      30 |     cavern:CRUNDLE           15 |     cavern:FLESH_BALL        18 |     cavern:GIANT_EARTHWORM   29 |     cavern:PLUMP_HELMET_MAN  23 |     cavern:RAT_LARGE         100 |     cavern:RUTHERER          6 |     cavern:TOAD_GIANT_CAVE   15 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) |  | s8 cfg enabled=true builder=true gate_drain=true domestic=false
+v70 | 1 | +0 | _G.__s8seen=nil; print('s8 seen reset') | s8 seen reset
+v70 | 1 | +5059 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=21859 units cavern:AL=4 cavern:AW=5 cavern:GZ=9 cavern:ML=1 deep:-=11 land:LB=6 land:PL=2 | new cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER deep:-:DEMON_10 land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:AL:JABBERER deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 land:PL:SKUNK cavern:AL:JABBERER cavern:AL:JABBERER cavern:ML:REACHER cavern:AL:TROLL cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD | pelagic_beached=0 | odds_n=19
+v70 | 1 | +10199 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=26999 units cavern:AL=5 cavern:AW=5 cavern:GZ=4 cavern:ML=1 cavern:PL=1 deep:-=11 land:LB=6 land:PL=2 | new cavern:PL:GIANT_EARTHWORM cavern:AL:TROLL | pelagic_beached=0 | odds_n=19
+v70 | 1 | +15271 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=32071 units cavern:AL=10 cavern:AW=5 cavern:GZ=3 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE land:RP:BIRD_KESTREL land:PL:SKUNK | pelagic_beached=0 | odds_n=19
+v70 | 1 | +20337 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=37137 units cavern:AL=10 cavern:AW=5 cavern:GZ=2 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+v70 | 1 | +25463 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=42263 units cavern:AL=8 cavern:AW=5 cavern:GZ=1 cavern:ML=1 deep:-=9 land:LB=5 land:PL=2 land:RP=1 | new cavern:AL:JABBERER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+v70 | 1 | +30600 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=47400 units cavern:AL=7 cavern:AW=3 deep:-=9 land:LB=2 land:PL=2 land:RP=1 | new land:PL:SKUNK cavern:AL:ELEMENTMAN_MUD cavern:AL:JABBERER deep:-:DEMON_1 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 cavern:AW:TOAD_GIANT_CAVE | pelagic_beached=0 | odds_n=19
+v70 | 1 | +35653 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=52453 units cavern:AL=6 cavern:AW=1 deep:-=10 land:LB=1 land:PL=2 land:RP=1 | new deep:-:DEMON_4 | pelagic_beached=0 | odds_n=19
+v70 | 1 | +40703 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=57503 units cavern:AL=5 cavern:AW=2 deep:-=10 land:PL=3 land:RP=1 | new cavern:AW:CROCODILE_CAVE cavern:AW:CROCODILE_CAVE land:PL:SKUNK cavern:AL:SPIDER_CAVE_GIANT | pelagic_beached=0 | odds_n=19
+v70 | 1 | +45871 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=62671 units cavern:AL=9 cavern:AW=2 cavern:RP=1 deep:-=9 land:PL=2 | new cavern:AL:BLOOD_MAN cavern:RP:BIRD_SWALLOW_CAVE_GIANT cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN | pelagic_beached=0 | odds_n=19
+v70 | 1 | +51029 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=67829 units cavern:AL=8 cavern:AW=2 cavern:RP=1 deep:-=9 land:PL=2 | new  | pelagic_beached=0 | odds_n=19
+v70 | 1 | +56230 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=73030 units cavern:AL=6 cavern:AW=2 cavern:ML=1 cavern:RP=1 deep:-=7 land:LB=9 land:PL=1 | new cavern:ML:REACHER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+v70 | 1 | +61335 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=78135 units cavern:AL=7 cavern:AW=2 cavern:ML=2 cavern:RP=1 deep:-=9 land:LB=9 land:PL=2 land:RP=1 | new cavern:AW:TOAD_GIANT_CAVE cavern:AL:JABBERER cavern:ML:REACHER land:PL:SKUNK land:RP:BIRD_KESTREL deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 | pelagic_beached=0 | odds_n=19
+v70 | 1 | +66445 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=83245 units cavern:AL=5 cavern:AW=1 cavern:ML=3 cavern:RP=1 deep:-=9 land:LB=9 land:PL=1 land:RP=1 | new cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+v70 | 1 | +71491 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=88291 units cavern:AL=2 cavern:AW=4 cavern:ML=3 cavern:RP=1 deep:-=9 land:LB=9 land:PL=1 land:RP=1 | new cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER | pelagic_beached=0 | odds_n=19
+v70 | 1 | +76587 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=93387 units cavern:AL=2 cavern:AW=5 cavern:ML=4 deep:-=9 land:LB=8 land:PL=1 land:RP=1 | new cavern:AW:POND_GRABBER cavern:AL:SPIDER_CAVE_GIANT cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+v70 | 1 | +81667 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=98467 units cavern:AL=2 cavern:AW=5 cavern:ML=3 deep:-=9 land:LB=15 land:PL=1 land:RP=1 | new land:LB:BIRD_RAVEN cavern:AW:POND_GRABBER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+v70 | 1 | +86694 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=103494 units cavern:AL=10 cavern:AW=5 cavern:ML=4 deep:-=7 land:LB=10 land:PL=1 | new cavern:AL:JABBERER cavern:ML:REACHER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+v70 | 1 | +91787 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=108587 units cavern:AL=9 cavern:AW=5 cavern:ML=3 deep:-=7 land:GZ=4 land:LB=10 | new deep:-:DEMON_13 land:GZ:KANGAROO land:GZ:KANGAROO land:GZ:KANGAROO deep:-:DEMON_13 land:GZ:KANGAROO deep:-:DEMON_13 | pelagic_beached=0 | odds_n=19
+v70 | 1 | +96898 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=113698 units cavern:AL=9 cavern:AW=5 cavern:ML=3 deep:-=7 land:GZ=4 land:LB=10 | new cavern:AL:TROLL cavern:AL:ELEMENTMAN_MUD | pelagic_beached=0 | odds_n=19
+v70 | 1 | +102003 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=118803 units cavern:AL=9 cavern:AW=2 cavern:ML=1 cavern:SH=4 deep:-=7 land:GZ=4 land:LB=9 | new cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:SH:PLUMP_HELMET_MAN cavern:AL:TROLL | pelagic_beached=0 | odds_n=19
+v70 | 2 | +0 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); if not cfg.initialized then sw.captureDefault(cfg) end; cfg.layers.land=true; cfg.layers.cavern=true; cfg.layers.water=false; cfg.groups.enabled=true; cfg.groups.cavern=true; cfg.ecology.enabled=true; cfg.water.enabled=false; cfg.v7.builder=true; sw.saveConfig(cfg); for _,l in ipairs({'land','cavern'}) do local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','roster','build',l); print(('s8 build %s: %s'):format(l, (out or '?'):gsub('\n',' | '):sub(1,1500))) end; dfhack.run_command_silent('seasonal-wildlife','enable'); local c2=sw.loadConfig(); print(('s8 cfg enabled=%s builder=%s gate_drain=%s domestic=%s'):format(tostring(c2.enabled),tostring(c2.v7.builder),tostring(c2.v7.gate_drain),tostring(c2.v7.domestic))) | s8 build land: roster build land -- seed COUGAR |   AL  1 (min 1, max 1)  COUGAR |   RP  2 (min 0, max 2)  BIRD_OWL_GREAT_HORNED, BIRD_KESTREL |   GZ  2 (min 1, max 2)  KANGAROO, GROUNDHOG |   PL  2 (min 1, max 2)  BIRD_EMU, PORCUPINE |   ML  1 (min 1, max 2)  BADGER |   LB  1 (min 0, max 2)  BIRD_RAVEN |   WB  0 (min 0, max 1)  (empty) |   SH  0 (min 0, max 1)  (empty) |   ladder: |     BADGER                   14 |     BIRD_EMU                 14 |     BIRD_KESTREL             20 |     BIRD_OWL_GREAT_HORNED    4 |     BIRD_RAVEN               28 |     COUGAR                   14 |     GROUNDHOG                100 |     KANGAROO                 8 |     PORCUPINE                39 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) |  | s8 build cavern: roster build cavern -- seed BLIND_CAVE_OGRE |   AL  1 (min 1, max 1)  BLIND_CAVE_OGRE |   AW  1 (min 0, max 1)  POND_GRABBER |   PL  3 (min 1, max 3)  RAT_LARGE, CREEPING_EYE, MOLE_DOG_NAKED |   ML  1 (min 0, max 1)  REACHER |   RP  1 (min 0, max 1)  BIRD_SWALLOW_CAVE_GIANT |   LB  1 (min 0, max 1)  CAVE_FLOATER |   SH  2 (min 0, max 2)  PLUMP_HELMET_MAN, FLESH_BALL |   MW  0 (min 0, max 1)  (empty) |   FF  0 (min 0, max 2)  (empty) |   OUTGUNNED: REACHER pack vs CREEPING_EYE herd 4.3x |   OUTGUNNED: REACHER pack vs FLESH_BALL herd 3.0x |   ladder: |     cavern:BIRD_SWALLOW_CAVE_GIANT 29 |     cavern:BLIND_CAVE_OGRE   43 |     cavern:CAVE_FLOATER      86 |     cavern:CREEPING_EYE      100 |     cavern:FLESH_BALL        51 |     cavern:MOLE_DOG_NAKED    44 |     cavern:PLUMP_HELMET_MAN  65 |     cavern:POND_GRABBER      43 |     cavern:RAT_LARGE         85 |     cavern:REACHER           43 |   vegetation index 67 (region 50, grass 85% of 8810 surface tiles, 1668 shrub, 713 tree) |  | s8 cfg enabled=true builder=true gate_drain=true domestic=false
+v70 | 2 | +0 | _G.__s8seen=nil; print('s8 seen reset') | s8 seen reset
+v70 | 2 | +5212 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=22012 units cavern:AL=4 cavern:AW=8 cavern:GZ=3 cavern:PL=1 deep:-=11 land:LB=2 land:PL=2 land:RP=1 | new cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD cavern:GZ:ELK_BIRD deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB deep:-:MAGMA_CRAB land:PL:SKUNK cavern:AL:TROLL cavern:AL:JABBERER cavern:AL:MOLEMARIAN deep:-:DEMON_9 land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:JABBERER deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 deep:-:DEMON_4 land:RP:BIRD_KESTREL land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:PL:GREEN_DEVOURER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +10322 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=27122 units cavern:AL=8 cavern:AW=11 cavern:GZ=1 cavern:ML=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new land:PL:SKUNK land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN cavern:ML:REACHER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN cavern:AL:BLOOD_MAN | pelagic_beached=0 | odds_n=19
+v70 | 2 | +15342 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=32142 units cavern:AL=8 cavern:AW=11 cavern:GZ=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+v70 | 2 | +20444 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=37244 units cavern:AL=6 cavern:AW=11 cavern:GZ=1 deep:-=11 land:LB=6 land:PL=3 land:RP=1 | new  | pelagic_beached=0 | odds_n=19
+v70 | 2 | +25503 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=42303 units cavern:AL=12 cavern:AW=8 cavern:ML=1 cavern:PL=1 deep:-=11 land:LB=4 land:PL=2 land:RP=1 | new cavern:AL:TROGLODYTE cavern:AL:SPIDER_CAVE_GIANT cavern:PL:GORLAK cavern:ML:REACHER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+v70 | 2 | +30558 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=47358 units cavern:AL=12 cavern:AW=8 cavern:ML=2 cavern:PL=2 deep:-=6 land:LB=4 land:PL=2 | new land:PL:SKUNK cavern:PL:MANERA cavern:AL:JABBERER cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +35677 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=52477 units cavern:AL=10 cavern:AW=8 cavern:ML=2 cavern:PL=2 deep:-=7 land:LB=10 land:PL=1 | new deep:-:DEMON_19 deep:-:DEMON_19 cavern:PL:GREEN_DEVOURER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+v70 | 2 | +40756 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=57556 units cavern:AL=11 cavern:AW=8 cavern:ML=3 cavern:PL=1 deep:-=7 land:LB=7 land:PL=1 | new cavern:ML:REACHER cavern:AL:SPIDER_CAVE_GIANT land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+v70 | 2 | +45822 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=62622 units cavern:AL=10 cavern:AW=8 cavern:ML=1 cavern:PL=2 deep:-=7 land:LB=7 land:PL=1 | new cavern:PL:MANERA cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +50867 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=67667 units cavern:AL=11 cavern:AW=5 cavern:ML=2 cavern:RP=1 deep:-=7 land:LB=17 | new cavern:AL:JABBERER cavern:RP:BIRD_SWALLOW_CAVE_GIANT cavern:ML:REACHER land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN land:LB:BIRD_RAVEN | pelagic_beached=0 | odds_n=19
+v70 | 2 | +55931 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=72731 units cavern:AL=4 cavern:AW=9 cavern:ML=1 cavern:RP=1 deep:-=8 land:LB=17 | new cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER deep:-:DEMON_1 deep:-:DEMON_1 cavern:AL:JABBERER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +61007 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=77807 units cavern:AL=4 cavern:AW=5 cavern:ML=1 cavern:RP=1 deep:-=7 land:LB=14 | new  | pelagic_beached=0 | odds_n=19
+v70 | 2 | +66116 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=82916 units cavern:AL=4 cavern:AW=7 cavern:ML=1 cavern:PL=1 cavern:RP=1 deep:-=7 land:LB=10 land:PL=1 land:RP=1 | new land:RP:BIRD_KESTREL land:PL:SKUNK cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:AW:POND_GRABBER cavern:PL:MANERA | pelagic_beached=0 | odds_n=19
+v70 | 2 | +71245 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=88045 units cavern:AL=4 cavern:AW=7 cavern:ML=2 cavern:RP=1 deep:-=7 land:LB=9 land:PL=1 land:RP=1 | new cavern:ML:REACHER cavern:ML:REACHER cavern:AL:JABBERER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +76286 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=93086 units cavern:AL=4 cavern:AW=6 cavern:ML=2 deep:-=7 land:LB=3 land:PL=2 land:RP=1 | new land:PL:SKUNK | pelagic_beached=0 | odds_n=19
+v70 | 2 | +81350 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=98150 units cavern:AL=4 cavern:AW=4 cavern:ML=3 deep:-=7 land:PL=2 land:RP=1 | new deep:-:DEMON_3 cavern:AL:TROLL cavern:ML:REACHER | pelagic_beached=0 | odds_n=19
+v70 | 2 | +86423 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=103223 units cavern:AL=4 cavern:AW=4 cavern:ML=3 deep:-=9 land:PL=2 | new deep:-:DEMON_16 deep:-:DEMON_16 deep:-:DEMON_16 cavern:AL:ELEMENTMAN_MUD | pelagic_beached=0 | odds_n=19
+v70 | 2 | +91500 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=108300 units cavern:AL=10 cavern:AW=3 cavern:ML=1 deep:-=9 land:GZ=3 land:PL=1 | new cavern:AL:TROGLODYTE land:GZ:KANGAROO cavern:AL:TROLL cavern:AL:TROGLODYTE cavern:AW:TOAD_GIANT_CAVE cavern:AL:VORACIOUS_CAVE_CRAWLER cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE land:GZ:KANGAROO land:GZ:KANGAROO | pelagic_beached=0 | odds_n=19
+v70 | 2 | +96583 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=113383 units cavern:AL=10 cavern:AW=3 cavern:ML=1 deep:-=9 land:GZ=6 | new land:GZ:KANGAROO land:GZ:KANGAROO land:GZ:KANGAROO | pelagic_beached=0 | odds_n=19
+v70 | 2 | +101697 | local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local by={}; for _,e in ipairs(sw.buildPool(cfg)) do by[e.token]=by[e.token] or e end; _G.__s8seen=_G.__s8seen or {}; local S=_G.__s8seen; local cnt,new,beach={},{},0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local cr=df.creature_raw.find(u.race); local t=cr and cr.creature_id or '?'; local e=by[t]; local L=sw.WILD.layerOf(u); local k=L..':'..(e and e.guild or '-'); cnt[k]=(cnt[k] or 0)+1; if not S[u.id] then S[u.id]=true; new[#new+1]=k..':'..t end; if e and e.guild=='PE' then local d=dfhack.maps.getTileFlags(u.pos); if not (d and d.flow_size>=4) then beach=beach+1 end end end end; local o={} for k,v in pairs(cnt) do o[#o+1]=k..'='..v end; table.sort(o); local odds={} for k,v in pairs(cfg.odds or {}) do odds[#odds+1]=k..'='..v end; table.sort(odds); print(('s8 tick=%d units %s | new %s | pelagic_beached=%d | odds_n=%d'):format(df.global.cur_year_tick, table.concat(o,' '), table.concat(new,' '), beach, #odds)) | s8 tick=118497 units cavern:AL=21 cavern:AW=3 deep:-=9 land:GZ=6 | new cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE cavern:AL:TROGLODYTE | pelagic_beached=0 | odds_n=19
+
+## Pool entries that changed between load and end of replicate (310; the second instrument)
+v70 | 1 | idx 3183 | Vermin:0 ref6=28,19,-1,-1,-1,49 quantity 252->0 max 252->252 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3184 | Vermin:5 ref6=28,19,-1,-1,-1,50 quantity 226->0 max 226->226 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3185 | Vermin:8 ref6=28,19,-1,-1,-1,51 quantity 322->0 max 322->322 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->1 extinct 0->1
+v70 | 1 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3189 | Vermin:91 ref6=28,19,-1,-1,-1,58 quantity 350->0 max 350->350 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3190 | Vermin:94 ref6=28,19,-1,-1,-1,59 quantity 268->0 max 268->268 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3200 | Vermin:196 ref6=28,19,-1,-1,-1,73 quantity 3503->0 max 3503->3503 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3217 | Vermin:514 ref6=28,19,-1,-1,-1,103 quantity 288->0 max 288->288 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3238 | OLM_GIANT ref6=28,19,-1,8,-1,9 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3239 | CROCODILE_CAVE ref6=28,19,-1,8,-1,10 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3240 | POND_GRABBER ref6=28,19,-1,8,-1,11 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3242 | Vermin:617 ref6=28,19,-1,8,-1,13 quantity 240->0 max 240->240 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3243 | Vermin:619 ref6=28,19,-1,8,-1,14 quantity 356->0 max 356->356 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3244 | Vermin:410 ref6=28,19,-1,8,-1,15 quantity 446->0 max 446->446 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3245 | Vermin:621 ref6=28,19,-1,8,-1,16 quantity 453->0 max 453->453 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3247 | BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,8,-1,18 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3250 | ELK_BIRD ref6=28,19,-1,8,-1,21 quantity 45->0 max 45->45 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3252 | MOLE_DOG_NAKED ref6=28,19,-1,8,-1,23 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3253 | GIANT_EARTHWORM ref6=28,19,-1,8,-1,24 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3255 | Vermin:630 ref6=28,19,-1,8,-1,26 quantity 403->0 max 403->403 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3257 | GORLAK ref6=28,19,-1,8,-1,28 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3269 | CROCODILE_CAVE ref6=28,19,-1,16,-1,11 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3270 | CRUNDLE ref6=28,19,-1,16,-1,12 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3272 | POND_GRABBER ref6=28,19,-1,16,-1,14 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3274 | OLM_GIANT ref6=28,19,-1,16,-1,16 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3275 | Vermin:619 ref6=28,19,-1,16,-1,17 quantity 278->0 max 278->278 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3276 | Vermin:617 ref6=28,19,-1,16,-1,18 quantity 259->0 max 259->259 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3277 | Vermin:621 ref6=28,19,-1,16,-1,19 quantity 283->0 max 283->283 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3279 | Vermin:410 ref6=28,19,-1,16,-1,21 quantity 230->0 max 230->230 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3281 | DRALTHA ref6=28,19,-1,16,-1,23 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3284 | BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,16,-1,26 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3285 | HELMET_SNAKE ref6=28,19,-1,16,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3288 | Vermin:630 ref6=28,19,-1,16,-1,30 quantity 209->0 max 209->209 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3289 | SPIDER_CAVE_GIANT ref6=28,19,-1,16,-1,31 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3291 | BLIND_CAVE_OGRE ref6=28,19,-1,16,-1,33 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3292 | REACHER ref6=28,19,-1,16,-1,34 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3293 | MANERA ref6=28,19,-1,16,-1,35 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3294 | GORLAK ref6=28,19,-1,16,-1,36 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3307 | CRUNDLE ref6=28,19,-1,25,-1,12 quantity 177->0 max 177->177 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3309 | FLESH_BALL ref6=28,19,-1,25,-1,14 quantity 311->0 max 311->311 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3310 | CAVE_BLOB ref6=28,19,-1,25,-1,15 quantity 438->0 max 438->438 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3313 | JABBERER ref6=28,19,-1,25,-1,18 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3315 | MOLEMARIAN ref6=28,19,-1,25,-1,20 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3316 | ELK_BIRD ref6=28,19,-1,25,-1,21 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3317 | GREMLIN ref6=28,19,-1,25,-1,22 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3319 | SPIDER_CAVE_GIANT ref6=28,19,-1,25,-1,24 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3320 | CREEPING_EYE ref6=28,19,-1,25,-1,25 quantity 298->0 max 298->298 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3321 | BLIND_CAVE_OGRE ref6=28,19,-1,25,-1,26 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3323 | REACHER ref6=28,19,-1,25,-1,28 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3324 | CAVE_DRAGON ref6=28,19,-1,25,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3326 | Vermin:419 ref6=28,19,-1,25,-1,31 quantity 343->0 max 343->343 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3327 | GORLAK ref6=28,19,-1,25,-1,32 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 1 | idx 3536 | DEMON_1 ref6=28,20,-1,44,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->0 max 241->241 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->0 max 216->216 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->0 max 308->308 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->0 max 334->334 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->0 max 257->257 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->1525 max 3530->3530 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->333 max 331->331 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->17 max 20->20 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->0 max 275->275 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4746 | POND_GRABBER ref6=29,20,-1,8,-1,11 quantity 14->0 max 14->14 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->0 max 231->231 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4749 | Vermin:619 ref6=29,20,-1,8,-1,14 quantity 343->0 max 343->343 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->0 max 429->429 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->0 max 436->436 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->380 max 403->403 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4753 | BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4754 | TROGLODYTE ref6=29,20,-1,8,-1,19 quantity 14->7 max 14->14 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->0 max 43->43 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4758 | MOLE_DOG_NAKED ref6=29,20,-1,8,-1,23 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4759 | GIANT_EARTHWORM ref6=29,20,-1,8,-1,24 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->221 max 265->265 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->0 max 387->387 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4763 | GORLAK ref6=29,20,-1,8,-1,28 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->0 max 147->147 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4775 | PLUMP_HELMET_MAN ref6=29,20,-1,13,-1,11 quantity 26->22 max 26->26 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4776 | POND_GRABBER ref6=29,20,-1,13,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->0 max 442->442 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4780 | Vermin:619 ref6=29,20,-1,13,-1,16 quantity 311->0 max 311->311 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->308 max 331->331 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->0 max 257->257 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4785 | JABBERER ref6=29,20,-1,13,-1,21 quantity 21->0 max 21->21 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4786 | CAVE_FLOATER ref6=29,20,-1,13,-1,22 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4787 | GREEN_DEVOURER ref6=29,20,-1,13,-1,23 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4789 | ELK_BIRD ref6=29,20,-1,13,-1,25 quantity 43->0 max 43->43 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->259 max 313->313 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->0 max 3->3 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4794 | REACHER ref6=29,20,-1,13,-1,30 quantity 10->0 max 10->10 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4795 | MANERA ref6=29,20,-1,13,-1,31 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4797 | GORLAK ref6=29,20,-1,13,-1,33 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4810 | CRUNDLE ref6=29,20,-1,25,-1,12 quantity 174->0 max 174->174 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4812 | FLESH_BALL ref6=29,20,-1,25,-1,14 quantity 305->0 max 305->305 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4813 | CAVE_BLOB ref6=29,20,-1,25,-1,15 quantity 429->0 max 429->429 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4814 | ELEMENTMAN_MUD ref6=29,20,-1,25,-1,16 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4816 | JABBERER ref6=29,20,-1,25,-1,18 quantity 16->0 max 16->16 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4818 | MOLEMARIAN ref6=29,20,-1,25,-1,20 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->0 max 33->33 discovered 1->1 extinct 0->1
+v70 | 1 | idx 4820 | GREMLIN ref6=29,20,-1,25,-1,22 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4822 | SPIDER_CAVE_GIANT ref6=29,20,-1,25,-1,24 quantity 2->0 max 2->2 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4823 | CREEPING_EYE ref6=29,20,-1,25,-1,25 quantity 292->0 max 292->292 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4824 | BLIND_CAVE_OGRE ref6=29,20,-1,25,-1,26 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4825 | TROLL ref6=29,20,-1,25,-1,27 quantity 7->5 max 7->7 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4826 | REACHER ref6=29,20,-1,25,-1,28 quantity 12->0 max 12->12 discovered 0->1 extinct 0->1
+v70 | 1 | idx 4827 | CAVE_DRAGON ref6=29,20,-1,25,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4828 | BLOOD_MAN ref6=29,20,-1,25,-1,30 quantity 19->19 max 19->19 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->0 max 336->336 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4830 | GORLAK ref6=29,20,-1,25,-1,32 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 1 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->38 max 38->38 discovered 1->1 extinct 0->0
+v70 | 1 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->345 max 421->421 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4840 | DEMON_13 ref6=29,20,-1,43,-1,4 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4842 | DEMON_4 ref6=29,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4945 | CROCODILE_CAVE ref6=29,21,-1,8,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4946 | POND_GRABBER ref6=29,21,-1,8,-1,11 quantity 14->11 max 14->14 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4947 | TOAD_GIANT_CAVE ref6=29,21,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4956 | ELK_BIRD ref6=29,21,-1,8,-1,21 quantity 43->42 max 43->43 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4959 | GIANT_EARTHWORM ref6=29,21,-1,8,-1,24 quantity 26->25 max 26->26 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4962 | TROLL ref6=29,21,-1,8,-1,27 quantity 5->5 max 5->5 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4976 | POND_GRABBER ref6=29,21,-1,13,-1,12 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4985 | JABBERER ref6=29,21,-1,13,-1,21 quantity 21->22 max 21->21 discovered 0->1 extinct 0->0
+v70 | 1 | idx 4994 | REACHER ref6=29,21,-1,13,-1,30 quantity 10->10 max 10->10 discovered 0->1 extinct 0->0
+v70 | 1 | idx 5989 | CROCODILE_CAVE ref6=30,20,-1,8,-1,10 quantity 9->9 max 9->9 discovered 0->1 extinct 0->0
+v70 | 1 | idx 5991 | TOAD_GIANT_CAVE ref6=30,20,-1,8,-1,12 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+v70 | 1 | idx 5997 | BIRD_SWALLOW_CAVE_GIANT ref6=30,20,-1,8,-1,18 quantity 21->21 max 21->21 discovered 0->1 extinct 0->0
+v70 | 1 | idx 5998 | TROGLODYTE ref6=30,20,-1,8,-1,19 quantity 13->10 max 13->13 discovered 0->1 extinct 0->0
+v70 | 1 | idx 6003 | GIANT_EARTHWORM ref6=30,20,-1,8,-1,24 quantity 25->24 max 25->25 discovered 0->1 extinct 0->0
+v70 | 1 | idx 6006 | TROLL ref6=30,20,-1,8,-1,27 quantity 5->5 max 5->5 discovered 0->1 extinct 0->0
+v70 | 1 | idx 6085 | DEMON_10 ref6=30,20,-1,43,-1,5 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 1 | idx 6086 | DEMON_4 ref6=30,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 3183 | Vermin:0 ref6=28,19,-1,-1,-1,49 quantity 252->0 max 252->252 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3184 | Vermin:5 ref6=28,19,-1,-1,-1,50 quantity 226->0 max 226->226 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3185 | Vermin:8 ref6=28,19,-1,-1,-1,51 quantity 322->0 max 322->322 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3186 | BIRD_RAVEN ref6=28,19,-1,-1,-1,53 quantity 354->0 max 354->354 discovered 0->1 extinct 0->1
+v70 | 2 | idx 3187 | BIRD_KAKAPO ref6=28,19,-1,-1,-1,55 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3188 | BIRD_EMU ref6=28,19,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3189 | Vermin:91 ref6=28,19,-1,-1,-1,58 quantity 350->0 max 350->350 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3190 | Vermin:94 ref6=28,19,-1,-1,-1,59 quantity 268->0 max 268->268 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3191 | BIRD_KESTREL ref6=28,19,-1,-1,-1,60 quantity 24->0 max 24->24 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3192 | BIRD_OWL_GREAT_HORNED ref6=28,19,-1,-1,-1,61 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3200 | Vermin:196 ref6=28,19,-1,-1,-1,73 quantity 3503->0 max 3503->3503 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3205 | GROUNDHOG ref6=28,19,-1,-1,-1,80 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3206 | BADGER ref6=28,19,-1,-1,-1,82 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3211 | SKUNK ref6=28,19,-1,-1,-1,92 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3212 | WOMBAT ref6=28,19,-1,-1,-1,96 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3216 | WOLF ref6=28,19,-1,-1,-1,101 quantity 13->0 max 13->13 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3217 | Vermin:514 ref6=28,19,-1,-1,-1,103 quantity 288->0 max 288->288 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3238 | OLM_GIANT ref6=28,19,-1,8,-1,9 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3239 | CROCODILE_CAVE ref6=28,19,-1,8,-1,10 quantity 10->0 max 10->10 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3240 | POND_GRABBER ref6=28,19,-1,8,-1,11 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3242 | Vermin:617 ref6=28,19,-1,8,-1,13 quantity 240->0 max 240->240 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3243 | Vermin:619 ref6=28,19,-1,8,-1,14 quantity 356->0 max 356->356 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3244 | Vermin:410 ref6=28,19,-1,8,-1,15 quantity 446->0 max 446->446 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3245 | Vermin:621 ref6=28,19,-1,8,-1,16 quantity 453->0 max 453->453 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3247 | BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,8,-1,18 quantity 23->0 max 23->23 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3250 | ELK_BIRD ref6=28,19,-1,8,-1,21 quantity 45->0 max 45->45 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3252 | MOLE_DOG_NAKED ref6=28,19,-1,8,-1,23 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3253 | GIANT_EARTHWORM ref6=28,19,-1,8,-1,24 quantity 27->0 max 27->27 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3255 | Vermin:630 ref6=28,19,-1,8,-1,26 quantity 403->0 max 403->403 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3257 | GORLAK ref6=28,19,-1,8,-1,28 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3269 | CROCODILE_CAVE ref6=28,19,-1,16,-1,11 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3270 | CRUNDLE ref6=28,19,-1,16,-1,12 quantity 130->0 max 130->130 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3272 | POND_GRABBER ref6=28,19,-1,16,-1,14 quantity 21->0 max 21->21 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3274 | OLM_GIANT ref6=28,19,-1,16,-1,16 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3275 | Vermin:619 ref6=28,19,-1,16,-1,17 quantity 278->0 max 278->278 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3276 | Vermin:617 ref6=28,19,-1,16,-1,18 quantity 259->0 max 259->259 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3277 | Vermin:621 ref6=28,19,-1,16,-1,19 quantity 283->0 max 283->283 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3279 | Vermin:410 ref6=28,19,-1,16,-1,21 quantity 230->0 max 230->230 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3281 | DRALTHA ref6=28,19,-1,16,-1,23 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3284 | BIRD_SWALLOW_CAVE_GIANT ref6=28,19,-1,16,-1,26 quantity 18->0 max 18->18 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3285 | HELMET_SNAKE ref6=28,19,-1,16,-1,27 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3288 | Vermin:630 ref6=28,19,-1,16,-1,30 quantity 209->0 max 209->209 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3289 | SPIDER_CAVE_GIANT ref6=28,19,-1,16,-1,31 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3291 | BLIND_CAVE_OGRE ref6=28,19,-1,16,-1,33 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3292 | REACHER ref6=28,19,-1,16,-1,34 quantity 7->0 max 7->7 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3293 | MANERA ref6=28,19,-1,16,-1,35 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3294 | GORLAK ref6=28,19,-1,16,-1,36 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3307 | CRUNDLE ref6=28,19,-1,25,-1,12 quantity 177->0 max 177->177 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3309 | FLESH_BALL ref6=28,19,-1,25,-1,14 quantity 311->0 max 311->311 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3310 | CAVE_BLOB ref6=28,19,-1,25,-1,15 quantity 438->0 max 438->438 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3313 | JABBERER ref6=28,19,-1,25,-1,18 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3315 | MOLEMARIAN ref6=28,19,-1,25,-1,20 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3316 | ELK_BIRD ref6=28,19,-1,25,-1,21 quantity 34->0 max 34->34 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3317 | GREMLIN ref6=28,19,-1,25,-1,22 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3319 | SPIDER_CAVE_GIANT ref6=28,19,-1,25,-1,24 quantity 2->0 max 2->2 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3320 | CREEPING_EYE ref6=28,19,-1,25,-1,25 quantity 298->0 max 298->298 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3321 | BLIND_CAVE_OGRE ref6=28,19,-1,25,-1,26 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3323 | REACHER ref6=28,19,-1,25,-1,28 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3324 | CAVE_DRAGON ref6=28,19,-1,25,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3326 | Vermin:419 ref6=28,19,-1,25,-1,31 quantity 343->0 max 343->343 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3327 | GORLAK ref6=28,19,-1,25,-1,32 quantity 17->0 max 17->17 discovered 0->0 extinct 0->1
+v70 | 2 | idx 3473 | POND_GRABBER ref6=28,20,-1,13,-1,12 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+v70 | 2 | idx 3533 | DEMON_19 ref6=28,20,-1,44,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 3536 | DEMON_1 ref6=28,20,-1,44,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4700 | Vermin:0 ref6=29,20,-1,-1,-1,49 quantity 241->0 max 241->241 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4701 | Vermin:5 ref6=29,20,-1,-1,-1,50 quantity 216->0 max 216->216 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4702 | Vermin:8 ref6=29,20,-1,-1,-1,51 quantity 308->0 max 308->308 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4703 | BIRD_RAVEN ref6=29,20,-1,-1,-1,53 quantity 339->0 max 339->339 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4704 | BIRD_KAKAPO ref6=29,20,-1,-1,-1,55 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4705 | BIRD_EMU ref6=29,20,-1,-1,-1,56 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4706 | Vermin:91 ref6=29,20,-1,-1,-1,58 quantity 334->0 max 334->334 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4707 | Vermin:94 ref6=29,20,-1,-1,-1,59 quantity 257->0 max 257->257 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4708 | BIRD_KESTREL ref6=29,20,-1,-1,-1,60 quantity 23->0 max 23->23 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4709 | BIRD_OWL_GREAT_HORNED ref6=29,20,-1,-1,-1,61 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4714 | Vermin:145 ref6=29,20,-1,-1,-1,68 quantity 3530->2327 max 3530->3530 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4717 | Vermin:196 ref6=29,20,-1,-1,-1,73 quantity 3352->0 max 3352->3352 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4722 | GROUNDHOG ref6=29,20,-1,-1,-1,80 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4723 | BADGER ref6=29,20,-1,-1,-1,82 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4724 | Vermin:517 ref6=29,20,-1,-1,-1,86 quantity 331->328 max 331->331 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4725 | Vermin:528 ref6=29,20,-1,-1,-1,87 quantity 381->380 max 381->381 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4726 | KANGAROO ref6=29,20,-1,-1,-1,88 quantity 20->14 max 20->20 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4728 | SKUNK ref6=29,20,-1,-1,-1,92 quantity 15->0 max 15->15 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4729 | WOMBAT ref6=29,20,-1,-1,-1,96 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4733 | WOLF ref6=29,20,-1,-1,-1,101 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4734 | Vermin:514 ref6=29,20,-1,-1,-1,103 quantity 275->0 max 275->275 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4744 | OLM_GIANT ref6=29,20,-1,8,-1,9 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4745 | CROCODILE_CAVE ref6=29,20,-1,8,-1,10 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4746 | POND_GRABBER ref6=29,20,-1,8,-1,11 quantity 14->0 max 14->14 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4747 | TOAD_GIANT_CAVE ref6=29,20,-1,8,-1,12 quantity 12->11 max 12->12 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4748 | Vermin:617 ref6=29,20,-1,8,-1,13 quantity 231->0 max 231->231 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4749 | Vermin:619 ref6=29,20,-1,8,-1,14 quantity 343->0 max 343->343 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4750 | Vermin:410 ref6=29,20,-1,8,-1,15 quantity 429->0 max 429->429 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4751 | Vermin:621 ref6=29,20,-1,8,-1,16 quantity 436->0 max 436->436 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4752 | Vermin:616 ref6=29,20,-1,8,-1,17 quantity 403->395 max 403->403 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4753 | BIRD_SWALLOW_CAVE_GIANT ref6=29,20,-1,8,-1,18 quantity 22->0 max 22->22 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4756 | ELK_BIRD ref6=29,20,-1,8,-1,21 quantity 43->0 max 43->43 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4758 | MOLE_DOG_NAKED ref6=29,20,-1,8,-1,23 quantity 20->0 max 20->20 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4759 | GIANT_EARTHWORM ref6=29,20,-1,8,-1,24 quantity 26->0 max 26->26 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4760 | Vermin:623 ref6=29,20,-1,8,-1,25 quantity 265->206 max 265->265 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4761 | Vermin:630 ref6=29,20,-1,8,-1,26 quantity 387->0 max 387->387 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4763 | GORLAK ref6=29,20,-1,8,-1,28 quantity 14->0 max 14->14 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4773 | CRUNDLE ref6=29,20,-1,13,-1,9 quantity 147->0 max 147->147 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4776 | POND_GRABBER ref6=29,20,-1,13,-1,12 quantity 15->0 max 15->15 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4777 | OLM_GIANT ref6=29,20,-1,13,-1,13 quantity 9->0 max 9->9 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4778 | CROCODILE_CAVE ref6=29,20,-1,13,-1,14 quantity 12->0 max 12->12 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4779 | Vermin:617 ref6=29,20,-1,13,-1,15 quantity 442->0 max 442->442 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4780 | Vermin:619 ref6=29,20,-1,13,-1,16 quantity 311->0 max 311->311 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4781 | Vermin:616 ref6=29,20,-1,13,-1,17 quantity 331->309 max 331->331 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4782 | Vermin:410 ref6=29,20,-1,13,-1,18 quantity 257->0 max 257->257 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4783 | TROGLODYTE ref6=29,20,-1,13,-1,19 quantity 14->8 max 14->14 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4785 | JABBERER ref6=29,20,-1,13,-1,21 quantity 21->0 max 21->21 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4786 | CAVE_FLOATER ref6=29,20,-1,13,-1,22 quantity 46->0 max 46->46 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4787 | GREEN_DEVOURER ref6=29,20,-1,13,-1,23 quantity 12->0 max 12->12 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4789 | ELK_BIRD ref6=29,20,-1,13,-1,25 quantity 43->0 max 43->43 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4790 | Vermin:623 ref6=29,20,-1,13,-1,26 quantity 313->255 max 313->313 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4792 | SPIDER_CAVE_GIANT ref6=29,20,-1,13,-1,28 quantity 3->0 max 3->3 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4793 | BLIND_CAVE_OGRE ref6=29,20,-1,13,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4794 | REACHER ref6=29,20,-1,13,-1,30 quantity 10->0 max 10->10 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4795 | MANERA ref6=29,20,-1,13,-1,31 quantity 27->0 max 27->27 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4797 | GORLAK ref6=29,20,-1,13,-1,33 quantity 11->0 max 11->11 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4810 | CRUNDLE ref6=29,20,-1,25,-1,12 quantity 174->0 max 174->174 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4812 | FLESH_BALL ref6=29,20,-1,25,-1,14 quantity 305->0 max 305->305 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4813 | CAVE_BLOB ref6=29,20,-1,25,-1,15 quantity 429->0 max 429->429 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4814 | ELEMENTMAN_MUD ref6=29,20,-1,25,-1,16 quantity 14->13 max 14->14 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4815 | VORACIOUS_CAVE_CRAWLER ref6=29,20,-1,25,-1,17 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4816 | JABBERER ref6=29,20,-1,25,-1,18 quantity 16->0 max 16->16 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4818 | MOLEMARIAN ref6=29,20,-1,25,-1,20 quantity 15->0 max 15->15 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4819 | ELK_BIRD ref6=29,20,-1,25,-1,21 quantity 25->0 max 33->33 discovered 1->1 extinct 0->1
+v70 | 2 | idx 4820 | GREMLIN ref6=29,20,-1,25,-1,22 quantity 1->0 max 1->1 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4822 | SPIDER_CAVE_GIANT ref6=29,20,-1,25,-1,24 quantity 2->0 max 2->2 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4823 | CREEPING_EYE ref6=29,20,-1,25,-1,25 quantity 292->0 max 292->292 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4824 | BLIND_CAVE_OGRE ref6=29,20,-1,25,-1,26 quantity 6->0 max 6->6 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4825 | TROLL ref6=29,20,-1,25,-1,27 quantity 7->7 max 7->7 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4826 | REACHER ref6=29,20,-1,25,-1,28 quantity 12->0 max 12->12 discovered 0->1 extinct 0->1
+v70 | 2 | idx 4827 | CAVE_DRAGON ref6=29,20,-1,25,-1,29 quantity 4->0 max 4->4 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4828 | BLOOD_MAN ref6=29,20,-1,25,-1,30 quantity 19->17 max 19->19 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4829 | Vermin:419 ref6=29,20,-1,25,-1,31 quantity 336->0 max 336->336 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4830 | GORLAK ref6=29,20,-1,25,-1,32 quantity 16->0 max 16->16 discovered 0->0 extinct 0->1
+v70 | 2 | idx 4831 | MAGMA_CRAB ref6=29,20,-1,34,-1,0 quantity 33->36 max 38->38 discovered 1->1 extinct 0->0
+v70 | 2 | idx 4835 | Vermin:620 ref6=29,20,-1,34,-1,4 quantity 421->341 max 421->421 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4836 | DEMON_3 ref6=29,20,-1,43,-1,0 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4838 | DEMON_9 ref6=29,20,-1,43,-1,2 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4839 | DEMON_16 ref6=29,20,-1,43,-1,3 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4946 | POND_GRABBER ref6=29,21,-1,8,-1,11 quantity 14->12 max 14->14 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4962 | TROLL ref6=29,21,-1,8,-1,27 quantity 5->4 max 5->5 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4976 | POND_GRABBER ref6=29,21,-1,13,-1,12 quantity 15->15 max 15->15 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4983 | TROGLODYTE ref6=29,21,-1,13,-1,19 quantity 14->7 max 14->14 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4987 | GREEN_DEVOURER ref6=29,21,-1,13,-1,23 quantity 12->12 max 12->12 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4992 | SPIDER_CAVE_GIANT ref6=29,21,-1,13,-1,28 quantity 3->3 max 3->3 discovered 0->1 extinct 0->0
+v70 | 2 | idx 4994 | REACHER ref6=29,21,-1,13,-1,30 quantity 10->9 max 10->10 discovered 0->1 extinct 0->0
+v70 | 2 | idx 5997 | BIRD_SWALLOW_CAVE_GIANT ref6=30,20,-1,8,-1,18 quantity 21->21 max 21->21 discovered 0->1 extinct 0->0
+v70 | 2 | idx 5998 | TROGLODYTE ref6=30,20,-1,8,-1,19 quantity 13->7 max 13->13 discovered 0->1 extinct 0->0
+v70 | 2 | idx 6007 | GORLAK ref6=30,20,-1,8,-1,28 quantity 13->13 max 13->13 discovered 0->1 extinct 0->0
+v70 | 2 | idx 6086 | DEMON_4 ref6=30,20,-1,43,-1,6 quantity 10000001->10000001 max 10000001->10000001 discovered 0->1 extinct 0->0
+
+## Units present at load (held group from the save), 26 rows; first few:
+v70 | 1 | 126 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26907 flag_src=1
+v70 | 1 | 127 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24656 flag_src=1
+v70 | 1 | 128 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=22797 flag_src=1
+v70 | 1 | 129 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=23452 flag_src=1
+v70 | 1 | 130 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=28306 flag_src=1
+v70 | 1 | 131 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=24331 flag_src=1
+v70 | 1 | 132 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26152 flag_src=1
+v70 | 1 | 133 | ELK_BIRD ref6=29,20,-1,25,-1,21 countdown=26535 flag_src=1
+
+=== S8Cb exit 0

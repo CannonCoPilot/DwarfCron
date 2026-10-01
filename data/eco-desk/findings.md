@@ -515,3 +515,14 @@ four runs (67-68 samples each); cavern units peak 61-72 in both arms alike. => w
 caverns and pinning irritation still raises no invasion in two seasons: the trigger needs something these flags do not
 give (wealth, population, or real excavation into the cavern). E23e closed negative; cavern invasions stay a
 fort-construction item (dig into a cavern, not a flag write). Data: data/experiments/E23e/20261001-044227, tallied by scripts/e23e-tally.py.
+
+## S8Cb — the CTRL season with the builder actually run (items 8, 15; 1 Oct night, 100,800 t, 2 reps)
+Builder ran (land COUGAR / OWL, KESTREL / KANGAROO... ; cavern BLIND_CAVE_OGRE / TOAD_GIANT_CAVE or POND_GRABBER ...).
+Surface 37 units / 11 waves and 37 / 13; predators 5% and 5% of units (2 kestrels each), 18% and 15% of waves; COUGAR 0
+both reps; ravens 25 and 23. Cavern 62 / 78 units, predators 87-92% (natives). Deaths 19 and 23, all cavern natives.
+Against S8C builder-off (45/7, 34/10; predators 4%, 0%; apex 0): on CTRL the builder barely moves the surface -- its
+supply is ravens whatever the roster says. Item 8 overall: predator share of surface units 5% (CTRL), 14-42% (BOATS),
+18-39% (OCEAN2) vs the 14-18% target; the overshoots are pack size (giant jackals, jackals), the undershoot is supply.
+Item 15: apex arrivals 0 in all 4 CTRL runs and 0-3 elsewhere at FREQUENCY 13-27; with SW4 (apex in 1 run of 6 at any
+multiplier) the apex FREQUENCY does not visibly steer apex presence -> drop the APX step from the ladder, steer apexes by
+placement and stock (design.md section 8). Data: data/experiments/S8C/20261001-062036.
