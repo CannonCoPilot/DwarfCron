@@ -12,4 +12,5 @@ for m in S8C S8B S8O T9c; do
     "$PY" scripts/cx-experiment.py run "experiments/${m}.json" >>"$log" 2>&1
     echo "=== ${m} exit $?" | tee -a "$log"
 done
+sh scripts/oneoff/chain-night3.sh
 echo "=== chain-night2 done $(date +%H:%M:%S)"
