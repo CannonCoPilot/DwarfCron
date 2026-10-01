@@ -119,9 +119,47 @@ def arena_panel(by_arm, order):
         print(f"     {arm:<13} " + "   ".join(parts))
 
 
+SW4_PREY_F = {"gz": 50, "pl": 40, "sh": 30, "lb": 40}   # the prey FREQUENCY the SW4 pre writes (eco-run.py, design row f)
+
+
+def sw4_panel(path):
+    """SW4 (ladder): predator share of the land units present, per sample, against f/sum(f) from the frequencies the
+    pre wrote (al_f, ml_f per species x species counts; prey guilds fixed). The apex line answers whether the AL
+    FREQUENCY steers apex presence at all (design.md section 8: LARGE_PREDATOR may be its own DF pool)."""
+    sets, samples = {}, defaultdict(list)
+    for line in open(path):
+        p = line.rstrip("\n").split("\t")
+        if len(p) < 5 or p[3] != "swladder":
+            continue
+        d = kv(p[4])
+        if d.get("phase") == "set":
+            sets[(p[1], p[2])] = d
+        elif "tag" in d and d["tag"] != "t0":
+            samples[(p[1], p[2])].append({k: int(v) for k, v in d.items() if k != "tag"})
+    print("\n== SW4 ladder: predator share of land units present (mean over samples) vs predicted f/sum(f)")
+    order = list(dict.fromkeys(k[0] for k in samples))
+    for arm in order:
+        parts = []
+        for rep in sorted({k[1] for k in samples if k[0] == arm}):
+            sm, st = samples[(arm, rep)], sets.get((arm, rep), {})
+            n = lambda g: int(st.get(f"{g}_n", 0))
+            fpred = int(st.get("al_f", 0)) * n("al") + int(st.get("ml_f", 0)) * n("ml")
+            fall = fpred + sum(f * n(g) for g, f in SW4_PREY_F.items())
+            tot = sum(x["total"] for x in sm)
+            pred = sum(x["al"] + x["ml"] for x in sm)
+            al = sum(x["al"] for x in sm) / len(sm) if sm else 0
+            parts.append(f"r{rep} obs {pred / tot if tot else 0:.1%} (pred {fpred / fall if fall else 0:.1%}) "
+                         f"units {tot / len(sm) if sm else 0:.0f} apex {al:.1f}")
+        print(f"   {arm:8s} " + " | ".join(parts))
+
+
 def main():
     run = Path(sys.argv[1])
     blocks = sys.argv[2:] or [b for b in ("SW1", "SW2", "SW3", "SW5", "SW6", "SW7") if (run / f"{b}.tsv").exists()]
+    if "SW4" in blocks or (not sys.argv[2:] and (run / "SW4.tsv").exists()):
+        if (run / "SW4.tsv").exists():
+            sw4_panel(run / "SW4.tsv")
+        blocks = [b for b in blocks if b != "SW4"]
     for b in blocks:
         f = run / f"{b}.tsv"
         if not f.exists():
