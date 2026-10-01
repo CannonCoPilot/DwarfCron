@@ -400,3 +400,10 @@ UNINFORMATIVE: the status line counted every tracked group (total_groups ~13-23,
 cannot show in G or W; attacks 0 in 5 of 6 cells, deaths are cavern natives. Limit receipts land=1/3/auto present in every
 cell. Fix: _SW_STATUS now prints land_groups/cavern_groups/water_groups and sweep-tally scores SW3/SW3B/SW7 on land_groups;
 SW3B (same arms) queued in chain-night5.
+
+## RELS2b — arrivals without the forced release (item 27; 1 Oct night, CTRL, tool off, FREQUENCY steered, 30,000 t, 2 reps)
+Cougar arrived wild in both cougar reps. Dwarves > cougar PREDATOR_OR_PREY (2), horse > cougar (1); cougar > dwarves
+DANGEROUS_ANIMAL (5, 6); wild cougar > wild owl / kestrel P_O_P one entry each in rep 2 (and owl > cougar 1). Cavern wild
+pairs as before (giant olm <> crundle 9/7). Kangaroo cells: no subject pairs (a kangaroo listed in rep 1 only).
+=> the directional rows hold without the release artefact: fort side > arrival P_O_P, arrival > fort BENIGN/DANGEROUS,
+surface wild-wild almost never, cavern wild-wild yes. Report: directional table in 'Relations for arrivals' (doc rev 260).
