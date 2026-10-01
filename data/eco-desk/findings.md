@@ -456,3 +456,12 @@ Deaths 37 and 25 (bonobos 13, jackals 6-10, gorlaks). Sponges again in harness a
 Item 16 from COHO (same fort, 6 ORCA placed, 15,000 t, 2 reps): unled pods lost 1 and 2 orcas, cause DROWN, killer none;
 led pods 0 of 12. ORCA is AQUATIC + IMMOBILE_LAND + BEACH_FREQUENCY:10, so a drowned orca was out of water: placed
 orcas strand, about 1 in 8 within 15,000 t when they roam unled, none when held by a leader (n small). Survivors all wet.
+
+## T9c — the halved cavern gate with room to show it (item 25; 1 Oct night, CTRL, cavern cap 6, 3 citizens on cavern 1, 100,800 t, 2 reps)
+scripts/t9c-tally.py (t9b's, relabelled): all 4 replicates valid; pressure arm p1 max 3.78 / 3.85 (first > 1 on day 19),
+irruptions armed 3 and 2, agitated up to 6 and 5; control p1 0 throughout, nothing armed. Citizens 7 -> 4 in every run
+(the 3 teleported die, as T9b). Gate: the scheduled gap to the next cavern wave was 3-9 days under pressure vs 8-20 in the
+control (the halving works on the schedule), but once p1 >= 0.5 the next wave sat OVERDUE for long stretches (gap -1 to
+-42 days) and cavern units were not higher: mean 18.4 / 20.2 under pressure vs 20.9 / 24.5 control (max 25-29 vs 33-46).
+=> the gate is not what limits cavern traffic under pressure; the draw itself (DF's cavern supply, or the cap counting
+the irruption groups) is. Item 25's T9c closed: halving the gate is harmless but buys no extra traffic.
