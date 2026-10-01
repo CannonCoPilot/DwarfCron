@@ -504,6 +504,11 @@ _SLOTV = ("lua:local c=df.global.world.enemy_status_cache; local n=#c.slot_used;
 BLOCKS["SLOTV"] = dict(fort="CTRL", spot="land", cells={"probe": dict(steps=[
     "lua:_G.__slotv_prev=nil; print('eco slotv reset=1')", _SLOTV.replace("{T}", "t0"), "step:100", _SLOTV.replace("{T}", "t100"),
     "step:2900", _SLOTV.replace("{T}", "t3000"), "step:6000", _SLOTV.replace("{T}", "t9000")], ticks=10, nowatch=True)})
+# VRM2 (30 Sep): VRM let placed vermin pile up across cells (vermin aren't cleared with the units: 40 roaches at the first
+# cell, 225 by the last) and ran its only control first, so later cells mix time with consumer. One block per arm here:
+# every block reloads CTRL fresh, so each arm starts from the same 40 roaches + 20 grasshoppers at the same session age.
+for _k, _c in BLOCKS["VRM"]["cells"].items():
+    BLOCKS[f"VRM2_{_k}"] = dict(fort="CTRL", spot="land", cells={_k: _c})
 # RELP (30 Sep): STL/STL2/CAL hunters attacked natives they were never related to (STL2 norel lion killed 8 badgers).
 # Does DF itself hold relations for its own arrivals? Reads enemy_status_cache.rel_map between live units with a slot:
 # natives only, then with one placed LION (no rel written) at +100 and +3,000 ticks.

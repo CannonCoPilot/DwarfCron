@@ -269,3 +269,11 @@ ECO SLOTV (data/experiments/ECO/SLOTV-20260930-201623; CTRL, 1 run, reads at 0/1
   read each time; pairs among slotted units: NONE 1,007 + WE_ARE_SAME_RACE 183 at +100 t, then SAME_CULTURE /
   PREDATOR_OR_PREY / BENIGN_ANIMAL appear; STRANGER never a default. => the tool's 0 (STRANGER) clears in
   PLACE.enemySlot and ecoClearDeparted were wrong; fixed to -1 on seasonal-wildlife v7.0 (3c26941).
+ECO VRM (data/experiments/ECO/VRM-20260930-201741; CTRL, 40 ROACH_LARGE (EDIBLE_GROUND_BUG) + 20 GRASSHOPPER placed loose r6, 4 consumers, 6,000 t, 2 reps;
+  scripts/vrm-tally.py). FLAWED: placed vermin are not removed with the units, so they piled up across cells (40 -> 225
+  roaches) and the only control ran first -> later cells mix session time with the consumer. Readable: control 'none'
+  lost 0/0 both reps; native gobblers took ROACHES ONLY: duck 5,5 roaches / 0,0 grasshoppers; hedgehog 8,6 / 0,0 (class
+  specificity as GOBBLE_VERMIN_CLASS says). Badger: 14/31 then 0/0; badger + written class 32,10 / 18,24; + written
+  creature 28,34 / 26,52 (grasshoppers fell as much -> not attributable). CAT 68,71 roaches / 45,41 grasshoppers (29
+  roaches in the first 500 t). Gobble writes landed (castes=2) and were restored. Hunger timers read 0/0 throughout.
+  -> rerun as VRM2: one block per arm (fresh load each), same start for every arm.
