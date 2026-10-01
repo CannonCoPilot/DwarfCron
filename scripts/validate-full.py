@@ -1138,12 +1138,16 @@ local function swimN(tok)
   local n=0; for _,c in ipairs(cr.caste) do if c.flags.CAN_SWIM_INNATE then n=n+1 end end
   return n
 end
-local before = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
+-- the fisher subject: the first listed fisher whose castes do not already swim (RACCOON does in vanilla: 2 of 2 before)
+local fishTok
+for tok, on in pairs(cfg.v7.fisher_list or {}) do local n = swimN(tok); if on and n and n == 0 then fishTok = tok break end end
+fishTok = fishTok or 'RACCOON'
+local before = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
 local msg = V7.apply(cfg, pool)
-local after = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
+local after = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
 local restored = V7.restore()
-local post = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
-print(json.encode({seasonKey=seasonE and seasonE.key, soloKey=soloE and soloE.key, before=before, after=after, post=post, msg=msg, restored=restored}))""", timeout=180)
+local post = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
+print(json.encode({fishTok=fishTok, seasonKey=seasonE and seasonE.key, soloKey=soloE and soloE.key, before=before, after=after, post=post, msg=msg, restored=restored}))""", timeout=180)
     if not isinstance(j, dict):
         for cid in ("mech.v70.seasons_own", "mech.v70.solo_raws", "mech.v70.fishers_flags", "mech.v70.restore_all"):
             rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
@@ -1162,8 +1166,9 @@ print(json.encode({seasonKey=seasonE and seasonE.key, soloKey=soloE and soloE.ke
         else:
             rec("mech.v70.solo_raws", "NOT-TESTABLE-HERE", "an armed, in-embark, group-size<=1 predator in this pool", json.dumps(j)[:400])
         okFish = af.get("fish", 0) > (b.get("fish") or 0) and po.get("fish") == b.get("fish")
-        rec("mech.v70.fishers_flags", "PASS" if okFish else "FAIL", "CAN_SWIM_INNATE set on RACCOON (v7.fisher_list) by V7.apply, restored by V7.restore()",
-            json.dumps({"before": b.get("fish"), "after": af.get("fish"), "post": po.get("fish")}))
+        rec("mech.v70.fishers_flags", "PASS" if okFish else ("NOT-TESTABLE-HERE" if (b.get("fish") or 0) > 0 else "FAIL"),
+            "CAN_SWIM_INNATE set on a listed fisher that lacks it (v7.fisher_list) by V7.apply, restored by V7.restore()",
+            json.dumps({"token": j.get("fishTok"), "before": b.get("fish"), "after": af.get("fish"), "post": po.get("fish")}))
         okAll = (j.get("restored", 0) > 0 and bool(j.get("msg")) and po.get("season") == b.get("season")
                  and po.get("solo") == b.get("solo") and po.get("fish") == b.get("fish"))
         rec("mech.v70.restore_all", "PASS" if okAll else "FAIL", "V7.restore() reverses every raw V7.apply wrote and reports a count > 0",
