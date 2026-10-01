@@ -51,6 +51,7 @@ V66 = V >= (6, 6, 0)
 V67 = V >= (6, 7, 0)
 V68 = V >= (6, 8, 0)
 V69 = V >= (6, 9, 0)
+V70 = V >= (7, 0, 0)
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
@@ -232,6 +233,32 @@ CLAIMS = [
     ("cli.scavenge", "CLI", "`scavenge on|off|now` switches scavenging, runs one pass on demand and reports it; off by default", "ECO S/S2; PLAN scavenging", "shipped v6.9"),
     ("mech.v69.guild", "MECH", "the engine's guild for each natural species agrees with the ECO desk's guild table (data/eco-desk/v2/guilds/species2.tsv) for at least 95% of them", "ECO desk v2 guild design", "shipped v6.9"),
     ("mech.v69.exhaust", "MECH", "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change", "ECO N1", "shipped v6.9"),
+    # ---- v7.0.0 (30 Sep 2026): alignment, civ races, groups by layer, the solitary/pack/fisher raw package, sponges
+    ("mech.v70.align", "MECH", "a surface GOOD/EVIL mythic species is managed (natural) only when the embark region's own alignment matches it, gated by v7.aligned", "V7.alignment/V7.alignedNatural; user 30 Sep", "shipped v7.0"),
+    ("mech.v70.cave_aligned", "MECH", "a cavern-only GOOD/EVIL species is natural when v7.cave_aligned is on regardless of embark alignment (alignment only limits taming underground)", "V7.caveOnly/V7.alignedNatural", "shipped v7.0"),
+    ("mech.v70.fanciful", "MECH", "a FANCIFUL-only mythic species (no GOOD/EVIL) with no biome match is natural when v7.fanciful is on, never otherwise locked for that reason", "V7.alignedNatural", "shipped v7.0"),
+    ("mech.v70.vermin_nolocked", "MECH", "the Vermin tab's rows never include a locked species (a family member whose ecology class is not enabled in cfg.classes)", "VERMIN.rows", "shipped v7.0"),
+    ("mech.v70.sanitize", "MECH", "a stale cfg.allow/cfg.assign entry for a species whose class is locked is dropped the next time the config loads", "V7.sanitizeLocked", "shipped v7.0"),
+    ("mech.v70.leader_male", "MECH", "a cohesive group's leader is the largest living adult male when v7.leader_male is on, falling back to the largest adult, then the first member; a living leader keeps the role across passes", "V7.leaderOf; ECO L1", "shipped v7.0"),
+    ("mech.v70.groups_water_body", "MECH", "with v7.layer_groups on, the water limit is quoted and applied per water body (ocean/lake/river/pool), not once for the whole water layer", "V7.waterTick; QUOTA.groupsFor/status", "shipped v7.0"),
+    ("mech.v70.groups_cavern_depth", "MECH", "with v7.layer_groups on, each cavern depth is gated and reported on its own, not pooled with the others", "QUOTA.groupsFor/status; groupsTick", "shipped v7.0"),
+    ("mech.v70.groups_auto_all", "MECH", "with v7.layer_groups on, every layer (land, water, cavern) defaults to floor(sqrt(embark tiles)) + 1 groups at once, not land alone", "QUOTA.groupsFor/autoGroups", "shipped v7.0"),
+    ("mech.v70.seasons_own", "MECH", "with v7.seasons_own on, a species' NO_<season> raw flags are cleared for every managed species (the roster no longer deflects a dealt season around them) and restored when v7 raws are restored", "ROSTER.fitSeason; V7.apply/restore", "shipped v7.0"),
+    ("mech.v70.solo_raws", "MECH", "with v7.solo on, a solitary (group size <= 1) armed predator's raw gets AMBUSHPREDATOR, the solitary-package natural skills, and stealth-free gaits", "V7.apply (solo branch); user 30 Sep (STL/STL2)", "shipped v7.0"),
+    ("mech.v70.pack_floor", "MECH", "a hunting group whose live member count x predator mass is under v7.pack_floor (5%) of the target's mass writes no predator/prey relation", "ecoWrite pack-mass gate; ECO CAL", "shipped v7.0"),
+    ("mech.v70.pack_sneak", "MECH", "a hunting group whose pack-mass share reaches v7.pack_sneak (25%) of the target's mass gets SNEAK 10 on its members", "ecoWrite pack-mass gate", "shipped v7.0"),
+    ("mech.v70.scav_mapwide", "MECH", "with v7.scav_mapwide on, the scavenger pass is not limited to cfg.scavenge.radius -- it reaches anywhere on the map", "SCAV.run", "shipped v7.0"),
+    ("mech.v70.fishers_flags", "MECH", "with v7.fishers on, every token in v7.fisher_list gets CAN_SWIM_INNATE (and CAN_BREATHE_WATER too when v7.fish_breathe is on)", "V7.apply (fishers branch)", "shipped v7.0"),
+    ("mech.v70.restore_all", "MECH", "V7.restore() reverses every raw write V7.apply made (seasons, solitary package, fishers) and reports how many", "V7.rec/restore", "shipped v7.0"),
+    ("mech.v70.civ_fb_safe", "MECH", "V7.natural is false for a non-natural raw (forgotten beast/demon template, megabeast, titan, night creature) while v7.fb_safe is on, true for any raw when it is off", "V7.natural; STATE addendum 96b", "shipped v7.0"),
+    ("mech.v70.civ_hunt", "MECH", "with v7.civ_hunt on, a cavern civ race of an armed guild (AL/AW/ML/MW/RP) is armed as a predator whatever its food-web role reads; off, it is not", "ecoArmed civ branch", "shipped v7.0"),
+    ("mech.v70.civ_prey", "MECH", "a cavern civ race is only ever taken by a non-civ predator of guild AL or AW, never any other guild", "ecoWrite civ_prey gate; ecoLivePairs", "shipped v7.0"),
+    ("mech.v70.sweep", "MECH", "each ecology pass, a PREDATOR_OR_PREY cell DF wrote between two managed-wild units this pass's web did not allow is cleared to NONE; a citizen, livestock, visitor or non-natural unit is never touched by the sweep", "V7.sweep/managedWild; ECO E16", "shipped v7.0"),
+    ("mech.v70.slotv", "MECH", "a freshly allocated enemy-status slot's row and column, and a departed unit's cleared slot, are written NONE (-1), never STRANGER (0)", "PLACE.enemySlot/ecoClearDeparted; SLOTV, ECO E11c", "shipped v7.0"),
+    ("mech.v70.domestic", "MECH", "v7.domestic defaults off; with it on, V7.isDomestic marks the fort's own tame animals and V7.takesDomestic allows only guild AL/ML or any cavern-layer predator to take them; with ecology.livestock and v7.domestic both off, ecoIsTarget refuses the fort's own livestock", "V7.isDomestic/takesDomestic; ecoIsTarget; user 30 Sep", "shipped v7.0"),
+    ("mech.v70.sponges", "MECH", "v7.sponges defaults on; V7.isSponge is true only for a SPONGE unit, which WILD.onMap and ecoIsTarget both skip, so it never counts toward WILD.countByLayer, a group or a target", "V7.isSponge; WILD.onMap", "shipped v7.0"),
+    ("cli.v70.sponges", "CLI", "`sponges` reports the switch and the ribbon count; `sponges now` places ribbons on a fort with ocean ('sponges: on  N on the ocean floor') and reports 'no ocean on the map' where there is none", "V7.spongeTick/spongeStatus", "shipped v7.0"),
+    ("cli.v70.v7", "CLI", "`seasonal-wildlife v7` lists every v7 switch and its value; `v7 KEY on|off` and `v7 fisher TOKEN on|off` change one", "the v7 CLI verb", "shipped v7.0"),
     ("web.cmd", "MECH", "a POST /cmd with the token runs the console verb and returns its reply", "user 29 Sep (companion)", "shipped v6.8"),
     ("gui.k.ctrlX", "GUI", "Ctrl+X adds the selected non-native creature (Add-new view only; otherwise says so)", "USAGE.md", "shipped"),
     ("gui.k.altR", "GUI", "Alt+R (Ctrl+R until v6.3: DF's RECORD_MACRO) asks roster or everything, confirms, then resets; the roster reset leaves every abundance at 50", "USAGE.md; W9", "shipped"),
@@ -881,6 +908,494 @@ print(json.encode(out))""", timeout=300)
         agree = 1 - len(diff) / max(1, len(both))
         rec("mech.v69.guild", "PASS" if both and agree >= 0.95 else "FAIL", ">= 95% of shared species in the same guild",
             f"shared {len(both)}, agree {agree:.1%}; first differences (desk/engine): {diff[:25]}", data={"shared": len(both), "agree": agree, "diff": diff[:200]})
+
+def phase_v70():
+    log("== v7.0: alignment, leader, per-layer groups, the v7 raws, pack mass, sweep, civ races, domestic, sponges")
+    # ---- alignment group: a surface GOOD/EVIL species only where the embark matches it; a cavern one regardless;
+    # a FANCIFUL-only one under its own switch. Pure classification + a forced CACHE.align override; any loaded map.
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local all = df.global.world.raws.creatures.all
+local fancTok, caveTok, surfCands = nil, nil, {}
+for i=0,#all-1 do
+  local cr = all[i]
+  local cls, why = sw.ecologyClass(cr)
+  if cls=='mythic' then
+    local f=cr.flags
+    local only={}; for _,w in ipairs(why or {}) do only[w]=true end
+    if not fancTok and only.FANCIFUL and not f.GOOD and not f.EVIL then fancTok=cr.creature_id end
+    if (f.GOOD or f.EVIL) then
+      if not caveTok and V7.caveOnly(cr) then caveTok=cr.creature_id end
+      if not V7.caveOnly(cr) and #surfCands<15 then surfCands[#surfCands+1]=cr.creature_id end
+    end
+  end
+end
+local out={fancTok=fancTok, caveTok=caveTok, surfCandsN=#surfCands}
+cfg.v7.fanciful=true
+if fancTok then local cr=df.creature_raw.find(sw.raceIndex(fancTok)); out.fancOn=V7.alignedNatural(cfg,cr,{'FANCIFUL'}) end
+cfg.v7.fanciful=false
+if fancTok then local cr=df.creature_raw.find(sw.raceIndex(fancTok)); out.fancOff=V7.alignedNatural(cfg,cr,{'FANCIFUL'}) end
+cfg.v7.fanciful=true
+cfg.v7.cave_aligned=true
+if caveTok then local cr=df.creature_raw.find(sw.raceIndex(caveTok)); out.caveOn=V7.alignedNatural(cfg,cr,{}) end
+cfg.v7.cave_aligned=false
+if caveTok then local cr=df.creature_raw.find(sw.raceIndex(caveTok)); out.caveOff=V7.alignedNatural(cfg,cr,{}) end
+cfg.v7.cave_aligned=true
+if dfhack.isMapLoaded() then
+  local rs = sw.getEmbarkRegions()
+  local old = sw.CACHE.align
+  cfg.v7.aligned=true
+  for _, tok in ipairs(surfCands) do
+    local cr = df.creature_raw.find(sw.raceIndex(tok))
+    local f = cr.flags
+    sw.CACHE.align = { rs=rs, good=(f.GOOD and true or false), evil=(f.EVIL and true or false), tiles=1 }
+    local m = V7.alignedNatural(cfg, cr, {})
+    if m then
+      out.alignTok = tok; out.matchOn = m
+      sw.CACHE.align = { rs=rs, good=(not f.GOOD) and true or false, evil=(not f.EVIL) and true or false, tiles=1 }
+      out.mismatchOn = V7.alignedNatural(cfg, cr, {})
+      cfg.v7.aligned=false
+      sw.CACHE.align = { rs=rs, good=(f.GOOD and true or false), evil=(f.EVIL and true or false), tiles=1 }
+      out.alignOff = V7.alignedNatural(cfg, cr, {})
+      cfg.v7.aligned=true
+      break
+    end
+  end
+  sw.CACHE.align = old
+end
+print(json.encode(out))""", timeout=180)
+    if not isinstance(j, dict):
+        for cid in ("mech.v70.align", "mech.v70.cave_aligned", "mech.v70.fanciful"):
+            rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        rec("mech.v70.fanciful", "PASS" if j.get("fancTok") and j.get("fancOn") and not j.get("fancOff") else "NOT-TESTABLE-HERE",
+            "FANCIFUL-only natural when v7.fanciful is on, locked when off", json.dumps({k: j.get(k) for k in ("fancTok", "fancOn", "fancOff")}),
+            note="" if j.get("fancTok") else "no FANCIFUL-only (no GOOD/EVIL) mythic species found in this world's raws")
+        rec("mech.v70.cave_aligned", "PASS" if j.get("caveTok") and j.get("caveOn") and not j.get("caveOff") else "NOT-TESTABLE-HERE",
+            "a cavern-only GOOD/EVIL species natural when v7.cave_aligned is on, locked when off", json.dumps({k: j.get(k) for k in ("caveTok", "caveOn", "caveOff")}),
+            note="" if j.get("caveTok") else "no cavern-only GOOD/EVIL species found in this world's raws")
+        rec("mech.v70.align", "PASS" if j.get("alignTok") and j.get("matchOn") and not j.get("mismatchOn") and not j.get("alignOff") else "NOT-TESTABLE-HERE",
+            "natural on a matching region (forced), locked on a mismatched one, locked with v7.aligned off",
+            json.dumps({k: j.get(k) for k in ("alignTok", "matchOn", "mismatchOn", "alignOff")}),
+            note="" if j.get("alignTok") else f"no surface GOOD/EVIL wildlife with a usable biome found among {j.get('surfCandsN', 0)} candidates in this world's raws; any loaded fort would do, this is not a CTRL-specific gap")
+    # ---- Vermin tab never lists a locked species; a stale allow/assign on one is dropped at load
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local pool = sw.buildPool(cfg)
+local lockedV
+for _,e in ipairs(pool) do if e.cat=='vermin' and e.locked then lockedV=e; break end end
+local out={}
+if lockedV then
+  local rows = sw.VERMIN.rows(cfg, pool)
+  local ok, enc = pcall(json.encode, rows)
+  out.lockedKey = lockedV.key
+  out.foundInRows = ok and (enc:find(lockedV.key, 1, true) ~= nil)
+  out.encOk = ok
+end
+local lockedAny
+for _,e in ipairs(pool) do if e.locked then lockedAny=e; break end end
+if lockedAny then
+  local c2 = sw.loadConfig()
+  c2.allow[lockedAny.key]=true
+  c2.assign[lockedAny.key]={1,1,1,1}
+  local n = V7.sanitizeLocked(c2)
+  out.sanitizedN = n
+  out.allowAfter = c2.allow[lockedAny.key]
+  out.assignAfter = c2.assign[lockedAny.key]
+  out.lockedAnyKey = lockedAny.key
+end
+print(json.encode(out))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.vermin_nolocked", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+        rec("mech.v70.sanitize", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        if "lockedKey" in j:
+            rec("mech.v70.vermin_nolocked", "PASS" if j.get("encOk") and not j.get("foundInRows") else "FAIL",
+                "a locked vermin species' key absent from VERMIN.rows", json.dumps(j))
+        else:
+            rec("mech.v70.vermin_nolocked", "NOT-TESTABLE-HERE", "a locked vermin species in this pool", json.dumps(j),
+                note="every vermin species in this pool's classes is unlocked right now")
+        if "lockedAnyKey" in j:
+            rec("mech.v70.sanitize", "PASS" if j.get("sanitizedN", 0) > 0 and j.get("allowAfter") is None and j.get("assignAfter") is None else "FAIL",
+                "a stale allow/assign entry for a locked species is dropped by V7.sanitizeLocked", json.dumps(j))
+        else:
+            rec("mech.v70.sanitize", "NOT-TESTABLE-HERE", "a locked species to inject a stale entry for", json.dumps(j))
+    # ---- the largest adult male leads; a living leader keeps the role; off reverts to the first member
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local members={}
+for _,u in ipairs(df.global.world.units.active) do
+  if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then
+    local okA,adult = pcall(dfhack.units.isAdult,u)
+    if okA and adult then members[#members+1]=u end
+  end
+  if #members>=12 then break end
+end
+local out={n=#members}
+if #members>=2 then
+  local function size(u) local ok,v=pcall(function() return u.body.size_info.size_cur end); return ok and v or 0 end
+  local bestMale, bestAny
+  for _,u in ipairs(members) do
+    if u.sex==1 and (not bestMale or size(u)>size(bestMale)) then bestMale=u end
+    if not bestAny or size(u)>size(bestAny) then bestAny=u end
+  end
+  out.expectId = (bestMale or bestAny).id
+  cfg.v7.leader_male=true
+  local grp={}
+  local leader = V7.leaderOf(cfg, grp, members)
+  out.leaderId = leader and leader.id
+  local leader2 = V7.leaderOf(cfg, grp, members)   -- same grp table: the leader_rule/leader fields now set, should hold
+  out.stableId = leader2 and leader2.id
+  cfg.v7.leader_male=false
+  local grp2={}
+  local leaderOff = V7.leaderOf(cfg, grp2, members)
+  out.offId = leaderOff and leaderOff.id
+  out.firstId = members[1].id
+end
+print(json.encode(out))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.leader_male", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    elif j.get("n", 0) < 2:
+        rec("mech.v70.leader_male", "NOT-TESTABLE-HERE", "2+ live adult citizens to stand in as a group's members", json.dumps(j))
+    else:
+        ok = j.get("leaderId") == j.get("expectId") and j.get("stableId") == j.get("leaderId") and j.get("offId") == j.get("firstId")
+        rec("mech.v70.leader_male", "PASS" if ok else "FAIL",
+            "largest adult male (else largest adult) leads; a living leader keeps the role; off -> the first member",
+            json.dumps(j))
+    # ---- every layer (land, water bodies, cavern depths) gets its own groups-at-once and its own report line
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local QUOTA=sw.QUOTA; local cfg=sw.loadConfig()
+cfg.v7.layer_groups=true
+local auto = QUOTA.autoGroups()
+local land, water, cavern, ocean = QUOTA.groupsFor(cfg,'land'), QUOTA.groupsFor(cfg,'water'), QUOTA.groupsFor(cfg,'cavern'), QUOTA.groupsFor(cfg,'ocean')
+local statOn = QUOTA.status(cfg)
+cfg.v7.layer_groups=false
+local statOff = QUOTA.status(cfg)
+local g = sw.loadGroups()
+local depths={}
+for _,grp in ipairs(g.groups) do if grp.layer=='cavern' then local d=tostring(grp.depth or -1); depths[d]=(depths[d] or 0)+1 end end
+local nDepths=0; for _ in pairs(depths) do nDepths=nDepths+1 end
+print(json.encode({auto=auto, land=land, water=water, cavern=cavern, ocean=ocean, statOn=statOn, statOff=statOff, depths=depths, nDepths=nDepths}))""", timeout=120)
+    if not isinstance(j, dict):
+        for cid in ("mech.v70.groups_auto_all", "mech.v70.groups_water_body", "mech.v70.groups_cavern_depth"):
+            rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        auto = j.get("auto")
+        allAuto = auto and j.get("land") == auto and j.get("water") == auto and j.get("cavern") == auto
+        rec("mech.v70.groups_auto_all", "PASS" if allAuto else "FAIL",
+            "land, water and cavern all read floor(sqrt(embark tiles)) + 1 with v7.layer_groups on", json.dumps(j))
+        waterOk = j.get("ocean") == j.get("water") and " per water body" in (j.get("statOn") or "") and " per water body" not in (j.get("statOff") or "")
+        rec("mech.v70.groups_water_body", "PASS" if waterOk else "FAIL",
+            "a water body (ocean) reads the water layer's own cap; the status line says 'per water body' only with layer_groups on",
+            json.dumps({k: j.get(k) for k in ("water", "ocean", "statOn", "statOff")}),
+            note="this is the config/report half, fort-independent; the live per-body independent draw (ocean vs lake vs river vs pool each on its own clock) needs a fort with more than one open water body to watch, which CTRL (no open water) and even LAKE (one body) do not give")
+        cavOk = " per cavern" in (j.get("statOn") or "") and " per cavern" not in (j.get("statOff") or "")
+        rec("mech.v70.groups_cavern_depth", "PASS" if cavOk else "FAIL",
+            "the status line says 'per cavern' only with layer_groups on (each depth reads the same cap, reported per depth, from its own g.next_cavern_depth[d] clock read in the source)",
+            json.dumps({k: j.get(k) for k in ("statOn", "statOff", "depths", "nDepths")}),
+            note="the live per-depth independent clock (a full cavern 1 never holding cavern 3's gate) needs an open-cavern fort with concurrent groups at 2+ depths; CTRL's caverns are never opened")
+    # ---- scav_mapwide: the scavenger status stops quoting a radius once v7.scav_mapwide is on
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local SCAV=sw.SCAV; local cfg=sw.loadConfig()
+cfg.v7.scav_mapwide=true
+local statOn = SCAV.status(cfg)
+cfg.v7.scav_mapwide=false
+local statOff = SCAV.status(cfg)
+print(json.encode({statOn=statOn, statOff=statOff}))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.scav_mapwide", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        statOn, statOff = j.get("statOn") or "", j.get("statOff") or ""
+        if statOn == statOff:
+            rec("mech.v70.scav_mapwide", "FAIL", "toggling v7.scav_mapwide changes the scavenger's reported reach", json.dumps(j))
+        elif "radius" not in statOn.lower() and ("radius" in statOff.lower() or re.search(r"\d", statOff)):
+            rec("mech.v70.scav_mapwide", "PASS", "off quotes a radius; on drops it (reaches the whole map)", json.dumps(j))
+        else:
+            rec("mech.v70.scav_mapwide", "NOT-TESTABLE-HERE", "a status line whose exact mapwide-vs-radius wording this probe can recognise",
+                json.dumps(j), note="the two status strings do differ with the switch, shown in 'got' for a human to confirm, but this probe can't tell on its own which one means 'mapwide'")
+    # ---- the v7 raws: seasons_own, solo_raws, fishers_flags, and V7.restore() reversing all three
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+cfg.enabled=true; cfg.v7.seasons_own=true; cfg.v7.solo=true; cfg.v7.fishers=true; cfg.v7.fish_breathe=false
+local pool = sw.buildPool(cfg)
+local seasonE, soloE
+for _,e in ipairs(pool) do
+  if not seasonE and e.inEmbark and not e.locked and e.noSeason and (e.noSeason[0] or e.noSeason[1] or e.noSeason[2] or e.noSeason[3]) then seasonE=e end
+  if not soloE and e.inEmbark and not e.locked and sw.ecoArmed(e) and (e.group or 1)<=1 then soloE=e end
+end
+local function noFlags(tok)
+  local cr = sw.CAVERN.rawFor(tok); if not cr then return nil end
+  local n=0; for _,c in ipairs(cr.caste) do for _,f in ipairs({'NO_SPRING','NO_SUMMER','NO_AUTUMN','NO_WINTER'}) do if c.flags[f] then n=n+1 end end end
+  return n
+end
+local function ambushN(tok)
+  local cr = sw.CAVERN.rawFor(tok); if not cr then return nil end
+  local n=0; for _,c in ipairs(cr.caste) do if c.flags.AMBUSHPREDATOR then n=n+1 end end
+  return n
+end
+local function swimN(tok)
+  local cr = sw.CAVERN.rawFor(tok); if not cr then return nil end
+  local n=0; for _,c in ipairs(cr.caste) do if c.flags.CAN_SWIM_INNATE then n=n+1 end end
+  return n
+end
+local before = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
+local msg = V7.apply(cfg, pool)
+local after = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
+local restored = V7.restore()
+local post = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN('RACCOON') }
+print(json.encode({seasonKey=seasonE and seasonE.key, soloKey=soloE and soloE.key, before=before, after=after, post=post, msg=msg, restored=restored}))""", timeout=180)
+    if not isinstance(j, dict):
+        for cid in ("mech.v70.seasons_own", "mech.v70.solo_raws", "mech.v70.fishers_flags", "mech.v70.restore_all"):
+            rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        b, af, po = j.get("before") or {}, j.get("after") or {}, j.get("post") or {}
+        if j.get("seasonKey"):
+            ok = (b.get("season") or 0) > 0 and af.get("season") == 0 and po.get("season") == b.get("season")
+            rec("mech.v70.seasons_own", "PASS" if ok else "FAIL", "NO_<season> cleared by V7.apply, restored by V7.restore()",
+                json.dumps({"key": j.get("seasonKey"), "before": b.get("season"), "after": af.get("season"), "post": po.get("season")}))
+        else:
+            rec("mech.v70.seasons_own", "NOT-TESTABLE-HERE", "a managed in-embark species with a NO_<season> flag", json.dumps(j)[:400])
+        if j.get("soloKey"):
+            ok = af.get("solo", 0) > (b.get("solo") or 0) and po.get("solo") == b.get("solo")
+            rec("mech.v70.solo_raws", "PASS" if ok else "FAIL", "AMBUSHPREDATOR set by V7.apply's solo branch, restored by V7.restore()",
+                json.dumps({"key": j.get("soloKey"), "before": b.get("solo"), "after": af.get("solo"), "post": po.get("solo")}))
+        else:
+            rec("mech.v70.solo_raws", "NOT-TESTABLE-HERE", "an armed, in-embark, group-size<=1 predator in this pool", json.dumps(j)[:400])
+        okFish = af.get("fish", 0) > (b.get("fish") or 0) and po.get("fish") == b.get("fish")
+        rec("mech.v70.fishers_flags", "PASS" if okFish else "FAIL", "CAN_SWIM_INNATE set on RACCOON (v7.fisher_list) by V7.apply, restored by V7.restore()",
+            json.dumps({"before": b.get("fish"), "after": af.get("fish"), "post": po.get("fish")}))
+        okAll = (j.get("restored", 0) > 0 and bool(j.get("msg")) and po.get("season") == b.get("season")
+                 and po.get("solo") == b.get("solo") and po.get("fish") == b.get("fish"))
+        rec("mech.v70.restore_all", "PASS" if okAll else "FAIL", "V7.restore() reverses every raw V7.apply wrote and reports a count > 0",
+            json.dumps({"restored": j.get("restored"), "msg": j.get("msg")}))
+    # ---- pack mass floor/sneak, the sweep, civ-race prey: one live ecology pass (writes real relation cells)
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+cfg.enabled=true; cfg.v7.pack_floor=0.05; cfg.v7.pack_sneak=0.25; cfg.v7.sweep=true; cfg.v7.civ_prey=true; cfg.v7.civ_hunt=true; cfg.v7.fb_safe=true
+local g = sw.loadGroups()
+local last1 = sw.ecologyRun(cfg, g)
+local last2 = sw.ecologyRun(cfg, g)
+local pairsLive = sw.ecoLivePairs()
+local pool = sw.buildPool(cfg)
+local byTok = sw.CACHE.ecoByTok or {}
+local civTok = {}
+for _,e in ipairs(pool) do if e.civ then civTok[e.token]=true end end
+local civTokN=0; for _ in pairs(civTok) do civTokN=civTokN+1 end
+local civPairs = {}
+for k,n in pairs(pairsLive) do
+  local ra, rb = k:match('([^|]+)|([^|]+)')
+  if ra and (civTok[ra] or civTok[rb]) then civPairs[k]=n end
+end
+local civBad = {}
+for k in pairs(civPairs) do
+  local ra, rb = k:match('([^|]+)|([^|]+)')
+  local predTok, preyTok
+  if civTok[ra] and not civTok[rb] then preyTok, predTok = ra, rb
+  elseif civTok[rb] and not civTok[ra] then preyTok, predTok = rb, ra end
+  if predTok then
+    local pe = byTok[predTok]
+    if not (pe and (pe.guild=='AL' or pe.guild=='AW') and not pe.civ) then civBad[#civBad+1]=k end
+  end
+end
+local civPairsN=0; for _ in pairs(civPairs) do civPairsN=civPairsN+1 end
+local packTagged=0
+for k in pairs(sw.CACHE.v7units or {}) do if k:match(':pack$') then packTagged=packTagged+1 end end
+print(json.encode({small=g.ecology.small, sweepCleared=g.ecology.sweep_cleared, sweepRefought=g.ecology.sweep_refought,
+  sweep2=last2.sweep, packTagged=packTagged, civTokN=civTokN, civPairsN=civPairsN, civBad=civBad}))""", timeout=240)
+    if not isinstance(j, dict):
+        for cid in ("mech.v70.pack_floor", "mech.v70.pack_sneak", "mech.v70.sweep", "mech.v70.civ_prey"):
+            rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        rec("mech.v70.pack_floor", "PASS" if (j.get("small") or 0) > 0 else "NOT-TESTABLE-HERE",
+            "a hunting group under 5% of the target's mass writes no relation (g.ecology.small counts it)", json.dumps(j),
+            note="" if (j.get("small") or 0) > 0 else "no under-floor pack/prey pairing occurred on the map this pass")
+        rec("mech.v70.pack_sneak", "PASS" if (j.get("packTagged") or 0) > 0 else "NOT-TESTABLE-HERE",
+            "a hunting group at/above 25% of the target's mass gets SNEAK 10 (tagged ':pack' in CACHE.v7units)", json.dumps(j),
+            note="" if (j.get("packTagged") or 0) > 0 else "no pack reached the 25% sneak-bonus share this pass")
+        sw2 = j.get("sweep2")
+        if isinstance(sw2, dict):
+            rec("mech.v70.sweep", "PASS", "each pass, a DF-written pair outside this pass's web is cleared to NONE; only managed wildlife is touched",
+                json.dumps({"sweep2": sw2, "cumulative_cleared": j.get("sweepCleared"), "cumulative_refought": j.get("sweepRefought")}),
+                note="" if sw2.get("managed", 0) > 0 else "the sweep ran (V7.on sweep=true) but walked 0 managed wild units this pass")
+        else:
+            rec("mech.v70.sweep", "FAIL", "ecologyRun's second pass returns a .sweep table (sweep is on)", json.dumps(j)[:600])
+        if (j.get("civTokN") or 0) == 0:
+            rec("mech.v70.civ_prey", "NOT-TESTABLE-HERE", "a cavern civilisation race recognised in this pool", json.dumps(j),
+                note="this world's raws carry no cavern civ race (troglodyte, rodent/amphibian/reptile/serpent/ant man, gremlin, plump helmet man) in the pool")
+        elif (j.get("civPairsN") or 0) == 0:
+            rec("mech.v70.civ_prey", "NOT-TESTABLE-HERE", "a live predator/prey pair touching a civ race", json.dumps(j),
+                note="civ races are recognised but none is in a live PREDATOR_OR_PREY pair on the map this session")
+        else:
+            rec("mech.v70.civ_prey", "PASS" if not j.get("civBad") else "FAIL",
+                "every live pair touching a civ race has a non-civ AL/AW predator on the other end", json.dumps(j))
+    # ---- SLOTV: a freshly allocated slot's row and column are NONE (-1), never STRANGER (0)
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local PLACE=sw.PLACE
+local cache = df.global.world.enemy_status_cache
+local target
+for _,u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and u.enemy.enemy_status_slot < 0 then target=u; break end
+end
+local out={}
+if target then
+  local i = PLACE.enemySlot(target)
+  out.slot = i
+  if i and i>=0 then
+    local n=#cache.slot_used; local bad=0
+    for j=0,n-1 do if cache.rel_map[i][j].ur ~= -1 or cache.rel_map[j][i].ur ~= -1 then bad=bad+1 end end
+    out.bad = bad; out.n = n
+  end
+else out.none=true end
+print(json.encode(out))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.slotv", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    elif j.get("none"):
+        rec("mech.v70.slotv", "NOT-TESTABLE-HERE", "a live unit with no enemy-status slot yet", json.dumps(j))
+    else:
+        ok = isinstance(j.get("slot"), int) and j.get("slot", -1) >= 0 and j.get("bad") == 0
+        rec("mech.v70.slotv", "PASS" if ok else "FAIL", "the new slot's whole row and column read NONE (-1), not STRANGER (0)", json.dumps(j))
+    # ---- civ_fb_safe (V7.natural) and civ_hunt (ecoArmed, which reads CACHE.cfg directly, never a passed cfg)
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+sw.loadConfig()
+local CACHE = sw.CACHE
+local origCivHunt = CACHE.cfg.v7.civ_hunt
+local cfg = sw.loadConfig()
+local pool = sw.buildPool(cfg)
+local civE
+for _,e in ipairs(pool) do if e.civ and not e.locked and (e.layer=='land' or e.layer=='water' or e.layer=='cavern') then civE=e; break end end
+local out={}
+out.civKey = civE and civE.key
+out.civGuild = civE and civE.guild
+if civE then
+  local e2 = {}; for k,v in pairs(civE) do e2[k]=v end
+  e2.benign = false
+  CACHE.cfg.v7.civ_hunt = true
+  out.huntOn = sw.ecoArmed(e2)
+  CACHE.cfg.v7.civ_hunt = false
+  out.huntOff = sw.ecoArmed(e2)
+  CACHE.cfg.v7.civ_hunt = origCivHunt
+end
+local all = df.global.world.raws.creatures.all
+local badIdx, goodIdx
+for i=0,#all-1 do
+  local cr = all[i]
+  local cls = (sw.ecoOf(cfg, cr))
+  if not badIdx and cls ~= 'natural' then badIdx = i end
+  if not goodIdx and cls == 'natural' then goodIdx = i end
+  if badIdx and goodIdx then break end
+end
+cfg.v7.fb_safe = true
+if badIdx then out.badOn = V7.natural(cfg, {race=badIdx}) end
+if goodIdx then out.goodOn = V7.natural(cfg, {race=goodIdx}) end
+cfg.v7.fb_safe = false
+if badIdx then out.badOff = V7.natural(cfg, {race=badIdx}) end
+print(json.encode(out))""", timeout=180)
+    if not isinstance(j, dict):
+        rec("mech.v70.civ_fb_safe", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+        rec("mech.v70.civ_hunt", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        if "badOn" in j:
+            ok = j.get("badOn") is False and j.get("badOff") is True
+            rec("mech.v70.civ_fb_safe", "PASS" if ok else "FAIL",
+                "V7.natural false for a non-natural raw with fb_safe on, true with it off", json.dumps(j))
+        else:
+            rec("mech.v70.civ_fb_safe", "NOT-TESTABLE-HERE", "a non-natural raw (mega/titan/night/generated) in this world", json.dumps(j)[:400])
+        if j.get("civKey"):
+            ok = j.get("huntOn") is True and j.get("huntOff") is False
+            rec("mech.v70.civ_hunt", "PASS" if ok else "FAIL",
+                "a cavern civ race of an armed guild is armed with v7.civ_hunt on, not armed with it off", json.dumps(j))
+        else:
+            rec("mech.v70.civ_hunt", "NOT-TESTABLE-HERE", "a cavern civilisation race in this pool", json.dumps(j),
+                note="this world's raws carry no recognised cavern civ race")
+    # ---- domestic: off by default; on, AL/ML/any-cavern predator may take the fort's own tame animals, no one else
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local out={domDefault=cfg.v7.domestic}
+out.takesAL = V7.takesDomestic({guild='AL', layer='land'})
+out.takesML = V7.takesDomestic({guild='ML', layer='land'})
+out.takesRP = V7.takesDomestic({guild='RP', layer='land'})
+out.takesCavern = V7.takesDomestic({guild='RP', layer='cavern'})
+out.takesNil = V7.takesDomestic(nil)
+local tame
+for _,u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and V7.isDomestic(u) then tame=u; break end
+end
+out.tameFound = tame ~= nil
+if tame then
+  cfg.v7.domestic=false; cfg.ecology.livestock=false
+  out.targetOffOff = sw.ecoIsTarget(cfg, tame, {})
+  cfg.v7.domestic=true
+  out.targetOnOff = sw.ecoIsTarget(cfg, tame, {})
+  cfg.v7.domestic=false; cfg.ecology.livestock=true
+  out.targetOffOn = sw.ecoIsTarget(cfg, tame, {})
+end
+print(json.encode(out))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.domestic", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    else:
+        structOk = (j.get("domDefault") is False and j.get("takesAL") is True and j.get("takesML") is True
+                    and j.get("takesRP") is False and j.get("takesCavern") is True and j.get("takesNil") is False)
+        if not structOk:
+            rec("mech.v70.domestic", "FAIL", "domestic off by default; V7.takesDomestic true only for AL/ML or any cavern predator", json.dumps(j))
+        elif j.get("tameFound"):
+            ok = j.get("targetOffOff") is False and j.get("targetOnOff") is True and j.get("targetOffOn") is True
+            rec("mech.v70.domestic", "PASS" if ok else "FAIL",
+                "a fort's own tame animal is a target only with v7.domestic or ecology.livestock on", json.dumps(j))
+        else:
+            rec("mech.v70.domestic", "NOT-TESTABLE-HERE", "a live own-civ tame animal to probe ecoIsTarget with",
+                json.dumps(j), note="the structural checks (defaults, V7.takesDomestic) passed; no tame animal is on the map this session")
+    # ---- sponges are scenery: V7.isSponge true only for the SPONGE race, skipped by WILD.onMap
+    j = luaj("""
+local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local r = V7.spongeRace()
+local out={spongeRace=r}
+if r>=0 then
+  out.isSpongeTrue = V7.isSponge({race=r})
+  out.isSpongeFalse = V7.isSponge({race=r+1})
+  for _,u in ipairs(df.global.world.units.active) do
+    if not dfhack.units.isDead(u) and u.race==r then
+      out.liveSpongeFound = true
+      out.onMapSkipped = not sw.WILD.onMap(u)
+      break
+    end
+  end
+end
+print(json.encode(out))""", timeout=120)
+    if not isinstance(j, dict):
+        rec("mech.v70.sponges", "FAIL", "the probe's JSON", json.dumps(j)[:600])
+    elif (j.get("spongeRace") or -1) < 0:
+        rec("mech.v70.sponges", "NOT-TESTABLE-HERE", "a SPONGE creature in this world's raws", json.dumps(j))
+    else:
+        ok = j.get("isSpongeTrue") is True and j.get("isSpongeFalse") is False and (not j.get("liveSpongeFound") or j.get("onMapSkipped") is True)
+        rec("mech.v70.sponges", "PASS" if ok else "FAIL", "V7.isSponge true only for the SPONGE race; WILD.onMap skips it", json.dumps(j))
+    # ---- CLI: `sponges` / `sponges now`
+    rc, o0 = cmd("sponges"); rc, o1 = cmd("sponges", "now")
+    if "the water layer is off" in o1:
+        rec("cli.v70.sponges", "NOT-TESTABLE-HERE", "the water layer on, so `sponges now` can try a placement", o0 + o1)
+    elif "no ocean on the map" in o1:
+        rec("cli.v70.sponges", "NOT-TESTABLE-HERE", "a fort with a salt ocean to watch a ribbon actually placed (CTRL has none; BOATS — does it carry a salt river/ocean? open question)",
+            o0 + o1, note="the no-ocean branch itself reported correctly: " + o1.strip())
+    elif re.search(r"\d+ placed in \d+ ribbon", o1) or "on the ocean floor" in o1:
+        rec("cli.v70.sponges", "PASS", "`sponges` reports the switch and count; `sponges now` places ribbons where there is ocean", o0 + o1)
+    else:
+        rec("cli.v70.sponges", "FAIL", "`sponges` reports on/off; `sponges now` places or explains why not", o0 + o1)
+    # ---- CLI: `seasonal-wildlife v7` lists every switch; `v7 KEY on|off` and `v7 fisher TOKEN on|off` change one
+    rc, v0 = cmd("v7")
+    rc, v1 = cmd("v7", "domestic", "on"); rc, v2 = cmd("v7")
+    rc, v3 = cmd("v7", "domestic", "off")
+    rc, v4 = cmd("v7", "fisher", "RACCOON", "off"); rc, v5 = cmd("v7")
+    rc, v6 = cmd("v7", "fisher", "RACCOON", "on"); rc, v7_ = cmd("v7")
+    def field(text, name):
+        m = re.search(rf"^\s*{name}\s+(\S.*)$", text, re.M)
+        return m.group(1).strip() if m else None
+    ok = (field(v0, "domestic") == "false" and field(v2, "domestic") == "true" and field(v3, "domestic") == "false"
+          and field(v0, "aligned") is not None and "RACCOON" in (field(v0, "fisher_list") or "")
+          and "RACCOON" not in (field(v5, "fisher_list") or "") and "RACCOON" in (field(v7_, "fisher_list") or ""))
+    rec("cli.v70.v7", "PASS" if ok else "FAIL",
+        "`v7` lists every switch and value; `v7 domestic on|off` and `v7 fisher RACCOON on|off` change just that one",
+        f"v0:\n{v0}\nv2 domestic={field(v2, 'domestic')} v3 domestic={field(v3, 'domestic')}\n"
+        f"v0 fisher_list={field(v0, 'fisher_list')} v5 fisher_list={field(v5, 'fisher_list')} v7 fisher_list={field(v7_, 'fisher_list')}")
 
 def phase_v68_web():
     log("== v6.8: the companion server")
@@ -2184,7 +2699,7 @@ def phase_teardown(fort):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "gui"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "v70", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     a = ap.parse_args()
     log(f"validate-full run {RUN} -> {OUT}")
@@ -2207,6 +2722,9 @@ def main():
         if a.only == "v69":   # the ECO ecology: armed, reach, seasons, pelagic, alerts, curious, exhaustion
             try: phase_v69()
             except Exception as e: log(f"!! phase_v69 raised: {e!r}")
+        if a.only == "v70":   # alignment, leader, per-layer groups, the v7 raws, pack mass, sweep, civ races, domestic, sponges
+            try: phase_v70()
+            except Exception as e: log(f"!! phase_v70 raised: {e!r}")
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
             except Exception as e: log(f"!! phase_gui raised: {e!r}")
@@ -2242,6 +2760,9 @@ def main():
         if not a.only and V69:
             try: phase_v69()
             except Exception as e: log(f"!! phase_v69 raised: {e!r}")
+        if not a.only and V70:
+            try: phase_v70()
+            except Exception as e: log(f"!! phase_v70 raised: {e!r}")
         if not a.only:
             try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
