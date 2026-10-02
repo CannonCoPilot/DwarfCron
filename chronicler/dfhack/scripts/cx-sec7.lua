@@ -14,6 +14,7 @@
 --        SPOT: land | shore | water (cx-eco's spot) | lake | river | ocean | pool, each [:shore|:water]
 --              | cav1 | cav2 | cav3 (an open floor in that cavern band) | fort (a citizen's tile)
 --              | far<X>x<Y> (dry open land 80-160 tiles from X,Y: a second spot whose subjects never meet the first's)
+--              | BODY:bank / BODY:bankwater (the tool's V7.H.bankPair by BODY's water spot: the dry bank, the water beside it)
 --   cx-sec7 mark TAG                      remember the id of every unit on the map now (pre/post arrival split)
 --   cx-sec7 skills TOKEN SKILL TAG [MARK] every on-map TOKEN unit: rating, nominal, floor (natural_skill_lvl), rust
 --                                         counters, pre (in MARK) or new; then the tool's own readback rows
@@ -204,6 +205,17 @@ local function resolve(spot)
             end
             res = best
         end
+    elseif mode == 'bank' or mode == 'bankwater' then
+        -- the tool's own shore pair (V7.H.bankPair: a dry tile with water beside it on its level, or a ramp bank) by
+        -- the body's water spot: 'bank' is the dry tile, 'bankwater' the water tile next to it (2 Oct tally: FSH3/FSH4
+        -- placed the bear at the body's shore spot and the pike at its water spot, picked apart; closest approach
+        -- averaged 15-17 tiles and no bear ever stood beside a pike)
+        local wx, wy, wz = resolve(base .. ':water')
+        local sw = tool()
+        if wx and sw then
+            local okp, G, W = pcall(sw.V7.H.bankPair, { x = wx, y = wy, z = wz }, 12)
+            if okp and G and W then res = (mode == 'bank') and { G.x, G.y, G.z } or { W.x, W.y, W.z } end
+        end
     else   -- a water body by the tool's own survey (ENGINE.waterTiles: ocean / lake / river / pool)
         local sw = tool()
         local wt = sw and sw.ENGINE and sw.ENGINE.waterTiles()
@@ -332,8 +344,16 @@ if cmd == 'facts' then
         end
         local civtok = '-'
         pcall(function() local c = sw.IRRUPT.candidates(cfg, d, true); if c[1] then civtok = c[1].token end end)
+        -- reach: a citizen can walk to the band's open floor (the fort reaches this cavern; P2's approach needs one)
+        local reach = 0
+        pcall(function()
+            local x, y, z = resolve('cav' .. (d + 1))
+            if x then for _, c in ipairs(citizens()) do
+                if dfhack.maps.canWalkBetween(c.pos, xyz2pos(x, y, z)) then reach = 1; break end
+            end end
+        end)
         out('factcav', { { 'cavern', d + 1 }, { 'band', b and (b.zlo .. '-' .. b.zhi) or 'none' }, { 'civ', civ }, { 'civtok', civtok },
-            { 'pred', pred }, { 'ap', #ap > 0 and table.concat(ap, ',') or '-' }, { 'wild_units', units } })
+            { 'pred', pred }, { 'ap', #ap > 0 and table.concat(ap, ',') or '-' }, { 'wild_units', units }, { 'reach', reach } })
     end
     -- extinct: rows of the correction table whose species can arrive here (the R24 precondition)
     local inEmb, apex = {}, {}
@@ -354,6 +374,28 @@ if cmd == 'facts' then
     local parts = {}
     for _, t in ipairs(want) do parts[#parts + 1] = { t, inpool[t] or 'no' } end
     out('factpool', parts)
+    -- roles the ecology blocks need, taken from the POOL: the tool manages only pool species (ecoPredatorSet builds
+    -- CACHE.ecoByTok from V7.PERF.pool; stoop and fish skip a unit whose token has no entry). 2 Oct tally: STP1's
+    -- BIRD_EAGLE and FSH3/FSH4's bears were not in this fort's pool, so no stoop or fishing could act on them.
+    local roles = { raptor = {}, fisher = {}, polar = {} }
+    pcall(function()
+        local fl = (cfg.v7 and cfg.v7.fisher_list) or {}
+        for _, e in ipairs(sw.buildPool(cfg)) do
+            if e.inEmbark and (e.layer or 'land') == 'land' and not e.civ and not e.locked then
+                if e.guild == 'RP' then roles.raptor[#roles.raptor + 1] = e end
+                if fl[e.token] then
+                    roles.fisher[#roles.fisher + 1] = e
+                    if tostring(e.token):find('POLAR', 1, true) then roles.polar[#roles.polar + 1] = e end
+                end
+            end
+        end
+    end)
+    local function top(t)
+        table.sort(t, function(a, b) return (a.quantity or 0) > (b.quantity or 0) end)
+        return t[1] and t[1].token or '-'
+    end
+    out('factroles', { { 'raptor', top(roles.raptor) }, { 'raptors', #roles.raptor }, { 'fisher', top(roles.fisher) },
+        { 'fishers', #roles.fisher }, { 'polar', top(roles.polar) }, { 'polars', #roles.polar } })
 
 elseif cmd == 'spot' then
     local x, y, z = resolve(args[2] or 'land')

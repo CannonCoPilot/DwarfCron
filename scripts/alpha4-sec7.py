@@ -184,6 +184,19 @@ def derive(rows):
     d["has_ap"] = bool(ap)
     d["ap_cavern"] = int(ap[0]["cavern"]) if ap else 0
     d["ap_token"] = ap[0]["ap"].split(",")[0] if ap else ""
+    # 2 Oct tally: the roles the ecology blocks need, from the tool's POOL (only pool species are managed), and the
+    # caverns a citizen can walk to (P2's approach needs the fort to reach the cavern)
+    roles = next((kv(l) for l in rows if l.startswith("eco factroles ")), {})
+    for k in ("raptor", "fisher", "polar"):
+        tok = roles.get(k, "-")
+        d[f"{k}_token"] = "" if tok in ("-", "") else tok
+        d[f"has_{k}"] = bool(d[f"{k}_token"])
+    d["fisher_river"] = d["has_fisher"] and d["has_river"]
+    d["polar_lake"] = d["has_polar"] and d["has_lake"]
+    reach = [c for c in cav if c.get("reach") == "1"]
+    reach_civ = [c for c in reach if int(c.get("civ", 0) or 0) > 0]
+    d["reach_cavern"] = int((reach_civ or reach)[0]["cavern"]) if reach else 0
+    d["reach_civ_cavern"] = int(reach_civ[0]["cavern"]) if reach_civ else 0
     d["has_cavern_natives"] = any(int(c.get("wild_units", 0) or 0) > 0 for c in cav)
     d["extinct_in_embark"] = int(ext.get("in_embark", 0) or 0)
     d["extinct_apex"] = int(ext.get("apex", 0) or 0)
@@ -314,6 +327,19 @@ def cfg_flat():
     return {l[8:].split("=", 1)[0]: l[8:].split("=", 1)[1] for l in lua(CFG_FLAT).splitlines() if l.startswith("cfgline ") and "=" in l}
 
 
+# the Panel's window, its first steppable control in the open section selected, the command/status lines cleared
+_PANEL_W = ("local gw=reqscript('gui/seasonal-wildlife'); local w=gw.view and gw.view.subviews and gw.view.subviews[1]; "
+            "local function txt(l) local t=l and l.text; if type(t)=='table' then local s='' for _,x in ipairs(t) do "
+            "s=s..(type(x)=='table' and tostring(x.text or '') or tostring(x)) end return s end return tostring(t or '') end; ")
+PANEL_PICK = (_PANEL_W + "local L=w.subviews.panel; local pick,id,tp; for i,c in ipairs(L:getChoices()) do local d=c.data; "
+              "if d and d.ctl and (d.ctl.type=='bool' or d.ctl.type=='int' or d.ctl.type=='float' or d.ctl.type=='enum') then "
+              "pick,id,tp=i,d.ctl.id,d.ctl.type; break end end; if pick then L:setSelected(pick) end; "
+              "w:setPanelStatus(''); w.subviews.panel_cmd:setText(''); "
+              "print(('eco panelpick row=%s id=%s type=%s'):format(tostring(pick), tostring(id), tostring(tp)))")
+PANEL_READ = (_PANEL_W + "local c=txt(w.subviews.panel_cmd):gsub('^%s+',''):gsub('%s+$',''); local st=txt(w.subviews.panel_status):gsub('^%s+',''):gsub('%s+$',''); "
+              "print('eco panelread cmd='..(c~='' and c:gsub('[%s=]+','_') or '-')..' status='..(st~='' and st:gsub('[%s=]+','_') or '-'))")
+
+
 def st_panel(run, a):
     say("== PANEL: the window's Panel on the real screen")
     o = Out(run, "panel")
@@ -334,12 +360,27 @@ def st_panel(run, a):
         txt = sh("screen", timeout=120); (shots / f"s{i:02d}-a.txt").write_text(txt)
         m = re.search(r"^\s*\d+\|\s*([^\n]*?):\s+\d+ control", txt, re.M)
         name = m.group(1).strip() if m else f"section{i}"
+        # 2 Oct tally: Right went to whatever row was selected -- a readout, never a control (act_panel_step returns
+        # on a row with no ctl) -- and the "read-back" counted was the stale status line of an earlier command (13
+        # identical screens). Now the section's first steppable control is selected, the command and status lines
+        # are cleared, and the key is pressed for real; a bool already at the Right end is stepped Left instead.
+        pick = eco_rows(lua(PANEL_PICK))
+        o.put(pick)
         sh("key", "CURSOR_RIGHT", timeout=60); nap(1.2)
         after = cfg_flat()
-        txt2 = sh("screen", timeout=120); (shots / f"s{i:02d}-b.txt").write_text(txt2)
         changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k)
                          and not k.startswith(("why.", "default_snapshot.", "ledger")))
-        rb = [l for l in txt2.splitlines() if re.search(r"read back|refused", l)]
+        if not changed:
+            sh("key", "CURSOR_LEFT", timeout=60); nap(1.2)
+            after = cfg_flat()
+            changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k)
+                             and not k.startswith(("why.", "default_snapshot.", "ledger")))
+        rd = eco_rows(lua(PANEL_READ))
+        o.put(rd)
+        txt2 = sh("screen", timeout=120); (shots / f"s{i:02d}-b.txt").write_text(txt2)
+        r = kv(rd[0]) if rd else {}
+        # a fresh read-back: the command line names the verb that ran and the status line was written after the clear
+        rb = [1] if r.get("cmd", "").startswith("ran:") and r.get("status", "") not in ("", "-") else []
         sh("key", "CUSTOM_D", timeout=60); nap(1.0)
         back = cfg_flat()
         restored = all(back.get(k) == before.get(k) for k in changed)
@@ -354,7 +395,7 @@ def st_panel(run, a):
                     if len(body) > x2 - 1 and body[x2 - 1] not in " |+-=#│║":
                         clip += 1
         edge += clip
-        steps += 1 if changed else 0
+        steps += 1 if (changed and rb and restored) else 0   # a real round trip: a step, a fresh read-back, D back
         seen.append(name)
         o.put([f"eco panelsec n={i} name={name.replace(' ', '_')} changed={','.join(changed)[:200] or '-'} readback={len(rb)} "
                f"restored={int(restored)} clipped={clip}"])

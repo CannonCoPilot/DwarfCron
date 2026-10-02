@@ -43,7 +43,11 @@ def facts() -> dict:
          # what the fort offers (the runner skips a block whose condition is false); the defaults are the
          # RinghatchetsReady description in memory test-world-region9, until FACTS has read the fort itself
          "has_lake": True, "has_river": True, "has_civ": True, "has_ap": False, "has_cavern_natives": True,
-         "calm": True, "has_ocean": False}
+         "calm": True, "has_ocean": False,
+         # 2 Oct tally: pool roles and cavern reach (FACTS writes them; until it has, the blocks that need them are
+         # NOT-TESTABLE-HERE, and the token names below are only what the dry run builds with)
+         "raptor_token": "", "fisher_token": "", "polar_token": "", "has_raptor": False, "has_fisher": False,
+         "has_polar": False, "fisher_river": False, "polar_lake": False, "reach_cavern": 0, "reach_civ_cavern": 0}
     try:
         d.update(json.loads(FACTS.read_text()).get("derived", {}))
     except (OSError, ValueError):
@@ -194,6 +198,31 @@ def pk2(arm):
     return dict(steps=st, ticks=10, nowatch=True)
 
 
+# 2 Oct tally (SECTION7-RESULTS "vacuous blocks"): STP1, FSH3 and FSH4 never reached their subject, for two reasons.
+#   1. The tool manages only POOL species: ecoPredatorSet builds CACHE.ecoByTok from V7.PERF.pool, and V7.H.stoop /
+#      V7.H.fish skip a unit whose token has no entry. BIRD_EAGLE, BEAR_GRIZZLY and BEAR_POLAR were not in
+#      RinghatchetsReady's pool (FACTS factpool), so no stoop or fishing could act on the placed ones. FACTS now reads
+#      the roles from the pool (factroles: the best-stocked raptor, fisher and polar fisher) and the blocks use them;
+#      a fort without one makes the block NOT-TESTABLE-HERE instead of vacuous.
+#   2. Placement: the eagles were placed 20 tiles from the rabbits and flew 30-220 tiles off; the bears went to the
+#      body's shore spot and the pike to its water spot, picked apart (closest approach 15-17 tiles, adjacency 0/200).
+#      Now the raptors are placed beside the prey and adopted as one group (the tool's cohesion holds them), and the
+#      fishers go on the tool's own shore pair (cx-sec7 BODY:bank, V7.H.bankPair) with the pike in the water beside it.
+# Each block receipts the encounter: adj (closest approach) every sample, and the tool's own per-pass counters
+# (CACHE.stoopStat / CACHE.fishStat). The ON arm checks that the tool saw a managed raptor / fisher by its first pass.
+RAPTOR = F.get("raptor_token") or "BIRD_EAGLE"
+FISHER = F.get("fisher_token") or "BEAR_GRIZZLY"
+POLAR = F.get("polar_token") or "BEAR_POLAR"
+
+
+def _hstat(kind, tag):
+    """CACHE.stoopStat / CACHE.fishStat: the last ecology pass's own counters for the stoop or the fishing."""
+    key = {"stoop": "stoopStat", "fish": "fishStat"}[kind]
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local st=sw.CACHE." + key + " or {}; local t={}; "
+            "for k,v in pairs(st) do if type(v)=='number' then t[#t+1]=k..'='..v end end; table.sort(t); "
+            f"print('eco {kind}st tag={tag} '..(#t>0 and table.concat(t,' ') or 'none=1'))")
+
+
 def stp1(arm):
     on = arm == "stoop_on"
     st = [SUSTAIN, T("hunters", "raptors", "on"), T("hunters", "stoop", "on" if on else "off"),
@@ -201,38 +230,47 @@ def stp1(arm):
           readback("hunters.stoop.enabled", "hunters.raptors", "ecology.cadence"),
           chk(f"cfg[path=hunters.stoop.enabled].value=={'true' if on else 'false'}"),
           chk("cfg[path=ecology.cadence].value==1000"),
-          "spawn BIRD_EAGLE 2 {X} {Y} {Z} 2", "spawn RABBIT 6 {X+20} {Y} {Z} 4", "spawn DEER 3 {X+25} {Y+6} {Z} 3",
-          S7("mark", "pre"), "watch"]
+          "spawn RABBIT 6 {X} {Y} {Z} 4", "spawn DEER 3 {X+12} {Y+6} {Z} 3",
+          f"spawn {RAPTOR} 2 {{X+3}} {{Y}} {{Z}} 2", f"adopt {RAPTOR}",
+          S7("mark", "pre"), S7("adj", RAPTOR, "RABBIT", "t0"), "watch"]
     for s, t in steps_of(6000, 1000):
-        st += [s, S7("ledger", "eco", f"t{t}")]
-    st += ["relcount BIRD_EAGLE RABBIT", "relcount BIRD_EAGLE DEER", TA("hunters", "status")]
+        st += [s, S7("ledger", "ecology", f"t{t}"), S7("adj", RAPTOR, "RABBIT", f"t{t}"), _hstat("stoop", f"t{t}")]
+        if on and t == 2000:   # an ecology pass (cadence 1,000, rescheduled at the verb) saw a managed raptor
+            st.append(chk("stoopst[tag=t2000].raptors>0"))
+    st += [f"relcount {RAPTOR} RABBIT", f"relcount {RAPTOR} DEER", TA("hunters", "status")]
     return dict(steps=st, ticks=10, nowatch=True)
 
 
 def fsh3(arm):
     on = arm == "fish_on"
     st = [SUSTAIN, T("v7", "fishers", "on" if on else "off"), T("hunters", "fish", "run", "SpSuAuWi"),
-          T("curious", "BEAR_GRIZZLY", "resident"), *ENABLE,
+          T("curious", FISHER, "resident"), *ENABLE,
           readback("v7.fishers", "hunters.fish.run"), chk(f"cfg[path=v7.fishers].value=={'true' if on else 'false'}"),
-          AT("river:shore", "spawn", "BEAR_GRIZZLY", "2", "<X>", "<Y>", "<Z>", "2", "land", "any", "200000", "roam"),
-          AT("river:water", "spawn", "FISH_PIKE", "8", "<X>", "<Y>", "<Z>", "4", "water", "any", "200000", "roam"),
-          "watch"]
+          S7("spot", "river:bank"), S7("spot", "river:bankwater"),
+          AT("river:bank", "spawn", FISHER, "2", "<X>", "<Y>", "<Z>", "2", "land", "any", "200000", "roam"),
+          AT("river:bankwater", "spawn", "FISH_PIKE", "8", "<X>", "<Y>", "<Z>", "3", "water", "any", "200000", "roam"),
+          S7("adj", FISHER, "FISH_PIKE", "t0"), chk("adj[tag=t0].dmin<=6"), "watch"]
     for s, t in steps_of(6000, 300):
-        st += [s, S7("adj", "BEAR_GRIZZLY", "FISH_PIKE", f"t{t}")]
-    st += [S7("ledger", "eco", "end"), TA("hunters", "status")]
+        st += [s, S7("adj", FISHER, "FISH_PIKE", f"t{t}"), _hstat("fish", f"t{t}")]
+        if on and t == 3600:   # an ecology pass (cadence 3,000, from enable) saw a managed fisher
+            st.append(chk("fishst[tag=t3600].fishers>0"))
+    st += [S7("ledger", "ecology", "end"), TA("hunters", "status")]
     return dict(steps=st, ticks=10, nowatch=True)
 
 
 def fsh4(arm):
     st = [SUSTAIN, T("v7", "fishers", "on"), T("v7", "fish_breathe", "off"), T("hunters", "fish", "polar", "on"),
-          T("hunters", "fish", "run", "SpSuAuWi"), T("curious", "BEAR_POLAR", "resident"), *ENABLE,
+          T("hunters", "fish", "run", "SpSuAuWi"), T("curious", POLAR, "resident"), *ENABLE,
           readback("v7.fishers", "v7.fish_breathe", "hunters.fish.polar"),
           chk("cfg[path=v7.fish_breathe].value==false"), chk("cfg[path=hunters.fish.polar].value==true"),
-          AT("lake:shore", "spawn", "BEAR_POLAR", "2", "<X>", "<Y>", "<Z>", "2", "land", "any", "200000", "roam"),
-          AT("lake:water", "spawn", "FISH_PIKE", "8", "<X>", "<Y>", "<Z>", "4", "water", "any", "200000", "roam"),
-          "watch"]
+          S7("spot", "lake:bank"), S7("spot", "lake:bankwater"),
+          AT("lake:bank", "spawn", POLAR, "2", "<X>", "<Y>", "<Z>", "2", "land", "any", "200000", "roam"),
+          AT("lake:bankwater", "spawn", "FISH_PIKE", "8", "<X>", "<Y>", "<Z>", "3", "water", "any", "200000", "roam"),
+          S7("adj", POLAR, "FISH_PIKE", "t0"), chk("adj[tag=t0].dmin<=6"), "watch"]
     for s, t in steps_of(6000, 600):
-        st += [s, S7("swim", "BEAR_POLAR", f"t{t}"), S7("adj", "BEAR_POLAR", "FISH_PIKE", f"t{t}")]
+        st += [s, S7("swim", POLAR, f"t{t}"), S7("adj", POLAR, "FISH_PIKE", f"t{t}"), _hstat("fish", f"t{t}")]
+        if t == 3600:
+            st.append(chk("fishst[tag=t3600].fishers>0"))
     return dict(steps=st, ticks=10, nowatch=True)
 
 
@@ -426,6 +464,10 @@ def irr_m(arm):
     extra = []
     if arm == "crazed":
         extra = ["irruption.reassert", "false"]   # M1 decides whether reassert is needed: off, so DF's own hold shows
+        # 2 Oct tally: the event had ended (cooldown, t500-t2900: the crazed subjects died and the event read as
+        # repelled) before the end-of-cell save, so the reload read no subject. No repel end, a long settle: the event
+        # stays active through the save, which now comes at t300.
+        extra += ["irruption.repel_share", "0", "irruption.repel_dead", "0", "irruption.settle_days", "10"]
     if arm == "sneak_rehide":
         extra = ["irruption.rehide", "true"]
     if arm == "wander_surge":
@@ -441,14 +483,20 @@ def irr_m(arm):
     if arm == "goalonly":
         st += [S7("subjects", str(CIV), "goal"), chk("subjects.units>0")]
     st += ["watch"]
-    every = 100 if arm == "crazed" else 300
+    # M6 (goalonly), 2 Oct tally: one harness write of the steal goal did not persist (0 steal-goal samples; DF re-plans
+    # a unit's path goal on its own). The write is now repeated after every sample, 100 t apart, so each `irr` read
+    # measures whether the goal survived 100 t; and the arm's verdict is the persistence of a bare goal write, while
+    # theft-by-goal is read from the thief token's own goal (the tool's write, M4), not from this arm.
+    every = 100 if arm in ("crazed", "goalonly") else 300
     for s, t in steps_of(3000, every):
         st += [s, S7("irr", str(CIV), f"t{t}")]
+        if arm == "goalonly":
+            st.append(S7("subjects", str(CIV), "goal"))
         if arm == "thief" and t in (100, 3000):
             st.append(S7("native", str(CIV), "*", f"t{t}"))
-    if arm == "crazed":   # M1: the mask after a save and reload
-        st += ["read:pre_reload", "save:S7_M1_TMP", "load:S7_M1_TMP", S7("irr", str(CIV), "reload"), "step:300",
-               S7("irr", str(CIV), "reload300")]
+        if arm == "crazed" and t == 300:   # M1: the mask after a save and reload, with the event still active
+            st += [chk("irr[tag=t300].alive>0"), "read:pre_reload", "save:S7_M1_TMP", "load:S7_M1_TMP",
+                   S7("irr", str(CIV), "reload"), chk("irr[tag=reload].alive>0")]
     st += [S7("civs", str(CIV), "end"), S7("resid", "end")]
     return dict(steps=st, ticks=10, nowatch=True)
 
@@ -456,8 +504,19 @@ def irr_m(arm):
 # Phase 2: A rotation only (irruption off), B irruption with every token off, C the R10 package (defaults). The
 # pressure is pinned at the threshold, the warning is 0.1 day, waves 0.5 day apart, 5 days long. Every civ unit in
 # the band is sampled every 600 ticks (the notes ask 300; 600 halves the RPC time) for 7,200 ticks.
+# 2 Oct tally: dacc was -1 everywhere (the event had no access point) and no subject came within 124 tiles of a
+# citizen, so P2's approach was untested. The tool's access (IRRUPT pressurePass: L.access) is where citizens stand
+# in the band (or dig beside it), and RinghatchetsReady's fort reaches no cavern. So P2 runs in a cavern a citizen can
+# walk to when FACTS finds one with a civ race (reach_civ_cavern), else the civ cavern, and in EVERY arm three citizens
+# are put in that band, knocked out so they stay (the notes' "3 citizens working in the band", the shortcut the first
+# design left out): they give the event its access and the approach its target. The tool still places and walks the
+# subjects itself; dacc and dcit are the outcome.
+P2CAV = int(F.get("reach_civ_cavern") or 0) or CIV
+
+
 def irr_p2(arm):
-    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV)]
+    cav = str(P2CAV)
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(P2CAV), S7("citizens", cav, "3", "in", "knock"), chk("citizens.moved>0")]
     if arm == "A":
         st += [CFG("irruption.enabled", "false"), readback("irruption.enabled"), chk("cfg[path=irruption.enabled].value==false")]
     else:   # B: every token off; C and D: the R10 package as shipped (each token on at 10%, a champion)
@@ -468,10 +527,10 @@ def irr_p2(arm):
                    "irruption.spacing_min_days", "0.5", "irruption.spacing_max_days", "0.5", "irruption.duration_days", "5",
                    *(["irruption.agitate", "false"] if arm == "D" else []), *pairs),
                readback("irruption.enabled", "irruption.duration_days"), chk("cfg[path=irruption.enabled].value==true"),
-               chk("cfg[path=irruption.duration_days].value==5"), S7("pin", str(CIV)), chk("pin.ok==1")]
-    st += [S7("civs", str(CIV), "t0"), "watch"]
+               chk("cfg[path=irruption.duration_days].value==5"), S7("pin", cav), chk("pin.ok==1")]
+    st += [S7("civs", cav, "t0"), "watch"]
     for s, t in steps_of(7200, 600):
-        st += [s, S7("irr", str(CIV), f"t{t}"), S7("civs", str(CIV), f"t{t}")]
+        st += [s, S7("irr", cav, f"t{t}"), S7("civs", cav, f"t{t}")]
         if arm != "A" and t == 1200:
             st.append(chk(f"irr[tag=t{t}].alive>0"))
         if t == 3600:
@@ -550,18 +609,26 @@ AP_CAV, AP_TOKEN = int(F.get("ap_cavern") or 0), F.get("ap_token") or ""
 #     outcome, not required;
 #   * the irrupting arm records apraw too (the cap lifted during the event is the contrast) and keeps its start check;
 #   * both arms run 2,400 t (DF gets more time to send a natural wave).
+R35_CAP = int(os.environ.get("SEC7_R35_CAP", "2"))
+
+
 def _apraw(token, cav, tag):
     return ("lua:local sw=reqscript('seasonal-wildlife'); local cr=sw.CAVERN.rawFor(" + _lq(token) + "); "
             "local o=((sw.CACHE.apcap or {}).raws or {})[" + _lq(token) + "]; "
             f"local on=sw.V7.GRP.irruptOn({int(cav) - 1}) and 1 or 0; "
-            f"print(('eco apraw tag={tag} token=%s min=%d max=%d orig_max=%s capped=%d irrupting=%d')"
-            ":format(cr.creature_id, cr.cluster_number[0], cr.cluster_number[1], o and tostring(o[2]) or '-', o and 1 or 0, on))")
+            # the tool's convention: cluster_number[0] is the MAX, [1] the min (seasonal-wildlife.lua:1744 at rc), and
+            # apCap's held original is { [0], [1] } -- so orig_max is o[1] (2 Oct tally: the labels were swapped)
+            f"print(('eco apraw tag={tag} token=%s max=%d min=%d orig_max=%s capped=%d irrupting=%d')"
+            ":format(cr.creature_id, cr.cluster_number[0], cr.cluster_number[1], o and tostring(o[1]) or '-', o and 1 or 0, on))")
 
 
 def irr_r35(arm):
     cav = AP_CAV or CIV
     tok = AP_TOKEN or "PLUMP_HELMET_MAN"
-    st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "apcap", "5"), readback("groups.apcap"), chk("cfg[path=groups.apcap].value==5"),
+    # 2 Oct tally: at apcap 5 R35 was vacuous here -- PLUMP_HELMET_MAN's raw range is 3-5, so apCap never capped
+    # anything (capped=0, "0 species capped now"). apcap R35_CAP (2, below the raw's max) makes the cap bite.
+    st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "apcap", str(R35_CAP)), readback("groups.apcap"),
+          chk(f"cfg[path=groups.apcap].value=={R35_CAP}"),
           T("seasons", f"cavern:{tok}", "all"), *CIV_PREP(cav, tok)]
     if arm == "irrupting":
         # the event's start is proven at once (phase active, a wave alive after 20 t), not first at the end
@@ -571,8 +638,8 @@ def irr_r35(arm):
         st += [T("call", f"cavern:{tok}")]
     for s, t in steps_of(2400, 300):
         st += [s, S7("gsize", tok, f"t{t}"), _apraw(tok, cav, f"t{t}")]
-        if arm == "quiet" and t == 600:   # the cap reached the raw (two groups passes after enable)
-            st.append(chk("apraw[tag=t600].max<=5"))
+        if arm == "quiet" and t == 600:   # the cap reached the raw (two groups passes after enable): held, and biting
+            st += [chk(f"apraw[tag=t600].max<={R35_CAP}"), chk("apraw[tag=t600].capped==1")]
     if arm == "irrupting":
         st.append(chk("gsize[tag=t2400].groups>0"))
     return dict(steps=st, ticks=10, nowatch=True)
@@ -681,11 +748,25 @@ def _forage(on):
             chk("cfg[path=vermin_eat.forage].value==true"), chk("cfg[path=vermin_eat.chance].value==1")]
 
 
+VFEAT = ("lua:local sw=reqscript('seasonal-wildlife'); local S=(_G.CX_ECO or {}).spawned or {}; "
+         "local race=-1; for i,c in ipairs(df.global.world.raws.creatures.all) do if c.creature_id=='GRASSHOPPER' then race=i end end; "
+         "local st={race={},eater={},match={}}; local n,eaters,eats,cls=0,0,0,{}; "
+         "for id,tok in pairs(S) do if tok=='BADGER' then local u=df.unit.find(id); if u and not dfhack.units.isDead(u) then n=n+1; "
+         "local okE,set=pcall(sw.VERMIN.eaterSet,st,u); if okE and set then eaters=eaters+1; for k in pairs(set.cls) do cls[k]=true end end; "
+         "local okA,yes=pcall(sw.VERMIN.eats,st,u,race); if okA and yes then eats=eats+1 end end end end; "
+         "local c={}; for k in pairs(cls) do c[#c+1]=k end; table.sort(c); "
+         "print('eco vfeat badgers='..n..' eaters='..eaters..' eats='..eats..' classes='..(#c>0 and table.concat(c,',') or '-'))")
+
+
 def vf1(arm):
     on = arm == "forage_on"
     st = [SUSTAIN, *ENABLE, *_forage(on),
           _vrm_inline("vermin_create.lua", RACE="GRASSHOPPER", N=20, R=5, X="{X+15}", Y="{Y}", Z="{Z}"),
-          chk("vcreate.made>=10"), "spawn BADGER 4 {X} {Y} {Z} 2"]
+          chk("vcreate.made>=10"), "spawn BADGER 4 {X} {Y} {Z} 2",
+          # 2 Oct tally: no badger appeared as an eater. `vfeat` reads what the tool's forage reads: each placed badger's
+          # caste gobble set (VERMIN.eaterSet: GOBBLE_VERMIN_CLASS / _CREATURE, as the gobble wiring left it) and
+          # whether it eats GRASSHOPPER (VERMIN.eats). With no eater the arm has no subject, so both arms check it.
+          VFEAT, chk("vfeat.eats>0")]
     if on:
         st.append(T("vermin", "forage", "now"))
     for s, t in steps_of(3000, 500):
@@ -787,9 +868,16 @@ def grd1(arm):
     st = [SUSTAIN, T("water", "guard", "on" if on else "off"), *ENABLE,
           readback("water.guard.enabled"), chk(f"cfg[path=water.guard.enabled].value=={'true' if on else 'false'}"),
           AT("lake:water", "spawn", "FISH_PIKE", "3", "<X>", "<Y>", "<Z>", "2", "water", "any", "200000", "roam"),
-          "adopt FISH_PIKE", "step:50", AT("lake:shore", "tp", "FISH_PIKE", "<X>", "<Y>", "<Z>"), chk("tp.units>0")]
-    for s, t in steps_of(1200, 200):
-        st += [s, S7("swim", "FISH_PIKE", f"t{t}"), S7("wat", f"t{t}")]
+          "adopt FISH_PIKE", "step:50", AT("lake:shore", "tp", "FISH_PIKE", "<X>", "<Y>", "<Z>"), chk("tp.units>0"),
+          # 2 Oct tally: no dry receipt -- at t200 every pike was wet in BOTH arms (DF or the guard had them back
+          # already). The stranding is receipted at once, before any tick passes, and the first 200 t are sampled densely
+          S7("swim", "FISH_PIKE", "tp0"), S7("wat", "tp0"), chk("swim[tag=tp0].alive>0"), chk("swim[tag=tp0].wet==0")]
+    t = 0
+    for d in (10, 10, 30, 50, 100):
+        t += d
+        st += [f"step:{d}", S7("swim", "FISH_PIKE", f"t{t}"), S7("wat", f"t{t}")]
+    for s, t2 in steps_of(1000, 200):
+        st += [s, S7("swim", "FISH_PIKE", f"t{t2 + 200}"), S7("wat", f"t{t2 + 200}")]
     st.append(S7("ledger", "strand", "end"))
     return dict(steps=st, ticks=10, nowatch=True)
 
@@ -819,11 +907,27 @@ def exu1(arm):
         st += ["spawn TRIASSIC_EORAPTOR 5 {X} {Y} {Z} 3", *ENABLE]
     else:
         st += [*ENABLE, "spawn TRIASSIC_EORAPTOR 5 {X} {Y} {Z} 3"]
+    # 2 Oct tally: EXU1 had no receipt that the extinct change reached the animals (no attack, no per-unit BENIGN or
+    # relation). `exunit` reads every placed eoraptor's per-unit caste cache (enemy.caste_flags.BENIGN) and its
+    # caste's raw flag: the fix clears BENIGN on the castes (V7.EXTINCT.apply, roles) and E.units writes the change
+    # into units already on the map -- so both arms must read cache_benign 0 (before: by the unit pass; after: born
+    # from the changed caste). relcount (PREDATOR_OR_PREY between the placed eoraptors and hares) every sample.
     st += [readback("extinct.fix", "extinct.units"), chk("cfg[path=extinct.units].value==true"),
-           "spawn HARE 6 {X+8} {Y} {Z} 3", "watch"]
+           "spawn HARE 6 {X+8} {Y} {Z} 3", EXUNIT("t0"), chk("exunit[tag=t0].alive>0"), chk("exunit[tag=t0].cache_benign==0"),
+           "watch"]
     for s, t in steps_of(6000):
-        st.append(s)
+        st += [s, "relcount TRIASSIC_EORAPTOR HARE", EXUNIT(f"t{t}")]
     return dict(steps=st, ticks=10)
+
+
+def EXUNIT(tag):
+    return ("lua:local S=(_G.CX_ECO or {}).spawned or {}; local n,cb,rb=0,0,0; "
+            "for id,tok in pairs(S) do if tok=='TRIASSIC_EORAPTOR' then local u=df.unit.find(id); "
+            "if u and not dfhack.units.isDead(u) and u.pos.x>=0 then n=n+1; "
+            "local ok,v=pcall(function() return u.enemy.caste_flags.BENIGN end); if ok and v then cb=cb+1 end; "
+            "local cr=df.creature_raw.find(u.race); local ok2,v2=pcall(function() return cr.caste[u.caste].flags.BENIGN end); "
+            "if ok2 and v2 then rb=rb+1 end end end end; "
+            f"print('eco exunit tag={tag} alive='..n..' cache_benign='..cb..' caste_benign='..rb)")
 
 
 def exf1(arm):
@@ -950,9 +1054,9 @@ def blocks() -> dict:
     B["S7_SKL"] = _blk({a: skl(a) for a in ("pkg", "nopkg", "pkg_nofloor")}, "CORE", 1)
     B["S7_SKL30K"] = _blk({"pkg_30k": skl("pkg_30k")}, "FULL", 1)
     B["S7_PK2"] = _blk({a: pk2(a) for a in ("pack_on", "pack_off")}, "CORE", 2)
-    B["S7_STP1"] = _blk({a: stp1(a) for a in ("stoop_on", "stoop_off")}, "CORE", 2)
-    B["S7_FSH3"] = _blk({a: fsh3(a) for a in ("fish_on", "fish_off")}, "CORE", 2, requires="has_river")
-    B["S7_FSH4"] = _blk({"polar": fsh4("polar")}, "CORE", 2, requires="has_lake")
+    B["S7_STP1"] = _blk({a: stp1(a) for a in ("stoop_on", "stoop_off")}, "CORE", 2, requires="has_raptor")
+    B["S7_FSH3"] = _blk({a: fsh3(a) for a in ("fish_on", "fish_off")}, "CORE", 2, requires="fisher_river")
+    B["S7_FSH4"] = _blk({"polar": fsh4("polar")}, "CORE", 2, requires="polar_lake")
     nw = "natural arrivals are the subject (G2r, CAVG, WAT5, APX1, LAD1, MIX1, F2)"
     B["S7_NAT"] = _blk({a: nat(a) for a in ("def", "v70")}, "CORE", 3, wipe=False, why=nw)
     B["S7_NATLEV"] = _blk({a: nat(a) for a in LEVER_ARMS}, "FULL", 3, wipe=False, why=nw)
