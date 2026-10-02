@@ -11,7 +11,7 @@ import mdlite  # noqa: E402
 
 RES = (ROOT / "data/alpha4-sec7/SECTION7-RESULTS.md").read_text()
 OUT = ROOT / "data/alpha4-progress/alpha4-progress.html"
-AS_OF = "2 Oct 2026, 16:45 MDT"
+AS_OF = None   # None: the build time
 
 E = html.escape
 
@@ -106,18 +106,58 @@ STAGES = [
     ("Release", "open", "Waiting", "Merge into v7.1, push, release notes, and the pages, after the above."),
 ]
 
-RUNNING = [
+RUNNING_HEAD = [
     ("done", "Deploy v7.1-rc (16f85e6) and Chronicler scripts"),
     ("done", "Full validation: CTRL 357 / 0 FAIL; RinghatchetsReady 360 / 3 FAIL (fixes ready, re-run pending)"),
-    ("done", "FACTS on RinghatchetsReady"),
-    ("done", "PANEL: 13 sections reached; round trip 0/13 (harness fix in progress at the desk)"),
-    ("skip", "S7_FSH3 / S7_FSH4: not testable here (no fishing species in the pool)"),
-    ("done", "S7_STP1: 25.5 min, awaiting the tally"),
-    ("run", "S7_NAT: flying-aware scoring, daily ladder check; rep 3 of 5 at 16:45, ~13 min per cell, done ~17:50"),
-    ("wait", "S7_GRD1, S7_EXU1, S7_VF1 (~1 h)"),
-    ("wait", "S7_IRRM, S7_IRRP2, S7_IRRR35 (~2 h)"),
-    ("wait", "S7_TRIM (resident groups, first real run); chain done ~21:00"),
 ]
+# the chain's stages in run order (alpha4-sec7.py orders by item), and notes the log cannot carry
+QUEUE = ["FACTS", "PANEL", "S7_FSH3", "S7_FSH4", "S7_STP1", "S7_NAT", "S7_GRD1", "S7_EXU1", "S7_VF1", "S7_IRRM",
+         "S7_IRRP2", "S7_IRRR35", "S7_TRIM"]
+NOTE = {"PANEL": "13 sections reached; the round trip scored 0/13 (wrong key; fixed d69ed56, re-run after the chain)",
+        "S7_FSH3": "not testable here (no fishing species in the pool)",
+        "S7_FSH4": "not testable here (no fishing species in the pool)"}
+
+
+def live_running():
+    """The chain's state from its own logs: each finished stage with its minutes, the running block with its replicate
+    and cell count, the queue after it."""
+    log = ROOT / "data/logs/sec7-rc.log"
+    txt = log.read_text() if log.exists() else ""
+    done, cur = {}, None
+    for ln in txt.splitlines():
+        m = re.search(r"== (S7_\w+|FACTS|PANEL)\b", ln)
+        if m:
+            cur = m.group(1)
+            if "NOT-TESTABLE" in ln:
+                done[cur] = "skip"
+        m = re.search(r"\s(S7_\w+|FACTS|PANEL): ([0-9.]+) min$", ln)
+        if m:
+            done.setdefault(m.group(1), f"{m.group(2)} min")
+        if "ABORTED" in ln and cur:
+            done[cur] = "ABORTED"
+    runs = sorted((ROOT / "data/alpha4-sec7").glob("2*/eco/log.txt"))
+    eco = runs[-1].read_text() if runs else ""
+    out = list(RUNNING_HEAD)
+    for b in QUEUE:
+        st = done.get(b)
+        if st == "skip":
+            out.append(("skip", f"{b}: {NOTE.get(b, 'not testable here')}"))
+        elif st == "ABORTED":
+            out.append(("skip", f"{b}: aborted (a setup check failed; see the log)"))
+        elif st:
+            out.append(("done", f"{b}: done in {st}" + (f"; {NOTE[b]}" if b in NOTE else "")))
+        elif b == cur and "=== sec7 exit" not in txt:
+            part = eco.split(f"== block {b} on", 1)[1] if f"== block {b} on" in eco else ""
+            reps = re.findall(r"rep (\d+): order", part)
+            cells = len(re.findall(r"manip ok|MANIP-FAIL", part))
+            arms = len(re.findall(r"^\S+\s+manip \S+: ", part, re.M))
+            out.append(("run", f"{b}: running, replicate {reps[-1] if reps else 1} of 5, {cells} of "
+                               f"{arms * 5 if arms else '?'} cells done"))
+        else:
+            out.append(("wait", b))
+    if "=== sec7 exit" in txt:
+        out.append(("done", "Chain finished"))
+    return out
 
 PENDING = [
     ("Re-deploy and re-check", [
@@ -195,13 +235,13 @@ def build():
     tally = " · ".join(f"{counts.get(k, 0)} {CHIP[k][0].lower()}" for k in ("done", "explained", "fixed", "partial", "open"))
     stages = "".join(f'<li class="stage"><span class="chip {c}">{E(lab)}</span><h3>{E(t)}</h3><p>{E(d)}</p></li>'
                      for t, c, lab, d in STAGES)
-    running = "".join(f'<li class="{c}"><span class="dot"></span>{E(t)}</li>' for c, t in RUNNING)
+    running = "".join(f'<li class="{c}"><span class="dot"></span>{E(t)}</li>' for c, t in live_running())
     pending = "".join(f"<li><h3>{E(h)}</h3><ul>" + "".join(f"<li>{E(x)}</li>" for x in items) + "</ul></li>"
                       for h, items in PENDING)
     decisions = "".join(f'<li><span class="chip {"ok" if a == "Answered" else "open"}">{a}</span> {E(t)}</li>'
                         for a, t in DECISIONS)
     nt = mdlite.convert(RES.split("## Not testable here, and what each needs", 1)[1].split("## Reproduce", 1)[0])
-    page = TEMPLATE.format(as_of=AS_OF, stages=stages, running=running, s7="".join(s7), tally=tally, pending=pending,
+    page = TEMPLATE.format(as_of=AS_OF or __import__("datetime").datetime.now().strftime("%-d %b %Y, %H:%M MDT"), stages=stages, running=running, s7="".join(s7), tally=tally, pending=pending,
                            decisions=decisions, nt=nt)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(page)
@@ -294,7 +334,7 @@ th {{ font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--mut
   <h1>Alpha Four Progress</h1>
   <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
   walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
-  <span class="meta">As of {as_of} · release candidate v7.1-rc 30873d4 · rig running v7.1-rc 16f85e6</span>
+  <span class="meta">As of {as_of} · release candidate v7.1-rc c2adab0 · rig running v7.1-rc 16f85e6</span>
 </section>
 
 <h2>Stages</h2>
