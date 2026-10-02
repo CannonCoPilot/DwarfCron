@@ -1664,6 +1664,9 @@ def s5_8():
 @step("5.9", "Waves of its own civ races", "con")
 def s5_9():
     ensure_tool()
+    # an --only run skips the earlier step that turns irruptions on: turn them on here (a no-op in a full round)
+    if re.search(r"irruptions(:| are) off", tool("irruption")):
+        tool("irruption", "on")
     ids0 = max_unit_id()
     n0 = tool("irruption", "now", "1")
     ann0 = [a for a in announcements(15) if "irrupting" in a]
@@ -1851,7 +1854,7 @@ def s6_3():
     answer("99"); r3 = panel_report(); f3 = cfgv("limits.fixed").get("limits.fixed")
     key("CUSTOM_D", 1.2); f4 = cfgv("limits.fixed").get("limits.fixed")
     p0 = cfgv("patterns.land").get("patterns.land")
-    panel_select("patterns.land"); key("SELECT", 1.2); p1 = cfgv("patterns.land").get("patterns.land"); key("SEC_SELECT", 1.2); p2 = cfgv("patterns.land").get("patterns.land")
+    panel_select("patterns.land"); key("SELECT", 1.2); p1 = cfgv("patterns.land").get("patterns.land"); key("SELECT_ALL", 1.2); p2 = cfgv("patterns.land").get("patterns.land")
     back = tool("limits", "formula")
     ok = (a1 is not a0 and a2 == a0 and f1 == (f0 or 0) + 1 and f2 == min(20, (f1 or 0) + 10) and "read back" in r2["status"] and opened and rng
           and "at most 20" in r3["status"] and f3 == f2 and p1 != p0 and p2 == p0)
