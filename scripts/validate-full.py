@@ -368,7 +368,7 @@ CLAIMS = [
     ("mech.v71.raptor_cap", "MECH", "a raptor takes small prey only: V7.H.raptorTooBig(eagle, DEER mass) is true and (eagle, RABBIT mass) false", "docs/v7.1/ecology.md (R47; stoop.prey_ratio)", "shipped v7.1"),
     ("mech.v71.cohesion", "MECH", "MODEL.cohesionOf reads the whole-list table: COUGAR solitary, WOLF pack, FISH_PIKE school or solitary and BIRD_RAVEN flock or solitary by their raws' cluster; `hunters cohesion WOLF herd` wins and `auto` clears it", "docs/v7.1/ecology.md (R62)", "shipped v7.1"),
     ("mech.v71.swimscav", "MECH", "MODEL.swimScavenger is true for SHARK_GREAT_WHITE, CROCODILE_SALTWATER, POND_GRABBER and SHARK_NURSE, false for FISH_LAMPREY_SEA and FISH_PIKE, and false for all with hunters.swim_scav off", "docs/v7.1/ecology.md (R42, R17)", "shipped v7.1"),
-    ("mech.v71.bankpair", "MECH", "near a river or lake, V7.H.bankPair finds a dry tile G (flow < 4) and a swimming-depth water tile W (flow >= 4) adjacent at the same level, where a bear on G reaches a fish in W", "docs/v7.1/ecology.md (R33)", "shipped v7.1"),
+    ("mech.v71.bankpair", "MECH", "near a river or lake, V7.H.bankPair finds a dry tile G (flow < 4) and a swimming-depth water tile W (flow >= 4) adjacent, where a bear on G reaches a fish in W: at the same level, or (DF's banks, a level above the water) G one level up beside the flooded ramp W joins it to", "docs/v7.1/ecology.md (R33); validation r2 (ramp bank)", "shipped v7.1"),
     ("mech.v70.solo_skill", "MECH", "the caste NATURAL_SKILL write on a solitary hunter is read on a newly arrived unit: a unit placed while the v7 raws hold carries SNEAK at the profile's level on its soul with no unit write", "docs/v7.1/ecology.md (validator-v70-coverage; open item natural-skill-unverified)", "shipped v7.0"),
     # ---- v7.1 fixes stream (docs/v7.1/fixes.md section 5): integration and known bugs
     ("mech.v71.fix.cohesion_override", "MECH", "`hunters cohesion WOLF herd` reaches the leaders: a WOLF group's label is herd at the herd follow distance, `auto` gives pack back; `hunters cohesion COUGAR solitary` leaves a cougar group unled", "docs/v7.1/fixes.md (cohesionLabel reads MODEL.cohesionOf)", "shipped v7.1"),
@@ -546,7 +546,9 @@ def rig_versions():
         out = lua("print('DFVER='..tostring(dfhack.getDFVersion and dfhack.getDFVersion() or '?')"
                   "..' HACKVER='..tostring(dfhack.getDFHackVersion and dfhack.getDFHackVersion() or '?')"
                   "..' RELEASE='..tostring(dfhack.getDFHackRelease and dfhack.getDFHackRelease() or '?'))")
-        m = re.search(r"DFVER=(\S+) HACKVER=(\S+) RELEASE=(\S+)", out or "")
+        # r2: DF's version string has spaces ('v0.53.16 win64 STEAM'), so \S+ never matched and every run since the
+        # stamp was added recorded '?' (run 20261001-224525's rig.json)
+        m = re.search(r"DFVER=(.+?) HACKVER=(\S+) RELEASE=(\S+)", out or "")
         _RIG_VER.update(df=m.group(1) if m else "?", dfhack=m.group(2) if m else "?", release=m.group(3) if m else "?")
     return _RIG_VER
 
@@ -635,8 +637,14 @@ def click(label, wait=1.2):
     rc, out = sh("ui", "click", label, timeout=60); time.sleep(wait); return out
 
 def step(ticks, secs=240):
-    rc, out = sh("step", str(ticks), str(secs), timeout=secs + 60)
-    return out
+    """Run the fort `ticks` ticks. r2: in chunks of 3,000 or fewer -- `cx-lifecycle step` stops at its wall-time cap and
+    returns early without saying so, so one long step could come back short (coordinator note, 1 Oct 2026)."""
+    outs, left = [], int(ticks)
+    while left > 0:
+        n = min(3000, left)
+        rc, out = sh("step", str(n), str(min(secs, 120)), timeout=min(secs, 120) + 60)
+        outs.append(out); left -= n
+    return "\n".join(outs)
 
 def centre_on(unit_id):
     lua(f"local u=df.unit.find({unit_id}); if u then dfhack.gui.revealInDwarfmodeMap(xyz2pos(dfhack.units.getPosition(u)), true) end")
@@ -3578,6 +3586,7 @@ for _, t in ipairs(wt.tiles or {}) do
       out.G = { x = G.x, y = G.y, z = G.z }; out.W = { x = W.x, y = W.y, z = W.z }
       out.gFlow = dfhack.maps.getTileFlags(xyz2pos(G.x, G.y, G.z)).flow_size
       out.wFlow = dfhack.maps.getTileFlags(xyz2pos(W.x, W.y, W.z)).flow_size
+      out.wShape = df.tiletype_shape[df.tiletype.attrs[dfhack.maps.getTileType(W.x, W.y, W.z)].shape]
       break
     end
     if out.tried >= 40 then break end
@@ -3591,8 +3600,11 @@ print(json.encode(out))""")
         else:
             G, W = j.get("G") or {}, j.get("W") or {}
             adj = max(abs((G.get("x") or 0) - (W.get("x") or 0)), abs((G.get("y") or 0) - (W.get("y") or 0))) == 1
-            ok = (j.get("gFlow") or 0) < 4 and (j.get("wFlow") or 0) >= 4 and G.get("z") == W.get("z") and adj
-            rec("mech.v71.bankpair", "PASS" if ok else "FAIL", "G flow < 4, W flow >= 4, same z, adjacent", json.dumps(j),
+            # r2: DF's river and lake banks are a level above the water (RinghatchetsReady: 0 of 10,593 surveyed tiles had a dry
+            # tile beside them at their level); the engine's ramp bank is G one level up beside the flooded RAMP W it leans on
+            level = G.get("z") == W.get("z") or (G.get("z") == (W.get("z") or 0) + 1 and j.get("wShape") == "RAMP")
+            ok = (j.get("gFlow") or 0) < 4 and (j.get("wFlow") or 0) >= 4 and level and adj
+            rec("mech.v71.bankpair", "PASS" if ok else "FAIL", "G flow < 4, W flow >= 4, adjacent: at the same z, or G one z up beside a flooded ramp W (the ramp bank)", json.dumps(j),
                 note="" if j.get("body") in ("river", "lake") else f"no river or lake tile found a pair first; judged on a {j.get('body')} shore")
 
 
@@ -4471,7 +4483,10 @@ local by = {}
 for _, u in ipairs(df.global.world.units.active) do
   if not dfhack.units.isDead(u) and sw.WILD.onMap(u) and sw.V7.natural(cfg, u) and sw.WILD.layerOf(u) ~= 'deep' then
     local lab = sw.cohesionLabel(u.race, cfg)
-    if G.PANICS[lab] and not sw.V7.PERF.rawFlag(u.race, 'FLIER') then by[u.race] = by[u.race] or {}; table.insert(by[u.race], u) end
+    -- r2: only units DF gives a walk group (V7.GRP.walkToward walks within one); on RinghatchetsReady the crundles of an
+    -- unrevealed cavern stood on walk group 0 and the probe judged a walk the engine rightly never tries
+    local wg = dfhack.maps.getWalkableGroup(u.pos)
+    if G.PANICS[lab] and not sw.V7.PERF.rawFlag(u.race, 'FLIER') and wg and wg ~= 0 then by[u.race] = by[u.race] or {}; table.insert(by[u.race], u) end
   end
 end
 local race, ms
