@@ -712,6 +712,44 @@ def bad(j):
         return "no JSON: " + str(j["_raw"])[:400]
     return None
 
+# v7.1-rc (run 20261002-144629): the open window's Live list, read from the list itself -- its cursor, its length, its
+# page and the rows of the Herds & packs header and the first tracked-group row (-1 when absent). The screen shows one
+# page of it; on a big fort both sit below the fold.
+LIVE_LIST_LUA = """local gw=reqscript('gui/seasonal-wildlife')
+local w=gw.view and gw.view.subviews and gw.view.subviews[1]
+local l=w and w.subviews and w.subviews.live
+if not l then print(json.encode({_err='the Live list is not open'})) return end
+local herds, grp, n = -1, -1, 0
+for i, c in ipairs(l:getChoices()) do
+  n = i
+  local t = c.text
+  if type(t) == 'table' then local s = {}; for _, tok in ipairs(t) do s[#s+1] = type(tok) == 'table' and tostring(tok.text or '') or tostring(tok) end; t = table.concat(s) end
+  if herds < 0 and tostring(t or ''):find('Herds & packs', 1, true) then herds = i end
+  if grp < 0 and c.grp then grp = i end
+end
+print(json.encode({sel=(l:getSelected()) or 0, n=n, page=l.page_size or 1, herds=herds, grp=grp}))"""
+
+def live_list():
+    return luap(LIVE_LIST_LUA, timeout=60)
+
+def live_cursor_to(target, rounds=3):
+    """Move the Live list's cursor onto row `target` with the player's keys (PageDown/PageUp for whole pages, then
+    Down/Up), reading the cursor back from the list after each round. Returns the list state after the last round."""
+    st = live_list()
+    for _ in range(rounds):
+        if bad(st) or target < 1 or st.get("sel") == target:
+            return st
+        d, page = target - (st.get("sel") or 1), max(1, st.get("page") or 1)
+        if abs(d) >= page:
+            for _ in range(abs(d) // page): key("STANDARDSCROLL_PAGEDOWN" if d > 0 else "STANDARDSCROLL_PAGEUP", 0.3)
+            st = live_list()
+            if bad(st):
+                return st
+            d = target - (st.get("sel") or 1)
+        for _ in range(abs(d)): key("STANDARDSCROLL_DOWN" if d > 0 else "STANDARDSCROLL_UP", 0.2)
+        st = live_list()
+    return st
+
 def rec_bad(cids, j, what="the probe's JSON"):
     """Record FAIL on every claim a broken probe was meant to judge."""
     for cid in ([cids] if isinstance(cids, str) else cids):
@@ -2094,12 +2132,33 @@ local function J(t, name, f)
   t[name]={ms=ms, ok=ok, err=(not ok) and tostring(err):sub(1,160) or nil, path='job'}
 end
 J(out.jobs, 'season hold (daily)', function() sw.holdOutOfSeason(ro, df.global.cur_season); sw.CAVERN.apply(ro, df.global.cur_season) end)
-J(out.jobs, 'groups (300 t)', function() sw.groupsTick(ro, sw.loadGroups()) end)
+-- v7.1-rc (run 20261002-144629: groups 51 ms, and no record of which part): the pass's own laps (FUSE.lap, groups:*) are
+-- read before and after, so the timed pass names its parts. CACHE.passJob marks it as the scheduled pass FUSE.job runs
+-- (v7.1-rc V7.PASS: the water step is then a pass of its own a few ticks later); that pass is timed on its own below.
+local function laps() local o = {}; for name, st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do if name:find('^groups:') then o[name] = { runs = st.runs or 0, sum = st.ms_sum or 0 } end end; return o end
+local function lapDiff(a, b) local o = {}; for name, x in pairs(b) do local y = a[name] or { runs = 0, sum = 0 }; if x.runs > y.runs then o[name] = x.sum - y.sum end end; return o end
+local GJ = (sw.V7 and sw.V7.PASS) and 'seasonal-wildlife/groups' or nil
+local l0 = laps()
+J(out.jobs, 'groups (300 t)', function() C.passJob = GJ; sw.groupsTick(ro, sw.loadGroups()) end)
+C.passJob = nil
+local l1 = laps()
+out.groups_parts = lapDiff(l0, l1)
+if GJ then
+  J(out.jobs, 'groups water pass (its own pass)', function() C.passJob = GJ; sw.V7.PASS.water() end)
+  C.passJob = nil
+  out.water_parts = lapDiff(l1, laps())
+end
 -- the session's own record of the scheduled passes (FUSE.job): runs, mean, worst, passes over budget
 out.fuse = {}
 for name, st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do
   if st.ms_sum and (name:find('/groups$') or name:find('/ecology$')) then
     out.fuse[name] = {runs=st.runs, mean=math.floor(10*st.ms_sum/math.max(1,st.runs)+0.5)/10, worst=st.worst, over=st.over}
+  end
+end
+out.fuse_parts = {}   -- v7.1-rc: the session's per-part laps of the groups pass (mean, worst, runs)
+for name, st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do
+  if name:find('^groups:') and st.ms_sum then
+    out.fuse_parts[name] = {runs=st.runs, mean=math.floor(10*st.ms_sum/math.max(1,st.runs)+0.5)/10, worst=st.worst}
   end
 end
 out.parts = {}
@@ -2176,8 +2235,14 @@ def phase_w0(fort):
     live = {k: v.get("ms") for k, v in (t.get("live") or {}).items() if v.get("ms")}   # the Live tab's status lines, each timed alone
     rec("w0.timing.tabs", "PASS" if tabs and not slow_t else "FAIL", "every tab refresh < 100 ms",
         json.dumps({k: v.get("ms") for k, v in tabs.items()}) + (f"; Live parts {json.dumps(live)}" if live else ""), data=t)
+    # v7.1-rc: the timed passes' own parts, and the session's worst parts, so a slow pass names where it spent its time
+    gp = {k: v for k, v in sorted((t.get("groups_parts") or {}).items(), key=lambda kv: -kv[1]) if v}
+    wp = {k: v for k, v in sorted((t.get("water_parts") or {}).items(), key=lambda kv: -kv[1]) if v}
+    fp = {k: v.get("worst") for k, v in sorted((t.get("fuse_parts") or {}).items(), key=lambda kv: -(kv[1].get("worst") or 0))[:6]}
     rec("w0.timing.jobs", "PASS" if jobs and not slow_j else "FAIL", "every job pass < 50 ms (timed on the job's own path), and the session's mean pass < 50 ms",
-        json.dumps({k: v.get("ms") for k, v in jobs.items()}) + (f"; session {json.dumps(fuse)}" if fuse else "") + (f"; over: {json.dumps(slow_j)}" if slow_j else ""), data=t)
+        json.dumps({k: v.get("ms") for k, v in jobs.items()}) + (f"; session {json.dumps(fuse)}" if fuse else "") + (f"; over: {json.dumps(slow_j)}" if slow_j else "")
+        + (f"; groups pass parts {json.dumps(gp)}" if gp else "") + (f"; water pass parts {json.dumps(wp)}" if wp else "")
+        + (f"; session worst parts {json.dumps(fp)}" if fp else ""), data=t)
     # the roster rule, with every present layer on and the season applied
     cmd("layer", "water", "on"); cmd("layer", "cavern", "on")
     cmd("now")
@@ -3069,9 +3134,20 @@ def phase_gui():
     rec("gui.k.liveG", "PASS" if g0.get("groups") != g1.get("groups") else "FAIL", "cfg.groups.enabled flips", f"{g0.get('groups')} -> {g1.get('groups')}")
     key("CUSTOM_G", 1.0)
     # v5.11.2: the Live keys and the Herds & packs block
+    # v7.1-rc (run 20261002-144629, RinghatchetsReady): the Live tab is ONE scrolling list. On the 8x8 fort its status
+    # lines (eleven per-layer rows, the ten-row 'Wild on map' census, the origin census, limits, cavern map) fill the
+    # first page, so Herds & packs and all 64 tracked-group rows sit below the fold. The tool draws them (refreshLive
+    # sets the choices once, after its last block); this probe read page one only: v6.herds FAILED, v6.live.hotkeys
+    # FAILED through okh alone (P and K both acted), and Q/X/F/Enter were 'no tracked group on the map'. Now the list's
+    # own rows say where the block and the first group row are, and the player's keys page the cursor there.
+    herds_ok = lambda s: "Herds & packs" in s and "cohesion" in s and ("herd" in s or "pack" in s or "flock" in s or "no tracked species" in s)
     th = screen("C17b-live-herds")
-    okh = "Herds & packs" in th and "cohesion" in th and ("herd" in th or "pack" in th or "flock" in th or "no tracked species" in th)
-    rec("v6.herds", "PASS" if okh else "FAIL", "Herds & packs: the cohesion line and per-species label/reason/override rows (or 'no tracked species')", th[:600], note="shipped in v5.11.2 inside the Live tab")
+    okh = herds_ok(th)
+    ll = live_list()
+    if not okh and not bad(ll) and ll.get("herds", -1) > 0:
+        ll = live_cursor_to(ll["herds"]); th = screen("C17b-live-herds-scrolled"); okh = herds_ok(th)
+    rec("v6.herds", "PASS" if okh else "FAIL", "Herds & packs: the cohesion line and per-species label/reason/override rows (or 'no tracked species'); scrolled to when below the fold",
+        th[:600], data={"live_list": ll}, note="shipped in v5.11.2 inside the Live tab")
     cfgq = lambda: luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode({coupling=cfg.groups.coupling, pack=cfg.groups.pack, follow=df.global.plotinfo.follow_unit, wx=df.global.window_x, wy=df.global.window_y, wz=df.global.window_z}))", timeout=60)
     q0 = cfgq(); key("CUSTOM_P", 1.0); q1 = cfgq()
     rec("gui.k.liveP", "PASS" if isinstance(q0, dict) and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "cfg.groups.coupling flips", f"{q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}")
@@ -3080,15 +3156,14 @@ def phase_gui():
     rec("gui.k.liveK", "PASS" if isinstance(q2, dict) and q2.get("pack") != q1.get("pack") else "FAIL", "cfg.groups.pack moves to the next step", f"{q1.get('pack')} -> {q2.get('pack') if isinstance(q2, dict) else q2}")
     for _ in range(4): key("CUSTOM_K", 0.6)   # back round to raw
     # the group rows: Q / X / F / Enter need a tracked group on the map
-    rows_live = [l for l in th.splitlines() if re.search(r"\bx\d+ (gated|resident)", l)]
-    if rows_live:
-        # v6.1.0: the status lines come first; find the first group row's index in the list (the list starts two
-        # screen rows under the 'q: Hold 30 days' key row) and step the cursor down to it from row 1
-        rown = lambda l: int(m.group(1)) if (m := re.match(r"^\s*(\d+)\|", l)) else None
-        qrow = next((rown(l) for l in th.splitlines() if "Hold 30 days" in l), None)
-        grow = next((rown(l) for l in th.splitlines() if re.search(r"\bx\d+ (gated|resident)", l)), None)
-        steps = (grow - qrow - 2) if (qrow is not None and grow is not None) else 1
-        for _ in range(max(0, steps)): key("STANDARDSCROLL_DOWN", 0.25)
+    # v7.1-rc: the first group row is found in the list itself (it can be a page or more below the fold on a big fort)
+    # and the cursor paged onto it; the act keys then run on a row the list says is a group row
+    ll = live_list()
+    on_grp = False
+    if not bad(ll) and ll.get("grp", -1) > 0:
+        ll = live_cursor_to(ll["grp"]); on_grp = not bad(ll) and ll.get("sel") == ll.get("grp")
+    if on_grp:
+        screen("C17b-live-grouprow")
         key("CUSTOM_Q", 1.2); tq = screen("C17c-live-hold"); pq = shot("C17c-live-hold")
         rec("gui.k.liveQ", "PASS" if "held" in tq and "more days" in tq else "FAIL", "the selected group's row says 'held N more days'", tq[:500], shots=[pq] if pq else [])
         f0 = cfgq(); key("CUSTOM_F", 1.2); f1 = cfgq()
@@ -3100,15 +3175,21 @@ def phase_gui():
         rec("gui.k.liveEnter", "PASS" if moved else "FAIL", "the viewport moves after Enter on a group row", f"{(e0.get('wx'), e0.get('wy'), e0.get('wz')) if isinstance(e0, dict) else e0} -> {(e1.get('wx'), e1.get('wy'), e1.get('wz')) if isinstance(e1, dict) else e1}")
         key("CUSTOM_X", 1.2); tx = screen("C17d-live-dismiss"); px = shot("C17d-live-dismiss")
         rec("gui.k.liveX", "PASS" if "dismissed" in tx else "FAIL", "the selected group's row says 'dismissed'", tx[:500], shots=[px] if px else [])
+    elif bad(ll) or ll.get("grp", -1) > 0:
+        # the list could not be read, or the keys did not bring the cursor onto the group row: that is the window's
+        # scrolling failing (or the probe's), not an empty map -- judged, not excused
+        why = bad(ll) or f"cursor at row {ll.get('sel')} after paging, first group row {ll.get('grp')} of {ll.get('n')}"
+        for cid in ("gui.k.liveQ", "gui.k.liveX", "gui.k.liveF", "gui.k.liveEnter"):
+            rec(cid, "FAIL", "the cursor reaches a tracked group row with PageDown/Down", why, data={"live_list": ll})
     else:
         for cid in ("gui.k.liveQ", "gui.k.liveX", "gui.k.liveF", "gui.k.liveEnter"):
-            rec(cid, "NOT-TESTABLE-HERE", "a tracked group row to act on", "no tracked group on the map at this point of the run", note="the groups job had no gated or resident group when the Live tab was reached")
+            rec(cid, "NOT-TESTABLE-HERE", "a tracked group row to act on", f"the Live list has no tracked-group row ({ll.get('n')} rows)", note="the groups job had no gated or resident group when the Live tab was reached")
     rf0 = luaj("local sw=reqscript('seasonal-wildlife'); local n=0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' and (u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature) then n=n+1 end end; print(json.encode({flagged=n}))", timeout=60)
     key("CUSTOM_W", 1.5)
     rf1 = luaj("local sw=reqscript('seasonal-wildlife'); local n=0; for _,u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) and sw.WILD.layerOf(u)=='land' and (u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature) then n=n+1 end end; print(json.encode({flagged=n}))", timeout=60)
     w0 = rf0.get("flagged", -1) if isinstance(rf0, dict) else -1; w1 = rf1.get("flagged", -1) if isinstance(rf1, dict) else -1
     rec("gui.k.liveW", "PASS" if w0 > 0 and w1 == 0 else ("NOT-TESTABLE-HERE" if w0 == 0 else "FAIL"), "W clears the roaming-source flag on every wild land unit (force Wildlife), like Ctrl+F", f"flagged {w0} -> {w1}")
-    rec("v6.live.hotkeys", "PASS" if okh and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "Live tab hotkeys P K Q X W F and Enter centres the map", f"P flips coupling: {q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}; group-row keys above", note="shipped in v5.11.2")
+    rec("v6.live.hotkeys", "PASS" if okh and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "Live tab hotkeys P K Q X W F and Enter centres the map", f"Herds & packs reached: {okh}; P flips coupling: {q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}; group-row keys above", note="shipped in v5.11.2")
     # Layers (v5.11.3)
     click("Layers"); t = screen("C17e-layers"); p = shot("C17e-layers")
     # v7.1 (R7, ui e64f323): the 'groups at once' row is 'group cap' (the map-size formula or the fixed cap per layer)
