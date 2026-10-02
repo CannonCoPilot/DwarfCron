@@ -528,9 +528,26 @@ def log(msg):
     line = f"{datetime.now().strftime('%H:%M:%S')} {msg}"
     print(line, flush=True); _log.write(line + "\n"); _log.flush()
 
+# r2: a NOT-TESTABLE-HERE row names the fort (or the world condition) that would test it. These claims recorded the
+# verdict with no note; the hint is used when the call site gives none.
+_PRESET = "an active, stocked land species in season: CTRL or RinghatchetsReady with the biome preset applied (the CLI phase's `preset`, re-applied after the LAKE reload)"
+FORT_HINT = {
+    "mech.stock.reserve": _PRESET, "mech.odds": _PRESET, "mech.groupsize": _PRESET, "mech.deep": _PRESET, "mech.origin": _PRESET,
+    "mech.call": _PRESET, "cli.roster.state": _PRESET, "cli.seasons.set": _PRESET, "cli.roster.undo": _PRESET,
+    "cli.seasons.activate": "an inactive species: any fort after `preset` (CTRL, RinghatchetsReady) leaves out-of-roster species inactive",
+    "mech.v69.exhaust": "an in-season land species with an active out-of-season group-mate: CTRL or RinghatchetsReady after `preset` (the matrix spreads a group's species over seasons)",
+    "gui.k.liveW": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
+    "gui.k.ctrlF": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
+    "mech.v70.fishers_flags": "a listed fisher whose raw lacks CAN_SWIM_INNATE: no fort -- every vanilla bear (and the raccoon) already swims innately (FSH2); a modded raw",
+    "cli.v70.sponges": "the water layer on: any fort with surface water (v7.1 turns it on by itself: CTRL's pool, RinghatchetsReady's river)",
+    "mech.v70.leader_male": "2+ live adult citizens: any fort with a founding seven (CTRL, RinghatchetsReady)",
+}
+
 def rec(cid, verdict, expected, got, shots=(), data=None, note=""):
     assert cid in CLAIM, cid
     c = CLAIM[cid]
+    if verdict == "NOT-TESTABLE-HERE" and not note:
+        note = FORT_HINT.get(cid, "")
     results.append({"id": cid, "surface": c[1], "claim": c[2], "source": c[3], "claimed": c[4],
                     "verdict": verdict, "expected": expected, "got": (got or "").strip()[:1500],
                     "shots": [str(Path(s).relative_to(OUT)) for s in shots], "data": data, "note": note})
@@ -730,19 +747,20 @@ sw.saveConfig(snap.cfg); sw.saveGroups(snap.groups)
 if snap.cfg.enabled and not now.enabled then pcall(dfhack.run_command_silent, 'seasonal-wildlife', 'enable') end
 print(json.encode({depth=#st, enabled=snap.cfg.enabled}))""")
 
-# Which fort a fort-dependent claim needs. R11: region8 ('The Last Planets') for all testing from 1 Oct 2026; its 1x1
+# Which fort a fort-dependent claim needs. R11 named region9 for all testing from 1 Oct 2026; later that day the user put
+# region9 and its fort RinghatchetsReady in its place (cx-config.sh CX_TEST_WORLD), so the notes name region9. Its 1x1
 # forts come from scripts/b1-forts.py (embark --only NEED). Until they exist, the older fort named after 'until then'
 # carries the same condition. A claim whose condition is missing on the loaded fort is NOT-TESTABLE-HERE naming this.
 NEED = {
-    "ocean": "an ocean on the map: region8 B1-R8-*-SHORE (b1-forts.py embark --only shore); until then OCEAN2 (shallow) or BOATS (deep columns)",
-    "ocean_deep": "ocean columns of 3+ stacked water tiles: BOATS (DEPTH survey: 12,045 columns >= 3), or a region8 SHORE fort whose `water depth` shows them",
-    "ocean_shallow": "a shallow ocean (columns of 1-2 only): OCEAN2, or a region8 SHORE fort whose `water depth` shows max 2",
-    "lake": "a lake on the map: region8 B1-R8-*-LAKE (b1-forts.py embark --only lake); until then LAKE",
-    "river": "a river on the map: region8 B1-R8-*-RIVER (b1-forts.py embark --only river); until then RIVER4",
-    "water": "any open surface water: region8 SHORE/LAKE/RIVER; until then LAKE, RIVER4, OCEAN2 or BOATS",
-    "dry": "a dry map (no surface water): CTRL, or a region8 interior 1x1 with no water in `facts`",
-    "cavern_reached": "a cavern the fort has reached (Discovered): a region8 fort after a breach (dig-now + aquifer seal, memory fort-load-levers); CTRL's caverns are never opened",
-    "calm": "a calm map (savagery under 33): region8 B1-R8-*-CALM; CTRL is calm",
+    "ocean": "an ocean on the map: region9 B1-R9-*-SHORE (b1-forts.py embark --only shore); until then OCEAN2 (shallow) or BOATS (deep columns)",
+    "ocean_deep": "ocean columns of 3+ stacked water tiles: BOATS (DEPTH survey: 12,045 columns >= 3), or a region9 SHORE fort whose `water depth` shows them",
+    "ocean_shallow": "a shallow ocean (columns of 1-2 only): OCEAN2, or a region9 SHORE fort whose `water depth` shows max 2",
+    "lake": "a lake on the map: region9 B1-R9-*-LAKE (b1-forts.py embark --only lake); until then LAKE",
+    "river": "a river on the map: region9 B1-R9-*-RIVER (b1-forts.py embark --only river); until then RIVER4",
+    "water": "any open surface water: region9 SHORE/LAKE/RIVER; until then LAKE, RIVER4, OCEAN2 or BOATS",
+    "dry": "a dry map (no surface water): CTRL, or a region9 interior 1x1 with no water in `facts`",
+    "cavern_reached": "a cavern the fort has reached (Discovered): a region9 fort after a breach (dig-now + aquifer seal, memory fort-load-levers); CTRL's caverns are never opened",
+    "calm": "a calm map (savagery under 33): region9 B1-R9-*-CALM; CTRL is calm",
     "r2": "the rig on DFHack 53.16-r2 (dfhack.units.getBreathingState, dfhack.maps.forEachTile)",
     "fish": "a fort whose water draws a fish this season: RinghatchetsReady (region9, the user's test fort from 1 Oct 2026) with its river, or OCEAN2/BOATS (ocean schools)",
     "river_or_lake": "a river or lake on the map: RinghatchetsReady (region9) if its survey shows one; until then RIVER4 or LAKE (a pool's banks are a level above its water)",
@@ -1613,7 +1631,7 @@ print(json.encode({fishTok=fishTok, seasonKey=seasonE and seasonE.key, soloKey=s
                 json.dumps({"key": j.get("soloKey"), "before": b.get("solo"), "after": af.get("solo"), "post": po.get("solo")}))
         else:
             rec("mech.v70.solo_raws", "NOT-TESTABLE-HERE", "an armed, in-embark, solitary predator (v7.1: MODEL.cohesionOf 'solitary' with an ambush profile) not already AMBUSHPREDATOR on every caste", json.dumps(j)[:400],
-                note="any embark with a solitary land hunter (cougar, leopard, tiger, giant ...): a region8 savage or forest 1x1")
+                note="any embark with a solitary land hunter (cougar, leopard, tiger, giant ...): a region9 savage or forest 1x1")
         okFish = af.get("fish", 0) > (b.get("fish") or 0) and po.get("fish") == b.get("fish")
         rec("mech.v70.fishers_flags", "PASS" if okFish else ("NOT-TESTABLE-HERE" if (b.get("fish") or 0) > 0 else "FAIL"),
             "CAN_SWIM_INNATE set on a listed fisher that lacks it (v7.fisher_list; v7.1: a non-swimming land carnivore put on the list for the probe, the bears swim already) by V7.apply, restored by V7.restore()",
@@ -3434,10 +3452,10 @@ print(json.encode(out))""")
         rec("mech.v71.skill_profile", ("PASS" if both else "NOT-TESTABLE-HERE") if okS and okP else "FAIL",
             "every caste's SNEAK at the profile after V7.apply (solitary 15/12, pack 5), the vanilla level after V7.restore()",
             json.dumps({k: j.get(k) for k in ("soloTok", "soloProf", "soloLvl", "solo_before", "solo_after", "packTok", "packProf", "packLvl", "pack_before", "pack_after")} | {"post": post}),
-            note="" if both else "only one of the two profiles (solitary / pack) has an in-embark species on this fort; a savage region8 fort with wolves and a cougar has both")
+            note="" if both else "only one of the two profiles (solitary / pack) has an in-embark species on this fort; a savage region9 fort with wolves and a cougar has both")
     else:
         rec("mech.v71.skill_profile", "NOT-TESTABLE-HERE", "an in-embark packaged hunter (solitary or pack)", json.dumps(j)[:600],
-            note="no armed natural predator in this embark's pool; a region8 savage fort (B1-R8-*-SAVAGE) has them")
+            note="no armed natural predator in this embark's pool; a region9 savage fort (B1-R9-*-SAVAGE) has them")
     # skill_units
     ub, ua, up = j.get("unit_before") or {}, j.get("unit_after") or {}, post.get("unit") or {}
     if j.get("unitId"):
@@ -3449,14 +3467,14 @@ print(json.encode(out))""")
             json.dumps({"unit": j.get("unitId"), "token": j.get("unitTok"), "level": lvl, "before": ub, "after": ua, "post": up}))
     else:
         rec("mech.v71.skill_units", "NOT-TESTABLE-HERE", "a live unit with a soul of a packaged species on the map", json.dumps({"placed": placed1, "placeTok": placeTok}),
-            note="no stocked packaged hunter to place on this fort; a region8 savage fort (B1-R8-*-SAVAGE) has wolves and cougars in stock")
+            note="no stocked packaged hunter to place on this fort; a region9 savage fort (B1-R9-*-SAVAGE) has wolves and cougars in stock")
     # readback
     if (j.get("rbN") or 0) > 0:
         rec("mech.v71.readback", "PASS" if not j.get("rbBad") else "FAIL", "one row per packaged species, casteOk == castes on every row",
             json.dumps({"rows": j.get("rbN"), "short": j.get("rbBad")}))
     else:
         rec("mech.v71.readback", "NOT-TESTABLE-HERE", "a packaged species after V7.apply", json.dumps({"rows": j.get("rbN")}),
-            note="no armed natural predator in this embark's pool; any region8 fort with wildlife predators")
+            note="no armed natural predator in this embark's pool; any region9 fort with wildlife predators")
     # raptor_armed
     if j.get("rapTok"):
         n = j.get("rapCastes") or 0
@@ -3467,7 +3485,7 @@ print(json.encode(out))""")
             note="" if j.get("rapTok") == "BIRD_EAGLE" else "no BIRD_EAGLE in this embark; the first in-embark RP species stood in")
     else:
         rec("mech.v71.raptor_armed", "NOT-TESTABLE-HERE", "an in-embark raptor (RP guild)", json.dumps(j)[:400],
-            note="no raptor in this embark's pool; a region8 temperate forest or mountain fort has eagles")
+            note="no raptor in this embark's pool; a region9 temperate forest or mountain fort has eagles")
     # solo_skill (v7.0 reserved)
     lvl = j.get("soloLvl")
     if j2 and not bad(j2) and j2.get("id") and lvl:
@@ -3477,7 +3495,7 @@ print(json.encode(out))""")
     else:
         rec("mech.v70.solo_skill", "NOT-TESTABLE-HERE", "a stocked solitary hunter to place while the raws hold",
             json.dumps({"soloTok": j.get("soloTok"), "placed": placed2, "probe": j2 if isinstance(j2, dict) else {}})[:600],
-            note="needs a stocked solitary predator (cougar, jaguar, bear) on the land layer: a region8 savage fort (B1-R8-*-SAVAGE)")
+            note="needs a stocked solitary predator (cougar, jaguar, bear) on the land layer: a region9 savage fort (B1-R9-*-SAVAGE)")
 
 
 def _a_packs_model():
@@ -3647,7 +3665,7 @@ print(json.encode({ lab = (w and w >= 0) and sw.cohesionLabel(w, sw.loadConfig()
             ok = j.get("wolfLabel") == "herd" and j.get("cougarLabel") == "solitary" and j.get("cougarLed") is False and okLive and ja.get("lab") == "pack"
             rec("mech.v71.fix.cohesion_override", "PASS" if ok else "FAIL",
                 "WOLF -> herd (live group at follow_herd), auto -> pack; COUGAR solitary -> unled", json.dumps(j | {"after_auto": ja.get("lab")}),
-                note="" if j.get("liveLabel") else "no tracked WOLF group on the map: the label and follow distance were read off cohesionLabel and a memberless group; a live group needs wolves (region8 savage/forest fort, or `place WOLF 4`)")
+                note="" if j.get("liveLabel") else "no tracked WOLF group on the map: the label and follow distance were read off cohesionLabel and a memberless group; a live group needs wolves (region9 savage/forest fort, or `place WOLF 4`)")
     else:
         tool("hunters", "cohesion", "WOLF", "auto"); tool("hunters", "cohesion", "COUGAR", "auto")
 
@@ -3691,7 +3709,7 @@ print(json.encode({ waited = #waited, foragerOk = okF, sentForaging = okF and er
         rec_bad("mech.v71.fix.forager_no_crash", j)
     elif (j.get("waited") or 0) == 0 and not DRY:
         rec("mech.v71.fix.forager_no_crash", "NOT-TESTABLE-HERE", "a wild unit on the map to stand as the waiting scavenger", json.dumps(j),
-            note="no wild unit on the map; any region8 fort with wildlife present")
+            note="no wild unit on the map; any region9 fort with wildlife present")
     else:
         ok = j.get("foragerOk") is True and j.get("runOk") is True and (j.get("sentForaging") or 0) == 0
         rec("mech.v71.fix.forager_no_crash", "PASS" if ok else "FAIL",
@@ -3727,7 +3745,7 @@ print(json.encode(out))""", timeout=240)
             rec_bad("mech.v71.fix.edges_after_build", j)
         elif (j.get("rows") or 0) == 0 and not DRY:
             rec("mech.v71.fix.edges_after_build", "NOT-TESTABLE-HERE", "a roster build with at least one write edge to a vermin class", json.dumps(j),
-                note="the land build here seated no vermin consumer with a write edge; a region8 fort with small land predators (ML) gives them")
+                note="the land build here seated no vermin consumer with a write edge; a region9 fort with small land predators (ML) gives them")
         else:
             ok = "per species" in (j.get("label") or "") and len(j.get("hits") or []) > 0
             rec("mech.v71.fix.edges_after_build", "PASS" if ok else "FAIL",
@@ -3753,7 +3771,7 @@ print(json.encode(out))""").replace("@T0@", str(t0)))
             rec_bad("mech.v71.fix.apex_pelagic", j)
         elif not recs:
             rec("mech.v71.fix.apex_pelagic", "NOT-TESTABLE-HERE", "a water apex the build seated, in stock, placed by `roster apex now water`", out[:600],
-                note="no water apex group was placed (none seated or none stocked); OCEAN2 or a region8 SHORE fort seats a pelagic apex")
+                note="no water apex group was placed (none seated or none stocked); OCEAN2 or a region9 SHORE fort seats a pelagic apex")
         else:
             okBody = all((r.get("body") == "ocean") for r in recs if r.get("pelagic"))
             okLead = all(r.get("leader") or r.get("unled") for r in recs if (r.get("n") or 0) >= 2)
@@ -3980,7 +3998,7 @@ print(json.encode(out))""")
         rec("mech.v71.scav_discovery", "PASS" if ok else "FAIL",
             "default medians: found >= discover_min_h after it is seen (never in its first pass); every delay key at 0: found at once", json.dumps(j),
             note="the notes' recipe (discover_*_h 0 and scent_ticks 0) still leaves discover_min_h (2 h = 100 t), so a remains is not found in its first pass "
-                 "unless discover_min_h is 0 too (zeroMedians shows it); judged on SCAV.newRemains, the live corpse-and-scavenger half is rig test SCV on region8")
+                 "unless discover_min_h is 0 too (zeroMedians shows it); judged on SCAV.newRemains, the live corpse-and-scavenger half is rig test SCV on region9")
 
     # ---- attribution: needs a remains eaten to the end
     j = luap("""local sw=reqscript('seasonal-wildlife'); local s = sw.SCAV.stats()
@@ -3995,7 +4013,7 @@ print(json.encode({ pairs = ps, ledger = led }))""")
         rec("mech.v71.scav_attribution", "FAIL", "the pair counter and the ledger line together", json.dumps(j)[:600])
     else:
         rec("mech.v71.scav_attribution", "NOT-TESTABLE-HERE", "a remains finished by a scavenger this session", json.dumps(j),
-            note="needs a carcass and a scavenger over a day or more (rig test SCV, region8 savage fort with vultures or jackals)")
+            note="needs a carcass and a scavenger over a day or more (rig test SCV, region9 savage fort with vultures or jackals)")
 
     # ---- fb_safe remains and walkers
     j = luap("""local sw=reqscript('seasonal-wildlife'); local S=sw.SCAV; local V7=sw.V7
@@ -4046,7 +4064,7 @@ print(json.encode(out))""")
         rec("mech.v70.scav_ext", "PASS" if okM and okR and okS else "FAIL",
             "scav_ext on by default; flier/aquatic/amphibious/land movers; wet remains suit swimmers and are reached from 2 tiles and a level; the status counts fallbacks",
             json.dumps({k: j.get(k) for k in ("extDefault", "mover", "wetAquatic", "wetAmph", "dryLand", "wetReach2", "dryReach2")} | {"statOn": (j.get("statOn") or "")[-120:]}),
-            note="structural: the live landings, wades and hops are rig test SCV/SCVW (region8 SHORE or RIVER fort with vultures and crocodiles)")
+            note="structural: the live landings, wades and hops are rig test SCV/SCVW (region9 SHORE or RIVER fort with vultures and crocodiles)")
 
     # ---- curious console
     o_off = tool("curious", "reform", "off"); v_off = cfgv("curious.reform")
@@ -4083,7 +4101,7 @@ print(json.encode({ tok = best }))""")
         uid = int(m.group(1)) if m else None
     if not uid and not DRY:
         rec("mech.v71.curious_reform", "NOT-TESTABLE-HERE", "a stocked curious-thief species to place (RACCOON, MAGPIE, ...)", json.dumps({"tok": tok}),
-            note="no stocked curious beast on this fort; a region8 temperate forest fort (raccoons) or BOATS (its raccoon trace)")
+            note="no stocked curious beast on this fort; a region9 temperate forest fort (raccoons) or BOATS (its raccoon trace)")
     else:
         jr = luap(("""local sw=reqscript('seasonal-wildlife'); local C=sw.CURIOUS; local V7=sw.V7
 local u = df.unit.find(@UID@)
@@ -4115,7 +4133,7 @@ print(json.encode({ bits = b, countdown = u and u.animal.leave_countdown or nil 
             rec("mech.v71.curious_reform", "PASS" if ok else "FAIL",
                 "reformed within one pass (bits clear, countdown in stay range, ledger line); disable restores the bits and countdown 0",
                 json.dumps({"token": tok, "unit": uid, "pass": jr, "after_disable": jd}),
-                note="no theft was staged, so the dropped-loot half is not judged (rig test CUR on a region8 forest fort)")
+                note="no theft was staged, so the dropped-loot half is not judged (rig test CUR on a region9 forest fort)")
 
     # ---- disable cancels the jobs (the tool was re-enabled by nothing since: enable, set scavenging on, then disable)
     tool("enable"); tool("scavenge", "on"); tool("curious", "reform", "on")
@@ -4291,7 +4309,7 @@ print(json.encode({adopted=n, born=born, nat=nat, depths=depths, badDepth=bad, n
         rec_bad("mech.v71.cavern.count", j)
     elif (j.get("nat") or 0) == 0:
         rec("mech.v71.cavern.count", "NOT-TESTABLE-HERE", "an unflagged cavern native on the map to adopt", json.dumps(j)[:900],
-            note=f"no untracked cavern native here (wild cavern units {wild.get('cavern')}); a region8 fort with populated caverns (any 1x1 with cavern entries; caverns are stocked at embark even unbreached)")
+            note=f"no untracked cavern native here (wild cavern units {wild.get('cavern')}); a region9 fort with populated caverns (any 1x1 with cavern entries; caverns are stocked at embark even unbreached)")
     else:
         ok = (j.get("badDepth") or 0) == 0 and bool(j.get("natRow"))
         rec("mech.v71.cavern.count", "PASS" if ok else "FAIL",
@@ -4334,7 +4352,7 @@ print(json.encode(out))""", timeout=180)
         rec_bad("mech.v71.cavern.hold", j)
     elif j.get("d") is None:
         rec("mech.v71.cavern.hold", "NOT-TESTABLE-HERE", "a natural cavern-only species with an Animal entry in a cavern band", json.dumps(j),
-            note="no cavern entry on this map's region tiles; any region8 1x1 whose caverns carry entries")
+            note="no cavern entry on this map's region tiles; any region9 1x1 whose caverns carry entries")
     else:
         ok = ((j.get("held") or 0) > 0 and not j.get("bad") and (j.get("zero") or 0) == 0 and (j.get("offHeld") or 0) == 0
               and not j.get("diff") and (j.get("after") or 0) == 0)
@@ -4383,7 +4401,7 @@ print(json.encode(out))""", timeout=180)
         rec_bad("mech.v71.cavern.trim", j)
     elif not j.get("token"):
         rec("mech.v71.cavern.trim", "NOT-TESTABLE-HERE", "a native cavern group with live members", json.dumps(j),
-            note="no cavern natives on this map; a region8 fort with populated caverns")
+            note="no cavern natives on this map; a region9 fort with populated caverns")
     else:
         ok = (bool(j.get("msg")) and (j.get("tot") or 0) > 0 and j.get("low") == j.get("tot") and (j.get("undo") or 0) == j.get("tot")
               and (j.get("diff") or 0) == 0 and (j.get("back") or 0) == j.get("tot") and (j.get("undoAfter") or 0) == 0)
@@ -4535,7 +4553,7 @@ print(json.encode(out))""", timeout=180)
     elif not j.get("found"):
         for cid in ("mech.v71.lead.lost", "mech.v71.panic.walk"):
             rec(cid, "NOT-TESTABLE-HERE", "2+ live natural wild animals of one herd/pack species (non-flier) on the map", json.dumps(j),
-                note="place a herd first (a region8 fort with surface wildlife; or `place` a herd species)")
+                note="place a herd first (a region9 fort with surface wildlife; or `place` a herd species)")
     else:
         lost = j.get("lost") if isinstance(j.get("lost"), dict) else {}
         ok = (lost.get("why") in ("left", "died") and j.get("panic") and (j.get("following") or 0) == 0 and not j.get("leader")
@@ -4552,12 +4570,22 @@ print(json.encode(out))""", timeout=180)
     # ---- a water draw is led in water at once (needs surface water)
     if need("mech.v71.lead.water", "water", "a Driver B draw led by a wet leader"):
         tool("water", "layer", "on")
-        t = tool("water", "now")
-        m = re.search(r"water: drew (\S+) x(\d+) into the (\w+)", t)
-        if not m:
+        # r2: a draw of one fish has nobody to lead (cohere needs two); draw again, up to four times, for a group of 2+
+        draws = []
+        for _ in range(4):
+            t = tool("water", "now")
+            m = re.search(r"water: drew (\S+) x(\d+) into the (\w+)", t)
+            draws.append(m.group(0) if m else t.strip()[:80])
+            if not m or int(m.group(2)) >= 2:
+                break
+        if m and int(m.group(2)) < 2:
+            rec("mech.v71.lead.water", "NOT-TESTABLE-HERE", "`water now` draws a group of 2+", "; ".join(draws),
+                note="every draw was a single animal (nothing to lead); " + NEED["fish"])
+            m = None
+        elif not m:
             rec("mech.v71.lead.water", "NOT-TESTABLE-HERE", "`water now` draws a group", t[:600],
-                note="the draw found nothing (no stocked, in-season water species this season); see `water mix`")
-        else:
+                note="the draw found nothing (no stocked, in-season water species this season); see `water mix`; " + NEED["fish"])
+        if m:
             j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
 local g = sw.loadGroups(); local grp
 for i = #g.groups, 1, -1 do local x = g.groups[i]; if x.layer == 'water' and x.token == '@TOK@' then grp = x; break end end
@@ -4750,7 +4778,7 @@ print(json.encode(out))""", timeout=180)
         rec_bad("mech.v71.apcap", j)
     elif not j.get("subj"):
         rec("mech.v71.apcap", "NOT-TESTABLE-HERE", "a natural cavern-only animal-people species whose raw cluster max exceeds the cap (5)", json.dumps(j),
-            note="no such species in this map's cavern entries; a region8 fort whose caverns hold plump helmet men or another *_MAN race")
+            note="no such species in this map's cavern entries; a region9 fort whose caverns hold plump helmet men or another *_MAN race")
     else:
         o, cap = j.get("orig") or [0, 0], 5
         def mx(p): return max(p) if isinstance(p, list) and p else -1
@@ -4785,7 +4813,7 @@ print(json.encode({path='@PATH@', d=d, held=held, capped=capped, diff=diff, held
         rec_bad("mech.v71.restore", next(r for r in rows if bad(r)))
     elif all((r.get("held") or 0) == 0 and (r.get("capped") or 0) == 0 for r in rows):
         rec("mech.v71.restore", "NOT-TESTABLE-HERE", "a cavern species to hold and an animal-people species to cap", json.dumps(rows),
-            note="nothing to write on this map's cavern entries; a region8 fort with populated caverns")
+            note="nothing to write on this map's cavern entries; a region9 fort with populated caverns")
     else:
         ok = all(not r.get("diff") and (r.get("heldAfter") or 0) == 0 and (r.get("capAfter") or 0) == 0 for r in rows)
         rec("mech.v71.restore", "PASS" if ok else "FAIL",
@@ -4833,7 +4861,7 @@ print(json.encode(out))""")
         rec_bad("mech.v70.gate_drain", j)
     elif (j.get("n") or 0) < 3:
         rec("mech.v70.gate_drain", "NOT-TESTABLE-HERE", "three live natural wild land units to stand in as gated groups", json.dumps(j),
-            note="a region8 fort with surface wildlife on the map")
+            note="a region9 fort with surface wildlife on the map")
     else:
         hooks = len(re.findall(r"V7\.on\(cfg, 'gate_drain'\)", src))
         ok = (j.get("def") is True and j.get("extra") == 2 and j.get("res") == [True, True, False] and j.get("flags") == [False, False, True]
@@ -5011,7 +5039,7 @@ print(json.encode(out))""", timeout=180)
                 rec(cid, "FAIL", "the probe's JSON", why)
             else:
                 rec(cid, "NOT-TESTABLE-HERE", "a cavern band (open at the map edge) with a live, admitted, natural civ race or predator entry", json.dumps(j),
-                    note="region8 fort with cavern entries (b1-forts.py; R11); until then BOATS or OCEAN2 (their caverns carry civ races)")
+                    note="region9 fort with cavern entries (b1-forts.py; R11); until then BOATS or OCEAN2 (their caverns carry civ races)")
         _b_fbsafe(jf, None)
         _b_irr_status()
         _b_gui_rows()
@@ -5209,7 +5237,7 @@ print(json.encode(out))""")
             tk = j.get("tok") or {}
             if not ev.get("civ"):
                 rec("mech.v71.irr.tokens", "NOT-TESTABLE-HERE", "a civ wave (tokens are written on civ races only)", json.dumps(tk),
-                    note=f"cavern {CAV} sent a predator (no civ race there); a fort whose caverns hold a civ race (BOATS/OCEAN2; region8 per R11)")
+                    note=f"cavern {CAV} sent a predator (no civ race there); a fort whose caverns hold a civ race (BOATS/OCEAN2; region9 per R11 as amended)")
             else:
                 n = tk.get("n") or 0
                 per, pct = tk.get("per") or {}, tk.get("pct") or {}
@@ -5261,7 +5289,7 @@ print(json.encode(out))""").replace("@D@", str(D)))
     if not bad(j) and ev:
         if not j.get("apT"):
             rec("mech.v71.irr.r35", "NOT-TESTABLE-HERE", f"an animal-people species with a cluster max over 5 in cavern {CAV}", json.dumps({k_: j.get(k_) for k_ in ("apT",)}),
-                note="a fort whose irrupting cavern holds plump helmet men or another *_MAN race (region8 with populated caverns; BOATS saw plump helmet men, S8B)")
+                note="a fort whose irrupting cavern holds plump helmet men or another *_MAN race (region9 with populated caverns; BOATS saw plump helmet men, S8B)")
         elif bad(je):
             rec_bad("mech.v71.irr.r35", je)
         else:
@@ -5461,7 +5489,7 @@ def _c_num(x, d=0):
         return d
 
 def _c_r8(what, interim):
-    return f"needs {what}: a region8 fort per R11 (b1-forts.py embark) that has it; until then {interim}"
+    return f"needs {what}: a region9 fort that has it (RinghatchetsReady, the user's test fort, does not; b1-forts.py embarks others); until then {interim}"
 
 # ---- roster -------------------------------------------------------------------------------------------------------
 def v71_roster():
@@ -6261,7 +6289,7 @@ print(json.encode(out))""")
             rec("mech.v71.vrm.perf", "FAIL", "the forage job ran in 3,000 ticks (every 100 t)", json.dumps(j))
         else:
             rec("mech.v71.vrm.perf", "PASS" if _c_num(j.get("worst"), 999) < 50 else "FAIL", "worst forage pass < 50 ms over 3,000 ticks", json.dumps(j),
-                note=f"fort {F71.get('fort')}; the notes ask for region8 (R11)")
+                note=f"fort {F71.get('fort')}; the notes ask for region9 (R11, as amended 1 Oct)")
     if en0 is not True:
         tool("disable", timeout=300)
 # ---- v7.1 water (docs/v7.1/water.md). Fort-dependent: BOATS (deep ocean), OCEAN2 (shallow ocean), any water for the rest.
@@ -6363,7 +6391,7 @@ print(json.encode({h2=h2, h1=h1, stopped=(s1 or s2), capped=(c1 or c2)}))""", ti
                             worst = max(worst, abs(r - 4) / 4)
                 if not rows:
                     rec(cid, "NOT-TESTABLE-HERE", "a column-depth bucket with 25+ sampled columns", json.dumps(j)[:900],
-                        note="too little surface water for a 10% comparison; LAKE, RIVER4 or a region8 SHORE fort has enough")
+                        note="too little surface water for a 10% comparison; LAKE, RIVER4 or a region9 SHORE fort has enough")
                 else:
                     ok = worst <= 0.10 and "single" in full
                     rec(cid, "PASS" if ok else "FAIL", "stride 1 = 4x stride 2 within 10% in every bucket of 25+ columns; `water depth full` reads every single x and y",
