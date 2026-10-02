@@ -285,39 +285,58 @@ def nat(arm):
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
-# S7_TRIM (R44 TRIM): cap 1, so a cavern holding two groups is over it. 2 Oct (first rig run): the check fired at
-# t1200 and read trimmed=0. Three causes, all fixed here:
-#   * the trim acts only on groups the tool records: flagged cavern arrivals become groups in a groups pass
-#     (discoverGroups), unflagged natives at adoption (adoptNatives, every 1,200 t). So the cell steps two passes
-#     (600 t), forces `groups natives now`, and checks that a cavern is over the cap (nat cav_max > 1) before it waits
-#     for anything -- without that the arm has no subject;
-#   * the trim is paced by g.trim_next (cavern_trim_days, 1 day = 1,200 t), which the save carries from its own play,
-#     plus the groups pass every 300 t: the first trim can come up to ~1,500 t after enable. The check now waits two
-#     days (t2400) and the cell runs four (4,800 t: up to four trims per cavern, and the walk-off after them);
-#   * the receipt read only g.trim_undo, which drops a unit as soon as it is gone, so a unit that left between two
-#     300-t samples was never seen. cx-sec7 trim now also keeps the ids of trimmed group records and counts the
-#     ledger's 'dismiss' lines since mark 'pre' (dismissed, dismissed_units), which do not forget.
+# S7_TRIM (R44 TRIM): cap 1, so a cavern holding two groups is over it, and the trim sends one resident group off per
+# cavern_trim_days. History (BLOCK-FIXES.md):
+#   * core3: the check fired at t1200, before the trim's pacing allowed it, and read only g.trim_undo (forgets);
+#   * rerun 1 (a4fix): cav_max=0 at t0 -- flagged DF waves become groups only in a groups pass (discoverGroups);
+#   * rerun 2 (a4fix): cav_max=5 but dismissed=0 at t2400. V7.GRP.trimOne (a4fix ~11124-11160) picks only RESIDENT
+#     groups (natives first, else the oldest resident); groups discovered from DF waves are resident=false (gated,
+#     discoverGroups ~4168), and every cavern group on RinghatchetsReady is a DF wave -- nothing was trimmable, by
+#     design (the gate holds them; DF walks them off on its own leave clock). A design question for the user.
+# So the subject is now placed: three resident groups (one species each, cx-eco spawn on the cavern floor WITHOUT
+# the roaming flag, then `groups adopt` -> V7.GRP.record resident = not flagged) in cavern TRIM_CAV, cap 1, beside the
+# DF-wave groups already there. Arms: cap1 (trim on) and trim_off (trim off, the same placement). Expected in cap1: a
+# trim within trim_days (1 day = 1,200 t) plus the 300 t pass -- natives first, else the oldest resident (the first
+# adopted: CRUNDLE, chosen first because it is surely natural; trimOne writes countdowns only to natural members and
+# returns nothing for a group without one). `trimgrp` (inline) reads the cavern's groups by kind every 300 t: resident,
+# gated, native, and which of them carry the trim mark -- trimmed_gated must stay 0 (the waves left alone).
+TRIM_CAV = int(os.environ.get("SEC7_TRIM_CAV", "3"))   # FACTS: cavern 3 had the fewest wild units (10)
+TRIM_TOKENS = tuple(os.environ.get("SEC7_TRIM_TOKENS", "CRUNDLE,TOAD_GIANT_CAVE,CREEPING_EYE").split(","))
+
+
+def _trimgrp(d, tag):
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); "
+            "local r,ga,nat,tr,trg,trn,live,toks=0,0,0,0,0,0,0,{}; "
+            "for _,grp in ipairs(g.groups or {}) do if grp.layer=='cavern' and grp.depth==" + str(d) + " and not grp.irruption then "
+            "local n=0; for _,id in ipairs(grp.ids or {}) do local u=df.unit.find(id); if u and not dfhack.units.isDead(u) and u.pos.x>=0 then n=n+1 end end; "
+            "live=live+n; if grp.resident then r=r+1 else ga=ga+1 end; if grp.native then nat=nat+1 end; "
+            "if grp.trimmed then tr=tr+1; toks[#toks+1]=tostring(grp.token)..(grp.native and '(n)' or (grp.resident and '(r)' or '(g)'))..'x'..n; "
+            "if not grp.resident then trg=trg+1 end; if grp.native then trn=trn+1 end end end end; "
+            f"print('eco trimgrp tag={tag} cavern={d + 1} resident='..r..' gated='..ga..' native='..nat..' live='..live.."
+            "' trimmed='..tr..' trimmed_gated='..trg..' trimmed_native='..trn..' tokens='..(#toks>0 and table.concat(toks,',') or '-'))")
+
+
 def trim(arm):
+    on = arm == "cap1"
+    d = TRIM_CAV - 1
+    cav = f"cav{TRIM_CAV}"
     st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "cavern", "on"), T("groups", "cavern", "cap", "1"),
-          T("groups", "cavern", "trim", "on"), T("groups", "cavern", "trim_days", "1"), T("groups", "natives", "cavern", "on"),
-          readback("groups.cavern_cap", "groups.cavern_trim", "groups.cavern_trim_days", "groups.natives_cavern"),
-          chk("cfg[path=groups.cavern_cap].value==1"), chk("cfg[path=groups.cavern_trim].value==true"),
-          chk("cfg[path=groups.natives_cavern].value==true"),
-          # 2 Oct (rerun 20261002-075328, a4fix: nat[t0].cav_max=0): `groups natives now` adopts only UNFLAGGED wild
-          # units. RinghatchetsReady's cavern animals came in DF waves and carry the roaming flag, so they become groups
-          # only through discoverGroups in a groups pass (every 300 t; seasonal-wildlife.lua ~4163, resident=false,
-          # depth set). Right after enable no pass had run: no cavern group at all. Two passes (600 t) first, from mark
-          # 'pre' so a trim inside them is still counted (ledger dismissals since the mark); then the forced adoption
-          # for the unflagged rest; then the precondition.
-          S7("mark", "pre"), "step:600", T("groups", "natives", "now"), S7("nat", "t0"), chk("nat[tag=t0].cav_max>1"),
-          S7("trim", "t0")]
-    for s, t in steps_of(4800, 300):
-        st += [s, S7("trim", f"t{t}")]
-        if t == 2400:   # two days: past any trim_next the save carried plus a groups pass, or the arm is vacuous
+          T("groups", "cavern", "trim", "on" if on else "off"), T("groups", "cavern", "trim_days", "1"),
+          readback("groups.cavern_cap", "groups.cavern_trim", "groups.cavern_trim_days"),
+          chk("cfg[path=groups.cavern_cap].value==1"), chk(f"cfg[path=groups.cavern_trim].value=={'true' if on else 'false'}"),
+          S7("mark", "pre"), S7("spot", cav)]
+    for tok in TRIM_TOKENS:   # no 'roam': the flag cleared, so the adopted group is resident (the trim's subject)
+        st.append(AT(cav, "spawn", tok, "3", "<X>", "<Y>", "<Z>", "3", "cave", "any", "200000"))
+    st += [f"adopt {' '.join(TRIM_TOKENS)}", "step:300", _trimgrp(d, "t0"), chk("trimgrp[tag=t0].resident>=3"),
+           S7("trim", "t0")]
+    for s, t in steps_of(3000, 300):
+        st += [s, S7("trim", f"t{t}"), _trimgrp(d, f"t{t}")]
+        if t in (1500, 2700):
+            st.append(S7("ledger", "dismiss", f"t{t}"))
+        if on and t == 2700:   # trim_days (1,200 t) + passes, from a t0 already one pass in: the arm is vacuous without one
             st.append(chk(f"trim[tag=t{t}].dismissed>0"))
-        if t % 1200 == 0:
-            st.append(S7("nat", f"t{t}"))
-    st.append(S7("ledger", "dismiss", "end"))
+    for tok in TRIM_TOKENS:
+        st.append(S7("swim", tok, "end"))   # per placed species: alive / dead / gone (walked off)
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
@@ -937,7 +956,8 @@ def blocks() -> dict:
     nw = "natural arrivals are the subject (G2r, CAVG, WAT5, APX1, LAD1, MIX1, F2)"
     B["S7_NAT"] = _blk({a: nat(a) for a in ("def", "v70")}, "CORE", 3, wipe=False, why=nw)
     B["S7_NATLEV"] = _blk({a: nat(a) for a in LEVER_ARMS}, "FULL", 3, wipe=False, why=nw)
-    B["S7_TRIM"] = _blk({"cap1": trim("cap1")}, "CORE", 4, wipe=False, why="the cavern's natives are the subject (trim)",
+    B["S7_TRIM"] = _blk({a: trim(a) for a in ("cap1", "trim_off")}, "CORE", 4, wipe=False,
+                        why="placed resident groups beside the cavern's own DF-wave groups (which must be left alone)",
                         requires="has_cavern_natives")
     B["S7_PAN1"] = _blk({a: pan1(a) for a in ("panic_on", "panic_off")}, "CORE", 5)
     B["S7_COHT"] = _blk({a: coht(a) for a in ("led", "cohesion_off")}, "CORE", 5, requires="has_lake")
