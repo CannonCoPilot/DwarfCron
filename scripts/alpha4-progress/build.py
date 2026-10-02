@@ -97,9 +97,11 @@ STAGES = [
     ("Section 7, the 15 rows the page cannot check", "part", "Mostly measured",
      "13 blocks completed on 9e5aabe, 8 re-run on the Alpha Four fixes, and a release-candidate list running now. Detail "
      "below."),
-    ("Web companion", "part", "Live test passed",
-     "551 PASS / 0 FAIL on an earlier build (the server's false error count fell from ~400,000 to 0). A re-run on the final "
-     "build and the Chrome pass are pending."),
+    ("Web companion", "part", "Being redesigned",
+     "The live test passed (551 PASS / 0 FAIL; the server's false error count fell from ~400,000 to 0), but the page still "
+     "reads as a mock-up. A redesign and rebuild is under way in parallel on branch v7.1-web2: audit, design, a live map, "
+     "food web, species, season timeline, caverns, water, ledger and contextual controls, a mock fed by the real engine. "
+     "A live run and the Chrome pass follow."),
     ("Aquarium package", "part", "Built, offline-tested",
      "Translucent-water mod (generated from your own sheets), depth lens, legend, waves, 17 controls. Aquarium world region10 "
      "(region9's terrain with the mod) and fort AQUA_LAKE exist. In-game tests T1-T11 and AQUA_SHORE are pending."),
