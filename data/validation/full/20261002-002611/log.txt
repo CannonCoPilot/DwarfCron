@@ -1,0 +1,174 @@
+00:26:11 validate-full run 20261002-002611 -> /Users/nathanielcannon/Claude/Projects/dc-wt/val/data/validation/full/20261002-002611
+00:26:11 == SETUP: restore and load RinghatchetsReady
+00:27:02   rig: DF v0.53.16 win64 STEAM / DFHack 53.16-r2 (r2)
+00:27:03   loaded: tick 53745 season 0 citizens 7 land 9 water 10 cavern 37 deep 19
+00:27:03   preset: preset rock desert, temperate freshwater lake, temperate grassland, temperate savanna, temperate shrubland: 159 species active, one season each on 159; layers turned on: cavern, deep, water; seasonal 
+00:27:03 == v7.1: deploy, fixes, ecology, groups, water, roster, extinct, vermin, scav, irruption, perf, web
+00:27:03   v7.1 facts: fort RinghatchetsReady world The Realm of Soul map 384x384 auto 9 water {'fresh': 10869, 'lake': 1764, 'ocean': 0, 'pool': 276, 'river': 8829, 'salt': 0} maxDepth {'lake': 3, 'pool': 1, 'river': 3} caverns {'c0': True, 'c1': False, 'c2': True} savagery 73 r2 True citizens 7
+00:27:03 -- v7.1 deploy (2 claims)
+00:27:03   [PASS             ] deploy.v71.files: the five scripts of the tool tree (engine, gui/, web server, web page,
+00:27:04   [PASS             ] deploy.v71.loads: the controls registry loads in the game (12 sections) and the web serv
+00:27:04 -- v7.1 fixes (11 claims)
+00:27:05   [PASS             ] mech.v71.fix.cohesion_override: `hunters cohesion WOLF herd` reaches the leaders: a WOLF group's label
+00:27:05   [PASS             ] mech.v71.fix.swimscav_cache: `hunters swimscav SHARK_NURSE off` makes SCAV.kind(SHARK_NURSE) false 
+00:27:06   [PASS             ] mech.v71.fix.forager_no_crash: vermin foraging with a scavenger waiting on remains runs without an er
+00:27:07   [PASS             ] mech.v71.fix.edges_after_build: after `roster build land`, `vermin edges edges` reads per-species rows
+00:27:07   [PASS             ] mech.v71.fix.apex_pelagic: `roster apex now water` places a pelagic apex only in the ocean, never
+00:27:07   [PASS             ] mech.v71.fix.water_auto: a config that never set the water layer turns it on where the map has 
+00:27:08   [PASS             ] mech.v71.fix.water_migrate: a saved {layers={water=true}} loads water.layer_set true; {layers={wat
+00:27:08   [PASS             ] mech.v71.fix.spill: a water body with fewer than water.spill.min drawable in-season specie
+00:27:09   [PASS             ] mech.v71.fix.ids: a spaced raw id resolves from its underscore form and its #index (also
+00:27:09   [NOT-TESTABLE-HERE] mech.v71.fix.world_switch: loading a second world in the same session leaves CACHE.depth holding 
+00:27:10   [PASS             ] mech.v71.fix.cavern_max: `limits cavern ceiling 3` leaves groups.cavern_max mirroring groups.ca
+00:27:10 -- v7.1 ecology (12 claims)
+00:27:10   [PASS             ] mech.v71.cadence_default: a fresh config has ecology cadence 3,000 and nudge off; a config saved
+00:27:10   [PASS             ] mech.v71.fish_bears_default: a fresh config has v7.fishers on and every token its fisher_list turns
+00:27:11    ecology: placed COUGAR before the raws: placed 1 COUGAR on the land layer at ids 12888; entry 71 debited 2 -> 1; one pack group, unled: one animal  [119 ms]
+00:27:12   [PASS             ] mech.v71.skill_profile: with v7 solo on, V7.apply writes a solitary hunter's caste NATURAL_SKI
+00:27:12   [PASS             ] mech.v71.skill_units: a unit of a packaged species already on the map gets the profile on it
+00:27:12   [PASS             ] mech.v71.readback: V7.H.readback() returns one row per packaged species and every row's c
+00:27:12   [PASS             ] mech.v71.raptor_armed: with hunters.raptors on, V7.apply clears BENIGN on every caste of a ra
+00:27:12   [PASS             ] mech.v70.solo_skill: the caste NATURAL_SKILL write on a solitary hunter is read on a newly 
+00:27:12   [PASS             ] mech.v71.packs_inferred: two armed same-species non-solitary hunters within pack_radius and in 
+00:27:12   [PASS             ] mech.v71.raptor_cap: a raptor takes small prey only: V7.H.raptorTooBig(eagle, DEER mass) is
+00:27:12   [PASS             ] mech.v71.swimscav: MODEL.swimScavenger is true for SHARK_GREAT_WHITE, CROCODILE_SALTWATER
+00:27:13   [PASS             ] mech.v71.cohesion: MODEL.cohesionOf reads the whole-list table: COUGAR solitary, WOLF pac
+00:27:13   [PASS             ] mech.v71.bankpair: near a river or lake, V7.H.bankPair finds a dry tile G (flow < 4) and 
+00:27:13 -- v7.1 groups (24 claims)
+00:27:13   [PASS             ] mech.v71.limits.formula: limits mode formula: land and every water body hold floor(sqrt(embark 
+00:27:14   [PASS             ] mech.v71.limits.fixed: `limits fixed 2` gives every land and water key 2 and each cavern min(
+00:27:15   [PASS             ] mech.v71.layer_groups.retired: a config saved with v7.layer_groups=false loads true, and `v7 layer_gr
+00:27:15   [PASS             ] mech.v71.migrate: a v7.0 config migrates once: water ceiling 12 -> 0 (R45), an explicit 
+00:27:15   [PASS             ] mech.v71.clock.state: after a release the layer's controller holds last = now, a target L* i
+00:27:15   [PASS             ] mech.v71.clock.forward: with one group fewer on the layer the next release comes earlier (the 
+00:27:15   [PASS             ] mech.v71.clock.pause: at the cap the clock pauses: no due tick, and the layer's status row s
+00:27:15   [PASS             ] mech.v71.cavern.count: an unflagged cavern native is adopted as a native group (depth 0-2) an
+00:27:15   [PASS             ] mech.v71.cavern.hold: a cavern at its cap holds its natural cavern-only species at raw frequ
+00:27:15   [PASS             ] mech.v71.cavern.trim: a cavern over its cap sends off its oldest native group (members' leav
+00:27:16   [PASS             ] mech.v71.cavern.deep: no deep unit in any group record, no deep-entry species held or capped
+00:27:16   [PASS             ] mech.v71.water.cap: each water body's cap follows the formula, the water ceiling defaults 
+00:27:16   [PASS             ] mech.v71.lead.male: a group's leader is its largest adult male; a group with no adult male
+00:27:17   [PASS             ] mech.v71.lead.lost: a leader that died or left is not replaced: leader_lost names why, nob
+00:27:17   [PASS             ] mech.v71.panic.walk: during a panic the members within panic_tiles are walked away (path.go
+00:27:17   [PASS             ] mech.v71.lead.water: a group drawn into water (Driver B) is led in the same pass by a leade
+00:27:18   [PASS             ] mech.v71.lead.place: `place TOKEN 6` places one clustered group, tracked as one record and 
+00:27:18   [PASS             ] mech.v71.lead.seeded: a school DF seeded in surface water is a record with seeded=true, led 
+00:27:19   [PASS             ] mech.v71.lead.sponge: no sponge or IMMOBILE creature is ever a group's leader (cohesion labe
+00:27:19   [PASS             ] mech.v71.adopt: `groups adopt a b c` makes exactly those units one record, removed fro
+00:27:19   [NOT-TESTABLE-HERE] mech.v71.apcap: a cavern animal-people species' cluster range is held at <= apcap (5);
+00:27:20   [PASS             ] mech.v71.restore: all off and disable put back the cavern gate's frequency holds and the
+00:27:20   [PASS             ] mech.v71.apex.onecaller: the apex scheduler has one job caller, tick() -> ROSTER.placeTick; the
+00:27:20   [PASS             ] mech.v70.gate_drain: v7.gate_drain (on by default) releases the next-oldest gated groups of
+00:27:20 -- v7.1 water (13 claims)
+00:27:21   [NOT-TESTABLE-HERE] mech.v71.water.survey.levels: on a fort with deep ocean columns `water depth` shows ocean columns at
+00:27:21   [NOT-TESTABLE-HERE] mech.v71.water.survey.ocean2: on OCEAN2 the ocean's column-depth histogram holds only 1 and 2 (max 2
+00:27:22   [PASS             ] mech.v71.water.survey.contig: a stride-1 water survey (`water depth full`) counts about 4x the strid
+00:27:23   [PASS             ] mech.v71.water.column_levels: a saved water.deep_levels carries over as water.column_levels (an expl
+00:27:23   [NOT-TESTABLE-HERE] mech.v71.water.landaq: the ocean's Driver B candidates include AQUATIC species listed on land
+00:27:24   [NOT-TESTABLE-HERE] mech.v71.water.mix: `water mix BODY` prints each candidate's base x factor = weight with i
+00:27:24   [PASS             ] mech.v71.water.apexlimit: with a body already holding water.mix.apex_max (1) curated-apex groups
+00:27:24   [NOT-TESTABLE-HERE] mech.v71.water.pull: with prey drawn into the ocean, a predator or listed apex that takes i
+00:27:24   [NOT-TESTABLE-HERE] mech.v71.water.seed: a predator drawn while its prey swims is seeded by its prey (ledger 's
+00:27:25   [PASS             ] mech.v71.water.guard.recheck: on r2 the water status says breathing is read via getBreathingState, a
+00:27:25   [PASS             ] mech.v71.water.retry: a body with nothing drawable backs off water.retry_days (1 day = 1,200
+00:27:25   [PASS             ] mech.v71.water.fisher: no BEAR_* (a fisher on the curated list) is ever a Driver B water cand
+00:27:25   [PASS             ] mech.v71.water.nodeep: the water census and the Driver B candidates never include a cavern or
+00:27:26 -- v7.1 roster (15 claims)
+00:27:26   [PASS             ] mech.v70.builder: `roster build land` runs the guild-first builder: slot lines with thei
+00:27:26   [PASS             ] mech.v71.ladder.units: after `roster build land` the ladder-info line's carn_units is within 
+00:27:27   [PASS             ] mech.v71.apex.place: `roster apex now land` places one apex group from stock: ids > 0, the 
+00:27:27   [PASS             ] mech.v71.apex.cap: with an apex group on the map and the cap at 1, the scheduler's decisi
+00:27:27   [PASS             ] mech.v71.gobble: `roster gobble land` prints >= 1 kind=write edge, and every kind=nativ
+00:27:27   [PASS             ] mech.v70.outgun: `roster outgun land` lists the outgunned pack-vs-herd pairs (factor >=
+00:27:27   [PASS             ] mech.v70.realms: the realm table holds every curated species plus the extinct rows over
+00:27:27   [PASS             ] mech.v71.flying: `roster build flying` seats at most one RP (R50) and fills the APX slo
+00:27:27   [NOT-TESTABLE-HERE] mech.v71.water.pelagic: on an ocean fort `roster build water` fills APE and PE or reports them
+00:27:27   [PASS             ] mech.v71.civ: V7.isCivRaw is true for ANT_MAN and BAT_MAN, false for WOLF_MAN (R61);
+00:27:27   [PASS             ] mech.v71.apmass: classify(DAMSELFLY_MAN).mass >= 30,000 cm3 and its guild is RP (R25: a
+00:27:28   [NOT-TESTABLE-HERE] mech.v71.freqfloor: with the tool applied, every in-embark animal person at raw FREQUENCY 
+00:27:28   [PASS             ] mech.v71.place.deep: `place MAGMA_CRAB 1 deep` is refused (the deep is never touched, R28/R
+00:27:28   [NOT-TESTABLE-HERE] mech.v71.invasive: on a calm map, Add invasive of CENOZOIC_SMILODON (SAVAGE) places >= 1 
+00:27:28   [PASS             ] mech.v71.realm.table: `realm table` prints a realm-table head with missing_from_raws=0 on va
+00:27:29 -- v7.1 extinct (12 claims)
+00:27:29   [PASS             ] mech.v71.extinct.class: 200 creature raws carry REAL_WORLD_EXTINCT on vanilla and every TAGS t
+00:27:29   [PASS             ] mech.v71.extinct.freq: applied with the fix on: T. rex FREQUENCY 2, Quetzalcoatlus 5, Titanob
+00:27:29   [PASS             ] mech.v71.extinct.grazer: applied: TRICERATOPS every caste GRAZER, misc.grazer 150, HAS_ANY_GRAZ
+00:27:29   [PASS             ] mech.v71.extinct.roles: applied: EORAPTOR BENIGN off, CARNIVORE on, guild ML, role predator; T
+00:27:29   [PASS             ] mech.v71.extinct.restore: a write/restore round trip leaves every TAGS raw (frequency, grazer, b
+00:27:29   [NOT-TESTABLE-HERE] mech.v71.extinct.units: a wild extinct animal on the map takes the corrected caste flags into 
+00:27:30   [PASS             ] mech.v71.extinct.cavsnap: a T. rex held by CAVERN (raw 1) is corrected in the snapshot (2), not 
+00:27:30   [PASS             ] mech.v71.extinct.standdown: a T. rex FREQUENCY written by hand (7) is left alone by the fix (stand
+00:27:31   [PASS             ] mech.v71.extinct.model_off: `extinct off` -> classify(TRICERATOPS).guild is PL and EORAPTOR is pre
+00:27:31   [PASS             ] mech.v71.extinct.realm: with fix and realms on, the realm table gains the fossil-locality rows
+00:27:31   [PASS             ] mech.v71.extinct.mods: on the vanilla rig `extinct mods` prints 'attack mods active: 0' and n
+00:27:32   [NOT-TESTABLE-HERE] mech.v71.extinct.ladder: on an embark with an extinct land apex, a land build reads its FREQUEN
+00:27:32 -- v7.1 vermin (10 claims)
+00:27:36   [PASS             ] mech.v70.gobble: with v7 gobble on, an apply tags every in-embark vermin species' caste
+00:27:36   [PASS             ] mech.v71.vrm.restore: VRM-RESTORE-v71: V7.restore (disable, all off) removes every SWV_* str
+00:27:37   [PASS             ] mech.v71.vrm.swv_split: VRM-SWV-SPLIT: `vermin classes` lists SWV_COLONY (bees, termites) and 
+00:27:37   [PASS             ] mech.v71.vrm.edges_src: VRM-EDGES-SRC: `vermin edges` names the source in force and the edge t
+00:27:40   [PASS             ] mech.v71.vrm.class_off: VRM-CLASS-OFF: `vermin class SWV_HERP off` leaves no vermin caste tagg
+00:27:41   [PASS             ] mech.v71.vrm.vector: VRM-VECTOR: `vermin census` reads a vermin vector (not NO VERMIN VECTO
+00:27:41   [PASS             ] mech.v71.vrm.forage_run: VRM-FORAGE-RUN: `vermin forage now` returns a number and the status sh
+00:27:42   [PASS             ] mech.v71.vrm.forage_off: VRM-FORAGE-OFF: `vermin forage off` empties pending, cancels the job (
+00:27:42   [PASS             ] mech.v71.vrm.cfg: VRM-CFG: a saved vermin_eat with out-of-range numbers and a bad source
+00:28:36   [PASS             ] mech.v71.vrm.perf: VRM-PERF: the vermin foraging job's worst pass stays under 50 ms over 
+00:28:36 -- v7.1 scav (12 claims)
+00:28:38   [PASS             ] mech.v71.scav_swimmer: SCAV.is: SHARK_GREAT_WHITE, CROCODILE_SALTWATER, ALLIGATOR and ORCA sc
+00:28:39   [PASS             ] mech.v71.scav_keys: `scavenge set hop_tiles 99` is refused (range 1-50) and changes nothin
+00:28:39   [PASS             ] mech.v71.scav_status_fresh: after a scavenging pass the status's last-pass line is that pass (age 
+00:28:39   [PASS             ] mech.v71.scav_shared_state: a pass leaves the shared state in CACHE.scav7, and the console's statu
+00:28:40   [PASS             ] mech.v71.scav_discovery: a fresh remains cannot be found in its first pass with the default dis
+00:28:40   [NOT-TESTABLE-HERE] mech.v71.scav_attribution: a finished remains is attributed: SCAV.stats().pairs['TOK>PREY'].n >= 
+00:28:40   [PASS             ] mech.v71.scav_fbsafe: SCAV.naturalRemains is false for a non-natural race (demon, forgotten 
+00:28:40   [PASS             ] mech.v70.scav_ext: scav_ext's reach: v7.scav_ext on by default; a flier, an aquatic and a
+00:28:42   [PASS             ] cli.curious_reform: `curious reform off|on|now`, `curious loot keep|drop` and `curious set
+00:28:43   [PASS             ] mech.v71.curious_reform: a curious thief whose countdown reaches 0 is reformed within one pass:
+00:28:44   [PASS             ] mech.v71.scav_off_cancels: `disable` cancels the scavenging and curious jobs (repeat-util holds n
+00:28:44   [PASS             ] mech.v71.panel_curious: the Panel has the curiousreform switch; all off turns it off and its r
+00:28:45 -- v7.1 irruption (15 claims)
+00:28:45   [PASS             ] mech.v71.irr.cfg: the irruption config is rev 2 with every key of the notes' table; a v7
+00:28:45   [PASS             ] mech.v71.irr.migrate: a v7.0 armed group is stood down at the first pass (agitated flags cle
+00:28:45   [PASS             ] mech.v71.irr.layer: an event is per cavern: the others stay idle, activeOn names only that
+00:28:48   [PASS             ] mech.v71.irr.status: `irruption status` prints the purpose line, every config row and one r
+00:28:48   [PASS             ] mech.v71.irr.trigger: a cavern pinned at the threshold warns within one pass (ledger 'someth
+00:28:48   [PASS             ] mech.v71.irr.wave: a wave is clamp(cluster max x size_mult, size_min, size_cap) units bou
+00:28:48   [NOT-TESTABLE-HERE] mech.v71.irr.tokens: a civ wave: each enabled token on the champion plus max(1, round(pct n
+00:28:48   [PASS             ] mech.v71.irr.caste: after placement every caste of the race reads its original CURIOUS*, M
+00:28:48   [PASS             ] mech.v71.irr.agitate: during an event only that cavern's non-civ natural animals are agitate
+00:28:49   [NOT-TESTABLE-HERE] mech.v71.irr.r35: during an event on a cavern with an animal-people species its cluster 
+00:28:49   [PASS             ] mech.v71.irr.msg: each phase announces once (warn, start, wave, finish, ready, lapse); p
+00:28:49   [PASS             ] mech.v71.irr.end: an event ends (by the player, by its duration) with every write undone
+00:28:53   [PASS             ] mech.v71.irr.off: `irruption off`, disable, groups off and all off each end a running ev
+00:28:53   [PASS             ] mech.v71.irr.fbsafe: irruption candidates are natural only, agitation never reaches a non-n
+00:28:54   [PASS             ] gui.irr.rows: the Panel/Layers rows for IRRUPT v2 (irruption.md section 9) read and 
+00:28:54 -- v7.1 perf (15 claims)
+00:29:44   [PASS             ] perf.p0.kb: after a groups pass FUSE.stats['seasonal-wildlife/groups'].kb is a num
+00:29:44   [PASS             ] perf.p0.verb: `perf` prints the switch line, the job table and either DFHack perf-co
+00:29:44   [PASS             ] perf.p5.phases: after enable every job the Panel lists as on is scheduled at once, and
+00:29:49   [PASS             ] perf.p10.slice: after enable the load-time warm slice has run (CACHE.sliceLog.warm, n 
+00:29:49   [PASS             ] perf.p11.events: `perf census` walks the wild-id set; the set holds every live wild uni
+00:29:50   [PASS             ] perf.p1.memo: V7.PERF.raceEco(CACHE.cfg, race) equals ecoOf(cfg, raw) for every race
+00:29:50   [PASS             ] perf.p2.groups: loadGroups() returns the same shared table twice; after saveGroups the
+00:29:51   [PASS             ] perf.p2.undo: UNDO.push raises UNDO.depth() by one on the held ring (CACHE.undo, the
+00:29:51   [PASS             ] perf.p3.overlay: V7.PERF.overlayData() twice within a second returns the same table, ho
+00:29:52   [PASS             ] perf.p4.census: inside a pass, WILD.countByLayer() from the census equals the v7.0 loo
+00:29:52   [PASS             ] perf.p6.live: the Live tab's biomass sum per layer from the managed-entry index (P6)
+00:29:52   [PASS             ] perf.p7.ro: a groups pass with no config writer due leaves CACHE.cfg the same tabl
+00:29:52   [PASS             ] perf.p8.pool: V7.PERF.pool(CACHE.cfg) twice returns the same pool with the memo's hi
+00:29:55   [PASS             ] perf.p9.native: the edge-only CAVE and WET surveys count exactly what the legacy full 
+00:29:56   [PASS             ] perf.p12.scav: the edible natural remains a scavenging pass finds are the same with `
+00:29:56 -- v7.1 web (8 claims)
+00:30:02   [PASS             ] web.v71.controls: GET /controls.json answers 200 with at least 12 sections and 300 contr
+00:30:03   [PASS             ] web.v71.set: POST /set?id=hunters.stoop.chance&v=61 answers 200 with value 61, the 
+00:30:04   [PASS             ] web.v71.set_panel: POST /set?id=switch.nudge&v=on sets ecology.nudge through the Panel's 
+00:30:04   [PASS             ] web.v71.status: GET /status.json returns every status section with no error, and the g
+00:30:04   [PASS             ] web.v71.cluster: the snapshot's group sizes follow the raws: for a species with two clu
+00:30:04   [PASS             ] web.v71.guard: the v7.1 endpoints refuse what they should: /act roster_build with an 
+00:30:09   [PASS             ] web.v71.perf: after the first, every snapshot the server builds takes under 50 ms (s
+00:30:10   [PASS             ] web.v71.stop: `seasonal-wildlife-web stop` after the v7.1 checks closes the port
+00:30:10   [PASS             ] w0.overlay: a validation run leaves DFHack's overlay settings as it found them (se
+00:30:10 == TEARDOWN
+00:30:18   [PASS             ] mech.save.untouched: a full session of console and GUI use leaves the save byte-identical (
+00:30:18 == DONE /Users/nathanielcannon/Claude/Projects/dc-wt/val/data/validation/full/20261002-002611
+   NOT-TESTABLE-HERE 16  PASS 135
