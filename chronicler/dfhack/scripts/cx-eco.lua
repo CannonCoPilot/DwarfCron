@@ -233,7 +233,7 @@ local function tool()
     local ok, sw = pcall(reqscript, 'seasonal-wildlife')
     if ok and type(sw) == 'table' then return sw end
 end
-local function word(s) return (tostring(s or ''):gsub('[%s=]+', '_')):sub(1, 80) end
+local function word(s) return (tostring(s == nil and '' or s):gsub('[%s=]+', '_')):sub(1, 80) end
 
 -- ------------------------------------------------------------------ verbs ----
 if cmd == 'spot' then
