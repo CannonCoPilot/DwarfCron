@@ -434,6 +434,11 @@ def st_block(run, a, name):
     cmd = [sys.executable, str(SCRIPTS / "eco-run.py"), name, "--run", str(run / "eco"), "--reps", str(a.reps)]
     if a.dry_run:
         cmd.append("--dry-run")
+    elif not os.environ.get("SEC7_NO_RESTART"):
+        # a fresh DF per block: the process slows with age (fps-load-facts; 2 Oct core3: PERF1's last cell ran 871 s
+        # against ~190 s in rep 1 after ~6 h of loads), which would bias every timing and tick budget after it
+        sh("stop", timeout=120)
+        sh("start", timeout=300)
     say(f"== {name} (item {', '.join(map(str, BLOCK_ITEMS.get(name, (b.get('sec7_item'),))))}; tier {b.get('sec7_tier')}): $ " + " ".join(cmd[1:]))
     p = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, timeout=48 * 3600)
     (run / "eco").mkdir(exist_ok=True)
