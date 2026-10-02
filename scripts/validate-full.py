@@ -4604,7 +4604,7 @@ print(json.encode(out))""", timeout=180)
                 break
         if m and int(m.group(2)) < 2:
             rec("mech.v71.lead.water", "NOT-TESTABLE-HERE", "`water now` draws a group of 2+", "; ".join(draws),
-                note="every draw was a single animal (nothing to lead); " + NEED["fish"])
+                note="every draw was a single animal (nothing to lead); RinghatchetsReady after `--preset` drew a school of 2+ (PASS, run 20261002-000157) when the deal put a schooling fish in season")
             m = None
         elif not m:
             rec("mech.v71.lead.water", "NOT-TESTABLE-HERE", "`water now` draws a group", t[:600],
@@ -6467,6 +6467,10 @@ print(json.encode({carried=a.water.column_levels, explicit=b.water.column_levels
     bodies = _d_bodies()
     if need(cid, "water", "a water body to weigh"):
         body = bodies[0] if bodies else "ocean"
+        # r2: weigh the body with the most candidates (a body of one candidate has balance 1 by construction)
+        jc = luap(_D_CANDS_LUA % ",".join(f"'{b}'" for b in (bodies or ["ocean"])), timeout=180) if len(bodies) > 1 else {}
+        if isinstance(jc, dict) and not bad(jc) and jc.get("bodies"):
+            body = max(bodies, key=lambda b: len(((jc.get("bodies") or {}).get(b) or {}).get("rows") or []))
         tool("water", "mix", "on")
         mv = cfgv("water.mix.enabled", "water.mix.balance")
         if manip(cid, "water.mix.enabled true and balance > 0", (mv.get("water.mix.enabled") is True and (mv.get("water.mix.balance") or 0) > 0) or DRY, mv):
@@ -6475,15 +6479,21 @@ print(json.encode({carried=a.water.column_levels, explicit=b.water.column_levels
             j = luap(_D_CANDS_LUA % f"'{body}'", timeout=180)
             k = luap(f"""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local cen = sw.V7.WAT.census(cfg, g); local B = cen['{body}']
-local most, mn = nil, 0
-for tok, s in pairs(B and B.sp or {{}}) do if s.n > mn then most, mn = tok, s.n end end
-print(json.encode({{units=B and B.units or 0, most=most, most_n=mn, C=B and B.lv.C or 0, A=B and B.lv.A or 0}}))""")
+local most, mn, sp = nil, 0, {{}}
+for tok, s in pairs(B and B.sp or {{}}) do sp[tok] = s.n; if s.n > mn then most, mn = tok, s.n end end
+print(json.encode({{units=B and B.units or 0, most=most, most_n=mn, sp=sp, C=B and B.lv.C or 0, A=B and B.lv.A or 0}}))""")
             if bad(j) or bad(k):
                 rec_bad(cid, j if bad(j) else k)
             else:
                 rows = ((j.get("bodies") or {}).get(body) or {}).get("rows") or []
                 wsum = sum((r.get("weight") or 0) for r in rows)
                 most = k.get("most")
+                # r2: the most-present species AMONG the candidates (the body's most-present one may be out of season or
+                # unstocked, and then no row shows its factor -- RinghatchetsReady's river, 1 Oct)
+                spn = k.get("sp") if isinstance(k.get("sp"), dict) else {}
+                present = sorted((r for r in rows if (spn.get(r.get("token")) or 0) > 0), key=lambda r: -(spn.get(r.get("token")) or 0))
+                if present:
+                    most = present[0].get("token")
                 mrow = next((r for r in rows if r.get("token") == most), None)
                 bal = _d_num(mrow.get("why") if mrow else "", r"balance ([0-9.]+)")
                 feed = [r.get("token") for r in rows if "feed" in str(r.get("why") or "")]
@@ -6491,6 +6501,10 @@ print(json.encode({{units=B and B.units or 0, most=most, most_n=mn, C=B and B.lv
                                  "feed_rows": feed[:8], "census": k})
                 if not rows:
                     rec(cid, "NOT-TESTABLE-HERE", "candidates in the body", ev, note="no water species is active, in season and stocked here this season")
+                elif len(rows) < 2:
+                    # r2: one candidate is the whole body's share (want 100%, have 100%), so its balance is 1 by construction
+                    rec(cid, "NOT-TESTABLE-HERE", "a body with two or more candidate species (the balance shares a body out)", ev + "\n" + lines[:600],
+                        note=f"the {body} has one candidate ({rows[0].get('token')}); RinghatchetsReady after `--preset` when the season deal puts 2+ of its water species in season (its lake gave 9 candidates on 1 Oct, 1 on the next deal)")
                 elif mrow is None:
                     rec(cid, "NOT-TESTABLE-HERE", "the most-present species among the candidates", ev + "\n" + lines[:600],
                         note="the species most present in the body is not a candidate now (out of season or unstocked), so its balance factor is not shown")
@@ -6672,7 +6686,18 @@ print(json.encode(out))""", timeout=180)
             body = (_d_bodies() or ["ocean"])[0]
             j = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local out = {{ body = '{body}', candidates = 0, aquatic = 0 }}   -- r2: never an empty object (it encodes as [] and read as 'no JSON')
-for _, c in ipairs(sw.ENGINE.candidates(cfg, nil, '{body}', g)) do
+-- r2: a fish already swimming in a tracked water group first (a seeded school, an earlier draw): a draw depends on this
+-- season's deal and the apex limit, and on RinghatchetsReady one run in two drew nothing aquatic
+for _, grp in ipairs(g.groups) do
+  if not out.id and (grp.layer == 'water' or V7.GRP.wetGroup(grp)) then
+    for _, id in ipairs(grp.ids) do
+      local u = df.unit.find(id)
+      local k = u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) and sw.classify(df.creature_raw.find(u.race))
+      if k and k.habitat == 'aquatic' and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) then out.token = grp.token; out.id = id; out.tracked = true; break end
+    end
+  end
+end
+for _, c in ipairs(out.id and {{}} or sw.ENGINE.candidates(cfg, nil, '{body}', g)) do
   out.candidates = out.candidates + 1
   local k = c.craw and sw.classify(c.craw)
   if k and k.habitat == 'aquatic' then
@@ -6685,7 +6710,11 @@ end
 local u = out.id and df.unit.find(out.id)
 if u then
   out.from = {{ u.pos.x, u.pos.y, u.pos.z }}
+  -- r2: the bank first (V7.H.bankPair's G: the dry floor beside the water, a level up on DF's banks); the ring search after
+  local G = V7.H.bankPair(u.pos, 15)
+  if G and dfhack.units.teleport(u, xyz2pos(G.x, G.y, G.z)) then out.to = {{ G.x, G.y, G.z }}; out.bank = true end
   for r = 1, 15 do
+    if out.to then break end
     for dx = -r, r do for dy = -r, r do
       if not out.to and (math.abs(dx) == r or math.abs(dy) == r) then
         for _, dz in ipairs({{ 0, 1 }}) do
@@ -6710,7 +6739,8 @@ print(json.encode(out))""", timeout=180)
                 uid = int(j.get("id") or -1)
                 passes = []
                 for _ in range(2):
-                    step(20, 60)
+                    # r2: the two guard passes back to back -- with DF running between them the pike flopped back into the
+                    # lake by itself (RinghatchetsReady), and there was nothing left for the guard to move
                     p = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
 local moved = V7.WAT.guard(sw.loadConfig(), sw.loadGroups())
 local u = df.unit.find({uid})
@@ -7387,6 +7417,7 @@ def main():
     ap.add_argument("--v71", default="", help="comma list of v7.1 sub-phases to run (" + ",".join(V71_AREAS) + "); default all")
     ap.add_argument("--list", nargs="?", const="", default=None, metavar="TEXT", help="print the claim register (rows containing TEXT) and exit; no rig")
     ap.add_argument("--dry-run", action="store_true", help="walk the phases against a stub rig and check every Lua probe offline; no rig")
+    ap.add_argument("--preset", action="store_true", help="apply the biome preset after loading (with --only: the roster a full run's CLI phase gives; the rotation goes on)")
     a = ap.parse_args()
     areas = [x for x in a.v71.split(",") if x] or None
     if areas and set(areas) - set(V71_AREAS):
@@ -7403,6 +7434,8 @@ def main():
     ov0 = OVERLAY_JSON.read_text(errors="replace") if OVERLAY_JSON.exists() else ""
     try:
         base = phase_setup(a.fort)
+        if a.preset:
+            log("  preset: " + (tool("preset").strip().splitlines() or ["(no reply)"])[0][:200])
         if a.only == "w0":
             try: phase_w0(a.fort)
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
