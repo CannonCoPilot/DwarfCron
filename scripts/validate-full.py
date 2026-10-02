@@ -3678,7 +3678,7 @@ print(json.encode(out))""", timeout=240)
         tool("roster", "build", "water")
         jt = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({t=sw.absTick()}))")
         t0 = jt.get("t") if isinstance(jt.get("t"), int) else 0
-        out = tool("roster", "apex", "now", "water")
+        out = tool("roster", "apex", "now", "water", "force")   # v7.1 fixes2: `now` respects the cap; force places regardless
         j = luap(("""local sw=reqscript('seasonal-wildlife'); local cfg = sw.loadConfig(); local g = sw.loadGroups()
 local out = { recs = {} }
 for _, grp in ipairs(g.groups) do
@@ -5439,7 +5439,7 @@ print(json.encode({keys=keys, nkeys=#keys, q=q}))""")
             rec(cid, "NOT-TESTABLE-HERE", "an apex key seated by `roster build land`", json.dumps(j0),
                 note=_c_r8("a land apex (AL/AW or a boosted giant) in the embark pool with stock", "a savage fort (region6 EVILF/GOODF) or BOATS"))
     else:
-        oa = tool("roster", "apex", "now", "land", timeout=180)
+        oa = tool("roster", "apex", "now", "land", "force", timeout=180)   # v7.1 fixes2: force past the cap
         m = re.search(r"apex now: .*?\bland (\S+) x(\d+)", oa)
         keys = j0.get("keys") or []
         lua_keys = "{" + ",".join(json.dumps(str(k)) for k in keys) + "}"
