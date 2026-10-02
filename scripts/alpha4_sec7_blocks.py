@@ -118,15 +118,34 @@ def wipe_off(block, why):
 # clock is ~30,000 ticks of disuse; the shortcut pushes the skill's disuse counters by 200,000 and reads 1,200 and
 # 6,000 ticks later. The positive control (pkg_nofloor) zeroes the floor first: if no SNEAK drops there either, the
 # shortcut did not make DF rust and the floor result is vacuous.
+#
+# 2 Oct (first rig run, BLOCK-FIXES.md): the subjects are kept apart and the pack-share bonus is off in every arm.
+#   * Cougars 6 tiles from the wolves fought them (24 of 25 subject attack rows were COUGAR<->WOLF) and a nopkg cell
+#     lost every wolf before the rust push (MANIP-FAIL rustpush.units=0). The wolves now go to a second spot
+#     (cx-sec7 far<X>x<Y>: dry open land 80-160 tiles from the cougars, 30 clear of citizens).
+#   * The pack-share 'sneak bonus' (hunters.skills.pack_bonus 10, a writer separate from v7.solo/hunters.pack) wrote
+#     SNEAK 10 with a floor of 10 on every subject in the nopkg arm within 2,000 ticks (each species was the other's
+#     prey), so nopkg was not a no-write arm; and in pkg_nofloor (rep 4) it re-wrote the floor after `nofloor`,
+#     spoiling the positive control. It is set to 0 in every arm and read back.
+#   * The rust push takes both species in one verb; its 'rustpushsum' row records the subjects lost so far. The cell
+#     needs a subject left to rust (pkg arms: a unit holding SNEAK of either species; nopkg: a live subject, which
+#     holds no SNEAK with every writer off). A species wholly lost is a censored rep for that species, not an abort.
+SKL_FAR = "far{X}x{Y}"   # eco-run fills {X} {Y} with the block's land spot before the Lua runs
+
+
 def skl(arm):
     pkg = arm != "nopkg"
-    st = [SUSTAIN, "spawn COUGAR 2 {X} {Y} {Z} 3", "spawn WOLF 3 {X+6} {Y} {Z} 3", S7("mark", "pre"),
+    st = [SUSTAIN, "spawn COUGAR 2 {X} {Y} {Z} 3",
+          AT(SKL_FAR, "spawn", "WOLF", "3", "<X>", "<Y>", "<Z>", "3", "land", "any", "200000", "roam"), S7("mark", "pre"),
           T("v7", "solo", "on" if pkg else "off"), T("hunters", "pack", "on" if pkg else "off"),
+          T("hunters", "skills", "pack_bonus", "0"),
           *ENABLE, T("groups", "ecology", "now"),
-          readback("v7.solo", "hunters.pack_on"),
+          readback("v7.solo", "hunters.pack_on", "hunters.skills.pack_bonus"),
           chk(f"cfg[path=v7.solo].value=={'true' if pkg else 'false'}"),
           chk(f"cfg[path=hunters.pack_on].value=={'true' if pkg else 'false'}"),
-          "spawn COUGAR 2 {X+20} {Y} {Z} 3", "spawn WOLF 3 {X+26} {Y} {Z} 3",
+          chk("cfg[path=hunters.skills.pack_bonus].value==0"),
+          "spawn COUGAR 2 {X+20} {Y} {Z} 3",
+          AT(SKL_FAR, "spawn", "WOLF", "3", "<X>", "<Y>", "<Z>", "3", "land", "any", "200000", "roam"),
           S7("skills", "COUGAR", "SNEAK", "t0"), S7("skills", "WOLF", "SNEAK", "t0"),
           chk("skillsum[tag=t0,token=COUGAR].units>0"), chk("skillsum[tag=t0,token=WOLF].pre>0"),
           "step:2000", S7("skills", "COUGAR", "SNEAK", "t2000"), S7("skills", "WOLF", "SNEAK", "t2000")]
@@ -137,8 +156,9 @@ def skl(arm):
                 st.append(SUSTAIN)
         return dict(steps=st, ticks=10)
     if arm == "pkg_nofloor":
-        st += [S7("nofloor", "COUGAR", "SNEAK"), S7("nofloor", "WOLF", "SNEAK"), chk("nofloor.units>0")]
-    st += [S7("rustpush", "COUGAR", "SNEAK", "200000"), S7("rustpush", "WOLF", "SNEAK", "200000"), chk("rustpush.units>0"),
+        st += [S7("nofloor", "COUGAR,WOLF", "SNEAK"), chk("nofloorsum.tokens_hit>=1")]
+    st += [S7("rustpush", "COUGAR,WOLF", "SNEAK", "200000"),
+           chk("rustpushsum.tokens_hit>=1" if pkg else "rustpushsum.alive>=1"),
            "step:1200", S7("skills", "COUGAR", "SNEAK", "r1200"), S7("skills", "WOLF", "SNEAK", "r1200"),
            "step:4800", S7("skills", "COUGAR", "SNEAK", "r6000"), S7("skills", "WOLF", "SNEAK", "r6000")]
     return dict(steps=st, ticks=10)
@@ -224,17 +244,23 @@ def nat(arm):
     if levers:
         st.append(CFG(*levers))
     st += [T("roster", "build", "land"), T("roster", "build", "water"), T("roster", "build", "cavern"), *ENABLE,
-           readback("enabled", "groups.adaptive", "groups.cavern", "water.spill.enabled", "water.mix.enabled",
-                    "roster.apex.enabled", "roster.units", "extinct.fix"),
+           readback("enabled", "groups.adaptive", "groups.cavern", "groups.cavern_hold_mix", "water.spill.enabled",
+                    "water.mix.enabled", "roster.apex.enabled", "roster.units", "extinct.fix"),
            chk("cfg[path=enabled].value==true")]
     want = dict(zip(levers[::2], levers[1::2]))
     for p in ("groups.adaptive", "groups.cavern", "water.spill.enabled", "roster.apex.enabled", "roster.units"):
         st.append(chk(f"cfg[path={p}].value=={want.get(p, 'true')}"))
+    if arm == "def":   # the gate as shipped at 9e5aabe: the season's mix kept under the hold (the hold check reads it)
+        st.append(chk("cfg[path=groups.cavern_hold_mix].value==true"))
     st += [S7("mark", "pre"), S7("nat", "t0"), chk("nat[tag=t0].land_cap>0"), "groups3 base"]
     for s, t in steps_of(NAT_TICKS):
         st += [s, S7("nat", f"t{t}")]
-        if arm == "def":   # R44's manipulation check: a held species reads FREQUENCY 1 while its cavern is full
-            st.append(chk(f"hold[tag=t{t}].held_not_1==0"))
+        if arm == "def":
+            # R44's manipulation check: no species the gate holds reads above its hold level. Since 9e5aabe
+            # (`groups cavern mix`, default on) an in-season held species keeps max(2, weight // 10) and only the
+            # out-of-season ones sit at 1, so v7.1's "held_not_1 == 0" aborted a correct gate (2 Oct, S7_NAT rep 1
+            # t3000: held_not_1=1). held_not_1 is still printed beside it.
+            st.append(chk(f"hold[tag=t{t}].held_open==0"))
         if t % 6000 == 0:
             st.append(f"groups3 t{t}")
         if t % 15000 == 0:
@@ -244,14 +270,31 @@ def nat(arm):
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
+# S7_TRIM (R44 TRIM): cap 1, so a cavern holding two groups is over it. 2 Oct (first rig run): the check fired at
+# t1200 and read trimmed=0. Three causes, all fixed here:
+#   * the trim acts only on groups the tool records; cavern natives become groups at adoption (adoptNatives, every
+#     1,200 t), so `groups natives now` adopts them at t0 and the cell checks that a cavern is over the cap (nat cav_max
+#     > 1) before it waits for anything -- without that the arm has no subject;
+#   * the trim is paced by g.trim_next (cavern_trim_days, 1 day = 1,200 t), which the save carries from its own play,
+#     plus the groups pass every 300 t: the first trim can come up to ~1,500 t after enable. The check now waits two
+#     days (t2400) and the cell runs four (4,800 t: up to four trims per cavern, and the walk-off after them);
+#   * the receipt read only g.trim_undo, which drops a unit as soon as it is gone, so a unit that left between two
+#     300-t samples was never seen. cx-sec7 trim now also keeps the ids of trimmed group records and counts the
+#     ledger's 'dismiss' lines since mark 'pre' (dismissed, dismissed_units), which do not forget.
 def trim(arm):
     st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "cavern", "on"), T("groups", "cavern", "cap", "1"),
-          T("groups", "cavern", "trim", "on"), readback("groups.cavern_cap", "groups.cavern_trim"),
-          chk("cfg[path=groups.cavern_cap].value==1"), chk("cfg[path=groups.cavern_trim].value==true"), S7("nat", "t0")]
-    for s, t in steps_of(3600, 300):
+          T("groups", "cavern", "trim", "on"), T("groups", "cavern", "trim_days", "1"), T("groups", "natives", "cavern", "on"),
+          readback("groups.cavern_cap", "groups.cavern_trim", "groups.cavern_trim_days", "groups.natives_cavern"),
+          chk("cfg[path=groups.cavern_cap].value==1"), chk("cfg[path=groups.cavern_trim].value==true"),
+          chk("cfg[path=groups.natives_cavern].value==true"),
+          S7("mark", "pre"), T("groups", "natives", "now"), S7("nat", "t0"), chk("nat[tag=t0].cav_max>1"), S7("trim", "t0")]
+    for s, t in steps_of(4800, 300):
         st += [s, S7("trim", f"t{t}")]
-        if t == 1200:   # a trim must have happened by the second groups pass, or the arm is vacuous
-            st.append(chk(f"trim[tag=t{t}].trimmed>0"))
+        if t == 2400:   # two days: past any trim_next the save carried plus a groups pass, or the arm is vacuous
+            st.append(chk(f"trim[tag=t{t}].dismissed>0"))
+        if t % 1200 == 0:
+            st.append(S7("nat", f"t{t}"))
+    st.append(S7("ledger", "dismiss", "end"))
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
@@ -390,8 +433,13 @@ def irr_tseq(arm):
                                              "irruption.duration_days", "1", "irruption.cooldown_days", "0"),
           readback("irruption.enabled"), chk("cfg[path=irruption.enabled].value==true")]
 
+    # 2 Oct (desk review): each event starts with `irruption end` -- a no-op when the route before ended its event, but
+    # if a route left it active, `now` would answer "already irrupting" and the next route's alive>0 check would pass on
+    # the old event's subjects (its residue then misattributed). The route's own resid row, taken before, still shows
+    # what that route left (active_events).
     def event(tag):
-        return [T("irruption", "cool", cav), CFG("irruption.enabled", "true"), T("irruption", "now", cav), "step:20",
+        return [T("irruption", "end", cav), T("irruption", "cool", cav), CFG("irruption.enabled", "true"),
+                T("irruption", "now", cav), "step:20",
                 S7("irr", cav, f"{tag}_t0"), chk(f"irr[tag={tag}_t0].alive>0"), "step:280"]
     routes = [("end_duration", ["step:1200"]),
               ("end_repel", [S7("subjects", cav, "kill"), "step:600"]),
@@ -464,7 +512,9 @@ def scv3w(arm):
           readback("scavenge.swimmers"), chk(f"cfg[path=scavenge.swimmers].value=={'true' if swim else 'false'}"),
           AT("lake:water", "spawn", "FISH_CARP", "6", "<X>", "<Y>", "<Z>", "2", "water", "any", "200000", "roam"),
           S7("corpses", "FISH_CARP"), chk("corpse.drained>0"),
-          AT("lake:water", "spawn", "POND_GRABBER", "2", "<X+10>", "<Y>", "<Z>", "2", "water", "any", "200000", "roam"),
+          # 2 Oct (desk review): at the water spot itself, radius 3. <X+10> radius 2 asked for deep water 10 tiles off
+          # a spot that only guarantees 30 wet of the 49 within 3 tiles -- placed=0 there aborts the block (auto spawn)
+          AT("lake:water", "spawn", "POND_GRABBER", "2", "<X>", "<Y>", "<Z>", "3", "water", "any", "200000", "roam"),
           S7("scav", "t0")]
     for s, t in steps_of(7200, 600):
         st += [s, S7("scav", f"t{t}"), S7("swim", "POND_GRABBER", f"t{t}")]
@@ -588,6 +638,9 @@ def exr1(arm):
           " local b=0; if c then for _,cs in ipairs(c.caste) do if cs.flags.BENIGN then b=b+1 end end end;"
           " print('eco benign token=TRIASSIC_EORAPTOR found='..(c and 1 or 0)..' castes_benign='..b)",
           chk("benign.found==1"),
+          # 2 Oct (desk review): found==1 never proved the dial. The fix (V7.EXTINCT.apply at enable, roles: TAGS
+          # benign=false) writes BENIGN off on every caste, so fix_on must read 0 BENIGN castes; fix_off is the raw's own
+          *([chk("benign.castes_benign==0")] if on else []),
           "spawn TRIASSIC_EORAPTOR 5 {X} {Y} {Z} 3", "spawn HARE 6 {X+8} {Y} {Z} 3", "watch"]
     for s, t in steps_of(6000):
         st += [s, "relcount TRIASSIC_EORAPTOR HARE"]
@@ -672,7 +725,9 @@ def perf2(arm):
 
 def perf4(arm):
     on = arm == "events_on"
-    st = [SUSTAIN, "lua:dfhack.run_command('cx-load','citizens','60'); print('eco citizens60 ok=1')",
+    # 2 Oct (desk review): sixty makeown citizens in ONE lua: step outlast cx-rpc --lua's 15 s deadline (fort-load-levers:
+    # the 6x6 build did the same), which fails the cell; six calls of ten each stay well inside it
+    st = [SUSTAIN, *[f"lua:dfhack.run_command('cx-load','citizens','10'); print('eco citizens10 batch={i}')" for i in range(1, 7)],
           "lua:local n=0; for _,u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) then n=n+1 end end; print('eco cit n='..n)",
           chk("cit.n>=60"), T("preset"), CFG("perf.events", "true" if on else "false"), *ENABLE,
           readback("perf.events"), chk(f"cfg[path=perf.events].value=={'true' if on else 'false'}"), S7("perf", "t0")]

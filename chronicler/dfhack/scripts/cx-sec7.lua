@@ -13,12 +13,15 @@
 --                                         (angle brackets: eco-run fills {X} with the block's own spot before Lua runs)
 --        SPOT: land | shore | water (cx-eco's spot) | lake | river | ocean | pool, each [:shore|:water]
 --              | cav1 | cav2 | cav3 (an open floor in that cavern band) | fort (a citizen's tile)
+--              | far<X>x<Y> (dry open land 80-160 tiles from X,Y: a second spot whose subjects never meet the first's)
 --   cx-sec7 mark TAG                      remember the id of every unit on the map now (pre/post arrival split)
 --   cx-sec7 skills TOKEN SKILL TAG [MARK] every on-map TOKEN unit: rating, nominal, floor (natural_skill_lvl), rust
 --                                         counters, pre (in MARK) or new; then the tool's own readback rows
 --   cx-sec7 rustpush TOKEN SKILL N        add N to unused/rust/demotion counters of SKILL on every on-map TOKEN unit
 --                                         (the rust shortcut: DF's next skill pass rusts what would rust in ~N ticks)
 --   cx-sec7 nofloor TOKEN SKILL           natural_skill_lvl 0 on those units (the rust test's positive control)
+--                                         (both: TOKEN may be a comma list; a '<verb>sum' row adds tokens_hit, alive,
+--                                         and the spawned subjects lost so far)
 --   cx-sec7 grp TOKEN TAG                 the tool group holding the spawned TOKEN: leader, lost, panic, spread
 --   cx-sec7 killleader TOKEN              that group's leader dies (blood drained, corpse kept), as exterminate does
 --   cx-sec7 nat TAG                       one natural-arrivals sample: groups per layer against the cap, per cavern
@@ -108,6 +111,18 @@ local function wet(x, y, z)
     local d = tflags(x, y, z)
     return d and d.flow_size >= 4 and not d.liquid_type
 end
+-- the surface level of a column: the first open floor or deep water from the top, nil under a roof
+local function surfaceZ(x, y)
+    local _, _, zmax = dfhack.maps.getTileSize()
+    for z = zmax - 1, 0, -1 do
+        if walk(x, y, z, false) or wet(x, y, z) then return z end
+        local t = dfhack.maps.getTileType(x, y, z)
+        if t then
+            local sh = df.tiletype.attrs[t].shape
+            if sh ~= df.tiletype_shape.EMPTY and sh ~= df.tiletype_shape.RAMP_TOP then return nil end
+        end
+    end
+end
 
 -- SPOT -> x, y, z (cached per map so every step of a cell uses the same place)
 local function resolve(spot)
@@ -131,6 +146,37 @@ local function resolve(spot)
     elseif base == 'fort' then
         local c = citizens()[1]
         if c then res = { c.pos.x, c.pos.y, c.pos.z } end
+    elseif base:match('^far%d+x%d+$') then
+        -- far<X>x<Y>: a second land spot 80-160 tiles (Chebyshev) from X,Y -- open (60 of 81 tiles walkable), dry (no
+        -- deep water within 8 tiles, its level or one down) and 30 tiles clear of every citizen -- for subjects that
+        -- must not meet the first spot's (2 Oct, S7_SKL: cougars placed 6 tiles from the wolves killed them; a cell
+        -- aborted on 0 wolves left to rust). The nearest such spot to X,Y wins, so the biome stays close.
+        local rx, ry = base:match('^far(%d+)x(%d+)$')
+        rx, ry = tonumber(rx), tonumber(ry)
+        local cit = citizens()
+        local best, bd
+        for y = 8, Y - 9, 4 do for x = 8, X - 9, 4 do
+            local dref = math.max(math.abs(x - rx), math.abs(y - ry))
+            if dref >= 80 and dref <= 160 and (not bd or dref < bd) then
+                local clear = true
+                for _, c in ipairs(cit) do
+                    if math.abs(c.pos.x - x) + math.abs(c.pos.y - y) < 30 then clear = false; break end
+                end
+                local z = clear and surfaceZ(x, y) or nil
+                if z then
+                    local n = 0
+                    for dy = -4, 4 do for dx = -4, 4 do if walk(x + dx, y + dy, z, false) then n = n + 1 end end end
+                    if n >= 60 then
+                        local dry = true
+                        for dy = -8, 8, 2 do for dx = -8, 8, 2 do
+                            if dry and (wet(x + dx, y + dy, z) or wet(x + dx, y + dy, z - 1)) then dry = false end
+                        end end
+                        if dry then best, bd = { x, y, z }, dref end
+                    end
+                end
+            end
+        end end
+        res = best
     elseif base:match('^cav%d$') then
         local sw = tool()
         local d = tonumber(base:sub(4)) - 1
@@ -326,6 +372,7 @@ elseif cmd == 'mark' then
     local ids = {}
     for _, u in ipairs(df.global.world.units.active) do if alive(u) then ids[u.id] = true end end
     S7.marks[args[2] or 'm'] = { ids = ids, tick = tick() }
+    if (args[2] or 'm') == 'pre' then S7.trim = {} end   -- a new cell's trim record starts at its mark
     out('mark', { { 'tag', args[2] or 'm' }, { 'tick', tick() } })
 
 elseif cmd == 'skills' then
@@ -377,24 +424,41 @@ elseif cmd == 'skills' then
     end
 
 elseif cmd == 'rustpush' or cmd == 'nofloor' then
-    local token, sk, add = args[2], df.job_skill[args[3] or 'SNEAK'], tonumber(args[4]) or 200000
-    local n = 0
-    for _, u in ipairs(df.global.world.units.active) do
-        if alive(u) and tokOf(u) == token then
-            pcall(function()
-                for _, s in ipairs(u.status.current_soul.skills) do
-                    if s.id == sk then
-                        if cmd == 'rustpush' then
-                            s.unused_counter = s.unused_counter + add; s.rust_counter = s.rust_counter + add
-                            s.demotion_counter = s.demotion_counter + add
-                        else s.natural_skill_lvl = 0 end
-                        n = n + 1
+    -- TOKEN may be a comma list (COUGAR,WOLF): one row per token, then a '<cmd>sum' row with the subjects lost so far
+    -- (spawned by cx-eco and no longer alive), so a cell judges "some subject left to rust" and records the losses
+    -- (2 Oct, S7_SKL: one species wholly killed aborted a block whose other species was intact)
+    local sk, add = df.job_skill[args[3] or 'SNEAK'], tonumber(args[4]) or 200000
+    local spawned = (_G.CX_ECO or {}).spawned or {}
+    local toks, tot, hit, placedAll, lostAll, aliveAll = {}, 0, 0, 0, 0, 0
+    for t in tostring(args[2] or ''):gmatch('[^,]+') do toks[#toks + 1] = t end
+    for _, token in ipairs(toks) do
+        local n, live = 0, 0   -- n: units holding SKILL (written to); live: every live unit of the token
+        for _, u in ipairs(df.global.world.units.active) do
+            if alive(u) and tokOf(u) == token then
+                live = live + 1
+                pcall(function()
+                    for _, s in ipairs(u.status.current_soul.skills) do
+                        if s.id == sk then
+                            if cmd == 'rustpush' then
+                                s.unused_counter = s.unused_counter + add; s.rust_counter = s.rust_counter + add
+                                s.demotion_counter = s.demotion_counter + add
+                            else s.natural_skill_lvl = 0 end
+                            n = n + 1
+                        end
                     end
-                end
-            end)
+                end)
+            end
         end
+        local placed, lost = 0, 0
+        for id, tok in pairs(spawned) do
+            if tok == token then placed = placed + 1; if not alive(df.unit.find(id)) then lost = lost + 1 end end
+        end
+        out(cmd, { { 'token', token }, { 'units', n }, { 'alive', live }, { 'placed', placed }, { 'lost', lost } })
+        tot, placedAll, lostAll, aliveAll = tot + n, placedAll + placed, lostAll + lost, aliveAll + live
+        if n > 0 then hit = hit + 1 end
     end
-    out(cmd, { { 'token', token }, { 'units', n } })
+    out(cmd .. 'sum', { { 'tokens', #toks }, { 'tokens_hit', hit }, { 'units', tot }, { 'alive', aliveAll }, { 'placed', placedAll },
+        { 'lost', lostAll } })
 
 elseif cmd == 'grp' then
     local sw = tool(); if not sw then return fail('tool not loaded') end
@@ -484,7 +548,7 @@ elseif cmd == 'nat' then
     out('nat', { { 'tag', tag }, { 'tick', tick() }, { 'season', df.global.cur_season },
         { 'land', L.land }, { 'land_cap', sw.QUOTA.groupsFor(cfg, 'land') }, { 'water', L.water },
         { 'water_cap', sw.QUOTA.groupsFor(cfg, 'water') }, { 'cavern', L.cavern }, { 'cav_cap', sw.QUOTA.groupsFor(cfg, 'cavern') },
-        { 'c1', cav[0] }, { 'c2', cav[1] }, { 'c3', cav[2] }, { 'n1', cnt(nat[0]) }, { 'n2', cnt(nat[1]) }, { 'n3', cnt(nat[2]) },
+        { 'c1', cav[0] }, { 'c2', cav[1] }, { 'c3', cav[2] }, { 'cav_max', math.max(cav[0], cav[1], cav[2]) }, { 'n1', cnt(nat[0]) }, { 'n2', cnt(nat[1]) }, { 'n3', cnt(nat[2]) },
         { 'held', held }, { 'apex_live', apexLive }, { 'apex_seen', ra.seen or 0 }, { 'apex_total', ra.total or 0 },
         { 'H', lvl.H }, { 'C', lvl.C }, { 'A', lvl.A }, { 'carn_share', tot > 0 and (lvl.C + lvl.A) / tot or -1 },
         { 'drawn_land', drawnLand }, { 'extinct_drawn', ext } })
@@ -497,26 +561,69 @@ elseif cmd == 'nat' then
             for tok, s in pairs(B.sp) do out('natsp', { { 'tag', tag }, { 'body', b }, { 'token', tok }, { 'n', s.n }, { 'groups', s.groups } }) end
         end
     end)
-    -- the cavern gate's hold: held species' raws should read FREQUENCY 1 (R44 manipulation check)
-    local bad = 0
+    -- the cavern gate's hold (R44 manipulation check). Since 9e5aabe (Alpha Four 3.8, `groups cavern mix`, on by
+    -- default) a held species is NOT always at FREQUENCY 1: an in-season one keeps max(2, weight // 10) of its weight
+    -- (V7.GRP.holdLevel), an out-of-season one stays at 1 (the roster's hold). So the check is "no held species reads
+    -- above its hold level" (held_open == 0: the gate did not reach that raw). held_not_1 is kept for the v7.1
+    -- (mix off) reading; held_mix counts the in-season holds at their level, held_at1 the ones at 1, and
+    -- held_mismatch the ones off what holdFor would write now (a season change since the hold was written moves
+    -- holdFor without a rewrite, so it is reported, not judged).
+    local bad, open, mix, at1, mism = 0, 0, 0, 0, 0
+    local snap = {}
+    pcall(function() snap = sw.CAVERN.saved() or {} end)
     for tok in pairs(sw.CACHE.capHeld or {}) do
-        local okr, cr = pcall(sw.MODEL.rawOf, tok)
-        if okr and cr and cr.frequency ~= 1 then bad = bad + 1 end
+        local okr, cr = pcall(function() return sw.CAVERN.rawFor(tok) end)
+        if not (okr and cr) then okr, cr = pcall(sw.MODEL.rawOf, tok) end
+        if okr and cr then
+            local f = cr.frequency
+            if f ~= 1 then bad = bad + 1 else at1 = at1 + 1 end
+            local base = tonumber(snap[tok]) or f
+            for k, v in pairs(cfg.odds or {}) do
+                if (k == tok or tostring(k):match(':(.+)$') == tok) and tonumber(v) and tonumber(v) > base then base = tonumber(v) end
+            end
+            local okl, lvl = pcall(sw.V7.GRP.holdLevel, cfg, base)
+            lvl = okl and tonumber(lvl) or 1
+            if f > math.max(1, lvl) then open = open + 1 elseif f > 1 then mix = mix + 1 end
+            local oke, exp = pcall(sw.V7.GRP.holdFor, cfg, tok, snap)
+            if oke and tonumber(exp) and f ~= exp then mism = mism + 1 end
+        end
     end
-    out('hold', { { 'tag', tag }, { 'held', held }, { 'held_not_1', bad }, { 'trim_undo', cnt(g.trim_undo or {}) } })
+    out('hold', { { 'tag', tag }, { 'held', held }, { 'held_not_1', bad }, { 'held_open', open }, { 'held_mix', mix },
+        { 'held_at1', at1 }, { 'held_mismatch', mism }, { 'mix', cfg.groups.cavern_hold_mix and 1 or 0 },
+        { 'trim_undo', cnt(g.trim_undo or {}) } })
 
 elseif cmd == 'trim' then
     local sw = tool(); if not sw then return fail('tool not loaded') end
     local g = sw.loadGroups()
     S7.trim = S7.trim or {}
-    for key in pairs(g.trim_undo or {}) do S7.trim[tonumber(key) or key] = true end   -- remember: trim_undo drops the gone
+    -- three records of a trim, because each forgets: g.trim_undo drops a unit once it is gone (a sample 300 t later
+    -- can miss a fast walk-off), a trimmed group record goes when reconcile finds it empty; the ledger's 'dismiss'
+    -- lines (since mark 'pre') stay. trimmed = the ids remembered from the first two; dismissed = trims by the ledger.
+    for key in pairs(g.trim_undo or {}) do S7.trim[tonumber(key) or key] = true end
+    local tgroups = 0
+    for _, grp in ipairs(g.groups or {}) do
+        if grp.trimmed and grp.layer == 'cavern' then
+            tgroups = tgroups + 1
+            for _, id in ipairs(grp.ids or {}) do S7.trim[id] = true end
+        end
+    end
     local on, gone, n = 0, 0, 0
     for id in pairs(S7.trim) do
         n = n + 1
         local u = df.unit.find(tonumber(id) or -1)
         if alive(u) then on = on + 1 else gone = gone + 1 end
     end
-    out('trim', { { 'tag', args[2] or '-' }, { 'trimmed', n }, { 'on_map', on }, { 'gone', gone } })
+    local since = S7.marks.pre and S7.marks.pre.tick or 0
+    local dis, disUnits = 0, 0
+    pcall(function()
+        for _, e in ipairs(sw.LEDGER.load().entries or {}) do
+            if e.k == 'dismiss' and (e.t or 0) >= since and tostring(e.s):find('over its cap', 1, true) then
+                dis = dis + 1; disUnits = disUnits + (tonumber(tostring(e.s):match(' x(%d+) sent off')) or 0)
+            end
+        end
+    end)
+    out('trim', { { 'tag', args[2] or '-' }, { 'trimmed', n }, { 'on_map', on }, { 'gone', gone }, { 'trim_groups', tgroups },
+        { 'dismissed', dis }, { 'dismissed_units', disUnits } })
 
 elseif cmd == 'civs' or cmd == 'irr' then
     local sw = tool(); if not sw then return fail('tool not loaded') end

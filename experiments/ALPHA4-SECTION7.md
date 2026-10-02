@@ -77,7 +77,7 @@ The time is CORE at n = 5, using the estimate in section 3.
 | 1 | Skill writes act on new arrivals and do not rust | **S7_SKL**:<br>• pre units (placed before the write) and post units (placed after it, read before any ecology pass);<br>• per unit: rating, nominal, floor (`natural_skill_lvl`), rust counters;<br>• caste NATURAL_SKILL and `V7.H.readback`;<br>• rust shortcut, with a no-floor positive control.<br>Arms: pkg, nopkg, pkg_nofloor. | `--only 1` | 81 min |
 | 2 | Packs, stoops and fishing change kills | **S7_PK2**: pack on/off; `packs` (inferred, largest), relcount to buffalo, attacks.<br>**S7_STP1**: stoop on/off; eagles and rabbits, ledger eco, eagle x deer relcount = 0.<br>**S7_FSH3**: fishers on/off at the river; bear-pike adjacency every 300 t, attacks.<br>**S7_FSH4**: polar bears at the lake; swim, breathing, adjacency. | `--only 2` | 188 min |
 | 3 | The clock holds groups near the cap | **S7_NAT** def vs v70, natives as subject:<br>• land groups vs `QUOTA.groupsFor` every 3,000 t, 36,000+ t;<br>• groups3 (H5) every 6,000 t.<br>Target: def mean in [cap-1.5, cap].<br>WAT5: water groups per body, mean ≥ 3. | `--only 3` | 91 min (shared) |
-| 4 | The cavern gate holds five; natives trimmed walk off | S7_NAT:<br>• groups per cavern (tool record and natives by entry);<br>• manipulation check at every sample: held species read FREQUENCY 1.<br>Target: mean ≤ 5.5, max ≤ 6.<br>**S7_TRIM**: cap 1, the trimmed ids on the map vs gone every 300 t. | `--only 4` | 91 (shared) + 26 min |
+| 4 | The cavern gate holds five; natives trimmed walk off | S7_NAT:<br>• groups per cavern (tool record and natives by entry);<br>• manipulation check at every sample: no held species reads above its hold level (since 9e5aabe, `groups cavern mix` on: in season max(2, weight // 10), out of season 1).<br>Target: mean ≤ 5.5, max ≤ 6.<br>**S7_TRIM**: cap 1, natives adopted at t0 and a cavern over the cap checked; the trimmed ids on the map vs gone and the ledger's dismissals every 300 t for 4,800 t. | `--only 4` | 91 (shared) + 26 min |
 | 5 | A lost leader makes the group scatter | **S7_PAN1**: panic on/off; 1 male + 5 female deer adopted; leader is the male (check); harness kills him; spread at +100/+300/+1,200/+2,400; ledger panic.<br>**S7_COHT** (lake substitute): pike school led vs cohesion off; spread, dry swimmers. | `--only 5` | 102 min |
 | 6 | Tokens act | **S7_IRRM**: M1-M8; one token at 100% vs all off; the cavern from FACTS.<br>**S7_IRRP2**: A rotation / B no tokens / C R10 package; pinned pressure, 5-day event, civ units every 600 t.<br>**S7_IRRTSEQ**: T-END, T-OFF and T-SAVE routes in sequence, residual scan after each.<br>**S7_IRRR35**: animal-people wave size. | `--only 6` | 322 min (+41) |
 | 7 | Scavenging takes days, swimmers eat from the water | **S7_SCV3**: natural vs sweep; 6 kangaroo carcasses, jackal/vulture/hyena 12 tiles off; SCAV stats and remains kg every 600 t over 7,200 t.<br>**S7_SCV3W**: pond grabbers in the lake, swimmers on/off; dry-tile receipt. | `--only 7` | 125 min |
@@ -106,6 +106,10 @@ The time is CORE at n = 5, using the estimate in section 3.
   - The `pkg_nofloor` arm (floor zeroed first) is the positive control. If SNEAK does not drop there either, the shortcut did not engage DF's rust, and the floor result is vacuous.
   - FULL `S7_SKL30K` runs the real 30,000 ticks.
 - **Also a shortcut:** a "new arrival" is a `units.create` placement (cx-eco spawn), not a DF-drawn wave. Whether DF's own wave creation reads NATURAL_SKILL the same way is the open half.
+- **Changed after the first rig run (2 Oct; `data/alpha4-sec7/BLOCK-FIXES.md`):**
+  - The wolves are placed at a second spot (`cx-sec7 far<X>x<Y>`: dry open land 80-160 tiles from the cougars). Six tiles apart, the two species fought, and one cell lost every wolf before the rust push.
+  - The pack-share sneak bonus (`hunters skills pack_bonus 0`) is off in every arm. It is a separate writer, and it gave every nopkg subject SNEAK 10 with a floor of 10, so nopkg was not a no-write arm. It also re-wrote the floor after `nofloor` in one positive-control cell.
+  - The rust push takes both species in one call. The cell needs a subject left to rust, and its `rustpushsum` row records the losses: a species that is wholly lost is a censored rep, not an abort.
 
 **2. Kills (PK2, STP1, FSH3, FSH4).**
 - **What must be observed:** attack and kill counts against the lever.
@@ -140,7 +144,8 @@ The time is CORE at n = 5, using the estimate in section 3.
   - **One contrast for all the levers.** An interaction (for example, apex groups counting against the land clock) is not separated. FULL `S7_NATLEV` has one arm per lever (5.9 h).
   - **APX1 sees one month** (36,000 t), not a season, so a presence share has wider error and the season-start placement is not seen.
   - **F2 does not run two seasons.** It reads the borrowed seasons given back at the next season change: the cell runs to `to_season + 3,000` when that is under 60,000 t. FACTS reads the save's tick, which is the same on every fresh load. When the change is further away, F2's give-back is not seen in CORE.
-- **S7_TRIM** forces the trim (cap 1) and tracks the trimmed ids for 3,600 t: did DF walk them off? This is the groups.md open risk "trim countdown 10".
+- **S7_TRIM** forces the trim (cap 1) and tracks the trimmed ids for 4,800 t: did DF walk them off? This is the groups.md open risk "trim countdown 10".
+  - Changed after the first rig run (2 Oct): `groups natives now` at t0, with a check that a cavern is over the cap. The trim check moved from t1200 to t2400, because the trim is paced by the save's own `trim_next` (one day) and the 300-t groups pass. The receipt also counts the ledger's dismissals, because `trim_undo` forgets a unit as soon as it is gone.
 
 **5. Leader loss (PAN1, COHT).**
 - **What must be observed:** spread over time after the leader dies.
