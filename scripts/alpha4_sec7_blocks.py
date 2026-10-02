@@ -516,20 +516,45 @@ def irr_tseq(arm):
 AP_CAV, AP_TOKEN = int(F.get("ap_cavern") or 0), F.get("ap_token") or ""
 
 
+# R35 (USER-REVIEW-PART2: "Group-size cap for animal people (plump helmet men) in caverns: YES, lifted during an
+# irruption event"). The lever is the raw's CLUSTER_NUMBER, held at groups.apcap (5) by V7.GRP.apCap every groups pass
+# and put back while the species' cavern irrupts (V7.GRP.irruptOn); DF reads it when it draws a natural wave.
+# 2 Oct (rerun 20261002-075328, a4fix): the irrupting arm worked (one PLUMP_HELMET_MAN wave of 10, 'i'); the quiet arm
+# aborted on gsize[t1200].groups=0. Its subject was a NATURAL group, which cannot exist in a cell: in Spring the season
+# roster holds the species out of season (stock 0), and a cavern `call` places nothing -- it only opens the frequency
+# for DF's next draw (ENGINE.call), whose timing is DF's. So:
+#   * both arms give the species all seasons (`seasons cavern:TOKEN all`), whatever SEC7_CIV_SEASONS says, so a
+#     natural wave CAN come in either arm and the arms differ only by the event;
+#   * the quiet arm's subject is the cap itself: `apraw` reads the raw's cluster range every sample, and the check is
+#     apraw[t600].max <= 5 (after two groups passes); natural groups that DF does send are recorded by gsize as an
+#     outcome, not required;
+#   * the irrupting arm records apraw too (the cap lifted during the event is the contrast) and keeps its start check;
+#   * both arms run 2,400 t (DF gets more time to send a natural wave).
+def _apraw(token, cav, tag):
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local cr=sw.CAVERN.rawFor(" + _lq(token) + "); "
+            "local o=((sw.CACHE.apcap or {}).raws or {})[" + _lq(token) + "]; "
+            f"local on=sw.V7.GRP.irruptOn({int(cav) - 1}) and 1 or 0; "
+            f"print(('eco apraw tag={tag} token=%s min=%d max=%d orig_max=%s capped=%d irrupting=%d')"
+            ":format(cr.creature_id, cr.cluster_number[0], cr.cluster_number[1], o and tostring(o[2]) or '-', o and 1 or 0, on))")
+
+
 def irr_r35(arm):
     cav = AP_CAV or CIV
+    tok = AP_TOKEN or "PLUMP_HELMET_MAN"
     st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "apcap", "5"), readback("groups.apcap"), chk("cfg[path=groups.apcap].value==5"),
-          *CIV_PREP(cav, AP_TOKEN)]
+          T("seasons", f"cavern:{tok}", "all"), *CIV_PREP(cav, tok)]
     if arm == "irrupting":
-        # 2 Oct: the event's start is proven at once (phase active, a wave alive after 20 t), not first at t1200
-        st += [CFG(*IRR_BASE, "irruption.species", AP_TOKEN or "auto", "irruption.size_cap", "20"),
-               T("irruption", "now", str(cav), AP_TOKEN) if AP_TOKEN else T("irruption", "now", str(cav)),
-               "step:20", S7("irr", str(cav), "t0"), chk("irr[tag=t0].alive>0")]
+        # the event's start is proven at once (phase active, a wave alive after 20 t), not first at the end
+        st += [CFG(*IRR_BASE, "irruption.species", tok, "irruption.size_cap", "20"),
+               T("irruption", "now", str(cav), tok), "step:20", S7("irr", str(cav), "t0"), chk("irr[tag=t0].alive>0")]
     else:
-        st += [T("call", f"cavern:{AP_TOKEN}") if AP_TOKEN else T("call", "cavern")]
-    for s, t in steps_of(1200, 300):
-        st += [s, S7("gsize", AP_TOKEN or "-", f"t{t}")]
-    st.append(chk(f"gsize[tag=t1200].groups>0"))
+        st += [T("call", f"cavern:{tok}")]
+    for s, t in steps_of(2400, 300):
+        st += [s, S7("gsize", tok, f"t{t}"), _apraw(tok, cav, f"t{t}")]
+        if arm == "quiet" and t == 600:   # the cap reached the raw (two groups passes after enable)
+            st.append(chk("apraw[tag=t600].max<=5"))
+    if arm == "irrupting":
+        st.append(chk("gsize[tag=t2400].groups>0"))
     return dict(steps=st, ticks=10, nowatch=True)
 
 
