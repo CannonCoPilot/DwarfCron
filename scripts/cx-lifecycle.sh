@@ -835,9 +835,21 @@ cmd_load() {
     wait_state titlemode CONTINUE_ACTIVE 15 || err "clicking the world row did not open its save list (state: $(ui_state))"
     # FPS5b, 29 Sep 2026: the seasonal autosaves joined region4's list (CTRL, FPS2E1-6, autosave 1-3) and FPS2E4 fell
     # below the panel -- the verb waited for a label that was never drawn. Scroll the list until the folder shows.
-    local s=0
+    # 2 Oct 2026: two worlds can share a display name (region10 = region9's seeds, both "Camade Mare"); the first
+    # "World:" row may be the other world. If the folder never shows, back out once and open the LAST row of that name.
+    local s=0 alt=0
     until wait_drawn "Folder: $folder" 2 >/dev/null; do
-        s=$((s + 1)); [ "$s" -gt 12 ] && err "save list never showed 'Folder: $folder' (scrolled $((s - 1)) times)"
+        s=$((s + 1))
+        if [ "$s" -gt 12 ]; then
+            [ "$alt" -eq 1 ] && err "save list never showed 'Folder: $folder' under either world named '$world'"
+            log "'Folder: $folder' not under the first 'World: $world'; trying the last world row of that name"
+            cmd_ui key LEAVESCREEN >/dev/null 2>&1
+            wait_state titlemode CONTINUE_ACTIVE_WORLD 10 || err "could not back out to the world list (state: $(ui_state))"
+            wait_drawn "World: $world" 10 >/dev/null || err "world list lost 'World: $world'"
+            cmd_ui clicklast "World: $world" >/dev/null 2>&1; sleep 1
+            wait_state titlemode CONTINUE_ACTIVE 15 || err "the second world row did not open its save list (state: $(ui_state))"
+            alt=1; s=0; continue
+        fi
         cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; sleep 0.5
     done
     cmd_ui clickrel "Folder: $folder" -1 "Fortress" >/dev/null 2>&1 || err "could not click the fortress row for $folder"
