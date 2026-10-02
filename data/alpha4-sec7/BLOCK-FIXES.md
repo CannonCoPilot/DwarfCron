@@ -76,6 +76,7 @@ Everything in this table reruns on v7.1-rc, which contains a4fix `69e97a1`.
 | **S7_IRRM M6** (goalonly) | The harness's steal-goal write did not persist: 0 samples, because DF re-plans a path goal on its own. | The goal is re-written after every sample, 100 t apart, so each `irr` read measures 100 t of persistence. **The measure is marked:** this arm reads the persistence of a bare goal write. Theft by goal is the tool's (the thief token's goal, M4), not the harness's. |
 | **S7_IRRM M1** (crazed) | The event had ended (repelled) before the end-of-cell save, so the reload read no subject. | `repel_share 0`, `repel_dead 0`, `settle_days 10`. The save and reload now come at t300 with `irr alive>0` checked before and after, and sampling continues every 100 t. |
 | **S7_IRRP2** | `dacc=-1` everywhere: the event had no access point. No subject came within 124 tiles of a citizen, so the approach was untested. The access (`IRRUPT.pressurePass` `L.access`) is where citizens stand in the band, and this fort reaches no cavern. | FACTS now records per-cavern `reach`: a citizen can walk to the band's floor. P2 runs in `reach_civ_cavern` when there is one, else the civ cavern. In **every** arm, three citizens are moved into that band and knocked out (`citizens D 3 in knock`, checked `moved>0`). That restores the notes' "3 citizens working in the band" and gives the event its access and the approach its target. The tool still places and walks the subjects; `dacc` and `dcit` are the outcome. |
+| **S7_NAT row 9** (LAD1 carnivore share 0.05; sw-wt/rc `docs/v7.1/sec7-fixes.md` item 3) | **The measure, not the write.** 93% of the "land" units were BIRD_RAVEN from the **flying** pool, and the cell never ran `roster build flying`, so the ravens kept their raw FREQUENCY. The walking units that did arrive were all carnivores (DINGO, GIANT_DINGO). **Apex presence 0.17 is the horizon, not a bug:** it is the model's expectation over 47,000 t from no apex, and `ROSTER.apex.decide` resets seen/total every season. | **Every NAT arm:** `roster build flying` beside land, water and cavern. `nat` now also prints walking land units (no FLIER caste: `wH/wC/wA`, `carn_walk`) and fliers (`fH/fC/fA`, `carn_fly`) apart. A new cx-sec7 verb `odds TAG` reads every land key's `cfg.odds` against the raw FREQUENCY (and whether the key is open this season). It runs daily: the cell now steps 600 t at a time, with odds every 1,200 t and nat/hold every 3,000 t and at the end, the same tags as before.<br>**sec7-tally.py:** row 9 scores LAD1 on `carn_walk` (fliers reported apart) and reports the ladder's reach: the share of land keys whose raw equals the odds, of all keys and of open keys. Older runs read n=0 there.<br>**New FULL block `S7_APX1`:** the def configuration over one whole season (to the next change + 100,800 t + 3,000), nat every 6,000 t and odds daily. That is about 17 min of ticks per cell. Commit `bc36227`. |
 
 **Tool observations behind these (not edited; for the user):**
 - The ecology levers (stoop, fishing, relations) act only on species in the tool's pool. A placed species outside the pool is never managed, so on another fort these blocks need FACTS's roles.
@@ -125,11 +126,13 @@ cd ~/Claude/Projects/DwarfCron
 export SW_TOOL=/Users/nathanielcannon/Claude/Projects/sw-wt/rc                         # v7.1-rc (contains a4fix 69e97a1)
 git -C "$SW_TOOL" log --oneline -1
 SEC7_CIV_SEASONS=0 .venv/bin/python scripts/alpha4-sec7.py \
-  --only DEPLOY,FACTS,PANEL,S7_STP1,S7_FSH3,S7_FSH4,S7_GRD1,S7_EXU1,S7_VF1,S7_IRRM,S7_IRRP2,S7_IRRR35,S7_TRIM \
+  --only DEPLOY,FACTS,PANEL,S7_STP1,S7_FSH3,S7_FSH4,S7_GRD1,S7_EXU1,S7_VF1,S7_IRRM,S7_IRRP2,S7_IRRR35,S7_TRIM,S7_NAT \
   > data/logs/sec7-rc.log 2>&1
 ```
 
-- **DEPLOY** copies the new probe (factroles, reach, bank spots) and the rc tool.
+- **DEPLOY** copies the new probe (factroles, reach, bank spots, nat carn_walk/carn_fly, odds) and the rc tool.
+- **S7_NAT** reruns for row 9: flying built, the walking share, and the ladder's daily reach. It takes about 25 min per cell, 2 x 5 cells.
+- **Optional FULL:** `--tier full --only S7_APX1`, APX1 over one whole season.
 - **FACTS must run before the blocks:** it writes the pool roles and reach into facts.json. Until it has, STP1, FSH3 and FSH4 skip as NOT-TESTABLE-HERE.
 - **`SEC7_CIV_SEASONS=0`:** rc admits out-of-season civ races itself, so CIV_PREP keeps its checks only.
 - **Choices you can override:** `SEC7_R35_CAP` (default 2), `SEC7_TRIM_CAV` (default 3) and `SEC7_TRIM_TOKENS` (default CRUNDLE, TOAD_GIANT_CAVE, CREEPING_EYE).
