@@ -894,20 +894,27 @@ elseif cmd == 'wipe' then
     end
     local closed = opt.close and closePools() or -1
     S.wiped = (S.wiped or 0) + marked
+    -- unit ids only grow: wipecheck judges the units that existed at the wipe, and counts later arrivals apart
+    -- (RinghatchetsReady, 2 Oct: its caverns sent crundles between the wipe and the check; R15 is about carry-over)
+    local maxid = -1
+    for _, u in ipairs(df.global.world.units.active) do if u.id > maxid then maxid = u.id end end
+    S.wipe_maxid = maxid
     out('wipe', { { 'marked', marked }, { 'drawn', C.drawn }, { 'placed', C.placed }, { 'released', C.released },
         { 'livestock', C.livestock }, { 'kept_citizen', K.citizen }, { 'kept_guest', K.guest }, { 'kept_livestock', K.livestock },
         { 'kept_nonnatural', K.nonnatural }, { 'kept_deep', K.deep }, { 'pools_closed', closed } })
 
 elseif cmd == 'wipecheck' then
     local livestock = args[2] == 'livestock'
-    local rem, pend, by = 0, 0, {}
+    local rem, pend, arr, by = 0, 0, 0, {}
+    local cut = S.wipe_maxid or math.huge
     for _, u in ipairs(df.global.world.units.active) do
         if wipeable(u, livestock) then
-            if u.animal.vanish_countdown > 0 then pend = pend + 1
+            if u.id > cut then arr = arr + 1   -- arrived after the wipe: DF's ongoing ecology, not carry-over
+            elseif u.animal.vanish_countdown > 0 then pend = pend + 1
             else rem = rem + 1; local k = race_of(u); by[k] = (by[k] or 0) + 1 end
         end
     end
-    local parts = { { 'remaining', rem }, { 'pending', pend } }
+    local parts = { { 'remaining', rem }, { 'pending', pend }, { 'arrived', arr } }
     local ks = {}
     for k in pairs(by) do ks[#ks + 1] = k end
     table.sort(ks)
