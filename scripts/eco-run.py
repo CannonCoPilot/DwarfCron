@@ -1186,8 +1186,14 @@ def wipe_map(b, say):
     rows = eco("wipe", *extra)
     sh("step", 5, timeout=300)
     chk = eco("wipecheck", *extra)
-    d = kv(chk[-1]) if chk else {}
-    if d and (int(d.get("remaining", 0)) or int(d.get("pending", 0))):   # an arrival in those 5 ticks: once more
+    # An arrival in those 5 ticks: wipe again. On a fort with live caverns (RinghatchetsReady, 2 Oct: GIANT_MANTIS,
+    # RUTHERER, TROLL left after two tries) waves keep coming, so try up to four times and log who survives each try:
+    # the same unit every time means the wipe cannot take it, new species mean arrivals.
+    for attempt in range(3):
+        d = kv(chk[-1]) if chk else {}
+        if not (d and (int(d.get("remaining", 0)) or int(d.get("pending", 0)))):
+            break
+        say(f"    wipe retry {attempt + 1}: {chk[-1][:200]}")
         rows += chk + eco("wipe", *extra)
         sh("step", 5, timeout=300)
         chk = eco("wipecheck", *extra)
