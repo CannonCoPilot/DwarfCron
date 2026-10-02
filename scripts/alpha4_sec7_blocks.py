@@ -361,14 +361,20 @@ TOKENS = ("crazed", "rage", "thief", "sneak", "wander", "meander", "linger", "mi
 # any preset, so it saw the civ race. CIV_PREP gives every civ race with an entry in the cavern all seasons
 # (`seasons cavern:TOKEN all`: in season, so applyLive restocks it from the reserve) in every arm alike, then proves the
 # event can send a civ race: civcand.n>0 (and, for a named species, irrpick.ok==1 with the tool's reason on failure).
+# SEC7_CIV_SEASONS=0 drops the seasons write and keeps the receipts and checks: for a build whose irruption admits an
+# out-of-season civ race itself (a4fix 69e97a1), so the arm tests the tool's own admission and the roster is untouched.
+CIV_SEASONS = os.environ.get("SEC7_CIV_SEASONS", "1") != "0"
+
+
 def CIV_PREP(cav, token=""):
     d = int(cav) - 1
-    st = ["lua:local sw=reqscript('seasonal-wildlife'); local all=df.global.world.populations.all; local seen,n={},0; "
+    st = [] if not CIV_SEASONS else [
+          "lua:local sw=reqscript('seasonal-wildlife'); local all=df.global.world.populations.all; local seen,n={},0; "
           "for _,r in ipairs(sw.CACHE.managedPops()) do local p=all[r.i]; if r.layer=='cavern' and p and not seen[r.key] "
           f"and sw.WILD.caveDepth(p.population.cave_id)=={d} and sw.IRRUPT.isCiv(p.race) then seen[r.key]=true; "
           "dfhack.run_command_silent('seasonal-wildlife','seasons',r.key,'all'); n=n+1 end end; "
-          f"print('eco civseason cavern={d + 1} keys='..n)",
-          "lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local t={}; "
+          f"print('eco civseason cavern={d + 1} keys='..n)"]
+    st += ["lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local t={}; "
           f"for _,e in ipairs(sw.IRRUPT.candidates(c,{d},true)) do t[#t+1]=e.token..':'..e.q end; "
           f"print('eco civcand cavern={d + 1} n='..#t..' tokens='..(#t>0 and table.concat(t,',') or '-'))",
           chk("civcand.n>0")]
@@ -635,14 +641,46 @@ def vf1(arm):
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
+# 2 Oct (core3: S7_VF4 MANIP-FAIL vermin[t0].total=0): the river's shore spot (the tool's survey, picked for open bank,
+# not for vermin) had no fish vermin within 12 tiles. VSHORE finds the bank by the fish instead: every surface vermin
+# that is a fish (VERMIN_FISH) or stands in deep water, visible (cx-eco `vermin`, the counter, skips the rest), binned 10x10 per level; the densest bin's centroid; the nearest
+# open outside floor within 8 tiles, on the water's level or one up. It caches that tile as cx-sec7 spot 'vshore'
+# (_G.CX_SEC7.spots, keyed by the same map key cx-sec7 uses, so `at vshore` reads it on the deployed probe too) and
+# prints the counts (aquatic = fish vermin on the surface, best = in the chosen bin). Any water body counts: the claim is
+# "vermin eaters eat what they walk to", the river was only the first choice. The ducks go on the spot itself
+# (radius 3): <X+10> radius 2 on a bank asked for walkable ground that may be water.
+VSHORE = ("lua:local S=_G.CX_SEC7 or {spots={},marks={}}; _G.CX_SEC7=S; "
+          "local key=df.global.plotinfo.site_id..':'..df.global.world.map.x_count..'x'..df.global.world.map.y_count; "
+          "if S.map~=key then S.map,S.spots,S.marks,S.perf=key,{},{},nil end; "
+          "local bins,tot,nb={},0,0; "
+          "for _,v in ipairs(df.vermin.get_vector()) do local f=dfhack.maps.getTileFlags(v.pos); "
+          "if f and f.outside and v.visible ~= false then local cr=df.creature_raw.find(v.race); local fish=false; "
+          "pcall(function() fish=cr.flags.VERMIN_FISH and true or false end); "
+          "if fish or (f.flow_size>=4 and not f.liquid_type) then local a=v.amount; if not a or a<1 then a=1 end; tot=tot+a; "
+          "local k=(v.pos.x//10)..','..(v.pos.y//10)..','..v.pos.z; local b=bins[k]; "
+          "if not b then b={n=0,x=0,y=0,c=0,z=v.pos.z}; bins[k]=b; nb=nb+1 end; "
+          "b.n=b.n+a; b.x=b.x+v.pos.x; b.y=b.y+v.pos.y; b.c=b.c+1 end end end; "
+          "local best; for _,b in pairs(bins) do if not best or b.n>best.n then best=b end end; local res,bd; "
+          "if best then local cx,cy=best.x//best.c,best.y//best.c; "
+          "for _,dz in ipairs({0,1}) do for dy=-8,8 do for dx=-8,8 do local x,y,z=cx+dx,cy+dy,best.z+dz; "
+          "local t=dfhack.maps.getTileType(x,y,z); local f=dfhack.maps.getTileFlags(x,y,z); "
+          "if t and f and f.outside and f.flow_size<4 then local sa=df.tiletype_shape.attrs[df.tiletype.attrs[t].shape]; "
+          "if sa.walkable and (sa.basic_shape==df.tiletype_shape_basic.Floor or sa.basic_shape==df.tiletype_shape_basic.Ramp) then "
+          "local d=math.max(math.abs(dx),math.abs(dy))+dz; if not bd or d<bd then res,bd={x,y,z},d end end end end end end end; "
+          "if res then S.spots['vshore']=res end; "
+          "print(('eco vshore aquatic=%d bins=%d best=%d found=%d x=%d y=%d z=%d'):format(tot,nb,best and best.n or 0,res and 1 or 0,"
+          "res and res[1] or -1,res and res[2] or -1,res and res[3] or -1))")
+
+
 def vf4(arm):
     on = arm == "forage_on"
-    st = [SUSTAIN, *ENABLE, *_forage(on), AT("river:shore", "vermin", "<X>", "<Y>", "<Z>", "12", "t0"), chk("vermin[tag=t0].total>0"),
-          AT("river:shore", "spawn", "BIRD_DUCK", "4", "<X+10>", "<Y>", "<Z>", "2", "land", "any", "200000", "roam")]
+    st = [SUSTAIN, *ENABLE, *_forage(on), VSHORE, chk("vshore.found==1"),
+          AT("vshore", "vermin", "<X>", "<Y>", "<Z>", "12", "t0"), chk("vermin[tag=t0].total>0"),
+          AT("vshore", "spawn", "BIRD_DUCK", "4", "<X>", "<Y>", "<Z>", "3", "land", "any", "200000", "roam")]
     if on:
         st.append(T("vermin", "forage", "now"))
     for s, t in steps_of(3000, 500):
-        st += [s, AT("river:shore", "vermin", "<X>", "<Y>", "<Z>", "12", f"t{t}")]
+        st += [s, AT("vshore", "vermin", "<X>", "<Y>", "<Z>", "12", f"t{t}")]
     st.append(TA("vermin", "eats"))
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
@@ -859,7 +897,7 @@ def blocks() -> dict:
     B["S7_SCV3F"] = _blk({a: scv3f(a) for a in ("walk_only", "default")}, "FULL", 7)
     B["S7_CBX2"] = _blk({a: cbx2(a) for a in ("reform_on", "reform_off", "resident")}, "FULL", 7)
     B["S7_VF1"] = _blk({a: vf1(a) for a in ("forage_on", "forage_off")}, "CORE", 8, livestock=True)
-    B["S7_VF4"] = _blk({a: vf4(a) for a in ("forage_on", "forage_off")}, "CORE", 8, livestock=True, requires="has_river")
+    B["S7_VF4"] = _blk({a: vf4(a) for a in ("forage_on", "forage_off")}, "CORE", 8, livestock=True)   # any water body (VSHORE)
     B["S7_INV3"] = _blk({"smilodon": inv3("smilodon")}, "CORE", 9, requires="calm")
     B["S7_GRD1"] = _blk({a: grd1(a) for a in ("guard_on", "guard_off")}, "CORE", 10, requires="has_lake")
     B["S7_EXR1"] = _blk({a: exr1(a) for a in ("fix_on", "fix_off")}, "CORE", 11)
