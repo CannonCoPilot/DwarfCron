@@ -255,6 +255,10 @@ cmd_deploy_tool() {
         if grep -q "reqscript('seasonal-wildlife-controls')" "$src/seasonal-wildlife-web.lua" 2>/dev/null; then
             files="$files seasonal-wildlife-controls.lua"
         fi
+        # v7.1 aquarium (2 Oct 2026): the lens/waves overlay and its in-game texture builder, when the tree ships them
+        for f in seasonal-wildlife-aquarium.lua seasonal-wildlife-aquarium-gfx.lua; do
+            [ -f "$src/$f" ] && files="$files $f"
+        done
         for f in $files; do
             if [ ! -f "$src/$f" ]; then
                 case "$f" in seasonal-wildlife-web*) continue ;; esac   # releases before v6.8 ship no companion
