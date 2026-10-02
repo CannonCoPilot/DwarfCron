@@ -12,7 +12,7 @@ never inferred from a name.
 
 **Status (1 Oct 2026 review).** Every block below ran, 29 Sep night – 1 Oct morning, and many more were added (ECO2, ECO3,
 the 30 Sep night queue, the SWEEP blocks). Results: `data/eco-desk/findings.md` (authority) and the ECO Wildlife Study page
-(https://claude.ai/artifact/Qq4zH3VFQPmTaUPownxDyw, built by `scripts/eco-report/`). Section "Results by question" at the end maps
+(https://claude.ai/artifact/UY2KevMooCW4mRr5F19M26, built by `scripts/eco-report/`). Section "Results by question" at the end maps
 each question to its blocks and verdict; "Next experiments" holds the designs the open questions call for. All of it ran on DFHack
 53.16-r1.1; the rig moved to 53.16-r2 on 1 Oct (~08:55), so a re-validation comes before any new block (open item
 revalidate-dfhack-r2). The "1–2 reps" of the original ask became 2 reps per arm from 30 Sep (memory two-reps-per-arm); the
