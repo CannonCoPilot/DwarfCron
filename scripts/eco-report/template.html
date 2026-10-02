@@ -73,6 +73,7 @@ section.sec{display:grid; gap:18px; scroll-margin-top:16px}
 .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:16px; align-items:start}
 .gallery.stack{grid-template-columns:minmax(0,1fr)}
 .gallery.wide{grid-template-columns:repeat(auto-fill,minmax(560px,1fr))}
+.gallery > .fig.span{grid-column:1 / -1}
 .subsec{display:grid; gap:14px; padding-top:6px}
 /* figures */
 .fig{margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:14px 16px 12px; display:grid; gap:6px; min-width:0}
@@ -118,6 +119,8 @@ dl.gloss dd{margin:0; font:14px/1.45 var(--ui); color:var(--ink2)}
 .chip.medium{background:color-mix(in srgb,var(--warn) 18%,transparent); color:var(--warn)}
 .chip.low{background:var(--panel2); color:var(--ink3)}
 .chip.cat{background:var(--moss-soft); color:var(--moss)}
+.chip.st{background:var(--panel2); color:var(--ink2); text-transform:none; letter-spacing:0; white-space:normal; text-align:right}
+.oi .chips{display:flex; gap:6px; align-items:flex-start; flex-wrap:wrap; justify-content:flex-end}
 .oi-cat{display:grid; gap:10px}
 .oi-cat > h3 .count{font:600 13px var(--mono); color:var(--ink3); margin-left:8px}
 details.appx{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px 16px}
@@ -165,7 +168,12 @@ function tipText(spec, r){ const keys = Object.keys(r).filter(k => !k.startsWith
 
 function build(spec, width){
   const C = css(); const rows = (spec.rows || []).map(r => { const o = {}; for (const k in r) o[k] = num(r[k]); return o; });
-  const x = spec.x, y = spec.y, s = spec.series || null, fct = spec.facet || null, form = spec.form;
+  let x = spec.x, y = spec.y; const s = spec.series || null, fct = spec.facet || null, form = spec.form;
+  // Categorical forms read spec.x as the category and spec.y as the value. A spec written the other way round
+  // (numeric x, text y) used to plot text on a linear scale: every mark NaN, an empty frame. Swap it and say so.
+  if (['bar','dot','dumbbell','box','strip','stackedBar','groupedBar','range'].includes(form) && rows.length && x && y
+      && rows.every(r => typeof r[x] === 'number') && rows.some(r => typeof r[y] === 'string')){
+    console.warn('figure', spec.id, ': x/y swapped (x must be the category)'); [x, y] = [y, x]; }
   const color = colorScale(spec, rows, C);
   const hi = spec.highlight;
   const base = {width, style:{background:'transparent', color:C.ink2, fontFamily:C.ui, fontSize:'12px', overflow:'visible'},
@@ -211,7 +219,8 @@ function build(spec, width){
       const hasRep = rows.some(r => r.rep != null);
       marks = [Plot.ruleY(cats, {stroke:C.grid}),
                Plot.dot(rows, {x:y, y:x, fill: s ? s : accent, r:5, stroke:C.panel, strokeWidth:1, title:T})];
-      if (hasRep) marks.push(Plot.tickX(rows, Plot.groupY({x:'mean'}, {x:y, y:x, stroke:C.ink, strokeWidth:2})));
+      // replicate mean: one tick per category AND series (one tick pooled over both arms meant nothing)
+      if (hasRep) marks.push(Plot.tickX(rows, Plot.groupY({x:'mean'}, s ? {x:y, y:x, z:s, stroke:s, strokeWidth:2} : {x:y, y:x, stroke:C.ink, strokeWidth:2})));
       opt = {marginLeft:lm, height:Math.max(110, 26 * cats.length + 54), x:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}, y:{label:null, domain:spec.categoryOrder || cats}};
       break; }
     case 'dumbbell': {
@@ -227,14 +236,35 @@ function build(spec, width){
       const xs = uniq(rows, x), ys = uniq(rows, y === v ? (s || y) : y);
       const yk = y === v ? s : y;
       const vmax = d3.max(rows, d => +d[v] || 0) || 1;
-      marks = [Plot.cell(rows, {x:x, y:yk, fill:v, title:T, inset:1}), Plot.text(rows, {x:x, y:yk, text:d => d[v] == null ? '' : fmt(d[v]), fill:d => ((+d[v] || 0) / vmax > 0.5 ? '#ffffff' : '#17201C'), fontSize:10.5, fontWeight:500})];
-      opt = {marginLeft:Math.min(260, 18 + 7.4*longest(ys)), marginBottom: Math.min(150, 24 + 6.4*longest(xs)), height:Math.max(160, 26 * ys.length + 110),
-             x:{label:null, tickRotate: longest(xs) > 5 ? -40 : 0, domain:spec.xOrder || xs}, y:{label:null, domain:spec.yOrder || ys},
-             color:{type: spec.colorType || 'linear', scheme:'blues', legend:true, label:(spec.valueLabel || v) + (spec.unit && !(spec.valueLabel || v).includes(spec.unit) ? ` (${spec.unit})` : '')}};
-      return Plot.plot({...base, ...opt, marks});
+      const big = spec.cellText === false || xs.length > 24;
+      const xd = spec.xOrder || xs, yd = spec.yOrder || ys;
+      marks = [Plot.cell(rows, {x:x, y:yk, fill:v, title:T, inset: big ? 0.5 : 1})];
+      if (!big) marks.push(Plot.text(rows, {x:x, y:yk, text:d => d[v] == null ? '' : fmt(d[v]), fill:d => ((+d[v] || 0) / vmax > 0.5 ? '#ffffff' : '#17201C'), fontSize:10.5, fontWeight:500}));
+      const ml = Math.min(260, 18 + 7.4*longest(ys)), mb = big ? Math.min(200, 18 + 7.4*longest(xs)) : Math.min(150, 24 + 6.4*longest(xs));
+      const side = big ? Math.max(9, Math.floor((width - ml - 20) / xd.length)) : 26;    // square cells for a big matrix
+      opt = {marginLeft:ml, marginBottom:mb, marginRight: big ? 20 : 28,
+             width: big ? ml + side * xd.length + 20 : width,
+             height: big ? side * yd.length + mb + 16 : Math.max(160, 30 * ys.length + mb + 34),   // rows get 30 px whatever the label margin
+             x:{label:null, tickRotate: big ? -90 : (longest(xs) > 5 ? -40 : 0), domain:xd}, y:{label:null, domain:yd},
+             color:{type: spec.colorType || 'linear', ...(big ? {domain:[0, 1], range:[C.grid, C.pal[0]]} : {scheme:'blues'}), legend:true, label:(spec.valueLabel || v) + (spec.unit && !(spec.valueLabel || v).includes(spec.unit) ? ` (${spec.unit})` : '')}};
+      const node = Plot.plot({...base, ...opt, marks});
+      if (big && spec.blocks){   // outline each block on the diagonal; a block is {from, to, label}, first and last token in the order
+        const sx = node.scale('x'), sy = node.scale('y');
+        const svg = node.tagName.toLowerCase() === 'svg' ? node : [...node.querySelectorAll('svg')].pop();
+        const g = d3.select(svg).append('g').attr('aria-label', 'blocks');
+        for (const bk of spec.blocks){
+          const i = xd.indexOf(bk.from), j = xd.indexOf(bk.to); if (i < 0 || j < 0) continue;
+          const x0 = sx.apply(xd[i]), x1 = sx.apply(xd[j]) + sx.bandwidth, y0 = sy.apply(yd[yd.indexOf(bk.from)]), y1 = sy.apply(yd[yd.indexOf(bk.to)]) + sy.bandwidth;
+          g.append('rect').attr('x', x0).attr('y', y0).attr('width', x1 - x0).attr('height', y1 - y0).attr('fill', 'none').attr('stroke', C.ink).attr('stroke-width', 1.6)
+           .append('title').text(bk.label);
+          if (bk.tag) g.append('text').attr('x', x1 + 3).attr('y', y0 - 3).attr('font-size', 11.5).attr('font-weight', 700).attr('fill', C.ink)
+             .attr('stroke', C.panel).attr('stroke-width', 3).attr('paint-order', 'stroke').text(bk.tag);
+        }
+      }
+      return node;
     }
     case 'line': {
-      marks = [Plot.line(rows, {x:x, y:y, stroke: s || accent, strokeWidth:2, curve:'monotone-x'}), Plot.dot(rows, {x:x, y:y, fill: s || accent, r:3, title:T})];
+      marks = [Plot.line(rows, {x:x, y:y, stroke: s || accent, strokeWidth:2, curve: spec.curve || 'monotone-x'}), Plot.dot(rows, {x:x, y:y, fill: s || accent, r:3, title:T})];
       opt = {height:280, x:{label:(spec.xLabel || x), grid:false}, y:{label:(spec.yLabel || y) + unit, grid:true, type: valueLog ? 'log':'linear'}};
       break; }
     case 'scatter': {
@@ -265,7 +295,8 @@ function build(spec, width){
       break; }
     default: return null;
   }
-  refs.forEach((rf, ri) => { const vv = rf.value; const horizontal = ['bar','dot','dumbbell','box','strip','stackedBar','range'].includes(form) && (form !== 'bar' || cats.length > 5 || longest(cats) > 9);
+  refs.forEach((rf, ri) => { const vv = rf.value; const horizontal = rf.axis === 'x' && ['line','scatter','histogram'].includes(form) ? true :
+      ['bar','dot','dumbbell','box','strip','stackedBar','range'].includes(form) && (form !== 'bar' || cats.length > 5 || longest(cats) > 9);
     if (horizontal){ marks.push(Plot.ruleX([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {x:d => d, frameAnchor:'top', dy:-2 + ri * 12, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'start', dx:4})); }
     else { marks.push(Plot.ruleY([vv], {stroke:C.ink3, strokeDasharray:'4,3'}), Plot.text([vv], {y:d => d, frameAnchor:'right', dy:-6, text:() => rf.label, fill:C.ink3, fontSize:10.5, textAnchor:'end'})); } });
   if (fct){ opt.fy = undefined; }
