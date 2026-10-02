@@ -35,7 +35,7 @@
 #   cx-lifecycle.sh logs [n]     # tail DFHack's stderr.log
 #   cx-lifecycle.sh port         # print the port in use
 #   cx-lifecycle.sh bottles      # list CrossOver bottles
-#   cx-lifecycle.sh deploy-tool <dir>   # install a tool tree, subdirs intact
+#   cx-lifecycle.sh deploy-tool <dir>   # install a tool tree, subdirs intact (seasonal-wildlife: its five scripts cmp-checked)
 #   cx-lifecycle.sh save-backup <region> [tag]  # copy ONE save aside (cheap)
 #   cx-lifecycle.sh save-restore <region.tag>
 #   cx-lifecycle.sh saves        # list saves and save backups
@@ -247,6 +247,26 @@ cmd_deploy_tool() {
     n=$(cd "$src" && find . -name '*.lua' | wc -l | tr -d ' ')
     log "deployed $n lua file(s) from $src (tree preserved)"
     (cd "$src" && find . -name '*.lua' | sed 's|^\./|  |')
+    # seasonal-wildlife: every script of the tool is checked in place, byte for byte. v7.1 (1 Oct 2026) added a fifth,
+    # seasonal-wildlife-controls.lua, which the web server reqscripts at load: a tree without it serves no page.
+    if [ -f "$src/seasonal-wildlife.lua" ]; then
+        local f bad=0
+        local files="seasonal-wildlife.lua gui/seasonal-wildlife.lua seasonal-wildlife-web.lua seasonal-wildlife-web.html"
+        if grep -q "reqscript('seasonal-wildlife-controls')" "$src/seasonal-wildlife-web.lua" 2>/dev/null; then
+            files="$files seasonal-wildlife-controls.lua"
+        fi
+        for f in $files; do
+            if [ ! -f "$src/$f" ]; then
+                case "$f" in seasonal-wildlife-web*) continue ;; esac   # releases before v6.8 ship no companion
+                echo "  MISSING in the source tree: $f" >&2; bad=1
+            elif ! cmp -s "$src/$f" "$dest/$f"; then
+                echo "  NOT DEPLOYED (differs or absent): $f" >&2; bad=1
+            else
+                echo "  ok $f"
+            fi
+        done
+        [ "$bad" -eq 0 ] || err "deploy-tool: seasonal-wildlife tree incomplete in $dest"
+    fi
 }
 
 # Save-scoped backup. `snapshot` copies the whole 5.4 GB bottle and needs the

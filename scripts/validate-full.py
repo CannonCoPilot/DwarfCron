@@ -113,7 +113,7 @@ CLAIMS = [
     ("gui.seasons.edit", "GUI", "S U A W on the Seasons tab edit the selected species' seasons and the Roster shows the change", "W12; alpha 1 step 5.1", "shipped v6.6"),
     ("gui.layout", "GUI", "the window opens taller than 34 rows when the screen allows, with all nine tabs on one row", "W9; alpha 1 step 1.3", "shipped v6.6"),
     # ---- CLI verbs (USAGE.md "Console commands"; the script's dispatch table)
-    ("cli.status", "CLI", "`status` lists biomes, layers, quota, cavern line, on-the-map counts, the invasion field, and the embark subset", "USAGE.md", "shipped"),
+    ("cli.status", "CLI", "`status` lists biomes, layers, the limits line ('limits [mode]:' since v7.1), cavern line, on-the-map counts, the invasion field, and the embark subset", "USAGE.md", "shipped"),
     ("cli.now", "CLI", "`now` applies the current season's roster once and reports the active count", "USAGE.md", "shipped"),
     ("cli.enable", "CLI", "`enable` / `disable` start and stop automatic rotation (registers/cancels the daily scheduler)", "USAGE.md", "shipped"),
     ("cli.classes", "CLI", "`classes` prints the seven ecology classes, natural 'managed' and the rest 'left to DF' (D8, v6.3), with counts, plus the unclassified review list", "USAGE.md; D8", "shipped"),
@@ -127,9 +127,9 @@ CLAIMS = [
     ("cli.groups.nudge", "CLI", "`groups nudge TILES TICKS RADIUS` changes the three nudge distances", "USAGE.md", "shipped"),
     ("cli.groups.cohesion", "CLI", "`groups cohesion on|off|herd N pack N flock N` sets cohesion and follow distances and reports groups led", "USAGE.md", "shipped"),
     ("cli.groups.hold", "CLI", "`groups hold TOKEN DAYS` raises every member's leave countdown; `groups dismiss TOKEN` zeroes it and clears the leader", "USAGE.md", "shipped"),
-    ("cli.quota", "CLI", "`quota [land|water|cavern] N` sets a per-layer ceiling; 0 unsets; status shows effective values and what is on the map", "USAGE.md", "shipped"),
+    ("cli.quota", "CLI", "`limits` (the retired `quota` is an alias) prints the limits line and what is on the map; since v7.1 the line names the mode: 'limits [map-size formula per layer]' or 'limits [single fixed cap N on every layer]'", "USAGE.md; docs/v7.1/groups.md R7", "shipped"),
     ("cli.quota.cavern", "CLI", "`quota cavern N` warns that the ceiling is enforced on FREQUENCY and brakes arrivals rather than culling", "STATE addendum 57", "shipped"),
-    ("cli.water", "CLI", "`water [on|off|now|target N|cadence N|countdown N]` controls the water job; status names live/dormant with the reason", "USAGE.md", "shipped"),
+    ("cli.water", "CLI", "`water [on|off|now|countdown N]` controls the water job (v7.1 adds layer, spill, mix, pull, guard, survey/depth; target and cadence are retired); status names live/dormant with the reason, and since v7.1 a 'water layer ...; season spill ...' line", "USAGE.md; docs/v7.1/fixes.md 5", "shipped"),
     ("cli.water.now", "CLI", "`water now` on a dormant layer answers at once with 'placed 0' and the reason (the wet-edge verdict is cached at load)", "USAGE.md; v5.8.2", "shipped"),
     ("cli.place", "CLI", "`place TOKEN [n] [layer]` places wild animals headlessly and debits the entry", "USAGE.md", "shipped"),
     ("cli.usage", "CLI", "an unknown verb prints usage rather than a stack trace", "script", "shipped"),
@@ -147,8 +147,8 @@ CLAIMS = [
     ("mech.hold", "MECH", "hold raises leave_countdown on every member to ≥ DAYS×1200 ticks", "USAGE.md v5.7; E9c/E19", "shipped"),
     ("mech.dismiss", "MECH", "dismiss zeroes leave_countdown and clears the leader", "USAGE.md v5.7", "shipped"),
     ("mech.ecology.write", "MECH", "the ecology write relates every LARGE_PREDATOR to every target in DF's reaction cache, slotting any unit DF has not (v5.9.7), and reports the pair count", "USAGE.md v5.6/v5.9.7; E11c/T4", "shipped"),
-    ("mech.ecology.cadence", "MECH", "the ecology job fires on its own every 1,500 ticks while enabled", "USAGE.md v5.6", "shipped"),
-    ("mech.ecology.nudge", "MECH", "a predator >40 tiles from every target for 3,000 ticks is moved to within 6", "USAGE.md v5.6; E18", "shipped"),
+    ("mech.ecology.cadence", "MECH", "the ecology job fires on its own every ecology.cadence ticks while enabled: 3,000 by default since v7.1 (R37), 1,500 before", "USAGE.md v5.6; docs/v7.1/ecology.md R37", "shipped"),
+    ("mech.ecology.nudge", "MECH", "with the nudge on (off by default since v7.1, R38), a predator >40 tiles from every target for 3,000 ticks is moved to within 6", "USAGE.md v5.6; E18; docs/v7.1/ecology.md R38", "shipped"),
     ("mech.place", "MECH", "place puts N live wild units on walkable tiles with a population ref, debits the entry by N, and they survive stepping", "STATE addendum 47", "shipped"),
     ("mech.water.dormant", "MECH", "on a dry/inland fort the water layer is dormant and the status names WHICH test failed", "USAGE.md v5.8; E25", "shipped"),
     ("cli.caverns", "CLI", "`caverns [survey]` reports each cavern band on the map with its levels and its edge water (v5.9)", "USAGE.md v5.9; STATE addendum 76", "shipped"),
@@ -198,7 +198,7 @@ CLAIMS = [
     ("gui.tab.foodweb", "GUI", "Food web tab: ecology-switch line, season selector, chains (All) or trophic pyramid + aquatic mini-web (a season)", "USAGE.md Food web tab", "shipped"),
     ("cli.irruption", "CLI", "`irruption` shows the status (off by default); `irruption on` turns it on and the status names the threshold and the three pressures; `irruption off` turns it off", "USAGE.md v6.1", "shipped"),
     ("gui.k.layI", "GUI", "I on Layers flips irruptions and the cavern pressure row shows the three pressures", "USAGE.md v6.1", "shipped"),
-    ("mech.irruption.arm", "MECH", "with pressure pinned at the threshold, the next arriving cavern group the roster admits is armed (agitated flag on its members) and stood down after its duration; off is inert", "USAGE.md v6.1; PLAN 3.6b", "shipped"),
+    ("mech.irruption.arm", "MECH", "v6.1-v7.0: with pressure pinned at the threshold, the next arriving cavern group the roster admits is armed (agitated flag on its members) and stood down after its duration; off is inert. v7.1 replaced arming with IRRUPT v2 events (mech.v71.irr.*), and a v7.0 armed group is stood down on the first pass (mech.v71.irr.migrate)", "USAGE.md v6.1; PLAN 3.6b", "shipped"),
     ("gui.k.altL", "GUI", "Alt+L on any tab cycles the layer (all → land → water → cavern) and the window's title names it with the reason when off or dormant; the Roster's rows follow it", "USAGE.md v6.2.0", "shipped"),
     ("mech.overlay.links", "MECH", "overlayLinks() reports the related wild pairs the overlay would draw and how many share a level; the overlay seasonal-wildlife.groups is registered", "USAGE.md v6.2.0", "shipped"),
     ("gui.tab.ledger", "GUI", "Ledger tab: the recorded lines newest last, coloured by kind, with the kind and layer filters", "USAGE.md v5.11.4", "shipped"),
@@ -250,8 +250,8 @@ CLAIMS = [
     ("mech.v69.pelagic", "MECH", "a pelagic giant's water-draw weight is its FREQUENCY scaled down by size, never below 0.1 of it; a small fish keeps its FREQUENCY", "user 30 Sep; ECO O/DEPTH", "shipped v6.9"),
     ("cli.alerts", "CLI", "`alerts off|on` switches quiet wildlife fights and says so; on by default", "ECO A1/A2", "shipped v6.9"),
     ("cli.curious", "CLI", "`curious TOKEN resident` clears the species' CURIOUS_BEAST* caste flags; `thief` restores them; a species that is no curious beast is refused", "ECO B/CB", "shipped v6.9"),
-    ("mech.v69.autogroups", "MECH", "land groups at once default to floor(sqrt(embark tiles)) + 1 and `limits land groups N` sets a number instead", "user 29 Sep; ECO2-G", "shipped v6.9"),
-    ("cli.scavenge", "CLI", "`scavenge on|off|now` switches scavenging, runs one pass on demand and reports it; off by default", "ECO S/S2; PLAN scavenging", "shipped v6.9"),
+    ("mech.v69.autogroups", "MECH", "land groups at once default to floor(sqrt(embark tiles)) + 1 and `limits land groups N` sets a number instead -- since v7.1 (R7) the single fixed cap N on every layer, and `groups auto` the map-size formula again", "user 29 Sep; ECO2-G; R7", "shipped v6.9"),
+    ("cli.scavenge", "CLI", "`scavenge on|off|now` switches scavenging, runs one pass on demand and reports it; off by default. Since v7.1 the status says on only when the tool is enabled too ('off (the tool is disabled; the scavenging switch is on)') and `now` says why nothing ran", "ECO S/S2; PLAN scavenging; docs/v7.1/scav.md 14", "shipped v6.9"),
     ("mech.v69.guild", "MECH", "the engine's guild for each natural species agrees with the ECO desk's guild table (data/eco-desk/v2/guilds/species2.tsv) for at least 95% of them", "ECO desk v2 guild design", "shipped v6.9"),
     ("mech.v69.exhaust", "MECH", "an in-season species whose stock reaches 0 is held at 0 by an apply, and an active out-of-season member of its group borrows the season, given back at the season change", "ECO N1", "shipped v6.9"),
     # ---- v7.0.0 (30 Sep 2026): alignment, civ races, groups by layer, the solitary/pack/fisher raw package, sponges
@@ -260,16 +260,16 @@ CLAIMS = [
     ("mech.v70.fanciful", "MECH", "a FANCIFUL-only mythic species (no GOOD/EVIL) with no biome match is natural when v7.fanciful is on, never otherwise locked for that reason", "V7.alignedNatural", "shipped v7.0"),
     ("mech.v70.vermin_nolocked", "MECH", "the Vermin tab's rows never include a locked species (a family member whose ecology class is not enabled in cfg.classes)", "VERMIN.rows", "shipped v7.0"),
     ("mech.v70.sanitize", "MECH", "a stale cfg.allow/cfg.assign entry for a species whose class is locked is dropped the next time the config loads", "V7.sanitizeLocked", "shipped v7.0"),
-    ("mech.v70.leader_male", "MECH", "a cohesive group's leader is the largest living adult male when v7.leader_male is on, falling back to the largest adult, then the first member; a living leader keeps the role across passes", "V7.leaderOf; ECO L1", "shipped v7.0"),
-    ("mech.v70.groups_water_body", "MECH", "with v7.layer_groups on, the water limit is quoted and applied per water body (ocean/lake/river/pool), not once for the whole water layer", "V7.waterTick; QUOTA.groupsFor/status", "shipped v7.0"),
-    ("mech.v70.groups_cavern_depth", "MECH", "with v7.layer_groups on, each cavern depth is gated and reported on its own, not pooled with the others", "QUOTA.groupsFor/status; groupsTick", "shipped v7.0"),
-    ("mech.v70.groups_auto_all", "MECH", "with v7.layer_groups on, every layer (land, water, cavern) defaults to floor(sqrt(embark tiles)) + 1 groups at once, not land alone", "QUOTA.groupsFor/autoGroups", "shipped v7.0"),
+    ("mech.v70.leader_male", "MECH", "a cohesive group's leader is the largest living adult male when v7.leader_male is on; v7.0 fell back to the largest adult, then the first member; since v7.1 (R32) no adult male means no leader (grp.unled); a living leader keeps the role across passes; off -> the first member", "V7.leaderOf; ECO L1; R32", "shipped v7.0"),
+    ("mech.v70.groups_water_body", "MECH", "the water limit is quoted and applied per water body (ocean/lake/river/pool), not once for the whole water layer (v7.0: with v7.layer_groups on; v7.1: always, the switch retired)", "V7.waterTick; QUOTA.groupsFor/status", "shipped v7.0"),
+    ("mech.v70.groups_cavern_depth", "MECH", "each cavern depth is gated and reported on its own, not pooled with the others (v7.0: with v7.layer_groups on; v7.1: always, at R44's cavern cap)", "QUOTA.groupsFor/status; groupsTick", "shipped v7.0"),
+    ("mech.v70.groups_auto_all", "MECH", "every layer counts its own groups: v7.0 (layer_groups on) gave land, water and cavern floor(sqrt(embark tiles)) + 1; v7.1 gives land and every water body the formula and every cavern R44's fixed cap (5)", "QUOTA.groupsFor/autoGroups; R7; R44", "shipped v7.0"),
     ("mech.v70.seasons_own", "MECH", "with v7.seasons_own on, a species' NO_<season> raw flags are cleared for every managed species (the roster no longer deflects a dealt season around them) and restored when v7 raws are restored", "ROSTER.fitSeason; V7.apply/restore", "shipped v7.0"),
-    ("mech.v70.solo_raws", "MECH", "with v7.solo on, a solitary (group size <= 1) armed predator's raw gets AMBUSHPREDATOR, the solitary-package natural skills, and stealth-free gaits", "V7.apply (solo branch); user 30 Sep (STL/STL2)", "shipped v7.0"),
+    ("mech.v70.solo_raws", "MECH", "with v7.solo on, a solitary armed predator's raw gets AMBUSHPREDATOR, the solitary-package natural skills, and stealth-free gaits; v7.1 picks the solitary species by MODEL.cohesionOf (raw cluster max <= 1) through V7.H.profileOf", "V7.apply (solo branch); user 30 Sep (STL/STL2); docs/v7.1/ecology.md", "shipped v7.0"),
     ("mech.v70.pack_floor", "MECH", "a hunting group whose live member count x predator mass is under v7.pack_floor (5%) of the target's mass writes no predator/prey relation", "ecoWrite pack-mass gate; ECO CAL", "shipped v7.0"),
-    ("mech.v70.pack_sneak", "MECH", "a hunting group whose pack-mass share reaches v7.pack_sneak (25%) of the target's mass gets SNEAK 10 on its members", "ecoWrite pack-mass gate", "shipped v7.0"),
+    ("mech.v70.pack_sneak", "MECH", "a hunting group whose pack-mass share reaches v7.pack_sneak (25%) of the target's mass gets SNEAK on its members: 10 in v7.0, hunters.skills.pack_bonus (10) since v7.1", "ecoWrite pack-mass gate; docs/v7.1/ecology.md", "shipped v7.0"),
     ("mech.v70.scav_mapwide", "MECH", "with v7.scav_mapwide on, the scavenger pass is not limited to cfg.scavenge.radius -- it reaches anywhere on the map", "SCAV.run", "shipped v7.0"),
-    ("mech.v70.fishers_flags", "MECH", "with v7.fishers on, every token in v7.fisher_list gets CAN_SWIM_INNATE (and CAN_BREATHE_WATER too when v7.fish_breathe is on)", "V7.apply (fishers branch)", "shipped v7.0"),
+    ("mech.v70.fishers_flags", "MECH", "with v7.fishers on, every token set true in v7.fisher_list gets CAN_SWIM_INNATE (v7.1: and CAN_SWIM; CAN_BREATHE_WATER too when v7.fish_breathe is on); v7.1's default list is the bears, who swim already, so the write is read on a non-swimmer put on the list for the probe", "V7.apply (fishers branch); docs/v7.1/ecology.md", "shipped v7.0"),
     ("mech.v70.restore_all", "MECH", "V7.restore() reverses every raw write V7.apply made (seasons, solitary package, fishers) and reports how many", "V7.rec/restore", "shipped v7.0"),
     ("mech.v70.civ_fb_safe", "MECH", "V7.natural is false for a non-natural raw (forgotten beast/demon template, megabeast, titan, night creature) while v7.fb_safe is on, true for any raw when it is off", "V7.natural; STATE addendum 96b", "shipped v7.0"),
     ("mech.v70.civ_hunt", "MECH", "with v7.civ_hunt on, a cavern civ race of an armed guild (AL/AW/ML/MW/RP) is armed as a predator whatever its food-web role reads; off, it is not", "ecoArmed civ branch", "shipped v7.0"),
@@ -334,10 +334,10 @@ CLAIMS = [
     ("plan.arming", "MECH", "the 'arming step' of trigger/pre-load/set-the-table", "design §2", "gap noted"),
     # ---- Backlog (unscheduled, recorded for completeness). 1 Oct 2026 (open item validator-backlog-stale): seven of
     # the thirteen shipped in v6.5-v7.0 and are recorded from the claim that exercises each (SHIPPED_BACKLOG below);
-    # only grouping, migrants, perch, r2r4, eats and balance remain genuinely unbuilt.
+    # v7.1 shipped two more (grouping, balance: R62); migrants, perch, r2r4 and eats remain genuinely unbuilt.
     ("bl.frequency", "MECH", "per-species frequency override in the roster (never writing 0)", "Backlog; shipped as `odds` (v6.5)", "shipped v6.5"),
     ("bl.popnumber", "DOC", "roster wording: 'regional stock' not per-fort budget", "Backlog; shipped with `stock` (v6.5)", "shipped v6.5"),
-    ("bl.grouping", "MECH", "published solitary/pack/herd table with overrides", "Backlog", "backlog"),
+    ("bl.grouping", "MECH", "published solitary/pack/herd table with overrides", "Backlog; shipped as MODEL.cohesionOf + `hunters cohesion list all` (v7.1, R62)", "shipped v7.1"),
     ("bl.largestmale", "MECH", "leader chosen by body size and sex", "Backlog; shipped as v7.leader_male (v7.0)", "shipped v7.0"),
     ("bl.concurrency", "MECH", "max concurrent groups scaled from embark size (√tiles+1)", "Backlog; shipped as QUOTA.autoGroups (v6.9)", "shipped v6.9"),
     ("bl.deepwater", "MECH", "deep-ocean species gated on the map having deep tiles", "Backlog; shipped as the deep-water survey (v7.0)", "shipped v7.0"),
@@ -347,7 +347,7 @@ CLAIMS = [
     ("bl.realm", "MECH", "geographic/realm grouping of species", "Backlog; shipped as the realm table (v7.0)", "shipped v7.0"),
     ("bl.quiet", "MECH", "tool-side filter to quiet animal-on-animal combat reports", "Backlog; shipped as `alerts` (v6.9)", "shipped v6.9"),
     ("bl.eats", "MECH", "a who-eats-whom history", "Backlog", "backlog"),
-    ("bl.balance", "MECH", "water placement weighted by what is swimming", "Backlog", "backlog"),
+    ("bl.balance", "MECH", "water placement weighted by what is swimming", "Backlog; shipped as the water community weights `water mix` (v7.1, R62)", "shipped v7.1"),
     # ---- Documentation claims that must match the code
     ("doc.usage.version", "DOC", "USAGE.md's header states the current version and DF/DFHack it was developed against", "USAGE.md", "doc"),
     ("doc.usage.cavernquota", "DOC", "USAGE.md's description of `quota cavern` matches the shipped mechanism", "USAGE.md Per-layer quotas", "doc"),
@@ -1094,12 +1094,26 @@ print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, p
     tj = luaj("local m=df.global.world.map; print(json.encode({t=(m.x_count//48)*(m.y_count//48)}))", timeout=60)
     want = (int(math.isqrt(tj["t"])) + 1) if isinstance(tj, dict) and tj.get("t") else None
     rc, a0 = cmd("limits", "land", "groups", "auto"); rc, a1 = cmd("limits", "land", "groups", "4"); rc, a2 = cmd("limits", "land", "groups", "auto")
-    ok = want is not None and f"land auto ({want}) group(s) at once" in a0 and "land 4 group(s) at once" in a1 and f"land auto ({want})" in a2
-    rec("mech.v69.autogroups", "PASS" if ok else "FAIL", f"auto ({want}) for {tj.get('t') if isinstance(tj, dict) else '?'} embark tiles; 4 when set; auto again", a0 + a1 + a2)
+    if V71:   # R7: 'land N (map size)' under the formula; `groups 4` is the single fixed cap 4 on every layer; `groups auto` the formula
+        ok = (want is not None and f"land {want} (map size) group(s) at once" in a0 and "land 4 (fixed) group(s) at once" in a1
+              and "single fixed cap 4 on every layer" in a1 and "water 4 (fixed)" in a1 and f"land {want} (map size)" in a2)
+        cmd("limits", "formula")
+    else:
+        ok = want is not None and f"land auto ({want}) group(s) at once" in a0 and "land 4 group(s) at once" in a1 and f"land auto ({want})" in a2
+    rec("mech.v69.autogroups", "PASS" if ok else "FAIL", f"auto ({want}) for {tj.get('t') if isinstance(tj, dict) else '?'} embark tiles; 4 when set" + (" (on every layer, v7.1)" if V71 else "") + "; auto again", a0 + a1 + a2)
+    on_ = bool(cfgv("enabled").get("enabled")) if V71 else True
     rc, s0 = cmd("scavenge"); rc, s1 = cmd("scavenge", "on"); rc, s2 = cmd("scavenge", "now"); rc, s3 = cmd("scavenge", "off")
-    ok = ("scavenging: off" in s0 and "scavenging: on" in s1 and re.search(r"scavenge: \d+ eaten", s2) and "scavenging: off" in s3
-          and "error" not in (s1 + s2).lower())
-    rec("cli.scavenge", "PASS" if ok else "FAIL", "off by default; on; a pass reports N eaten; off", s0 + s1 + s2 + s3)
+    if V71:   # scav section 14: 'on' only with the tool enabled too; `now` says why nothing ran
+        s1ok = ("scavenging: on" in s1) if on_ else ("scavenging: off (the tool is disabled; the scavenging switch is on)" in s1)
+        s2ok = bool(re.search(r"scavenge: \d+ eaten", s2)) and (on_ or "nothing ran: the tool is disabled" in s2)
+        ok = (re.search(r"scavenging: off(?! \(the tool)", s0) and s1ok and s2ok and re.search(r"scavenging: off(?! \(the tool)", s3)
+              and "error" not in (s1 + s2).lower())
+    else:
+        ok = ("scavenging: off" in s0 and "scavenging: on" in s1 and re.search(r"scavenge: \d+ eaten", s2) and "scavenging: off" in s3
+              and "error" not in (s1 + s2).lower())
+    rec("cli.scavenge", "PASS" if ok else "FAIL", "off by default; on" + ((" (the tool " + ("enabled: 'scavenging: on')" if on_ else "disabled: 'off (the tool is disabled; the scavenging switch is on)')")) if V71 else "")
+        + "; a pass reports N eaten" + ((" (tool off: 'nothing ran: the tool is disabled')" if not on_ else "") if V71 else "") + "; off", s0 + s1 + s2 + s3,
+        data={"tool_enabled": on_})
     desk = {}
     tsv = ROOT / "data/eco-desk/v2/guilds/species2.tsv"
     if tsv.exists():
@@ -1250,10 +1264,12 @@ if #members>=2 then
     if not bestAny or size(u)>size(bestAny) then bestAny=u end
   end
   out.expectId = (bestMale or bestAny).id
+  out.expectMale = bestMale and bestMale.id or nil   -- v7.1 (R32): no adult male, no leader
   cfg.v7.leader_male=true
   local grp={}
   local leader = V7.leaderOf(cfg, grp, members)
   out.leaderId = leader and leader.id
+  out.unled = grp.unled
   local leader2 = V7.leaderOf(cfg, grp, members)   -- same grp table: the leader_rule/leader fields now set, should hold
   out.stableId = leader2 and leader2.id
   cfg.v7.leader_male=false
@@ -1268,16 +1284,22 @@ print(json.encode(out))""", timeout=120)
     elif j.get("n", 0) < 2:
         rec("mech.v70.leader_male", "NOT-TESTABLE-HERE", "2+ live adult citizens to stand in as a group's members", json.dumps(j))
     else:
-        ok = j.get("leaderId") == j.get("expectId") and j.get("stableId") == j.get("leaderId") and j.get("offId") == j.get("firstId")
+        if V71:   # R32: the largest adult male, or nobody (grp.unled says why)
+            ok = (j.get("leaderId") == j.get("expectMale") and j.get("stableId") == j.get("leaderId") and j.get("offId") == j.get("firstId")
+                  and (j.get("expectMale") is not None or bool(j.get("unled"))))
+        else:
+            ok = j.get("leaderId") == j.get("expectId") and j.get("stableId") == j.get("leaderId") and j.get("offId") == j.get("firstId")
         rec("mech.v70.leader_male", "PASS" if ok else "FAIL",
-            "largest adult male (else largest adult) leads; a living leader keeps the role; off -> the first member",
-            json.dumps(j))
+            ("the largest adult male leads, or no one (unled) when there is none (v7.1, R32)" if V71 else "largest adult male (else largest adult) leads")
+            + "; a living leader keeps the role; off -> the first member", json.dumps(j))
     # ---- every layer (land, water bodies, cavern depths) gets its own groups-at-once and its own report line
     j = luaj("""
 local sw=reqscript('seasonal-wildlife'); local QUOTA=sw.QUOTA; local cfg=sw.loadConfig()
 cfg.v7.layer_groups=true
 local auto = QUOTA.autoGroups()
+if cfg.limits.mode then cfg.limits.mode = 'formula' end   -- v7.1 (R7): the map-size formula, whatever earlier phases left
 local land, water, cavern, ocean = QUOTA.groupsFor(cfg,'land'), QUOTA.groupsFor(cfg,'water'), QUOTA.groupsFor(cfg,'cavern'), QUOTA.groupsFor(cfg,'ocean')
+local wocean, cav2, cap = QUOTA.groupsFor(cfg,'water:ocean'), QUOTA.groupsFor(cfg,'cavern:1'), cfg.groups.cavern_cap
 local statOn = QUOTA.status(cfg)
 cfg.v7.layer_groups=false
 local statOff = QUOTA.status(cfg)
@@ -1285,21 +1307,30 @@ local g = sw.loadGroups()
 local depths={}
 for _,grp in ipairs(g.groups) do if grp.layer=='cavern' then local d=tostring(grp.depth or -1); depths[d]=(depths[d] or 0)+1 end end
 local nDepths=0; for _ in pairs(depths) do nDepths=nDepths+1 end
-print(json.encode({auto=auto, land=land, water=water, cavern=cavern, ocean=ocean, statOn=statOn, statOff=statOff, depths=depths, nDepths=nDepths}))""", timeout=120)
+print(json.encode({auto=auto, land=land, water=water, cavern=cavern, ocean=ocean, wocean=wocean, cav2=cav2, cap=cap, statOn=statOn, statOff=statOff, depths=depths, nDepths=nDepths}))""", timeout=120)
     if not isinstance(j, dict):
         for cid in ("mech.v70.groups_auto_all", "mech.v70.groups_water_body", "mech.v70.groups_cavern_depth"):
             rec(cid, "FAIL", "the probe's JSON", json.dumps(j)[:600])
     else:
         auto = j.get("auto")
-        allAuto = auto and j.get("land") == auto and j.get("water") == auto and j.get("cavern") == auto
+        if V71:   # R7 + R44: land and every water body the formula, every cavern the fixed cap; layer_groups retired (on always)
+            allAuto = (auto and j.get("land") == auto and j.get("water") == auto and j.get("wocean") == auto
+                       and j.get("cap") and j.get("cavern") == j.get("cap") and j.get("cav2") == j.get("cap"))
+        else:
+            allAuto = auto and j.get("land") == auto and j.get("water") == auto and j.get("cavern") == auto
         rec("mech.v70.groups_auto_all", "PASS" if allAuto else "FAIL",
-            "land, water and cavern all read floor(sqrt(embark tiles)) + 1 with v7.layer_groups on", json.dumps(j))
-        waterOk = j.get("ocean") == j.get("water") and " per water body" in (j.get("statOn") or "") and " per water body" not in (j.get("statOff") or "")
+            "land and water (each body) read floor(sqrt(embark tiles)) + 1 and every cavern R44's cap (v7.1)" if V71
+            else "land, water and cavern all read floor(sqrt(embark tiles)) + 1 with v7.layer_groups on", json.dumps(j))
+        if V71:   # one status line for both: the switch is retired, so there is no 'off' wording to contrast
+            waterOk = j.get("ocean") == j.get("water") == j.get("wocean") and " per water body" in (j.get("statOn") or "") and j.get("statOn") == j.get("statOff")
+        else:
+            waterOk = j.get("ocean") == j.get("water") and " per water body" in (j.get("statOn") or "") and " per water body" not in (j.get("statOff") or "")
         rec("mech.v70.groups_water_body", "PASS" if waterOk else "FAIL",
             "a water body (ocean) reads the water layer's own cap; the status line says 'per water body' only with layer_groups on",
             json.dumps({k: j.get(k) for k in ("water", "ocean", "statOn", "statOff")}),
             note="this is the config/report half, fort-independent; the live per-body independent draw (ocean vs lake vs river vs pool each on its own clock) needs a fort with more than one open water body to watch, which CTRL (no open water) and even LAKE (one body) do not give")
-        cavOk = " per cavern" in (j.get("statOn") or "") and " per cavern" not in (j.get("statOff") or "")
+        cavOk = (" per cavern" in (j.get("statOn") or "") and j.get("statOn") == j.get("statOff") and "(fixed, R44)" in (j.get("statOn") or "")) if V71 \
+            else (" per cavern" in (j.get("statOn") or "") and " per cavern" not in (j.get("statOff") or ""))
         rec("mech.v70.groups_cavern_depth", "PASS" if cavOk else "FAIL",
             "the status line says 'per cavern' only with layer_groups on (each depth reads the same cap, reported per depth, from its own g.next_cavern_depth[d] clock read in the source)",
             json.dumps({k: j.get(k) for k in ("statOn", "statOff", "depths", "nDepths")}),
@@ -1329,9 +1360,21 @@ local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig
 cfg.enabled=true; cfg.v7.seasons_own=true; cfg.v7.solo=true; cfg.v7.fishers=true; cfg.v7.fish_breathe=false
 local pool = sw.buildPool(cfg)
 local seasonE, soloE
+local V71 = (V7.H ~= nil and V7.H.profileOf ~= nil)   -- v7.1: the solitary package goes through the skill profiles
+local function ambushAll(tok)
+  local cr = sw.CAVERN.rawFor(tok); if not cr then return true end
+  for _,c in ipairs(cr.caste) do if not c.flags.AMBUSHPREDATOR then return false end end
+  return true
+end
 for _,e in ipairs(pool) do
   if not seasonE and e.inEmbark and not e.locked and e.noSeason and (e.noSeason[0] or e.noSeason[1] or e.noSeason[2] or e.noSeason[3]) then seasonE=e end
-  if not soloE and e.inEmbark and not e.locked and sw.ecoArmed(e) and (e.group or 1)<=1 then soloE=e end
+  if not soloE and e.inEmbark and not e.locked and sw.ecoArmed(e) and not ambushAll(e.token) then
+    if V71 then
+      local cr = sw.CAVERN.rawFor(e.token)
+      local prof = cr and sw.MODEL.cohesionOf(cr, cfg) == 'solitary' and V7.H.profileOf(cfg, e)
+      if prof and prof.ambush then soloE = e end
+    elseif (e.group or 1) <= 1 then soloE = e end
+  end
 end
 local function noFlags(tok)
   local cr = sw.CAVERN.rawFor(tok); if not cr then return nil end
@@ -1351,6 +1394,13 @@ end
 -- the fisher subject: the first listed fisher whose castes do not already swim (RACCOON does in vanilla: 2 of 2 before)
 local fishTok
 for tok, on in pairs(cfg.v7.fisher_list or {}) do local n = swimN(tok); if on and n and n == 0 then fishTok = tok break end end
+if not fishTok and V71 then
+  -- v7.1: the default list is the bears, who swim in vanilla; put a land carnivore that does not swim on the list
+  -- (this in-memory config only) so the write is read on a caste that lacks the flag
+  for _, tok in ipairs({'WOLF','COUGAR','LION','LEOPARD','HYENA','COYOTE','DINGO','JACKAL','BADGER','WOLVERINE'}) do
+    local n = swimN(tok); if n and n == 0 then fishTok = tok; cfg.v7.fisher_list[tok] = true; break end
+  end
+end
 fishTok = fishTok or 'RACCOON'
 local before = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
 local msg = V7.apply(cfg, pool)
@@ -1374,10 +1424,11 @@ print(json.encode({fishTok=fishTok, seasonKey=seasonE and seasonE.key, soloKey=s
             rec("mech.v70.solo_raws", "PASS" if ok else "FAIL", "AMBUSHPREDATOR set by V7.apply's solo branch, restored by V7.restore()",
                 json.dumps({"key": j.get("soloKey"), "before": b.get("solo"), "after": af.get("solo"), "post": po.get("solo")}))
         else:
-            rec("mech.v70.solo_raws", "NOT-TESTABLE-HERE", "an armed, in-embark, group-size<=1 predator in this pool", json.dumps(j)[:400])
+            rec("mech.v70.solo_raws", "NOT-TESTABLE-HERE", "an armed, in-embark, solitary predator (v7.1: MODEL.cohesionOf 'solitary' with an ambush profile) not already AMBUSHPREDATOR on every caste", json.dumps(j)[:400],
+                note="any embark with a solitary land hunter (cougar, leopard, tiger, giant ...): a region8 savage or forest 1x1")
         okFish = af.get("fish", 0) > (b.get("fish") or 0) and po.get("fish") == b.get("fish")
         rec("mech.v70.fishers_flags", "PASS" if okFish else ("NOT-TESTABLE-HERE" if (b.get("fish") or 0) > 0 else "FAIL"),
-            "CAN_SWIM_INNATE set on a listed fisher that lacks it (v7.fisher_list) by V7.apply, restored by V7.restore()",
+            "CAN_SWIM_INNATE set on a listed fisher that lacks it (v7.fisher_list; v7.1: a non-swimming land carnivore put on the list for the probe, the bears swim already) by V7.apply, restored by V7.restore()",
             json.dumps({"token": j.get("fishTok"), "before": b.get("fish"), "after": af.get("fish"), "post": po.get("fish")}))
         okAll = (j.get("restored", 0) > 0 and bool(j.get("msg")) and po.get("season") == b.get("season")
                  and po.get("solo") == b.get("solo") and po.get("fish") == b.get("fish"))
@@ -1414,7 +1465,7 @@ for k in pairs(civPairs) do
 end
 local civPairsN=0; for _ in pairs(civPairs) do civPairsN=civPairsN+1 end
 local packTagged=0
-for k in pairs(sw.CACHE.v7units or {}) do if k:match(':pack$') then packTagged=packTagged+1 end end
+for k in pairs(sw.CACHE.v7units or {}) do if k:match(':pack$') or k:match(':pack:%d+$') then packTagged=packTagged+1 end end   -- v7.1 keys carry the level
 print(json.encode({small=g.ecology.small, sweepCleared=g.ecology.sweep_cleared, sweepRefought=g.ecology.sweep_refought,
   sweep2=last2.sweep, packTagged=packTagged, civTokN=civTokN, civPairsN=civPairsN, civBad=civBad}))""", timeout=240)
     if not isinstance(j, dict):
@@ -1425,7 +1476,7 @@ print(json.encode({small=g.ecology.small, sweepCleared=g.ecology.sweep_cleared, 
             "a hunting group under 5% of the target's mass writes no relation (g.ecology.small counts it)", json.dumps(j),
             note="" if (j.get("small") or 0) > 0 else "no under-floor pack/prey pairing occurred on the map this pass")
         rec("mech.v70.pack_sneak", "PASS" if (j.get("packTagged") or 0) > 0 else "NOT-TESTABLE-HERE",
-            "a hunting group at/above 25% of the target's mass gets SNEAK 10 (tagged ':pack' in CACHE.v7units)", json.dumps(j),
+            "a hunting group at/above 25% of the target's mass gets the pack SNEAK bonus (tagged ':pack' in CACHE.v7units; v7.1 ':pack:<level>')", json.dumps(j),
             note="" if (j.get("packTagged") or 0) > 0 else "no pack reached the 25% sneak-bonus share this pass")
         sw2 = j.get("sweep2")
         if isinstance(sw2, dict):
@@ -1601,6 +1652,8 @@ print(json.encode(out))""", timeout=120)
     rc, v3 = cmd("v7", "domestic", "off")
     rc, v4 = cmd("v7", "fisher", "RACCOON", "off"); rc, v5 = cmd("v7")
     rc, v6 = cmd("v7", "fisher", "RACCOON", "on"); rc, v7_ = cmd("v7")
+    if V71:
+        cmd("v7", "fisher", "RACCOON", "off")   # v7.1's default list has RACCOON off (R33: bears only)
     def field(text, name):
         m = re.search(rf"^\s*{name}\s+(\S.*)$", text, re.M)
         return m.group(1).strip() if m else None
@@ -1768,8 +1821,8 @@ L('STOCK.status', sw.STOCK and sw.STOCK.status and function() sw.STOCK.status(cf
 L('CAVERN.status', sw.CAVERN and sw.CAVERN.status and function() sw.CAVERN.status(cfg) end)
 L('FUSE.status', sw.FUSE and sw.FUSE.status and function() sw.FUSE.status() end)
 T(out.parts, 'buildPool', function() sw.buildPool(cfg) end)   -- not a job: jobs build the pool only when the roster changed
-if sw.ecologyRun then T(out.jobs, 'ecology (1500 t)', function() sw.ecologyRun(cfg, g) end)
-else T(out.jobs, 'ecology (1500 t)', function() dfhack.run_command_silent('seasonal-wildlife','groups','ecology','now') end) end
+if sw.ecologyRun then T(out.jobs, 'ecology ('..tostring(cfg.ecology.cadence or 1500)..' t)', function() sw.ecologyRun(cfg, g) end)
+else T(out.jobs, 'ecology ('..tostring(cfg.ecology.cadence or 1500)..' t)', function() dfhack.run_command_silent('seasonal-wildlife','groups','ecology','now') end) end
 if sw.WATER and sw.WATER.run then T(out.jobs, 'water', function() sw.WATER.run(cfg) end) end
 print(json.encode(out))
 """
@@ -1894,7 +1947,8 @@ def phase_setup(fort):
 def phase_cli():
     log("== CLI")
     rc, out = cmd("status")
-    q = "limits:" if V65 else "quota:"   # v6.5 (W4): quota retired for limits (groups at once, ceiling)
+    q = "limits [" if V71 else ("limits:" if V65 else "quota:")   # v6.5 (W4): quota retired for limits; v7.1 (R7): 'limits [mode]:'
+
     ok = all(k in out for k in ("Biomes:", "Layers:", q, "On the map now:", "Embark subset"))
     rec("cli.status", "PASS" if ok else "FAIL", f"Biomes/Layers/{q[:-1]}/On the map now/Embark subset", out)
     rec("mech.layers.count", "PASS" if "magma sea and underworld" in out else "FAIL",
@@ -1935,7 +1989,8 @@ def phase_cli():
     rc, out = cmd("groups", "hold")
     rec("cli.groups.hold", "PASS" if "usage" in out.lower() else "FAIL", "usage on missing args", out)
     rc, out = cmd("limits" if V65 else "quota")
-    rec("cli.quota", "PASS" if (("limits:" in out) if V65 else ("quota:" in out)) and "on the map now" in out else "FAIL", "the limits (v6.5; quota before) line + on-the-map", out)
+    lq = re.search(r"limits \[(map-size formula per layer|single fixed cap \d+ on every layer)\]:", out) if V71 else (("limits:" in out) if V65 else ("quota:" in out))
+    rec("cli.quota", "PASS" if lq and "on the map now" in out else "FAIL", "the limits line (v7.1: 'limits [map-size formula per layer]:' or '[single fixed cap N ...]'; v6.5: 'limits:'; quota before) + on-the-map", out)
     rc, out = cmd("quota", "cavern", "12")
     ok = "frequency" in out.lower() and "arriv" in out.lower() and (("retired" in out) if V65 else True)
     rec("cli.quota.cavern", "PASS" if ok else "FAIL", "the frequency + arrival-lag warning" + (" and the retirement note (v6.5)" if V65 else ""), out)
@@ -2152,8 +2207,10 @@ def phase_mechanics():
         data={"predators": preds, "targets": targets, "pairs": pairs, "without_slot": noslot,
               "later": dict(zip(("predators", "targets", "pairs", "without_slot"), later)) if later else None},
         note=note)
-    rec("mech.ecology.cadence", "PASS" if w1 > w0 >= 0 else "FAIL", "total writes increases across 3,200 stepped ticks (cadence 1,500)", out2,
-        data={"writes_before": w0, "writes_after": w1})
+    cad = cfgv("ecology.cadence", "ecology.nudge").get("ecology.cadence")
+    rec("mech.ecology.cadence", "PASS" if w1 > w0 >= 0 and (not V71 or cad == 3000) else "FAIL",
+        f"total writes increases across 3,200 stepped ticks (cadence {'3,000 (v7.1 default, read back)' if V71 else '1,500'})", out2,
+        data={"writes_before": w0, "writes_after": w1, "cadence": cad})
     out = out2
     rec("mech.ecology.nudge", "NOT-TESTABLE-HERE", "a predator >40 tiles from every target for 3,000 ticks", out,
         note="the nudge counter is in the same line ('N nudged'); measured E17/E18 (kill latency followed pack arrival, not the threshold)")
@@ -2246,17 +2303,25 @@ def phase_mechanics():
         note="" if secs < 5 else ("the verb did not answer inside the cap; whether the server was busy is settled by the drain call that follows — if it returned at once, the core was free and the reply was never sent (v5.8.2 removed the whole-map scan)"))
     if V65:
         rc, out = cmd("limits", "water", "groups", "3", "ceiling", "20"); rc3, out3 = cmd("water", "countdown", "9000")
-        rec("mech.water.target", "PASS" if "3 group(s) at once, ceiling 20" in out3 and "~9000 ticks" in out3 else "FAIL",
-            "the water status echoing 3 groups at once, ceiling 20 and the 9000-tick countdown", out + out3)
+        # v7.1 (R7, R45): `limits <layer> groups N` is the single fixed cap N on every layer ('N (fixed)'), the water line
+        # says 'per water body', and the cavern cap is R44's ('N (fixed, R44)', the smaller of the cap and the fixed cap)
+        rec("mech.water.target", "PASS" if re.search(r"3 group\(s\) at once( per water body)?, ceiling 20", out3) and "~9000 ticks" in out3 else "FAIL",
+            "the water status echoing 3 groups at once (per water body since v7.1), ceiling 20 and the 9000-tick countdown", out + out3)
         rc, out = cmd("limits", "land", "groups", "2")
-        rec("mech.quota.land", "PASS" if "land 2 group(s) at once" in out else "FAIL", "'land 2 group(s) at once'", out)
+        okl = re.search(r"land 2( \(fixed\))? group\(s\) at once", out) and (not V71 or "single fixed cap 2 on every layer" in out)
+        rec("mech.quota.land", "PASS" if okl else "FAIL", "'land 2 group(s) at once' (v7.1: 'land 2 (fixed)' under 'single fixed cap 2 on every layer')", out)
         rc, out = cmd("quota", "water", "25")
-        # v7.0's layer_groups (default on) words the limit per body / per cavern and sets cavern groups to auto (N)
-        rec("mech.quota.water", "PASS" if "retired" in out and re.search(r"water 3 group\(s\) at once( per water body)?, ceiling 25", out) else "FAIL", "the quota alias sets the water ceiling and says quota is retired", out)
+        # v7.0's layer_groups (default on) words the limit per body / per cavern and sets cavern groups to auto (N);
+        # v7.1's fixed cap from `limits land groups 2` above now holds on the water too
+        wq = r"water 2 \(fixed\) group\(s\) at once per water body, ceiling 25" if V71 else r"water 3 group\(s\) at once( per water body)?, ceiling 25"
+        rec("mech.quota.water", "PASS" if "retired" in out and re.search(wq, out) else "FAIL", "the quota alias sets the water ceiling and says quota is retired", out)
         rc, out = cmd("limits", "cavern", "ceiling", "7"); rc2, out2 = cmd("limits", "bogus")
-        rec("mech.limits", "PASS" if re.search(r"cavern (2|auto \(\d+\)) group\(s\) at once( per cavern)?, ceiling 7", out) and "usage" in out2.lower() else "FAIL",
-            "`limits cavern ceiling 7` reads back; a bad layer prints usage", out + out2)
-        cmd("limits", "land", "groups", "3"); cmd("limits", "water", "groups", "2", "ceiling", "12"); cmd("limits", "cavern", "ceiling", "0")
+        rec("mech.limits", "PASS" if re.search(r"cavern (2|auto \(\d+\)|\d+ \(fixed, R44\)) group\(s\) at once( per cavern)?, ceiling 7", out) and "usage" in out2.lower() else "FAIL",
+            "`limits cavern ceiling 7` reads back (v7.1: the cavern count is R44's 'N (fixed, R44)'); a bad layer prints usage", out + out2)
+        if V71:   # back to the v7.1 defaults: the map-size formula, no water ceiling (R45), no cavern ceiling
+            cmd("limits", "formula"); cmd("limits", "water", "ceiling", "0"); cmd("limits", "cavern", "ceiling", "0")
+        else:
+            cmd("limits", "land", "groups", "3"); cmd("limits", "water", "groups", "2", "ceiling", "12"); cmd("limits", "cavern", "ceiling", "0")
     else:
         rc, out = cmd("water", "target", "20"); rc2, out2 = cmd("water", "cadence", "4000"); rc3, out3 = cmd("water", "countdown", "9000")
         rec("mech.water.target", "PASS" if "target 20" in out3 and "every 4000 ticks" in out3 and "countdown 9000" in out3 else "FAIL",
@@ -2689,7 +2754,7 @@ def phase_gui():
     # Live
     click("Live"); t = screen("C17-live"); p = shot("C17-live")
     GH = "Groups:" if V66 else "Resident groups:"   # v6.6 (W11): 'Groups: on  N at once ...'
-    ok = GH in t and "ecology:" in t and "Wild on map:" in t and ("limits:" if V65 else "quota:") in t
+    ok = GH in t and "ecology:" in t and "Wild on map:" in t and (("limits:" in t or "limits [" in t) if V65 else ("quota:" in t))
     rec("gui.tab.live", "PASS" if ok else "FAIL", "resident groups / ecology / Wild on map / quota lines", t[:900], shots=[p] if p else [])
     key("CUSTOM_R", 1.0); t2 = screen("C17-live-refresh")
     rec("gui.k.liveR", "PASS" if GH in t2 else "FAIL", "the tab re-renders", t2[:300])
@@ -2899,7 +2964,7 @@ def phase_static():
     rec("doc.docket", "PASS" if dm and ver and dm.group(2) == ver.group(1) else "DOC-DRIFT", "the Docket's source line names the shipped version",
         f"{dk[-1].name if dk else 'no docket source'}: '@ {dm.group(1) if dm else '?'} (v{dm.group(2) if dm else '?'})'; the script's newest change line is v{ver.group(1) if ver else '?'}")
 
-# Seven Backlog items that shipped (open item validator-backlog-stale). Each is recorded from the claim(s) that
+# Nine Backlog items that shipped (open item validator-backlog-stale; grouping and balance in v7.1). Each is recorded from the claim(s) that
 # exercise it in the same run: PASS when every one passed, FAIL when one failed, otherwise NOT-TESTABLE-HERE naming
 # the claim (two point at v7.0 claims that are still TODO in phase_v71).
 SHIPPED_BACKLOG = {
@@ -2910,6 +2975,8 @@ SHIPPED_BACKLOG = {
     "bl.deepwater": ["mech.v70.builder"],     # the deep-water survey is part of the builder's surveys: TODO in phase_v71
     "bl.realm": ["mech.v70.realms"],          # TODO in phase_v71
     "bl.quiet": ["cli.alerts"],
+    "bl.grouping": ["mech.v71.cohesion"],        # v7.1 (R62): MODEL.cohesionOf, the whole-list table with overrides
+    "bl.balance": ["mech.v71.water.mix"],        # v7.1 (R62): water community weights, `water mix`
 }
 
 def resolve_shipped_backlog():
@@ -3025,6 +3092,8 @@ DRY_ALIAS = {"sw": "", "V7": "V7.", "GRP": "V7.GRP.", "H": "V7.H.", "WAT": "V7.W
 ENGINE_TABLES = ("V7", "SCAV", "VERMIN", "ROSTER", "MODEL", "IRRUPT", "QUOTA", "CAVERN", "PLACE", "WILD", "ENGINE", "CURIOUS",
                  "UNDO", "FUSE", "PANEL", "CACHE", "CAVE", "WET", "LEDGER", "PATTERN", "STOCK", "RESERVE", "ODDS", "HUNT", "ALERTS")
 
+DRY_BAD_VERBS = {"help", "bogusverb"}   # verbs a claim sends on purpose to read the usage reply (cli.usage)
+
 def dry_report():
     """After a --dry-run: every Lua chunk through luac53 -p, every engine name a chunk reads checked against the tool
     checkout ($SW_TOOL), every console verb against the dispatcher. Exit 1 on a syntax error, an unknown name or verb,
@@ -3092,7 +3161,7 @@ def dry_report():
     for code in uniq:
         for v in re.findall(r"run_command_silent,\s*'seasonal-wildlife'\s*,\s*[\"']([\w-]+)[\"']", code):
             verbs.add(v)
-    badverbs = sorted(v for v in verbs if f"cmd == '{v}'" not in src and v not in ("help",))
+    badverbs = sorted(v for v in verbs if f"cmd == '{v}'" not in src and v not in DRY_BAD_VERBS)
     raised = [l for l in (OUT / "log.txt").read_text().splitlines() if "!! " in l]
     tally = {}
     for r in results:
