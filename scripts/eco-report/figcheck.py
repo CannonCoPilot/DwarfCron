@@ -104,6 +104,8 @@ def check(spec):
         span = max(abs(hi), abs(lo), 1e-9)
         for rf in spec["reference"]:
             v = rf.get("value") if isinstance(rf, dict) else rf
+            if isinstance(rf, dict) and rf.get("axis") == "x":   # a category/time-axis reference (N1's tick 2,400), not a value
+                continue
             if finite(v) and abs(num(v)) > 10 * span:
                 out.append(("warn", "ref-on-axis", f"{fid}: reference {v} is far outside the value axis ({lo}..{hi}); "
                                                    f"is it on the right axis?"))

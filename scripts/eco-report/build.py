@@ -45,7 +45,8 @@ def table_html(rows, limit=200):
 
 def fig_card(f):
     cap = " · ".join(x for x in [f.get("caption"), f.get("notes")] if x)
-    return (f'<figure class="fig" data-fig="{esc(f["id"])}" id="fig-{esc(f["id"])}">'
+    span = " span" if f.get("layout") == "full" else ""   # full: the card spans every column of its gallery
+    return (f'<figure class="fig{span}" data-fig="{esc(f["id"])}" id="fig-{esc(f["id"])}">'
             f'<div class="ft">{esc(f.get("title"))}</div>'
             + (f'<div class="fs">{esc(f.get("subtitle"))}</div>' if f.get("subtitle") else "")
             + '<div class="plot"></div>'
@@ -90,11 +91,12 @@ def open_items_html(oi):
             out.append(
                 f'<article class="oi" data-p="{esc(i.get("priority","low"))}">'
                 f'<div class="h"><span class="t">{esc(i.get("title"))}</span>'
-                f'<span class="chip {esc(i.get("priority","low"))}">{esc(i.get("priority",""))}</span></div>'
+                f'<span class="chips"><span class="chip st">{esc(i.get("status",""))}</span>'
+                f'<span class="chip {esc(i.get("priority","low"))}">{esc(i.get("priority",""))}</span></span></div>'
                 f'<p class="d">{esc(i.get("detail"))}</p>'
                 + (f'<div class="nx"><b>Next:</b> {esc(i.get("next"))}</div>' if i.get("next") else "")
-                + f'<div class="src">{esc(i.get("status",""))}{" · effort " + esc(i.get("effort")) if i.get("effort") else ""}'
-                + (f' · {esc("; ".join(map(str, src[:3])))}' if src else "") + '</div></article>')
+                + '<div class="src">' + " · ".join(x for x in [("effort " + esc(i.get("effort"))) if i.get("effort") else "",
+                                                              esc("; ".join(map(str, src[:3]))) if src else ""] if x) + '</div></article>')
         out.append('</div></div>')
     return "\n".join(out)
 
@@ -261,16 +263,21 @@ def main(argv=None):
         return f'<div class="gallery {esc(cls)}">' + "".join(fig_card(f) for f in rest) + "</div>"
     content = re.sub(r"\{\{gallery:([\w:\-]+)( [\w ]+)?\}\}", gallery, content)
     sys.path.insert(0, str(HERE))
-    import appendix, recs
+    import appendix, recs, v71
     content = content.replace("{{openitems}}", open_items_html(oi))
     content = content.replace("{{rectable}}", recs.table()).replace("{{appendix}}", appendix.build())
+    content = content.replace("{{v71table}}", v71.table())
     blocks = set()
     for f in exp.get("figures", []):
         for t in re.split(r"[,/+ ]+", f.get("block", "")):
             if re.match(r"^[A-Z][A-Za-z0-9_\-]*$", t.strip()) and t.strip() not in ("CTRL", "BOATS", "BUILDER", "T0", "VALIDATE"):
                 blocks.add(t.strip())
     content = content.replace("{{blockcount}}", str(len(blocks)))
-    open_n = sum(1 for i in (oi.get("items") or []) if i.get("status") != "done")   # done items show, but are not open
+    # done, decided and held items show, but are not open; built-untested and test-stage items are (they await the rig)
+    CLOSED = ("done", "decided", "held", "rejected")
+    open_n = sum(1 for i in (oi.get("items") or []) if not str(i.get("status", "")).startswith(CLOSED))
+    for k, v in (("{{n_decided}}", "decided"), ("{{n_built}}", "built"), ("{{n_test}}", "test stage")):
+        content = content.replace(k, str(sum(1 for i in (oi.get("items") or []) if str(i.get("status", "")).startswith(v))))
     content = content.replace("{{oicount}}", str(open_n))
     content = content.replace("{{figcount}}", str(len(placed)))
     unplaced = [f["id"] for f in figs if f["id"] not in placed]

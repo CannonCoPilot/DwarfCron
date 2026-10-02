@@ -2486,11 +2486,11 @@
    "series": "block",
    "facet": null,
    "log": false,
-   "notes": "STL arms: ctl 17/0/0, sneak 112/3/0, nslow 21/1/1, ambush 29/1/0 (attacks/killed/lost over 8 cell-reps). STL2: ctl 53/4, norel 0/0, sneak 85/4, fight 315/3, all 18/1. Hidden flags set in 0 of 426 samples: wild AI never sneaks. All STL kills by LION; COUGAR slower than both prey. Only the relation itself mattered (norel 0 in 8).",
+   "notes": "STL arms: ctl 17/0/0, sneak 112/3/0, nslow 21/1/1, ambush 29/1/0 (attacks/killed/lost over 8 cell-reps). STL2: ctl 53/4, norel 0/0, sneak 85/4, fight 315/3, all 18/1. SNEAK alone vs control: kill ratio 1.75 (CI 0.44-8.2), all of it lion kills. The hidden flag was set in 0 of 426 single-tick snapshots: that caps hidden time near 0.7%, it does not show that wild animals never sneak (A s13). Cells ran in one load in a fixed order (ctl first). All STL kills by LION; COUGAR is slower than both prey. Only the relation itself mattered (norel 0 in 8).",
    "id": "stl-skills",
    "block": "STL",
    "section": "solitary",
-   "title": "No skill or ambush arm beat the unchanged lone hunter: 10 of 48 treated runs with a kill vs 2 of 16 unchanged",
+   "title": "STL could only see effects of 5x or more: no skill or ambush arm clearly beat the unchanged lone hunter (kills in 10 of 48 treated runs vs 2 of 16)",
    "subtitle": "Prey killed per run by one placed COUGAR or LION among 6 DEER or WATER_BUFFALO (relation written unless 'norel'), 30,000 ticks",
    "caption": "CTRL, sustain per cell, 2 replicates; STL-20260930-155456 and STL2-20260930-164417 (stl-tally.py)",
    "form": "bar",
@@ -5297,8 +5297,8 @@
    "subtitle": "Attacks between the two placed species (both directions) with no relation written, first spot vs second spot; 3,000 ticks",
    "caption": "BOATS, second spot per cavern, 3,000 t, 2 replicates (first spot: HC1-HCP, 1 rep); data/experiments/ECO/HC4-20260930-233321",
    "form": "dumbbell",
-   "x": "attacks_both",
-   "y": "pair",
+   "x": "pair",
+   "y": "attacks_both",
    "unit": "attacks (both directions)",
    "rows": [
     {
@@ -5499,12 +5499,12 @@
    "series": "depth",
    "facet": null,
    "log": false,
-   "notes": "OCEAN2: 21,328 columns, d1 9,116, d2 12,212. Placed SHARK_WHALE x2 + SHARK_BLUE x3 all alive, wet, spread 13/43 after 3,000 t. BOATS (DEPTH block) is NOT reported in findings.md: 36,650 columns, d1 14,846, d2 9,759, d3 8,564, d4 3,481. OS (sharks in shallows) also unreported: alive, wet, spread 53/46.",
+   "notes": "Column depth = stacked water tiles; a tile's own water level is 1-7 (flow_size), a different thing (R22). OCEAN2: 21,328 columns, d1 9,116, d2 12,212. Placed SHARK_WHALE x2 + SHARK_BLUE x3 all alive, wet, spread 13/43 after 3,000 t. BOATS (DEPTH block): 36,650 columns, d1 14,846, d2 9,759, d3 8,564, d4 3,481. v7.0's own survey stopped after the top level, so it saw every column as one level deep; v7.1 reads every level.",
    "id": "water-depth",
    "block": "DEPTHL",
    "section": "oceans",
-   "title": "Fortress-map water is shallow: the lake is 91% one level deep and the ocean never deeper than 2",
-   "subtitle": "Water columns by depth (z-levels) on each embark's map",
+   "title": "Fortress-map water columns are 1-2 levels deep (column depth): the lake is 91% one level and the ocean never deeper than 2",
+   "subtitle": "Water columns by column depth (stacked water tiles at level 4/7 or more) on each embark's map",
    "caption": "Depth survey cells, 20260929-235553 DEPTH.tsv (BOATS), DEPTHL.tsv (LAKE), O.tsv (OCEAN2)",
    "form": "stackedBar",
    "x": "fort",
@@ -5562,7 +5562,7 @@
    "series": "block",
    "facet": null,
    "log": false,
-   "notes": "P1: BEAR_GRIZZLY 10/60 gone (findings: 10/60); no other P1 species lost any. CB: resetting leave_countdown+goal every 300 t did not hold them (4/4 gone); clearing the flags species-wide did (4/4 stay). Mechanism (BOATS trace): raccoon walked ~35 tiles to the wagon pile, took a rope, left. Also W1O polar bears 5/5, FSH2 grizzlies 2,1 of 3.",
+   "notes": "P1: BEAR_GRIZZLY 10/60 gone; no other P1 species lost any. They leave because they stole: DF zeroes leave_countdown at the theft and zeroed it again within 300 t of CB's reset (4/4 gone); clearing the flags species-wide kept them (4/4 stay). BOATS trace: a raccoon walked ~35 tiles to the wagon pile, took a rope, left. Also W1O polar bears 5/5, FSH2 grizzlies 2,1 of 3. v7.1 (R30): after the theft the tool clears that one unit's curious flags and resets its countdown (built, untested).",
    "id": "curious-beasts-leave",
    "block": "B",
    "section": "tokens",
@@ -5767,18 +5767,18 @@
    "series": null,
    "facet": null,
    "log": false,
-   "notes": "Not a rig experiment: raws survey. Keep the widget's cluster order (order of token_a first appearance). Diagonal set to 1.0; species_with_a = prevalence bar.",
+   "notes": "Not a rig experiment. Hover a cell for the pair and the number of species carrying the row token; hover an outline for the block's members and counts.",
    "id": "token-cooccurrence",
    "block": "T0",
    "section": "tokens",
    "title": "Wildlife tokens travel in a few tight blocks (aquatic, vermin, cavern, grazer, thief) across 363 species",
-   "subtitle": "Jaccard overlap of the 75 tokens carried by 3+ of the 363 wildlife species, cluster order; overlaps under 0.05 omitted",
-   "caption": "Desk survey of the 53.16 raws (eco/T0-triage.tsv); rows from the report widget token-heatmap (23da11c7-e484)",
+   "subtitle": "Jaccard overlap of the 75 tokens carried by 3+ of the 363 wildlife species: species with both / species with either. Same tokens, same order on both axes; blank = under 0.05; outlined = the 12 blocks that hold at mean J >= 0.5",
+   "caption": "How to read it. The order is the leaf order of an average-linkage tree on 1 - Jaccard, so tokens that ride on the same species sit side by side and a dark square on the diagonal is a block of tokens that travel together. The numbered outlines are the blocks that survive a cut at 0.5: 1 rat-like vermin; 2 spiders; 3 thieves; 4 ground foragers; 5 beasts of burden; 6 grazers; 7 aquatic core; 8 vermin fish; 9 vermin body; 10 backbone (prevalence); 11 cavern senses; 12 cavern. Only adjacency carries meaning, and loosely: tokens side by side share a branch of the tree; a block's place along the diagonal is not a rank, and the tree could be flipped at any branch without changing it. Dark rows outside any block are prevalence, not meaning: the backbone (BIOME and POPULATION_NUMBER on 363 of 363, GAIT 360, NATURAL 331) overlaps everything common. From the top left the order runs: rare tokens and the vermin set, thieves, domestic and burden tokens, grazers, the aquatic core, the vermin body and fish, the backbone, fliers, activity and diet, the two cavern blocks, and LARGE_PREDATOR last, because no token travels with it (best partner UNDERGROUND_DEPTH, J 0.26; it never co-occurs with BENIGN). What it means for the tool: writing one token of a block without its partners builds a combination no vanilla species carries (AQUATIC without IMMOBILE_LAND and NO_DRINK, for example), while LARGE_PREDATOR can be written alone without breaking a pattern. Desk survey of the 53.16 raws (eco/T0-triage.tsv; data/eco-desk/v2/tokens/clusters.md, cluster-order.json, cluster-cuts.json).",
    "form": "heatmap",
    "x": "token_b",
    "y": "token_a",
    "value": "jaccard",
-   "unit": "Jaccard",
+   "unit": null,
    "rows": [
     {
      "token_a": "BEACH_FREQUENCY",
@@ -16862,7 +16862,238 @@
      "jaccard": 0.23,
      "species_with_a": 41
     }
-   ]
+   ],
+   "blocks": [
+    {
+     "from": "GNAWER",
+     "to": "VERMIN_EATER",
+     "label": "1 rat-like vermin: GNAWER, VERMIN_EATER (all 4 / any 8 species, mean J 0.5)",
+     "tag": "1"
+    },
+    {
+     "from": "WEBBER",
+     "to": "WEBIMMUNE",
+     "label": "2 spiders: WEBBER, WEBIMMUNE (all 4 / any 5 species, mean J 0.8)",
+     "tag": "2"
+    },
+    {
+     "from": "CURIOUSBEAST_ITEM",
+     "to": "LOOSE_CLUSTERS",
+     "label": "3 thieves: CURIOUSBEAST_ITEM, LOOSE_CLUSTERS (all 7 / any 13 species, mean J 0.538)",
+     "tag": "3"
+    },
+    {
+     "from": "GOBBLE_VERMIN_CLASS",
+     "to": "ROOT_AROUND",
+     "label": "4 ground foragers: GOBBLE_VERMIN_CLASS, ROOT_AROUND (all 7 / any 7 species, mean J 1.0)",
+     "tag": "4"
+    },
+    {
+     "from": "PACK_ANIMAL",
+     "to": "WAGON_PULLER",
+     "label": "5 beasts of burden: PACK_ANIMAL, WAGON_PULLER (all 4 / any 8 species, mean J 0.5)",
+     "tag": "5"
+    },
+    {
+     "from": "STANDARD_GRAZER",
+     "to": "VISION_ARC",
+     "label": "6 grazers: STANDARD_GRAZER, VISION_ARC (all 25 / any 49 species, mean J 0.51)",
+     "tag": "6"
+    },
+    {
+     "from": "CANNOT_JUMP",
+     "to": "IMMOBILE_LAND",
+     "label": "7 aquatic core: CANNOT_JUMP, UNDERSWIM, NO_DRINK, AQUATIC, IMMOBILE_LAND (all 75 / any 152 species, mean J 0.731)",
+     "tag": "7"
+    },
+    {
+     "from": "FISHITEM",
+     "to": "VERMIN_FISH",
+     "label": "8 vermin fish: FISHITEM, VERMIN_FISH (all 29 / any 39 species, mean J 0.744)",
+     "tag": "8"
+    },
+    {
+     "from": "SMALL_REMAINS",
+     "to": "VERMIN_GROUNDER",
+     "label": "9 vermin body: SMALL_REMAINS, VERMIN_GROUNDER (all 93 / any 115 species, mean J 0.809)",
+     "tag": "9"
+    },
+    {
+     "from": "PETVALUE",
+     "to": "LARGE_ROAMING",
+     "label": "10 backbone (prevalence): PETVALUE, SWIMS_INNATE, MUNDANE, NATURAL, GAIT, POPULATION_NUMBER, BIOME, CLUSTER_NUMBER, LARGE_ROAMING (all 128 / any 363 species, mean J 0.734)",
+     "tag": "10"
+    },
+    {
+     "from": "ODOR_LEVEL",
+     "to": "SMELL_TRIGGER",
+     "label": "11 cavern senses: ODOR_LEVEL, SMELL_TRIGGER (all 9 / any 12 species, mean J 0.75)",
+     "tag": "11"
+    },
+    {
+     "from": "LOW_LIGHT_VISION",
+     "to": "UNDERGROUND_DEPTH",
+     "label": "12 cavern: LOW_LIGHT_VISION, UNDERGROUND_DEPTH (all 28 / any 56 species, mean J 0.5)",
+     "tag": "12"
+    }
+   ],
+   "layout": "full",
+   "cellText": false,
+   "xOrder": [
+    "BEACH_FREQUENCY",
+    "PRONE_TO_RAGE",
+    "SAVAGE",
+    "VERMIN_MICRO",
+    "VERMIN_ROTTER",
+    "GOOD",
+    "VERMIN_HATEABLE",
+    "TRIGGERABLE_GROUP",
+    "GNAWER",
+    "VERMIN_EATER",
+    "VERMIN_BITE",
+    "WEBBER",
+    "WEBIMMUNE",
+    "VERMIN_SOIL_COLONY",
+    "UBIQUITOUS",
+    "VERMIN_SOIL",
+    "CURIOUSBEAST_GUZZLER",
+    "CURIOUSBEAST_EATER",
+    "CURIOUSBEAST_ITEM",
+    "LOOSE_CLUSTERS",
+    "COMMON_DOMESTIC",
+    "GOBBLE_VERMIN_CLASS",
+    "ROOT_AROUND",
+    "MOUNT",
+    "PACK_ANIMAL",
+    "WAGON_PULLER",
+    "PET",
+    "STANDARD_GRAZER",
+    "VISION_ARC",
+    "AMPHIBIOUS",
+    "NO_WINTER",
+    "ALL_ACTIVE",
+    "CANNOT_JUMP",
+    "UNDERSWIM",
+    "NO_DRINK",
+    "AQUATIC",
+    "IMMOBILE_LAND",
+    "FISHITEM",
+    "VERMIN_FISH",
+    "VERMIN_NOTRAP",
+    "SMALL_REMAINS",
+    "VERMIN_GROUNDER",
+    "GRASSTRAMPLE",
+    "DIURNAL",
+    "FREQUENCY",
+    "PET_EXOTIC",
+    "PETVALUE",
+    "SWIMS_INNATE",
+    "MUNDANE",
+    "NATURAL",
+    "GAIT",
+    "POPULATION_NUMBER",
+    "BIOME",
+    "CLUSTER_NUMBER",
+    "LARGE_ROAMING",
+    "BENIGN",
+    "MEANDERER",
+    "LAYS_EGGS",
+    "FLIER",
+    "STANCE_CLIMBER",
+    "CREPUSCULAR",
+    "NOCTURNAL",
+    "CARNIVORE",
+    "TRAINABLE",
+    "SWIMS_LEARNED",
+    "EXTRAVISION",
+    "NOBREATHE",
+    "ODOR_LEVEL",
+    "SMELL_TRIGGER",
+    "CAN_LEARN",
+    "EVIL",
+    "LOW_LIGHT_VISION",
+    "UNDERGROUND_DEPTH",
+    "BONECARN",
+    "LARGE_PREDATOR"
+   ],
+   "yOrder": [
+    "BEACH_FREQUENCY",
+    "PRONE_TO_RAGE",
+    "SAVAGE",
+    "VERMIN_MICRO",
+    "VERMIN_ROTTER",
+    "GOOD",
+    "VERMIN_HATEABLE",
+    "TRIGGERABLE_GROUP",
+    "GNAWER",
+    "VERMIN_EATER",
+    "VERMIN_BITE",
+    "WEBBER",
+    "WEBIMMUNE",
+    "VERMIN_SOIL_COLONY",
+    "UBIQUITOUS",
+    "VERMIN_SOIL",
+    "CURIOUSBEAST_GUZZLER",
+    "CURIOUSBEAST_EATER",
+    "CURIOUSBEAST_ITEM",
+    "LOOSE_CLUSTERS",
+    "COMMON_DOMESTIC",
+    "GOBBLE_VERMIN_CLASS",
+    "ROOT_AROUND",
+    "MOUNT",
+    "PACK_ANIMAL",
+    "WAGON_PULLER",
+    "PET",
+    "STANDARD_GRAZER",
+    "VISION_ARC",
+    "AMPHIBIOUS",
+    "NO_WINTER",
+    "ALL_ACTIVE",
+    "CANNOT_JUMP",
+    "UNDERSWIM",
+    "NO_DRINK",
+    "AQUATIC",
+    "IMMOBILE_LAND",
+    "FISHITEM",
+    "VERMIN_FISH",
+    "VERMIN_NOTRAP",
+    "SMALL_REMAINS",
+    "VERMIN_GROUNDER",
+    "GRASSTRAMPLE",
+    "DIURNAL",
+    "FREQUENCY",
+    "PET_EXOTIC",
+    "PETVALUE",
+    "SWIMS_INNATE",
+    "MUNDANE",
+    "NATURAL",
+    "GAIT",
+    "POPULATION_NUMBER",
+    "BIOME",
+    "CLUSTER_NUMBER",
+    "LARGE_ROAMING",
+    "BENIGN",
+    "MEANDERER",
+    "LAYS_EGGS",
+    "FLIER",
+    "STANCE_CLIMBER",
+    "CREPUSCULAR",
+    "NOCTURNAL",
+    "CARNIVORE",
+    "TRAINABLE",
+    "SWIMS_LEARNED",
+    "EXTRAVISION",
+    "NOBREATHE",
+    "ODOR_LEVEL",
+    "SMELL_TRIGGER",
+    "CAN_LEARN",
+    "EVIL",
+    "LOW_LIGHT_VISION",
+    "UNDERGROUND_DEPTH",
+    "BONECARN",
+    "LARGE_PREDATOR"
+   ],
+   "valueLabel": "Jaccard overlap"
   },
   {
    "series": "method",
@@ -17952,8 +18183,8 @@
    "subtitle": "Group spread (mean tiles from centroid) after 3,000 ticks, no leader vs lowest-id leader vs largest-male leader",
    "caption": "L1 CTRL, HC1/HC2 BOATS caverns, HR RIVER4, HO OCEAN2, HL LAKE; 3,000 t, 1 replicate each; widget leader-spread (afc7d648-d85e)",
    "form": "dumbbell",
-   "x": "spread",
-   "y": "group",
+   "x": "group",
+   "y": "spread",
    "unit": "tiles",
    "highlight": "largest male",
    "rows": [
@@ -18181,8 +18412,8 @@
    "subtitle": "Mean bounding-box width (tiles) over 15,000 ticks, largest male leading vs no leader, per replicate",
    "caption": "COH CTRL, COHO OCEAN2, COHR RIVER4; `lead` verb, 15,000 t, 2 replicates; data/experiments/ECO/COH-20261001-000915 (coh-tally.py)",
    "form": "dot",
-   "x": "width",
-   "y": "group",
+   "x": "group",
+   "y": "width",
    "unit": "tiles",
    "rows": [
     {
@@ -19601,11 +19832,11 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "ORCA is AQUATIC + IMMOBILE_LAND + BEACH_FREQUENCY:10, so a drowned orca was out of water. Survivors all wet. n small.",
+   "notes": "ORCA is AQUATIC + IMMOBILE_LAND + BEACH_FREQUENCY:10, so a drowned orca was out of water. Survivors all wet. The unled pods were the harness's control, not something the tool placed. n small. v7.1 leads every school and pod with a wet leader and re-checks breathing one tick after a water placement (built, untested).",
    "id": "orca-stranding",
    "block": "COHO",
    "section": "oceans",
-   "title": "Placed orcas strand: unled pods lost 1 and 2 of 6 to drowning in 15,000 ticks; led pods lost none",
+   "title": "Unled orcas the harness placed stranded: unled pods lost 1 and 2 of 6 to drowning in 15,000 ticks; led pods lost none",
    "subtitle": "Orcas dead (cause DROWN, no killer) per pod of 6, unled vs led",
    "caption": "COHO OCEAN2, 6 ORCA placed, 15,000 t, 2 replicates (item 16); data/experiments/ECO/COH-20261001-000915/COHO.tsv",
    "form": "groupedBar",
@@ -19643,11 +19874,11 @@
    "series": "limit",
    "facet": null,
    "log": false,
-   "notes": "Plot each rep as a dot plus the arm mean line. Surface waves 5\u00d75 4.0 -> 5.5, 6\u00d76 3.0 -> 5.0; t/s no cost (6\u00d76 223 vs 261). Cavern groups 4.8-8.7 at 4\u00d74+, unchanged by the cavern limit (residents and ungated sources count). Kill criterion 'within 0.5 at every size' FAILS -> v6.9 default.",
+   "notes": "Plot each rep as a dot plus the arm mean line. Surface waves 5×5 4.0 -> 5.5, 6×6 3.0 -> 5.0; t/s no cost (6×6 223 vs 261). Cavern groups 4.8-8.7 at 4×4+, unchanged by the cavern limit (residents and ungated sources count). Kill criterion 'within 0.5 at every size' FAILS -> v6.9 default.",
    "id": "eco2g-groups-by-embark",
    "block": "ECO2-G",
    "section": "groups",
-   "title": "sqrt(embark)+1 adds about one surface group at once, but only on 5\u00d75 and 6\u00d76 embarks (3.28 and 3.46 vs 2.16 and 2.69)",
+   "title": "sqrt(embark)+1 adds about one surface group at once, but only on 5×5 and 6×6 embarks (3.28 and 3.46 vs 2.16 and 2.69)",
    "subtitle": "Wild surface groups on the map at once (mean of 1,500-tick samples after the first), per replicate, old limit 3 vs sqrt(embark tiles)+1",
    "caption": "Fresh 7-dwarf embarks FPS2E1..E6, tool on + preset, 40,000 t, 2 replicates; data/experiments/ECO2-G/20260930-111306 (eco-g-tally.py, g-tally.json)",
    "form": "line",
@@ -19656,7 +19887,7 @@
    "unit": "groups at once",
    "rows": [
     {
-     "embark": "1\u00d71",
+     "embark": "1×1",
      "embark_side": 1,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19668,7 +19899,7 @@
      "ticks_per_s": 464.6
     },
     {
-     "embark": "1\u00d71",
+     "embark": "1×1",
      "embark_side": 1,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19680,7 +19911,7 @@
      "ticks_per_s": 548.5
     },
     {
-     "embark": "1\u00d71",
+     "embark": "1×1",
      "embark_side": 1,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 2,
@@ -19692,7 +19923,7 @@
      "ticks_per_s": 546.2
     },
     {
-     "embark": "1\u00d71",
+     "embark": "1×1",
      "embark_side": 1,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 2,
@@ -19704,7 +19935,7 @@
      "ticks_per_s": 514.7
     },
     {
-     "embark": "2\u00d72",
+     "embark": "2×2",
      "embark_side": 2,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19716,7 +19947,7 @@
      "ticks_per_s": 372.5
     },
     {
-     "embark": "2\u00d72",
+     "embark": "2×2",
      "embark_side": 2,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19728,7 +19959,7 @@
      "ticks_per_s": 559.6
     },
     {
-     "embark": "2\u00d72",
+     "embark": "2×2",
      "embark_side": 2,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 3,
@@ -19740,7 +19971,7 @@
      "ticks_per_s": 646.6
     },
     {
-     "embark": "2\u00d72",
+     "embark": "2×2",
      "embark_side": 2,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 3,
@@ -19752,7 +19983,7 @@
      "ticks_per_s": 578.6
     },
     {
-     "embark": "3\u00d73",
+     "embark": "3×3",
      "embark_side": 3,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19764,7 +19995,7 @@
      "ticks_per_s": 359.8
     },
     {
-     "embark": "3\u00d73",
+     "embark": "3×3",
      "embark_side": 3,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19776,7 +20007,7 @@
      "ticks_per_s": 369.7
     },
     {
-     "embark": "3\u00d73",
+     "embark": "3×3",
      "embark_side": 3,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 4,
@@ -19788,7 +20019,7 @@
      "ticks_per_s": 369.7
     },
     {
-     "embark": "3\u00d73",
+     "embark": "3×3",
      "embark_side": 3,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 4,
@@ -19800,7 +20031,7 @@
      "ticks_per_s": 368.3
     },
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "embark_side": 4,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19812,7 +20043,7 @@
      "ticks_per_s": 441.8
     },
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "embark_side": 4,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19824,7 +20055,7 @@
      "ticks_per_s": 401.4
     },
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "embark_side": 4,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 5,
@@ -19836,7 +20067,7 @@
      "ticks_per_s": 425.0
     },
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "embark_side": 4,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 5,
@@ -19848,7 +20079,7 @@
      "ticks_per_s": 393.0
     },
     {
-     "embark": "5\u00d75",
+     "embark": "5×5",
      "embark_side": 5,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19860,7 +20091,7 @@
      "ticks_per_s": 228.1
     },
     {
-     "embark": "5\u00d75",
+     "embark": "5×5",
      "embark_side": 5,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19872,7 +20103,7 @@
      "ticks_per_s": 313.3
     },
     {
-     "embark": "5\u00d75",
+     "embark": "5×5",
      "embark_side": 5,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 6,
@@ -19884,7 +20115,7 @@
      "ticks_per_s": 296.2
     },
     {
-     "embark": "5\u00d75",
+     "embark": "5×5",
      "embark_side": 5,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 6,
@@ -19896,7 +20127,7 @@
      "ticks_per_s": 282.4
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "embark_side": 6,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19908,7 +20139,7 @@
      "ticks_per_s": 220.3
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "embark_side": 6,
      "limit": "default (land 3, cavern 2)",
      "limit_value": 3,
@@ -19920,7 +20151,7 @@
      "ticks_per_s": 225.3
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "embark_side": 6,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 7,
@@ -19932,7 +20163,7 @@
      "ticks_per_s": 264.2
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "embark_side": 6,
      "limit": "sqrt(embark tiles)+1",
      "limit_value": 7,
@@ -19955,11 +20186,11 @@
    "series": "limit",
    "facet": null,
    "log": false,
-   "notes": "Arrivals 16/20 (4\u00d74), 66/46 (6\u00d76); t/s 438/402, 278/285 -- speed cost within noise. Supply-limited.",
+   "notes": "Arrivals 16/20 (4×4), 66/46 (6×6); t/s 438/402, 278/285 -- speed cost within noise. Supply-limited.",
    "id": "g1-group-limit",
    "block": "G1",
    "section": "groups",
-   "title": "Raising the land group limit added about one concurrent group (4\u00d74: 1.75 -> 2.56; 6\u00d76: 2.04 -> 2.92), far under the limit",
+   "title": "Raising the land group limit added about one concurrent group (4×4: 1.75 -> 2.56; 6×6: 2.04 -> 2.92), far under the limit",
    "subtitle": "Surface groups at once (distinct species x population per 1,500-t sample), mean and max, by embark and limit",
    "caption": "ECO-G1 tool on, preset, 40,000 t, 1 replicate per arm; data/experiments/ECO-G1/20260930-005914 (values as reported in findings.md)",
    "form": "groupedBar",
@@ -19968,40 +20199,40 @@
    "unit": "groups at once",
    "rows": [
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "limit": 3,
      "mean": 1.75,
      "max": 2,
      "arrivals": 16,
      "ticks_per_s": 438,
-     "arm": "4\u00d74 limit 3"
+     "arm": "4×4 limit 3"
     },
     {
-     "embark": "4\u00d74",
+     "embark": "4×4",
      "limit": 5,
      "mean": 2.56,
      "max": 4,
      "arrivals": 20,
      "ticks_per_s": 402,
-     "arm": "4\u00d74 limit 5"
+     "arm": "4×4 limit 5"
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "limit": 3,
      "mean": 2.04,
      "max": 3,
      "arrivals": 66,
      "ticks_per_s": 278,
-     "arm": "6\u00d76 limit 3"
+     "arm": "6×6 limit 3"
     },
     {
-     "embark": "6\u00d76",
+     "embark": "6×6",
      "limit": 7,
      "mean": 2.92,
      "max": 3,
      "arrivals": 46,
      "ticks_per_s": 285,
-     "arm": "6\u00d76 limit 7"
+     "arm": "6×6 limit 7"
     }
    ]
   },
@@ -20180,7 +20411,7 @@
    "series": "species",
    "facet": null,
    "log": false,
-   "notes": "Extinct flag stayed FALSE: quantity 0 alone gates. First wombat wave +2,090 t after the kangaroo wave. reference is on the x axis.",
+   "notes": "Extinct flag stayed FALSE: quantity 0 alone gates. First wombat wave +2,090 t after the kangaroo wave.",
    "id": "n1-exhaustion-replacement",
    "block": "N1",
    "section": "spawn",
@@ -20190,7 +20421,7 @@
    "form": "line",
    "x": "ticks",
    "y": "cumulative_waves",
-   "unit": "waves (cumulative)",
+   "unit": null,
    "rows": [
     {
      "ticks": 620,
@@ -20616,9 +20847,13 @@
    "reference": [
     {
      "value": 2400,
-     "label": "kangaroo wave of 3 (entry 3 -> 0); hook fires at next 1,500-t pass"
+     "axis": "x",
+     "label": "kangaroo wave of 3 (entry 3 -> 0)"
     }
-   ]
+   ],
+   "yLabel": "waves so far",
+   "xLabel": "ticks",
+   "curve": "step-after"
   },
   {
    "series": null,
@@ -20805,9 +21040,9 @@
    "subtitle": "Predator share of arrivals in builder sweeps (11 calm embarks x 4 seasons x 20 seeds), by builder version",
    "caption": "Desk simulation (data/eco-desk/v2/guilds, results22); widget predator-share (49341d4f-bf5c); not a rig run",
    "form": "dot",
-   "x": "predator_share",
-   "y": "layer",
-   "unit": "share of arrivals",
+   "x": "layer",
+   "y": "predator_share",
+   "unit": null,
    "highlight": "v2.2",
    "rows": [
     {
@@ -20934,13 +21169,14 @@
    "reference": [
     {
      "value": 0.14,
-     "label": "aim 14% (land)"
+     "label": "land aim 14-18%"
     },
     {
      "value": 0.18,
-     "label": "aim 18% (land)"
+     "label": ""
     }
-   ]
+   ],
+   "yLabel": "predator share of arrivals"
   },
   {
    "series": "rep",
@@ -21094,11 +21330,11 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "Item 15: drop the APX step from the ladder; steer apexes by placement and stock. SW4 values are means over samples (units present), S8 values are arrivals. S8O counts AL + AW units on the surface (3, 2); findings.md's 'ANACONDA 2 and 1' counts AL only.",
+   "notes": "FREQUENCY is a relative weight: the ladder gave apexes 6-8% of land weight. Your ruling (R34, R9): the apex step is off the ladder; v7.1 steers apexes by placement from stock toward a presence target of 20-30% of the season on land. SW4 values are means over samples (units present), S8 values are arrivals. S8O counts AL + AW units on the surface (3, 2).",
    "id": "apex-arrivals",
    "block": "S8Cb",
    "section": "season",
-   "title": "The apex FREQUENCY does not visibly steer apex presence: 0 apex units in all 4 CTRL season runs and 0-3 elsewhere",
+   "title": "The apex FREQUENCY step did what it was set to (about 4.8 apex waves predicted over the six S8 runs, 6 seen); the target was too low",
    "subtitle": "Apex (AL/AW) surface arrival units per run (S8, FREQUENCY 13-27) and mean apex units present (SW4 ladder)",
    "caption": "S8C/S8Cb/S8B/S8O (s8-tally.py) and SW4 (sweep-tally.py)",
    "form": "dot",
@@ -21214,16 +21450,16 @@
    "series": null,
    "facet": null,
    "log": true,
-   "notes": "needed = 1 if mass ratio <= 5 else ceil((ratio/5)^(4/3)). Builder counts floor((cmin+cmax)/2). Not a rig experiment; PK/CAL/GPK show DF's combat ignores prey mass.",
+   "notes": "needed = 1 if mass ratio <= 5 else ceil((ratio/5)^(4/3)). Builder counts floor((cmin+cmax)/2). Not a rig experiment. On the rig, pack size predicted kills (OR 3.8 per doubling) and the pack/prey mass ratio did not (OR 0.96); A-mechanics s3.",
    "id": "size-gate-model",
    "block": "BUILDER",
    "section": "pack",
    "title": "Under the 5x mass gate, 4 wolves can take a moose but an elephant would need 74 -- while CAL saw 7 wolves kill 3 elephants",
-   "subtitle": "Hunters a kill needs under the gate (dot) against the group size DF sends (bar), per predator x prey pair; log scale",
+   "subtitle": "Hunters a kill needs under the builder's 5x mass gate, per predator x prey pair; log scale",
    "caption": "Desk model (builder gate formula); widget pack-size-gate (43733c9d-7906); rig comparison in pk-pack-size and cal-group-size",
    "form": "dot",
-   "x": "hunters_needed",
-   "y": "pair",
+   "x": "pair",
+   "y": "hunters_needed",
    "unit": "hunters",
    "rows": [
     {
@@ -21352,48 +21588,467 @@
    "series": null,
    "facet": null,
    "log": false,
-   "notes": "Arrivals answer BENIGN_ANIMAL (662) or DANGEROUS_ANIMAL (15). Median first-seen distance 35-85 tiles. Released groups lose the roaming flag (releaseGroup :3197, placement :3559), so they become non-wild to DF: the CAL/STL/LONE off-target kills are this artefact.",
+   "notes": "Exposure differs by cell (RELS nat ran 100,800 t, the subject cells 30,000 t) and cells shared a load in a fixed order; the percentages have a 'units seen in any entry' denominator, not a census.",
    "id": "rels-who-writes",
-   "block": "RELS",
+   "block": "RELS/RELS2b",
    "section": "relations",
-   "title": "DF aims every non-wild unit at each new wild arrival (323 of 370 entries); surface wildlife almost never at each other (5)",
-   "subtitle": "PREDATOR_OR_PREY entries DF wrote itself, by writer and target class",
-   "caption": "RELS CTRL tool off, rel_map sampled every 3k t; nat 100,800 t + 6 subject cells 30,000 t, 2 replicates; data/experiments/ECO/RELS-20260930-195031 (rels-tally.py); widget rels-writers",
-   "form": "bar",
-   "x": "n",
-   "y": "writer",
-   "unit": "entries",
-   "highlight": "Placed animals (not flagged wild)",
+   "title": "DF points the fort, and anything a script places, at new surface arrivals, not wild at wild",
+   "subtitle": "Natural arrivals (RELS + RELS2b, 18 cell-reps). Row: the class of unit holding a PREDATOR_OR_PREY entry. Column: the class of unit it points at. Cell: % of that column's units seen that got at least one entry from the row's class",
+   "caption": "How to read it. DF itself wrote 487 PREDATOR_OR_PREY entries in these runs (tool off), read from enemy_status_cache every 3,000 ticks; hover a cell for the entry count and the units behind the percentage. 'Wild' means DF's roaming-population flag is set: a unit a script places or the tool releases has that flag cleared and sits in the 'Placed or released' row, although DFHack's isWildlife still calls it wildlife. The fort's side (citizens, livestock and pets, placed or released animals) marked 92 of 103 surface arrivals seen (89%); citizens alone 63%, though in RELS only 81 of 138 citizens seen ever wrote one. Surface wild toward surface wild: 9 entries. In the caverns the natives mark each other (95% of cavern units). An entry is a disposition, not an attack: no attack followed in RELS's 14 runs. Data: RELS, RELS2b (CTRL, tool off, 2 reps per cell); scripts/eco-report/patch_review.py re-tallies the TSVs.",
+   "form": "heatmap",
+   "value": "pct",
+   "valueLabel": "% of the column's units marked",
+   "xOrder": [
+    "Citizens",
+    "Livestock & pets",
+    "Placed or released",
+    "Surface wild",
+    "Cavern wild"
+   ],
+   "yOrder": [
+    "Citizens",
+    "Livestock & pets",
+    "Placed or released",
+    "Surface wild",
+    "Cavern wild"
+   ],
+   "x": "target",
+   "y": "holder",
+   "unit": null,
    "rows": [
     {
-     "writer": "Dwarves",
-     "target": "surface wild arrival",
-     "n": 159
+     "holder": "Citizens",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 166,
+     "entries": 0
     },
     {
-     "writer": "Livestock and pets",
-     "target": "surface wild arrival",
-     "n": 107
+     "holder": "Citizens",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 101,
+     "entries": 0
     },
     {
-     "writer": "Placed animals (not flagged wild)",
-     "target": "surface wild arrival",
-     "n": 57
+     "holder": "Citizens",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 24,
+     "entries": 0
     },
     {
-     "writer": "Cavern wildlife",
-     "target": "cavern wildlife",
-     "n": 38
+     "holder": "Citizens",
+     "target": "Surface wild",
+     "pct": 63,
+     "targets_marked": 65,
+     "targets_seen": 103,
+     "entries": 198
     },
     {
-     "writer": "Surface wildlife",
-     "target": "surface wildlife",
-     "n": 5
+     "holder": "Citizens",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 56,
+     "entries": 0
     },
     {
-     "writer": "Cavern and surface wildlife",
-     "target": "each other",
-     "n": 4
+     "holder": "Livestock & pets",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 166,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 101,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 24,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Surface wild",
+     "pct": 47,
+     "targets_marked": 48,
+     "targets_seen": 103,
+     "entries": 156
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 56,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 166,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 101,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 24,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Surface wild",
+     "pct": 38,
+     "targets_marked": 39,
+     "targets_seen": 103,
+     "entries": 57
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 56,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 166,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 101,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 24,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Surface wild",
+     "pct": 9,
+     "targets_marked": 9,
+     "targets_seen": 103,
+     "entries": 9
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 56,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 166,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 101,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 24,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 103,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Cavern wild",
+     "pct": 95,
+     "targets_marked": 53,
+     "targets_seen": 56,
+     "entries": 67
+    }
+   ]
+  },
+  {
+   "series": null,
+   "facet": null,
+   "log": false,
+   "notes": "Same encoding as the grid above.",
+   "id": "rels-grid-forced",
+   "block": "RELS2",
+   "section": "relations",
+   "title": "Clear the flag on every arrival and DF pairs the arrivals with each other",
+   "subtitle": "Forced release (RELS2, 6 cell-reps): every arrival's roaming flag was cleared by script, so arrivals move into the 'Placed or released' class",
+   "caption": "The counterfactual. With the flag cleared on every arrival, 'Placed or released' toward 'Placed or released' carries 1,551 entries, against 9 between surface wild animals in the natural runs: the roaming flag, not the species tokens, decides who DF aims. Data: RELS2 (CTRL, tool off, 2 reps per cell).",
+   "form": "heatmap",
+   "value": "pct",
+   "valueLabel": "% of the column's units marked",
+   "xOrder": [
+    "Citizens",
+    "Livestock & pets",
+    "Placed or released",
+    "Surface wild",
+    "Cavern wild"
+   ],
+   "yOrder": [
+    "Citizens",
+    "Livestock & pets",
+    "Placed or released",
+    "Surface wild",
+    "Cavern wild"
+   ],
+   "x": "target",
+   "y": "holder",
+   "unit": null,
+   "rows": [
+    {
+     "holder": "Citizens",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 42,
+     "entries": 0
+    },
+    {
+     "holder": "Citizens",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 47,
+     "entries": 0
+    },
+    {
+     "holder": "Citizens",
+     "target": "Placed or released",
+     "pct": 6,
+     "targets_marked": 47,
+     "targets_seen": 815,
+     "entries": 67
+    },
+    {
+     "holder": "Citizens",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 0,
+     "entries": 0
+    },
+    {
+     "holder": "Citizens",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 4,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 42,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 47,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Placed or released",
+     "pct": 3,
+     "targets_marked": 23,
+     "targets_seen": 815,
+     "entries": 73
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 0,
+     "entries": 0
+    },
+    {
+     "holder": "Livestock & pets",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 4,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 42,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 47,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Placed or released",
+     "pct": 61,
+     "targets_marked": 497,
+     "targets_seen": 815,
+     "entries": 1551
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 0,
+     "entries": 0
+    },
+    {
+     "holder": "Placed or released",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 4,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 42,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 47,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 815,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 0,
+     "entries": 0
+    },
+    {
+     "holder": "Surface wild",
+     "target": "Cavern wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 4,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Citizens",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 42,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Livestock & pets",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 47,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Placed or released",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 815,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Surface wild",
+     "pct": 0,
+     "targets_marked": 0,
+     "targets_seen": 0,
+     "entries": 0
+    },
+    {
+     "holder": "Cavern wild",
+     "target": "Cavern wild",
+     "pct": 100,
+     "targets_marked": 4,
+     "targets_seen": 4,
+     "entries": 4
     }
    ]
   },
@@ -22113,7 +22768,7 @@
    "series": "vermin",
    "facet": null,
    "log": false,
-   "notes": "Read a selective arm only where grasshoppers held (grasshoppers_held): non-selective losses are CTRL's two pet cats (units 117, 118) wandering in. VRM (first run) flawed: vermin piled up across cells.",
+   "notes": "CLASS = GOBBLE_VERMIN_CLASS, CREATURE = GOBBLE_VERMIN_CREATURE, written on the badger castes. Read a selective arm only where grasshoppers held (grasshoppers_held): the non-selective losses are CTRL's two pet cats (units 117, 118) wandering in. Two vermin species only: a larger representative vermin suite is a test-stage item (R20). VRM (first run) was flawed: vermin piled up across cells.",
    "id": "vrm2-gobble-tokens",
    "block": "VRM2",
    "section": "vermin",
@@ -22121,9 +22776,9 @@
    "subtitle": "Share of placed vermin removed in 6,000 ticks per arm and replicate (40 ROACH_LARGE = edible ground bug, 20 GRASSHOPPER = not)",
    "caption": "VRM2 CTRL tool off, one fresh load per arm, 4 consumers, 6,000 t, 2 replicates; data/experiments/ECO/VRM2-20260930-202822 (vrm-tally.py); widget vrm2-removed",
    "form": "dot",
-   "x": "share",
-   "y": "arm",
-   "unit": "share removed",
+   "x": "arm",
+   "y": "share",
+   "unit": null,
    "rows": [
     {
      "arm": "badger, no token",
@@ -22158,7 +22813,7 @@
      "grasshoppers_held": false
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG",
+     "arm": "badger + CLASS:EDIBLE_GROUND_BUG",
      "rep": 1,
      "vermin": "roach (40 placed)",
      "removed": 7,
@@ -22166,7 +22821,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG",
+     "arm": "badger + CLASS:EDIBLE_GROUND_BUG",
      "rep": 1,
      "vermin": "grasshopper (20 placed)",
      "removed": 0,
@@ -22174,7 +22829,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG",
+     "arm": "badger + CLASS:EDIBLE_GROUND_BUG",
      "rep": 2,
      "vermin": "roach (40 placed)",
      "removed": 10,
@@ -22182,7 +22837,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CLASS:EDIBLE_GROUND_BUG",
+     "arm": "badger + CLASS:EDIBLE_GROUND_BUG",
      "rep": 2,
      "vermin": "grasshopper (20 placed)",
      "removed": 0,
@@ -22190,7 +22845,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE",
+     "arm": "badger + CREATURE:ROACH_LARGE",
      "rep": 1,
      "vermin": "roach (40 placed)",
      "removed": 6,
@@ -22198,7 +22853,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE",
+     "arm": "badger + CREATURE:ROACH_LARGE",
      "rep": 1,
      "vermin": "grasshopper (20 placed)",
      "removed": 0,
@@ -22206,7 +22861,7 @@
      "grasshoppers_held": true
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE",
+     "arm": "badger + CREATURE:ROACH_LARGE",
      "rep": 2,
      "vermin": "roach (40 placed)",
      "removed": 15,
@@ -22214,7 +22869,7 @@
      "grasshoppers_held": false
     },
     {
-     "arm": "badger + GOBBLE_VERMIN_CREATURE:ROACH_LARGE",
+     "arm": "badger + CREATURE:ROACH_LARGE",
      "rep": 2,
      "vermin": "grasshopper (20 placed)",
      "removed": 15,
@@ -22349,7 +23004,8 @@
      "share": 0.0,
      "grasshoppers_held": true
     }
-   ]
+   ],
+   "yLabel": "share of placed vermin removed"
   },
   {
    "series": "cats_visited",
@@ -22483,7 +23139,7 @@
    "series": "order",
    "facet": null,
    "log": false,
-   "notes": "Pooled over 4 reps: attacks ctl 174, cad500 243, cad6000 145, nudge_off 179, nudge_tight 198; placed prey killed 1, 2, 0, 3, 1. Recommendation: cadence 3,000 default, nudge off. sweep-tally's busy-ness flags (B) flip with cell order -- confounded, not reported.",
+   "notes": "Pooled over 4 reps: attacks ctl 174, cad500 243, cad6000 145, nudge_off 179, nudge_tight 198; placed prey killed 1, 2, 0, 3, 1. The nudge fired 0 times in all 8 control reps, so the nudge arms compared two arms in which it did nothing. Cells shared a load. Ruled anyway (R37, R38): cadence 3,000 and nudge off, built in v7.1.",
    "id": "sw1-cadence-nudge",
    "block": "SW1",
    "section": "sweep",
@@ -23179,11 +23835,11 @@
    "series": "order",
    "facet": null,
    "log": false,
-   "notes": "Placed prey killed over 4 reps: ctl 3, floor0 1, floor20 3, sneak0 4, sneak100 0. Recommendation: pack_sneak 0, retire the per-unit SNEAK write; floor stays 0.05.",
+   "notes": "Placed prey killed over 4 reps: ctl 3, floor0 1, floor20 3, sneak0 4, sneak100 0. swdiscover n = 0 in all 40 cells; one wolf is 22% of a deer, below the 25% sneak bar. The harness now adopts a placed pack as one tool group and aborts a block whose manipulation check fails. Your ruling keeps pack_sneak at 0.25 and the floor at 0.05 (R8, R40).",
    "id": "sw2-floor-sneak",
    "block": "SW2",
    "section": "sweep",
-   "title": "Neither the pack-mass floor (0 / 0.05 / 0.20) nor the sneak bonus (0 / 0.25 / 1.0) had a measurable effect: placed prey killed 0-4 per arm over 4 reps",
+   "title": "This sweep could not test its dials: the placed pack was never a tracked group, so the floor and the sneak bonus weighed one wolf, and no arm wrote SNEAK",
    "subtitle": "Wolf attacks on the placed herds per run (placed-only readout), by arm, fixed and reversed cell order",
    "caption": "SW2 (SW-20261001-003336) + SW2R (SWR-20261001-063950), CTRL arena as SW1, 30,000 t, 2 reps each (sweep-tally.py placed-only)",
    "form": "dot",
@@ -23417,7 +24073,7 @@
    "series": "block",
    "facet": null,
    "log": false,
-   "notes": "SW2 rep 1 floor20: ELEPHANT 4, WATER_BUFFALO 33 attacks vs ctl 52, 6 -- not repeated. Five wolves sit at ~5% of an elephant's mass. Placed units are non-wild to DF, which aims them itself (RELS).",
+   "notes": "SW2 rep 1 floor20: ELEPHANT 4, WATER_BUFFALO 33 attacks vs ctl 52, 6 -- not repeated. The floor arms weighed one wolf (the pack was never tracked), so ctl (0.05) and floor20 (0.20) refused the same pairs. Placed units are non-wild to DF, which aims them itself (RELS).",
    "id": "sw2-elephant-choice",
    "block": "SW2R",
    "section": "sweep",
@@ -23425,8 +24081,8 @@
    "subtitle": "Wolf attacks on ELEPHANT as a share of their attacks on the placed herds, by arm, SW2 (fixed order) vs SW2R (reversed)",
    "caption": "SW2/SW2R CTRL arena, 2 reps pooled per block (values from findings.md)",
    "form": "dumbbell",
-   "x": "elephant_share",
-   "y": "arm",
+   "x": "arm",
+   "y": "elephant_share",
    "unit": "share of attacks",
    "highlight": "floor20",
    "rows": [
@@ -23540,7 +24196,7 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "Per depth ~8 under auto, ~4-7 capped; DF's native populations (4-5 groups per depth) are not the tool's to cap. Cap 1 = cap 2. Relabel as a soft target, keep auto.",
+   "notes": "Per cavern layer ~8 under auto, ~4-7 capped; v7.0 left DF's native populations (4-5 groups per layer) outside the cap. Cap 1 = cap 2. Your ruling (R44): the tool gates every cavern layer at a fixed 5 groups, natives counted; built in v7.1.",
    "id": "sw5-cavern-cap",
    "block": "SW5",
    "section": "layers",
@@ -23642,11 +24298,11 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "Weak test: only 7-8 of 27-29 wanted species are in CTRL's pool (sw7apply missing 20-21). Attacks 0 in all six cells; deaths 4-13 cavern natives.",
+   "notes": "Only 7-8 of 27-29 wanted species are in CTRL's pool (sw7apply missing 20-21). Attacks 0 in all six cells; deaths 4-13 cavern natives. Your ruling (R41): keep the bonus; v7.1 fixed three defects in it (cluster read floored, a fixed seed, animal people carrying their root's cluster).",
    "id": "sw7-pack-bonus",
    "block": "SW7",
    "section": "sweep",
-   "title": "The x3 pack bonus had no measurable effect on CTRL (land groups 3.1 / 1.6, 2.2 / 2.2, 3.3 / 2.8 at 1 / 3 / 5): remove it",
+   "title": "The x3 pack bonus showed no effect on CTRL (land groups 3.1 / 1.6, 2.2 / 2.2, 3.3 / 2.8 at 1 / 3 / 5), but the test was weak",
    "subtitle": "Land groups present (mean over samples) per pack-bonus roster and replicate",
    "caption": "SW7 CTRL natural, 50,400 t, 2 reps counterbalanced; data/experiments/ECO/SW-rig2-20261001-033105/SW7.tsv (sweep-tally.py)",
    "form": "dot",
@@ -23744,7 +24400,7 @@
    "series": "rep",
    "facet": null,
    "log": false,
-   "notes": "invaders_max = 0 in all four runs (the headline). Cavern units peak 61-72 in both arms alike. Cavern invasions stay a fort-construction item (dig in).",
+   "notes": "invaders_max = 0 in all four runs. Cavern units peak 61-72 in both arms alike. DF's invasions are disabled in its code (R4, R23), so no flag or setting could raise one. Irruption is the tool's replacement (section 16).",
    "id": "e23e-cavern-invasion",
    "block": "E23e",
    "section": "forts",

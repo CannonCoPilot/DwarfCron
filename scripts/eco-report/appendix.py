@@ -54,7 +54,10 @@ DATA_TABLE = [
     ("Research notes (vermin, DF's own relation writes)", "data/eco-desk/v2/research/"),
     ("This page: builder, content, data", "scripts/eco-report/ (build.py, content.html, template.html), data/eco-report/*.json"),
     ("Validator and latest run", "scripts/validate-full.py; data/validation/full/20261001-074833"),
-    ("Tool", "seasonal-wildlife, branch v7.0 at 1e65e03 (deployed on the rig, not merged or pushed); v6.9.0 on master"),
+    ("Your review and the answers", "data/eco-review/part1/ (USER-REVIEW-PART1.md, PLAN-PART1.md, A-D desk reports, fig-diag/), data/eco-review/part2/ (USER-REVIEW-PART2.md, ANSWERS.md, R3/R24/R28 analyses)"),
+    ("Figure fixes from the review", "scripts/eco-report/patch_review.py (after part1/fig-diag/patch_exp.py); scripts/eco-report/figcheck.py guards the build"),
+    ("Harness for the testing stage", "experiments/HARNESS-v71.md; scripts/eco-run.py, scripts/eco-v71-tally.py, scripts/b1-forts.py"),
+    ("Tool", "seasonal-wildlife: v6.9.0 on master (released); v7.0 at 99c1ec8 (validated, pushed, not merged); v7.1 at fce7d68 (every build stream merged, pushed, untested; notes in docs/v7.1/)"),
 ]
 
 
