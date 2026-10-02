@@ -6417,7 +6417,9 @@ print(json.encode(out))""", timeout=180)
                 json.dumps(j), note="the census is synthetic (V7.WAT.mix on the engine's own candidates); the live per-body limit is the rig test's")
     # ---- R14/R59: prey pulls predators (a prey draw into the ocean, then the weights), then a pulled draw seeds by the prey
     pull_id, seed_id = "mech.v71.water.pull", "mech.v71.water.seed"
-    if need(pull_id, "ocean", "an ocean to draw prey into") and need(seed_id, "ocean", "an ocean to draw prey into"):
+    _n1 = need(pull_id, "ocean", "an ocean to draw prey into")
+    _n2 = need(seed_id, "ocean", "an ocean to draw prey into")   # both evaluated: each records its own NOT-TESTABLE-HERE
+    if _n1 and _n2:
         pv = cfgv("water.pull.enabled", "water.pull.lift_floor", "water.pull.seek", "water.pull.min")
         if manip(pull_id, "water.pull on, lift_floor on, seek on", (pv.get("water.pull.enabled") is True and pv.get("water.pull.lift_floor") is True
                                                                    and pv.get("water.pull.seek") is True) or DRY, pv):
@@ -6538,7 +6540,7 @@ print(json.encode(out))""", timeout=180)
                                 json.dumps(Sd)[:1400])
     # ---- the stranding guard (r2: getBreathingState)
     cid = "mech.v71.water.guard.recheck"
-    if need(cid, "water", "a water body to draw a fish into") and need(cid, "r2", "getBreathingState in this DFHack"):
+    if need(cid, "water", "a water body to draw a fish into") and need(cid, "r2", "getBreathingState in this DFHack"):   # one id: the first missing condition records it
         gv = cfgv("water.guard.enabled", "water.guard.recheck", "water.guard.passes")
         if manip(cid, "water.guard on with its re-check", (gv.get("water.guard.enabled") is True and gv.get("water.guard.recheck") is True) or DRY, gv):
             st = tool("water")
@@ -6618,7 +6620,9 @@ print(json.encode(out))""", timeout=180)
                 rec(cid, "PASS" if ok else "FAIL", f"each empty body's next draw within retry_days x 1200 = {lim:.0f} ticks", json.dumps(j))
     # ---- R33/R43: no bear is a water candidate; R60: no cavern/deep entry or unit in the census or the candidates
     fid, nid = "mech.v71.water.fisher", "mech.v71.water.nodeep"
-    if need(fid, "water", "a water body's candidates") and need(nid, "water", "a water body's census and candidates"):
+    _n1 = need(fid, "water", "a water body's candidates")
+    _n2 = need(nid, "water", "a water body's census and candidates")   # both evaluated: each records its own NOT-TESTABLE-HERE
+    if _n1 and _n2:
         bl = ",".join("'" + b + "'" for b in (_d_bodies() or ["ocean"]))
         j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local wt = sw.ENGINE.waterTiles()
