@@ -11,7 +11,7 @@ import mdlite  # noqa: E402
 
 RES = (ROOT / "data/alpha4-sec7/SECTION7-RESULTS.md").read_text()
 OUT = ROOT / "data/alpha4-progress/alpha4-progress.html"
-AS_OF = "2 Oct 2026, 16:00 MDT"
+AS_OF = "2 Oct 2026, 16:45 MDT"
 
 E = html.escape
 
@@ -65,7 +65,7 @@ SINCE = {
         "R35 cap set to 2 so it bites.", "Rig check that the flags read 1 after 20 t, survive save + reload, and read 0 after "
         "the end. IRRM / IRRP2 / IRRR35 re-run in the RC chain."),
     7: ("done", "Both halves confirmed.", "Nothing."),
-    8: ("partial", "VF4 re-run completed on the Alpha Four fixes with the fish-vermin bank finder (result not tallied yet). VF1 "
+    8: ("partial", "VF4 re-run completed (no abort) on the Alpha Four fixes with the fish-vermin bank finder; result not tallied yet. VF1 "
         "re-designed with a gobble receipt; runs in the RC chain.", "Tally VF4; VF1 result from the chain."),
     9: ("explained", "No defect. Apex presence 0.17 is what a one-month run predicts (expected 0.17, none placed in 0.48 of "
         "runs). The carnivore share read 0.05 because 93% of 'land' units were ravens from the flying pool.",
@@ -108,14 +108,15 @@ STAGES = [
 
 RUNNING = [
     ("done", "Deploy v7.1-rc (16f85e6) and Chronicler scripts"),
+    ("done", "Full validation: CTRL 357 / 0 FAIL; RinghatchetsReady 360 / 3 FAIL (fixes ready, re-run pending)"),
     ("done", "FACTS on RinghatchetsReady"),
-    ("done", "PANEL: 13 sections reached; round trip 0/13 (harness)"),
+    ("done", "PANEL: 13 sections reached; round trip 0/13 (harness fix in progress at the desk)"),
     ("skip", "S7_FSH3 / S7_FSH4: not testable here (no fishing species in the pool)"),
-    ("done", "S7_STP1: 25.5 min"),
-    ("run", "S7_NAT: flying-aware scoring, daily ladder check (started 15:35, ~1 h 40 min)"),
-    ("wait", "S7_GRD1, S7_EXU1, S7_VF1"),
-    ("wait", "S7_IRRM, S7_IRRP2, S7_IRRR35"),
-    ("wait", "S7_TRIM (resident groups, first real run)"),
+    ("done", "S7_STP1: 25.5 min, awaiting the tally"),
+    ("run", "S7_NAT: flying-aware scoring, daily ladder check; rep 3 of 5 at 16:45, ~13 min per cell, done ~17:50"),
+    ("wait", "S7_GRD1, S7_EXU1, S7_VF1 (~1 h)"),
+    ("wait", "S7_IRRM, S7_IRRP2, S7_IRRR35 (~2 h)"),
+    ("wait", "S7_TRIM (resident groups, first real run); chain done ~21:00"),
 ]
 
 PENDING = [
