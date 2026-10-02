@@ -538,7 +538,7 @@ FORT_HINT = {
     "mech.v69.exhaust": "an in-season land species with an active out-of-season group-mate: CTRL or RinghatchetsReady after `preset` (the matrix spreads a group's species over seasons)",
     "gui.k.liveW": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
     "gui.k.ctrlF": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
-    "mech.v70.fishers_flags": "a listed fisher whose raw lacks CAN_SWIM_INNATE: no fort -- every vanilla bear (and the raccoon) already swims innately (FSH2); a modded raw",
+    "mech.v70.fishers_flags": "a listed fisher whose raw lacks CAN_SWIM_INNATE: no fort on vanilla raws (CTRL and RinghatchetsReady checked: every bear, the raccoon and the ten land carnivores the probe tries swim innately, FSH2); a modded raw",
     "cli.v70.sponges": "an ocean to place ribbons in: OCEAN2 or BOATS (the water layer turns itself on wherever there is water since v7.1)",
     "mech.v70.leader_male": "2+ live adult citizens: any fort with a founding seven (CTRL, RinghatchetsReady)",
     # measured by experiments: the fort they ran on (experiments/<id>.json)
