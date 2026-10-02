@@ -4,7 +4,7 @@ W2:Urist, 2 Oct 2026. This was desk work only: the section-7 run (`data/logs/sec
 
 - **Tool under test:** seasonal-wildlife 9e5aabe.
 - **Fort:** RinghatchetsReady.
-- **Commits:** `0b71fe4`, plus the CFG fix below (S7_IRRM), on DwarfCron Dev, not pushed. It touches `scripts/alpha4_sec7_blocks.py`, `chronicler/dfhack/scripts/cx-sec7.lua` and `experiments/ALPHA4-SECTION7.md`.
+- **Commits:** `0b71fe4`, `f4dd75f` (the CFG fix, S7_IRRM below), on DwarfCron Dev, not pushed. It touches `scripts/alpha4_sec7_blocks.py`, `chronicler/dfhack/scripts/cx-sec7.lua` and `experiments/ALPHA4-SECTION7.md`.
 - **Verified:**
   - `eco-run.py <all 19 blocks below> --dry-run --reps 1`: every block walked.
   - `alpha4-sec7.py --dry-run --reps 1 --only <the same 19>`: 1,971 Lua chunks through luac53, 0 failed. The verdict was "dry run clean".
