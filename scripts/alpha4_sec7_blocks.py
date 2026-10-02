@@ -286,9 +286,10 @@ def nat(arm):
 
 # S7_TRIM (R44 TRIM): cap 1, so a cavern holding two groups is over it. 2 Oct (first rig run): the check fired at
 # t1200 and read trimmed=0. Three causes, all fixed here:
-#   * the trim acts only on groups the tool records; cavern natives become groups at adoption (adoptNatives, every
-#     1,200 t), so `groups natives now` adopts them at t0 and the cell checks that a cavern is over the cap (nat cav_max
-#     > 1) before it waits for anything -- without that the arm has no subject;
+#   * the trim acts only on groups the tool records: flagged cavern arrivals become groups in a groups pass
+#     (discoverGroups), unflagged natives at adoption (adoptNatives, every 1,200 t). So the cell steps two passes
+#     (600 t), forces `groups natives now`, and checks that a cavern is over the cap (nat cav_max > 1) before it waits
+#     for anything -- without that the arm has no subject;
 #   * the trim is paced by g.trim_next (cavern_trim_days, 1 day = 1,200 t), which the save carries from its own play,
 #     plus the groups pass every 300 t: the first trim can come up to ~1,500 t after enable. The check now waits two
 #     days (t2400) and the cell runs four (4,800 t: up to four trims per cavern, and the walk-off after them);
@@ -301,7 +302,14 @@ def trim(arm):
           readback("groups.cavern_cap", "groups.cavern_trim", "groups.cavern_trim_days", "groups.natives_cavern"),
           chk("cfg[path=groups.cavern_cap].value==1"), chk("cfg[path=groups.cavern_trim].value==true"),
           chk("cfg[path=groups.natives_cavern].value==true"),
-          S7("mark", "pre"), T("groups", "natives", "now"), S7("nat", "t0"), chk("nat[tag=t0].cav_max>1"), S7("trim", "t0")]
+          # 2 Oct (rerun 20261002-075328, a4fix: nat[t0].cav_max=0): `groups natives now` adopts only UNFLAGGED wild
+          # units. RinghatchetsReady's cavern animals came in DF waves and carry the roaming flag, so they become groups
+          # only through discoverGroups in a groups pass (every 300 t; seasonal-wildlife.lua ~4163, resident=false,
+          # depth set). Right after enable no pass had run: no cavern group at all. Two passes (600 t) first, from mark
+          # 'pre' so a trim inside them is still counted (ledger dismissals since the mark); then the forced adoption
+          # for the unflagged rest; then the precondition.
+          S7("mark", "pre"), "step:600", T("groups", "natives", "now"), S7("nat", "t0"), chk("nat[tag=t0].cav_max>1"),
+          S7("trim", "t0")]
     for s, t in steps_of(4800, 300):
         st += [s, S7("trim", f"t{t}")]
         if t == 2400:   # two days: past any trim_next the save carried plus a groups pass, or the arm is vacuous
