@@ -6687,13 +6687,25 @@ print(json.encode(out))""", timeout=180)
             j = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local out = {{ body = '{body}', candidates = 0, aquatic = 0 }}   -- r2: never an empty object (it encodes as [] and read as 'no JSON')
 -- r2: a fish already swimming in a tracked water group first (a seeded school, an earlier draw): a draw depends on this
--- season's deal and the apex limit, and on RinghatchetsReady one run in two drew nothing aquatic
+-- season's deal and the apex limit, and on RinghatchetsReady one run in two drew nothing aquatic. Failing a tracked
+-- one, a wild fish DF put in the water is given a water record of its own (the groups snapshot cfg_pop restores drops it)
 for _, grp in ipairs(g.groups) do
   if not out.id and (grp.layer == 'water' or V7.GRP.wetGroup(grp)) then
     for _, id in ipairs(grp.ids) do
       local u = df.unit.find(id)
       local k = u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) and sw.classify(df.creature_raw.find(u.race))
       if k and k.habitat == 'aquatic' and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) then out.token = grp.token; out.id = id; out.tracked = true; break end
+    end
+  end
+end
+if not out.id then
+  for _, u in ipairs(df.global.world.units.active) do
+    if not dfhack.units.isDead(u) and sw.WILD.onMap(u) and sw.V7.natural(cfg, u) and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) then
+      local cr = df.creature_raw.find(u.race); local k = cr and sw.classify(cr)
+      if k and k.habitat == 'aquatic' then
+        g.groups[#g.groups + 1] = {{ ids = {{ u.id }}, race = u.race, token = cr.creature_id, layer = 'water', resident = true, arrived = sw.absTick(), validator = true }}
+        sw.saveGroups(g); out.token = cr.creature_id; out.id = u.id; out.wild = true; break
+      end
     end
   end
 end
