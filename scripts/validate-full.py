@@ -21,7 +21,7 @@ visible a PNG of the DF window plus the text grid. The rig is CTRL (inland, dry,
 opened) with one excursion to LAKE for the water layer, which is dormant everywhere else.
 
 Runs only when the rig is free; leaves it at the title with the forts byte-identical.
-Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui] [--only PHASE] [--v71 AREA,...]
+Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui] [--only PHASE] [--v71 AREA,...]   (PHASE: w0 model mech v65 v66 v68 v69 v70 v71 gui)
        validate-full.py --list [TEXT]           print the claim register (id, surface, claimed-as, claim); no rig
        validate-full.py --dry-run [--only PHASE] [--v71 AREA,...]
                                                 walk the phases against a stub rig: every Lua probe through luac53,
@@ -1055,10 +1055,32 @@ def phase_model():
         rec("mech.model.audit", "PASS", "the fixture written from this run", f"{len(rows)} creature raws written to {FIXTURE.relative_to(ROOT)} (first run: the baseline)", data={"n": len(rows)})
     else:
         fx = FIXTURE.read_text().splitlines()[1:] if FIXTURE.exists() else []
-        a, b = set(fx), set(rows)
-        gone, new = sorted(a - b), sorted(b - a)
-        rec("mech.model.audit", "PASS" if rows and not gone and not new else "FAIL", "the live reading equals the fixture, row for row",
-            f"{len(rows)} live rows, {len(fx)} fixture rows; {len(gone)} changed or missing, {len(new)} new: " + " | ".join((gone + new)[:8]), data={"n": len(rows), "diff": (gone + new)[:40]})
+        # The fixture is one world's reading (CTRL's). Worldgen creatures (DEMON_n, FORGOTTEN_BEAST_n, NIGHT_CREATURE_n,
+        # TITAN_n, HFnnn DIVINE_n ...: eco 'generated') are new raws in every world and reuse the same token names with
+        # other bodies, so a row-for-row compare on another world (RinghatchetsReady, run 20261002-020031: 2036 live vs
+        # 1054 fixture rows) is world-dependent noise. The audit compares, token by token, the raws both readings call
+        # non-generated (the vanilla raws), and lists the generated ones separately; a vanilla token missing on either
+        # side is a diff too. The live reading is saved beside the results so a diff can be read in full.
+        def keyed(lines):
+            d = {}
+            for ln in lines:
+                f = ln.split("\t")
+                if f and f[0]: d[f[0]] = ln
+            return d
+        def gen(ln): f = ln.split("\t"); return len(f) > 7 and f[7] == "generated"
+        fxd, lvd = keyed(fx), keyed(rows)
+        (OUT / "model-audit-live.tsv").write_text("token\thabitat\trole\twhy\tband\tmass\tvermin\teco\tbodies\tsalt\n" + live + "\n")
+        vfx = {t: r for t, r in fxd.items() if not gen(r)}; vlv = {t: r for t, r in lvd.items() if not gen(r)}
+        genT = sorted(({t for t, r in fxd.items() if gen(r)} | {t for t, r in lvd.items() if gen(r)}) - set(vfx) - set(vlv))
+        changed = sorted(t for t in set(vfx) & set(vlv) if vfx[t] != vlv[t])
+        gone = sorted(t for t in vfx if t not in vlv)       # vanilla in the fixture, absent or generated live
+        new = sorted(t for t in vlv if t not in vfx)        # vanilla live, absent or generated in the fixture
+        bad = [f"changed {t}: fixture [{vfx[t]}] live [{vlv[t]}]" for t in changed] + [f"missing live {t}" for t in gone] + [f"new vanilla {t}: [{vlv[t]}]" for t in new]
+        rec("mech.model.audit", "PASS" if rows and vfx and not bad else "FAIL", "the live reading equals the fixture, token for token, on every non-generated (vanilla) raw; worldgen creatures listed apart",
+            f"{len(rows)} live rows ({len(vlv)} vanilla, {len(lvd) - len(vlv)} generated); {len(fx)} fixture rows ({len(vfx)} vanilla, {len(fxd) - len(vfx)} generated); "
+            f"vanilla: {len(changed)} changed, {len(gone)} missing live, {len(new)} new" + (": " + " | ".join(bad[:6]) if bad else " -- identical"),
+            data={"n": len(rows), "vanilla_live": len(vlv), "vanilla_fixture": len(vfx), "diff": bad[:60], "generated": len(genT), "generated_tokens": genT[:40],
+                  "live_tsv": os.path.relpath(OUT / "model-audit-live.tsv", ROOT)})
     pr = m.get("pairs", {}) if isinstance(m, dict) else {}
     want = {"LION>SHARK_GREAT_WHITE": False, "LION>SHARK_BULL": False, "BIRD_EAGLE>FISH_TUNA_BLUEFIN": False, "SHARK_GREAT_WHITE>DEER": False, "BIRD_OSPREY>FISH_HERRING": True, "LION>GAZELLE": True}
     badp = {k: pr.get(k) for k, v in want.items() if pr.get(k) != v}
@@ -1984,17 +2006,27 @@ def phase_v66():
     log("== v6.6: hunting")
     h = luaj("""
 local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); cfg.enabled=true; cfg.hunting.enabled=true; sw.saveConfig(cfg)
-local pool=sw.buildPool(cfg); local _,species,wrote=sw.HUNT.apply(cfg,pool)
+local pool=sw.buildPool(cfg)
+-- castes that carry the flag before the write and that the tool did not write (DF's own: the peregrine falcon, and
+-- whatever copies its tags -- GIANT PEREGRINE FALCON on region9); restore leaves these set by design
+local cached={}; for tok,list in pairs(sw.CACHE.hunt or {}) do for _,w in ipairs(list) do cached[tok..'#'..w.caste]=true end end
+local native, nativeT = {}, {}
+for _,e in ipairs(pool) do if e.inEmbark then local f=sw.HUNT.wants(e); if f then local cr=df.creature_raw.find(e.idx)
+  for ci,c in ipairs(cr.caste) do if c.flags[f] and not cached[e.token..'#'..ci] then native[e.token..'#'..ci]=true; nativeT[e.token]=true end end end end end
+local _,species,wrote=sw.HUNT.apply(cfg,pool)
 local dive,hunt,bad=0,0,{}
 for _,e in ipairs(pool) do if e.inEmbark and sw.isAllowed(cfg,e) then local f=sw.HUNT.wants(e); if f then local cr=df.creature_raw.find(e.idx); local all=true
   for _,c in ipairs(cr.caste) do if not c.flags[f] then all=false end end; if all then if f=='DIVE_HUNTS_VERMIN' then dive=dive+1 else hunt=hunt+1 end else bad[#bad+1]=e.token end end end end
 cfg.hunting.enabled=false; sw.saveConfig(cfg); local restored=sw.HUNT.restore()
-local left=0; for _,e in ipairs(pool) do if e.inEmbark then local f=sw.HUNT.wants(e); if f and f~='DIVE_HUNTS_VERMIN' or (f=='DIVE_HUNTS_VERMIN' and e.token~='BIRD_FALCON_PEREGRINE') then local cr=df.creature_raw.find(e.idx); for _,c in ipairs(cr.caste) do if c.flags[f] then left=left+1 end end end end end
-print(json.encode({species=species, wrote=wrote, dive=dive, hunt=hunt, missing=bad, restored=restored, left=left}))
+local left,leftT=0,{}; for _,e in ipairs(pool) do if e.inEmbark then local f=sw.HUNT.wants(e); if f then local cr=df.creature_raw.find(e.idx)
+  for ci,c in ipairs(cr.caste) do if c.flags[f] and not native[e.token..'#'..ci] then left=left+1; leftT[#leftT+1]=e.token..'#'..ci end end end end end
+local nat={}; for t in pairs(nativeT) do nat[#nat+1]=t end; table.sort(nat)
+print(json.encode({species=species, wrote=wrote, dive=dive, hunt=hunt, missing=bad, restored=restored, left=left, left_castes=leftT, native=nat}))
 """, timeout=180)
     ok = isinstance(h, dict) and (h.get("species") or 0) > 0 and not h.get("missing") and h.get("restored") == h.get("wrote") and h.get("left") == 0
     rec("mech.hunt", "PASS" if ok else ("NOT-TESTABLE-HERE" if isinstance(h, dict) and h.get("species") == 0 else "FAIL"),
-        "every targeted species carries its flag on every caste; off clears exactly what was written and nothing is left set", json.dumps(h), data=h)
+        "every targeted species carries its flag on every caste; off clears exactly what was written and nothing it wrote is left set", json.dumps(h), data=h,
+        note="castes that carried the flag before the write are DF's own and stay set (native: " + ", ".join((h or {}).get("native") or []) + ")" if isinstance(h, dict) else "")
 
 # ================================================================ W0 (v6.3): what the player sees ====
 DF_INIT = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress"
@@ -2048,8 +2080,28 @@ if w then
 end
 local cfg=sw.loadConfig()
 local g=sw.loadGroups()
-T(out.jobs, 'season hold (daily)', function() sw.holdOutOfSeason(cfg, df.global.cur_season); sw.CAVERN.apply(cfg, df.global.cur_season) end)
-T(out.jobs, 'groups (300 t)', function() sw.groupsTick(cfg, g) end)
+-- A job pass timed the way FUSE.job runs it (run 20261002-020031 timed the groups pass at 87 ms on a deep-copied config,
+-- which bypasses the P1 race memo and the P8 pool memo -- buildPool, 18 ms on RinghatchetsReady, once per caller -- and
+-- with no census open, so every reader walked the units again): the shared read-only config (V7.PERF.cfgRO), one unit
+-- census for the pass, the ledger batched and flushed after.
+local C, PERF = sw.CACHE, sw.V7 and sw.V7.PERF
+local ro = (PERF and PERF.cfgRO) and PERF.cfgRO() or cfg
+local function J(t, name, f)
+  C.census, C.censusOpen, C.ledgerBatch = nil, true, true
+  local t0=dfhack.getTickCount(); local ok,err=pcall(f); local ms=dfhack.getTickCount()-t0
+  C.census, C.censusOpen, C.ledgerBatch = nil, false, false
+  pcall(function() sw.LEDGER.flush() end)
+  t[name]={ms=ms, ok=ok, err=(not ok) and tostring(err):sub(1,160) or nil, path='job'}
+end
+J(out.jobs, 'season hold (daily)', function() sw.holdOutOfSeason(ro, df.global.cur_season); sw.CAVERN.apply(ro, df.global.cur_season) end)
+J(out.jobs, 'groups (300 t)', function() sw.groupsTick(ro, sw.loadGroups()) end)
+-- the session's own record of the scheduled passes (FUSE.job): runs, mean, worst, passes over budget
+out.fuse = {}
+for name, st in pairs((sw.FUSE and sw.FUSE.stats) or {}) do
+  if st.ms_sum and (name:find('/groups$') or name:find('/ecology$')) then
+    out.fuse[name] = {runs=st.runs, mean=math.floor(10*st.ms_sum/math.max(1,st.runs)+0.5)/10, worst=st.worst, over=st.over}
+  end
+end
 out.parts = {}
 T(out.parts, 'loadConfig', function() sw.loadConfig() end)
 out.live = {}
@@ -2064,7 +2116,7 @@ L('STOCK.status', sw.STOCK and sw.STOCK.status and function() sw.STOCK.status(cf
 L('CAVERN.status', sw.CAVERN and sw.CAVERN.status and function() sw.CAVERN.status(cfg) end)
 L('FUSE.status', sw.FUSE and sw.FUSE.status and function() sw.FUSE.status() end)
 T(out.parts, 'buildPool', function() sw.buildPool(cfg) end)   -- not a job: jobs build the pool only when the roster changed
-if sw.ecologyRun then T(out.jobs, 'ecology ('..tostring(cfg.ecology.cadence or 1500)..' t)', function() sw.ecologyRun(cfg, g) end)
+if sw.ecologyRun then J(out.jobs, 'ecology ('..tostring(cfg.ecology.cadence or 1500)..' t)', function() local gg=sw.loadGroups(); sw.ecologyRun(ro, gg); if sw.V7.soloUnits then sw.V7.soloUnits() end; sw.saveGroups(gg) end)
 else T(out.jobs, 'ecology ('..tostring(cfg.ecology.cadence or 1500)..' t)', function() dfhack.run_command_silent('seasonal-wildlife','groups','ecology','now') end) end
 if sw.WATER and sw.WATER.run then T(out.jobs, 'water', function() sw.WATER.run(cfg) end) end
 print(json.encode(out))
@@ -2117,11 +2169,15 @@ def phase_w0(fort):
     tabs, jobs = (t.get("tabs") or {}), (t.get("jobs") or {})
     slow_t = {k: v["ms"] for k, v in tabs.items() if k != "open" and (v.get("ms", 0) >= 100 or not v.get("ok"))}
     slow_j = {k: v["ms"] for k, v in jobs.items() if v.get("ms", 0) >= 50 or not v.get("ok")}
+    fuse = t.get("fuse") or {} if isinstance(t, dict) else {}
+    # the session's scheduled passes: a mean at or over the budget fails too (a typical pass, not one sample); the
+    # worst pass is reported, not judged (a water draw or an irruption wave places units: JOB_MS 250 warns on those)
+    slow_j.update({f"{k} (session mean of {v.get('runs')})": v.get("mean") for k, v in fuse.items() if (v.get("mean") or 0) >= 50})
     live = {k: v.get("ms") for k, v in (t.get("live") or {}).items() if v.get("ms")}   # the Live tab's status lines, each timed alone
     rec("w0.timing.tabs", "PASS" if tabs and not slow_t else "FAIL", "every tab refresh < 100 ms",
         json.dumps({k: v.get("ms") for k, v in tabs.items()}) + (f"; Live parts {json.dumps(live)}" if live else ""), data=t)
-    rec("w0.timing.jobs", "PASS" if jobs and not slow_j else "FAIL", "every job pass < 50 ms",
-        json.dumps({k: v.get("ms") for k, v in jobs.items()}), data=t)
+    rec("w0.timing.jobs", "PASS" if jobs and not slow_j else "FAIL", "every job pass < 50 ms (timed on the job's own path), and the session's mean pass < 50 ms",
+        json.dumps({k: v.get("ms") for k, v in jobs.items()}) + (f"; session {json.dumps(fuse)}" if fuse else "") + (f"; over: {json.dumps(slow_j)}" if slow_j else ""), data=t)
     # the roster rule, with every present layer on and the season applied
     cmd("layer", "water", "on"); cmd("layer", "cavern", "on")
     cmd("now")
@@ -2463,10 +2519,15 @@ def phase_mechanics():
         note="measured S1 (full year, 0 out-of-season arrivals) and T6 (a year, three layers); the daily hold is the same applyLive path tested above")
     # --- place
     g0 = ground("B5-preplace"); ids0 = {u["id"] for u in g0.get("units", [])}
-    pb = fmt_pools(pools())
-    rc, out = cmd("place", "KANGAROO", "3", "land")
-    if "no stocked KANGAROO" in out:
-        rc, out = cmd("place", "GROUNDHOG", "3", "land")
+    pl = pools(); pb = fmt_pools(pl)
+    # the species comes from this fort's own land stock (KANGAROO/GROUNDHOG were CTRL's; RinghatchetsReady stocks
+    # neither -- run 20261002-020031): a land Animal entry holding >= 3, the CTRL pair first, then the fullest entry
+    land = {}
+    for e in pl:
+        if e.get("layer") == "land" and e.get("type") == "Animal" and int(e.get("qty") or 0) >= 3:
+            land[e["token"]] = max(land.get(e["token"], 0), int(e["qty"]))
+    ptok = next((t for t in ("KANGAROO", "GROUNDHOG") if t in land), None) or (max(land, key=lambda t: (land[t], t)) if land else "GROUNDHOG")
+    rc, out = cmd("place", ptok, "3", "land")
     m = re.search(r"placed (\d+) (\S+) on the (\S+) layer at ids ([\d,]+); entry (\d+) debited (\d+) -> (\d+)", out)
     placed_ids = [int(x) for x in m.group(4).split(",")] if m else []
     step(600, 120)
@@ -2475,7 +2536,7 @@ def phase_mechanics():
     shots_ = []
     if alive:
         centre_on(alive[0]["id"]); p = shot("B5-placed-units-on-map"); shots_ = [p] if p else []
-    rec("mech.place", "PASS" if m and len(alive) == len(placed_ids) and int(m.group(6)) - int(m.group(7)) == len(placed_ids) else "FAIL",
+    rec("mech.place", "PASS" if m and len(alive) == len(placed_ids) and int(m.group(6)) - int(m.group(7)) == len(placed_ids) else ("NOT-TESTABLE-HERE" if not land else "FAIL"),
         "N placed, entry debited by exactly N, all N alive on the map after 600 ticks", out, shots=shots_,
         data={"placed": placed_ids, "alive_after_600": [(u["token"], u["id"], u["x"], u["y"], u["z"]) for u in alive],
               "debit": (m.group(6), m.group(7)) if m else None})
@@ -3068,9 +3129,12 @@ def phase_gui():
     led0 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
     key("CUSTOM_R", 1.0); key("SELECT", 2.5); tr = screen("C17f-layers-preset")   # v6.3: the preset asks first
     led1 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
+    # the status row alone (tr[:300] is DF's own top bar, which read as 'the window failed to open' in run 20261002-020031);
+    # 'rotation on' must be on the row: the tool put the outcome before the biome names (v7.1-a4fix) because the row clips
+    srow = next((ln.split("|", 1)[-1].strip() for ln in tr.splitlines() if "Preset" in ln), "(no 'Preset' row on the Layers screen)")
     okr = "Preset" in tr and "rotation on" in tr and isinstance(led1, dict) and isinstance(led0, dict) and led1.get("total", 0) > led0.get("total", 0) and "preset" in str(led1.get("last"))
-    rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset", f"status: {'re-applied' in tr}; ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
-    rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R", tr[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
+    rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset", f"status: {srow[:160]!r} (re-applied: {'re-applied' in srow}, rotation on: {'rotation on' in srow}); ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
+    rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R", srow[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
     # Ledger (v5.11.4): block row 1 on the Roster, then undo it from the Ledger
     click("Roster"); time.sleep(0.8)
     rz0 = row_lines(screen("C17g-roster-before-z"))
@@ -4347,7 +4411,18 @@ local d
 for t, s in pairs(sp) do out.species = out.species + 1; if not d then for dd in pairs(s.d) do d = dd; break end end end
 out.d = d
 out.prior = 0; for _ in pairs(sw.CACHE.capHeld or {}) do out.prior = out.prior + 1 end
+out.priorOwn = 0; for _ in pairs(sw.CACHE.capOwn or {}) do out.priorOwn = out.priorOwn + 1 end
 if d ~= nil then
+  -- validate-full 20261002-020031 (RinghatchetsReady): the live gate already held 17 species, so 'pre' read their HELD
+  -- level, and the final release correctly put the gate's own holds back to the snapshot (their raw weight), which the
+  -- check read as 3 frequencies 'not back' (HUNGRY_HEAD, SPIDER_CAVE_GIANT, REACHER). The baseline is now taken after
+  -- the live gate's holds are released (the tool is off in this config, so no roster pass runs); the next groups pass
+  -- re-holds them. 'released' lists what that baseline release moved (the gate's own holds: raw back to the snapshot).
+  local rel0 = {}; for t in pairs(sw.CACHE.capOwn or {}) do local cr = CAV.rawFor(t); if cr then rel0[t] = cr.frequency end end
+  G.cavernHold(cfg, {})
+  out.released = {}
+  for t, f in pairs(rel0) do local cr = CAV.rawFor(t); if cr and cr.frequency ~= f then out.released[#out.released+1] = t .. ':' .. f .. '->' .. cr.frequency end end
+  table.sort(out.released)
   local pre, savedPre = {}, CAV.saved()
   local snap0 = {}; for k, v in pairs(savedPre) do snap0[k] = v end   -- v7.1-a4fix (3.8): the hold level reads the snapshot as it was
   for t in pairs(sp) do local cr = CAV.rawFor(t); if cr then pre[t] = cr.frequency end end
@@ -4374,8 +4449,8 @@ if d ~= nil then
   end
   G.cavernHold(cfg, {})
   local back, diff = 0, {}
-  for t, f in pairs(pre) do
-    if savedPre[t] == nil then local cr = CAV.rawFor(t); if cr and cr.frequency == f then back = back + 1 else diff[#diff+1] = t end end
+  for t, f in pairs(pre) do   -- a species the roster holds (a snapshot at the baseline) is the roster's, not the gate's
+    if snap0[t] == nil then local cr = CAV.rawFor(t); if cr and cr.frequency == f then back = back + 1 else diff[#diff+1] = t .. ':' .. f .. '->' .. tostring(cr and cr.frequency) end end
   end
   out.back = back; out.diff = diff
   out.after = 0; for _ in pairs(sw.CACHE.capHeld or {}) do out.after = out.after + 1 end
@@ -4391,7 +4466,7 @@ print(json.encode(out))""", timeout=180)
               and not j.get("diff") and (j.get("after") or 0) == 0)
         rec("mech.v71.cavern.hold", "PASS" if ok else "FAIL",
             "hold off: none held; hold any with cavern d at its cap: its natural cavern-only species held (mix on: max(2, weight//10), never above the weight; mix off: 1; none 0, none deep/shared); below the cap: every frequency back",
-            json.dumps(j)[:1200], note=("CACHE.capHeld already held %s species before the probe (the live gate); they are re-held by the next groups pass" % j.get("prior")) if j.get("prior") else "")
+            json.dumps(j)[:1200], note=("CACHE.capHeld held %s species before the probe (the live gate, %s its own); the probe released them for its baseline (%s raw(s) back to the snapshot) and the next groups pass re-holds them" % (j.get("prior"), j.get("priorOwn"), len(j.get("released") or []))) if j.get("prior") else "")
 
     j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
 cfg.groups.natives_cavern=true; cfg.groups.cavern_cap=1; cfg.groups.cavern_trim=true; cfg.limits.mode='formula'
@@ -7433,7 +7508,7 @@ def _dry_patch():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "v70", "v71", "gui"], help="run only the named phase between setup and teardown")
+    ap.add_argument("--only", choices=["w0", "model", "mech", "v65", "v66", "v68", "v69", "v70", "v71", "gui"], help="run only the named phase between setup and teardown (mech: the B-block mechanics, best with --preset)")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     ap.add_argument("--v71", default="", help="comma list of v7.1 sub-phases to run (" + ",".join(V71_AREAS) + "); default all")
     ap.add_argument("--list", nargs="?", const="", default=None, metavar="TEXT", help="print the claim register (rows containing TEXT) and exit; no rig")
@@ -7464,6 +7539,12 @@ def main():
         if a.only == "model":
             try: phase_model()
             except Exception as e: log(f"!! phase_model raised: {e!r}")
+        if a.only == "mech":   # the mechanics block alone (mech.place, mech.ecology.*, caverns); --preset gives it the CLI phase's roster
+            try: phase_mechanics()
+            except Exception as e: log(f"!! phase_mechanics raised: {e!r}")
+        if a.only == "v66":   # hunting (mech.hunt)
+            try: phase_v66()
+            except Exception as e: log(f"!! phase_v66 raised: {e!r}")
         if a.only == "v65":
             try: phase_v65()
             except Exception as e: log(f"!! phase_v65 raised: {e!r}")
