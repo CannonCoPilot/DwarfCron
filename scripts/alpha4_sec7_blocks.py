@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -674,42 +675,71 @@ def vf1(arm):
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
-# 2 Oct (core3: S7_VF4 MANIP-FAIL vermin[t0].total=0): the river's shore spot (the tool's survey, picked for open bank,
-# not for vermin) had no fish vermin within 12 tiles. VSHORE finds the bank by the fish instead: every surface vermin
-# that is a fish (VERMIN_FISH) or stands in deep water, visible (cx-eco `vermin`, the counter, skips the rest), binned 10x10 per level; the densest bin's centroid; the nearest
-# open outside floor within 8 tiles, on the water's level or one up. It caches that tile as cx-sec7 spot 'vshore'
-# (_G.CX_SEC7.spots, keyed by the same map key cx-sec7 uses, so `at vshore` reads it on the deployed probe too) and
-# prints the counts (aquatic = fish vermin on the surface, best = in the chosen bin). Any water body counts: the claim is
-# "vermin eaters eat what they walk to", the river was only the first choice. The ducks go on the spot itself
-# (radius 3): <X+10> radius 2 on a bank asked for walkable ground that may be water.
-VSHORE = ("lua:local S=_G.CX_SEC7 or {spots={},marks={}}; _G.CX_SEC7=S; "
-          "local key=df.global.plotinfo.site_id..':'..df.global.world.map.x_count..'x'..df.global.world.map.y_count; "
-          "if S.map~=key then S.map,S.spots,S.marks,S.perf=key,{},{},nil end; "
-          "local bins,tot,nb={},0,0; "
-          "for _,v in ipairs(df.vermin.get_vector()) do local f=dfhack.maps.getTileFlags(v.pos); "
-          "if f and f.outside and v.visible ~= false then local cr=df.creature_raw.find(v.race); local fish=false; "
-          "pcall(function() fish=cr.flags.VERMIN_FISH and true or false end); "
-          "if fish or (f.flow_size>=4 and not f.liquid_type) then local a=v.amount; if not a or a<1 then a=1 end; tot=tot+a; "
-          "local k=(v.pos.x//10)..','..(v.pos.y//10)..','..v.pos.z; local b=bins[k]; "
-          "if not b then b={n=0,x=0,y=0,c=0,z=v.pos.z}; bins[k]=b; nb=nb+1 end; "
-          "b.n=b.n+a; b.x=b.x+v.pos.x; b.y=b.y+v.pos.y; b.c=b.c+1 end end end; "
-          "local best; for _,b in pairs(bins) do if not best or b.n>best.n then best=b end end; local res,bd; "
-          "if best then local cx,cy=best.x//best.c,best.y//best.c; "
-          "for _,dz in ipairs({0,1}) do for dy=-8,8 do for dx=-8,8 do local x,y,z=cx+dx,cy+dy,best.z+dz; "
-          "local t=dfhack.maps.getTileType(x,y,z); local f=dfhack.maps.getTileFlags(x,y,z); "
-          "if t and f and f.outside and f.flow_size<4 then local sa=df.tiletype_shape.attrs[df.tiletype.attrs[t].shape]; "
-          "if sa.walkable and (sa.basic_shape==df.tiletype_shape_basic.Floor or sa.basic_shape==df.tiletype_shape_basic.Ramp) then "
-          "local d=math.max(math.abs(dx),math.abs(dy))+dz; if not bd or d<bd then res,bd={x,y,z},d end end end end end end end; "
-          "if res then S.spots['vshore']=res end; "
-          "print(('eco vshore aquatic=%d bins=%d best=%d found=%d x=%d y=%d z=%d'):format(tot,nb,best and best.n or 0,res and 1 or 0,"
-          "res and res[1] or -1,res and res[2] or -1,res and res[3] or -1))")
+# S7_VF4's bank, found by the fish (VSHORE).
+# 2 Oct (core3: MANIP-FAIL vermin[t0].total=0): the river's survey shore spot had no fish vermin within 12 tiles.
+# 2 Oct (rerun 20261002-075328): the first arm found a fish bank, the second (a fresh load) found none -- DF places and
+# hides vermin at random per load. So VSHORE now
+#   * scans every vermin that is a fish (VERMIN_FISH) or stands in water, at any level open to the sky (not
+#     subterranean), visible or not; bins them 10x10 per level, preferring bins with visible vermin; takes the nearest
+#     open outside floor within 8 tiles of the densest bin's centroid, 0-3 levels up (the bank over deep water);
+#   * fixes that bank for the whole block: the first arm that finds one writes `TOKEN x y z` to
+#     dfhack-config/sec7-vshore.txt (DF's directory; TOKEN is this eco-run invocation's, so a stale file from another
+#     run is ignored), and every later arm and rep reads it back -- every arm compares the same bank;
+#   * calls the bank found once a visible vermin stands within the counter's reach of it (cx-eco `vermin`: 12 tiles,
+#     levels z-1..z+1, visible) -- the same thing the outcome counts;
+#   * is tried five times, 300 t apart (up to 1,200 t of waiting, always stepped so every arm has the same timeline);
+#     `found` is sticky (first_try records the wait) and the check reads the last try. A fort with no fish vermin near a
+#     bank after the wait aborts the block, as before.
+# The spot is cached as cx-sec7 spot 'vshore' (_G.CX_SEC7.spots under cx-sec7's own map key), so `at vshore` works on
+# the deployed probe. The ducks go on the spot itself (radius 3). VF4 needs no river: any surface water serves.
+VSHORE_TOKEN = os.environ.get("SEC7_VSHORE_TOKEN") or time.strftime("%Y%m%d%H%M%S")
+
+
+def VSHORE(k):
+    return ("lua:local TOKEN=" + _lq(VSHORE_TOKEN) + "; local TRY=" + str(k) + "; "
+            "local S=_G.CX_SEC7 or {spots={},marks={}}; _G.CX_SEC7=S; "
+            "local key=df.global.plotinfo.site_id..':'..df.global.world.map.x_count..'x'..df.global.world.map.y_count; "
+            "if S.map~=key then S.map,S.spots,S.marks,S.perf=key,{},{},nil end; "
+            "local V=_G.SEC7_VSHORE or {}; _G.SEC7_VSHORE=V; local FILE='dfhack-config/sec7-vshore.txt'; "
+            "local function amt(v) local a=v.amount; if not a or a<1 then a=1 end; return a end; "
+            "local function near(x,y,z) local nv,na=0,0; for _,v in ipairs(df.vermin.get_vector()) do "
+            "if math.abs(v.pos.x-x)<=12 and math.abs(v.pos.y-y)<=12 and math.abs(v.pos.z-z)<=1 then "
+            "na=na+amt(v); if v.visible~=false then nv=nv+amt(v) end end end; return nv,na end; "
+            "if not V.tile then local ok,fh=pcall(io.open,FILE,'r'); if ok and fh then local l=fh:read('*l') or ''; fh:close(); "
+            "local t,x,y,z=l:match('^(%S+) (%d+) (%d+) (%d+)$'); if t==TOKEN then V.tile={tonumber(x),tonumber(y),tonumber(z)}; V.src='file' end end end; "
+            "local tot,vis,nb=0,0,0; "
+            "if not V.tile then local bins={}; "
+            "for _,v in ipairs(df.vermin.get_vector()) do local f=dfhack.maps.getTileFlags(v.pos); "
+            "if f and not f.subterranean then local cr=df.creature_raw.find(v.race); local fish=false; "
+            "pcall(function() fish=cr.flags.VERMIN_FISH and true or false end); "
+            "if fish or (f.flow_size>=4 and not f.liquid_type) then local a=amt(v); tot=tot+a; "
+            "local k=(v.pos.x//10)..','..(v.pos.y//10)..','..v.pos.z; local b=bins[k]; "
+            "if not b then b={n=0,nv=0,x=0,y=0,c=0,z=v.pos.z}; bins[k]=b; nb=nb+1 end; "
+            "b.n=b.n+a; b.x=b.x+v.pos.x; b.y=b.y+v.pos.y; b.c=b.c+1; if v.visible~=false then b.nv=b.nv+a; vis=vis+a end end end end; "
+            "local best; for _,b in pairs(bins) do if not best or b.nv>best.nv or (b.nv==best.nv and b.n>best.n) then best=b end end; "
+            "local res,bd; if best then local cx,cy=best.x//best.c,best.y//best.c; "
+            "for dz=0,3 do for dy=-8,8 do for dx=-8,8 do local x,y,z=cx+dx,cy+dy,best.z+dz; "
+            "local t=dfhack.maps.getTileType(x,y,z); local f=dfhack.maps.getTileFlags(x,y,z); "
+            "if t and f and f.outside and f.flow_size<4 then local sa=df.tiletype_shape.attrs[df.tiletype.attrs[t].shape]; "
+            "if sa.walkable and (sa.basic_shape==df.tiletype_shape_basic.Floor or sa.basic_shape==df.tiletype_shape_basic.Ramp) then "
+            "local d=math.max(math.abs(dx),math.abs(dy))+2*dz; if not bd or d<bd then res,bd={x,y,z},d end end end end end end end; "
+            "if res then V.tile=res; V.src='scan'; local ok,fh=pcall(io.open,FILE,'w'); "
+            "if ok and fh then fh:write(TOKEN..' '..res[1]..' '..res[2]..' '..res[3]..'\\n'); fh:close() end end end; "
+            "local nv,na=-1,-1; if V.tile then S.spots['vshore']=V.tile; nv,na=near(V.tile[1],V.tile[2],V.tile[3]) end; "
+            "if nv>0 and not V.found then V.found=TRY end; "
+            "print(('eco vshore try=%d src=%s aquatic=%d visible=%d bins=%d found=%d first_try=%d near_vis=%d near_all=%d x=%d y=%d z=%d')"
+            ":format(TRY,V.src or '-',tot,vis,nb,V.found and 1 or 0,V.found or -1,nv,na,"
+            "V.tile and V.tile[1] or -1,V.tile and V.tile[2] or -1,V.tile and V.tile[3] or -1))")
 
 
 def vf4(arm):
     on = arm == "forage_on"
-    st = [SUSTAIN, *ENABLE, *_forage(on), VSHORE, chk("vshore.found==1"),
-          AT("vshore", "vermin", "<X>", "<Y>", "<Z>", "12", "t0"), chk("vermin[tag=t0].total>0"),
-          AT("vshore", "spawn", "BIRD_DUCK", "4", "<X>", "<Y>", "<Z>", "3", "land", "any", "200000", "roam")]
+    st = [SUSTAIN, *ENABLE, *_forage(on), VSHORE(1)]
+    for k in range(2, 6):
+        st += ["step:300", VSHORE(k)]
+    st += [chk("vshore.found==1"),
+           AT("vshore", "vermin", "<X>", "<Y>", "<Z>", "12", "t0"),
+           AT("vshore", "spawn", "BIRD_DUCK", "4", "<X>", "<Y>", "<Z>", "3", "land", "any", "200000", "roam")]
     if on:
         st.append(T("vermin", "forage", "now"))
     for s, t in steps_of(3000, 500):
