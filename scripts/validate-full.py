@@ -21,7 +21,12 @@ visible a PNG of the DF window plus the text grid. The rig is CTRL (inland, dry,
 opened) with one excursion to LAKE for the water layer, which is dormant everywhere else.
 
 Runs only when the rig is free; leaves it at the title with the forts byte-identical.
-Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui]
+Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui] [--only PHASE] [--v71 AREA,...]
+       validate-full.py --list [TEXT]           print the claim register (id, surface, claimed-as, claim); no rig
+       validate-full.py --dry-run [--only PHASE] [--v71 AREA,...]
+                                                walk the phases against a stub rig: every Lua probe through luac53,
+                                                every engine name it reads checked against $SW_TOOL, every console
+                                                verb against the dispatcher; no rig, no DF (experiments/VALIDATOR-v71.md)
 """
 import argparse, json, math, os, re, subprocess, sys, time
 from datetime import datetime
@@ -33,6 +38,12 @@ CX = str(ROOT / "scripts" / "cx-lifecycle.sh")
 TOOL = Path(os.environ.get("SW_TOOL", str(Path.home() / "Claude/Projects/seasonal-wildlife")))   # the checkout under test (a worktree per release)
 RUN = datetime.now().strftime("%Y%m%d-%H%M%S")
 OUT = ROOT / "data/validation/full" / RUN
+# --list and --dry-run never touch the rig and never write a run directory under data/ (v7.1 validator wave)
+DRY = "--dry-run" in sys.argv
+LISTING = "--list" in sys.argv
+if DRY or LISTING:
+    import tempfile
+    OUT = Path(tempfile.mkdtemp(prefix="validate-full-dry-"))
 SHOTS, SCREENS, GROUND = OUT / "shots", OUT / "screens", OUT / "ground"
 for d in (SHOTS, SCREENS, GROUND):
     d.mkdir(parents=True, exist_ok=True)
@@ -52,6 +63,15 @@ V67 = V >= (6, 7, 0)
 V68 = V >= (6, 8, 0)
 V69 = V >= (6, 9, 0)
 V70 = V >= (7, 0, 0)
+# v7.1 is built on the v7.0.0 changelog header (the lead bumps it at release), so the version line alone cannot tell
+# v7.1 from v7.0: the deployed engine carries the v7.1 groups table (V7.GRP) and the controls module sits beside it.
+DEPLOYED = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress/dfhack-config/scripts"
+def deployed_is_v71():
+    f = DEPLOYED / "seasonal-wildlife.lua"
+    return f.exists() and "V7.GRP = " in f.read_text(errors="replace")
+V71 = V >= (7, 1, 0) or deployed_is_v71()
+if DRY:   # the dry run walks every gated branch as the newest release would
+    V, V65, V66, V67, V68, V69, V70, V71 = (7, 1, 0), True, True, True, True, True, True, True
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
@@ -334,6 +354,10 @@ CLAIMS = [
     ("doc.docstring.tabs", "DOC", "the script docstring's tab count and Usage block match the shipped window and verbs", "script docstring", "doc"),
     ("doc.design.views", "DOC", "the design report's §11 catalogue is labelled as v6.0 aspiration, not shipped", "design §11", "doc"),
     ("doc.docket", "DOC", "the Docket's statement that the tool is at v5.5 is stale", "Docket", "doc"),
+    # ---- v7.1 (1 Oct 2026): validator wave 2, one block per stream (seasonal-wildlife docs/v7.1/<stream>.md); phase_v71
+    ("deploy.v71.files", "MECH", "the five scripts of the tool tree (engine, gui/, web server, web page, controls registry) are deployed and byte-identical to the checkout under test", "experiments/VALIDATOR-v71.md (deploy); cx-lifecycle.sh deploy-tool", "shipped v7.1"),
+    ("deploy.v71.loads", "MECH", "the controls registry loads in the game (12 sections) and the web server that requires it loads", "experiments/VALIDATOR-v71.md (deploy); docs web.md", "shipped v7.1"),
+    # @@V71-CLAIMS@@
 ]
 CLAIM = {c[0]: c for c in CLAIMS}
 
@@ -369,7 +393,13 @@ def rig_versions():
 
 RPC_TIMEOUT = "45"   # 22 Sep 2026: `groups` right after a full-speed 6,000-tick step twice missed cx-rpc's 15 s default (0.15 s by hand)
 RETRIED = []
+# --dry-run: every rig call is recorded and answered from a stub (an empty JSON object for Lua, an empty reply for a
+# verb), so each phase runs its Python end to end and every Lua chunk can be syntax- and name-checked offline.
+DRY_CALLS = []
 def sh(*args, timeout=180):
+    if DRY:
+        DRY_CALLS.append(tuple(str(a) for a in args))
+        return 0, ("{}" if args and args[0] == "lua" else "")
     env = dict(os.environ, CX_RPC_TIMEOUT=RPC_TIMEOUT)
     p = subprocess.run([CX, *args], capture_output=True, text=True, timeout=timeout, cwd=ROOT, env=env)
     if args and args[0] in ("cmd", "lua") and "timed out" in (p.stdout + p.stderr):
@@ -452,6 +482,165 @@ def step(ticks, secs=240):
 def centre_on(unit_id):
     lua(f"local u=df.unit.find({unit_id}); if u then dfhack.gui.revealInDwarfmodeMap(xyz2pos(dfhack.units.getPosition(u)), true) end")
     time.sleep(0.8)
+
+# ------------------------------------------------------------------- v7.1 plumbing (validator wave 2) ---
+def luap(code, timeout=120) -> dict:
+    """luaj with the chunk run under pcall: a Lua error does NOT come back over RPC (DFHack writes it to stderr.log and
+    the call times out, cx-lifecycle.sh:865), so a v7.1 probe reports {'_err': message} instead of hanging for 45 s.
+    Always returns a dict: the probe's JSON object, {'_err': ...} or {'_raw': text}."""
+    j = luaj("local __ok, __e = pcall(function()\n" + code + "\nend)\n"
+             "if not __ok then print(json.encode({_err=tostring(__e)})) end", timeout=timeout)
+    if isinstance(j, dict):
+        return j
+    return {"_raw": json.dumps(j)[:600]}
+
+def bad(j):
+    """The reason a probe's answer cannot be judged (a Lua error or no JSON), else None."""
+    if not isinstance(j, dict):
+        return "no JSON object"
+    if "_err" in j:
+        return "Lua error: " + str(j["_err"])[:400]
+    if "_raw" in j:
+        return "no JSON: " + str(j["_raw"])[:400]
+    return None
+
+def rec_bad(cids, j, what="the probe's JSON"):
+    """Record FAIL on every claim a broken probe was meant to judge."""
+    for cid in ([cids] if isinstance(cids, str) else cids):
+        rec(cid, "FAIL", what, bad(j) or json.dumps(j)[:600])
+
+def manip(cid, what, ok, got):
+    """H2 for the validator: a claim that turns a dial reads the dial back before judging the outcome. When the dial
+    did not take, the claim is FAIL with a MANIPFAIL note and the outcome is never read (a vacuous PASS is the
+    failure this guards against: manifest-subject-receipt)."""
+    if ok:
+        return True
+    rec(cid, "FAIL", "manipulation check: " + what, got if isinstance(got, str) else json.dumps(got)[:900],
+        note="MANIPFAIL: the dial did not take, so the claimed effect was not judged")
+    return False
+
+def tool(*args, timeout=120):
+    """A console verb of the tool, run inside the game with run_command_silent so the reply comes back whole (the
+    `cmd` route loses nothing either, but this one also returns a Lua error as text instead of timing out)."""
+    words = ",".join(json.dumps(str(a)) for a in args)
+    j = luaj(f"local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife',{words}); print(json.encode({{ok=ok,out=tostring(out)}}))", timeout=timeout)
+    return str(j.get("out") if isinstance(j, dict) and "out" in j else "")
+
+CFG_GET_LUA = """
+local function get(c, p)
+  for k in p:gmatch('[^.]+') do
+    if type(c) ~= 'table' then return nil end
+    local v = c[k]; if v == nil and tonumber(k) then v = c[tonumber(k)] end
+    c = v
+  end
+  return c
+end
+"""
+def cfgv(*paths) -> dict:
+    """The persisted config values at these dotted paths, read the way the tool reads them (loadConfig)."""
+    lst = ",".join(json.dumps(p) for p in paths)
+    j = luap("local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig()" + CFG_GET_LUA +
+             f"local out={{}}; for _,p in ipairs({{{lst}}}) do out[p]=get(c,p) end; print(json.encode(out))")
+    return j if not bad(j) else {}
+
+def cfg_push():
+    """Snapshot the tool's config, groups record and enabled state before a sub-phase turns dials (restored by cfg_pop,
+    so the phases after v7.1 -- w0, teardown -- see the fort as the earlier phases left it)."""
+    return luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils')
+_G.__v71_stack = _G.__v71_stack or {}
+table.insert(_G.__v71_stack, { cfg = utils.clone(sw.loadConfig(), true), groups = utils.clone(sw.loadGroups(), true) })
+print(json.encode({depth=#_G.__v71_stack}))""")
+
+def cfg_pop():
+    return luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils')
+local st = _G.__v71_stack; if not st or #st == 0 then print(json.encode({depth=0, none=true})) return end
+local snap = table.remove(st)
+local now = sw.loadConfig()
+if now.enabled and not snap.cfg.enabled then pcall(dfhack.run_command_silent, 'seasonal-wildlife', 'disable') end
+sw.saveConfig(snap.cfg); sw.saveGroups(snap.groups)
+if snap.cfg.enabled and not now.enabled then pcall(dfhack.run_command_silent, 'seasonal-wildlife', 'enable') end
+print(json.encode({depth=#st, enabled=snap.cfg.enabled}))""")
+
+# Which fort a fort-dependent claim needs. R11: region8 ('The Last Planets') for all testing from 1 Oct 2026; its 1x1
+# forts come from scripts/b1-forts.py (embark --only NEED). Until they exist, the older fort named after 'until then'
+# carries the same condition. A claim whose condition is missing on the loaded fort is NOT-TESTABLE-HERE naming this.
+NEED = {
+    "ocean": "an ocean on the map: region8 B1-R8-*-SHORE (b1-forts.py embark --only shore); until then OCEAN2 (shallow) or BOATS (deep columns)",
+    "ocean_deep": "ocean columns of 3+ stacked water tiles: BOATS (DEPTH survey: 12,045 columns >= 3), or a region8 SHORE fort whose `water depth` shows them",
+    "ocean_shallow": "a shallow ocean (columns of 1-2 only): OCEAN2, or a region8 SHORE fort whose `water depth` shows max 2",
+    "lake": "a lake on the map: region8 B1-R8-*-LAKE (b1-forts.py embark --only lake); until then LAKE",
+    "river": "a river on the map: region8 B1-R8-*-RIVER (b1-forts.py embark --only river); until then RIVER4",
+    "water": "any open surface water: region8 SHORE/LAKE/RIVER; until then LAKE, RIVER4, OCEAN2 or BOATS",
+    "dry": "a dry map (no surface water): CTRL, or a region8 interior 1x1 with no water in `facts`",
+    "cavern_reached": "a cavern the fort has reached (Discovered): a region8 fort after a breach (dig-now + aquifer seal, memory fort-load-levers); CTRL's caverns are never opened",
+    "calm": "a calm map (savagery under 33): region8 B1-R8-*-CALM; CTRL is calm",
+    "r2": "the rig on DFHack 53.16-r2 (dfhack.units.getBreathingState, dfhack.maps.forEachTile)",
+    "second_world": "a second world loaded in the same DF session (load A, title, load B); one validate-full session loads one world",
+}
+
+F71 = {}
+FACTS_LUA = """
+local sw=reqscript('seasonal-wildlife'); local out={loaded=dfhack.isMapLoaded()}
+out.release = dfhack.getDFHackRelease and dfhack.getDFHackRelease() or '?'
+out.r2 = (dfhack.units.getBreathingState ~= nil)
+out.forEachTile = (dfhack.maps.forEachTile ~= nil)
+if out.loaded then
+  local m = df.global.world.map; out.x, out.y, out.z = m.x_count, m.y_count, m.z_count
+  out.auto = sw.QUOTA.autoGroups()
+  local c = sw.loadConfig(); out.enabled = c.enabled; out.layers = c.layers
+  local ok, w = pcall(sw.ENGINE.waterTiles, false)
+  if ok and type(w) == 'table' then out.water = w.sum; out.maxDepth = w.maxDepth; out.stride = w.stride end
+  local okc, cf = pcall(sw.cavernsFound)
+  out.caverns = {}; out.reached = 0
+  if okc and type(cf) == 'table' then for d, found in pairs(cf) do out.caverns['c' .. d] = found; if found then out.reached = out.reached + 1 end end end
+  local okw, by = pcall(sw.WILD.countByLayer); if okw then out.wild = by end
+  local n = 0; for _, u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then n = n + 1 end end
+  out.citizens = n
+  local okn, nm = pcall(function() return dfhack.translation and dfhack.translation.translateName(df.global.world.world_data.name, true) or dfhack.TranslateName(df.global.world.world_data.name, true) end)
+  out.world = okn and nm or '?'
+end
+print(json.encode(out))"""
+
+def v71_facts(fort):
+    """What the loaded fort offers the fort-dependent v7.1 claims (water bodies, caverns reached, map size, r2)."""
+    j = luap(FACTS_LUA, timeout=180)
+    F71.clear(); F71.update(j if not bad(j) else {"_bad": bad(j)}); F71["fort"] = fort
+    w = F71.get("water") or {}
+    md = F71.get("maxDepth") or {}
+    F71["has"] = {
+        "ocean": (w.get("ocean") or 0) > 0, "lake": (w.get("lake") or 0) > 0, "river": (w.get("river") or 0) > 0,
+        "pool": (w.get("pool") or 0) > 0,
+        "water": sum((w.get(k) or 0) for k in ("ocean", "lake", "river", "pool")) > 0,
+        "ocean_deep": (md.get("ocean") or 0) >= 3, "ocean_shallow": 0 < (md.get("ocean") or 0) <= 2,
+        "cavern_reached": (F71.get("reached") or 0) > 0, "r2": bool(F71.get("r2")),
+    }
+    F71["has"]["dry"] = not F71["has"]["water"]
+    log(f"  v7.1 facts: fort {fort} world {F71.get('world')} map {F71.get('x')}x{F71.get('y')} auto {F71.get('auto')} "
+        f"water {w} maxDepth {md} caverns {F71.get('caverns')} r2 {F71.get('r2')} citizens {F71.get('citizens')}")
+    return F71
+
+def has(cond):
+    return bool((F71.get("has") or {}).get(cond)) or DRY   # the dry run walks every branch
+
+def need(cid, cond, expected, got="", note=""):
+    """NOT-TESTABLE-HERE for a claim whose fort condition is missing; returns True when the condition holds."""
+    if has(cond):
+        return True
+    rec(cid, "NOT-TESTABLE-HERE", expected, got or f"fort {F71.get('fort')}: no {cond}",
+        note=(NEED.get(cond, cond) + (("; " + note) if note else "")))
+    return False
+
+WEB_PORT = 8642
+def curl(path, method="GET", host=None, port=WEB_PORT):
+    """(status, body) from the companion server on the host; body as latin-1 text (PNGs are not UTF-8)."""
+    if DRY:
+        DRY_CALLS.append(("curl", method, path))
+        return 0, ""
+    a = ["curl", "-s", "-m", "10", "-o", "-", "-w", "\n%{http_code}", "-X", method]
+    if host: a += ["-H", f"Host: {host}"]
+    p = subprocess.run(a + [f"http://127.0.0.1:{port}{path}"], capture_output=True)
+    body, _, code = p.stdout.decode("latin-1").rpartition("\n")
+    return (int(code) if code.isdigit() else 0), body
 
 GROUND_LUA = """
 local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig()
@@ -2738,25 +2927,85 @@ def resolve_shipped_backlog():
                     else f"{CLAIM[cid][4]}; {', '.join(via)} did not run in this session")
         rec(cid, verdict, f"shipped: {', '.join(via)} passes", "; ".join(f"{v}={x}" for v, x in zip(via, vs)), note=note)
 
-# ============================================================================== v7.1 (stub) ====
-# Validator claims for the v7.0 features merged after phase v70 and for v7.1 come in a later wave (open item
-# validator-v70-coverage: 'grep of validate-full.py: gobble 0, scav_ext 0, outgun 0, gate_drain 0, builder 0,
-# natural_skill 0'). The ids are reserved here so the backlog resolver and the report can name them; none is in
-# CLAIMS yet, so no run counts them until its check is written.
-V71_TODO = {
-    "mech.v70.builder": "ROSTER.build / `roster build`: the ladder, the unfilled report, the vegetation and deep surveys",
-    "mech.v70.gobble": "GOBBLE_RULES / GOBBLE_VERMIN edges and the SWV vermin classes",
-    "mech.v70.scav_ext": "scav_ext's fallbacks: fliers land, swimmers reach water corpses, land scavengers wade, wanderers",
-    "mech.v70.outgun": "outgun / outgun_cap",
-    "mech.v70.realms": "the realm table (308 species, 13 realms) and the realms switch",
-    "mech.v70.gate_drain": "v7.gate_drain releases the next-oldest gated group until <= 1 flagged unit remains",
-    "mech.v70.solo_skill": "the caste NATURAL_SKILL write on solitary hunters, read on a newly arrived unit (open item natural-skill-unverified)",
-}
+# ============================================================================== v7.1 =========
+# Validator wave 2 (1 Oct 2026). One sub-phase per v7.1 stream (seasonal-wildlife docs/v7.1/<stream>.md lists the
+# claims each stream needs); a claim belongs to the stream its source names ('docs/v7.1/<stream>.md'). The v7.0
+# features merged after phase_v70 (open item validator-v70-coverage) are written here too, each under the stream that
+# now owns the code. Every sub-phase runs between cfg_push and cfg_pop, so the dials it turns are put back.
+# experiments/VALIDATOR-v71.md lists every claim, what it checks and which fort it needs.
+V71_TODO = {}   # wave 2 wrote every id the stub reserved; kept so the report and resolve_shipped_backlog still read it
+V71_AREAS = ["deploy", "fixes", "ecology", "groups", "water", "roster", "extinct", "vermin", "scav", "irruption", "perf", "web"]
 
-def phase_v71():
-    log("== v7.1: STUB -- claims not written yet (validator wave 2); reserved ids:")
-    for cid, what in V71_TODO.items():
-        log(f"  TODO {cid}: {what}")
+def area_of(c):
+    m = re.search(r"v7\.1/(\w+)\.md", c[3])
+    if m:
+        return m.group(1)
+    return "deploy" if c[0].startswith("deploy.") else None
+
+def v71_ids(area):
+    return [c[0] for c in CLAIMS if area_of(c) == area]
+
+# ---- deploy: v7.1 ships a fifth script, seasonal-wildlife-controls.lua, which the web server reqscripts at load
+V71_FILES = ["seasonal-wildlife.lua", "gui/seasonal-wildlife.lua", "seasonal-wildlife-web.lua", "seasonal-wildlife-web.html",
+             "seasonal-wildlife-controls.lua"]
+
+def v71_deploy():
+    rows, ok = [], True
+    for f in V71_FILES:
+        a_, b_ = TOOL / "scripts" / f, DEPLOYED / f
+        if not a_.exists():
+            rows.append(f"{f}: not in the checkout {TOOL}"); ok = False; continue
+        if not b_.exists():
+            rows.append(f"{f}: NOT DEPLOYED"); ok = False; continue
+        same = a_.read_bytes() == b_.read_bytes()
+        rows.append(f"{f}: {'identical' if same else 'DIFFERS from the checkout'}"); ok = ok and same
+    if DRY:
+        ok = True
+    rec("deploy.v71.files", "PASS" if ok else "FAIL",
+        "every script of the tool tree is in dfhack-config/scripts and byte-identical to the checkout under test (cx-lifecycle.sh deploy-tool)",
+        "\n".join(rows), note=f"checkout {TOOL}")
+    j = luap("""local out={}
+local ok1, e1 = pcall(reqscript, 'seasonal-wildlife-controls'); out.controls = ok1; out.controlsErr = (not ok1) and tostring(e1) or nil
+if ok1 then out.sections = e1.SECTIONS and #e1.SECTIONS or 0; out.controlsN = e1.CONTROLS and #e1.CONTROLS or 0 end
+local ok2, e2 = pcall(reqscript, 'seasonal-wildlife-web'); out.web = ok2; out.webErr = (not ok2) and tostring(e2) or nil
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("deploy.v71.loads", j)
+    else:
+        rec("deploy.v71.loads", "PASS" if j.get("controls") and j.get("web") and (j.get("sections") or 0) >= 12 else "FAIL",
+            "reqscript('seasonal-wildlife-controls') loads with its 12 sections, and the web server (which requires it) loads",
+            json.dumps(j))
+
+def phase_v71(fort="CTRL", areas=None):
+    log("== v7.1: " + ", ".join(a for a in V71_AREAS if not areas or a in areas))
+    v71_facts(fort)
+    for area in V71_AREAS:
+        if areas and area not in areas:
+            continue
+        ids = v71_ids(area)
+        fn = globals().get(f"v71_{area}")
+        seen0 = {r["id"] for r in results}
+        if fn is None:
+            for cid in ids:
+                rec(cid, "NOT-TESTABLE-HERE", "a check written for this claim", "", note=f"no v71_{area} sub-phase in this validator")
+            continue
+        log(f"-- v7.1 {area} ({len(ids)} claims)")
+        push = cfg_push() if area != "deploy" else {}
+        try:
+            fn()
+        except Exception as e:
+            log(f"!! v71_{area} raised: {e!r}")
+            seen = {r["id"] for r in results}
+            for cid in ids:
+                if cid not in seen:
+                    rec(cid, "FAIL", "the sub-phase reaches this claim", repr(e)[:600], note=f"v71_{area} raised before this claim was judged")
+        finally:
+            if area != "deploy" and not bad(push):
+                cfg_pop()
+        seen = {r["id"] for r in results}
+        for cid in ids:
+            if cid not in seen and cid not in seen0:
+                rec(cid, "NOT-TESTABLE-HERE", "a check reached this claim", "", note=f"v71_{area} ran but did not record this claim")
 
 def phase_teardown(fort):
     log("== TEARDOWN")
@@ -2770,13 +3019,132 @@ def phase_teardown(fort):
             p.stdout[:400] or "identical", data={"identical": same})
     sh("save-restore", f"{fort}.preverify", timeout=300)
 
+# ------------------------------------------------------------------------------ dry run ---
+LUAC = Path(os.environ.get("LUAC53", str(Path.home() / "Claude/Projects/sw-wt/.tools/luac53")))   # DFHack's own Lua 5.3.6
+DRY_ALIAS = {"sw": "", "V7": "V7.", "GRP": "V7.GRP.", "H": "V7.H.", "WAT": "V7.WAT.", "PERF": "V7.PERF.", "EXTINCT": "V7.EXTINCT."}
+ENGINE_TABLES = ("V7", "SCAV", "VERMIN", "ROSTER", "MODEL", "IRRUPT", "QUOTA", "CAVERN", "PLACE", "WILD", "ENGINE", "CURIOUS",
+                 "UNDO", "FUSE", "PANEL", "CACHE", "CAVE", "WET", "LEDGER", "PATTERN", "STOCK", "RESERVE", "ODDS", "HUNT", "ALERTS")
+
+def dry_report():
+    """After a --dry-run: every Lua chunk through luac53 -p, every engine name a chunk reads checked against the tool
+    checkout ($SW_TOOL), every console verb against the dispatcher. Exit 1 on a syntax error, an unknown name or verb,
+    or a phase that raised."""
+    src = (TOOL / "scripts/seasonal-wildlife.lua").read_text(errors="replace") if (TOOL / "scripts/seasonal-wildlife.lua").exists() else ""
+    side = {m: ((TOOL / f"scripts/{m}.lua").read_text(errors="replace") if (TOOL / f"scripts/{m}.lua").exists() else "")
+            for m in ("seasonal-wildlife-controls", "seasonal-wildlife-web")}
+    exports = dict(re.findall(r"^_ENV\.(\w+)\s*=\s*([\w.]+)", src, re.M))
+    chunks = [c[1] for c in DRY_CALLS if c and c[0] == "lua"]
+    uniq = list(dict.fromkeys(chunks))
+    syntax = []
+    tmp = OUT / "dry-lua"; tmp.mkdir(exist_ok=True)
+    for i, code in enumerate(uniq):
+        f = tmp / f"chunk{i:04d}.lua"; f.write_text(code)
+        if LUAC.exists():
+            p = _real_run([str(LUAC), "-p", str(f)], capture_output=True, text=True)
+            if p.returncode != 0:
+                syntax.append(((p.stderr or p.stdout).strip()[:300], code[:200].replace("\n", " ")))
+    unknown, weak = {}, set()
+    def known(path):
+        if re.search(r"(^|[^\w.])" + re.escape(path) + r"\b", src) or ("function " + path) in src:
+            return True
+        return False
+    for code in uniq:
+        aliases = dict(DRY_ALIAS)
+        for loc, rhs in re.findall(r"local\s+(\w+)\s*=\s*sw\.([\w.]+)\b(?!\s*\()", code):
+            first = rhs.split(".")[0]   # sw.GRP is exported as V7.GRP: alias the engine's own name
+            aliases[loc] = exports.get(first, first) + rhs[len(first):] + "."
+        mods = {loc: mod for loc, mod in re.findall(r"local\s+(\w+)\s*=\s*reqscript\('([\w-]+)'\)", code)}
+        for head, rest, call in re.findall(r"(?<![\w.:])(\w+)\.([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)(\s*\()?", code):
+            if head in mods:
+                if mods[head] == "seasonal-wildlife":
+                    first = rest.split(".")[0]
+                    tgt = exports.get(first)
+                    if tgt is None:
+                        unknown.setdefault(f"sw.{first} (not exported by _ENV)", code[:120]); continue
+                    path = tgt + rest[len(first):]
+                    if "." in tgt or tgt in ENGINE_TABLES:
+                        if "." in rest and not known(path) and not known(path.rsplit(".", 1)[0]):
+                            unknown.setdefault(path, code[:120])
+                        elif "." in rest and not known(path):
+                            weak.add(path)
+                    continue
+                side_src = side.get(mods[head], "")
+                first = rest.split(".")[0]
+                if side_src and not re.search(r"_ENV\.%s\b|^(\w+\s*,\s*)*%s\s*(,\s*\w+\s*)*=|^function\s+%s\b" % (first, first, first), side_src, re.M):
+                    unknown.setdefault(f"{mods[head]}:{first}", code[:120])
+                continue
+            if head in aliases and head != "sw":
+                path = aliases[head] + rest
+            elif head in ENGINE_TABLES:
+                path = head + "." + rest
+            else:
+                continue
+            if not known(path):
+                parent = path.rsplit(".", 1)[0]
+                if parent != path and known(parent) and not call:   # a call needs the function itself defined
+                    weak.add(path)   # a field of a known table: set at run time, or a table-constructor key
+                else:
+                    unknown.setdefault(path, code[:120])
+    verbs = set()
+    for c in DRY_CALLS:
+        if c and c[0] == "cmd" and len(c) > 2 and c[1] == "seasonal-wildlife":
+            verbs.add(c[2])
+    for code in uniq:
+        for v in re.findall(r"run_command_silent,\s*'seasonal-wildlife'\s*,\s*[\"']([\w-]+)[\"']", code):
+            verbs.add(v)
+    badverbs = sorted(v for v in verbs if f"cmd == '{v}'" not in src and v not in ("help",))
+    raised = [l for l in (OUT / "log.txt").read_text().splitlines() if "!! " in l]
+    tally = {}
+    for r in results:
+        tally[r["verdict"]] = tally.get(r["verdict"], 0) + 1
+    print(f"\n== DRY RUN against {TOOL}: {len(DRY_CALLS)} rig calls, {len(uniq)} distinct Lua chunks, {len(verbs)} verbs")
+    print("   verdicts against the stub (meaningless as results; every branch ran): " + "  ".join(f"{k} {v}" for k, v in sorted(tally.items())))
+    print(f"   luac53 -p: {len(syntax)} chunk(s) failed" + ("" if LUAC.exists() else f" (SKIPPED: no {LUAC})"))
+    for e, c in syntax[:40]:
+        print(f"     {e}\n       in: {c}")
+    print(f"   engine names not found in the tool: {len(unknown)}")
+    for k, c in sorted(unknown.items())[:80]:
+        print(f"     {k}    <- {c[:90]!r}")
+    print(f"   fields read off known tables (set at run time; not checkable statically): {len(weak)}")
+    print(f"   verbs not in the dispatcher: {badverbs or 'none'}")
+    print(f"   phases or sub-phases that raised: {len(raised)}")
+    for l in raised[:40]:
+        print("     " + l)
+    return 1 if (syntax or unknown or badverbs or raised) else 0
+
+_real_run = subprocess.run
+def _dry_patch():
+    """No DF, no screen, no curl, no waiting: every external call a phase makes returns empty."""
+    def run(cmd_, *a, **k):
+        if isinstance(cmd_, list) and cmd_ and str(cmd_[0]).endswith("luac53"):
+            return _real_run(cmd_, *a, **k)
+        DRY_CALLS.append(("run", " ".join(str(x) for x in (cmd_ if isinstance(cmd_, list) else [cmd_]))[:120]))
+        empty = "" if (k.get("text") or k.get("universal_newlines")) else b""
+        return subprocess.CompletedProcess(cmd_, 0, stdout=empty, stderr=empty)
+    subprocess.run = run
+    time.sleep = lambda *_a, **_k: None
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
     ap.add_argument("--only", choices=["w0", "model", "v65", "v68", "v69", "v70", "v71", "gui"], help="run only the named phase between setup and teardown")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
+    ap.add_argument("--v71", default="", help="comma list of v7.1 sub-phases to run (" + ",".join(V71_AREAS) + "); default all")
+    ap.add_argument("--list", nargs="?", const="", default=None, metavar="TEXT", help="print the claim register (rows containing TEXT) and exit; no rig")
+    ap.add_argument("--dry-run", action="store_true", help="walk the phases against a stub rig and check every Lua probe offline; no rig")
     a = ap.parse_args()
-    log(f"validate-full run {RUN} -> {OUT}")
+    areas = [x for x in a.v71.split(",") if x] or None
+    if areas and set(areas) - set(V71_AREAS):
+        ap.error("unknown --v71 area(s): " + ",".join(sorted(set(areas) - set(V71_AREAS))))
+    if a.list is not None:
+        for c in CLAIMS:
+            line = "\t".join((c[0], c[1], c[4], area_of(c) or "", c[2]))
+            if a.list.lower() in line.lower():
+                print(line)
+        return 0
+    if a.dry_run:
+        _dry_patch()
+    log(f"validate-full run {RUN} -> {OUT}" + ("  (DRY RUN: stub rig)" if a.dry_run else ""))
     ov0 = OVERLAY_JSON.read_text(errors="replace") if OVERLAY_JSON.exists() else ""
     try:
         base = phase_setup(a.fort)
@@ -2799,8 +3167,9 @@ def main():
         if a.only == "v70":   # alignment, leader, per-layer groups, the v7 raws, pack mass, sweep, civ races, domestic, sponges
             try: phase_v70()
             except Exception as e: log(f"!! phase_v70 raised: {e!r}")
-        if a.only == "v71":   # stub: lists the reserved claim ids (validator wave 2)
-            phase_v71()
+        if a.only == "v71":   # the v7.1 sub-phases (--v71 picks some); fort-dependent claims say which fort they need
+            try: phase_v71(a.fort, areas)
+            except Exception as e: log(f"!! phase_v71 raised: {e!r}")
         if a.only == "gui":   # v6.7: re-check the window's claims alone (~4 min)
             try: phase_gui()
             except Exception as e: log(f"!! phase_gui raised: {e!r}")
@@ -2839,11 +3208,12 @@ def main():
         if not a.only and V70:
             try: phase_v70()
             except Exception as e: log(f"!! phase_v70 raised: {e!r}")
-        if not a.only and V >= (7, 1, 0):
-            phase_v71()
         if not a.only:
-            try: phase_w0(a.fort)   # last: it turns every layer on and applies the season, which the earlier phases do not expect
+            try: phase_w0(a.fort)   # it turns every layer on and applies the season, which the earlier phases do not expect
             except Exception as e: log(f"!! phase_w0 raised: {e!r}")
+        if not a.only and V71:   # after w0: v7.1 places units (apex, irruption, place clusters) that w0's tab timings must not carry
+            try: phase_v71(a.fort, areas)
+            except Exception as e: log(f"!! phase_v71 raised: {e!r}")
     finally:
         # w0.overlay: put DFHack's overlay switch back the way this run found it, then prove it
         was = overlay_state(ov0)
@@ -2870,6 +3240,8 @@ def main():
         tally[r["verdict"]] = tally.get(r["verdict"], 0) + 1
     log(f"== DONE {OUT}\n   " + "  ".join(f"{k} {v}" for k, v in sorted(tally.items())))
     if RETRIED: log("   retried once after an RPC timeout: " + "; ".join(RETRIED))
+    if a.dry_run:
+        return dry_report()
     return 0
 
 sys.exit(main())
