@@ -757,6 +757,9 @@ cmd_step() {
     case "$t1" in ''|*[!0-9]*) sleep 0.3; t1=$(ui_get tick) ;; esac
     delta=$((t1 - t0)); [ "$delta" -lt 0 ] && delta=$((delta + CX_TICKS_PER_YEAR))
     log "stepped $delta ticks ($t0 -> $t1) in ${waited}s"
+    # the wait is capped at $secs (default 120): a long step at a slow tick rate returns early, so say so
+    [ "$delta" -lt "$ticks" ] && log "WARNING: short step: $delta of $ticks ticks before the ${secs}s cap (pass a larger second argument or step in chunks)"
+    return 0
 }
 
 # Load a save by folder name. The world list groups saves BY WORLD and shows
