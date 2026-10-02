@@ -917,7 +917,10 @@ elseif cmd == 'cfgset' then
     local n = 0
     for i = 2, #args - 1, 2 do
         local path, raw = args[i], args[i + 1]
-        local v = (raw == 'true' and true) or (raw == 'false' and false) or tonumber(raw) or raw
+        -- not `(raw == 'false' and false) or ...`: a false falls through the and/or and was saved as the string 'false',
+        -- which the tool's sanitizer drops for the default (2 Oct, S7_IRRM: irruption.agitate read back true)
+        local v
+        if raw == 'true' then v = true elseif raw == 'false' then v = false else v = tonumber(raw); if v == nil then v = raw end end
         local t, keys = c, {}
         for k in path:gmatch('[^.]+') do keys[#keys + 1] = tonumber(k) or k end
         local ok = true

@@ -81,8 +81,22 @@ def AT(spot, *cxeco) -> str:
 
 
 def CFG(*pairs) -> str:
-    """Write config paths the way the verbs do (loadConfig/saveConfig); the H2 read-back is the `cfg` step after it."""
-    return S7("cfgset", *[str(p).lower() if isinstance(p, bool) else p for p in pairs])
+    """Write config paths the way the verbs do (loadConfig/saveConfig); the H2 read-back is the `cfg` step after it.
+
+    2 Oct (S7_IRRM abort, irruption.agitate read back true): cx-sec7 cfgset at a48bbd6 coerced with
+    `(raw == 'false' and false) or tonumber(raw) or raw`, so 'false' fell through the and/or and was saved as the STRING
+    'false'; the tool's sanitizer keeps only booleans and put the default back. Every false written that way was lost
+    (true and numbers were fine). The probe is fixed, but the rig keeps its deployed copy until DEPLOY, so the write is
+    inline here: it works on any deployed probe and the running sequence picks it up."""
+    vals = [str(p).lower() if isinstance(p, bool) else str(p) for p in pairs]
+    tbl = ",".join("{" + _lq(k) + "," + _lq(v) + "}" for k, v in zip(vals[::2], vals[1::2]))
+    return ("lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local n=0; "
+            "for _,p in ipairs({" + tbl + "}) do local raw,v=p[2]; if raw=='true' then v=true elseif raw=='false' then v=false "
+            "else v=tonumber(raw); if v==nil then v=raw end end; local t,ks,ok=c,{},true; "
+            "for k in p[1]:gmatch('[^.]+') do ks[#ks+1]=tonumber(k) or k end; "
+            "for j=1,#ks-1 do if type(t[ks[j]])~='table' then ok=false; break end; t=t[ks[j]] end; "
+            "if ok then t[ks[#ks]]=v; n=n+1 else print('eco error cfgset: no table at '..p[1]) end end; "
+            "sw.saveConfig(c); pcall(function() sw.CACHE.cfg=nil end); print('eco cfgset written='..n)")
 
 
 def readback(*paths) -> str:
