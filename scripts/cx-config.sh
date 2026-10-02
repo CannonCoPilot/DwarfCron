@@ -40,9 +40,9 @@ DF_SAVE_DIR="${DF_SAVE_DIR:-$DF_USER_DIR/save}"
 # Planets". New test forts are embarked FROM it (scripts/b1-forts.py; experiments/HARNESS-v71.md); the world folder
 # itself is never written -- every embark saves under its own new name, and b1-forts.py checks region8's bytes
 # before and after each one. It is also the user's own game world: run nothing while DF is the user's game.
-CX_TEST_WORLD="${CX_TEST_WORLD:-region8}"
-CX_TEST_WORLD_NAME="${CX_TEST_WORLD_NAME:-Snospdastrasp}"
-CX_TEST_WORLD_TAG="${CX_TEST_WORLD_TAG:-R8}"   # the seedtag in test-fort names: B1-R8-<BIOME>-<rx>_<ry>
+CX_TEST_WORLD="${CX_TEST_WORLD:-region9}"   # 1 Oct 2026 (user): region9 and its fort RinghatchetsReady replace region8 for ALL testing
+CX_TEST_WORLD_NAME="${CX_TEST_WORLD_NAME:-Snospdastrasp}"   # region8's name: set region9's before the next embark (read it at load)
+CX_TEST_WORLD_TAG="${CX_TEST_WORLD_TAG:-R9}"   # the seedtag in test-fort names: B1-R9-<BIOME>-<rx>_<ry>
 
 # --- DFHack RPC -----------------------------------------------------------
 # ⚠️ 5000 is DFHack's default and is ALSO macOS ControlCenter's AirPlay
