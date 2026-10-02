@@ -59,6 +59,28 @@ W2:Urist, 2 Oct 2026. This was desk work only: the section-7 run (`data/logs/sec
   - S7_FSH4, S7_GRD1 and S7_SCV3W use the same lake spot.
 - **S7_SKL** in this run (reps 1-4, and rep 5 pkg) used the old design: subjects 6 tiles apart and the bonus on. **Do not pool it with the rerun.**
 
+## The section-7 tally batch (SECTION7-RESULTS.md "harness defects" and the vacuous rows) — commit `4db936a`
+
+Everything in this table reruns on v7.1-rc, which contains a4fix `69e97a1`.
+
+| block / stage | what the tally found | fix |
+|---|---|---|
+| **cx-sec7 `apraw`** (S7_IRRR35) | The labels were swapped. The tool's convention is `cluster_number[0]` = MAX (`seasonal-wildlife.lua:1744` at rc), so the quiet check `max<=5` read the min. | The fields are now `max=[0] min=[1]`, and `orig_max` is apCap's held `o[1]`. |
+| **S7_IRRR35** | R35 was vacuous at apcap 5: PLUMP_HELMET_MAN's raw range is 3-5, so `capped=0` everywhere. | `groups apcap 2` (`SEC7_R35_CAP`). The quiet arm checks `apraw[t600].max<=2` and `capped==1`, so the cap bites. The irrupting arm's apraw rows show it lifted. |
+| **PANEL** (stage) | Right went to the selected row, which was a readout, not a control (`act_panel_step` returns on a row with no ctl). The "read-back" counted was the stale status line of an earlier command, and all 13 screens were identical. | Each section, in order:<br>• the first steppable control (bool/int/float/enum) in the Panel list is selected;<br>• `panel_cmd` and `panel_status` are cleared;<br>• Right is pressed for real (Left if the config did not change: a bool already on);<br>• the command and status lines are read back from the widgets.<br>A step counts only when the config changed, a *fresh* read-back shows (`ran: ...` plus a status), and D restored it. |
+| **S7_STP1** | The eagles flew 30-220 tiles off, and only 1 stoop was recorded. **Deeper cause:** the tool manages only POOL species. `ecoPredatorSet` builds `CACHE.ecoByTok` from `V7.PERF.pool`, and `V7.H.stoop` skips a token with no entry. BIRD_EAGLE was not in this fort's pool (FACTS factpool). | FACTS now reads `factroles`: the pool's best-stocked raptor, fisher and polar fisher. STP1 uses that raptor, placed 3 tiles from the rabbits and adopted as one group. Every 1,000 t it records `adj` (raptor to rabbit), the ecology ledger and `stoopst` (`CACHE.stoopStat`). stoop_on checks `stoopst[t2000].raptors>0`. Requires `has_raptor`: with no pool raptor the block is NOT-TESTABLE-HERE, not vacuous. |
+| **S7_FSH3 / S7_FSH4** | The bears' closest approach averaged 15-17 tiles (adjacency 0/200), and the polar bears never entered water. Same pool cause: BEAR_GRIZZLY and BEAR_POLAR were not in the pool, so `V7.H.fish` never saw them. The shore and water spots were also picked apart. | The pool fisher (FSH3) or polar fisher (FSH4) goes on the tool's own shore pair. New cx-sec7 spots: `river:bank`/`river:bankwater` and `lake:bank`/`lake:bankwater`, from `V7.H.bankPair` by the body's water spot. The pike go in the water beside that bank. Checks: `adj[t0].dmin<=6`, then `fishst` (`CACHE.fishStat`) every sample with `fishers>0` at t3600 in the on arms. Requires `fisher_river` / `polar_lake`. |
+| **S7_GRD1** | There was no dry receipt: at t200 every pike was wet in both arms. | The stranding is receipted at once after the teleport, before any tick: `swim tp0` checks `alive>0` and `wet==0`. Samples at t10, t20, t50, t100 and t200, then every 200 t to t1200. |
+| **S7_EXU1** | There was no receipt that the extinct change reached the animals. | `exunit` reads each placed eoraptor's per-unit cache (`enemy.caste_flags.BENIGN`) and its caste flag. Both arms check `cache_benign==0`: "before" through E.units, "after" because the unit is born from the changed caste. A `relcount` is taken every sample. |
+| **S7_VF1** | No badger appeared as an eater. | `vfeat` reads what the forage reads: each badger's gobble set (`VERMIN.eaterSet`) and `VERMIN.eats(GRASSHOPPER)`. Both arms check `vfeat.eats>0`. If the badger does not eat the placed vermin, the block aborts at once and says so (a species-choice question, not a harness pass). |
+| **S7_IRRM M6** (goalonly) | The harness's steal-goal write did not persist: 0 samples, because DF re-plans a path goal on its own. | The goal is re-written after every sample, 100 t apart, so each `irr` read measures 100 t of persistence. **The measure is marked:** this arm reads the persistence of a bare goal write. Theft by goal is the tool's (the thief token's goal, M4), not the harness's. |
+| **S7_IRRM M1** (crazed) | The event had ended (repelled) before the end-of-cell save, so the reload read no subject. | `repel_share 0`, `repel_dead 0`, `settle_days 10`. The save and reload now come at t300 with `irr alive>0` checked before and after, and sampling continues every 100 t. |
+| **S7_IRRP2** | `dacc=-1` everywhere: the event had no access point. No subject came within 124 tiles of a citizen, so the approach was untested. The access (`IRRUPT.pressurePass` `L.access`) is where citizens stand in the band, and this fort reaches no cavern. | FACTS now records per-cavern `reach`: a citizen can walk to the band's floor. P2 runs in `reach_civ_cavern` when there is one, else the civ cavern. In **every** arm, three citizens are moved into that band and knocked out (`citizens D 3 in knock`, checked `moved>0`). That restores the notes' "3 citizens working in the band" and gives the event its access and the approach its target. The tool still places and walks the subjects; `dacc` and `dcit` are the outcome. |
+
+**Tool observations behind these (not edited; for the user):**
+- The ecology levers (stoop, fishing, relations) act only on species in the tool's pool. A placed species outside the pool is never managed, so on another fort these blocks need FACTS's roles.
+- Gated DF-wave cavern groups are never trimmed (see S7_TRIM).
+
 ## Rerun commands
 
 Run these after the current sequence ends and the rig is free. They need the rig, so they are not run here. There are two builds:
@@ -93,3 +115,22 @@ SEC7_CIV_SEASONS=0 .venv/bin/python scripts/alpha4-sec7.py --only DEPLOY,S7_IRRM
 - **S7_TRIM, S7_IRRR35 and S7_VF4** (after their second fixes), on a4fix: `SW_TOOL=/Users/nathanielcannon/Claude/Projects/sw-wt/a4fix SEC7_CIV_SEASONS=0 .venv/bin/python scripts/alpha4-sec7.py --only DEPLOY,S7_TRIM,S7_IRRR35,S7_VF4 > data/logs/sec7-trim-r35-vf4.log 2>&1`. With `SEC7_CIV_SEASONS=0`, IRRR35 still sets all seasons for PLUMP_HELMET_MAN itself, in both arms. DEPLOY is only needed if the rig's cx-sec7.lua predates 0b71fe4. This fix itself is block-side.
 - **Skipped as NOT-TESTABLE-HERE:** S7_INV3 (needs a calm map; savagery 73) and S7_EXF1 (needs an extinct land apex in the embark).
 - **S7_TRIM alone** (third design, two arms), on a4fix: `SW_TOOL=/Users/nathanielcannon/Claude/Projects/sw-wt/a4fix .venv/bin/python scripts/alpha4-sec7.py --only S7_TRIM > data/logs/sec7-trim3.log 2>&1`. The fix is block-side only, so no DEPLOY is needed if the rig's cx-sec7.lua is 0b71fe4 or later.
+
+### RC gate (v7.1-rc)
+
+The rerun of the tally batch, plus S7_TRIM's redesign (`45d6a63`, not yet run). S7_IRRR35 and S7_VF4 completed on a4fix in `data/alpha4-sec7/20261002-1338*`; IRRR35 reruns here because its cap and labels changed.
+
+```sh
+cd ~/Claude/Projects/DwarfCron
+export SW_TOOL=/Users/nathanielcannon/Claude/Projects/sw-wt/rc                         # v7.1-rc (contains a4fix 69e97a1)
+git -C "$SW_TOOL" log --oneline -1
+SEC7_CIV_SEASONS=0 .venv/bin/python scripts/alpha4-sec7.py \
+  --only DEPLOY,FACTS,PANEL,S7_STP1,S7_FSH3,S7_FSH4,S7_GRD1,S7_EXU1,S7_VF1,S7_IRRM,S7_IRRP2,S7_IRRR35,S7_TRIM \
+  > data/logs/sec7-rc.log 2>&1
+```
+
+- **DEPLOY** copies the new probe (factroles, reach, bank spots) and the rc tool.
+- **FACTS must run before the blocks:** it writes the pool roles and reach into facts.json. Until it has, STP1, FSH3 and FSH4 skip as NOT-TESTABLE-HERE.
+- **`SEC7_CIV_SEASONS=0`:** rc admits out-of-season civ races itself, so CIV_PREP keeps its checks only.
+- **Choices you can override:** `SEC7_R35_CAP` (default 2), `SEC7_TRIM_CAV` (default 3) and `SEC7_TRIM_TOKENS` (default CRUNDLE, TOAD_GIANT_CAVE, CREEPING_EYE).
+- **If FACTS finds no raptor or fisher in the pool,** STP1 and FSH3/FSH4 report NOT-TESTABLE-HERE with that reason. That is the honest result on this fort: the tool cannot act on a species it does not manage.
