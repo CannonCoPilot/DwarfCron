@@ -355,8 +355,8 @@ CLAIMS = [
     ("doc.design.views", "DOC", "the design report's §11 catalogue is labelled as v6.0 aspiration, not shipped", "design §11", "doc"),
     ("doc.docket", "DOC", "the Docket's statement that the tool is at v5.5 is stale", "Docket", "doc"),
     # ---- v7.1 (1 Oct 2026): validator wave 2, one block per stream (seasonal-wildlife docs/v7.1/<stream>.md); phase_v71
-    ("deploy.v71.files", "MECH", "the five scripts of the tool tree (engine, gui/, web server, web page, controls registry) are deployed and byte-identical to the checkout under test", "experiments/VALIDATOR-v71.md (deploy); cx-lifecycle.sh deploy-tool", "shipped v7.1"),
-    ("deploy.v71.loads", "MECH", "the controls registry loads in the game (12 sections) and the web server that requires it loads", "experiments/VALIDATOR-v71.md (deploy); docs web.md", "shipped v7.1"),
+    ("deploy.v71.files", "MECH", "the five scripts of the tool tree (engine, gui/, web server, web page, controls registry), and the two aquarium overlay scripts when the tree ships them (v7.1-rc on), are deployed and byte-identical to the checkout under test", "experiments/VALIDATOR-v71.md (deploy); cx-lifecycle.sh deploy-tool", "shipped v7.1"),
+    ("deploy.v71.loads", "MECH", "the controls registry loads in the game (12 sections; 13 with the aquarium stream, v7.1-rc on) and the web server that requires it loads", "experiments/VALIDATOR-v71.md (deploy); docs web.md", "shipped v7.1"),
     # ---- v7.1 ecology stream (docs/v7.1/ecology.md): cadence and nudge defaults, skill profiles, packs, raptors, bears, swimmer scavengers
     ("mech.v71.cadence_default", "MECH", "a fresh config has ecology cadence 3,000 and nudge off; a config saved before v7.1 (no `hunters` table) with cadence 1,500 migrates to 3,000 and nudge on to off, one with cadence 2,000 keeps it, and a v7.1 config is never migrated", "docs/v7.1/ecology.md (R37, R38; V7.sanitizeHunters)", "shipped v7.1"),
     ("mech.v71.fish_bears_default", "MECH", "a fresh config has v7.fishers on and every token its fisher_list turns on is a bear (TIGER, JAGUAR, RACCOON off)", "docs/v7.1/ecology.md (R33, R43)", "shipped v7.1"),
@@ -509,7 +509,7 @@ CLAIMS = [
     ("perf.p11.events", "PERF", "`perf census` walks the wild-id set; the set holds every live wild unit on the map, including any that arrived during the run (event or tail scan)", "docs/v7.1/perf.md P11", "shipped v7.1"),
     ("perf.p12.scav", "PERF", "the edible natural remains a scavenging pass finds are the same with `perf legacy scav on` and off, and V7.PERF.webCensus(g).wild equals WILD.countByLayer()", "docs/v7.1/perf.md P12", "shipped v7.1"),
     # ---- v7.1 web stream (docs/v7.1/web.md, R54): the controls registry and its endpoints
-    ("web.v71.controls", "MECH", "GET /controls.json answers 200 with at least 12 sections and 300 controls, and every available control (no {T}) carries its current value", "docs/v7.1/web.md; R54", "shipped v7.1"),
+    ("web.v71.controls", "MECH", "GET /controls.json answers 200 with at least 12 sections and 300 controls, and every available control (no {T}) carries its current value; when the tree ships the aquarium stream (v7.1-rc on), its Aquarium section is there and available with 17 controls, 4 actions and 2 readouts", "docs/v7.1/web.md; R54", "shipped v7.1"),
     ("web.v71.set", "MECH", "POST /set?id=hunters.stoop.chance&v=61 answers 200 with value 61, the config reads 61 and the ledger gains a line; v=101 answers 400 'at most 100'; an unknown id answers 400", "docs/v7.1/web.md; R54", "shipped v7.1"),
     ("web.v71.set_panel", "MECH", "POST /set?id=switch.nudge&v=on sets ecology.nudge through the Panel's own path (one undo step) and v=off puts it back", "docs/v7.1/web.md; R38; R54", "shipped v7.1"),
     ("web.v71.status", "MECH", "GET /status.json returns every status section with no error, and the group map's first layer key is 'land'", "docs/v7.1/web.md; R54", "shipped v7.1"),
@@ -3346,10 +3346,15 @@ def v71_ids(area):
 # ---- deploy: v7.1 ships a fifth script, seasonal-wildlife-controls.lua, which the web server reqscripts at load
 V71_FILES = ["seasonal-wildlife.lua", "gui/seasonal-wildlife.lua", "seasonal-wildlife-web.lua", "seasonal-wildlife-web.html",
              "seasonal-wildlife-controls.lua"]
+# v7.1-rc (2 Oct 2026): the aquarium stream adds two overlay scripts and a 13th registry section (17 controls, 4 actions,
+# 2 readouts); cx-lifecycle.sh deploy-tool ships and byte-checks the scripts when the tree has them, and so does this
+AQ_FILES = ["seasonal-wildlife-aquarium.lua", "seasonal-wildlife-aquarium-gfx.lua"]
+AQ_SHIPPED = (TOOL / "scripts" / AQ_FILES[0]).exists()
+AQ_EXPECT = {"controls": 17, "actions": 4, "readouts": 2}
 
 def v71_deploy():
     rows, ok = [], True
-    for f in V71_FILES:
+    for f in V71_FILES + (AQ_FILES if AQ_SHIPPED else []):
         a_, b_ = TOOL / "scripts" / f, DEPLOYED / f
         if not a_.exists():
             rows.append(f"{f}: not in the checkout {TOOL}"); ok = False; continue
@@ -3370,8 +3375,9 @@ print(json.encode(out))""")
     if bad(j):
         rec_bad("deploy.v71.loads", j)
     else:
-        rec("deploy.v71.loads", "PASS" if j.get("controls") and j.get("web") and (j.get("sections") or 0) >= 12 else "FAIL",
-            "reqscript('seasonal-wildlife-controls') loads with its 12 sections, and the web server (which requires it) loads",
+        want = 13 if AQ_SHIPPED else 12
+        rec("deploy.v71.loads", "PASS" if j.get("controls") and j.get("web") and (j.get("sections") or 0) >= want else "FAIL",
+            f"reqscript('seasonal-wildlife-controls') loads with its {want} sections, and the web server (which requires it) loads",
             json.dumps(j))
 
 def _a_unreapply():
@@ -7266,9 +7272,17 @@ def v71_web():
     secs, ctl = reg.get("sections") or [], reg.get("controls") or []
     missing = [r.get("id") for r in ctl if isinstance(r, dict) and r.get("available") and "{T}" not in str(r.get("path") or "") and "value" not in r]
     ok = c == 200 and len(secs) >= 12 and len(ctl) >= 300 and not missing
-    rec("web.v71.controls", "PASS" if ok else "FAIL", "200; >= 12 sections; >= 300 controls; every available non-{T} row has a value",
+    aq = None
+    if AQ_SHIPPED:   # v7.1-rc: the aquarium stream's section, counted from the registry the page reads
+        def _aq(rows): return [r for r in rows if isinstance(r, dict) and r.get("sec") == "aquarium"]
+        s_aq = [s for s in secs if isinstance(s, dict) and s.get("id") == "aquarium"]
+        aq = {"section": bool(s_aq), "available": bool(s_aq and s_aq[0].get("available")), "controls": len(_aq(ctl)),
+              "actions": len(_aq(reg.get("actions") or [])), "readouts": len(_aq(reg.get("readouts") or []))}
+        ok = ok and aq["section"] and aq["available"] and all(aq[k] == v for k, v in AQ_EXPECT.items())
+    rec("web.v71.controls", "PASS" if ok else "FAIL", "200; >= 12 sections; >= 300 controls; every available non-{T} row has a value"
+        + ("; the Aquarium section available with 17 controls, 4 actions, 2 readouts" if AQ_SHIPPED else ""),
         json.dumps({"status": c, "sections": len(secs), "controls": len(ctl), "species_rows": len(reg.get("species") or []),
-                    "actions": len(reg.get("actions") or []), "missing_value": missing[:20], "bytes": len(body)}))
+                    "actions": len(reg.get("actions") or []), "missing_value": missing[:20], "aquarium": aq, "bytes": len(body)}))
     # set: a value, a range refusal, an unknown id
     L0 = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({count=sw.LEDGER.load().count}))")
     c1, b1 = curl(f"/set?t={tok}&id=hunters.stoop.chance&v=61", "POST")
