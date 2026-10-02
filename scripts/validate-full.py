@@ -539,15 +539,37 @@ FORT_HINT = {
     "gui.k.liveW": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
     "gui.k.ctrlF": "DF's current land wave on the map (roaming flags set) when the GUI phase reaches the key: a fort mid-wave, e.g. RinghatchetsReady (savagery 73) or region1",
     "mech.v70.fishers_flags": "a listed fisher whose raw lacks CAN_SWIM_INNATE: no fort -- every vanilla bear (and the raccoon) already swims innately (FSH2); a modded raw",
-    "cli.v70.sponges": "the water layer on: any fort with surface water (v7.1 turns it on by itself: CTRL's pool, RinghatchetsReady's river)",
+    "cli.v70.sponges": "an ocean to place ribbons in: OCEAN2 or BOATS (the water layer turns itself on wherever there is water since v7.1)",
     "mech.v70.leader_male": "2+ live adult citizens: any fort with a founding seven (CTRL, RinghatchetsReady)",
+    # measured by experiments: the fort they ran on (experiments/<id>.json)
+    "mech.stuck": "measured on CTRL (T5)", "mech.irruption.arm": "measured on CTRL (T9)", "mech.ecology.nudge": "measured on CTRL (E17/E18)",
+    "mech.coupling": "measured on CTRL (E10, T4) and LAKE (T6)", "mech.season.boundary": "measured on region1 (S1) and LAKE (T6)",
+    "mech.force": "DF's current land wave on the map (roaming flags set): CTRL or RinghatchetsReady mid-wave",
+    "gui.k.liveQ": "a tracked gated or resident group on the map when the GUI phase reaches the Live tab: RinghatchetsReady (land wildlife at load) or CTRL after a wave",
+    "gui.k.liveX": "a tracked gated or resident group on the map when the GUI phase reaches the Live tab: RinghatchetsReady (land wildlife at load) or CTRL after a wave",
+    "gui.k.liveF": "a tracked gated or resident group on the map when the GUI phase reaches the Live tab: RinghatchetsReady (land wildlife at load) or CTRL after a wave",
+    "gui.k.liveEnter": "a tracked gated or resident group on the map when the GUI phase reaches the Live tab: RinghatchetsReady (land wildlife at load) or CTRL after a wave",
+    "mech.sendoff": "a gated land group on the map: RinghatchetsReady or CTRL mid-wave",
+    "mech.v70.pack_floor": "hunting packs in a live pairing: RinghatchetsReady (savagery 73: dingoes, cougars) over a few days",
+    "mech.v70.pack_sneak": "hunting packs in a live pairing: RinghatchetsReady (savagery 73: dingoes, cougars) over a few days",
+    "mech.v70.civ_prey": "a cavern civ race in a live pair: BOATS or OCEAN2 (their caverns carry civ races, S8B), or a breached region9 fort",
+    "mech.v71.fix.world_switch": "two worlds in one DF session: CTRL (Gomathkar) then RinghatchetsReady (region9)",
+    "mech.v71.water.mix": "an active, in-season, stocked water roster: RinghatchetsReady's river and lake after `roster build water`, or OCEAN2",
+    "mech.v71.water.fisher": "a listed fisher bear with a related fish in range: RinghatchetsReady's river with a bear placed (rig test FSH)",
+    "mech.v71.apex.cap": "an apex group placed first (mech.v71.apex.place): OCEAN2/BOATS or a region9 fort with a seated, stocked apex",
+    "bl.balance": "follows mech.v71.water.mix: RinghatchetsReady after `roster build water`, or OCEAN2",
 }
+_FORT_WORDS = ("CTRL", "Ringhatchets", "LAKE", "RIVER4", "OCEAN2", "BOATS", "region9", "region1", "MAGMA", "SPLIT")
 
 def rec(cid, verdict, expected, got, shots=(), data=None, note=""):
     assert cid in CLAIM, cid
     c = CLAIM[cid]
-    if verdict == "NOT-TESTABLE-HERE" and not note:
-        note = FORT_HINT.get(cid, "")
+    if verdict == "NOT-TESTABLE-HERE":
+        hint = FORT_HINT.get(cid, "")
+        if not note:
+            note = hint
+        elif hint and not any(w in note for w in _FORT_WORDS):
+            note = note + "; " + hint
     results.append({"id": cid, "surface": c[1], "claim": c[2], "source": c[3], "claimed": c[4],
                     "verdict": verdict, "expected": expected, "got": (got or "").strip()[:1500],
                     "shots": [str(Path(s).relative_to(OUT)) for s in shots], "data": data, "note": note})
@@ -1608,11 +1630,13 @@ if not fishTok and V71 then
   end
 end
 fishTok = fishTok or 'RACCOON'
+V7.restore()   -- r2: with the rotation on the raws already hold V7.apply's writes; 'before' is the vanilla reading
 local before = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
 local msg = V7.apply(cfg, pool)
 local after = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
 local restored = V7.restore()
 local post = { season = seasonE and noFlags(seasonE.token), solo = soloE and ambushN(soloE.token), fish = swimN(fishTok) }
+local real = sw.loadConfig(); if real.enabled then V7.apply(real) end   -- r2: the live tool's writes stand again
 print(json.encode({fishTok=fishTok, seasonKey=seasonE and seasonE.key, soloKey=soloE and soloE.key, before=before, after=after, post=post, msg=msg, restored=restored}))""", timeout=180)
     if not isinstance(j, dict):
         for cid in ("mech.v70.seasons_own", "mech.v70.solo_raws", "mech.v70.fishers_flags", "mech.v70.restore_all"):
@@ -7418,13 +7442,17 @@ def main():
             try: phase_lake()
             except Exception as e: log(f"!! phase_lake raised: {e!r}")
             sh("load", a.fort, timeout=300); time.sleep(1)
-            # r2: the reload drops the tool's site data (the save was never written), so the fort came back with no roster:
-            # every v6.5/v6.8/v6.9 claim that needs an active species read NOT-TESTABLE ({none: true}). The CLI phase's
-            # `preset` gave the earlier phases their roster; give the later ones the same.
-            log("  re-applied the preset after the reload: " + (tool("preset").strip().splitlines() or ["(no reply)"])[0][:160])
+        relaid = False
         if not a.only and V >= (6, 4, 0):
             try: phase_model()
             except Exception as e: log(f"!! phase_model raised: {e!r}")
+        if not a.only and not a.skip_lake and not relaid:
+            # r2: the LAKE reload drops the tool's site data (the save was never written), so the fort came back with no
+            # roster and every v6.5/v6.8/v6.9 claim that needs an active species read NOT-TESTABLE ({none: true}). The CLI
+            # phase's `preset` gave the earlier phases their roster; give the later ones the same -- after phase_model,
+            # whose audit fixture is the vanilla reading (the preset turns the rotation on, and V7.apply writes raws).
+            log("  re-applied the preset after the reload: " + (tool("preset").strip().splitlines() or ["(no reply)"])[0][:160])
+            relaid = True
         if not a.only and V65:
             try: phase_v65()
             except Exception as e: log(f"!! phase_v65 raised: {e!r}")
