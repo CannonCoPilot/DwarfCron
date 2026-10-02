@@ -567,7 +567,7 @@ def phase_end(a):
     if MODE != "live":
         return
     rc, out, err = sh("cmd", "seasonal-wildlife-web", "status", timeout=60)
-    m = re.search(r"requests (\d+) \(commands (\d+), sets (\d+), refused (\d+), errors (\d+)\)", out)
+    m = re.search(r"requests (\d+) \(commands (\d+), sets (\d+), refused (\d+), errors (\d+)[),]", out)
     errs = int(m.group(5)) if m else None
     e0 = memo.get("web_errors0")
     le = re.search(r"last error: (.*)$", out.strip())
@@ -1510,7 +1510,7 @@ def main():
         else:
             if MODE == "live":
                 rc, out, err = sh("cmd", "seasonal-wildlife-web", "status", timeout=60)
-                m = re.search(r"errors (\d+)\)", out)
+                m = re.search(r"errors (\d+)[),]", out)
                 memo["web_errors0"] = int(m.group(1)) if m else None
             if "get" not in phases:          # the shape checks feed state and controls to the later phases
                 memo["state"] = state_json(); memo["ctl"] = ctl_json()
