@@ -1314,7 +1314,14 @@ def main():
                                 raise ManipFail(msg)
                             continue
                         if st.startswith("lua:"):
-                            got = [l for l in sh("lua", st[4:], timeout=300).splitlines() if l.startswith("eco ")]
+                            lout = sh("lua", st[4:], timeout=300)
+                            # fail fast: a Lua error here (rc 0, the message on the console) left a step silently empty
+                            # (2 Oct: every S7 step ran a script named after its verb -- 'Could not find script mark')
+                            err = next((l for l in lout.splitlines() if not l.startswith("eco ")
+                                        and re.search(r"stack traceback|Could not find script|attempt to |\.lua:\d+: ", l)), None)
+                            if err:
+                                raise ManipFail(f"lua step failed: {st[4:][:120]} -> {err.strip()[:200]}")
+                            got = [l for l in lout.splitlines() if l.startswith("eco ")]
                         elif st.startswith("step:"):
                             sh("step", st[5:], timeout=900); continue
                         elif st.startswith("read:"):
@@ -1352,7 +1359,12 @@ def main():
                     for st in c.get("post", []):
                         st = fill(st)
                         if st.startswith("lua:"):
-                            rows += [l for l in sh("lua", st[4:], timeout=300).splitlines() if l.startswith("eco ")]
+                            lout = sh("lua", st[4:], timeout=300)
+                            err = next((l for l in lout.splitlines() if not l.startswith("eco ")
+                                        and re.search(r"stack traceback|Could not find script|attempt to |\.lua:\d+: ", l)), None)
+                            if err:   # a lost measurement makes the cell vacuous: fail fast, as the pre steps do
+                                raise ManipFail(f"lua post step failed: {st[4:][:120]} -> {err.strip()[:200]}")
+                            rows += [l for l in lout.splitlines() if l.startswith("eco ")]
                         else:
                             rows += eco(*st.split())
                     eco("clear"); eco("restore")

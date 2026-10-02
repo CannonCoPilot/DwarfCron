@@ -60,7 +60,9 @@ def _lq(x) -> str:
 
 def S7(verb, *a) -> str:
     """A cx-sec7 verb as an eco-run lua: step (its 'eco ...' rows are kept and checked)."""
-    return "lua:dfhack.run_script(" + ",".join(_lq(x) for x in (verb, *a)) + ")"
+    # the script name first: without it run_script looked for a script named after the verb and every S7/T step
+    # failed silently (2 Oct, S7_SKL: no 'mark' or 'skillsum' receipt; cfg checks only passed on their defaults)
+    return "lua:dfhack.run_script(" + ",".join(_lq(x) for x in ("cx-sec7", verb, *a)) + ")"
 
 
 def T(*words) -> str:
