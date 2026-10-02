@@ -1,6 +1,6 @@
 Alpha Four section 7 -- results tally (scripts/sec7-tally.py)
-runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843
-FACTS (data/alpha4-sec7/facts.json): {"to_season": 47055, "savagery": 73, "calm": false, "has_lake": true, "has_river": true, "has_ocean": false, "bodies": ["river", "lake", "pool"], "has_civ": true, "civ_cavern": 1, "pred_cavern": 1, "has_ap": true, "ap_cavern": 2, "ap_token": "PLUMP_HELMET_MAN", "has_cavern_natives": true, "extinct_in_embark": 6, "extinct_apex": 0, "r2": true, "rwe": "1", "load_s": 34.3, "tps": 145.138}
+runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843; release candidate 20261002-150458 (rc 16f85e6): S7_STP1, S7_NAT
+FACTS (data/alpha4-sec7/facts.json): {"to_season": 47055, "savagery": 73, "calm": false, "has_lake": true, "has_river": true, "has_ocean": false, "bodies": ["river", "lake", "pool"], "has_civ": true, "civ_cavern": 1, "pred_cavern": 1, "has_ap": true, "ap_cavern": 2, "ap_token": "PLUMP_HELMET_MAN", "raptor_token": "GIANT_OSPREY", "has_raptor": true, "fisher_token": "", "has_fisher": false, "polar_token": "", "has_polar": false, "fisher_river": false, "polar_lake": false, "reach_cavern": 3, "reach_civ_cavern": 3, "has_cavern_natives": true, "extinct_in_embark": 6, "extinct_apex": 0, "r2": true, "rwe": "1", "load_s": 73.3, "tps": 13
     PASS  SURV scan finishes inside its 1,000 ms budget: {'ok': '1', 'ms': '130', 'stopped': 'false', 'ncols': '10318', 'zreached': '45'}
     PASS  AP1: animal people seated less at ap_pick 0.1 than at 1 (R13): {'0.1': {'ap_pick': '0.100', 'builds': '10', 'fails': '0', 'seats': '70', 'ap': '7', 'ap_share': '0.100', 'giant': '11'}, '1': {'ap_pick': '
     PASS  R28P: a magma crab is refused on the surface and in a cavern (R28/R60 named): place:_placed_none_--_the_deep_is_never_touched_(R60)_[0_ms] place:_no_stocked_MAGMA_CRAB_entry_on_the_cavern_layer_on_this_map depth-layer_
@@ -32,11 +32,13 @@ ROW 2  Packs, stoops and fishing change kills (PK2, STP1, FSH3, FSH4)
     placed WOLF kills of BUFFALO (of 6): on 3.8 (SD 0.4, 95% CI 3.2..4.4, n=5); off 1.2 (SD 1.1, 95% CI -0.2..2.6, n=5)
       diff on-off = 2.6; Hedges g = 2.81; exact permutation p = 0.016
 
-  [S7_STP1] stoop_on vs stoop_off; 2 BIRD_EAGLE, 6 RABBIT, 3 DEER, 6,000 t, ecology every 1,000 t; run 20261002-024942 (tool 9e5aabe); cells read: stoop_off n=5, stoop_on n=5
-    receipt (last ecology pass: raptors seen, stoops): on [(5, 1), (7, 0), (5, 0), (2, 0), (3, 0)]; off [None, None, None, None, None]
-    placed EAGLE>RABBIT/DEER attacks per cell: on [0, 0, 0, 0, 0], off [0, 0, 0, 0, 0]; placed prey killed by NATIVE units (wipe leftovers, e.g. GIANT_EAGLE) on [0, 0, 3, 0, 0], off [0, 0, 0, 0, 0]
-    eagle group centroid x at the end (prey placed near x~250): on [31.0, 151.0, 126.0, 121.0, 289.0], off [166.0, 218.0, 216.0, 122.0, 134.0]
-    placed EAGLE attacks on placed prey: on 0.0 (SD 0.0, 95% CI 0.0..0.0, n=5); off 0.0 (SD 0.0, 95% CI 0.0..0.0, n=5)
+  [S7_STP1] stoop_on vs stoop_off; 2 GIANT_OSPREY, 6 RABBIT, 3 DEER, 6,000 t, ecology every 1,000 t; run 20261002-150458 (tool rc 16f85e6); cells read: stoop_off n=5, stoop_on n=5
+    receipt (raptors seen, stoops): on [(5, 0), (7, 2), (3, 3), (4, 1), (7, 3)]; off [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)]
+    placed GIANT_OSPREY>RABBIT/DEER attacks per cell: on [4, 8, 9, 5, 4], off [9, 5, 5, 5, 8]; kills on [1, 5, 3, 2, 2], off [3, 2, 3, 2, 3]; placed prey killed by NATIVE units (wipe leftovers) on [0, 0, 0, 0, 0], off [0, 0, 0, 0, 0]
+    raptor group centroid x at the end (prey placed near x~240): on [84.0, 175.0, 259.0, 214.0, 154.0], off [188.0, 184.0, 134.0, 126.0, 224.0]
+    placed GIANT_OSPREY attacks on placed prey: on 6.0 (SD 2.3, 95% CI 3.1..8.9, n=5); off 6.4 (SD 1.9, 95% CI 4.0..8.8, n=5)
+      diff on-off = -0.4; Hedges g = -0.17; exact permutation p = 0.778
+    placed GIANT_OSPREY kills of placed prey: on 2.6 (SD 1.5, 95% CI 0.7..4.5, n=5); off 2.6 (SD 0.5, 95% CI 1.9..3.3, n=5)
       diff on-off = 0.0; Hedges g = 0.00; exact permutation p = 1.000
 
   [S7_FSH3] fish_on vs fish_off; 2 BEAR_GRIZZLY on the river shore, 8 FISH_PIKE in the river, 6,000 t; run 20261002-024942 (tool 9e5aabe); cells read: fish_off n=5, fish_on n=5
@@ -52,50 +54,52 @@ ROW 2  Packs, stoops and fishing change kills (PK2, STP1, FSH3, FSH4)
 ==============================================================================================================
 ROWS 3, 4, 9, 10, 12  Natural arrivals (S7_NAT: def vs v70 = every lever back at once)
 
-  [S7_NAT] natives are the subject (no wipe); 50,055 t sampled every 3,000 t (t3000..t50055); run 20261002-075328 (tool a4fix 69e97a1); cells read: def n=5, v70 n=5
+  [S7_NAT] natives are the subject (no wipe); 50,055 t sampled every 3,000 t (t3000..t50055); run 20261002-150458 (tool rc 16f85e6); cells read: def n=5, v70 n=5
     manipulation checks passed 160/160 (def: hold[t].held_open==0 at every sample, cavern_hold_mix true; v70: the ten levers read back off)
 
   ROW 3  The clock holds groups near the cap (G2r, WAT5)
     land cap per rep [9.0, 9.0, 9.0, 9.0, 9.0]; target: def mean in [cap-1.5, cap] = [7.5, 9]
-    def land groups per sample: 10.79 (SD 0.69, 95% CI 9.93..11.64, n=5); share of samples above the cap 0.84 (SD 0.15, 95% CI 0.65..1.02, n=5); share in the target band 0.16 (SD 0.15, 95% CI -0.02..0.35, n=5)
-    land groups (mean over 17 samples): def 10.79 (SD 0.69, 95% CI 9.93..11.64, n=5); v70 6.87 (SD 2.28, 95% CI 4.04..9.70, n=5)
-      diff def-v70 = 3.92; Hedges g = 2.10; exact permutation p = 0.008
-    tool's own status at the end, land (cap, now): def [(9, 11), (9, 12), (9, 9), (9, 13), (9, 10)]; v70 [(9, 7), (9, 11), (9, 10), (9, 7), (9, 10)]
-    WAT5: water groups per body (lake/river/pool), def: lake 8.51 (SD 0.10, 95% CI 8.38..8.63, n=5), river 8.38 (SD 0.15, 95% CI 8.19..8.57, n=5), pool 5.08 (SD 4.64, 95% CI -0.68..10.84, n=5); target mean >= 3 per body
-    water groups per body (all bodies): def 7.32 (SD 1.52, 95% CI 5.43..9.21, n=5); v70 1.30 (SD 0.45, 95% CI 0.73..1.86, n=5)
-      diff def-v70 = 6.02; Hedges g = 4.85; exact permutation p = 0.008
-    H5 groups3 at the last sample (live, tool, untracked) def: land None; water None; cavern [(17, 0, 0), (14, 0, 0), (11, 0, 0), (12, 0, 0), (14, 0, 0)]
+    def land groups per sample: 9.65 (SD 0.30, 95% CI 9.27..10.02, n=5); share of samples above the cap 0.54 (SD 0.15, 95% CI 0.35..0.73, n=5); share in the target band 0.44 (SD 0.17, 95% CI 0.22..0.65, n=5)
+    land groups (mean over 17 samples): def 9.65 (SD 0.30, 95% CI 9.27..10.02, n=5); v70 7.00 (SD 0.86, 95% CI 5.94..8.06, n=5)
+      diff def-v70 = 2.65; Hedges g = 3.72; exact permutation p = 0.008
+    tool's own status at the end, land (cap, now): def [(9, 9), (9, 11), (9, 8), (9, 9), (9, 9)]; v70 [(9, 7), (9, 9), (9, 6), (9, 4), (9, 7)]
+    WAT5: water groups per body (lake/river/pool), def: lake 8.48 (SD 0.13, 95% CI 8.32..8.64, n=5), river 8.51 (SD 0.27, 95% CI 8.17..8.84, n=5), pool 1.73 (SD 3.87, 95% CI -3.07..6.53, n=5); target mean >= 3 per body
+    water groups per body (all bodies): def 6.24 (SD 1.28, 95% CI 4.66..7.82, n=5); v70 1.42 (SD 0.09, 95% CI 1.31..1.54, n=5)
+      diff def-v70 = 4.82; Hedges g = 4.81; exact permutation p = 0.008
+    H5 groups3 at the last sample (live, tool, untracked) def: land None; water None; cavern [(14, 0, 0), (17, 0, 0), (15, 0, 0), (13, 0, 1), (8, 0, 0)]
 
   ROW 4  The cavern gate holds five (CAVG); natives trimmed walk off (TRIM)
     receipt: hold check held_open max per rep def [0.0, 0.0, 0.0, 0.0, 0.0] (0 = every held raw at its hold level)
-    tool-record groups per cavern, mean over caverns and samples: def 7.05 (SD 1.30, 95% CI 5.44..8.67, n=5); max [13.0, 9.0, 9.0, 11.0, 10.0]
-      per cavern (def): c1 5.76 (SD 3.62, 95% CI 1.28..10.25, n=5), c2 8.34 (SD 0.52, 95% CI 7.69..8.99, n=5), c3 7.06 (SD 0.69, 95% CI 6.20..7.91, n=5); at the end 7.47 (SD 2.17, 95% CI 4.78..10.16, n=5)
-    natives by population entry per cavern band: def 2.66 (SD 0.40, 95% CI 2.17..3.16, n=5); max [5.0, 6.0, 4.0, 6.0, 6.0]
-    tool-record groups per cavern: def 7.05 (SD 1.30, 95% CI 5.44..8.67, n=5); v70 5.89 (SD 0.56, 95% CI 5.19..6.58, n=5)
-      diff def-v70 = 1.17; Hedges g = 1.06; exact permutation p = 0.103
-    natives by entry per cavern: def 2.66 (SD 0.40, 95% CI 2.17..3.16, n=5); v70 2.43 (SD 0.17, 95% CI 2.21..2.64, n=5)
-      diff def-v70 = 0.24; Hedges g = 0.69; exact permutation p = 0.270
-    tool's own status at the end (cap, now): def cavern:0 [(5, 10), (5, 5), (5, 1), (5, 1), (5, 10)]; cavern:1 [(5, 8), (5, 9), (5, 9), (5, 9), (5, 9)]; cavern:2 [(5, 13), (5, 9), (5, 6), (5, 6), (5, 7)]
-    trim_undo (trimmed units still on the map, max over the run) def [14.0, 6.0, 7.0, 9.0, 6.0]; v70 [0.0, 0.0, 0.0, 0.0, 0.0]
+    tool-record groups per cavern, mean over caverns and samples: def 6.25 (SD 1.10, 95% CI 4.89..7.62, n=5); max [11.0, 11.0, 9.0, 9.0, 10.0]
+      per cavern (def): c1 3.75 (SD 3.09, 95% CI -0.09..7.59, n=5), c2 7.87 (SD 0.66, 95% CI 7.06..8.69, n=5), c3 7.13 (SD 0.59, 95% CI 6.39..7.86, n=5); at the end 7.20 (SD 1.43, 95% CI 5.43..8.97, n=5)
+    natives by population entry per cavern band: def 2.37 (SD 0.41, 95% CI 1.86..2.89, n=5); max [5.0, 4.0, 4.0, 5.0, 4.0]
+    tool-record groups per cavern: def 6.25 (SD 1.10, 95% CI 4.89..7.62, n=5); v70 5.02 (SD 0.75, 95% CI 4.10..5.95, n=5)
+      diff def-v70 = 1.23; Hedges g = 1.18; exact permutation p = 0.056
+    natives by entry per cavern: def 2.37 (SD 0.41, 95% CI 1.86..2.89, n=5); v70 2.39 (SD 0.17, 95% CI 2.18..2.59, n=5)
+      diff def-v70 = -0.02; Hedges g = -0.05; exact permutation p = 0.984
+    tool's own status at the end (cap, now): def cavern:0 [(5, 10), (5, 8), (5, 8), (5, 1), (5, 1)]; cavern:1 [(5, 9), (5, 9), (5, 9), (5, 9), (5, 9)]; cavern:2 [(5, 5), (5, 8), (5, 9), (5, 8), (5, 7)]
+    trim_undo (trimmed units still on the map, max over the run) def [2.0, 5.0, 5.0, 3.0, 3.0]; v70 [0.0, 0.0, 0.0, 0.0, 0.0]
     trim_undo series def (t0, t3000, ..., t50055; a unit drops out when it is gone):
-      rep 1: [0, 14, 7, 5, 3, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0, 4, 2]
-      rep 2: [0, 1, 6, 6, 5, 4, 3, 3, 3, 3, 2, 2, 1, 0, 0, 0, 0, 0]
-      rep 3: [0, 4, 0, 0, 0, 0, 0, 0, 0, 4, 1, 1, 0, 0, 7, 2, 1, 1]
-      rep 4: [0, 9, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      rep 5: [0, 5, 6, 4, 4, 3, 3, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0]
+      rep 1: [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 0, 1, 2]
+      rep 2: [0, 5, 4, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      rep 3: [0, 5, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 3]
+      rep 4: [0, 3, 2, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0]
+      rep 5: [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3]
 
   ROW 9  Apex presence; ladder 20 % carnivores (APX1, LAD1)
-    apex presence (scheduler seen/total, Spring, up to the season change): def 0.168 (SD 0.293, 95% CI -0.196..0.531, n=5); v70 0.000 (SD 0.000, 95% CI 0.000..0.000, n=5); share of samples with a live apex group def 0.15 (SD 0.31, 95% CI -0.23..0.54, n=5)
-    carnivore share of land units (C+A)/(H+C+A), mean over samples: def 0.048 (SD 0.063, 95% CI -0.030..0.127, n=5); v70 0.048 (SD 0.089, 95% CI -0.063..0.159, n=5)
-    land carnivore share: def 0.048 (SD 0.063, 95% CI -0.030..0.127, n=5); v70 0.048 (SD 0.089, 95% CI -0.063..0.159, n=5)
-      diff def-v70 = 0.001; Hedges g = 0.01; exact permutation p = 0.984
-    apex presence: def 0.168 (SD 0.293, 95% CI -0.196..0.531, n=5); v70 0.000 (SD 0.000, 95% CI 0.000..0.000, n=5)
-      diff def-v70 = 0.168; Hedges g = 0.73; exact permutation p = 0.444
+    apex presence (scheduler seen/total, Spring, up to the season change): def 0.110 (SD 0.143, 95% CI -0.068..0.287, n=5); v70 0.000 (SD 0.000, 95% CI 0.000..0.000, n=5); share of samples with a live apex group def 0.22 (SD 0.17, 95% CI 0.01..0.44, n=5)
+    carnivore share of land units (C+A)/(H+C+A), mean over samples: def 0.036 (SD 0.028, 95% CI 0.001..0.070, n=5); v70 0.004 (SD 0.009, 95% CI -0.007..0.016, n=5)
+    land carnivore share: def 0.036 (SD 0.028, 95% CI 0.001..0.070, n=5); v70 0.004 (SD 0.009, 95% CI -0.007..0.016, n=5)
+      diff def-v70 = 0.032; Hedges g = 1.39; exact permutation p = 0.087
+    walking land units only (LAD1's measure; fliers apart): def 1.000 (SD 0.000, 95% CI 1.000..1.000, n=4); v70 - (SD -, 95% CI -..-, n=0); walking units per sample def 0.94 (SD 0.68, 95% CI 0.10..1.78, n=5); fliers' carnivore share def 0.000 (SD 0.000, 95% CI 0.000..0.000, n=5)
+    ladder reach (daily: land keys whose raw FREQUENCY equals cfg.odds; all keys / open keys): def 0.258 (SD 0.061, 95% CI 0.182..0.334, n=5) / 1.014 (SD 0.018, 95% CI 0.992..1.036, n=5); v70 0.369 (SD 0.101, 95% CI 0.243..0.495, n=5) / 1.234 (SD 0.209, 95% CI 0.975..1.493, n=5)
+    apex presence: def 0.110 (SD 0.143, 95% CI -0.068..0.287, n=5); v70 0.000 (SD 0.000, 95% CI 0.000..0.000, n=5)
+      diff def-v70 = 0.110; Hedges g = 0.98; exact permutation p = 0.048
 
   ROW 10 (MIX1 half)  species per body at the last sample: (species, top species' unit share, Shannon H)
-    def: lake [(3, 0.5, 1.04), (2, 0.67, 0.64), (4, 0.44, 1.27), (2, 0.67, 0.64), (2, 0.5, 0.69)]; river [(3, 0.5, 0.97), (6, 0.33, 1.58), (4, 0.62, 0.94), (5, 0.48, 1.28), (2, 0.88, 0.38)]; pool [(1, 1.0, -0.0), (1, 1.0, -0.0)]
-    v70: lake [(1, 1.0, -0.0), (2, 0.86, 0.41), (3, 0.6, 0.95), (2, 0.75, 0.56)]; river [(4, 0.55, 1.17), (3, 0.57, 0.96), (4, 0.33, 1.33), (3, 0.5, 0.99), (3, 0.6, 0.9)]; pool None
-    water H/C/A units per body at the last sample, def rep 1: {'river': ('5', '3', '0'), 'lake': ('2', '0', '2')}
+    def: lake [(1, 1.0, -0.0), (2, 0.5, 0.69), (1, 1.0, -0.0), (2, 0.5, 0.69), (2, 0.5, 0.69)]; river [(4, 0.42, 1.27), (4, 0.35, 1.3), (4, 0.79, 0.69), (4, 0.38, 1.32), (4, 0.67, 0.95)]; pool None
+    v70: lake [(2, 0.8, 0.5), (2, 0.5, 0.69), (1, 1.0, -0.0), (2, 0.67, 0.64), (2, 0.83, 0.45)]; river [(4, 0.33, 1.36), (4, 0.53, 1.06), (2, 0.67, 0.64), (3, 0.44, 1.06), (4, 0.35, 1.34)]; pool None
+    water H/C/A units per body at the last sample, def rep 1: {'river': ('12', '0', '0'), 'lake': ('1', '0', '0')}
 
   ROW 12 (F2 half)  spill on (def) vs off (v70): water groups per body over the run (above) and the season
     season ledger at the end: def ['Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied']; v70 ['Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied', 'Summer_roster_applied']
@@ -235,7 +239,10 @@ ROW 8  Vermin eaters eat what they walk to (VF1, VF4)
       diff on-off = 0.4; Hedges g = 0.51; exact permutation p = 0.683
 
   [S7_VF4] BIRD_DUCK at a fish bank (VSHORE v2) vs the water's own fish vermin
-    PENDING: no completed VF4 cell in 20261002-133843
+
+  [S7_VF4] forage_on vs forage_off; run 20261002-133843 (tool a4fix 69e97a1); cells read: forage_off n=5, forage_on n=5
+    forage_off: fish vermin near the bank (t0, t3000) [(3, 1), (1, 2), (1, 3), (1, 1), (1, 1)]
+    forage_on: fish vermin near the bank (t0, t3000) [(1, 0), (2, 0), (1, 2), (0, 1), (1, 0)]
 
   ROW 10 (GRD1 half)
 
@@ -392,19 +399,18 @@ ROWS 14, 15  A real screen; DFHack 53.16-r2 (stages in run 20261002-015732, tool
     True  stderr.log has no seasonal-wildlife error after the walk: []
     sections whose step changed a config path: 0/13; 'read-back' seen 11/13; restored 13
     screens before vs after the Right step identical (FPS lines aside): 13/13 -- the step never reached a control (the cursor sat on the section list), and the 'read-back' counted is the stale status line
-figs: wrote /Users/nathanielcannon/Claude/Projects/DwarfCron/data/alpha4-sec7/figs/nat-groups.png and /Users/nathanielcannon/Claude/Projects/DwarfCron/data/alpha4-sec7/figs/perf1-builds.png
 
 ==============================================================================================================
 VERDICTS (computed; rows 4, 9, 10 are set in SECTION7-RESULTS.md from the numbers above)
    1  CONFIRMED: post-write placements carry the caste SNEAK at once 100% (nopkg 0%); floored units dropped 0/50; positive control (floor 0) dropped in 5/5 cells (Fisher p=0.0079). Stand-in: units.create placement, rust push
-   2  CONFIRMED (packs) / INCONCLUSIVE (stoops, fishing: vacuous): PK2: pack on raised placed wolf>buffalo attacks 66 vs 37 (p=0.024) and kills 3.8 vs 1.2 of 6 (p=0.016); STP1/FSH3/FSH4: the subjects never met (placed eagles made 0 attacks in 10 cells; bears 0 adjacency to pike, polar bears never swam)
-   3  NOT CONFIRMED (land) / CONFIRMED (water): def land groups 10.79 vs cap 9 (target band 7.5-9; over the cap in 84% of samples); water 8.5/8.4/5.1 per body (target >=3)
+   2  CONFIRMED (packs) / NO EFFECT (stoops) / INCONCLUSIVE (fishing: vacuous): PK2: pack on raised placed wolf>buffalo attacks 66 vs 37 (p=0.024) and kills 3.8 vs 1.2 of 6 (p=0.016); STP1 (GIANT_OSPREY): attacks on placed prey 6.0 on vs 6.4 off (p=0.778), kills 2.6 vs 2.6 of 9, 9 stoops in the on arm; FSH3/FSH4 not testable or vacuous (bears 0 adjacency to pike, polar bears never swam)
+   3  NOT CONFIRMED: def land groups 9.65 vs cap 9 (target band 7.5-9; over the cap in 54% of samples); water 8.5/8.5/1.7 per body (target >=3)
    5  NOT CONFIRMED (no detectable effect at n=5): PAN1 pairwise spread at t1200 on 25.9 vs off 20.7 (p=0.333); at t2400 p=0.516; COHT: no member ever followed the leader (following max 0), leader lost in 1/5
    6  PARTLY CONFIRMED; CRAZED/MISCHIEVOUS NOT CONFIRMED: cache writes (THIEF/MEANDER: CURIOUS_BEAST*, MEANDERER) stick and stay on the subjects only (M3); SNEAK hides (p=0.048); every route leaves 0 residue; but the CRAZED mask read 1 in 0/556 unit-samples and MISCHIEVOUS in 6/319: DF clears uwss_add_caste_flag, reassert or not
    7  CONFIRMED (both halves; the swimmer switch adds little): natural: corpses still on the ground after 6 days in 5/5 (sweep: gone by t4200 in 3/5); pond grabbers ate in the water in both arms (on 86 kg vs off 76 kg, p=0.04) and never beached
-   8  INCONCLUSIVE (VF1 vacuous); VF4 PENDING: forage on vs off: grasshoppers gone 0.8 vs 0.4 of 20 (p=0.68); no BADGER row in the tool's own eats table in any cell -- no distance receipt shows a badger reached the vermin
+   8  INCONCLUSIVE (VF1 vacuous): forage on vs off: grasshoppers gone 0.8 vs 0.4 of 20 (p=0.68); no BADGER row in the tool's own eats table in any cell -- no distance receipt shows a badger reached the vermin
   11  CONFIRMED (EXR1, weak) / INCONCLUSIVE (EXU1) / NOT-TESTABLE-HERE (EXF1): fix on cleared BENIGN (0 of 2 castes vs 2) and wrote relations (mean 5.0 vs 0); eoraptors attacked hares in 3/5 on vs 0/5 off cells (Fisher p=0.167); EXU1 had no attack in either arm and no per-unit receipt
-  12  CONFIRMED (auto-on, 3-5 groups) / F2 give-back NOT SEEN: auto turned the layer on in 5/5 (off arm 0/5) and reached 4.2 groups per body by t2400 (off 0); NAT def held 8.5/8.4/5.1 per body (v70 1.7/2.2/0.0); spill's borrowed-season give-back has no ledger receipt (season ledger reads only 'Summer roster applied')
+  12  CONFIRMED (auto-on, 3-5 groups) / F2 give-back NOT SEEN: auto turned the layer on in 5/5 (off arm 0/5) and reached 4.2 groups per body by t2400 (off 0); NAT def held 8.5/8.5/1.7 per body (v70 2.2/2.1/0.0); spill's borrowed-season give-back has no ledger receipt (season ledger reads only 'Summer roster applied')
   13  MEASURED (new paths cheaper than legacy; overlay cost not readable): PERF1 a4fix: new 81.7 t/s vs legacy 78.6 (p=0.690); worst tick 52 vs 88 ms (p=0.008); 9e5aabe->a4fix worst tick 71->52 ms
   14  PARTLY CONFIRMED (VALIDATE gui/web claims; 13 sections reach; no clip) / PANEL round trip NOT TESTED: PANEL: 0/13 steps changed a config path, and 13/13 screens were identical before and after the step (harness focus); WEBLOAD: see row 13
   15  CONFIRMED (no r2 regression found): R2 checklist 6/6 PASS (6 = 'not run', the report has no step 6); validate-full 356 PASS / 7 FAIL, every FAIL triaged: 5 validator, 2 tool display/cost fixed in dcd169b and 72b5c25, none r2-specific

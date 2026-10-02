@@ -48,12 +48,14 @@ def inl(s):
 SINCE = {
     1: ("done", "Re-run on the Alpha Four fixes (69e97a1) with the wolves moved away from the cougars and the sneak bonus zeroed.",
         "Nothing for the core check. A DF-drawn wave inheriting the skill is a FULL-tier run."),
-    2: ("partial", "Packs confirmed. STP1 re-designed to place a raptor from the fort's own pool beside prey; it ran in the RC chain "
-        "(25.5 min) and awaits the tally. The tool only acts on pool species, which is why the eagles and bears never engaged.",
+    2: ("partial", "Packs confirmed. STP1 on the release candidate placed the fort's own GIANT_OSPREY beside prey: it hunts in "
+        "both arms (6.0 v 6.4 attacks, 2.6 v 2.6 kills of 9 per cell, p = 0.78) -- the stoop switch adds nothing over the "
+        "ecology write. The earlier eagles never engaged because the tool only acts on pool species.",
         "FSH3/FSH4 are NOT-TESTABLE on RinghatchetsReady: no fishing species in its pool. Needs a region10 fort whose pool has bears."),
-    3: ("fixed", "Land overshoot partly a tool bug: after one release, gate_drain released up to 8 more held groups. Fixed in "
+    3: ("partial", "Land overshoot partly a tool bug: after one release, gate_drain released up to 8 more held groups. Fixed in "
         "f3c8d11 (stops at the cap); the status now says how far over and who brought the groups. DF still sends a wave per "
-        "border source.", "Rig check of the land count on the release candidate; S7_NAT re-run (flying-aware) is running now."),
+        "border source. S7_NAT on the release candidate: land groups 9.65 v cap 9 (was 10.79), over the cap in 54% of "
+        "samples (was 84%).", "Residual overshoot is DF's per-border waves; decide whether 9.65 v 9 is acceptable."),
     4: ("fixed", "You ruled yes: groups cavern trim_gated (default ON, 30873d4) also sends off the oldest DF wave when no "
         "resident group is left. TRIM re-designed to place 3 resident groups over cap 1.",
         "TRIM runs in the RC chain on the build before trim_gated, so it tests the resident trim only. A second TRIM run on "
@@ -65,12 +67,14 @@ SINCE = {
         "R35 cap set to 2 so it bites.", "Rig check that the flags read 1 after 20 t, survive save + reload, and read 0 after "
         "the end. IRRM / IRRP2 / IRRR35 re-run in the RC chain."),
     7: ("done", "Both halves confirmed.", "Nothing."),
-    8: ("partial", "VF4 re-run completed (no abort) on the Alpha Four fixes with the fish-vermin bank finder; result not tallied yet. VF1 "
-        "re-designed with a gobble receipt; runs in the RC chain.", "Tally VF4; VF1 result from the chain."),
+    8: ("partial", "VF4 tallied: too few fish vermin near the bank to read (1-3 per cell; forage on 5 to 3, off 7 to 8 "
+        "summed over 5 cells). VF1 re-designed with a gobble receipt; runs in the RC chain.",
+        "VF1 result from the chain; VF4 needs a bank with more fish vermin."),
     9: ("explained", "No defect. Apex presence 0.17 is what a one-month run predicts (expected 0.17, none placed in 0.48 of "
         "runs). The carnivore share read 0.05 because 93% of 'land' units were ravens from the flying pool.",
-        "S7_NAT re-run scores walking land animals only and checks the ladder reaches the raws daily (running now). APX1 over a "
-        "full season is optional. INV3 needs a calm map."),
+        "S7_NAT on the release candidate: apex presence 0.11 v 0 without the tool (p = 0.048); carnivore share 0.036 v "
+        "0.004 (p = 0.09); the ladder reaches the raws for every open key. Walking land units averaged under one per sample, "
+        "so the walking-only share cannot be read on this fort. APX1 over a full season is optional. INV3 needs a calm map."),
     10: ("partial", "SURV confirmed (130 ms). GRD1 re-designed to record the stranding the moment the pike are moved.",
          "GRD1 in the RC chain. PELA needs an ocean fort (AQUA_SHORE)."),
     11: ("partial", "EXR1 confirmed (weak). EXU1 re-designed with per-unit BENIGN receipts.",

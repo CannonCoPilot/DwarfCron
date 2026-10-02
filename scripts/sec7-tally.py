@@ -9,8 +9,10 @@ Reads (no rig contact):
                                       and are ignored
   data/alpha4-sec7/20261002-024942/   core3 (tool 9e5aabe): the valid completed blocks listed in RUNS below
   data/alpha4-sec7/20261002-075328/   rerun (tool a4fix 69e97a1, DF restarted per block)
-  data/alpha4-sec7/<newest>/          the TRIM/IRRR35/VF4 rerun, when present (cells that completed are read; a block
-                                      with no completed cell is PENDING)
+  data/alpha4-sec7/20261002-133843/   the TRIM/IRRR35/VF4 rerun (cells that completed are read; a block with no
+                                      completed cell is PENDING)
+  data/alpha4-sec7/20261002-150458/   release-candidate chain (rc 16f85e6): a block its eco/log.txt marks done
+                                      supersedes the earlier copy
   data/validation/full/20261002-020031/TRIAGE.md (validate-full on this fort)
 
 Readout rules (memory experiment-readout-traps), applied per block:
@@ -56,17 +58,26 @@ RUNS = {
 LATE = ("S7_TRIM", "S7_IRRR35", "S7_VF4")   # rerun after their second fix, into the newest run dir
 
 
-def newest_run():
-    """The run dir made after the fixed list (the TRIM/IRRR35/VF4 rerun), or None."""
-    c = sorted(p for p in SEC7.iterdir() if p.is_dir() and re.match(r"\d{8}-\d{6}$", p.name) and p.name not in FIXED)
-    return c[-1] if c else None
+LATE_RUN = SEC7 / "20261002-133843"
+RC = SEC7 / "20261002-150458"
 
 
-NEW = newest_run()
+def rc_done():
+    """Blocks the release-candidate chain finished (its eco/log.txt says '== block X done')."""
+    log = RC / "eco/log.txt"
+    return re.findall(r"== block (S7_\w+) done", log.read_text(errors="replace")) if log.exists() else []
+
+
+NEW = LATE_RUN if LATE_RUN.is_dir() else None
 if NEW is not None:
     BUILD[NEW.name] = "a4fix 69e97a1"
     for b in LATE:
         RUNS[b] = NEW
+RC_BLOCKS = rc_done()          # an RC copy supersedes the earlier one
+if RC_BLOCKS:
+    BUILD[RC.name] = "rc 16f85e6"
+    for b in RC_BLOCKS:
+        RUNS[b] = RC
 
 OUT = {}          # everything the report states, for sec7-tally.json
 LINES = []
@@ -380,25 +391,37 @@ def row2():
     out["pk2_kill"] = contrast("placed WOLF kills of BUFFALO (of 6)", kil["pack_on"], kil["pack_off"], "on", "off", 1)
     # STP1
     b = Block("S7_STP1")
-    b.header(2, "stoop_on vs stoop_off; 2 BIRD_EAGLE, 6 RABBIT, 3 DEER, 6,000 t, ecology every 1,000 t")
-    ea, nat_k, stoops, far = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(list)
+    # core3 placed BIRD_EAGLE; the RC re-design places the fort's own pool raptor (facts raptor_token): read it from
+    # the spawn rows, never assume it (trap 22)
+    raptor = next((d["token"] for arm in b.arms() for rep in b.reps(arm) for d in b.rows(arm, rep, "spawn")
+                   if d.get("token") not in ("RABBIT", "DEER")), "BIRD_EAGLE")
+    b.header(2, f"stoop_on vs stoop_off; 2 {raptor}, 6 RABBIT, 3 DEER, 6,000 t, ecology every 1,000 t")
+    ea, ek, nat_k, stoops, far = (defaultdict(list) for _ in range(5))
     for arm in b.arms():
         for rep in b.reps(arm):
-            a = sum(placed_pairs(b, arm, rep, "BIRD_EAGLE", v)[0] for v in ("RABBIT", "DEER"))
-            ea[arm].append(a)
+            pk = [placed_pairs(b, arm, rep, raptor, v) for v in ("RABBIT", "DEER")]
+            ea[arm].append(sum(a for a, _ in pk))
+            ek[arm].append(sum(k for _, k in pk))
             nk = sum(1 for d in b.rows(arm, rep, "death") if d.get("victim") in ("RABBIT", "DEER")
                      and d.get("victim_spawned") == "1" and d.get("killer_spawned") == "0")
             nat_k[arm].append(nk)
-            st = [r for r in b.raw(arm, rep, "toolline") if "hunters_status n=3" in r]
-            m = re.search(r"last_pass_(\d+)_raptor\(s\),_(\d+)_sto", st[0]) if st else None
-            stoops[arm].append((int(m.group(1)), int(m.group(2))) if m else None)
-            g = b.last(arm, rep, "group", token="BIRD_EAGLE")
+            ss = b.rows(arm, rep, "stoopst")
+            if ss:              # RC harness: the stoop counter at every ecology pass
+                stoops[arm].append((max(int(d["raptors"]) for d in ss), sum(int(d["stooped"]) for d in ss)))
+            else:
+                st = [r for r in b.raw(arm, rep, "toolline") if "hunters_status n=3" in r]
+                m = re.search(r"last_pass_(\d+)_raptor\(s\),_(\d+)_sto", st[0]) if st else None
+                stoops[arm].append((int(m.group(1)), int(m.group(2))) if m else None)
+            g = b.last(arm, rep, "group", token=raptor)
             far[arm].append(num(g.get("cx")))
-    say(f"    receipt (last ecology pass: raptors seen, stoops): on {stoops['stoop_on']}; off {stoops['stoop_off']}")
-    say(f"    placed EAGLE>RABBIT/DEER attacks per cell: on {ea['stoop_on']}, off {ea['stoop_off']}; placed prey killed by "
-        f"NATIVE units (wipe leftovers, e.g. GIANT_EAGLE) on {nat_k['stoop_on']}, off {nat_k['stoop_off']}")
-    say(f"    eagle group centroid x at the end (prey placed near x~250): on {far['stoop_on']}, off {far['stoop_off']}")
-    out["stp1_att"] = contrast("placed EAGLE attacks on placed prey", ea["stoop_on"], ea["stoop_off"], "on", "off", 1)
+    say(f"    receipt (raptors seen, stoops): on {stoops['stoop_on']}; off {stoops['stoop_off']}")
+    say(f"    placed {raptor}>RABBIT/DEER attacks per cell: on {ea['stoop_on']}, off {ea['stoop_off']}; kills on "
+        f"{ek['stoop_on']}, off {ek['stoop_off']}; placed prey killed by NATIVE units (wipe leftovers) on "
+        f"{nat_k['stoop_on']}, off {nat_k['stoop_off']}")
+    say(f"    raptor group centroid x at the end (prey placed near x~240): on {far['stoop_on']}, off {far['stoop_off']}")
+    out["stp1_raptor"] = raptor
+    out["stp1_att"] = contrast(f"placed {raptor} attacks on placed prey", ea["stoop_on"], ea["stoop_off"], "on", "off", 1)
+    out["stp1_kill"] = contrast(f"placed {raptor} kills of placed prey", ek["stoop_on"], ek["stoop_off"], "on", "off", 1)
     # FSH3
     b = Block("S7_FSH3")
     b.header(2, "fish_on vs fish_off; 2 BEAR_GRIZZLY on the river shore, 8 FISH_PIKE in the river, 6,000 t")
@@ -428,11 +451,16 @@ def row2():
         f"bear-pike adjacency {padj}; placed BEAR_POLAR>PIKE attacks {pa}")
     OUT["row2"] = dict(out, fsh4=dict(wet=wet, adj=padj, att=pa, not_fine=nf))
     pk_ok = out['pk2_att']['p'] <= 0.05 and out['pk2_kill']['p'] <= 0.05 and out['pk2_kill']['diff'] > 0
-    verdict(2, ("CONFIRMED (packs)" if pk_ok else "NOT CONFIRMED (packs)") + " / INCONCLUSIVE (stoops, fishing: vacuous)",
+    met = sum(ea["stoop_on"]) + sum(ea["stoop_off"]) >= 10          # the raptor reached its prey in the cells
+    stoop_lift = out["stp1_att"]["p"] <= 0.05 and out["stp1_att"]["diff"] > 0
+    stp = (("CONFIRMED (stoops)" if stoop_lift else "NO EFFECT (stoops)") if met else "INCONCLUSIVE (stoops: vacuous)")
+    verdict(2, ("CONFIRMED (packs)" if pk_ok else "NOT CONFIRMED (packs)") + f" / {stp} / INCONCLUSIVE (fishing: vacuous)",
             f"PK2: pack on raised placed wolf>buffalo attacks {mean(att['pack_on']):.0f} vs {mean(att['pack_off']):.0f} "
             f"(p={out['pk2_att']['p']:.3f}) and kills {mean(kil['pack_on']):.1f} vs {mean(kil['pack_off']):.1f} of 6 "
-            f"(p={out['pk2_kill']['p']:.3f}); STP1/FSH3/FSH4: the subjects never met (placed eagles made "
-            f"{sum(ea['stoop_on']) + sum(ea['stoop_off'])} attacks in 10 cells; bears 0 adjacency to pike, polar bears never swam)")
+            f"(p={out['pk2_kill']['p']:.3f}); STP1 ({raptor}): attacks on placed prey {mean(ea['stoop_on']):.1f} on vs "
+            f"{mean(ea['stoop_off']):.1f} off (p={out['stp1_att']['p']:.3f}), kills {mean(ek['stoop_on']):.1f} vs "
+            f"{mean(ek['stoop_off']):.1f} of 9, {sum(s[1] for s in stoops['stoop_on'] if s)} stoops in the on arm; "
+            f"FSH3/FSH4 not testable or vacuous (bears 0 adjacency to pike, polar bears never swam)")
 
 
 # ------------------------------------------------------------------------------- NAT (rows 3, 4, 9, 10, 12) --
@@ -1269,7 +1297,7 @@ def figs():
 def main():
     say("Alpha Four section 7 -- results tally (scripts/sec7-tally.py)")
     say(f"runs: stages {STAGES.name}; core3 {CORE3.name} (9e5aabe); rerun {RERUN.name} (a4fix 69e97a1); late rerun "
-        f"{NEW.name if NEW else '-'}")
+        f"{NEW.name if NEW else '-'}; release candidate {RC.name} (rc 16f85e6): {', '.join(RC_BLOCKS) or '-'}")
     facts()
     row1()
     row2()
