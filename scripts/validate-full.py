@@ -357,7 +357,166 @@ CLAIMS = [
     # ---- v7.1 (1 Oct 2026): validator wave 2, one block per stream (seasonal-wildlife docs/v7.1/<stream>.md); phase_v71
     ("deploy.v71.files", "MECH", "the five scripts of the tool tree (engine, gui/, web server, web page, controls registry) are deployed and byte-identical to the checkout under test", "experiments/VALIDATOR-v71.md (deploy); cx-lifecycle.sh deploy-tool", "shipped v7.1"),
     ("deploy.v71.loads", "MECH", "the controls registry loads in the game (12 sections) and the web server that requires it loads", "experiments/VALIDATOR-v71.md (deploy); docs web.md", "shipped v7.1"),
-    # @@V71-CLAIMS@@
+    # ---- v7.1 ecology stream (docs/v7.1/ecology.md): cadence and nudge defaults, skill profiles, packs, raptors, bears, swimmer scavengers
+    ("mech.v71.cadence_default", "MECH", "a fresh config has ecology cadence 3,000 and nudge off; a config saved before v7.1 (no `hunters` table) with cadence 1,500 migrates to 3,000 and nudge on to off, one with cadence 2,000 keeps it, and a v7.1 config is never migrated", "docs/v7.1/ecology.md (R37, R38; V7.sanitizeHunters)", "shipped v7.1"),
+    ("mech.v71.fish_bears_default", "MECH", "a fresh config has v7.fishers on and every token its fisher_list turns on is a bear (TIGER, JAGUAR, RACCOON off)", "docs/v7.1/ecology.md (R33, R43)", "shipped v7.1"),
+    ("mech.v71.skill_profile", "MECH", "with v7 solo on, V7.apply writes a solitary hunter's caste NATURAL_SKILL SNEAK to its profile (solitary apex 15, solitary 12) and a pack species' to 5; V7.restore() puts every caste back to its vanilla level", "docs/v7.1/ecology.md (R40, R58, R8; V7.H.profileOf, V7.naturalSkill)", "shipped v7.1"),
+    ("mech.v71.skill_units", "MECH", "a unit of a packaged species already on the map gets the profile on its soul (nominal SNEAK and the natural floor at least the profile's level); V7.restore() reverts the rating and the floor", "docs/v7.1/ecology.md (V7.H.skillUnits, V7.unitSkills)", "shipped v7.1"),
+    ("mech.v71.readback", "MECH", "V7.H.readback() returns one row per packaged species and every row's castes all carry the profile's SNEAK (casteOk == castes)", "docs/v7.1/ecology.md (V7.H.readback, `hunters readback`)", "shipped v7.1"),
+    ("mech.v71.packs_inferred", "MECH", "two armed same-species non-solitary hunters within pack_radius and in no tracked group are a pack of 2 (V7.H.packSizes); a solitary species and two hunters farther apart give none; pack off gives none", "docs/v7.1/ecology.md (R41)", "shipped v7.1"),
+    ("mech.v71.raptor_armed", "MECH", "with hunters.raptors on, V7.apply clears BENIGN on every caste of a raptor (RP) species (BIRD_EAGLE where the embark has it) and V7.restore() sets it back; ecoArmed(entry) is true", "docs/v7.1/ecology.md (R47)", "shipped v7.1"),
+    ("mech.v71.raptor_cap", "MECH", "a raptor takes small prey only: V7.H.raptorTooBig(eagle, DEER mass) is true and (eagle, RABBIT mass) false", "docs/v7.1/ecology.md (R47; stoop.prey_ratio)", "shipped v7.1"),
+    ("mech.v71.cohesion", "MECH", "MODEL.cohesionOf reads the whole-list table: COUGAR solitary, WOLF pack, FISH_PIKE school or solitary and BIRD_RAVEN flock or solitary by their raws' cluster; `hunters cohesion WOLF herd` wins and `auto` clears it", "docs/v7.1/ecology.md (R62)", "shipped v7.1"),
+    ("mech.v71.swimscav", "MECH", "MODEL.swimScavenger is true for SHARK_GREAT_WHITE, CROCODILE_SALTWATER, POND_GRABBER and SHARK_NURSE, false for FISH_LAMPREY_SEA and FISH_PIKE, and false for all with hunters.swim_scav off", "docs/v7.1/ecology.md (R42, R17)", "shipped v7.1"),
+    ("mech.v71.bankpair", "MECH", "near a river or lake, V7.H.bankPair finds a dry tile G (flow < 4) and a swimming-depth water tile W (flow >= 4) adjacent at the same level, where a bear on G reaches a fish in W", "docs/v7.1/ecology.md (R33)", "shipped v7.1"),
+    ("mech.v70.solo_skill", "MECH", "the caste NATURAL_SKILL write on a solitary hunter is read on a newly arrived unit: a unit placed while the v7 raws hold carries SNEAK at the profile's level on its soul with no unit write", "docs/v7.1/ecology.md (validator-v70-coverage; open item natural-skill-unverified)", "shipped v7.0"),
+    # ---- v7.1 fixes stream (docs/v7.1/fixes.md section 5): integration and known bugs
+    ("mech.v71.fix.cohesion_override", "MECH", "`hunters cohesion WOLF herd` reaches the leaders: a WOLF group's label is herd at the herd follow distance, `auto` gives pack back; `hunters cohesion COUGAR solitary` leaves a cougar group unled", "docs/v7.1/fixes.md (cohesionLabel reads MODEL.cohesionOf)", "shipped v7.1"),
+    ("mech.v71.fix.swimscav_cache", "MECH", "`hunters swimscav SHARK_NURSE off` makes SCAV.kind(SHARK_NURSE) false at once, without a reload (CACHE.scavKind cleared)", "docs/v7.1/fixes.md (SCAV uses MODEL.swimScavenger)", "shipped v7.1"),
+    ("mech.v71.fix.forager_no_crash", "MECH", "vermin foraging with a scavenger waiting on remains runs without an error and never sends the waiting scavenger foraging (VERMIN.forager reads CACHE.scav7)", "docs/v7.1/fixes.md (cross-stream 1)", "shipped v7.1"),
+    ("mech.v71.fix.edges_after_build", "MECH", "after `roster build land`, `vermin edges edges` reads per-species rows from the build and V7.apply writes an SWV class into at least one consumer's GOBBLE_VERMIN_CLASS", "docs/v7.1/fixes.md (cross-stream 2)", "shipped v7.1"),
+    ("mech.v71.fix.apex_pelagic", "MECH", "`roster apex now water` places a pelagic apex only in the ocean, never on a lake-only map, and a placed apex group is led (or marked unled) at once", "docs/v7.1/fixes.md (cross-stream 3)", "shipped v7.1"),
+    ("mech.v71.fix.water_auto", "MECH", "a config that never set the water layer turns it on where the map has water (a ledger line 'water layer on by default'), leaves it off on a dry map, and never overrides a layer the player set", "docs/v7.1/fixes.md (section 2; V7.WAT.autoLayer)", "shipped v7.1"),
+    ("mech.v71.fix.water_migrate", "MECH", "a saved {layers={water=true}} loads water.layer_set true; {layers={water=false}} and a config with no layers load false; a saved layer_set wins", "docs/v7.1/fixes.md (section 2; V7.watSanitize)", "shipped v7.1"),
+    ("mech.v71.fix.spill", "MECH", "a water body with fewer than water.spill.min drawable in-season species borrows the season for active water species (assign gains the season, stock > 0); the season change and `water spill off` give every borrowed season back", "docs/v7.1/fixes.md (section 2; V7.WAT.spillCheck/spillRoll)", "shipped v7.1"),
+    ("mech.v71.fix.ids", "CLI", "a spaced raw id resolves from its underscore form and its #index (also with a layer prefix), an exact id is left alone, and `odds` prints the same line for the underscore and the quoted form", "docs/v7.1/fixes.md (spaced-raw-ids-cli; V7.CLI.resolve)", "shipped v7.1"),
+    ("mech.v71.fix.world_switch", "MECH", "loading a second world in the same session leaves CACHE.depth holding only its caves and CACHE.raceIdx its race indices, shared by every script copy", "docs/v7.1/fixes.md (cache-world-switch-stale)", "shipped v7.1"),
+    ("mech.v71.fix.cavern_max", "MECH", "`limits cavern ceiling 3` leaves groups.cavern_max mirroring groups.cavern_cap (QUOTA.set)", "docs/v7.1/fixes.md (cross-stream 4)", "shipped v7.1"),
+    # ---- v7.1 scav stream (docs/v7.1/scav.md section 14): natural-cadence scavenging, swimmers, curious thieves that stay
+    ("mech.v71.scav_status_fresh", "MECH", "after a scavenging pass the status's last-pass line is that pass (age near 0), not a stale earlier one", "docs/v7.1/scav.md (scav-status-diagnostics)", "shipped v7.1"),
+    ("mech.v71.scav_shared_state", "MECH", "a pass leaves the shared state in CACHE.scav7, and the console's status and a reqscript copy's SCAV.status show the same fallbacks", "docs/v7.1/scav.md (CACHE.scav7)", "shipped v7.1"),
+    ("mech.v71.scav_swimmer", "MECH", "SCAV.is: SHARK_GREAT_WHITE, CROCODILE_SALTWATER, ALLIGATOR and ORCA scavenge, FISH_CARP and SHARK_WHALE do not; `scavenge swimmers off` takes every swim-kind scavenger out", "docs/v7.1/scav.md (R42, R17)", "shipped v7.1"),
+    ("mech.v71.scav_keys", "CLI", "`scavenge set hop_tiles 99` is refused (range 1-50) and changes nothing; `scavenge set hop_tiles 6` is saved, shown by `scavenge keys` and kept by the sanitiser on reload", "docs/v7.1/scav.md (SCAV.RANGE)", "shipped v7.1"),
+    ("mech.v71.scav_discovery", "MECH", "a fresh remains cannot be found in its first pass with the default discovery medians (found after at least discover_min_h); with every discover_*_h, discover_min_h and the sigma at 0 it can be found at once", "docs/v7.1/scav.md (R18 natural cadence; SCAV.newRemains)", "shipped v7.1"),
+    ("mech.v71.scav_attribution", "MECH", "a finished remains is attributed: SCAV.stats().pairs['TOK>PREY'].n >= 1 and the ledger has 'scavenging: a PREY ... eaten -- TOK'", "docs/v7.1/scav.md (attribution)", "shipped v7.1"),
+    ("mech.v71.scav_fbsafe", "MECH", "SCAV.naturalRemains is false for a non-natural race (demon, forgotten beast, megabeast...) and true for a natural one; no scavenger the pass walks is non-natural", "docs/v7.1/scav.md (R60, fb_safe)", "shipped v7.1"),
+    ("mech.v71.scav_off_cancels", "MECH", "`disable` cancels the scavenging and curious jobs (repeat-util holds neither)", "docs/v7.1/scav.md (the scavenging job outlived disable)", "shipped v7.1"),
+    ("cli.curious_reform", "CLI", "`curious reform off|on|now`, `curious loot keep|drop` and `curious set stay_min 25000` each print the curious status with the change; an out-of-range value is refused and changes nothing", "docs/v7.1/scav.md (R30)", "shipped v7.1"),
+    ("mech.v71.curious_reform", "MECH", "a curious thief whose countdown reaches 0 is reformed within one pass: its unit curious bits cleared, its countdown stay_min..stay_max, a ledger line 'reformed and stays'; disable puts the bits back and the countdown at 0", "docs/v7.1/scav.md (R30; CURIOUS.pass/unreform)", "shipped v7.1"),
+    ("mech.v71.panel_curious", "MECH", "the Panel has the curiousreform switch; all off turns it off and its restore path reaches the reformed thieves", "docs/v7.1/scav.md (PANEL.SWITCHES)", "shipped v7.1"),
+    ("mech.v70.scav_ext", "MECH", "scav_ext's reach: v7.scav_ext on by default; a flier, an aquatic and an amphibious scavenger are told apart (SCAV.mover), a wet remains suits a swimmer and a dry one a land scavenger, and a wet remains is reached from 2 tiles and a level (the bank/water reach); the status carries the fallbacks counter", "docs/v7.1/scav.md (validator-v70-coverage; SCAV.mover/suits/inReach)", "shipped v7.0"),
+    # -- groups (docs/v7.1/groups.md): limits per layer (R7), the adaptive clock (R31), the cavern gate (R44, R60), water
+    #    like land (R45), leaders and panic (R32), placement, adoption (H3), the animal-people cap (R35), restore paths
+    ("mech.v71.limits.formula", "MECH", "limits mode formula: land and every water body hold floor(sqrt(embark tiles)) + 1 groups at once, each cavern its universal cap of 5 (R44)", "docs/v7.1/groups.md; R7, R44", "shipped v7.1"),
+    ("mech.v71.limits.fixed", "CLI", "`limits fixed 2` gives every land and water key 2 and each cavern min(5, 2); `limits formula` puts the map-size formula back", "docs/v7.1/groups.md; R7", "shipped v7.1"),
+    ("mech.v71.layer_groups.retired", "MECH", "a config saved with v7.layer_groups=false loads true, and `v7 layer_groups off` is refused with the retirement note", "docs/v7.1/groups.md; R7", "shipped v7.1"),
+    ("mech.v71.migrate", "MECH", "a v7.0 config migrates once: water ceiling 12 -> 0 (R45), an explicit land number (auto=false, 4) -> limits mode fixed 4, seasons_own forced on (R29), cavern_max 2 not carried (cap 5)", "docs/v7.1/groups.md; R7, R29, R44, R45", "shipped v7.1"),
+    ("mech.v71.clock.state", "MECH", "after a release the layer's controller holds last = now, a target L* in [cap - target_band, cap] and due = last + gap", "docs/v7.1/groups.md; R31", "shipped v7.1"),
+    ("mech.v71.clock.forward", "MECH", "with one group fewer on the layer the next release comes earlier (the due tick only moves forward); with the clock off there is no adaptive due tick", "docs/v7.1/groups.md; R31", "shipped v7.1"),
+    ("mech.v71.clock.pause", "MECH", "at the cap the clock pauses: no due tick, and the layer's status row says 'paused at the cap'", "docs/v7.1/groups.md; R31", "shipped v7.1"),
+    ("mech.v71.cavern.count", "MECH", "an unflagged cavern native is adopted as a native group (depth 0-2) and counted against its cavern's cap", "docs/v7.1/groups.md; R44", "shipped v7.1"),
+    ("mech.v71.cavern.hold", "MECH", "a cavern at its cap holds its natural cavern-only species at raw frequency 1 (never 0), listed in CACHE.capHeld; below the cap they go back to the snapshot; hold off holds nothing", "docs/v7.1/groups.md; R44; addenda 53-56", "shipped v7.1"),
+    ("mech.v71.cavern.trim", "MECH", "a cavern over its cap sends off its oldest native group (members' leave countdown <= 10, originals in g.trim_undo); the disable path puts the countdowns back", "docs/v7.1/groups.md; R44", "shipped v7.1"),
+    ("mech.v71.cavern.deep", "MECH", "no deep unit in any group record, no deep-entry species held or capped, and `groups adopt` refuses a deep unit (R60)", "docs/v7.1/groups.md; R60", "shipped v7.1"),
+    ("mech.v71.water.cap", "MECH", "each water body's cap follows the formula, the water ceiling defaults to 0 (none) and the `water` status quotes groups per water body, not a fixed 2 (R45)", "docs/v7.1/groups.md; R45", "shipped v7.1"),
+    ("mech.v71.lead.male", "MECH", "a group's leader is its largest adult male; a group with no adult male has no leader and says unled (no fallback, R32)", "docs/v7.1/groups.md; R32", "shipped v7.1"),
+    ("mech.v71.lead.lost", "MECH", "a leader that died or left is not replaced: leader_lost names why, nobody follows anybody, a panic ledger line; after panic_days the end line and the group stays unled", "docs/v7.1/groups.md; R32", "shipped v7.1"),
+    ("mech.v71.panic.walk", "MECH", "during a panic the members within panic_tiles are walked away (path.goal SeekStation with a non-empty path)", "docs/v7.1/groups.md; R32; findings S2", "shipped v7.1"),
+    ("mech.v71.lead.water", "MECH", "a group drawn into water (Driver B) is led in the same pass by a leader standing in water (flow >= 4), members following at follow_school / follow_pod", "docs/v7.1/groups.md; C 9.3", "shipped v7.1"),
+    ("mech.v71.lead.place", "CLI", "`place TOKEN 6` places one clustered group, tracked as one record and led at once", "docs/v7.1/groups.md; C 9.3 F1-F2", "shipped v7.1"),
+    ("mech.v71.lead.seeded", "MECH", "a school DF seeded in surface water is a record with seeded=true, led but never counted (ENGINE.count('water'))", "docs/v7.1/groups.md; C 9.3 F5", "shipped v7.1"),
+    ("mech.v71.lead.sponge", "MECH", "no sponge or IMMOBILE creature is ever a group's leader (cohesion label solitary)", "docs/v7.1/groups.md; C 9.3 F6", "shipped v7.1"),
+    ("mech.v71.adopt", "CLI", "`groups adopt a b c` makes exactly those units one record, removed from any other, led by R32's rule; a citizen is refused", "docs/v7.1/groups.md; harness H3", "shipped v7.1"),
+    ("mech.v71.apcap", "MECH", "a cavern animal-people species' cluster range is held at <= apcap (5); an irruption on its cavern lifts it; the disable path restores the raw", "docs/v7.1/groups.md; R35", "shipped v7.1"),
+    ("mech.v71.restore", "MECH", "all off and disable put back the cavern gate's frequency holds and the animal-people cluster ranges", "docs/v7.1/groups.md; rule 4", "shipped v7.1"),
+    ("mech.v71.apex.onecaller", "MECH", "the apex scheduler has one job caller, tick() -> ROSTER.placeTick; the guarded ROSTER.apex.tick hook is gone (replaces mech.v71.apex.hook)", "docs/v7.1/groups.md; docs/v7.1/fixes.md section 1", "shipped v7.1"),
+    ("mech.v70.gate_drain", "MECH", "v7.gate_drain (on by default) releases the next-oldest gated groups of the layer until at most one flagged animal remains", "docs/v7.1/groups.md; T8g; validator-v70-coverage", "shipped v7.0"),
+    # -- irruption (docs/v7.1/irruption.md section 12): IRRUPT v2, a per-cavern ecological surge (R4-R6, R10, R35, R60)
+    ("mech.v71.irr.cfg", "MECH", "the irruption config is rev 2 with every key of the notes' table; a v7.0 config migrates (gain -> src.citizens, migrated 'v7.0'); out-of-range and wrong-type values are dropped", "docs/v7.1/irruption.md; R5", "shipped v7.1"),
+    ("mech.v71.irr.migrate", "MECH", "a v7.0 armed group is stood down at the first pass (agitated flags cleared, g.armed gone, its cavern cooling down); the old global cooldown spreads to idle caverns and is removed", "docs/v7.1/irruption.md; R6", "shipped v7.1"),
+    ("mech.v71.irr.trigger", "MECH", "a cavern pinned at the threshold warns within one pass (ledger 'something stirs') and irrupts with a wave when the warning ends; no civ race with fallback none gives no warning, one ledger line and a daily retry", "docs/v7.1/irruption.md; R6", "shipped v7.1"),
+    ("mech.v71.irr.layer", "MECH", "an event is per cavern: the others stay idle, activeOn names only that cavern, and only its gate gap halves", "docs/v7.1/irruption.md; R5", "shipped v7.1"),
+    ("mech.v71.irr.wave", "MECH", "a wave is clamp(cluster max x size_mult, size_min, size_cap) units bounded by stock and unit_cap, one irruption-marked group record, led, the entry debited by n", "docs/v7.1/irruption.md; R10, R32", "shipped v7.1"),
+    ("mech.v71.irr.tokens", "MECH", "a civ wave: each enabled token on the champion plus max(1, round(pct n / 100)) others, exactly one unit with every token, each write read back on the unit", "docs/v7.1/irruption.md; R10", "shipped v7.1"),
+    ("mech.v71.irr.caste", "MECH", "after placement every caste of the race reads its original CURIOUS*, MEANDERER, AMBUSHPREDATOR, prone_to_rage and HAS_ANY_CURIOUS_BEAST; no caste write is held", "docs/v7.1/irruption.md; R10", "shipped v7.1"),
+    ("mech.v71.irr.agitate", "MECH", "during an event only that cavern's non-civ natural animals are agitated (up to the cap): never civ dwellers, citizens, tame animals, other caverns, the deep or non-natural units", "docs/v7.1/irruption.md; R5, R10, R60", "shipped v7.1"),
+    ("mech.v71.irr.end", "MECH", "an event ends (by the player, by its duration) with every write undone: masks, caste cache, hidden, mood, skill, agitation; countdowns by end_mode; cooldown set; pressure 0; group marks cleared", "docs/v7.1/irruption.md; R5", "shipped v7.1"),
+    ("mech.v71.irr.off", "MECH", "`irruption off`, disable, groups off and all off each end a running event with no residual write and no active phase; while off nothing is placed or written", "docs/v7.1/irruption.md; rule 4", "shipped v7.1"),
+    ("mech.v71.irr.fbsafe", "MECH", "irruption candidates are natural only, agitation never reaches a non-natural unit, and nothing is placed or agitated below the third cavern (R60)", "docs/v7.1/irruption.md; R60; fb_safe", "shipped v7.1"),
+    ("mech.v71.irr.msg", "MECH", "each phase announces once (warn, start, wave, finish, ready, lapse); pause.start pauses the game; with every msg off nothing is announced", "docs/v7.1/irruption.md; R6", "shipped v7.1"),
+    ("mech.v71.irr.status", "CLI", "`irruption status` prints the purpose line, every config row and one row per cavern; `status` prints the one-liner", "docs/v7.1/irruption.md; R6", "shipped v7.1"),
+    ("mech.v71.irr.r35", "MECH", "during an event on a cavern with an animal-people species its cluster range is the raw's own (cap lifted); after the end it is capped again", "docs/v7.1/irruption.md; R35", "shipped v7.1"),
+    ("gui.irr.rows", "GUI", "the Panel/Layers rows for IRRUPT v2 (irruption.md section 9) read and write the same keys", "docs/v7.1/irruption.md section 9; UI wave", "shipped v7.1"),
+    # -- roster (seasonal-wildlife docs/v7.1/roster.md "Validator claims needed"; v7.0 reserved ids from the phase_v71 stub)
+    ("mech.v70.builder", "MECH", "`roster build land` runs the guild-first builder: slot lines with their members, an UNFILLED line (with a reason) for every slot under its minimum, the FREQUENCY ladder, the vegetation survey line; a water build carries the column-depth (deep-water) survey", "docs/v7.1/roster.md; validator-v70-coverage; ROSTER.build", "shipped v7.0"),
+    ("mech.v70.outgun", "MECH", "`roster outgun land` lists the outgunned pack-vs-herd pairs (factor >= v7 outgun) read-only (the config version does not move); with v7 outgun_cap on, a build caps each outgunned prey's group size at pred mass x factor / prey mass", "docs/v7.1/roster.md; validator-v70-coverage; ROSTER.outgunPairs", "shipped v7.0"),
+    ("mech.v70.realms", "MECH", "the realm table holds 300+ species over the REALM_ORDER codes; with v7 realms on, V7.realmOk refuses a species whose realms exclude the embark's and admits its own realm and any unlisted species; with realms off it admits all", "docs/v7.1/roster.md; validator-v70-coverage; V7.REALMS/V7.realmOk", "shipped v7.0"),
+    ("mech.v71.ladder.units", "MECH", "after `roster build land` the ladder-info line's carn_units is within 0.03 of carn (R59 unit shares), every ladder value is >= 1, and no apex reads a FREQUENCY above apex_raw_cap unless apex_odds > 0 (R34)", "docs/v7.1/roster.md; R34 R59", "shipped v7.1"),
+    ("mech.v71.apex.place", "MECH", "`roster apex now land` places one apex group from stock: ids > 0, the key's entries debited by the group size, and g.groups holds a placed=true tag='apex' record", "docs/v7.1/roster.md; R9 R34", "shipped v7.1"),
+    ("mech.v71.apex.cap", "MECH", "with an apex group on the map and the cap at 1, the scheduler's decision is 'cap 1 reached' (ROSTER.apex.decide, not forced)", "docs/v7.1/roster.md; R9", "shipped v7.1"),
+    ("mech.v71.flying", "MECH", "`roster build flying` seats at most one RP (R50) and fills the APX slot with no vulture, buzzard, kea or raven", "docs/v7.1/roster.md; R50", "shipped v7.1"),
+    ("mech.v71.water.pelagic", "MECH", "on an ocean fort `roster build water` fills APE and PE or reports them UNFILLED ('no candidate in pool'); FISH_LAMPREY_SEA slots as MW (R49)", "docs/v7.1/roster.md; R14 R49 R59", "shipped v7.1"),
+    ("mech.v71.civ", "MECH", "V7.isCivRaw is true for ANT_MAN and BAT_MAN, false for WOLF_MAN (R61); every pool entry carries a civ boolean", "docs/v7.1/roster.md; R61", "shipped v7.1"),
+    ("mech.v71.apmass", "MECH", "classify(DAMSELFLY_MAN).mass >= 30,000 cm3 and its guild is RP (R25: a vermin-root animal person is a small predator of its own size)", "docs/v7.1/roster.md; R25 R57", "shipped v7.1"),
+    ("mech.v71.freqfloor", "MECH", "with the tool applied, every in-embark animal person at raw FREQUENCY 0 reads >= 1 (roster.ap_freq_floor); after restore the raws read 0 again (R61)", "docs/v7.1/roster.md; R61", "shipped v7.1"),
+    ("mech.v71.place.deep", "MECH", "`place MAGMA_CRAB 1 deep` is refused (the deep is never touched, R28/R60) and creates no unit", "docs/v7.1/roster.md; R28 R60", "shipped v7.1"),
+    ("mech.v71.invasive", "MECH", "on a calm map, Add invasive of CENOZOIC_SMILODON (SAVAGE) places >= 1 unit at once and `roster apex` lists it as a tool-placed invasive (R36)", "docs/v7.1/roster.md; R36", "shipped v7.1"),
+    ("mech.v71.realm.table", "CLI", "`realm table` prints a realm-table head with missing_from_raws=0 on vanilla raws and one realm-entry line per entry", "docs/v7.1/roster.md; R57", "shipped v7.1"),
+    ("mech.v71.gobble", "MECH", "`roster gobble land` prints >= 1 kind=write edge, and every kind=native edge names a class the consumer's own GOBBLE_VERMIN_CLASS and the vermin's creature classes share (R51)", "docs/v7.1/roster.md; R51", "shipped v7.1"),
+    # -- extinct (seasonal-wildlife docs/v7.1/extinct.md "Validator claims needed"; R24)
+    ("mech.v71.extinct.class", "MECH", "200 creature raws carry REAL_WORLD_EXTINCT on vanilla and every TAGS token in the raws carries it; `extinct list` shows no 'no REAL_WORLD_EXTINCT class' row", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.freq", "MECH", "applied with the fix on: T. rex FREQUENCY 2, Quetzalcoatlus 5, Titanoboa 3, Mosasaurus still 50 (no row); after restore 50 / 100 / 30 / 50", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.grazer", "MECH", "applied: TRICERATOPS every caste GRAZER, misc.grazer 150, HAS_ANY_GRAZER, guild GZ; after restore false / 0 / false; CENOZOIC_MOA's GRAZER untouched", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.roles", "MECH", "applied: EORAPTOR BENIGN off, CARNIVORE on, guild ML, role predator; TIKTAALIK LARGE_PREDATOR off, guild MW; TITANOBOA LARGE_PREDATOR on, guild AW; DIMETRODON habitat land, guild AL, on the land roster part", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.model_off", "MECH", "`extinct off` -> classify(TRICERATOPS).guild is PL and EORAPTOR is prey; the raws read vanilla", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.restore", "MECH", "a write/restore round trip leaves every TAGS raw (frequency, grazer, benign, large predator, carnivore, ambush, cluster) as it was before the write", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.cavsnap", "MECH", "a T. rex held by CAVERN (raw 1) is corrected in the snapshot (2), not the raw; both restore orders end at raw 50", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.standdown", "MECH", "a T. rex FREQUENCY written by hand (7) is left alone by the fix (stand_down) and its row reads 'stood down (raw 7)'", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.realm", "MECH", "with fix and realms on, the realm table gains the fossil-locality rows (CRETACEOUS_TYRANNOSAURUS NEA); with `extinct set realms off` they are gone; a user-json entry survives both", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.units", "MECH", "a wild extinct animal on the map takes the corrected caste flags into its own cache on apply and gets its own back on restore; a tame one is untouched", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.mods", "CLI", "on the vanilla rig `extinct mods` prints 'attack mods active: 0' and names the five mod-only animal people", "docs/v7.1/extinct.md; R24", "shipped v7.1"),
+    ("mech.v71.extinct.ladder", "MECH", "on an embark with an extinct land apex, a land build reads its FREQUENCY as 'raw 2'/'raw 3' (the corrected raw), not a cap of a 50", "docs/v7.1/extinct.md; docs/v7.1/roster.md; R24 R34", "shipped v7.1"),
+    # -- vermin (seasonal-wildlife docs/v7.1/vermin.md "Validator claims needed"; R20 R21 R27 R51)
+    ("mech.v70.gobble", "MECH", "with v7 gobble on, an apply tags every in-embark vermin species' castes with its SWV_* class and writes GOBBLE_VERMIN_CLASS onto the matched consumers (GOBBLE_RULES and the edge table); `vermin classes` reports it", "docs/v7.1/vermin.md; validator-v70-coverage; VERMIN.gobbleApply", "shipped v7.0"),
+    ("mech.v71.vrm.swv_split", "MECH", "VRM-SWV-SPLIT: `vermin classes` lists SWV_COLONY (bees, termites) and SWV_BAT (bats); SWV_SOIL holds no VERMIN_SOIL_COLONY species", "docs/v7.1/vermin.md VRM-SWV-SPLIT; R21", "shipped v7.1"),
+    ("mech.v71.vrm.edges_src", "MECH", "VRM-EDGES-SRC: `vermin edges` names the source in force and the edge table; under source edges and source rules every in-embark consumer's castes carry exactly the SWV classes VERMIN.gobbleWants gives it (per-species rows after a roster build)", "docs/v7.1/vermin.md VRM-EDGES-SRC; docs/v7.1/fixes.md; R51", "shipped v7.1"),
+    ("mech.v71.vrm.class_off", "MECH", "VRM-CLASS-OFF: `vermin class SWV_HERP off` leaves no vermin caste tagged SWV_HERP and no consumer gobbling it; `on` puts both back", "docs/v7.1/vermin.md VRM-CLASS-OFF; R21 R27", "shipped v7.1"),
+    ("mech.v71.vrm.restore", "MECH", "VRM-RESTORE-v71: V7.restore (disable, all off) removes every SWV_* string from creature_class and the gobble vectors, the new SWV_COLONY and SWV_BAT included", "docs/v7.1/vermin.md VRM-RESTORE-v71", "shipped v7.1"),
+    ("mech.v71.vrm.vector", "MECH", "VRM-VECTOR: `vermin census` reads a vermin vector (not NO VERMIN VECTOR) holding objects; colony sites are counted apart from loose vermin and their amount is not in the loose amount", "docs/v7.1/vermin.md VRM-VECTOR; R21", "shipped v7.1"),
+    ("mech.v71.vrm.forage_run", "MECH", "VRM-FORAGE-RUN: `vermin forage now` returns a number and the status shows a last pass with its source; every pending forager is wild, not tame, natural, not deep, and walks to the recorded destination", "docs/v7.1/vermin.md VRM-FORAGE-RUN; R21", "shipped v7.1"),
+    ("mech.v71.vrm.forage_off", "MECH", "VRM-FORAGE-OFF: `vermin forage off` empties pending, cancels the job (PANEL.jobs shows it off) and clears the released units' walks", "docs/v7.1/vermin.md VRM-FORAGE-OFF", "shipped v7.1"),
+    ("mech.v71.vrm.cfg", "MECH", "VRM-CFG: a saved vermin_eat with out-of-range numbers and a bad source loads as the defaults; a class key it lacks loads as on", "docs/v7.1/vermin.md VRM-CFG", "shipped v7.1"),
+    ("mech.v71.vrm.perf", "PERF", "VRM-PERF: the vermin foraging job's worst pass stays under 50 ms over 3,000 ticks with the tool on", "docs/v7.1/vermin.md VRM-PERF", "shipped v7.1"),
+    # ---- v7.1 water stream (docs/v7.1/water.md): column depth readback (R22), land-layer aquatics (R45), the community mix (R62),
+    # prey pull and seeding (R14, R59), the stranding guard, the retry back-off, the curated apex rules (R43, R49)
+    ("mech.v71.water.survey.levels", "MECH", "on a fort with deep ocean columns `water depth` shows ocean columns at 3 and 4 stacked water tiles, ENGINE.deepColumns finds n > 0, the scan reads below the top water level (zReached) and is not stopped", "docs/v7.1/water.md; R22; C §8.1", "shipped v7.1"),
+    ("mech.v71.water.survey.ocean2", "MECH", "on OCEAN2 the ocean's column-depth histogram holds only 1 and 2 (max 2), nothing at 3 or more", "docs/v7.1/water.md; R22; ECO DEPTH", "shipped v7.1"),
+    ("mech.v71.water.survey.contig", "MECH", "a stride-1 water survey (`water depth full`) counts about 4x the stride-2 columns in every well-filled column-depth bucket (within 10%)", "docs/v7.1/water.md; R22", "shipped v7.1"),
+    ("mech.v71.water.column_levels", "MECH", "a saved water.deep_levels carries over as water.column_levels (an explicit column_levels wins; default 3), and `water levels 2` changes ENGINE.deepColumns().need to 2", "docs/v7.1/water.md; R22 rename", "shipped v7.1"),
+    ("mech.v71.water.landaq", "MECH", "the ocean's Driver B candidates include AQUATIC species listed on land-layer entries (keys with no water: prefix), no species twice; `water aquatic off` removes them", "docs/v7.1/water.md; R45", "shipped v7.1"),
+    ("mech.v71.water.mix", "MECH", "`water mix BODY` prints each candidate's base x factor = weight with its reasons; the species most present in the body gets a balance factor under 1; the weights sum above 0", "docs/v7.1/water.md; R62", "shipped v7.1"),
+    ("mech.v71.water.apexlimit", "MECH", "with a body already holding water.mix.apex_max (1) curated-apex groups every apex candidate there weighs 0 (a non-apex keeps its weight; with none held the apex weighs > 0); FISH_LAMPREY_SEA is level C, not an apex (R49)", "docs/v7.1/water.md; R43; R49", "shipped v7.1"),
+    ("mech.v71.water.pull", "MECH", "with prey drawn into the ocean, a predator or listed apex that takes it shows a pull factor >= water.pull.min in its weight, and a pelagic predator over pelagic_ref with prey here has the shallow floor lifted (its base equals its raw FREQUENCY)", "docs/v7.1/water.md; R14; R59; C §8.2", "shipped v7.1"),
+    ("mech.v71.water.seed", "MECH", "a predator drawn while its prey swims is seeded by its prey (ledger 'seeded by its prey'): every member on a water tile (level >= 4/7), within seek_radius of a prey unit, on a column as deep as the deepest sampled there (less one)", "docs/v7.1/water.md; R14; C §8.2 option C", "shipped v7.1"),
+    ("mech.v71.water.guard.recheck", "MECH", "on r2 the water status says breathing is read via getBreathingState, and a drawn fish teleported onto dry land is moved back to open water within two guard passes (ledger strand ... moved)", "docs/v7.1/water.md; C §8.2 stranding guard", "shipped v7.1"),
+    ("mech.v71.water.retry", "MECH", "a body with nothing drawable backs off water.retry_days (1 day = 1,200 ticks), not the old 5-day gap: next_water_body[body] - now <= retry_days x 1200", "docs/v7.1/water.md; R45", "shipped v7.1"),
+    ("mech.v71.water.fisher", "MECH", "no BEAR_* (a fisher on the curated list) is ever a Driver B water candidate", "docs/v7.1/water.md; R33; R43", "shipped v7.1"),
+    ("mech.v71.water.nodeep", "MECH", "the water census and the Driver B candidates never include a cavern or deep-layer entry or a unit outside the surface band (R60)", "docs/v7.1/water.md; R60", "shipped v7.1"),
+    # ---- v7.1 perf stream (docs/v7.1/perf.md, R48 R55): P0-P12, each with its legacy_* switch
+    ("perf.p0.kb", "PERF", "after a groups pass FUSE.stats['seasonal-wildlife/groups'].kb is a number >= 0 and the worst tick (CACHE.perfTickWorst.ms) is at least that job's worst pass", "docs/v7.1/perf.md P0", "shipped v7.1"),
+    ("perf.p0.verb", "CLI", "`perf` prints the switch line, the job table and either DFHack perf-counter rows or the 'not in this DFHack build' line, with no error", "docs/v7.1/perf.md P0", "shipped v7.1"),
+    ("perf.p1.memo", "PERF", "V7.PERF.raceEco(CACHE.cfg, race) equals ecoOf(cfg, raw) for every race on the map; CACHE.ecoClass is filled after an ecology pass; `perf legacy class on` gives the same V7.natural answers", "docs/v7.1/perf.md P1", "shipped v7.1"),
+    ("perf.p2.groups", "PERF", "loadGroups() returns the same shared table twice; after saveGroups the compact site-data record decodes to the same number of groups and carries no 'stuck' key (persist_transient off)", "docs/v7.1/perf.md P2", "shipped v7.1"),
+    ("perf.p2.undo", "PERF", "UNDO.push raises UNDO.depth() by one on the held ring (CACHE.undo, the same table before and after) and UNDO.pop takes it back", "docs/v7.1/perf.md P2", "shipped v7.1"),
+    ("perf.p3.overlay", "PERF", "V7.PERF.overlayData() twice within a second returns the same table, holding one marker per group with a live member", "docs/v7.1/perf.md P3", "shipped v7.1"),
+    ("perf.p4.census", "PERF", "inside a pass, WILD.countByLayer() from the census equals the v7.0 loop over units.active, and discoverGroups finds the same unit ids with `perf legacy census on`", "docs/v7.1/perf.md P4", "shipped v7.1"),
+    ("perf.p5.phases", "PERF", "after enable every job the Panel lists as on is scheduled at once, and over a short run no tick is shared by two jobs unless a deferral (FUSE.DEFER) fired", "docs/v7.1/perf.md P5", "shipped v7.1"),
+    ("perf.p6.live", "PERF", "the Live tab's biomass sum per layer from the managed-entry index (P6) equals the v7.0 walk over every population (legacy_live), computed headless the way the window does", "docs/v7.1/perf.md P6", "shipped v7.1"),
+    ("perf.p7.ro", "PERF", "a groups pass with no config writer due leaves CACHE.cfg the same table and CACHE.ver unchanged (one due saves and replaces it); CAVERN.apply run twice in a row saves its snapshot at most once", "docs/v7.1/perf.md P7", "shipped v7.1"),
+    ("perf.p8.pool", "PERF", "V7.PERF.pool(CACHE.cfg) twice returns the same pool with the memo's hits +1; a saveConfig makes the next call rebuild it", "docs/v7.1/perf.md P8", "shipped v7.1"),
+    ("perf.p9.native", "PERF", "the edge-only CAVE and WET surveys count exactly what the legacy full scan counts; on r2 the forEachTile vegetation grass share is within 3 points of the Lua scan and PLACE.tiles starts on the same level", "docs/v7.1/perf.md P9", "shipped v7.1"),
+    ("perf.p10.slice", "PERF", "after enable the load-time warm slice has run (CACHE.sliceLog.warm, n >= 1, no error) and the cave, wet-edge, water and vegetation surveys are cached; `perf build land` finishes its slice without error", "docs/v7.1/perf.md P10", "shipped v7.1"),
+    ("perf.p11.events", "PERF", "`perf census` walks the wild-id set; the set holds every live wild unit on the map, including any that arrived during the run (event or tail scan)", "docs/v7.1/perf.md P11", "shipped v7.1"),
+    ("perf.p12.scav", "PERF", "the edible natural remains a scavenging pass finds are the same with `perf legacy scav on` and off, and V7.PERF.webCensus(g).wild equals WILD.countByLayer()", "docs/v7.1/perf.md P12", "shipped v7.1"),
+    # ---- v7.1 web stream (docs/v7.1/web.md, R54): the controls registry and its endpoints
+    ("web.v71.controls", "MECH", "GET /controls.json answers 200 with at least 12 sections and 300 controls, and every available control (no {T}) carries its current value", "docs/v7.1/web.md; R54", "shipped v7.1"),
+    ("web.v71.set", "MECH", "POST /set?id=hunters.stoop.chance&v=61 answers 200 with value 61, the config reads 61 and the ledger gains a line; v=101 answers 400 'at most 100'; an unknown id answers 400", "docs/v7.1/web.md; R54", "shipped v7.1"),
+    ("web.v71.set_panel", "MECH", "POST /set?id=switch.nudge&v=on sets ecology.nudge through the Panel's own path (one undo step) and v=off puts it back", "docs/v7.1/web.md; R38; R54", "shipped v7.1"),
+    ("web.v71.status", "MECH", "GET /status.json returns every status section with no error, and the group map's first layer key is 'land'", "docs/v7.1/web.md; R54", "shipped v7.1"),
+    ("web.v71.cluster", "MECH", "the snapshot's group sizes follow the raws: for a species with two cluster numbers gmin < gmax and gmax == cluster_number[0] (the web-cluster-order fix)", "docs/v7.1/web.md; open item web-cluster-order", "shipped v7.1"),
+    ("web.v71.guard", "MECH", "the v7.1 endpoints refuse what they should: /act roster_build with an argument off its list 400, /set by GET 405, /set or /controls.json without the token 403, /cmd 'groups adopt' 400", "docs/v7.1/web.md; R54", "shipped v7.1"),
+    ("web.v71.perf", "PERF", "after the first, every snapshot the server builds takes under 50 ms (static species fields cached per world)", "docs/v7.1/web.md P12", "shipped v7.1"),
+    ("web.v71.stop", "MECH", "`seasonal-wildlife-web stop` after the v7.1 checks closes the port", "docs/v7.1/web.md", "shipped v7.1"),
 ]
 CLAIM = {c[0]: c for c in CLAIMS}
 
@@ -598,6 +757,8 @@ if out.loaded then
   out.citizens = n
   local okn, nm = pcall(function() return dfhack.translation and dfhack.translation.translateName(df.global.world.world_data.name, true) or dfhack.TranslateName(df.global.world.world_data.name, true) end)
   out.world = okn and nm or '?'
+  local okv, sav = pcall(function() local st = df.global.world.world_data.active_site[0]; return dfhack.maps.getRegionBiome(st.pos.x, st.pos.y).savagery end)
+  out.savagery = okv and sav or nil
 end
 print(json.encode(out))"""
 
@@ -615,8 +776,9 @@ def v71_facts(fort):
         "cavern_reached": (F71.get("reached") or 0) > 0, "r2": bool(F71.get("r2")),
     }
     F71["has"]["dry"] = not F71["has"]["water"]
+    F71["has"]["calm"] = isinstance(F71.get("savagery"), (int, float)) and F71["savagery"] < 33
     log(f"  v7.1 facts: fort {fort} world {F71.get('world')} map {F71.get('x')}x{F71.get('y')} auto {F71.get('auto')} "
-        f"water {w} maxDepth {md} caverns {F71.get('caverns')} r2 {F71.get('r2')} citizens {F71.get('citizens')}")
+        f"water {w} maxDepth {md} caverns {F71.get('caverns')} savagery {F71.get('savagery')} r2 {F71.get('r2')} citizens {F71.get('citizens')}")
     return F71
 
 def has(cond):
@@ -3003,11 +3165,20 @@ def resolve_shipped_backlog():
 V71_TODO = {}   # wave 2 wrote every id the stub reserved; kept so the report and resolve_shipped_backlog still read it
 V71_AREAS = ["deploy", "fixes", "ecology", "groups", "water", "roster", "extinct", "vermin", "scav", "irruption", "perf", "web"]
 
+# the v7.0 features whose claims wave 2 writes in phase_v71 (the ids the stub reserved; validator-v70-coverage)
+V70_IN_V71 = {"mech.v70.builder", "mech.v70.gobble", "mech.v70.scav_ext", "mech.v70.outgun", "mech.v70.realms",
+              "mech.v70.gate_drain", "mech.v70.solo_skill"}
+
 def area_of(c):
+    """The phase_v71 sub-phase that judges a claim: only rows claimed 'shipped v7.1' (and the reserved v7.0 ids), by
+    the first docs/v7.1/<stream>.md their source names. An older claim whose source cites a v7.1 note for its new
+    wording stays in its own phase."""
+    if c[0].startswith("deploy."):
+        return "deploy"
+    if c[4] != "shipped v7.1" and c[0] not in V70_IN_V71:
+        return None
     m = re.search(r"v7\.1/(\w+)\.md", c[3])
-    if m:
-        return m.group(1)
-    return "deploy" if c[0].startswith("deploy.") else None
+    return m.group(1) if m else None
 
 def v71_ids(area):
     return [c[0] for c in CLAIMS if area_of(c) == area]
@@ -3042,6 +3213,3889 @@ print(json.encode(out))""")
         rec("deploy.v71.loads", "PASS" if j.get("controls") and j.get("web") and (j.get("sections") or 0) >= 12 else "FAIL",
             "reqscript('seasonal-wildlife-controls') loads with its 12 sections, and the web server (which requires it) loads",
             json.dumps(j))
+
+def _a_unreapply():
+    """V7.restore, then the tool's own raws back if the real config is enabled (a probe applied them to a copy)."""
+    return luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local n = V7.restore(); local real = sw.loadConfig(); local again = ''
+if real.enabled then again = V7.apply(real) end
+print(json.encode({restored=n, reapplied=real.enabled}))""")
+
+def v71_ecology():
+    # ---- R37/R38 defaults and the one-time migration; R33/R43 bears fish by default
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local d = sw.defaultConfig()
+local out = {cad=d.ecology.cadence, nudge=d.ecology.nudge, fishers=d.v7.fishers, rev=d.hunters and d.hunters.rev}
+local on, off = {}, {}
+for t, v in pairs(d.v7.fisher_list or {}) do if v then on[#on+1]=t else off[#off+1]=t end end
+table.sort(on); table.sort(off); out.fishOn = on; out.fishOff = off
+local c1 = sw.defaultConfig(); c1.ecology.cadence = 1500; c1.ecology.nudge = true; c1.v7.fishers = false
+V7.sanitizeHunters(c1, {}); out.m1500 = c1.ecology.cadence; out.mNudge = c1.ecology.nudge; out.mFishers = c1.v7.fishers
+local c2 = sw.defaultConfig(); c2.ecology.cadence = 2000
+V7.sanitizeHunters(c2, {}); out.m2000 = c2.ecology.cadence
+local c3 = sw.defaultConfig(); c3.ecology.cadence = 1500
+V7.sanitizeHunters(c3, {hunters={}}); out.mV71 = c3.ecology.cadence
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad(["mech.v71.cadence_default", "mech.v71.fish_bears_default"], j)
+    else:
+        ok = (j.get("cad") == 3000 and j.get("nudge") is False and j.get("m1500") == 3000 and j.get("mNudge") is False
+              and j.get("m2000") == 2000 and j.get("mV71") == 1500)
+        rec("mech.v71.cadence_default", "PASS" if ok else "FAIL",
+            "fresh: cadence 3000, nudge false; pre-v7.1 1500 -> 3000, nudge true -> false, 2000 kept; a config with a hunters table untouched",
+            json.dumps({k: j.get(k) for k in ("cad", "nudge", "m1500", "mNudge", "m2000", "mV71")}))
+        on = j.get("fishOn") or []
+        ok = j.get("fishers") is True and len(on) > 0 and all("BEAR" in t for t in on)
+        rec("mech.v71.fish_bears_default", "PASS" if ok else "FAIL", "v7.fishers on; every fisher_list token turned on is a BEAR",
+            json.dumps({"fishers": j.get("fishers"), "on": on, "off": j.get("fishOff")}))
+
+    # ---- pick a packaged species with stock on the map, and place one BEFORE the raws are written (the unit-write subject)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local H=V7.H
+local cfg = sw.loadConfig(); cfg.enabled=true; cfg.v7.solo=true; cfg.hunters.pack_on=true
+local pool = sw.buildPool(cfg)
+local stocked = {}
+for _, pop in ipairs(df.global.world.populations.all) do
+  if pop.type == df.world_population_type.Animal and pop.quantity > 0 and pop.population.cave_id == -1 and pop.population.feature_idx == -1 then stocked[pop.race] = true end
+end
+local solo, any
+for _, e in ipairs(pool) do
+  if e.inEmbark and not e.locked and e.layer == 'land' and stocked[e.idx] then
+    local p = H.profileOf(cfg, e)
+    if p and p.ambush and not solo then solo = e.token end
+    if p and not any then any = e.token end
+  end
+end
+print(json.encode({solo=solo, any=any}))""")
+    placeTok = (j.get("solo") or j.get("any")) if not bad(j) else None
+    placed1 = []
+    if placeTok:
+        out = tool("place", placeTok, "1")
+        m = re.search(r"at ids ([\d,]+)", out)
+        placed1 = [int(x) for x in m.group(1).split(",")] if m else []
+        log(f"   ecology: placed {placeTok} before the raws: {out.strip()[:160]}")
+
+    # ---- the profile writes: castes before/after/after-restore, one on-map unit, the readback, the raptors
+    probe = """local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local H=V7.H
+local cfg = sw.loadConfig(); cfg.enabled=true; cfg.v7.solo=true; cfg.hunters.pack_on=true; cfg.hunters.raptors=true
+local pool = sw.buildPool(cfg)
+local SN = df.job_skill.SNEAK
+local function minSneak(cr) local m; for _, c in ipairs(cr.caste) do local v = H.casteSkill(c, SN); m = m and math.min(m, v) or v end; return m end
+local function benignN(cr) local n = 0; for _, c in ipairs(cr.caste) do if c.flags.BENIGN then n = n + 1 end end; return n end
+local function unitSk(u)
+  local soul = u and u.status.current_soul
+  if not soul then return nil end
+  local r = { rating = 0, floor = 0 }
+  for _, x in ipairs(soul.skills) do if x.id == SN then r.rating = x.rating; local ok, f = pcall(function() return x.natural_skill_lvl end); r.floor = ok and f or -1 end end
+  local ok, v = pcall(dfhack.units.getNominalSkill, u, SN, true); r.nominal = ok and v or -1
+  return r
+end
+local soloE, soloApex, packE, rapE, eagleE
+local profRace = {}
+for _, e in ipairs(pool) do
+  if e.inEmbark and not e.locked then
+    local p = H.profileOf(cfg, e)
+    if p then profRace[e.idx] = p end
+    if p and p.ambush and (not soloE or (p.name == 'solitary apex' and not soloApex)) then soloE = e; soloApex = (p.name == 'solitary apex') end
+    if p and p.name == 'pack' and not packE then packE = e end
+    if e.guild == 'RP' and not e.civ then if e.token == 'BIRD_EAGLE' then eagleE = e elseif not rapE then rapE = e end end
+  end
+end
+rapE = eagleE or rapE
+local function raw(e) return e and sw.CAVERN.rawFor(e.token) end
+local out = { soloTok = soloE and soloE.token, packTok = packE and packE.token, rapTok = rapE and rapE.token }
+if soloE then local p = H.profileOf(cfg, soloE); out.soloProf = p.name; out.soloLvl = p.sneak end
+if packE then local p = H.profileOf(cfg, packE); out.packProf = p.name; out.packLvl = p.sneak end
+if rapE then out.rapCastes = #raw(rapE).caste; out.rapArmed = sw.ecoArmed(rapE) end
+local placed = { @IDS@ }
+local uu
+for _, id in ipairs(placed) do local u = df.unit.find(id); if u and profRace[u.race] and u.status.current_soul then uu = u; break end end
+if not uu then for _, u in ipairs(df.global.world.units.active) do if profRace[u.race] and sw.WILD.onMap(u) and u.status.current_soul then uu = u; break end end end
+if uu then out.unitId = uu.id; out.unitTok = df.creature_raw.find(uu.race).creature_id; out.unitLvl = profRace[uu.race].sneak end
+local function snap(tag)
+  if soloE then out['solo_' .. tag] = minSneak(raw(soloE)) end
+  if packE then out['pack_' .. tag] = minSneak(raw(packE)) end
+  if rapE then out['rap_' .. tag] = benignN(raw(rapE)) end
+  if uu then out['unit_' .. tag] = unitSk(df.unit.find(uu.id)) end
+end
+snap('before')
+V7.restore()
+out.msg = V7.apply(cfg, pool)
+snap('after')
+local rb = H.readback(); out.rbN = #rb; out.rbBad = {}
+for _, r in ipairs(rb) do if r.casteOk ~= r.castes then out.rbBad[#out.rbBad + 1] = r.token .. ' ' .. r.casteOk .. '/' .. r.castes end end
+_G.__v71a_prof = { tok = out.soloTok, lvl = out.soloLvl }
+print(json.encode(out))"""
+    j = luap(probe.replace("@IDS@", ",".join(str(i) for i in placed1)), timeout=240)
+    ids_all = ["mech.v71.skill_profile", "mech.v71.skill_units", "mech.v71.readback", "mech.v71.raptor_armed", "mech.v70.solo_skill"]
+    if bad(j):
+        rec_bad(ids_all, j); _a_unreapply()
+    else:
+        _a_profiles(j, placeTok, placed1)
+    _a_packs_model()
+
+
+def _a_profiles(j, placeTok, placed1):
+    # ---- a unit placed while the raws hold (solo_skill: the caste write read on a newly arrived unit)
+    placed2 = []
+    if j.get("soloTok") or placeTok:
+        tok2 = j.get("soloTok") or placeTok
+        out = tool("place", tok2, "1")
+        m = re.search(r"at ids ([\d,]+)", out)
+        placed2 = [int(x) for x in m.group(1).split(",")] if m else []
+        j2 = luap(("""local SN = df.job_skill.SNEAK; local out = {}
+for _, id in ipairs({ @IDS@ }) do
+  local u = df.unit.find(id); local soul = u and u.status.current_soul
+  if soul then
+    out.id = id; out.rating = 0
+    for _, x in ipairs(soul.skills) do if x.id == SN then out.rating = x.rating end end
+    out.tok = df.creature_raw.find(u.race).creature_id
+    break
+  end
+end
+print(json.encode(out))""").replace("@IDS@", ",".join(str(i) for i in placed2)))
+    else:
+        j2 = {}
+    # ---- restore, then read every value back
+    j3 = luap(("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local H=V7.H
+local SN = df.job_skill.SNEAK
+local function minSneak(tok) local cr = tok and sw.CAVERN.rawFor(tok); if not cr then return nil end; local m; for _, c in ipairs(cr.caste) do local v = H.casteSkill(c, SN); m = m and math.min(m, v) or v end; return m end
+local function benignN(tok) local cr = tok and sw.CAVERN.rawFor(tok); if not cr then return nil end; local n = 0; for _, c in ipairs(cr.caste) do if c.flags.BENIGN then n = n + 1 end end; return n end
+local n = V7.restore()
+local out = { restored = n, solo = minSneak(@SOLO@), pack = minSneak(@PACK@), rap = benignN(@RAP@) }
+local u = @UID@ and df.unit.find(@UID@)
+local soul = u and u.status.current_soul
+if soul then out.unit = { rating = 0, floor = 0 }; for _, x in ipairs(soul.skills) do if x.id == SN then out.unit.rating = x.rating; local ok, f = pcall(function() return x.natural_skill_lvl end); out.unit.floor = ok and f or -1 end end end
+local real = sw.loadConfig(); if real.enabled then V7.apply(real) end
+print(json.encode(out))""")
+        .replace("@SOLO@", json.dumps(j.get("soloTok")) if j.get("soloTok") else "nil")
+        .replace("@PACK@", json.dumps(j.get("packTok")) if j.get("packTok") else "nil")
+        .replace("@RAP@", json.dumps(j.get("rapTok")) if j.get("rapTok") else "nil")
+        .replace("@UID@", str(j.get("unitId")) if isinstance(j.get("unitId"), int) else "nil"))
+    post = j3 if not bad(j3) else {}
+    # skill_profile
+    if j.get("soloTok") or j.get("packTok"):
+        okS = (not j.get("soloTok")) or ((j.get("solo_after") or 0) >= (j.get("soloLvl") or 99) and post.get("solo") == j.get("solo_before"))
+        okP = (not j.get("packTok")) or ((j.get("pack_after") or 0) >= (j.get("packLvl") or 99) and post.get("pack") == j.get("pack_before"))
+        both = bool(j.get("soloTok")) and bool(j.get("packTok"))
+        rec("mech.v71.skill_profile", ("PASS" if both else "NOT-TESTABLE-HERE") if okS and okP else "FAIL",
+            "every caste's SNEAK at the profile after V7.apply (solitary 15/12, pack 5), the vanilla level after V7.restore()",
+            json.dumps({k: j.get(k) for k in ("soloTok", "soloProf", "soloLvl", "solo_before", "solo_after", "packTok", "packProf", "packLvl", "pack_before", "pack_after")} | {"post": post}),
+            note="" if both else "only one of the two profiles (solitary / pack) has an in-embark species on this fort; a savage region8 fort with wolves and a cougar has both")
+    else:
+        rec("mech.v71.skill_profile", "NOT-TESTABLE-HERE", "an in-embark packaged hunter (solitary or pack)", json.dumps(j)[:600],
+            note="no armed natural predator in this embark's pool; a region8 savage fort (B1-R8-*-SAVAGE) has them")
+    # skill_units
+    ub, ua, up = j.get("unit_before") or {}, j.get("unit_after") or {}, post.get("unit") or {}
+    if j.get("unitId"):
+        lvl = j.get("unitLvl") or 99
+        ok = ((ua.get("nominal") or 0) >= lvl and (ua.get("floor") or 0) >= lvl
+              and up.get("rating") == ub.get("rating") and up.get("floor") == ub.get("floor"))
+        rec("mech.v71.skill_units", "PASS" if ok else "FAIL",
+            "the unit's nominal SNEAK and natural floor at the profile after V7.apply; rating and floor as before after V7.restore()",
+            json.dumps({"unit": j.get("unitId"), "token": j.get("unitTok"), "level": lvl, "before": ub, "after": ua, "post": up}))
+    else:
+        rec("mech.v71.skill_units", "NOT-TESTABLE-HERE", "a live unit with a soul of a packaged species on the map", json.dumps({"placed": placed1, "placeTok": placeTok}),
+            note="no stocked packaged hunter to place on this fort; a region8 savage fort (B1-R8-*-SAVAGE) has wolves and cougars in stock")
+    # readback
+    if (j.get("rbN") or 0) > 0:
+        rec("mech.v71.readback", "PASS" if not j.get("rbBad") else "FAIL", "one row per packaged species, casteOk == castes on every row",
+            json.dumps({"rows": j.get("rbN"), "short": j.get("rbBad")}))
+    else:
+        rec("mech.v71.readback", "NOT-TESTABLE-HERE", "a packaged species after V7.apply", json.dumps({"rows": j.get("rbN")}),
+            note="no armed natural predator in this embark's pool; any region8 fort with wildlife predators")
+    # raptor_armed
+    if j.get("rapTok"):
+        n = j.get("rapCastes") or 0
+        ok = j.get("rapArmed") is True and j.get("rap_after") == 0 and post.get("rap") == j.get("rap_before")
+        rec("mech.v71.raptor_armed", "PASS" if ok else "FAIL",
+            "BENIGN off on every caste after V7.apply, as before after V7.restore(); ecoArmed true",
+            json.dumps({"token": j.get("rapTok"), "castes": n, "benign_before": j.get("rap_before"), "after": j.get("rap_after"), "post": post.get("rap"), "ecoArmed": j.get("rapArmed")}),
+            note="" if j.get("rapTok") == "BIRD_EAGLE" else "no BIRD_EAGLE in this embark; the first in-embark RP species stood in")
+    else:
+        rec("mech.v71.raptor_armed", "NOT-TESTABLE-HERE", "an in-embark raptor (RP guild)", json.dumps(j)[:400],
+            note="no raptor in this embark's pool; a region8 temperate forest or mountain fort has eagles")
+    # solo_skill (v7.0 reserved)
+    lvl = j.get("soloLvl")
+    if j2 and not bad(j2) and j2.get("id") and lvl:
+        rec("mech.v70.solo_skill", "PASS" if (j2.get("rating") or 0) >= lvl else "FAIL",
+            "a unit placed while the caste write holds has SNEAK >= the solitary profile on its soul (DF copied the racial skill at creation)",
+            json.dumps({"token": j2.get("tok"), "unit": j2.get("id"), "rating": j2.get("rating"), "profile": lvl}))
+    else:
+        rec("mech.v70.solo_skill", "NOT-TESTABLE-HERE", "a stocked solitary hunter to place while the raws hold",
+            json.dumps({"soloTok": j.get("soloTok"), "placed": placed2, "probe": j2 if isinstance(j2, dict) else {}})[:600],
+            note="needs a stocked solitary predator (cougar, jaguar, bear) on the land layer: a region8 savage fort (B1-R8-*-SAVAGE)")
+
+
+def _a_packs_model():
+    # ---- packs inferred (pure: fake hunters, no unit touched)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local wolf, cougar = sw.raceIndex('WOLF'), sw.raceIndex('COUGAR')
+local out = { wolf = wolf, cougar = cougar }
+if not wolf or wolf < 0 or not cougar or cougar < 0 then print(json.encode(out)) return end
+local cfg = sw.loadConfig(); cfg.hunters.pack_on = true; cfg.hunters.pack_radius = 10
+local function fake(id, race, x) return { id = id, race = race, pos = { x = x, y = 10, z = 100 } } end
+local n1 = V7.H.packSizes(cfg, { groups = {} }, { fake(-101, wolf, 10), fake(-102, wolf, 15), fake(-103, cougar, 10), fake(-104, cougar, 12) })
+out.w1, out.w2, out.c1, out.c2 = n1[-101], n1[-102], n1[-103], n1[-104]
+local n2 = V7.H.packSizes(cfg, { groups = {} }, { fake(-105, wolf, 10), fake(-106, wolf, 40) })
+out.far1, out.far2 = n2[-105], n2[-106]
+cfg.hunters.pack_on = false
+local n3 = V7.H.packSizes(cfg, { groups = {} }, { fake(-107, wolf, 10), fake(-108, wolf, 12) })
+out.off1 = n3[-107]
+out.cohWolf = sw.MODEL.cohesionOf(df.creature_raw.find(wolf), cfg)
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.packs_inferred", j)
+    elif not (isinstance(j.get("wolf"), int) and j.get("wolf") >= 0 and isinstance(j.get("cougar"), int) and j.get("cougar") >= 0):
+        rec("mech.v71.packs_inferred", "NOT-TESTABLE-HERE", "WOLF and COUGAR raws in this world", json.dumps(j), note="vanilla raws carry both; a modded world may not")
+    else:
+        ok = j.get("w1") == 2 and j.get("w2") == 2 and j.get("c1") is None and j.get("c2") is None and j.get("far1") is None and j.get("off1") is None
+        rec("mech.v71.packs_inferred", "PASS" if ok else "FAIL",
+            "two wolves 5 tiles apart -> pack 2; two cougars (solitary) none; wolves 30 apart none; pack_on off none", json.dumps(j))
+
+    # ---- raptor cap, cohesion table, swimmer scavengers (pure model reads)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local M=sw.MODEL
+local cfg = sw.loadConfig()
+local out = {}
+local eagle, deer, rabbit = M.rawOf('BIRD_EAGLE'), M.rawOf('DEER'), M.rawOf('RABBIT')
+if eagle and deer and rabbit then
+  local ce = sw.classify(eagle)
+  out.eagleGuild, out.eagleMass = ce.guild, ce.mass
+  out.deerMass, out.rabbitMass = sw.classify(deer).mass, sw.classify(rabbit).mass
+  local ea = { guild = ce.guild, mass = ce.mass }
+  out.deerTooBig = V7.H.raptorTooBig(cfg, ea, out.deerMass)
+  out.rabbitTooBig = V7.H.raptorTooBig(cfg, ea, out.rabbitMass)
+end
+out.coh = {}; out.cl = {}
+for _, t in ipairs({ 'COUGAR', 'WOLF', 'FISH_PIKE', 'BIRD_RAVEN' }) do
+  local cr = M.rawOf(t)
+  if cr then out.coh[t] = M.cohesionOf(cr, cfg); out.cl[t] = math.max(cr.cluster_number[0], cr.cluster_number[1]) end
+end
+out.sw = {}
+local off = sw.loadConfig(); off.hunters.swim_scav = false
+out.swOff = {}
+for _, t in ipairs({ 'SHARK_GREAT_WHITE', 'CROCODILE_SALTWATER', 'POND_GRABBER', 'SHARK_NURSE', 'FISH_LAMPREY_SEA', 'FISH_PIKE' }) do
+  local cr = M.rawOf(t)
+  if cr then out.sw[t] = M.swimScavenger(cr, cfg); out.swOff[t] = M.swimScavenger(cr, off) end
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad(["mech.v71.raptor_cap", "mech.v71.swimscav"], j)
+    else:
+        if "deerTooBig" in j:
+            rec("mech.v71.raptor_cap", "PASS" if j.get("deerTooBig") is True and j.get("rabbitTooBig") is False else "FAIL",
+                "deer too big for an eagle, a rabbit not", json.dumps({k: j.get(k) for k in ("eagleGuild", "eagleMass", "deerMass", "rabbitMass", "deerTooBig", "rabbitTooBig")}),
+                note="" if j.get("eagleGuild") == "RP" else "the model does not read BIRD_EAGLE as a raptor (guild != RP), so raptorTooBig is false for every prey")
+        else:
+            rec("mech.v71.raptor_cap", "NOT-TESTABLE-HERE", "BIRD_EAGLE, DEER and RABBIT raws", json.dumps(j)[:300], note="vanilla raws carry all three")
+        swd, swo = j.get("sw") or {}, j.get("swOff") or {}
+        want = {"SHARK_GREAT_WHITE": True, "CROCODILE_SALTWATER": True, "POND_GRABBER": True, "SHARK_NURSE": True, "FISH_LAMPREY_SEA": False, "FISH_PIKE": False}
+        present = [t for t in want if t in swd]
+        ok = bool(present) and all(swd.get(t) == want[t] for t in present) and not any(swo.get(t) for t in present)
+        rec("mech.v71.swimscav", "PASS" if ok else "FAIL", "true for the four carnivorous swimmers, false for the lamprey and the pike; all false with swim_scav off",
+            json.dumps({"on": swd, "off": swo, "missing_raws": [t for t in want if t not in swd]}))
+    coh0 = j.get("coh") or {} if not bad(j) else {}
+    cl = (j.get("cl") or {}) if not bad(j) else {}
+    # the override, through the verb, with the manipulation read back from the saved config
+    tool("hunters", "cohesion", "WOLF", "herd")
+    v1 = cfgv("hunters.cohesion.WOLF")
+    jo = luap("""local sw=reqscript('seasonal-wildlife'); local cr = sw.MODEL.rawOf('WOLF')
+print(json.encode({ lab = cr and sw.MODEL.cohesionOf(cr, sw.loadConfig()) }))""")
+    tool("hunters", "cohesion", "WOLF", "auto")
+    v2 = cfgv("hunters.cohesion.WOLF")
+    ja = luap("""local sw=reqscript('seasonal-wildlife'); local cr = sw.MODEL.rawOf('WOLF')
+print(json.encode({ lab = cr and sw.MODEL.cohesionOf(cr, sw.loadConfig()) }))""")
+    if manip("mech.v71.cohesion", "hunters.cohesion.WOLF reads 'herd' after `hunters cohesion WOLF herd`", v1.get("hunters.cohesion.WOLF") == "herd" or DRY,
+             json.dumps({"after_herd": v1, "after_auto": v2})):
+        def exp(t, many):
+            return many if (cl.get(t) or 0) > 1 else "solitary"
+        okT = (coh0.get("COUGAR") == "solitary" and coh0.get("WOLF") == "pack"
+               and (("FISH_PIKE" not in coh0) or coh0.get("FISH_PIKE") == exp("FISH_PIKE", "school"))
+               and (("BIRD_RAVEN" not in coh0) or coh0.get("BIRD_RAVEN") == exp("BIRD_RAVEN", "flock")))
+        okO = jo.get("lab") == "herd" and v2.get("hunters.cohesion.WOLF") is None and ja.get("lab") == "pack"
+        rec("mech.v71.cohesion", "PASS" if okT and okO else "FAIL",
+            "COUGAR solitary, WOLF pack, pike/raven by cluster; the override wins and auto clears it",
+            json.dumps({"table": coh0, "cluster_max": cl, "override": jo.get("lab"), "after_auto": ja.get("lab"), "saved_after_auto": v2.get("hunters.cohesion.WOLF")}))
+
+    # ---- bankPair: a bear's shore spot by a river or lake
+    if need("mech.v71.bankpair", "water", "a dry G beside a water W at one level"):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local H=sw.V7.H
+local wt = sw.ENGINE.waterTiles()
+local out = { tried = 0 }
+for _, t in ipairs(wt.tiles or {}) do
+  if t.body == 'river' or t.body == 'lake' or t.body == 'pool' or t.body == 'ocean' then
+    out.tried = out.tried + 1
+    local G, W = H.bankPair({ x = t.x, y = t.y, z = t.z }, 8)
+    if G and W then
+      out.body = t.body
+      out.G = { x = G.x, y = G.y, z = G.z }; out.W = { x = W.x, y = W.y, z = W.z }
+      out.gFlow = dfhack.maps.getTileFlags(xyz2pos(G.x, G.y, G.z)).flow_size
+      out.wFlow = dfhack.maps.getTileFlags(xyz2pos(W.x, W.y, W.z)).flow_size
+      break
+    end
+    if out.tried >= 40 then break end
+  end
+end
+print(json.encode(out))""")
+        if bad(j):
+            rec_bad("mech.v71.bankpair", j)
+        elif not j.get("G"):
+            rec("mech.v71.bankpair", "FAIL", "a shore pair within 8 tiles of a surveyed water tile", json.dumps(j))
+        else:
+            G, W = j.get("G") or {}, j.get("W") or {}
+            adj = max(abs((G.get("x") or 0) - (W.get("x") or 0)), abs((G.get("y") or 0) - (W.get("y") or 0))) == 1
+            ok = (j.get("gFlow") or 0) < 4 and (j.get("wFlow") or 0) >= 4 and G.get("z") == W.get("z") and adj
+            rec("mech.v71.bankpair", "PASS" if ok else "FAIL", "G flow < 4, W flow >= 4, same z, adjacent", json.dumps(j),
+                note="" if j.get("body") in ("river", "lake") else f"no river or lake tile found a pair first; judged on a {j.get('body')} shore")
+
+
+def v71_fixes():
+    # ---- the cohesion override reaches cohesionLabel / V7.GRP.cohere (fake groups for the label; a live WOLF group if one stands)
+    tool("hunters", "cohesion", "WOLF", "herd"); tool("hunters", "cohesion", "COUGAR", "solitary")
+    v = cfgv("hunters.cohesion.WOLF", "hunters.cohesion.COUGAR")
+    if manip("mech.v71.fix.cohesion_override", "the two overrides saved", (v.get("hunters.cohesion.WOLF") == "herd" and v.get("hunters.cohesion.COUGAR") == "solitary") or DRY, json.dumps(v)):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.GRP
+local cfg = sw.loadConfig(); local g = sw.loadGroups()
+local wolf, cougar = sw.raceIndex('WOLF'), sw.raceIndex('COUGAR')
+local out = { wolf = wolf, cougar = cougar, followHerd = cfg.groups.follow_herd }
+if wolf and wolf >= 0 then
+  out.wolfLabel = sw.cohesionLabel(wolf, cfg)
+  for _, grp in ipairs(g.groups) do
+    if grp.race == wolf then
+      G.cohere(cfg, g, grp); out.liveLabel = grp.label; out.liveLeader = grp.leader
+      if grp.leader then
+        out.dists = {}
+        for _, id in ipairs(grp.ids) do local u = df.unit.find(id); if u and u.following and id ~= grp.leader then out.dists[#out.dists + 1] = u.follow_distance end end
+      end
+      break
+    end
+  end
+end
+if cougar and cougar >= 0 then
+  local fake = { race = cougar, ids = {}, leader = nil }
+  local led = G.cohere(cfg, g, fake)
+  out.cougarLabel, out.cougarLed = fake.label, led
+end
+print(json.encode(out))""")
+        tool("hunters", "cohesion", "WOLF", "auto"); tool("hunters", "cohesion", "COUGAR", "auto")
+        ja = luap("""local sw=reqscript('seasonal-wildlife'); local w = sw.raceIndex('WOLF')
+print(json.encode({ lab = (w and w >= 0) and sw.cohesionLabel(w, sw.loadConfig()) or nil }))""")
+        if bad(j):
+            rec_bad("mech.v71.fix.cohesion_override", j)
+        else:
+            dists = j.get("dists") or []
+            okLive = (j.get("liveLabel") is None) or (j.get("liveLabel") == "herd" and all(d == j.get("followHerd") for d in dists))
+            ok = j.get("wolfLabel") == "herd" and j.get("cougarLabel") == "solitary" and j.get("cougarLed") is False and okLive and ja.get("lab") == "pack"
+            rec("mech.v71.fix.cohesion_override", "PASS" if ok else "FAIL",
+                "WOLF -> herd (live group at follow_herd), auto -> pack; COUGAR solitary -> unled", json.dumps(j | {"after_auto": ja.get("lab")}),
+                note="" if j.get("liveLabel") else "no tracked WOLF group on the map: the label and follow distance were read off cohesionLabel and a memberless group; a live group needs wolves (region8 savage/forest fort, or `place WOLF 4`)")
+    else:
+        tool("hunters", "cohesion", "WOLF", "auto"); tool("hunters", "cohesion", "COUGAR", "auto")
+
+    # ---- swimscav cache: the verb clears SCAV.kind's per-world cache
+    j0 = luap("""local sw=reqscript('seasonal-wildlife'); local cr = sw.MODEL.rawOf('SHARK_NURSE')
+print(json.encode({ has = cr ~= nil, kind = cr and sw.SCAV.kind(cr) or nil }))""")
+    tool("hunters", "swimscav", "SHARK_NURSE", "off")
+    v = cfgv("hunters.swim_scav_list.SHARK_NURSE")
+    j1 = luap("""local sw=reqscript('seasonal-wildlife'); local cr = sw.MODEL.rawOf('SHARK_NURSE')
+print(json.encode({ kind = cr and sw.SCAV.kind(cr) or nil }))""")
+    tool("hunters", "swimscav", "SHARK_NURSE", "auto")
+    if bad(j0) or bad(j1):
+        rec_bad("mech.v71.fix.swimscav_cache", j0 if bad(j0) else j1)
+    elif not j0.get("has") and not DRY:
+        rec("mech.v71.fix.swimscav_cache", "NOT-TESTABLE-HERE", "a SHARK_NURSE raw", json.dumps(j0), note="vanilla raws carry it")
+    elif j0.get("kind") == "bone":
+        rec("mech.v71.fix.swimscav_cache", "NOT-TESTABLE-HERE", "SHARK_NURSE a swim-kind scavenger (not a bone-eater)", json.dumps(j0),
+            note="SHARK_NURSE reads as a bone scavenger here, which the swimmer switch does not govern")
+    elif manip("mech.v71.fix.swimscav_cache", "hunters.swim_scav_list.SHARK_NURSE saved false", v.get("hunters.swim_scav_list.SHARK_NURSE") is False or DRY, json.dumps(v)):
+        rec("mech.v71.fix.swimscav_cache", "PASS" if j0.get("kind") == "swim" and j1.get("kind") is False else "FAIL",
+            "SCAV.kind(SHARK_NURSE) 'swim' before, false right after the verb", json.dumps({"before": j0.get("kind"), "after": j1.get("kind")}))
+
+    # ---- the forager's crash: a scavenger waiting on remains, then a forage pass
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V=sw.VERMIN
+local st = sw.SCAV.state()
+local waited = {}
+for _, u in ipairs(df.global.world.units.active) do
+  if sw.WILD.onMap(u) and not st.wait[u.id] then st.wait[u.id] = sw.absTick(); waited[#waited + 1] = u.id end
+  if #waited >= 5 then break end
+end
+local cfg = sw.loadConfig()
+local okF, err = pcall(function()
+  local fs = V.fstate(); local n = 0
+  for _, id in ipairs(waited) do local u = df.unit.find(id); if u and V.forager(cfg, fs, u) then n = n + 1 end end
+  return n
+end)
+local okR, nR = pcall(V.forageRun, true)
+for _, id in ipairs(waited) do st.wait[id] = nil end
+print(json.encode({ waited = #waited, foragerOk = okF, sentForaging = okF and err or nil, foragerErr = (not okF) and tostring(err) or nil, runOk = okR, runOut = tostring(nR) }))""")
+    if bad(j):
+        rec_bad("mech.v71.fix.forager_no_crash", j)
+    elif (j.get("waited") or 0) == 0 and not DRY:
+        rec("mech.v71.fix.forager_no_crash", "NOT-TESTABLE-HERE", "a wild unit on the map to stand as the waiting scavenger", json.dumps(j),
+            note="no wild unit on the map; any region8 fort with wildlife present")
+    else:
+        ok = j.get("foragerOk") is True and j.get("runOk") is True and (j.get("sentForaging") or 0) == 0
+        rec("mech.v71.fix.forager_no_crash", "PASS" if ok else "FAIL",
+            "VERMIN.forager and a forced forage pass run without error; no waiting scavenger is eligible", json.dumps(j))
+
+    # ---- the build's edges feed the gobble writer
+    tool("roster", "build", "land")
+    eo = tool("vermin", "edges", "edges")
+    v = cfgv("vermin_eat.source")
+    if manip("mech.v71.fix.edges_after_build", "vermin_eat.source reads 'edges'", v.get("vermin_eat.source") == "edges" or DRY, json.dumps(v) + "\n" + eo[:400]):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local rows, label = sw.VERMIN.edges()
+local out = { label = label, rows = 0, toks = {} }
+for _, r in ipairs(rows or {}) do if r.token then out.rows = out.rows + 1; if #out.toks < 12 then out.toks[#out.toks + 1] = r.token end end end
+local cfg = sw.loadConfig(); cfg.enabled = true
+V7.restore(); V7.apply(cfg)
+out.hits = {}
+for _, r in ipairs(rows or {}) do
+  local cr = r.token and sw.CAVERN.rawFor(r.token)
+  if cr then
+    for _, c in ipairs(cr.caste) do
+      for _, s in ipairs(c.gobble_vermin_class) do
+        local val = (type(s) == 'string') and s or s.value
+        if tostring(val):find('^SWV_') then out.hits[#out.hits + 1] = r.token .. ':' .. tostring(val); break end
+      end
+      if #out.hits >= 6 then break end
+    end
+  end
+end
+V7.restore(); local real = sw.loadConfig(); if real.enabled then V7.apply(real) end
+print(json.encode(out))""", timeout=240)
+        if bad(j):
+            rec_bad("mech.v71.fix.edges_after_build", j)
+        elif (j.get("rows") or 0) == 0 and not DRY:
+            rec("mech.v71.fix.edges_after_build", "NOT-TESTABLE-HERE", "a roster build with at least one write edge to a vermin class", json.dumps(j),
+                note="the land build here seated no vermin consumer with a write edge; a region8 fort with small land predators (ML) gives them")
+        else:
+            ok = "per species" in (j.get("label") or "") and len(j.get("hits") or []) > 0
+            rec("mech.v71.fix.edges_after_build", "PASS" if ok else "FAIL",
+                "the edge source reads 'per species, from the roster build' and a consumer's castes carry an SWV class after V7.apply", json.dumps(j))
+
+    # ---- a pelagic apex only in the ocean, led at once
+    if need("mech.v71.fix.apex_pelagic", "water", "a roster-placed water apex"):
+        tool("roster", "build", "water")
+        jt = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({t=sw.absTick()}))")
+        t0 = jt.get("t") if isinstance(jt.get("t"), int) else 0
+        out = tool("roster", "apex", "now", "water")
+        j = luap(("""local sw=reqscript('seasonal-wildlife'); local cfg = sw.loadConfig(); local g = sw.loadGroups()
+local out = { recs = {} }
+for _, grp in ipairs(g.groups) do
+  if grp.placed and grp.layer == 'water' and (grp.arrived or 0) >= @T0@ then
+    out.recs[#out.recs + 1] = { token = grp.token, body = grp.body, tag = grp.tag, pelagic = sw.V7.WAT.apexKind(cfg, grp.token) == 'pelagic',
+                                leader = grp.leader, unled = grp.unled, n = #grp.ids }
+  end
+end
+print(json.encode(out))""").replace("@T0@", str(t0)))
+        recs = (j.get("recs") or []) if not bad(j) else []
+        if bad(j):
+            rec_bad("mech.v71.fix.apex_pelagic", j)
+        elif not recs:
+            rec("mech.v71.fix.apex_pelagic", "NOT-TESTABLE-HERE", "a water apex the build seated, in stock, placed by `roster apex now water`", out[:600],
+                note="no water apex group was placed (none seated or none stocked); OCEAN2 or a region8 SHORE fort seats a pelagic apex")
+        else:
+            okBody = all((r.get("body") == "ocean") for r in recs if r.get("pelagic"))
+            okLead = all(r.get("leader") or r.get("unled") for r in recs if (r.get("n") or 0) >= 2)
+            okLake = has("ocean") or not any(r.get("pelagic") for r in recs)
+            rec("mech.v71.fix.apex_pelagic", "PASS" if okBody and okLead and okLake else "FAIL",
+                "a pelagic apex group only in the ocean; every placed group of 2+ led or marked unled", json.dumps({"reply": out[:200], "groups": recs}))
+
+    # ---- the water layer follows the map until the player sets it
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local out = {}
+local okW, wet = pcall(sw.WET.get); out.edge = okW and wet and wet.near or 0
+local okT, wt = pcall(sw.ENGINE.waterTiles); out.tiles = (okT and wt and #(wt.tiles or {})) or 0
+local c = sw.loadConfig(); c.layers.water = false; c.water.layer_set = false; c.water.layer_auto = true
+out.auto = V7.WAT.autoLayer(c); out.layerAfter = c.layers.water; out.why = sw.CACHE.watLayerWhy
+local lines = sw.LEDGER.lines(5, 'edit', 'water'); out.ledger = false
+for _, l in ipairs(lines) do if l:find('water layer on by default', 1, true) then out.ledger = true end end
+local c2 = sw.loadConfig(); c2.layers.water = false; c2.water.layer_set = true; c2.water.layer_auto = true
+out.setAuto = V7.WAT.autoLayer(c2); out.setLayer = c2.layers.water
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.fix.water_auto", j)
+    else:
+        wet = (j.get("edge") or 0) > 0 or (j.get("tiles") or 0) > 0
+        ok = (j.get("auto") is True) == wet and (not wet or (j.get("layerAfter") is True and j.get("ledger") is True)) and j.get("setAuto") is False and j.get("setLayer") is False
+        rec("mech.v71.fix.water_auto", "PASS" if ok else "FAIL",
+            "on where the map has water (ledger line), off on a dry map; a player-set layer is never overridden", json.dumps(j),
+            note=("the wet half judged on this fort; the dry half needs " + NEED["dry"]) if wet else ("the dry half judged on this fort; the wet half needs " + NEED["water"]))
+
+    # ---- the saved layer migrates to layer_set
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local function s(raw) local c = sw.defaultConfig(); V7.watSanitize(c, raw); return c.water.layer_set end
+print(json.encode({ on = s({ layers = { water = true } }), off = s({ layers = { water = false } }), none = s({}),
+  setWins = s({ layers = { water = false }, water = { layer_set = true } }), renamed = (function() local c = sw.defaultConfig(); V7.watSanitize(c, { water = { deep_levels = 2 } }); return c.water.column_levels end)() }))""")
+    if bad(j):
+        rec_bad("mech.v71.fix.water_migrate", j)
+    else:
+        ok = j.get("on") is True and j.get("off") is False and j.get("none") is False and j.get("setWins") is True
+        rec("mech.v71.fix.water_migrate", "PASS" if ok else "FAIL", "on -> layer_set true; off and none -> false; a saved layer_set wins", json.dumps(j))
+
+    # ---- the season spill (water.spill.min raised to 10 so a body is thin: the manipulation)
+    if need("mech.v71.fix.spill", "water", "a water body to spill into"):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local cfg = sw.loadConfig(); cfg.layers.water = true; cfg.water.enabled = true; cfg.water.spill.enabled = true; cfg.water.spill.min = 10
+local before = {}
+for k, a in pairs(cfg.assign) do local t = {}; for i, q in ipairs(a) do t[i] = q end; before[k] = t end
+sw.CACHE.watSpillAt = nil
+local n = V7.WAT.spillCheck(cfg, sw.loadGroups())
+local season = df.global.cur_season
+local out = { manipMin = cfg.water.spill.min, n = n, season = season, rows = {} }
+for k, b in pairs(cfg.water.spill_state.borrowed) do
+  local has = false; for _, q in ipairs(cfg.assign[k] or {}) do if q == season then has = true end end
+  local live, held = sw.RESERVE.of(k)
+  out.rows[#out.rows + 1] = { key = k, body = b.body, hasSeason = has, stock = live }
+end
+local saved = sw.loadConfig().water.spill_state.borrowed; local ns = 0; for _ in pairs(saved) do ns = ns + 1 end; out.savedN = ns
+cfg.water.spill_state.stamp = -999
+out.rolled = V7.WAT.spillRoll(cfg)
+local left = 0; for _ in pairs(cfg.water.spill_state.borrowed) do left = left + 1 end; out.leftAfterRoll = left
+local same = true
+for _, r in ipairs(out.rows) do
+  local a, b0 = cfg.assign[r.key] or {}, before[r.key] or {}
+  if #a ~= #b0 then same = false end
+end
+out.assignBack = same
+print(json.encode(out))""", timeout=180)
+        if bad(j):
+            rec_bad("mech.v71.fix.spill", j)
+        elif not manip("mech.v71.fix.spill", "water.spill.min 10 in the probe's config", j.get("manipMin") == 10 or DRY, json.dumps(j)[:400]):
+            pass
+        elif not j.get("rows") and not DRY:
+            rec("mech.v71.fix.spill", "NOT-TESTABLE-HERE", "an active, out-of-season, stocked water species that suits a body", json.dumps(j),
+                note="no water species could borrow the season here; a region8 LAKE or SHORE fort with an active water roster")
+        else:
+            rows = j.get("rows") or []
+            # `water spill off` gives back at once: borrow again, persist, then the verb
+            luap("""local sw=reqscript('seasonal-wildlife'); local cfg = sw.loadConfig(); cfg.layers.water = true; cfg.water.enabled = true; cfg.water.spill.enabled = true; cfg.water.spill.min = 10
+sw.CACHE.watSpillAt = nil; sw.V7.WAT.spillCheck(cfg, sw.loadGroups()); print(json.encode({}))""")
+            b1 = cfgv("water.spill_state.borrowed")
+            tool("water", "spill", "off")
+            b2 = cfgv("water.spill_state.borrowed", "water.spill.enabled")
+            tool("water", "spill", "on")
+            n1 = len(b1.get("water.spill_state.borrowed") or {})
+            n2 = len(b2.get("water.spill_state.borrowed") or {})
+            ok = (all(r.get("hasSeason") and (r.get("stock") or 0) > 0 for r in rows) and (j.get("savedN") or 0) > 0
+                  and j.get("leftAfterRoll") == 0 and j.get("assignBack") is True and n1 > 0 and n2 == 0)
+            rec("mech.v71.fix.spill", "PASS" if ok else "FAIL",
+                "borrowed keys hold the season with stock > 0 (saved); the season roll and `water spill off` give every one back",
+                json.dumps({"borrow": rows, "saved": j.get("savedN"), "rolled": j.get("rolled"), "left": j.get("leftAfterRoll"), "assignBack": j.get("assignBack"),
+                            "before_off": n1, "after_off": n2}),
+                note="the season change is simulated by moving the spill stamp (spillRoll's own test); a real boundary is the rig test")
+
+    # ---- spaced raw ids
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local all = df.global.world.raws.creatures.all
+local id, idx
+for i = 0, #all - 1 do local c = all[i].creature_id; if c == 'HONEY BADGER' then id, idx = c, i; break end end
+if not id then for i = 0, #all - 1 do local c = all[i].creature_id; if c:find(' ', 1, true) then id, idx = c, i; break end end end
+local out = { id = id, idx = idx }
+if id then
+  out.norm = id:gsub('[%s,]+', '_')
+  out.r1 = V7.CLI.resolve(out.norm); out.r2 = V7.CLI.resolve('#' .. idx); out.r3 = V7.CLI.resolve('WOLF'); out.r4 = V7.CLI.resolve('water:#' .. idx)
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.fix.ids", j)
+    elif not j.get("id") and not DRY:
+        rec("mech.v71.fix.ids", "NOT-TESTABLE-HERE", "a creature raw whose id holds a space", json.dumps(j), note="vanilla 53.16 raws have several (HONEY BADGER)")
+    else:
+        sid, norm = j.get("id") or "X Y", j.get("norm") or "X_Y"
+        o1, o2, o3 = tool("odds", norm), tool("odds", sid), tool("odds", "WOLF")
+        ok = (j.get("r1") == sid and j.get("r2") == sid and j.get("r3") == "WOLF" and j.get("r4") == "water:" + sid
+              and o1.strip() == o2.strip())
+        rec("mech.v71.fix.ids", "PASS" if ok else "FAIL", "underscore, #index and water:#index resolve to the spaced id; WOLF unchanged; `odds` prints the same for both forms",
+            json.dumps(j) + f"\nodds {norm}: {o1.strip()[:160]}\nodds '{sid}': {o2.strip()[:160]}\nodds WOLF: {o3.strip()[:160]}")
+
+    # ---- world switch: one session loads one world
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local C = sw.CACHE
+local n = 0; for _ in pairs(C.raceIdx or {}) do n = n + 1 end
+local d = 0; for _ in pairs(C.depth or {}) do d = d + 1 end
+print(json.encode({ raceIdx = n, depth = d, depthIsTable = type(C.depth) == 'table' }))""")
+    rec("mech.v71.fix.world_switch", "NOT-TESTABLE-HERE", "CACHE.depth and CACHE.raceIdx re-read after a second world loads in the same DF session",
+        json.dumps(j) if not bad(j) else bad(j), note=NEED["second_world"] + "; this session's half: the shared caches exist and are filled")
+
+    # ---- cavern_max mirrors the cavern cap
+    tool("limits", "cavern", "ceiling", "3")
+    v = cfgv("limits.cavern.ceiling", "groups.cavern_max", "groups.cavern_cap")
+    if manip("mech.v71.fix.cavern_max", "limits.cavern.ceiling reads 3", v.get("limits.cavern.ceiling") == 3 or DRY, json.dumps(v)):
+        ok = v.get("groups.cavern_max") is not None and v.get("groups.cavern_max") == v.get("groups.cavern_cap")
+        rec("mech.v71.fix.cavern_max", "PASS" if ok else "FAIL", "groups.cavern_max == groups.cavern_cap after the ceiling write", json.dumps(v))
+    tool("limits", "cavern", "ceiling", "0")
+
+
+def v71_scav():
+    tool("enable")
+    v = cfgv("enabled")
+    if not (v.get("enabled") is True or DRY):
+        for cid in v71_ids("scav"):
+            rec(cid, "FAIL", "manipulation check: the tool enabled for the scavenging and curious passes", json.dumps(v),
+                note="MANIPFAIL: `enable` did not leave cfg.enabled true, so no pass could run")
+        return
+    # ---- swimmers scavenge, and `scavenge swimmers off` takes them out
+    probe = """local sw=reqscript('seasonal-wildlife'); local out = { is = {}, kind = {} }
+for _, t in ipairs({ 'SHARK_GREAT_WHITE', 'CROCODILE_SALTWATER', 'ALLIGATOR', 'ORCA', 'FISH_CARP', 'SHARK_WHALE' }) do
+  local cr = sw.MODEL.rawOf(t)
+  if cr then out.is[t] = sw.SCAV.is(cr, sw.loadConfig()); out.kind[t] = sw.SCAV.kind(cr) end
+end
+print(json.encode(out))"""
+    j0 = luap(probe)
+    tool("scavenge", "swimmers", "off")
+    v = cfgv("scavenge.swimmers")
+    j1 = luap(probe)
+    tool("scavenge", "swimmers", "on")
+    if bad(j0) or bad(j1):
+        rec_bad("mech.v71.scav_swimmer", j0 if bad(j0) else j1)
+    elif manip("mech.v71.scav_swimmer", "scavenge.swimmers saved false", v.get("scavenge.swimmers") is False or DRY, json.dumps(v)):
+        want = {"SHARK_GREAT_WHITE": True, "CROCODILE_SALTWATER": True, "ALLIGATOR": True, "ORCA": True, "FISH_CARP": False, "SHARK_WHALE": False}
+        is0, is1, kind = j0.get("is") or {}, j1.get("is") or {}, j0.get("kind") or {}
+        present = [t for t in want if t in is0]
+        okOn = bool(present) and all(is0.get(t) == want[t] for t in present)
+        okOff = all(is1.get(t) is False for t in present if kind.get(t) == "swim")
+        rec("mech.v71.scav_swimmer", "PASS" if okOn and okOff else "FAIL",
+            "the four carnivorous swimmers scavenge, carp and whale shark do not; swimmers off takes every swim-kind one out",
+            json.dumps({"on": is0, "off": is1, "kind": kind, "missing_raws": [t for t in want if t not in is0]}))
+
+    # ---- the keys: range refusal, saved, listed, kept on reload
+    r99 = tool("scavenge", "set", "hop_tiles", "99")
+    v99 = cfgv("scavenge.hop_tiles")
+    r6 = tool("scavenge", "set", "hop_tiles", "6")
+    v6 = cfgv("scavenge.hop_tiles")
+    keys = tool("scavenge", "keys")
+    jr = luap("""local sw=reqscript('seasonal-wildlife'); sw.CACHE.cfg = nil; print(json.encode({ hop = sw.loadConfig().scavenge.hop_tiles }))""")
+    if manip("mech.v71.scav_keys", "scavenge.hop_tiles reads 6 after `scavenge set hop_tiles 6`", v6.get("scavenge.hop_tiles") == 6 or DRY, json.dumps(v6) + "\n" + r6[:200]):
+        ok = ("must be" in r99 and v99.get("scavenge.hop_tiles") != 99 and re.search(r"^\s*hop_tiles\s+6\b", keys, re.M) is not None and jr.get("hop") == 6)
+        rec("mech.v71.scav_keys", "PASS" if ok else "FAIL", "99 refused and unsaved; 6 saved, listed by `scavenge keys`, kept after a reload",
+            json.dumps({"refusal": r99.strip()[:160], "after_99": v99.get("scavenge.hop_tiles"), "reload": jr.get("hop")}) + "\n" + keys[:500])
+    tool("scavenge", "set", "hop_tiles", "8")
+
+    # ---- a pass, then the status: fresh, and the shared state
+    tool("scavenge", "on")
+    v = cfgv("scavenge.enabled")
+    now_out = tool("scavenge", "now")
+    st = tool("scavenge")
+    js = luap("""local sw=reqscript('seasonal-wildlife'); local st = sw.CACHE.scav7
+local fb = {}; for t, n in pairs(st and st.fallbacks or {}) do fb[#fb + 1] = t .. ' ' .. n end; table.sort(fb)
+print(json.encode({ scav7 = st ~= nil, fallbacks = fb, status = sw.SCAV.status(sw.loadConfig()) }))""")
+    m = re.search(r"last pass (\d+) t ago: (?:nothing ran \(([^)]*)\)|(\d+) scavenger\(s\), (\d+) remains, .*?(\d+) eaten)", st)
+    if manip("mech.v71.scav_status_fresh", "scavenge.enabled reads true after `scavenge on`", v.get("scavenge.enabled") is True or DRY, json.dumps(v)):
+        age = int(m.group(1)) if m else None
+        ok = m is not None and age is not None and age <= 50 and not m.group(2)
+        rec("mech.v71.scav_status_fresh", "PASS" if ok else "FAIL", "after `scavenge now` the status's last pass is that pass (age <= 50 t) and it ran",
+            now_out.strip()[:200] + "\n" + st.strip()[:700])
+    if bad(js):
+        rec_bad("mech.v71.scav_shared_state", js)
+    else:
+        def fbpart(s):
+            mm = re.search(r"fallbacks: (.*)$", s or "")
+            return mm.group(1).strip() if mm else ""
+        ok = js.get("scav7") is True and fbpart(st) == fbpart(js.get("status"))
+        rec("mech.v71.scav_shared_state", "PASS" if ok else "FAIL", "CACHE.scav7 exists after the pass; the console's and the reqscript copy's fallbacks agree",
+            json.dumps({"scav7": js.get("scav7"), "console": fbpart(st), "copy": fbpart(js.get("status")), "fallbacks": js.get("fallbacks")}))
+
+    # ---- discovery delay (the model of a fresh remains)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local S=sw.SCAV
+local deer = sw.raceIndex('DEER'); if not deer or deer < 0 then deer = sw.raceIndex('RABBIT') end
+local now = sw.absTick()
+local out = { race = deer }
+if deer and deer >= 0 then
+  local c = sw.loadConfig()
+  local r = S.newRemains(c, { id = -1, race = deer }, false, now); out.defDelay = r.found - now; out.minTicks = math.floor(S.num(c, 'discover_min_h') * sw.TICKS_PER_DAY / 24)
+  local z = sw.loadConfig()
+  for _, k in ipairs({ 'discover_small_h', 'discover_medium_h', 'discover_large_h', 'discover_sigma', 'scent_ticks' }) do z.scavenge[k] = 0 end
+  local r1 = S.newRemains(z, { id = -1, race = deer }, false, now); out.zeroMedians = r1.found - now
+  z.scavenge.discover_min_h = 0
+  local r2 = S.newRemains(z, { id = -1, race = deer }, false, now); out.zeroAll = r2.found - now
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.scav_discovery", j)
+    elif not isinstance(j.get("race"), int) or j.get("race") < 0:
+        rec("mech.v71.scav_discovery", "NOT-TESTABLE-HERE", "a DEER or RABBIT raw to stand as the remains", json.dumps(j), note="vanilla raws carry both")
+    else:
+        ok = (j.get("defDelay") or 0) >= max(1, j.get("minTicks") or 1) and j.get("zeroAll") == 0
+        rec("mech.v71.scav_discovery", "PASS" if ok else "FAIL",
+            "default medians: found >= discover_min_h after it is seen (never in its first pass); every delay key at 0: found at once", json.dumps(j),
+            note="the notes' recipe (discover_*_h 0 and scent_ticks 0) still leaves discover_min_h (2 h = 100 t), so a remains is not found in its first pass "
+                 "unless discover_min_h is 0 too (zeroMedians shows it); judged on SCAV.newRemains, the live corpse-and-scavenger half is rig test SCV on region8")
+
+    # ---- attribution: needs a remains eaten to the end
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local s = sw.SCAV.stats()
+local ps = {}; for k, p in pairs(s.pairs or {}) do if (p.n or 0) >= 1 then ps[#ps + 1] = k .. ' ' .. p.n end end
+local led = {}; for _, l in ipairs(sw.LEDGER.lines(300, 'eco')) do if l:find('scavenging: a ', 1, true) and l:find(' eaten -- ', 1, true) then led[#led + 1] = l end end
+print(json.encode({ pairs = ps, ledger = led }))""")
+    if bad(j):
+        rec_bad("mech.v71.scav_attribution", j)
+    elif j.get("pairs") and j.get("ledger"):
+        rec("mech.v71.scav_attribution", "PASS", "a TOK>PREY pair with n >= 1 and its ledger line", json.dumps({"pairs": j.get("pairs")[:6], "ledger": j.get("ledger")[-3:]}))
+    elif j.get("pairs") or j.get("ledger"):
+        rec("mech.v71.scav_attribution", "FAIL", "the pair counter and the ledger line together", json.dumps(j)[:600])
+    else:
+        rec("mech.v71.scav_attribution", "NOT-TESTABLE-HERE", "a remains finished by a scavenger this session", json.dumps(j),
+            note="needs a carcass and a scavenger over a day or more (rig test SCV, region8 savage fort with vultures or jackals)")
+
+    # ---- fb_safe remains and walkers
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local S=sw.SCAV; local V7=sw.V7
+local c = sw.loadConfig(); local st = S.state()
+local all = df.global.world.raws.creatures.all
+local badRace, badTok, goodRace
+for i = 0, #all - 1 do
+  local cr = all[i]
+  local cls = sw.ecoOf(c, cr)
+  if not badRace and cls ~= 'natural' and cls ~= 'unclassified' and (cr.creature_id:find('^DEMON') or cr.creature_id:find('^FORGOTTEN_BEAST') or cr.creature_id:find('^TITAN') or cr.flags.CASTE_MEGABEAST) then badRace, badTok = i, cr.creature_id end
+  if not goodRace and cr.creature_id == 'DEER' then goodRace = i end
+  if badRace and goodRace then break end
+end
+local out = { badTok = badTok }
+if badRace then out.bad = S.naturalRemains(c, st, badRace) end
+if goodRace then out.good = S.naturalRemains(c, st, goodRace) end
+out.walkers, out.unnatural = 0, 0
+for uid in pairs(st.units or {}) do local u = df.unit.find(uid); if u then out.walkers = out.walkers + 1; if not V7.natural(c, u) then out.unnatural = out.unnatural + 1 end end end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.scav_fbsafe", j)
+    elif not j.get("badTok") and not DRY:
+        rec("mech.v71.scav_fbsafe", "NOT-TESTABLE-HERE", "a demon/forgotten beast/titan/megabeast raw in this world", json.dumps(j), note="every generated world has demons and forgotten beasts")
+    else:
+        ok = j.get("bad") is False and j.get("good") is not False and (j.get("unnatural") or 0) == 0
+        rec("mech.v71.scav_fbsafe", "PASS" if ok else "FAIL", "naturalRemains false for the non-natural race, true for DEER; no non-natural walker", json.dumps(j))
+
+    # ---- scav_ext (v7.0): reach and movers, structurally
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local S=sw.SCAV; local M=sw.MODEL
+local d = sw.defaultConfig()
+local out = { extDefault = d.v7.scav_ext, mover = {} }
+for _, t in ipairs({ 'BIRD_VULTURE', 'SHARK_GREAT_WHITE', 'CROCODILE_SALTWATER', 'JACKAL' }) do local cr = M.rawOf(t); if cr then out.mover[t] = S.mover(cr) end end
+local wet = { x = 10, y = 10, z = 10, wet = true }
+local dry = { x = 10, y = 10, z = 10, wet = false }
+out.wetAquatic = S.suits(wet, 'aquatic'); out.wetAmph = S.suits(wet, 'amphibious'); out.dryLand = S.suits(dry, 'land')
+local u2 = { pos = { x = 12, y = 10, z = 11 } }
+out.wetReach2 = S.inReach(u2, wet, 'land'); out.dryReach2 = S.inReach(u2, dry, 'land')
+local c = sw.loadConfig(); c.v7.scav_ext = true; out.statOn = S.status(c); c.v7.scav_ext = false; out.statOff = S.status(c)
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v70.scav_ext", j)
+    else:
+        mv = j.get("mover") or {}
+        okM = (mv.get("BIRD_VULTURE") in (None, "flier") and mv.get("SHARK_GREAT_WHITE") in (None, "aquatic")
+               and mv.get("CROCODILE_SALTWATER") in (None, "amphibious") and mv.get("JACKAL") in (None, "land") and len(mv) >= 3)
+        okR = j.get("wetAquatic") is True and j.get("wetAmph") is True and j.get("dryLand") is True and j.get("wetReach2") is True and j.get("dryReach2") is False
+        okS = j.get("extDefault") is True and "fallbacks:" in (j.get("statOn") or "")
+        rec("mech.v70.scav_ext", "PASS" if okM and okR and okS else "FAIL",
+            "scav_ext on by default; flier/aquatic/amphibious/land movers; wet remains suit swimmers and are reached from 2 tiles and a level; the status counts fallbacks",
+            json.dumps({k: j.get(k) for k in ("extDefault", "mover", "wetAquatic", "wetAmph", "dryLand", "wetReach2", "dryReach2")} | {"statOn": (j.get("statOn") or "")[-120:]}),
+            note="structural: the live landings, wades and hops are rig test SCV/SCVW (region8 SHORE or RIVER fort with vultures and crocodiles)")
+
+    # ---- curious console
+    o_off = tool("curious", "reform", "off"); v_off = cfgv("curious.reform")
+    o_on = tool("curious", "reform", "on"); v_on = cfgv("curious.reform")
+    o_now = tool("curious", "reform", "now")
+    o_keep = tool("curious", "loot", "keep"); o_drop = tool("curious", "loot", "drop")
+    o_set = tool("curious", "set", "stay_min", "25000"); v_set = cfgv("curious.stay_min")
+    o_bad = tool("curious", "set", "stay_min", "50"); v_bad = cfgv("curious.stay_min")
+    tool("curious", "set", "stay_min", "20000")
+    if manip("cli.curious_reform", "curious.reform off then on, stay_min 25000 saved",
+             (v_off.get("curious.reform") is False and v_on.get("curious.reform") is True and v_set.get("curious.stay_min") == 25000) or DRY,
+             json.dumps({"off": v_off, "on": v_on, "set": v_set})):
+        ok = ("curious reform: off" in o_off and "curious reform: on" in o_on and re.search(r"curious: \d+ reformed this pass", o_now) is not None
+              and "loot kept" in o_keep and "loot dropped" in o_drop and "leave 25000-" in o_set and "must be 100-400000" in o_bad
+              and v_bad.get("curious.stay_min") == 25000)
+        rec("cli.curious_reform", "PASS" if ok else "FAIL", "each verb prints the curious status with its change; stay_min 50 refused and unsaved",
+            "\n".join(x.strip()[:200] for x in (o_off, o_on, o_now, o_keep, o_drop, o_set, o_bad)))
+
+    # ---- a thief reformed, then put back by disable
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local C=sw.CURIOUS
+local best
+for _, pop in ipairs(df.global.world.populations.all) do
+  if pop.type == df.world_population_type.Animal and pop.quantity > 0 and pop.population.cave_id == -1 then
+    local cr = df.creature_raw.find(pop.race)
+    if cr and C.is(cr) and sw.classify(cr).eco == 'natural' and (not best or cr.creature_id == 'RACCOON') then best = cr.creature_id end
+  end
+end
+print(json.encode({ tok = best }))""")
+    tok = j.get("tok") if not bad(j) else None
+    uid = None
+    if tok:
+        out = tool("place", tok, "1")
+        m = re.search(r"at ids (\d+)", out)
+        uid = int(m.group(1)) if m else None
+    if not uid and not DRY:
+        rec("mech.v71.curious_reform", "NOT-TESTABLE-HERE", "a stocked curious-thief species to place (RACCOON, MAGPIE, ...)", json.dumps({"tok": tok}),
+            note="no stocked curious beast on this fort; a region8 temperate forest fort (raccoons) or BOATS (its raccoon trace)")
+    else:
+        jr = luap(("""local sw=reqscript('seasonal-wildlife'); local C=sw.CURIOUS; local V7=sw.V7
+local u = df.unit.find(@UID@)
+local out = {}
+if not u then print(json.encode({ gone = true })) return end
+local function bits() local b = {}; for _, f in ipairs(C.BITS) do local ok, v = pcall(function() return u.enemy.caste_flags[f] end); b[f] = ok and v or nil end; return b end
+out.bitsBefore = bits()
+u.animal.leave_countdown = 0
+if V7.PERF.placed then V7.PERF.placed(u) end
+sw.CACHE.cfg = nil
+local c = sw.loadConfig(); out.enabled = c.enabled; out.reformOn = C.on(c); out.lo = C.num(c, 'stay_min'); out.hi = C.num(c, 'stay_max')
+out.n = C.pass()
+local st = C.state(); out.rec = st.units[u.id] ~= nil
+out.bitsAfter = bits(); out.countdown = u.animal.leave_countdown
+out.ledger = false
+for _, l in ipairs(sw.LEDGER.lines(20, 'eco')) do if l:find('reformed and stays', 1, true) and l:find(tostring(u.id), 1, true) then out.ledger = true end end
+print(json.encode(out))""").replace("@UID@", str(uid or 0)))
+        tool("disable")
+        jd = luap(("""local sw=reqscript('seasonal-wildlife'); local C=sw.CURIOUS; local u = df.unit.find(@UID@)
+local b = {}; if u then for _, f in ipairs(C.BITS) do local ok, v = pcall(function() return u.enemy.caste_flags[f] end); b[f] = ok and v or nil end end
+print(json.encode({ bits = b, countdown = u and u.animal.leave_countdown or nil }))""").replace("@UID@", str(uid or 0)))
+        if bad(jr):
+            rec_bad("mech.v71.curious_reform", jr)
+        elif manip("mech.v71.curious_reform", "the tool enabled and reform on for the pass", (jr.get("enabled") is True and jr.get("reformOn") is True) or DRY, json.dumps(jr)[:500]):
+            ba, bb, bd = jr.get("bitsAfter") or {}, jr.get("bitsBefore") or {}, (jd.get("bits") or {}) if not bad(jd) else {}
+            cd = jr.get("countdown") or 0
+            ok = (jr.get("rec") is True and not any(ba.values()) and (jr.get("lo") or 0) <= cd <= (jr.get("hi") or 0) and jr.get("ledger") is True
+                  and bd == bb and (jd.get("countdown") == 0 if not bad(jd) else False))
+            rec("mech.v71.curious_reform", "PASS" if ok else "FAIL",
+                "reformed within one pass (bits clear, countdown in stay range, ledger line); disable restores the bits and countdown 0",
+                json.dumps({"token": tok, "unit": uid, "pass": jr, "after_disable": jd}),
+                note="no theft was staged, so the dropped-loot half is not judged (rig test CUR on a region8 forest fort)")
+
+    # ---- disable cancels the jobs (the tool was re-enabled by nothing since: enable, set scavenging on, then disable)
+    tool("enable"); tool("scavenge", "on"); tool("curious", "reform", "on")
+    jon = luap("""local ru = require('repeat-util')
+print(json.encode({ scav = ru.isScheduled('seasonal-wildlife/scavenge'), cur = ru.isScheduled('seasonal-wildlife/curious') }))""")
+    tool("disable")
+    joff = luap("""local ru = require('repeat-util')
+print(json.encode({ scav = ru.isScheduled('seasonal-wildlife/scavenge'), cur = ru.isScheduled('seasonal-wildlife/curious') }))""")
+    if bad(jon) or bad(joff):
+        rec_bad("mech.v71.scav_off_cancels", jon if bad(jon) else joff)
+    elif manip("mech.v71.scav_off_cancels", "both jobs scheduled after enable with scavenging and reform on", (jon.get("scav") is True and jon.get("cur") is True) or DRY, json.dumps(jon)):
+        rec("mech.v71.scav_off_cancels", "PASS" if joff.get("scav") is False and joff.get("cur") is False else "FAIL",
+            "repeat-util holds neither seasonal-wildlife/scavenge nor /curious after disable", json.dumps({"enabled": jon, "disabled": joff}))
+
+    # ---- the Panel switch (on a config copy; the saved Panel record is put back)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local P=sw.PANEL
+local keep = dfhack.persistent.getSiteData(P.SAVED_KEY, nil)
+local out = { has = false }
+for _, s in ipairs(P.SWITCHES) do if s.id == 'curiousreform' then out.has = true; out.optin = s.optin or false end end
+local c = sw.loadConfig(); c.curious.reform = true
+out.restored = P.allOff(c)
+out.after = c.curious.reform
+if keep ~= nil then dfhack.persistent.saveSiteData(P.SAVED_KEY, keep) end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.panel_curious", j)
+    else:
+        ok = j.get("has") is True and j.get("after") is False
+        rec("mech.v71.panel_curious", "PASS" if ok else "FAIL", "PANEL.SWITCHES has curiousreform; all off sets curious.reform false and runs the restore (CURIOUS.unreform)",
+            json.dumps(j), note="the restore reports reformed thieves only when one is on the map; mech.v71.curious_reform checks the unreform itself")
+# ---- groups (docs/v7.1/groups.md) ---------------------------------------------------------------------------------
+# A Lua helper loaded by several probes: write a raw config into the site data, read it back through the tool's own
+# loader (loadConfigRaw and every sanitiser), then put the original back. `raw` is a Lua table literal.
+_B_LOADRAW = """
+local sw=reqscript('seasonal-wildlife'); local KEY='seasonal-wildlife/config'
+local orig = dfhack.persistent.getSiteData(KEY, nil)
+local function loadRaw(raw)
+  dfhack.persistent.saveSiteData(KEY, raw); sw.CACHE.cfg = nil
+  local ok, c = pcall(sw.loadConfig)
+  if orig ~= nil then dfhack.persistent.saveSiteData(KEY, orig) end
+  sw.CACHE.cfg = nil; sw.loadConfig()
+  if not ok then error(c) end
+  return c
+end
+"""
+
+
+def _b_ids(text):
+    m = re.search(r"at ids ([\d,]+)", text or "")
+    return [int(x) for x in m.group(1).split(",") if x] if m else []
+
+
+def v71_groups():
+    # ---- limits: the formula on every layer, caverns at their own cap (pure, in-memory config)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local Q=sw.QUOTA; local cfg=sw.loadConfig()
+cfg.limits.mode='formula'
+local out={auto=Q.autoGroups(), land=Q.groupsFor(cfg,'land'), ocean=Q.groupsFor(cfg,'water:ocean'), lake=Q.groupsFor(cfg,'water:lake'),
+  river=Q.groupsFor(cfg,'water:river'), cavern=Q.groupsFor(cfg,'cavern'), cav1=Q.groupsFor(cfg,'cavern:1'), cap=cfg.groups.cavern_cap,
+  defMode=sw.defaultConfig().limits.mode, defCap=sw.defaultConfig().groups.cavern_cap}
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.limits.formula", j)
+    else:
+        a = j.get("auto")
+        ok = (a is not None and j.get("land") == a and j.get("ocean") == a and j.get("lake") == a and j.get("river") == a
+              and j.get("cavern") == j.get("cap") and j.get("cav1") == j.get("cap") and j.get("defMode") == "formula" and j.get("defCap") == 5)
+        rec("mech.v71.limits.formula", "PASS" if ok else "FAIL",
+            "default mode formula; land = water:ocean = water:lake = water:river = floor(sqrt(embark))+1; every cavern = cavern_cap (default 5)", json.dumps(j))
+
+    # ---- limits fixed N / formula through the console (manipulation: the persisted mode and number)
+    t1 = tool("limits", "fixed", "2")
+    v = cfgv("limits.mode", "limits.fixed")
+    if manip("mech.v71.limits.fixed", "`limits fixed 2` persists limits.mode=fixed, limits.fixed=2", v.get("limits.mode") == "fixed" and v.get("limits.fixed") == 2,
+             json.dumps(v) + "\n" + t1):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local Q=sw.QUOTA; local cfg=sw.loadConfig()
+print(json.encode({land=Q.groupsFor(cfg,'land'), ocean=Q.groupsFor(cfg,'water:ocean'), pool=Q.groupsFor(cfg,'water:pool'), cav0=Q.groupsFor(cfg,'cavern:0'),
+  cap=cfg.groups.cavern_cap, stat=Q.status(cfg)}))""")
+        t2 = tool("limits", "formula")
+        v2 = cfgv("limits.mode")
+        j2 = luap("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode({land=sw.QUOTA.groupsFor(cfg,'land'), auto=sw.QUOTA.autoGroups()}))")
+        if bad(j) or bad(j2):
+            rec_bad("mech.v71.limits.fixed", j if bad(j) else j2)
+        else:
+            ok = (j.get("land") == 2 and j.get("ocean") == 2 and j.get("pool") == 2 and j.get("cav0") == min(5, j.get("cap") or 5, 2)
+                  and "single fixed cap 2" in (j.get("stat") or "") and v2.get("limits.mode") == "formula" and j2.get("land") == j2.get("auto"))
+            rec("mech.v71.limits.fixed", "PASS" if ok else "FAIL",
+                "fixed 2: land/ocean/pool 2, cavern min(cap, 2), status 'single fixed cap 2 on every layer'; formula: land = sqrt rule again",
+                json.dumps({"fixed": j, "after_formula": v2, "formula": j2}) + "\n" + t1 + "\n" + t2)
+
+    # ---- layer_groups retired: the loader forces it on; the verb refuses
+    j = luap(_B_LOADRAW + """local c = loadRaw({ v7 = { layer_groups = false } })
+print(json.encode({lg = c.v7.layer_groups}))""")
+    t = tool("v7", "layer_groups", "off")
+    v = cfgv("v7.layer_groups")
+    if bad(j):
+        rec_bad("mech.v71.layer_groups.retired", j)
+    else:
+        ok = j.get("lg") is True and "retired" in t and v.get("v7.layer_groups") is True
+        rec("mech.v71.layer_groups.retired", "PASS" if ok else "FAIL",
+            "saved layer_groups=false loads true; `v7 layer_groups off` prints the retirement note and changes nothing",
+            json.dumps({"loaded": j, "after_verb": v}) + "\n" + t)
+
+    # ---- migration of a v7.0 config, through the tool's own loader
+    j = luap(_B_LOADRAW + """local c = loadRaw({ enabled = false, limits = { land = { groups = 4, ceiling = 0, auto = false }, water = { groups = 2, ceiling = 12, auto = true },
+  cavern = { groups = 2, ceiling = 0, auto = true } }, groups = { cavern_max = 2 }, v7 = { seasons_own = false, layer_groups = true } })
+local d = loadRaw({ enabled = false, limits = { land = { groups = 3, ceiling = 0, auto = true }, water = { groups = 2, ceiling = 30, auto = true } } })
+print(json.encode({mode=c.limits.mode, fixed=c.limits.fixed, wceil=c.limits.water.ceiling, so=c.v7.seasons_own, cap=c.groups.cavern_cap, cmax=c.groups.cavern_max,
+  mig=c.migrated_v71, mode2=d.limits.mode, wceil2=d.limits.water.ceiling}))""")
+    if bad(j):
+        rec_bad("mech.v71.migrate", j)
+    else:
+        ok = (j.get("mode") == "fixed" and j.get("fixed") == 4 and j.get("wceil") == 0 and j.get("so") is True and j.get("cap") == 5
+              and j.get("cmax") == 5 and j.get("mode2") == "formula" and j.get("wceil2") == 30)
+        rec("mech.v71.migrate", "PASS" if ok else "FAIL",
+            "v7.0 config: land auto=false/4 -> mode fixed 4; water ceiling 12 -> 0; seasons_own true; cavern cap 5 (old cavern_max 2 dropped); an auto land with ceiling 30 -> formula, 30 kept",
+            json.dumps(j))
+
+    # ---- the adaptive clock: state, forward, pause (pure, on a synthetic groups record)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
+cfg.limits.mode='fixed'; cfg.limits.fixed=5; cfg.groups.adaptive=true; cfg.patterns.land='steady'
+local cap = sw.QUOTA.groupsFor(cfg,'land')
+local g = { groups = {}, ctl = {} }
+local now = sw.absTick()
+local gap = G.releaseGap(cfg, g, 'land', 1, cap, 'land')
+local c = g.ctl.land or {}
+local out = { cap=cap, gap=gap, last=c.last, now=now, target=c.target, due=c.due, band=cfg.groups.target_band }
+out.due3 = G.dueTick(cfg, g, 'land', 3, cap)
+out.due2 = G.dueTick(cfg, g, 'land', 2, cap)
+out.dueCap = G.dueTick(cfg, g, 'land', cap, cap)
+cfg.groups.adaptive=false
+out.dueOff = G.dueTick(cfg, g, 'land', 2, cap)
+cfg.groups.adaptive=true
+cfg.limits.fixed=1
+local g2 = { groups = { { layer='land', ids={}, resident=true, token='X' } }, ctl = {} }
+local rows = G.layerRows(cfg, g2)
+out.row = rows[1]
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad(["mech.v71.clock.state", "mech.v71.clock.forward", "mech.v71.clock.pause"], j)
+    else:
+        cap, tg = j.get("cap") or 0, j.get("target")
+        lo = max(1, cap - (j.get("band") or 1))
+        ok = (j.get("last") == j.get("now") and isinstance(tg, (int, float)) and lo - 1e-9 <= tg <= cap + 1e-9
+              and j.get("due") == (j.get("last") or 0) + (j.get("gap") or -1))
+        rec("mech.v71.clock.state", "PASS" if ok else "FAIL",
+            "after a release: last = now, target in [cap - band, cap], due = last + gap (fixed cap 5 on a synthetic record)", json.dumps(j))
+        d3, d2 = j.get("due3"), j.get("due2")
+        ok = isinstance(d3, (int, float)) and isinstance(d2, (int, float)) and d2 < d3 and j.get("dueOff") is None
+        rec("mech.v71.clock.forward", "PASS" if ok else "FAIL",
+            "due tick with 2 groups earlier than with 3; adaptive off -> no adaptive due tick", json.dumps({k: j.get(k) for k in ("due3", "due2", "dueOff", "target", "cap")}))
+        ok = j.get("dueCap") is None and "paused at the cap" in (j.get("row") or "")
+        rec("mech.v71.clock.pause", "PASS" if ok else "FAIL",
+            "n >= cap: dueTick nil; the land row (fixed cap 1, one group) says 'paused at the cap'", json.dumps({k: j.get(k) for k in ("dueCap", "row")}))
+
+    # ---- the cavern gate: count (natives), hold, trim, deep
+    wild = (F71.get("wild") or {}) if isinstance(F71.get("wild"), dict) else {}
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local utils=require('utils'); local cfg=sw.loadConfig()
+cfg.groups.natives_cavern=true; cfg.limits.mode='formula'
+local g = utils.clone(sw.loadGroups(), true)
+local before = #g.groups
+local n, born = G.adoptNatives(cfg, g, true)
+local nat, depths, bad = 0, {}, 0
+for i = before + 1, #g.groups do
+  local grp = g.groups[i]
+  if grp.layer == 'cavern' and grp.native then nat = nat + 1; depths[tostring(grp.depth)] = (depths[tostring(grp.depth)] or 0) + 1
+    if not (grp.depth and grp.depth >= 0 and grp.depth <= 2) then bad = bad + 1 end end
+end
+local rows = G.layerRows(cfg, g)
+local natRow = nil
+for _, r in ipairs(rows) do if r:match('^%s*cavern:') and r:match('native') then natRow = r; break end end
+print(json.encode({adopted=n, born=born, nat=nat, depths=depths, badDepth=bad, natRow=natRow, rows=rows}))""", timeout=180)
+    if bad(j):
+        rec_bad("mech.v71.cavern.count", j)
+    elif (j.get("nat") or 0) == 0:
+        rec("mech.v71.cavern.count", "NOT-TESTABLE-HERE", "an unflagged cavern native on the map to adopt", json.dumps(j)[:900],
+            note=f"no untracked cavern native here (wild cavern units {wild.get('cavern')}); a region8 fort with populated caverns (any 1x1 with cavern entries; caverns are stocked at embark even unbreached)")
+    else:
+        ok = (j.get("badDepth") or 0) == 0 and bool(j.get("natRow"))
+        rec("mech.v71.cavern.count", "PASS" if ok else "FAIL",
+            "adoptNatives makes native cavern records at depth 0-2 and the cavern row counts them ('(N native)')", json.dumps(j)[:1200])
+
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local CAV=sw.CAVERN; local cfg=sw.loadConfig()
+cfg.enabled=false
+local sp = G.species(cfg)
+local out = { species=0, held=0, bad={}, zero=0 }
+local d
+for t, s in pairs(sp) do out.species = out.species + 1; if not d then for dd in pairs(s.d) do d = dd; break end end end
+out.d = d
+out.prior = 0; for _ in pairs(sw.CACHE.capHeld or {}) do out.prior = out.prior + 1 end
+if d ~= nil then
+  local pre, savedPre = {}, CAV.saved()
+  for t in pairs(sp) do local cr = CAV.rawFor(t); if cr then pre[t] = cr.frequency end end
+  cfg.groups.cavern_hold='off'
+  G.cavernHold(cfg, { [d] = true })
+  local offN = 0; for _ in pairs(sw.CACHE.capHeld or {}) do offN = offN + 1 end
+  out.offHeld = offN
+  cfg.groups.cavern_hold='any'
+  G.cavernHold(cfg, { [d] = true })
+  for t in pairs(sw.CACHE.capHeld or {}) do
+    out.held = out.held + 1
+    local s = sp[t]; local cr = CAV.rawFor(t)
+    if not s or not s.natural or s.deep or (s.shared and not cfg.groups.cavern_hold_shared) or not s.d[d] then out.bad[#out.bad+1] = t end
+    if cr and cr.frequency ~= CAV.SUPPRESSED then out.bad[#out.bad+1] = t .. '@' .. tostring(cr.frequency) end
+    if cr and cr.frequency == 0 then out.zero = out.zero + 1 end
+  end
+  G.cavernHold(cfg, {})
+  local back, diff = 0, {}
+  for t, f in pairs(pre) do
+    if savedPre[t] == nil then local cr = CAV.rawFor(t); if cr and cr.frequency == f then back = back + 1 else diff[#diff+1] = t end end
+  end
+  out.back = back; out.diff = diff
+  out.after = 0; for _ in pairs(sw.CACHE.capHeld or {}) do out.after = out.after + 1 end
+end
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad("mech.v71.cavern.hold", j)
+    elif j.get("d") is None:
+        rec("mech.v71.cavern.hold", "NOT-TESTABLE-HERE", "a natural cavern-only species with an Animal entry in a cavern band", json.dumps(j),
+            note="no cavern entry on this map's region tiles; any region8 1x1 whose caverns carry entries")
+    else:
+        ok = ((j.get("held") or 0) > 0 and not j.get("bad") and (j.get("zero") or 0) == 0 and (j.get("offHeld") or 0) == 0
+              and not j.get("diff") and (j.get("after") or 0) == 0)
+        rec("mech.v71.cavern.hold", "PASS" if ok else "FAIL",
+            "hold off: none held; hold any with cavern d at its cap: its natural cavern-only species at frequency 1 (none 0, none deep/shared); below the cap: every frequency back",
+            json.dumps(j)[:1200], note=("CACHE.capHeld already held %s species before the probe (the live gate); they are re-held by the next groups pass" % j.get("prior")) if j.get("prior") else "")
+
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
+cfg.groups.natives_cavern=true; cfg.groups.cavern_cap=1; cfg.groups.cavern_trim=true; cfg.limits.mode='formula'
+local g = sw.loadGroups()
+G.adoptNatives(cfg, g, true)
+local pick
+for _, grp in ipairs(g.groups) do
+  if grp.layer=='cavern' and grp.native and grp.resident and not grp.dismissed and grp.depth then
+    local live = 0
+    for _, id in ipairs(grp.ids) do local u = df.unit.find(id); if u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) then live = live + 1 end end
+    if live > 0 and (not pick or grp.arrived < pick.arrived) then pick = grp end
+  end
+end
+local out = {}
+if pick then
+  local d = pick.depth
+  g.groups[#g.groups+1] = { layer='cavern', depth=d, ids={}, resident=true, arrived=sw.absTick() + 1, token='VALIDATOR_DUMMY' }
+  local orig = {}
+  for _, id in ipairs(pick.ids) do local u = df.unit.find(id); if u then orig[tostring(id)] = u.animal.leave_countdown end end
+  local n = 0; for _, grp in ipairs(g.groups) do if grp.layer=='cavern' and grp.depth==d and not grp.irruption then n = n + 1 end end
+  local msg = G.trimOne(cfg, g, d, n, 1)
+  out.msg = msg; out.token = pick.token; out.n = n; out.d = d
+  local low, tot = 0, 0
+  for _, id in ipairs(pick.ids) do local u = df.unit.find(id)
+    if u and not dfhack.units.isDead(u) then tot = tot + 1; if u.animal.leave_countdown <= G.TRIM_COUNTDOWN then low = low + 1 end end end
+  out.low, out.tot = low, tot
+  local undoN = 0; for _ in pairs(g.trim_undo or {}) do undoN = undoN + 1 end
+  out.undo = undoN
+  sw.saveGroups(g)
+  sw.PATTERN.sizeRestore()
+  local back, diff = 0, 0
+  for key, cd in pairs(orig) do local u = df.unit.find(tonumber(key))
+    if u and not dfhack.units.isDead(u) then if u.animal.leave_countdown == cd then back = back + 1 else diff = diff + 1 end end end
+  out.back, out.diff = back, diff
+  local g2 = sw.loadGroups(); local left = 0; for _ in pairs(g2.trim_undo or {}) do left = left + 1 end
+  out.undoAfter = left
+end
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad("mech.v71.cavern.trim", j)
+    elif not j.get("token"):
+        rec("mech.v71.cavern.trim", "NOT-TESTABLE-HERE", "a native cavern group with live members", json.dumps(j),
+            note="no cavern natives on this map; a region8 fort with populated caverns")
+    else:
+        ok = (bool(j.get("msg")) and (j.get("tot") or 0) > 0 and j.get("low") == j.get("tot") and (j.get("undo") or 0) == j.get("tot")
+              and (j.get("diff") or 0) == 0 and (j.get("back") or 0) == j.get("tot") and (j.get("undoAfter") or 0) == 0)
+        rec("mech.v71.cavern.trim", "PASS" if ok else "FAIL",
+            "cap 1 with 2 records: the oldest native group trimmed (every member's countdown <= 10, originals in g.trim_undo); PATTERN.sizeRestore (the disable path) puts every countdown back",
+            json.dumps(j))
+
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local W=sw.WILD; local cfg=sw.loadConfig()
+local g = sw.loadGroups()
+local deepIn = {}
+for _, grp in ipairs(g.groups) do for _, id in ipairs(grp.ids) do local u = df.unit.find(id)
+  if u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) then local ok, L = pcall(W.layerOf, u); if ok and L == 'deep' then deepIn[#deepIn+1] = id end end end end
+local sp = G.species(cfg)
+local deepHeld = {}
+for t in pairs(sw.CACHE.capHeld or {}) do if sp[t] and sp[t].deep then deepHeld[#deepHeld+1] = t end end
+for t in pairs((sw.CACHE.apcap or {}).raws or {}) do if sp[t] and sp[t].deep then deepHeld[#deepHeld+1] = t end end
+local deepSp = 0; for _, s in pairs(sp) do if s.deep then deepSp = deepSp + 1 end end
+local dunit
+for _, u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) then local ok, L = pcall(W.layerOf, u); if ok and L == 'deep' and sw.V7.natural(cfg, u) then dunit = u; break end end
+end
+local out = { deepIn = deepIn, deepHeld = deepHeld, deepSpecies = deepSp }
+if dunit then local r, why = G.adopt(cfg, { groups = {} }, { dunit.id }); out.adoptRef = (r == nil); out.why = why; out.dunit = dunit.id end
+print(json.encode(out))""", timeout=120)
+    if bad(j):
+        rec_bad("mech.v71.cavern.deep", j)
+    else:
+        ok = not j.get("deepIn") and not j.get("deepHeld") and (j.get("dunit") is None or (j.get("adoptRef") and "R60" in (j.get("why") or "")))
+        rec("mech.v71.cavern.deep", "PASS" if ok else "FAIL",
+            "no deep unit in any record; no deep-entry species in CACHE.capHeld or CACHE.apcap; adopt refuses a deep unit with the R60 reason",
+            json.dumps(j), note="" if j.get("dunit") is not None else "no natural deep unit on the map, so the adopt refusal was not exercised (a fort with magma-sea life, e.g. MAGMA)")
+
+    # ---- water bodies under the same rule (R45)
+    tool("limits", "formula")
+    v = cfgv("limits.mode")
+    if manip("mech.v71.water.cap", "limits.mode reads formula", v.get("limits.mode") == "formula", json.dumps(v)):
+        t = tool("water")
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local Q=sw.QUOTA
+print(json.encode({auto=Q.autoGroups(), ocean=Q.groupsFor(cfg,'water:ocean'), lake=Q.groupsFor(cfg,'water:lake'), river=Q.groupsFor(cfg,'water:river'),
+  pool=Q.groupsFor(cfg,'water:pool'), defCeil=sw.defaultConfig().limits.water.ceiling}))""")
+        m = re.search(r"(\d+) group\(s\) at once per water body, ceiling (\S+)", t)
+        if bad(j):
+            rec_bad("mech.v71.water.cap", j)
+        else:
+            a = j.get("auto")
+            ok = (a is not None and all(j.get(k) == a for k in ("ocean", "lake", "river", "pool")) and j.get("defCeil") == 0
+                  and m is not None and int(m.group(1)) == a)
+            rec("mech.v71.water.cap", "PASS" if ok else "FAIL",
+                "every water body = floor(sqrt(embark))+1 under the formula; default water ceiling 0; `water` quotes that number per water body",
+                json.dumps(j) + "\n" + (m.group(0) if m else t[:400]))
+
+    # ---- leaders: R32's rule, on live groups when there are any, else on the fort's citizens as stand-ins
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+cfg.v7.leader_male=true
+local function size(u) local ok,v=pcall(function() return u.body.size_info.size_cur end); return ok and v or 0 end
+local function am(u) local ok,a=pcall(dfhack.units.isAdult,u); return u.sex==1 and ok and a end
+local function check(members, race)
+  local best; for _,u in ipairs(members) do if am(u) and (not best or size(u)>size(best)) then best=u end end
+  local grp = { race = race }
+  local l = V7.leaderOf(cfg, grp, members)
+  return { got = l and l.id or nil, want = best and best.id or nil, unled = grp.unled, n = #members }
+end
+local out = { live = {}, src = 'groups' }
+local g = sw.loadGroups()
+for _, grp in ipairs(g.groups) do
+  local ms = {}
+  for _, id in ipairs(grp.ids) do local u = df.unit.find(id); if u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) then ms[#ms+1] = u end end
+  if #ms >= 2 and not sw.V7.GRP.wetGroup(grp) then local r = check(ms, grp.race); r.token = grp.token; out.live[#out.live+1] = r end
+  if #out.live >= 8 then break end
+end
+local cit, fem = {}, {}
+for _, u in ipairs(df.global.world.units.active) do
+  if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cit[#cit+1] = u; if u.sex ~= 1 then fem[#fem+1] = u end end
+  if #cit >= 12 then break end
+end
+if #cit >= 2 then out.cit = check(cit, cit[1].race) end
+if #fem >= 2 then out.nomale = check(fem, fem[1].race) end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.lead.male", j)
+    else:
+        rows = (j.get("live") or []) + ([j["cit"]] if isinstance(j.get("cit"), dict) else [])
+        nm = j.get("nomale") if isinstance(j.get("nomale"), dict) else None
+        if not rows:
+            rec("mech.v71.lead.male", "NOT-TESTABLE-HERE", "a group of 2+ live members or 2+ citizens", json.dumps(j))
+        else:
+            ok = all(r.get("got") == r.get("want") and (r.get("want") is not None or r.get("unled") == "no adult male") for r in rows)
+            ok = ok and (nm is None or (nm.get("got") is None and nm.get("unled") == "no adult male"))
+            rec("mech.v71.lead.male", "PASS" if ok else "FAIL",
+                "V7.leaderOf returns the largest adult male; with none it returns nil and unled 'no adult male' (live groups, plus citizens as stand-in members)",
+                json.dumps(j)[:1400], note="" if nm else "no all-female set of 2+ to show the no-male case")
+
+    # ---- leader lost and panic: synthetic records over live wild units of one herd/pack species
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
+cfg.groups.panic=true; cfg.groups.cohesion=true; cfg.groups.reelect_after_panic=false; cfg.groups.panic_tiles=12
+local by = {}
+for _, u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and sw.WILD.onMap(u) and sw.V7.natural(cfg, u) and sw.WILD.layerOf(u) ~= 'deep' then
+    local lab = sw.cohesionLabel(u.race, cfg)
+    if G.PANICS[lab] and not sw.V7.PERF.rawFlag(u.race, 'FLIER') then by[u.race] = by[u.race] or {}; table.insert(by[u.race], u) end
+  end
+end
+local race, ms
+for r, l in pairs(by) do if #l >= 2 and (not ms or #l > #ms) then race, ms = r, l end end
+local out = { found = race ~= nil }
+if race then
+  local ids = {}; for i = 1, math.min(#ms, 6) do ids[#ids+1] = ms[i].id end
+  local p = ms[1].pos
+  local grp = { ids = ids, race = race, token = df.creature_raw.find(race).creature_id, layer = 'land', resident = true, arrived = 1,
+                leader = -999, lpos = { x = p.x, y = p.y, z = p.z } }
+  local g = { groups = { grp }, detached = 0 }
+  local L0 = sw.LEDGER.lines(400)
+  G.cohere(cfg, g, grp)
+  out.token, out.label, out.lost = grp.token, grp.label, grp.leader_lost
+  out.panic = grp.panic ~= nil
+  out.leader = grp.leader
+  local following, walked, walkedOk = 0, 0, 0
+  for _, id in ipairs(ids) do local u = df.unit.find(id)
+    if u then
+      if u.owner_type == df.unit_owner_type.PACK_LEADER and u.following then following = following + 1 end
+      if u.pos.z == p.z and math.max(math.abs(u.pos.x - p.x), math.abs(u.pos.y - p.y)) < cfg.groups.panic_tiles and u.path.goal == df.unit_path_goal.SeekStation then
+        walked = walked + 1; if #u.path.path.x > 0 then walkedOk = walkedOk + 1 end end
+    end end
+  out.following, out.walked, out.walkedOk, out.moves = following, walked, walkedOk, grp.panic and grp.panic.moves or 0
+  if grp.panic then grp.panic.until_tick = sw.absTick() - 1 end
+  G.cohere(cfg, g, grp)
+  out.panicAfter = grp.panic ~= nil
+  G.cohere(cfg, g, grp)
+  out.leaderAfter = grp.leader
+  local L1 = sw.LEDGER.lines(400)
+  local seen = {}; for _, l in ipairs(L0) do seen[l] = true end
+  local newp, over = 0, 0
+  for _, l in ipairs(L1) do if not seen[l] then if l:find('panic for') then newp = newp + 1 end; if l:find('panic is over') then over = over + 1 end end end
+  out.ledgerPanic, out.ledgerOver = newp, over
+  local dead
+  for _, u in ipairs(df.global.world.units.all) do if dfhack.units.isDead(u) then dead = u; break end end
+  if dead and #ids >= 2 then
+    local grp2 = { ids = ids, race = race, token = out.token, layer = 'land', resident = true, arrived = 1, leader = dead.id }
+    G.leaderLost(cfg, { groups = { grp2 } }, grp2, {})
+    out.deadWhy = grp2.leader_lost and grp2.leader_lost.why
+  end
+end
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad(["mech.v71.lead.lost", "mech.v71.panic.walk"], j)
+    elif not j.get("found"):
+        for cid in ("mech.v71.lead.lost", "mech.v71.panic.walk"):
+            rec(cid, "NOT-TESTABLE-HERE", "2+ live natural wild animals of one herd/pack species (non-flier) on the map", json.dumps(j),
+                note="place a herd first (a region8 fort with surface wildlife; or `place` a herd species)")
+    else:
+        lost = j.get("lost") if isinstance(j.get("lost"), dict) else {}
+        ok = (lost.get("why") in ("left", "died") and j.get("panic") and (j.get("following") or 0) == 0 and not j.get("leader")
+              and (j.get("ledgerPanic") or 0) >= 1 and not j.get("panicAfter") and (j.get("ledgerOver") or 0) >= 1 and not j.get("leaderAfter")
+              and (j.get("deadWhy") in (None, "died")))
+        rec("mech.v71.lead.lost", "PASS" if ok else "FAIL",
+            "leader gone -> leader_lost (left; a dead unit's id -> died), panic on, nobody following, a 'panic for' ledger line; after panic_days the 'panic is over' line and still no leader",
+            json.dumps(j), note="" if j.get("deadWhy") else "no dead unit in units.all to stand in for a leader that died; 'left' exercised")
+        ok = (j.get("walked") or 0) >= 1 and j.get("walked") == j.get("walkedOk") and (j.get("moves") or 0) >= 1
+        rec("mech.v71.panic.walk", "PASS" if ok else "FAIL",
+            "members within panic_tiles of where the leader stood walked off (goal SeekStation, path non-empty), the panic's move count > 0",
+            json.dumps({k: j.get(k) for k in ("token", "walked", "walkedOk", "moves")}))
+
+    # ---- a water draw is led in water at once (needs surface water)
+    if need("mech.v71.lead.water", "water", "a Driver B draw led by a wet leader"):
+        tool("water", "layer", "on")
+        t = tool("water", "now")
+        m = re.search(r"water: drew (\S+) x(\d+) into the (\w+)", t)
+        if not m:
+            rec("mech.v71.lead.water", "NOT-TESTABLE-HERE", "`water now` draws a group", t[:600],
+                note="the draw found nothing (no stocked, in-season water species this season); see `water mix`")
+        else:
+            j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()
+local g = sw.loadGroups(); local grp
+for i = #g.groups, 1, -1 do local x = g.groups[i]; if x.layer == 'water' and x.token == '@TOK@' then grp = x; break end end
+local out = {}
+if grp then
+  out.label, out.leader, out.unled = grp.label, grp.leader, grp.unled
+  local dist = cfg.groups['follow_' .. tostring(grp.label)]
+  out.dist = dist
+  local L = grp.leader and df.unit.find(grp.leader)
+  out.leaderWet = L and G.wet(L) or false
+  local f, n = 0, 0
+  for _, id in ipairs(grp.ids) do local u = df.unit.find(id)
+    if u and not dfhack.units.isDead(u) and id ~= grp.leader then n = n + 1; if L and u.following == L and u.follow_distance == dist then f = f + 1 end end end
+  out.followers, out.others = f, n
+end
+print(json.encode(out))""".replace("@TOK@", m.group(1)))
+            if bad(j):
+                rec_bad("mech.v71.lead.water", j)
+            elif j.get("leader"):
+                ok = j.get("leaderWet") and j.get("label") in ("school", "pod") and j.get("followers") == j.get("others")
+                rec("mech.v71.lead.water", "PASS" if ok else "FAIL", "the drawn group's leader stands in water; every other member follows it at follow_school/follow_pod",
+                    json.dumps(j) + "\n" + t[:300])
+            else:
+                rec("mech.v71.lead.water", "PASS" if j.get("unled") in ("no wet adult male", "no adult male") else "FAIL",
+                    "led at once, or unled for R32's reason (no wet adult male)", json.dumps(j) + "\n" + t[:300])
+
+    # ---- `place` places one clustered, led group
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig()
+local want = @OCEAN@
+local best
+for _, pop in ipairs(df.global.world.populations.all) do
+  local cr = df.creature_raw.find(pop.race)
+  if cr and pop.type == df.world_population_type.Animal and pop.quantity >= 6 then
+    local L = sw.layerOf(pop)
+    local ok = (want and cr.creature_id == 'ORCA') or (not want and L == 'land')
+    if ok and sw.ecoOf(cfg, cr) == 'natural' and not sw.V7.PERF.rawFlag(pop.race, 'FLIER') then
+      local lab = sw.cohesionLabel(pop.race, cfg)
+      if lab ~= 'solitary' and (not best or pop.quantity > best.q) then best = { tok = cr.creature_id, q = pop.quantity, layer = L } end
+    end
+  end
+end
+print(json.encode(best or {}))""".replace("@OCEAN@", "true" if has("ocean") else "false"))
+    if bad(j) or not j.get("tok"):
+        if bad(j):
+            rec_bad("mech.v71.lead.place", j)
+        else:
+            rec("mech.v71.lead.place", "NOT-TESTABLE-HERE", "a stocked (>= 6) natural non-flier herd/pack species on the map's entries", json.dumps(j),
+                note="on an ocean fort the probe places ORCA (the notes' case); elsewhere any land herd")
+    else:
+        t = tool("place", j["tok"], "6", j.get("layer") or "land")
+        ids = _b_ids(t)
+        if not ids:
+            rec("mech.v71.lead.place", "FAIL", f"`place {j['tok']} 6` places a group", t[:600])
+        else:
+            k = luap("""local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local ids={@IDS@}
+local want = {}; for _, id in ipairs(ids) do want[id] = true end
+local recs, grp = 0, nil
+for _, x in ipairs(g.groups) do local hit = false; for _, id in ipairs(x.ids) do if want[id] then hit = true end end; if hit then recs = recs + 1; grp = x end end
+local xs, ys, zs = {}, {}, {}
+for _, id in ipairs(ids) do local u = df.unit.find(id); if u then xs[#xs+1] = u.pos.x; ys[#ys+1] = u.pos.y; zs[#zs+1] = u.pos.z end end
+local function span(t) local lo, hi; for _, v in ipairs(t) do lo = math.min(lo or v, v); hi = math.max(hi or v, v) end; return (hi or 0) - (lo or 0) end
+local L = grp and grp.leader and df.unit.find(grp.leader)
+local ok, adult = false, false; if L then ok, adult = pcall(dfhack.units.isAdult, L) end
+print(json.encode({recs=recs, n=grp and #grp.ids or 0, placed=grp and grp.placed, leader=grp and grp.leader, unled=grp and grp.unled,
+  leaderMale=L and (L.sex == 1 and ok and adult) or false, spanX=span(xs), spanY=span(ys), spanZ=span(zs)}))""".replace("@IDS@", ",".join(map(str, ids))))
+            if bad(k):
+                rec_bad("mech.v71.lead.place", k)
+            else:
+                spread = max(k.get("spanX") or 99, k.get("spanY") or 99)
+                led = (k.get("leader") and k.get("leaderMale")) or k.get("unled") == "no adult male"
+                ok = k.get("recs") == 1 and k.get("n") == len(ids) and spread <= 12 and led
+                rec("mech.v71.lead.place", "PASS" if ok else "FAIL",
+                    "one record holding every placed id, spread within 12 tiles (nearest free tiles to one seed at stride 2), led by an adult male or unled 'no adult male'",
+                    json.dumps(k) + "\n" + t[:300])
+
+    # ---- seeded schools: structurally never counted; live when DF seeded a school here
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local utils=require('utils'); local cfg=sw.loadConfig()
+cfg.groups.seeded_water=true
+local syn = { groups = { { layer='water', seeded=true, ids={} }, { layer='water', ids={} } } }
+local out = { synCount = sw.ENGINE.count(syn, 'water') }
+local g = utils.clone(sw.loadGroups(), true)
+local before = #g.groups
+G.adoptNatives(cfg, g, true)
+local seeded, notMarked = 0, 0
+for _, grp in ipairs(g.groups) do if grp.layer == 'water' then if grp.seeded then seeded = seeded + 1 elseif grp.native then notMarked = notMarked + 1 end end end
+local nonSeeded = 0; for _, grp in ipairs(g.groups) do if grp.layer == 'water' and not grp.seeded then nonSeeded = nonSeeded + 1 end end
+out.seeded, out.badMark, out.count, out.nonSeeded = seeded, notMarked, sw.ENGINE.count(g, 'water'), nonSeeded
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad("mech.v71.lead.seeded", j)
+    else:
+        struct = j.get("synCount") == 1
+        if (j.get("seeded") or 0) == 0:
+            rec("mech.v71.lead.seeded", "NOT-TESTABLE-HERE" if struct else "FAIL", "a school DF seeded in surface water at embark", json.dumps(j),
+                note=("structural half PASS: ENGINE.count skips a seeded record; " if struct else "") + NEED["water"] + " with seeded schools")
+        else:
+            ok = struct and (j.get("badMark") or 0) == 0 and j.get("count") == j.get("nonSeeded")
+            rec("mech.v71.lead.seeded", "PASS" if ok else "FAIL", "seeded schools adopted as seeded=true records; ENGINE.count('water') leaves them out", json.dumps(j))
+
+    # ---- sponges and IMMOBILE never lead
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local out = { bad = {} }
+local r = V7.spongeRace(); out.spongeRace = r
+if r and r >= 0 then out.spongeLabel = sw.cohesionLabel(r, cfg) end
+local all = df.global.world.raws.creatures.all; local imm
+for i = 0, #all - 1 do if V7.PERF.rawFlag(i, 'IMMOBILE') then imm = i; break end end
+if imm then out.immTok = all[imm].creature_id; out.immLabel = sw.cohesionLabel(imm, cfg) end
+for _, grp in ipairs(sw.loadGroups().groups) do
+  if grp.leader and grp.race and (V7.isSponge({ race = grp.race }) or V7.PERF.rawFlag(grp.race, 'IMMOBILE')) then out.bad[#out.bad+1] = grp.token end
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.lead.sponge", j)
+    else:
+        ok = not j.get("bad") and j.get("spongeLabel", "solitary") == "solitary" and j.get("immLabel", "solitary") == "solitary"
+        rec("mech.v71.lead.sponge", "PASS" if ok else "FAIL", "SPONGE and an IMMOBILE race label 'solitary' (never led); no led record of either", json.dumps(j))
+
+    # ---- `groups adopt` (H3)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig()
+local by = {}
+for _, u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and sw.WILD.onMap(u) and sw.V7.natural(cfg, u) and sw.WILD.layerOf(u) ~= 'deep' then
+    by[u.race] = by[u.race] or {}; table.insert(by[u.race], u.id) end
+end
+local ids; for _, l in pairs(by) do if #l >= 2 and (not ids or #l > #ids) then ids = l end end
+local cit; for _, u in ipairs(df.global.world.units.active) do if dfhack.units.isCitizen(u) and not dfhack.units.isDead(u) then cit = u.id; break end end
+local pick = {}; if ids then for i = 1, math.min(3, #ids) do pick[i] = ids[i] end end
+print(json.encode({ids = pick, cit = cit}))""")
+    if bad(j) or len(j.get("ids") or []) < 2:
+        if bad(j):
+            rec_bad("mech.v71.adopt", j)
+        else:
+            rec("mech.v71.adopt", "NOT-TESTABLE-HERE", "2+ live natural wild animals of one species on the map", json.dumps(j))
+    else:
+        ids = [int(x) for x in j["ids"]]
+        t = tool("groups", "adopt", *ids)
+        tc = tool("groups", "adopt", j["cit"]) if j.get("cit") is not None else ""
+        k = luap("""local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local ids={@IDS@}
+local want = {}; for _, id in ipairs(ids) do want[id] = 0 end
+local recs, exact, LEAD, UNLED = 0, false, nil, nil
+for _, x in ipairs(g.groups) do
+  local hit = 0; for _, id in ipairs(x.ids) do if want[id] then want[id] = want[id] + 1; hit = hit + 1 end end
+  if hit > 0 then recs = recs + 1; exact = (hit == #ids and #x.ids == #ids and x.adopted == true); LEAD = x.leader; UNLED = x.unled end
+end
+local dup = 0; for _, n in pairs(want) do if n ~= 1 then dup = dup + 1 end end
+local L = LEAD and df.unit.find(LEAD); local ok, adult = false, false; if L then ok, adult = pcall(dfhack.units.isAdult, L) end
+print(json.encode({recs = recs, exact = exact, dup = dup, leader = LEAD, unled = UNLED, leaderMale = L and (L.sex == 1 and ok and adult) or false}))""".replace("@IDS@", ",".join(map(str, ids))))
+        if bad(k):
+            rec_bad("mech.v71.adopt", k)
+        else:
+            led = (k.get("leader") and k.get("leaderMale")) or k.get("unled") in ("no adult male", "no wet adult male") or \
+                  (k.get("unled") is None and not k.get("leader"))
+            ok = t.startswith("adopted") and k.get("recs") == 1 and k.get("exact") and k.get("dup") == 0 and led and \
+                 (not tc or "belongs to the fort" in tc)
+            rec("mech.v71.adopt", "PASS" if ok else "FAIL",
+                "one record holding exactly the given ids (each id in one record only), adopted=true, led by an adult male or unled; a citizen refused",
+                json.dumps(k) + "\n" + t[:300] + "\n" + tc[:200], note="" if tc else "no citizen to show the refusal")
+
+    # ---- the animal-people cap (R35): capped, lifted by an irruption (stubbed activeOn), restored by the disable path
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local I=sw.IRRUPT; local CAV=sw.CAVERN; local cfg=sw.loadConfig()
+cfg.enabled=true; cfg.groups.enabled=true; cfg.groups.apcap=5
+local sp = G.species(cfg)
+local orig, subj = {}, nil
+for t, s in pairs(sp) do
+  if s.person and s.natural and not s.shared and not s.deep and (cfg.group_size['cavern:' .. t] or 0) <= 0 then
+    local cr = CAV.rawFor(t)
+    if cr then local o = (sw.CACHE.apcap and sw.CACHE.apcap.raws and sw.CACHE.apcap.raws[t]) or { cr.cluster_number[0], cr.cluster_number[1] }
+      orig[t] = { o[1], o[2] }; if math.max(o[1], o[2]) > cfg.groups.apcap and (not subj or t == 'PLUMP_HELMET_MAN') then subj = t end end
+  end
+end
+local out = { subj = subj, persons = 0 }
+for _ in pairs(orig) do out.persons = out.persons + 1 end
+if subj then
+  local cr = CAV.rawFor(subj)
+  out.orig = orig[subj]
+  G.apCap(cfg); out.capped = { cr.cluster_number[0], cr.cluster_number[1] }
+  local old = I.activeOn
+  I.activeOn = function() return true end
+  local ok, e = pcall(G.apCap, cfg)
+  I.activeOn = old
+  out.lifted = { cr.cluster_number[0], cr.cluster_number[1] }; out.liftErr = (not ok) and tostring(e) or nil
+  G.apCap(cfg); out.recapped = { cr.cluster_number[0], cr.cluster_number[1] }
+  sw.PATTERN.sizeRestore()
+  out.restored = { cr.cluster_number[0], cr.cluster_number[1] }
+  local left = 0; for _ in pairs((sw.CACHE.apcap or {}).raws or {}) do left = left + 1 end
+  out.left = left
+end
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad("mech.v71.apcap", j)
+    elif not j.get("subj"):
+        rec("mech.v71.apcap", "NOT-TESTABLE-HERE", "a natural cavern-only animal-people species whose raw cluster max exceeds the cap (5)", json.dumps(j),
+            note="no such species in this map's cavern entries; a region8 fort whose caverns hold plump helmet men or another *_MAN race")
+    else:
+        o, cap = j.get("orig") or [0, 0], 5
+        def mx(p): return max(p) if isinstance(p, list) and p else -1
+        ok = (mx(j.get("capped")) <= cap and j.get("lifted") == o and mx(j.get("recapped")) <= cap and j.get("restored") == o
+              and (j.get("left") or 0) == 0 and not j.get("liftErr"))
+        rec("mech.v71.apcap", "PASS" if ok else "FAIL",
+            "capped to <= 5; an irruption on its cavern (IRRUPT.activeOn stubbed true, restored in the probe) puts the raw range back; capped again; PATTERN.sizeRestore restores it",
+            json.dumps(j))
+
+    # ---- restore paths: all off and disable put back the holds and the caps
+    rows = []
+    for path in ("alloff", "disable"):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local CAV=sw.CAVERN; local cfg=sw.loadConfig()
+cfg.enabled=true; cfg.groups.enabled=true; cfg.groups.apcap=5; cfg.groups.cavern_hold='any'
+local sp = G.species(cfg); local d; for _, s in pairs(sp) do for dd in pairs(s.d) do d = dd end; if d then break end end
+local pre, savedPre = {}, CAV.saved()
+for t in pairs(sp) do local cr = CAV.rawFor(t); if cr then pre[t] = { cr.frequency, cr.cluster_number[0], cr.cluster_number[1] } end end
+if d ~= nil then G.cavernHold(cfg, { [d] = true }) end
+local capped = G.apCap(cfg)
+local held = 0; for _ in pairs(sw.CACHE.capHeld or {}) do held = held + 1 end
+if '@PATH@' == 'alloff' then sw.PANEL.restoreAll() else dfhack.run_command_silent('seasonal-wildlife', 'disable') end
+local diff = {}
+for t, p in pairs(pre) do
+  if savedPre[t] == nil then local cr = CAV.rawFor(t)
+    if cr and (cr.frequency ~= p[1] or cr.cluster_number[0] ~= p[2] or cr.cluster_number[1] ~= p[3]) then diff[#diff+1] = t end end
+end
+local heldAfter = 0; for _ in pairs(sw.CACHE.capHeld or {}) do heldAfter = heldAfter + 1 end
+local capAfter = 0; for _ in pairs((sw.CACHE.apcap or {}).raws or {}) do capAfter = capAfter + 1 end
+print(json.encode({path='@PATH@', d=d, held=held, capped=capped, diff=diff, heldAfter=heldAfter, capAfter=capAfter}))""".replace("@PATH@", path), timeout=180)
+        rows.append(j)
+    if any(bad(r) for r in rows):
+        rec_bad("mech.v71.restore", next(r for r in rows if bad(r)))
+    elif all((r.get("held") or 0) == 0 and (r.get("capped") or 0) == 0 for r in rows):
+        rec("mech.v71.restore", "NOT-TESTABLE-HERE", "a cavern species to hold and an animal-people species to cap", json.dumps(rows),
+            note="nothing to write on this map's cavern entries; a region8 fort with populated caverns")
+    else:
+        ok = all(not r.get("diff") and (r.get("heldAfter") or 0) == 0 and (r.get("capAfter") or 0) == 0 for r in rows)
+        rec("mech.v71.restore", "PASS" if ok else "FAIL",
+            "after a cavern hold and the animal-people cap: PANEL.restoreAll (all off) and `disable` each leave every frequency and cluster range as before, CACHE.capHeld and CACHE.apcap empty",
+            json.dumps(rows)[:1400], note="the trim countdowns' restore is mech.v71.cavern.trim")
+
+    # ---- the apex scheduler's one caller (replaces mech.v71.apex.hook)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local R=sw.ROSTER
+print(json.encode({hook = (type(R.apex) == 'table' and R.apex.tick ~= nil) or false, placeTick = type(R.placeTick)}))""")
+    src = (TOOL / "scripts/seasonal-wildlife.lua").read_text(errors="replace") if (TOOL / "scripts/seasonal-wildlife.lua").exists() else ""
+    code_only = "\n".join(l.split("--", 1)[0] for l in src.splitlines())
+    hook_calls = len(re.findall(r"apex\.tick\b", code_only))
+    callers = len(re.findall(r"ROSTER\.placeTick\b", code_only)) - len(re.findall(r"function\s+ROSTER\.placeTick\b", code_only))
+    in_tick = bool(re.search(r"pcall\(ROSTER\.placeTick,\s*cfg\)", code_only))
+    if bad(j):
+        rec_bad("mech.v71.apex.onecaller", j)
+    else:
+        ok = j.get("hook") is False and j.get("placeTick") == "function" and (hook_calls == 0 or DRY) and (in_tick or DRY)
+        rec("mech.v71.apex.onecaller", "PASS" if ok else "FAIL",
+            "ROSTER.apex.tick is gone and ROSTER.placeTick is a function; the engine's code (comments stripped) never calls apex.tick and tick() pcalls ROSTER.placeTick",
+            json.dumps(j) + f"\nstatic ({TOOL}): apex.tick references {hook_calls}; ROSTER.placeTick references {callers} (tick() and the `roster apex now` verb); tick() pcall {in_tick}")
+
+    # ---- v7.0 gate_drain: synthetic gated records over three live wild units, their roaming flags put back after
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local us = {}
+for _, u in ipairs(df.global.world.units.active) do
+  if #us < 3 and not dfhack.units.isDead(u) and sw.WILD.onMap(u) and V7.natural(cfg, u) and sw.WILD.layerOf(u) == 'land' then us[#us+1] = u end
+end
+local out = { n = #us, def = sw.defaultConfig().v7.gate_drain }
+if #us == 3 then
+  local orig = {}
+  for i, u in ipairs(us) do orig[i] = { u.flags2.roaming_wilderness_population_source, u.flags2.roaming_wilderness_population_source_not_a_map_feature }
+    u.flags2.roaming_wilderness_population_source = true end
+  local g = { groups = {}, detached = 0 }
+  for i, u in ipairs(us) do g.groups[i] = { ids = { u.id }, layer = 'land', resident = false, arrived = i, token = 'T' .. i } end
+  local ok, extra = pcall(V7.drainGate, g, 'land')
+  out.ok = ok; out.err = (not ok) and tostring(extra) or nil
+  out.extra = ok and #extra or -1
+  out.res = { g.groups[1].resident == true, g.groups[2].resident == true, g.groups[3].resident == true }
+  out.flags = { us[1].flags2.roaming_wilderness_population_source, us[2].flags2.roaming_wilderness_population_source, us[3].flags2.roaming_wilderness_population_source }
+  for i, u in ipairs(us) do u.flags2.roaming_wilderness_population_source = orig[i][1]; u.flags2.roaming_wilderness_population_source_not_a_map_feature = orig[i][2] end
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v70.gate_drain", j)
+    elif (j.get("n") or 0) < 3:
+        rec("mech.v70.gate_drain", "NOT-TESTABLE-HERE", "three live natural wild land units to stand in as gated groups", json.dumps(j),
+            note="a region8 fort with surface wildlife on the map")
+    else:
+        hooks = len(re.findall(r"V7\.on\(cfg, 'gate_drain'\)", src))
+        ok = (j.get("def") is True and j.get("extra") == 2 and j.get("res") == [True, True, False] and j.get("flags") == [False, False, True]
+              and (hooks >= 2 or DRY))
+        rec("mech.v70.gate_drain", "PASS" if ok else "FAIL",
+            "three flagged one-animal gated groups: V7.drainGate releases the two oldest and stops at one flagged animal; on by default; called after the land and the cavern releases",
+            json.dumps(j) + f"\nstatic: V7.on(cfg, 'gate_drain') call sites {hooks}")
+
+
+# ---- irruption (docs/v7.1/irruption.md section 12) ---------------------------------------------------------------
+_B_IRR_KEYS = ["enabled", "rev", "threshold", "decay", "pmax", "src.citizens", "src.near", "src.near_z", "src.dig", "src.breach", "src.scarcity",
+               "src.scar_ref", "src.random", "fort.wealth_k", "fort.wealth_ref", "fort.pop_k", "fort.pop_ref", "season_mult", "need_breach",
+               "gap_halve", "gap_share", "strict_band", "warn_min_days", "warn_max_days", "lapse_share", "waves", "size_mult", "size_min",
+               "size_cap", "unit_cap", "spacing_min_days", "spacing_max_days", "stay_days", "edge_tiles", "lead", "surge", "duration_days",
+               "settle_days", "calm_share", "wave_spend", "repel_share", "repel_dead", "cooldown_days", "end_mode", "leave_min_days",
+               "leave_max_days", "species", "fallback", "roster", "mix", "max_active", "champion", "tokens", "rage_value", "rage_ticks",
+               "rage_hold", "sneak_skill", "linger_days", "wander_ticks", "wander_steps", "meander_ticks", "meander_tiles", "reassert", "rehide",
+               "agitate", "agitate_cap", "agitate_benign", "agitate_wave", "msg.warn", "msg.lapse", "msg.start", "msg.wave", "msg.finish",
+               "msg.ready", "pause.warn", "pause.start", "pause.wave", "pause.finish", "popup", "zoom"]
+
+# Lua: the residual writes left on an event's units, read against the event record (rec.mask/cache/hidden/mood/skills)
+_B_RESIDUAL = """
+local function residual(ev)
+  local n, units, alive = 0, 0, 0
+  for _, rec in pairs(ev.units or {}) do
+    units = units + 1
+    local u = df.unit.find(rec.id)
+    if u and not dfhack.units.isDead(u) then
+      alive = alive + 1
+      for f, old in pairs(rec.mask or {}) do local ok, v = pcall(function() return u.uwss_add_caste_flag[f] end); if ok and (v and true or false) ~= old then n = n + 1 end end
+      for f, old in pairs(rec.cache or {}) do local ok, v = pcall(function() return u.enemy.caste_flags[f] end); if ok and (v and true or false) ~= old then n = n + 1 end end
+      if rec.hidden ~= nil and (u.flags1.hidden_in_ambush and true or false) ~= rec.hidden then n = n + 1 end
+      if rec.mood ~= nil and u.counters.soldier_mood == df.soldier_mood_type.Enraged and rec.mood ~= df.soldier_mood_type.Enraged then n = n + 1 end
+      if rec.skills and rec.skills.SNEAK and rec.skills.SNEAK.had == false then
+        local so = u.status.current_soul
+        if so then for _, x in ipairs(so.skills) do if x.id == df.job_skill.SNEAK then n = n + 1 end end end
+      end
+    end
+  end
+  for key, old in pairs(ev.agit or {}) do
+    local u = df.unit.find(tonumber(key))
+    if u and not dfhack.units.isDead(u) and (u.flags4.agitated_wilderness_creature and true or false) ~= old then n = n + 1 end
+  end
+  return n, units, alive
+end
+"""
+
+
+def _b_irr_set(*pairs_):
+    out = []
+    for k, v in pairs_:
+        out.append(tool("irruption", "set", k, v))
+    return "\n".join(o.splitlines()[0] if o else "" for o in out)
+
+
+def v71_irruption():
+    # ---- config: defaults, migration of a v7.0 table, sanitising (pure)
+    keys_lua = ",".join(json.dumps(k) for k in _B_IRR_KEYS)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT""" + CFG_GET_LUA + """
+local d = sw.defaultConfig().irruption
+local missing = {}
+for _, k in ipairs({@KEYS@}) do if get(d, k) == nil then missing[#missing+1] = k end end
+local c = sw.defaultConfig()
+I.sanitize(c, { irruption = { enabled = true, threshold = 2, gain = 0.05, decay = 0.02, duration_days = 12, cooldown_days = 40 } })
+local m = c.irruption
+local c2 = sw.defaultConfig()
+I.sanitize(c2, { irruption = { rev = 2, threshold = 500, decay = 'x', waves = 3.7, end_mode = 'bogus', pmax = 0, msg = { warn = 'yes' } } })
+local b = c2.irruption
+print(json.encode({ rev = d.rev, missing = missing, tokens = (function() local n=0; for _ in pairs(d.tokens) do n=n+1 end; return n end)(),
+  m = { enabled = m.enabled, threshold = m.threshold, decay = m.decay, duration = m.duration_days, cooldown = m.cooldown_days, cit = m.src.citizens, migrated = m.migrated, rev = m.rev },
+  b = { threshold = b.threshold, decay = b.decay, waves = b.waves, end_mode = b.end_mode, pmax = b.pmax, warn = b.msg.warn, migrated = b.migrated } }))""".replace("@KEYS@", keys_lua))
+    if bad(j):
+        rec_bad("mech.v71.irr.cfg", j)
+    else:
+        m, b = j.get("m") or {}, j.get("b") or {}
+        ok = (j.get("rev") == 2 and not j.get("missing") and j.get("tokens") == 11
+              and m.get("enabled") is True and m.get("threshold") == 2 and m.get("decay") == 0.02 and m.get("duration") == 12 and m.get("cooldown") == 40
+              and m.get("cit") == 0.05 and m.get("migrated") == "v7.0" and m.get("rev") == 2
+              and b.get("threshold") == 1.0 and b.get("decay") == 0.01 and b.get("waves") == 3 and b.get("end_mode") == "leave" and b.get("pmax") == 4
+              and b.get("warn") is True and b.get("migrated") is None)
+        rec("mech.v71.irr.cfg", "PASS" if ok else "FAIL",
+            "defaults rev 2 with every key of irruption.md section 6 (11 tokens); v7.0 {enabled, threshold 2, gain 0.05, decay 0.02, duration 12, cooldown 40} -> those values, src.citizens 0.05, migrated 'v7.0'; threshold 500 / decay 'x' / end_mode 'bogus' / pmax 0 / msg.warn 'yes' dropped; waves 3.7 -> 3",
+            json.dumps(j))
+
+    # ---- migration of v7.0 state (a synthetic groups record; one live wild unit's agitated flag set, then cleared by it)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local cfg=sw.loadConfig()
+local u
+for _, x in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(x) and sw.WILD.onMap(x) and sw.V7.natural(cfg, x) then u = x; break end end
+local was = u and u.flags4.agitated_wilderness_creature
+if u then u.flags4.agitated_wilderness_creature = true end
+local now = sw.absTick()
+local g = { groups = {}, armed = { ids = { u and u.id or -1 }, depth = 0, token = 'X' }, irrupt_cooldown_until = now + 5000 }
+I.migrate(cfg, g)
+local s = I.state(g)
+local out = { unit = u and u.id, armed = g.armed ~= nil, oldcd = g.irrupt_cooldown_until,
+  c0 = s.layers.c0.phase, c0cool = s.layers.c0.cool_until, c1 = s.layers.c1.phase, c1cool = s.layers.c1.cool_until, c2 = s.layers.c2.phase,
+  want0 = now + cfg.irruption.cooldown_days * sw.TICKS_PER_DAY, want1 = now + 5000, flag = u and u.flags4.agitated_wilderness_creature or false }
+if u then u.flags4.agitated_wilderness_creature = was end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.irr.migrate", j)
+    else:
+        ok = (j.get("armed") is False and j.get("oldcd") is None and j.get("c0") == "cooldown" and j.get("c0cool") == j.get("want0")
+              and j.get("c1") == "cooldown" and j.get("c1cool") == j.get("want1") and j.get("c2") == "cooldown" and j.get("flag") is False)
+        rec("mech.v71.irr.migrate", "PASS" if ok else "FAIL",
+            "g.armed on cavern 1 -> flag cleared, g.armed nil, cavern 1 cooling cooldown_days; the old global cooldown on caverns 2 and 3, the field removed",
+            json.dumps(j), note="" if j.get("unit") else "no live wild unit to carry the agitated flag; the state half was judged")
+
+    # ---- the per-cavern hooks (pure: a synthetic state with cavern 1 active)
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local cfg=sw.loadConfig()
+cfg.irruption.enabled = true; cfg.irruption.gap_halve = true
+local g = { groups = {}, pressure = { c0 = 0, c1 = 0, c2 = 0 }, irr2 = { rev = 2, layers = { c0 = { phase = 'active' }, c1 = { phase = 'idle' }, c2 = { phase = 'idle' } }, stats = { events = 0, waves = 0, placed = 0 } } }
+I.refreshActive(g)
+local out = { a0 = I.activeOn('cavern:0'), a1 = I.activeOn('cavern:1'), aLand = I.activeOn('land'), ac0 = I.activeOn('c0'),
+  gap0 = I.gapDays(cfg, g, 10, 0), gap1 = I.gapDays(cfg, g, 10, 1), gap2 = I.gapDays(cfg, g, 10, 2) }
+I.refreshActive(sw.loadGroups())
+print(json.encode(out))""")
+    layer_pure = None if bad(j) else j
+    if bad(j):
+        rec_bad("mech.v71.irr.layer", j)
+
+    # ---- the live sequence needs a cavern band with something to send
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local cfg=sw.loadConfig()
+local out = { bands = {}, civ = {}, pred = {} }
+for d = 0, 2 do
+  local b = sw.CAVE.band(d); out.bands['c' .. d] = b ~= nil
+  if b then
+    local c = I.candidates(cfg, d, true); local p = I.candidates(cfg, d, false)
+    out.civ['c' .. d] = #c; out.pred['c' .. d] = #p
+  end
+end
+print(json.encode(out))""", timeout=180)
+    live_ids = ["mech.v71.irr.trigger", "mech.v71.irr.wave", "mech.v71.irr.tokens", "mech.v71.irr.caste", "mech.v71.irr.agitate",
+                "mech.v71.irr.end", "mech.v71.irr.off", "mech.v71.irr.msg", "mech.v71.irr.r35"]
+    D = None
+    if not bad(j):
+        civ, pred = j.get("civ") or {}, j.get("pred") or {}
+        for d in range(3):
+            if (civ.get(f"c{d}") or 0) > 0:
+                D = d; break
+        if D is None:
+            for d in range(3):
+                if (pred.get(f"c{d}") or 0) > 0:
+                    D = d; break
+        if DRY:
+            D = 0
+    if layer_pure is not None:
+        lp = layer_pure
+        ok = (lp.get("a0") is True and lp.get("a1") is False and lp.get("aLand") is False and lp.get("ac0") is True
+              and lp.get("gap0") == 5 and lp.get("gap1") == 10 and lp.get("gap2") == 10)
+        rec("mech.v71.irr.layer", "PASS" if ok else "FAIL",
+            "cavern 1 active: activeOn('cavern:0')/('c0') true, ('cavern:1') and ('land') false; gapDays halves cavern 1's gap only (10 -> 5, others 10)",
+            json.dumps(lp), note="the live half (an event on one cavern leaves the others idle) is read in mech.v71.irr.trigger")
+
+    # fbsafe's structural half runs on any fort
+    jf = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local cfg=sw.loadConfig()
+local out = { cands = 0, unnatural = {}, agitNon = 0, nonNatural = 0 }
+for d = 0, 2 do for _, civ in ipairs({ true, false }) do
+  for _, e in ipairs(I.candidates(cfg, d, civ)) do out.cands = out.cands + 1
+    if sw.ecoOf(cfg, e.craw) ~= 'natural' then out.unnatural[#out.unnatural+1] = e.token end
+    for _, i in ipairs(e.idx) do local p = df.global.world.populations.all[i]; local dd = p and sw.WILD.caveDepth(p.population.cave_id)
+      if dd ~= d then out.unnatural[#out.unnatural+1] = e.token .. '@depth' .. tostring(dd) end end
+  end end end
+local ev = { units = {} }
+for _, u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and not sw.V7.natural(cfg, u) then out.nonNatural = out.nonNatural + 1
+    for d = 0, 2 do if I.agitable(cfg, u, d, ev) then out.agitNon = out.agitNon + 1 end end end
+end
+print(json.encode(out))""", timeout=180)
+
+    if bad(j) or D is None:
+        why = bad(j) or "no cavern band with a civ race or a cavern predator entry"
+        for cid in live_ids:
+            if bad(j):
+                rec(cid, "FAIL", "the probe's JSON", why)
+            else:
+                rec(cid, "NOT-TESTABLE-HERE", "a cavern band (open at the map edge) with a live, admitted, natural civ race or predator entry", json.dumps(j),
+                    note="region8 fort with cavern entries (b1-forts.py; R11); until then BOATS or OCEAN2 (their caverns carry civ races)")
+        _b_fbsafe(jf, None)
+        _b_irr_status()
+        _b_gui_rows()
+        return
+    K = f"c{D}"
+    CAV = str(D + 1)
+
+    # ---- dials for the live sequence, read back (manipulation check)
+    tool("irruption", "on")
+    setr = _b_irr_set(("need_breach", "off"), ("pause.start", "off"), ("zoom", "off"), ("popup", "off"), ("size_min", "4"), ("size_cap", "6"),
+                      ("size_mult", "2"), ("agitate", "on"), ("champion", "on"), ("end_mode", "leave"), ("fallback", "animals"), ("species", "auto"))
+    v = cfgv("irruption.enabled", "irruption.need_breach", "irruption.pause.start", "irruption.size_cap", "irruption.size_min", "irruption.end_mode")
+    dial_ok = (v.get("irruption.enabled") is True and v.get("irruption.need_breach") is False and v.get("irruption.pause.start") is False
+               and v.get("irruption.size_cap") == 6 and v.get("irruption.size_min") == 4 and v.get("irruption.end_mode") == "leave")
+    if not dial_ok and not DRY:
+        for cid in live_ids:
+            manip(cid, "irruption on, need_breach off, pause.start off, size 2/4/6, end_mode leave", False, json.dumps(v) + "\n" + setr)
+        _b_fbsafe(jf, None)
+        _b_irr_status()
+        _b_gui_rows()
+        return
+
+    _b_irr_status()
+
+    # ---- event 1: the natural path. pin at the threshold -> tick -> warning -> (warning time over) -> tick -> active, wave 1
+    j = luap(("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local G=sw.V7.GRP; local CAV=sw.CAVERN; local utils=require('utils')
+local cfg=sw.loadConfig(); local g=sw.loadGroups(); local d=@D@; local k='c'..d
+local out = {}
+local FL = { 'CURIOUS_BEAST', 'CURIOUS_BEAST_ITEM', 'MEANDERER', 'AMBUSHPREDATOR' }
+local function casteSnap(cr)
+  local t = {}
+  for ci, c in ipairs(cr.caste) do
+    for _, f in ipairs(FL) do local ok, v = pcall(function() return c.flags[f] end); t[ci .. f] = ok and (v and true or false) or 'na' end
+    local ok, v = pcall(function() return c.misc.prone_to_rage end); t[ci .. 'rage'] = ok and v or 'na'
+  end
+  local ok, v = pcall(function() return cr.flags.HAS_ANY_CURIOUS_BEAST end); t.cf = ok and (v and true or false) or 'na'
+  return t
+end
+local cands, q0 = {}, {}
+for _, civ in ipairs({ true, false }) do for _, e in ipairs(I.candidates(cfg, d, civ)) do cands[#cands+1] = e; q0[e.token] = e.q end end
+local snap = {}; for _, e in ipairs(cands) do snap[e.token] = casteSnap(e.craw) end
+local cmax = {}; for _, e in ipairs(cands) do cmax[e.token] = I.clusterMax(e.craw) end
+local agBefore = {}; for _, u in ipairs(df.global.world.units.active) do if u.flags4.agitated_wilderness_creature then agBefore[u.id] = true end end
+-- R35 subject: an animal-people species of this cavern, its range before
+local c2 = utils.clone(cfg, true); c2.enabled = true; c2.groups.enabled = true; c2.groups.apcap = 5
+local sp = G.species(c2); local apT
+for t, s in pairs(sp) do if s.person and s.natural and not s.shared and not s.deep and s.d[d] then local cr = CAV.rawFor(t)
+  if cr then local o = (sw.CACHE.apcap and sw.CACHE.apcap.raws and sw.CACHE.apcap.raws[t]) or { cr.cluster_number[0], cr.cluster_number[1] }
+    if math.max(o[1], o[2]) > 5 then apT = t; out.apOrig = { o[1], o[2] } end end end end
+out.apT = apT
+local said = {}; local oldSay = I.say
+I.say = function(c, kind) said[#said+1] = kind; return true end
+local ledger0 = {}; for _, l in ipairs(sw.LEDGER.lines(300)) do ledger0[l] = true end
+g.pressure_pin = g.pressure_pin or {}; g.pressure_pin[k] = cfg.irruption.threshold
+g.pressure = g.pressure or {}; g.pressure[k] = cfg.irruption.threshold
+local ok1, e1 = pcall(I.tick, cfg, g)
+local s = I.state(g); local L = s.layers[k]
+out.tickErr1 = (not ok1) and tostring(e1) or nil
+out.phase1 = L.phase; out.nothing1 = L.nothing
+if L.phase == 'warning' then L.warn_until = sw.absTick() - 1; local ok2, e2 = pcall(I.tick, cfg, g); out.tickErr2 = (not ok2) and tostring(e2) or nil end
+I.say = oldSay
+out.said = said
+out.phase2 = L.phase
+out.others = {}; for dd = 0, 2 do if dd ~= d then out.others['c' .. dd] = s.layers['c' .. dd].phase end end
+out.active = {}; for dd = 0, 2 do out.active['c' .. dd] = I.activeOn('cavern:' .. dd) end
+out.gap = {}; for dd = 0, 2 do out.gap['c' .. dd] = I.gapDays(cfg, g, 10, dd) end
+local stir, irrupts = 0, 0
+for _, l in ipairs(sw.LEDGER.lines(300)) do if not ledger0[l] then if l:find('something stirs') then stir = stir + 1 end; if l:find('IRRUPTS') then irrupts = irrupts + 1 end end end
+out.ledgerStir, out.ledgerIrrupts = stir, irrupts
+local ev = L.ev
+if ev then
+  out.ev = { id = ev.id, token = ev.token, civ = ev.civ, done = ev.done, placed = ev.placed, waves = ev.waves }
+  -- the wave: size, stock, the record
+  local ir = cfg.irruption
+  local nexp = math.floor((cmax[ev.token] or 1) * ir.size_mult + 0.5)
+  nexp = math.max(ir.size_min, math.min(nexp, ir.size_cap)); nexp = math.min(nexp, q0[ev.token] or 0, ir.unit_cap)
+  out.nexp = nexp
+  local q1 = 0; for _, e in ipairs(I.candidates(cfg, d, ev.civ)) do if e.token == ev.token then q1 = e.q end end
+  out.q0, out.q1 = q0[ev.token], q1
+  local recs = {}
+  for _, grp in ipairs(g.groups) do if grp.irr_ev == ev.id then recs[#recs+1] = { mark = grp.irruption, n = #grp.ids, leader = grp.leader, unled = grp.unled, label = grp.label } end end
+  out.recs = recs
+  -- tokens: per token, how many units carry it; units with every enabled token; each write read back
+  local on = {}; for _, t in ipairs(I.TOKENS) do if ir.tokens[t.id].on then on[#on+1] = t.id end end
+  local per, all, fails, n, nosoul = {}, 0, {}, 0, 0
+  for _, rec in pairs(ev.units) do
+    n = n + 1
+    local u = df.unit.find(rec.id)
+    local has = {}; for _, t in ipairs(rec.tags or {}) do has[t] = true; per[t] = (per[t] or 0) + 1 end
+    local full = true; for _, t in ipairs(on) do if not has[t] then full = false end end
+    if full and #on > 0 then all = all + 1 end
+    if u then
+      for f in pairs(rec.mask or {}) do local ok, v = pcall(function() return u.uwss_add_caste_flag[f] end); if not (ok and v) then fails[#fails+1] = rec.id .. ':mask:' .. f end end
+      for f in pairs(rec.cache or {}) do local ok, v = pcall(function() return u.enemy.caste_flags[f] end); if not (ok and v) then fails[#fails+1] = rec.id .. ':cache:' .. f end end
+      if rec.hidden ~= nil and not u.flags1.hidden_in_ambush then fails[#fails+1] = rec.id .. ':hidden' end
+      if rec.mood ~= nil and u.counters.soldier_mood ~= df.soldier_mood_type.Enraged then fails[#fails+1] = rec.id .. ':mood' end
+      if has.sneak then local lvl = 0; local so = u.status.current_soul
+        if so then for _, x in ipairs(so.skills) do if x.id == df.job_skill.SNEAK then lvl = x.rating end end
+          if lvl < ir.sneak_skill then fails[#fails+1] = rec.id .. ':sneak' .. lvl end
+        else nosoul = (nosoul or 0) + 1 end end
+      if rec.linger and u.animal.leave_countdown < math.floor(ir.linger_days * sw.TICKS_PER_DAY) - 1200 then fails[#fails+1] = rec.id .. ':linger' end
+    end
+  end
+  out.tok = { on = on, per = per, all = all, n = n, fails = fails, pct = {}, nosoul = nosoul }
+  for _, t in ipairs(on) do out.tok.pct[t] = ir.tokens[t].pct end
+  -- caste: every candidate race's castes as before; nothing held
+  local cdiff = {}
+  for _, e in ipairs(cands) do local now = casteSnap(e.craw); for kk, vv in pairs(snap[e.token]) do if now[kk] ~= vv then cdiff[#cdiff+1] = e.token .. ':' .. kk end end end
+  out.casteDiff = cdiff; out.casteHeld = I.mem().casteHeld ~= nil
+  -- agitation
+  local agit, agitBad, newAg, newAgOut = 0, {}, 0, 0
+  for key in pairs(ev.agit or {}) do
+    agit = agit + 1
+    local u = df.unit.find(tonumber(key))
+    if u then
+      local why
+      if sw.WILD.layerOf(u) ~= 'cavern' or sw.WILD.caveDepth(u.animal.population.cave_id) ~= d then why = 'layer' end
+      if I.isCiv(u.race) then why = 'civ' end
+      local okC, cit = pcall(dfhack.units.isCitizen, u); local okT, tame = pcall(dfhack.units.isTame, u)
+      if (okC and cit) or (okT and tame) then why = 'fort' end
+      if not sw.V7.natural(cfg, u) then why = 'unnatural' end
+      if why then agitBad[#agitBad+1] = key .. ':' .. why end
+    end
+  end
+  for _, u in ipairs(df.global.world.units.active) do
+    if u.flags4.agitated_wilderness_creature and not agBefore[u.id] then newAg = newAg + 1; if (ev.agit or {})[tostring(u.id)] == nil then newAgOut = newAgOut + 1 end end
+  end
+  out.agit = { n = agit, cap = ir.agitate_cap, bad = agitBad, newAg = newAg, newOutside = newAgOut }
+  -- placed units: never below the third cavern
+  local deep = 0
+  for _, rec in pairs(ev.units) do local u = df.unit.find(rec.id)
+    if u then local okL, Lx = pcall(sw.WILD.layerOf, u); if okL and Lx ~= 'cavern' then deep = deep + 1 end end end
+  out.placedNotCavern = deep
+  -- R35 during the event
+  if apT then local cr = CAV.rawFor(apT); G.apCap(c2); out.apDuring = { cr.cluster_number[0], cr.cluster_number[1] } end
+end
+sw.saveGroups(g)
+_G.__b_irr = { ev = ev and utils.clone(ev, true) or nil, apT = apT }
+print(json.encode(out))""").replace("@D@", str(D)), timeout=240)
+    if bad(j):
+        for cid in ("mech.v71.irr.trigger", "mech.v71.irr.wave", "mech.v71.irr.tokens", "mech.v71.irr.caste", "mech.v71.irr.agitate", "mech.v71.irr.r35"):
+            rec_bad(cid, j)
+        ev = {}
+    else:
+        ev = j.get("ev") if isinstance(j.get("ev"), dict) else {}
+        others = j.get("others") or {}
+        ok = (j.get("phase1") == "warning" and j.get("phase2") == "active" and (ev.get("done") or 0) >= 1 and (j.get("ledgerStir") or 0) >= 1
+              and (j.get("ledgerIrrupts") or 0) >= 1 and all(p in ("idle", "cooldown") for p in others.values())
+              and (j.get("active") or {}).get(K) is True and not any(v_ for kk, v_ in (j.get("active") or {}).items() if kk != K)
+              and not j.get("tickErr1") and not j.get("tickErr2"))
+        gap = j.get("gap") or {}
+        gap_ok = gap.get(K) == 5 and all(v_ == 10 for kk, v_ in gap.items() if kk != K)
+        # the no-civ / fallback none half
+        jn = luap("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local cfg=sw.loadConfig()
+cfg.irruption.fallback = 'none'; cfg.irruption.need_breach = false
+local out = {}
+for d = 0, 2 do
+  if sw.CAVE.band(d) and #I.candidates(cfg, d, true) == 0 then
+    local k = 'c' .. d
+    local g2 = { groups = {}, pressure = { [k] = cfg.irruption.threshold }, pressure_pin = { [k] = cfg.irruption.threshold } }
+    local s = I.state(g2); s.layers[k].touched = true
+    local now = sw.absTick()
+    local old = I.say; I.say = function() return true end
+    I.step(cfg, g2, s, d)
+    I.say = old
+    out = { d = d, phase = s.layers[k].phase, nothing = s.layers[k].nothing, retry = s.layers[k].retry, want = now + sw.TICKS_PER_DAY }
+    break
+  end
+end
+I.refreshActive(sw.loadGroups())
+print(json.encode(out))""")
+        none_ok = None
+        if not bad(jn) and jn.get("phase"):
+            none_ok = jn.get("phase") == "idle" and "fallback none" in (jn.get("nothing") or "") and jn.get("retry") == jn.get("want")
+        rec("mech.v71.irr.trigger", "PASS" if ok and none_ok is not False else "FAIL",
+            f"cavern {CAV} pinned at the threshold: one pass -> warning ('something stirs'); warning over -> active with wave 1 ('IRRUPTS'); the other caverns idle; no civ race + fallback none -> idle, 'nothing to send' and a retry one day on",
+            json.dumps({k_: j.get(k_) for k_ in ("phase1", "nothing1", "phase2", "others", "active", "ledgerStir", "ledgerIrrupts", "tickErr1", "tickErr2")})
+            + "\nfallback none: " + (json.dumps(jn) if not bad(jn) else str(bad(jn))),
+            note="" if none_ok is not None else "every cavern band here has a civ race, so the fallback-none half was not exercised")
+        if layer_pure is not None and not gap_ok:
+            log(f"   note: live gapDays {gap} (cavern {CAV} should halve)")
+        # wave
+        recs = j.get("recs") or []
+        if not ev:
+            for cid in ("mech.v71.irr.wave", "mech.v71.irr.tokens", "mech.v71.irr.caste", "mech.v71.irr.agitate", "mech.v71.irr.r35"):
+                rec(cid, "FAIL", "an event with a placed wave", json.dumps(j)[:900])
+        else:
+            r0 = recs[0] if recs and isinstance(recs[0], dict) else {}
+            led = bool(r0.get("leader")) or r0.get("unled") in ("no adult male", "no wet adult male")
+            ok = (ev.get("placed") == j.get("nexp") and len(recs) == 1 and r0.get("mark") == K and r0.get("n") == ev.get("placed")
+                  and led and (j.get("q0") or 0) - (j.get("q1") or 0) == ev.get("placed"))
+            rec("mech.v71.irr.wave", "PASS" if ok else "FAIL",
+                "wave n = clamp(cluster max x 2, 4, 6) bounded by stock (size dials 2/4/6, read back); one record marked with the cavern; led (or unled for R32's reason); the entry debited by n",
+                json.dumps({k_: j.get(k_) for k_ in ("ev", "nexp", "q0", "q1", "recs")}))
+            tk = j.get("tok") or {}
+            if not ev.get("civ"):
+                rec("mech.v71.irr.tokens", "NOT-TESTABLE-HERE", "a civ wave (tokens are written on civ races only)", json.dumps(tk),
+                    note=f"cavern {CAV} sent a predator (no civ race there); a fort whose caverns hold a civ race (BOATS/OCEAN2; region8 per R11)")
+            else:
+                n = tk.get("n") or 0
+                per, pct = tk.get("per") or {}, tk.get("pct") or {}
+                def want(t):
+                    k_ = max(1, int(math.floor((pct.get(t) or 0) * n / 100 + 0.5))) if (pct.get(t) or 0) > 0 else 0
+                    return 1 + min(k_, max(0, n - 1))
+                okc = all(per.get(t) == want(t) for t in (tk.get("on") or []))
+                ok = okc and tk.get("all") == 1 and not tk.get("fails")
+                rec("mech.v71.irr.tokens", "PASS" if ok else "FAIL",
+                    "each enabled token on 1 + min(max(1, round(pct n/100)), n-1) units; exactly one unit carries every enabled token; every mask/cache/hidden/mood/SNEAK/linger write reads back",
+                    json.dumps(tk))
+            ok = not j.get("casteDiff") and j.get("casteHeld") is False
+            rec("mech.v71.irr.caste", "PASS" if ok else "FAIL",
+                "after the wave every caste of every candidate race reads as before (CURIOUS*, MEANDERER, AMBUSHPREDATOR, prone_to_rage, HAS_ANY_CURIOUS_BEAST); IRRUPT.mem().casteHeld nil",
+                json.dumps({k_: j.get(k_) for k_ in ("casteDiff", "casteHeld")}))
+            ag = j.get("agit") or {}
+            ok = not ag.get("bad") and (ag.get("n") or 0) <= (ag.get("cap") or 0) and (ag.get("newOutside") or 0) == 0
+            rec("mech.v71.irr.agitate", "PASS" if ok else "FAIL",
+                "every agitated unit is a non-civ, non-fort, natural animal of this cavern; at most the cap; no newly agitated unit outside the event's list",
+                json.dumps(ag), note="" if (ag.get("n") or 0) > 0 else "no other animal of this cavern on the map to agitate (CTRL's caverns are unopened); the never-wrong half held")
+
+    # ---- event 1 ends by the player (`irruption end N`)
+    t_end = tool("irruption", "end", CAV)
+    je = luap(_B_RESIDUAL + ("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local G=sw.V7.GRP; local CAV=sw.CAVERN; local utils=require('utils')
+local cfg=sw.loadConfig(); local g=sw.loadGroups(); local d=@D@; local k='c'..d
+local st = _G.__b_irr or {}; local ev = st.ev
+local out = {}
+if ev then
+  local n, units, alive = residual(ev)
+  out.residual, out.units, out.alive = n, units, alive
+  local ir = cfg.irruption; local lo, hi = ir.leave_min_days * sw.TICKS_PER_DAY, math.max(ir.leave_min_days, ir.leave_max_days) * sw.TICKS_PER_DAY
+  local cdBad = 0
+  for _, rec in pairs(ev.units) do local u = df.unit.find(rec.id)
+    if u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) then local cd = u.animal.leave_countdown; if cd < math.max(1, math.floor(lo)) - 1 or cd > hi + 1 then cdBad = cdBad + 1 end end end
+  out.cdBad = cdBad
+  local s = I.state(g); local L = s.layers[k]
+  out.phase = L.phase; out.coolLeft = (L.cool_until or 0) - sw.absTick(); out.coolWant = ir.cooldown_days * sw.TICKS_PER_DAY
+  out.pressure = (g.pressure or {})[k]
+  local marks = 0; for _, grp in ipairs(g.groups) do if grp.irr_ev == ev.id and grp.irruption then marks = marks + 1 end end
+  out.marks = marks; out.why = s.last and s.last.why
+  if st.apT then local c2 = utils.clone(cfg, true); c2.enabled = true; c2.groups.enabled = true; c2.groups.apcap = 5
+    local cr = CAV.rawFor(st.apT); G.apCap(c2); out.apAfter = { cr.cluster_number[0], cr.cluster_number[1] }
+    c2.groups.apcap = 0; G.apCap(c2); out.apReleased = { cr.cluster_number[0], cr.cluster_number[1] } end
+end
+print(json.encode(out))""").replace("@D@", str(D)))
+    end_rows = {"player": je, "reply": t_end}
+
+    # r35 from events 1's two halves
+    if not bad(j) and ev:
+        if not j.get("apT"):
+            rec("mech.v71.irr.r35", "NOT-TESTABLE-HERE", f"an animal-people species with a cluster max over 5 in cavern {CAV}", json.dumps({k_: j.get(k_) for k_ in ("apT",)}),
+                note="a fort whose irrupting cavern holds plump helmet men or another *_MAN race (region8 with populated caverns; BOATS saw plump helmet men, S8B)")
+        elif bad(je):
+            rec_bad("mech.v71.irr.r35", je)
+        else:
+            o = j.get("apOrig")
+            ok = j.get("apDuring") == o and isinstance(je.get("apAfter"), list) and max(je.get("apAfter")) <= 5 and je.get("apReleased") == o
+            rec("mech.v71.irr.r35", "PASS" if ok else "FAIL",
+                "during the event the species' cluster range is the raw's own (cap lifted on its cavern); after the end apCap caps it to <= 5; cap off puts it back",
+                json.dumps({"species": j.get("apT"), "orig": o, "during": j.get("apDuring"), "after": je.get("apAfter"), "released": je.get("apReleased")}))
+
+    # ---- event 2: forced, ended by its duration; the messages around it (IRRUPT.say stubbed in this copy)
+    j2 = luap(_B_RESIDUAL + ("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local utils=require('utils')
+local cfg=sw.loadConfig(); local g=sw.loadGroups(); local d=@D@; local k='c'..d
+local said = {}; local old = I.say
+I.say = function(c, kind) said[#said+1] = kind; return true end
+local s = I.state(g); local L = s.layers[k]
+local out = {}
+local ok, err = pcall(function()
+  L.phase = 'idle'
+  local ev = I.start(cfg, g, s, d, nil, true)
+  out.started = ev ~= nil
+  if ev then
+    local evc = utils.clone(ev, true)
+    ev.until_tick = sw.absTick() - 1
+    I.hold(cfg, g, s, d)
+    local n, units = residual(evc)
+    out.residual, out.units = n, units
+    out.why = s.last and s.last.why; out.phase = L.phase
+    out.pressure = (g.pressure or {})[k]
+    local marks = 0; for _, grp in ipairs(g.groups) do if grp.irr_ev == evc.id and grp.irruption then marks = marks + 1 end end
+    out.marks = marks
+  end
+  L.cool_until = sw.absTick() - 1
+  I.step(cfg, g, s, d)
+  out.afterCool = L.phase
+  if g.pressure_pin then g.pressure_pin[k] = nil end
+  I.warn(cfg, g, s, d)
+  g.pressure = g.pressure or {}; g.pressure[k] = 0
+  I.step(cfg, g, s, d)
+  out.afterLapse = L.phase
+end)
+I.say = old
+out.err = (not ok) and tostring(err) or nil
+out.said = said
+-- the real announcer: every msg off says nothing; pause.start pauses
+local c3 = utils.clone(cfg, true); for kk in pairs(c3.irruption.msg) do c3.irruption.msg[kk] = false end
+out.offSaid = I.say(c3, 'warn', 'seasonal-wildlife validator: irruption message test (msg off)', COLOR_GREY)
+local c4 = utils.clone(cfg, true); c4.irruption.msg.start = true; c4.irruption.pause.start = true; c4.irruption.zoom = false; c4.irruption.popup = false
+local was = dfhack.world.ReadPauseState()
+dfhack.world.SetPauseState(false)
+out.onSaid = I.say(c4, 'start', 'seasonal-wildlife validator: irruption message test (pause.start)', COLOR_GREY)
+out.paused = dfhack.world.ReadPauseState()
+dfhack.world.SetPauseState(was)
+I.refreshActive(g)
+sw.saveGroups(g)
+print(json.encode(out))""").replace("@D@", str(D)), timeout=240)
+    end_rows["duration"] = j2
+
+    if bad(j2):
+        rec_bad("mech.v71.irr.msg", j2)
+    else:
+        said1 = (j.get("said") if not bad(j) else None) or []
+        allsaid = list(said1) + list(j2.get("said") or [])
+        need_k = ["warn", "start", "wave", "finish", "ready", "lapse"]
+        ok = all(k_ in allsaid for k_ in need_k) and j2.get("offSaid") is False and j2.get("paused") is True and not j2.get("err")
+        rec("mech.v71.irr.msg", "PASS" if ok else "FAIL",
+            "the announcer is called for warn, start, wave (event 1), finish, ready and lapse (event 2); with every msg off IRRUPT.say returns false; pause.start pauses the game (pause state put back)",
+            json.dumps({"event1": said1, "event2": j2.get("said"), "offSaid": j2.get("offSaid"), "onSaid": j2.get("onSaid"), "paused": j2.get("paused"), "err": j2.get("err")}))
+
+    if bad(je) or bad(j2):
+        rec_bad("mech.v71.irr.end", je if bad(je) else j2)
+    else:
+        cw = je.get("coolWant") or 0
+        okp = (je.get("residual") == 0 and (je.get("cdBad") or 0) == 0 and je.get("phase") == "cooldown" and abs((je.get("coolLeft") or 0) - cw) <= 2
+               and je.get("pressure") == 0 and je.get("marks") == 0 and je.get("why") == "ended by the player" and "undone" in t_end)
+        okd = (j2.get("started") and j2.get("residual") == 0 and j2.get("why") == "duration over" and j2.get("phase") == "cooldown" and j2.get("pressure") == 0
+               and j2.get("marks") == 0 and j2.get("afterCool") == "idle" and j2.get("afterLapse") == "idle")
+        rec("mech.v71.irr.end", "PASS" if okp and okd else "FAIL",
+            "ended by the player and by its duration: 0 residual writes on surviving units and agitated animals, countdowns in leave_min..leave_max days (end_mode leave), cooldown set, pressure 0, group marks cleared; the cooldown then ends to idle",
+            json.dumps(end_rows)[:1500], note="'repelled' needs units killed by the fort (repel_share/repel_dead): a rig test (irruption.md section 13), not one session")
+
+    # ---- the off paths: `irruption off`, disable, groups off, all off -- each with an event running
+    offs = {}
+    for path in ("irruption off", "disable", "groups off", "all off"):
+        tool("irruption", "on")
+        tnow = tool("irruption", "now", CAV)
+        js = luap(("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT; local utils=require('utils')
+local g = sw.loadGroups(); local L = I.state(g).layers['c@D@']
+_G.__b_irr_off = L.ev and utils.clone(L.ev, true) or nil
+print(json.encode({ phase = L.phase, placed = L.ev and L.ev.placed or 0 }))""").replace("@D@", str(D)))
+        if path == "irruption off":
+            tp = tool("irruption", "off")
+        elif path == "disable":
+            tp = tool("disable")
+        elif path == "groups off":
+            tp = tool("groups", "off")
+        else:
+            tp = json.dumps(luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({out=sw.PANEL.restoreAll()}))"))
+        jr = luap(_B_RESIDUAL + ("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT
+local g = sw.loadGroups(); local s = I.state(g)
+local ev = _G.__b_irr_off
+local out = { phases = {} }
+for d = 0, 2 do out.phases['c' .. d] = s.layers['c' .. d].phase end
+if ev then out.residual = residual(ev); local marks = 0; for _, grp in ipairs(g.groups) do if grp.irr_ev == ev.id and grp.irruption then marks = marks + 1 end end; out.marks = marks end
+out.held = I.mem().casteHeld ~= nil
+print(json.encode(out))"""))
+        offs[path] = {"start": js, "now": tnow[:160], "path": (tp or "")[:160], "after": jr}
+        if path == "groups off":
+            tool("groups", "on")
+    # while off: a pinned cavern sends nothing and writes nothing
+    tool("irruption", "off")
+    jo = luap(("""local sw=reqscript('seasonal-wildlife'); local I=sw.IRRUPT
+local cfg = sw.loadConfig(); local g = sw.loadGroups(); local k = 'c@D@'
+g.pressure_pin = g.pressure_pin or {}; g.pressure_pin[k] = cfg.irruption.threshold * 2
+local s = I.state(g); local placed0, n0 = s.stats.placed, #g.groups
+I.tick(cfg, g)
+local out = { enabled = cfg.irruption.enabled, placed = s.stats.placed - placed0, recs = #g.groups - n0, phase = s.layers[k].phase }
+g.pressure_pin = nil
+sw.saveGroups(g)
+print(json.encode(out))""").replace("@D@", str(D)))
+    offs["while off"] = jo
+    bad_off = [p for p, r in offs.items() if (bad(r) if p == "while off" else (bad(r["start"]) or bad(r["after"])))]
+    if bad_off:
+        rec("mech.v71.irr.off", "FAIL", "the off-path probes' JSON", json.dumps(offs)[:1500])
+    else:
+        rows_ok, notes = True, []
+        for p in ("irruption off", "disable", "groups off", "all off"):
+            r = offs[p]
+            st, af = r["start"], r["after"]
+            if st.get("phase") != "active":
+                rows_ok = False; notes.append(f"{p}: no event started ({r['now']})"); continue
+            ph = af.get("phases") or {}
+            if af.get("residual") != 0 or (af.get("marks") or 0) != 0 or any(v_ == "active" for v_ in ph.values()) or af.get("held"):
+                rows_ok = False; notes.append(f"{p}: residual {af.get('residual')} marks {af.get('marks')} phases {ph}")
+        ok = rows_ok and jo.get("enabled") is False and jo.get("placed") == 0 and jo.get("recs") == 0 and jo.get("phase") != "active"
+        rec("mech.v71.irr.off", "PASS" if ok else "FAIL",
+            "with an event running, `irruption off`, `disable`, `groups off` and all off (PANEL.restoreAll) each leave 0 residual writes, no marks and no active phase; while off a cavern pinned at 2x threshold places and writes nothing",
+            json.dumps(offs)[:1500], note="; ".join(notes))
+
+    # ---- fbsafe: structural + every unit placed this session
+    _b_fbsafe(jf, j.get("placedNotCavern") if (not bad(j) and ev) else None)
+    tool("irruption", "unpin")
+    tool("irruption", "end", "all")
+    tool("irruption", "off")
+    _b_gui_rows()
+
+
+def _b_fbsafe(jf, placed_bad):
+    if bad(jf):
+        rec_bad("mech.v71.irr.fbsafe", jf)
+        return
+    ok = not jf.get("unnatural") and (jf.get("agitNon") or 0) == 0 and (placed_bad or 0) == 0
+    rec("mech.v71.irr.fbsafe", "PASS" if ok else "FAIL",
+        "every candidate natural and at its own cavern depth (0-2); agitable() false for every non-natural unit at every depth; every placed wave unit stands in a cavern",
+        json.dumps({**jf, "placedNotCavern": placed_bad}),
+        note="" if placed_bad is not None else "no event ran here, so the placed-units half was not read")
+
+
+def _b_irr_status():
+    t0 = tool("irruption", "on")
+    ts = tool("irruption", "status")
+    tst = tool("status")
+    rows = [r for r in ("purpose:", "trigger:", "phases:", "end:", "species:", "tokens (R10", "token levers:", "agitation (R5", "messages:",
+                        "cavern 1:", "cavern 2:", "cavern 3:", "so far:") if r not in ts]
+    ok = not rows and "irruptions: on  threshold" in tst
+    rec("mech.v71.irr.status", "PASS" if ok else "FAIL",
+        "`irruption status`: the purpose line, trigger/phases/end/species/tokens/levers/agitation/messages rows, one row per cavern and the totals; `status` carries 'irruptions: on  threshold'",
+        (("missing: " + ", ".join(rows) + "\n") if rows else "") + ts[:1200] + "\n" + "\n".join(l for l in tst.splitlines() if "irruption" in l)[:300])
+
+
+def _b_gui_rows():
+    gui = TOOL / "scripts/gui/seasonal-wildlife.lua"
+    txt = gui.read_text(errors="replace") if gui.exists() else ""
+    keys = ["src.citizens", "need_breach", "agitate_cap", "cooldown_days", "duration_days", "champion", "tokens"]
+    present = [k for k in keys if k in txt]
+    if DRY or len(present) < 3:
+        rec("gui.irr.rows", "NOT-TESTABLE-HERE", "the Panel/Layers rows of irruption.md section 9", f"{gui}: IRRUPT v2 keys present {present}",
+            note="UI wave not landed: the window still shows only the v6.1 switch, threshold and pressures (gui/seasonal-wildlife.lua act_lay_irruption, Layers rows)")
+    else:
+        missing = [k for k in keys if k not in txt]
+        rec("gui.irr.rows", "PASS" if not missing else "FAIL", "the window names every IRRUPT v2 key it should expose (static)",
+            f"present {present}; missing {missing}", note="static check only; the rows' reads and writes are the GUI wave's own claims")
+# ---- fork C helpers: every probe starts from the engine's own tables; RESET puts the raws back the way the tool holds
+# them (re-applied when the rotation is on, restored when it is off), so a probe that called V7.apply leaves nothing.
+_C_HEAD = ("local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local R=sw.ROSTER; local M=sw.MODEL; local VE=sw.VERMIN; local CAV=sw.CAVERN\n"
+           "local function RESET() local cc=sw.loadConfig(); if cc.enabled then pcall(V7.apply, cc, sw.buildPool(cc)) else V7.restore() end end\n")
+
+def _c_probe(body, timeout=240):
+    return luap(_C_HEAD + body, timeout=timeout)
+
+def _c_num(x, d=0):
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return d
+
+def _c_r8(what, interim):
+    return f"needs {what}: a region8 fort per R11 (b1-forts.py embark) that has it; until then {interim}"
+
+# ---- roster -------------------------------------------------------------------------------------------------------
+def v71_roster():
+    # mech.v70.builder + mech.v71.ladder.units: the console build (it persists; phase_v71 restores the config after)
+    out = tool("roster", "build", "land", timeout=240)
+    slots = re.findall(r"^  ([A-Z]{2,3})\s+(\d+) \(min (\d+), max (\d+)\)\s+(.*)$", out, re.M)
+    unf = re.findall(r"^  UNFILLED (\S+)\s+needs (\d+), have (\d+) -- (.+)$", out, re.M)
+    ladder = [(k, int(v)) for k, v in re.findall(r"^    (\S+)\s+(-?\d+)\s*$", out, re.M)]
+    li = re.search(r"ladder-info .*?\bcarn=([\d.]+).*?\bcarn_units=([\d.]+)", out)
+    apex = re.findall(r"^  apex (\S+): FREQUENCY (raw )?(-?\d+)", out, re.M)
+    veg = "vegetation index" in out
+    under = [s for s in slots if int(s[1]) < int(s[2])]
+    unf_codes = {u[0] for u in unf}
+    if "the 'builder' switch is off" in out:
+        rec("mech.v70.builder", "FAIL", "the builder on by default (v7 builder)", out[:600])
+    elif not slots:
+        rec("mech.v70.builder", "FAIL", "slot lines, the ladder and the vegetation line from `roster build land`", out[:900])
+    else:
+        ok = bool(ladder) and veg and all(s[0] in unf_codes for s in under) and all(u[3].strip() for u in unf)
+        rec("mech.v70.builder", "PASS" if ok else "FAIL",
+            "slots with members, an UNFILLED line with a reason for each slot under its minimum, the ladder, the vegetation survey (the water build's deep survey: mech.v71.water.pelagic's probe)",
+            json.dumps({"slots": slots, "unfilled": unf, "ladder_n": len(ladder), "vegetation": veg})[:1400])
+    cv = cfgv("roster.apex_raw_cap", "roster.apex_odds")
+    cap, odds = _c_num(cv.get("roster.apex_raw_cap"), 5), _c_num(cv.get("roster.apex_odds"), 0)
+    if not li:
+        rec("mech.v71.ladder.units", "FAIL", "a ladder-info line from `roster build land`", out[:600])
+    else:
+        carn, cu = float(li.group(1)), float(li.group(2))
+        apex_over = [(t, int(v)) for t, raw, v in apex if int(v) > cap and odds <= 0]
+        ok = abs(carn - cu) <= 0.03 and all(v >= 1 for _, v in ladder) and not apex_over
+        rec("mech.v71.ladder.units", "PASS" if ok else "FAIL",
+            "carn_units within 0.03 of carn; every ladder value >= 1; no apex above apex_raw_cap (apex_odds 0)",
+            json.dumps({"carn": carn, "carn_units": cu, "ladder_min": min([v for _, v in ladder] or [0]), "apex": apex, "apex_raw_cap": cap, "apex_odds": odds, "apex_over": apex_over}))
+    # mech.v71.apex.place / .cap: from the built roster's apex keys
+    j0 = _c_probe("""local c=sw.loadConfig(); local keys=(c.roster and c.roster.apex_keys and c.roster.apex_keys.land) or {}
+local q={}; for _,k in ipairs(keys) do local s=0; for _,p in ipairs(R.apex.entries(k)) do s=s+p.quantity end; q[k]=s end
+print(json.encode({keys=keys, nkeys=#keys, q=q}))""")
+    if bad(j0):
+        rec_bad(["mech.v71.apex.place", "mech.v71.apex.cap"], j0)
+    elif not (j0.get("nkeys") or 0):
+        for cid in ("mech.v71.apex.place", "mech.v71.apex.cap"):
+            rec(cid, "NOT-TESTABLE-HERE", "an apex key seated by `roster build land`", json.dumps(j0),
+                note=_c_r8("a land apex (AL/AW or a boosted giant) in the embark pool with stock", "a savage fort (region6 EVILF/GOODF) or BOATS"))
+    else:
+        oa = tool("roster", "apex", "now", "land", timeout=180)
+        m = re.search(r"apex now: .*?\bland (\S+) x(\d+)", oa)
+        keys = j0.get("keys") or []
+        lua_keys = "{" + ",".join(json.dumps(str(k)) for k in keys) + "}"
+        j1 = _c_probe(f"""local c=sw.loadConfig(); local keys={lua_keys}
+local q={{}}; for _,k in ipairs(keys) do local s=0; for _,p in ipairs(R.apex.entries(k)) do s=s+p.quantity end; q[k]=s end
+local g=sw.loadGroups(); local recs={{}}
+for _,grp in ipairs(g.groups) do if grp.placed and grp.tag=='apex' then recs[#recs+1]={{key=grp.key, n=#grp.ids, layer=grp.layer}} end end
+g.rapex = g.rapex or {{}}
+R.apex.decide(c, g, 'land', keys, 25, 1, 'apex', false, 'vtest:land')
+local st = g.rapex['vtest:land']; local why, seen = st and st.why, st and st.groups
+g.rapex['vtest:land'] = nil
+print(json.encode({{q=q, recs=recs, why=why, groups=seen}}))""")
+        if not m:
+            rec("mech.v71.apex.place", "FAIL" if "nothing placed" not in oa else "NOT-TESTABLE-HERE",
+                "`roster apex now land` places a group ('apex now: land KEY xN')", oa[:600],
+                note="" if "nothing placed" not in oa else _c_r8("stock in a seated apex's entry and a free edge tile", "BOATS or a savage fort"))
+            rec("mech.v71.apex.cap", "NOT-TESTABLE-HERE", "an apex group on the map", oa[:300], note="no apex group was placed (mech.v71.apex.place)")
+        elif bad(j1):
+            rec_bad(["mech.v71.apex.place", "mech.v71.apex.cap"], j1)
+        else:
+            key, n = m.group(1), int(m.group(2))
+            qb, qa = (j0.get("q") or {}).get(key), (j1.get("q") or {}).get(key)
+            recs = [r_ for r_ in (j1.get("recs") or []) if isinstance(r_, dict) and r_.get("key") == key]
+            ok = n > 0 and qb is not None and qa is not None and int(qb) - int(qa) == n and bool(recs)
+            rec("mech.v71.apex.place", "PASS" if ok else "FAIL", "ids > 0; the key's stock debited by the group size; a placed tag='apex' record",
+                json.dumps({"reply": oa.strip()[:200], "key": key, "n": n, "stock_before": qb, "stock_after": qa, "records": recs}))
+            rec("mech.v71.apex.cap", "PASS" if j1.get("why") == "cap 1 reached" else "FAIL",
+                "ROSTER.apex.decide (cap 1, not forced) with the placed group on the map says 'cap 1 reached'",
+                json.dumps({"why": j1.get("why"), "groups_on_map": j1.get("groups")}))
+    # mech.v71.gobble: the active land roster's edges, as the console prints them
+    og = tool("roster", "gobble", "land", timeout=180)
+    edges = re.findall(r"^gobble-edge land (\S+) -> (\S+) (\S+) kind=(\w+)(?: class=(\S+))?", og, re.M)
+    natives = [e for e in edges if e[3] == "native"]
+    writes = [e for e in edges if e[3] == "write"]
+    if not edges:
+        rec("mech.v71.gobble", "FAIL" if "edge(s)" not in og else "NOT-TESTABLE-HERE", ">= 1 gobble-edge line for the land roster", og[:600],
+            note="" if "edge(s)" not in og else "no allowed vermin or no seated consumer on this embark's land roster")
+    else:
+        nat_lua = "{" + ",".join("{%s,%s,%s}" % (json.dumps(c_), json.dumps(v_), json.dumps(k_ or "")) for c_, v_, _, _, k_ in natives) + "}"
+        jn = _c_probe(f"""local bad={{}}
+for _,t in ipairs({nat_lua}) do
+  local cr, vr = M.rawOf(t[1]), M.rawOf(t[2]); local ok=false
+  if cr and vr then
+    local kc, kv = sw.classify(cr), sw.classify(vr)
+    local has=false; for _,g in ipairs(kc.gobble or {{}}) do if g==t[3] then has=true end end
+    ok = has and kv.cclass ~= nil and kv.cclass[t[3]] == true
+  end
+  if not ok then bad[#bad+1]=t[1]..'>'..t[2]..':'..t[3] end
+end
+print(json.encode({{bad=bad, n=#bad}}))""")
+        if bad(jn):
+            rec_bad("mech.v71.gobble", jn)
+        else:
+            ok = len(writes) >= 1 and not (jn.get("n") or 0)
+            rec("mech.v71.gobble", "PASS" if ok else "FAIL", ">= 1 kind=write edge; every native edge's class on both the consumer's GOBBLE classes and the vermin's creature classes",
+                json.dumps({"edges": len(edges), "write": len(writes), "native": len(natives), "native_mismatch": jn.get("bad")})[:900])
+    # mech.v70.outgun: read-only survey; outgun_cap's group-size write in an in-memory build
+    j = _c_probe("""local c=sw.loadConfig(); local v0=sw.CACHE.ver
+local ok, txt = pcall(dfhack.run_command_silent, 'seasonal-wildlife', 'roster', 'outgun', 'land')
+local v1=sw.CACHE.ver
+local c2=sw.loadConfig(); c2.v7.outgun_cap=true
+local okb, res = pcall(R.build, c2, 'land')
+local capped, over = {}, {}
+if okb and res and res.ok then
+  local factor = V7.on(c2, 'outgun') or 2.0
+  for _,og in ipairs(res.outgunned or {}) do
+    capped[#capped+1] = {pred=og.pred, prey=og.prey, factor=og.factor, size=c2.group_size[og.prey_key]}
+    if og.factor < factor then over[#over+1]=og.pred..'>'..og.prey end
+  end
+end
+print(json.encode({txt=tostring(txt), v0=v0, v1=v1, built=okb and res and res.ok or false, capped=capped, below=over, factor=V7.on(c2,'outgun')}))""")
+    if bad(j):
+        rec_bad("mech.v70.outgun", j)
+    else:
+        txt = j.get("txt") or ""
+        pairs_ = re.findall(r"outgunned: (\S+) pack vs (\S+) herd ([\d.]+)x", txt)
+        fac = _c_num(j.get("factor"), 2.0)
+        fmt_ok = txt.startswith("roster outgun land --")
+        ok = fmt_ok and j.get("v0") == j.get("v1") and all(float(p[2]) >= fac for p in pairs_) and not (j.get("below") or []) \
+             and all(isinstance(x, dict) and x.get("size") for x in (j.get("capped") or []))
+        rec("mech.v70.outgun", "PASS" if ok else "FAIL",
+            "the survey line, every listed factor >= v7 outgun, the config version unmoved (read-only); under outgun_cap every outgunned prey has a group size written",
+            json.dumps({"reply": txt[:300], "pairs": len(pairs_), "ver_before": j.get("v0"), "ver_after": j.get("v1"), "capped": j.get("capped")})[:1200],
+            note="" if pairs_ or j.get("capped") else "no outgunned pair in this embark's land pool: the survey's format and read-only half judged, the cap half had nothing to cap")
+    # mech.v70.realms
+    j = _c_probe("""local c=sw.loadConfig(); V7.loadRealmOverride()
+local n, codes = 0, {}
+for _,rs in pairs(V7.REALMS) do n=n+1; for _,r in ipairs(rs) do codes[r]=true end end
+local nc=0; for _ in pairs(codes) do nc=nc+1 end
+local tok, realm
+for t,rs in pairs(V7.REALMS) do if #rs==1 and rs[1]~='COS' and rs[1]~='OCE' then tok,realm=t,rs[1]; break end end
+local other; for _,r in ipairs(V7.REALM_ORDER) do if r~=realm and r~='OCE' then other=r; break end end
+local out={n=n, ncodes=nc, tok=tok, realm=realm, other=other}
+if tok then
+  c.v7.realms=true
+  out.same = V7.realmOk(c, {token=tok, layer='land'}, realm, 'land')
+  out.otherOk = V7.realmOk(c, {token=tok, layer='land'}, other, 'land')
+  out.unlisted = V7.realmOk(c, {token='NO_SUCH_CREATURE_XYZ', layer='land'}, other, 'land')
+  c.v7.realms=false
+  out.off = V7.realmOk(c, {token=tok, layer='land'}, other, 'land')
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v70.realms", j)
+    else:
+        ok = (j.get("n") or 0) >= 300 and j.get("same") is True and j.get("otherOk") is False and j.get("unlisted") is True and j.get("off") is True
+        rec("mech.v70.realms", "PASS" if ok else "FAIL", "300+ entries; realms on: own realm in, another out, unlisted in; realms off: all in", json.dumps(j))
+    # flying / water / civ / apmass: in-memory builds and pure reads (nothing saved)
+    j = _c_probe("""local c=sw.loadConfig(); local out={}
+local ok1, rf = pcall(R.build, c, 'flying')
+if ok1 and rf and rf.ok then out.fly={slots=rf.slots, unfilled=rf.unfilled} else out.flyErr=tostring(ok1 and rf and rf.why or rf) end
+local c2=sw.loadConfig()
+local ok2, rw = pcall(R.build, c2, 'water')
+if ok2 and rw and rw.ok then out.water={slots=rw.slots, unfilled=rw.unfilled, deep=rw.deep, ocean=rw.ctx and rw.ctx.ocean or false} else out.waterErr=tostring(ok2 and rw and rw.why or rw) end
+local le = M.entry('FISH_LAMPREY_SEA', 'water'); out.lamprey = le and R.slotOf(c, le, 'water') or 'absent'
+local function civ(t) local cr=M.rawOf(t); if not cr then return 'absent' end; return V7.isCivRaw(cr) end
+out.civ={ANT_MAN=civ('ANT_MAN'), BAT_MAN=civ('BAT_MAN'), WOLF_MAN=civ('WOLF_MAN')}
+local pool=sw.buildPool(c); local n, nb = 0, 0
+for _,e in ipairs(pool) do n=n+1; if type(e.civ)=='boolean' then nb=nb+1 end end
+out.poolN, out.poolCivBool = n, nb
+local dm=M.rawOf('DAMSELFLY_MAN'); if dm then local k=sw.classify(dm); out.dmMass=k.mass; out.dmGuild=k.guild; out.dmRoot=k.root end
+print(json.encode(out))""", timeout=300)
+    if bad(j):
+        rec_bad(["mech.v71.flying", "mech.v71.water.pelagic", "mech.v71.civ", "mech.v71.apmass"], j)
+    else:
+        fly = j.get("fly") or {}
+        fs = {s.get("code"): s for s in (fly.get("slots") or []) if isinstance(s, dict)}
+        scav = {"BIRD_VULTURE", "BIRD_BUZZARD", "BIRD_KEA", "BIRD_RAVEN"}
+        apx = list((fs.get("APX") or {}).get("members") or [])
+        rp_n = int((fs.get("RP") or {}).get("have") or 0)
+        if not fs:
+            rec("mech.v71.flying", "FAIL", "`roster build flying` returns its slots", json.dumps(j.get("flyErr") or fly)[:600])
+        elif not apx:
+            rec("mech.v71.flying", "NOT-TESTABLE-HERE" if rp_n <= 1 else "FAIL", "an APX raptor seated (>= 2,000 cm3, not a scavenger) and RP <= 1",
+                json.dumps({"RP": rp_n, "APX": apx, "unfilled": fly.get("unfilled")})[:800],
+                note=_c_r8("a surface raptor of 2,000 cm3 or more in the embark pool (eagle, osprey...)", "LAKE or a forest fort"))
+        else:
+            ok = rp_n <= 1 and not (set(apx) & scav)
+            rec("mech.v71.flying", "PASS" if ok else "FAIL", "RP <= 1; APX filled with no vulture, buzzard, kea or raven",
+                json.dumps({"RP": rp_n, "APX": apx, "slots": {k: (v.get("have"), v.get("min"), v.get("max")) for k, v in fs.items()}}))
+        wat = j.get("water") or {}
+        ws = {s.get("code"): s for s in (wat.get("slots") or []) if isinstance(s, dict)}
+        wu = [u for u in (wat.get("unfilled") or []) if isinstance(u, dict)]
+        lam = j.get("lamprey")
+        got = json.dumps({"slots": {k: (v.get("have"), v.get("min"), v.get("members")) for k, v in ws.items()}, "unfilled": wu,
+                          "deep": wat.get("deep"), "ocean": wat.get("ocean"), "lamprey_slot": lam})[:1200]
+        if lam not in ("MW", "absent", None) and not DRY:
+            rec("mech.v71.water.pelagic", "FAIL", "FISH_LAMPREY_SEA slots as MW (R49)", got)
+        elif need("mech.v71.water.pelagic", "ocean", "APE and PE seated or UNFILLED 'no candidate in pool' on an ocean fort", got):
+            def seated_or_reported(code):
+                s = ws.get(code) or {}
+                return int(s.get("have") or 0) >= 1 or any(u.get("code") == code and "no candidate" in str(u.get("reason")) for u in wu)
+            ok = bool(ws) and seated_or_reported("APE") and seated_or_reported("PE") and lam in ("MW", "absent")
+            rec("mech.v71.water.pelagic", "PASS" if ok else "FAIL", "APE and PE seated, or UNFILLED with 'no candidate in pool'; the lamprey an MW", got)
+        civ = j.get("civ") or {}
+        ok = civ.get("ANT_MAN") is True and civ.get("BAT_MAN") is True and civ.get("WOLF_MAN") is False and (j.get("poolN") or 0) > 0 and j.get("poolN") == j.get("poolCivBool")
+        rec("mech.v71.civ", "PASS" if ok else "FAIL", "ANT_MAN and BAT_MAN civ, WOLF_MAN not; every pool entry a civ boolean",
+            json.dumps({"civ": civ, "pool": j.get("poolN"), "with_civ_bool": j.get("poolCivBool")}))
+        if j.get("dmMass") is None and not DRY:
+            rec("mech.v71.apmass", "NOT-TESTABLE-HERE", "DAMSELFLY_MAN in this world's raws", json.dumps(j.get("dmRoot")), note="a world without the animal people of vermin roots")
+        else:
+            ok = _c_num(j.get("dmMass")) >= 30000 and j.get("dmGuild") == "RP"
+            rec("mech.v71.apmass", "PASS" if ok else "FAIL", "DAMSELFLY_MAN mass >= 30,000 cm3, guild RP",
+                json.dumps({"mass": j.get("dmMass"), "guild": j.get("dmGuild"), "root": j.get("dmRoot")}))
+    # mech.v71.freqfloor: the R61 floor written by V7.apply and put back by V7.restore
+    j = _c_probe("""local c=sw.loadConfig(); V7.restore()
+local pool=sw.buildPool(c); local zero, seen = {}, {}
+for _,e in ipairs(pool) do
+  if e.ap and e.inEmbark and not e.locked and not seen[e.token] then
+    seen[e.token]=true; local cr=CAV.rawFor(e.token); if cr and cr.frequency==0 then zero[#zero+1]=e.token end
+  end
+end
+local out={zero=zero, n=#zero, floor=c.roster.ap_freq_floor, after={}, post={}}
+if #zero>0 then
+  c.enabled=true; V7.apply(c, pool)
+  for _,t in ipairs(zero) do out.after[t]=CAV.rawFor(t).frequency end
+  V7.restore()
+  for _,t in ipairs(zero) do out.post[t]=CAV.rawFor(t).frequency end
+end
+RESET()
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.freqfloor", j)
+    elif not (j.get("n") or 0):
+        rec("mech.v71.freqfloor", "NOT-TESTABLE-HERE", "an in-embark animal person at raw FREQUENCY 0", json.dumps(j),
+            note=_c_r8("a bear, cat or dog man on the embark (19 in vanilla at FREQUENCY 0)", "a temperate forest fort"))
+    else:
+        af, po = j.get("after") or {}, j.get("post") or {}
+        floor = _c_num(j.get("floor"), 1)
+        ok = all(_c_num(af.get(t)) >= max(1, floor) for t in j.get("zero") or []) and all(_c_num(po.get(t), -1) == 0 for t in j.get("zero") or [])
+        rec("mech.v71.freqfloor", "PASS" if ok else "FAIL", "each FREQUENCY-0 animal person >= the floor after apply, 0 after restore", json.dumps(j)[:900])
+    # mech.v71.place.deep: refused, no unit
+    cnt = """local i=sw.raceIndex('MAGMA_CRAB'); local n=0
+if i>=0 then for _,u in ipairs(df.global.world.units.active) do if u.race==i and not dfhack.units.isDead(u) then n=n+1 end end end
+print(json.encode({race=i, n=n}))"""
+    j0 = _c_probe(cnt)
+    op = tool("place", "MAGMA_CRAB", "1", "deep", timeout=120)
+    j1 = _c_probe(cnt)
+    if bad(j0) or bad(j1):
+        rec_bad("mech.v71.place.deep", j0 if bad(j0) else j1)
+    elif (j0.get("race") if j0.get("race") is not None else 0) < 0:
+        rec("mech.v71.place.deep", "NOT-TESTABLE-HERE", "MAGMA_CRAB in this world's raws", json.dumps(j0))
+    elif "no stocked MAGMA_CRAB" in op:
+        rec("mech.v71.place.deep", "NOT-TESTABLE-HERE", "a stocked magma-sea MAGMA_CRAB entry to refuse", op.strip()[:300],
+            note=_c_r8("a magma sea with a stocked MAGMA_CRAB entry", "MAGMA") + "; no unit was created either way")
+    else:
+        ok = ("R60" in op or "R28" in op or "deep is never touched" in op) and j0.get("n") == j1.get("n") and not op.startswith("placed")
+        rec("mech.v71.place.deep", "PASS" if ok else "FAIL", "a refusal naming R28/R60 and no new MAGMA_CRAB unit",
+            json.dumps({"reply": op.strip()[:300], "before": j0.get("n"), "after": j1.get("n")}))
+    # mech.v71.invasive: SAVAGE on a calm map, placed by the tool (R36)
+    j = _c_probe("""local c=sw.loadConfig(); local out={}
+local sv = R.savage(c); out.savage = sv.savage; out.maxSavagery = sv.max
+local i = sw.raceIndex('CENOZOIC_SMILODON'); out.race = i
+if i >= 0 and not sv.savage then
+  local function cnt() local n=0; for _,u in ipairs(df.global.world.units.active) do if u.race==i and not dfhack.units.isDead(u) then n=n+1 end end; return n end
+  out.before = cnt()
+  local added, note = sw.addNewSpecies(c, 'CENOZOIC_SMILODON', 50, 100)
+  out.added, out.note = added, tostring(note)
+  out.listed = (c.roster and c.roster.invasive and c.roster.invasive.CENOZOIC_SMILODON) or false
+  sw.saveConfig(c)
+  out.after = cnt()
+end
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.invasive", j)
+    elif (j.get("race") if j.get("race") is not None else 0) < 0:
+        rec("mech.v71.invasive", "NOT-TESTABLE-HERE", "CENOZOIC_SMILODON in this world's raws", json.dumps(j), note="a world generated without the extinct creatures")
+    elif j.get("savage"):
+        rec("mech.v71.invasive", "NOT-TESTABLE-HERE", "a calm map (no embark region at savagery >= 66)", json.dumps(j),
+            note=_c_r8("a calm map", "CTRL (calm)"))
+    elif not (j.get("added") or 0) and not DRY:
+        rec("mech.v71.invasive", "NOT-TESTABLE-HERE", "CENOZOIC_SMILODON's biomes on an embark region it is not already in", json.dumps(j),
+            note=_c_r8("a calm embark whose biome the smilodon's raws allow (grassland/savanna/forest)", "CTRL"))
+    else:
+        oa = tool("roster", "apex", timeout=120)
+        placed = int(_c_num(j.get("after"))) - int(_c_num(j.get("before")))
+        ok = placed >= 1 and "invasive CENOZOIC_SMILODON" in oa
+        rec("mech.v71.invasive", "PASS" if ok else "FAIL", ">= 1 smilodon placed at once; `roster apex` lists it as a tool-placed invasive",
+            json.dumps({"added_entries": j.get("added"), "note": j.get("note"), "placed": placed, "listed_in_roster_apex": "invasive CENOZOIC_SMILODON" in oa})[:900])
+    # mech.v71.realm.table
+    ot = tool("realm", "table", timeout=120)
+    m = re.search(r"realm-table entries=(\d+) missing_from_raws=(\d+)", ot)
+    nlines = len(re.findall(r"^realm-entry \S+ \S+ raws=", ot, re.M))
+    ok = bool(m) and int(m.group(2)) == 0 and int(m.group(1)) == nlines and nlines >= 300
+    rec("mech.v71.realm.table", "PASS" if ok else "FAIL", "realm-table head with missing_from_raws=0; one realm-entry line per entry (300+)",
+        json.dumps({"head": m.group(0) if m else ot[:200], "entry_lines": nlines}),
+        note="" if not m or int(m.group(2)) == 0 else "missing_from_raws counts table tokens absent from this world's raws: a modded world, or a table entry with a misspelt token")
+
+# ---- extinct ------------------------------------------------------------------------------------------------------
+_C_EXT_SNAP = """
+local X=V7.EXTINCT
+local function allc(cr, f) local n,y=0,0; for _,c in ipairs(cr.caste) do n=n+1; if c.flags[f] then y=y+1 end end; return n>0 and y==n, y end
+local function snap()
+  local s={}
+  for tok in pairs(X.TAGS) do
+    local cr=CAV.rawFor(tok)
+    if cr then
+      local g=0; pcall(function() g=cr.caste[0].misc.grazer end)
+      local _,gz=allc(cr,'GRAZER'); local _,bn=allc(cr,'BENIGN'); local _,lp=allc(cr,'LARGE_PREDATOR'); local _,ca=allc(cr,'CARNIVORE'); local _,am=allc(cr,'AMBUSHPREDATOR')
+      local hg=false; pcall(function() hg=cr.flags.HAS_ANY_GRAZER end)
+      s[tok]={f=cr.frequency, c0=cr.cluster_number[0], c1=cr.cluster_number[1], gz=gz, g=g, hg=hg, bn=bn, lp=lp, ca=ca, am=am}
+    end
+  end
+  return s
+end
+local function diff(a, b)
+  local d={}
+  for tok, r in pairs(a) do local q=b[tok] or {}; for k,v in pairs(r) do if q[k]~=v then d[#d+1]=tok..'.'..k..' '..tostring(v)..'->'..tostring(q[k]) end end end
+  return d
+end
+"""
+
+def v71_extinct():
+    ids_main = ["mech.v71.extinct.class", "mech.v71.extinct.freq", "mech.v71.extinct.grazer", "mech.v71.extinct.roles",
+                "mech.v71.extinct.restore", "mech.v71.extinct.units"]
+    j = _c_probe(_C_EXT_SNAP + """
+local c=sw.loadConfig(); local out={}
+local n, missing = 0, {}
+for _,cr in ipairs(df.global.world.raws.creatures.all) do if X.isExtinct(cr) then n=n+1 end end
+local inRaws=0
+for tok in pairs(X.TAGS) do local cr=CAV.rawFor(tok); if cr then inRaws=inRaws+1; if not X.isExtinct(cr) then missing[#missing+1]=tok end end end
+out.nClass, out.missing, out.tagsInRaws, out.tags = n, missing, inRaws, X.count()
+out.fix = X.cfg(c).fix
+V7.restore()
+-- wild and tame extinct units of corrected species, before
+local watch = {}
+for _,u in ipairs(df.global.world.units.active) do
+  local cr = df.creature_raw.find(u.race); local t = cr and X.TAGS[cr.creature_id]
+  if t and not dfhack.units.isDead(u) and (t.lp~=nil or t.carn~=nil or t.benign~=nil or t.ambush~=nil or t.grazer) then
+    local fl = {}; for k,f in pairs(X.FLAGS) do if t[k]~=nil then fl[f]=t[k] end end
+    if t.grazer then fl.GRAZER=true end
+    watch[#watch+1] = {u=u, tok=cr.creature_id, tame=dfhack.units.isTame(u), wild=dfhack.units.isWildlife(u), fl=fl}
+  end
+  if #watch >= 12 then break end
+end
+local function uread() local r={}; for i,w in ipairs(watch) do local o={}; for f in pairs(w.fl) do local ok,v=pcall(function() return w.u.enemy.caste_flags[f] end); o[f]=ok and v or nil end; r[i]=o end; return r end
+local S0 = snap(); local U0 = uread()
+c.enabled=true; c.extinct.fix=true
+local pool=sw.buildPool(c)
+out.msg = V7.apply(c, pool)
+local S1 = snap(); local U1 = uread()
+local function cls(t) local cr=M.rawOf(t); if not cr then return nil end; local k=sw.classify(cr); return {guild=k.guild, role=k.role, habitat=k.habitat} end
+out.cls = {TRICERATOPS=cls('CRETACEOUS_TRICERATOPS'), EORAPTOR=cls('TRIASSIC_EORAPTOR'), TIKTAALIK=cls('DEVONIAN_TIKTAALIK'), TITANOBOA=cls('CENOZOIC_TITANOBOA'), DIMETRODON=cls('PERMIAN_DIMETRODON')}
+local de = M.entry('PERMIAN_DIMETRODON', 'land'); if de then de.inEmbark=true; de.locked=false; out.dimLand = R.inPart(c, de, 'land') end
+V7.restore()
+local S2 = snap(); local U2 = uread()
+local pick = {'CRETACEOUS_TYRANNOSAURUS','CRETACEOUS_QUETZALCOATLUS','CENOZOIC_TITANOBOA','CRETACEOUS_MOSASAURUS','CRETACEOUS_TRICERATOPS','CENOZOIC_MOA','TRIASSIC_EORAPTOR','DEVONIAN_TIKTAALIK'}
+out.s0, out.s1, out.s2 = {}, {}, {}
+for _,t in ipairs(pick) do out.s0[t]=S0[t]; out.s1[t]=S1[t]; out.s2[t]=S2[t] end
+out.changed = #diff(S0, S1); out.restoreDiff = diff(S0, S2)
+out.units = {}
+for i,w in ipairs(watch) do out.units[i] = {tok=w.tok, tame=w.tame, wild=w.wild, want=w.fl, before=U0[i], after=U1[i], post=U2[i]} end
+RESET()
+print(json.encode(out))""", timeout=300)
+    if bad(j):
+        rec_bad(ids_main, j)
+    else:
+        lst = tool("extinct", "list", timeout=120)
+        ok = int(_c_num(j.get("nClass"))) == 200 and not (j.get("missing") or []) and "no REAL_WORLD_EXTINCT class" not in lst
+        rec("mech.v71.extinct.class", "PASS" if ok else "FAIL", "200 raws with REAL_WORLD_EXTINCT; every TAGS token in the raws carries it; no 'no REAL_WORLD_EXTINCT class' row",
+            json.dumps({"with_class": j.get("nClass"), "tags": j.get("tags"), "tags_in_raws": j.get("tagsInRaws"), "missing_class": j.get("missing"),
+                        "list_rows": len(re.findall(r"^extinct-entry ", lst, re.M))}),
+            note="" if int(_c_num(j.get("nClass"))) == 200 else "a world whose raws are modded or generated without the extinct creatures reads another count")
+        s0, s1, s2 = j.get("s0") or {}, j.get("s1") or {}, j.get("s2") or {}
+        def f(s, t, k="f"):
+            return (s.get(t) or {}).get(k) if isinstance(s.get(t), dict) else None
+        trex, quetz, tita, mosa = "CRETACEOUS_TYRANNOSAURUS", "CRETACEOUS_QUETZALCOATLUS", "CENOZOIC_TITANOBOA", "CRETACEOUS_MOSASAURUS"
+        if not s0.get(trex) and not DRY:
+            for cid in ids_main[1:5]:
+                rec(cid, "NOT-TESTABLE-HERE", "the extinct creatures in this world's raws", json.dumps(j)[:300], note="a world generated without them")
+        else:
+            got = {t: (f(s0, t), f(s1, t), f(s2, t)) for t in (trex, quetz, tita, mosa)}
+            ok = (f(s1, trex), f(s1, quetz), f(s1, tita), f(s1, mosa)) == (2, 5, 3, 50) and (f(s2, trex), f(s2, quetz), f(s2, tita), f(s2, mosa)) == (50, 100, 30, 50)
+            rec("mech.v71.extinct.freq", "PASS" if ok else "FAIL", "applied 2/5/3/50, restored 50/100/30/50 (before, applied, restored per token)", json.dumps(got),
+                note="the raw is read (no CAVERN hold on these surface species in this probe; mech.v71.extinct.cavsnap covers the snapshot)")
+            tri, moa = "CRETACEOUS_TRICERATOPS", "CENOZOIC_MOA"
+            ok = (f(s1, tri, "gz") is not None and f(s1, tri, "gz") >= 1 and f(s1, tri, "g") == 150 and f(s1, tri, "hg") is True
+                  and ((j.get("cls") or {}).get("TRICERATOPS") or {}).get("guild") == "GZ"
+                  and f(s2, tri, "gz") == 0 and f(s2, tri, "g") == 0 and f(s2, tri, "hg") is False
+                  and f(s0, moa, "gz") == f(s1, moa, "gz") == f(s2, moa, "gz"))
+            rec("mech.v71.extinct.grazer", "PASS" if ok else "FAIL", "TRICERATOPS GRAZER on every caste, misc.grazer 150, HAS_ANY_GRAZER, guild GZ; restored false/0/false; MOA untouched",
+                json.dumps({"triceratops": [s0.get(tri), s1.get(tri), s2.get(tri)], "guild": ((j.get("cls") or {}).get("TRICERATOPS") or {}).get("guild"),
+                            "moa_grazer_castes": [f(s0, moa, "gz"), f(s1, moa, "gz"), f(s2, moa, "gz")]})[:1000])
+            cl = j.get("cls") or {}
+            eo, tk, tb, dm = cl.get("EORAPTOR") or {}, cl.get("TIKTAALIK") or {}, cl.get("TITANOBOA") or {}, cl.get("DIMETRODON") or {}
+            eor, tik = "TRIASSIC_EORAPTOR", "DEVONIAN_TIKTAALIK"
+            ok = (f(s1, eor, "bn") == 0 and (f(s1, eor, "ca") or 0) >= 1 and eo.get("guild") == "ML" and eo.get("role") == "predator"
+                  and f(s1, tik, "lp") == 0 and tk.get("guild") == "MW" and (f(s1, tita, "lp") or 0) >= 1 and tb.get("guild") == "AW"
+                  and dm.get("habitat") == "land" and dm.get("guild") == "AL" and j.get("dimLand") is True)
+            rec("mech.v71.extinct.roles", "PASS" if ok else "FAIL", "EORAPTOR BENIGN off/CARNIVORE on/ML/predator; TIKTAALIK LP off/MW; TITANOBOA LP on/AW; DIMETRODON land/AL/land roster part",
+                json.dumps({"raw_applied": {t: s1.get(t) for t in (eor, tik, tita)}, "model": cl, "dimetrodon_on_land_part": j.get("dimLand")})[:1200])
+            rd = j.get("restoreDiff") or []
+            ok = (j.get("changed") or 0) > 0 and not rd
+            if manip("mech.v71.extinct.restore", "the apply wrote at least one TAGS raw", (j.get("changed") or 0) > 0 or DRY, json.dumps({"changed": j.get("changed"), "msg": str(j.get("msg"))[:300]})):
+                rec("mech.v71.extinct.restore", "PASS" if ok else "FAIL", "every TAGS raw back to its pre-write value after V7.restore",
+                    json.dumps({"fields_changed_by_apply": j.get("changed"), "not_restored": rd[:30]}))
+        units = [u for u in (j.get("units") or []) if isinstance(u, dict)]
+        wild = [u for u in units if u.get("wild") and not u.get("tame")]
+        tame = [u for u in units if u.get("tame")]
+        if not wild and not tame:
+            rec("mech.v71.extinct.units", "NOT-TESTABLE-HERE", "a wild (and a tame) extinct animal of a corrected species on the map", json.dumps(units)[:300],
+                note=_c_r8("wild extinct fauna on the map (worldgen REAL_WORLD_EXTINCT populations)", "none of the older forts is known to hold one"))
+        else:
+            okw = all(all((u.get("after") or {}).get(k) == v for k, v in (u.get("want") or {}).items()) and u.get("post") == u.get("before") for u in wild)
+            okt = all(u.get("after") == u.get("before") for u in tame)
+            rec("mech.v71.extinct.units", "PASS" if okw and okt else "FAIL", "wild: corrected flags on apply, own back on restore; tame: untouched",
+                json.dumps(units)[:1200], note="" if wild and tame else ("no tame one on the map" if wild else "no wild one on the map") + ": that half not judged")
+    # mech.v71.extinct.cavsnap: a CAVERN-held T. rex, both restore orders
+    j = _c_probe("""local tok='CRETACEOUS_TYRANNOSAURUS'; local cr=CAV.rawFor(tok); local out={}
+if not cr then out.absent=true; print(json.encode(out)) return end
+V7.restore()
+local snap=CAV.saved(); if snap[tok]~=nil then out.preheld=snap[tok]; RESET(); print(json.encode(out)) return end
+local orig=cr.frequency; out.orig=orig
+local function hold() local s=CAV.saved(); CAV.write(tok, 1, s); CAV.save(s) end
+local function cavRestore() local s=CAV.saved(); if s[tok]~=nil then cr.frequency=s[tok]; s[tok]=nil; CAV.save(s) end end
+local c=sw.loadConfig(); c.enabled=true; local pool=sw.buildPool(c)
+hold(); out.heldRaw=cr.frequency
+V7.apply(c, pool); out.snapA=CAV.saved()[tok]; out.rawA=cr.frequency
+V7.restore(); cavRestore(); out.endA=cr.frequency
+hold(); V7.apply(c, pool); out.snapB=CAV.saved()[tok]; out.rawB=cr.frequency
+cavRestore(); V7.restore(); out.endB=cr.frequency
+local s=CAV.saved(); s[tok]=nil; CAV.save(s); cr.frequency=orig
+RESET()
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.extinct.cavsnap", j)
+    elif j.get("absent"):
+        rec("mech.v71.extinct.cavsnap", "NOT-TESTABLE-HERE", "CRETACEOUS_TYRANNOSAURUS in this world's raws", json.dumps(j))
+    elif j.get("preheld") is not None:
+        rec("mech.v71.extinct.cavsnap", "NOT-TESTABLE-HERE", "T. rex not already held by the tool's CAVERN pass", json.dumps(j), note="the live hold is left alone")
+    elif manip("mech.v71.extinct.cavsnap", "the hand hold put the T. rex raw at 1", j.get("heldRaw") == 1 or DRY, json.dumps(j)):
+        ok = j.get("snapA") == 2 and j.get("rawA") == 1 and j.get("snapB") == 2 and j.get("rawB") == 1 and j.get("endA") == 50 and j.get("endB") == 50
+        rec("mech.v71.extinct.cavsnap", "PASS" if ok else "FAIL",
+            "while held: snapshot 2, raw 1; V7.restore then the CAVERN restore -> 50; the CAVERN restore then V7.restore -> 50",
+            json.dumps(j), note="the CAVERN half is CAVERN.restoreAll's per-token step, applied to T. rex alone so no other held species is released")
+    # mech.v71.extinct.standdown
+    j = _c_probe("""local tok='CRETACEOUS_TYRANNOSAURUS'; local cr=CAV.rawFor(tok); local out={}
+if not cr then out.absent=true; print(json.encode(out)) return end
+V7.restore()
+if CAV.saved()[tok]~=nil then out.preheld=true; RESET(); print(json.encode(out)) return end
+local orig=cr.frequency; out.orig=orig
+cr.frequency=7; out.hand=cr.frequency
+local c=sw.loadConfig(); c.enabled=true; c.extinct.stand_down=true
+V7.apply(c, sw.buildPool(c))
+out.applied=cr.frequency; out.row=V7.EXTINCT.rowLine(c, tok)
+V7.restore(); out.restored=cr.frequency
+cr.frequency=orig
+RESET()
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.extinct.standdown", j)
+    elif j.get("absent") or j.get("preheld"):
+        rec("mech.v71.extinct.standdown", "NOT-TESTABLE-HERE", "an unheld T. rex raw in this world", json.dumps(j))
+    elif manip("mech.v71.extinct.standdown", "the hand write put T. rex at 7", j.get("hand") == 7 or DRY, json.dumps(j)):
+        row = str(j.get("row") or "")
+        ok = j.get("applied") == 7 and j.get("restored") == 7 and "stood down" in row and "raw 7" in row
+        rec("mech.v71.extinct.standdown", "PASS" if ok else "FAIL", "the hand value 7 survives apply and restore; the row reads 'stood down (raw 7)'", json.dumps(j)[:800])
+    # mech.v71.extinct.model_off: through the console verb (it clears the class cache)
+    fix0 = cfgv("extinct.fix").get("extinct.fix")
+    o1 = tool("extinct", "off", timeout=180)
+    if manip("mech.v71.extinct.model_off", "`extinct off` stored extinct.fix=false", cfgv("extinct.fix").get("extinct.fix") is False or DRY, o1[:400]):
+        j = _c_probe("""local function cls(t) local cr=M.rawOf(t); if not cr then return nil end; local k=sw.classify(cr); return {guild=k.guild, role=k.role} end
+local tri=CAV.rawFor('CRETACEOUS_TRICERATOPS'); local gz=0
+if tri then for _,c in ipairs(tri.caste) do if c.flags.GRAZER then gz=gz+1 end end end
+local eo=CAV.rawFor('TRIASSIC_EORAPTOR'); local bn=0
+if eo then for _,c in ipairs(eo.caste) do if c.flags.BENIGN then bn=bn+1 end end end
+print(json.encode({tri=cls('CRETACEOUS_TRICERATOPS'), eo=cls('TRIASSIC_EORAPTOR'), triGrazerCastes=gz, eoBenignCastes=bn, eoCastes=eo and #eo.caste or 0}))""")
+        if bad(j):
+            rec_bad("mech.v71.extinct.model_off", j)
+        elif j.get("tri") is None and not DRY:
+            rec("mech.v71.extinct.model_off", "NOT-TESTABLE-HERE", "the extinct creatures in this world's raws", json.dumps(j))
+        else:
+            ok = ((j.get("tri") or {}).get("guild") == "PL" and (j.get("eo") or {}).get("role") == "prey"
+                  and j.get("triGrazerCastes") == 0 and j.get("eoBenignCastes") == j.get("eoCastes"))
+            rec("mech.v71.extinct.model_off", "PASS" if ok else "FAIL", "TRICERATOPS guild PL, EORAPTOR prey; raws vanilla (no GRAZER, BENIGN on)", json.dumps(j))
+    if fix0 is not False:
+        tool("extinct", "on", timeout=180)
+    # mech.v71.extinct.realm
+    j = _c_probe("""local c=sw.loadConfig(); local X=V7.EXTINCT; local cc0=sw.CACHE.cfg; local E=cc0.extinct; local out={}
+local fix0, re0 = E.fix, E.realms
+local function n() local k=0; for _ in pairs(V7.REALMS) do k=k+1 end; return k end
+local function head() X.realmSig=nil; local h=R.realmTable(c); return h end
+E.fix=true; E.realms=false; out.headOff=head(); out.nOff=n(); local base={}; for t in pairs(V7.REALMS) do base[t]=true end
+E.realms=true; out.headOn=head(); out.nOn=n()
+local tr=V7.REALMS.CRETACEOUS_TYRANNOSAURUS; out.trexOn = tr and table.concat(tr, ',') or false
+local exp=0; for tok,t in pairs(X.TAGS) do if t.realm and not base[tok] then exp=exp+1 end end; out.expected=exp
+E.realms=false; out.headOff2=head(); out.nOff2=n(); out.trexOff = V7.REALMS.CRETACEOUS_TYRANNOSAURUS and true or false
+local f=io.open('dfhack-config/seasonal-wildlife-realms.json','r'); out.userJson = f and true or false
+if f then local okj,d=pcall(json.decode, f:read('*a')); f:close()
+  if okj and type(d)=='table' then local t=next(d); out.userTok=t
+    E.realms=true; head(); out.userOn = V7.REALMS[t] and true or false
+    E.realms=false; head(); out.userOff = V7.REALMS[t] and true or false end end
+E.fix, E.realms = fix0, re0; X.realmSig=nil; X.realmSync()
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.extinct.realm", j)
+    else:
+        added = int(_c_num(j.get("nOn"))) - int(_c_num(j.get("nOff")))
+        ok = (added == int(_c_num(j.get("expected"))) and added >= 80 and j.get("trexOn") == "NEA" and j.get("trexOff") is False
+              and j.get("nOff2") == j.get("nOff") and (not j.get("userJson") or (j.get("userOn") and j.get("userOff"))))
+        rec("mech.v71.extinct.realm", "PASS" if ok else "FAIL", "realms on adds the fossil rows (T. rex NEA); off takes them out; a user-json entry survives both",
+            json.dumps({"entries_off": j.get("nOff"), "entries_on": j.get("nOn"), "added": added, "expected": j.get("expected"), "trex_on": j.get("trexOn"),
+                        "trex_off": j.get("trexOff"), "user_json": j.get("userJson"), "user_tok": j.get("userTok"), "user_on": j.get("userOn"), "user_off": j.get("userOff")}),
+            note="" if j.get("userJson") else "no dfhack-config/seasonal-wildlife-realms.json on the rig: the user-json half not judged")
+    # mech.v71.extinct.mods
+    om = tool("extinct", "mods", timeout=120)
+    lost = ["CAMBRIAN_ANOMALOCARIS_MAN", "CENOZOIC_ENTELODON_MAN", "DEVONIAN_DUNKLEOSTEUS_MAN", "PERMIAN_HELICOPRION_MAN", "CRETACEOUS_MOSASAURUS_MAN"]
+    ok = "attack mods active: 0" in om and all(t in om for t in lost)
+    rec("mech.v71.extinct.mods", "PASS" if ok else "FAIL", "'attack mods active: 0' and the five mod-only animal people named", om.strip()[:700])
+    # mech.v71.extinct.ladder: an extinct land apex seated, its FREQUENCY read as the corrected raw
+    j = _c_probe("""local X=V7.EXTINCT; local c=sw.loadConfig(); V7.restore(); c.enabled=true
+local pool=sw.buildPool(c); V7.apply(c, pool)
+local cand={}
+for _,e in ipairs(pool) do local t=X.TAGS[e.token]; if t and t.freq and R.inPart(c, e, 'land') and R.slotOf(c, e, 'land')=='APX' then cand[#cand+1]=e.token end end
+local out={cand=cand, cap=c.roster.apex_raw_cap}
+if #cand>0 then
+  for _=1,4 do
+    local c2=sw.loadConfig(); c2.enabled=true
+    local ok, res = pcall(R.build, c2, 'land')
+    if ok and res and res.ok then
+      for tok,a in pairs(res.ladder_info.apex or {}) do if X.TAGS[tok] and X.TAGS[tok].freq then out.tok=tok; out.val=tostring(a); out.want=math.min(X.TAGS[tok].freq[2], c2.roster.apex_raw_cap or 5) end end
+    end
+    if out.tok then break end
+  end
+end
+RESET()
+print(json.encode(out))""", timeout=360)
+    if bad(j):
+        rec_bad("mech.v71.extinct.ladder", j)
+    elif not (j.get("cand") or []):
+        rec("mech.v71.extinct.ladder", "NOT-TESTABLE-HERE", "an extinct land apex with a FREQUENCY row in the embark pool", json.dumps(j),
+            note=_c_r8("an extinct land apex in the embark (T. rex, smilodon, megalania...)", "none of the older forts is known to hold one"))
+    elif not j.get("tok"):
+        rec("mech.v71.extinct.ladder", "NOT-TESTABLE-HERE", "an extinct apex seated by one of four land builds", json.dumps(j), note="the builder's apex pick is random among the candidates")
+    else:
+        ok = j.get("val") == f"raw {j.get('want')}"
+        rec("mech.v71.extinct.ladder", "PASS" if ok else "FAIL", "the seated extinct apex reads 'raw <corrected>' (not a capped 50)", json.dumps(j))
+
+# ---- vermin -------------------------------------------------------------------------------------------------------
+_C_SWV = """
+local function swvCount(tag)
+  local n=0
+  for _,cr in ipairs(df.global.world.raws.creatures.all) do
+    for _,c in ipairs(cr.caste) do
+      for _,vec in ipairs({c.creature_class, c.gobble_vermin_class}) do
+        for _,s in ipairs(vec) do local v=(type(s)=='string') and s or s.value; if (tag and v==tag) or (not tag and v:sub(1,4)=='SWV_') then n=n+1 end end
+      end
+    end
+  end
+  return n
+end
+"""
+
+def v71_vermin():
+    # mech.v70.gobble + mech.v71.vrm.restore: one apply, one restore
+    j = _c_probe(_C_SWV + """local c=sw.loadConfig(); V7.restore(); local out={}
+out.gobbleSwitch = V7.on(c, 'gobble')
+out.before = swvCount(nil)
+c.enabled=true; local pool=sw.buildPool(c); V7.apply(c, pool)
+out.on = swvCount(nil); out.colony = swvCount('SWV_COLONY'); out.bat = swvCount('SWV_BAT')
+local g = sw.CACHE.gobble or {}; out.tagged, out.cons = g.tagged, g.cons
+-- every embark member's castes carry its own class
+local badT, nm = {}, 0
+for swv, list in pairs(g.members or {}) do
+  if c.vermin_eat.classes[swv] ~= false then
+    for _,tok in ipairs(list) do nm=nm+1
+      local cr=CAV.rawFor(tok)
+      if cr and VE.swvClass(cr)==swv then
+        for _,cs in ipairs(cr.caste) do if not VE.vecHasValue(cs.creature_class, swv) then badT[#badT+1]=tok..':'..swv; break end end
+      end
+    end
+  end
+end
+out.members, out.untagged = nm, badT
+out.status = VE.gobbleStatus(c)
+V7.restore(); out.after = swvCount(nil)
+RESET()
+print(json.encode(out))""", timeout=300)
+    if bad(j):
+        rec_bad(["mech.v70.gobble", "mech.v71.vrm.restore"], j)
+    else:
+        oc = tool("vermin", "classes", timeout=120)
+        if j.get("gobbleSwitch") is False:
+            rec("mech.v70.gobble", "FAIL", "v7 gobble on by default", json.dumps(j)[:400])
+        elif not (j.get("members") or 0) and not DRY:
+            rec("mech.v70.gobble", "NOT-TESTABLE-HERE", "in-embark vermin species to tag", json.dumps(j)[:400], note="no vermin species allowed on this embark")
+        else:
+            ok = (j.get("tagged") or 0) > 0 and (j.get("cons") or 0) > 0 and not (j.get("untagged") or []) and "vermin gobble: on" in str(j.get("status"))
+            rec("mech.v70.gobble", "PASS" if ok else "FAIL", "every member's castes carry its SWV class; >= 1 consumer written; the gobble status line",
+                json.dumps({"tagged_classes": j.get("tagged"), "consumers": j.get("cons"), "members": j.get("members"), "untagged": (j.get("untagged") or [])[:20],
+                            "status": str(j.get("status"))[:300], "vermin_classes_reply": oc.strip()[:300]}))
+        if manip("mech.v71.vrm.restore", "the apply wrote SWV strings", (j.get("on") or 0) > 0 or DRY, json.dumps(j)[:400]):
+            ok = (j.get("after") or 0) == 0
+            rec("mech.v71.vrm.restore", "PASS" if ok else "FAIL", "0 SWV_* strings in any caste's creature_class or gobble_vermin_class after V7.restore",
+                json.dumps({"before": j.get("before"), "applied": j.get("on"), "SWV_COLONY": j.get("colony"), "SWV_BAT": j.get("bat"), "after_restore": j.get("after")}),
+                note="" if (j.get("colony") or 0) and (j.get("bat") or 0) else "this embark has no colony insect or bat in its vermin, so the two new classes were not written to be removed")
+    # mech.v71.vrm.swv_split
+    j = _c_probe("""local cl = VE.allClasses(); local out={colony=cl.SWV_COLONY, bat=cl.SWV_BAT}
+local soilColony = {}
+for _,tok in ipairs(cl.SWV_SOIL or {}) do local cr=M.rawOf(tok); if cr and cr.flags.VERMIN_SOIL_COLONY then soilColony[#soilColony+1]=tok end end
+local wantColony = {}
+for _,cr in ipairs(df.global.world.raws.creatures.all) do if cr.flags.VERMIN_SOIL_COLONY and sw.classify(cr).gameVermin then wantColony[#wantColony+1]=cr.creature_id end end
+local batOk = true
+for _,tok in ipairs(cl.SWV_BAT or {}) do local cr=M.rawOf(tok); if not (cr and cr.flags.HAS_ANY_FLIER) then batOk=false end end
+out.soilColony, out.wantColony, out.batOk = soilColony, wantColony, batOk
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.vrm.swv_split", j)
+    else:
+        oc = tool("vermin", "classes", timeout=120)
+        colony, bats = list(j.get("colony") or []), list(j.get("bat") or [])
+        named = [t for t in ("BUMBLEBEE", "HONEY_BEE", "BEE_HONEY", "TERMITE") if t in colony]
+        ok = (bool(colony) and bool(bats) and not (j.get("soilColony") or []) and j.get("batOk") is True
+              and "SWV_COLONY" in oc and "SWV_BAT" in oc and ("BAT" in bats or not bats))
+        rec("mech.v71.vrm.swv_split", "PASS" if ok else "FAIL", "SWV_COLONY and SWV_BAT listed and filled; no VERMIN_SOIL_COLONY species left in SWV_SOIL",
+            json.dumps({"SWV_COLONY": colony, "SWV_BAT": bats, "named_found": named, "VERMIN_SOIL_COLONY_raws": j.get("wantColony"), "soil_colony_left": j.get("soilColony")})[:1200])
+    # mech.v71.vrm.edges_src: the console's view, then the raws under each source
+    oe = tool("vermin", "edges", timeout=120)
+    j = _c_probe("""local c=sw.loadConfig(); V7.restore(); c.enabled=true; c.v7.gobble=true
+local pool=sw.buildPool(c); local out={}
+local function check(src)
+  c.vermin_eat.source=src; V7.restore(); V7.apply(c, pool)
+  local bad, n, nWant, seen = {}, 0, 0, {}
+  for _,e in ipairs(pool) do
+    if e.inEmbark and not e.locked and e.cat~='vermin' and not seen[e.token] then
+      seen[e.token]=true
+      local cr=CAV.rawFor(e.token)
+      if cr then
+        n=n+1
+        local want = VE.gobbleWants(cr, e, c) or {}
+        local have = {}
+        for _,s in ipairs(cr.caste[0].gobble_vermin_class) do local v=(type(s)=='string') and s or s.value; if v:sub(1,4)=='SWV_' then have[v]=true end end
+        for k in pairs(want) do nWant=nWant+1; if not have[k] and #bad<20 then bad[#bad+1]=e.token..' lacks '..k end end
+        for k in pairs(have) do if not want[k] and #bad<20 then bad[#bad+1]=e.token..' extra '..k end end
+      end
+    end
+  end
+  return {consumers=n, wanted=nWant, bad=bad}
+end
+local rows, label = VE.edges(); out.label, out.rows = label, #rows
+out.edges = check('edges'); out.rules = check('rules')
+RESET()
+print(json.encode(out))""", timeout=360)
+    if bad(j):
+        rec_bad("mech.v71.vrm.edges_src", j)
+    else:
+        e_, r_ = j.get("edges") or {}, j.get("rules") or {}
+        console_ok = "source in force:" in oe and "edge table:" in oe
+        if not (e_.get("consumers") or 0) and not DRY:
+            rec("mech.v71.vrm.edges_src", "NOT-TESTABLE-HERE", "an in-embark consumer to wire", json.dumps(j)[:400], note="no managed non-vermin species on this embark")
+        else:
+            ok = console_ok and not (e_.get("bad") or []) and not (r_.get("bad") or []) and (e_.get("wanted") or 0) > 0
+            rec("mech.v71.vrm.edges_src", "PASS" if ok else "FAIL",
+                "`vermin edges` names the source and table; under 'edges' and 'rules' every consumer's SWV gobble classes equal VERMIN.gobbleWants",
+                json.dumps({"console_head": oe.strip()[:200], "table": j.get("label"), "rows": j.get("rows"), "edges": e_, "rules": r_})[:1400],
+                note="after a roster build the edge table is per species (fixes.md section 5), so the ML-guild expectation of the notes applies only to the ported table")
+    # mech.v71.vrm.class_off: through the console, then the raws
+    herp0 = cfgv("vermin_eat.classes.SWV_HERP").get("vermin_eat.classes.SWV_HERP")
+    count = _C_SWV + """local c=sw.loadConfig(); V7.restore(); c.enabled=true; V7.apply(c, sw.buildPool(c))
+local g=sw.CACHE.gobble or {}; local out={n=swvCount('SWV_HERP'), members=#((g.members or {}).SWV_HERP or {}), stored=c.vermin_eat.classes.SWV_HERP}
+RESET()
+print(json.encode(out))"""
+    o1 = tool("vermin", "class", "SWV_HERP", "off", timeout=180)
+    if manip("mech.v71.vrm.class_off", "`vermin class SWV_HERP off` stored false", cfgv("vermin_eat.classes.SWV_HERP").get("vermin_eat.classes.SWV_HERP") is False or DRY, o1[:300]):
+        joff = _c_probe(count)
+        o2 = tool("vermin", "class", "SWV_HERP", "on", timeout=180)
+        jon = _c_probe(count) if (cfgv("vermin_eat.classes.SWV_HERP").get("vermin_eat.classes.SWV_HERP") is True or DRY) else {"_err": "`vermin class SWV_HERP on` did not store true: " + o2[:200]}
+        if bad(joff) or bad(jon):
+            rec_bad("mech.v71.vrm.class_off", joff if bad(joff) else jon)
+        elif not (jon.get("members") or 0) and not DRY:
+            rec("mech.v71.vrm.class_off", "PASS" if (joff.get("n") or 0) == 0 else "FAIL", "off: no SWV_HERP anywhere (the 'on puts it back' half needs a herp on the map)",
+                json.dumps({"off": joff, "on": jon}), note=_c_r8("a lizard, frog or newt among the embark's vermin", "LAKE or RIVER4") + "; the on half not judged")
+        else:
+            ok = (joff.get("n") or 0) == 0 and (jon.get("n") or 0) > 0
+            rec("mech.v71.vrm.class_off", "PASS" if ok else "FAIL", "off: no SWV_HERP on any caste or gobble vector; on: back", json.dumps({"off": joff, "on": jon}))
+    if herp0 is not False:
+        tool("vermin", "class", "SWV_HERP", "on", timeout=180)
+    # mech.v71.vrm.vector
+    j = _c_probe("""local c=sw.loadConfig(); local idx=VE.index(c, sw.FUSE.deadline(sw.FUSE.SCAN_MS))
+local out={src=idx.src, objs=idx.objs, loose=idx.loose, colonies=idx.colonies, partial=idx.partial}
+local la=0; for _,bc in pairs(idx.byClass) do la=la+bc.amount end; out.looseAmount=la
+local vec=VE.vector(); local ind, colAmt = 0, 0
+if vec then for _,v in ipairs(vec) do
+  if not v.flags.already_deleting then
+    local amt=v.amount or 1
+    local col = v.flags.is_colony or amt >= 10000001
+    pcall(function() if v.flags.is_roaming_colony then col=true end end)
+    pcall(function() if v.category == df.vermin_category.Colony then col=true end end)
+    if col then colAmt=colAmt+amt else ind=ind+amt end
+  end
+end end
+out.indepLoose, out.colonyAmount = ind, colAmt
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.vrm.vector", j)
+    else:
+        oc = tool("vermin", "census", timeout=120)
+        if not j.get("src") and not DRY:
+            rec("mech.v71.vrm.vector", "FAIL", "a vermin vector read (world.event.vermin or df.vermin.get_vector())", oc.strip()[:400])
+        elif not (j.get("objs") or 0) and not DRY:
+            rec("mech.v71.vrm.vector", "NOT-TESTABLE-HERE", "vermin objects on the map", json.dumps(j), note=_c_r8("vermin on the map (any season but deep winter)", "LAKE"))
+        else:
+            ok = ("NO VERMIN VECTOR" not in oc and (j.get("loose") or 0) + (j.get("colonies") or 0) == (j.get("objs") or 0)
+                  and j.get("looseAmount") == j.get("indepLoose") and not j.get("partial"))
+            rec("mech.v71.vrm.vector", "PASS" if ok else "FAIL", "a source named; objects = loose + colony sites; the loose amount equals an independent count that leaves colony amounts out",
+                json.dumps(j), note="" if (j.get("colonies") or 0) else "no colony site on the map: the 'colony amount kept out' half holds vacuously")
+    # mech.v71.vrm.forage_run / forage_off
+    forage0 = cfgv("vermin_eat.forage").get("vermin_eat.forage")
+    of = tool("vermin", "forage", "now", timeout=180)
+    m = re.search(r"vermin forage: (\d+) eater\(s\) drawn now", of)
+    j = _c_probe("""local st=sw.CACHE.vforage; local c=sw.loadConfig(); local rows, badU = {}, {}
+for uid,p in pairs(st and st.pending or {}) do
+  local u=df.unit.find(uid)
+  if u then
+    local ok = sw.WILD.onMap(u) and not dfhack.units.isTame(u) and V7.natural(c, u) and sw.WILD.layerOf(u)~='deep'
+    local dOk = (p.dx==nil) or (u.path.dest.x==p.dx and u.path.dest.y==p.dy and u.path.dest.z==p.dz)
+    if not (ok and dOk) then badU[#badU+1]=uid end
+    if p.dx then rows[#rows+1]={id=uid, dx=p.dx, dy=p.dy, dz=p.dz} end
+  end
+end
+print(json.encode({rows=rows, n=#rows, bad=badU, last=st and st.last and st.last.src or false}))""")
+    if bad(j):
+        rec_bad(["mech.v71.vrm.forage_run", "mech.v71.vrm.forage_off"], j)
+        rows = []
+    else:
+        rows = [r_ for r_ in (j.get("rows") or []) if isinstance(r_, dict)]
+        ok = bool(m) and "last pass" in of and "NO VERMIN VECTOR" not in of and not (j.get("bad") or [])
+        rec("mech.v71.vrm.forage_run", "PASS" if ok else "FAIL", "'N eater(s) drawn now'; a last pass with its source; every pending forager wild, untamed, natural, not deep, on its recorded line",
+            json.dumps({"reply": of.strip()[:400], "pending_walks": len(rows), "bad": j.get("bad")})[:900],
+            note="" if rows else "no forager was drawn (no wild vermin eater near vermin on this map): the per-forager half holds vacuously")
+    o_off = tool("vermin", "forage", "off", timeout=120)
+    if manip("mech.v71.vrm.forage_off", "`vermin forage off` stored false", cfgv("vermin_eat.forage").get("vermin_eat.forage") is False or DRY, o_off[:300]):
+        rows_lua = "{" + ",".join("{id=%d,dx=%d,dy=%d,dz=%d}" % (int(_c_num(r_.get("id"))), int(_c_num(r_.get("dx"))), int(_c_num(r_.get("dy"))), int(_c_num(r_.get("dz")))) for r_ in rows) + "}"
+        j2 = _c_probe(f"""local st=sw.CACHE.vforage; local c=sw.loadConfig(); local ru=require('repeat-util')
+local n=0; for _ in pairs(st and st.pending or {{}}) do n=n+1 end
+local jobOn; for _,row in ipairs(sw.PANEL.jobs(c)) do if row.name==VE.FORAGE.JOB then jobOn=row.on end end
+local still={{}}
+for _,r in ipairs({rows_lua}) do local u=df.unit.find(r.id); if u and u.path.dest.x==r.dx and u.path.dest.y==r.dy and u.path.dest.z==r.dz then still[#still+1]=r.id end end
+print(json.encode({{pending=n, panel=jobOn, scheduled=(ru.isScheduled and ru.isScheduled(VE.FORAGE.JOB)) or false, still=still}}))""")
+        if bad(j2):
+            rec_bad("mech.v71.vrm.forage_off", j2)
+        else:
+            ok = (j2.get("pending") or 0) == 0 and j2.get("panel") is False and not j2.get("scheduled") and not (j2.get("still") or [])
+            rec("mech.v71.vrm.forage_off", "PASS" if ok else "FAIL", "pending empty; PANEL.jobs shows foraging off; the job not scheduled; no released unit still walking to its forage line",
+                json.dumps(j2), note="" if rows else "no forage walk was in force to release")
+    if forage0 is not False:
+        tool("vermin", "forage", "on", timeout=120)
+    # mech.v71.vrm.cfg: a bad saved block through the real loader (the saved config is put back in the same probe)
+    j = _c_probe("""local KEY='seasonal-wildlife/config'; local utils=require('utils')
+local orig=dfhack.persistent.getSiteData(KEY, nil)
+local mod=utils.clone(orig or {}, true)
+mod.vermin_eat={forage=true, source='bogus', cadence=10, radius=999, budget=0, chance=5, cooldown=-1, colony=2, diversity=99, classes={SWV_HERP=false}}
+local out={}
+local ok, err = pcall(function()
+  dfhack.persistent.saveSiteData(KEY, mod); sw.CACHE.cfg=nil
+  out.ve = sw.loadConfig().vermin_eat
+end)
+dfhack.persistent.saveSiteData(KEY, orig or {}); sw.CACHE.cfg=nil; sw.loadConfig()
+out.ok, out.err = ok, err and tostring(err) or nil
+out.def = sw.defaultConfig().vermin_eat
+print(json.encode(out))""")
+    if bad(j):
+        rec_bad("mech.v71.vrm.cfg", j)
+    elif not j.get("ok") and not DRY:
+        rec("mech.v71.vrm.cfg", "FAIL", "the loader takes a bad vermin_eat block", str(j.get("err")))
+    else:
+        ve, d = j.get("ve") or {}, j.get("def") or {}
+        keys = ("source", "cadence", "radius", "budget", "chance", "cooldown", "colony", "diversity")
+        cls = ve.get("classes") or {}
+        ok = (bool(ve) and all(ve.get(k) == d.get(k) for k in keys) and cls.get("SWV_HERP") is False
+              and all(v is True for k, v in cls.items() if k != "SWV_HERP") and len(cls) == len(d.get("classes") or {}))
+        rec("mech.v71.vrm.cfg", "PASS" if ok else "FAIL", "every bad number and the bad source load as the defaults; the saved SWV_HERP=false kept; the missing classes on",
+            json.dumps({k: (ve.get(k), d.get(k)) for k in keys} | {"classes": cls}))
+    # mech.v71.vrm.perf: 3,000 ticks with the tool on and foraging on
+    en0 = cfgv("enabled").get("enabled")
+    if en0 is not True:
+        tool("enable", timeout=300)
+    fz = cfgv("enabled", "vermin_eat.forage")
+    if manip("mech.v71.vrm.perf", "the tool and foraging on for the timed window", (fz.get("enabled") is True and fz.get("vermin_eat.forage") is True) or DRY, json.dumps(fz)):
+        luap("local sw=reqscript('seasonal-wildlife'); sw.FUSE.stats[sw.VERMIN.FORAGE.JOB]=nil; print(json.encode({ok=true}))")
+        step(3000, 300)
+        j = luap("local sw=reqscript('seasonal-wildlife'); local s=sw.FUSE.stats[sw.VERMIN.FORAGE.JOB] or {}; print(json.encode({runs=s.runs or 0, worst=s.worst or 0, over=s.over or 0, last=s.last}))")
+        if bad(j):
+            rec_bad("mech.v71.vrm.perf", j)
+        elif not (j.get("runs") or 0) and not DRY:
+            rec("mech.v71.vrm.perf", "FAIL", "the forage job ran in 3,000 ticks (every 100 t)", json.dumps(j))
+        else:
+            rec("mech.v71.vrm.perf", "PASS" if _c_num(j.get("worst"), 999) < 50 else "FAIL", "worst forage pass < 50 ms over 3,000 ticks", json.dumps(j),
+                note=f"fort {F71.get('fort')}; the notes ask for region8 (R11)")
+    if en0 is not True:
+        tool("disable", timeout=300)
+# ---- v7.1 water (docs/v7.1/water.md). Fort-dependent: BOATS (deep ocean), OCEAN2 (shallow ocean), any water for the rest.
+_D_SURVEY_LUA = """local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig()
+local w = sw.ENGINE.waterTiles(true)
+local dc = sw.ENGINE.deepColumns(cfg, true)
+local hist = {}
+for b, h in pairs(w.hist or {}) do hist[b] = { h[1], h[2], h[3], h[4], h[5], h.cols } end
+local top = -1
+for _, c in pairs(w.cols or {}) do if c.body == 'ocean' and c.top > top then top = c.top end end
+print(json.encode({hist=hist, maxDepth=w.maxDepth, deep={n=dc.n, total=dc.total, need=dc.need, max=dc.max}, zReached=w.zReached,
+  zhi=w.zhi, zlo=w.zlo, topOcean=top, stopped=w.stopped and true or false, capped=w.capped and true or false, stride=w.stride}))"""
+
+_D_CANDS_LUA = """local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local out={bodies={}}
+for _, b in ipairs({%s}) do
+  local cs = sw.ENGINE.candidates(cfg, nil, b, g)
+  local rows, seen, dup, land = {}, {}, 0, 0
+  for _, c in ipairs(cs) do
+    rows[#rows+1] = { key=c.key, token=c.e.token, level=c.ctx and c.ctx.level, base=c.base, factor=c.factor, weight=c.weight, why=c.why }
+    if seen[c.e.token] then dup = dup + 1 end; seen[c.e.token] = true
+    if not c.key:find(':', 1, true) then land = land + 1 end
+  end
+  out.bodies[b] = { n=#cs, dup=dup, land=land, rows=rows }
+end
+out.land_aquatic = cfg.water.land_aquatic
+print(json.encode(out))"""
+
+def _d_bodies():
+    hv = F71.get("has") or {}
+    bs = [b for b in ("ocean", "lake", "river", "pool") if hv.get(b)]
+    return bs or (["ocean", "lake"] if DRY else [])
+
+def _d_num(s, pat):
+    m = re.search(pat, s or "")
+    try: return float(m.group(1)) if m else None
+    except ValueError: return None
+
+def v71_water():
+    fort = str(F71.get("fort") or "")
+    # ---- R22: the column-depth survey
+    S = luap(_D_SURVEY_LUA, timeout=180)
+    if bad(S):
+        rec_bad(["mech.v71.water.survey.levels", "mech.v71.water.survey.ocean2"], S)
+    else:
+        oh = (S.get("hist") or {}).get("ocean") or [0, 0, 0, 0, 0, 0]
+        oh = [(x or 0) for x in (list(oh) + [0] * 6)[:6]]
+        deep = S.get("deep") or {}
+        cid = "mech.v71.water.survey.levels"
+        if need(cid, "ocean", "an ocean with columns of 3+ stacked water tiles"):
+            if not (has("ocean_deep") or fort.upper().startswith("BOATS")):
+                rec(cid, "NOT-TESTABLE-HERE", "an ocean with columns of 3+ stacked water tiles", json.dumps({"ocean": oh, "deep": deep}),
+                    note=NEED["ocean_deep"] + f"; {fort}'s ocean reaches column depth {(S.get('maxDepth') or {}).get('ocean')}")
+            else:
+                d_out = tool("water", "depth")
+                ok = ((deep.get("n") or 0) > 0 and (oh[2] + oh[3]) > 0 and not S.get("stopped")
+                      and isinstance(S.get("zReached"), int) and isinstance(S.get("topOcean"), int) and S["zReached"] < S["topOcean"]
+                      and "ocean" in d_out and "column depth" in d_out)
+                rec(cid, "PASS" if ok else "FAIL", "ocean columns at 3 and 4; deepColumns n > 0; zReached below the top ocean level; not stopped",
+                    json.dumps({"ocean[1..5,cols]": oh, "deep": deep, "zReached": S.get("zReached"), "topOcean": S.get("topOcean"),
+                                "stopped": S.get("stopped")}) + "\n" + d_out[:600])
+        cid = "mech.v71.water.survey.ocean2"
+        if fort.upper().startswith("OCEAN2") or DRY:
+            ok = oh[2] + oh[3] + oh[4] == 0 and (oh[0] + oh[1]) > 0 and ((S.get("maxDepth") or {}).get("ocean") or 0) <= 2
+            rec(cid, "PASS" if ok else "FAIL", "ocean columns of 1 and 2 only, max 2", json.dumps({"ocean[1..5,cols]": oh, "maxDepth": S.get("maxDepth")}))
+        else:
+            rec(cid, "NOT-TESTABLE-HERE", "OCEAN2 loaded (the claim is its measured shallow ocean)", json.dumps({"fort": fort, "ocean[1..5,cols]": oh}),
+                note=NEED["ocean_shallow"])
+    # ---- R22: stride 1 against stride 2
+    cid = "mech.v71.water.survey.contig"
+    if need(cid, "water", "surface water to sample at stride 1 and 2"):
+        b0 = cfgv("water.survey_ms").get("water.survey_ms")
+        tool("water", "budget", "1900")
+        got = cfgv("water.survey_ms").get("water.survey_ms")
+        if manip(cid, "water.survey_ms reads 1900 after `water budget 1900` (a stride-1 scan must not stop at its budget)", got == 1900 or DRY,
+                 {"before": b0, "after": got}):
+            full = tool("water", "depth", "full")
+            j = luap("""local sw=reqscript('seasonal-wildlife')
+local function H(w) local o={} for b, h in pairs(w.hist or {}) do o[b] = { h[1], h[2], h[3], h[4], h[5], h.cols } end return o end
+local w2 = sw.ENGINE.waterTiles(true, 2); local h2, s2, c2 = H(w2), w2.stopped and true or false, w2.capped and true or false
+local w1 = sw.ENGINE.waterTiles(true, 1); local h1, s1, c1 = H(w1), w1.stopped and true or false, w1.capped and true or false
+sw.ENGINE.waterTiles(true); sw.CACHE.deepCols = nil
+print(json.encode({h2=h2, h1=h1, stopped=(s1 or s2), capped=(c1 or c2)}))""", timeout=240)
+            if bad(j):
+                rec_bad(cid, j)
+            elif j.get("stopped") or j.get("capped"):
+                rec(cid, "NOT-TESTABLE-HERE", "both scans complete", json.dumps(j)[:900],
+                    note="a scan stopped at its budget or hit ENGINE.ROW_CAP, so the counts are not comparable; a smaller water map (LAKE) completes")
+            else:
+                rows, worst = [], 0.0
+                for b, h2 in (j.get("h2") or {}).items():
+                    h1 = (j.get("h1") or {}).get(b) or []
+                    for k in range(5):
+                        a2 = (h2[k] if k < len(h2) else 0) or 0
+                        a1 = (h1[k] if k < len(h1) else 0) or 0
+                        if a2 >= 25:
+                            r = a1 / a2
+                            rows.append(f"{b}[{k + 1}] {a2} -> {a1} (x{r:.2f})")
+                            worst = max(worst, abs(r - 4) / 4)
+                if not rows:
+                    rec(cid, "NOT-TESTABLE-HERE", "a column-depth bucket with 25+ sampled columns", json.dumps(j)[:900],
+                        note="too little surface water for a 10% comparison; LAKE, RIVER4 or a region8 SHORE fort has enough")
+                else:
+                    ok = worst <= 0.10 and "single" in full
+                    rec(cid, "PASS" if ok else "FAIL", "stride 1 = 4x stride 2 within 10% in every bucket of 25+ columns; `water depth full` reads every single x and y",
+                        "; ".join(rows) + f"\nworst {worst:.3f}\n" + full[:300])
+    # ---- R22: the renamed key
+    cid = "mech.v71.water.column_levels"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local a = sw.defaultConfig(); V7.watSanitize(a, { water = { deep_levels = 2 } })
+local b = sw.defaultConfig(); V7.watSanitize(b, { water = { deep_levels = 2, column_levels = 4 } })
+print(json.encode({carried=a.water.column_levels, explicit=b.water.column_levels, default=sw.defaultConfig().water.column_levels}))""")
+    tool("water", "levels", "2")
+    lv = cfgv("water.column_levels").get("water.column_levels")
+    if bad(j):
+        rec_bad(cid, j)
+    elif manip(cid, "water.column_levels reads 2 after `water levels 2`", lv == 2 or DRY, {"column_levels": lv}):
+        k = luap("local sw=reqscript('seasonal-wildlife'); local d=sw.ENGINE.deepColumns(sw.loadConfig()); print(json.encode({need=d.need, n=d.n}))")
+        ok = j.get("carried") == 2 and j.get("explicit") == 4 and j.get("default") == 3 and not bad(k) and k.get("need") == 2
+        rec(cid, "PASS" if ok else "FAIL", "deep_levels 2 loads as column_levels 2; an explicit column_levels 4 wins; default 3; `water levels 2` -> deepColumns().need 2",
+            json.dumps({"sanitise": j, "deepColumns": k}))
+    # ---- R45: land-layer AQUATIC entries drawn by Driver B
+    cid = "mech.v71.water.landaq"
+    if need(cid, "ocean", "an ocean whose candidates can include land-listed aquatic species"):
+        tool("water", "aquatic", "on")
+        on_v = cfgv("water.land_aquatic").get("water.land_aquatic")
+        if manip(cid, "water.land_aquatic reads true after `water aquatic on`", on_v is True or DRY, {"land_aquatic": on_v}):
+            a = luap(_D_CANDS_LUA % "'ocean'", timeout=180)
+            tool("water", "aquatic", "off")
+            off_v = cfgv("water.land_aquatic").get("water.land_aquatic")
+            if manip(cid, "water.land_aquatic reads false after `water aquatic off`", off_v is False or DRY, {"land_aquatic": off_v}):
+                b = luap(_D_CANDS_LUA % "'ocean'", timeout=180)
+                tool("water", "aquatic", "on")
+                if bad(a) or bad(b):
+                    rec_bad(cid, a if bad(a) else b)
+                else:
+                    A = (a.get("bodies") or {}).get("ocean") or {}
+                    B = (b.get("bodies") or {}).get("ocean") or {}
+                    ev = json.dumps({"on": {k: A.get(k) for k in ("n", "land", "dup")}, "off": {k: B.get(k) for k in ("n", "land", "dup")},
+                                     "on_land_keys": [r.get("key") for r in (A.get("rows") or []) if ":" not in str(r.get("key"))][:20]})
+                    if (A.get("n") or 0) == 0:
+                        rec(cid, "NOT-TESTABLE-HERE", "an in-season, stocked ocean candidate", ev, note="no water species is active, in season and stocked for the ocean this season")
+                    elif (A.get("land") or 0) == 0:
+                        rec(cid, "NOT-TESTABLE-HERE", "a land-listed AQUATIC entry in season and stocked", ev,
+                            note="the ocean's candidates hold no land-layer key this season; OCEAN2's milkfish ride land entries (STATE addendum 20)")
+                    else:
+                        ok = (B.get("land") or 0) == 0 and (A.get("dup") or 0) == 0
+                        rec(cid, "PASS" if ok else "FAIL", "land-layer keys among the ocean candidates with the switch on, none with it off, no species twice", ev)
+    # ---- R62: the community mix (one draw first, so something is swimming)
+    cid = "mech.v71.water.mix"
+    bodies = _d_bodies()
+    if need(cid, "water", "a water body to weigh"):
+        body = bodies[0] if bodies else "ocean"
+        tool("water", "mix", "on")
+        mv = cfgv("water.mix.enabled", "water.mix.balance")
+        if manip(cid, "water.mix.enabled true and balance > 0", (mv.get("water.mix.enabled") is True and (mv.get("water.mix.balance") or 0) > 0) or DRY, mv):
+            drew = tool("water", "now", body)
+            lines = tool("water", "mix", body)
+            j = luap(_D_CANDS_LUA % f"'{body}'", timeout=180)
+            k = luap(f"""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local cen = sw.V7.WAT.census(cfg, g); local B = cen['{body}']
+local most, mn = nil, 0
+for tok, s in pairs(B and B.sp or {{}}) do if s.n > mn then most, mn = tok, s.n end end
+print(json.encode({{units=B and B.units or 0, most=most, most_n=mn, C=B and B.lv.C or 0, A=B and B.lv.A or 0}}))""")
+            if bad(j) or bad(k):
+                rec_bad(cid, j if bad(j) else k)
+            else:
+                rows = ((j.get("bodies") or {}).get(body) or {}).get("rows") or []
+                wsum = sum((r.get("weight") or 0) for r in rows)
+                most = k.get("most")
+                mrow = next((r for r in rows if r.get("token") == most), None)
+                bal = _d_num(mrow.get("why") if mrow else "", r"balance ([0-9.]+)")
+                feed = [r.get("token") for r in rows if "feed" in str(r.get("why") or "")]
+                ev = json.dumps({"body": body, "drew": drew.strip()[:160], "weights_sum": wsum, "most": most, "most_row": mrow,
+                                 "feed_rows": feed[:8], "census": k})
+                if not rows:
+                    rec(cid, "NOT-TESTABLE-HERE", "candidates in the body", ev, note="no water species is active, in season and stocked here this season")
+                elif mrow is None:
+                    rec(cid, "NOT-TESTABLE-HERE", "the most-present species among the candidates", ev + "\n" + lines[:600],
+                        note="the species most present in the body is not a candidate now (out of season or unstocked), so its balance factor is not shown")
+                else:
+                    ok = wsum > 0 and bal is not None and bal < 1 and " x " in lines and "base" in lines
+                    rec(cid, "PASS" if ok else "FAIL", "weights sum > 0; the most-present species' balance < 1; `water mix` prints base x factor = weight",
+                        ev + "\n" + lines[:800], note="" if feed else "no prey candidate showed a feed factor (no predator group that takes it is swimming here)")
+    # ---- R43/R49: the apex limit per body (synthetic census on the engine's own mix) and the lamprey's level
+    cid = "mech.v71.water.apexlimit"
+    tool("water", "mix", "apex", "1")
+    am = cfgv("water.mix.apex_max", "water.mix.enabled").get("water.mix.apex_max")
+    if manip(cid, "water.mix.apex_max reads 1 after `water mix apex 1`", am == 1 or DRY, {"apex_max": am}):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig()
+local list = (cfg.roster and type(cfg.roster.aquatic_apex) == 'table') and cfg.roster.aquatic_apex or V7.WAT.APEX
+local toks = {}; for tok, kind in pairs(list) do if kind == 'apex' then toks[#toks+1] = tok end end; table.sort(toks)
+local apexE
+for _, tok in ipairs(toks) do local e = (sw.MODEL.entry(tok, 'water')); if e then apexE = e; break end end
+local preyE
+for i, cr in ipairs(df.global.world.raws.creatures.all) do
+  local c = sw.classify(cr)
+  if c and c.habitat == 'aquatic' and c.role ~= 'predator' and not c.gameVermin and not c.mega and not c.night then
+    local e = (sw.MODEL.entry(cr.creature_id, 'water')); if e and V7.WAT.levelOf(cfg, e) == 'H' then preyE = e; break end
+  end
+end
+local out = { apex = apexE and apexE.token, prey = preyE and preyE.token }
+local lam = (sw.MODEL.entry('FISH_LAMPREY_SEA', 'water')); out.lamprey = lam and V7.WAT.levelOf(cfg, lam) or nil
+out.lampreyKind = V7.WAT.apexKind(cfg, 'FISH_LAMPREY_SEA')
+local function run(held)
+  local cands = {}
+  for _, e in ipairs({ apexE, preyE }) do
+    local cr = df.creature_raw.find(e.idx)
+    cands[#cands+1] = { e = e, key = e.token, craw = cr, weight = 10, ctx = { level = V7.WAT.levelOf(cfg, e), predGroups = 0 } }
+  end
+  local B = { units = 4, groups = 2, sp = {}, lv = { H = 2, C = 0, A = 2 }, apexGroups = held, src = {} }
+  V7.WAT.mix(cfg, cands, B, 'ocean')
+  return { apex = cands[1].weight, prey = cands[2].weight, why = cands[1].why }
+end
+if apexE and preyE then out.held1 = run(1); out.held0 = run(0) end
+print(json.encode(out))""", timeout=180)
+        if bad(j):
+            rec_bad(cid, j)
+        elif not (j.get("apex") and j.get("prey")):
+            rec(cid, "NOT-TESTABLE-HERE", "a curated apex and an aquatic prey species in this world's raws", json.dumps(j))
+        else:
+            h1, h0 = j.get("held1") or {}, j.get("held0") or {}
+            ok = (h1.get("apex") == 0 and (h1.get("prey") or 0) > 0 and (h0.get("apex") or 0) > 0
+                  and j.get("lamprey") == "C" and j.get("lampreyKind") is None)
+            rec(cid, "PASS" if ok else "FAIL", "apex weight 0 with one apex group held, > 0 with none; the prey keeps its weight; FISH_LAMPREY_SEA level C, off the apex list",
+                json.dumps(j), note="the census is synthetic (V7.WAT.mix on the engine's own candidates); the live per-body limit is the rig test's")
+    # ---- R14/R59: prey pulls predators (a prey draw into the ocean, then the weights), then a pulled draw seeds by the prey
+    pull_id, seed_id = "mech.v71.water.pull", "mech.v71.water.seed"
+    if need(pull_id, "ocean", "an ocean to draw prey into") and need(seed_id, "ocean", "an ocean to draw prey into"):
+        pv = cfgv("water.pull.enabled", "water.pull.lift_floor", "water.pull.seek", "water.pull.min")
+        if manip(pull_id, "water.pull on, lift_floor on, seek on", (pv.get("water.pull.enabled") is True and pv.get("water.pull.lift_floor") is True
+                                                                   and pv.get("water.pull.seek") is True) or DRY, pv):
+            P = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local cs = sw.ENGINE.candidates(cfg, nil, 'ocean', g)
+local pick
+for _, c in ipairs(cs) do if c.e.token == 'FISH_MILKFISH' then pick = c end end
+if not pick then for _, c in ipairs(cs) do if c.ctx and c.ctx.level == 'H' and (c.e.mass or 0) < 100000 then pick = c; break end end end
+local out = { cands = #cs }
+if pick then
+  local only = {}; only[pick.key] = true
+  local grp, why = sw.ENGINE.draw(cfg, g, only, nil, 'ocean')
+  if grp then sw.saveGroups(g); out.prey = grp.token; out.ids = grp.ids else out.why = why end
+end
+print(json.encode(out))""", timeout=180)
+            if bad(P):
+                rec_bad([pull_id, seed_id], P)
+            elif not P.get("prey"):
+                for cid in (pull_id, seed_id):
+                    rec(cid, "NOT-TESTABLE-HERE", "a prey school drawn into the ocean", json.dumps(P),
+                        note="no small in-season, stocked ocean prey to draw this season (OCEAN2's milkfish ride the land layer: STATE addendum 20)")
+            else:
+                W = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local B = V7.WAT.census(cfg, g)['ocean']
+local out = { prey = {}, real = {}, synth = {}, min = cfg.water.pull.min, ref = cfg.water.pull and cfg.water.pelagic_ref }
+for tok, s in pairs(B and B.sp or {}) do out.prey[#out.prey+1] = tok .. ' ' .. s.n end
+for _, c in ipairs(sw.ENGINE.candidates(cfg, nil, 'ocean', g)) do
+  if c.ctx and c.ctx.level ~= 'H' and c.ctx.prey then
+    out.real[#out.real+1] = { token = c.e.token, key = c.key, level = c.ctx.level, why = c.why, base = c.base, freq = c.craw and c.craw.frequency,
+                              lifted = c.ctx.lifted and true or false, pelagic = c.ctx.pelagic and true or false }
+  end
+end
+local list = (cfg.roster and type(cfg.roster.aquatic_apex) == 'table') and cfg.roster.aquatic_apex or V7.WAT.APEX
+local toks = {}; for tok, kind in pairs(list) do if kind == 'apex' or kind == 'pelagic' then toks[#toks+1] = tok end end; table.sort(toks)
+for _, tok in ipairs(toks) do
+  local e = (sw.MODEL.entry(tok, 'water'))
+  if e and B and e.waters and e.waters.bodies and e.waters.bodies.ocean then
+    e.habitat, e.role = sw.MODEL.of(cfg, e)
+    local cr = df.creature_raw.find(e.idx)
+    local ctx = V7.WAT.ctxFor(cfg, e, B)
+    if ctx.prey then
+      local c = { e = e, key = tok, craw = cr, ctx = ctx, weight = sw.ENGINE.weight(cfg, e, cr, ctx) }
+      V7.WAT.mix(cfg, { c }, B, 'ocean')
+      out.synth[#out.synth+1] = { token = tok, level = ctx.level, why = c.why, base = c.base, freq = cr.frequency, mass = e.mass,
+                                  lifted = ctx.lifted and true or false, pelagic = ctx.pelagic and true or false }
+    end
+  end
+  if #out.synth >= 12 then break end
+end
+print(json.encode(out))""", timeout=180)
+                if bad(W):
+                    rec_bad([pull_id, seed_id], W)
+                else:
+                    pmin = W.get("min") or 1.5
+                    rows = (W.get("real") or []) + (W.get("synth") or [])
+                    pulled = [(r.get("token"), _d_num(r.get("why"), r"pull ([0-9.]+)")) for r in rows]
+                    pulled_ok = [t for t, v in pulled if v is not None and v >= pmin - 1e-6]
+                    lifted = [r for r in rows if r.get("lifted")]
+                    lift_ok = [r.get("token") for r in lifted if r.get("base") == max(1, r.get("freq") or 0)]
+                    ev = json.dumps({"prey_drawn": P.get("prey"), "swimming": W.get("prey"), "pull_min": pmin, "pulled": pulled[:14],
+                                     "lifted": [(r.get("token"), r.get("base"), r.get("freq")) for r in lifted]})
+                    if not rows:
+                        rec(pull_id, "NOT-TESTABLE-HERE", "a predator or listed apex that takes the drawn prey", ev,
+                            note=f"nothing on the roster or the curated apex list takes {P.get('prey')}")
+                    else:
+                        ok = bool(pulled_ok) and (bool(lift_ok) if lifted else True)
+                        rec(pull_id, "PASS" if ok else "FAIL", "a pull factor >= pull.min on a predator of the swimming prey; a lifted pelagic's base equals its FREQUENCY",
+                            ev, note="" if lifted else "no pelagic over pelagic_ref takes this prey, so the floor-lift half was not exercised")
+                    real = [r for r in (W.get("real") or [])]
+                    if not real:
+                        rec(seed_id, "NOT-TESTABLE-HERE", "an in-season, stocked ocean predator of the drawn prey on the roster", ev,
+                            note="the pulled draw needs a roster candidate (the synthetic apexes above are weighed, never drawn)")
+                    else:
+                        key = real[0].get("key")
+                        pids = ",".join(str(int(i)) for i in (P.get("ids") or []) if str(i).lstrip("-").isdigit())
+                        Sd = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local preyIds = {{{pids}}}
+local grp, why = sw.ENGINE.draw(cfg, g, {{ ['{key}'] = true }}, nil, 'ocean')
+local out = {{ why = why }}
+if grp then
+  sw.saveGroups(g)
+  out.token, out.pulled, out.n = grp.token, grp.pulled, #grp.ids
+  local R = cfg.water.pull.seek_radius
+  local pp = {{}}
+  for _, id in ipairs(preyIds) do local u = df.unit.find(id); if u and not dfhack.units.isDead(u) then pp[#pp+1] = {{ x = u.pos.x, y = u.pos.y, z = u.pos.z }} end end
+  local maxNear = 0
+  for _, t in ipairs(sw.ENGINE.waterTiles().tiles) do
+    if t.body == 'ocean' then
+      for _, p in ipairs(pp) do
+        if math.max(math.abs(t.x - p.x), math.abs(t.y - p.y), math.abs(t.z - p.z)) <= R then maxNear = math.max(maxNear, t.cdepth or 1); break end
+      end
+    end
+  end
+  out.maxNear, out.R, out.members = maxNear, R, {{}}
+  for _, id in ipairs(grp.ids) do
+    local u = df.unit.find(id)
+    if u then
+      local d = 0; while d < 20 and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z - d) do d = d + 1 end
+      local best = 1e9
+      for _, p in ipairs(pp) do best = math.min(best, math.max(math.abs(p.x - u.pos.x), math.abs(p.y - u.pos.y), math.abs(p.z - u.pos.z))) end
+      out.members[#out.members+1] = {{ id = id, wet = V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z), depth = d, dist = best }}
+    end
+  end
+  local ls = sw.LEDGER.lines(3, 'arrive'); out.ledger = ls[#ls]
+end
+print(json.encode(out))""", timeout=180)
+                        if bad(Sd):
+                            rec_bad(seed_id, Sd)
+                        elif not Sd.get("token"):
+                            rec(seed_id, "FAIL", "the predator drawn", json.dumps(Sd))
+                        else:
+                            mem = Sd.get("members") or []
+                            lim = (Sd.get("R") or 40) + 6   # ENGINE.RADIUS: the group spreads up to 6 tiles from the seed
+                            ok = (Sd.get("pulled") == "prey" and "seeded by its prey" in str(Sd.get("ledger") or "") and mem
+                                  and all(m.get("wet") and (m.get("dist") or 1e9) <= lim for m in mem)
+                                  and max((m.get("depth") or 0) for m in mem) >= (Sd.get("maxNear") or 0) - 1)
+                            rec(seed_id, "PASS" if ok else "FAIL", "pulled == 'prey'; ledger 'seeded by its prey'; every member wet, near the prey, on the deepest column there (less one)",
+                                json.dumps(Sd)[:1400])
+    # ---- the stranding guard (r2: getBreathingState)
+    cid = "mech.v71.water.guard.recheck"
+    if need(cid, "water", "a water body to draw a fish into") and need(cid, "r2", "getBreathingState in this DFHack"):
+        gv = cfgv("water.guard.enabled", "water.guard.recheck", "water.guard.passes")
+        if manip(cid, "water.guard on with its re-check", (gv.get("water.guard.enabled") is True and gv.get("water.guard.recheck") is True) or DRY, gv):
+            st = tool("water")
+            body = (_d_bodies() or ["ocean"])[0]
+            j = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local out = {{}}
+for _, c in ipairs(sw.ENGINE.candidates(cfg, nil, '{body}', g)) do
+  local k = c.craw and sw.classify(c.craw)
+  if k and k.habitat == 'aquatic' then
+    local only = {{}}; only[c.key] = true
+    local grp = sw.ENGINE.draw(cfg, g, only, nil, '{body}')
+    if grp then sw.saveGroups(g); out.token = grp.token; out.id = grp.ids[1]; break end
+  end
+end
+local u = out.id and df.unit.find(out.id)
+if u then
+  out.from = {{ u.pos.x, u.pos.y, u.pos.z }}
+  for r = 1, 15 do
+    for dx = -r, r do for dy = -r, r do
+      if not out.to and (math.abs(dx) == r or math.abs(dy) == r) then
+        for _, dz in ipairs({{ 0, 1 }}) do
+          local x, y, z = u.pos.x + dx, u.pos.y + dy, u.pos.z + dz
+          if not out.to and sw.PLACE.tile(x, y, z, false) and not V7.GRP.wetAt(x, y, z) then
+            if dfhack.units.teleport(u, xyz2pos(x, y, z)) then out.to = {{ x, y, z }} end
+          end
+        end
+      end
+    end end
+    if out.to then break end
+  end
+end
+print(json.encode(out))""", timeout=180)
+            if bad(j):
+                rec_bad(cid, j)
+            elif not j.get("to"):
+                rec(cid, "NOT-TESTABLE-HERE", "a drawn fish set down on dry ground", json.dumps(j),
+                    note="no aquatic species was drawable here this season, or no dry walkable tile within 15 tiles of it")
+            else:
+                uid = int(j.get("id") or -1)
+                passes = []
+                for _ in range(2):
+                    step(20, 60)
+                    p = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local moved = V7.WAT.guard(sw.loadConfig(), sw.loadGroups())
+local u = df.unit.find({uid})
+local ok, s = false, nil
+if u then ok, s = V7.WAT.breathOk(u) end
+print(json.encode({{moved=moved, wet=u and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) or false, dead=u and dfhack.units.isDead(u) or false, breath=s}}))""")
+                    passes.append(p)
+                    if isinstance(p, dict) and p.get("wet"):
+                        break
+                led = luap("local sw=reqscript('seasonal-wildlife'); local ls=sw.LEDGER.lines(8,'strand'); print(json.encode({lines=ls}))")
+                lines = [str(x) for x in ((led.get("lines") if isinstance(led, dict) else None) or [])]
+                hit = [l for l in lines if f"#{uid} " in l and "moved" in l and "not moved" not in l]
+                ok = "via getBreathingState" in st and bool(passes) and isinstance(passes[-1], dict) and passes[-1].get("wet") and bool(hit)
+                rec(cid, "PASS" if ok else "FAIL", "status 'via getBreathingState'; the stranded fish back in water within two passes; a strand ... moved ledger line",
+                    json.dumps({"placed": j, "passes": passes, "strand": hit or lines[-3:]}) + "\n" + st[-400:])
+    # ---- R45: the retry back-off (a cloned groups record, a config where nothing is allowed)
+    cid = "mech.v71.water.retry"
+    if need(cid, "water", "a water body whose draw can come up empty"):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils'); local cfg=sw.loadConfig()
+cfg.allow = {}   -- nothing active: no water species is drawable (the precondition, read back below)
+local g = utils.clone(sw.loadGroups(), true); g.next_water_body = {}; g.water_why = {}
+local now = sw.absTick()
+sw.V7.waterTick(cfg, g)
+local out = { retry = cfg.water.retry_days, bodies = {} }
+for b, t in pairs(g.next_water_body) do out.bodies[b] = { gap = t - now, why = (g.water_why or {})[b] } end
+print(json.encode(out))""", timeout=180)
+        if bad(j):
+            rec_bad(cid, j)
+        else:
+            bs = j.get("bodies") or {}
+            empty = {b: v for b, v in bs.items() if "no water species" in str(v.get("why") or "") or "none of those" in str(v.get("why") or "")}
+            if manip(cid, "every drawn-at body reports nothing drawable (cfg.allow emptied)", (bool(bs) and len(empty) == len(bs)) or DRY, json.dumps(j)):
+                lim = (j.get("retry") or 1) * 1200
+                ok = bool(empty) and all((v.get("gap") or 1e9) <= lim + 1 for v in empty.values())
+                rec(cid, "PASS" if ok else "FAIL", f"each empty body's next draw within retry_days x 1200 = {lim:.0f} ticks", json.dumps(j))
+    # ---- R33/R43: no bear is a water candidate; R60: no cavern/deep entry or unit in the census or the candidates
+    fid, nid = "mech.v71.water.fisher", "mech.v71.water.nodeep"
+    if need(fid, "water", "a water body's candidates") and need(nid, "water", "a water body's census and candidates"):
+        bl = ",".join("'" + b + "'" for b in (_d_bodies() or ["ocean"]))
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local wt = sw.ENGINE.waterTiles()
+local cen = V7.WAT.census(cfg, g)
+local out = { n = 0, bears = {}, badKeys = {}, badPos = {}, units = 0, fisherKinds = {} }
+for _, b in ipairs({%s}) do
+  for _, c in ipairs(sw.ENGINE.candidates(cfg, nil, b, g)) do
+    out.n = out.n + 1
+    if c.e.token:find('BEAR', 1, true) then out.bears[#out.bears+1] = b .. ':' .. c.e.token end
+    if c.key:match('^cavern') or c.key:match('^deep') then out.badKeys[#out.badKeys+1] = c.key end
+  end
+  local B = cen[b]
+  for tok, s in pairs(B and B.sp or {}) do
+    out.units = out.units + s.n
+    for _, p in ipairs(s.pos) do if p.z < wt.zlo or p.z > wt.zhi + 1 then out.badPos[#out.badPos+1] = tok .. '@' .. p.z end end
+  end
+end
+for _, tok in ipairs({ 'BEAR_GRIZZLY', 'BEAR_BLACK', 'BEAR_POLAR' }) do out.fisherKinds[tok] = V7.WAT.apexKind(cfg, tok) or 'none' end
+print(json.encode(out))""" % bl, timeout=180)
+        if bad(j):
+            rec_bad([fid, nid], j)
+        else:
+            ev = json.dumps(j)[:900]
+            if (j.get("n") or 0) == 0:
+                rec(fid, "NOT-TESTABLE-HERE", "water candidates to inspect", ev, note="no water species is drawable here this season")
+            else:
+                ok = not j.get("bears") and all(v == "fisher" for v in (j.get("fisherKinds") or {}).values())
+                rec(fid, "PASS" if ok else "FAIL", "no BEAR_* among the candidates of any body; the three bears are 'fisher' on the apex list", ev)
+            if (j.get("n") or 0) == 0 and (j.get("units") or 0) == 0:
+                rec(nid, "NOT-TESTABLE-HERE", "candidates or swimming units to inspect", ev, note="nothing drawable and nothing swimming here now")
+            else:
+                ok = not j.get("badKeys") and not j.get("badPos")
+                rec(nid, "PASS" if ok else "FAIL", "no cavern:/deep: key among the candidates; every census position inside the surface band", ev)
+
+
+# ---- v7.1 perf (docs/v7.1/perf.md). Headless: every claim reads the engine's own caches; one enable + a 3,200-tick run feeds P0/P5/P10/P11.
+def _d_perf_legacy(cid, name, on):
+    tool("perf", "legacy", name, "on" if on else "off")
+    v = cfgv(f"perf.legacy_{name}").get(f"perf.legacy_{name}")
+    return manip(cid, f"perf.legacy_{name} reads {on} after `perf legacy {name} {'on' if on else 'off'}`", v is on or DRY, {f"legacy_{name}": v})
+
+def v71_perf():
+    # ---- the run: reset, enable, every job scheduled at once, then a short stretch of play
+    tool("perf", "reset")
+    j0 = luap("""local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util')
+print(json.encode({next=df.global.unit_next_id, enabled=sw.loadConfig().enabled}))""")
+    tool("enable")
+    en = cfgv("enabled").get("enabled")
+    sched = luap("""local sw=reqscript('seasonal-wildlife'); local ru=require('repeat-util'); local cfg=sw.loadConfig()
+local out = { jobs = {} }
+for _, jb in ipairs(sw.PANEL.jobs(cfg)) do if jb.on then out.jobs[#out.jobs+1] = { name = jb.name, sched = ru.isScheduled(jb.name) and true or false } end end
+print(json.encode(out))""")
+    step(3200, 240)
+    R = luap("""local sw=reqscript('seasonal-wildlife'); local C=sw.CACHE
+local st = sw.FUSE.stats['seasonal-wildlife/groups'] or {}
+local def = 0; for _, s in pairs(sw.FUSE.stats) do def = def + (s.deferred or 0) end
+local wl = C.sliceLog and C.sliceLog.warm
+local n = 0; for _ in pairs(C.ecoClass or {}) do n = n + 1 end
+print(json.encode({ kb = st.kb, kb_worst = st.kb_worst, worst = st.worst, runs = st.runs, tickWorst = C.perfTickWorst, shared = C.perfShared or 0,
+  deferred = def, warm = wl and { n = wl.n, err = wl.err, aborted = wl.aborted, cpu = wl.cpu } or nil,
+  cached = { cave = C.cave ~= nil, wet = C.wet ~= nil, wtiles = C.wtiles ~= nil, veg = C.veg ~= nil }, ecoClass = n }))""")
+    run_ok = en is True or DRY
+    # P0 kb
+    cid = "perf.p0.kb"
+    if manip(cid, "the tool enabled (`enable`) so the groups job runs", run_ok, {"enabled": en}):
+        if bad(R):
+            rec_bad(cid, R)
+        else:
+            tw = (R.get("tickWorst") or {}).get("ms") if isinstance(R.get("tickWorst"), dict) else None
+            ok = isinstance(R.get("kb"), (int, float)) and R["kb"] >= 0 and (R.get("runs") or 0) > 0 and tw is not None and tw >= (R.get("worst") or 0)
+            rec(cid, "PASS" if ok else "FAIL", "groups kb a number >= 0; the worst tick >= the groups job's worst pass", json.dumps(R)[:900])
+    # P0 verb
+    out = tool("perf")
+    ok = out.startswith("perf:") and "job / lap" in out and ("DFHack perf counters" in out or "not in this DFHack build" in out) and "rror" not in out
+    rec("perf.p0.verb", "PASS" if ok else "FAIL", "the switch line, the job table, the counters or the 'not in this build' line; no error", out[:1200])
+    # P5 phases
+    cid = "perf.p5.phases"
+    if manip(cid, "the tool enabled", run_ok, {"enabled": en}):
+        if bad(sched) or bad(R):
+            rec_bad(cid, sched if bad(sched) else R)
+        else:
+            jobs = sched.get("jobs") or []
+            ok = bool(jobs) and all(x.get("sched") for x in jobs) and ((R.get("shared") or 0) == 0 or (R.get("deferred") or 0) > 0)
+            rec(cid, "PASS" if ok else "FAIL", "every on job scheduled at once; shared ticks 0, or deferrals fired",
+                json.dumps({"jobs": jobs, "shared": R.get("shared"), "deferred": R.get("deferred"), "tickWorst": R.get("tickWorst")}),
+                note="3,200 ticks, not the notes' 6,000 (R12 short reps): two ecology passes, ten groups passes, three days")
+    # P10 slice
+    cid = "perf.p10.slice"
+    if manip(cid, "the tool enabled (enableSched starts the warm slice)", run_ok, {"enabled": en}):
+        sync = tool("roster", "build", "land")
+        pb = tool("perf", "build", "land")
+        step(200, 60)
+        B = luap("""local sw=reqscript('seasonal-wildlife'); local b = sw.CACHE.sliceLog and sw.CACHE.sliceLog.build
+print(json.encode({build = b and { n = b.n, err = b.err, aborted = b.aborted } or nil}))""")
+        if bad(R) or bad(B):
+            rec_bad(cid, R if bad(R) else B)
+        else:
+            w = R.get("warm") or {}
+            c = R.get("cached") or {}
+            b = B.get("build") or {}
+            ok = ((w.get("n") or 0) >= 1 and not w.get("err") and all(c.get(k) for k in ("cave", "wet", "wtiles", "veg"))
+                  and "started" in pb and b and not b.get("err") and not b.get("aborted") and "ladder-info" in sync)
+            rec(cid, "PASS" if ok else "FAIL", "warm slice n >= 1, no error; four surveys cached; `perf build land` slice finished without error",
+                json.dumps({"warm": w, "cached": c, "build": b, "perf_build": pb.strip()[:160]}) + "\n" + sync[:300],
+                note="the sliced build's roster is not compared with `roster build land`'s: ROSTER.build draws its picks at random (ROSTER.pick, rng)")
+    # P11 events
+    cid = "perf.p11.events"
+    if manip(cid, "the tool enabled and perf.events on", (run_ok and (cfgv("perf.events").get("perf.events") is True)) or DRY, {"enabled": en}):
+        nxt = j0.get("next") if isinstance(j0, dict) else None
+        cen = tool("perf", "census")
+        E = luap(f"""local sw=reqscript('seasonal-wildlife'); local C=sw.CACHE
+local before = {{}}; for id in pairs(C.wildIds or {{}}) do before[id] = true end
+local ids = sw.V7.PERF.wildIds() or {{}}
+local miss, arrived, arrivedIn = {{}}, 0, 0
+for _, u in ipairs(df.global.world.units.active) do
+  if dfhack.units.isActive(u) and not dfhack.units.isDead(u) and dfhack.units.isWildlife(u) then
+    if not ids[u.id] then miss[#miss+1] = u.id end
+    if u.id >= {int(nxt) if isinstance(nxt, int) else 2**30} then arrived = arrived + 1; if before[u.id] then arrivedIn = arrivedIn + 1 end end
+  end
+end
+print(json.encode({{miss=miss, arrived=arrived, arrivedByEvent=arrivedIn, evArrivals=C.evArrivals or 0, seeds=C.wildSeeds or 0, evReg=C.evReg}}))""")
+        if bad(E):
+            rec_bad(cid, E)
+        else:
+            ok = "the wild-id set" in cen and not E.get("miss")
+            rec(cid, "PASS" if ok else "FAIL", "census walked the wild-id set; every live wild unit in the set", json.dumps(E) + "\n" + cen[:400],
+                note="" if (E.get("arrived") or 0) > 0 else "no wild unit arrived during the run, so the arrival path (event or tail scan) was not exercised")
+    # P1 memo
+    cid = "perf.p1.memo"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; sw.loadConfig(); local cfg=sw.CACHE.cfg
+local diff, n, nat = {}, 0, {}
+for _, u in ipairs(df.global.world.units.active) do
+  local cr = df.creature_raw.find(u.race)
+  if cr then
+    n = n + 1
+    local a = V7.PERF.raceEco(cfg, u.race); local b = (sw.ecoOf(cfg, cr))
+    if a ~= b and #diff < 10 then diff[#diff+1] = cr.creature_id .. ' ' .. tostring(a) .. '/' .. tostring(b) end
+    nat[tostring(u.id)] = V7.natural(cfg, u) and true or false
+  end
+end
+_G.__v71_nat = nat
+local k = 0; for _ in pairs(sw.CACHE.ecoClass or {}) do k = k + 1 end
+print(json.encode({n=n, diff=diff, ecoClass=k}))""")
+    if bad(j):
+        rec_bad(cid, j)
+    elif _d_perf_legacy(cid, "class", True):
+        k = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local nat=_G.__v71_nat or {}
+local diff, n = {}, 0
+for _, u in ipairs(df.global.world.units.active) do
+  local was = nat[tostring(u.id)]
+  if was ~= nil then n = n + 1; local now = sw.V7.natural(cfg, u) and true or false; if now ~= was and #diff < 10 then diff[#diff+1] = u.id end end
+end
+_G.__v71_nat = nil
+print(json.encode({n=n, diff=diff}))""")
+        _d_perf_legacy(cid, "class", False)
+        if bad(k):
+            rec_bad(cid, k)
+        else:
+            ok = (j.get("n") or 0) > 0 and not j.get("diff") and (j.get("ecoClass") or 0) > 0 and not k.get("diff")
+            rec(cid, "PASS" if ok else "FAIL", "raceEco == ecoOf for every race on the map; CACHE.ecoClass non-empty; V7.natural unchanged under legacy_class",
+                json.dumps({"memo": j, "legacy": k}))
+    # P2 groups
+    cid = "perf.p2.groups"
+    pt = cfgv("perf.persist_transient").get("perf.persist_transient")
+    if manip(cid, "perf.persist_transient off (the default)", pt is False or DRY, {"persist_transient": pt}):
+        j = luap("""local sw=reqscript('seasonal-wildlife')
+local a, b = sw.loadGroups(), sw.loadGroups()
+local g = a; local had = g.stuck
+if not g.stuck then g.stuck = { ['1'] = { x = 1, y = 1, z = 1, t = 0 } } end
+sw.saveGroups(g)
+local raw = dfhack.persistent.getSiteDataString and dfhack.persistent.getSiteDataString('seasonal-wildlife/groups') or nil
+local rec = raw and require('json').decode(raw) or dfhack.persistent.getSiteData('seasonal-wildlife/groups', nil) or {}
+g.stuck = had; sw.saveGroups(g)
+print(json.encode({same=(a == b), n=#g.groups, nRec=rec.groups and #rec.groups or -1, stuckInRec=(rec.stuck ~= nil), compact=(raw ~= nil and not raw:find('\\n'))}))""")
+        if bad(j):
+            rec_bad(cid, j)
+        else:
+            ok = j.get("same") is True and j.get("n") == j.get("nRec") and j.get("stuckInRec") is False
+            rec(cid, "PASS" if ok else "FAIL", "same table twice; the record round-trips #groups; no 'stuck' key in it", json.dumps(j))
+    # P2 undo
+    cid = "perf.p2.undo"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local U=sw.UNDO
+local d0 = U.depth(); local held0 = sw.CACHE.undo
+local c = sw.loadConfig(); U.push(c, 'v71 perf probe')
+local d1 = U.depth(); local held1 = sw.CACHE.undo
+local label = U.pop(c); local d2 = U.depth()
+print(json.encode({d0=d0, d1=d1, d2=d2, label=label, cap=U.CAP, sameRing=(held0 ~= nil and held0 == held1), held=(held1 ~= nil)}))""")
+    if bad(j):
+        rec_bad(cid, j)
+    else:
+        d0, d1 = j.get("d0") or 0, j.get("d1") or 0
+        ok = (d1 == d0 + 1 or (d0 >= (j.get("cap") or 50) and d1 == d0)) and j.get("label") == "v71 perf probe" and j.get("d2") == d0 - (0 if d1 == d0 + 1 else 1) and j.get("held")
+        rec(cid, "PASS" if ok else "FAIL", "depth +1 on the held ring (CACHE.undo); pop returns the label and the depth", json.dumps(j))
+    # P3 overlay
+    cid = "perf.p3.overlay"
+    j = luap("""local sw=reqscript('seasonal-wildlife')
+sw.CACHE.ovl = nil
+local a = sw.V7.PERF.overlayData(); local b = sw.V7.PERF.overlayData()
+local live = 0
+for _, grp in ipairs(sw.loadGroups().groups) do
+  for _, id in ipairs(grp.ids) do local u = df.unit.find(id); if u and not dfhack.units.isDead(u) then live = live + 1; break end end
+end
+print(json.encode({same=(a == b), markers=#a.groups, live=live, links=#a.links}))""")
+    if bad(j):
+        rec_bad(cid, j)
+    else:
+        ok = j.get("same") is True and j.get("markers") == j.get("live")
+        rec(cid, "PASS" if ok else "FAIL", "the same table twice; one marker per group with a live member", json.dumps(j))
+    # P4 census
+    cid = "perf.p4.census"
+    a = luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils'); local C=sw.CACHE
+C.census, C.censusOpen = nil, true
+local ok, by = pcall(sw.WILD.countByLayer)
+C.census, C.censusOpen = nil, false
+local old = { land = 0, water = 0, cavern = 0, deep = 0 }
+for _, u in ipairs(df.global.world.units.active) do if sw.WILD.onMap(u) then local L = sw.WILD.layerOf(u); old[L] = old[L] + 1 end end
+local g = utils.clone(sw.loadGroups(), true); local _, list = sw.discoverGroups(g)
+local ids = {}; for _, grp in ipairs(list or {}) do for _, id in ipairs(grp.ids) do ids[#ids+1] = id end end; table.sort(ids)
+print(json.encode({census=ok and by or tostring(by), loop=old, ids=ids}))""")
+    if bad(a):
+        rec_bad(cid, a)
+    elif _d_perf_legacy(cid, "census", True):
+        b = luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils')
+local g = utils.clone(sw.loadGroups(), true); local _, list = sw.discoverGroups(g)
+local ids = {}; for _, grp in ipairs(list or {}) do for _, id in ipairs(grp.ids) do ids[#ids+1] = id end end; table.sort(ids)
+print(json.encode({ids=ids}))""")
+        _d_perf_legacy(cid, "census", False)
+        if bad(b):
+            rec_bad(cid, b)
+        else:
+            ok = isinstance(a.get("census"), dict) and a.get("census") == a.get("loop") and (a.get("ids") or []) == (b.get("ids") or [])
+            rec(cid, "PASS" if ok else "FAIL", "census counts == the v7.0 loop's; discoverGroups' ids the same with legacy_census",
+                json.dumps({"census": a.get("census"), "loop": a.get("loop"), "ids": (a.get("ids") or [])[:30], "legacy_ids": (b.get("ids") or [])[:30]}))
+    # P6 live (headless: the window's two sums)
+    cid = "perf.p6.live"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg)
+local byKey = {}; for _, e in ipairs(pool) do byKey[e.key] = e end
+local rs = sw.getEmbarkRegions(); local all = df.global.world.populations.all
+local out = {}
+for _, layer in ipairs({ 'land', 'water', 'cavern' }) do
+  local a, b = 0, 0
+  for _, r in ipairs(sw.CACHE.managedPops()) do
+    local pop = r.layer == layer and all[r.i] or nil
+    local e = pop and pop.race == r.race and byKey[r.key]
+    if e and pop.quantity > 0 then a = a + pop.quantity * (e.mass or 0) end
+  end
+  for _, pop in ipairs(all) do
+    if sw.managedPop(pop, rs, sw.LAYER_SET[layer]) then
+      local cr = df.creature_raw.find(pop.race)
+      local e = cr and byKey[sw.keyFor(layer, cr.creature_id)]
+      if e and pop.quantity > 0 then b = b + pop.quantity * (e.mass or 0) end
+    end
+  end
+  out[layer] = { index = a, walk = b }
+end
+print(json.encode(out))""", timeout=180)
+    if bad(j):
+        rec_bad(cid, j)
+    else:
+        ok = bool(j) and all(isinstance(v, dict) and v.get("index") == v.get("walk") for v in j.values())
+        rec(cid, "PASS" if ok else "FAIL", "per layer, the index sum == the full walk's sum", json.dumps(j),
+            note="computed headless the way the Live tab does (gui/seasonal-wildlife.lua:1080); the tab itself is phase_gui's")
+    # P7 read-only config
+    cid = "perf.p7.ro"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local C=sw.CACHE
+local c0 = V7.PERF.cfgRO(); local v0 = C.ver
+local due = V7.PERF.writersDue(c0)
+sw.groupsTick(c0)
+local same, v1 = (C.cfg == c0), C.ver
+local P = dfhack.persistent; local n, key = { 0, 0 }, sw.CAVERN.KEY
+local o1, o2 = P.saveSiteData, P.saveSiteDataString
+local phase = 1
+P.saveSiteData = function(k, ...) if k == key then n[phase] = n[phase] + 1 end; return o1(k, ...) end
+if o2 then P.saveSiteDataString = function(k, ...) if k == key then n[phase] = n[phase] + 1 end; return o2(k, ...) end end
+local ok, err = pcall(function()
+  local cfg = sw.loadConfig(); local s = df.global.cur_season
+  sw.CAVERN.apply(cfg, s); phase = 2; sw.CAVERN.apply(cfg, s)
+end)
+P.saveSiteData, P.saveSiteDataString = o1, o2
+print(json.encode({due=due, same=same, v0=v0, v1=v1, first=n[1], second=n[2], err=(not ok) and tostring(err) or nil}))""", timeout=180)
+    if bad(j):
+        rec_bad(cid, j)
+    else:
+        if j.get("due"):
+            groups_ok = (j.get("v1") or 0) > (j.get("v0") or 0) or j.get("same") is False
+        else:
+            groups_ok = j.get("same") is True and j.get("v1") == j.get("v0")
+        ok = groups_ok and not j.get("err") and (j.get("second") or 0) == 0
+        rec(cid, "PASS" if ok else "FAIL", "no writer due: CACHE.cfg the same table, CACHE.ver unchanged (due: replaced); CAVERN.apply's second call saves nothing",
+            json.dumps(j), note="" if j.get("due") else "no exhaust or spill writer was due, so the 'due pass saves' half was not exercised")
+    # P8 pool
+    cid = "perf.p8.pool"
+    j = luap("""local sw=reqscript('seasonal-wildlife'); local P=sw.V7.PERF; sw.loadConfig(); local C=sw.CACHE
+local p1 = P.pool(C.cfg); local h1 = C.poolMemo and C.poolMemo.hits or -1; local b1 = C.poolMemo and C.poolMemo.builds or -1
+local p2 = P.pool(C.cfg); local h2 = C.poolMemo and C.poolMemo.hits or -1
+sw.saveConfig(sw.loadConfig())
+local p3 = P.pool(C.cfg); local b3 = C.poolMemo and C.poolMemo.builds or -1
+print(json.encode({same=(p1 == p2), h1=h1, h2=h2, rebuilt=(p3 ~= p1), b1=b1, b3=b3}))""")
+    if bad(j):
+        rec_bad(cid, j)
+    else:
+        ok = j.get("same") is True and j.get("h2") == (j.get("h1") or 0) + 1 and j.get("rebuilt") is True and (j.get("b3") or 0) > (j.get("b1") or 0)
+        rec(cid, "PASS" if ok else "FAIL", "same pool twice, hits +1; rebuilt after a saveConfig", json.dumps(j))
+    # P9 native counts and edge-only surveys
+    cid = "perf.p9.native"
+    probe = """local sw=reqscript('seasonal-wildlife')
+local veg = sw.V7.vegSurvey(true)
+local tiles = sw.PLACE.tiles(false)
+local cave = sw.CAVE.survey(); local bands = {}
+for _, b in ipairs(cave.bands or {}) do bands[#bands+1] = { b.depth, b.open, b.water, b.magma, b.zlo, b.zhi } end
+local wet = sw.WET.survey()
+print(json.encode({grass=veg.grassShare, floor=veg.floor, first=tiles[1] and tiles[1].z or -1, bands=bands, caveStopped=cave.stopped,
+  wet={ near = wet.near, sea = wet.sea, verdict = wet.verdict, stopped = wet.stopped }, fet=(sw.V7.PERF.fet() ~= nil)}))"""
+    a = luap(probe, timeout=240)
+    if bad(a):
+        rec_bad(cid, a)
+    elif _d_perf_legacy(cid, "survey", True):
+        b = luap(probe, timeout=240)
+        _d_perf_legacy(cid, "survey", False)
+        if bad(b):
+            rec_bad(cid, b)
+        else:
+            edge_ok = a.get("bands") == b.get("bands") and (a.get("wet") or {}).get("near") == (b.get("wet") or {}).get("near") \
+                      and (a.get("wet") or {}).get("sea") == (b.get("wet") or {}).get("sea")
+            stopped = a.get("caveStopped") or b.get("caveStopped") or (a.get("wet") or {}).get("stopped") or (b.get("wet") or {}).get("stopped")
+            ev = json.dumps({"new": a, "legacy": b})[:1400]
+            if stopped:
+                rec(cid, "NOT-TESTABLE-HERE", "both surveys complete", ev, note="a CAVE or WET survey stopped at its budget, so the counts are not comparable")
+            elif not edge_ok:
+                rec(cid, "FAIL", "the edge-only CAVE/WET counts equal the legacy full scan's exactly", ev)
+            elif not a.get("fet"):
+                rec(cid, "NOT-TESTABLE-HERE", "dfhack.maps.forEachTile (DFHack r2) for the native-count half", ev,
+                    note=NEED["r2"] + "; the edge-only CAVE/WET half matched exactly on this build")
+            else:
+                ok = abs((a.get("grass") or 0) - (b.get("grass") or 0)) <= 3 and a.get("first") == b.get("first")
+                rec(cid, "PASS" if ok else "FAIL", "edge-only counts exact; grass share within 3 points; PLACE.tiles' first level the same", ev)
+    # P12 scavenging memo and the web census
+    cid = "perf.p12.scav"
+    probe = """local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local h=sw.ALERTS.humanoids(); local st={ raceOk = {} }
+local n = 0
+local okV, vec = pcall(function() return df.global.world.items.other.ANY_CORPSE end)
+for _, it in ipairs(okV and vec or df.global.world.items.all) do
+  local t = it:getType()
+  if t == df.item_type.CORPSE or t == df.item_type.CORPSEPIECE then
+    if sw.SCAV.edible(it, h) and sw.SCAV.naturalRemains(cfg, st, it.race) then n = n + 1 end
+  end
+end
+local wc = sw.V7.PERF.webCensus(sw.loadGroups()).wild; local by = sw.WILD.countByLayer()
+print(json.encode({remains=n, web=wc, count=by}))"""
+    a = luap(probe)
+    if bad(a):
+        rec_bad(cid, a)
+    elif _d_perf_legacy(cid, "scav", True):
+        b = luap(probe)
+        _d_perf_legacy(cid, "scav", False)
+        if bad(b):
+            rec_bad(cid, b)
+        else:
+            web_ok = a.get("web") == a.get("count") and isinstance(a.get("web"), dict)
+            ev = json.dumps({"new": a, "legacy": b})
+            if not web_ok or a.get("remains") != b.get("remains"):
+                rec(cid, "FAIL", "remains equal both ways; webCensus.wild == countByLayer", ev)
+            elif (a.get("remains") or 0) == 0:
+                rec(cid, "NOT-TESTABLE-HERE", "edible natural remains on the map to count both ways", ev,
+                    note="no corpse on the map (the webCensus half matched); any fort after a kill has some")
+            else:
+                rec(cid, "PASS", "remains equal both ways; webCensus.wild == countByLayer", ev)
+
+
+# ---- v7.1 web (docs/v7.1/web.md): the controls registry over HTTP. One server start, every check, then stop.
+def v71_web():
+    ids = ["web.v71.controls", "web.v71.set", "web.v71.set_panel", "web.v71.status", "web.v71.cluster", "web.v71.guard", "web.v71.perf", "web.v71.stop"]
+    rc, out = sh("cmd", "seasonal-wildlife-web", "start", str(WEB_PORT), timeout=60)
+    m = re.search(r"\?t=([0-9a-f]+)", out or "")
+    tok = m.group(1) if m else ("0" * 20 if DRY else "")
+    if not tok:
+        for cid in ids:
+            rec(cid, "FAIL", "the companion server started (a token in the start reply)", (out or "")[:400])
+        return
+    time.sleep(1)
+    def js(body):
+        try: return json.loads(body)
+        except Exception: return {}
+    # controls.json
+    c, body = curl(f"/controls.json?t={tok}")
+    reg = js(body)
+    secs, ctl = reg.get("sections") or [], reg.get("controls") or []
+    missing = [r.get("id") for r in ctl if isinstance(r, dict) and r.get("available") and "{T}" not in str(r.get("path") or "") and "value" not in r]
+    ok = c == 200 and len(secs) >= 12 and len(ctl) >= 300 and not missing
+    rec("web.v71.controls", "PASS" if ok else "FAIL", "200; >= 12 sections; >= 300 controls; every available non-{T} row has a value",
+        json.dumps({"status": c, "sections": len(secs), "controls": len(ctl), "species_rows": len(reg.get("species") or []),
+                    "actions": len(reg.get("actions") or []), "missing_value": missing[:20], "bytes": len(body)}))
+    # set: a value, a range refusal, an unknown id
+    L0 = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({count=sw.LEDGER.load().count}))")
+    c1, b1 = curl(f"/set?t={tok}&id=hunters.stoop.chance&v=61", "POST")
+    got = cfgv("hunters.stoop.chance").get("hunters.stoop.chance")
+    L1 = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({count=sw.LEDGER.load().count}))")
+    c2, b2 = curl(f"/set?t={tok}&id=hunters.stoop.chance&v=101", "POST")
+    c3, b3 = curl(f"/set?t={tok}&id=no.such.control&v=1", "POST")
+    j1, j2 = js(b1), js(b2)
+    if manip("web.v71.set", "hunters.stoop.chance reads 61 in the config after the /set", got == 61 or DRY, {"config": got, "reply": b1[:300]}):
+        ok = (c1 == 200 and j1.get("value") == 61 and (L1.get("count") or 0) > (L0.get("count") or 0)
+              and c2 == 400 and "at most 100" in str(j2.get("out")) and c3 == 400)
+        rec("web.v71.set", "PASS" if ok else "FAIL", "61 -> 200 value 61 and a ledger line; 101 -> 400 'at most 100'; unknown id -> 400",
+            json.dumps({"set61": [c1, j1], "ledger": [L0.get("count"), L1.get("count")], "set101": [c2, j2], "unknown": [c3, b3[:200]]})[:1400])
+    # set through the Panel path
+    U0 = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({d=sw.UNDO.depth()}))")
+    c4, b4 = curl(f"/set?t={tok}&id=switch.nudge&v=on", "POST")
+    nv = cfgv("ecology.nudge").get("ecology.nudge")
+    U1 = luap("local sw=reqscript('seasonal-wildlife'); print(json.encode({d=sw.UNDO.depth()}))")
+    c5, b5 = curl(f"/set?t={tok}&id=switch.nudge&v=off", "POST")
+    nv2 = cfgv("ecology.nudge").get("ecology.nudge")
+    j4 = js(b4)
+    if manip("web.v71.set_panel", "ecology.nudge reads true after /set switch.nudge on", nv is True or DRY, {"nudge": nv, "reply": b4[:300]}):
+        ok = (c4 == 200 and "Panel" in str(j4.get("cmd")) and (U1.get("d") or 0) == (U0.get("d") or 0) + 1 and c5 == 200 and nv2 is False)
+        rec("web.v71.set_panel", "PASS" if ok else "FAIL", "200 through 'Panel: Nudge'; undo depth +1; off puts it back",
+            json.dumps({"on": [c4, j4], "undo": [U0.get("d"), U1.get("d")], "off": [c5, js(b5)], "nudge_after_off": nv2})[:1200])
+    # status.json
+    c6, b6 = curl(f"/status.json?t={tok}")
+    st = js(b6)
+    sec = st.get("sections") or {}
+    errs = {k: (v or {}).get("error") for k, v in sec.items() if isinstance(v, dict) and (v or {}).get("error")}
+    lay = ((sec.get("groupmap") or {}).get("layers") or [])
+    first = lay[0].get("key") if lay and isinstance(lay[0], dict) else None
+    ok = c6 == 200 and len(sec) >= 11 and not errs and first == "land"
+    rec("web.v71.status", "PASS" if ok else "FAIL", "200; every section without error; groupmap.layers[0].key == 'land'",
+        json.dumps({"status": c6, "sections": sorted(sec.keys()), "errors": errs, "first_layer": first, "ms": st.get("ms")})[:1200])
+    # cluster order
+    c7, b7 = curl(f"/state.json?t={tok}")
+    snap = js(b7)
+    raws = luap("""local out = {}
+for _, cr in ipairs(df.global.world.raws.creatures.all) do out[cr.creature_id] = { cr.cluster_number[0], cr.cluster_number[1] } end
+print(json.encode(out))""", timeout=180)
+    if bad(raws):
+        rec_bad("web.v71.cluster", raws)
+    else:
+        rows, wrong = 0, []
+        for sp in snap.get("species") or []:
+            cn = raws.get(sp.get("token"))
+            if not (isinstance(cn, list) and len(cn) == 2) or sp.get("gsize_set"):
+                continue
+            c0, c1_ = cn
+            if c0 == c1_:
+                continue
+            rows += 1
+            if not ((sp.get("gmin") or 0) < (sp.get("gmax") or 0) and sp.get("gmax") == max(1, c0, c1_) and sp.get("gmin") == max(1, min(c0, c1_)) and sp.get("gmax") == c0):
+                wrong.append([sp.get("token"), sp.get("gmin"), sp.get("gmax"), cn])
+        if rows == 0:
+            rec("web.v71.cluster", "NOT-TESTABLE-HERE" if c7 == 200 else "FAIL", "a species with two cluster numbers in the snapshot",
+                json.dumps({"status": c7, "species": len(snap.get("species") or [])}))
+        else:
+            rec("web.v71.cluster", "PASS" if not wrong else "FAIL", "gmin < gmax, gmax == cluster_number[0] (the max) for every two-number species",
+                json.dumps({"species_checked": rows, "wrong": wrong[:15]}))
+    # guard: the v7.1 refusals
+    g1, gb1 = curl(f"/act?t={tok}&id=roster_build&arg=everything", "POST")
+    g2, _ = curl(f"/set?t={tok}&id=hunters.stoop.chance&v=60", "GET")
+    g3, _ = curl("/set?t=wrong&id=hunters.stoop.chance&v=60", "POST")
+    g4, _ = curl("/controls.json?t=wrong")
+    g5, gb5 = curl(f"/cmd?t={tok}&a=groups&a=adopt&a=1", "POST")
+    ok = g1 == 400 and "choose one of" in gb1 and g2 == 405 and g3 == 403 and g4 == 403 and g5 == 400
+    rec("web.v71.guard", "PASS" if ok else "FAIL", "/act bad arg 400 'choose one of'; /set by GET 405; no token 403 (set, controls); /cmd groups adopt 400",
+        json.dumps({"act_bad_arg": [g1, gb1[:160]], "set_get": g2, "set_no_token": g3, "controls_no_token": g4, "cmd_groups_adopt": [g5, gb5[:160]]}))
+    # perf: two more snapshot builds, each past the 2 s snapshot TTL
+    ms = []
+    for _ in range(2):
+        time.sleep(2.3)
+        curl(f"/state.json?t={tok}")
+        s = luap("local W=rawget(_G,'SW_WEB') or {}; local s=W.stats or {}; print(json.encode({snap_ms=s.snap_ms, snap_worst=s.snap_worst, static_ms=s.static_ms}))")
+        ms.append(s if not bad(s) else {"_bad": bad(s)})
+    vals = [x.get("snap_ms") for x in ms if isinstance(x.get("snap_ms"), (int, float))]
+    _, wst = sh("cmd", "seasonal-wildlife-web", "status", timeout=60)
+    ok = len(vals) == 2 and max(vals) < 50
+    rec("web.v71.perf", "PASS" if ok else "FAIL", "the two snapshot builds after the first each under 50 ms", json.dumps({"builds": ms}) + "\n" + (wst or "").strip()[:300])
+    # stop, and prove it
+    _, so = sh("cmd", "seasonal-wildlife-web", "stop", timeout=60)
+    c8, _ = curl("/")
+    rec("web.v71.stop", "PASS" if c8 == 0 else "FAIL", "no answer on the port after stop", f"stop: {(so or '').strip()[:120]}; GET / after stop: {c8}")
 
 def phase_v71(fort="CTRL", areas=None):
     log("== v7.1: " + ", ".join(a for a in V71_AREAS if not areas or a in areas))
@@ -3119,7 +7173,7 @@ def dry_report():
         return False
     for code in uniq:
         aliases = dict(DRY_ALIAS)
-        for loc, rhs in re.findall(r"local\s+(\w+)\s*=\s*sw\.([\w.]+)\b(?!\s*\()", code):
+        for loc, rhs in re.findall(r"local\s+(\w+)\s*=\s*sw\.([A-Za-z_][\w.]*\w)(?![\w.])(?!\s*[(:])", code):
             first = rhs.split(".")[0]   # sw.GRP is exported as V7.GRP: alias the engine's own name
             aliases[loc] = exports.get(first, first) + rhs[len(first):] + "."
         mods = {loc: mod for loc, mod in re.findall(r"local\s+(\w+)\s*=\s*reqscript\('([\w-]+)'\)", code)}
@@ -3207,7 +7261,7 @@ def main():
         ap.error("unknown --v71 area(s): " + ",".join(sorted(set(areas) - set(V71_AREAS))))
     if a.list is not None:
         for c in CLAIMS:
-            line = "\t".join((c[0], c[1], c[4], area_of(c) or "", c[2]))
+            line = "\t".join((c[0], c[1], c[4], area_of(c) or "", c[2], c[3]))
             if a.list.lower() in line.lower():
                 print(line)
         return 0
