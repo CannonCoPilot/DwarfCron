@@ -1447,5 +1447,9 @@ def _b1_blocks(path=ROOT / "data/forts/b1-forts.tsv"):
                                                   wipe_why="natural arrivals on a fresh test fort are the subject")
 _b1_blocks()
 
+# Alpha Four section 7 (experiments/ALPHA4-SECTION7.md): the S7_ blocks live in their own module; this only adds them.
+import alpha4_sec7_blocks  # noqa: E402
+alpha4_sec7_blocks.register(BLOCKS)
+
 if __name__ == "__main__":
     sys.exit(main())
