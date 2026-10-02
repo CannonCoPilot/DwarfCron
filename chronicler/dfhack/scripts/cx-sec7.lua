@@ -29,6 +29,7 @@
 --                                         and per water body, the cavern hold, apex presence, H/C/A unit shares on land,
 --                                         extinct arrivals, water species shares (MIX1)
 --   cx-sec7 trim TAG                      units the cavern gate trimmed: still on the map or gone
+--   cx-sec7 odds TAG                      every land key's ladder odds (cfg.odds) beside the raw FREQUENCY now
 --   cx-sec7 civs D TAG                    every civ-race unit in cavern band D (1-3): position, origin, distances to
 --                                         the nearest citizen and the access, hidden, items, goal, its event tokens
 --   cx-sec7 irr D TAG                     cavern D's irruption: phase, waves, subjects and every written field read back
@@ -563,6 +564,9 @@ elseif cmd == 'nat' then
     -- natives the tool may not track: wild cavern units per band by population entry (one entry = one group, as H5)
     local nat = { [0] = {}, {}, {} }
     local lvl = { H = 0, C = 0, A = 0, x = 0 }
+    -- 2 Oct (sec7-fixes.md item 3): 93% of the 'land' units were BIRD_RAVEN from the FLYING pool, so the carnivore
+    -- share is also scored on walking land units (no FLIER caste) and on fliers apart
+    local walk, fly = { H = 0, C = 0, A = 0, x = 0 }, { H = 0, C = 0, A = 0, x = 0 }
     local ext, drawnLand = 0, 0
     for _, u in ipairs(df.global.world.units.active) do
         if alive(u) and sw.WILD.onMap(u) then
@@ -576,6 +580,9 @@ elseif cmd == 'nat' then
                 local okc, cl = pcall(sw.classify, cr)
                 local lv = okc and cl and sw.ROSTER.LEVEL[cl.guild or ''] or 'x'
                 lvl[lv] = (lvl[lv] or 0) + 1
+                local okf, isFly = pcall(sw.hasCasteFlag, cr, 'FLIER')
+                local W = (okf and isFly) and fly or walk
+                W[lv] = (W[lv] or 0) + 1
                 if u.flags2.roaming_wilderness_population_source or u.flags2.roaming_wilderness_population_source_not_a_map_feature then
                     drawnLand = drawnLand + 1
                     if cr and sw.V7.EXTINCT.TAGS[cr.creature_id] then ext = ext + 1 end
@@ -593,7 +600,11 @@ elseif cmd == 'nat' then
         { 'c1', cav[0] }, { 'c2', cav[1] }, { 'c3', cav[2] }, { 'cav_max', math.max(cav[0], cav[1], cav[2]) }, { 'n1', cnt(nat[0]) }, { 'n2', cnt(nat[1]) }, { 'n3', cnt(nat[2]) },
         { 'held', held }, { 'apex_live', apexLive }, { 'apex_seen', ra.seen or 0 }, { 'apex_total', ra.total or 0 },
         { 'H', lvl.H }, { 'C', lvl.C }, { 'A', lvl.A }, { 'carn_share', tot > 0 and (lvl.C + lvl.A) / tot or -1 },
-        { 'drawn_land', drawnLand }, { 'extinct_drawn', ext } })
+        { 'drawn_land', drawnLand }, { 'extinct_drawn', ext },
+        { 'wH', walk.H }, { 'wC', walk.C }, { 'wA', walk.A },
+        { 'carn_walk', (walk.H + walk.C + walk.A) > 0 and (walk.C + walk.A) / (walk.H + walk.C + walk.A) or -1 },
+        { 'fH', fly.H }, { 'fC', fly.C }, { 'fA', fly.A },
+        { 'carn_fly', (fly.H + fly.C + fly.A) > 0 and (fly.C + fly.A) / (fly.H + fly.C + fly.A) or -1 } })
     for b, n in pairs(body) do out('natbody', { { 'tag', tag }, { 'body', b }, { 'groups', n } }) end
     -- the census per body: units per species (MIX1 drift against base weights is a desk step on these rows)
     pcall(function()
@@ -633,6 +644,26 @@ elseif cmd == 'nat' then
     out('hold', { { 'tag', tag }, { 'held', held }, { 'held_not_1', bad }, { 'held_open', open }, { 'held_mix', mix },
         { 'held_at1', at1 }, { 'held_mismatch', mism }, { 'mix', cfg.groups.cavern_hold_mix and 1 or 0 },
         { 'trim_undo', cnt(g.trim_undo or {}) } })
+
+elseif cmd == 'odds' then
+    -- odds TAG: the ladder against the raws (sec7-fixes.md item 3): every land key's cfg.odds (the FREQUENCY the
+    -- ladder wrote into the config) beside the raw's FREQUENCY now; CAVERN.apply writes open land keys daily
+    local sw = tool(); if not sw then return fail('tool not loaded') end
+    local tag, c = args[2] or '-', sw.loadConfig()
+    local byId = {}
+    for _, cr in ipairs(df.global.world.raws.creatures.all) do byId[cr.creature_id] = cr end
+    local n, match, open = 0, 0, 0
+    for k, o in pairs(c.odds or {}) do
+        if not tostring(k):find(':') and byId[k] then
+            n = n + 1
+            local raw = byId[k].frequency
+            local okw, wants = pcall(sw.ROSTER.wants, c, k, df.global.cur_season)
+            if okw and wants then open = open + 1 end
+            if raw == o then match = match + 1 end
+            out('oddsk', { { 'tag', tag }, { 'token', k }, { 'odds', o }, { 'raw', raw }, { 'open', (okw and wants) and 1 or 0 } })
+        end
+    end
+    out('odds', { { 'tag', tag }, { 'keys', n }, { 'open', open }, { 'match', match }, { 'season', df.global.cur_season } })
 
 elseif cmd == 'trim' then
     local sw = tool(); if not sw then return fail('tool not loaded') end

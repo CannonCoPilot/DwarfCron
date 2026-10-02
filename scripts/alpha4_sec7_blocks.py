@@ -291,29 +291,41 @@ LEVER_ARMS = {"clock_legacy": ("groups.adaptive", "false"), "gate_off": ("groups
 NAT_TICKS = max(36000, min(60000, int(F["to_season"]) + 3000))
 
 
-def nat(arm):
-    levers = () if arm == "def" else (V70_LEVERS if arm == "v70" else LEVER_ARMS[arm])
+# 2 Oct (sw-wt/rc docs/v7.1/sec7-fixes.md item 3): the row-9 carnivore share read 0.05 because 93% of the 'land'
+# units were BIRD_RAVEN from the FLYING pool, and the cell never ran `roster build flying`, so the ravens kept their
+# raw FREQUENCY. Every arm now builds the flying layer too; `nat` scores walking land units (carn_walk) and fliers
+# (carn_fly) apart; `odds` reads every land key's ladder odds against its raw FREQUENCY once a day (1,200 t), the
+# ladder's reach (CAVERN.apply writes them daily). The cell steps 600 t at a time so the daily and the 3,000-t samples
+# both land on a step: nat/hold every 3,000 t (and at the end), odds every 1,200 t.
+def nat(arm, ticks=None, every=3000):
+    ticks = ticks or NAT_TICKS
+    levers = () if arm in ("def", "season") else (V70_LEVERS if arm == "v70" else LEVER_ARMS[arm])
     st = [SUSTAIN, T("preset")]
     if levers:
         st.append(CFG(*levers))
-    st += [T("roster", "build", "land"), T("roster", "build", "water"), T("roster", "build", "cavern"), *ENABLE,
+    st += [T("roster", "build", "land"), T("roster", "build", "flying"), T("roster", "build", "water"),
+           T("roster", "build", "cavern"), *ENABLE,
            readback("enabled", "groups.adaptive", "groups.cavern", "groups.cavern_hold_mix", "water.spill.enabled",
                     "water.mix.enabled", "roster.apex.enabled", "roster.units", "extinct.fix"),
            chk("cfg[path=enabled].value==true")]
     want = dict(zip(levers[::2], levers[1::2]))
     for p in ("groups.adaptive", "groups.cavern", "water.spill.enabled", "roster.apex.enabled", "roster.units"):
         st.append(chk(f"cfg[path={p}].value=={want.get(p, 'true')}"))
-    if arm == "def":   # the gate as shipped at 9e5aabe: the season's mix kept under the hold (the hold check reads it)
+    if arm in ("def", "season"):   # the gate as shipped: the season's mix kept under the hold (the hold check reads it)
         st.append(chk("cfg[path=groups.cavern_hold_mix].value==true"))
-    st += [S7("mark", "pre"), S7("nat", "t0"), chk("nat[tag=t0].land_cap>0"), "groups3 base"]
-    for s, t in steps_of(NAT_TICKS):
-        st += [s, S7("nat", f"t{t}")]
-        if arm == "def":
-            # R44's manipulation check: no species the gate holds reads above its hold level. Since 9e5aabe
-            # (`groups cavern mix`, default on) an in-season held species keeps max(2, weight // 10) and only the
-            # out-of-season ones sit at 1, so v7.1's "held_not_1 == 0" aborted a correct gate (2 Oct, S7_NAT rep 1
-            # t3000: held_not_1=1). held_not_1 is still printed beside it.
-            st.append(chk(f"hold[tag=t{t}].held_open==0"))
+    st += [S7("mark", "pre"), S7("nat", "t0"), chk("nat[tag=t0].land_cap>0"), S7("odds", "t0"), "groups3 base"]
+    for s, t in steps_of(ticks, 600):
+        st.append(s)
+        if t % 1200 == 0:
+            st.append(S7("odds", f"t{t}"))
+        if t % every == 0 or t == ticks:
+            st.append(S7("nat", f"t{t}"))
+            if arm in ("def", "season"):
+                # R44's manipulation check: no species the gate holds reads above its hold level. Since 9e5aabe
+                # (`groups cavern mix`, default on) an in-season held species keeps max(2, weight // 10) and only the
+                # out-of-season ones sit at 1, so v7.1's "held_not_1 == 0" aborted a correct gate (2 Oct, S7_NAT rep 1
+                # t3000: held_not_1=1). held_not_1 is still printed beside it.
+                st.append(chk(f"hold[tag=t{t}].held_open==0"))
         if t % 6000 == 0:
             st.append(f"groups3 t{t}")
         if t % 15000 == 0:
@@ -321,6 +333,13 @@ def nat(arm):
     st += [S7("ledger", "season", "end"), S7("ledger", "wave", "end"), S7("ledger", "build", "end"),
            TA("water"), TA("roster", "apex"), TA("groups", "layers")]
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
+
+
+# APX1 over a whole season (FULL; sec7-fixes.md item 3): ROSTER.apex.decide resets seen/total at every season change,
+# so presence is only meaningful over one whole season. The cell runs the def configuration to the next season change
+# and then one full season (100,800 t) past it, +3,000; nat every 6,000 t (apex_seen/apex_total/apex_live), odds daily.
+# At 145 t/s that is ~17 min of ticks per cell (5 cells ~2 h with loads).
+APX_TICKS = int(F["to_season"]) + 100800 + 3000
 
 
 # S7_TRIM (R44 TRIM): cap 1, so a cavern holding two groups is over it, and the trim sends one resident group off per
@@ -1060,6 +1079,8 @@ def blocks() -> dict:
     nw = "natural arrivals are the subject (G2r, CAVG, WAT5, APX1, LAD1, MIX1, F2)"
     B["S7_NAT"] = _blk({a: nat(a) for a in ("def", "v70")}, "CORE", 3, wipe=False, why=nw)
     B["S7_NATLEV"] = _blk({a: nat(a) for a in LEVER_ARMS}, "FULL", 3, wipe=False, why=nw)
+    B["S7_APX1"] = _blk({"season": nat("season", APX_TICKS, 6000)}, "FULL", 9, wipe=False,
+                        why="natural arrivals over one whole season are the subject (APX1)")
     B["S7_TRIM"] = _blk({a: trim(a) for a in ("cap1", "trim_off")}, "CORE", 4, wipe=False,
                         why="placed resident groups beside the cavern's own DF-wave groups (which must be left alone)",
                         requires="has_cavern_natives")

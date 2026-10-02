@@ -477,6 +477,22 @@ def row3_4_9_10_12():
             nsamp = len(nat)
             r["water_per_body"].append(sum(num(d["water"]) for d in nat) / nsamp / 3)
             r["carn"].append(mean([num(d["carn_share"]) for d in nat if num(d["carn_share"], -1) >= 0]))
+            # sec7-fixes.md item 3: walking land units only (fliers apart). Runs before the fix carry no carn_walk;
+            # for them the walking share is rebuilt from nothing and stays empty (reported as '-').
+            cw = [num(d["carn_walk"]) for d in nat if num(d.get("carn_walk"), -1) >= 0]
+            cf = [num(d["carn_fly"]) for d in nat if num(d.get("carn_fly"), -1) >= 0]
+            if cw:
+                r["carn_walk"].append(mean(cw))
+            if cf:
+                r["carn_fly"].append(mean(cf))
+            nw = [num(d.get("wH"), 0) + num(d.get("wC"), 0) + num(d.get("wA"), 0) for d in nat if d.get("wH") is not None]
+            if nw:
+                r["walk_units"].append(mean(nw))
+            # the ladder's reach: the share of land keys whose raw FREQUENCY equals the ladder's odds, per daily read
+            od = [d for d in b.rows(arm, rep, "odds") if d["tag"] != "t0" and num(d.get("keys"), 0) > 0]
+            if od:
+                r["odds_match"].append(mean([num(d["match"]) / num(d["keys"]) for d in od]))
+                r["odds_match_open"].append(mean([num(d["match"]) / max(1, num(d["open"])) for d in od]))
             # apex presence: the scheduler's own seen/total, per season (the counters reset at the season change)
             spring = [d for d in nat if d["season"] == "0"]
             last = spring[-1] if spring else nat[-1]
@@ -554,6 +570,15 @@ def row3_4_9_10_12():
         f"v70 {desc(v['apex_pres'], 3)}; share of samples with a live apex group def {desc(d['apex_live_any'])}")
     say(f"    carnivore share of land units (C+A)/(H+C+A), mean over samples: def {desc(d['carn'], 3)}; v70 {desc(v['carn'], 3)}")
     OUT["row9_carn"] = contrast("land carnivore share", d["carn"], v["carn"], "def", "v70", 3)
+    # sec7-fixes.md item 3: the LAD1 verdict is the WALKING share (93% of the old 'land' units were flying-pool ravens)
+    say(f"    walking land units only (LAD1's measure; fliers apart): def {desc(d.get('carn_walk', []), 3)}; "
+        f"v70 {desc(v.get('carn_walk', []), 3)}; walking units per sample def {desc(d.get('walk_units', []))}; "
+        f"fliers' carnivore share def {desc(d.get('carn_fly', []), 3)}")
+    if d.get("carn_walk") and v.get("carn_walk"):
+        OUT["row9_carn_walk"] = contrast("walking land carnivore share", d["carn_walk"], v["carn_walk"], "def", "v70", 3)
+    say(f"    ladder reach (daily: land keys whose raw FREQUENCY equals cfg.odds; all keys / open keys): "
+        f"def {desc(d.get('odds_match', []), 3)} / {desc(d.get('odds_match_open', []), 3)}; "
+        f"v70 {desc(v.get('odds_match', []), 3)} / {desc(v.get('odds_match_open', []), 3)}")
     OUT["row9_apex"] = contrast("apex presence", d["apex_pres"], v["apex_pres"], "def", "v70", 3)
 
     say("\n  ROW 10 (MIX1 half)  species per body at the last sample: (species, top species' unit share, Shannon H)")
