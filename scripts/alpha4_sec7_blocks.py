@@ -351,6 +351,34 @@ IRR_BASE = ("irruption.enabled", "true", "irruption.need_breach", "false", "irru
 TOKENS = ("crazed", "rage", "thief", "sneak", "wander", "meander", "linger", "mischief", "nofear", "ambush", "trance")
 
 
+# 2 Oct (S7_IRRR35 abort, irrupting arm: gsize groups=0 at t1200, no wave): `preset` turns the cavern layer on, so the
+# R29 season deal holds every OUT-OF-SEASON cavern species by zeroing its population entry every groups pass
+# (holdOutOfSeason, seasonal-wildlife.lua:2927-2939; the stock goes to the reserve). IRRUPT.candidates reads live
+# quantity (`pop.quantity > 0`, :9621), so an out-of-season civ race cannot be sent even under irruption.roster
+# 'allowed' (:9610): `irruption now 2 PLUMP_HELMET_MAN` found "no live, admitted, natural entry" and nothing was placed.
+# With no token (IRRM, IRRP2, IRRTSEQ), pick falls back to a cavern PREDATOR when the civ race is out of season, and the
+# token arms run on a species that carries no tokens -- vacuous while `alive>0` passes. FACTS read the candidates before
+# any preset, so it saw the civ race. CIV_PREP gives every civ race with an entry in the cavern all seasons
+# (`seasons cavern:TOKEN all`: in season, so applyLive restocks it from the reserve) in every arm alike, then proves the
+# event can send a civ race: civcand.n>0 (and, for a named species, irrpick.ok==1 with the tool's reason on failure).
+def CIV_PREP(cav, token=""):
+    d = int(cav) - 1
+    st = ["lua:local sw=reqscript('seasonal-wildlife'); local all=df.global.world.populations.all; local seen,n={},0; "
+          "for _,r in ipairs(sw.CACHE.managedPops()) do local p=all[r.i]; if r.layer=='cavern' and p and not seen[r.key] "
+          f"and sw.WILD.caveDepth(p.population.cave_id)=={d} and sw.IRRUPT.isCiv(p.race) then seen[r.key]=true; "
+          "dfhack.run_command_silent('seasonal-wildlife','seasons',r.key,'all'); n=n+1 end end; "
+          f"print('eco civseason cavern={d + 1} keys='..n)",
+          "lua:local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local t={}; "
+          f"for _,e in ipairs(sw.IRRUPT.candidates(c,{d},true)) do t[#t+1]=e.token..':'..e.q end; "
+          f"print('eco civcand cavern={d + 1} n='..#t..' tokens='..(#t>0 and table.concat(t,',') or '-'))",
+          chk("civcand.n>0")]
+    if token:
+        st += ["lua:local sw=reqscript('seasonal-wildlife'); local e,why=sw.IRRUPT.pick(sw.loadConfig()," + str(d) + "," + _lq(token) + "); "
+               f"print('eco irrpick cavern={d + 1} ok='..(e and 1 or 0)..' why='..tostring(why or (e and e.token) or '-'):gsub('[%s=]+','_'))",
+               chk("irrpick.ok==1")]
+    return st
+
+
 def _tokens_only(on):
     pairs = []
     for t in TOKENS:
@@ -368,7 +396,7 @@ def irr_m(arm):
         extra = ["irruption.rehide", "true"]
     if arm == "wander_surge":
         extra = ["irruption.surge", "true"]
-    st = [SUSTAIN, T("preset"), *ENABLE, CFG(*IRR_BASE, *_tokens_only(tok), *extra),
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV), CFG(*IRR_BASE, *_tokens_only(tok), *extra),
           readback("irruption.enabled", "irruption.need_breach", "irruption.agitate", "irruption.size_cap"),
           chk("cfg[path=irruption.enabled].value==true"), chk("cfg[path=irruption.agitate].value==false")]
     for t in tok:
@@ -395,7 +423,7 @@ def irr_m(arm):
 # pressure is pinned at the threshold, the warning is 0.1 day, waves 0.5 day apart, 5 days long. Every civ unit in
 # the band is sampled every 600 ticks (the notes ask 300; 600 halves the RPC time) for 7,200 ticks.
 def irr_p2(arm):
-    st = [SUSTAIN, T("preset"), *ENABLE]
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV)]
     if arm == "A":
         st += [CFG("irruption.enabled", "false"), readback("irruption.enabled"), chk("cfg[path=irruption.enabled].value==false")]
     else:   # B: every token off; C and D: the R10 package as shipped (each token on at 10%, a champion)
@@ -421,7 +449,7 @@ def irr_p2(arm):
 # Phase 3 (T-*): an event, then its end by each route, then the residual-write scan (0 masks, 0 cache bits beyond the
 # caste's own). T-SAVE: save and reload mid-event, then the record and the writes again.
 def irr_t(arm):
-    st = [SUSTAIN, T("preset"), *ENABLE, CFG(*IRR_BASE, *_tokens_only(("crazed", "thief", "sneak", "mischief")),
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV), CFG(*IRR_BASE, *_tokens_only(("crazed", "thief", "sneak", "mischief")),
                                              "irruption.duration_days", "1" if arm == "end_duration" else "5"),
           readback("irruption.enabled"), chk("cfg[path=irruption.enabled].value==true"),
           T("irruption", "now", str(CIV)), "step:20", S7("irr", str(CIV), "t0"), chk("irr[tag=t0].alive>0"), "step:280"]
@@ -443,7 +471,7 @@ def irr_t(arm):
 # cost is that a later route starts on a fort that already held an event (cooled with `irruption cool`).
 def irr_tseq(arm):
     cav = str(CIV)
-    st = [SUSTAIN, T("preset"), *ENABLE, CFG(*IRR_BASE, *_tokens_only(("crazed", "thief", "sneak", "mischief")),
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV), CFG(*IRR_BASE, *_tokens_only(("crazed", "thief", "sneak", "mischief")),
                                              "irruption.duration_days", "1", "irruption.cooldown_days", "0"),
           readback("irruption.enabled"), chk("cfg[path=irruption.enabled].value==true")]
 
@@ -476,10 +504,13 @@ AP_CAV, AP_TOKEN = int(F.get("ap_cavern") or 0), F.get("ap_token") or ""
 
 def irr_r35(arm):
     cav = AP_CAV or CIV
-    st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "apcap", "5"), readback("groups.apcap"), chk("cfg[path=groups.apcap].value==5")]
+    st = [SUSTAIN, T("preset"), *ENABLE, T("groups", "apcap", "5"), readback("groups.apcap"), chk("cfg[path=groups.apcap].value==5"),
+          *CIV_PREP(cav, AP_TOKEN)]
     if arm == "irrupting":
+        # 2 Oct: the event's start is proven at once (phase active, a wave alive after 20 t), not first at t1200
         st += [CFG(*IRR_BASE, "irruption.species", AP_TOKEN or "auto", "irruption.size_cap", "20"),
-               T("irruption", "now", str(cav), AP_TOKEN) if AP_TOKEN else T("irruption", "now", str(cav))]
+               T("irruption", "now", str(cav), AP_TOKEN) if AP_TOKEN else T("irruption", "now", str(cav)),
+               "step:20", S7("irr", str(cav), "t0"), chk("irr[tag=t0].alive>0")]
     else:
         st += [T("call", f"cavern:{AP_TOKEN}") if AP_TOKEN else T("call", "cavern")]
     for s, t in steps_of(1200, 300):
@@ -491,7 +522,7 @@ def irr_r35(arm):
 # T-PR (FULL): pressure from real sources, threshold lowered to 0.3 (shortcut: the order of the sources, not their
 # absolute days); days to warning read off the phase every 600 ticks.
 def irr_pr(arm):
-    st = [SUSTAIN, T("preset"), *ENABLE, CFG("irruption.enabled", "true", "irruption.threshold", "0.3",
+    st = [SUSTAIN, T("preset"), *ENABLE, *CIV_PREP(CIV), CFG("irruption.enabled", "true", "irruption.threshold", "0.3",
                                             "irruption.need_breach", "false", "irruption.pause.warn", "false",
                                             "irruption.pause.start", "false", "irruption.zoom", "false"),
           readback("irruption.threshold"), chk("cfg[path=irruption.threshold].value==0.3")]
