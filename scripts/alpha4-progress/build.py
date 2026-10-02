@@ -58,8 +58,8 @@ SINCE = {
         "samples (was 84%).", "Nothing: you accepted 9.65 v 9 (the residual is DF's per-border waves)."),
     4: ("fixed", "You ruled yes: groups cavern trim_gated (default ON, 30873d4) also sends off the oldest DF wave when no "
         "resident group is left. TRIM re-designed to place 3 resident groups over cap 1.",
-        "TRIM runs in the RC chain on the build before trim_gated, so it tests the resident trim only. A second TRIM run on "
-        "30873d4 checks DF waves get trimmed."),
+        "TRIM PENDING: in the RC chain it aborted at its receipt (only 1 of 3 placed groups was adopted as resident), so "
+        "it was skipped, not re-fixed. The trim_gated rig check waits on the same harness fix, after this round."),
     5: ("open", "No detectable scatter from a lost leader at n = 5 (25.9 v 20.7 tiles, p = 0.33).",
         "Decide: a larger n, a different measure (time to regroup), or accept as no effect."),
     6: ("fixed", "CRAZED / MISCHIEVOUS / NOFEAR never stuck: DF rebuilds those flags from wounds. 594cc9d carries them on a "
@@ -149,7 +149,7 @@ def live_running():
         if st == "skip":
             out.append(("skip", f"{b}: {NOTE.get(b, 'not testable here')}"))
         elif st == "ABORTED":
-            out.append(("skip", f"{b}: aborted (a setup check failed; see the log)"))
+            out.append(("skip", f"{b}: aborted at its setup check; marked pending, not re-run this round"))
         elif st:
             out.append(("done", f"{b}: done in {st}" + (f"; {NOTE[b]}" if b in NOTE else "")))
         elif b == cur and "=== sec7 exit" not in txt:
@@ -172,7 +172,7 @@ PENDING = [
     ]),
     ("Rig checks for the new tool fixes", [
         "Irruption flags read 1 after 20 t, survive save and reload, and read 0 after the end (wound carrier, then syndrome).",
-        "trim_gated sends off a DF wave from a cavern over its cap (a second S7_TRIM run).",
+        "trim_gated sends off a DF wave from a cavern over its cap: PENDING with S7_TRIM (harness), after this round.",
     ]),
     ("Section 7 leftovers", [
         "Fix the Panel round-trip harness and re-run PANEL.",
