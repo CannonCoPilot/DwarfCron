@@ -1,0 +1,272 @@
+<title>Alpha Four Progress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --bg: #f2f4f1; --surface: #ffffff; --sunk: #e8ece8; --ink: #1c2420; --muted: #5a665f; --line: #d3dad5;
+  --accent: #2f6a52; --water: #2a6688;
+  --ok: #2f7a4a; --ok-bg: #e2f1e7; --fix: #2a6688; --fix-bg: #e1edf5; --part: #9a6a12; --part-bg: #f6ecd6;
+  --open: #a2402e; --open-bg: #f6e3de; --ok2: #5b5f8a; --ok2-bg: #e7e8f3;
+  --serif: "Bitter", Georgia, serif; --sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --bg: #131816; --surface: #1b2220; --sunk: #222a27; --ink: #e2e8e4; --muted: #9aa69f; --line: #2f3a35;
+  --accent: #7fb79a; --water: #7fb2d4;
+  --ok: #8fd0a6; --ok-bg: #1f3428; --fix: #8cc0e2; --fix-bg: #1b2d3a; --part: #e2b765; --part-bg: #3a2f1a;
+  --open: #ee9a86; --open-bg: #3d2420; --ok2: #b3b6e6; --ok2-bg: #262840;
+} }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #131816; --surface: #1b2220; --sunk: #222a27; --ink: #e2e8e4; --muted: #9aa69f; --line: #2f3a35;
+  --accent: #7fb79a; --water: #7fb2d4;
+  --ok: #8fd0a6; --ok-bg: #1f3428; --fix: #8cc0e2; --fix-bg: #1b2d3a; --part: #e2b765; --part-bg: #3a2f1a;
+  --open: #ee9a86; --open-bg: #3d2420; --ok2: #b3b6e6; --ok2-bg: #262840;
+}
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; }
+h1, h2, h3, h4 { font-family: var(--serif); text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; margin-block: 40px 14px; padding-top: 10px; border-top: 1px solid var(--line); }
+h3 { font-size: 1.02rem; }
+p { margin: 0; max-width: 72ch; }
+code { font: 0.86em var(--mono); background: var(--sunk); padding: 0 4px; border-radius: 3px; }
+.lede { display: grid; gap: 8px; }
+.meta { color: var(--muted); font: 0.82rem var(--mono); }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font: 600 0.72rem var(--mono); color: var(--accent); }
+.chip { display: inline-block; font: 600 0.7rem var(--mono); letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip.ok { color: var(--ok); background: var(--ok-bg); } .chip.fix { color: var(--fix); background: var(--fix-bg); }
+.chip.part { color: var(--part); background: var(--part-bg); } .chip.open { color: var(--open); background: var(--open-bg); }
+.chip.ok2 { color: var(--ok2); background: var(--ok2-bg); }
+.stages { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.stage p { color: var(--muted); font-size: 0.92rem; }
+.run { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.run li { display: flex; gap: 10px; align-items: baseline; }
+.run .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; transform: translateY(1px); background: var(--line); }
+.run .done .dot { background: var(--ok); } .run .run .dot { background: var(--water); box-shadow: 0 0 0 3px var(--fix-bg); }
+.run .skip .dot { background: var(--part); } .run .skip, .run .wait { color: var(--muted); }
+.run li.run { font-weight: 700; }
+.tally { font: 0.85rem var(--mono); color: var(--muted); margin-bottom: 12px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.row > header { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.row > header h3 { flex: 1 1 300px; }
+.num { font: 700 1.1rem var(--serif); color: var(--accent); min-width: 1.6em; }
+dl { display: grid; grid-template-columns: 9.5rem 1fr; gap: 6px 14px; margin: 12px 0 0; }
+dt { font: 600 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; max-width: 78ch; }
+dd.nums { font-variant-numeric: tabular-nums; }
+details { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.md { display: grid; gap: 8px; margin-top: 8px; font-size: 0.93rem; }
+.md h4, .md h5 { font-size: 0.95rem; margin-top: 8px; }
+.md ul, .md ol { margin: 0; padding-left: 1.2rem; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+th, td { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: top; }
+th { font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--muted); }
+.pending { list-style: none; padding: 0; margin: 0; counter-reset: p; display: grid; gap: 12px; }
+.pending > li { counter-increment: p; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px 12px 48px; position: relative; }
+.pending > li::before { content: counter(p); position: absolute; left: 16px; top: 11px; font: 700 1.05rem var(--serif); color: var(--accent); }
+.pending ul { margin: 6px 0 0; padding-left: 1.1rem; display: grid; gap: 3px; }
+.decisions { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.decisions li { display: flex; gap: 10px; align-items: baseline; }
+.nt { display: grid; gap: 6px; } .nt ul { margin: 0; padding-left: 1.2rem; }
+@media (max-width: 560px) { dl { grid-template-columns: 1fr; } dt { padding-top: 6px; } .pending > li { padding-left: 40px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<div class="wrap">
+<section class="lede">
+  <span class="eyebrow">Seasonal Wildlife v7.1 · test fort RinghatchetsReady (region9)</span>
+  <h1>Alpha Four Progress</h1>
+  <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
+  walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
+  <span class="meta">As of 2 Oct 2026, 16:00 MDT · release candidate v7.1-rc 30873d4 · rig running v7.1-rc 16f85e6</span>
+</section>
+
+<h2>Stages</h2>
+<ul class="stages"><li class="stage"><span class="chip ok">Done</span><h3>DFHack r2 re-validation</h3><p>CTRL 357 PASS / 0 FAIL and RinghatchetsReady 360 / 3 on the release candidate. The 3 are fixed (2 probe scrolling, 1 water-draw timing) and wait for a re-run.</p></li><li class="stage"><span class="chip part">Round 1 resolved</span><h3>Alpha Four walkthrough, 109 steps</h3><p>Round 1: 83 PASS, 19 ANOMALY, 7 SKIPPED. All 19 anomalies resolved (11 tool fixes, driver and page fixes) and passing on re-run. A full round on the final build is still to run; the 7 skips need an ocean, a bear, a curious beast, a calm map or a water draw.</p></li><li class="stage"><span class="chip part">Mostly measured</span><h3>Section 7, the 15 rows the page cannot check</h3><p>13 blocks completed on 9e5aabe, 8 re-run on the Alpha Four fixes, and a release-candidate list running now. Detail below.</p></li><li class="stage"><span class="chip part">Live test passed</span><h3>Web companion</h3><p>551 PASS / 0 FAIL on an earlier build (the server&#x27;s false error count fell from ~400,000 to 0). A re-run on the final build and the Chrome pass are pending.</p></li><li class="stage"><span class="chip part">Built, offline-tested</span><h3>Aquarium package</h3><p>Translucent-water mod (generated from your own sheets), depth lens, legend, waves, 17 controls. Aquarium world region10 (region9&#x27;s terrain with the mod) and fort AQUA_LAKE exist. In-game tests T1-T11 and AQUA_SHORE are pending.</p></li><li class="stage"><span class="chip open">Waiting</span><h3>Release</h3><p>Merge into v7.1, push, release notes, and the pages, after the above.</p></li></ul>
+
+<h2>On the rig now</h2>
+<p class="meta" style="margin-bottom:10px">The release-candidate chain: deploy, both validations (done), then the section-7 re-run list.</p>
+<ul class="run"><li class="done"><span class="dot"></span>Deploy v7.1-rc (16f85e6) and Chronicler scripts</li><li class="done"><span class="dot"></span>FACTS on RinghatchetsReady</li><li class="done"><span class="dot"></span>PANEL: 13 sections reached; round trip 0/13 (harness)</li><li class="skip"><span class="dot"></span>S7_FSH3 / S7_FSH4: not testable here (no fishing species in the pool)</li><li class="done"><span class="dot"></span>S7_STP1: 25.5 min</li><li class="run"><span class="dot"></span>S7_NAT: flying-aware scoring, daily ladder check (started 15:35, ~1 h 40 min)</li><li class="wait"><span class="dot"></span>S7_GRD1, S7_EXU1, S7_VF1</li><li class="wait"><span class="dot"></span>S7_IRRM, S7_IRRP2, S7_IRRR35</li><li class="wait"><span class="dot"></span>S7_TRIM (resident groups, first real run)</li></ul>
+
+<h2>Section 7, row by row</h2>
+<p style="margin-bottom:8px">Fort RinghatchetsReady, n = 5 per arm, a fresh load per arm. Tests: exact two-sided
+permutation test on the difference of means (5 v 5, so p cannot go below 0.008) and Fisher's exact test for yes/no
+outcomes. Attacks and kills count harness-placed units only. A row is vacuous when its receipts show the setting never
+reached the animals. Full analysis lives in <code>data/alpha4-sec7/SECTION7-RESULTS.md</code>.</p>
+<div class="tally">4 done · 1 explained · 3 fixed, needs rig check · 5 partly done · 2 open</div>
+
+<article class="row" id="r1">
+  <header><span class="num">1</span><h3>Skill writes act on new arrivals and do not rust</h3><span class="chip ok">Done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>CONFIRMED</b> (stand-ins)</dd>
+    <dt>Key numbers</dt><dd class="nums">Units placed after the write carried caste SNEAK at once in 100% of cells (nopkg 0%). • Floored units dropped 0/50. • The no-floor positive control rusted 50/51 units in 5/5 cells (Fisher p = 0.008). | A DF-drawn wave (not <code>units.create</code>) and DF's real 30,000-t rust clock (FULL S7_SKL30K)</dd>
+    <dt>Since the tally</dt><dd>Re-run on the Alpha Four fixes (69e97a1) with the wolves moved away from the cougars and the sneak bonus zeroed.</dd>
+    <dt>Remaining</dt><dd>Nothing for the core check. A DF-drawn wave inheriting the skill is a FULL-tier run.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>1. Skills (S7_SKL, rerun, a4fix; 3 arms x 5)</h4><ul><li><b>Receipts:</b> 95/95 manipulation checks passed. pack_bonus read back 0 in every cell, so the arms are clean of the second writer.</li><li><b>SKL1 (new arrivals):</b> cougars and wolves placed after the write and read before any pass carried the caste level (15 and 5) in 100% of cells in both package arms, and 0% in nopkg (no SNEAK entry). Units placed before the write were at level too (the soul write).</li><li><b>SKL2 (rust):</b> after +200,000 on the unused/rust/demotion counters:</li><li><b>pkg_nofloor:</b> 50/51 units rusted (15→14, 5→4, rusty flag set; DF consumed the counters), in 5/5 cells.</li><li><b>pkg (floor kept):</b> 0/50 dropped, and DF left all 50 units' counters at 200,000, never running its rust step against the floor.</li><li><b>The test:</b> Fisher exact on cells, 0/5 v 5/5, p = 0.008. The positive control engaged, so the floor result is not vacuous.</li><li><b>Aside:</b> DF-made cougars (ids not placed: 12954 pkg rep 4, 13010 nofloor rep 1) appeared at t2000 with SNEAK 15 and floor 15 under the package, and with no SNEAK under nopkg (13010 nopkg rep 4). This is suggestive evidence for the strict SKL1 form (a DF-created unit inherits the caste write), but the creation path is unverified.</li></ul></div></details>
+</article>
+<article class="row" id="r2">
+  <header><span class="num">2</span><h3>Packs, stoops and fishing change kills</h3><span class="chip part">Partly done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>Packs CONFIRMED</b>; <b>stoops and fishing INCONCLUSIVE</b> (vacuous)</dd>
+    <dt>Key numbers</dt><dd class="nums">Packs: placed wolf&gt;buffalo attacks 66 v 37 (p = 0.024, g = 1.7); kills 3.8 v 1.2 of 6 (p = 0.016, g = 2.8). • Stoops: placed eagles attacked 0 times in 10 cells. • Fishing: bears were never adjacent to pike (0/200 samples), and polar bears never swam. | STP1/FSH3/FSH4 need subjects that meet (see "harness defects")</dd>
+    <dt>Since the tally</dt><dd>Packs confirmed. STP1 re-designed to place a raptor from the fort&#x27;s own pool beside prey; it ran in the RC chain (25.5 min) and awaits the tally. The tool only acts on pool species, which is why the eagles and bears never engaged.</dd>
+    <dt>Remaining</dt><dd>FSH3/FSH4 are NOT-TESTABLE on RinghatchetsReady: no fishing species in its pool. Needs a region10 fort whose pool has bears.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>2. Kills</h4><ul><li><b>PK2:</b> 5 wolves and 6 buffalo; placed&gt;placed only.</li><li>Pack on: largest pack 5 in 5/5 cells (off 0/5); relation pairs 30 in both arms.</li><li>Attacks 66.0 (SD 17.0) v 37.4 (13.1), p = 0.024.</li><li>Kills 3.8 v 1.2, p = 0.016.</li><li><b>STP1:</b> vacuous; see "harness defects". 0 placed eagle attacks in 10 cells; 3 placed prey were killed by a native GIANT_EAGLE (on rep 3).</li><li><b>FSH3:</b> 0 adjacency in 200 samples; closest bear-pike approach 17.4 v 15.4 tiles (p = 0.75); 0 attacks.</li><li><b>FSH4:</b> 0/50 samples with a polar bear in water; 0 breathing faults; 0 attacks.</li></ul></div></details>
+</article>
+<article class="row" id="r3">
+  <header><span class="num">3</span><h3>The clock holds groups near the cap</h3><span class="chip fix">Fixed, needs rig check</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>Land NOT CONFIRMED</b> (overshoots); <b>water CONFIRMED</b></dd>
+    <dt>Key numbers</dt><dd class="nums">Land: def 10.8 groups (95% CI 9.9-11.6) v cap 9, so above the target band 7.5-9. Over the cap in 84% of samples; v70 6.9 (p = 0.008). • Water: lake 8.5 and river 8.4 per body in every rep; pool 0 in 2/5 reps; v70 1.3 per body (p = 0.008). | Why land overshoots (tool question 1)</dd>
+    <dt>Since the tally</dt><dd>Land overshoot partly a tool bug: after one release, gate_drain released up to 8 more held groups. Fixed in f3c8d11 (stops at the cap); the status now says how far over and who brought the groups. DF still sends a wave per border source.</dd>
+    <dt>Remaining</dt><dd>Rig check of the land count on the release candidate; S7_NAT re-run (flying-aware) is running now.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>3, 4, 9, 10, 12. Natural arrivals (S7_NAT, rerun, a4fix; def v v70)</h4><ul><li><b>The run:</b> 50,055 t per cell, which crosses the Spring→Summer change at about t47,000 (the ledger reads "Summer roster applied" in 10/10). Sampled every 3,000 t.</li><li><b>Receipts:</b> 160/160 checks passed. In def, held_open = 0 at every sample and cavern_hold_mix was true. In v70, all ten levers read back off.</li><li><b>Figure:</b> <code>figs/nat-groups.png</code>.</li><li><b>Land (row 3):</b> see the summary. Per rep, def: 10.1, 11.3, 10.1, 11.7, 10.8.</li><li><b>Water (rows 3 and 12):</b> lake and river hold 8.2-8.6 per body in every def rep, near the per-body cap of 9. The pool (276 tiles, depth 1) got 0 groups in 2/5 def reps.</li><li><b>Cavern (row 4):</b> per cavern, def c1 5.8, c2 8.3, c3 7.1. trim_undo series per rep are in sec7-tally.txt. v70 has no trims (trim_undo 0).</li><li><b>H5 groups3, cavern layer:</b> 11-17 live groups with tool_groups 0 at the last sample. groups3's cavern view does not see the tool's groups, so it is not used as a gate measure.</li><li><b>Apex and ladder (row 9):</b> see the summary. The tool's end status: <code>apex:land ... waiting (hazard)</code>, <code>apex:cavern groups 6 ... cap 2 reached</code>. extinct_drawn = 0 in every sample: no extinct unit arrived.</li><li><b>MIX1 (row 10):</b> descriptive only, since the design gives no numeric target. At the last sample (species, top share, Shannon H):</li><li>def: lake 2-4 species, H 0.6-1.3; river 2-6 species, H 0.4-1.6.</li><li>v70: lake 1-3 species; river 3-4.</li></ul></div></details>
+</article>
+<article class="row" id="r4">
+  <header><span class="num">4</span><h3>The cavern gate holds five; natives trimmed walk off</h3><span class="chip fix">Fixed, needs rig check</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>NOT CONFIRMED</b> (gate); <b>trim: partial</b></dd>
+    <dt>Key numbers</dt><dd class="nums">Groups per cavern by the tool's own record: 7.1 (CI 5.4-8.7), max 9-13, against cap 5. v70 (gate off): 5.9 (p = 0.10). • The tool's end status reads cavern now 5-13 of cap 5. • Natives by population entry: 2.7 (max 6). • Trimmed natives did leave, within 3,000-30,000 t. • S7_TRIM (cap 1, a cavern at 5 groups) dismissed <b>0</b> in 3,000 t. | Tool question 2 (the trim cannot touch DF-wave groups)</dd>
+    <dt>Since the tally</dt><dd>You ruled yes: groups cavern trim_gated (default ON, 30873d4) also sends off the oldest DF wave when no resident group is left. TRIM re-designed to place 3 resident groups over cap 1.</dd>
+    <dt>Remaining</dt><dd>TRIM runs in the RC chain on the build before trim_gated, so it tests the resident trim only. A second TRIM run on 30873d4 checks DF waves get trimmed.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>3, 4, 9, 10, 12. Natural arrivals (S7_NAT, rerun, a4fix; def v v70)</h4><ul><li><b>The run:</b> 50,055 t per cell, which crosses the Spring→Summer change at about t47,000 (the ledger reads "Summer roster applied" in 10/10). Sampled every 3,000 t.</li><li><b>Receipts:</b> 160/160 checks passed. In def, held_open = 0 at every sample and cavern_hold_mix was true. In v70, all ten levers read back off.</li><li><b>Figure:</b> <code>figs/nat-groups.png</code>.</li><li><b>Land (row 3):</b> see the summary. Per rep, def: 10.1, 11.3, 10.1, 11.7, 10.8.</li><li><b>Water (rows 3 and 12):</b> lake and river hold 8.2-8.6 per body in every def rep, near the per-body cap of 9. The pool (276 tiles, depth 1) got 0 groups in 2/5 def reps.</li><li><b>Cavern (row 4):</b> per cavern, def c1 5.8, c2 8.3, c3 7.1. trim_undo series per rep are in sec7-tally.txt. v70 has no trims (trim_undo 0).</li><li><b>H5 groups3, cavern layer:</b> 11-17 live groups with tool_groups 0 at the last sample. groups3's cavern view does not see the tool's groups, so it is not used as a gate measure.</li><li><b>Apex and ladder (row 9):</b> see the summary. The tool's end status: <code>apex:land ... waiting (hazard)</code>, <code>apex:cavern groups 6 ... cap 2 reached</code>. extinct_drawn = 0 in every sample: no extinct unit arrived.</li><li><b>MIX1 (row 10):</b> descriptive only, since the design gives no numeric target. At the last sample (species, top share, Shannon H):</li><li>def: lake 2-4 species, H 0.6-1.3; river 2-6 species, H 0.4-1.6.</li><li>v70: lake 1-3 species; river 3-4.</li></ul></div></details>
+</article>
+<article class="row" id="r5">
+  <header><span class="num">5</span><h3>A lost leader makes the group scatter</h3><span class="chip open">Open</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>NOT CONFIRMED</b> (no detectable effect at n = 5)</dd>
+    <dt>Key numbers</dt><dd class="nums">PAN1 mean pairwise distance, panic on v off: 25.9 v 20.7 tiles at t1200 (p = 0.33); 30.1 v 27.2 at t2400 (p = 0.52). Panic fired in 5/5 on cells and 0/5 off. • COHT: the led school spread <i>more</i> than the unled one (72 v 58 tiles at t3000, p = 0.41), and no member ever "followed". | More reps or a stronger contrast. The orca version needs an ocean fort (OCEAN).</dd>
+    <dt>Since the tally</dt><dd>No detectable scatter from a lost leader at n = 5 (25.9 v 20.7 tiles, p = 0.33).</dd>
+    <dt>Remaining</dt><dd>Decide: a larger n, a different measure (time to regroup), or accept as no effect.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>5. Leaders</h4><ul><li><b>PAN1:</b> leader male 10/10; killed 10/10; panic ledger 1-2 lines in on cells, 0 off.</li></ul>
+<div class="tbl"><table><thead><tr><th>tick</th><th>panic on (mean pairwise distance)</th><th>panic off</th><th>p</th></tr></thead><tbody><tr><td>---|---|---|---</td></tr><tr><td>t300</td><td>14.1</td><td>14.3</td><td>0.94</td></tr><tr><td>t1200</td><td>25.9</td><td>20.7</td><td>0.33</td></tr><tr><td>t2400</td><td>30.1</td><td>27.2</td><td>0.52</td></tr></tbody></table></div>
+<p>  Growth from t0 to t2400: 21.5 v 16.1 tiles (p = 0.26, g = 0.70). The direction is right, but the effect is not resolved at n = 5.</p>
+<ul><li><b>COHT:</b></li><li>The tool adopted the school as <code>water:river</code> (the lake spot lies by the river).</li><li>The leader was lost in 1/5 led cells (t900).</li><li>DF's <code>following</code> was 0 in every sample, so cohesion does not use DF's follow field.</li><li>The led school's spread was 21/53/72 tiles at t600/t1500/t3000, v 16/42/58 unled (p ≥ 0.29).</li><li>No dry swimmers in either arm.</li></ul></div></details>
+</article>
+<article class="row" id="r6">
+  <header><span class="num">6</span><h3>Tokens act</h3><span class="chip fix">Fixed, needs rig check</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>Partly CONFIRMED</b>; <b>CRAZED and MISCHIEVOUS NOT CONFIRMED</b>; <b>R35 vacuous</b></dd>
+    <dt>Key numbers</dt><dd class="nums">Cache tokens (thief/meander) stuck on 852/852 subject-samples, and natives read 0 (M3). • SNEAK hid 80% of subject-samples v 0% (p = 0.048). • Every one of 8 end routes x 5 left 0 residue. • <b>The CRAZED mask read 1 in 0/556 unit-samples; MISCHIEVOUS in 6/319</b> (the reassert ran 60-72 times a cell). • R35: the raw's own max (5) equals apcap 5, so 0 raws were ever capped. | Tool question 3 (the masks); P2 never reached the fort; M9 not built; R35 with apcap below 5</dd>
+    <dt>Since the tally</dt><dd>CRAZED / MISCHIEVOUS / NOFEAR never stuck: DF rebuilds those flags from wounds. 594cc9d carries them on a body-less wound (save-safe, default) or a runtime syndrome. Irruptions now admit out-of-season civ races (69e97a1). R35 cap set to 2 so it bites.</dd>
+    <dt>Remaining</dt><dd>Rig check that the flags read 1 after 20 t, survive save + reload, and read 0 after the end. IRRM / IRRP2 / IRRR35 re-run in the RC chain.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>6. Tokens (rerun, a4fix)</h4><ul><li><b>IRRM:</b> 7 arms x 5. Every subject is TROGLODYTE (civ candidate TROGLODYTE in every cell), so the BLOCK-FIXES pick bug is gone.</li><li><b>M7 sneak:</b> hidden 100% at t0 and 80% later, v 0% (p = 0.048).</li><li><b>M4 thief:</b> steal goal 4% of samples v 0% (p = 0.008); items carried 0 everywhere, so no theft in 3,000 t (subjects stayed at least 150 tiles from citizens).</li><li><b>M3:</b> natives outside the event read 0/0 on all four flags; the caste write stays on the subjects.</li><li><b>M8 wander:</b> subjects ended 23 tiles closer to citizens than control (212 v 235, p = 0.095).</li><li><b>M1/M2/M5:</b> see "What matters most", item 1.</li><li><b>IRRP2:</b> A / B / C.</li><li><b>A:</b> no event.</li><li><b>Waves:</b> B and C each sent 3 waves (50-60 subjects).</li><li><b>Deaths:</b> C lost 24.0 subjects v 5.8 in B (p = 0.008, g = 3.5), almost all to native CROCODILE_CAVE. The R10 package's walks take subjects into crocodiles.</li><li><b>Approach:</b> no subject came within 124 tiles of a citizen in any cell. Mean citizen distance C 227 v B 218 (p = 0.64).</li><li><b>Citizens:</b> 7 at the end in every cell; 0 dwarf deaths.</li><li><b>Verdict:</b> the main experiment's question (the threat to the fort) is untested on this fort, at this distance.</li><li><b>IRRTSEQ:</b> 8 routes x 5.</li><li>Every route's event started with 6 subjects whose cache flags read 12/12, ended (idle or cooldown), and left resid mask 0, cache 0, units 0 and active 0.</li><li>T-SAVE: after save and reload the event was still active with 6 subjects, and the reassert continued.</li><li><b>IRRR35:</b> <code>20261002-133843</code>, 5 v 5, complete.</li><li>In all 10 cells the raw range is 3-5 and capped = 0 at every sample (<code>0 species capped now</code>).</li><li>Irruption waves were 9-10 (the irruption's own sizing, size_cap 20).</li><li>The quiet arm's natural groups were 2-6. The one group of 6 is above the raw's max, so it is probably two draws recorded as one tool group (trap 11).</li><li><b>Verdict:</b> vacuous at apcap 5 (see "What matters most", item 5). To test R35, rerun with <code>groups apcap 2</code> or a species whose max is above 5.</li></ul></div></details>
+</article>
+<article class="row" id="r7">
+  <header><span class="num">7</span><h3>Scavenging takes days, swimmers eat from the water</h3><span class="chip ok">Done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>CONFIRMED</b> (both halves; the swimmer switch adds little)</dd>
+    <dt>Key numbers</dt><dd class="nums">Natural mode: 0/5 cells cleared the 6 corpses in 6 days, with 7 corpses left v 0.4 under sweep (p = 0.008); the placed scavengers ate 6-51 kg. • Pond grabbers ate 86 kg in the water with swimmers on and 77 kg off (p = 0.04), and were never dry. | Whether natural mode ever finishes a carcass (longer run)</dd>
+    <dt>Since the tally</dt><dd>Both halves confirmed.</dd>
+    <dt>Remaining</dt><dd>Nothing.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>7. Scavenging</h4><ul><li><b>SCV3:</b> time to clear all 6 corpses:</li><li>natural: &gt;7,200 in 5/5;</li><li>sweep: 2,400 / 3,600 / 4,200 in 3/5, &gt;7,200 in 2/5.</li><li><b>SCV3W:</b></li><li><code>hunters swimscav</code> was on in both arms, which explains why swimmers_off still ate.</li><li>POND_GRABBER visits: 13-15 (on) v 12-16 (off). Every finish was in water; 0 dry grabber-samples.</li></ul></div></details>
+</article>
+<article class="row" id="r8">
+  <header><span class="num">8</span><h3>Vermin eaters eat what they walk to</h3><span class="chip part">Partly done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>VF1 INCONCLUSIVE</b> (vacuous); VF4 see row 8</dd>
+    <dt>Key numbers</dt><dd class="nums">Grasshoppers gone, forage on v off: 0.8 v 0.4 of 20 (p = 0.68). No BADGER row appeared in the tool's own <code>vermin eats</code> table in any cell, and no distance receipt shows a badger reached them. | A reach receipt; VF4 if its rerun completes</dd>
+    <dt>Since the tally</dt><dd>VF4 re-run completed on the Alpha Four fixes with the fish-vermin bank finder (result not tallied yet). VF1 re-designed with a gobble receipt; runs in the RC chain.</dd>
+    <dt>Remaining</dt><dd>Tally VF4; VF1 result from the chain.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>8. Vermin</h4><ul><li><b>VF1:</b> see the summary.</li><li><b>VF4:</b> the late rerun was still running when this was written. Its rows appear in sec7-tally.txt once a cell completes; until then, PENDING.</li></ul></div></details>
+</article>
+<article class="row" id="r9">
+  <header><span class="num">9</span><h3>Apex presence target; ladder 20% carnivores</h3><span class="chip ok2">Explained</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>NOT CONFIRMED</b> (one month); AP1 and R28P CONFIRMED; INV3 NOT-TESTABLE-HERE</dd>
+    <dt>Key numbers</dt><dd class="nums">Apex presence (the scheduler's seen/total): def 0.17 (0, 0, 0, 0.16, 0.68) against a target of about 25%. • Land carnivore share 0.05 (CI -0.03 to 0.13) against 20%; v70 also 0.05 (p = 0.98). • AP1: AP share 0.10 at ap_pick 0.1 v 0.14 at 1. | APX1 over a whole season; INV3 needs a calm map</dd>
+    <dt>Since the tally</dt><dd>No defect. Apex presence 0.17 is what a one-month run predicts (expected 0.17, none placed in 0.48 of runs). The carnivore share read 0.05 because 93% of &#x27;land&#x27; units were ravens from the flying pool.</dd>
+    <dt>Remaining</dt><dd>S7_NAT re-run scores walking land animals only and checks the ladder reaches the raws daily (running now). APX1 over a full season is optional. INV3 needs a calm map.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>3, 4, 9, 10, 12. Natural arrivals (S7_NAT, rerun, a4fix; def v v70)</h4><ul><li><b>The run:</b> 50,055 t per cell, which crosses the Spring→Summer change at about t47,000 (the ledger reads "Summer roster applied" in 10/10). Sampled every 3,000 t.</li><li><b>Receipts:</b> 160/160 checks passed. In def, held_open = 0 at every sample and cavern_hold_mix was true. In v70, all ten levers read back off.</li><li><b>Figure:</b> <code>figs/nat-groups.png</code>.</li><li><b>Land (row 3):</b> see the summary. Per rep, def: 10.1, 11.3, 10.1, 11.7, 10.8.</li><li><b>Water (rows 3 and 12):</b> lake and river hold 8.2-8.6 per body in every def rep, near the per-body cap of 9. The pool (276 tiles, depth 1) got 0 groups in 2/5 def reps.</li><li><b>Cavern (row 4):</b> per cavern, def c1 5.8, c2 8.3, c3 7.1. trim_undo series per rep are in sec7-tally.txt. v70 has no trims (trim_undo 0).</li><li><b>H5 groups3, cavern layer:</b> 11-17 live groups with tool_groups 0 at the last sample. groups3's cavern view does not see the tool's groups, so it is not used as a gate measure.</li><li><b>Apex and ladder (row 9):</b> see the summary. The tool's end status: <code>apex:land ... waiting (hazard)</code>, <code>apex:cavern groups 6 ... cap 2 reached</code>. extinct_drawn = 0 in every sample: no extinct unit arrived.</li><li><b>MIX1 (row 10):</b> descriptive only, since the design gives no numeric target. At the last sample (species, top share, Shannon H):</li><li>def: lake 2-4 species, H 0.6-1.3; river 2-6 species, H 0.4-1.6.</li><li>v70: lake 1-3 species; river 3-4.</li></ul></div></details>
+</article>
+<article class="row" id="r10">
+  <header><span class="num">10</span><h3>Pull, mix and guard shape the water</h3><span class="chip part">Partly done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>SURV CONFIRMED</b>; <b>MIX1 descriptive only</b>; <b>GRD1 INCONCLUSIVE</b> (vacuous); <b>PELA NOT-TESTABLE-HERE</b></dd>
+    <dt>Key numbers</dt><dd class="nums">SURV scan 130 ms (budget 1,000). • MIX1, def v v70: river 2-6 species v 3-4 (Shannon H 0.4-1.6 v 0.9-1.3). • GRD1: every pike read wet at the first sample in both arms, and the guard rescued 0. | An ocean fort (PELA); GRD1 with a t0 dry receipt</dd>
+    <dt>Since the tally</dt><dd>SURV confirmed (130 ms). GRD1 re-designed to record the stranding the moment the pike are moved.</dd>
+    <dt>Remaining</dt><dd>GRD1 in the RC chain. PELA needs an ocean fort (AQUA_SHORE).</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>3, 4, 9, 10, 12. Natural arrivals (S7_NAT, rerun, a4fix; def v v70)</h4><ul><li><b>The run:</b> 50,055 t per cell, which crosses the Spring→Summer change at about t47,000 (the ledger reads "Summer roster applied" in 10/10). Sampled every 3,000 t.</li><li><b>Receipts:</b> 160/160 checks passed. In def, held_open = 0 at every sample and cavern_hold_mix was true. In v70, all ten levers read back off.</li><li><b>Figure:</b> <code>figs/nat-groups.png</code>.</li><li><b>Land (row 3):</b> see the summary. Per rep, def: 10.1, 11.3, 10.1, 11.7, 10.8.</li><li><b>Water (rows 3 and 12):</b> lake and river hold 8.2-8.6 per body in every def rep, near the per-body cap of 9. The pool (276 tiles, depth 1) got 0 groups in 2/5 def reps.</li><li><b>Cavern (row 4):</b> per cavern, def c1 5.8, c2 8.3, c3 7.1. trim_undo series per rep are in sec7-tally.txt. v70 has no trims (trim_undo 0).</li><li><b>H5 groups3, cavern layer:</b> 11-17 live groups with tool_groups 0 at the last sample. groups3's cavern view does not see the tool's groups, so it is not used as a gate measure.</li><li><b>Apex and ladder (row 9):</b> see the summary. The tool's end status: <code>apex:land ... waiting (hazard)</code>, <code>apex:cavern groups 6 ... cap 2 reached</code>. extinct_drawn = 0 in every sample: no extinct unit arrived.</li><li><b>MIX1 (row 10):</b> descriptive only, since the design gives no numeric target. At the last sample (species, top share, Shannon H):</li><li>def: lake 2-4 species, H 0.6-1.3; river 2-6 species, H 0.4-1.6.</li><li>v70: lake 1-3 species; river 3-4.</li></ul></div></details>
+</article>
+<article class="row" id="r11">
+  <header><span class="num">11</span><h3>Extinct corrections change arrivals</h3><span class="chip part">Partly done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>EXR1 CONFIRMED (weak)</b>; <b>EXU1 INCONCLUSIVE</b>; <b>EXF1 NOT-TESTABLE-HERE</b></dd>
+    <dt>Key numbers</dt><dd class="nums">Fix on: BENIGN castes 0 v 2, and 5.0 v 0 relations written. • Eoraptor attacked hares in 3/5 v 0/5 cells (Fisher p = 0.17; attacks 8.2 v 0, p = 0.17). • EXU1: no attack in either arm and no per-unit receipt. | EXF1 needs an extinct land apex in the embark</dd>
+    <dt>Since the tally</dt><dd>EXR1 confirmed (weak). EXU1 re-designed with per-unit BENIGN receipts.</dd>
+    <dt>Remaining</dt><dd>EXU1 in the RC chain. EXF1 needs an extinct land apex in the embark.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>11. Extinct</h4><ul><li><b>FACTS:</b> real_world_extinct = 1; 6 extinct rows in the embark, 0 of them an apex. That is why EXF1 is not testable here.</li><li><b>EXR1 and EXU1:</b> see the summary.</li></ul></div></details>
+</article>
+<article class="row" id="r12">
+  <header><span class="num">12</span><h3>Water auto-on and spill reach 3-5 groups</h3><span class="chip open">Open</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>Auto-on CONFIRMED</b>; <b>F2 give-back NOT SEEN</b></dd>
+    <dt>Key numbers</dt><dd class="nums">F1: the layer came on in 5/5 (layer_off 0/5), at 4.2 groups per body by t2400 v 0 (p = 0.008). • NAT: def (spill on) 8.5/8.4 per body v v70 (every lever off, spill included) 1.7/2.2 (lake/river). | F2's borrowed-season give-back has no ledger receipt</dd>
+    <dt>Since the tally</dt><dd>Auto-on confirmed. The spill&#x27;s give-back was not seen in the run.</dd>
+    <dt>Remaining</dt><dd>F2 over two seasons is a FULL-tier run.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>3, 4, 9, 10, 12. Natural arrivals (S7_NAT, rerun, a4fix; def v v70)</h4><ul><li><b>The run:</b> 50,055 t per cell, which crosses the Spring→Summer change at about t47,000 (the ledger reads "Summer roster applied" in 10/10). Sampled every 3,000 t.</li><li><b>Receipts:</b> 160/160 checks passed. In def, held_open = 0 at every sample and cavern_hold_mix was true. In v70, all ten levers read back off.</li><li><b>Figure:</b> <code>figs/nat-groups.png</code>.</li><li><b>Land (row 3):</b> see the summary. Per rep, def: 10.1, 11.3, 10.1, 11.7, 10.8.</li><li><b>Water (rows 3 and 12):</b> lake and river hold 8.2-8.6 per body in every def rep, near the per-body cap of 9. The pool (276 tiles, depth 1) got 0 groups in 2/5 def reps.</li><li><b>Cavern (row 4):</b> per cavern, def c1 5.8, c2 8.3, c3 7.1. trim_undo series per rep are in sec7-tally.txt. v70 has no trims (trim_undo 0).</li><li><b>H5 groups3, cavern layer:</b> 11-17 live groups with tool_groups 0 at the last sample. groups3's cavern view does not see the tool's groups, so it is not used as a gate measure.</li><li><b>Apex and ladder (row 9):</b> see the summary. The tool's end status: <code>apex:land ... waiting (hazard)</code>, <code>apex:cavern groups 6 ... cap 2 reached</code>. extinct_drawn = 0 in every sample: no extinct unit arrived.</li><li><b>MIX1 (row 10):</b> descriptive only, since the design gives no numeric target. At the last sample (species, top share, Shannon H):</li><li>def: lake 2-4 species, H 0.6-1.3; river 2-6 species, H 0.4-1.6.</li><li>v70: lake 1-3 species; river 3-4.</li></ul></div></details>
+</article>
+<article class="row" id="r13">
+  <header><span class="num">13</span><h3>Cost of every v7.1 change</h3><span class="chip ok">Done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>MEASURED</b>: the new paths are cheaper than legacy; the a4fix perf work shows</dd>
+    <dt>Key numbers</dt><dd class="nums">a4fix worst tick 52 v legacy 88 ms (p = 0.008); tool time 80 v 108 ms per 1,000 t (p = 0.008). • New paths 9e5aabe → a4fix: worst tick 71 → 52 ms, 112 → 80 ms per 1,000 t (both p = 0.008). • Web page: -4.8% t/s (p = 0.048). • Overlay: no measurable cost (p = 0.50), and its perf counter is unreadable. | PERF3 (OCEAN); a perf-counter key for the overlay</dd>
+    <dt>Since the tally</dt><dd>Measured. The release candidate cut the worst tick 71 to 52 ms and tool time 112 to 80 ms per 1,000 t; over-budget groups passes 26 to 0. Water draws now take one body per pass (3fadb99) after a 110 ms spike on RinghatchetsReady.</dd>
+    <dt>Remaining</dt><dd>Timing re-check on RinghatchetsReady with 3fadb99. PERF3 needs an ocean fort.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>13. Performance</h4><p><b>PERF1:</b> new v legacy (all ten <code>legacy_*</code> and stagger off). 12,000 t from a fresh DF; 5 v 5, except core3 legacy n = 4.</p>
+<div class="tbl"><table><thead><tr><th></th><th>9e5aabe new</th><th>9e5aabe legacy</th><th>a4fix new</th><th>a4fix legacy</th></tr></thead><tbody><tr><td>---|---|---|---|---</td></tr><tr><td>t/s (stopwatch)</td><td>96.2 ± 14.1</td><td>64.9 ± 6.4</td><td>81.7 ± 10.1</td><td>78.6 ± 13.4</td></tr><tr><td>worst tick, ms</td><td>71 ± 4</td><td>132 ± 13</td><td><b>52 ± 5</b></td><td>88 ± 21</td></tr><tr><td>tool ms per 1,000 t</td><td>111.6</td><td>131.1</td><td><b>80.2</b></td><td>107.8</td></tr><tr><td>groups job, mean / worst / over-budget runs (summed over the cells)</td><td>21.7 / 78 / 26</td><td>26.0 / 83 / 16</td><td><b>13.2 / 50 / 0</b></td><td>21.9 / 71 / 1</td></tr><tr><td>ecology job, mean / worst / over</td><td>35.7 / 52 / 3</td><td>74.1 / 111 / 14</td><td><b>25.3 / 59 / 3</b></td><td>48.1 / 76 / 7</td></tr><tr><td>fps while stepping</td><td>207</td><td>186</td><td>206</td><td>200</td></tr></tbody></table></div>
+<ul><li><b>The excluded cell:</b> core3 legacy rep 5. It reached 10,845 of 12,000 t in 817 s (12.6 t/s): the 871-s cell, a DF-process-age artefact, not a tool cost.</li><li><b>Within a4fix:</b> new beats legacy on worst tick (p = 0.008) and tool ms (p = 0.008). t/s does not differ (p = 0.69): DF's own simulation dominates t/s on this fort.</li><li><b>Across builds (new arm):</b> the a4fix perf work cut the worst tick 71 → 52 ms and the tool time 112 → 80 ms per 1,000 t (both p = 0.008). The over-budget groups passes went from 26 to 0. The ecology pass mean fell 36 → 25 ms; it still ran over budget in 3 of about 20 passes (5 cells x 4).</li><li><b>t/s across builds:</b> 96 v 82 (p = 0.095, the other direction). This is load-to-load variance (trap 6: identical loads disagree by 10-16%), not a regression; tool ms fell.</li><li><b>PERF2 (a4fix):</b> t/s overlay new 96.2, legacy 90.9, off 101.8 (new v off p = 0.50); fps 219 v 223 (p = 0.78). DFHack's perf counters held no overlay key (rows = 0 in 30/30 reads), so the overlay's own ms is unmeasured.</li><li><b>PERF4 (a4fix):</b> 67 citizens. Events on v off: 83.6 v 80.7 t/s (p = 0.71); 84.0 v 84.7 tool ms per 1,000 t (p = 0.94). Events cost nothing measurable.</li><li><b>WEBLOAD (9e5aabe):</b></li><li>Page polled v no page: 116.9 v 122.8 t/s (-4.8%, p = 0.048); fps 241 v 261.</li><li>Snapshot ms mean 0.2, worst 26 ms, so the web.v71.perf claim (under 50 ms) holds.</li><li>Status call worst 213 ms (mean 1.4).</li><li>33-34 requests per rep, all 200.</li><li><b>Figure:</b> <code>figs/perf1-builds.png</code>.</li></ul></div></details>
+</article>
+<article class="row" id="r14">
+  <header><span class="num">14</span><h3>Panel and page round trips on a real screen</h3><span class="chip part">Partly done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>gui/web claims CONFIRMED</b>; <b>the Panel round trip NOT TESTED</b> (harness)</dd>
+    <dt>Key numbers</dt><dd class="nums">validate-full gui.* 61 PASS / 1 FAIL (gui.k.layR, a display clip, fixed in dcd169b); web.* 14/14 PASS. • PANEL: 13/13 sections reached, no clipped row, clean stderr; but 0/13 Right steps changed a config path, and 13/13 screens were identical before and after. | Fix the PANEL harness focus and rerun; the narrow-screen check is manual</dd>
+    <dt>Since the tally</dt><dd>gui and web claims confirmed. The Panel stage reaches all 13 sections, but its set-and-read-back round trip still scores 0/13 (harness).</dd>
+    <dt>Remaining</dt><dd>Fix the Panel round-trip harness; the Chrome pass of the web page.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>14, 15. Real screen and r2</h4><ul><li><b>R2 checklist:</b></li><li>version DFHack 53.16-r2;</li><li>a setting through save and reload;</li><li>0 ghost or doubled tiles after a nudge;</li><li>0 not-FINE units after a water draw;</li><li>smooth-movement and stockflow off;</li><li>sustain, makeown and tp.</li></ul>
+<p>  All PASS.</p>
+<ul><li><b>validate-full TRIAGE:</b> see <code>data/validation/full/20261002-020031/TRIAGE.md</code>.</li><li>Tool fixes: <code>dcd169b</code> (the status-line clip, a real defect on any multi-biome fort) and <code>72b5c25</code> (ecology per-pair cost; PERF1 above shows the effect).</li><li>FACTS probes: SURV 130 ms; AP1; R28P (magma crab refused on the surface and in a cavern).</li></ul></div></details>
+</article>
+<article class="row" id="r15">
+  <header><span class="num">15</span><h3>Anything at all on DFHack 53.16-r2</h3><span class="chip ok">Done</span></header>
+  <dl>
+    <dt>Tally verdict</dt><dd><b>CONFIRMED</b> (no r2 regression found)</dd>
+    <dt>Key numbers</dt><dd class="nums">R2 checklist 6/6 PASS. • validate-full: 356 PASS, 7 FAIL, 41 NT. All 7 FAILs are triaged: 5 validator, 2 tool (a display clip, ecology cost), fixed; none is r2-specific. | none</dd>
+    <dt>Since the tally</dt><dd>No regression from DFHack 53.16-r2.</dd>
+    <dt>Remaining</dt><dd>Nothing.</dd>
+  </dl>
+  <details><summary>Full analysis</summary><div class="md"><h4>14, 15. Real screen and r2</h4><ul><li><b>R2 checklist:</b></li><li>version DFHack 53.16-r2;</li><li>a setting through save and reload;</li><li>0 ghost or doubled tiles after a nudge;</li><li>0 not-FINE units after a water draw;</li><li>smooth-movement and stockflow off;</li><li>sustain, makeown and tp.</li></ul>
+<p>  All PASS.</p>
+<ul><li><b>validate-full TRIAGE:</b> see <code>data/validation/full/20261002-020031/TRIAGE.md</code>.</li><li>Tool fixes: <code>dcd169b</code> (the status-line clip, a real defect on any multi-biome fort) and <code>72b5c25</code> (ecology per-pair cost; PERF1 above shows the effect).</li><li>FACTS probes: SURV 130 ms; AP1; R28P (magma crab refused on the surface and in a cavern).</li></ul></div></details>
+</article>
+
+<h3 style="margin-top:20px">Not testable on RinghatchetsReady</h3>
+<div class="nt md"><ul><li><b>INV3:</b> a calm map (savagery 73 here).</li><li><b>EXF1:</b> an extinct land apex in the embark (this fort has 0).</li><li><b>OCEAN rows</b> (PELA, PEL1, COHT with orcas, PERF3, the ocean half of FSH4): a region9 shore 1x1.</li><li><b>The narrow-screen check:</b> manual.</li><li><b>SKL with a DF-drawn wave, F2 over two seasons, APX1 over a season:</b> these are FULL-tier runs, about 56 h per arm pair.</li></ul></div>
+
+<h2>Pending work, in order</h2>
+<ol class="pending"><li><h3>Re-deploy and re-check</h3><ul><li>Deploy the latest release candidate (30873d4: trim_gated on, the water-draw timing fix).</li><li>Re-run RinghatchetsReady validation, the gui and timing phases (the 3 fixed FAILs).</li></ul></li><li><h3>Rig checks for the new tool fixes</h3><ul><li>Irruption flags read 1 after 20 t, survive save and reload, and read 0 after the end (wound carrier, then syndrome).</li><li>The land count holds at its cap after a release.</li><li>trim_gated sends off a DF wave from a cavern over its cap (a second S7_TRIM run).</li></ul></li><li><h3>Section 7 leftovers</h3><ul><li>Fix the Panel round-trip harness and re-run PANEL.</li><li>Tally the RC chain and the VF4 re-run into SECTION7-RESULTS.md.</li><li>Re-run any block that aborts.</li></ul></li><li><h3>Ocean and aquarium (region10)</h3><ul><li>Embark AQUA_SHORE (candidate tile 205,170, ocean to the south, 6x6).</li><li>Aquarium tests T1-T11 with screenshots: floor through water, units below the view, deep ocean, waves spawn, the lens, the legend, the cost.</li><li>Section 7 ocean rows: PELA, PEL1, orca cohesion, PERF3, the ocean half of FSH4.</li><li>The walkthrough&#x27;s ocean skips (1.8, 4.11).</li></ul></li><li><h3>Forts still needed</h3><ul><li>A fort whose pool has bears, for FSH3/FSH4.</li><li>A calm map, for INV3 and walkthrough step 1.3.</li><li>An extinct land apex in the embark, for EXF1.</li></ul></li><li><h3>Final rounds</h3><ul><li>A full Alpha Four regression round on the final build.</li><li>A web companion re-run, and the Chrome pass of every tab.</li></ul></li><li><h3>Release and pages</h3><ul><li>Merge v7.1-rc into v7.1, push, release notes.</li><li>Republish the docket, backlog, design and Wilderpop pages (with the new ECO link) and the Alpha Four page with this round&#x27;s marks.</li></ul></li></ol>
+
+<h2>Decisions</h2>
+<ul class="decisions"><li><span class="chip ok">Answered</span> Should the cavern trim also send off DF waves? Yes: trim_gated, default on.</li><li><span class="chip ok">Answered</span> Irruption flags carrier: the save-safe wound by default, the syndrome route as an option.</li><li><span class="chip open">Open</span> Row 5: no detectable scatter from a lost leader at n = 5. A larger n, another measure, or accept?</li><li><span class="chip open">Open</span> Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little pressure. Keep?</li><li><span class="chip open">Open</span> A stock you set by hand is rewritten when its season returns, so an irruption&#x27;s draw on it doesn&#x27;t carry over.</li><li><span class="chip open">Open</span> Exhaustion on the cavern layer can open an out-of-season cavern species for the rest of a season. Keep it off the caverns?</li><li><span class="chip open">Open</span> Optional tidy: drop the Live tab&#x27;s &#x27;Wild on map&#x27; list, which repeats the by-origin breakdown (frees ~10 rows).</li></ul>
+</div>
