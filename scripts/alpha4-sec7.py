@@ -330,14 +330,34 @@ def cfg_flat():
 # the Panel's window, its first steppable control in the open section selected, the command/status lines cleared
 _PANEL_W = ("local gw=reqscript('gui/seasonal-wildlife'); local w=gw.view and gw.view.subviews and gw.view.subviews[1]; "
             "local function txt(l) local t=l and l.text; if type(t)=='table' then local s='' for _,x in ipairs(t) do "
-            "s=s..(type(x)=='table' and tostring(x.text or '') or tostring(x)) end return s end return tostring(t or '') end; ")
-PANEL_PICK = (_PANEL_W + "local L=w.subviews.panel; local pick,id,tp; for i,c in ipairs(L:getChoices()) do local d=c.data; "
-              "if d and d.ctl and (d.ctl.type=='bool' or d.ctl.type=='int' or d.ctl.type=='float' or d.ctl.type=='enum') then "
-              "pick,id,tp=i,d.ctl.id,d.ctl.type; break end end; if pick then L:setSelected(pick) end; "
+            "s=s..(type(x)=='table' and tostring(x.text or '') or tostring(x)) end return s end return tostring(t or '') end; "
+            "local C=reqscript('seasonal-wildlife-controls'); local sw=reqscript('seasonal-wildlife'); "
+            "local function vt(v) return (tostring(v):gsub('[%s=]+','_')) end; "
+            "local function val(r,c) local ok,v=pcall(C.valueOf,r,c); if not ok then return nil end; if r.type=='bool' then return v==true end; return v end; "
+            "local function same(a,b) if tonumber(a) and tonumber(b) then return math.abs(tonumber(a)-tonumber(b))<1e-6 end; return tostring(a)==tostring(b) end; ")
+# Pick (2 Oct, second fix): the section's first available steppable control whose saved value IS its default, so D is
+# a true round trip (before == default), selected the way alpha4-run.py's panel_select does it (List:setSelected and the
+# window's own panelHelp; panelRow() reads List:getSelected(), so the step acts on this row). dir: the key that moves
+# it -- Left for a bool already on or a number at its max, else Right.
+PANEL_PICK = (_PANEL_W + "local L=w.subviews.panel; local cfg=sw.loadConfig(); local pick,r0,dir,first; "
+              "for i,c in ipairs(L:getChoices()) do local d=c.data; local r=d and d.ctl; "
+              "if r and (r.type=='bool' or r.type=='int' or r.type=='float' or r.type=='enum') and (not C.available or C.available(r)) then "
+              "if r.id~='switch.rotation' then first=first or {i,r} end; local v=val(r,cfg); local okd,df=pcall(C.defaultOf,r); "
+              "if okd and df~=nil and v~=nil and same(v, r.type=='bool' and df==true or df) then pick,r0=i,r; break end end end; "
+              "if not pick and first then pick,r0=first[1],first[2] end; "
+              "if pick then L:setSelected(pick); pcall(function() w:panelHelp() end); "
+              "local v=val(r0,cfg); if r0.type=='bool' then dir=(v==true) and -1 or 1 "
+              "elseif (r0.type=='int' or r0.type=='float') and tonumber(v) and r0.max and tonumber(v)>=tonumber(r0.max) then dir=-1 else dir=1 end end; "
               "w:setPanelStatus(''); w.subviews.panel_cmd:setText(''); "
-              "print(('eco panelpick row=%s id=%s type=%s'):format(tostring(pick), tostring(id), tostring(tp)))")
+              "local _,sc=L:getSelected(); local sid=sc and sc.data and sc.data.ctl and sc.data.ctl.id; "
+              "print(('eco panelpick row=%s id=%s type=%s dir=%s sel=%s label=%s v=%s def=%s'):format(tostring(pick), tostring(r0 and r0.id), "
+              "tostring(r0 and r0.type), tostring(dir), tostring(sid), r0 and vt(r0.label) or '-', r0 and vt(val(r0,cfg)) or '-', "
+              "r0 and vt(C.defaultOf(r0)) or '-'))")
+# Read-back: the command/status lines, the row the cursor is on now, and that control's value in the SAVED config
 PANEL_READ = (_PANEL_W + "local c=txt(w.subviews.panel_cmd):gsub('^%s+',''):gsub('%s+$',''); local st=txt(w.subviews.panel_status):gsub('^%s+',''):gsub('%s+$',''); "
-              "print('eco panelread cmd='..(c~='' and c:gsub('[%s=]+','_') or '-')..' status='..(st~='' and st:gsub('[%s=]+','_') or '-'))")
+              "local _,sc=w.subviews.panel:getSelected(); local r=sc and sc.data and sc.data.ctl; "
+              "print('eco panelread sel='..tostring(r and r.id)..' v='..(r and vt(val(r,sw.loadConfig())) or '-')"
+              "..' cmd='..(c~='' and vt(c) or '-')..' status='..(st~='' and vt(st) or '-'))")
 
 
 def st_panel(run, a):
@@ -362,16 +382,25 @@ def st_panel(run, a):
         name = m.group(1).strip() if m else f"section{i}"
         # 2 Oct tally: Right went to whatever row was selected -- a readout, never a control (act_panel_step returns
         # on a row with no ctl) -- and the "read-back" counted was the stale status line of an earlier command (13
-        # identical screens). Now the section's first steppable control is selected, the command and status lines
-        # are cleared, and the key is pressed for real; a bool already at the Right end is stepped Left instead.
+        # identical screens). Then (2 Oct, 0/13 at 20261002-150458): the key sent was CURSOR_RIGHT / CURSOR_LEFT --
+        # DF's MAP-cursor keys. cx `key` simulates exactly one interface key, and the window's Panel stepper
+        # (gui/seasonal-wildlife.lua:360-362) listens only for KEYBOARD_CURSOR_RIGHT/_LEFT (+ the _FAST forms and
+        # STRING_A043/045 '+' '-'), so the press reached no handler: the config never changed, panelReport never
+        # wrote, and D re-wrote an unchanged default (restored=1 vacuously). alpha4-run.py 1.4/1.5/6.3 send
+        # KEYBOARD_CURSOR_RIGHT; so does this now.
         pick = eco_rows(lua(PANEL_PICK))
         o.put(pick)
-        sh("key", "CURSOR_RIGHT", timeout=60); nap(1.2)
+        pk = kv(pick[0]) if pick else {}
+        cid, label = pk.get("id", "None"), pk.get("label", "-")
+        first = "KEYBOARD_CURSOR_LEFT" if pk.get("dir") == "-1" else "KEYBOARD_CURSOR_RIGHT"
+        used = first
+        sh("key", first, timeout=60); nap(1.2)
         after = cfg_flat()
         changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k)
                          and not k.startswith(("why.", "default_snapshot.", "ledger")))
-        if not changed:
-            sh("key", "CURSOR_LEFT", timeout=60); nap(1.2)
+        if not changed:   # an end of a range the pick did not foresee: the other way
+            used = "KEYBOARD_CURSOR_RIGHT" if first.endswith("LEFT") else "KEYBOARD_CURSOR_LEFT"
+            sh("key", used, timeout=60); nap(1.2)
             after = cfg_flat()
             changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k)
                              and not k.startswith(("why.", "default_snapshot.", "ledger")))
@@ -379,11 +408,28 @@ def st_panel(run, a):
         o.put(rd)
         txt2 = sh("screen", timeout=120); (shots / f"s{i:02d}-b.txt").write_text(txt2)
         r = kv(rd[0]) if rd else {}
-        # a fresh read-back: the command line names the verb that ran and the status line was written after the clear
-        rb = [1] if r.get("cmd", "").startswith("ran:") and r.get("status", "") not in ("", "-") else []
+        # a fresh read-back for THAT control: the cursor is still on it, its saved value moved off the picked value, the
+        # command line names the verb that ran, and the status (written after the clear) is "<label>: <value> (read back)"
+        # (PNL.fit cuts the line at 86 columns, so a long label may lose the "(read back)": the label prefix is the test)
+        st = r.get("status", "")
+        rb = [1] if (r.get("sel") == cid and r.get("v") not in (None, "-", pk.get("v")) and r.get("cmd", "").startswith("ran:")
+                     and st.startswith(label[:30]) and not st.startswith("Refused")) else []
         sh("key", "CUSTOM_D", timeout=60); nap(1.0)
         back = cfg_flat()
-        restored = all(back.get(k) == before.get(k) for k in changed)
+        rdd = eco_rows(lua(PANEL_READ)); o.put([l.replace("eco panelread", "eco paneldefault", 1) for l in rdd])
+        rd2 = kv(rdd[0]) if rdd else {}
+        # D put it back: every changed path is at its value before the step, and the control reads its pick value again
+        restored = bool(changed) and all(back.get(k) == before.get(k) for k in changed) and rd2.get("v") == pk.get("v")
+        how = "D" if restored else "-"
+        if changed and not restored and pk.get("def") == "nil":
+            # a Panel switch row (Switches & jobs) has no default (controls.lua defaultOf: no path, no def), so D answers
+            # "no default to put back" (read back above as paneldefault); the player's way back is the opposite step
+            sh("key", "KEYBOARD_CURSOR_LEFT" if used.endswith("RIGHT") else "KEYBOARD_CURSOR_RIGHT", timeout=60); nap(1.2)
+            back = cfg_flat()
+            rdd = eco_rows(lua(PANEL_READ)); o.put([l.replace("eco panelread", "eco panelback", 1) for l in rdd])
+            rd2 = kv(rdd[0]) if rdd else {}
+            restored = all(back.get(k) == before.get(k) for k in changed) and rd2.get("v") == pk.get("v")
+            how = "step" if restored else "-"
         # width: a non-space glyph in the frame's last column is a clipped row (screen-check trap 2)
         x2 = rect.get("x2")
         clip = 0
@@ -395,13 +441,13 @@ def st_panel(run, a):
                     if len(body) > x2 - 1 and body[x2 - 1] not in " |+-=#│║":
                         clip += 1
         edge += clip
-        steps += 1 if (changed and rb and restored) else 0   # a real round trip: a step, a fresh read-back, D back
+        steps += 1 if (changed and rb and restored) else 0   # a real round trip: a step, a fresh read-back, put back
         seen.append(name)
-        o.put([f"eco panelsec n={i} name={name.replace(' ', '_')} changed={','.join(changed)[:200] or '-'} readback={len(rb)} "
-               f"restored={int(restored)} clipped={clip}"])
+        o.put([f"eco panelsec n={i} name={name.replace(' ', '_')} ctl={cid} key={first} changed={','.join(changed)[:200] or '-'} readback={len(rb)} "
+               f"restored={int(restored)} by={how} clipped={clip}"])
         sh("key", "CUSTOM_S", timeout=60); nap(1.2)
     o.verdict("13 sections reached by S", len(set(seen)) >= PANEL_SECTIONS, seen)
-    o.verdict("each section: a step changes the config and shows a read-back; d puts it back", f"{steps}/{PANEL_SECTIONS}", steps)
+    o.verdict("each section: a step changes the config and shows a read-back; D puts it back (a default-less switch: the opposite step)", f"{steps}/{PANEL_SECTIONS}", steps)
     o.verdict("no row clipped at the frame's edge", edge == 0, edge)
     # the Panel's refresh with an irruption running (ui.md: time it)
     o.put(sec7("cfgset", "irruption.enabled", "true", "irruption.need_breach", "false", "irruption.pause.start", "false",
