@@ -598,13 +598,17 @@ def s0_5():
     out = script("seasonal-wildlife-controls")
     got = {m.group(1): int(m.group(2)) for m in re.finditer(r"^(\w+)\s+(\d+)\s{2}", out, re.M)}
     tail = re.search(r"(\d+) species rows, (\d+) actions, (\d+) readouts", out)
-    diff = {k: (v, got.get(k)) for k, v in EXPECT_CTL.items() if got.get(k) != v}
+    # a build with the aquarium stream (v7.1-rc, 2 Oct) adds its section: 17 controls, 4 actions, 2 readouts
+    aq = "aquarium" in got
+    expect = dict(EXPECT_CTL, **({"aquarium": 17} if aq else {}))
+    want_tail = (7, 25, 29) if aq else (7, 21, 27)
+    diff = {k: (v, got.get(k)) for k, v in expect.items() if got.get(k) != v}
     tl = tuple(int(x) for x in tail.groups()) if tail else None
-    ok = not diff and tl == (7, 21, 27)
+    ok = not diff and tl == want_tail
     if "Unknown command" in out or "not found" in out.lower() and not got:
         return mark("a", f"the command is unknown: the deploy missed seasonal-wildlife-controls.lua: {out[:200]}")
     mark("p" if ok else "a", f"{len(got)} section lines, total {sum(got.values())} controls; tail '{tail.group(0) if tail else 'none'}'. "
-         + ("Every count as the page expects." if ok else f"Differs from the page (expected, got): {diff or 'sections equal'}; tail expected 7/21/27, got {tl}."
+         + ("Every count as the page expects." if ok else f"Differs from the page (expected, got): {diff or 'sections equal'}; tail expected {'/'.join(map(str, want_tail))}, got {tl}."
             + " The page's counts were taken at fce7d68; the deployed build is bff2726 (fixes2), so a moved count may be the newer build."),
          {"sections": got, "tail": tl})
 
