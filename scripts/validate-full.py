@@ -4349,7 +4349,16 @@ out.d = d
 out.prior = 0; for _ in pairs(sw.CACHE.capHeld or {}) do out.prior = out.prior + 1 end
 if d ~= nil then
   local pre, savedPre = {}, CAV.saved()
+  local snap0 = {}; for k, v in pairs(savedPre) do snap0[k] = v end   -- v7.1-a4fix (3.8): the hold level reads the snapshot as it was
   for t in pairs(sp) do local cr = CAV.rawFor(t); if cr then pre[t] = cr.frequency end end
+  -- v7.1-a4fix (Alpha Four 3.8): with the tool off the roster steers nothing, so every held species is open: cavern_hold_mix
+  -- holds it at max(2, weight // 10) (never above its weight, never below 1); mix off holds it at 1
+  local function want(t)
+    if not cfg.groups.cavern_hold_mix then return CAV.SUPPRESSED end
+    local b = math.max(1, math.floor(cfg.odds['cavern:' .. t] or snap0[t] or pre[t] or 1))
+    return math.max(1, math.min(b, math.max(2, b // 10)))
+  end
+  out.mix = cfg.groups.cavern_hold_mix and true or false
   cfg.groups.cavern_hold='off'
   G.cavernHold(cfg, { [d] = true })
   local offN = 0; for _ in pairs(sw.CACHE.capHeld or {}) do offN = offN + 1 end
@@ -4360,7 +4369,7 @@ if d ~= nil then
     out.held = out.held + 1
     local s = sp[t]; local cr = CAV.rawFor(t)
     if not s or not s.natural or s.deep or (s.shared and not cfg.groups.cavern_hold_shared) or not s.d[d] then out.bad[#out.bad+1] = t end
-    if cr and cr.frequency ~= CAV.SUPPRESSED then out.bad[#out.bad+1] = t .. '@' .. tostring(cr.frequency) end
+    if cr and cr.frequency ~= want(t) then out.bad[#out.bad+1] = t .. '@' .. tostring(cr.frequency) .. '~' .. tostring(want(t)) end
     if cr and cr.frequency == 0 then out.zero = out.zero + 1 end
   end
   G.cavernHold(cfg, {})
@@ -4381,7 +4390,7 @@ print(json.encode(out))""", timeout=180)
         ok = ((j.get("held") or 0) > 0 and not j.get("bad") and (j.get("zero") or 0) == 0 and (j.get("offHeld") or 0) == 0
               and not j.get("diff") and (j.get("after") or 0) == 0)
         rec("mech.v71.cavern.hold", "PASS" if ok else "FAIL",
-            "hold off: none held; hold any with cavern d at its cap: its natural cavern-only species at frequency 1 (none 0, none deep/shared); below the cap: every frequency back",
+            "hold off: none held; hold any with cavern d at its cap: its natural cavern-only species held (mix on: max(2, weight//10), never above the weight; mix off: 1; none 0, none deep/shared); below the cap: every frequency back",
             json.dumps(j)[:1200], note=("CACHE.capHeld already held %s species before the probe (the live gate); they are re-held by the next groups pass" % j.get("prior")) if j.get("prior") else "")
 
     j = luap("""local sw=reqscript('seasonal-wildlife'); local G=sw.V7.GRP; local cfg=sw.loadConfig()

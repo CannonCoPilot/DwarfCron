@@ -1205,41 +1205,108 @@ def to_boundary():
     n2, _ = stepped(3480)
     return (n1 or 0) + (n2 or 0), gap, jumped
 
+# TRIAGE (Alpha Four 3.8, round 3): the entries every out-of-season species could be drawn from, before the boundary.
+# Every entry of a key the roster does not want this season, on the site's region tiles and their 3x3 neighbourhood
+# (DF draws cavern waves from the neighbours too, 82f0c6d): its world.populations.all index, quantity, extinct flag and
+# whether the tool manages it. srcKey is WILD/groups' 'region_x:region_y:feature_idx:cave_id:site_id:population_idx'.
+PRE38_LUA = SW + """local cfg=sw.loadConfig(); local s=df.global.cur_season; local rs=sw.getEmbarkRegions()
+local SL=100800; local o={t0=df.global.cur_year*403200+(df.global.cur_year_tick//SL)*SL, s=s, e={}}
+local site=df.world_site.find(df.global.plotinfo.site_id); local near={}
+if site then for rx=math.floor(site.global_min_x/16)-1,math.floor(site.global_max_x/16)+1 do for ry=math.floor(site.global_min_y/16)-1,math.floor(site.global_max_y/16)+1 do near[rx..':'..ry]=true end end end
+for i,pop in ipairs(df.global.world.populations.all) do local r=pop.population
+  if near[r.region_x..':'..r.region_y] then local cr=df.creature_raw.find(pop.race)
+    if cr then local key=sw.keyFor(sw.layerOf(pop), cr.creature_id)
+      if not sw.ROSTER.wants(cfg,key,s) then
+        o.e[('%d:%d:%d:%d:%d:%d'):format(r.region_x,r.region_y,r.feature_idx,r.cave_id,r.site_id,r.population_idx)]={i,pop.quantity,pop.flags.extinct and 1 or 0,sw.managedPop(pop,rs,sw.LAYER_SET.all) and 1 or 0}
+      end end end end
+print(json.encode(o))"""
+
+# each arrival: the season it arrived in (before or after the flip id), where it came from (WILD.origin: DF wave, tool-drawn,
+# born here, untracked), its group's arrival tick, and its OWN population entry (u.animal.population, srcKey). A season
+# the water spill or exhaustion borrowed (ledger 'X borrows Season' / 'Y takes its niche for the rest of Season', or the
+# live spill_state/exhaust.promoted) counts as in season from the tick it was borrowed: both are given back at the
+# boundary, so the post-boundary roster alone judges them out of season. For an arrival still out of season: its entry
+# (index, quantity, extinct, managed) now, and for a cavern/deep species its raw FREQUENCY, CAVERN snapshot and gate hold.
+ARR38_LUA = SW + """local cfg=sw.loadConfig(); local s1=df.global.cur_season; local s0=(s1+3)%4; local o={}
+local g=sw.loadGroups(); local tr={}; for _,grp in ipairs(g.groups) do for _,id in ipairs(grp.ids) do tr[id]=grp end end
+local SEAS={Spring=0,Summer=1,Autumn=2,Winter=3}; local B={}
+local function addB(key,s,t,why) B[key]=B[key] or {}; local b=B[key][s]; if not b or (t and (not b.t or t<b.t)) then B[key][s]={t=t,why=why} end end
+for _,e in ipairs(sw.LEDGER.load().entries or {}) do if e.t>=__T0__ then
+  local tok,sn=tostring(e.s):match('; (.+) borrows (%a+)$'); if tok and SEAS[sn] then addB(sw.keyFor('water',tok),SEAS[sn],e.t,'spill') end
+  local tk2,sn2=tostring(e.s):match('exhausted %(stock 0%): (.+) takes its niche for the rest of (%a+)$')
+  if tk2 and SEAS[sn2] then addB(sw.keyFor((e.l~='' and e.l) or 'land',tk2),SEAS[sn2],e.t,'exhaust') end end end
+for k,b in pairs(((cfg.water or {}).spill_state or {}).borrowed or {}) do if not (B[k] and B[k][b.season]) then addB(k,b.season,nil,'spill (live)') end end
+for k,p in pairs((cfg.exhaust or {}).promoted or {}) do if not (B[k] and B[k][p.season]) then addB(k,p.season,nil,'exhaust (live)') end end
+local idx=nil; local rs=sw.getEmbarkRegions(); local all=df.global.world.populations.all
+local function entry(sk) if not idx then idx={}; for i,pop in ipairs(all) do local r=pop.population
+  idx[('%d:%d:%d:%d:%d:%d'):format(r.region_x,r.region_y,r.feature_idx,r.cave_id,r.site_id,r.population_idx)]=i end end
+  local i=idx[sk]; local pop=i and all[i]; if not pop then return nil end
+  return {i=i, q=pop.quantity, qmax=pop.quantity_max, ext=pop.flags.extinct, man=sw.managedPop(pop,rs,sw.LAYER_SET.all)} end
+for _,u in ipairs(df.global.world.units.active) do if u.id>__IDS0__ and sw.WILD.onMap(u) then
+  local cr=df.creature_raw.find(u.race); local t=cr.creature_id; local L=sw.WILD.layerOf(u); local key=(L=='land') and t or (L..':'..t)
+  local grp=tr[u.id]; local s=(u.id>__FLIP__) and s1 or s0
+  local r=u.animal.population; local sk=('%d:%d:%d:%d:%d:%d'):format(r.region_x,r.region_y,r.feature_idx,r.cave_id,r.site_id,r.population_idx)
+  local x={id=u.id, t=t, layer=L, key=key, allow=cfg.allow[key], inseason=sw.ROSTER.wants(cfg,key,s), season=s, origin=sw.WILD.origin(u,tr),
+           arrived=grp and grp.arrived or nil, src=grp and grp.src or nil, usrc=sk}
+  local b=B[key] and B[key][s]
+  if b and cfg.allow[key]==true and (not b.t or not x.arrived or x.arrived>=b.t) then x.borrowed=b.why; x.btick=b.t end
+  if x.inseason==false and not x.borrowed then
+    x.entry=entry(sk)
+    if L=='cavern' or L=='deep' then x.freq=cr.frequency; x.snap=sw.CAVERN.saved()[t]; x.gate=(sw.CACHE.capHeld or {})[t] and true or false end
+  end
+  o[#o+1]=x end end
+print(json.encode(o))"""
+
+def _src38(x, pre):
+    """One out-of-season arrival, explained: its entry, managed or not, quantity before -> now, extinct, frequency."""
+    e, p = x.get("entry") or {}, (pre or {}).get(x.get("usrc") or "")
+    parts = [f"entry {x.get('usrc')}"]
+    if e:
+        parts.append(f"#{e.get('i')} {'managed' if e.get('man') else 'UNMANAGED'} q {p[1] if p else '?'}->{e.get('q')} (max {e.get('qmax')}) extinct {e.get('ext')}")
+    else:
+        parts.append("no local entry with that ref" if (x.get("usrc") or "").find("-1:-1:-1:-1") < 0 else "no population ref")
+    if "freq" in x:
+        parts.append(f"raw freq {x.get('freq')} snap {x.get('snap')} gate {'held' if x.get('gate') else 'no'}")
+    return "; ".join(parts)
+
 @step("3.8", "A season boundary", "con")
 def s3_8():
     ensure_tool()
     k = memo.get("inactive")
     s0 = ticks_now().get("s")
     ids0 = max_unit_id()
+    pre = luap(PRE38_LUA, timeout=120)
+    pre_e = pre.get("e") if isinstance(pre.get("e"), dict) else {}
+    t0 = pre.get("t0") or 0
     n, gap, jumped = to_boundary()
     if n is None and not DRY:
         return mark("s", f"the boundary is {gap} ticks away, past the budget, and --no-jump is set")
     s1 = ticks_now().get("s")
     memo["boundary"] = s1 != s0
     flip = memo.get("flip_id") or ids0
-    # each arrival: the season it arrived in (before or after the flip id), where it came from (WILD.origin: DF wave,
-    # tool-drawn, born here, untracked), its group's arrival tick and population entry (src)
-    arr_raw = luap(SW + """local cfg=sw.loadConfig(); local s1=df.global.cur_season; local s0=(s1+3)%%4; local o={}
-local g=sw.loadGroups(); local tr={}; for _,grp in ipairs(g.groups) do for _,id in ipairs(grp.ids) do tr[id]=grp end end
-for _,u in ipairs(df.global.world.units.active) do if u.id>%d and sw.WILD.onMap(u) then
-  local t=df.creature_raw.find(u.race).creature_id; local L=sw.WILD.layerOf(u); local key=(L=='land') and t or (L..':'..t)
-  local grp=tr[u.id]
-  local s=(u.id>%d) and s1 or s0
-  o[#o+1]={id=u.id, t=t, layer=L, key=key, allow=cfg.allow[key], inseason=sw.ROSTER.wants(cfg,key,s), season=s, origin=sw.WILD.origin(u,tr),
-           arrived=grp and grp.arrived or nil, src=grp and grp.src or nil} end end
-print(json.encode(o))""" % (ids0, flip))
+    arr_raw = luap(ARR38_LUA.replace("__T0__", str(int(t0))).replace("__IDS0__", str(int(ids0))).replace("__FLIP__", str(int(flip))), timeout=120)
     arr = lst(arr_raw)
     if "_err" in arr_raw and not DRY:
         return mark("a", f"the arrivals probe failed after the boundary: {arr_raw['_err'][:200]}")
-    bad = [x for x in arr if x.get("allow") is False or (x.get("allow") is not None and x.get("inseason") is False)]
+    bad = [x for x in arr if x.get("allow") is False or (x.get("allow") is not None and x.get("inseason") is False and not x.get("borrowed"))]
+    lent = [x for x in arr if x.get("inseason") is False and x.get("borrowed")]
     same = [x for x in arr if x.get("key") == k]
     ann = [a for a in announcements(60) if "roster applied" in a]
     led = tool("ledger", "20", "season")
     ok = memo["boundary"] and ann and not bad and not same
+    # one line per out-of-season key (the first unit's entry explains the wave)
+    seen, why = set(), []
+    for x in bad:
+        if x["key"] not in seen:
+            seen.add(x["key"])
+            n_k = sum(1 for y in bad if y["key"] == x["key"])
+            why.append(f"{x['layer']}:{x['t']} x{n_k} ({x.get('origin')}, {SEASONS[x.get('season') or 0]}; {_src38(x, pre_e)})")
+    lent_s = sorted({f"{x['key']} ({x.get('borrowed')}, {SEASONS[x.get('season') or 0]})" for x in lent})
     mark("p" if ok or DRY else "a", f"season {s0} -> {s1} ({'calendar moved ' + str(jumped) + ', then ' if jumped else ''}{n} ticks stepped); announcement "
          f"'{ann[-1] if ann else 'none'}'; ledger season lines: {len(re.findall(r'season', led))}; {len(arr)} wild arrival(s); the inactive {k}: {len(same)}; "
-         f"inactive or out-of-season arrivals (judged in the season they arrived in): "
-         f"{', '.join(x['layer'] + ':' + x['t'] + ' (' + str(x.get('origin')) + ', ' + SEASONS[x.get('season') or 0] + ')' for x in bad[:8]) or 'none'}.", {"arrivals": arr[:100]})
+         f"in season by a borrowed season (spill/exhaustion, given back at the boundary): {', '.join(lent_s) or 'none'}; "
+         f"inactive or out-of-season arrivals (judged in the season they arrived in): {' | '.join(why[:8]) or 'none'}.",
+         {"arrivals": arr[:100], "pre_entries": len(pre_e), "pre_err": pre.get("_err")})
 
 @step("3.9", "The bears' run season", "con")
 def s3_9():
