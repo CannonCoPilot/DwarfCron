@@ -9,6 +9,10 @@
 --   cx-embark params <i|PRESET_TITLE> <title> <seed> <end_year>
 --                                     on new_region/Advanced: copy preset i into
 --                                     slot 0 and set seeds/title/end year there
+--   cx-embark pset k=v ...            on new_region: set slot-0 fields verbatim (string seeds, any param)
+--   cx-embark pdump [world]           slot 0 (or the loaded world's params) as key<TAB>value lines
+--   cx-embark mods                    on new_region: the new world's mod load order
+--   cx-embark modadd <id> [ver]       on new_region: tick a mod (append to the load order)
 --   cx-embark survey [filter]         on choose_start_site: one row per region tile
 --   cx-embark center <rx> <ry>        on choose_start_site: zoom the view onto a tile
 --   cx-embark read                    on choose_start_site: the location + state line
@@ -97,6 +101,107 @@ elseif cmd == 'params' then
     vs.sel_param = 0
     print(('params: slot 0 <- preset %d (%s), %d fields, %dx%d, seed=%s, end_year=%d'):format(
         idx, src.title, copied, dst.dim_x, dst.dim_y, seed, dst.end_year))
+
+elseif cmd == 'pset' or cmd == 'pdump' then
+    -- pset key=value ...   write fields of preset slot 0 (the one the Advanced screen and Create world use), typed by
+    --                      the field's current value: number, boolean (true/false/1/0), string VERBATIM (DF's own random
+    --                      seeds are 20-character strings, e.g. zmXW9kyBfsKzQKIIoi0A), or a flat array as a,b,c.
+    --                      Nested arrays (ranges, region_counts) are refused: copy them with `params` from a preset.
+    -- pdump [world]        print slot 0 (or, with `world`, the loaded world's worldgen_parms) one field per line,
+    --                      key<TAB>value, in the format pset reads -- a dump of one world replays onto slot 0.
+    -- 2 Oct 2026: written to regenerate region9 (four different string seeds) with the aquarium mod ticked.
+    local p
+    if cmd == 'pdump' and args[2] == 'world' then p = df.global.world.worldgen.worldgen_parms
+    else p = need(df.viewscreen_new_regionst, 'new_region').worldgen_presets[0] end
+    local function flat(v)
+        local ok, n = pcall(function() return #v end)
+        if not ok then return nil end
+        local parts = {}
+        for i = 0, n - 1 do
+            local e = v[i]
+            if type(e) == 'userdata' then
+                local sub, ok2, m = {}, pcall(function() return #e end)
+                if ok2 then for j = 0, m - 1 do sub[#sub + 1] = tostring(e[j]) end end
+                parts[#parts + 1] = '[' .. table.concat(sub, ',') .. ']'
+            else parts[#parts + 1] = tostring(e) end
+        end
+        return table.concat(parts, ',')
+    end
+    if cmd == 'pdump' then
+        local out = {}
+        for k, v in pairs(p) do
+            local t = type(v)
+            if t == 'userdata' then out[#out + 1] = k .. '\t' .. (flat(v) or '<userdata>')
+            else out[#out + 1] = k .. '\t' .. tostring(v) end
+        end
+        table.sort(out)
+        for _, l in ipairs(out) do print(l) end
+    else
+        local set, bad = 0, {}
+        for i = 2, #args do
+            local k, v = args[i]:match('^([%w_]+)=(.*)$')
+            if not k then bad[#bad + 1] = args[i] .. '(not key=value)'
+            else
+                local ok, cur = pcall(function() return p[k] end)
+                local t = ok and type(cur) or nil
+                local wok, werr = pcall(function()
+                    if t == 'number' then p[k] = math.tointeger(tonumber(v)) or tonumber(v)
+                    elseif t == 'boolean' then p[k] = (v == 'true' or v == '1')
+                    elseif t == 'string' then p[k] = v
+                    elseif t == 'userdata' then
+                        local j = 0
+                        for x in (v .. ','):gmatch('([^,]*),') do
+                            if x:find('[%[%]]') then error('nested array') end
+                            local e = cur[j]
+                            cur[j] = type(e) == 'boolean' and (x == 'true' or x == '1') or math.tointeger(tonumber(x)) or tonumber(x)
+                            j = j + 1
+                        end
+                    else error('no such field') end
+                end)
+                if wok then set = set + 1 else bad[#bad + 1] = k .. '(' .. tostring(werr):gsub('^.-: ', '') .. ')' end
+            end
+        end
+        print(('pset: %d set, %d refused%s'):format(set, #bad, #bad > 0 and (': ' .. table.concat(bad, ' ')) or ''))
+    end
+
+elseif cmd == 'mods' then
+    -- the new world's mod load order (what Create world will use), id@numeric_version, in order
+    local vs = need(df.viewscreen_new_regionst, 'new_region')
+    local m = {}
+    for i, v in ipairs(vs.object_load_order_id) do m[#m + 1] = v.value .. '@' .. vs.object_load_order_numeric_version[i] end
+    print(('mods %d: %s'):format(#m, table.concat(m, ' ')))
+
+elseif cmd == 'modadd' then
+    -- modadd <id> [numeric_version]: tick a mod for the new world -- append it to the load order (last, so a graphics
+    -- override wins over vanilla) and drop it from the available column, as the Mods screen and DFHack's
+    -- gui/mod-manager do (copy_mod_entry). DF lists only the mods it found in <user dir>/mods/ when it STARTED: a mod
+    -- folder added later needs a restart before it appears here (2 Oct 2026).
+    local vs = need(df.viewscreen_new_regionst, 'new_region')
+    local id, ver = args[2], tonumber(args[3])
+    if not id then qerror('usage: cx-embark modadd <id> [numeric_version]') end
+    for _, v in ipairs(vs.object_load_order_id) do
+        if v.value == id then print('modadd: ' .. id .. ' already in the load order'); return end
+    end
+    local function fields(kind)
+        return { id = vs[kind .. '_id'], numeric_version = vs[kind .. '_numeric_version'],
+            earliest_compat_numeric_version = vs[kind .. '_earliest_compat_numeric_version'], src_dir = vs[kind .. '_src_dir'],
+            name = vs[kind .. '_name'], displayed_version = vs[kind .. '_displayed_version'], mod_header = vs[kind .. '_mod_header'] }
+    end
+    local from, to, avail = fields('base_available'), fields('object_load_order'), fields('available')
+    local at
+    for i, v in ipairs(from.id) do
+        if v.value == id and (not ver or from.numeric_version[i] == ver) then at = i; break end
+    end
+    if not at then qerror('modadd: DF lists no mod ' .. id .. (ver and ('@' .. ver) or '') .. ' (restart DF after adding a mod folder)') end
+    for k, vec in pairs(to) do
+        local e = from[k][at]
+        if type(e) == 'userdata' then vec:insert('#', e:new()) else vec:insert('#', e) end
+    end
+    for i = #avail.id - 1, 0, -1 do
+        if avail.id[i].value == id then for _, vec in pairs(avail) do vec:erase(i) end end
+    end
+    print(('modadd: %s@%d (%s, %s) is #%d of %d in the load order'):format(id, from.numeric_version[at],
+        from.name[at].value, from.src_dir[at], #to.id, #to.id))
 
 elseif cmd == 'rivers' then
     -- one row per river tile: x y biome sav elev up down left right through (through = enters one side and leaves the opposite)
@@ -284,5 +389,5 @@ elseif cmd == 'facts' then
     print(('clock\tyear=%d tick=%d season=%d'):format(df.global.cur_year, df.global.cur_year_tick, df.global.cur_season))
 
 else
-    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | survey [filter] | center <rx> <ry> | read | worlds | facts]])
+    print([[usage: cx-embark presets | params <i> <title> <seed> [end_year] | pset k=v.. | pdump [world] | mods | modadd <id> [ver] | survey [filter] | center <rx> <ry> | read | worlds | facts]])
 end

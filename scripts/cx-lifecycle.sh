@@ -435,13 +435,35 @@ cmd_genworld() {
     # ⚠️ DF reads the seed as a NUMBER. Two runs with text seeds WILDERPOP1 and
     # WILDERPOP2 produced byte-identical worlds (both named Gomathkar); 424242
     # produced a different one. A non-numeric seed is a silent seed of zero.
-    case "$seed" in (*[!0-9]*|"") err "seed must be a whole number (DF parses it as one; text seeds all collapse to zero)";; esac
+    # 2 Oct 2026: DF's OWN random seeds are 20-character strings (region9: zmXW9kyBfsKzQKIIoi0A) and are set verbatim;
+    # that form is allowed too. Other text is still refused.
+    if ! [[ "$seed" =~ ^[0-9]+$ ]] && ! [[ "$seed" =~ ^[A-Za-z0-9]{20}$ ]]; then
+        err "seed must be a whole number or DF's own 20-character seed string (other text seeds collapse to zero)"
+    fi
+    # Optional, both checked by reading back before Create world (2 Oct 2026, the aquarium copy of region9):
+    #   CX_GENWORLD_MODS="id[@ver] ..."  mods to tick for the new world, appended after vanilla in this order
+    #   CX_GENWORLD_PSET=<file>          key<TAB>value lines (`cx-embark pdump world` of a loaded world) written onto
+    #                                    slot 0 AFTER params: every other parameter, and four different string seeds.
+    #                                    Nested arrays (ranges, region_counts) come from the preset and are not set.
+    [ -z "${CX_GENWORLD_PSET:-}" ] || [ -f "$CX_GENWORLD_PSET" ] || err "CX_GENWORLD_PSET: no file $CX_GENWORLD_PSET"
     is_running || err "start the session first"
     ensure_title || err "could not reach the title screen"
     local before; before=$(cmd_cmd cx-embark worlds 2>/dev/null | tr -d "\r" | cut -f1 | sort)
     click_when_drawn "Create new world" || err "title never showed 'Create new world'"
     wait_state screen viewscreen_new_regionst 20 || err "Create new world did not open (state: $(ui_state))"
     dismiss_okay
+    if [ -n "${CX_GENWORLD_MODS:-}" ]; then
+        local m mid mver ml
+        for m in $CX_GENWORLD_MODS; do
+            mid="${m%@*}"; mver=""; [ "$mid" != "$m" ] && mver="${m##*@}"
+            ml=$(cmd_cmd cx-embark modadd "$mid" $mver 2>&1 | tr -d "\r" | tail -1); log "$ml"
+            case "$ml" in modadd:*) ;; *) err "could not tick mod $m: $ml";; esac
+        done
+        ml=$(cmd_cmd cx-embark mods 2>/dev/null | tr -d "\r" | tail -1); log "$ml"
+        for m in $CX_GENWORLD_MODS; do
+            case " ${ml#*: } " in (*" ${m%@*}@"*) ;; (*) err "mod ${m%@*} is not in the load order: $ml";; esac
+        done
+    fi
     click_when_drawn "Detail" 10 || err "no 'Detail' button on the world screen"
     sleep 1
     # a failed params (a preset title this build lacks) must stop here: Create world would otherwise generate
@@ -449,6 +471,29 @@ cmd_genworld() {
     local pl; pl=$(cmd_cmd cx-embark params "$preset" "$title" "$seed" "$endyr" 2>&1 | tr -d "\r" | tail -1)
     echo "[cx-lifecycle] $pl"
     case "$pl" in params:*) ;; *) err "worldgen params failed: $pl";; esac
+    if [ -n "${CX_GENWORLD_PSET:-}" ]; then
+        # keys and values from the file, minus the preset-owned nested arrays and the preset pointer
+        local -a kv=()
+        local k v
+        while IFS=$'\t' read -r k v; do
+            case "$k" in (''|'#'*|ps|ranges|region_counts) continue;; esac
+            case "$v" in (*'['*) continue;; esac
+            kv+=("$k=$v")
+        done < <(tr -d '\r' < "$CX_GENWORLD_PSET")
+        pl=$(cmd_cmd cx-embark pset "${kv[@]}" 2>&1 | tr -d "\r" | tail -1); log "$pl"
+        case "$pl" in "pset: ${#kv[@]} set, 0 refused") ;; *) err "pset did not set every field (${#kv[@]} wanted): $pl";; esac
+        # read slot 0 back and compare every field the file names (nested arrays included: they must match too)
+        local dump diffs; dump=$(cmd_cmd cx-embark pdump 2>/dev/null | tr -d "\r")
+        diffs=$(awk -F'\t' 'NR==FNR {want[$1]=$2; next} ($1 in want) && $1!="ps" && want[$1]!=$2 {printf "%s: want %s have %s\n", $1, substr(want[$1],1,60), substr($2,1,60)}' \
+            <(tr -d '\r' < "$CX_GENWORLD_PSET" | grep -v '^#') <(echo "$dump"))
+        if [ -n "$diffs" ]; then
+            # region_counts and ranges hold slots DF never reads (an unused enum index, unused range rows) whose memory
+            # differs between a preset and a loaded world; report them, fail on anything else
+            echo "$diffs" | sed 's/^/[cx-lifecycle] param differs: /' >&2
+            echo "$diffs" | grep -vqE '^(ranges|region_counts):' && err "slot 0 does not match $CX_GENWORLD_PSET"
+        fi
+        log "slot 0 matches $CX_GENWORLD_PSET ($(grep -vc '^#' "$CX_GENWORLD_PSET") fields compared)"
+    fi
     click_when_drawn "Create world" 10 || err "no 'Create world' button"
     local waited=0 allowed="" poll="${CX_GENWORLD_POLL:-10}" scr
     # 29 Sep 2026: DF crashed 2 of 4 times during a 129x129, 500-year generation while this loop made three DFHack
