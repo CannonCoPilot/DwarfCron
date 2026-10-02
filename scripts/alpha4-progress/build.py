@@ -52,10 +52,10 @@ SINCE = {
         "both arms (6.0 v 6.4 attacks, 2.6 v 2.6 kills of 9 per cell, p = 0.78) -- the stoop switch adds nothing over the "
         "ecology write. The earlier eagles never engaged because the tool only acts on pool species.",
         "FSH3/FSH4 are NOT-TESTABLE on RinghatchetsReady: no fishing species in its pool. Needs a region10 fort whose pool has bears."),
-    3: ("partial", "Land overshoot partly a tool bug: after one release, gate_drain released up to 8 more held groups. Fixed in "
+    3: ("done", "Land overshoot partly a tool bug: after one release, gate_drain released up to 8 more held groups. Fixed in "
         "f3c8d11 (stops at the cap); the status now says how far over and who brought the groups. DF still sends a wave per "
         "border source. S7_NAT on the release candidate: land groups 9.65 v cap 9 (was 10.79), over the cap in 54% of "
-        "samples (was 84%).", "Residual overshoot is DF's per-border waves; decide whether 9.65 v 9 is acceptable."),
+        "samples (was 84%).", "Nothing: you accepted 9.65 v 9 (the residual is DF's per-border waves)."),
     4: ("fixed", "You ruled yes: groups cavern trim_gated (default ON, 30873d4) also sends off the oldest DF wave when no "
         "resident group is left. TRIM re-designed to place 3 resident groups over cap 1.",
         "TRIM runs in the RC chain on the build before trim_gated, so it tests the resident trim only. A second TRIM run on "
@@ -69,7 +69,7 @@ SINCE = {
     7: ("done", "Both halves confirmed.", "Nothing."),
     8: ("partial", "VF4 tallied: too few fish vermin near the bank to read (1-3 per cell; forage on 5 to 3, off 7 to 8 "
         "summed over 5 cells). VF1 re-designed with a gobble receipt; runs in the RC chain.",
-        "VF1 result from the chain; VF4 needs a bank with more fish vermin."),
+        "VF1 result from the chain. VF4 PENDING (inconclusive: too few fish vermin), not re-run this round."),
     9: ("explained", "No defect. Apex presence 0.17 is what a one-month run predicts (expected 0.17, none placed in 0.48 of "
         "runs). The carnivore share read 0.05 because 93% of 'land' units were ravens from the flying pool.",
         "S7_NAT on the release candidate: apex presence 0.11 v 0 without the tool (p = 0.048); carnivore share 0.036 v "
@@ -172,13 +172,12 @@ PENDING = [
     ]),
     ("Rig checks for the new tool fixes", [
         "Irruption flags read 1 after 20 t, survive save and reload, and read 0 after the end (wound carrier, then syndrome).",
-        "The land count holds at its cap after a release.",
         "trim_gated sends off a DF wave from a cavern over its cap (a second S7_TRIM run).",
     ]),
     ("Section 7 leftovers", [
         "Fix the Panel round-trip harness and re-run PANEL.",
         "Tally the RC chain and the VF4 re-run into SECTION7-RESULTS.md.",
-        "Re-run any block that aborts.",
+        "A block that comes back thin (too few subjects) is marked pending, not re-run this round.",
     ]),
     ("Ocean and aquarium (region10)", [
         "Embark AQUA_SHORE (candidate tile 205,170, ocean to the south, 6x6).",
@@ -205,6 +204,8 @@ PENDING = [
 
 DECISIONS = [
     ("Answered", "Should the cavern trim also send off DF waves? Yes: trim_gated, default on."),
+    ("Answered", "Land cap overshoot (9.65 v cap 9 on the release candidate): acceptable."),
+    ("Answered", "Inconclusive results (too few subjects) are marked pending; the round moves on without re-fixing."),
     ("Answered", "Irruption flags carrier: the save-safe wound by default, the syndrome route as an option."),
     ("Open", "Row 5: no detectable scatter from a lost leader at n = 5. A larger n, another measure, or accept?"),
     ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little "
