@@ -712,7 +712,9 @@ def panel_check(sec, want, name, forbid=(r"error", r"Refused")):
 
 @step("1.4", "Panel: Roster & apexes", "gui")
 def s1_4():
-    v, n, rows, t = panel_check("roster", [r"roster v7\.1", r"apex \w+ present \d+%", r"pyramid \w+", r"APEX SCHEDULER", r"LADDER AND PYRAMID",
+    # TRIAGE (Alpha Four 1.4): the apex rows are padded columns ('apex     land         present 100% (target 25%)'); before any
+    # `roster build` (1.6/1.13 come later) the readout says 'apex scheduler: no decision yet', which is the right reading
+    v, n, rows, t = panel_check("roster", [r"roster v7\.1", r"apex\s+\w+\s+present\s+\d+%|apex scheduler: no decision yet", r"pyramid \w+", r"APEX SCHEDULER", r"LADDER AND PYRAMID",
                                            r"PICKS AND FREQUENCIES", r"PREDATION MODEL", r"Build the roster", r"Apex decision now"], "roster")
     mark(v, n + f". First readout: '{first(rows, r'roster v7\.1.*')[:200]}'.")
 
@@ -814,9 +816,10 @@ def s1_13():
     out = "\n".join([tool("roster", "apex", "status"), tool("roster", "apex", "now", "land"),
                      tool("roster", "apex", "target", "land", "30"), tool("roster", "apex", "target", "land", "25")])
     tool("undo"); tool("undo"); tool("undo")
-    v, n = judge(out, want=[r"apex-state land groups=\d+ units=\d+ presence=", r"apex now|placed|cap \d+ reached|nothing placed"], forbid=[r"^Usage:"],
+    # TRIAGE (Alpha Four 1.13): the scheduler keys its state 'apex:<layer>' (docs/v7.1/roster.md: apex-state <tag:layer>)
+    v, n = judge(out, want=[r"apex-state (?:apex:)?land groups=\d+ units=\d+ presence=", r"apex now|placed|cap \d+ reached|nothing placed"], forbid=[r"^Usage:"],
                  what="status, now, target 30 then 25")
-    mark(v, f"{n}. {lines_with(out, r'apex-state land|apex now|placed|cap', 3)}. (The build, the target changes and the build were undone.)")
+    mark(v, f"{n}. {lines_with(out, r'apex-state (?:apex:)?land|apex now|placed|cap', 3)}. (The build, the target changes and the build were undone.)")
 
 @step("1.14", "Roster tab", "web")
 def s1_14():
@@ -888,7 +891,7 @@ def s2_3():
 @step("2.4", "Panel: Limits & groups", "gui")
 def s2_4():
     v, n, rows, t = panel_check("limits", [r"Group cap:", r"MAP-SIZE FORMULA|sqrt", r"caverns 5 each|cavern", r"\blayer\b.*\bcap\b", r"^\s*land\b",
-                                           r"Adaptive release clock", r"Fixed cap", r"Drawn groups leave with their leader", r"Shortest gap", r"Longest gap"], "limits")
+                                           r"Adaptive release clock", r"Fixed cap", r"Groups leave with their leader", r"Shortest gap", r"Longest gap"], "limits")
     memo["limits_readout"] = first(rows, r"Group cap:.*")
     mark(v, n + f". Readout: '{memo['limits_readout'][:200]}'.")
 
@@ -1003,19 +1006,23 @@ print(json.encode({{g=o}}))""")
 @step("2.12", "Water layer auto-on with season spill", "con")
 def s2_12():
     ensure_tool()
-    w0 = tool("water"); led = tool("ledger", "400", "edit")
+    w0 = tool("water"); led = tool("ledger", "400")
     off = tool("water", "layer", "off"); w1 = tool("water")
     au = tool("water", "layer", "auto"); w2 = tool("water")
     has_water = bool(water_bodies())
-    want_on = r"water layer on \(follows the map\)"
-    checks = {"on by default (ledger)": re.search(r"water layer on by default", led), "follows the map": re.search(want_on, w0),
+    # TRIAGE (Alpha Four 2.12): the layer line carries the reason, '(follows the map: a wet map edge)'. On a fresh fort the
+    # first-open preset turns every present layer on (ledger kind build: 'layers turned on: ... water ...'); autoLayer's
+    # 'water layer on by default' line appears only when auto itself turns the layer on (after `water layer auto` here)
+    want_on = r"water layer on \(follows the map"
+    led_on = r"water layer on by default|layers turned on: [^;]*water|every present layer already on"
+    checks = {"on by default (ledger)": re.search(led_on, led + "\n" + tool("ledger", "5", "edit", record=False)), "follows the map": re.search(want_on, w0),
               "set by the player after off": re.search(r"set by the player", w1), "back to the map after auto": re.search(want_on, w2),
               "season spill line": re.search(r"season spill (on|off)", w0)}
     bad = [k for k, v in checks.items() if not v]
     if not has_water and not DRY:
         return mark("p" if re.search(r"water layer off", w0) else "a", f"dry map: '{first(w0, r'water layer.*')[:160]}'")
     mark("a" if bad else "p", f"{'all as designed' if not bad else 'not seen: ' + ', '.join(bad)}. Layer line '{first(w0, r'water layer.*')[:200]}'; "
-         f"borrowed: '{first(w0, r'borrowed the season.*|nothing borrowed.*')[:120]}'.")
+         f"borrowed: '{first(w0, r'borrowed: .*|nothing borrowed.*')[:120]}'.")
 
 @step("2.13", "Column depth reads every level", "con")
 def s2_13():
@@ -1191,8 +1198,12 @@ def to_boundary():
         jumped = (tick, new); gap = 2400
     if gap > SEASON_BUDGET:
         return None, gap, jumped
-    n, s = stepped(gap + 3600)
-    return n, gap, jumped
+    # TRIAGE (Alpha Four 3.8): step to just past the flip first and note the newest unit id there, so an arrival is
+    # judged against the season it ARRIVED in (the round judged late-Spring HUNGRY_HEADs against Summer's roster)
+    n1, _ = stepped(gap + 120)
+    memo["flip_id"] = max_unit_id()
+    n2, _ = stepped(3480)
+    return (n1 or 0) + (n2 or 0), gap, jumped
 
 @step("3.8", "A season boundary", "con")
 def s3_8():
@@ -1205,11 +1216,18 @@ def s3_8():
         return mark("s", f"the boundary is {gap} ticks away, past the budget, and --no-jump is set")
     s1 = ticks_now().get("s")
     memo["boundary"] = s1 != s0
-    arr_raw = luap(SW + """local cfg=sw.loadConfig(); local s=df.global.cur_season; local o={}
+    flip = memo.get("flip_id") or ids0
+    # each arrival: the season it arrived in (before or after the flip id), where it came from (WILD.origin: DF wave,
+    # tool-drawn, born here, untracked), its group's arrival tick and population entry (src)
+    arr_raw = luap(SW + """local cfg=sw.loadConfig(); local s1=df.global.cur_season; local s0=(s1+3)%%4; local o={}
+local g=sw.loadGroups(); local tr={}; for _,grp in ipairs(g.groups) do for _,id in ipairs(grp.ids) do tr[id]=grp end end
 for _,u in ipairs(df.global.world.units.active) do if u.id>%d and sw.WILD.onMap(u) then
   local t=df.creature_raw.find(u.race).creature_id; local L=sw.WILD.layerOf(u); local key=(L=='land') and t or (L..':'..t)
-  o[#o+1]={id=u.id, t=t, layer=L, key=key, allow=cfg.allow[key], inseason=sw.ROSTER.wants(cfg,key,s)} end end
-print(json.encode(o))""" % ids0)
+  local grp=tr[u.id]
+  local s=(u.id>%d) and s1 or s0
+  o[#o+1]={id=u.id, t=t, layer=L, key=key, allow=cfg.allow[key], inseason=sw.ROSTER.wants(cfg,key,s), season=s, origin=sw.WILD.origin(u,tr),
+           arrived=grp and grp.arrived or nil, src=grp and grp.src or nil} end end
+print(json.encode(o))""" % (ids0, flip))
     arr = lst(arr_raw)
     if "_err" in arr_raw and not DRY:
         return mark("a", f"the arrivals probe failed after the boundary: {arr_raw['_err'][:200]}")
@@ -1220,7 +1238,8 @@ print(json.encode(o))""" % ids0)
     ok = memo["boundary"] and ann and not bad and not same
     mark("p" if ok or DRY else "a", f"season {s0} -> {s1} ({'calendar moved ' + str(jumped) + ', then ' if jumped else ''}{n} ticks stepped); announcement "
          f"'{ann[-1] if ann else 'none'}'; ledger season lines: {len(re.findall(r'season', led))}; {len(arr)} wild arrival(s); the inactive {k}: {len(same)}; "
-         f"inactive or out-of-season arrivals: {', '.join(x['layer'] + ':' + x['t'] for x in bad[:8]) or 'none'}.", {"arrivals": arr[:100]})
+         f"inactive or out-of-season arrivals (judged in the season they arrived in): "
+         f"{', '.join(x['layer'] + ':' + x['t'] + ' (' + str(x.get('origin')) + ', ' + SEASONS[x.get('season') or 0] + ')' for x in bad[:8]) or 'none'}.", {"arrivals": arr[:100]})
 
 @step("3.9", "The bears' run season", "con")
 def s3_9():
@@ -1237,34 +1256,52 @@ def s3_10():
     a = tool("roster", "apex", "status")
     stepped(2400)
     b = tool("roster", "apex", "status")
-    pres = re.findall(r"apex-state (\w+) .*?presence=([\d.]+)%", a + "\n" + b)
-    v, n = judge(a + b, want=[r"apex-state land .*presence="], what="apex status twice, 2,400 ticks apart")
+    pres = re.findall(r"apex-state (?:apex:)?(\w+) .*?presence=([\d.]+)%", a + "\n" + b)
+    v, n = judge(a + b, want=[r"apex-state (?:apex:)?land .*presence="], what="apex status twice, 2,400 ticks apart")
     mark(v, n + f"; presence readings {pres[:8]} (targets land 25, water 20, cavern 70, flying 0; a season-long share is APX1's).")
 
 @step("3.11", "Exhaustion fills a niche for the season", "con")
 def s3_11():
     ensure_tool()
     s = ticks_now().get("s") or 0
-    k, e = a_species(lambda e: s in (e.get("assign") or []) and e.get("cat") in ("prey", "predator"), exclude=(memo.get("inactive"),))
+    # TRIAGE (Alpha Four 3.11): `stock KEY 0` is the player's choice and never counts as exhaustion (ROSTER.exhaustCheck
+    # skips cfg.stock == 0); the round also picked BIRD_OSTRICH, already exhausted and replaced this season. Exhaustion is
+    # the region running out: empty this species' entries in Lua, run the check, then put the stock back.
+    done = set((first(tool("exhaust", record=False), r"exhausted this season: [^;]*").split(":", 1) + [""])[1].split())
+    k, e = a_species(lambda e: s in (e.get("assign") or []) and e.get("cat") in ("prey", "predator") and not e.get("stock") == 0,
+                     exclude=tuple([memo.get("inactive")] + sorted(done)))
     if not k and not DRY:
-        return mark("s", "no active land species in season")
+        return mark("s", "no active land species in season that is not already exhausted")
     k = k or "X"
-    st = tool("stock", k, "0"); ex = tool("exhaust", "now"); led = tool("ledger", "6")
-    tool("stock", k, "clear")
+    emptied = lst(luap(SW + """local all=df.global.world.populations.all; local o={}
+for _,r in ipairs(sw.CACHE.managedPops()) do if r.key==%s then local p=all[r.i]; if p and p.race==r.race then o[#o+1]={i=r.i,q=p.quantity}; p.quantity=0 end end end
+print(json.encode(o))""" % json.dumps(k)))
+    ev("manipulation", f"{k}: {len(emptied)} region entr(y/ies) set to quantity 0 (the region runs out)", None)
+    ex = tool("exhaust", "now"); led = tool("ledger", "6")
+    if emptied:
+        luap("local all=df.global.world.populations.all; for _,x in ipairs(" + json.dumps([[x.get("i"), x.get("q")] for x in emptied]).replace("[", "{").replace("]", "}")
+             + ") do local p=all[x[1]]; if p and p.quantity==0 then p.quantity=x[2] end end; print('{}')")
     m = re.search(r"exhaust: (\d+) replacement", ex)
-    rep = lines_with(led, r"exhaust|replac|niche", 2)
-    mark("p" if (m and int(m.group(1)) >= 1) or DRY else "a", f"{k} stock 0 ('{st.strip()[:80]}'); exhaust now: '{ex.strip()[:160]}'; ledger: {rep or 'no replacement line'}. Stock cleared after.")
+    rep = lines_with(led, r"exhausted \(stock 0\)", 2)
+    mark("p" if (m and int(m.group(1)) >= 1) or DRY else "a", f"{k}: {len(emptied)} entries emptied; exhaust now: '{ex.strip()[:160]}'; ledger: {rep or 'no exhaustion line'}. Entries restocked after.")
 
 @step("3.12", "The spill gives the season back", "con")
 def s3_12():
     ensure_tool()
     if not memo.get("boundary") and not DRY:
         return mark("s", "no season boundary was crossed this round (3.8)")
+    # TRIAGE (Alpha Four 3.12): the borrowed seasons go back at the change (ledger 'given back at the season change'); a
+    # body still under the minimum borrows again at once, for the NEW season -- so '(nothing borrowed)' is not required
     w = tool("water")
-    sp = first(w, r".*(nothing borrowed|borrowed the season).*")
+    sp = first(w, r".*(nothing borrowed|borrowed: ).*")
+    cur = SEASONS[ticks_now().get("s") or 0]
+    olds = [b for b in re.findall(r"\(\w+, (\w+)\)", sp.split("borrowed:", 1)[1] if "borrowed:" in sp else "") if b != cur]
+    back = tool("ledger", "40", "edit", record=False)
+    gave = re.search(r"water season spill: \d+ borrowed season\(s\) given back at the season change", back)
     seasonless = [k for k, e in roster().items() if e.get("allow") is True and not e.get("assign")]
-    ok = "nothing borrowed" in sp and not seasonless
-    mark("p" if ok or DRY else "a", f"after the boundary: '{sp[:200] or 'no spill line'}'; active species with no season: {seasonless[:6] or 'none'}.")
+    ok = not olds and not seasonless and (gave or "nothing borrowed" in sp)
+    mark("p" if ok or DRY else "a", f"after the boundary: '{sp[:200] or 'no spill line'}'; borrows of a past season still held: {olds or 'none'}; "
+         f"given back at the change (ledger): {bool(gave)}; active species with no season: {seasonless[:6] or 'none'}.")
 
 @step("3.13", "Seasons from the page", "web")
 def s3_13():
@@ -1486,10 +1523,10 @@ def s4_16():
 def s4_17():
     ensure_tool()
     cl = tool("vermin", "classes")
-    n = len(set(re.findall(r"\bSWV_[A-Z]+\b", cl)))
+    n = len(set(re.findall(r"\bSWV_[A-Z_]+\b", cl)))   # TRIAGE 4.17: [A-Z]+ stopped at SWV_GROUND_BUG's '_' (counted 5)
     outs = [tool("vermin", "class", "SWV_BAT", "off"), tool("vermin", "class", "SWV_BAT", "on"), tool("vermin", "edges", "rules"), tool("vermin", "edges", "both")]
     ok = n == 10 and "SWV_COLONY" in cl and "SWV_BAT" in cl and not errs("\n".join(outs)) and not any(re.search(r"^Usage", o, re.M) for o in outs)
-    mark("p" if ok or DRY else "a", f"{n} SWV classes ({', '.join(sorted(set(re.findall(r'SWV_[A-Z]+', cl))))}); SWV_BAT off/on: '{outs[0].strip()[:80]}' / '{outs[1].strip()[:80]}'; "
+    mark("p" if ok or DRY else "a", f"{n} SWV classes ({', '.join(sorted(set(re.findall(r'SWV_[A-Z_]+', cl))))}); SWV_BAT off/on: '{outs[0].strip()[:80]}' / '{outs[1].strip()[:80]}'; "
          f"edges rules then both: '{first(outs[2], r'source.*')[:80]}' / '{first(outs[3], r'source.*')[:80]}'.")
 
 @step("4.18", "Curious thieves steal once, then stay", "con")
@@ -1650,7 +1687,9 @@ def s5_9():
 def s5_10():
     ensure_tool()
     t = tool("irruption", "tokens"); st = tool("irruption")
-    v, n = judge(t, want=[r"crazed.*on 10%", r"thief.*on 10%", r"trance.*off", r"champion.*on"], what="irruption tokens")
+    # TRIAGE (Alpha Four 5.10): the tokens table is columns ('crazed    on   10%'); the per-event count is the
+    # 'tokens on living units' row the tool prints under an active cavern (a predator wave: none, R10 rides civ waves)
+    v, n = judge(t, want=[r"crazed\s+on\s+10%", r"thief\s+on\s+10%", r"trance\s+off", r"champion.*on"], what="irruption tokens")
     cnt = first(st, r"tokens on living units.*")
     champ = re.search(r"champion (\d+)", cnt)
     if not memo.get("irr_started") and not DRY:
@@ -1685,9 +1724,10 @@ def s5_12():
     e = tool("irruption", "end", "all")
     ann = [a for a in announcements(20) if re.search(r"run its course|driven the .* back", a)]
     st = tool("irruption")
-    cool = first(st, r".*cooldown.*")
+    cool = first(st, r"^\s*cavern \d+: pressure .*\bcooldown [\d.]+ d\s*$")
     c = tool("irruption", "cool", "all"); st2 = tool("irruption", record=False)
-    cleared = not re.search(r"cooldown \d", st2)
+    # TRIAGE (Alpha Four 5.12): 'cooldown 30 d  then: leave' is the config line; the phase is at the end of each cavern row
+    cleared = not re.search(r"^\s*cavern \d+: pressure .*\bcooldown [\d.]+ d\s*$", st2, re.M)
     if not memo.get("irr_started") and not DRY:
         return mark("s" if not errs(e + c) else "a", f"no event running (5.9): end all '{e.strip()[:100]}', cool all '{c.strip()[:100]}'.")
     ok = ann and cool and cleared
@@ -1738,7 +1778,7 @@ def s5_16():
     ensure_tool()
     s = tool("status"); g = tool("groups", "layers")
     deep_row = re.search(r"^\s+deep\S*\s+cap", g, re.M)
-    v, n = judge(s, want=[r"On the map now: land \d+ water \d+ cavern \d+", r"never managed"], what="status")
+    v, n = judge(s, want=[r"On the map now: land \d+\s+water \d+\s+cavern \d+", r"never managed"], what="status")   # TRIAGE 5.16: two spaces
     if deep_row:
         v, n = "a", n + "; a deep key in the group rows"
     mark(v, n + f". '{first(s, r'On the map now.*')[:200]}'; deep row in groups layers: {bool(deep_row)}.")
@@ -1888,7 +1928,7 @@ def s6_7():
 def s6_8():
     ensure_tool(); close_window(); open_window("Ledger")
     kinds = []
-    for _ in range(20):
+    for _ in range(40):   # TRIAGE (Alpha Four 6.8): 23 kinds and all; 20 presses stopped before irruption
         k = luap(GW + "print(json.encode({k=w.subviews.led_kind:getOptionLabel()}))").get("k")
         if k in kinds:
             break
@@ -1923,11 +1963,16 @@ def s6_9():
 @step("6.10", "The registry from the console", "con")
 def s6_10():
     ensure_tool()
-    outs = [ctl("list", "water"), ctl("get", "hunters.stoop.chance"), ctl("set", "hunters.stoop.chance", "61"), ctl("set", "hunters.stoop.chance", "101"),
-            ctl("set", "hunters.stoop.chance", "60")]
+    # TRIAGE (Alpha Four 6.10): read the value first; 'get 60' assumed 6.8 had undone its three sets (it had not: a tool bug)
+    c0 = cfgv("hunters.stoop.chance").get("hunters.stoop.chance")
+    c0s = str(int(c0)) if isinstance(c0, (int, float)) else "60"
+    nxt = "61" if c0s != "61" else "62"
+    outs = [ctl("list", "water"), ctl("get", "hunters.stoop.chance"), ctl("set", "hunters.stoop.chance", nxt), ctl("set", "hunters.stoop.chance", "101"),
+            ctl("set", "hunters.stoop.chance", c0s)]
     nl = len([l for l in outs[0].splitlines() if l.strip().startswith("water.")])
-    checks = {"list water": nl >= 10, "get 60": outs[1].strip().endswith("60"), "set 61 ran the verb": "seasonal-wildlife hunters stoop chance 61" in outs[2],
-              "101 refused": "refused: Stoop chance: at most 100" in outs[3], "back to 60": "seasonal-wildlife hunters stoop chance 60" in outs[4]}
+    checks = {"list water": nl >= 10, f"get {c0s}": outs[1].strip().endswith(c0s), f"set {nxt} ran the verb": f"seasonal-wildlife hunters stoop chance {nxt}" in outs[2],
+              "101 refused": "refused: Stoop chance: at most 100" in outs[3], f"back to {c0s}": f"seasonal-wildlife hunters stoop chance {c0s}" in outs[4],
+              "list prints a false as false": not re.search(r"^switch\.\S+\s+n/a\b", ctl("list", "switches"), re.M)}
     bad = [k for k, v in checks.items() if not v]
     mark("a" if bad else "p", f"{'all as expected' if not bad else 'not as expected: ' + ', '.join(bad)}; list water {nl} rows; get '{outs[1].strip()[:20]}'; 101 -> '{outs[3].strip()[:80]}'.")
 
@@ -1955,7 +2000,7 @@ def s6_12():
 def s6_13():
     ensure_tool()
     outs = [tool("ledger", "20", "irruption"), tool("ledger", "20", "extinct"), tool("ledger", "20", "panic")]
-    heads = [first(o, r"ledger: \d+ of \d+ recorded shown kind=\S+") for o in outs]
+    heads = [first(o, r"ledger: \d+ of \d+ recorded shown\s+kind=\S+") for o in outs]   # TRIAGE 6.13: two spaces before kind=
     tok = web_up() if memo.get("web_tok") else ""
     c0 = cfgv("hunters.stoop.chance").get("hunters.stoop.chance")
     ctl("set", "hunters.stoop.chance", "62")
@@ -2048,18 +2093,26 @@ def s6_21():
     tok = web_needed("6.21")
     if not tok:
         return
+    # TRIAGE (web-live end.server_errors): the counters live in _G and outlive a deploy, so judge the errors made DURING this
+    # step (an idle poll counted 4 a poll before the a4fix accept fix); the status line now also names the slowest request
+    def errs_of(t):
+        m_ = re.search(r"errors (\d+)", t or "")
+        return int(m_.group(1)) if m_ else None
+    e0 = errs_of(webcmd("status"))
     for _ in range(4):
         http(f"/state.json?{q(t=tok)}", record=False); http(f"/status.json?{q(t=tok)}", record=False); nap(2.3)
     n, s = stepped(1200)
     st = webcmd("status")
+    e1 = errs_of(st)
     m = re.search(r"snapshot last (\d+) ms, worst (\d+) ms", st)
     sp = webcmd("stop")
     c, _ = http("/")
     memo["web_tok"] = ""
-    ok = re.search(r"requests \d+ \(commands \d+, sets \d+, refused \d+, errors \d+\)", st) and "stopped" in sp and c == 0
+    grew = (e1 - e0) if (e0 is not None and e1 is not None) else None
+    ok = re.search(r"requests \d+ \(commands \d+, sets \d+, refused \d+, errors \d+[,)]", st) and grew == 0 and "stopped" in sp and c == 0
     worst = int(m.group(2)) if m else None
-    mark("p" if ok or DRY else "a", f"after polling (paused and {n} ticks unpaused): '{st.strip()[:260]}'; snapshot worst {worst} ms (page: under 50 after the first); "
-         f"stop '{sp.strip()}'; GET / after stop -> {c}.")
+    mark("p" if ok or DRY else "a", f"after polling (paused and {n} ticks unpaused): '{st.strip()[:420]}'; handler errors during the step: {grew}; snapshot worst {worst} ms "
+         f"(page: under 50 after the first); stop '{sp.strip()}'; GET / after stop -> {c}.")
 
 @step("6.22", "Frame rate on and off", "web")
 def s6_22():
