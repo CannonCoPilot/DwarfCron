@@ -54,14 +54,14 @@ ROOT = Path(__file__).resolve().parent.parent
 CX = str(ROOT / "scripts" / "cx-lifecycle.sh")
 RPC = str(ROOT / "scripts" / "cx-rpc.py")
 PY = str(ROOT / ".venv" / "bin" / "python") if (ROOT / ".venv" / "bin" / "python").exists() else sys.executable
-TOOL_REPO = Path.home() / "Claude/Projects/sw-wt/deploy"
+TOOL_REPO = Path(os.environ.get("SW_TOOL_REPO") or (Path.home() / "Claude/Projects/sw-wt/deploy"))   # web2: SW_TOOL_REPO=~/Claude/Projects/sw-wt/web2
 RUN = datetime.now().strftime("%Y%m%d-%H%M%S")
 FORT, BACKUP_TAG = "RinghatchetsReady", "preverify"
 SAVE_ROOT = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save"
 BACKUPS = Path.home() / "Library/Application Support/CrossOver/df-snapshots/saves"
 DF_DIR = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress"
 PHASES = ["get", "sec", "ctl", "species", "read", "cmd", "conc", "mal", "act"]
-TABS = ["Status", "Species", "Food web", "Roster", "Groups", "Controls", "Ledger"]
+TABS = ["Overview", "Map", "Groups", "Species", "Food web", "Seasons", "Roster", "Waters & caverns", "Controls", "Ledger"]   # web2 (2 Oct 2026)
 
 MODE = "live"            # live | dry | mock
 WPORT = 8642
@@ -199,7 +199,7 @@ class Resp:
         return f"{self.code} {cut(self.err or self.text, n)}"
 
 _fails_in_row = 0
-def hreq(method, path, host=..., timeout=None, count=True):
+def hreq(method, path, host=..., timeout=None, count=True, headers=None):
     """One request with an explicit Host header (... = the right one, None = no Host at all)."""
     global _fails_in_row
     t0 = time.time()
@@ -211,6 +211,8 @@ def hreq(method, path, host=..., timeout=None, count=True):
             c.putheader("Host", h)
         if method == "POST":
             c.putheader("Content-Length", "0")
+        for k, v in (headers or {}).items():
+            c.putheader(k, v)
         c.endheaders()
         r = c.getresponse()
         body = r.read()
@@ -658,7 +660,7 @@ def phase_get(a):
     secs = c.get("sections") or []
     sec_ids = {s["id"] for s in secs}
     orphan = [x["id"] for x in rows if x.get("sec") not in sec_ids]
-    ok = (r.code == 200 and r.ctype.startswith("application/json") and not cm and len(secs) == 12 and len(rows) >= 350 and not novalue
+    ok = (r.code == 200 and r.ctype.startswith("application/json") and not cm and len(secs) >= 12 and len(rows) >= 350 and not novalue
           and len(c.get("species") or []) == 7 and len(c.get("actions") or []) >= 21 and len(c.get("readouts") or []) >= 27 and not orphan)
     rec("get.controls", "PASS" if ok else "FAIL",
         f"{r.code} {r.ctype} {len(r.body)} bytes in {r.ms} ms; sections {len(secs)}, controls {len(rows)} ({len(unav)} unavailable{': ' + ','.join(unav[:5]) if unav else ''}), "
@@ -715,6 +717,37 @@ def phase_get(a):
         f"{len(ref)} sheets referenced by {with_sprite}/{len(sp)} species (of {len(pages)} served); fetched {sizes // 1024} KB; bad {bad[:6]}", real_only=True)
     r = get("/gfx/p/NO_SUCH_SHEET")
     rec("get.gfx_unknown", "PASS" if r.code == 404 and "no such sheet" in r.text else "FAIL", f"/gfx/p/NO_SUCH_SHEET -> {r.short(60)}", real_only=True)
+    # web2 routes (sw-wt/web2, 2 Oct 2026): shape, cursors, the ETag, and each build's own ms
+    r = get("/state.json")
+    tag = r.headers.get("etag")
+    r2 = hreq("GET", "/state.json?" + tq(), headers={"If-None-Match": tag}) if tag else None
+    rec("get.web2.state_etag", "PASS" if tag and r2 is not None and r2.code in (200, 304) else "FAIL",
+        f"ETag {tag}; If-None-Match -> {r2.code if r2 is not None else None} (304 when nothing moved, 200 when the game did)", real_only=True)
+    r = get("/map.json", links="1")
+    m = r.json() or {}
+    L = m.get("live") or {}
+    T = m.get("terrain") or {}
+    ok = r.code == 200 and m.get("loaded") and isinstance(L.get("units"), list) and isinstance(L.get("groups"), list) and isinstance(L.get("keys"), list) and m.get("tv") is not None
+    rec("get.web2.map", "PASS" if ok else "FAIL", f"{r.code} {len(r.body)} bytes in {r.ms} ms ({m.get('ms')} ms in DF); {m.get('w')}x{m.get('h')}; terrain {T.get('pct')}% stride {T.get('stride')}; "
+        f"{len(L.get('units') or [])} units, {len(L.get('groups') or [])} groups, caves {len(L.get('caves') or [])}, links {len(m.get('links') or [])}{' (' + str(m.get('links_skipped')) + ')' if m.get('links_skipped') else ''}")
+    gs = L.get("groups") or []
+    rec("get.web2.map_groups", "PASS" if all(k in g for g in gs for k in ("gid", "token", "key", "layer", "n", "origin", "act")) else "FAIL",
+        f"{len(gs)} groups; first {cut(json.dumps(gs[0]) if gs else None, 220)}")
+    for path, keys in (("/history.json", ("seq", "samples", "events")), ("/events.json", ("count", "entries")), ("/web.json", ("relations", "kills")), ("/waters.json", ("bodies", "caves", "irrupt"))):
+        r = get(path, since="0") if path in ("/history.json", "/events.json") else get(path)
+        j = r.json() or {}
+        miss = [k for k in keys if k not in j]
+        rec("get.web2." + path.strip("/").split(".")[0], "PASS" if r.code == 200 and not miss else "FAIL", f"{r.code} {len(r.body)} bytes in {r.ms} ms ({j.get('ms')} ms in DF); missing {miss}; {cut(json.dumps({k: (len(v) if isinstance(v, (list, dict)) else v) for k, v in j.items()}), 200)}")
+    j = (get("/events.json", since="0").json() or {})
+    c = j.get("count") or 0
+    j2 = get("/events.json", since=str(c)).json() or {}
+    rec("get.web2.events_cursor", "PASS" if not (j2.get("entries") or []) or all(e.get("q", 0) > c for e in j2["entries"]) else "FAIL", f"since={c} -> {len(j2.get('entries') or [])} entries, all after the cursor")
+    sk = next((x["key"] for x in (memo.get("state") or {}).get("species") or [] if x.get("role") != "vermin"), None)
+    r = get("/species.json", key=sk) if sk else None
+    sj = (r.json() or {}) if r is not None else {}
+    rec("get.web2.species", "PASS" if r is not None and r.code == 200 and isinstance(sj.get("detail"), list) else "FAIL", f"/species.json?key={sk} -> {r.code if r is not None else None}; {len(sj.get('detail') or [])} detail lines, {len(sj.get('ledger') or [])} ledger lines")
+    r = get("/species.json", key="NO_SUCH_KEY")
+    rec("get.web2.species_unknown", "PASS" if r.code == 400 else "FAIL", f"key=NO_SUCH_KEY -> {r.short(80)}")
 
 # =============================================================================================== sec
 def phase_sec(a):
