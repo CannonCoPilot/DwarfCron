@@ -1,5 +1,5 @@
 Alpha Four section 7 -- results tally (scripts/sec7-tally.py)
-runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843; release candidate 20261002-150458 (rc 16f85e6): S7_STP1, S7_NAT, S7_IRRM, S7_IRRP2, S7_IRRR35, S7_GRD1
+runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843; release candidate 20261002-150458 (rc 16f85e6): S7_STP1, S7_NAT, S7_IRRM, S7_IRRP2, S7_IRRR35, S7_GRD1, S7_EXU1
 FACTS (data/alpha4-sec7/facts.json): {"to_season": 47055, "savagery": 73, "calm": false, "has_lake": true, "has_river": true, "has_ocean": false, "bodies": ["river", "lake", "pool"], "has_civ": true, "civ_cavern": 1, "pred_cavern": 1, "has_ap": true, "ap_cavern": 2, "ap_token": "PLUMP_HELMET_MAN", "raptor_token": "GIANT_OSPREY", "has_raptor": true, "fisher_token": "", "has_fisher": false, "polar_token": "", "has_polar": false, "fisher_river": false, "polar_lake": false, "reach_cavern": 3, "reach_civ_cavern": 3, "has_cavern_natives": true, "extinct_in_embark": 6, "extinct_apex": 0, "r2": true, "rwe": "1", "load_s": 73.3, "tps": 13
     PASS  SURV scan finishes inside its 1,000 ms budget: {'ok': '1', 'ms': '130', 'stopped': 'false', 'ncols': '10318', 'zreached': '45'}
     PASS  AP1: animal people seated less at ap_pick 0.1 than at 1 (R13): {'0.1': {'ap_pick': '0.100', 'builds': '10', 'fails': '0', 'seats': '70', 'ap': '7', 'ap_share': '0.100', 'giant': '11'}, '1': {'ap_pick': '
@@ -260,8 +260,9 @@ ROW 11  Extinct corrections change arrivals (EXR1, EXU1; EXF1 not testable here)
       diff on-off = 8.2; Hedges g = 0.65; exact permutation p = 0.167
     cells with any eoraptor attack on a hare: on 3/5, off 0/5; Fisher exact p = 0.167
 
-  [S7_EXU1] placed_before vs placed_after enable; same species, 6,000 t; run 20261002-024942 (tool 9e5aabe); cells read: placed_after n=5, placed_before n=5
-    placed EORAPTOR>HARE attacks: before [0, 0, 0, 0, 0], after [0, 0, 0, 0, 0]; the block prints no BENIGN or relation receipt per unit, so 0 v 0 says nothing about the units correction
+  [S7_EXU1] placed_before vs placed_after enable; same species, 6,000 t; run 20261002-150458 (tool rc 16f85e6); cells read: placed_after n=5, placed_before n=5
+    BENIGN cleared (cache and caste) on the placed eoraptors, samples: before 15/15, after 15/15; relations written per cell (max): before [10, 0, 0, 4, 12], after [3, 9, 0, 10, 12]
+    placed EORAPTOR>HARE attacks: before [0, 0, 0, 0, 0], after [0, 0, 0, 0, 0] -- no attack in either arm: the outcome half is thin (pending)
 
 ==============================================================================================================
 ROW 12  Water auto-on and spill reach 3-5 groups (F1; F2 from S7_NAT)
@@ -409,7 +410,7 @@ VERDICTS (computed; rows 4, 9, 10 are set in SECTION7-RESULTS.md from the number
    6  CONFIRMED (cache, sneak, masks): cache writes (THIEF/MEANDER: CURIOUS_BEAST*, MEANDERER) stick and stay on the subjects only (M3); SNEAK hides (p=0.008); goal-only steal goal p=0.008; the CRAZED mask read 1 in 902/902 unit-samples and MISCHIEVOUS in 277/277 (the wound carrier holds them, incl. through save/reload)
    7  CONFIRMED (both halves; the swimmer switch adds little): natural: corpses still on the ground after 6 days in 5/5 (sweep: gone by t4200 in 3/5); pond grabbers ate in the water in both arms (on 86 kg vs off 76 kg, p=0.04) and never beached
    8  INCONCLUSIVE (VF1 vacuous): forage on vs off: grasshoppers gone 0.8 vs 0.4 of 20 (p=0.68); no BADGER row in the tool's own eats table in any cell -- no distance receipt shows a badger reached the vermin
-  11  CONFIRMED (EXR1, weak) / INCONCLUSIVE (EXU1) / NOT-TESTABLE-HERE (EXF1): fix on cleared BENIGN (0 of 2 castes vs 2) and wrote relations (mean 5.0 vs 0); eoraptors attacked hares in 3/5 on vs 0/5 off cells (Fisher p=0.167); EXU1 had no attack in either arm and no per-unit receipt
+  11  CONFIRMED (EXR1, weak) / CONFIRMED (EXU1 units correction; attacks pending) / NOT-TESTABLE-HERE (EXF1): fix on cleared BENIGN (0 of 2 castes vs 2) and wrote relations (mean 5.0 vs 0); eoraptors attacked hares in 3/5 on vs 0/5 off cells (Fisher p=0.167); EXU1: BENIGN cleared on every placed unit before and after enable (15/15, 15/15 samples), relations written in both arms; no attack in 6,000 t (attacks pending)
   12  CONFIRMED (auto-on, 3-5 groups) / F2 give-back NOT SEEN: auto turned the layer on in 5/5 (off arm 0/5) and reached 4.2 groups per body by t2400 (off 0); NAT def held 8.5/8.5/1.7 per body (v70 2.2/2.1/0.0); spill's borrowed-season give-back has no ledger receipt (season ledger reads only 'Summer roster applied')
   13  MEASURED (new paths cheaper than legacy; overlay cost not readable): PERF1 a4fix: new 81.7 t/s vs legacy 78.6 (p=0.690); worst tick 52 vs 88 ms (p=0.008); 9e5aabe->a4fix worst tick 71->52 ms
   14  PARTLY CONFIRMED (VALIDATE gui/web claims; 13 sections reach; no clip) / PANEL round trip NOT TESTED: PANEL: 0/13 steps changed a config path, and 13/13 screens were identical before and after the step (harness focus); WEBLOAD: see row 13

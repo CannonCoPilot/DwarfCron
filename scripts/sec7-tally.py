@@ -1020,17 +1020,33 @@ def row11():
     say(f"    cells with any eoraptor attack on a hare: on {cells['fix_on']}/5, off {cells['fix_off']}/5; Fisher exact p = {pf:.3f}")
     e = Block("S7_EXU1")
     e.header(11, "placed_before vs placed_after enable; same species, 6,000 t")
-    eu = defaultdict(list)
+    eu, ben, ewr = defaultdict(list), defaultdict(lambda: [0, 0]), defaultdict(list)
     for arm in e.arms():
         for rep in e.reps(arm):
             eu[arm].append(placed_pairs(e, arm, rep, "TRIASSIC_EORAPTOR", "HARE")[0])
-    say(f"    placed EORAPTOR>HARE attacks: before {eu['placed_before']}, after {eu['placed_after']}; the block prints no "
-        f"BENIGN or relation receipt per unit, so 0 v 0 says nothing about the units correction")
+            for d in e.rows(arm, rep, "exunit"):      # RC harness: per-sample BENIGN readback on the placed units
+                ben[arm][1] += 1
+                ben[arm][0] += d.get("cache_benign") == "0" and d.get("caste_benign") == "0"
+            ewr[arm].append(max((int(d.get("written", 0)) for d in e.rows(arm, rep, "relcount")), default=0))
+    exu_receipt = all(ben[a][1] for a in e.arms()) if e.arms() else False
+    if exu_receipt:
+        say(f"    BENIGN cleared (cache and caste) on the placed eoraptors, samples: before {ben['placed_before'][0]}/"
+            f"{ben['placed_before'][1]}, after {ben['placed_after'][0]}/{ben['placed_after'][1]}; relations written per cell "
+            f"(max): before {ewr['placed_before']}, after {ewr['placed_after']}")
+        say(f"    placed EORAPTOR>HARE attacks: before {eu['placed_before']}, after {eu['placed_after']}"
+            + (" -- no attack in either arm: the outcome half is thin (pending)" if not any(eu['placed_before'] + eu['placed_after']) else ""))
+    else:
+        say(f"    placed EORAPTOR>HARE attacks: before {eu['placed_before']}, after {eu['placed_after']}; the block prints no "
+            f"BENIGN or relation receipt per unit, so 0 v 0 says nothing about the units correction")
+    exu_ok = exu_receipt and all(ben[a][0] == ben[a][1] for a in e.arms())
     OUT["exr1_fisher"] = pf
-    verdict(11, "CONFIRMED (EXR1, weak) / INCONCLUSIVE (EXU1) / NOT-TESTABLE-HERE (EXF1)",
+    exu_txt = (f"EXU1: BENIGN cleared on every placed unit before and after enable ({ben['placed_before'][0]}/{ben['placed_before'][1]}, "
+               f"{ben['placed_after'][0]}/{ben['placed_after'][1]} samples), relations written in both arms; no attack in "
+               f"6,000 t (attacks pending)") if exu_ok else "EXU1 had no attack in either arm and no per-unit receipt"
+    verdict(11, "CONFIRMED (EXR1, weak) / " + ("CONFIRMED (EXU1 units correction; attacks pending)" if exu_ok
+            else "INCONCLUSIVE (EXU1)") + " / NOT-TESTABLE-HERE (EXF1)",
             f"fix on cleared BENIGN (0 of 2 castes vs 2) and wrote relations (mean {mean(wr['fix_on']):.1f} vs 0); eoraptors "
-            f"attacked hares in {cells['fix_on']}/5 on vs {cells['fix_off']}/5 off cells (Fisher p={pf:.3f}); EXU1 had no "
-            f"attack in either arm and no per-unit receipt")
+            f"attacked hares in {cells['fix_on']}/5 on vs {cells['fix_off']}/5 off cells (Fisher p={pf:.3f}); " + exu_txt)
 
 
 # ---------------------------------------------------------------------------------------- 12. F1 --

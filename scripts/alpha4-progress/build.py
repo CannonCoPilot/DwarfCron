@@ -86,8 +86,10 @@ SINCE = {
          "moves a swimmer that is not FINE: a possible gap for strandings farther from water.",
          "PENDING: the guard's real cases (a fish several tiles inland, a school in depth-2 water, a beaching orca pod "
          "led onto an edge tile). PELA needs an ocean fort (AQUA_SHORE)."),
-    11: ("partial", "EXR1 confirmed (weak). EXU1 re-designed with per-unit BENIGN receipts.",
-         "EXU1 in the RC chain. EXF1 needs an extinct land apex in the embark."),
+    11: ("partial", "EXR1 confirmed (weak). EXU1 on the release candidate: the correction reaches units placed before and "
+         "after the tool is enabled (BENIGN cleared on every eoraptor at every sample, 15/15 in each arm; relations to hares "
+         "written in both arms). No attack happened in either arm in 6,000 t, so whether they then hunt is pending.",
+         "EXF1 needs an extinct land apex in the embark."),
     12: ("open", "Auto-on confirmed. The spill's give-back was not seen in the run.", "F2 over two seasons is a FULL-tier run."),
     13: ("done", "Measured. The release candidate cut the worst tick 71 to 52 ms and tool time 112 to 80 ms per 1,000 t; "
          "over-budget groups passes 26 to 0. Water draws now take one body per pass (3fadb99) after a 110 ms spike on "
@@ -108,8 +110,8 @@ STAGES = [
      "on re-run. A full round on the final build is still to run; the 7 skips need an ocean, a bear, a curious beast, a calm "
      "map or a water draw."),
     ("Section 7, the 15 rows the page cannot check", "part", "Mostly measured",
-     "13 blocks completed on 9e5aabe, 8 re-run on the Alpha Four fixes, and a release-candidate list running now. Detail "
-     "below."),
+     "13 blocks completed on 9e5aabe, 8 re-run on the Alpha Four fixes, and the release-candidate list done (2 Oct "
+     "15:05-21:55): 7 blocks read, TRIM and VF1 aborted (pending). Detail below."),
     ("Web companion", "ok", "Live run passed",
      "Rebuilt on branch v7.1-web2 (10 tabs: map, groups, species, food web, seasons, roster, waters and caverns, controls, "
      "ledger). Live on RinghatchetsReady, 19:21-19:31: 0 FAIL of 23 checks. 1,150 reads at the page's own cadence, no "

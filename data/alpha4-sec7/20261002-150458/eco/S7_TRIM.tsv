@@ -1,0 +1,13 @@
+S7_TRIM	cap1	1	cfg	path=groups.cavern_cap value=1
+S7_TRIM	cap1	1	cfg	path=groups.cavern_trim value=true
+S7_TRIM	cap1	1	cfg	path=groups.cavern_trim_days value=1
+S7_TRIM	cap1	1	manip	ok=1 check=cfg[path=groups.cavern_cap].value==1:_got_value=1
+S7_TRIM	cap1	1	manip	ok=1 check=cfg[path=groups.cavern_trim].value==true:_got_value=true
+S7_TRIM	cap1	1	spawn	token=CRUNDLE asked=3 placed=3 medium=cave at=6,30,29 borrowed_ref=0 ref=site slot=-1 debited=0 countdown=200000 roam=0 ids=12886,12887,12888
+S7_TRIM	cap1	1	spawn	token=TOAD_GIANT_CAVE asked=3 placed=3 medium=cave at=6,30,29 borrowed_ref=0 ref=site slot=-1 debited=0 countdown=200000 roam=0 ids=12889,12890,12891
+S7_TRIM	cap1	1	spawn	token=CREEPING_EYE asked=3 placed=3 medium=cave at=6,30,29 borrowed_ref=0 ref=site slot=-1 debited=0 countdown=200000 roam=0 ids=12892,12893,12894
+S7_TRIM	cap1	1	adopt	token=CRUNDLE asked=3 groups=1 members=3 adopted=1 roam=0 reply=adopted_CRUNDLE_x3_as_one_pack_group_on_cavern:1,_led_by_#12887
+S7_TRIM	cap1	1	adopt	token=TOAD_GIANT_CAVE asked=3 groups=1 members=3 adopted=1 roam=0 reply=adopted_TOAD_GIANT_CAVE_x3_as_one_school_group_on_cavern:0,_led_by_#12889
+S7_TRIM	cap1	1	adopt	token=CREEPING_EYE asked=3 groups=1 members=3 adopted=1 roam=0 reply=adopted_CREEPING_EYE_x3_as_one_herd_group_on_cavern:2,_unled:_no_adult_male
+S7_TRIM	cap1	1	manip	ok=0 check=trimgrp[tag=t0].resident>=3:_got_resident=1
+S7_TRIM	cap1	1	MANIPFAIL	trimgrp[tag=t0].resident>=3: got resident=1
