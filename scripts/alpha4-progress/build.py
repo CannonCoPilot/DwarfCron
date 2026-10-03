@@ -219,6 +219,9 @@ DECISIONS = [
     ("Answered", "Should the cavern trim also send off DF waves? Yes: trim_gated, default on."),
     ("Answered", "Land cap overshoot (9.65 v cap 9 on the release candidate): acceptable."),
     ("Answered", "Inconclusive results (too few subjects) are marked pending; the round moves on without re-fixing."),
+    ("Answered", "Stranding guard replaced by placement: ocean and river swimmers enter at a map-edge tile of the body; a lake at "
+     "a map-edge tile if it has one, else the water tile nearest its centroid; only breathable depth (4/7+); real beaching "
+     "left to DF. Being built on v7.1-place; GRD1 retired."),
     ("Answered", "The aquarium is the exception: its failed tests are fixed until transparency, waves and mist work."),
     ("Answered", "Irruption flags carrier: the save-safe wound by default, the syndrome route as an option."),
     ("Open", "Row 5: no detectable scatter from a lost leader at n = 5. A larger n, another measure, or accept?"),
