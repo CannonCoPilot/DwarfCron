@@ -831,6 +831,10 @@ cmd_load() {
     # which world owns this folder? (tab-separated: SAVE folder world fort year)
     local world; world=$(cmd_ui saves 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$folder" '$1=="SAVE" && $2==f {print $3; exit}')
     [ -n "$world" ] || err "DF lists no save in folder '$folder' -- known: $(cmd_ui saves 2>/dev/null | awk -F'\t' '$1=="SAVE"{printf "%s ",$2}')"
+    # 3 Oct 2026: the rows are found by substring ("Folder: AQ2_LAKE" also matches "Folder: AQ2_LAKEF", listed first as the
+    # newer save), so a folder name that prefixes another save silently loads the wrong fort. Refuse it.
+    local longer; longer=$(cmd_ui saves 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$folder" '$1=="SAVE" && $2!=f && index($2, f)==1 {printf "%s ",$2}')
+    [ -z "$longer" ] && true || err "save '$folder' is a prefix of other saves ($longer) -- the row match would pick the wrong one; rename or delete them (with DF stopped)"
     click_when_drawn "World: $world" || err "world list never showed 'World: $world'"
     wait_state titlemode CONTINUE_ACTIVE 15 || err "clicking the world row did not open its save list (state: $(ui_state))"
     # FPS5b, 29 Sep 2026: the seasonal autosaves joined region4's list (CTRL, FPS2E1-6, autosave 1-3) and FPS2E4 fell
