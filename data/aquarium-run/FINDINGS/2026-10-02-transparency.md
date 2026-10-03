@@ -27,3 +27,6 @@ Build: agent on branch v7.1-bed (bed painter layer). Probe: scripts/oneoff/aq-sh
    bed-*/z112-lift.png). Open-space backgrounds: 15561, shore variants 15577..15657 with floor_flag edge bits (keep them).
 9. Waves overlay: every crest is ours (widget disabled -> none); DF draws nothing for waves/foam. Crests on dry land,
    fronts drawn as vertical columns of glyphs, `waves off` lagging: redesign under way (v7.1-waves).
+10. No river animation in DF 53.16 fortress mode, vanilla included: river cells with perm_flow_dir ~= 0 (RinghatchetsReady
+    12,175,55; AQUA_LAKE ~40,000 tiles) carry liquid_flag 0x3c; unpaused 6-frame bursts change 0 map pixels in both worlds.
+    Water motion (flow streaks, shimmer) must be drawn by the tool (v7.1-waves phase 2).
