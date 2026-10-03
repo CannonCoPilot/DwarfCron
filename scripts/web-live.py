@@ -1230,9 +1230,13 @@ def phase_mal(a):
     rec("mal.dropped_burst", "PASS" if ok_a else "FAIL", f"{len(socks)} connections opened and closed unsent; alive after: {r.short(20)}")
 
 # =============================================================================================== act
-SAFE = ["rearm", "water_survey", "ecology_now", "scavenge_now", "curious_now", "forage_now", "v7_apply", "natives_now", "irr_unpin"]
+SAFE = ["rearm", "water_survey", "ecology_now", "scavenge_now", "curious_now", "forage_now", "v7_apply", "natives_now", "irr_unpin", "aq_rearm"]
 DRAWS = ["water_now", "apex_now"]
 DESTRUCTIVE = ["irr_stir", "irr_now", "irr_end", "irr_cool", "scavenge_stats_reset", "sendoff_cavern", "sendoff_land", "roster_build", "all_off", "all_on"]
+# v7.1 aquarium (lead's ruling, 2 Oct): these write into the DF INSTALL (the generated graphics mod), not the fort. They must
+# ask to confirm (the registry's `confirm`), and the driver never runs them unattended; the aquarium switches, lens, legend
+# and waves are ordinary controls (the set phase) and aq_rearm is SAFE
+INSTALL = ["aq_install", "aq_restore", "aq_uninstall"]
 
 def act(aid, arg=None):
     rr = post("/act", id=aid, arg=arg, timeout=SET_TIMEOUT)
@@ -1255,7 +1259,11 @@ def cavern_lines():
 def phase_act(a):
     c = memo.get("ctl") or ctl_json()
     acts = {x["id"]: x for x in c.get("actions") or []}
-    known = set(SAFE + DRAWS + DESTRUCTIVE)
+    known = set(SAFE + DRAWS + DESTRUCTIVE + INSTALL)
+    for aid in [x for x in INSTALL if x in acts]:
+        rec(f"act.{aid}.confirm", "PASS" if acts[aid].get("confirm") is True else "FAIL",
+            f"{acts[aid].get('label')}: confirm={acts[aid].get('confirm')} (writes into the DF install: the page must ask first)")
+        rec(f"act.{aid}", "NOT-TESTABLE", "writes into the DF install (the aquarium graphics mod); never run unattended -- the aquarium stream's rig plan covers it")
     for aid in acts:
         if aid not in known:
             rec(f"act.{aid}", "FAIL", f"an action the driver does not classify ({acts[aid].get('label')}); add it to SAFE/DRAWS/DESTRUCTIVE")
@@ -1468,8 +1476,10 @@ def dry_plan(a, reg):
     log(f"== estimate on the rig: ~{http_n} HTTP requests, ~{rpc_n} RPCs, ~{cx_n} cx-lifecycle calls -> about {est / 60:.0f} min "
         f"(restore+load+title ~5 min, 0.25 s per request, 1.5 s per RPC)")
     acts = reg.get("actions") or []
-    unk = [x["id"] for x in acts if x["id"] not in set(SAFE + DRAWS + DESTRUCTIVE)]
-    rec("plan.actions", "PASS" if not unk else "FAIL", f"order: safe {SAFE}; draws {DRAWS}; destructive last {DESTRUCTIVE}; unclassified {unk}")
+    unk = [x["id"] for x in acts if x["id"] not in set(SAFE + DRAWS + DESTRUCTIVE + INSTALL)]
+    noconf = [x["id"] for x in acts if x["id"] in INSTALL and x.get("confirm") is not True]
+    rec("plan.actions", "PASS" if not unk and not noconf else "FAIL",
+        f"order: safe {SAFE}; draws {DRAWS}; destructive last {DESTRUCTIVE}; install (confirm, not run) {INSTALL}; unclassified {unk}; install without confirm {noconf}")
 
 # =============================================================================================== main
 def main():
