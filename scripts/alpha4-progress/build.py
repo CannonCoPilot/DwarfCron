@@ -170,25 +170,28 @@ def live_running():
     return out
 
 PENDING = [
-    ("Re-deploy and re-check", [
-        "Deploy the latest release candidate (30873d4: trim_gated on, the water-draw timing fix).",
-        "Re-run RinghatchetsReady validation, the gui and timing phases (the 3 fixed FAILs).",
+    ("Merge and re-deploy (right after the chain)", [
+        "Merge v7.1-web2 (52f6566, a fast-forward) into the release candidate; deploy it (trim_gated on, the water-draw "
+        "timing fix, the new companion).",
+        "Re-run RinghatchetsReady validation, the gui and timing phases (the 3 fixed FAILs), and a 5-min live re-time of "
+        "the companion's /state.json.",
+    ]),
+    ("Aquarium until it works (your ruling: no test is skipped; fix, repair or redesign)", [
+        "Water transparency: the mod loads in the aquarium world (T1), the lake and river beds and the fish show through "
+        "the water (T2), deep ocean reads as fog not black (T3). Measured by screenshot: vanilla v aquarium preset.",
+        "Water and mist animations: river and brook flow streaks and waterfall mist restyled and animating; ocean waves "
+        "and foam spawn (T4) and are drawn (T5). Measured by frame bursts at a mist source and on the surf.",
+        "Embark AQUA_SHORE (region10 tile 205,170, ocean to the south) for the ocean tests.",
+        "Then the lens, legend, veil, cost, fuse, controls and uninstall guard (T6-T11). Alpha Four pauses only after this.",
     ]),
     ("Rig checks for the new tool fixes", [
-        "Irruption flags read 1 after 20 t, survive save and reload, and read 0 after the end (wound carrier, then syndrome).",
         "trim_gated sends off a DF wave from a cavern over its cap: PENDING with S7_TRIM (harness), after this round.",
     ]),
     ("Section 7 leftovers", [
         "Fix the Panel round-trip harness and re-run PANEL.",
-        "Tally the RC chain and the VF4 re-run into SECTION7-RESULTS.md.",
         "A block that comes back thin (too few subjects) is marked pending, not re-run this round.",
-    ]),
-    ("Ocean and aquarium (region10)", [
-        "Embark AQUA_SHORE (candidate tile 205,170, ocean to the south, 6x6).",
-        "Aquarium tests T1-T11 with screenshots: floor through water, units below the view, deep ocean, waves spawn, the lens, "
-        "the legend, the cost.",
-        "Section 7 ocean rows: PELA, PEL1, orca cohesion, PERF3, the ocean half of FSH4.",
-        "The walkthrough's ocean skips (1.8, 4.11).",
+        "Section 7 ocean rows on AQUA_SHORE: PELA, PEL1, orca cohesion, PERF3, the ocean half of FSH4; the walkthrough's "
+        "ocean skips (1.8, 4.11).",
     ]),
     ("Forts still needed", [
         "A fort whose pool has bears, for FSH3/FSH4.",
@@ -197,7 +200,7 @@ PENDING = [
     ]),
     ("Final rounds", [
         "A full Alpha Four regression round on the final build.",
-        "Merge v7.1-web2 (52f6566) into the release candidate; a 5-min live re-time of /state.json (now carries every creature's glyph), then the Chrome pass of every tab.",
+        "The Chrome pass of every companion tab.",
     ]),
     ("Release and pages", [
         "Merge v7.1-rc into v7.1, push, release notes.",
@@ -210,6 +213,7 @@ DECISIONS = [
     ("Answered", "Should the cavern trim also send off DF waves? Yes: trim_gated, default on."),
     ("Answered", "Land cap overshoot (9.65 v cap 9 on the release candidate): acceptable."),
     ("Answered", "Inconclusive results (too few subjects) are marked pending; the round moves on without re-fixing."),
+    ("Answered", "The aquarium is the exception: its failed tests are fixed until transparency, waves and mist work."),
     ("Answered", "Irruption flags carrier: the save-safe wound by default, the syndrome route as an option."),
     ("Open", "Row 5: no detectable scatter from a lost leader at n = 5. A larger n, another measure, or accept?"),
     ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little "
