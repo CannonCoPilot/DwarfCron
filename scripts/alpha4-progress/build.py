@@ -80,10 +80,12 @@ SINCE = {
         "S7_NAT on the release candidate: apex presence 0.11 v 0 without the tool (p = 0.048); carnivore share 0.036 v "
         "0.004 (p = 0.09); the ladder reaches the raws for every open key. Walking land units averaged under one per sample, "
         "so the walking-only share cannot be read on this fort. APX1 over a full season is optional. INV3 needs a calm map."),
-    10: ("partial", "SURV confirmed (130 ms). GRD1 on the release candidate: the teleport stranded all 3 pike in every run "
-         "(dry at once), and DF put every one back in the water by itself within 10-100 ticks, guard on or off, so the guard "
-         "never had to rescue one. Shore strandings heal on their own; the guard matters only farther from water.",
-         "PELA needs an ocean fort (AQUA_SHORE). A stranding far from water is untested (pending)."),
+    10: ("partial", "SURV confirmed (130 ms). GRD1 on the release candidate tested only the easiest case: pike teleported onto "
+         "the shore next to the lake were dry (3/3, every run) and DF walked them back into the water within 10-100 ticks, "
+         "guard on or off, so the guard never acted. While dry, DF still read them as breathing FINE, and the guard only "
+         "moves a swimmer that is not FINE: a possible gap for strandings farther from water.",
+         "PENDING: the guard's real cases (a fish several tiles inland, a school in depth-2 water, a beaching orca pod "
+         "led onto an edge tile). PELA needs an ocean fort (AQUA_SHORE)."),
     11: ("partial", "EXR1 confirmed (weak). EXU1 re-designed with per-unit BENIGN receipts.",
          "EXU1 in the RC chain. EXF1 needs an extinct land apex in the embark."),
     12: ("open", "Auto-on confirmed. The spill's give-back was not seen in the run.", "F2 over two seasons is a FULL-tier run."),
