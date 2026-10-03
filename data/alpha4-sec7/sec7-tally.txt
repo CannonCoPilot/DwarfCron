@@ -1,5 +1,5 @@
 Alpha Four section 7 -- results tally (scripts/sec7-tally.py)
-runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843; release candidate 20261002-150458 (rc 16f85e6): S7_STP1, S7_NAT, S7_IRRM, S7_IRRP2, S7_IRRR35
+runs: stages 20261002-015732; core3 20261002-024942 (9e5aabe); rerun 20261002-075328 (a4fix 69e97a1); late rerun 20261002-133843; release candidate 20261002-150458 (rc 16f85e6): S7_STP1, S7_NAT, S7_IRRM, S7_IRRP2, S7_IRRR35, S7_GRD1
 FACTS (data/alpha4-sec7/facts.json): {"to_season": 47055, "savagery": 73, "calm": false, "has_lake": true, "has_river": true, "has_ocean": false, "bodies": ["river", "lake", "pool"], "has_civ": true, "civ_cavern": 1, "pred_cavern": 1, "has_ap": true, "ap_cavern": 2, "ap_token": "PLUMP_HELMET_MAN", "raptor_token": "GIANT_OSPREY", "has_raptor": true, "fisher_token": "", "has_fisher": false, "polar_token": "", "has_polar": false, "fisher_river": false, "polar_lake": false, "reach_cavern": 3, "reach_civ_cavern": 3, "has_cavern_natives": true, "extinct_in_embark": 6, "extinct_apex": 0, "r2": true, "rwe": "1", "load_s": 73.3, "tps": 13
     PASS  SURV scan finishes inside its 1,000 ms budget: {'ok': '1', 'ms': '130', 'stopped': 'false', 'ncols': '10318', 'zreached': '45'}
     PASS  AP1: animal people seated less at ap_pick 0.1 than at 1 (R13): {'0.1': {'ap_pick': '0.100', 'builds': '10', 'fails': '0', 'seats': '70', 'ap': '7', 'ap_share': '0.100', 'giant': '11'}, '1': {'ap_pick': '
@@ -246,10 +246,10 @@ ROW 8  Vermin eaters eat what they walk to (VF1, VF4)
 
   ROW 10 (GRD1 half)
 
-  [S7_GRD1] guard_on vs guard_off; 3 FISH_PIKE adopted, teleported to the lake shore, 1,200 t; run 20261002-024942 (tool 9e5aabe); cells read: guard_off n=5, guard_on n=5
-    guard_off: tp units ['3', '3', '3', '3', '3']; wet/alive at the first sample (t200) ['3/3', '3/3', '3/3', '3/3', '3/3']; guard rescues [0, 0, 0, 0, 0]
-    guard_on: tp units ['3', '3', '3', '3', '3']; wet/alive at the first sample (t200) ['3/3', '3/3', '3/3', '3/3', '2/3']; guard rescues [0, 0, 0, 0, 0]
-    no dry receipt after the teleport: every pike read wet at t200 in BOTH arms, so the guard had nothing to do
+  [S7_GRD1] guard_on vs guard_off; 3 FISH_PIKE adopted, teleported to the lake shore, 1,200 t; run 20261002-150458 (tool rc 16f85e6); cells read: guard_off n=5, guard_on n=5
+    guard_off: tp units ['3', '3', '3', '3', '3']; dry at the teleport (tp0) [3, 3, 3, 3, 3]; all wet again by tick [50, 100, 50, 100, 100]; wet/alive at t200 ['3/3', '3/3', '3/3', '3/3', '3/3']; guard rescues [0, 0, 0, 0, 0]
+    guard_on: tp units ['3', '3', '3', '3', '3']; dry at the teleport (tp0) [3, 3, 3, 3, 3]; all wet again by tick [100, 10, 50, 50, 100]; wet/alive at t200 ['3/3', '3/3', '3/3', '3/3', '3/3']; guard rescues [0, 0, 0, 0, 0]
+    the teleport stranded the pike (dry at tp0) in both arms, and DF returned every one to the water by itself within the sampled ticks above, guard or not: the guard never had to rescue (shore strandings self-heal)
 
 ==============================================================================================================
 ROW 11  Extinct corrections change arrivals (EXR1, EXU1; EXF1 not testable here)

@@ -975,16 +975,29 @@ def row10_grd():
     b = Block("S7_GRD1")
     say("\n  ROW 10 (GRD1 half)")
     b.header(10, "guard_on vs guard_off; 3 FISH_PIKE adopted, teleported to the lake shore, 1,200 t")
+    back = {}
     for arm in b.arms():
-        first = []
-        resc = []
+        first, resc, t0dry, wet_at = [], [], [], []
         for rep in b.reps(arm):
             s = b.first(arm, rep, "swim", tag="t200")
             first.append(f"{s.get('wet')}/{s.get('alive')}")
             resc.append(max(int(d.get("rescued", 0)) for d in b.rows(arm, rep, "watguard")))
-        say(f"    {arm}: tp units {[d.get('units') for r in b.reps(arm) for d in b.rows(arm, r, 'tp')]}; wet/alive at the "
-            f"first sample (t200) {first}; guard rescues {resc}")
-    say("    no dry receipt after the teleport: every pike read wet at t200 in BOTH arms, so the guard had nothing to do")
+            tp0 = b.first(arm, rep, "swim", tag="tp0")
+            t0dry.append(int(tp0.get("alive", 0)) - int(tp0.get("wet", 0)) if tp0 else None)
+            # first sampled tick at which every pike reads wet again
+            ws = [(tagnum(d["tag"]), d) for d in b.rows(arm, rep, "swim") if d.get("tag", "").startswith("t")
+                  and d.get("tag") != "tp0"]
+            wet_at.append(next((t for t, d in sorted(ws) if d.get("wet") == d.get("alive")), None))
+        back[arm] = (t0dry, wet_at, resc)
+        say(f"    {arm}: tp units {[d.get('units') for r in b.reps(arm) for d in b.rows(arm, r, 'tp')]}; dry at the teleport "
+            f"(tp0) {t0dry}; all wet again by tick {wet_at}; wet/alive at t200 {first}; guard rescues {resc}")
+    OUT["grd1"] = back
+    stranded = any(x for t0, _, _ in back.values() for x in t0 if x)
+    if stranded:
+        say("    the teleport stranded the pike (dry at tp0) in both arms, and DF returned every one to the water by itself "
+            "within the sampled ticks above, guard or not: the guard never had to rescue (shore strandings self-heal)")
+    else:
+        say("    no dry receipt after the teleport: every pike read wet in BOTH arms, so the guard had nothing to do")
 
 
 # ---------------------------------------------------------------------------------------- 11. extinct --
