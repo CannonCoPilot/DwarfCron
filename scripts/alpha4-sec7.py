@@ -512,6 +512,10 @@ def st_webload(run, a):
 
 def st_block(run, a, name):
     b = ER.BLOCKS[name]
+    if b.get("sec7_retired"):   # the feature it tests left the tool: never run (alpha4_sec7_blocks.GRD1_RETIRED)
+        say(f"== {name}: RETIRED -- {b['sec7_retired']}")
+        (run / "skipped.tsv").open("a").write(f"{name}\tretired\n")
+        return
     req = b.get("sec7_requires")
     d = SB.facts()
     if req and not d.get(req):
@@ -589,11 +593,11 @@ def plan(S, a):
     for s in S:
         b = ER.BLOCKS.get(s.get("block", ""), {})
         req = b.get("sec7_requires")
-        skip = bool(req and not d.get(req))
+        skip = bool(req and not d.get(req)) or bool(b.get("sec7_retired"))
         mins = 0.0 if skip else s["est"](m)
         tot += mins
         print(f"{s['name']:<12} {b.get('sec7_tier', '-'):<5} {','.join(map(str, s['items'])) or '-':<14} {mins:>8.1f}  "
-              f"{'skipped: needs ' + req if skip else ''}")
+              f"{'RETIRED' if b.get('sec7_retired') else ('skipped: needs ' + req if skip else '')}")
     print(f"total about {tot / 60:.1f} h at {m['tps']:.0f} t/s and {m['load_s']:.0f} s per load "
           f"({'measured by FACTS' if m['measured'] else 'unmeasured guesses: run FACTS first'}); n = {a.reps} per arm")
     return tot
@@ -643,7 +647,7 @@ def main():
         for s in S:
             b = ER.BLOCKS.get(s.get("block", ""), {})
             print(f"{s['name']:<12} items {','.join(map(str, s['items'])) or '-':<12} {b.get('sec7_tier', '')}"
-                  f"{'  needs ' + b['sec7_requires'] if b.get('sec7_requires') else ''}")
+                  f"{'  needs ' + b['sec7_requires'] if b.get('sec7_requires') else ''}{'  RETIRED' if b.get('sec7_retired') else ''}")
         return 0
     if a.plan:
         plan(S, a)

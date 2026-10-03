@@ -881,7 +881,15 @@ def inv3(arm):
     return dict(steps=st, ticks=10, nowatch=True, post=[T("disable")])
 
 
-# ======================================================================= 10. guard (GRD1) ==
+# ======================================================================= 10. guard (GRD1) -- RETIRED ==
+# RETIRED 2 Oct 2026 (user ruling: "fix the placement itself rather than layering all of this guard check processing
+# burden"). The stranding guard is removed from the tool (sw-wt/place, branch v7.1-place: `water guard` only says so, and
+# water.guard.* is gone), so the guard_on / guard_off arms have no dial left to turn. The RC run (sec7 20261002, row 10)
+# had already found the case it tested heal by itself: pike stranded on the shore were back in the water in 10-100 t in
+# BOTH arms, and the guard never had to rescue. Where a swimmer enters is now claimed by validate-full's
+# mech.v71.water.entry / mech.v71.water.bodies (docs/v7.1/water-bodies.md, rig check). Kept for the record; never run.
+GRD1_RETIRED = ("retired 2 Oct 2026: the stranding guard is removed (v7.1-place, user ruling); placement enters at the "
+                "body's map edge or centroid instead -- validate-full mech.v71.water.entry")
 def grd1(arm):
     on = arm == "guard_on"
     st = [SUSTAIN, T("water", "guard", "on" if on else "off"), *ENABLE,
@@ -1059,10 +1067,13 @@ def coht_orca(arm):
 
 
 # ================================================================================================ registration ==
-def _blk(cells, tier, item, spot="land", fort=None, wipe=True, why="", livestock=False, requires=None):
+def _blk(cells, tier, item, spot="land", fort=None, wipe=True, why="", livestock=False, requires=None, retired=None):
     """requires: a facts.json 'derived' key that must be true for the block to say anything on this fort; the runner
-    skips the block (and reports the item NOT-TESTABLE-HERE with the reason) when it is false."""
+    skips the block (and reports the item NOT-TESTABLE-HERE with the reason) when it is false.
+    retired: the reason a block is no longer run (the feature it tests left the tool); the runner skips it and says so."""
     b = dict(fort=fort or FORT, spot=spot, cells=cells, sec7_tier=tier, sec7_item=item, sec7_requires=requires)
+    if retired:
+        b["sec7_retired"] = retired
     if livestock:
         b["wipe_livestock"] = True
     return b if wipe else wipe_off(b, why)
@@ -1107,7 +1118,7 @@ def blocks() -> dict:
     B["S7_VF1"] = _blk({a: vf1(a) for a in ("forage_on", "forage_off")}, "CORE", 8, livestock=True)
     B["S7_VF4"] = _blk({a: vf4(a) for a in ("forage_on", "forage_off")}, "CORE", 8, livestock=True)   # any water body (VSHORE)
     B["S7_INV3"] = _blk({"smilodon": inv3("smilodon")}, "CORE", 9, requires="calm")
-    B["S7_GRD1"] = _blk({a: grd1(a) for a in ("guard_on", "guard_off")}, "CORE", 10, requires="has_lake")
+    B["S7_GRD1"] = _blk({a: grd1(a) for a in ("guard_on", "guard_off")}, "CORE", 10, requires="has_lake", retired=GRD1_RETIRED)
     B["S7_EXR1"] = _blk({a: exr1(a) for a in ("fix_on", "fix_off")}, "CORE", 11)
     B["S7_EXU1"] = _blk({a: exu1(a) for a in ("placed_before", "placed_after")}, "CORE", 11)
     B["S7_EXF1"] = _blk({a: exf1(a) for a in ("freq_on", "freq_off")}, "CORE", 11,

@@ -129,7 +129,7 @@ CLAIMS = [
     ("cli.groups.hold", "CLI", "`groups hold TOKEN DAYS` raises every member's leave countdown; `groups dismiss TOKEN` zeroes it and clears the leader", "USAGE.md", "shipped"),
     ("cli.quota", "CLI", "`limits` (the retired `quota` is an alias) prints the limits line and what is on the map; since v7.1 the line names the mode: 'limits [map-size formula per layer]' or 'limits [single fixed cap N on every layer]'", "USAGE.md; docs/v7.1/groups.md R7", "shipped"),
     ("cli.quota.cavern", "CLI", "`quota cavern N` warns that the ceiling is enforced on FREQUENCY and brakes arrivals rather than culling", "STATE addendum 57", "shipped"),
-    ("cli.water", "CLI", "`water [on|off|now|countdown N]` controls the water job (v7.1 adds layer, spill, mix, pull, guard, survey/depth; target and cadence are retired); status names live/dormant with the reason, and since v7.1 a 'water layer ...; season spill ...' line", "USAGE.md; docs/v7.1/fixes.md 5", "shipped"),
+    ("cli.water", "CLI", "`water [on|off|now|countdown N]` controls the water job (v7.1 adds layer, spill, mix, pull, scan, bodies, survey/depth; target and cadence are retired; v7.1-place: `water guard` says the guard was removed); status names live/dormant with the reason, and since v7.1 a 'water layer ...; season spill ...' line", "USAGE.md; docs/v7.1/fixes.md 5", "shipped"),
     ("cli.water.now", "CLI", "`water now` answers at once (the wet-edge verdict is cached at load): on a dormant layer with 'placed 0' and the reason; where the water layer is live (v7.1: it turns itself on wherever the map has water, CTRL's 226-tile pool included) with the draw it made", "USAGE.md; v5.8.2; docs/v7.1/fixes.md section 4 (water layer auto, R45 ruling)", "shipped"),
     ("cli.place", "CLI", "`place TOKEN [n] [layer]` places wild animals headlessly and debits the entry", "USAGE.md", "shipped"),
     ("cli.usage", "CLI", "an unknown verb prints usage rather than a stack trace", "script", "shipped"),
@@ -478,7 +478,9 @@ CLAIMS = [
     ("mech.v71.vrm.cfg", "MECH", "VRM-CFG: a saved vermin_eat with out-of-range numbers and a bad source loads as the defaults; a class key it lacks loads as on", "docs/v7.1/vermin.md VRM-CFG", "shipped v7.1"),
     ("mech.v71.vrm.perf", "PERF", "VRM-PERF: the vermin foraging job's worst pass stays under 50 ms over 3,000 ticks with the tool on", "docs/v7.1/vermin.md VRM-PERF", "shipped v7.1"),
     # ---- v7.1 water stream (docs/v7.1/water.md): column depth readback (R22), land-layer aquatics (R45), the community mix (R62),
-    # prey pull and seeding (R14, R59), the stranding guard, the retry back-off, the curated apex rules (R43, R49)
+    # prey pull (R14, R59), the retry back-off, the curated apex rules (R43, R49). v7.1-place (user rulings 2 Oct 2026):
+    # the seed by the prey and the stranding guard are removed (their claims retired below); the water body registry and
+    # the edge/centroid entry are claimed instead (docs/v7.1/water-bodies.md)
     ("mech.v71.water.survey.levels", "MECH", "on a fort with deep ocean columns `water depth` shows ocean columns at 3 and 4 stacked water tiles, ENGINE.deepColumns finds n > 0, the scan reads below the top water level (zReached) and is not stopped", "docs/v7.1/water.md; R22; C §8.1", "shipped v7.1"),
     ("mech.v71.water.survey.ocean2", "MECH", "on OCEAN2 the ocean's column-depth histogram holds only 1 and 2 (max 2), nothing at 3 or more", "docs/v7.1/water.md; R22; ECO DEPTH", "shipped v7.1"),
     ("mech.v71.water.survey.contig", "MECH", "a stride-1 water survey (`water depth full`) counts about 4x the stride-2 columns in every well-filled column-depth bucket (within 10%)", "docs/v7.1/water.md; R22", "shipped v7.1"),
@@ -487,8 +489,13 @@ CLAIMS = [
     ("mech.v71.water.mix", "MECH", "`water mix BODY` prints each candidate's base x factor = weight with its reasons; the species most present in the body gets a balance factor under 1; the weights sum above 0", "docs/v7.1/water.md; R62", "shipped v7.1"),
     ("mech.v71.water.apexlimit", "MECH", "with a body already holding water.mix.apex_max (1) curated-apex groups every apex candidate there weighs 0 (a non-apex keeps its weight; with none held the apex weighs > 0); FISH_LAMPREY_SEA is level C, not an apex (R49)", "docs/v7.1/water.md; R43; R49", "shipped v7.1"),
     ("mech.v71.water.pull", "MECH", "with prey drawn into the ocean, a predator or listed apex that takes it shows a pull factor >= water.pull.min in its weight, and a pelagic predator over pelagic_ref with prey here has the shallow floor lifted (its base equals its raw FREQUENCY)", "docs/v7.1/water.md; R14; R59; C §8.2", "shipped v7.1"),
-    ("mech.v71.water.seed", "MECH", "a predator drawn while its prey swims is seeded by its prey (ledger 'seeded by its prey'): every member on a water tile (level >= 4/7), within seek_radius of a prey unit, on a column as deep as the deepest sampled there (less one)", "docs/v7.1/water.md; R14; C §8.2 option C", "shipped v7.1"),
-    ("mech.v71.water.guard.recheck", "MECH", "on r2 the water status says breathing is read via getBreathingState, and a drawn fish teleported onto dry land is moved back to open water within two guard passes (ledger strand ... moved)", "docs/v7.1/water.md; C §8.2 stranding guard", "shipped v7.1"),
+    # retired v7.1-place (user 2 Oct 2026): "fix the placement itself rather than layering all of this guard check processing
+    # burden" -- the seed by the prey (option C) and the stranding guard are removed from the tool; never judged again
+    ("mech.v71.water.seed", "MECH", "a predator drawn while its prey swims is seeded by its prey (ledger 'seeded by its prey'): every member on a water tile (level >= 4/7), within seek_radius of a prey unit, on a column as deep as the deepest sampled there (less one)", "docs/v7.1/water.md; R14; C §8.2 option C", "retired v7.1-place"),
+    ("mech.v71.water.guard.recheck", "MECH", "on r2 the water status says breathing is read via getBreathingState, and a drawn fish teleported onto dry land is moved back to open water within two guard passes (ledger strand ... moved)", "docs/v7.1/water.md; C §8.2 stranding guard", "retired v7.1-place"),
+    ("mech.v71.water.entry", "MECH", "every Driver B arrival names where it entered ('entered TYPE #ID at the map edge|nearest its centroid X,Y: x,y,z (level L/7, column depth D)'): L >= 4; an ocean or river arrival on a map-edge tile; a lake or pool that has a breathable map-edge column entered on the edge, one that has none within the five columns nearest its centroid; every member on a tile >= 4/7 of the same registered body", "docs/v7.1/water.md; docs/v7.1/water-bodies.md; user ruling 2 Oct 2026", "shipped v7.1"),
+    ("mech.v71.water.bodies", "MECH", "the water body registry lists the map's surface bodies by type (ocean/lake/river/pool; a river reaches the map edge), cavern pools only for discovered caverns, and a 'bodies' ledger line records the scan", "docs/v7.1/water.md; docs/v7.1/water-bodies.md; user ruling 2 Oct 2026", "shipped v7.1"),
+    ("mech.v71.water.guard.removed", "MECH", "the stranding guard is gone: `water guard` says it was removed, the config holds no water.guard, V7.WAT.guard does not exist", "docs/v7.1/water.md; docs/v7.1/water-bodies.md; user ruling 2 Oct 2026", "shipped v7.1"),
     ("mech.v71.water.retry", "MECH", "a body with nothing drawable backs off water.retry_days (1 day = 1,200 ticks), not the old 5-day gap: next_water_body[body] - now <= retry_days x 1200", "docs/v7.1/water.md; R45", "shipped v7.1"),
     ("mech.v71.water.fisher", "MECH", "no BEAR_* (a fisher on the curated list) is ever a Driver B water candidate", "docs/v7.1/water.md; R33; R43", "shipped v7.1"),
     ("mech.v71.water.nodeep", "MECH", "the water census and the Driver B candidates never include a cavern or deep-layer entry or a unit outside the surface band (R60)", "docs/v7.1/water.md; R60", "shipped v7.1"),
@@ -558,6 +565,8 @@ FORT_HINT = {
     "mech.v71.water.fisher": "a listed fisher bear with a related fish in range: RinghatchetsReady's river with a bear placed (rig test FSH)",
     "mech.v71.apex.cap": "an apex group placed first (mech.v71.apex.place): OCEAN2/BOATS or a region9 fort with a seated, stocked apex",
     "bl.balance": "follows mech.v71.water.mix: RinghatchetsReady after `roster build water`, or OCEAN2",
+    "mech.v71.water.entry": "a lake or river with an in-season, stocked water species: RinghatchetsReady (region9: river and lake) after `roster build water`",
+    "mech.v71.water.bodies": "surface water: RinghatchetsReady (region9: river and lake; caverns open, so cavern pools for the found ones)",
 }
 _FORT_WORDS = ("CTRL", "Ringhatchets", "LAKE", "RIVER4", "OCEAN2", "BOATS", "region9", "region1", "MAGMA", "SPLIT")
 
@@ -6725,14 +6734,12 @@ print(json.encode(out))""", timeout=180)
                   and j.get("lamprey") == "C" and j.get("lampreyKind") is None)
             rec(cid, "PASS" if ok else "FAIL", "apex weight 0 with one apex group held, > 0 with none; the prey keeps its weight; FISH_LAMPREY_SEA level C, off the apex list",
                 json.dumps(j), note="the census is synthetic (V7.WAT.mix on the engine's own candidates); the live per-body limit is the rig test's")
-    # ---- R14/R59: prey pulls predators (a prey draw into the ocean, then the weights), then a pulled draw seeds by the prey
-    pull_id, seed_id = "mech.v71.water.pull", "mech.v71.water.seed"
-    _n1 = need(pull_id, "ocean", "an ocean to draw prey into")
-    _n2 = need(seed_id, "ocean", "an ocean to draw prey into")   # both evaluated: each records its own NOT-TESTABLE-HERE
-    if _n1 and _n2:
-        pv = cfgv("water.pull.enabled", "water.pull.lift_floor", "water.pull.seek", "water.pull.min")
-        if manip(pull_id, "water.pull on, lift_floor on, seek on", (pv.get("water.pull.enabled") is True and pv.get("water.pull.lift_floor") is True
-                                                                   and pv.get("water.pull.seek") is True) or DRY, pv):
+    # ---- R14/R59: prey pulls predators (a prey draw into the ocean, then the weights). v7.1-place: the pulled draw's seed by
+    # the prey is gone (mech.v71.water.seed retired); a predator enters by the edge/centroid rule (mech.v71.water.entry)
+    pull_id = "mech.v71.water.pull"
+    if need(pull_id, "ocean", "an ocean to draw prey into"):
+        pv = cfgv("water.pull.enabled", "water.pull.lift_floor", "water.pull.min")
+        if manip(pull_id, "water.pull on, lift_floor on", (pv.get("water.pull.enabled") is True and pv.get("water.pull.lift_floor") is True) or DRY, pv):
             P = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local cs = sw.ENGINE.candidates(cfg, nil, 'ocean', g)
 local pick
@@ -6746,11 +6753,10 @@ if pick then
 end
 print(json.encode(out))""", timeout=180)
             if bad(P):
-                rec_bad([pull_id, seed_id], P)
+                rec_bad(pull_id, P)
             elif not P.get("prey"):
-                for cid in (pull_id, seed_id):
-                    rec(cid, "NOT-TESTABLE-HERE", "a prey school drawn into the ocean", json.dumps(P),
-                        note="no small in-season, stocked ocean prey to draw this season (OCEAN2's milkfish ride the land layer: STATE addendum 20)")
+                rec(pull_id, "NOT-TESTABLE-HERE", "a prey school drawn into the ocean", json.dumps(P),
+                    note="no small in-season, stocked ocean prey to draw this season (OCEAN2's milkfish ride the land layer: STATE addendum 20)")
             else:
                 W = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
 local B = V7.WAT.census(cfg, g)['ocean']
@@ -6781,7 +6787,7 @@ for _, tok in ipairs(toks) do
 end
 print(json.encode(out))""", timeout=180)
                 if bad(W):
-                    rec_bad([pull_id, seed_id], W)
+                    rec_bad(pull_id, W)
                 else:
                     pmin = W.get("min") or 1.5
                     rows = (W.get("real") or []) + (W.get("synth") or [])
@@ -6798,147 +6804,102 @@ print(json.encode(out))""", timeout=180)
                         ok = bool(pulled_ok) and (bool(lift_ok) if lifted else True)
                         rec(pull_id, "PASS" if ok else "FAIL", "a pull factor >= pull.min on a predator of the swimming prey; a lifted pelagic's base equals its FREQUENCY",
                             ev, note="" if lifted else "no pelagic over pelagic_ref takes this prey, so the floor-lift half was not exercised")
-                    real = [r for r in (W.get("real") or [])]
-                    if not real:
-                        rec(seed_id, "NOT-TESTABLE-HERE", "an in-season, stocked ocean predator of the drawn prey on the roster", ev,
-                            note="the pulled draw needs a roster candidate (the synthetic apexes above are weighed, never drawn)")
-                    else:
-                        key = real[0].get("key")
-                        pids = ",".join(str(int(i)) for i in (P.get("ids") or []) if str(i).lstrip("-").isdigit())
-                        Sd = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
-local preyIds = {{{pids}}}
-local grp, why = sw.ENGINE.draw(cfg, g, {{ ['{key}'] = true }}, nil, 'ocean')
-local out = {{ why = why }}
-if grp then
-  sw.saveGroups(g)
-  out.token, out.pulled, out.n = grp.token, grp.pulled, #grp.ids
-  local R = cfg.water.pull.seek_radius
-  local pp = {{}}
-  for _, id in ipairs(preyIds) do local u = df.unit.find(id); if u and not dfhack.units.isDead(u) then pp[#pp+1] = {{ x = u.pos.x, y = u.pos.y, z = u.pos.z }} end end
-  local maxNear = 0
-  for _, t in ipairs(sw.ENGINE.waterTiles().tiles) do
-    if t.body == 'ocean' then
-      for _, p in ipairs(pp) do
-        if math.max(math.abs(t.x - p.x), math.abs(t.y - p.y), math.abs(t.z - p.z)) <= R then maxNear = math.max(maxNear, t.cdepth or 1); break end
-      end
-    end
-  end
-  out.maxNear, out.R, out.members = maxNear, R, {{}}
-  for _, id in ipairs(grp.ids) do
-    local u = df.unit.find(id)
-    if u then
-      local d = 0; while d < 20 and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z - d) do d = d + 1 end
-      local best = 1e9
-      for _, p in ipairs(pp) do best = math.min(best, math.max(math.abs(p.x - u.pos.x), math.abs(p.y - u.pos.y), math.abs(p.z - u.pos.z))) end
-      out.members[#out.members+1] = {{ id = id, wet = V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z), depth = d, dist = best }}
-    end
-  end
-  local ls = sw.LEDGER.lines(3, 'arrive'); out.ledger = ls[#ls]
+    # ---- v7.1-place (user rulings 2 Oct 2026): the water body registry, the edge/centroid entry, the guard removed
+    cid = "mech.v71.water.bodies"
+    if need(cid, "water", "surface water for the registry to find"):
+        j = luap("""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
+local R = V7.WB.get()
+local okF, found = pcall(V7.WB.found)
+local out = { W = R.W, H = R.H, n = R.n, byType = R.byType, bodies = {}, badCave = {}, why = R.why, stopped = R.stopped and true or false }
+for _, B in ipairs(R.bodies) do
+  out.bodies[#out.bodies+1] = { id = B.id, type = B.type, touches = B.touches and true or false, edge = #B.edge, cols = #B.cols, tiles = B.tiles, cave = B.cave }
+  if B.cave and not (okF and type(found) == 'table' and found[B.cave] == true) then out.badCave[#out.badCave+1] = B.id end
 end
-print(json.encode(out))""", timeout=180)
-                        if bad(Sd):
-                            rec_bad(seed_id, Sd)
-                        elif not Sd.get("token"):
-                            rec(seed_id, "FAIL", "the predator drawn", json.dumps(Sd))
-                        else:
-                            mem = Sd.get("members") or []
-                            lim = (Sd.get("R") or 40) + 6   # ENGINE.RADIUS: the group spreads up to 6 tiles from the seed
-                            ok = (Sd.get("pulled") == "prey" and "seeded by its prey" in str(Sd.get("ledger") or "") and mem
-                                  and all(m.get("wet") and (m.get("dist") or 1e9) <= lim for m in mem)
-                                  and max((m.get("depth") or 0) for m in mem) >= (Sd.get("maxNear") or 0) - 1)
-                            rec(seed_id, "PASS" if ok else "FAIL", "pulled == 'prey'; ledger 'seeded by its prey'; every member wet, near the prey, on the deepest column there (less one)",
-                                json.dumps(Sd)[:1400])
-    # ---- the stranding guard (r2: getBreathingState)
-    cid = "mech.v71.water.guard.recheck"
-    if need(cid, "water", "a water body to draw a fish into") and need(cid, "r2", "getBreathingState in this DFHack"):   # one id: the first missing condition records it
-        gv = cfgv("water.guard.enabled", "water.guard.recheck", "water.guard.passes")
-        if manip(cid, "water.guard on with its re-check", (gv.get("water.guard.enabled") is True and gv.get("water.guard.recheck") is True) or DRY, gv):
-            st = tool("water")
-            body = (_d_bodies() or ["ocean"])[0]
-            j = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
-local out = {{ body = '{body}', candidates = 0, aquatic = 0 }}   -- r2: never an empty object (it encodes as [] and read as 'no JSON')
--- r2: a fish already swimming in a tracked water group first (a seeded school, an earlier draw): a draw depends on this
--- season's deal and the apex limit, and on RinghatchetsReady one run in two drew nothing aquatic. Failing a tracked
--- one, a wild fish DF put in the water is given a water record of its own (the groups snapshot cfg_pop restores drops it)
-for _, grp in ipairs(g.groups) do
-  if not out.id and (grp.layer == 'water' or V7.GRP.wetGroup(grp)) then
-    for _, id in ipairs(grp.ids) do
-      local u = df.unit.find(id)
-      local k = u and not dfhack.units.isDead(u) and dfhack.units.isActive(u) and sw.classify(df.creature_raw.find(u.race))
-      if k and k.habitat == 'aquatic' and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) then out.token = grp.token; out.id = id; out.tracked = true; break end
-    end
-  end
-end
-if not out.id then
-  for _, u in ipairs(df.global.world.units.active) do
-    if not dfhack.units.isDead(u) and sw.WILD.onMap(u) and sw.V7.natural(cfg, u) and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) then
-      local cr = df.creature_raw.find(u.race); local k = cr and sw.classify(cr)
-      if k and k.habitat == 'aquatic' then
-        g.groups[#g.groups + 1] = {{ ids = {{ u.id }}, race = u.race, token = cr.creature_id, layer = 'water', resident = true, arrived = sw.absTick(), validator = true }}
-        sw.saveGroups(g); out.token = cr.creature_id; out.id = u.id; out.wild = true; break
-      end
-    end
-  end
-end
-for _, c in ipairs(out.id and {{}} or sw.ENGINE.candidates(cfg, nil, '{body}', g)) do
-  out.candidates = out.candidates + 1
-  local k = c.craw and sw.classify(c.craw)
-  if k and k.habitat == 'aquatic' then
-    out.aquatic = out.aquatic + 1
-    local only = {{}}; only[c.key] = true
-    local grp = sw.ENGINE.draw(cfg, g, only, nil, '{body}')
-    if grp then sw.saveGroups(g); out.token = grp.token; out.id = grp.ids[1]; break end
-  end
-end
-local u = out.id and df.unit.find(out.id)
-if u then
-  out.from = {{ u.pos.x, u.pos.y, u.pos.z }}
-  -- r2: the bank first (V7.H.bankPair's G: the dry floor beside the water, a level up on DF's banks); the ring search after
-  local G = V7.H.bankPair(u.pos, 15)
-  if G and dfhack.units.teleport(u, xyz2pos(G.x, G.y, G.z)) then out.to = {{ G.x, G.y, G.z }}; out.bank = true end
-  for r = 1, 15 do
-    if out.to then break end
-    for dx = -r, r do for dy = -r, r do
-      if not out.to and (math.abs(dx) == r or math.abs(dy) == r) then
-        for _, dz in ipairs({{ 0, 1 }}) do
-          local x, y, z = u.pos.x + dx, u.pos.y + dy, u.pos.z + dz
-          if not out.to and sw.PLACE.tile(x, y, z, false) and not V7.GRP.wetAt(x, y, z) then
-            if dfhack.units.teleport(u, xyz2pos(x, y, z)) then out.to = {{ x, y, z }} end
-          end
+local ls = sw.LEDGER.lines(6, 'bodies'); out.ledger = ls[#ls]
+print(json.encode(out))""", timeout=240)
+        if bad(j):
+            rec_bad(cid, j)
+        else:
+            bs = j.get("bodies") or []
+            surf = [b for b in bs if b.get("cave") is None]
+            rivers_ok = all(b.get("touches") for b in surf if b.get("type") == "river")
+            types_ok = all(b.get("type") in ("ocean", "lake", "river", "pool", "cavern_pool") for b in bs)
+            ok = bool(surf) and rivers_ok and types_ok and not j.get("badCave") and "water bodies (" in str(j.get("ledger") or "")
+            rec(cid, "PASS" if ok else "FAIL", "surface bodies registered by type, every river at the map edge, cavern pools only in found caverns, a 'bodies' ledger line",
+                json.dumps(j)[:1400])
+    cid = "mech.v71.water.entry"
+    if need(cid, "river_or_lake", "a lake or a river to draw into"):
+        bl = ",".join("'" + b + "'" for b in (_d_bodies() or ["lake", "river"]))
+        j = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7; local cfg=sw.loadConfig(); local g=sw.loadGroups()
+local R = V7.WB.get()
+local out = {{ W = R.W, H = R.H, draws = {{}} }}
+for _, b in ipairs({{{bl}}}) do
+  for k = 1, 2 do
+    local grp, why = sw.ENGINE.draw(cfg, g, nil, nil, b)
+    local d = {{ body = b, why = tostring(why) }}
+    if grp and grp.entry then
+      local B = R.byId[grp.wb]
+      d.token, d.wb, d.n, d.e = grp.token, grp.wb, #grp.ids, grp.entry
+      d.btype, d.bedge, d.btouch = B and B.type, B and #B.edge or -1, B and B.touches and true or false
+      if grp.entry.how == 'centroid' and B then
+        d.rank = -1
+        for i, r in ipairs(V7.WB.nearCentroid(R, B)) do
+          if i > 50 then break end
+          if R.xy[r] == grp.entry.x * 1024 + grp.entry.y then d.rank = i; break end
         end
       end
-    end end
-    if out.to then break end
+      d.bad = 0
+      for _, id in ipairs(grp.ids) do
+        local u = df.unit.find(id)
+        if u then
+          local f = dfhack.maps.getTileFlags(u.pos)
+          local BB = V7.WB.at(R, u.pos.x, u.pos.y, u.pos.z)
+          if not (f and f.flow_size >= 4 and not f.liquid_type and BB and BB.id == grp.wb) then d.bad = d.bad + 1 end
+        end
+      end
+      local ls = sw.LEDGER.lines(4, 'arrive'); d.ledger = ls[#ls]
+    end
+    out.draws[#out.draws + 1] = d
   end
 end
-print(json.encode(out))""", timeout=180)
-            if bad(j):
-                rec_bad(cid, j)
-            elif not j.get("to"):
-                rec(cid, "NOT-TESTABLE-HERE", "a drawn fish set down on dry ground", json.dumps(j),
-                    note=("no aquatic (fish) species was drawable into the " + str(j.get("body")) + " this season" if not j.get("id") else "no dry walkable tile within 15 tiles of the drawn fish")
-                         + "; " + NEED["fish"])
+sw.saveGroups(g)
+print(json.encode(out))""", timeout=300)
+        if bad(j):
+            rec_bad(cid, j)
+        else:
+            W_, H_ = j.get("W") or 0, j.get("H") or 0
+            NOTE_RE = re.compile(r"entered (\w+) #(\d+) (at the map edge|nearest its centroid [\d.]+,[\d.]+): (\d+),(\d+),(\d+) \(level (\d)/7, column depth (\d+)\)")
+            drawn = [d for d in (j.get("draws") or []) if d.get("e")]
+            fails = []
+            for d in drawn:
+                e = d["e"]
+                m = NOTE_RE.search(str(d.get("ledger") or ""))
+                edge = e.get("x") in (0, W_ - 1) or e.get("y") in (0, H_ - 1)
+                if not m: fails.append((d.get("token"), "no entry words in the arrival line"))
+                if (e.get("level") or 0) < 4: fails.append((d.get("token"), "level < 4"))
+                if d.get("bad"): fails.append((d.get("token"), f"{d['bad']} member(s) off a breathable tile of the body"))
+                if d.get("btype") in ("ocean", "river") and d.get("btouch"):
+                    if not (e.get("how") == "edge" and edge): fails.append((d.get("token"), "an ocean/river arrival not on the map edge"))
+                elif (d.get("bedge") or 0) > 0 and e.get("how") == "edge":
+                    if not edge: fails.append((d.get("token"), "'edge' but not on the map edge"))
+                elif e.get("how") == "centroid":
+                    if not (1 <= (d.get("rank") or -1) <= 5): fails.append((d.get("token"), f"centroid entry ranked {d.get('rank')} of the nearest columns"))
+                elif (d.get("bedge") or 0) == 0:
+                    fails.append((d.get("token"), "a body with no breathable edge column entered 'edge'"))
+            if not drawn:
+                rec(cid, "NOT-TESTABLE-HERE", "a group drawn into a lake or river", json.dumps(j)[:900],
+                    note="no water species was drawable into the lake or river this season")
             else:
-                uid = int(j.get("id") or -1)
-                passes = []
-                for _ in range(2):
-                    # r2: the two guard passes back to back -- with DF running between them the pike flopped back into the
-                    # lake by itself (RinghatchetsReady), and there was nothing left for the guard to move
-                    p = luap(f"""local sw=reqscript('seasonal-wildlife'); local V7=sw.V7
-local moved = V7.WAT.guard(sw.loadConfig(), sw.loadGroups())
-local u = df.unit.find({uid})
-local ok, s = false, nil
-if u then ok, s = V7.WAT.breathOk(u) end
-print(json.encode({{moved=moved, wet=u and V7.GRP.wetAt(u.pos.x, u.pos.y, u.pos.z) or false, dead=u and dfhack.units.isDead(u) or false, breath=s}}))""")
-                    passes.append(p)
-                    if isinstance(p, dict) and p.get("wet"):
-                        break
-                led = luap("local sw=reqscript('seasonal-wildlife'); local ls=sw.LEDGER.lines(8,'strand'); print(json.encode({lines=ls}))")
-                lines = [str(x) for x in ((led.get("lines") if isinstance(led, dict) else None) or [])]
-                hit = [l for l in lines if f"#{uid} " in l and "moved" in l and "not moved" not in l]
-                ok = "via getBreathingState" in st and bool(passes) and isinstance(passes[-1], dict) and passes[-1].get("wet") and bool(hit)
-                rec(cid, "PASS" if ok else "FAIL", "status 'via getBreathingState'; the stranded fish back in water within two passes; a strand ... moved ledger line",
-                    json.dumps({"placed": j, "passes": passes, "strand": hit or lines[-3:]}) + "\n" + st[-400:])
+                rec(cid, "PASS" if not fails else "FAIL", "entry words on every arrival; level >= 4; ocean/river on the map edge; lake/pool edge else nearest its centroid; members in the body",
+                    json.dumps({"fails": fails, "draws": drawn})[:1500])
+    cid = "mech.v71.water.guard.removed"
+    out = tool("water", "guard")
+    gv = luap("local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); print(json.encode({guard=c.water.guard ~= nil, fn=sw.V7.WAT.guard ~= nil, seek=c.water.pull.seek ~= nil}))")
+    if bad(gv):
+        rec_bad(cid, gv)
+    else:
+        ok = ("removed" in out or DRY) and not gv.get("guard") and not gv.get("fn") and not gv.get("seek")
+        rec(cid, "PASS" if ok else "FAIL", "`water guard` says removed; no water.guard or pull.seek in the config; no V7.WAT.guard", out[:300] + "\n" + json.dumps(gv))
     # ---- R45: the retry back-off (a cloned groups record, a config where nothing is allowed)
     cid = "mech.v71.water.retry"
     if need(cid, "water", "a water body whose draw can come up empty"):
@@ -7724,6 +7685,9 @@ def main():
     seen = {r["id"] for r in results}
     for c in CLAIMS:
         if c[0] not in seen and not a.only:
+            if c[4].startswith("retired"):   # v7.1-place: a removed feature's claim keeps its row, never a check
+                rec(c[0], "NOT-TESTABLE-HERE", "nothing: the feature is removed", "", note=f"{c[4]}: removed from the tool (user ruling 2 Oct 2026); kept in the register for the record")
+                continue
             rec(c[0], "NOT-TESTABLE-HERE", "a check reached this claim", "", note="no check ran for this claim in this session")
     (OUT / "results.json").write_text(json.dumps(results, indent=1))
     (OUT / "v71-todo.json").write_text(json.dumps(V71_TODO, indent=1))
