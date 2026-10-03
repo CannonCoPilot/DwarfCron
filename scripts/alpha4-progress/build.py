@@ -194,7 +194,7 @@ PENDING = [
     ]),
     ("Final rounds", [
         "A full Alpha Four regression round on the final build.",
-        "A web companion re-run, and the Chrome pass of every tab.",
+        "Merge v7.1-web2 (52f6566) into the release candidate; a 5-min live re-time of /state.json (now carries every creature's glyph), then the Chrome pass of every tab.",
     ]),
     ("Release and pages", [
         "Merge v7.1-rc into v7.1, push, release notes.",
