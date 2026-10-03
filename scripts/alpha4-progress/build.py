@@ -73,7 +73,8 @@ SINCE = {
     7: ("done", "Both halves confirmed.", "Nothing."),
     8: ("partial", "VF4 tallied: too few fish vermin near the bank to read (1-3 per cell; forage on 5 to 3, off 7 to 8 "
         "summed over 5 cells). VF1 re-designed with a gobble receipt; runs in the RC chain.",
-        "VF1 result from the chain. VF4 PENDING (inconclusive: too few fish vermin), not re-run this round."),
+        "VF1 PENDING: it aborted at its gobble receipt in the RC chain (no meal recorded, eats = 0), so it was skipped, not "
+        "re-fixed. VF4 PENDING (inconclusive: too few fish vermin). Neither is re-run this round."),
     9: ("explained", "No defect. Apex presence 0.17 is what a one-month run predicts (expected 0.17, none placed in 0.48 of "
         "runs). The carnivore share read 0.05 because 93% of 'land' units were ravens from the flying pool.",
         "S7_NAT on the release candidate: apex presence 0.11 v 0 without the tool (p = 0.048); carnivore share 0.036 v "
