@@ -868,8 +868,17 @@ def row6():
                 say(f"    {arm} rep {rep}: raw cluster range (min,max) {rng}; capped {capped}; irruption wave sizes {sorted(set(irr))}; "
                     f"natural group sizes at the end {gs[-1].get('sizes') if gs else '-'}")
         OUT["irrr35"] = {a: v for a, v in big.items()}
-        say(f"    largest natural group per cell: {dict(big)} -- the raw's own max is 5 = groups.apcap, so the cap never binds "
-            f"(capped 0 in every sample): R35's lever is vacuous on PLUMP_HELMET_MAN at apcap 5")
+        qcap = [d for rep in r35.reps("quiet") for d in r35.rows("quiet", rep, "apraw")] if "quiet" in r35.arms() else []
+        bound = any(d.get("capped") == "1" for d in qcap)
+        OUT["irrr35_bound"] = bound
+        if bound:
+            over = sum(1 for x in big.get("quiet", []) if x > 2)
+            say(f"    largest natural group per cell: {dict(big)} -- the cap binds in the quiet arm (raw range capped, capped=1) "
+                f"and is lifted while irrupting (capped 0, waves above it); quiet cells with a group over the cap: {over} "
+                f"(likely two draws counted as one tool group, trap 11)")
+        else:
+            say(f"    largest natural group per cell: {dict(big)} -- the raw's own max equals groups.apcap, so the cap never binds "
+                f"(capped 0 in every sample): R35's lever is vacuous here")
     masks_ok = cr[1] > 0 and mi[1] > 0 and cr[0] / cr[1] >= 0.95 and mi[0] / mi[1] >= 0.95
     verdict(6, "CONFIRMED (cache, sneak, masks)" if masks_ok else "PARTLY CONFIRMED; CRAZED/MISCHIEVOUS NOT CONFIRMED",
             f"cache writes (THIEF/MEANDER: CURIOUS_BEAST*, MEANDERER) stick and stay on the subjects only (M3); SNEAK hides "

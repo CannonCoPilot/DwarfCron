@@ -68,7 +68,8 @@ SINCE = {
         "people (closest 26-79 tiles, were 124+), but the R10 package moves them no closer than plain irruption (143 v 142 "
         "tiles, p = 0.91). The block's three bait dwarves in the band were killed by cavern natives in every arm, the "
         "no-irruption arm included (5 / 6 / 11 deaths in A / B / C over 5 runs), so that is the fort, not the tool.",
-        "IRRR35 (cap 2) runs now."),
+        "Nothing for the core check. IRRR35 on the release candidate (cap 2): the cap binds while quiet (raw capped to 2, "
+        "natural groups 1-2 in 4 of 5 runs, one group of 3) and is lifted during an irruption (waves of 10)."),
     7: ("done", "Both halves confirmed.", "Nothing."),
     8: ("partial", "VF4 tallied: too few fish vermin near the bank to read (1-3 per cell; forage on 5 to 3, off 7 to 8 "
         "summed over 5 cells). VF1 re-designed with a gobble receipt; runs in the RC chain.",
