@@ -44,3 +44,15 @@ Build: agent on branch v7.1-bed (bed painter layer). Probe: scripts/oneoff/aq-sh
     (shot 20261002-233123-look/shots/clear-433-606-z111-on.png), and the bed's colours were wrong since d900381 (the
     'grey stone'). Desk previews decode the same wrong order, so they looked right. Fixed 924d2b6: makeTile byte-swaps
     at the DF boundary; harness/preview stubs now model DF's order.
+
+## 3 Oct 00:00-09:20 (v1 per the user's priorities; rc 24ceca2/5f7404c)
+14. USER PRIORITIES (2 Oct late): v1 = see-through water (sand bed ocean, mud fresh) + creatures below the view tinted per
+    level; v2 = subtle ocean crests from DF's waves + DF mist on the dry ocean edge; v3 = flow streaks / shimmer (now OFF).
+15. Script bed v1 on the rig (40x23 view): ocean z111/z112 see-through over sand, paint 0.05 ms, no fuse
+    (20261003-001452-look). But single opaque cells remain at the beach level, and on AQUA_LAKE's river bank (z56) a
+    diagonal checker of unlifted cells; the user sees water 'clip in and out' when scrolling (stale per-view plan).
+16. RAWS BAKE TEST (20261003-091205-bake): DF's sand_floor tile composited UNDER each of the mod's UNDERWATER tiles
+    (opaque) -> at the water level the sea shows sand through water with NO script at all. From one level up DF still
+    draws the vanilla opaque teal (raws never reach lower viewports). USER CHOSE: bake sand into all standing water
+    (ocean/lake/pool/cavern share UNDERWATER_1..7); rivers/brooks mud via RIVER_BED_*/BROOK_BED_*. Script shrinks to
+    the from-above lift (liquid flag + creatures + fog), rebuilt in the frame the view moves.
