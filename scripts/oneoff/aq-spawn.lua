@@ -1,8 +1,10 @@
 -- Test-only spawner for the aquarium look tests (3 Oct 2026; not product code). Puts swimmers at EVERY water level in
 -- view of the fort: for each z with water of the asked kind, N_PER_Z units at random cells with flow >= 4, cycling a
--- species list. Prepend `ARGS = { salt = true|false, per_z = 12, species = { 'FISH_HAKE', ... }, zmin = 0, zmax = 999 }`.
--- Placement = dfhack.units.create + the documented writes (memory: headless-unit-placement); no population ref (these
--- are props for screenshots, not managed wildlife).
+-- species list. Prepend `ARGS = { salt = true|false, per_z = 12, species = { 'FISH_HAKE', ... }, zmin = 0, zmax = 999,
+-- box = { x0, y0, x1, y1 } (optional map rectangle) }`.
+-- Placement = dfhack.units.create + the documented writes (memory: headless-unit-placement). The population reference is
+-- BORROWED from any wild unit on the map: without one a placed wild animal never moves (rig, 3 Oct: 30/30 cod moved
+-- with a borrowed ref, 0/30 hake with only the flags2 clears; plugin-log E7). These are test props, not managed wildlife.
 local ok, err = pcall(function()
     local A = ARGS or {}
     local per = A.per_z or 12
@@ -13,6 +15,11 @@ local ok, err = pcall(function()
         end
     end
     if #races == 0 then print('no species found'); return end
+    local ref
+    for _, u in ipairs(df.global.world.units.active) do
+        if u.animal.population.region_x >= 0 then ref = u.animal.population; break end
+    end
+    if not ref then print('no wild unit to borrow a population reference from: spawned units would never move'); return end
     -- water cells by z, from the map blocks (one pass)
     local cells = {}
     for _, b in ipairs(df.global.world.map.map_blocks) do
@@ -20,7 +27,9 @@ local ok, err = pcall(function()
         if z >= (A.zmin or 0) and z <= (A.zmax or 999) then
             for x = 0, 15 do for y = 0, 15 do
                 local d = b.designation[x][y]
-                if d.flow_size >= 4 and not d.liquid_type and (A.salt == nil or d.water_salt == A.salt) and not b.occupancy[x][y].unit then
+                local bx, by = b.map_pos.x + x, b.map_pos.y + y
+                local inbox = not A.box or (bx >= A.box[1] and by >= A.box[2] and bx <= A.box[3] and by <= A.box[4])
+                if inbox and d.flow_size >= 4 and not d.liquid_type and (A.salt == nil or d.water_salt == A.salt) and not b.occupancy[x][y].unit then
                     local t = cells[z] or {}; cells[z] = t
                     t[#t + 1] = { b.map_pos.x + x, b.map_pos.y + y, z, b, x, y }
                 end
@@ -39,7 +48,10 @@ local ok, err = pcall(function()
             local R = races[(k - 1) % #races + 1]
             local u = dfhack.units.create(R.i, math.random(0, R.n - 1))
             if u then
+                u.animal.population:assign(ref)
                 u.animal.leave_countdown = 400000
+                u.flags2.roaming_wilderness_population_source = false
+                u.flags2.roaming_wilderness_population_source_not_a_map_feature = false
                 u.pos:assign(xyz2pos(c[1], c[2], c[3])); u.idle_area:assign(u.pos)
                 df.global.world.units.active:insert('#', u)
                 c[4].occupancy[c[5]][c[6]].unit = true
