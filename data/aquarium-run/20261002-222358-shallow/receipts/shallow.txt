@@ -1,0 +1,124 @@
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh title
+[stderr] [cx-lifecycle] back at the title screen
+[rc=0 7.7s]
+$ cx-lifecycle.sh save-restore AQUA_LAKE.preverify
+[stderr] [cx-lifecycle] restored AQUA_LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/AQUA_LAKE
+[rc=0 0.7s]
+$ cx-lifecycle.sh load AQUA_LAKE
+[stderr] [cx-lifecycle] clicked through to AQUA_LAKE (world: Camade Mare); waiting for the map
+[cx-lifecycle] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107)
+[rc=0 21.3s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.2s]
+$ cx-lifecycle.sh popups
+[stderr] [cx-lifecycle] drained 0 queued popup(s)
+[rc=0 0.1s]
+$ cx-lifecycle.sh pause
+paused=true tick=16810
+[rc=0 0.1s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh cmd seasonal-wildlife aquarium install vanilla
+Aquarium mod written: C:/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/mods/seasonal_wildlife_aquarium
+  preset vanilla (alpha 255 255 255 255 230 204 179 for tile water level 7..1; flows x1.00; mist x1.00), 10 files in 2.3 s
+  refreshed the copy worlds made with the mod load: C:/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/data/installed_mods/seasonal_wildlife_aquarium (1) (10 files)
+  This world already uses the mod: save, quit to the title and load it again to see the new look.
+[rc=0 2.4s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh title
+[stderr] [cx-lifecycle] back at the title screen
+[rc=0 7.8s]
+$ cx-lifecycle.sh save-restore AQUA_LAKE.preverify
+[stderr] [cx-lifecycle] restored AQUA_LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/AQUA_LAKE
+[rc=0 0.7s]
+$ cx-lifecycle.sh load AQUA_LAKE
+[stderr] [cx-lifecycle] clicked through to AQUA_LAKE (world: Camade Mare); waiting for the map
+[cx-lifecycle] loaded after 12s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107)
+[rc=0 21.3s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.2s]
+$ cx-lifecycle.sh popups
+[stderr] [cx-lifecycle] drained 0 queued popup(s)
+[rc=0 0.1s]
+$ cx-lifecycle.sh pause
+paused=true tick=16810
+[rc=0 0.1s]
+$ cx-lifecycle.sh lua "-- AQ:find-shallow\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\nlocal M = df.global.world.map\nlocal W, H, Z = M.x_count, M.y_count, M.z_count\nlocal function water(x, y, z)\n  local d = dfhack.maps.getTileFlags(x, y, z); if not d then return 0 end\n  if d.liquid_type then return 0 end   -- magma\n  return d.flow_size\nend\nlocal function shape(x, y, z)\n  local tt = dfhack.maps.getTileTyp..."
+AQJ {"deep":[[115,242,55,7],[115,245,55,7],[115,248,55,7],[115,251,55,7],[115,254,55,7],[115,257,55,7],[115,260,55,7],[115,263,55,7],[118,251,55,7],[118,254,55,7]],"lower":8,"shallow":[[40,164,55,7,0],[46,161,55,7,0],[49,158,55,7,0],[49,161,55,7,0],[49,164,55,7,0],[52,161,55,7,0],[52,164,55,7,0],[52,173,55,7,0],[55,155,55,7,0],[55,161,55,7,0],[55,176,55,7,0],[55,179,55,7,0],[55,182,55,7,0],[55,248,55,7,0],[55,251,55,7,0],[55,254,55,7,0],[55,311,55,7,0],[58,158,55,7,0],[58,161,55,7,0],[58,167,55,7,0],[58,176,55,7,0],[58,179,55,7,0],[58,197,55,7,0],[58,233,55,7,0],[58,248,55,7,0],[58,251,55,7,0],[58,254,55,7,0],[58,308,55,7,0],[61,161,55,7,0],[61,167,55,7,0],[61,170,55,7,0],[61,173,55,7,0],[61,176,55,7,0],[61,179,55,7,0],[61,182,55,7,0],[61,200,55,7,0],[61,203,55,7,0],[61,206,55,7,0],[61,209,55,7,0],[61,212,55,7,0]]}
+[rc=0 2.9s]
+$ cx-lifecycle.sh lua "-- AQ:centre\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\ndfhack.gui.revealInDwarfmodeMap(40, 164, 55, true)\ndf.global.window_z = 55\nlocal mv = df.global.gps.main_viewport\nreturn { wx = df.global.window_x, wy = df.global.window_y, wz = df.global.window_z, dim_x = mv.dim_x, dim_y = mv.dim_y }\n\nend)\nif ok then print('AQJ ' .. json.encode(r, { pretty = false })) else print('AQERR ' ....."
+AQJ {"dim_x":40,"dim_y":23,"wx":20,"wy":153,"wz":55}
+[rc=0 0.1s]
+$ cx-lifecycle.sh lua "-- AQ:geom\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\nlocal g = df.global.gps; local mv = g.main_viewport\nlocal lower = -1\npcall(function() lower = df.global.d_init.display.number_of_lower_elevations_shown end)\nreturn { wx = df.global.window_x, wy = df.global.window_y, wz = df.global.window_z, dim_x = mv.dim_x, dim_y = mv.dim_y,\n  spx = g.screen_pixel_x, spy = g.screen_pixel_y, z..."
+AQJ {"dim_x":40,"dim_y":23,"gm":true,"lower":8,"mx":384,"my":384,"mz":73,"paused":true,"spx":1920,"spy":1080,"tick":16810,"wx":20,"wy":153,"wz":55,"zoom":192}
+[rc=0 0.1s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.2s]
+$ cx-lifecycle.sh title
+[stderr] [cx-lifecycle] back at the title screen
+[rc=0 7.8s]
+$ cx-lifecycle.sh save-restore AQUA_LAKE.preverify
+[stderr] [cx-lifecycle] restored AQUA_LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/AQUA_LAKE
+[rc=0 0.6s]
+$ cx-lifecycle.sh load AQUA_LAKE
+[stderr] [cx-lifecycle] clicked through to AQUA_LAKE (world: Camade Mare); waiting for the map
+[cx-lifecycle] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107)
+[rc=0 21.8s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh popups
+[stderr] [cx-lifecycle] drained 0 queued popup(s)
+[rc=0 0.1s]
+$ cx-lifecycle.sh pause
+paused=true tick=16810
+[rc=0 0.1s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh cmd seasonal-wildlife aquarium install clear
+Aquarium mod written: C:/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/mods/seasonal_wildlife_aquarium
+  preset clear (alpha 105 95 85 75 65 58 50 for tile water level 7..1; flows x0.50; mist x0.60), 10 files in 2.3 s
+  refreshed the copy worlds made with the mod load: C:/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/data/installed_mods/seasonal_wildlife_aquarium (1) (10 files)
+  This world already uses the mod: save, quit to the title and load it again to see the new look.
+[rc=0 2.4s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh title
+[stderr] [cx-lifecycle] back at the title screen
+[rc=0 7.7s]
+$ cx-lifecycle.sh save-restore AQUA_LAKE.preverify
+[stderr] [cx-lifecycle] restored AQUA_LAKE.preverify -> /Users/nathanielcannon/Library/Application Support/CrossOver/Bottles/Win10/drive_c/users/crossover/AppData/Roaming/Bay 12 Games/Dwarf Fortress/save/AQUA_LAKE
+[rc=0 0.6s]
+$ cx-lifecycle.sh load AQUA_LAKE
+[stderr] [cx-lifecycle] clicked through to AQUA_LAKE (world: Camade Mare); waiting for the map
+[cx-lifecycle] loaded after 15s (screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107)
+[rc=0 22.8s]
+$ cx-lifecycle.sh state
+screen=viewscreen_dwarfmodest focus=dwarfmode/Default world=true map=true paused=true modal=false year=100 tick=16810 season=0 units=107
+[rc=0 0.1s]
+$ cx-lifecycle.sh popups
+[stderr] [cx-lifecycle] drained 0 queued popup(s)
+[rc=0 0.1s]
+$ cx-lifecycle.sh pause
+paused=true tick=16810
+[rc=0 0.1s]
+$ cx-lifecycle.sh lua "-- AQ:find-shallow\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\nlocal M = df.global.world.map\nlocal W, H, Z = M.x_count, M.y_count, M.z_count\nlocal function water(x, y, z)\n  local d = dfhack.maps.getTileFlags(x, y, z); if not d then return 0 end\n  if d.liquid_type then return 0 end   -- magma\n  return d.flow_size\nend\nlocal function shape(x, y, z)\n  local tt = dfhack.maps.getTileTyp..."
+AQJ {"deep":[[115,242,55,7],[115,245,55,7],[115,248,55,7],[115,251,55,7],[115,254,55,7],[115,257,55,7],[115,260,55,7],[115,263,55,7],[118,251,55,7],[118,254,55,7]],"lower":8,"shallow":[[40,164,55,7,0],[46,161,55,7,0],[49,158,55,7,0],[49,161,55,7,0],[49,164,55,7,0],[52,161,55,7,0],[52,164,55,7,0],[52,173,55,7,0],[55,155,55,7,0],[55,161,55,7,0],[55,176,55,7,0],[55,179,55,7,0],[55,182,55,7,0],[55,248,55,7,0],[55,251,55,7,0],[55,254,55,7,0],[55,311,55,7,0],[58,158,55,7,0],[58,161,55,7,0],[58,167,55,7,0],[58,176,55,7,0],[58,179,55,7,0],[58,197,55,7,0],[58,233,55,7,0],[58,248,55,7,0],[58,251,55,7,0],[58,254,55,7,0],[58,308,55,7,0],[61,161,55,7,0],[61,167,55,7,0],[61,170,55,7,0],[61,173,55,7,0],[61,176,55,7,0],[61,179,55,7,0],[61,182,55,7,0],[61,200,55,7,0],[61,203,55,7,0],[61,206,55,7,0],[61,209,55,7,0],[61,212,55,7,0]]}
+[rc=0 2.5s]
+$ cx-lifecycle.sh lua "-- AQ:centre\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\ndfhack.gui.revealInDwarfmodeMap(40, 164, 55, true)\ndf.global.window_z = 55\nlocal mv = df.global.gps.main_viewport\nreturn { wx = df.global.window_x, wy = df.global.window_y, wz = df.global.window_z, dim_x = mv.dim_x, dim_y = mv.dim_y }\n\nend)\nif ok then print('AQJ ' .. json.encode(r, { pretty = false })) else print('AQERR ' ....."
+AQJ {"dim_x":40,"dim_y":23,"wx":20,"wy":153,"wz":55}
+[rc=0 0.1s]
+$ cx-lifecycle.sh lua "-- AQ:geom\nlocal json = require('json')\nlocal ok, r = pcall(function()\n\nlocal g = df.global.gps; local mv = g.main_viewport\nlocal lower = -1\npcall(function() lower = df.global.d_init.display.number_of_lower_elevations_shown end)\nreturn { wx = df.global.window_x, wy = df.global.window_y, wz = df.global.window_z, dim_x = mv.dim_x, dim_y = mv.dim_y,\n  spx = g.screen_pixel_x, spy = g.screen_pixel_y, z..."
+AQJ {"dim_x":40,"dim_y":23,"gm":true,"lower":8,"mx":384,"my":384,"mz":73,"paused":true,"spx":1920,"spy":1080,"tick":16810,"wx":20,"wy":153,"wz":55,"zoom":192}
+[rc=0 0.1s]
