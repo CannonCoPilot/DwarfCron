@@ -30,3 +30,17 @@ Build: agent on branch v7.1-bed (bed painter layer). Probe: scripts/oneoff/aq-sh
 10. No river animation in DF 53.16 fortress mode, vanilla included: river cells with perm_flow_dir ~= 0 (RinghatchetsReady
     12,175,55; AQUA_LAKE ~40,000 tiles) carry liquid_flag 0x3c; unpaused 6-frame bursts change 0 map pixels in both worlds.
     Water motion (flow streaks, shimmer) must be drawn by the tool (v7.1-waves phase 2).
+
+## 23:20-23:50 (AQUA_SHORE16; rc 8648530 -> eddaf21 -> 4ab50cc/077b433 -> 924d2b6)
+11. DF keeps every wave front and OceanWave flow on the OPEN level above the sea (probe: 622 fronts all at z112; sea
+    water at z111). Waves 'water cells only' classed them as land -> nothing drawn at either level. Fixed eddaf21 (sea =
+    water at z, or open over water 1-2 down; fronts read from z-1..z+1): next run painted 217-400 cells, crests merged.
+12. Bed lift paint 2.37 ms avg (821 cells x ~9 viewport accesses) fused at the 2 ms budget; 6000 lifted cells at a wide
+    view = 8.4 ms. ~0.32 us per userdata access on the rig (~9x desk Lua). Fixed bf8d79a: per-scan plan, 2 writes/cell,
+    sentinels, swimmers only near units; fail-soft degrade steps before the fuse.
+13. PIXEL ORDER: DFHack r2 Textures::createTile builds an SDL_PIXELFORMAT_RGBA32 surface from the uint32 vector (R at
+    the lowest address) -> on the little-endian host a pixel is 0xAABBGGRR. The aquarium packed 0xRRGGBBAA everywhere,
+    so every run-time sprite had its channels scrambled: pale crests/shimmer/surf at alpha 40-70 drew as OPAQUE CYAN
+    (shot 20261002-233123-look/shots/clear-433-606-z111-on.png), and the bed's colours were wrong since d900381 (the
+    'grey stone'). Desk previews decode the same wrong order, so they looked right. Fixed 924d2b6: makeTile byte-swaps
+    at the DF boundary; harness/preview stubs now model DF's order.
