@@ -56,3 +56,18 @@ Build: agent on branch v7.1-bed (bed painter layer). Probe: scripts/oneoff/aq-sh
     draws the vanilla opaque teal (raws never reach lower viewports). USER CHOSE: bake sand into all standing water
     (ocean/lake/pool/cavern share UNDERWATER_1..7); rivers/brooks mud via RIVER_BED_*/BROOK_BED_*. Script shrinks to
     the from-above lift (liquid flag + creatures + fog), rebuilt in the frame the view moves.
+
+## 3 Oct 09:40-11:15 (raws-first v1 on the rig; rc 99fd6dd -> 4dfe9b7)
+17. Bake works with the lift: ocean z111/z112 and the scroll bursts (window_x += 3 per shot) show no clipping.
+18. Rivers carry the liquid flag, so DF draws the baked UNDERWATER sand on rivers; RIVER_BED_* never shows under water.
+    Rivers now get a mud-under-water page (sw_aq_river.png, loaded with dfhack.textures.loadTileset) painted into the
+    background per frame for river cells (perm_flow_dir) with the liquid flag cleared; creatures stay on top.
+19. loadTileset returns 0 tiles for a path with a doubled slash ('.../(1)//graphics/...'), and the tool cached the failure:
+    the river override silently never ran (fixed 5ea76ae: clean join, retry a failure every 10 s).
+20. PALE SQUARES = DF's background_two: on cells over water one level down (ramp tops, open space over the river or the
+    sea) DF draws a sprite in screentexpos_background_two (river bed art 34190/34196; ramp/shore 34850..34854) that sits
+    over the water tile. Clearing bg2 on lifted and river cells removed every pale square (4c60181 rivers, 4dfe9b7 lift).
+    Also: ramp tops count as open (be0771f); shallow river water in open space/ramp top draws as full river (47e9d64).
+21. v1 PASS on the rig (40x23 view, preset aquarium): ocean z111/z112 sand through water, no squares; AQUA_LAKE river
+    z55 mud under water with fish, z56 continuous lifted river with fish below visible; scrolling clean.
+    Open taste point: the water over mud reads olive-green (river page at 70% of the preset's alpha).

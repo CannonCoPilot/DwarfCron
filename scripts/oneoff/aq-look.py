@@ -22,6 +22,17 @@ def say(tag, *words):
     return out
 
 
+def set_zoom(dim_x):
+    """Press DF's zoom keys until the main viewport is about dim_x cells wide (each load keeps DF's last zoom)."""
+    for _ in range(12):
+        G = A.geom() or {}
+        cur = G.get("dim_x") or 0
+        if not cur or abs(cur - dim_x) <= 4: break
+        A.cx("key", "ZOOM_IN" if cur > dim_x else "ZOOM_OUT"); A.nap(0.4)
+    G = A.geom() or {}
+    A.log(f"  zoom: view {G.get('dim_x')}x{G.get('dim_y')} (asked {dim_x} wide)")
+
+
 def main():
     fort, presets, views = sys.argv[1], sys.argv[2].split(","), [tuple(int(v) for v in s.split(",")) for s in sys.argv[3:]]
     for p in presets:
@@ -30,8 +41,11 @@ def main():
         A.log(f"preset {p} installed ok={ok}")
         if not A.load_fort(fort, f"(reload so DF reads the {p} pages)"): return 1
         A.cx("step", "2000", "300"); A.cx("pause")
+        set_zoom(int(os.environ.get("AQ_ZOOM", "40")))
         if os.environ.get("AQ_BUDGET"):   # look test only: let the bed run past its 2 ms fuse so the look can be judged
             say("budget", "budget", os.environ["AQ_BUDGET"]); say("rearm", "rearm")
+        if os.environ.get("AQ_V1"):   # v1 look (user priorities 2 Oct): transparency + bed + creatures below; no v3 overlays
+            say("v1", "streaks", "off"); say("v1", "shimmer", "off")
         say("status", "status")
         for (x, y, z) in views:
             tag = f"{p}-{x}-{y}-z{z}"
@@ -46,6 +60,11 @@ def main():
             A.cx("unpause"); A.burst(f"{tag}-run", 6, 0.25, G); A.cx("pause")
             say(tag, "status")
             if os.environ.get("AQ_BUDGET"): say(tag, "rearm")
+            if os.environ.get("AQ_SCROLL"):   # the user's WASD clipping: shift the view 3 cells between shots, no pause
+                for i in range(8):
+                    A.cx("lua", "df.global.window_x = df.global.window_x + 3")
+                    A.shot(f"{tag}-scroll{i + 1}", G)
+                A.centre(x, y, z)
     A.log(f"DONE -> {A.OUT}")
     return 0
 
