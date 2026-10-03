@@ -297,6 +297,25 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - `shimmer on|off|ALPHA`, `streaks on|off|ALPHA`; status line `bodies sea= lake= river= (with current) cavern=;
   motion … runs= drawn=`.
 
+### E20. Starts by itself; a crash on map load; regression; the release package (plugin e0ff17a, package 74f23fb4)
+- **Want.** `enable aquarium` alone drew nothing after a load: depth went off on unload and had to be turned on by
+  hand. Now a remembered choice (`depth off` clears it) turns depth on when the plugin is enabled with a map loaded,
+  and after every map load.
+- **Crash (17:38, crashlog empty).** The first build started depth inside `SC_MAP_LOADED`. Starting it meant
+  looking up tiles and deleting and remaking the mud texture while DF was still loading its own textures (both push
+  onto `enabler->textures.raws`). The game hung on the load and wrote a crash log.
+- **Fix.** The map-load start is deferred to the first `plugin_onupdate` after the load. The mud tile is made once
+  per process and its texpos re-read through the handle each time. Verified: enable at the title, then AQS_PELAGIC →
+  AQS_RIVER → AQS_PELAGIC. Depth came on by itself each time with no crash, and the mud texpos was re-resolved
+  (167669, 167789, 167838).
+- **Regression (AQS_PELAGIC).** Pop probe, 400 frames over 6 z transitions (z121-123) and 4 fast pans: 0 frames
+  with DF's sheet, 0 without the underlay. Look (e20-ocean-pair): straight surf along the beach, translucent water
+  over sand slopes, pelagics at every depth. Bodies: sea 798, so no shimmer runs on the sea.
+- **Package.** `scripts/package.sh` refuses a dirty tree, rebuilds, checks that the dll names 53.16-r2, and zips
+  `hack/plugins/aquarium.plug.dll` + README (requirements, install, persistence via `dfhack.init`, commands, cost,
+  uninstall) + SHA256SUMS into `dist/aquarium-plugin-dfhack-53.16-r2-<commit>.zip`. The packaged dll is
+  byte-identical to the one validated on the rig (cmp), and it is running there now.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -318,5 +337,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Still open:** diagonal coasts get short slanted strokes rather than a joined line; package the plugin for release
-(a dll built against DFHack 53.16-r2 only: it must be rebuilt for every DFHack release).
+**Packaged (E20):** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-74f23fb4.zip`.
+**Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
+53.16-r2 and must be rebuilt for each DFHack release.
