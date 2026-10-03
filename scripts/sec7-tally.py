@@ -768,7 +768,8 @@ def row6():
         say(f"              resid at the end (mask, cache, units, active events) {r['resid']}; phase at t3000 {r['phase_end']}; "
             f"subjects dead (max) {r['dead']}")
         if arm == "crazed":
-            say(f"              M1 after save/reload: {r['reload']} ; +300 t {r['reload300']}")
+            r3 = r['reload300'] if any(r['reload300']) else "not sampled (no reload300 rows; the t-series after the reload carries the mask)"
+            say(f"              M1 after save/reload: {r['reload']} ; +300 t {r3}")
         if arm == "thief":
             say(f"              M3 natives outside the event (unit cache / caste): {r['native'][:1]}")
     OUT["irrm"] = {a: {k: [list(x) if isinstance(x, tuple) else (dict(x) if isinstance(x, Counter) else x) for x in v]
@@ -869,10 +870,12 @@ def row6():
         OUT["irrr35"] = {a: v for a, v in big.items()}
         say(f"    largest natural group per cell: {dict(big)} -- the raw's own max is 5 = groups.apcap, so the cap never binds "
             f"(capped 0 in every sample): R35's lever is vacuous on PLUMP_HELMET_MAN at apcap 5")
-    verdict(6, "PARTLY CONFIRMED; CRAZED/MISCHIEVOUS NOT CONFIRMED",
+    masks_ok = cr[1] > 0 and mi[1] > 0 and cr[0] / cr[1] >= 0.95 and mi[0] / mi[1] >= 0.95
+    verdict(6, "CONFIRMED (cache, sneak, masks)" if masks_ok else "PARTLY CONFIRMED; CRAZED/MISCHIEVOUS NOT CONFIRMED",
             f"cache writes (THIEF/MEANDER: CURIOUS_BEAST*, MEANDERER) stick and stay on the subjects only (M3); SNEAK hides "
-            f"(p={hid['p']:.3f}); every route leaves 0 residue; but the CRAZED mask read 1 in {cr[0]}/{cr[1]} unit-samples "
-            f"and MISCHIEVOUS in {mi[0]}/{mi[1]}: DF clears uwss_add_caste_flag, reassert or not")
+            f"(p={hid['p']:.3f}); goal-only steal goal p={go['p']:.3f}; the CRAZED mask read 1 in {cr[0]}/{cr[1]} unit-samples "
+            f"and MISCHIEVOUS in {mi[0]}/{mi[1]}" + (" (the wound carrier holds them, incl. through save/reload)" if masks_ok
+            else ": DF clears uwss_add_caste_flag, reassert or not"))
 
 
 # ---------------------------------------------------------------------------------------- 7. scavenging --

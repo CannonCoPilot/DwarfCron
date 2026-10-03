@@ -62,10 +62,13 @@ SINCE = {
         "it was skipped, not re-fixed. The trim_gated rig check waits on the same harness fix, after this round."),
     5: ("open", "No detectable scatter from a lost leader at n = 5 (25.9 v 20.7 tiles, p = 0.33).",
         "Decide: a larger n, a different measure (time to regroup), or accept as no effect."),
-    6: ("fixed", "CRAZED / MISCHIEVOUS / NOFEAR never stuck: DF rebuilds those flags from wounds. 594cc9d carries them on a "
-        "body-less wound (save-safe, default) or a runtime syndrome. Irruptions now admit out-of-season civ races (69e97a1). "
-        "R35 cap set to 2 so it bites.", "Rig check that the flags read 1 after 20 t, survive save + reload, and read 0 after "
-        "the end. IRRM / IRRP2 / IRRR35 re-run in the RC chain."),
+    6: ("done", "Fixed and confirmed on the release candidate (IRRM): the CRAZED mask read 1 in 902/902 unit-samples and "
+        "MISCHIEVOUS in 277/277 (were 0/556 and 6/319), and CRAZED held through save and reload in 5/5. SNEAK hides 100% "
+        "(p = 0.008); the goal-only steal goal now shows (20% v 0, p = 0.008). IRRP2: the subjects now reach the fort's "
+        "people (closest 26-79 tiles, were 124+), but the R10 package moves them no closer than plain irruption (143 v 142 "
+        "tiles, p = 0.91). The block's three bait dwarves in the band were killed by cavern natives in every arm, the "
+        "no-irruption arm included (5 / 6 / 11 deaths in A / B / C over 5 runs), so that is the fort, not the tool.",
+        "IRRR35 (cap 2) runs now."),
     7: ("done", "Both halves confirmed.", "Nothing."),
     8: ("partial", "VF4 tallied: too few fish vermin near the bank to read (1-3 per cell; forage on 5 to 3, off 7 to 8 "
         "summed over 5 cells). VF1 re-designed with a gobble receipt; runs in the RC chain.",
