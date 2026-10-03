@@ -235,6 +235,68 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   max 1.75 ms per view change, plan 0.11 ms.
 - **Pop probe.** 343 frames, 6 z transitions + pans: 0 frames with DF's own water look, 0 without the underlay.
 
+### E17. Surf as a line along the shore; the Lua overlay stands down; a hung `status` (plugin 3007a6b)
+- **Glitch: "( )" around headlands** (resume-check vs e17-surf-pair). Each water cell next to a washed beach cell
+  got a crest facing that one beach cell. Around a one-tile grass point the cells west and east of it faced each
+  other, so the crests bracketed it.
+- **Fix 1: the shore normal.** A surf cell's direction is now the inverse-square-weighted sum of the directions to
+  land within 3 tiles, binned to 8 ways. A crest is drawn only where its beach cell lies along that normal (dot ≥
+  0.6), so a headland's flanks get none. The phase is shared along the line square to the normal, so a straight
+  shore rolls in together. The wash uses the normal away from the sea.
+- **Glitch: crests still bowed** (e17-surf-a-zoom). Diagonal crests at corners and the east face's crests read as
+  ")" arcs. A waves-off shot proved they were the plugin's. An offline render of the sprite set
+  (scratchpad crest_sprites.png) showed the 0.008·across² bow is plain at 32 px.
+- **Fix 2:** straight crests (bow 0). Result (e17-straight-crop): straight strokes along the coast, no brackets.
+  Diagonal coasts get short slanted strokes, not a joined line.
+- **The Lua overlay re-enabled itself on load.** It now asks the plugin's own `isEnabled` (`dfhack.open_plugin`,
+  once a second) and drops every Lua layer while the plugin runs. `aquarium status` says "STANDING DOWN" (tool rc
+  bf4c93c, rig-verified).
+- **`aquarium-plugin status` timed out over RPC** while the bare command replied. `status` was not a verb, and
+  DFHack's wrong-usage path (printing the help) never replies over RPC. It is a verb now.
+
+### E18. River mud without the mod; one-deep rivers milky; cavern water level (plugin 3007a6b + defaults)
+- **Mud.** The plugin now makes its own river bed: DF's DIRT_FLOOR_5 (FLOORS 1,7), read from
+  `enabler->textures.raws`, converted to RGBA32, and recoloured as the mod builder does (luminance contrast 45%,
+  scaled into 178,136,88; no baked water). It is registered with `Textures::createTile`. Status shows
+  `mud=… (DIRT_FLOOR_5 recoloured)` in AQS_RIVER, a `--bake off` world.
+- **Glitch: the river from above (z128) was a pale milky blue** with no bed (e17-river-pair, right). The `cell` probe
+  over the channel showed lower0 `iface=173256` = MULTILEVEL_OVERLAY 3,3, DF's z-fog. The plugin stripped the fog
+  only where `bed > top`, but a one-deep river's bed is DF's first water level (`bed == top`).
+- **Fix:** strip it where `bed >= top`. Result (e18-river-pair): clear dark teal, crisp fish.
+- **Mud tint ladder** (e18-mud-ladder: 80 / 45 / 30). DF's own (mod) water tile gives most of the teal, so the
+  tint changes little. 50 lets the mud's texture show and is now the mud default.
+- **Cavern (AQS_RIVER, `reveal`, not saved; e18-cave-trio, e18-cave-tints).** The bed is now SMOOTH_FLOOR (FLOORS
+  6,3), opaque grey stone. STONE_FLOOR_1 is a few pebbles on transparency, which drew a dot grid. Mean water colour
+  at z76: vanilla (1,83,98); plugin #2a7896/64 (33,83,95); #00708e/88 (26,82,96). Brightness now matches vanilla.
+  It stays greyer because the bed shows through, which vanilla's opaque sheet never allows. #00708e/88 is now the
+  cavern default. `tint RRGGBB [alpha] [sand|mud|stone|soil|surface|cavern|all]` sets any family live.
+
+### E19. Surface motion: lake shimmer and river streaks in the plugin (plugin d85075e, d39da3e)
+- **Model.** Each planned column records its water body at the top water tile: cavern (subterranean), sea
+  (`water_salt`), river (current set, or RIVER/BROOK material), else lake (lakes and pools). A river also records its
+  current from `liquid_flow.perm_flow_dir`. The plan cuts the view into horizontal runs of one effect (at most 24
+  cells). Six pattern textures are made once, tileable in x and y, at 32 px per cell: two caustic webs and four
+  streak fields (E-W, N-S, NE-SW, NW-SE). Each frame, each run is one `SDL_RenderCopy` from a source rect at the run's
+  world position plus an offset that slides with time. The pattern is world-anchored, so scrolling never makes it
+  swim. Caustics: two webs drifting apart, crossfaded over 4.2 s. Streaks: the source slides against the current at
+  28 px/s.
+- **Glitch: rain** (e19-river-pair). DF's current varies per tile: the river's middle ran SW, its banks S. Mixed
+  slashes read as rain. Smoothing to the mean current within 2 cells made them uniform but diagonal across a N-S
+  channel (e19b), still rain.
+- **Fix:** streaks run along the channel's local axis (the principal axis of the river cells within 3, used where the
+  spread exceeds 0.3), signed by the current. Longer, sparser dashes (18-35 px, lanes 8 px apart). Result
+  (e19c-river-crop): streaks run down the N-S reach and turn with the SW bend.
+- **Motion measured** (pixels changed > 8 between two shots 0.3 s apart): river 3,218 and pool 1,664 with the
+  effects on; 0 and 0 with them off.
+- **Glitch: wallpaper** (e19-lake-pair, AQS_LAKE, 3,600 lake cells). Three low-frequency waves with an 8-cell period
+  tiled visibly.
+- **Fix:** a 16-cell period and five waves of 2-3 cell wavelength per web, lines sharper (power 6), alpha 45.
+  Result (e19d-lake-pair): an irregular web with no visible repeat.
+- **Cost.** 360 copies for the whole lake view: GFPS 100.0 (cap) on and off; viewport time +0.04 ms per frame.
+  Textures 6 × 1280×544 ARGB (16.7 MB).
+- `shimmer on|off|ALPHA`, `streaks on|off|ALPHA`; status line `bodies sea= lake= river= (with current) cavern=;
+  motion … runs= drawn=`.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -253,7 +315,8 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 | U12 | fungiwood branch backgrounds | fixed: branch shapes see-through, branch art kept | E6, E13 |
 | U13 | cavern slope nub | fixed: true-material directional ramps (STONE_RAMPS) | E5, E6, E13 |
 
-**Still open:** the diagonal surf crest shape; the cavern water-level look is darker than vanilla (stone floor + tint);
-mud needs the beds page in `--bake off` worlds; lake shimmer and river flow-direction streaks (v3) are not built in
-the plugin yet; the tool's Lua per-cell aquarium overlay re-enables itself on load and should stand down when the
-plugin is on.
+**Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
+water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
+shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
+**Still open:** diagonal coasts get short slanted strokes rather than a joined line; package the plugin for release
+(a dll built against DFHack 53.16-r2 only: it must be rebuilt for every DFHack release).
