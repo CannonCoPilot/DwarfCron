@@ -350,7 +350,7 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - **Install note (same day).** The user's own sessions never ran `enable aquarium` (empty `dfhack.init`), so no save
   showed the effects. `enable aquarium` was added to `dfhack-config/init/dfhack.init` (backup `.bak-20261003`).
 
-### E23. Shimmer under the surface; no sea creatures (user 4 Oct, plugin 1c0d-series, package below)
+### E23. Shimmer under the surface; no sea creatures (user 4 Oct, plugin and package 2702b7ca)
 - **Report:** "The surface shimmer texture should not appear on water tiles below the surface z-layer. I also see no
   sea creatures."
 - **Shimmer.** Runs and foam were cut for every planned column, including views from under water (view level holds
@@ -386,6 +386,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged:** `sw-wt/aquarium-plugin/dist/(latest zip)` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
+**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-2702b7ca.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
