@@ -532,6 +532,31 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   tile on their straight path, as the user asked.
 - **Pending:** the user's eye on a live landing (game paused at swap; nothing polled).
 
+### E34. The blue square behind moving creatures (user 5 Oct, screenshots 9.15.35-9.17.00)
+- **Symptom:** a fish that has just moved shows a solid square behind it that hides the bed. Measured colour
+  (20,65,75), which is DF's own "dark water at its own level" look: DF's fill tile (2566) under its water layer,
+  with no plugin tint. So DF drew that cell with no plugin swaps applied.
+- **Ruled out, in order:**
+  - a plan miss: the plan reads map tiles, not what DF printed;
+  - the stand-in sprite: DEFAULTS(0,0) is a teal blob;
+  - the mod re-binding water tiles: no mod touches UNDERWATER_*;
+  - stray backgrounds at levels the plugin does not swap: 0 hits in 3.1M creature-cell checks, game running;
+  - a liquid flag specific to creatures at the sheet level: every sheet cell has fill + liq 0x3c, creature or not;
+  - any cell on main still holding fill under water after the swaps: 0 in 9,325 frames, running.
+  A frame-exact pixel probe (60 SDL reads a frame) dropped the user's game to 7-11 GFPS and was withdrawn after
+  about 200 frames. Never read pixels per creature per frame.
+- **Found:** DF's full pass goes through the `update_viewport_tile` vmethod once per tile per level (73,440 calls a
+  frame at 120x68x9). DF also calls it on its own, about 200 times per level per frame while the game runs, early in
+  its frame before the full passes. The plugin's swaps existed only around full passes. With the fix counting:
+  10,093 lone redraws in 2,027 frames would have drawn fill under water on a planned main cell, 2,813 of them on a
+  creature's cell.
+- **Fix (plugin, commit after f051398):** hook `update_viewport_tile`. A lone redraw of a planned cell gets the same
+  per-cell swaps as a full pass: `swap_cell_bg`, factored out of `swap_for_level`, plus fog and placeholder. It uses
+  the last plan while the camera has not moved. Once this frame's underlay is placed, the underlay, the creature
+  layer and the shore tint go back around the tile. `tilefix on|off`; `status` counts lone redraws, fixed redraws and
+  would-be dark-water draws. GFPS unchanged (62-66).
+- **Pending:** the user's eye on moving fish.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
