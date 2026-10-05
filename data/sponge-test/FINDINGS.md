@@ -20,7 +20,8 @@ in ~/Library/Application Support/CrossOver/df-snapshots/sponge-test-0510/ (not i
    - **Birth: unit 338, SPONGE, caste MALE, mother 158, born year 5 tick 218,060, alive, tame.** 158 conceived again
      at once (timer 199,382).
    - Wild sponges never conceived (0 of 2 females over ~200k ticks). **This was NOT "DF breeds tame animals only"**
-     (withdrawn after the user challenged it): their population ref was borrowed from ANOTHER species' entry.
+     (withdrawn after the user challenged it): their population ref pointed OFF the site (a horseshoe crab entry on region tile 6,26). Retest 5 Oct: another
+     species' entry in the SAME cave breeds fine (5/5); only off-site refs (6,26; 6,19 a plant entry) stayed 0/5.
      data/wild-breed/: wild giant sponges with their own population ref 5/5 pregnant, wild mink 2/5, plain/owned
      units bred too; only the borrowed-ref arm stayed 0/5 (twice). Wild animals breed on the map.
    - Control: both tame crab females conceived; the crabs died repeatedly in fresh water (salt-water species placed
