@@ -316,6 +316,40 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   uninstall) + SHA256SUMS into `dist/aquarium-plugin-dfhack-53.16-r2-<commit>.zip`. The packaged dll is
   byte-identical to the one validated on the rig (cmp), and it is running there now.
 
+### E21. User play test 4 Oct: crest strokes ugly; no light web on the sea (plugin 52b8488d)
+- **Report** (user screenshot 2026-10-04 7.06 PM, own fort Kideturdim, sea surface z127): "the ocean wave sprites
+  are ugly and not natural looking", and the pool's surface web "should also be present on the ocean water".
+- **Web on the sea:** sea cells now get the shimmer runs too (1,907 sea cells in view, 111 runs).
+- **Surf, try 1: foam band per land side** (e21-foam-zoom). A soft band from the land edge whose reach swells and
+  ebbs (8 frames, 3.4 s), lace inside, phase stepping 0.11 cycle per tile along the coast. It read as frosted
+  glass rectangles: a filled pale band with a hard outer edge, stepping between cells, and a gap at every outer
+  corner of the land.
+- **Try 2: bubbles + a broken lip + corner pieces** (e21b-foam-zoom). Quarter-round pieces where only the diagonal
+  is land; phase step 0.035. It read as a white chalk dashed outline: the lip was too sharp and the coarse noise
+  threshold cut it into dashes.
+- **Try 3: soft continuous swash lip + a fainter outer swell half a cycle behind + sparse bubbles** (e21c-pair).
+  Every term can be set live (`foam LIP BUBBLES WIDTH OUTER BREAK`; the sprites are rebaked on the render thread),
+  so tuning needs no rebuild. Result: soft swell lines that follow the coast and round its corners. Defaults
+  45 15 20 25 10 (between e21c's left and right). DF's OceanWave flows raise the foam to the stronger tier where
+  they wash the beach. The white crest and wash strokes are no longer drawn; SeaFoam speckles stay.
+
+### E22. The plugin crashed the user's game (3 Oct 19:10)
+- **Evidence.** `backtrace_10_3.txt` (19:11): page fault reading 0x1e60 in `aquarium.plug+0x19a9d`, called from
+  `+0x2550f` via dfhack, on dfhooks' update path (the core thread). Disassembling the shipped dll (74f23fb4,
+  capstone): `mov edi, [rax + rcx*4]` with rax = 0 (`vp->screentexpos`, field +0x90) and rcx = 0x798 (index 1944 = cell
+  57,6 in the user's 60×34 view). The code reads race/caste and inserts into `seen_sprite`: it is
+  `build_creatures`, which learned swimmer sprites by reading DF's screen buffers from the core thread. A buffer was
+  null mid-reallocation (the user zooms; the rig was always 80×45).
+- **Fix.** The core thread no longer touches any screen buffer. Marks carry race/caste, and the render thread learns
+  each sprite inside `swap_for_level`, while DF draws that viewport. `usable()` now requires every buffer the plugin
+  touches, and `place_underlay` skips the frame if any lower viewport in reach is not usable.
+- **Stress (the user's live game, paused).** 20 batched zoom-ins and 20 batched zoom-outs, then 15 zoom in/out pairs
+  0.12 s apart: no crash, no new crash log, GFPS 98.8-99.9. (The user's sea held no swimmers, so this exercised the
+  buffer guards, not the learning path; the old core-thread read is gone.)
+- Older backtraces (`backtrace_10_1` 1 Oct, `backtrace.txt` 2 Oct) predate the plugin (Lua overlay / DF).
+- **Install note (same day).** The user's own sessions never ran `enable aquarium` (empty `dfhack.init`), so no save
+  showed the effects. `enable aquarium` was added to `dfhack-config/init/dfhack.init` (backup `.bak-20261003`).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -337,6 +371,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged (E20):** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-74f23fb4.zip`.
+**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-52b8488d.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
