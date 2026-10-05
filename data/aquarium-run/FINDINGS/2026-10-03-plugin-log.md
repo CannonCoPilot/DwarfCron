@@ -568,6 +568,37 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   back under it (the shore tint after main) whenever plan corner, zoom and origin still hold.
 - **Verified:** 6 captures of the running fort over 10 s, 0 blocks of either colour (detector: 12x12 windows, 70%
   within 5 of (20,64,74) or (0,45,53)). The same detector finds 26 hits on the pre-fix capture. 60 GFPS.
+  **Withdrawn by E36:** six captures were too few. The squares came back with the game running (user, screenshots
+  10.08.45, 10.09.48, 10.09.57).
+
+### E36. The square's real cause: repeated lone redraws stack water (user 5 Oct)
+- **User:** "background tile mismatches still remain": a dark square behind a moving fish in a cavern river, the sea
+  and the shallows.
+- **Twelve blind variants (A-P) failed.** They rebuilt the tile after main, skipped lone redraws, laid 1 or 4 copies
+  of the bed, turned off the creature layer, DF shadows or the liquid flag, or corrected the origin. Captures counted
+  0-9 squares per frame for each variant and for `tilefix off`, too noisy to rank.
+- **Measured instead:** a render-thread tile probe (`tileprobe N`, armed for 4-6 frames only; see E34 on per-frame
+  reads). It reads one pixel of each tracked creature tile after every step DF and the plugin draw, in order. The
+  frame order is: full passes (underlay, levels 8..1, main, shore tint, waves) -> `update_all` (lone redraws) ->
+  `render` (present). The target is the window back buffer throughout (`SDL_GetRenderTarget` null at frame start,
+  main pass and render, 164/164). So what is shown is the full-pass picture plus that frame's lone redraws on top.
+  E34/E35 had the order backwards.
+- **Cause:** for a moving creature, DF blanks its tiles and redraws every level of each of them, some two or three
+  times in one frame. In trace f488 tile (35,9): levels 8..1 twice each, then main three times. The first main
+  redraw gives the right colour (3c584c, equal to the full pass after the shore tint). Each repeat lays DF's
+  half-clear water layer and the shore tint over the last: 474f51, then 333f43. That is the dark square. It stays
+  until the next full pass, after the present, so it follows the fish frame after frame.
+- **Dead end:** a snapshot of the clean picture, put back before the present. It can't work: DF draws into the back
+  buffer, which SDL cannot copy from.
+- **Fix (plugin, commit after 289b1cc):** one lone redraw per (cell, level) per frame; repeats are dropped. `status`
+  counts them ("lone redraws dropped as repeats ...": 56,029 in 846 frames, game running). Also: unknown or
+  malformed `aquarium-plugin` commands (and `depth`/`tint` errors) return CR_FAILURE with a message, not
+  CR_WRONG_USAGE, which hangs an RPC caller.
+- **Verified (user's fort, game running, 60 creatures in water):** detector (a cell darker than its 8 neighbours by a
+  near-uniform multiply, 3 static map features excluded) gives 0 squares in 15 captures with the fix vs 17 in 15
+  with it off, back to back in one session (S / Soff). The final build gives 0 in 20 (T). Crops show fish and the
+  dolphin on clean bed and water. GFPS 57.3, unchanged. Data: `data/aquarium-run/e36/` (tileprobe-1.tsv is the
+  cause trace; S, Soff, T are the captures; detect.py).
 
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
