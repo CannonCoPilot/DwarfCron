@@ -466,6 +466,20 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - **Pending:** the dummy confirmation in graphics mode. The user's game was in ASCII; dummy mode is armed in the
   live fort.
 
+### E30. The wave cycle, confirmed with dummy tiles in graphics mode (user 5 Oct, 8.23-8.29 AM)
+- **The user's ASCII sequence:** purple '~' (waves over deeper water) → white '~' (over depth-1 water at the coast) →
+  on reaching land, mist (░ U+2591 / 176, ▒ U+2592 / 177).
+- **Stage 1 = wave fronts** (`world.event.ocean_waves`). The user's graphics screenshot 8.28.45 with `fronts dummy`:
+  magenta X lines exactly on the purple '~' lines (ASCII 8.23.23-8.24.08). Confirmed.
+- **Stage 2 = OceanWave flows**, which a front spawns when it reaches the coast (`spawn_flows`, "set once the wave reaches
+  the coast"). The first dummy pass skipped them (the beach wash was off), so the white stage was lost. The second
+  pass draws a yellow X on every OceanWave flow at the view level (e30-dummies): 0 fronts left in the world at that
+  moment (all landed) and yellow along the whole coast, where ASCII draws the white '~'. Earlier read-back agreed:
+  white '~' glyphs sat on cells with OceanWave flows (E29 table: ch126/247 fg7 → flow).
+- **Stage 3 = Steam flows** (the mist ░▒▓█ by density), drawn by DF itself with FLOW_WATER_MIST (the mod's SW_AQ_MIST).
+- So the whole DF wave is: front (moves over the sea; vis_duration fades) → lands → OceanWave flows on the coastal
+  tiles → Steam. Graphics mode has art only for stage 3. The plugin draws stage 1 (crests) and stage 2 (`wash`).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
