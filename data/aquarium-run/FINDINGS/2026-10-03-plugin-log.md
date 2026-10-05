@@ -407,6 +407,21 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   waterfall column (falling water) gets no skin (DF draws its mist), and in the registry it belongs to the river
   (flowing evidence), while the plunge pool's standing water is its own body.
 
+### E27. "Fake wave action at water edges" (user 5 Oct, 7.36 AM; plugin a603818f)
+- **Checked first:** the dll in the user's fort was byte-identical to the latest build (E24-E26 were live: scan_water
+  present, river current 25/25). The look was the design, not a stale swap.
+- **What drew at the edges:** (1) the shore rim (E14), a light gradient on every water cell beside land; (2) the E21
+  foam on every sea edge, on the plugin's own 3.4 s clock (303 edges in view), only its strength raised beside DF's
+  waves. Both read as wave action DF never simulated.
+- **Step 1:** foam only on edges beside a DF wave, frame from its density: 145 of 303 edges. DF waves line most of
+  this coast (323), so the outline stayed (e27-dfwaves).
+- **Step 2:** rim off (`glow rim 0`): the outline on calm stretches went, and white bands stayed beside the waves
+  (e27-rim-pair).
+- **Fix:** only DF's own wave tiles are drawn: each OceanWave flow on the beach is a foam wash from the sea side, its
+  reach and strength from its density, so it moves as DF moves the flow (85 in view). Water-edge foam (`surf on`) and
+  the rim (`glow rim N`) are off by default, kept as options. DF's own sea mist still draws over the near-shore water
+  (e27-wash-only).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -428,6 +443,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-04d3924e.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
+**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-a603818f.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
