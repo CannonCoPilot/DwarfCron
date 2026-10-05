@@ -437,6 +437,35 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   density, on every OceanWave tile at the view level (142 of 142 drawn; e28d-pair). It churns in place and moves as DF
   moves its flows.
 
+### E29. Finding DF's real wave-front process (user 5 Oct, ASCII screenshots 8.03-8.05 AM)
+- **The user's point:** the Steam build runs a wave-front process that ASCII draws as moving white/grey/purple '~'
+  over the water. Everything before this entry drew the wrong thing: E11-E28 used OceanWave FLOWS, which sit only on
+  the beach.
+- **Steps that ruled things out (user's fort, Elevation -1 = z128 over the sea at z127):**
+  1. Flow sprite slots: `gps.texture_indices8[1564..1603]` hold the 10 vanilla flow tokens x 4 density frames
+     (MIASMA, DUST, WATER_MIST = the mod's SW_AQ_MIST, LAVA_MIST, BOILING, VAPOR, DRAGONFIRE, FIRE, SMOKE, ITEM),
+     followed by SHADOWS_WALL. No empty wave slot sits beside them, and vanilla has no wave token.
+  2. Main-viewport layers at OceanWave, Steam and SeaFoam cells: all empty (high_flow 0).
+  3. A dummy into the 40 flow slots (magenta X, `texture_indices8`, restored at once) proved nothing: the game was in
+     ASCII mode then, so no graphics slot is read.
+  4. Flows by z and medium over the whole map: OceanWave only on beach floors (z128), Steam on floors and in the air
+     (z128-131); nothing in or over the water.
+  5. ASCII glyphs read back with `dfhack.screen.readTile`: the white/grey shaded blocks (░▒▓█ by density, █ = 100)
+     are STEAM flows, DF's sea spray, which graphics mode draws with the mod's mist art.
+- **Found:** `df.event.xml` `event_handlerst.ocean_waves` = `event_ocean_wave_frontst` { dest (coord2d, the coast),
+  cur (coord2d), z, active (set when it reaches the coast and starts spawning flows), move_timer, vis_duration
+  (starts at 120, randomly decrements) }, made by `ocean_wave_makers` (3 here, 210 fronts, all z128). Proof: of
+  about 800 water-below cells in view, exactly 42 drew '~' (126) instead of '≈' (247), and those were the 42 fronts
+  in view; every other water cell was '≈'. ASCII draws a front by swapping the water glyph.
+- **Plugin:** fronts read on the core thread (`world->event.ocean_waves`) are drawn on the open tile above the
+  column's top water: a crest across the travel direction (cur → dest), strength from vis_duration.
+  `fronts dummy` draws a magenta X control tile on every front, for a side-by-side check with ASCII '~'.
+  The OceanWave-flow beach wash is off by default (`wash on`).
+- **Also fixed:** in ASCII mode the plugin painted its water over the map (e29-dummy-small, right side); it now
+  stands down when `Screen::inGraphicsMode()` is false (e29-ascii-after-small).
+- **Pending:** the dummy confirmation in graphics mode. The user's game was in ASCII; dummy mode is armed in the
+  live fort.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
