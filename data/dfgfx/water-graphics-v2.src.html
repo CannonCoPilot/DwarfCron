@@ -1,0 +1,450 @@
+<title>DF Water Graphics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F2F5F4; --panel:#FFFFFF; --ink:#16232A; --ink2:#46575F; --ink3:#6F7F86;
+  --rule:#D5DEDD; --tide:#0E6F78; --tide-soft:#DCEDEE; --sand:#B07F3D; --sand-soft:#F4E8D6;
+  --ok:#2F7D4A; --ok-soft:#DDEFE3; --warn:#9A6A12; --warn-soft:#F6EBD3; --open:#A2442F; --open-soft:#F6E1DB; --code:#EAF0EF;
+  --c-sand:#B07F3D; --c-mud:#6E5A3C; --c-stone:#0E6F78;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E171B; --panel:#152127; --ink:#E2EBEC; --ink2:#AEBEC2; --ink3:#86989D;
+  --rule:#26363C; --tide:#5BBFC7; --tide-soft:#16343A; --sand:#D9A866; --sand-soft:#3A2D1C;
+  --ok:#6CC08A; --ok-soft:#173225; --warn:#E0B25A; --warn-soft:#382B12; --open:#E58A72; --open-soft:#3B1E17; --code:#1B2A30;
+  --c-sand:#D9A866; --c-mud:#B39A72; --c-stone:#5BBFC7; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0E171B; --panel:#152127; --ink:#E2EBEC; --ink2:#AEBEC2; --ink3:#86989D;
+  --rule:#26363C; --tide:#5BBFC7; --tide-soft:#16343A; --sand:#D9A866; --sand-soft:#3A2D1C;
+  --ok:#6CC08A; --ok-soft:#173225; --warn:#E0B25A; --warn-soft:#382B12; --open:#E58A72; --open-soft:#3B1E17; --code:#1B2A30;
+  --c-sand:#D9A866; --c-mud:#B39A72; --c-stone:#5BBFC7; color-scheme:dark; }
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font:15px/1.6 var(--body); margin:0; padding-inline:clamp(16px,3vw,40px); padding-block:28px 64px}
+.wrap{max-width:1400px; margin:0 auto; display:grid; gap:40px}
+h1,h2,h3{font-family:var(--display); text-wrap:balance; margin:0; line-height:1.15}
+h1{font-size:clamp(28px,3.4vw,44px); font-weight:700; letter-spacing:-.01em}
+h2{font-size:24px; font-weight:700}
+h3{font-size:17px; font-weight:700}
+p{margin:0; max-width:72ch}
+code,.mono{font-family:var(--mono); font-size:.86em}
+code{background:var(--code); padding:1px 5px; border-radius:3px}
+a{color:var(--tide)} a:focus-visible,button:focus-visible{outline:2px solid var(--tide); outline-offset:2px}
+.eyebrow{font:500 12px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--tide)}
+.meta{font:13px/1.5 var(--mono); color:var(--ink3)}
+header{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:28px; align-items:end; border-bottom:1px solid var(--rule); padding-bottom:22px}
+header .lede{color:var(--ink2); font-size:17px}
+section{display:grid; gap:14px; align-content:start}
+.sec-head{display:grid; gap:6px}
+.sec-head p{color:var(--ink2)}
+.grid{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:28px}
+.s5{grid-column:span 5} .s6{grid-column:span 6} .s7{grid-column:span 7} .s12{grid-column:span 12}
+.card{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:18px 20px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:13.5px; font-variant-numeric:tabular-nums}
+th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font:600 12px/1.3 var(--body); color:var(--ink3); text-transform:uppercase; letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+.chip{display:inline-block; font:500 11px/1 var(--mono); padding:4px 7px; border-radius:3px; white-space:nowrap}
+.chip.done{background:var(--ok-soft); color:var(--ok)} .chip.adj{background:var(--warn-soft); color:var(--warn)}
+.chip.open{background:var(--open-soft); color:var(--open)} .chip.now{background:var(--tide-soft); color:var(--tide)}
+.chip.lic{background:var(--sand-soft); color:var(--sand)}
+figure{margin:0; display:grid; gap:8px}
+figcaption{font-size:12.5px; color:var(--ink3)}
+img.shot{width:100%; height:auto; border-radius:4px; border:1px solid var(--rule); display:block}
+.pix{image-rendering:pixelated}
+pre{background:var(--code); border-radius:5px; padding:14px 16px; overflow-x:auto; font:12.5px/1.55 var(--mono); margin:0}
+ul.plain{margin:0; padding-left:18px; display:grid; gap:6px}
+svg text{fill:var(--ink2); font:12px var(--body)}
+.foot{border-top:1px solid var(--rule); padding-top:14px; font-size:12.5px; color:var(--ink3)}
+
+/* wave cycle */
+.stages{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px}
+.stage{display:grid; gap:8px; align-content:start; padding:16px 18px; border:1px solid var(--rule); border-radius:6px; background:var(--panel)}
+.stage .n{font:600 12px/1 var(--mono); color:var(--tide); letter-spacing:.06em; text-transform:uppercase}
+.stage .glyph{font:500 26px/1 var(--mono)}
+.stage .glyph .p{color:#8a5cc7} .stage .glyph .w{color:var(--ink)}
+.film{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+.film figcaption{font:12px var(--mono)}
+
+/* render stack */
+.stack{counter-reset:s; display:grid; gap:10px; margin:0; padding:0; list-style:none}
+.stack li{counter-increment:s; display:grid; grid-template-columns:28px 1fr; gap:12px; align-items:start}
+.stack li::before{content:counter(s); font:600 13px/26px var(--mono); text-align:center; background:var(--tide-soft); color:var(--tide); border-radius:50%; width:26px; height:26px}
+
+/* tuning list */
+.tune-list{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:16px}
+.tune{display:grid; gap:8px; align-content:start; padding:16px 18px; border:1px solid var(--rule); border-radius:6px; background:var(--panel)}
+.tune h3{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+.glitch{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+
+/* timeline */
+.tl{display:grid; gap:0}
+.tl-row{display:grid; grid-template-columns:120px 1fr; gap:16px; padding:12px 0; border-bottom:1px solid var(--rule)}
+.tl-row:last-child{border-bottom:0}
+.tl-row .when{font:500 12.5px/1.5 var(--mono); color:var(--ink3)}
+
+/* sampler */
+.sampler{border-top:3px solid var(--tide); padding-top:26px; display:grid; gap:34px}
+.sampler-bar{display:flex; flex-wrap:wrap; gap:12px; align-items:center}
+.btn{font:600 13px/1 var(--body); padding:9px 14px; border-radius:5px; border:1px solid var(--rule); background:var(--panel); color:var(--ink); cursor:pointer}
+.btn[aria-pressed="true"]{background:var(--tide); color:var(--bg); border-color:var(--tide)}
+.sampler-bar label{font-size:13px; color:var(--ink2); display:flex; gap:8px; align-items:center}
+select{font:13px var(--body); padding:6px 8px; border-radius:5px; border:1px solid var(--rule); background:var(--panel); color:var(--ink)}
+.group{display:grid; gap:14px}
+.group-head{display:flex; gap:12px; align-items:baseline; flex-wrap:wrap}
+#groups{display:grid; gap:34px}
+.variants{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); gap:18px}
+.variant{display:grid; gap:8px; align-content:start}
+.scene{width:100%; aspect-ratio:4/3; max-width:100%; border-radius:4px; border:1px solid var(--rule);
+  background-size:400% 100%; background-repeat:no-repeat; background-position:0 0; image-rendering:pixelated;
+  animation:play var(--dur,1s) steps(4) infinite; animation-play-state:var(--state,running)}
+@keyframes play{to{background-position:133.333% 0}}
+.variant .vt{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; font-weight:600}
+.variant .vid{font:12px var(--mono); color:var(--ink3)}
+.variant p{font-size:13.5px; color:var(--ink2)}
+.online{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr)); gap:18px}
+.online figure{background:var(--panel); border:1px solid var(--rule); border-radius:6px; padding:12px; gap:10px}
+.online .thumb{background:#2a3338; border-radius:4px; display:grid; place-items:center; padding:8px; min-height:150px}
+.online .thumb img{max-height:220px; width:auto; max-width:100%}
+.online figcaption{font-size:13px; color:var(--ink2); display:grid; gap:4px}
+.online figcaption b{color:var(--ink)}
+@media (prefers-reduced-motion: reduce){ .scene{animation-play-state:paused} }
+@media (max-width:1000px){ header{grid-template-columns:1fr} .s5,.s6,.s7{grid-column:span 12} .stages{grid-template-columns:1fr} .film{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:560px){ .tl-row{grid-template-columns:1fr; gap:2px} .glitch{grid-template-columns:1fr} }
+</style>
+
+<div class="wrap">
+<header>
+  <div style="display:grid;gap:12px">
+    <span class="eyebrow">Dwarf Fortress 53.16 · Steam graphics · DFHack 53.16-r2 · aquarium plugin</span>
+    <h1>See-through water, live waves and sea life in graphics mode</h1>
+    <p class="lede">A C++ DFHack plugin now draws what graphics mode leaves out: the sea bed and the levels of water above it, fish swimming below the surface, river currents, and the whole of DF's ocean wave from open sea to shore. Every phase is in place; what remains is tuning how it looks.</p>
+  </div>
+  <div class="meta">Updated 5 Oct 2026. Plugin <code>sw-wt/aquarium-plugin</code> at f051398, running in the user's fort (Kideturdim). Experiment log: <code>DwarfCron/data/aquarium-run/FINDINGS/2026-10-03-plugin-log.md</code>, entries E1–E33. The 1 Oct research this page started from is kept, condensed, near the end.</div>
+</header>
+
+<section>
+  <div class="sec-head">
+    <h2>Where it stands</h2>
+    <p>Each feature, what it does in the game, and whether it is finished or waiting on a look pass.</p>
+  </div>
+  <div class="card tbl">
+    <table>
+      <thead><tr><th>Feature</th><th>What you see</th><th>Driven by</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><b>See-through water</b></td><td>The bed and every water level down to it, up to 8 levels (DF's "lower elevations shown" setting). Sloped beds use directional ramps in their own material.</td><td>The tile under each water column, classed as sand, mud, stone or soil</td><td><span class="chip adj">tune per depth</span></td></tr>
+        <tr><td><b>Creatures below the surface</b></td><td>Fish and swimmers drawn on the level they are on, tinted by the water above them.</td><td>Unit and vermin positions, every game frame</td><td><span class="chip open">blue square glitch</span></td></tr>
+        <tr><td><b>Surface skin</b></td><td>A light shimmer on standing water seen from above. Only on the top level, never on waterfalls.</td><td>Water bodies found from tile evidence (2.7 ms native scan)</td><td><span class="chip adj">tune</span></td></tr>
+        <tr><td><b>River current</b></td><td>Streaks drifting downstream on the river's surface.</td><td>The world map's river course where DF's own flow direction is unset</td><td><span class="chip done">done</span></td></tr>
+        <tr><td><b>Wave fronts</b></td><td>A soft white crest crossing the sea, faint over deep water, bold over the last stretch to the coast.</td><td><code>world.event.ocean_waves</code> and each front's visibility counter</td><td><span class="chip adj">tune art</span></td></tr>
+        <tr><td><b>Landing foam</b></td><td>White <code>~</code> on the shore tiles a front reaches. They hold 1.5 s, then fade over 2.5 s.</td><td>The plugin's own landing detector</td><td><span class="chip adj">placeholder</span></td></tr>
+        <tr><td><b>Mist and spray</b></td><td>DF's own spray clouds on the beach, drawn with the mod's mist sprite.</td><td>DF's Steam flows (<code>FLOW_WATER_MIST</code>)</td><td><span class="chip adj">tune art</span></td></tr>
+        <tr><td><b>ASCII mode</b></td><td>The plugin stands down and draws nothing.</td><td><code>Screen::inGraphicsMode()</code></td><td><span class="chip done">done</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <h2>DF's ocean wave, end to end</h2>
+    <p>The game simulates waves in both modes but only ASCII draws them. Matching ASCII glyphs to DF's data, then marking each kind with a magenta or yellow test tile in graphics mode, settled what each stage is.</p>
+  </div>
+  <div class="stages">
+    <div class="stage">
+      <span class="n">Stage 1 · open sea</span>
+      <span class="glyph"><span class="p">~</span> over <span class="w">≈</span></span>
+      <p>A <b>wave front</b> leaves one of the fort's wave makers and heads for a point on the coast. Its visibility counter starts at 120 and runs down at random. ASCII draws it as a purple <code>~</code>.</p>
+      <p class="meta">Plugin: faint crest, rising slightly as the counter falls.</p>
+    </div>
+    <div class="stage">
+      <span class="n">Stage 2 · the run in</span>
+      <span class="glyph"><span class="w">~</span> in the shallows</span>
+      <p>The counter reaches 0 about 10 tiles out, but the front keeps moving at 0 over water 2 and then 1 deep. ASCII draws it white. Earlier builds skipped every front at 0, which is why this stage was missing.</p>
+      <p class="meta">Plugin: the crest at full strength.</p>
+    </div>
+    <div class="stage">
+      <span class="n">Stage 3 · the shore</span>
+      <span class="glyph"><span class="w">░▒</span> on land</span>
+      <p>The front stops a tile or two short of the coast and is removed. DF puts out spray (Steam flows) on the beach, which ASCII shades <code>░▒</code>. For 236 of 239 fronts sampled, the destination was a shore tile.</p>
+      <p class="meta">Plugin: <code>~</code> on the shore tiles ahead, then DF's mist.</p>
+    </div>
+  </div>
+  <div class="film">
+    <figure><img class="shot" src="{{IMG:shots/wave-90936.jpg}}" alt="A faint line of wave crests far out at sea"><figcaption>9:09:36 · fronts far out</figcaption></figure>
+    <figure><img class="shot" src="{{IMG:shots/wave-90945.jpg}}" alt="The crest line closer to shore and brighter"><figcaption>9:09:45 · counter running down</figcaption></figure>
+    <figure><img class="shot" src="{{IMG:shots/wave-90959.jpg}}" alt="Bold white crests in the shallows"><figcaption>9:09:59 · bold over the shallows</figcaption></figure>
+    <figure><img class="shot" src="{{IMG:shots/wave-91011.jpg}}" alt="Crests gone; foam and mist on the shore tiles"><figcaption>9:10:11 · landed: <code>~</code> and mist</figcaption></figure>
+  </div>
+  <p class="meta">Crops of the user's screenshots from the live fort, 5 Oct. One correction from the record: on 5 Oct the white stage was first tied to DF's OceanWave flows. Those turned out to be a standing population of 250–360 beach tiles that never changes when a wave lands (log E32).</p>
+</section>
+
+<div class="grid">
+  <section class="s7">
+    <div class="sec-head">
+      <h2>How the plugin draws a water cell</h2>
+      <p>DF paints only the top level and one level of water below it. The plugin repaints each water cell bottom-up, in this order, before and after DF's own map pass.</p>
+    </div>
+    <ol class="stack">
+      <li><span><b>Bed.</b> The floor or ramp sprite for the column's bed family: sand for the sea and lakes, mud for rivers, true stone or soil in caverns.</span></li>
+      <li><span><b>Water levels.</b> One tint per level of water above the bed, in the family's colour. The opacity after n levels is 1 − (1 − a)<sup>n</sup>, charted on the right.</span></li>
+      <li><span><b>Creatures.</b> Drawn on their own layer at the level they swim on, then multiplied toward the water's colour, so only the creature's own pixels darken.</span></li>
+      <li><span><b>DF's top level.</b> DF's own map pass, with its z-fog off over plugin cells, so the water does not turn milky.</span></li>
+      <li><span><b>Surface.</b> Shimmer on standing water and current streaks on rivers, only where the camera looks down onto water.</span></li>
+      <li><span><b>Waves.</b> Crests on wave fronts, then the landing <code>~</code> on shore tiles. DF draws its spray itself.</span></li>
+    </ol>
+    <p class="meta">Measured 3 Oct at a 120×68 view: 47.8 frames a second with the plugin against 42 for vanilla, since the plugin replaces DF's per-cell water redraw.</p>
+  </section>
+
+  <section class="s5">
+    <div class="sec-head">
+      <h2>Transparency by depth</h2>
+      <p>How much of the bed the water hides at each depth, with today's settings. Adjust with <code>aquarium-plugin tint RRGGBB ALPHA FAMILY</code>.</p>
+    </div>
+    <div class="card">
+      <svg id="depth" viewBox="0 0 520 290" role="img" aria-label="Water opacity by depth for each bed family. Sand alpha 80: 31% at 1 level, 78% at 4, 95% at 8. Mud alpha 50: 20% at 1, 58% at 4, 82% at 8. Stone and soil alpha 88: 35% at 1, 82% at 4, 97% at 8."></svg>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Family</th><th>Colour</th><th>Alpha per level</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td>sand</td><td><code>#145a6e</code></td><td>80</td><td>Sea and lakes</td></tr>
+        <tr><td>mud</td><td><code>#145a6e</code></td><td>50</td><td>River and brook beds</td></tr>
+        <tr><td>stone, soil</td><td><code>#00708e</code></td><td>88</td><td>Cavern water, matched to vanilla's brightness</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<section>
+  <div class="sec-head">
+    <h2>Open for tuning</h2>
+    <p>The next round is about looks. The sampler at the end of this page holds candidate art for the first three items.</p>
+  </div>
+  <div class="tune-list">
+    <div class="tune">
+      <h3>Wave, foam and mist tiles <span class="chip adj">art</span></h3>
+      <p>The crest, the landing <code>~</code> and DF's mist sprite are all first drafts. Pick a direction from the sampler: soft, whitecap, swell, hard pixel or ASCII for crests; a swash, bubbles, lace or a foam line for the landing; puffs, dither or wisps for mist.</p>
+    </div>
+    <div class="tune">
+      <h3>Transparency per depth <span class="chip adj">numbers</span></h3>
+      <p>One alpha per family sets the whole depth curve. Options: change the alpha, or give each depth its own value, for example clear shallows and a faster fade below level 3.</p>
+    </div>
+    <div class="tune">
+      <h3>Surface shimmer skin <span class="chip adj">art + numbers</span></h3>
+      <p>Shimmer alpha 45 and streak alpha 70 today (<code>shimmer ALPHA</code>, <code>streaks ALPHA</code>). The sampler shows three other skins: caustic web, sun glints and wind ripples.</p>
+    </div>
+    <div class="tune">
+      <h3>Blue square behind moving creatures <span class="chip open">bug</span></h3>
+      <p>When a fish changes tiles, its tile can show a solid water-blue backing for a moment, hiding the bed. Not yet diagnosed. The likeliest source is the creature layer or DF's own unit tile being drawn opaque on the frame the plan updates.</p>
+      <div class="glitch">
+        <img class="shot pix" src="{{IMG:shots/glitch-91535.jpg}}" alt="A fish in a channel with a solid blue square behind it">
+        <img class="shot pix" src="{{IMG:shots/glitch-91625.jpg}}" alt="A shark near a shelf edge with a dark blue square behind it">
+        <img class="shot pix" src="{{IMG:shots/glitch-91700.jpg}}" alt="A third example of the blue square">
+      </div>
+    </div>
+    <div class="tune">
+      <h3>Smaller items <span class="chip adj">later</span></h3>
+      <ul class="plain">
+        <li>Fronts step a whole tile at a time. DF's move timer could slide the crest between tiles, once its count is measured on the rig.</li>
+        <li>Diagonal coasts get short slanted strokes rather than one joined line.</li>
+        <li>The release zip (5fe7208c) predates the wave work and needs rebuilding. The dll is tied to DFHack 53.16-r2.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="grid">
+  <section class="s7">
+    <div class="sec-head">
+      <h2>Controls</h2>
+      <p>Typed in the DFHack console. <code>seasonal-wildlife enable</code> turns everything on, the plugin included.</p>
+    </div>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Command</th><th>Effect</th><th>Default</th></tr></thead>
+        <tbody>
+          <tr><td><code>aquarium-plugin status</code></td><td>Counts: cells, creatures, fronts in view, landing tiles, timings</td><td></td></tr>
+          <tr><td><code>fronts on|off|dummy</code></td><td>Wave crests and landing <code>~</code>; <code>dummy</code> marks fronts and flows with test tiles</td><td>on</td></tr>
+          <tr><td><code>tint RRGGBB [ALPHA] [FAMILY]</code></td><td>Water colour and per-level alpha for sand, mud, stone, soil, or all</td><td>see chart</td></tr>
+          <tr><td><code>shimmer on|off|ALPHA</code></td><td>Surface skin on standing water</td><td>45</td></tr>
+          <tr><td><code>streaks on|off|ALPHA</code></td><td>River current streaks</td><td>70</td></tr>
+          <tr><td><code>wash on|off</code></td><td>Foam lace on DF's beach OceanWave flows</td><td>off</td></tr>
+          <tr><td><code>surf on|off</code></td><td>Clock-driven foam along every water edge</td><td>off</td></tr>
+          <tr><td><code>glow df|rim ALPHA</code></td><td>A light rim along shores</td><td>off</td></tr>
+          <tr><td><code>fog on|off</code></td><td>DF's z-fog over plugin cells</td><td>off</td></tr>
+          <tr><td><code>cell X Y</code></td><td>Prints the plan for one screen cell</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="s5">
+    <div class="sec-head">
+      <h2>How we got here</h2>
+      <p>The plugin's experiment log, in four stretches.</p>
+    </div>
+    <div class="tl">
+      <div class="tl-row"><span class="when">3 Oct · E1–E10</span><p>Depth compositing. Fixed the sand flash on scrolling and the pop on z-change, stuck depth digits, creatures skipping levels, missing slopes and milky water. Fish sprites added to the mod.</p></div>
+      <div class="tl-row"><span class="when">3–4 Oct · E11–E20</span><p>River, lake and cavern forts. Shore glow, surf, lake shimmer and river streaks. A crash on map load fixed; the first release package built.</p></div>
+      <div class="tl-row"><span class="when">4–5 Oct · E21–E28</span><p>Play tests. Crest strokes and edge foam dropped as fake, a crash in the user's game fixed, the skin moved up a level, creature tint squares removed, the water scan made native.</p></div>
+      <div class="tl-row"><span class="when">5 Oct · E29–E33</span><p>DF's real wave process found and proven with test tiles. Crest and landing art drawn, the missing white stage traced to fronts at counter 0, the <code>~</code> limited to landings.</p></div>
+    </div>
+  </section>
+</div>
+
+<div class="grid">
+  <section class="s7">
+    <div class="sec-head">
+      <h2>From the 1 Oct research, still true</h2>
+      <p>The tokens Steam graphics has for water, fog and glass. Graphics mode has no token for ocean waves or sea foam, which is why they need code.</p>
+    </div>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>What</th><th>Token</th><th>Alpha</th></tr></thead>
+        <tbody>
+          <tr><td>Water, depth 7 to 1</td><td><code>LIQUIDS:0:0..6:UNDERWATER_7..1</code></td><td>255 for 7–4; 230 / 204 / 179 for 3 / 2 / 1</td></tr>
+          <tr><td>River and brook animation</td><td><code>RIVER_TO_* / BROOK_TO_*:1..16</code></td><td>16 frames</td></tr>
+          <tr><td>Water mist</td><td><code>EVENT_FLOWS:2:0..3:FLOW_WATER_MIST:1..4</code></td><td>up to 199</td></tr>
+          <tr><td>Z-level fog</td><td><code>MULTILEVEL_OVERLAY:3:3:MULTILEVEL_AIR</code></td><td>96, stacked per level</td></tr>
+          <tr><td>Glass floors</td><td><code>FLOOR_GLASS:0..2:0:GLASS_*_FLOOR</code></td><td>about 170</td></tr>
+          <tr><td>Ocean wave, sea foam</td><td>none in the exe's 10 <code>FLOW_*</code> tokens</td><td>not drawable by mods</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="s5">
+    <div class="sec-head">
+      <h2>What changed since</h2>
+    </div>
+    <ul class="plain">
+      <li>The 1 Oct page ranked a C++ plugin last. A raws mod could not show anything below DF's first water level, and a Lua overlay cost 16–24 FPS. The plugin became the chosen path on 3 Oct.</li>
+      <li>"Waves actually spawn in graphics mode" was open then. They do: about 200 fronts at a time from 3 wave makers in the user's fort.</li>
+      <li>The translucent-water raws mod and the Lua wave overlay are retired. The Lua overlay stands down whenever the plugin is enabled.</li>
+    </ul>
+  </section>
+</div>
+
+<!-- ======================= GRAPHICS SAMPLER ======================= -->
+<section class="sampler" id="sampler">
+  <div class="sec-head">
+    <span class="eyebrow">Graphics sampler</span>
+    <h2>Candidate art for waves, foam, mist and the surface</h2>
+    <p>Seventeen variants drawn for this page, each animated over DF's own sand and depth-4 water tiles at 32 px, shown 3× with no smoothing. Name the ones to try by their id. Below them are the open-licensed sets found online.</p>
+  </div>
+  <div class="sampler-bar">
+    <button class="btn" id="play" type="button" aria-pressed="true">Playing</button>
+    <label for="speed">Frame time
+      <select id="speed">
+        <option value="0.6">150 ms</option>
+        <option value="1" selected>250 ms (plugin)</option>
+        <option value="1.6">400 ms</option>
+        <option value="2.4">600 ms</option>
+      </select>
+    </label>
+    <span class="meta">Generator: <code>DwarfCron/data/aquarium-run/sampler/gen_sampler.py</code></span>
+  </div>
+  <div id="groups"></div>
+
+  <div class="group">
+    <div class="group-head"><h3>Found online: open-licensed sets</h3><span class="meta">Previews as published by their authors; licences checked on each page on 5 Oct</span></div>
+    <div class="online">
+      <figure><div class="thumb"><img class="pix" src="{{IMG:online/eldiran.png}}" alt="Eldiran's shoreline wave frames: white foam rolling over a magenta water mask"></div>
+        <figcaption><b>16x16 Shoreline Wave Animation Tiles</b><span>Eldiran · <span class="chip lic">CC0</span> · 16 px, 8 frames</span><span>A foam overlay drawn to sit over any ground; brown and magenta are masks. Closest in idea to the landing foam. Needs 2× upscaling.</span><a href="https://opengameart.org/content/16x16-shoreline-wave-animation-tiles">opengameart.org</a></figcaption></figure>
+      <figure><div class="thumb"><img class="pix" src="{{IMG:online/sevarihk-ocean.png}}" alt="Sevarihk's ocean autotiles: sand edges with animated foam"></div>
+        <figcaption><b>Animated Water Tiles</b><span>Sevarihk · <span class="chip lic">CC-BY 4.0</span> · 32 px, 4 frames</span><span>Ocean meeting sand as autotiles, at DF's own tile size. Credit and link required.</span><a href="https://opengameart.org/content/animated-water-tiles-0">opengameart.org</a></figcaption></figure>
+      <figure><div class="thumb"><img class="pix" src="{{IMG:online/zabin-waves-crop.png}}" alt="Zabin's breaking-wave rings of foam around island shapes"></div>
+        <figcaption><b>Animated Ocean Tileset</b><span>Zabin, after Leonard Pabin · <span class="chip lic">CC-BY-SA 3.0 / GPL 3</span> · 32 px, 10 frames</span><span>Waves breaking around a coast, the richest foam here. Share-alike: any art derived from it must carry the same licence.</span><a href="https://opengameart.org/content/animated-ocean-tileset">opengameart.org</a></figcaption></figure>
+      <figure><div class="thumb"><img src="{{IMG:online/scallywag.png}}" alt="Scallywag preview: islands with pale shallows and a coastline"></div>
+        <figcaption><b>Scallywag: Water and Islands</b><span>Pixel Carvel, via Foozle · <span class="chip lic">CC0</span> · grid not stated</span><span>A professionally drawn top-down coastline with animated water; Aseprite sources included.</span><a href="https://foozlecc.itch.io/scallywag-water-islands">foozlecc.itch.io</a></figcaption></figure>
+      <figure><div class="thumb"><img class="pix" src="{{IMG:online/pokomoko.png}}" alt="Dark blue ocean tile with pale diagonal streaks"></div>
+        <figcaption><b>Animated Ocean Water Tile</b><span>POKOMOKO · <span class="chip lic">CC0</span> · 32 px</span><span>One animated open-water tile with pale streaks; a reference for a deep-water skin.</span><a href="https://opengameart.org/content/animated-ocean-water-tile">opengameart.org</a></figcaption></figure>
+      <figure><div class="thumb"><img class="pix" src="{{IMG:online/flow-down.png}}" alt="A strip of eight small water-flow frames"></div>
+        <figcaption><b>simple water flow</b><span>madmedicsoft · <span class="chip lic">CC0</span> · 16 px, 8 frames, 4 directions</span><span>Hand-drawn flowing water; a reference for river current streaks.</span><a href="https://opengameart.org/content/simple-water-flow">opengameart.org</a></figcaption></figure>
+    </div>
+    <div class="card tbl">
+      <table>
+        <thead><tr><th>Set</th><th>Author</th><th>Licence</th><th>Size</th><th>Has</th><th>Fit</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://opengameart.org/content/water-caustics-effect-small">Water Caustics Effect (Small)</a></td><td>leeor_net</td><td>CC0</td><td>16 frames</td><td>Caustics made for a multiply blend</td><td>Surface skin, as is</td></tr>
+          <tr><td><a href="https://opengameart.org/content/32x32-grass-with-water-tileset">32x32 Grass with water tileset</a></td><td>GboxMikeFozzy</td><td>CC0</td><td>32 px</td><td>Static water and waterways</td><td>No motion or foam</td></tr>
+          <tr><td><a href="https://opengameart.org/content/top-down-grass-beach-and-water-tileset">top down grass, beach and water</a></td><td>Matiaan</td><td>CC0</td><td>not stated</td><td>Water, beach, grass transitions</td><td>No foam</td></tr>
+          <tr><td><a href="https://opengameart.org/content/tides-asset-pack">Tides Asset Pack</a></td><td>Sevarihk</td><td>OGA-BY 4.0</td><td>48 px</td><td>Large seamless wave, beach tiles</td><td>Needs rescaling</td></tr>
+          <tr><td><a href="https://opengameart.org/content/the-battle-for-wesnoth-water-animation">Battle for Wesnoth water animation</a></td><td>zookeeper, Zabin</td><td>CC0</td><td>check file</td><td>Tileable deep-ocean animation</td><td>Mature art; verify grid</td></tr>
+          <tr><td><a href="https://opengameart.org/content/lpc-animated-water-and-waterfalls">LPC Animated Water and waterfalls</a></td><td>ZaPaper</td><td>CC-BY-SA 3.0</td><td>32 px</td><td>Translucent water, three glisten variants</td><td>Share-alike</td></tr>
+          <tr><td><a href="https://opengameart.org/content/waterworld-tileset-16x16">Waterworld tileset 16x16</a></td><td>coem</td><td>CC0</td><td>16 px</td><td>144 general water tiles</td><td>Foam not confirmed</td></tr>
+          <tr><td><a href="https://opengameart.org/content/smoke-sprite-sheet">Smoke Sprite Sheet</a></td><td>ohyhei</td><td>CC0</td><td>not stated</td><td>Generic smoke</td><td>Poor for sea mist</td></tr>
+          <tr><td><a href="https://opengameart.org/content/top-down-water-tiles">Top-down Water Tiles collection</a></td><td>various</td><td>per item</td><td>mixed</td><td>31 water sets in one list</td><td>Index for more</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="meta">No open-licensed mist or sea-spray tile at 32 px turned up, so mist will be drawn here. Kenney has no standalone water pack; CraftPix's free licence is not an open licence. Technique guides: <a href="https://www.slynyrd.com/blog/2018/10/12/pixelblog-10-water-in-motion">Slynyrd, Water in Motion</a> · <a href="https://www.slynyrd.com/blog/2023/3/26/pixelblog-43-top-down-tiles-part-2">Slynyrd, Top Down Tiles 2</a> · <a href="https://www.patreon.com/saint11/posts/water-tutorial-7242348">Saint11, Water Tutorial</a> · <a href="https://opengameart.org/forumtopic/improving-lpc-water">OGA forum, Improving LPC water</a> · <a href="https://www.shadertoy.com/view/3tKBDz">Wind Waker ocean texture (Shadertoy)</a>.</p>
+  </div>
+</section>
+
+<div class="foot">Files: plugin source <code>sw-wt/aquarium-plugin/src/aquarium.cpp</code>; experiment log <code>DwarfCron/data/aquarium-run/FINDINGS/2026-10-03-plugin-log.md</code>; sampler generator and frames <code>DwarfCron/data/aquarium-run/sampler/</code>; screenshots <code>Project_Aion/projects/urist/alpha_seasonalwildlife/screenshots/</code>. The 1 Oct prototypes remain in <code>DwarfCron/data/dfgfx/proto_mods/</code>.</div>
+</div>
+
+<script>
+(function(){
+  const VARIANTS = {{VARIANTS}};
+  const GROUPS = [
+    ['crest','Wave-front crests','Drawn on each front, square to its travel. Here the fronts travel east, so the crest lines run north to south.'],
+    ['foam','Landing foam','Shown on the shore tiles a front reaches. Here the shore is the bottom row.'],
+    ['mist','Mist and spray','On the beach behind a landing. DF’s own sprite first, for reference.'],
+    ['skin','Surface skin','Laid over standing water seen from above.']
+  ];
+  const host = document.getElementById('groups');
+  GROUPS.forEach(([g,title,note])=>{
+    const sec = document.createElement('div'); sec.className='group';
+    sec.innerHTML = '<div class="group-head"><h3></h3><span class="meta"></span></div><div class="variants"></div>';
+    sec.querySelector('h3').textContent = title; sec.querySelector('.meta').textContent = note;
+    const list = sec.querySelector('.variants');
+    VARIANTS.filter(v=>v.group===g).forEach(v=>{
+      const d = document.createElement('div'); d.className='variant';
+      const sc = document.createElement('div'); sc.className='scene'; sc.style.backgroundImage='url('+v.src+')';
+      sc.setAttribute('role','img'); sc.setAttribute('aria-label', v.title+' animation');
+      const t = document.createElement('div'); t.className='vt'; t.textContent = v.title.replace(' (in the plugin now)','').replace(' (reference)','');
+      if (/in the plugin now/.test(v.title)) { const c=document.createElement('span'); c.className='chip now'; c.textContent='in the plugin now'; t.appendChild(c); }
+      if (/reference/.test(v.title)) { const c=document.createElement('span'); c.className='chip lic'; c.textContent='DF vanilla'; t.appendChild(c); }
+      const id = document.createElement('div'); id.className='vid'; id.textContent = v.id;
+      const p = document.createElement('p'); p.textContent = v.note.replace(/`/g,'');
+      d.append(sc,t,id,p); list.appendChild(d);
+    });
+    host.appendChild(sec);
+  });
+  const root = document.documentElement, play = document.getElementById('play'), speed = document.getElementById('speed');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function setPlaying(on){ play.setAttribute('aria-pressed', String(on)); play.textContent = on ? 'Playing' : 'Paused';
+    document.querySelectorAll('.scene').forEach(s=>{ s.style.animationPlayState = on ? 'running' : 'paused'; }); }
+  play.addEventListener('click', ()=>setPlaying(play.getAttribute('aria-pressed')!=='true'));
+  speed.addEventListener('change', ()=>root.style.setProperty('--dur', speed.value+'s'));
+  setPlaying(!reduce);
+
+  // depth chart: opacity after n levels = 1 - (1 - a/255)^n
+  const svg = document.getElementById('depth'), NS='http://www.w3.org/2000/svg';
+  const fams = [['sand',80,'--c-sand'],['mud',50,'--c-mud'],['stone, soil',88,'--c-stone']];
+  const x0=48,y0=26,pw=440,ph=200, xs=n=>x0+(n-1)*(pw/7), ys=v=>y0+ph-v*ph;
+  function el(t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e}
+  function draw(){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    const cs=getComputedStyle(root), c=n=>cs.getPropertyValue(n).trim();
+    [0,.25,.5,.75,1].forEach(t=>{ el('line',{x1:x0,x2:x0+pw,y1:ys(t),y2:ys(t),stroke:c('--rule')}); el('text',{x:x0-8,y:ys(t)+4,'text-anchor':'end'},Math.round(t*100)+'%'); });
+    for(let n=1;n<=8;n++) el('text',{x:xs(n),y:y0+ph+18,'text-anchor':'middle'},n);
+    el('text',{x:x0+pw/2,y:y0+ph+36,'text-anchor':'middle'},'levels of water above the bed');
+    el('text',{x:x0,y:14,'font-weight':'600'},'Bed hidden by the water');
+    fams.forEach(([name,a,tok],i)=>{
+      const pts=[]; for(let n=1;n<=8;n++) pts.push(xs(n)+','+ys(1-Math.pow(1-a/255,n)));
+      el('polyline',{points:pts.join(' '),fill:'none',stroke:c(tok),'stroke-width':2.5});
+      for(let n=1;n<=8;n++){ const v=1-Math.pow(1-a/255,n); const dot=el('circle',{cx:xs(n),cy:ys(v),r:3.5,fill:c(tok)});
+        dot.appendChild(document.createElementNS(NS,'title')).textContent=name+', '+n+' level'+(n>1?'s':'')+': '+Math.round(v*100)+'%'; }
+      const lx=x0+12+i*150; el('rect',{x:lx,y:y0+ph+46,width:12,height:4,fill:c(tok)}); el('text',{x:lx+18,y:y0+ph+51},name+' ('+a+')');
+    });
+  }
+  draw();
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+       new MutationObserver(draw).observe(root,{attributes:true,attributeFilter:['data-theme']}); }catch(e){}
+})();
+</script>
