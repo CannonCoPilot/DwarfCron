@@ -42,6 +42,7 @@
 #   cx-lifecycle.sh snapshot <n> # copy the bottle aside (CrossOver has no
 #   cx-lifecycle.sh restore <n>  #   qcow2 snapshots; a bottle IS the state)
 #   cx-lifecycle.sh snapshots
+#   cx-lifecycle.sh autosave [status|off|restore]   # start sets the user's AUTOSAVE to NONE; stop restores it
 # ===========================================================================
 
 set -uo pipefail
@@ -58,6 +59,42 @@ err() { echo "[cx-lifecycle] ERROR: $*" >&2; exit 1; }
 df_pids() { pgrep -f "$DF_EXE_NAME" 2>/dev/null; }
 
 is_running() { [ -n "$(df_pids)" ]; }
+
+# --- autosave guard ---------------------------------------------------------
+# 5 Oct 2026: DF's semiannual autosave wrote a rig test fort into the user's `autosave 1`; it topped their Continue
+# list and crashed DF on load (its mod copy was gone). DF reads [AUTOSAVE:..] from prefs/d_init.txt at launch, so the
+# rig sets it to NONE before starting DF and puts the user's line back once the rig's DF has exited. The stash file
+# survives a crashed run: a stash that already exists is the user's line and is never overwritten by NONE.
+D_INIT="$DF_USER_DIR/prefs/d_init.txt"
+AUTOSAVE_STASH="$DF_USER_DIR/prefs/.cx-autosave-stash"
+
+autosave_off() {
+    [ "${CX_KEEP_AUTOSAVE:-0}" = 1 ] && { log "autosave: left as is (CX_KEEP_AUTOSAVE=1)"; return 0; }
+    [ -f "$D_INIT" ] || { log "autosave: no $D_INIT; DF uses its default (NONE)"; return 0; }
+    local line; line=$(grep -m1 '^\[AUTOSAVE:' "$D_INIT" | tr -d '\r')   # DF writes CRLF; sed below leaves the CR in place
+    [ -n "$line" ] || { log "autosave: no AUTOSAVE line in d_init.txt; left as is"; return 0; }
+    [ -f "$AUTOSAVE_STASH" ] || printf '%s\n' "$line" > "$AUTOSAVE_STASH"
+    [ "$line" = "[AUTOSAVE:NONE]" ] && { log "autosave: already NONE (user's line stashed: $(cat "$AUTOSAVE_STASH"))"; return 0; }
+    sed -i '' 's/^\[AUTOSAVE:[A-Z]*\]/[AUTOSAVE:NONE]/' "$D_INIT"
+    log "autosave: $line -> [AUTOSAVE:NONE] for the rig (restored on stop)"
+}
+
+autosave_status() {
+    local cur; cur=$(grep -m1 '^\[AUTOSAVE:' "$D_INIT" 2>/dev/null | tr -d '\r')
+    if [ -f "$AUTOSAVE_STASH" ]; then
+        echo "autosave  $cur  (rig override; the user's $(cat "$AUTOSAVE_STASH") comes back on stop or 'autosave restore')"
+    else
+        echo "autosave  ${cur:-(no line)}"
+    fi
+}
+
+autosave_restore() {
+    [ -f "$AUTOSAVE_STASH" ] || return 0
+    local line; line=$(cat "$AUTOSAVE_STASH" | tr -d '\r')
+    printf "%s" "$line" | grep -qE "^\[AUTOSAVE:[A-Z]+\]$" || { log "autosave: bad stash '$line'; left d_init.txt as is"; return 1; }
+    sed -i '' "s/^\[AUTOSAVE:[A-Z]*\]/$line/" "$D_INIT" && rm -f "$AUTOSAVE_STASH"
+    log "autosave: restored $line"
+}
 
 # The port DFHack is actually listening on, read from the live socket rather
 # than from config -- config says what we asked for, the socket says what we
@@ -115,6 +152,7 @@ cmd_start() {
     [ -f "$DF_DIR/$DF_EXE_NAME" ] || err "no DF at $DF_DIR"
 
     local port; port=$(pick_port)
+    autosave_off
     log "starting DF in bottle '$CX_BOTTLE' on port $port"
 
     # DFHACK_DISABLE_CONSOLE: DFHack's external console deadlocks DF's event
@@ -149,7 +187,7 @@ cmd_start() {
 }
 
 cmd_stop() {
-    if ! is_running; then log "DF not running"; return 0; fi
+    if ! is_running; then log "DF not running"; autosave_restore; return 0; fi
     local port; port=$(live_port)
 
     # Ask the game to quit itself first: DFHack flushes its config and DF
@@ -178,6 +216,7 @@ cmd_stop() {
         is_running && { log "TERM ignored; KILL"; kill -KILL $(df_pids) 2>/dev/null; sleep 2; }
     fi
     is_running && err "could not stop DF" || log "stopped after ${waited}s"
+    autosave_restore
 }
 
 cmd_status() {
@@ -191,6 +230,7 @@ cmd_status() {
         echo "stopped"
         echo "bottle    $CX_BOTTLE"
     fi
+    autosave_status
 }
 
 cmd_health() {
@@ -1039,5 +1079,6 @@ case "${1:-status}" in
     snapshot)  shift; cmd_snapshot "$@" ;;
     restore)   shift; cmd_restore "$@" ;;
     snapshots) cmd_snapshots ;;
+    autosave)  case "${2:-status}" in off) autosave_off ;; restore) autosave_restore ;; *) autosave_status ;; esac ;;
     *)         sed -n '2,30p' "$0"; exit 1 ;;
 esac
