@@ -480,6 +480,26 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - So the whole DF wave is: front (moves over the sea; vis_duration fades) → lands → OceanWave flows on the coastal
   tiles → Steam. Graphics mode has art only for stage 3. The plugin draws stage 1 (crests) and stage 2 (`wash`).
 
+### E31. Art for the two wave stages graphics mode leaves blank (5 Oct, plugin a72462b)
+- **Stage 1, fronts** (`world.event.ocean_waves`, ASCII purple '~'): a soft white crest square to the front's travel.
+  It has a foam lace broken at two scales, a faint shoulder ahead and a streaky wake behind. Its 5 strength tiers
+  follow `vis_duration` (120 → 0). One clock drives every front, so a row bobs as one crest.
+  The lace is periodic along the line (32 px, or 32√2 on diagonals), so neighbouring fronts join.
+  - First cut (e31-preview, pass 1): a 32 px sprite left a gap at every corner of a diagonal line, because the band
+    crosses into the two side tiles there. Fix: a 48 px sprite overhangs each neighbour by 8 px and crossfades its
+    ends into the next front's (the two ends sum to 1). The preview showed a seamless diagonal.
+- **Stage 2, landed OceanWave flows** (ASCII white '~'): two small level white '~' strokes per tile, with layout and
+  frame phase hashed from world position and 5 tiers from density. These draw with `fronts on`; the old foam
+  blobs (the user's "pretend") stay behind `wash on`.
+  - A ripple phase shift along the stroke turned '~' into '^' arcs that read as gulls (preview pass 1). The shape is
+    now fixed and only bobs and slides.
+  - Turned square to each tile's shore, the strokes jumbled into 'S' shapes round the island (e31-island). Now level
+    as ASCII draws them (e31-island-level).
+- **Live check (user fort, paused, 0 fronts in the world at the time):** 152 wave tiles drawn, wavelets correct on
+  the island and coast (e31-island-level). Crests are not seen live yet: they need fronts in flight (unpause).
+- **Not done:** fronts step a whole tile at a time. `move_timer` (DF `duration`) could slide the crest between
+  tiles, but its count direction is unmeasured: the game was paused and the rig was down.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
