@@ -557,6 +557,18 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   would-be dark-water draws. GFPS unchanged (62-66).
 - **Pending:** the user's eye on moving fish.
 
+### E35. The square was still there, now water over black (user 5 Oct)
+- **User:** "blue background tile still seems visible". Capture e35-1: a 48x32 px block (3x2 tiles at 16 px) round a
+  fish, colour (0,46,54): DF's water layer over black, no longer fill under water. So E34's swaps did reach the
+  screen, which proves the lone redraws are what shows. But DF wipes the tile first, and most lone redraws come before
+  the frame's underlay is placed, when E34 skipped putting the plugin's layers back.
+- **The 3x2 shape:** the creature's tile, the two beside it and the row above. These are the left/right and
+  upleft/up/upright creature layers, where a creature's sprite can spill, and DF redraws them together.
+- **Fix:** on the first lone redraw of a planned cell per frame, the last composed underlay and creature layer go
+  back under it (the shore tint after main) whenever plan corner, zoom and origin still hold.
+- **Verified:** 6 captures of the running fort over 10 s, 0 blocks of either colour (detector: 12x12 windows, 70%
+  within 5 of (20,64,74) or (0,45,53)). The same detector finds 26 hits on the pre-fix capture. 60 GFPS.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
