@@ -365,6 +365,48 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   learned for every vermin). After the swap: creatures_in_water 1-3, all drawn.
 - Status counters `drawn=` for motion and foam keep the last non-empty value when nothing is drawn (cosmetic).
 
+### E24. Surface skin one level too deep; river with no current; DF's waves (user 4 Oct 9.16 PM; plugin 04d3924e)
+- **Skin.** From Elevation -1 (looking down at the sea) the skin is right; from Elevation -2 (the camera in the top
+  water level) it also showed. E23's rule (no skin only when water lies above the view level) kept it. Now a column
+  gets the skin only when the camera looks down onto its water (`top >= 1`). User's fort: z128 292 runs / 586 foam
+  edges, z127 0 / 0 (e24-sea-pair).
+- **River.** All 64 sampled river tiles at z127 have `perm_flow_dir` = inactive, so the plugin had no current and drew
+  no streaks. The world river's path gives the direction: river 146 runs (28,29) → end (28,28), north into the sea.
+  The plugin builds a downstream table per world tile from `world_data.rivers` when depth starts (`course_at`). After
+  the swap: river 219 cells, all with a current; streaks run along the channel (e24-river-zoom).
+- **DF's ocean waves.** About 230 OceanWave flows sit on the wet beach at z128 (SoilWetFloor / pebbles / driftwood),
+  as on the rig (E11). Each is drawn as a foam wash running up the sand from the sea side. Its reach (swash frame) and
+  strength come from the wave's density, so the washes move as DF moves its waves (137 drawn in view).
+
+### E25. Creatures 2+ levels down in a light square (user 4 Oct 9.21 PM)
+- **Cause.** Each creature below got `shade_above`, a tint rectangle over its whole tile. The bed around it had already
+  been tinted for its own (deeper) depth, so the tile was tinted twice: a visible square.
+- **Fix.** Creatures are drawn on their own screen-size layer (through the main viewport's tile path), each tinted by
+  a MOD fill that multiplies only its own pixels (transparent pixels stay transparent), and the layer is copied once.
+  At full strength a multiply left near-black silhouettes, so the tint is 0.55 of the bed's, toward the tint hue
+  brightened (70 + 2×rgb) (e25-creatures-zoom: sponges and fish keep their shape, no squares).
+
+### E26. The water-layer scan: bad and slow (user 4 Oct: "make a fast and good one")
+- **Bad.** Both of the tool's scans (`ENGINE.waterTiles`, sampled; `V7.WB`, the registry) named water by the REGION
+  BIOME of a run's top tile. The user's river (fresh, RIVER tiles) lies in an ocean region tile: registry body #2
+  "ocean fresh 221 tiles", river 0. Meanwhile waterTiles called every fresh non-stagnant tile "river" (2,635 river
+  tiles, mostly pools).
+- **Good: DF's tile evidence.** A run is flowing (a river) if any of its tiles has a RIVER/BROOK bed, an active
+  `perm_flow_dir`, or is falling water (open space with water below and at most 2 wet neighbours). Salt water is sea
+  unless its biome is a lake; stagnant water is a pool; other standing water is a lake, or a pool under `pool_max`
+  columns. Flowing water is typed river wherever it runs (it no longer needs to reach the map edge).
+- **Fast.** The plugin exports `scan_water(bands)` (DFHACK_PLUGIN_LUA_COMMANDS): one C++ pass over the map blocks of
+  the surface band and every discovered cavern, runs and classes in the tool's encodings, and the union-find. The
+  registry (`V7.WB.build`) uses it when the plugin is loaded. The Lua scan remains the fallback, with the same
+  evidence. User's fort, 144×144, 14 levels, 6,810 runs: native pass 2.7 ms (10 ms with the Lua records) against 80 ms
+  for the Lua scan, with identical results: ocean 1, river 2 (212 + 13 tiles), pool 8. A 768×768 embark is about 28×
+  the tiles: tens of ms native, where the Lua scan took seconds sliced over many ticks.
+- **Live:** `water scan` in the user's fort: "#2 now a river (was ocean)".
+- **Surface at any z / waterfalls.** The plugin plans per screen column: from the view level down to that column's
+  first water, wherever it is, so a high river and a pool far below each get their own surface in the same view. A
+  waterfall column (falling water) gets no skin (DF draws its mist), and in the registry it belongs to the river
+  (flowing evidence), while the plunge pool's standing water is its own body.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -386,6 +428,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-2702b7ca.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
+**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-04d3924e.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
