@@ -1,0 +1,119 @@
+<section class="checklist" id="checklist">
+  <div class="sec-head">
+    <span class="eyebrow">Your checklist · one item at a time</span>
+    <h2>Water look-through, 5 Oct</h2>
+    <p>Every request from today and from the earlier passes, in the order I suggest we work them. You pick the item; I make that one change, swap it into the game, open the fort to look at, and wait. Tick <b>Looks right</b> when you have seen it in the game, or write what is wrong in the note. Both save to this page and I read them back.</p>
+  </div>
+
+  <div class="card world">
+    <div><span class="eyebrow">Test world</span>
+      <p><b>region10, "Camade Mare"</b> (257 × 257, the aquarium mod installed). It already holds your two water forts, and its full region survey is on disk. Every look below happens in this world; the forts from other worlds (Boatsbowed, Talontowers, Gilttrumpets, Flagcontains, Learngorges, Ochresabres) are retired for this work.</p></div>
+    <table>
+      <thead><tr><th>Fort</th><th>Save</th><th>Water to look at</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><b>Learnedchanneled</b></td><td><code>AQUA_SHORE16</code></td><td>Ocean: surface, wave fronts, landing foam, sea bed, creatures below</td><td><span class="chip done">exists</span></td></tr>
+        <tr><td><b>Shortsling</b></td><td><code>AQUA_LAKE</code></td><td>Lake, river, the pool beside them</td><td><span class="chip done">exists</span></td></tr>
+        <tr><td><b>Falls</b> (new, 3 × 3)</td><td>to embark</td><td>Waterfall, plus a brook, murky pools and the first cavern's water if the 3 × 3 has them</td><td><span class="chip adj">needs DF free</span></td></tr>
+        <tr><td><b>Brook / cavern</b> (new, only if Falls lacks them)</td><td>to embark</td><td>Brook; cavern water two or more levels deep</td><td><span class="chip open">only if needed</span></td></tr>
+      </tbody>
+    </table>
+    <p class="meta">Falls: I trace a river on the world map with the elevation and cliffs view, and centre the 3 × 3 on the river tile crossed by the steepest cliffs. Survey lead: the swamp river near region tile 50,80, which drops about 40 elevation into a lake.</p>
+  </div>
+
+  <div class="ck-progress" aria-live="polite"><span id="ck-count">0 of 0 confirmed</span><span id="ck-store" class="meta">Loading saved ticks…</span></div>
+
+  <div id="ck-groups"></div>
+</section>
+<script>
+const CK_STATE = {done:['done','done'], look:['your look now','now'], next:['next up','adj'], queued:['queued','q'], built:['built, not in your game','adj'], noted:['noted','done']};
+const CK_GROUPS = [
+ {id:'setup', title:'Set-up', note:'Done before we start; nothing new to judge in the art.', items:[
+  {id:'S1', st:'done', t:'The rig turns DF autosave off while it runs and puts your setting back after', d:'Your d_init.txt reads [AUTOSAVE:SEMIANNUAL]; the rig stores that line, sets NONE before it starts DF, and restores it when it stops (also after a crashed run). Tested on a copy: byte-identical afterwards.', w:'Nothing to look at', ref:'DwarfCron d3e5b9e'},
+  {id:'S2', st:'look', t:'Water art rolled back to this morning\'s version', d:'Today\'s art pass (ripples, river flow art, whitecap, swash, wisps, caustics on caverns, seaweed and seagrass) is reverted. The plugin is the build from after the dark-square fix, swapped into your running game.', w:'Learnedchanneled, then Shortsling: should look as before the art pass', ref:'plugin 3258b86 = 0a35dae'},
+  {id:'S3', st:'next', t:'Embark the Falls fort in region10', d:'A 3 × 3 centred on the river tile crossed by the steepest cliffs. Needs DF to myself for a few minutes; your forts are never touched.', w:'Falls', ref:''}
+ ]},
+ {id:'bugs', title:'Faults to fix first', note:'Each of these makes a look at the art unreliable, so they go before any art.', items:[
+  {id:'B1', st:'queued', t:'Transparency missing in some forts', d:'Shortsling and Boatsbowed showed opaque water while Learnedchanneled looked right. Find out why before anything else.', w:'Shortsling', ref:''},
+  {id:'B2', st:'queued', t:'Unpausing Learnedchanneled: 2 FPS, blue blocks, no wave fronts', d:'Blue-block glitches appeared and the fronts stopped. DFHack reveal cleared the blocks and brought the waves back; unreveal brought the blocks back. FPS climbed to 20-30 with stop-start lag.', w:'Learnedchanneled, unpaused', ref:''},
+  {id:'B3', st:'queued', t:'Creatures one level down look like they float on top', d:'A creature on the first level under the surface gets no water over it, so it reads as sitting on the surface (Gilttrumpets, Flagcontains).', w:'Learnedchanneled, sea creatures just under the surface', ref:''},
+  {id:'B4', st:'queued', t:'Stacked cavern water: the lower level looks lighter than the upper', d:'In water two or more levels deep, the deeper level should never read shallower (Learngorges).', w:'Falls cavern (or the brook / cavern fort)', ref:''},
+  {id:'B5', st:'queued', t:'Pool surface glitchy', d:'The pool\'s surface did not draw properly (Boatsbowed).', w:'Shortsling pool', ref:''},
+  {id:'B6', st:'queued', t:'No foam wash at the shore', d:'The landing foam was not visible anywhere.', w:'Learnedchanneled shore', ref:''}
+ ]},
+ {id:'surface', title:'Water surfaces, one body at a time', note:'One body per step. Nothing changes on any other body during that step.', items:[
+  {id:'W1', st:'queued', t:'Ocean surface: one direction, flowing toward the coast', d:'No crossfade between two directions. Talontowers still looked bad.', w:'Learnedchanneled', ref:''},
+  {id:'W2', st:'queued', t:'Ocean wave fronts and landing foam', d:'Review the crest and the landing foam once W1 is right.', w:'Learnedchanneled, unpaused', ref:''},
+  {id:'W3', st:'queued', t:'Lake surface: seamless and calm, two directions trading back and forth', d:'Shortsling\'s was distracting and seamed. Where lake meets river, the lake must not draw over the river\'s own flow.', w:'Shortsling', ref:''},
+  {id:'W4', st:'queued', t:'River surface: a new flow animation', d:'Today\'s river animation is rejected. Pick a new one together before it goes in.', w:'Shortsling', ref:''},
+  {id:'W5', st:'queued', t:'Pools: murky green-brown water you can see through', d:'Murkier than the lake, over the bed and the slopes, with a surface animation (Flagcontains had none).', w:'Shortsling pool, Falls pools', ref:''},
+  {id:'W6', st:'queued', t:'Cavern water: flat silty murk, slightly brownish-green, no shimmer', d:'See-through, a flat texture, nothing moving on top.', w:'Falls cavern', ref:''},
+  {id:'W7', st:'queued', t:'Brook: dappled light over the pebble bed, no animation', d:'The walkable top keeps DF\'s pebble texture. The brook bottom gets the same pebble texture with a still, gauzy dapple of light through rippled water.', w:'Falls or the brook fort', ref:''},
+  {id:'W8', st:'queued', t:'Waterfall: first look', d:'See what DF and the plugin draw on falling water today, then decide.', w:'Falls', ref:''}
+ ]},
+ {id:'bed', title:'On the bottom: plants, stones, wood', note:'Every sprite placed under water gets the same water shading as the bed around it. Sprites shown 2× from DF\'s own sheets.', items:[
+  {id:'P1', st:'queued', t:'River beds and lake edges: one reed everywhere', d:'You liked the reed in Shortsling and called it papyrus; it is DF\'s rope reed. DF\'s real papyrus sedge is a different sprite, and your "column 1, row 11" of the crops sheet is sorghum (or rice, counting rows from 0). Pick one.', w:'Shortsling river and lake edge', ref:'', img:[['{{IMG:checklist/reed-rope.png}}','Rope reed (seen in Shortsling)'],['{{IMG:checklist/papyrus-sedge.png}}','Papyrus sedge: plant, crop, sprout'],['{{IMG:checklist/crops-r11.png}}','Crops sheet row 11: sorghum, rice']]},
+  {id:'P2', st:'queued', t:'Lake beds: the tufts from row 2 of the grass sheet', d:'grass_other.png, second row.', w:'Shortsling lake', ref:'', img:[['{{IMG:checklist/grass-other-r2.png}}','grass_other row 2']]},
+  {id:'P3', st:'queued', t:'Lake beds: sparse patches of cavern grass, row 2 only', d:'From the last three columns of cavern_grass.png.', w:'Shortsling lake', ref:'', img:[['{{IMG:checklist/cavern-last3-r2.png}}','cavern_grass row 2, last three columns']]},
+  {id:'P4', st:'queued', t:'Lake beds: fallen branches', d:'item_nature.png row 1, column 1.', w:'Shortsling lake', ref:'', img:[['{{IMG:checklist/branch.png}}','Branch']]},
+  {id:'P5', st:'queued', t:'Lake and river beds: driftwood, very sparse', d:'Found: DF has its own driftwood tile (vanilla_environment, driftwood.png).', w:'Shortsling', ref:'', img:[['{{IMG:checklist/driftwood.png}}','Driftwood']]},
+  {id:'P6', st:'queued', t:'Pool beds: crops sheet row 1, column 8', d:'The small sprouts.', w:'Shortsling pool', ref:'', img:[['{{IMG:checklist/pool-r1c8.png}}','plant_crops row 1, column 8']]},
+  {id:'P7', st:'queued', t:'Ocean beds: pink and red crop plants as coral', d:'Candidates from the crops sheet: the amaranths and red spinach. Pick which.', w:'Learnedchanneled', ref:'', img:[['{{IMG:checklist/coral-candidates.png}}','Pendant, blood, purple amaranth, red spinach, two picked heads']]},
+  {id:'P8', st:'queued', t:'Ocean beds: sparse patches of cavern grass', d:'Any of the last three columns of cavern_grass.png.', w:'Learnedchanneled', ref:'', img:[['{{IMG:checklist/cavern-last3.png}}','cavern_grass, last three columns, rows 1-3']]},
+  {id:'P9', st:'queued', t:'Ocean depth rule: deeper than two levels, only sparse sponges', d:'Plants, coral and grass only on beds one and two levels below the surface.', w:'Learnedchanneled', ref:''},
+  {id:'P10', st:'queued', t:'Any bed: random clusters of boulders', d:'From boulders.png.', w:'All forts', ref:'', img:[['{{IMG:checklist/boulders.png}}','boulders.png']]},
+  {id:'P11', st:'queued', t:'Brook beds: only small or young freshwater plants', d:'Sprout or small versions of the plants chosen in P1-P6.', w:'Falls or the brook fort', ref:''}
+ ]},
+ {id:'tool', title:'Wildlife tool', note:'Built on seasonal-wildlife v7.1-rc, which is not in your game yet.', items:[
+  {id:'C1', st:'built', t:'Nothing preys on sponges', d:'Sponges are kept out of the food web, relations and lures.', w:'After the rc is installed', ref:'rc d5a98fe'},
+  {id:'C2', st:'built', t:'Sponges breed', d:'Aquarium mod 2 gives sponges a female and a male caste. On the rig a tame sponge was born, and wild sponges with their own population record bred 5 of 5.', w:'After the rc is installed', ref:'rc 04ef25a'},
+  {id:'C3', st:'noted', t:'Brook water admits only the smaller freshwater animals', d:'Written into the plan for the water-roster work; not built.', w:'Nothing yet', ref:'PLAN Q64, rc 9482098'}
+ ]}
+];
+(function(){
+  const host = document.getElementById('ck-groups'), countEl = document.getElementById('ck-count'), storeEl = document.getElementById('ck-store');
+  const saved = {}; let db = null;
+  const all = CK_GROUPS.flatMap(g=>g.items);
+  function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+  function count(){ const n=all.filter(i=>saved[i.id]&&saved[i.id].ok).length; countEl.textContent = n+' of '+all.length+' confirmed'; }
+  function local(){ try{ return JSON.parse(localStorage.getItem('wg-checks')||'{}'); }catch(e){ return {}; } }
+  function keepLocal(){ try{ localStorage.setItem('wg-checks', JSON.stringify(saved)); }catch(e){} }
+  const timers = {};
+  async function write(id){
+    keepLocal();
+    if(!db) return;
+    try{ await db.collection('checks').doc(id).set({ok:!!saved[id].ok, note:saved[id].note||'', at:new Date().toISOString()}); storeEl.textContent='Saved to this page.'; }
+    catch(e){ storeEl.textContent='Could not save to the page ('+(e&&e.code||'error')+'); kept in this browser.'; }
+  }
+  CK_GROUPS.forEach(g=>{
+    const sec = el('div','ck-group'); const head = el('div','ck-ghead');
+    head.append(el('h3',null,g.title), el('span','meta',g.note)); sec.append(head);
+    const list = el('ol','ck-list');
+    g.items.forEach(it=>{
+      const li = el('li','ck-item'); li.id = 'ck-'+it.id;
+      const box = el('input'); box.type='checkbox'; box.id='ck-box-'+it.id;
+      const lab = el('label','ck-tick'); lab.htmlFor=box.id; lab.append(box, el('span',null,'Looks right'));
+      const main = el('div','ck-main');
+      const top = el('div','ck-top'); const s = CK_STATE[it.st];
+      top.append(el('span','ck-id',it.id), el('b','ck-t',it.t), el('span','chip '+s[1],s[0]));
+      main.append(top, el('p','ck-d',it.d));
+      const meta = el('div','ck-meta'); meta.append(el('span',null,'Look at: '+it.w)); if(it.ref) meta.append(el('code',null,it.ref)); main.append(meta);
+      if(it.img){ const row = el('div','ck-imgs'); it.img.forEach(([src,cap])=>{ const f=el('figure'); const im=el('img','pix'); im.src=src; im.alt=cap; f.append(im, el('figcaption',null,cap)); row.append(f); }); main.append(row); }
+      const nl = el('label','ck-note'); const ta = el('textarea'); ta.id='ck-note-'+it.id; ta.rows=1; ta.placeholder='Note for Urist (what is wrong, which option)';
+      nl.htmlFor = ta.id; nl.append(el('span','sr','Note on '+it.id), ta); main.append(nl);
+      box.addEventListener('change',()=>{ saved[it.id]=Object.assign({},saved[it.id],{ok:box.checked}); li.classList.toggle('ok',box.checked); count(); write(it.id); });
+      ta.addEventListener('input',()=>{ saved[it.id]=Object.assign({},saved[it.id],{note:ta.value}); clearTimeout(timers[it.id]); timers[it.id]=setTimeout(()=>write(it.id),900); });
+      li.append(lab, main); list.append(li);
+    });
+    sec.append(list); host.append(sec);
+  });
+  function paint(){ all.forEach(it=>{ const v=saved[it.id]||{}; const b=document.getElementById('ck-box-'+it.id), t=document.getElementById('ck-note-'+it.id);
+    if(b) b.checked=!!v.ok; if(t && document.activeElement!==t) t.value=v.note||''; const li=document.getElementById('ck-'+it.id); if(li) li.classList.toggle('ok',!!v.ok); }); count(); }
+  Object.assign(saved, local()); paint();
+  storeEl.textContent='Ticks are kept in this browser until the page connects.';
+  (async()=>{ try{ db = window.claude && await window.claude.use('db'); }catch(e){ db=null; }
+    if(!db){ storeEl.textContent='Saving in this browser only (the page store is not available here).'; return; }
+    db.collection('checks').onSnapshot(snap=>{ snap.docs.forEach(d=>{ if(d.exists){ const v=d.data(); saved[d.id]={ok:!!v.ok, note:v.note||''}; } }); keepLocal(); paint(); storeEl.textContent='Saved to this page; Urist reads it.'; },
+      e=>{ storeEl.textContent='Lost the page store ('+(e&&e.code||'error')+'); saving in this browser.'; db=null; });
+  })();
+})();
+</script>
