@@ -500,6 +500,24 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - **Not done:** fronts step a whole tile at a time. `move_timer` (DF `duration`) could slide the crest between
   tiles, but its count direction is unmeasured: the game was paused and the rig was down.
 
+### E32. The white stage is the front itself at vis_duration 0 (user 5 Oct, screenshots 8.46.36-8.47.18; plugin follows a72462b)
+- **User report:** the crest showed over the purple stage, then faded away and nothing was drawn for the white stage.
+  It reappeared only as '~' wavelets and mist on the edge tiles. Wanted: purple faded, white bold.
+- **Recorder** (30 samples while the game ran, `scratchpad/waves.jsonl`): `vis_duration` falls 120 → 0 while the front
+  is still ~10 tiles from `dest`. The front then keeps moving at vis 0 over water 2 and then 1 deep, until it stops
+  1-2 tiles short of the coast and is removed. `spawn_flows` is set within a few hundred ticks of creation, not "on
+  reaching the coast" as the xml says. Beach OceanWave flows stay at 250-360 (all z128, dry) throughout, with no jump
+  when fronts arrive: they are a standing beach population, not what a landing front leaves. So the E30 claim
+  "white '~' = OceanWave flows" was wrong. The white stage is a front at vis 0, and the plugin skipped those
+  (`vis_duration <= 0`).
+- **Fix:** fronts with vis 0 are drawn at the boldest tier. While the counter runs they are faint (tiers 0-2, rising
+  as it falls).
+- **Rig cost lesson:** the recorder ran a full-map Lua scan (every block's flows plus getTileFlags) over RPC every
+  0.6 s. That gave the user half-second freezes every few seconds, and it was stopped. Never poll the user's game
+  with map-wide Lua.
+- **Pending:** the user's eye on the bold white crest. The '~' wavelets on the beach OceanWave flows are kept as a
+  placeholder for foam (user).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
