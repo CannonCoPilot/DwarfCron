@@ -422,6 +422,21 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   the rim (`glow rim N`) are off by default, kept as options. DF's own sea mist still draws over the near-shore water
   (e27-wash-only).
 
+### E28. "DF's waves aren't being drawn" (user 5 Oct)
+- **Probe (user's view, paused).** 142 OceanWave flows (z128, densities mostly 20-70 of 100) and 145 Steam flows
+  (z128-129). DF draws the Steam (DF's sea spray) with FLOW_WATER_MIST, here the aquarium mod's SW_AQ_MIST art: the
+  light-blue squiggles. For OceanWave it draws nothing: the cell's high_flow and interface layers are empty, and the
+  vanilla graphics have no wave token at all.
+- **Why ours did not show:** the E27 washes went only on wave tiles touching the sea (84 of 142), as a thin edge lace
+  from the sea side that read as faint arcs.
+- **Try 1: a swash per tile** (a translucent sheet, foam lace, a ragged lip landward; e28b-trio): cracked glass,
+  hard tile squares, and lips at different angles tile to tile.
+- **Try 2: world-anchored foam** (two tileable laces at period fx_period, crossfaded and drifting; e28c-trio):
+  seamless, but 16 px blobs at a low threshold read as snow camouflage.
+- **Fix:** fine sparse foam (2-8 px cells, bubbles above 0.6) over a thin sea-blue wet film, strength 0.3 + 0.5 x
+  density, on every OceanWave tile at the view level (142 of 142 drawn; e28d-pair). It churns in place and moves as DF
+  moves its flows.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -443,6 +458,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-a603818f.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
+**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-5fe7208c.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
