@@ -518,6 +518,20 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - **Pending:** the user's eye on the bold white crest. The '~' wavelets on the beach OceanWave flows are kept as a
   placeholder for foam (user).
 
+### E33. '~' only where a front lands, then fading (user 5 Oct, screenshots 9.00.46-9.01.25)
+- **User:** the crests look really good. But the '~' foam placeholders were always present. They should appear only
+  once a front reaches the last water tile before the edge, stay a few moments, and fade.
+- **Cause:** the '~' hung on DF's OceanWave flows, which stand on the beach all the time (E32).
+- **Fix:** the plugin tracks landings itself on the core pass (`track_landings`, about 240 fronts, a few tile reads
+  each). A front lands when its next tile towards `dest` is shore. Fallback: it vanishes within 3 tiles of `dest`
+  without that, and lands at the first shore tile along its last step. Each front lands once (pointer set; a pointer
+  that jumps more than 2 tiles counts as a new front). The tile ahead and the two beside it (for a diagonal: ahead and
+  the two sides of the corner) are marked. They show the '~' for 1.5 s, then fade over 2.5 s (8 baked tiers).
+- **One-shot check** (user fort, paused): `dest` is a shore tile for 236 of 239 fronts, so every front sees shore
+  ahead before it is removed. For 104 fronts the tile before `dest` is shore too, so they land at the last water
+  tile on their straight path, as the user asked.
+- **Pending:** the user's eye on a live landing (game paused at swap; nothing polled).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
