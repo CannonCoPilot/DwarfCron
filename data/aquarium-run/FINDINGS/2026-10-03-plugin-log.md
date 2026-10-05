@@ -350,6 +350,21 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 - **Install note (same day).** The user's own sessions never ran `enable aquarium` (empty `dfhack.init`), so no save
   showed the effects. `enable aquarium` was added to `dfhack-config/init/dfhack.init` (backup `.bak-20261003`).
 
+### E23. Shimmer under the surface; no sea creatures (user 4 Oct, plugin 1c0d-series, package below)
+- **Report:** "The surface shimmer texture should not appear on water tiles below the surface z-layer. I also see no
+  sea creatures."
+- **Shimmer.** Runs and foam were cut for every planned column, including views from under water (view level holds
+  water and so does the level above). Each column now records `surface`: its top water level has no water above it
+  (for top = 0, z+1 is read). Runs, streaks and foam come only from surface columns. In the user's fort: z127 (the
+  surface) 285 runs and 458 foam edges; z126 0 and 0 (e23-pair).
+- **Creatures.** The user's fort: 0 sea-creature units (the 3 "in water" are fire imps in magma). 80 vermin in
+  liquid, of which about 15 are sea fish (14 bat rays, 1 clownfish), the rest cavern and magma kinds. The
+  seasonal-wildlife tool's water layer is OFF in that fort ("Layers: land"), so nothing stocks the sea. The plugin
+  drew only units. It now also draws vermin in the water below DF's levels with their own vermin sprite
+  (`creature_small_texpos`), excluded from sprite learning (else a unit's sprite at the vermin's cell would be
+  learned for every vermin). After the swap: creatures_in_water 1-3, all drawn.
+- Status counters `drawn=` for motion and foam keep the last non-empty value when nothing is drawn (cosmetic).
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
@@ -371,6 +386,6 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
 **Closed since (E17-E19):** the diagonal/headland surf shape (straight crests along the shore normal); the cavern
 water-level look (brightness matched, smooth stone bed); mud in `--bake off` worlds (made in the plugin); lake
 shimmer and river streaks (in the plugin, on by default); the Lua overlay stands down while the plugin is enabled.
-**Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-52b8488d.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
+**Packaged:** `sw-wt/aquarium-plugin/dist/(latest zip)` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
