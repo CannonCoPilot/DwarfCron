@@ -8,17 +8,22 @@ for _,p in ipairs(df.global.world.populations.all) do if p.race==rh and p.quanti
 local function ok(x,y,z)
   local b=dfhack.maps.getTileBlock(x,y,z); if not b then return false end
   local d=b.designation[x%16][y%16]; local o=b.occupancy[x%16][y%16]
-  return d.flow_size==7 and d.water_salt and not d.hidden and not o.unit and not o.unit_grounded
+  return d.flow_size==7 and not d.liquid_type and not d.hidden and not o.unit and not o.unit_grounded
 end
 local z=98
 local spots={}
-for y=300,700,2 do for x=100,700,2 do
+local mx,my=df.global.world.map.x_count-5, df.global.world.map.y_count-2
+local zs={} for _,b in ipairs(df.global.world.map.map_blocks) do for lx=0,15 do for ly=0,15 do local d=b.designation[lx][ly] if d.flow_size==7 and not d.liquid_type and not d.hidden then zs[b.map_pos.z]=(zs[b.map_pos.z] or 0)+1 end end end end
+local topz,best=-1,0 for zz,n in pairs(zs) do if n>best then topz,best=zz,n end end
+z=topz print("open water top z", z)
+for y=1,my,2 do for x=1,mx,2 do
   if #spots>=3 then break end
-  local good=true
+  local good, vert=true, false
   for dx=0,3 do if not ok(x+dx,y,z) then good=false break end end
+  if not good then good=true vert=true for dy=0,3 do if not ok(x,y+dy,z) then good=false break end end end
   if good then
-    local far=true for _,s in ipairs(spots) do if math.abs(s[2]-y)<20 and math.abs(s[1]-x)<20 then far=false end end
-    if far then spots[#spots+1]={x,y} end
+    local far=true for _,s in ipairs(spots) do if math.abs(s[2]-y)<8 and math.abs(s[1]-x)<8 then far=false end end
+    if far then spots[#spots+1]={x,y,vert} end
   end
 end end
 if #spots<3 then qerror("found only "..#spots.." spots") end
@@ -49,7 +54,8 @@ for gi,g in ipairs(groups) do
   local sx,sy=spots[gi][1],spots[gi][2]
   local ids={}
   for k,cid in ipairs({"FEMALE","FEMALE","MALE","MALE"}) do
-    local u=put(g[2], caste(g[2],cid), xyz2pos(sx+k-1,sy,z), g[3], g[4])
+    local vert=spots[gi][3]
+    local u=put(g[2], caste(g[2],cid), vert and xyz2pos(sx,sy+k-1,z) or xyz2pos(sx+k-1,sy,z), g[3], g[4])
     ids[#ids+1]=u.id
   end
   print(g[1], df.creature_raw.find(g[2]).creature_id, "at", sx, sy, z, "ids", table.concat(ids," "))
