@@ -600,6 +600,39 @@ AQS_LAKE: lake surface at z102, 3,600 planned cells in the test view, 2,591 of t
   dolphin on clean bed and water. GFPS 57.3, unchanged. Data: `data/aquarium-run/e36/` (tileprobe-1.tsv is the
   cause trace; S, Soff, T are the captures; detect.py).
 
+### E37. The user's water art per body, plants, sponges (user 5 Oct)
+- **Asked:** ocean = wind ripples (more alpha) -> soft crest (deep) -> whitecap (shallow) -> swash, out-and-fade ->
+  wind wisps; rivers = 'simple water flow'; caverns, pools, reservoirs = caustic web (more alpha); seaweed on the
+  ocean floor, seagrass on river floors, both shaded; nothing preys on sponges; sponges breed.
+- **Done (plugin 619269f, live in the user's fort):**
+  - Skins: sea = two periodic ripple fields (alpha 110); lake/pool/cavern = caustic web at 80 (was 45; cavern water
+    had none); river = madmedicsoft's 'Simple water flow' (OGA, CC0). That art is an opaque teal tile, so its 7
+    colours are mapped to highlights and faint shadows over transparency, turned to the current's heading, 2 px a
+    frame, 8 frames, alpha 200.
+  - Fronts: soft crest while vis > 0, whitecap at vis 0.
+  - Landing: swash runs up 0.7 s (decelerating lip), then fades 1.9 s where it stopped. Landings now carry the
+    front's direction. First cut drew a 0.30 film over the whole wet part: glassy blocks on every shore tile, so
+    the film now thins away from the lip.
+  - Wisps: the user's game draws mist from the aquarium mod's SW_AQ_MIST page (texpos 30011-30014), not vanilla
+    EVENT_FLOWS (`status` now lists main's flow sprites); both are hidden in high_flow (full passes and lone
+    redraws) and wisps drawn. At the sampler's strength 300 mist tiles at a river mouth read as a snowstorm:
+    alpha per density 55-145.
+  - Plants: vanilla has no seaweed. Seaweed = RICE (PLANT_CROPS 0,11) and HERB_VALLEY (PLANT_STANDARD 0,11)
+    recoloured kelp, 14% of flat sea-floor beds. Seagrass = REED_ROPE (0,14) and GRASS_LONGLAND (0,10) tinted,
+    24% of river beds. They sit in DF's plant slot (background_two) on the bed, so the water tint shades them;
+    beds at the view level get them in the fill swap, tinted on the surface layer. Candidates:
+    data/aquarium-run/plants/.
+- **Seen (Kideturdin fort, river mouth at 105,81 z128, pool at 11,12; captures data/aquarium-run/e37/):** ripples,
+  whitecaps in rows (S and W fronts), swash lip on the rocks, light wisps, flow overlay on the river with the bed
+  showing, seaweed and seagrass shaded. GFPS 102-117 at 60x34. Cavern water not seen: no cavern revealed in that fort.
+- **Sponges (seasonal-wildlife branch v7.1-sponge d5a98fe, NOT deployed):** vanilla SPONGE/GIANT_SPONGE/SPONGE_MAN
+  are not vermin (DF's vermin hunting cannot take them) and have one sexless DEFAULT caste (cannot breed).
+  `MODEL.NEVER_PREY` keeps them out of the food web, relation writes and lures; `V7.sweep` clears any
+  predator relation DF writes onto a sponge. The aquarium mod adds `[SELECT_CREATURE:SPONGE][CASTE:FEMALE][FEMALE]
+  [CASTE:MALE][MALE]`. Open: DF may keep DEFAULT as a third caste; GIANT_SPONGE copies tags from SPONGE, maybe before
+  the mod edit; wild animals may not breed on the map at all; installing into a save that already holds sponges
+  could remap their castes. Test on the rig on a new world before it goes to the user's game.
+
 ## Status of the user's reports (U1-U13), plugin e798a36 + tool fe72c29
 
 | # | Report | Status | Entry |
