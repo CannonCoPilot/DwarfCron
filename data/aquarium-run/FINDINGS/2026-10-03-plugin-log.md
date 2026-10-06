@@ -944,3 +944,11 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   across the run, so neighbouring tiles hit by one front (the tile ahead and the two beside it) wash as one line.
 - **Seen live** (b6/r2-*.png, 16 frames at 0.3 s): pale sheets on the beach tiles at the water's edge, under DF's own blue
   spray sprite; the crests at sea (W2) unchanged.
+
+### E57. B6: the swash lip bows forward per tile (user 6 Oct: "a slight curve so that each individual wave tile looks a little more like an individual wave"; plugin 8ee90b5)
+
+- The lip's position along the run is now lip + 4 px * (1 - u^2) - 2 px, u = across / the tile's half-extent (so the middle
+  leads and the tile's sides trail by 4 px); the ragged noise is cut from 3 px to 2 px so the bow reads. A row of tiles hit
+  by one front now shows as a line of small scalloped waves instead of one straight band (b6/r3-*.png, b6/swash-bow.jpg).
+- Kept in mind: E17 found a bow on the old surf crest read as "( )" at corners and headlands; this bow is on the beach
+  tile, 4 px, and is the user's call, so it stays unless the look says otherwise.
