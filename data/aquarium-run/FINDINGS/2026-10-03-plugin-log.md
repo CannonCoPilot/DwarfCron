@@ -792,3 +792,11 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   9.99 ms (new / old / new), with gfps 44 in all three. The rise from 1.2 ms earlier is the zoom (4x the cells), not this change.
 - **Seen, not caused by this:** one bright teal tile near 464,746,z110 (RampTop with the bed one level down). It is identical
   in the previous build. Not chased; noted for the user.
+
+### E46. B10: no driftwood on the sea floor (user 5 Oct, ~9.05 PM)
+- User: "I actually don't love the driftwood. Can you hide underwater driftwood in ocean water?"
+- **Plugin b3a6783.** plan_column drops the DRIFTWOOD deco when the column's body is the sea (salt water). The bed's family floor
+  (sand) shows instead. Lakes, rivers, pools and caverns keep their driftwood, and logs (items) are not touched. DF itself prints
+  no driftwood under water (E41), so nothing else draws it.
+- **Check** (b8b/nodrift.png, Learnedchanneled 295,665): z108 before and after, and z110 after. All 135-odd driftwood tiles are
+  gone. The terrain boulders, the placed granite boulders and oak logs, and the decor grid remain.
