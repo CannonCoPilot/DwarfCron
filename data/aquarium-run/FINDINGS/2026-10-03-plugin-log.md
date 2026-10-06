@@ -657,3 +657,23 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 **Packaged:** `sw-wt/aquarium-plugin/dist/aquarium-plugin-dfhack-53.16-r2-5fe7208c.zip` (crash fix + foam, E21-E22; 74f23fb4 is withdrawn: it can crash).
 **Still open:** diagonal coasts get short slanted strokes rather than a joined line; the dll is tied to DFHack
 53.16-r2 and must be rebuilt for each DFHack release.
+
+### E37 reverted (user 5 Oct, evening)
+- The user rejected the E37 art pass as a whole ("go back to how it was"); plugin master 3258b86 reverts 619269f and 900381d
+  (source = 0a35dae). Work now follows the user's checklist one item at a time (water-graphics-v2 page).
+- **B1, transparency missing (Shortsling, Boatsbowed):** E37's river-flow overlay at alpha 200 hid the bed and was also laid on
+  the lake (the plugin classes most of Shortsling's lake as river: 1 lake / 866 river cells in view; moved to W3). A/B at one
+  view: now / E37 / now (data/aquarium-run/b1/ab.png). User confirmed the rollback looks right.
+
+### E38. B2: 2 FPS on unpause, blue blocks, no fronts (Learnedchanneled = AQUA_SHORE16, 768x768x131)
+- **Speed is DF, not the plugin or the tool.** Fresh load, 20 s arms (ticks advanced): plugin on 29; tool + plugin both off
+  25 (gfps 1). The second 20 s reach ~7-9 fps and the third ~37 whatever is on. The tool's own worst tick is 51 ms (1.1 s of
+  Lua in 75 s). A 16x16 embark is 16x a 4x4's area; DF's first unpause warms up for ~40 s.
+- **Blue blocks = hidden tiles under a visible sea.** A fresh embark hides the unseen sea floor (bed hidden in nearly every
+  sampled column; lower levels hidden on the west side). plan_column returned false on ANY hidden tile (E13's cavern rule),
+  so 148 of 8,160 cells in view were left to DF's dark water; `reveal` planned them, `unreveal` dropped them again
+  (b2/reveal-ab.png). Fix: a hidden tile ends a column only above the first water; below a visible surface the water is
+  drawn and a hidden bed gets the body's usual family (never real material or ramp). Unrevealed: 8,160 planned, blocks gone
+  (b2/fix-ab.png). Hidden cavern water (704,392,66) still plans 0 cells.
+- **Fronts:** drawing never filtered hidden tiles. None existed while the sim crawled; after 75 s unpaused the world had 1,032
+  fronts and 233 landings, 152 drawn in reach at the coast (b2/s5-fronts.png).
