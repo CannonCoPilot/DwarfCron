@@ -913,3 +913,20 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Check** (trees/): the cavern from z97, z98 and z99, and the river from z115, z117 and z119, before and after. The dark
   squares under canopies are gone in the cavern (z98, z99) and over the river (z119). Canopies seen from above take DF's own
   haze like everything below the view.
+
+### E55. B5: "the surface pool water is glitchy, not showing up properly" (Boatsbowed, user 5 Oct 2.46 PM)
+- The report came during the E37 art pass that was then reverted. The screenshot: a pool seen from one level up, mostly dry
+  tan bed and ramps, with a few bright cyan squares.
+- **Reproduced on Boatsbowed itself** (region7, loaded with the user's permission, quit without saving, autosave NONE). The
+  save is from 26 Sep, mid-year; the user's look was Early Autumn, unsaved. Its pools are standing fresh water at z121, only
+  1/7-2/7 deep (no stagnant water at all). With the current plugin, both pools checked (110-121 x 63-76, and 58-68 x 57-66)
+  draw evenly from z122 and z123 and at their own level. **No tile glitch remains**; the E37 art caused it (b5/b5-ab.png).
+- **What remains is DF's own shallow sprite:** UNDERWATER_1..7 in liquids.png are (0,146,171) at alpha 0.70, (0,127,149)
+  at 0.80, (0,112,132) at 0.90, then fully opaque from depth 4 on. DF draws shallower water brighter and only slightly
+  clearer. A drying pool's last 1/7 puddles are the brightest, most solid tiles, beside bare tan bed: the user's Early Autumn
+  picture. On screen a 1/7 tile reads 36,130,141, and the sand bed under it is not visible (b5/shallow-ab.png).
+- **Possible fix (not made, the user's call; fits W5 "water you can see through"):** for shallow standing water, the plugin
+  would replace DF's depth sprite with its own see-through water scaled by depth, so 1/7 shows mostly bed. Not yet known:
+  whether DF can be stopped from drawing its sprite on a tile (it reads depth from the map: E50).
+- Also seen: in Shortsling (AQUA_LAKE), the plugin classes the lake by the save's camera as river, all 663 cells "with
+  current", so the lake gets river streaks. That belongs to W3/W4.
