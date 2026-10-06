@@ -855,3 +855,14 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   falls/froth3-ab.png.
 - **Slip, recovered:** during the A/B I ran 'streaks off' on the user's game. I restored it to 70 straight away (status
   confirms 'streaks 70').
+
+### E51. W9: the lip blinked between the streaks and DF's tiles (user 6 Oct, 8.48 AM screenshots)
+- 8.48.32 shows the lip as plain stepped DF water; 8.48.35 shows the streaks. The game was running.
+- **Cause:** DF's falling water is patchy from tick to tick. E50 had already seen gaps make false tops mid-column. The tagger
+  runs once a second, and in any pass the column's top tile (or the lip water) can be empty. Then every lip tag drops until a
+  later pass finds them again.
+- **Plugin ce74033:** tags are held for 8 s after they were last seen; seeing them again refreshes them. They are forgotten on map
+  unload and on 'falls off'.
+- **Not verified live yet:** by the time this was built, the user had left the fort (DF at the title screen, region17, no
+  map). The build was swapped in at the title, where it is safe (no map, no texture race), and reports depth off, wanted yes.
+  The check is to watch the lip for 20 s with the game running, once a fort is loaded.
