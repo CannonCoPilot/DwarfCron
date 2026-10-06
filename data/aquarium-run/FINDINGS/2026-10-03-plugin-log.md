@@ -714,3 +714,11 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   the corpse is unexplained and not relied on. 9272a86 reverted (fe0bd91); plugin source = 40fc7af (B3), live in the user's
   game. A real fix needs the plugin to collect items on submerged beds itself (core thread, like creatures) and resolve each
   item's sprite (a corpse: its creature's graphics). Not started; B7 parked for the user's call.
+- **E40 redone (user: "why not corpses? live animals render"), plugin e13c67b.** New `probe X Y` records every non-zero
+  layer DF printed at one map tile per viewport level, on the render thread. Osprey corpse 0,614,108: camera z108 ->
+  level 0 `item=100747`; camera z109/110/111 -> every layer empty at every level 1-8 (corpse level included). DF prints
+  nothing below view-level water, and swimmers render only because the plugin draws them itself from the unit list. The
+  osprey's `creature_texture_texpos[0][CORPSE][0][0]` = 100747, the very value DF prints. Fix: ANY_CORPSE items in water
+  (not in inventory, k 1..depth) join the creature marks with their creature's CORPSE sprite (DEFAULT if none), drawn and
+  tinted like swimmers; at the first water level DF's item copy is blanked. Same corpse, same camera: visible and
+  progressively tinted at z109, z110, z111 (b7/corpse-grid.png). Non-corpse items (stones, wood items) still not drawn.
