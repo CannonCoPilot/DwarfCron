@@ -760,3 +760,19 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   floor, SOIL_RAMPS ramps and the mud tint (#145a6e, alpha 50). The pebble floors are gone from pools. The FLOOR_PEBBLES
   lookups stay, for the brook (W7).
 - **Check** (b8b/mud-abc.png): pool 200,36,114 from z116, z115 and its own level. All 37 bed cells draw mud: 9 floors and 28 ramps.
+
+### E44. B9: ramps at their own level looked dry (user 5 Oct, 8.42 PM screenshots)
+- User: the ramps "don't appear as if they are below water when at their same z-level". This held for sand ramps under the sea
+  and for mud ramps in a murky pool. Ramps should take "about 50-75% of the tint that their adjacent bottom tiles are tinted".
+- **Probe** (pool ramp 198,35 and floor 200,36, z114, view level): DF prints the same two layers on both cells, its dark fill
+  (2566) and liquid_flag 60. The plugin swaps the floor into background and the ramp into background_two. On screen the floor
+  is tinted and the ramp is not, so DF paints its water sheet after background and before background_two.
+- **Fit** (the user's two screenshots, 32 px per tile, against the raw sprites): sand 205,171,104 shows as 68,91,76, and the
+  plugin's mud 178,136,88 shows as 60,85,76. Both fit screen = (1-a)*raw + a*C with a = 0.79 and C = 30,71,71 (prediction
+  within 2 points). Screen ramps sit near their raw colour.
+- **Plugin 7dcb73c.** Each ramp sprite (all three ramp pages, every mask) gets a wet copy with C baked in at alpha 128/255, about
+  63% of the floor's tint. The copies are made once per process, as the mud tile is (map load only flags start_pending). The
+  wet copy is used only for a bed at the view level; deeper levels keep the compose tint as before.
+- **Check** (b8b/): pool 200,36,114 at its own level, before and after (wet-pool-ab.png); sea shore ramps at 400,679,108
+  (wet-sea.png). The ramps now read as submerged and stay lighter than the floor beside them. Still open: driftwood and
+  boulders at the view level use the same layer, so they are untinted at their own level too.
