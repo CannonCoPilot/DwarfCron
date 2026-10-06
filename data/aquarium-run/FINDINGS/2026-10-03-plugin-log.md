@@ -877,3 +877,23 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   (falls/lip-final.png).
 - **My error on the way:** the first 20 s run used the camera spot from the 16 px zoom (32,29). At the user's new zoom (40x23)
   that view held only sky, and the run read 0. Centre on the target from the live viewport size.
+
+### E53. B4 follow-up: trees in the cavern lake; stray foam (user 6 Oct, 10.09-10.10 AM screenshots)
+- **Pale squares round trunks (z96):** 146 BRANCH and 109 TWIG tiles at z96 hold 7/7 water over more water at z95. plan_column
+  took them for the bed at the view level, so they got the shallow look, while the deep water round them darkened. Now
+  BRANCH, TWIG and TRUNK_BRANCH tiles holding water continue the column like open water.
+- **Bright squares behind trunks (z97):** trunk cells (TreeTrunkPillar at z97, TreeTrunkEW at z96, water at z95) were
+  unplanned, because solid wood ended the column, so DF drew the water under them untinted. A column now passes through TREE
+  or MUSHROOM material. Water under wood starts at the wood's level (the lake's surface): top = the wood, plan_cell.wood = 1.
+  At that level DF prints liquid_flag 0x200200 ("trunk in water"), which draws pale. The plain sheet (water_value) is swapped
+  in, in full passes and lone redraws, and the trunk cell takes one more depthdark level. **Measured** (trunk-cell corner vs
+  open water, 15,75,88): before 33,113,131; planned 9,93,108 to 20,121,141; plain sheet 11,88,103; plus one level 10,80,94.
+  A faint dark trace remains on the top and bottom pillar cells.
+- **Canopy (z97):** the cavern darkening seen from above (E48) was drawn over main, so making canopy cells deeper would also
+  have darkened the leaves. It now runs right after DF draws level 1 (before the view level), and for lone level-1 redraws.
+  A canopy cell over plain water now reads like the water beside it (21,77,86 vs 15,74,87; was 33,92,102).
+- **Stray foam (z95, z96):** 28 tiles of still 7/7 water in narrow cavern inlets passed the falling test (open space, water
+  below, at most 2 wet neighbours) on one level only. The result was 26 false landings, 49 froth tiles, and foam along the
+  walls. A falling tile now needs another falling tile within 3 levels in its column. The cavern now has 0 landings at
+  z95-97, and the real falls are unchanged.
+- Images: falls/trunk4.png, falls/tree-ab-z9{5,6,7}.png.
