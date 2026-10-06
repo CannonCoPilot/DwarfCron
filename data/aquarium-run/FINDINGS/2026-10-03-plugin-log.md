@@ -698,3 +698,12 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   `screentexpos`. Now the vermin layer is blanked for vermin marks. After the swap a thornback at 490,670,111 draws tinted
   under the water from z112 (b3/ray-ab.png, lower half; the "before" capture fired before the camera moved; the user's
   screenshot is the before).
+- **User confirmed B3 (7.04 PM):** "no more surface-level renders that appear above water."
+
+### E40. B7: items on a submerged bed invisible from above (user 5 Oct, 7.04 PM, osprey corpses)
+- **Cause (code).** The plugin composes each bed cell itself (`compose_tile`), which zeroes every DF layer of that cell,
+  item layer included, so corpses lying on the bed vanished under the water until the camera stood on their level.
+- **Fix.** The underlay reads the item sprite DF printed for the bed level (`screentexpos_item` of that lower viewport) and
+  composes it with the floor; the depth tint then shades it. Learnedchanneled: a spiny dogfish corpse at 353,692,108 and a row
+  of items on the bed now show from z110 (b7/after2-zoom.png). Limit: the underlay is recomposed when the plan changes, so an
+  item that lands on the bed while the view stands still appears at the next pan or level change.
