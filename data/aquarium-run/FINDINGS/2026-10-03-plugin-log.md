@@ -866,3 +866,14 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Not verified live yet:** by the time this was built, the user had left the fort (DF at the title screen, region17, no
   map). The build was swapped in at the title, where it is safe (no map, no texture race), and reports depth off, wanted yes.
   The check is to watch the lip for 20 s with the game running, once a fort is loaded.
+
+### E52. W9: no streaks at the lip's own level; E51 confirmed live (user 6 Oct, 9.58 AM)
+- User at z137, the river's own level with the camera in the water: "The flow effect is not needed on the underwater z-level
+  view of the top of the falls."
+- **Plugin ba26104:** the dashes are drawn only where the camera looks down onto the water (plan top >= 1). The even-sheet tone
+  correction stays at every level.
+- **E51 checked live** (Granitephanton, view centred on the lip at the user's zoom, 40x23 tiles, game running 20 s): the lip
+  was drawn on 24-25 tiles in every second, while the tagged set moved between 25 and 32 tiles. At z137: 28 tagged, 0 drawn
+  (falls/lip-final.png).
+- **My error on the way:** the first 20 s run used the camera spot from the 16 px zoom (32,29). At the user's new zoom (40x23)
+  that view held only sky, and the run read 0. Centre on the target from the live viewport size.
