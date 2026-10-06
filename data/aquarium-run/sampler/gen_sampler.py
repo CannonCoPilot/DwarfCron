@@ -232,6 +232,125 @@ VARIANTS = [
     ('skin-ripple', 'skin', 'skin', shimmer_ripple, 'Wind ripples', 'Long, low ripple lines drifting downwind.'),
 ]
 
+
+# ---------------- falls: the lip (river running east into a drop at column 3) ----------------
+UW = [tile('liquids.png', 0, 7 - d) for d in range(1, 8)]  # UW[d-1] = DF's UNDERWATER_d
+FLOOR = tile('floors.png', 1, 7)  # DIRT_FLOOR_5; recoloured to the plugin's mud below
+_l = (0.299 * FLOOR[..., 0] + 0.587 * FLOOR[..., 1] + 0.114 * FLOOR[..., 2]); _ml = _l.mean(); _t = _ml + (_l - _ml) * 0.45
+MUD = np.dstack([np.clip(np.array(m) / 255 * _t / _ml, 0, 1) for m in (178, 136, 88)] + [np.ones((32, 32))])
+LIP_DEPTH = [7, 5, 3]      # DF's depth on columns 0-2 as the water drains to the edge (measured 7..1)
+LIP_SPEED = [0.35, 0.65, 1.0]
+
+def lip_bg(f, c, r):
+    if c == 3:  # the drop: open air over the falls, DF's mist on it
+        o = np.zeros((32, 32, 4)); o[..., 0], o[..., 1], o[..., 2], o[..., 3] = 0.16, 0.2, 0.24, 1
+        return over(o, MIST[(f + r) % 4])
+    return over(MUD, UW[LIP_DEPTH[c] - 1])
+
+def lip_even(c):  # one even sheet over the stepped depths: DF's full-depth water laid on the shallower columns
+    e = UW[6].copy(); e[..., 3] *= [0.0, 0.75, 1.0][c]; return e
+
+def lip_ref(f, wx, wy):  # what DF draws now
+    return np.zeros((32, 32, 4))
+
+def lip_glassy(f, wx, wy):  # an even glassy tongue: steps hidden, soft highlight bands sliding to the edge, faster near it
+    sp = LIP_SPEED[wx]; gx = xx + wx * 32
+    ph = (gx - f * 8 * sp * 2) / 14 * 2 * math.pi
+    band = ss(0.75, 1.0, np.sin(ph + 0.6 * np.sin((yy + wy * 32) / 9))) * (0.18 + 0.2 * sp)
+    return over(lip_even(wx), rgba(band, 215, 240, 250))
+
+def lip_streaks(f, wx, wy):  # fast white dashes racing to the edge, longer and brighter near it
+    sp = LIP_SPEED[wx]; a = np.zeros((32, 32))
+    for k in range(7):
+        r = int(h(k * 7919 + (wy * 4 + wx) * 131))
+        y0 = (r % 30) + 1; ln = 4 + 8 * sp; x0 = ((r >> 8) % 32 + f * 8 * (1 + sp)) % 40 - 6
+        m = (np.abs(yy - y0) < 0.6) & (xx >= x0) & (xx <= x0 + ln)
+        a = np.maximum(a, m * (0.35 + 0.45 * sp) * np.clip((xx - x0) / ln, 0.2, 1))
+    return over(lip_even(wx), rgba(a, 235, 248, 252))
+
+def lip_chevron(f, wx, wy):  # standing V waves pointing downstream, shimmering in place
+    sp = LIP_SPEED[wx]; gy = yy + wy * 32 - 48
+    u = xx + wx * 32 - np.abs(gy) * 0.55
+    p = np.sin(u / 7 * 2 * math.pi - f * math.pi / 2)
+    a = ss(0.8, 1.0, p) * (0.2 + 0.35 * sp)
+    return over(lip_even(wx), rgba(a, 220, 242, 250))
+
+_flow = np.asarray(Image.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'online', 'flow-down.png')).convert('RGBA')).astype(float) / 255
+def lip_oga(f, wx, wy):  # madmedicsoft 'simple water flow' (CC0), turned to run east, doubled to 32 px, every other frame
+    fr = _flow[:, (2 * f) * 16:(2 * f + 1) * 16]
+    fr = np.rot90(fr, 1)  # down -> east
+    fr = fr.repeat(2, 0).repeat(2, 1)
+    # keep only the strokes: the tile's light-blue body is dropped, its
+    # brighter-than-median pixels become white strokes on the even sheet
+    lum = 0.299 * fr[..., 0] + 0.587 * fr[..., 1] + 0.114 * fr[..., 2]
+    a = ss(np.median(lum), np.median(lum) + 0.12, lum) * (0.35 + 0.45 * LIP_SPEED[wx])
+    return over(lip_even(wx), rgba(a, 225, 245, 252))
+
+# ---------------- falls: the froth (landing tile at column 1, row 1) ----------------
+LAND = (1, 1)
+def froth_k(wx, wy):  # strength by distance from the landing tile: 1, 0.55, 0.25
+    d = max(abs(wx - LAND[0]), abs(wy - LAND[1])); return [1.0, 0.55, 0.25, 0.1][min(d, 3)]
+
+def froth_bg(f, c, r):
+    b = over(MUD, UW[6])
+    if (c, r) == LAND:  # the falling column, as DF's mod mist page draws it
+        o = np.zeros((32, 32, 4)); stripes = 0.5 + 0.5 * np.sin((xx * 1.7 + yy * 0.2 + f * 8) / 32 * 2 * math.pi * 3)
+        o[..., 0], o[..., 1], o[..., 2] = 0.55 + 0.3 * stripes, 0.85, 0.92; o[..., 3] = 0.55 + 0.25 * stripes
+        b = over(b, o)
+    return b
+
+def froth_ref(f, wx, wy):
+    return np.zeros((32, 32, 4))
+
+def froth_boil(f, wx, wy):  # churning white foam, dense at the landing, broken patches further out
+    k = froth_k(wx, wy); gx, gy = xx + wx * 32, yy + wy * 32
+    n = 0.6 * vnoise(gx + f * 3, gy - f * 2, 6, 17, 512) + 0.4 * vnoise(gx - f * 4, gy + f * 3, 3, 29, 512)
+    a = ss(1.0 - 0.55 * k, 1.05 - 0.55 * k, n) * (0.55 + 0.4 * k)
+    return rgba(a, 240, 248, 250)
+
+def froth_bubbles(f, wx, wy):  # bubble rings welling up and popping, many at the landing, few at the edge
+    k = froth_k(wx, wy); a = np.zeros((32, 32))
+    for i in range(int(4 + 14 * k)):
+        r = int(h(wx * 131 + wy * 977 + i * 7919))
+        bx, by = (r % 28) + 2 - 15.5, ((r >> 8) % 28) + 2 - 15.5
+        life = ((r >> 16) + f) % 4; rad = [1.0, 1.7, 2.3, 0][life]
+        if rad == 0: continue
+        d = np.sqrt((cx - bx) ** 2 + (cy - by) ** 2)
+        a = np.maximum(a, np.clip(1 - np.abs(d - rad) / 0.7, 0, 1) * (0.85 if life < 2 else 0.5))
+    return rgba(a * (0.5 + 0.5 * k))
+
+def froth_rings(f, wx, wy):  # rings spreading out from the landing point and fading
+    gx = xx + wx * 32 - (LAND[0] * 32 + 16); gy = yy + wy * 32 - (LAND[1] * 32 + 16)
+    d = np.sqrt(gx * gx + gy * gy)
+    a = np.zeros((32, 32))
+    for j in range(3):
+        rad = (f * 6 + j * 24) % 72 + 8
+        a = np.maximum(a, np.clip(1 - np.abs(d - rad) / 1.6, 0, 1) * np.clip(1 - rad / 72, 0, 1) * 0.7)
+    a = np.maximum(a, np.clip(1 - d / 14, 0, 1) * 0.6)  # the churned centre
+    return rgba(a, 235, 246, 250)
+
+def froth_spray(f, wx, wy):  # foam on the water and DF's mist over it, both fading with distance
+    k = froth_k(wx, wy); gx, gy = xx + wx * 32, yy + wy * 32
+    n = vnoise(gx + f * 2, gy + f * 2, 4, 47, 512)
+    foam = rgba(ss(0.95 - 0.45 * k, 1.0 - 0.45 * k, n) * 0.75 * k ** 1.5, 240, 248, 250)
+    m = MIST[(f + wx + wy) % 4].copy(); m[..., 3] *= 0.7 * k * k
+    return over(foam, m)
+
+SCENES['lip'] = (lip_bg, [(c, r) for r in range(3) for c in range(3)])
+SCENES['froth'] = (froth_bg, [(c, r) for r in range(3) for c in range(4)])
+VARIANTS += [
+    ('lip-df', 'lip', 'lip', lip_ref, 'DF now (reference)', 'What DF draws today: depth 7, 5 and 3 toward the drop, so the water steps from dark to light.'),
+    ('lip-glassy', 'lip', 'lip', lip_glassy, 'Glassy tongue', 'The steps evened out into one sheet; soft highlight bands slide to the edge, quicker near it.'),
+    ('lip-streaks', 'lip', 'lip', lip_streaks, 'Racing streaks', 'Even sheet with thin white dashes racing to the edge, longer and brighter as it nears.'),
+    ('lip-chevron', 'lip', 'lip', lip_chevron, 'Standing V waves', 'Even sheet with V-shaped standing waves pointing downstream, shimmering in place.'),
+    ('lip-oga', 'lip', 'lip', lip_oga, 'Flow strokes (OGA, CC0)', 'madmedicsoft\'s simple water flow, turned to run toward the edge, over an even sheet.'),
+    ('froth-df', 'froth', 'froth', froth_ref, 'DF now (reference)', 'Today: the falling column lands and the pool round it is plain water.'),
+    ('froth-boil', 'froth', 'froth', froth_boil, 'Churning foam', 'White foam boiling at the landing, breaking into patches further out.'),
+    ('froth-bubbles', 'froth', 'froth', froth_bubbles, 'Bubble boil', 'Bubble rings welling up and popping; many at the landing, few two tiles out.'),
+    ('froth-rings', 'froth', 'froth', froth_rings, 'Spreading rings', 'A churned centre with rings running out from it and fading.'),
+    ('froth-spray', 'froth', 'froth', froth_spray, 'Foam and mist', 'Patchy foam on the water with DF\'s own mist over it, both thinning with distance.'),
+]
+
 meta = []
 for vid, grp, scene, fn, title, note in VARIANTS:
     layout, cells = SCENES[scene]
@@ -240,7 +359,10 @@ for vid, grp, scene, fn, title, note in VARIANTS:
         sc = np.zeros((96, 128, 4))
         for r in range(3):
             for c in range(4):
-                sc[r * 32:(r + 1) * 32, c * 32:(c + 1) * 32] = SAND if layout[r][c] == 'S' else over(SAND, WATER)
+                if callable(layout):
+                    sc[r * 32:(r + 1) * 32, c * 32:(c + 1) * 32] = layout(f, c, r)
+                else:
+                    sc[r * 32:(r + 1) * 32, c * 32:(c + 1) * 32] = SAND if layout[r][c] == 'S' else over(SAND, WATER)
         for (c, r) in cells:
             spr = fn(f, c, r)
             sc[r * 32:(r + 1) * 32, c * 32:(c + 1) * 32] = over(sc[r * 32:(r + 1) * 32, c * 32:(c + 1) * 32], spr)
