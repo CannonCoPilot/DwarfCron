@@ -833,3 +833,25 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Base (z113-114):** the landing tiles are z113 x95 y67-70, under water falling from z114. DF keeps Mist flows over x92-96,
   y67-71 (412 mist flows near the falls). Candidate tag: water under falling water, plus under mist, fading with distance.
 - Art for both is the user's pick (checklist W9, W10). Nothing is drawn yet.
+
+### E50. W9/W10: falls lip streaks and froth (user 6 Oct: "lip-streaks and froth-spray. build into the plugin")
+- **Tags (core thread, about 1 s, the view plus 8 cells, view level down through the shown depth):** a falling tile is open
+  space holding water, with water below and at most 2 wet neighbours. DF's column is patchy, with gaps at z131-135, and a first
+  build found false tops and landings in mid-air there. Rules now: a top has no falling water above it and is fed by water
+  with a floor beside it, at its level or one above. A landing tile lies over a pool: a floor, or open water with 5 or more wet
+  neighbours. A landing is never a top. The pool beside the column's last tile had made a false lip at the base.
+  Granitephanton: 2 tops, 26 lip tiles, 0 landings in the z138 view. 0 tops, 2 landings, 11 froth tiles at z113-114.
+  0.5-1.2 ms per build.
+- **Lip:** this was the first fix to try. DF draws draining water by depth: liquid_flag 60/52/44/36 for depth 7/6/5/3. Swapping
+  the flag to 60 ran (the counter climbed) but changed nothing on screen, because DF picks its depth sprite from the map.
+  Instead, after DF's main level, the plugin lays DF's water colour (30,71,71) at 13% per missing level (capped at 70%), then
+  draws 7 dashes per tile racing toward the drop: speed and length grow with the lip strength, and strength scales with tile
+  size. At 16 px, 1 px dashes washed the lip white (L115). **Measured (z138, 16 px tiles):** lip L104 under DF alone, L115
+  with the first build, L88 now; the river upstream is L81.
+- **Froth:** a tileable foam texture (value noise, grid 4, the sampler's thresholds) at three strengths (landing 255, ring
+  140, outer 64), drifting 8 px/s. DF's own mist over the falls is the mist half of froth-spray. Faint from z114 (under a level
+  of water); clear at z113.
+- 'aquarium-plugin falls on|off'; the status line counts tops, landings, tagged and drawn tiles. Images: falls/lip4-ab.png,
+  falls/froth3-ab.png.
+- **Slip, recovered:** during the A/B I ran 'streaks off' on the user's game. I restored it to 70 straight away (status
+  confirms 'streaks 70').
