@@ -146,41 +146,218 @@ select{font:13px var(--body); padding:6px 8px; border-radius:5px; border:1px sol
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 @media (max-width:640px){ .ck-item{grid-template-columns:1fr; gap:8px} }
 </style>
+/* 6 Oct reorganisation */
+.status-card{display:grid; gap:10px}
+.kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:0; font-size:14px}
+.kv dt{color:var(--ink3); font:500 12.5px/1.6 var(--mono)} .kv dd{margin:0}
+.toc{display:flex; flex-wrap:wrap; gap:6px 8px; position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--bg); padding-block:10px; border-bottom:1px solid var(--rule)}
+.toc a{font:500 13px/1 var(--body); padding:7px 10px; border-radius:4px; text-decoration:none; color:var(--ink2); border:1px solid var(--rule); background:var(--panel)}
+.toc a:hover{color:var(--tide); border-color:var(--tide)}
+section[id], .grid[id], .ref-divider{scroll-margin-top:64px}
+.ck-summary{display:grid; gap:10px}
+.ck-bar{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:2px; height:14px}
+.ck-bar .seg{border-radius:2px; opacity:.55}
+.ck-bar .seg.ticked{opacity:1; box-shadow:inset 0 -3px 0 var(--ink)}
+.ck-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font:500 13px/1.4 var(--mono); color:var(--ink2); align-items:center}
+.ck-legend .lg{display:inline-flex; gap:6px; align-items:center}
+.ck-legend i{width:12px; height:12px; border-radius:2px; display:inline-block}
+.ck-legend a.next{color:var(--warn); font-weight:600}
+.ck-body{display:grid; gap:6px}
+.ck-fold > summary{cursor:pointer; list-style:none}
+.ck-fold > summary::-webkit-details-marker{display:none}
+.ck-fold > summary .ck-top::after{content:"show record"; font:12px var(--mono); color:var(--ink3); margin-left:auto}
+.ck-fold[open] > summary .ck-top::after{content:"hide"}
+.ck-fold[open] > summary{margin-bottom:6px}
+.ck-item.st-done{padding-block:10px}
+.ck-item.st-next{box-shadow:inset 3px 0 0 var(--warn)}
+details.world > summary{cursor:pointer; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
+details.world[open] > summary{margin-bottom:6px}
+.ref-divider{display:grid; gap:6px; border-top:3px solid var(--rule); padding-top:24px}
+.ref-divider p{color:var(--ink2)}
+
 
 <div class="wrap">
 <header>
   <div style="display:grid;gap:12px">
     <span class="eyebrow">Dwarf Fortress 53.16 · Steam graphics · DFHack 53.16-r2 · aquarium plugin</span>
-    <h1>See-through water, live waves and sea life in graphics mode</h1>
-    <p class="lede">A C++ DFHack plugin now draws what graphics mode leaves out: the sea bed and the levels of water above it, fish swimming below the surface, river currents, and the whole of DF's ocean wave from open sea to shore. Every phase is in place; what remains is tuning how it looks.</p>
+    <h1>See-through water for graphics mode</h1>
+    <p class="lede">A C++ DFHack plugin draws what graphics mode leaves out: the bed and every level of water above it, swimmers and things lying on the bottom, river current, the falls, and DF's ocean wave from open sea to shore. The work now is a look pass, one item at a time, in the checklist below.</p>
   </div>
-  <div class="meta">Updated 5 Oct 2026, evening. Today's art pass was reverted at your request: the plugin in your game is again the build after the dark-square fix (<code>0a35dae</code>). The checklist below is the order of work; the sections after it are the record of how the plugin got here. Experiment log: <code>DwarfCron/data/aquarium-run/FINDINGS/2026-10-03-plugin-log.md</code>.</div>
+  <div class="status-card card">
+    <span class="eyebrow">As of 6 Oct 2026, afternoon</span>
+    <dl class="kv">
+      <dt>Plugin in your game</dt><dd><code>8ecf478</code> (B12)</dd>
+      <dt>Fort open now</dt><dd>Boatsbowed, paused, not saved</dd>
+      <dt>Waiting on you</dt><dd>Looks at B7-B12</dd>
+      <dt>Next to build</dt><dd>B6, foam wash at the shore</dd>
+      <dt>Experiment log</dt><dd>E1-E55</dd>
+    </dl>
+  </div>
 </header>
+
+<nav class="toc" aria-label="On this page">
+  <a href="#checklist">Checklist</a>
+  <a href="#features">What it draws</a>
+  <a href="#open">Open problems</a>
+  <a href="#how">How a cell is drawn</a>
+  <a href="#controls">Controls</a>
+  <a href="#history">History</a>
+  <a href="#reference">Reference and art sampler</a>
+</nav>
 
 {{CHECKLIST}}
 
-
-<section>
+<section id="features">
   <div class="sec-head">
-    <h2>Where it stands</h2>
-    <p>Each feature, what it does in the game, and whether it is finished or waiting on a look pass.</p>
+    <h2>What the plugin draws now</h2>
+    <p>Each feature as it stands in build <code>8ecf478</code>, and which checklist items cover it.</p>
   </div>
   <div class="card tbl">
     <table>
-      <thead><tr><th>Feature</th><th>What you see</th><th>Driven by</th><th>State</th></tr></thead>
+      <thead><tr><th>Feature</th><th>What you see</th><th>Items</th><th>State</th></tr></thead>
       <tbody>
-        <tr><td><b>See-through water</b></td><td>The bed and every water level down to it, up to 8 levels (DF's "lower elevations shown" setting). Sloped beds use directional ramps in their own material.</td><td>The tile under each water column, classed as sand, mud, stone or soil</td><td><span class="chip adj">tune per depth</span></td></tr>
-        <tr><td><b>Creatures below the surface</b></td><td>Fish and swimmers drawn on the level they are on, tinted by the water above them.</td><td>Unit and vermin positions, every game frame</td><td><span class="chip open">blue square glitch</span></td></tr>
-        <tr><td><b>Surface skin</b></td><td>A light shimmer on standing water seen from above. Only on the top level, never on waterfalls.</td><td>Water bodies found from tile evidence (2.7 ms native scan)</td><td><span class="chip adj">tune</span></td></tr>
-        <tr><td><b>River current</b></td><td>Streaks drifting downstream on the river's surface.</td><td>The world map's river course where DF's own flow direction is unset</td><td><span class="chip done">done</span></td></tr>
-        <tr><td><b>Wave fronts</b></td><td>A soft white crest crossing the sea, faint over deep water, bold over the last stretch to the coast.</td><td><code>world.event.ocean_waves</code> and each front's visibility counter</td><td><span class="chip adj">tune art</span></td></tr>
-        <tr><td><b>Landing foam</b></td><td>White <code>~</code> on the shore tiles a front reaches. They hold 1.5 s, then fade over 2.5 s.</td><td>The plugin's own landing detector</td><td><span class="chip adj">placeholder</span></td></tr>
-        <tr><td><b>Mist and spray</b></td><td>DF's own spray clouds on the beach, drawn with the mod's mist sprite.</td><td>DF's Steam flows (<code>FLOW_WATER_MIST</code>)</td><td><span class="chip adj">tune art</span></td></tr>
-        <tr><td><b>ASCII mode</b></td><td>The plugin stands down and draws nothing.</td><td><code>Screen::inGraphicsMode()</code></td><td><span class="chip done">done</span></td></tr>
+        <tr><td><b>See-through water</b></td><td>The bed and every water level down to it, up to 8 levels. Each level adds a tint in the bed family's colour, and deep columns darken by 46 per level below the view, so deep reads darker than shallow everywhere.</td><td>B1, B4</td><td><span class="chip done">confirmed</span></td></tr>
+        <tr><td><b>Bed families</b></td><td>Sand under the sea and lakes, mud under rivers and murky pools (floors and ramps), true stone or soil in caverns. Sloped beds use ramps in the same material.</td><td>B8</td><td><span class="chip now">your look</span></td></tr>
+        <tr><td><b>Swimmers</b></td><td>Fish, sharks and vermin drawn on the level they swim on, tinted by the water above them. In the first water level they sit under one level of water, not on top of it. No dark square behind a moving creature (fixed E36).</td><td>B3</td><td><span class="chip done">confirmed</span></td></tr>
+        <tr><td><b>Things on the bottom</b></td><td>Corpses with their creature's corpse sprite; boulders, logs, gems and bars with their material's sprite; dwarf body parts with DF's own sprite; driftwood and terrain boulders on the bed, except driftwood under the sea.</td><td>B7, B8, B10, B11</td><td><span class="chip now">your look</span></td></tr>
+        <tr><td><b>Wet at the view level</b></td><td>Ramps, driftwood, boulders, items, vermin and creatures in water at the camera's own level get DF's water colour baked in, so they no longer read dry.</td><td>B9</td><td><span class="chip now">your look</span></td></tr>
+        <tr><td><b>Trees in water</b></td><td>A trunk standing in water takes the water's depth shading; canopies above the water keep their own colour and the right water shade behind them.</td><td>B4, B12</td><td><span class="chip now">your look</span></td></tr>
+        <tr><td><b>Falls lip</b></td><td>White dashes racing toward the drop over an evened-out sheet, within 6 tiles of the edge, seen from above only.</td><td>W9</td><td><span class="chip done">confirmed</span></td></tr>
+        <tr><td><b>Falls froth</b></td><td>Drifting foam at three strengths within 2 tiles of where the column lands, under DF's own mist.</td><td>W10</td><td><span class="chip done">confirmed</span></td></tr>
+        <tr><td><b>Surface skin</b></td><td>A light shimmer on standing water seen from above (alpha 45). To be replaced body by body.</td><td>W1, W3, W5-W7</td><td><span class="chip q">queued</span></td></tr>
+        <tr><td><b>River current</b></td><td>Streaks drifting downstream (alpha 70), following the world map's river course where DF's own flow direction is unset. A new animation is to be picked.</td><td>W4</td><td><span class="chip q">queued</span></td></tr>
+        <tr><td><b>Wave fronts</b></td><td>A soft white crest on each of DF's fronts: faint far out, bold over the last stretch to the coast.</td><td>W2</td><td><span class="chip q">queued</span></td></tr>
+        <tr><td><b>Landing foam</b></td><td>White <code>~</code> on the shore tiles a front reaches, held 1.5 s and faded over 2.5 s. You saw none.</td><td>B6, W2</td><td><span class="chip adj">next up</span></td></tr>
+        <tr><td><b>ASCII mode</b></td><td>The plugin stands down and draws nothing.</td><td></td><td><span class="chip done">done</span></td></tr>
       </tbody>
     </table>
   </div>
 </section>
+
+<section id="open">
+  <div class="sec-head">
+    <h2>Open problems and loose ends</h2>
+    <p>Known issues outside the item you are looking at, so none of them gets lost.</p>
+  </div>
+  <div class="tune-list">
+    <div class="tune">
+      <h3>Lake classed as river <span class="chip open">blocks W3</span></h3>
+      <p>In Shortsling the plugin files most of the lake as river (663 cells with a current near 213, 143), so river streaks run across the lake. The water-body classing has to be fixed before the lake surface.</p>
+    </div>
+    <div class="tune">
+      <h3>DF's shallow-water sprite <span class="chip adj">part of W5</span></h3>
+      <p>DF draws depths 1-3 as bright aqua at 70/80/90% opacity and 4-7 opaque, so drying puddles read as solid squares. Swapping the tile's water value does not change the sprite DF picks; whether it can be suppressed per tile is still to test.</p>
+    </div>
+    <div class="tune">
+      <h3>Depth tint on bed art <span class="chip adj">your call</span></h3>
+      <p>Driftwood, boulders and items fade a lot through one or two levels of water. Say whether bed art should take a lighter tint than the bed itself (B8).</p>
+    </div>
+    <div class="tune">
+      <h3>Slow warm-up on the big sea map <span class="chip q">DF's own</span></h3>
+      <p>Learnedchanneled (768 × 768) runs at about 2 FPS for its first minute after unpausing with the plugin and tool both off. Not the plugin's cost; you closed B2.</p>
+    </div>
+    <div class="tune">
+      <h3>Release package <span class="chip q">after the look pass</span></h3>
+      <p>The plugin's <code>dist/</code> package predates the depth, falls and wet-sprite work. It gets rebuilt once the checklist settles. The dll is tied to DFHack 53.16-r2.</p>
+    </div>
+    <div class="tune">
+      <h3>Wildlife tool rc not installed <span class="chip adj">C1-C3</span></h3>
+      <p>seasonal-wildlife v7.1-rc carries the sponge work and the cave-entry fix. It is not in your game and not pushed; it goes in when you say.</p>
+    </div>
+  </div>
+</section>
+
+<div class="grid" id="how">
+  <section class="s7">
+    <div class="sec-head">
+      <h2>How the plugin draws a water cell</h2>
+      <p>DF paints only the top level and one level of water below it, and nothing at all below water at the view level. The plugin plans each water column on the core thread and repaints it bottom-up on the render thread, inside DF's own map pass and its lone tile redraws.</p>
+    </div>
+    <ol class="stack">
+      <li><span><b>Bed.</b> Floor or ramp in the column's bed family, with driftwood and terrain boulders in the bed's second layer.</span></li>
+      <li><span><b>Things on the bed and in the water.</b> Corpses, items and body parts with their own sprites.</span></li>
+      <li><span><b>Water levels.</b> One tint per level above the bed; opacity after n levels is 1 − (1 − a)<sup>n</sup>, charted on the right. Then the depth darkening for each level the bed lies below the view.</span></li>
+      <li><span><b>Swimmers.</b> Units and vermin on the level they swim on, multiplied toward the water's colour so only their own pixels darken.</span></li>
+      <li><span><b>DF's top level.</b> DF's own pass, with z-fog off over planned cells. At the view level, sprites DF paints over its water sheet are swapped for wet copies.</span></li>
+      <li><span><b>Surface and falls.</b> Shimmer on standing water, current streaks on rivers, lip streaks and froth at the falls, only where the camera looks down onto water.</span></li>
+      <li><span><b>Waves.</b> Crests on DF's wave fronts, then the landing <code>~</code> on shore tiles. DF draws its spray and mist itself.</span></li>
+    </ol>
+    <p class="meta">Measured 3 Oct at a 120×68 view: 47.8 frames a second with the plugin against 42 for vanilla, since the plugin replaces DF's per-cell water redraw. 5 Oct, with wet sprites at the view level: about 44 at your zoom.</p>
+  </section>
+
+  <section class="s5">
+    <div class="sec-head">
+      <h2>Transparency by depth</h2>
+      <p>How much of the bed the water hides at each depth with the current tints. The depth darkening is added on top for beds below the view level.</p>
+    </div>
+    <div class="card">
+      <svg id="depth" viewBox="0 0 520 290" role="img" aria-label="Water opacity by depth for each bed family. Sand alpha 80: 31% at 1 level, 78% at 4, 95% at 8. Mud alpha 50: 20% at 1, 58% at 4, 82% at 8. Stone and soil alpha 88: 35% at 1, 82% at 4, 97% at 8."></svg>
+    </div>
+    <div class="tbl"><table>
+      <thead><tr><th>Family</th><th>Colour</th><th>Alpha per level</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td>sand</td><td><code>#145a6e</code></td><td>80</td><td>Sea and lakes</td></tr>
+        <tr><td>mud</td><td><code>#145a6e</code></td><td>50</td><td>Rivers, brooks and murky pools</td></tr>
+        <tr><td>stone, soil</td><td><code>#00708e</code></td><td>88</td><td>Cavern water</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<section id="controls">
+  <div class="sec-head">
+    <h2>Controls</h2>
+    <p>Typed in the DFHack console as <code>aquarium-plugin …</code>. <code>seasonal-wildlife enable</code> turns everything on, the plugin included. Settings last until DF closes.</p>
+  </div>
+  <div class="card tbl">
+    <table>
+      <thead><tr><th>Command</th><th>Effect</th><th>Default</th></tr></thead>
+      <tbody>
+        <tr><td><code>status</code></td><td>Counts: planned cells, creatures, items, fronts, landing tiles, falls tags, wet sprites, timings</td><td></td></tr>
+        <tr><td><code>depth on|off</code></td><td>The whole see-through drawing</td><td>on</td></tr>
+        <tr><td><code>tint RRGGBB [ALPHA] [FAMILY]</code></td><td>Water colour and per-level alpha for sand, mud, stone, soil, surface, cavern or all</td><td>see chart</td></tr>
+        <tr><td><code>depthdark N</code></td><td>Darkening per level the bed lies below the view</td><td>46</td></tr>
+        <tr><td><code>shimmer on|off|ALPHA</code></td><td>Surface skin on standing water</td><td>45</td></tr>
+        <tr><td><code>streaks on|off|ALPHA</code></td><td>River current streaks</td><td>70</td></tr>
+        <tr><td><code>falls on|off</code></td><td>Lip streaks and froth at the falls</td><td>on</td></tr>
+        <tr><td><code>fronts on|off|dummy</code></td><td>Wave crests and landing <code>~</code>; <code>dummy</code> marks fronts and flows with test tiles</td><td>on</td></tr>
+        <tr><td><code>waves on|off</code></td><td>DF's OceanWave flows on the beach</td><td>on</td></tr>
+        <tr><td><code>wash on|off</code></td><td>Foam lace on DF's beach OceanWave flows</td><td>off</td></tr>
+        <tr><td><code>surf on|off</code></td><td>Foam along the water edge beside DF's waves</td><td>off</td></tr>
+        <tr><td><code>glow df|rim ALPHA</code></td><td>A light rim along shores</td><td>off (0)</td></tr>
+        <tr><td><code>fog on|off</code></td><td>DF's z-fog over planned cells</td><td>off</td></tr>
+        <tr><td><code>shade tint|df</code></td><td>Tint levels with the plugin's colours or DF's own</td><td>tint</td></tr>
+        <tr><td><code>tilefix on|off</code></td><td>Repair DF's lone tile redraws (the dark-square fix)</td><td>on</td></tr>
+        <tr><td><code>decor PAGE COL ROW X Y Z</code> · <code>decor clear</code></td><td>A test sprite from any DF tile page on one bed tile; not saved with the game</td><td></td></tr>
+        <tr><td><code>probe X Y</code> · <code>probe</code> · <code>probe off</code></td><td>Dump every drawn layer of one map tile, per level</td><td></td></tr>
+        <tr><td><code>cell X Y</code></td><td>Print the plan for one screen cell</td><td></td></tr>
+        <tr><td><code>reset</code></td><td>Zero the status counters</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="history">
+  <div class="sec-head">
+    <h2>How we got here</h2>
+    <p>The plugin's experiment log, entry by entry, in seven stretches. Full text: <code>DwarfCron/data/aquarium-run/FINDINGS/2026-10-03-plugin-log.md</code>.</p>
+  </div>
+  <div class="tl card">
+    <div class="tl-row"><span class="when">3 Oct · E1-E10</span><p>Depth compositing. Fixed the sand flash on scrolling and the pop on z-change, stuck depth digits, creatures skipping levels, missing slopes and milky water. Fish sprites added to the mod.</p></div>
+    <div class="tl-row"><span class="when">3-4 Oct · E11-E20</span><p>River, lake and cavern forts. Shore glow, surf, lake shimmer and river streaks. A crash on map load fixed; the first release package built.</p></div>
+    <div class="tl-row"><span class="when">4-5 Oct · E21-E28</span><p>Play tests. Crest strokes and edge foam dropped as fake, a crash in your game fixed, the skin moved up a level, creature tint squares removed, the water scan made native.</p></div>
+    <div class="tl-row"><span class="when">5 Oct · E29-E36</span><p>DF's real wave process found and proven with test tiles; crest and landing art; the <code>~</code> limited to landings. The square behind moving creatures traced to DF's lone tile redraws stacking water, and fixed.</p></div>
+    <div class="tl-row"><span class="when">5 Oct · E37</span><p>A per-body art pass (ripples, river flow, whitecap, swash, wisps, caustics, seaweed). You rejected it and it was reverted; since then, one change at a time.</p></div>
+    <div class="tl-row"><span class="when">5 Oct · E38-E47</span><p>Faults B2-B11: hidden sea floor, swimmers in the first level, corpses and items on the bed, sea floor sand and pool beds mud, wet ramps and sprites at the view level, no sea driftwood, body parts.</p></div>
+    <div class="tl-row"><span class="when">5-6 Oct · E48-E55</span><p>Deep water darker than shallow (B4); falls lip streaks and froth from your sampler picks (W9, W10), held against DF's patchy falling water; trees in the cavern lake and branches over water (B4, B12); the Boatsbowed pool traced to DF's shallow sprite (B5).</p></div>
+  </div>
+</section>
+
+<div class="ref-divider" id="reference">
+  <span class="eyebrow">Reference</span>
+  <h2>Research record and art sampler</h2>
+  <p>Background that still holds: how DF's ocean wave works, what Steam graphics can and cannot draw, and the candidate art you pick from.</p>
+</div>
 
 <section>
   <div class="sec-head">
@@ -215,119 +392,6 @@ select{font:13px var(--body); padding:6px 8px; border-radius:5px; border:1px sol
   </div>
   <p class="meta">Crops of the user's screenshots from the live fort, 5 Oct. One correction from the record: on 5 Oct the white stage was first tied to DF's OceanWave flows. Those turned out to be a standing population of 250–360 beach tiles that never changes when a wave lands (log E32).</p>
 </section>
-
-<div class="grid">
-  <section class="s7">
-    <div class="sec-head">
-      <h2>How the plugin draws a water cell</h2>
-      <p>DF paints only the top level and one level of water below it. The plugin repaints each water cell bottom-up, in this order, before and after DF's own map pass.</p>
-    </div>
-    <ol class="stack">
-      <li><span><b>Bed.</b> The floor or ramp sprite for the column's bed family: sand for the sea and lakes, mud for rivers, true stone or soil in caverns.</span></li>
-      <li><span><b>Water levels.</b> One tint per level of water above the bed, in the family's colour. The opacity after n levels is 1 − (1 − a)<sup>n</sup>, charted on the right.</span></li>
-      <li><span><b>Creatures.</b> Drawn on their own layer at the level they swim on, then multiplied toward the water's colour, so only the creature's own pixels darken.</span></li>
-      <li><span><b>DF's top level.</b> DF's own map pass, with its z-fog off over plugin cells, so the water does not turn milky.</span></li>
-      <li><span><b>Surface.</b> Shimmer on standing water and current streaks on rivers, only where the camera looks down onto water.</span></li>
-      <li><span><b>Waves.</b> Crests on wave fronts, then the landing <code>~</code> on shore tiles. DF draws its spray itself.</span></li>
-    </ol>
-    <p class="meta">Measured 3 Oct at a 120×68 view: 47.8 frames a second with the plugin against 42 for vanilla, since the plugin replaces DF's per-cell water redraw.</p>
-  </section>
-
-  <section class="s5">
-    <div class="sec-head">
-      <h2>Transparency by depth</h2>
-      <p>How much of the bed the water hides at each depth, with today's settings. Adjust with <code>aquarium-plugin tint RRGGBB ALPHA FAMILY</code>.</p>
-    </div>
-    <div class="card">
-      <svg id="depth" viewBox="0 0 520 290" role="img" aria-label="Water opacity by depth for each bed family. Sand alpha 80: 31% at 1 level, 78% at 4, 95% at 8. Mud alpha 50: 20% at 1, 58% at 4, 82% at 8. Stone and soil alpha 88: 35% at 1, 82% at 4, 97% at 8."></svg>
-    </div>
-    <div class="tbl"><table>
-      <thead><tr><th>Family</th><th>Colour</th><th>Alpha per level</th><th>Used for</th></tr></thead>
-      <tbody>
-        <tr><td>sand</td><td><code>#145a6e</code></td><td>80</td><td>Sea and lakes</td></tr>
-        <tr><td>mud</td><td><code>#145a6e</code></td><td>50</td><td>River and brook beds</td></tr>
-        <tr><td>stone, soil</td><td><code>#00708e</code></td><td>88</td><td>Cavern water, matched to vanilla's brightness</td></tr>
-      </tbody>
-    </table></div>
-  </section>
-</div>
-
-<section>
-  <div class="sec-head">
-    <h2>Open for tuning</h2>
-    <p>The next round is about looks. The sampler at the end of this page holds candidate art for the first three items.</p>
-  </div>
-  <div class="tune-list">
-    <div class="tune">
-      <h3>Wave, foam and mist tiles <span class="chip adj">art</span></h3>
-      <p>The crest, the landing <code>~</code> and DF's mist sprite are all first drafts. Pick a direction from the sampler: soft, whitecap, swell, hard pixel or ASCII for crests; a swash, bubbles, lace or a foam line for the landing; puffs, dither or wisps for mist.</p>
-    </div>
-    <div class="tune">
-      <h3>Transparency per depth <span class="chip adj">numbers</span></h3>
-      <p>One alpha per family sets the whole depth curve. Options: change the alpha, or give each depth its own value, for example clear shallows and a faster fade below level 3.</p>
-    </div>
-    <div class="tune">
-      <h3>Surface shimmer skin <span class="chip adj">art + numbers</span></h3>
-      <p>Shimmer alpha 45 and streak alpha 70 today (<code>shimmer ALPHA</code>, <code>streaks ALPHA</code>). The sampler shows three other skins: caustic web, sun glints and wind ripples.</p>
-    </div>
-    <div class="tune">
-      <h3>Blue square behind moving creatures <span class="chip open">bug</span></h3>
-      <p>When a fish changes tiles, its tile can show a solid water-blue backing for a moment, hiding the bed. Not yet diagnosed. The likeliest source is the creature layer or DF's own unit tile being drawn opaque on the frame the plan updates.</p>
-      <div class="glitch">
-        <img class="shot pix" src="{{IMG:shots/glitch-91535.jpg}}" alt="A fish in a channel with a solid blue square behind it">
-        <img class="shot pix" src="{{IMG:shots/glitch-91625.jpg}}" alt="A shark near a shelf edge with a dark blue square behind it">
-        <img class="shot pix" src="{{IMG:shots/glitch-91700.jpg}}" alt="A third example of the blue square">
-      </div>
-    </div>
-    <div class="tune">
-      <h3>Smaller items <span class="chip adj">later</span></h3>
-      <ul class="plain">
-        <li>Fronts step a whole tile at a time. DF's move timer could slide the crest between tiles, once its count is measured on the rig.</li>
-        <li>Diagonal coasts get short slanted strokes rather than one joined line.</li>
-        <li>The release zip (5fe7208c) predates the wave work and needs rebuilding. The dll is tied to DFHack 53.16-r2.</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<div class="grid">
-  <section class="s7">
-    <div class="sec-head">
-      <h2>Controls</h2>
-      <p>Typed in the DFHack console. <code>seasonal-wildlife enable</code> turns everything on, the plugin included.</p>
-    </div>
-    <div class="card tbl">
-      <table>
-        <thead><tr><th>Command</th><th>Effect</th><th>Default</th></tr></thead>
-        <tbody>
-          <tr><td><code>aquarium-plugin status</code></td><td>Counts: cells, creatures, fronts in view, landing tiles, timings</td><td></td></tr>
-          <tr><td><code>fronts on|off|dummy</code></td><td>Wave crests and landing <code>~</code>; <code>dummy</code> marks fronts and flows with test tiles</td><td>on</td></tr>
-          <tr><td><code>tint RRGGBB [ALPHA] [FAMILY]</code></td><td>Water colour and per-level alpha for sand, mud, stone, soil, or all</td><td>see chart</td></tr>
-          <tr><td><code>shimmer on|off|ALPHA</code></td><td>Surface skin on standing water</td><td>45</td></tr>
-          <tr><td><code>streaks on|off|ALPHA</code></td><td>River current streaks</td><td>70</td></tr>
-          <tr><td><code>wash on|off</code></td><td>Foam lace on DF's beach OceanWave flows</td><td>off</td></tr>
-          <tr><td><code>surf on|off</code></td><td>Clock-driven foam along every water edge</td><td>off</td></tr>
-          <tr><td><code>glow df|rim ALPHA</code></td><td>A light rim along shores</td><td>off</td></tr>
-          <tr><td><code>fog on|off</code></td><td>DF's z-fog over plugin cells</td><td>off</td></tr>
-          <tr><td><code>cell X Y</code></td><td>Prints the plan for one screen cell</td><td></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="s5">
-    <div class="sec-head">
-      <h2>How we got here</h2>
-      <p>The plugin's experiment log, in four stretches.</p>
-    </div>
-    <div class="tl">
-      <div class="tl-row"><span class="when">3 Oct · E1–E10</span><p>Depth compositing. Fixed the sand flash on scrolling and the pop on z-change, stuck depth digits, creatures skipping levels, missing slopes and milky water. Fish sprites added to the mod.</p></div>
-      <div class="tl-row"><span class="when">3–4 Oct · E11–E20</span><p>River, lake and cavern forts. Shore glow, surf, lake shimmer and river streaks. A crash on map load fixed; the first release package built.</p></div>
-      <div class="tl-row"><span class="when">4–5 Oct · E21–E28</span><p>Play tests. Crest strokes and edge foam dropped as fake, a crash in the user's game fixed, the skin moved up a level, creature tint squares removed, the water scan made native.</p></div>
-      <div class="tl-row"><span class="when">5 Oct · E29–E33</span><p>DF's real wave process found and proven with test tiles. Crest and landing art drawn, the missing white stage traced to fronts at counter 0, the <code>~</code> limited to landings.</p></div>
-    </div>
-  </section>
-</div>
 
 <div class="grid">
   <section class="s7">
