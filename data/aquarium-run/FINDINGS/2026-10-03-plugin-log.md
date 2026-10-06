@@ -930,3 +930,17 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   whether DF can be stopped from drawing its sprite on a tile (it reads depth from the map: E50).
 - Also seen: in Shortsling (AQUA_LAKE), the plugin classes the lake by the save's camera as river, all 663 cells "with
   current", so the lake gets river streaks. That belongs to W3/W4.
+
+### E56. B6: the landing is the swash, not '~' wavelets (user 6 Oct: "foam-swash instead of foam-wavelets ... mid to low alpha so that the extending wash is well visible, which then fades to transparent"; plugin 4e95e47)
+
+- **Detection was never the fault.** Learnedchanneled (AQUA_SHORE16) loads with 0 wave fronts; after ~300 ticks 458, later
+  ~1,200. Running at the shore 144-192 x 579-606 z112, the plugin had 2-75 landing tiles in view and 30-283 map-wide at
+  once. A landing is held 4 s of wall time, so a count read while paused for longer is 0 (my "0 landings" clue was this,
+  and is withdrawn). The old '~' was simply small and short-lived on a 40 px zoom.
+- **Art:** the sampler's foam-swash, made in the plugin per landing. Each splash now stores the front's landward step
+  (8-way). The shore tile shows a thin water sheet (alpha ~0.20 + lace up to 0.25) with a ragged lip (~0.5), colour
+  150-250 / 205-250 / 215-250 by brightness, running up from the seaward edge to 45% of the tile over 1 s (8 frames, fast
+  then slowing), held to 1.5 s, then the whole sheet fades to clear over 2.5 s (8 tiers). Lip and lace repeat every 32 px
+  across the run, so neighbouring tiles hit by one front (the tile ahead and the two beside it) wash as one line.
+- **Seen live** (b6/r2-*.png, 16 frames at 0.3 s): pale sheets on the beach tiles at the water's edge, under DF's own blue
+  spray sprite; the crests at sea (W2) unchanged.
