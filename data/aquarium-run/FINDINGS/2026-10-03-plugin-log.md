@@ -753,3 +753,10 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Check** (b8b/): the sea floor at 315,665 from z110 is sand again, with driftwood kept (sea-ab.png). Pool 200,36,114, from
   z116, z115 and its own level: the 9 flat bed cells draw pebbles, and the 28 ramp cells keep the sand ramp sprite, so the
   pebbles sit in a sand rim (pool-abc.png). Whether ramps should change too is for the user to decide.
+
+### E43. B8: murky pool beds are mud (user 5 Oct, ~8.30 PM)
+- User, after seeing E42's pebble patch inside a sand rim: "Make all murky pool bottoms and ramps be drawn as muddy, not pebbles."
+- **Plugin 5d96145.** A bed under stagnant water takes the mud family, the same one river beds use: the recoloured DIRT_FLOOR_5
+  floor, SOIL_RAMPS ramps and the mud tint (#145a6e, alpha 50). The pebble floors are gone from pools. The FLOOR_PEBBLES
+  lookups stay, for the brook (W7).
+- **Check** (b8b/mud-abc.png): pool 200,36,114 from z116, z115 and its own level. All 37 bed cells draw mud: 9 floors and 28 ramps.
