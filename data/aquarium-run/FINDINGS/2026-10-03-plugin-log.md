@@ -776,3 +776,19 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Check** (b8b/): pool 200,36,114 at its own level, before and after (wet-pool-ab.png); sea shore ramps at 400,679,108
   (wet-sea.png). The ramps now read as submerged and stay lighter than the floor beside them. Still open: driftwood and
   boulders at the view level use the same layer, so they are untinted at their own level too.
+
+### E45. B9: every sprite in view-level water drawn wet (user 5 Oct, ~9 PM)
+- User: "yes, do the same for driftwood, boulders and any other sprites underwater".
+- **Plugin 0e5a39e.** In each cell whose view level holds water (plan top == 0), the plugin swaps the sprites in background_two
+  (driftwood, terrain boulders, decor), the item layer, the vermin layer and the creature layers (screentexpos, left, right,
+  upleft, up, upright) for wet copies. It does this in full passes and in lone redraws. The copies use the ramps' recipe:
+  30,71,71 at 128/255. The render thread queues the sprites it has no copy for. The core thread makes up to 64 per update in
+  onupdate (Textures::createTile, the same thread as the mud and ramp tiles) and publishes a new table. A sprite that cannot
+  be copied maps to itself. The table is cleared on world or map unload and reseeded with the ramps at start.
+- **Check** (b8b/): the sea-floor test spot at z108 (wetall): terrain driftwood and boulders, the placed granite boulders and
+  oak logs, and all 27 decor sprites now read under water. Sponges and driftwood at 474,745,z110 (sponge-ab: previous build
+  vs this one): both were dry before, both wet now. Status after a few views: table 328, made 44, waiting 0.
+- **Cost:** none measurable. Zoomed out to 120x68 (the user's zoom), the plugin's per-frame viewport time was 9.99 / 9.69 /
+  9.99 ms (new / old / new), with gfps 44 in all three. The rise from 1.2 ms earlier is the zoom (4x the cells), not this change.
+- **Seen, not caused by this:** one bright teal tile near 464,746,z110 (RampTop with the bed one level down). It is identical
+  in the previous build. Not chased; noted for the user.
