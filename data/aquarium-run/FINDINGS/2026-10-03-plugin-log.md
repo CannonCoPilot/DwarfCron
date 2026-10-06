@@ -722,3 +722,22 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   (not in inventory, k 1..depth) join the creature marks with their creature's CORPSE sprite (DEFAULT if none), drawn and
   tinted like swimmers; at the first water level DF's item copy is blanked. Same corpse, same camera: visible and
   progressively tinted at z109, z110, z111 (b7/corpse-grid.png). Non-corpse items (stones, wood items) still not drawn.
+
+### E41. B8: stones, logs, driftwood and bed art under water (user 5 Oct, ~7.40 PM: "do this now")
+- **Measured first (probe).** DF prints only its water sheet over a submerged tile even at its own level (driftwood 330,678 and
+  terrain boulder 356,672: `background=2566 liquid_flag=60`, no floor or overlay sprite), and nothing at all below view-level
+  water. So terrain under water never showed, in vanilla or with the plugin (the plugin's bed was a generic family floor).
+  The Learnedchanneled sea floor sample (330-380 x 670-720, z108): 2,358 pebble tiles, 135 driftwood, 2 boulders, 106 stone
+  floors; only 1 loose item in water on the whole map.
+- **Terrain (plugin c428733).** Driftwood (DRIFTWOOD 0,0) and terrain boulders (TERRAIN_BOULDERS, 8 variants by position) in
+  the bed's second background; pebble beds use the full pebble floors FLOOR_PEBBLES 0-3 (cols 4-11 are edge pieces and drew a
+  maze of lines); stone floors, boulders and driftwood on an open bed sit on pebbles (sand drew light squares).
+- **Items.** Every item in the water, per map block in reach: corpses by CORPSE graphic; boulders, logs, rough gems, bars by
+  their material's item sprite (granite boulder 183527); logs whose material has none (oak `wood_texpos` 0) use ITEM_WOOD
+  (ITEM_CONSTRUCTION 0,2), boulders ITEM_BOULDER (BOULDERS 0,1). Test: 2 granite boulders + 2 oak logs placed at 336-340,682,108
+  (createItem + moveToGround): 4 of 4 drawn from z110 and z109, matching DF's own drawing at z108 (b8/v2.png). An early "0
+  collected" read was my error: the status was read before the camera move had reached DF.
+- **Bed-art test grid (`decor`).** 27 sprites the user named (rope reed, papyrus, crops row 11, pool sprout; grass_other row 2;
+  4 coral candidates; cavern grass last 3 cols x 3 rows; branch, driftwood, terrain boulder, 2 item boulders) on 330-348 x
+  688-696, z108: all draw at their own level and under 1-2 levels of water (b8/grid.png); the depth tint fades them strongly
+  (dark teal cavern grass nearly vanishes) -- a tuning call for the user. Decor is test-only, not saved with the game.
