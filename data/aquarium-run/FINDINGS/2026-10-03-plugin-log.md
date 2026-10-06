@@ -897,3 +897,19 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   walls. A falling tile now needs another falling tile within 3 levels in its column. The cavern now has 0 landings at
   z95-97, and the real falls are unchanged.
 - Images: falls/trunk4.png, falls/tree-ab-z9{5,6,7}.png.
+
+### E54. B12: the wrong water shade behind branches over water, from higher levels (user 6 Oct, 10.44-10.46 AM)
+- Sequences: cavern trees from z97 to z99, and surface trees over the river below the falls from z114 to z121. Each level up
+  showed squares of the wrong shade behind the branches.
+- **Probe** (from z98): canopy cell 20,86 had plan top=1, bed=2; the open cell 24,86 beside it had top=2, bed=2. The canopy
+  twig at z97 is dry, and the water starts at z96. **Cause: my E53 rule.** Any TREE or MUSHROOM tile above the water was taken
+  for the lake's surface, so a canopy moved its column's top up by a level.
+- **Plugin 8ecf478:**
+  - Only a trunk tile (not a BRANCH, TWIG or TRUNK_BRANCH) resting directly on the first water tile sets top to its own level.
+  - cave_dark is drawn right after DF's level holding each column's top water, in full passes and lone redraws. Drawn after
+    level 1, it had darkened a canopy two levels down from z98.
+  - water_value is learned as the commonest liquid_flag at the top level, with trunk cells left out. It had learned the
+    trunk's 0x200200, which the E53 trunk swap then pasted. Status now shows water_value=0x3c.
+- **Check** (trees/): the cavern from z97, z98 and z99, and the river from z115, z117 and z119, before and after. The dark
+  squares under canopies are gone in the cavern (z98, z99) and over the river (z119). Canopies seen from above take DF's own
+  haze like everything below the view.
