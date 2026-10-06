@@ -683,3 +683,13 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   z 108-112 is `outside` and visible; the water tiles at 200,718-766 that were hidden at the fresh load are visible after the
   game ran. The dark areas in the user's screenshots are UNEXPLAINED; item left open (user: move on). 6ffe06d kept: it only
   changes columns with a hidden tile under visible water, which a healthy map should not have.
+
+### E39. B3: creatures one level down look like they float on top (Gilttrumpets, Flagcontains)
+- **Cause (code + measurement).** Per column the plugin leaves levels 0..fp-1 to DF (fp = top + 1 when the camera is above the
+  water), and `draw_creatures` skipped k < fp. A swimmer in the first water level was therefore DF's own sprite, printed after
+  the plugin's underlay and over the water: no veil. Learnedchanneled, shark 12562 at 221,696,111 (top water level), camera z112:
+  `drawn_below=1` of 8 swimmers in view.
+- **Fix.** `first_creature_level(c)` = top when top >= 1; `swap_for_level` blanks DF's screentexpos for a swimmer whose cell's
+  first water level is this viewport (after learning its sprite); the plugin draws it in its creature layer with the one-level
+  tint. After: `drawn_below=8` of 8; the shark is teal under the water (b3/ab.png); 4 captures unpaused show no untinted frame
+  (b3/run-grid.png).
