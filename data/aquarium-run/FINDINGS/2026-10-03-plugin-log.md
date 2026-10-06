@@ -677,3 +677,9 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   (b2/fix-ab.png). Hidden cavern water (704,392,66) still plans 0 cells.
 - **Fronts:** drawing never filtered hidden tiles. None existed while the sim crawled; after 75 s unpaused the world had 1,032
   fronts and 233 landings, 152 drawn in reach at the coast (b2/s5-fronts.png).
+- **Correction (user 5 Oct, 6.30 PM screenshots: still glitchy; "sounds like pure guesswork").** The "bed hidden" sample read
+  the tile BELOW the lowest water level (solid ground, always hidden), so it was no evidence, and "nobody has seen the sea
+  floor" was an inference. Measured after: no tile flagged `outside` is hidden anywhere at z 104-118 (stride 8); every sea tile
+  z 108-112 is `outside` and visible; the water tiles at 200,718-766 that were hidden at the fresh load are visible after the
+  game ran. The dark areas in the user's screenshots are UNEXPLAINED; item left open (user: move on). 6ffe06d kept: it only
+  changes columns with a hidden tile under visible water, which a healthy map should not have.
