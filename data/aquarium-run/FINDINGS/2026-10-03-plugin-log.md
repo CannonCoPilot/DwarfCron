@@ -741,3 +741,15 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   4 coral candidates; cavern grass last 3 cols x 3 rows; branch, driftwood, terrain boulder, 2 item boulders) on 330-348 x
   688-696, z108: all draw at their own level and under 1-2 levels of water (b8/grid.png); the depth tint fades them strongly
   (dark teal cavern grass nearly vanishes) -- a tuning call for the user. Decor is test-only, not saved with the game.
+
+### E42. B8: pebbles off the sea floor, onto murky pool beds (user 5 Oct, ~8.20 PM)
+- User: "I'm not convinced that I like the new seabed ... NOT do this for ocean floor tiles. Revert to the sand option. For
+  'murky pools' do it."
+- **Plugin 4a85b7a.** The sea floor and every other bed draw their family floor again (sand on the sea floor). Driftwood and
+  terrain boulders are still drawn over it. A bed under stagnant water (`water_stagnant`) takes a full pebble floor: DF's
+  variant where the tile really is pebbles, else one of FLOOR_PEBBLES 0-3 by position.
+- **Measured:** DF's murky pool beds on Learnedchanneled are POOL floors (2,135) and POOL ramps (7,745), never pebbles. A rule
+  of "pebbles where DF has pebbles" would therefore have changed nothing on screen.
+- **Check** (b8b/): the sea floor at 315,665 from z110 is sand again, with driftwood kept (sea-ab.png). Pool 200,36,114, from
+  z116, z115 and its own level: the 9 flat bed cells draw pebbles, and the 28 ramp cells keep the sand ramp sprite, so the
+  pebbles sit in a sand rim (pool-abc.png). Whether ramps should change too is for the user to decide.
