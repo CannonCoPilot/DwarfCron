@@ -952,3 +952,34 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   by one front now shows as a line of small scalloped waves instead of one straight band (b6/r3-*.png, b6/swash-bow.jpg).
 - Kept in mind: E17 found a bow on the old surf crest read as "( )" at corners and headlands; this bow is on the beach
   tile, 4 px, and is the user's call, so it stays unless the look says otherwise.
+
+### E58. B7: everything on a submerged bed, from DF's own print (user 6 Oct, new world Smaksmo Oxdu; plugin e528f9a)
+
+- **User's goals:** 1) no driftwood in ocean water; 2) keep each water type's floor; 3) every other thing on a bed
+  (corpses of any kind, boulders, discarded items, piles of logs) drawn on top of the floor, without a fix per kind.
+- **Why the old way could not:** `compose_tile` built each bed from 5 of DF's 25 layers (floor, decor, liquid, interface,
+  creature) and dropped the rest; things showed only through per-kind lookups (corpse graphic, boulder/log/gem/bar
+  material sprites, body parts) or a sprite learned at the first water level. A barrel or copper bar 3 levels down never
+  showed. DF itself prints nothing below view-level water, and under water only its sheet over a bed even at the bed's
+  own level, but there it does print the item, building and spatter layers (E40).
+- **Finding DF's printer** (DF 53.16 win64 STEAM, disassembled): `world.viewport` is `print_map_rectangle_paramst`.
+  0x140e85400 sets it up; the graphics-mode print is **0x140e9b0c0(map_renderer, curtick, rparam)**, called from
+  0x140e9afe0. `under_limit[(y-cy)*dx+(x-cx)] - under_limit_start` = levels shown below a cell (water columns: 1).
+- **Generic bed print:** after DF's print of the frame (fortress screen `render` hook, game thread), the plugin calls the
+  printer for each bed level in view into a private main viewport (corner.z = bed level) with 8 private lower
+  viewports (the printer reads `lower_viewport[k]` without a null check: first try faulted at DF +0xe9d044, caught by the
+  SEH guard, game unharmed) and an under_limit of "nothing below". map_renderer's display state (look cursor lists,
+  unit motion, forced prints) is saved and restored round the call. Each bed cell takes DF's item, building_one/two,
+  vehicle, signpost and spatter layers into the plan; the bed is composed from them over the family floor and the
+  plugin's decor (driftwood except in ocean, terrain boulders; DF does not print those under water). Where the bed is
+  DF's first water level, DF's own copies there are blanked (they sat on the water). Bound only on 53.16 STEAM with the
+  printer's first 22 bytes matching; `bedprint on|off`; the per-kind lookups remain only as the fallback.
+- **Cost:** 2 ms a print at 120x68 (GFPS 74 -> 65 every frame); reprinted at most every 250 ms unless the view moves:
+  no measurable cost (57.7-58.3 on and off).
+- **Test (OCEAN_RIVER, unsaved):** sea floor z124 under 3 levels: granite boulder, 3 oak logs, barrel, copper bar, mixed
+  pile (boulder + log + barrel), cavy and dog corpses; river z126 (1 level): boulder, 3 logs, barrel, dog corpse. The
+  bed print found exactly the 7 sea cells. From above, the barrel and bar now show (before: missing), piles show DF's
+  pile sprite as at their own level, river items sit under the water (before: the barrel sat on it). Own level unchanged
+  (b7g/grid.png, riv-grid.png).
+- Rig: `cx-lifecycle load` now scrolls the title's world list (scroll_position_world_choice) when a world sits below
+  the ~8 visible rows (Smaksmo Oxdu was 9th).

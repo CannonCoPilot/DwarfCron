@@ -875,7 +875,16 @@ cmd_load() {
     # newer save), so a folder name that prefixes another save silently loads the wrong fort. Refuse it.
     local longer; longer=$(cmd_ui saves 2>/dev/null | tr -d "\r" | awk -F'\t' -v f="$folder" '$1=="SAVE" && $2!=f && index($2, f)==1 {printf "%s ",$2}')
     [ -z "$longer" ] && true || err "save '$folder' is a prefix of other saves ($longer) -- the row match would pick the wrong one; rename or delete them (with DF stopped)"
-    click_when_drawn "World: $world" || err "world list never showed 'World: $world'"
+    # 6 Oct 2026: with ten worlds the newest (Smaksmo Oxdu) sat below the panel (~8 rows) and the verb gave up. The
+    # list ignores the scroll keys; step the title screen's scroll_position_world_choice instead, 2 rows at a time.
+    local w=0
+    until wait_drawn "World: $world" 2 >/dev/null; do
+        w=$((w + 1))
+        [ "$w" -gt 15 ] && err "world list never showed 'World: $world' (scrolled down 15 times)"
+        cmd_lua 'local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local n=#t.savegame_header_world t.scroll_position_world_choice=math.min(math.max(n-1,0), t.scroll_position_world_choice+2) end' >/dev/null 2>&1
+        sleep 0.5
+    done
+    cmd_ui click "World: $world" >/dev/null 2>&1; sleep 1
     wait_state titlemode CONTINUE_ACTIVE 15 || err "clicking the world row did not open its save list (state: $(ui_state))"
     # FPS5b, 29 Sep 2026: the seasonal autosaves joined region4's list (CTRL, FPS2E1-6, autosave 1-3) and FPS2E4 fell
     # below the panel -- the verb waited for a label that was never drawn. Scroll the list until the folder shows.
