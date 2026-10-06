@@ -800,3 +800,36 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   no driftwood under water (E41), so nothing else draws it.
 - **Check** (b8b/nodrift.png, Learnedchanneled 295,665): z108 before and after, and z110 after. All 135-odd driftwood tiles are
   gone. The terrain boulders, the placed granite boulders and oak logs, and the decor grid remain.
+
+### E47. B11: body parts in water drew on top of it (user 5 Oct, 9.23-9.24 PM, Granitephanton)
+- Ducim Okilolin's foot and hands and Rakust's lower leg (CORPSEPIECE, DWARF) lie at 88-93,67-70,z113 in 7/7 water. From z114
+  they showed bright on the water. The probe at level 1 (z113) printed item=129145 (BODYPARTS 2,21) over liquid_flag 60.
+- **Cause:** a creature drawn from layers (dwarf) has no CORPSE or DEFAULT creature_texture, so item_sprite returned 0. The parts
+  were never collected (creatures_in_water=2 of 6), and the B3 blanking never touched DF's copy.
+- **Plugin 7cd9f97:** a CORPSEPIECE with no creature texture falls back to BODYPARTS 2,21. Every item in water is collected now. One
+  with no sprite learns DF's printed item sprite at the column's first water level (seen_item, keyed by tile, render thread),
+  is blanked there, and is drawn tinted. Check (falls/parts-ab.png): creatures_in_water=6, drawn_below=6, parts under water from
+  z114.
+
+### E48. B4: deep water read lighter than shallow (user 9.29 PM; cavern lake z95-97)
+- Measured at z96: a deep cell (bed z95) read 18,91,106 (L71), a shallow cell (bed z96) 28,73,82 (L60). With the stone tint
+  set to 0, both read 43,90,100, so DF's sheet treats them alike. The tint did the rest. Deep columns were tinted for 2 levels
+  in the underlay, under DF's sheet, toward #00708e, which is brighter than DF's water. The shallow cell got one level on the
+  glow layer over main, which darkens (the glow target holds premultiplied colour: out = rgb*a^2 + dst*(1-a), checked
+  against 28,72,82).
+- **Plugin 7cd9f97:** columns whose view level holds water are no longer tinted in the underlay. On the glow layer they get the
+  one-level tint the shallows get, plus black at 1-(1-d)^k for the k levels the bed lies below (d = depthdark, 46/255). A cavern
+  lake seen through air gets the same darkening for the levels below its first water level. Surface water seen through air is
+  unchanged.
+- **Measured:** z96 deep L52, shallow L60. z95 own-level bed L60. z97 deep (k2) L55-58, shallow (k1) L70-73. Before: z97 deep
+  L67-71, shallow L70-73. Images: falls/cave-ab.png, falls/cave-z97-ab.png.
+
+### E49. Falls: tags for a swift-current lip and a frothy base (user questions, 9.20-9.28 PM)
+- **Lip (z137 river, view z138):** depth along y67 from x95 to x106 reads 1,3,5,4,4,6,7,7... and keeps changing.
+  temp_flow_timer is 6-7 on x95-102 and 0 upstream. perm_flow_dir is 4/5 (no special value). DF sets each tile's sheet by
+  depth (liquid_flag 60 = 7/7, 52 = 6/7, 36 = 3/7), hence the stepped light and dark blocks. The lip tile itself (x95) is open
+  space with DF's high_flow sprite. Candidate tag: temp_flow_timer > 0, or (steadier) distance upstream to a tile whose
+  downstream neighbour drops.
+- **Base (z113-114):** the landing tiles are z113 x95 y67-70, under water falling from z114. DF keeps Mist flows over x92-96,
+  y67-71 (412 mist flows near the falls). Candidate tag: water under falling water, plus under mist, fading with distance.
+- Art for both is the user's pick (checklist W9, W10). Nothing is drawn yet.
