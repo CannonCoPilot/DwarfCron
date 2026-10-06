@@ -704,6 +704,7 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Cause (code).** The plugin composes each bed cell itself (`compose_tile`), which zeroes every DF layer of that cell,
   item layer included, so corpses lying on the bed vanished under the water until the camera stood on their level.
 - **Fix.** The underlay reads the item sprite DF printed for the bed level (`screentexpos_item` of that lower viewport) and
-  composes it with the floor; the depth tint then shades it. Learnedchanneled: a spiny dogfish corpse at 353,692,108 and a row
-  of items on the bed now show from z110 (b7/after2-zoom.png). Limit: the underlay is recomposed when the plan changes, so an
+  composes it with the floor; the depth tint then shades it. Learnedchanneled: a spiny dogfish corpse at 353,692,108 now shows from z110
+  (b7/after2-zoom.png); the grey row beside it is 11 LIVE sponges (units 12650-12660), drawn as swimmers before this change,
+  not items. The user's dead sponge: no sponge item or killed sponge unit on the map at 7.15 PM. Limit: the underlay is recomposed when the plan changes, so an
   item that lands on the bed while the view stands still appears at the next pan or level change.
