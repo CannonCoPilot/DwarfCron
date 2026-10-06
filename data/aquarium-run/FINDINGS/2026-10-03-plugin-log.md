@@ -693,3 +693,8 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   first water level is this viewport (after learning its sprite); the plugin draws it in its creature layer with the one-level
   tint. After: `drawn_below=8` of 8; the shark is teal under the water (b3/ab.png); 4 captures unpaused show no untinted frame
   (b3/run-grid.png).
+- **Vermin missed (user 6.57 PM, a thornback ray bright from above, dimmed at its own level).** FISH_RAY_THORNBACK is a
+  vermin (206,656,111, first water level); DF prints vermin in `screentexpos_vermin`, and the first fix blanked only
+  `screentexpos`. Now the vermin layer is blanked for vermin marks. After the swap a thornback at 490,670,111 draws tinted
+  under the water from z112 (b3/ray-ab.png, lower half; the "before" capture fired before the camera moved; the user's
+  screenshot is the before).
