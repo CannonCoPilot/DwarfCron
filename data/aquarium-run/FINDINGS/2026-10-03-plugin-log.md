@@ -983,3 +983,38 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   (b7g/grid.png, riv-grid.png).
 - Rig: `cx-lifecycle load` now scrolls the title's world list (scroll_position_world_choice) when a world sits below
   the ~8 visible rows (Smaksmo Oxdu was 9th).
+
+### E59. B7 + B8 review across every water type; drowned plants drawn (user 6 Oct; plugin 4dafdf5)
+
+- **Method** (b7v/): in each new-world save, the plugin's native scan classed every water column (ocean, lake,
+  river, murky pool, cavern; brooks by BROOK_BED) and tallied bed tile types; on one bed per type a barrel (a kind the
+  old per-kind lookups never drew) and a pile of 3 logs were placed, the camera put one level above the water, and the
+  cell captured with `bedprint` off and on (pixel difference at the two cells, an empty bed as control).
+- **Results** (bed print found exactly the filled cells everywhere):
+  | save | type | depth | old build | bed print |
+  |---|---|---|---|---|
+  | OCEAN_RIVER | ocean | 3 | logs only | barrel + logs |
+  | OCEAN_RIVER | cavern pool | 2 | logs only | barrel + logs |
+  | OCEAN_RIVER | river | 1 | barrel on top of the water | both under it |
+  | OCEAN_RIVER | murky pool | 1 | barrel on top of the water | both under it |
+  | LAKE_RIVER | lake | 2 | logs only | barrel + logs |
+  | LAKE_RIVER | river (3-deep column) | 3 | nothing | barrel |
+  | LAKE_RIVER, BROOK | murky pool | 1 | barrel on top | both under it |
+  | FALLS | plunge pool under the falls | 1 | | found (2 cells); hard to see under the froth (W10) and DF's mist |
+  | BROOK | brook | 1 | hidden | hidden: DF draws the walkable brook top over the water (vanilla; W7 decides) |
+  The first FALLS pick was mid-waterfall (open space, falling water): the barrel fell 8 levels to the plunge pool.
+- **Bed tile survey:** beds are floors, ramps, pebbles (ocean, drawn as sand per the user's call), driftwood (ocean:
+  not drawn; elsewhere drawn), terrain boulders, river/pool/brook beds, and **drowned plants in caverns**: FALLS 681
+  dead shrubs + 131 dead saplings, BROOK 611 + 215, OCEAN_RIVER ~106. DF draws plants in background_two, which it
+  never prints under water, so they were invisible (the gap the review found).
+- **Fix:** shrubs and saplings in water take their plant's own sprite: plant_raw `texpos` slot 7 SHRUB, 10
+  SHRUB_DEAD, 0 SAPLING (vanilla has no dead-sapling sprite). Slots found from DF's print of a dry shrub (COTTON bg2
+  151646 = slot 7; WILLOW sapling 165773 = slot 0) and the raws: a plant's sprite values step down by the tile's
+  column (COTTON SHRUB col 0 -> 151646, SHRUB_DEAD col 11 -> 151635 = slot 10; cup-dimple likewise). A position ->
+  sprite index of plants in water is built on the core thread every 2 s; status `plants in water=826` in BROOK
+  matched the survey. Seen drawn from above the water, at its top level and at the bed (b7v/plants/plants.png).
+- **Not changed, by design or open:** items under a brook top stay hidden (W7); the plunge pool's froth covers what
+  lies there (W10); a constructed floor under water draws as the water type's floor (goal 2).
+- Two process slips, no harm: a map-wide Lua scan over RPC timed out (the user's game recovered; heavy scans belong in
+  the plugin, memory no-polling-user-game), and one check read DF's screen buffer from the core thread (memory
+  df-render-pipeline-facts).
