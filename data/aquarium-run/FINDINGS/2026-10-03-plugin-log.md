@@ -708,3 +708,9 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   (b7/after2-zoom.png); the grey row beside it is 11 LIVE sponges (units 12650-12660), drawn as swimmers before this change,
   not items. The user's dead sponge: no sponge item or killed sponge unit on the map at 7.15 PM. Limit: the underlay is recomposed when the plan changes, so an
   item that lands on the bed while the view stands still appears at the next pan or level change.
+- **E40 WITHDRAWN (user 7.17 PM: the dogfish corpse still vanishes one level up).** A per-level counter on the render thread
+  (DF's `screentexpos_item` on planned bed cells, levels 1-8) read 0 at every camera level z109-z112: DF prints NO item sprite
+  into any lower level under water, so composing "the item DF printed" can never work. The z110 capture that seemed to show
+  the corpse is unexplained and not relied on. 9272a86 reverted (fe0bd91); plugin source = 40fc7af (B3), live in the user's
+  game. A real fix needs the plugin to collect items on submerged beds itself (core thread, like creatures) and resolve each
+  item's sprite (a corpse: its creature's graphics). Not started; B7 parked for the user's call.
