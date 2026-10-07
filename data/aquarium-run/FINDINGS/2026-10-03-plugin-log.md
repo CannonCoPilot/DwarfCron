@@ -1061,3 +1061,4 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   darkening 47.7 -> 17.8, learn 2.9 -> 0.3); the 1.4 ms bed spike became ~0.15-0.25 ms rolling calls (total -40%
   at the cave, -90% at the murky pool); the 0.8 ms plan spike is gone (plan max 42 us; 0 rebuilds in 6 s still).
 - The user's GFPS in these views (42-56) is DF's own: `depth off` gave the same.
+- **Refresh halved (user 6 Oct: "yes, refresh every half second"; plugin 57e8ea7):** the rolling bed refresh covers the box every 500 ms. Murky pool, still: 33 print calls in 356 frames (was 50 in 265 at 250 ms), ~154 us each; both test items captured.
