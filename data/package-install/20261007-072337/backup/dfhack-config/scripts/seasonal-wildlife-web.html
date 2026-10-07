@@ -1,0 +1,1725 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wildlife Companion</title>
+<style>
+:root{
+  --bg:#f1f4f1; --surface:#ffffff; --surface-2:#e8ede9; --surface-3:#dde4df;
+  --ink:#16201b; --ink-2:#48574f; --muted:#6f7d75; --line:#d3dbd5; --line-2:#bfc9c2;
+  --accent:#5a42b3; --accent-ink:#ffffff; --accent-soft:#ebe7f8;
+  --land:#eb6834; --water:#2a78d6; --cavern:#1baf7a; --deep:#8a5a9e;
+  --good:#2e7d3f; --warn:#a86f00; --crit:#c2302d;
+  --good-soft:#e2f1e5; --warn-soft:#f8eed7; --crit-soft:#f8e1e0;
+  --lvH:#3f9a52; --lvC:#e08a1e; --lvA:#d23b34; --lvV:#8a8f8c;
+  --edge:#8b978f; --mapbg:#d9dfd9;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#101412; --surface:#171c19; --surface-2:#1f2622; --surface-3:#29312c;
+    --ink:#edf2ee; --ink-2:#b6c2bb; --muted:#8a978f; --line:#2b342f; --line-2:#3a453f;
+    --accent:#a595ef; --accent-ink:#15112a; --accent-soft:#2a2545;
+    --land:#e0703c; --water:#3f8fe8; --cavern:#22b585; --deep:#b07cc6;
+    --good:#5cb870; --warn:#e0a53a; --crit:#ec6b67;
+    --good-soft:#1b2d20; --warn-soft:#33290f; --crit-soft:#3a1c1b;
+    --lvH:#5cb870; --lvC:#eba04a; --lvA:#ec6b67; --lvV:#8a978f;
+    --edge:#76837b; --mapbg:#0c0f0d;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#101412; --surface:#171c19; --surface-2:#1f2622; --surface-3:#29312c;
+  --ink:#edf2ee; --ink-2:#b6c2bb; --muted:#8a978f; --line:#2b342f; --line-2:#3a453f;
+  --accent:#a595ef; --accent-ink:#15112a; --accent-soft:#2a2545;
+  --land:#e0703c; --water:#3f8fe8; --cavern:#22b585; --deep:#b07cc6;
+  --good:#5cb870; --warn:#e0a53a; --crit:#ec6b67;
+  --good-soft:#1b2d20; --warn-soft:#33290f; --crit-soft:#3a1c1b;
+  --lvH:#5cb870; --lvC:#eba04a; --lvA:#ec6b67; --lvV:#8a978f;
+  --edge:#76837b; --mapbg:#0c0f0d;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;padding:0 16px 64px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono);font-size:12px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1440px;margin:0 auto}
+.sub{color:var(--muted);font-size:12.5px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+h2{font-size:12.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin:0 0 10px}
+h3{margin:0;font-size:15px;font-weight:600}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.crit{background:var(--crit-soft);color:var(--crit)}
+.chip.accent{background:var(--accent-soft);color:var(--accent)}
+.chip.fam{background:transparent;border:1px dashed var(--line-2)}
+.btn{border:1px solid var(--line-2);background:var(--surface);padding:5px 11px;border-radius:7px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.small{padding:3px 8px;font-size:12px}
+.btn.danger{border-color:color-mix(in oklab,var(--crit) 50%,transparent);color:var(--crit)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.dot.land{background:var(--land)} .dot.water{background:var(--water)} .dot.cavern{background:var(--cavern)} .dot.deep{background:var(--deep)}
+.lvH{background:var(--lvH)} .lvC{background:var(--lvC)} .lvA{background:var(--lvA)} .lvV{background:var(--lvV)}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--muted);background:var(--surface)}
+table{border-collapse:collapse;width:100%}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.tscroll{overflow-x:auto}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);margin:0 -16px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+.top-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.fort{display:flex;align-items:baseline;gap:10px;min-width:0}
+.fort h1{font-family:var(--serif);font-weight:500;font-size:27px;line-height:1;margin:0}
+.fort .tool{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.clock{display:flex;align-items:center;gap:9px;color:var(--ink-2)}
+.clock b{color:var(--ink);font-weight:600}
+.conn{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);background:var(--warn-soft);border:1px solid color-mix(in oklab,var(--warn) 35%,transparent);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--warn);display:inline-block}
+.conn.live{background:var(--good-soft);border-color:color-mix(in oklab,var(--good) 35%,transparent)} .conn.live i{background:var(--good);animation:beat 2s infinite}
+.conn.paused{background:var(--surface-2);border-color:var(--line-2)} .conn.paused i{background:var(--muted)}
+.conn.mock{background:var(--surface-2);border-color:var(--line-2)} .conn.mock i{background:var(--muted);animation:none}
+.conn.lost{background:var(--crit-soft);border-color:color-mix(in oklab,var(--crit) 35%,transparent)} .conn.lost i{background:var(--crit)}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}
+.age{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg[hidden]{display:none}
+.seg button{border:0;background:transparent;padding:4px 10px;border-radius:6px;font-size:13px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .14)}
+.seg.small button{padding:2px 8px;font-size:12px}
+.search{position:relative}
+.search input{width:210px;max-width:100%;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px 5px 28px}
+.search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.tabs{display:flex;gap:2px;margin-top:8px;overflow-x:auto;scrollbar-width:thin}
+.tabs button{border:0;background:transparent;padding:8px 12px 9px;font-size:14px;font-weight:500;color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs .count{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:5px}
+.tabs .badge{display:inline-block;min-width:16px;padding:0 4px;margin-left:5px;border-radius:8px;background:var(--crit);color:#fff;font-size:10.5px;font-weight:700;text-align:center}
+main{padding-block:16px}
+section[role="tabpanel"]{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+section[role="tabpanel"][hidden]{display:none}
+.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px}
+@media (max-width:960px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink-2)}
+.banner.warn{border-color:color-mix(in oklab,var(--warn) 50%,transparent);background:var(--warn-soft)}
+.banner.crit{border-color:color-mix(in oklab,var(--crit) 50%,transparent);background:var(--crit-soft)}
+.banner b{color:var(--ink)}
+
+/* overview */
+.lcard{display:grid;gap:10px}
+.lhead{display:flex;align-items:center;gap:8px}
+.lhead .chip:last-child{margin-left:auto}
+.big{font-size:30px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.kpis{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end}
+.kpi .lab{font-size:11.5px;color:var(--muted)}
+.pips{display:flex;gap:3px}
+.pips i{flex:1;height:7px;border-radius:3px;background:var(--surface-3);min-width:6px}
+.spark{display:block;width:100%;height:46px}
+.feed{list-style:none;margin:0;padding:0;display:grid}
+.feed li{display:grid;grid-template-columns:92px 22px minmax(0,1fr);gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.feed li:last-child{border-bottom:0}
+.feed .ic{font-family:var(--mono);font-weight:700;text-align:center}
+.ic.arrive{color:var(--good)} .ic.leave{color:var(--muted)} .ic.kill{color:var(--crit)} .ic.died{color:var(--muted)} .ic.edit{color:var(--accent)}
+.alerts{display:grid;gap:8px}
+.minimap{display:block;width:100%;height:auto;aspect-ratio:var(--ar,1);border-radius:8px;cursor:pointer;image-rendering:pixelated;background:var(--mapbg)}
+
+/* map */
+.mapwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+@media (max-width:1000px){.mapwrap{grid-template-columns:minmax(0,1fr)}}
+.mapbox{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--mapbg);aspect-ratio:var(--ar,1);min-height:360px}
+.mapbox canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}
+.mapbox canvas.drag{cursor:grabbing}
+.maptools{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;max-width:calc(100% - 20px)}
+.maptools .seg{background:color-mix(in oklab,var(--surface) 88%,transparent);box-shadow:0 1px 3px rgb(0 0 0 / .2)}
+.mapstat{position:absolute;left:10px;bottom:10px;font-size:11.5px;font-family:var(--mono);color:#e9efe9;background:rgb(0 0 0 / .55);padding:3px 8px;border-radius:6px;pointer-events:none}
+.maptip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;font-size:12px;box-shadow:0 4px 14px rgb(0 0 0 / .22);display:none;z-index:4;max-width:260px}
+.zoom{position:absolute;right:10px;top:10px;display:grid;gap:4px}
+.zoom button{width:30px;height:30px;border-radius:7px;border:1px solid var(--line-2);background:var(--surface);font-size:16px;line-height:1}
+.legend{display:flex;gap:10px 14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.glist{display:grid;gap:4px;max-height:calc(100vh - 420px);min-height:160px;overflow:auto}
+.gitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid transparent;border-radius:8px;padding:5px 6px;background:none;text-align:left;font-size:13px;width:100%}
+.gitem:hover{background:var(--surface-2)}
+.gitem[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.gitem .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:capitalize}
+.checks{display:flex;gap:6px 12px;flex-wrap:wrap;font-size:12.5px}
+.checks label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+
+/* groups */
+.gcard{display:grid;gap:10px}
+.grow{display:grid;grid-template-columns:minmax(150px,1.3fr) 60px minmax(90px,1fr) minmax(120px,1.1fr) auto;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+.grow:first-of-type{border-top:0}
+@media (max-width:760px){.grow{grid-template-columns:1fr 1fr}}
+.cd{position:relative;height:7px;border-radius:4px;background:var(--surface-3);overflow:hidden}
+.cd span{position:absolute;left:0;top:0;bottom:0;background:var(--ink-2);opacity:.6;border-radius:4px}
+.cd span.held{background:var(--accent);opacity:.9}
+.gname{display:flex;gap:7px;align-items:center;min-width:0}
+.gname b{font-weight:550;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* species */
+.split{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,1fr);gap:16px;align-items:start}
+@media (max-width:1000px){.split{grid-template-columns:1fr}}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.filters select,.sel{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:4px 8px;font-size:13px}
+.list{max-height:calc(100vh - 230px);min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.list table th{position:sticky;top:0;background:var(--surface);z-index:1;cursor:pointer;user-select:none}
+.list table th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
+.list table th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
+.list tbody tr{cursor:pointer}
+.list tbody tr:hover{background:var(--surface-2)}
+.list tbody tr[aria-selected="true"]{background:var(--accent-soft)}
+.list tbody tr.inactive td{color:var(--muted)}
+.name{display:flex;align-items:center;gap:8px;font-weight:500;white-space:nowrap}
+.seasons{display:inline-grid;grid-template-columns:repeat(4,13px);gap:2px}
+.seasons i{height:11px;border-radius:2px;background:var(--surface-3)}
+.seasons i.on{background:var(--ink-2)}
+.seasons i.now{outline:1.5px solid var(--accent);outline-offset:1px}
+.switch{position:relative;width:34px;height:20px;border-radius:999px;border:0;background:var(--surface-3);padding:0;flex:none}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgb(0 0 0 / .25);transition:transform .15s}
+.switch[aria-checked="true"]{background:var(--good)}
+.switch[aria-checked="true"]::after{transform:translateX(14px)}
+.detail{position:sticky;top:150px;display:grid;gap:14px;max-height:calc(100vh - 170px);overflow:auto}
+.dhead h3{font-family:var(--serif);font-weight:500;font-size:28px;line-height:1.05;text-transform:capitalize}
+.readings{display:flex;flex-wrap:wrap;gap:5px}
+.field{display:grid;gap:6px}
+.field>label,.field>.lab{font-size:11.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.seasonbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seasonbtns button{border:1px solid var(--line-2);background:var(--surface);padding:6px 4px;border-radius:7px;font-size:13px}
+.seasonbtns button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.seasonbtns button.now{box-shadow:inset 0 -3px 0 var(--accent)}
+.stepper{display:inline-flex;border:1px solid var(--line-2);border-radius:7px;overflow:hidden}
+.stepper button{border:0;background:var(--surface-2);width:28px}
+.stepper input{width:84px;border:0;text-align:center;background:var(--surface);padding:4px;font-family:var(--mono);font-size:13px}
+input[type=range]{accent-color:var(--accent);width:100%}
+.ego{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ego h4{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.blist{display:flex;flex-wrap:wrap;gap:5px}
+.elink{border:0;background:var(--surface-2);border-radius:6px;padding:2px 7px;text-align:left;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;min-width:0;text-transform:capitalize;max-width:100%}
+.elink .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.elink:hover{background:var(--surface-3)}
+.elink.live{box-shadow:inset 3px 0 0 var(--accent)}
+.elink.kill{box-shadow:inset 3px 0 0 var(--crit)}
+.more{font-size:12px;color:var(--muted)}
+.why{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.pre{margin:0;max-height:260px;overflow:auto;background:var(--surface-2);border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.refuse{font-size:12.5px;color:var(--crit)}
+.num-in{width:90px;background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:4px 6px;font-family:var(--mono);font-size:12.5px;text-align:right}
+
+/* food web, seasons */
+.svgbox{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.svgbox svg{display:block}
+.svgbox text{font-family:var(--sans);fill:var(--ink)}
+.wn{cursor:pointer}
+.wn:hover text{text-decoration:underline}
+.we{fill:none;stroke:var(--edge);stroke-opacity:.28;stroke-width:1}
+.we.held{stroke:var(--accent);stroke-opacity:.8;stroke-width:1.8}
+.we.kill{stroke:var(--crit);stroke-opacity:.9}
+.focus .we{stroke-opacity:.06}
+.focus .we.on{stroke-opacity:1}
+.focus .wn{opacity:.3}
+.focus .wn.on{opacity:1}
+.matrix td,.matrix th{text-align:center;padding:3px 4px;font-size:12px}
+.matrix td:first-child,.matrix th:first-child{text-align:left}
+.mx{display:inline-block;width:20px;height:14px;border-radius:3px;background:var(--surface-3);font-family:var(--mono);font-size:11px;line-height:14px;font-weight:700}
+.mx.on{background:color-mix(in oklab,var(--ink-2) 55%,transparent);color:var(--surface)}
+.mx.in{background:var(--good);color:#fff}
+.mx.out{background:color-mix(in oklab,var(--crit) 70%,transparent);color:#fff}
+.now-col{background:var(--accent-soft)}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .ax{fill:var(--muted);font-size:10.5px;font-family:var(--mono)}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:12px;box-shadow:0 4px 14px rgb(0 0 0 / .15);min-width:140px;display:none;z-index:5}
+
+/* roster */
+.pyr{display:grid;gap:8px}
+.pyrrow{display:grid;grid-template-columns:86px minmax(0,1fr);gap:4px 10px;align-items:center;font-size:12.5px}
+.pyrbar{position:relative;height:15px;border-radius:4px;overflow:hidden;display:flex;background:var(--surface-2)}
+.pyrbar span{display:block;height:100%}
+.pyrbar.target{height:7px;opacity:.75}
+.guild{display:grid;grid-template-columns:140px minmax(0,1fr);gap:10px;align-items:start;padding:6px 0;border-bottom:1px dashed var(--line)}
+.guild:last-child{border-bottom:0}
+.guild .gn b{font-family:var(--mono);font-size:12px;margin-right:6px}
+
+/* waters & caverns */
+.wcard{display:grid;gap:10px;align-content:start}
+.grid3{align-items:start}
+.ctxctl .crow{grid-template-columns:minmax(0,1fr) auto}
+.ctxctl .crow .cl .h{display:none}
+.lvbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface-2)}
+.lvbar span{display:block;height:100%}
+.phase{font-family:var(--mono);font-size:12px}
+.pbar{position:relative;height:9px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.pbar span{position:absolute;left:0;top:0;bottom:0;background:var(--cavern)}
+.pbar i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--crit)}
+.ctxctl{display:grid;gap:0;border-top:1px dashed var(--line);padding-top:6px}
+
+/* controls */
+.ctlwrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.ctlwrap{grid-template-columns:minmax(0,1fr)}}
+.secnav{position:sticky;top:150px;display:grid;gap:2px;max-height:calc(100vh - 170px);overflow:auto}
+.secnav button{border:0;background:transparent;text-align:left;padding:6px 10px;border-radius:7px;font-size:13.5px;color:var(--ink-2);display:flex;gap:8px;align-items:center;justify-content:space-between}
+.secnav button:hover{background:var(--surface-2)}
+.secnav button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.secnav .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+@media (max-width:900px){.secnav{position:static;display:flex;overflow-x:auto;max-height:none;gap:4px}.secnav button{white-space:nowrap;border:1px solid var(--line)}}
+.statusbox{background:var(--surface-2);border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:12px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto}
+.statusbox .err{color:var(--crit)}
+.crow{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,300px);gap:6px 14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.crow:last-child{border-bottom:0}
+.crow .cl{display:grid;gap:2px;min-width:0}
+.crow .cl b{font-weight:500;font-size:13.5px}
+.crow .cl .h{font-size:12px;color:var(--muted)}
+.crow .cl .v{font-family:var(--mono);font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crow .cw{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;min-width:0}
+.crow.na{opacity:.55}
+.crow.changed .cl b::after{content:" •";color:var(--accent)}
+.crow.pending{opacity:.6}
+.crow.flash{animation:flash 1.2s}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:transparent}}
+@media (max-width:640px){.crow{grid-template-columns:1fr}.crow .cw{justify-content:flex-start}}
+.crow input[type=range]{flex:1;min-width:70px}
+.crow select,.crow input[type=text]{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:4px 8px;font-size:13px;max-width:100%}
+.unit{font-size:11.5px;color:var(--muted)}
+.reset{border:0;background:none;color:var(--muted);font-size:11.5px;text-decoration:underline;padding:0}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acts select{background:var(--surface);border:1px solid var(--line-2);border-radius:7px;padding:3px 6px;font-size:12.5px}
+.ctlsearch{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;width:100%;max-width:320px}
+.na-chip{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-radius:4px;padding:1px 6px}
+.swgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:4px 18px}
+.swrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-size:13px}
+
+/* ledger */
+.ledger{list-style:none;margin:0;padding:0}
+.ledger li{display:grid;grid-template-columns:70px 84px 64px minmax(0,1fr);gap:10px;padding:6px 0;border-bottom:1px solid var(--line);align-items:baseline;font-size:13px}
+.ledger li.new{animation:flash 1.6s}
+.ledger li.day{display:block;font-size:11.5px;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:10px;border-bottom:0}
+@media (max-width:640px){.ledger li{grid-template-columns:1fr}}
+
+/* inspector, console, toast */
+.insp{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);z-index:35;background:var(--surface);border-left:1px solid var(--line-2);box-shadow:-8px 0 24px rgb(0 0 0 / .18);transform:translateX(105%);transition:transform .18s;display:flex;flex-direction:column}
+.insp.open{transform:none}
+.insp header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.insp header h3{font-family:var(--serif);font-weight:500;font-size:22px;text-transform:capitalize;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.insp .body{padding:12px 14px 80px;overflow:auto;display:grid;gap:14px;align-content:start}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv span:nth-child(odd){color:var(--muted)}
+.console{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line-2)}
+.console header{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;max-width:1440px;margin:0 auto}
+.console header b{font-size:13px}
+.console .body{max-height:0;overflow:auto;transition:max-height .2s;max-width:1440px;margin:0 auto;padding:0 16px}
+.console.open .body{max-height:220px;padding-bottom:10px}
+.console .line{display:grid;grid-template-columns:70px 1fr auto;gap:10px;padding:4px 0;border-bottom:1px dashed var(--line);font-family:var(--mono);font-size:12px;align-items:baseline}
+.console .last{font-family:var(--mono);font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.toast{position:fixed;left:50%;bottom:58px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:8px 10px 8px 14px;border-radius:8px;font-size:13px;z-index:40;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px);display:flex;gap:12px;align-items:center}
+.toast.show{opacity:1;pointer-events:auto}
+.toast button{border:0;background:color-mix(in oklab,var(--surface) 18%,transparent);color:var(--surface);border-radius:6px;padding:3px 9px;font-size:12.5px}
+.tile{display:inline-block;flex:none;vertical-align:middle;image-rendering:pixelated;background-repeat:no-repeat}
+.tile.ascii{position:relative;border-radius:2px}
+.tile.ascii i{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.tile.ascii b{position:absolute;inset:0;display:grid;place-items:center;font:600 13px/1 var(--mono)}
+.tile.none{background:var(--surface-3);border-radius:3px}
+.dtile{display:grid;place-items:center;min-height:64px;background:var(--surface-2);border-radius:8px;padding:6px;justify-self:start;min-width:80px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:640px){.fort h1{font-size:22px}.search{flex:1 1 100%}.search input{width:100%}}
+</style>
+
+<div class="wrap">
+<div class="top">
+  <div class="top-row">
+    <div class="fort"><h1 id="fortName">&nbsp;</h1><span class="tool" id="toolTag">seasonal-wildlife · web 2</span></div>
+    <div class="clock" id="clock"></div>
+    <div class="spacer"></div>
+    <span class="conn" id="conn" title=""><i></i><span id="connText">Connecting</span><span class="age" id="connAge"></span></span>
+  </div>
+  <div class="top-row" style="margin-top:9px">
+    <div class="seg" role="group" aria-label="Layer" id="layerSeg"></div>
+    <div class="seg" role="group" aria-label="Creature tiles" id="tileSeg"></div>
+    <div class="spacer"></div>
+    <label class="search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg><input id="q" type="search" placeholder="Find a species" aria-label="Find a species"></label>
+  </div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+</div>
+<main>
+  <section role="tabpanel" id="p-overview"></section>
+  <section role="tabpanel" id="p-map" hidden></section>
+  <section role="tabpanel" id="p-groups" hidden></section>
+  <section role="tabpanel" id="p-species" hidden></section>
+  <section role="tabpanel" id="p-web" hidden></section>
+  <section role="tabpanel" id="p-seasons" hidden></section>
+  <section role="tabpanel" id="p-roster" hidden></section>
+  <section role="tabpanel" id="p-waters" hidden></section>
+  <section role="tabpanel" id="p-controls" hidden></section>
+  <section role="tabpanel" id="p-ledger" hidden></section>
+</main>
+</div>
+<aside class="insp" id="insp" aria-label="Inspector"><header><span id="inspKind" class="chip"></span><h3 id="inspTitle"></h3><button class="btn small" id="inspClose" aria-label="Close">✕</button></header><div class="body" id="inspBody"></div></aside>
+<div class="console" id="console">
+  <header id="conHead"><b>Commands</b><span class="chip" id="conCount">0</span><span class="last" id="conLast">Every change on this page becomes one seasonal-wildlife console command.</span><span class="sub">show</span></header>
+  <div class="body" id="conBody"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button id="toastUndo" hidden>Undo</button></div>
+<script>
+(() => {
+'use strict';
+// seasonal-wildlife companion, web2 (v7.1, docs/v7.1/web2-design.md). Served by `seasonal-wildlife-web` inside DFHack on
+// 127.0.0.1; every request carries the token in this page's address. Feeds: /state.json (2 s, ETag/304),
+// /map.json (1.5 s while a map is on screen; terrain only when its version moves), /history.json?since= and
+// /events.json?since= (cursors), /web.json, /waters.json, /status.json, /species.json and /controls.json on demand.
+// Writes: /set /act /read /cmd, each one tool console verb, with the game's reply and an Undo.
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'], SHORT = ['Sp', 'Su', 'Au', 'Wi'];
+const LAYERS = ['land', 'water', 'cavern'];
+const LNAME = { land: 'Land', water: 'Water', cavern: 'Caverns', deep: 'Deep' };
+const LCODE = ['land', 'water', 'cavern', 'deep'];
+const LVNAME = { A: 'apex', C: 'carnivore', H: 'herbivore', V: 'vermin' };
+const FAM = { fish: 'fish', flies: 'flies & biting insects', fliers: 'flying insects', mammals: 'rodents & small mammals',
+              soil: 'worms & soil life', colony: 'colony insects', crawlers: 'crawlers' };
+const TPD = 1200;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Math.round(n || 0).toLocaleString('en-US');
+const arr = x => Array.isArray(x) ? x : [];          // DFHack's encoder writes an empty table as {}
+const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
+const dfix = (v, n = 1) => v == null ? '—' : (+v).toFixed(n);
+const store = { get(k, d) { try { const v = localStorage.getItem('swc2.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+                set(k, v) { try { localStorage.setItem('swc2.' + k, JSON.stringify(v)); } catch { /* private window */ } } };
+const ordinal = n => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
+const url = (p, q = {}) => { const u = new URLSearchParams({ t: TOKEN }); for (const [k, v] of Object.entries(q)) if (v != null && v !== '') u.set(k, String(v)); return p + '?' + u.toString(); };
+const withTok = u => u && u.startsWith('/') ? u + (u.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(TOKEN) : u;
+// a game day as the tool stamps it: 'Autumn 14' (abs day -> season and day of season)
+function dayLabel(d) { if (d == null) return '—'; const yd = ((d % 336) + 336) % 336; return `${SHORT[Math.floor(yd / 84)]} ${Math.floor(yd % 84) + 1}`; }
+function ago(days) { if (days == null) return '—'; if (days < 1 / 24) return 'now'; if (days < 1) return Math.round(days * 24) + ' h ago'; return days.toFixed(days < 10 ? 1 : 0) + ' d ago'; }
+
+// ---------------------------------------------------------------- the data
+let D = { species: [], pairs: [], live: [] }, SP = [], BY = {}, BYTOK = {}, OTHERS = {}, eats = {}, eatenBy = {}, onMap = {}, LIM = {}, DATE = {}, NOW = 0, GFX = null;
+const MAP = { tv: null, wv: null, terrain: null, water: null, caves: {}, cv: {}, live: null, links: [], linksSkipped: null, at: 0 };
+const HIST = { seq: 0, samples: [], events: [], period: 0.25 };
+const LED = { seq: 0, entries: [], kinds: [], fresh: new Set() };
+let WEB = null, WATERS = null, CTL = null, CTLBY = {}, STATUS = {}, STATUS_AT = {};
+const SPEC_DETAIL = {};
+function ingest(d) {
+  D = d;
+  SP = arr(d.species).map(s => ({ ...s, seasons: arr(s.seasons), role: s.role || 'prey' }));
+  BY = Object.fromEntries(SP.map(s => [s.key, s]));
+  BYTOK = {}; for (const s of SP) if (!BYTOK[s.token]) BYTOK[s.token] = s;
+  // creatures off the managed roster (cavern natives, the deep, a killed pet): the server sends their glyph and sprite
+  OTHERS = {}; for (const [t, o] of Object.entries(obj(d.others))) OTHERS[t] = { ...obj(o), token: t, key: t, offRoster: true, name: (o && o.name) || t.toLowerCase().replace(/_/g, ' ') };
+  eats = {}; eatenBy = {};
+  for (const [p, q] of arr(d.pairs)) { if (!BY[p] || !BY[q]) continue; (eats[p] ||= []).push(q); (eatenBy[q] ||= []).push(p); }
+  if (!MAP.live || Date.now() - MAP.at > 10000) { onMap = {}; for (const s of SP) if (s.on_map > 0) onMap[s.key] = s.on_map; }
+  LIM = obj(d.limits); DATE = obj(d.date); NOW = DATE.season ?? 0;
+  if (d.gfx && obj(d.gfx).pages && Object.keys(obj(d.gfx.pages)).length) { GFX = d.gfx; prepareFont(); }
+  $('toolTag').textContent = 'seasonal-wildlife' + (d.release ? ' ' + d.release : '') + ' · web ' + (d.web || 2) + (d.dfhack ? ' · DFHack ' + d.dfhack : '') + (d.mock ? (d.mock.fixture ? ' · offline replay' : ' · offline sim') : '');
+  $('toolTag').title = [d.df ? 'DF ' + d.df : '', d.dfhack ? 'DFHack ' + d.dfhack : '', d.fort ? 'fort ' + d.fort : '', d.save ? 'save ' + d.save : ''].filter(Boolean).join(' · ');
+}
+const isVermin = s => s && s.role === 'vermin';
+// a group's or a unit's key as the roster keys it: a land-listed aquatic drawn into the water is 'water:TOKEN' on the map
+// and 'TOKEN' on the roster (R45); the species is the same, so the page joins them by token
+function normKey(k) { if (!k || BY[k]) return k; const t = String(k).replace(/^(water|cavern|deep):/, ''); return BYTOK[t] ? BYTOK[t].key : k; }
+const levelOf = s => !s ? 'H' : isVermin(s) ? 'V' : (s.level || (s.role === 'predator' ? 'C' : 'H'));
+const nm = s => esc(s ? s.name : '?');
+const tokOf = k => String(k || '').replace(/^\w+:/, '');
+// the roster's species for a key, else the off-roster creature by token, else a stub that still draws a glyph
+function spAny(key) {
+  if (BY[key]) return BY[key];
+  const t = tokOf(key);
+  return BYTOK[t] || OTHERS[t] || OTHERS[t.replace(/_/g, ' ')] || { key, token: t, name: t.toLowerCase().replace(/_/g, ' '), offRoster: true };
+}
+const keyName = k => spAny(k).name;
+const tokName = t => spAny(t).name;
+function inSeason(s, k = NOW) { return s.active && s.seasons.includes(k); }
+const layerOk = s => st.layer === 'all' || (s && s.layer === st.layer);
+
+// ---------------------------------------------------------------- creature tiles: DF's sprites or its ASCII glyph
+const CP437 = ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼' + Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i)).join('') + '⌂'
+  + 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ';
+const cpChar = n => [...CP437][n] || '?';
+const DFPAL = ['#000000', '#000080', '#008000', '#008080', '#800000', '#800080', '#808000', '#c0c0c0', '#808080', '#0000ff', '#00ff00', '#00ffff', '#ff0000', '#ff00ff', '#ffff00', '#ffffff'];
+let MASK = null, MASKFOR = '';
+function prepareFont() {
+  const f = GFX && GFX.font; if (!f || !f.url || MASKFOR === f.url) return;
+  MASKFOR = f.url;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+    for (let i = 0; i < p.length; i += 4) { const r = p[i], g = p[i + 1], b = p[i + 2], mg = r > 200 && g < 60 && b > 200; const a = mg ? 0 : Math.min(p[i + 3], Math.max(r, g, b)); p[i] = p[i + 1] = p[i + 2] = 255; p[i + 3] = a; }
+    x.putImageData(d, 0, 0);
+    MASK = { url: c.toDataURL(), gw: f.gw || img.width / 16, gh: f.gh || img.height / 16, w: img.width, h: img.height };
+    renderActive();
+  };
+  img.src = withTok(f.url);
+}
+function tile(s, h = 22, big = false) {
+  if (!s) return `<span class="tile none" style="width:${h}px;height:${h}px"></span>`;
+  if (st.tiles === 'steam' && GFX && s.gfx) {
+    const g = s.gfx, useBig = big && g.p, pg = obj(GFX.pages)[useBig ? g.p : (g.ip || g.p)];
+    if (pg) {
+      const tw = pg.tw || 32, th = pg.th || 32;
+      const tx = useBig ? g.x : (g.ip ? g.ix : g.x), ty = useBig ? g.y : (g.ip ? g.iy : g.y);
+      const wt = useBig ? (g.w || 1) : 1, ht = useBig ? (g.h || 1) : 1, k = h / (ht * th);
+      return `<span class="tile" role="img" aria-label="${esc(s.name)}" style="width:${wt * tw * k}px;height:${h}px;background-image:url('${withTok(pg.url)}');background-size:${pg.w * k}px ${pg.h * k}px;background-position:${-tx * tw * k}px ${-ty * th * k}px"></span>`;
+    }
+  }
+  const a = s.ascii || (s.name ? { ch: s.name.trim().toUpperCase().charCodeAt(0) || 63, fg: 7, bg: 0, br: 0, guess: true } : null);
+  if (!a) return `<span class="tile none" style="width:${h}px;height:${h}px"></span>`;
+  const pal = arr(GFX && GFX.palette).length === 16 ? GFX.palette : DFPAL, fg = pal[a.fg + (a.br ? 8 : 0)] || '#c0c0c0', bg = pal[a.bg] || '#000';
+  const gw = MASK ? MASK.gw : 8, gh = MASK ? MASK.gh : 12, k = h / gh, w = Math.round(gw * k);
+  if (!MASK) return `<span class="tile ascii" role="img" aria-label="${esc(s.name)}" style="width:${w}px;height:${h}px;background:${bg}"><b style="color:${fg};font-size:${Math.round(h * 0.8)}px">${esc(cpChar(a.ch))}</b></span>`;
+  const col = a.ch % 16, row = Math.floor(a.ch / 16);
+  const m = `url(${MASK.url}) ${-col * gw * k}px ${-row * gh * k}px / ${MASK.w * k}px ${MASK.h * k}px no-repeat`;
+  return `<span class="tile ascii" role="img" aria-label="${esc(s.name)}" style="width:${w}px;height:${h}px;background:${bg}"><i style="background:${fg};-webkit-mask:${m};mask:${m}"></i></span>`;
+}
+const spLink = (key, cls = '') => { const s = spAny(key); return `<button class="elink ${cls}" data-insp="sp:${esc(key)}" title="${esc(s.name)}${s.offRoster ? ' (not on the managed roster)' : ''}">${tile(s, 16)}<span class="t">${esc(s.name)}</span></button>`; };
+
+// ---------------------------------------------------------------- ui state
+const st = {
+  tab: 'overview', layer: store.get('layer', 'all'), tiles: store.get('tiles', 'steam'), q: '', sel: null, insp: null,
+  sort: { k: 'onmap', dir: -1 }, fActive: 'all', fRole: 'all', fNow: false, fMap: false,
+  webSeason: null, webScope: store.get('webScope', 'map'), webFocus: null, conOpen: false, cmds: [],
+  csec: store.get('csec', null), cq: '', readouts: {}, lkind: 'all', llayer: 'all', lq: '',
+  mapView: 'surface', mapShow: store.get('mapShow', { units: true, labels: true, kills: true, links: false }), mapSel: null,
+  histRange: 7,
+};
+
+// ---------------------------------------------------------------- the connection: one scheduler, backoff, freshness
+const CONN = { state: 'connecting', ok: 0, fails: 0, retryAt: 0, lastDate: null, dateAt: 0, etag: null, lastText: null, why: '' };
+async function getJSON(path, q, opts = {}) {
+  const r = await fetch(url(path, q), { cache: 'no-store', headers: opts.headers || {} });
+  if (r.status === 403) { const e = new Error('token'); e.token = true; throw e; }
+  if (r.status === 304) return { notModified: true, etag: r.headers.get('ETag') };
+  if (!r.ok && r.status !== 400) throw new Error(path + ' ' + r.status);
+  const j = await r.json();
+  if (opts.etag) return { json: j, etag: r.headers.get('ETag') };
+  return j;
+}
+function markOk() { CONN.ok = Date.now(); CONN.fails = 0; if (CONN.state !== 'live') { CONN.state = 'live'; renderConn(); } }
+function markFail(e) {
+  CONN.fails++;
+  CONN.state = e && e.token ? 'token' : 'lost';
+  CONN.why = String(e && e.message || e);
+  CONN.retryAt = Date.now() + Math.min(30000, 2000 * 2 ** Math.min(4, CONN.fails - 1));
+  renderConn();
+}
+const FEEDS = {
+  state:  { every: 2000, need: () => true, run: pollState },
+  map:    { every: 1500, need: () => ['map', 'groups', 'overview', 'waters', 'species', 'web'].includes(st.tab) || !!st.insp, run: pollMap },
+  hist:   { every: 15000, need: () => true, run: pollHist },
+  events: { every: 4000, need: () => true, run: pollEvents },
+  web:    { every: 15000, need: () => st.tab === 'web' || (st.insp && st.insp.startsWith('sp:')), run: pollWeb },
+  waters: { every: 5000, need: () => st.tab === 'waters', run: pollWaters },
+  status: { every: 5000, need: () => statusNeeded().length > 0, run: () => loadStatus(statusNeeded()) },
+};
+for (const f of Object.values(FEEDS)) { f.next = 0; f.busy = false; }
+function kick(name) { if (FEEDS[name]) FEEDS[name].next = 0; }
+async function tickFeeds() {
+  if (!document.hidden) {
+    const now = Date.now();
+    if (!(CONN.state === 'lost' || CONN.state === 'token') || now >= CONN.retryAt) {
+      for (const [, f] of Object.entries(FEEDS)) {
+        if (f.busy || now < f.next || !f.need()) continue;
+        if ((CONN.state === 'lost' || CONN.state === 'token') && f !== FEEDS.state) continue;   // retry with the state alone
+        f.busy = true;
+        f.run().then(() => { f.next = Date.now() + f.every; markOk(); }, e => { f.next = Date.now() + f.every; markFail(e); }).finally(() => { f.busy = false; });
+      }
+    }
+  }
+  renderConnAge();
+  setTimeout(tickFeeds, 250);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) for (const f of Object.values(FEEDS)) f.next = 0; });
+async function pollState() {
+  const r = await getJSON('/state.json', {}, { etag: true, headers: CONN.etag ? { 'If-None-Match': CONN.etag } : {} });
+  if (r.notModified) { STATS.notModified++; noteDate(); return; }
+  CONN.etag = r.etag;
+  const d = r.json;
+  if (!d.loaded) { ingest({ fort: 'No fort loaded', species: [] }); renderAll(); return; }
+  const prevHist = D.hist_seq, prevLed = D.ledger_seq, prevCfg = D.cfg_ver;
+  const wasMock = !!D.mock;
+  ingest(d); noteDate();
+  if (!!d.mock !== wasMock) renderConn();   // the server says it is the offline mock (or stopped saying so): the pill follows
+  if (d.hist_seq !== prevHist) kick('hist');
+  if (d.ledger_seq !== prevLed) kick('events');
+  if (!CTL || (d.cfg_ver != null && d.cfg_ver !== prevCfg && d.cfg_ver !== CTL.cfg_ver)) loadControls();
+  renderChrome(); renderTabs();
+  if (!editing($('p-' + st.tab))) renderPanel(['map'].includes(st.tab) ? null : st.tab);
+  if (st.insp) renderInsp();
+}
+const STATS = { notModified: 0 };
+function noteDate() {
+  const ad = DATE.abs_day;
+  if (ad !== CONN.lastDate) { CONN.lastDate = ad; CONN.dateAt = Date.now(); if (CONN.state === 'paused') { CONN.state = 'live'; renderConn(); } }
+  else if (CONN.state === 'live' && CONN.dateAt && Date.now() - CONN.dateAt > 6000) { CONN.state = 'paused'; renderConn(); }
+}
+function renderConn() {
+  const c = $('conn'), s = CONN.state, mock = !!D.mock && (s === 'live' || s === 'paused');
+  // a server that says it is the offline mock is never shown as the game: neutral, and named for what it is
+  c.className = 'conn ' + (mock ? 'mock' : s === 'live' ? 'live' : s === 'paused' ? 'paused' : (s === 'lost' || s === 'token') ? 'lost' : '');
+  $('connText').textContent = mock ? (D.mock.fixture ? 'Replay' : 'Offline sim') : s === 'live' ? 'Live' : s === 'paused' ? 'Game paused' : s === 'token' ? 'Wrong token' : s === 'lost' ? 'Lost the game' : 'Connecting';
+  c.title = mock ? (D.mock.fixture ? 'Offline replay of a recorded live run (tests/web/mock_server.py FIXTURE=): not connected to a game.' : 'Offline: tests/web/mock_server.py replays the real server code on a simulated fort; not connected to a game.')
+    : s === 'token' ? 'The token in this address is not the one the game gave. Type seasonal-wildlife-web status in DFHack for the current address.'
+    : s === 'lost' ? 'No answer from the game: ' + CONN.why + '. Retrying with a growing wait (2 to 30 s).'
+    : s === 'paused' ? 'The game date has not moved for six seconds: DF is paused (or the fort is in a menu). The page keeps reading.'
+    : `State built in ${D.ms ?? '?'} ms inside DF; ${STATS.notModified} unchanged reads answered 304`;
+  renderConnAge();
+}
+function renderConnAge() {
+  const el = $('connAge'); if (!el) return;
+  const s = CONN.state;
+  if (s === 'lost' || s === 'token') { const w = Math.max(0, Math.ceil((CONN.retryAt - Date.now()) / 1000)); el.textContent = `retry in ${w} s`; return; }
+  if (!CONN.ok) { el.textContent = ''; return; }
+  const a = (Date.now() - CONN.ok) / 1000;
+  el.textContent = `updated ${a < 1 ? '<1' : a.toFixed(0)} s ago`;
+  if (a > 8 && s === 'live' && !document.hidden) { CONN.state = 'lost'; CONN.why = 'no answer for ' + a.toFixed(0) + ' s'; renderConn(); }
+}
+
+// ---------------------------------------------------------------- the other feeds
+async function pollMap() {
+  const q = { tv: MAP.tv, wv: MAP.wv, links: st.mapShow.links ? '1' : '' };
+  const cd = st.mapView.startsWith('cave') ? +st.mapView.slice(4) : null;
+  if (cd != null) { q.cave = cd; q.cv = MAP.cv[cd]; }
+  const m = await getJSON('/map.json', q);
+  if (m.loaded === false) return;
+  MAP.w = m.w; MAP.h = m.h; MAP.zc = m.zc;
+  if (m.terrain) { MAP.terrain = m.terrain; MAP.tvImg = null; }
+  MAP.tv = m.tdone ? m.tv : null;            // keep asking for the terrain until it is done
+  FEEDS.map.every = m.tdone ? 1500 : 700;
+  if (m.water && !m.water.none) { MAP.water = m.water; MAP.tvImg = null; }
+  if (m.wv != null) MAP.wv = m.wv;
+  if (m.cave && cd != null) { MAP.caves[cd] = m.cave; MAP.cvImg = null; MAP.cv[cd] = m.cave.done ? m.cave.tv : null; if (!m.cave.done) FEEDS.map.every = 700; }
+  const prev = MAP.live;
+  if (m.live) { m.live.keys = arr(m.live.keys).map(normKey); for (const g of arr(m.live.groups)) g.key = normKey(g.key); for (const e of arr(m.live.kills)) { e.key = normKey(e.key); e.by = normKey(e.by); } }
+  MAP.live = m.live || MAP.live; MAP.at = Date.now(); MAP.ms = m.ms;
+  if (m.links) MAP.links = arr(m.links); MAP.linksSkipped = m.links_skipped || null;
+  MAP.moved = prev ? movedUnits(prev, MAP.live) : 0;
+  if (MAP.live) { const c = {}; for (const u of arr(MAP.live.units)) { const k = arr(MAP.live.keys)[u[4]]; c[k] = (c[k] || 0) + 1; } onMap = c; }   // fresher than the state's count
+  onMapFrame();
+}
+function movedUnits(a, b) {
+  const pos = new Map(arr(a.units).map(u => [u[0], u[1] * 4096 + u[2]]));
+  let n = 0; for (const u of arr(b.units)) { const p = pos.get(u[0]); if (p != null && p !== u[1] * 4096 + u[2]) n++; }
+  return n;
+}
+async function pollHist() {
+  const h = await getJSON('/history.json', { since: HIST.seq });
+  if (h.since === 0 || h.seq < HIST.seq) { HIST.samples = []; HIST.events = []; }
+  for (const x of arr(h.samples)) { const sp = {}; for (const [k, n] of Object.entries(obj(x.sp))) { const k2 = normKey(k); sp[k2] = (sp[k2] || 0) + n; } x.sp = sp; }
+  for (const e of arr(h.events)) { if (e.key) e.key = normKey(e.key); if (e.by) e.by = normKey(e.by); }
+  HIST.samples.push(...arr(h.samples)); HIST.events.push(...arr(h.events));
+  if (HIST.samples.length > 1400) HIST.samples.splice(0, HIST.samples.length - 1400);
+  if (HIST.events.length > 700) HIST.events.splice(0, HIST.events.length - 700);
+  HIST.seq = h.seq; HIST.period = h.period_days || 0.25;
+  if (['overview', 'seasons', 'species'].includes(st.tab)) renderPanel(st.tab);
+}
+async function pollEvents() {
+  const e = await getJSON('/events.json', { since: LED.seq });
+  if (e.count < LED.seq) { LED.entries = []; LED.seq = 0; }
+  const fresh = arr(e.entries).filter(x => x.q > LED.seq);
+  for (const x of fresh) { LED.entries.push(x); if (LED.seq) LED.fresh.add(x.q); }
+  if (LED.entries.length > 600) LED.entries.splice(0, LED.entries.length - 600);
+  LED.seq = Math.max(LED.seq, e.count || 0, ...fresh.map(x => x.q)); LED.kinds = arr(e.kinds);
+  if (fresh.length && ['ledger', 'overview'].includes(st.tab)) renderPanel(st.tab);
+}
+async function pollWeb() { WEB = await getJSON('/web.json'); if (st.tab === 'web') renderPanel('web'); }
+async function pollWaters() { WATERS = await getJSON('/waters.json'); if (st.tab === 'waters' && !editing($('p-waters'))) renderPanel('waters'); }
+
+// ---------------------------------------------------------------- commands, toast, undo
+let tt;
+function toast(msg, undo) {
+  $('toastText').textContent = msg; $('toastUndo').hidden = !undo;
+  $('toast').classList.add('show'); clearTimeout(tt); tt = setTimeout(() => $('toast').classList.remove('show'), undo ? 6000 : 2800);
+}
+$('toastUndo').onclick = () => { $('toast').classList.remove('show'); send(['undo'], 'Undid the last edit'); };
+function logLine(cmd) { const line = { t: new Date().toTimeString().slice(0, 8), cmd, res: 'sending' }; st.cmds.unshift(line); renderConsole(); return line; }
+function renderConsole() {
+  $('conCount').textContent = st.cmds.length;
+  const last = st.cmds[0];
+  $('conLast').textContent = last ? `${last.cmd}  →  ${last.res}` : 'Every change on this page becomes one seasonal-wildlife console command.';
+  const chip = r => r === 'done' ? 'good' : (r === 'refused' || r === 'failed') ? 'crit' : '';
+  $('conBody').innerHTML = st.cmds.length ? st.cmds.map(c => `<div class="line"><span class="sub">${c.t}</span><span>${esc(c.cmd)}${c.out ? `<br><span class="sub">${esc(c.out.split('\n').slice(0, 3).join(' / '))}</span>` : ''}</span><span class="chip ${chip(c.res)}">${esc(c.res)}</span></div>`).join('')
+    : '<p class="sub" style="margin:6px 0">Nothing yet.</p>';
+  $('console').classList.toggle('open', st.conOpen);
+}
+$('conHead').onclick = () => { st.conOpen = !st.conOpen; renderConsole(); };
+async function post(path, params) {
+  const r = await fetch(url(path, params), { method: 'POST' });
+  return r.json();
+}
+// a console verb: the reply in the drawer and a toast; config edits get an Undo; the feeds that show it refetch now
+async function send(args, what, opts = {}) {
+  const line = logLine('seasonal-wildlife ' + args.join(' '));
+  try {
+    const q = new URLSearchParams({ t: TOKEN }); for (const a of args) q.append('a', a);
+    const r = await fetch('/cmd?' + q.toString(), { method: 'POST' });
+    const j = await r.json();
+    line.res = j.ok ? 'done' : 'refused'; line.out = String(j.out || '').trim();
+    toast(j.ok ? (line.out.split('\n')[0] || what) : 'Refused: ' + (line.out || 'unknown'), j.ok && opts.undo);
+  } catch (e) { line.res = 'failed'; line.out = String(e); toast('Could not reach the game: ' + e.message); }
+  renderConsole(); for (const f of ['state', 'map', 'events', 'hist']) kick(f);
+}
+
+// ---------------------------------------------------------------- chrome, tabs, routing
+const TABS = [['overview', 'Overview'], ['map', 'Map'], ['groups', 'Groups'], ['species', 'Species'], ['web', 'Food web'], ['seasons', 'Seasons'],
+              ['roster', 'Roster'], ['waters', 'Waters & caverns'], ['controls', 'Controls'], ['ledger', 'Ledger']];
+function renderChrome() {
+  $('fortName').textContent = D.fort || 'Fortress';
+  const f = Math.max(0, Math.min(1, (DATE.day_of_season || 0) / 84)), R = 12, C = 2 * Math.PI * R;
+  $('clock').innerHTML = DATE.season_name ? `<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="${R}" fill="none" stroke="var(--surface-3)" stroke-width="4"/><circle cx="15" cy="15" r="${R}" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="${C * f} ${C}" transform="rotate(-90 15 15)" stroke-linecap="round"/></svg>
+     <span><b>${SEASONS[NOW]}</b>, ${ordinal(DATE.day_of_month || 1)} ${esc(DATE.month || '')}, year ${DATE.year ?? '?'} &middot; <span class="num">${DATE.days_to_next ?? '?'}</span> days to ${SEASONS[(NOW + 1) % 4]}</span>` : '';
+}
+function renderLayerSeg() {
+  $('layerSeg').innerHTML = [['all', 'All layers'], ...LAYERS.map(l => [l, LNAME[l]])].map(([k, n]) =>
+    `<button type="button" data-layer="${k}" aria-pressed="${st.layer === k}">${k !== 'all' ? `<span class="dot ${k}"></span>` : ''}${n}</button>`).join('');
+  $('layerSeg').querySelectorAll('button').forEach(b => b.onclick = () => { st.layer = b.dataset.layer; store.set('layer', st.layer); renderAll(); });
+  $('tileSeg').innerHTML = [['steam', 'Sprites'], ['ascii', 'ASCII']].map(([k, n]) => `<button type="button" data-t="${k}" aria-pressed="${st.tiles === k}">${n}</button>`).join('');
+  $('tileSeg').querySelectorAll('button').forEach(b => b.onclick = () => { st.tiles = b.dataset.t; store.set('tiles', st.tiles); renderAll(); });
+  $('tileSeg').hidden = !GFX;
+}
+function alertsList() {
+  const out = [];
+  for (const l of LAYERS) {
+    const L = obj(LIM[l]);
+    if (L.on === false) continue;
+    const act = SP.filter(s => s.layer === l && s.active && !isVermin(s)), inS = act.filter(s => s.seasons.includes(NOW));
+    if (act.length && !inS.length) out.push({ lv: 'warn', l, t: `No active ${LNAME[l].toLowerCase()} species is in season (${SEASONS[NOW]}): nothing can arrive.`, go: 'seasons' });
+    if (L.groups && L.groups_now >= L.groups && l === 'land') out.push({ lv: 'info', l, t: `${LNAME[l]}: every group slot is taken (${L.groups_now} of ${L.groups}); the next wave waits for one to leave.`, go: 'groups' });
+  }
+  for (const r of arr(MAP.live && MAP.live.irrupt)) {
+    if (r.phase === 'warning') out.push({ lv: 'warn', l: 'cavern', t: `Cavern ${r.depth + 1} is stirring: ${r.text || 'an irruption is coming'}.`, go: 'waters' });
+    if (r.phase === 'active') out.push({ lv: 'crit', l: 'cavern', t: `Cavern ${r.depth + 1} is irrupting: ${r.text || r.token || ''}.`, go: 'waters' });
+  }
+  if (D.fuse && !/intact/.test(D.fuse)) out.push({ lv: 'crit', t: D.fuse, go: 'controls/switches' });
+  const panic = arr(MAP.live && MAP.live.groups).filter(g => g.panic);
+  if (panic.length) out.push({ lv: 'warn', t: `${panic.length} group(s) in panic: ${panic.slice(0, 3).map(g => tokName(g.token)).join(', ')}.`, go: 'groups' });
+  if (D.enabled === false) out.push({ lv: 'warn', t: 'Seasonal rotation is off: the roster is kept but nothing is applied.', go: 'controls/switches' });
+  if ((D.ms || 0) > 50) out.push({ lv: 'info', t: `The last state read took ${D.ms} ms inside DF (budget 50).` });
+  return out;
+}
+function renderTabs() {
+  const nAl = alertsList().filter(a => a.lv !== 'info').length;
+  const counts = { species: SP.filter(layerOk).length, groups: arr(MAP.live && MAP.live.groups).length || arr(D.live).filter(g => g.tracked !== false).length, ledger: LED.seq || null, controls: CTL ? arr(CTL.controls).length : null };
+  $('tabs').innerHTML = TABS.map(([k, n]) => `<button role="tab" type="button" data-tab="${k}" aria-selected="${st.tab === k}" aria-controls="p-${k}">${esc(n)}${counts[k] != null && counts[k] !== 0 ? `<span class="count">${counts[k]}</span>` : ''}${k === 'overview' && nAl ? `<span class="badge">${nAl}</span>` : ''}</button>`).join('');
+  $('tabs').querySelectorAll('button').forEach(b => b.onclick = () => go(b.dataset.tab));
+  TABS.forEach(([k]) => $('p-' + k).hidden = st.tab !== k);
+}
+// #tab[/arg]: #species/KEY  #map/GID  #controls/SECTION  #groups
+function go(tab, arg, push = true) {
+  if (!TABS.some(([k]) => k === tab)) tab = 'overview';
+  st.tab = tab;
+  if (tab === 'species' && arg) st.sel = arg;
+  if (tab === 'controls' && arg) st.csec = arg;
+  if (tab === 'map' && arg) { st.mapSel = arg; MAPV.fitSel = true; }
+  const h = '#' + tab + (arg ? '/' + encodeURIComponent(arg) : '');
+  if (push && location.hash !== h) history.replaceState(null, '', h);
+  renderAll(); window.scrollTo({ top: 0 });
+  for (const f of ['map', 'web', 'waters', 'status']) kick(f);
+}
+function fromHash() { const [t, ...rest] = location.hash.slice(1).split('/'); go(t || 'overview', rest.length ? decodeURIComponent(rest.join('/')) : null, false); }
+window.addEventListener('hashchange', fromHash);
+const editing = P => P && P.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName);
+function bindLinks(root) {
+  root.querySelectorAll('[data-insp]').forEach(b => b.onclick = e => { e.stopPropagation(); openInsp(b.dataset.insp); });
+  root.querySelectorAll('[data-go]').forEach(b => b.onclick = e => { e.stopPropagation(); const [t, ...a] = b.dataset.go.split('/'); go(t, a.join('/') || null); });
+  root.querySelectorAll('[data-hold]').forEach(b => b.onclick = e => { e.stopPropagation(); send(['groups', 'hold', b.dataset.hold, '3'], 'Held 3 more days'); });
+  root.querySelectorAll('[data-off]').forEach(b => b.onclick = e => { e.stopPropagation(); if (confirm(`Send off ${b.dataset.offname || b.dataset.off}? Its members walk off the map.`)) send(['groups', 'dismiss', b.dataset.off], 'Sent off'); });
+}
+
+// ---------------------------------------------------------------- the inspector: one panel for a group, a species or a unit
+function openInsp(id) { st.insp = id; renderInsp(); kick('map'); if (id.startsWith('sp:')) loadSpeciesDetail(id.slice(3)); }
+$('inspClose').onclick = () => { st.insp = null; $('insp').classList.remove('open'); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && st.insp) { st.insp = null; $('insp').classList.remove('open'); } });
+const groupBy = gid => arr(MAP.live && MAP.live.groups).find(g => g.gid === gid);
+function eventsFor(pred) { return HIST.events.filter(pred).slice(-40).reverse(); }
+function evLine(e) {
+  const ic = { arrive: '▲', leave: '▼', kill: '✕', died: '†' }[e.k] || '•';
+  const who = e.key ? spLink(e.key) : e.token ? spLink(BYTOK[e.token] ? BYTOK[e.token].key : e.token) : '';
+  const txt = e.k === 'kill' ? `${e.by ? spLink(e.by, 'kill') : 'something'} killed ${who}` : e.k === 'died' ? `${who} died${e.cause ? ' (' + esc(String(e.cause).toLowerCase().replace(/_/g, ' ')) + ')' : ''}`
+    : e.k === 'arrive' ? (e.src === 'ledger' ? esc(e.s || '') : `${who} x${e.n || '?'} arrived <span class="sub">${esc(e.origin || '')}${e.lk ? ' · ' + esc(e.lk) : ''}</span>`)
+    : e.k === 'leave' ? `${who} x${e.n || '?'} left <span class="sub">${esc(e.lk || '')}</span>` : esc(e.s || e.k);
+  return `<li><span class="mono sub">${dayLabel(e.t)} ${String(Math.floor((e.t % 1) * 24)).padStart(2, '0')}h</span><span class="ic ${e.k}">${ic}</span><span>${txt}</span></li>`;
+}
+function renderInsp() {
+  const id = st.insp; if (!id) return;
+  const el = $('insp'), body = $('inspBody');
+  el.classList.add('open');
+  if (body.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
+  const [kind, ...r] = id.split(':'), ref = r.join(':');
+  let html = '';
+  if (kind === 'g') {
+    const g = groupBy(ref);
+    $('inspKind').textContent = 'group'; $('inspTitle').textContent = g ? tokName(g.token) : 'group gone';
+    if (!g) { body.innerHTML = '<p class="sub">This group is no longer on the map: it left, or died out.</p>' + `<ul class="feed">${eventsFor(e => e.gid === ref).map(evLine).join('')}</ul>`; bindLinks(body); return; }
+    const s = spAny(g.key);
+    const cd = g.leaves != null ? Math.min(1, g.leaves / 28) : 0;
+    html = `<div class="row">${tile(s, 40, true)}<div><div class="readings"><span class="chip"><span class="dot ${g.layer}"></span>${esc(g.lk || g.layer)}</span><span class="chip">${esc(g.origin)}</span>${g.label ? `<span class="chip">${esc(g.label)}</span>` : ''}${g.panic ? '<span class="chip crit">panic</span>' : ''}${g.held ? `<span class="chip accent">held ${dfix(g.held)} d</span>` : ''}</div></div></div>
+      <div class="kv"><span>members</span><span><b>${g.n}</b> alive of ${g.size}</span><span>leader</span><span>${g.leader ? '#' + g.leader + (g.lpos ? ` at ${g.lpos.join(', ')}` : ' (not on the map)') : 'none'}</span>
+        <span>here for</span><span>${dfix(g.days_here)} days (since ${dayLabel((MAP.live.day || 0) - (g.days_here || 0))})</span>
+        <span>leaves in</span><span>${g.leaves != null ? dfix(g.leaves) + ' days (the soonest member)' : '—'}</span>
+        <span>centre</span><span class="mono">${g.c ? g.c.map(v => Math.round(v)).join(', ') : '—'}</span>
+        <span>spread</span><span class="mono">${g.box ? `${g.box[2] - g.box[0] + 1} x ${g.box[3] - g.box[1] + 1} tiles` : '—'}</span></div>
+      <div class="cd" title="leave countdown, of 28 days"><span class="${g.held ? 'held' : ''}" style="width:${cd * 100}%"></span></div>
+      <div class="row"><button class="btn small primary" data-go="map/${esc(g.gid)}">Show on the map</button><button class="btn small" data-hold="${esc(g.act)}">Hold 3 days</button><button class="btn small danger" data-off="${esc(g.act)}" data-offname="${esc(tokName(g.token))}">Send off</button>${s ? `<button class="btn small" data-insp="sp:${esc(s.key)}">Species</button>` : ''}</div>
+      <p class="sub" style="margin:0">Hold and Send off act on every ${g.layer === 'cavern' ? 'group of this species in this cavern' : 'tracked group of this species'} (<span class="mono">groups hold ${esc(g.act)} 3</span>).</p>
+      <div class="field"><span class="lab">Members</span><div class="blist">${arr(g.ids).slice(0, 40).map(i => `<span class="chip mono">#${i}${i === g.leader ? ' ★' : ''}</span>`).join('')}</div></div>
+      <div class="field"><span class="lab">What happened to it</span><ul class="feed">${eventsFor(e => e.gid === g.gid || (e.k === 'kill' && arr(g.ids).includes(e.by_id))).map(evLine).join('') || '<li><span></span><span></span><span class="sub">nothing recorded since the server started</span></li>'}</ul></div>`;
+  } else if (kind === 'sp') {
+    const s = BY[ref];
+    $('inspKind').textContent = s ? (isVermin(s) ? 'vermin' : s.role) : 'species'; $('inspTitle').textContent = s ? s.name : ref;
+    if (!s) {
+      const o = spAny(ref), n = arr(MAP.live && MAP.live.units).filter(u => tokOf(arr(MAP.live.keys)[u[4]]) === o.token).length;
+      $('inspKind').textContent = 'not managed'; $('inspTitle').textContent = o.name;
+      body.innerHTML = `<div class="row">${tile(o, 44, true)}<p class="sub" style="margin:0">Not on the tool's managed roster (a creature of the fort, the deep, or a cavern the roster does not manage). It is shown where the game has it.</p></div>
+        <div class="kv"><span>on the map</span><span><b>${n}</b></span><span>raw id</span><span class="mono">${esc(o.token)}</span></div>
+        <ul class="feed">${eventsFor(e => tokOf(e.key) === o.token || tokOf(e.by) === o.token).map(evLine).join('') || ''}</ul>`;
+      bindLinks(body); return;
+    }
+    const gs = arr(MAP.live && MAP.live.groups).filter(g => g.key === s.key);
+    const kills = HIST.events.filter(e => e.k === 'kill' && e.by === s.key).length, deaths = HIST.events.filter(e => (e.k === 'kill' || e.k === 'died') && e.key === s.key).length;
+    html = `<div class="row">${tile(s, 44, true)}<div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span><span class="chip lv${levelOf(s)}" style="color:#fff">${LVNAME[levelOf(s)]}</span>${s.active ? '<span class="chip good">active</span>' : '<span class="chip">inactive</span>'}${inSeason(s) ? '<span class="chip accent">in season</span>' : ''}</div></div>
+      <div class="kv"><span>on the map</span><span><b>${onMap[s.key] || 0}</b> in ${gs.length} group(s)</span><span>stock</span><span>${fmt(s.stock)}</span><span>seasons</span><span>${s.seasons.map(i => SEASONS[i]).join(', ') || 'none'}</span><span>kills seen</span><span>${kills} made, ${deaths} died</span></div>
+      ${sparkFor(s.key)}
+      <div class="blist">${gs.map(g => `<button class="elink" data-insp="g:${esc(g.gid)}">x${g.n} · ${esc(g.lk)} · ${dfix(g.days_here)} d</button>`).join('') || '<span class="sub">no group on the map</span>'}</div>
+      <div class="row"><button class="btn small primary" data-go="species/${esc(s.key)}">Open the species page</button><button class="btn small" data-go="map/${esc(s.key)}">On the map</button></div>`;
+  }
+  body.innerHTML = html;
+  bindLinks(body);
+}
+function sparkFor(key) {
+  const pts = HIST.samples.slice(-28 * 4).map(x => [x.t, obj(x.sp)[key] || 0]);
+  if (pts.length < 2) return '<p class="sub" style="margin:0">The count line starts after two history samples (a quarter day each).</p>';
+  return `<div><span class="lab sub">on the map, last ${dfix(pts[pts.length - 1][0] - pts[0][0])} days</span>${sparkSvg(pts, 'var(--accent)')}</div>`;
+}
+function sparkSvg(pts, color, h = 46) {
+  const W = 300, t0 = pts[0][0], t1 = pts[pts.length - 1][0], span = Math.max(1e-6, t1 - t0), top = Math.max(1, ...pts.map(p => p[1]));
+  const x = t => (t - t0) / span * W, y = v => h - 3 - v / top * (h - 8);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + x(p[0]).toFixed(1) + ' ' + y(p[1]).toFixed(1)).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L ${W} ${h} L 0 ${h} Z" fill="${color}" opacity=".12"/><path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+// ---------------------------------------------------------------- the map
+// Terrain: one cell per sampled column (the server's stride), coloured by class and shaded by its level and a light
+// from the north-west; water from the tool's own water scan, darker with depth. Caverns: the cavern band's floor.
+const TCOL = { g: [104, 142, 78], y: [163, 154, 92], s: [139, 107, 74], '.': [140, 140, 134], '#': [86, 86, 84], T: [47, 93, 51], r: [125, 138, 99],
+               i: [207, 227, 238], c: [176, 138, 90], m: [210, 84, 30], '~': [52, 110, 170], ' ': [36, 34, 32], '?': [70, 74, 72] };
+const WCOL = { o: [28, 74, 140], l: [44, 108, 176], r: [58, 132, 198], p: [72, 140, 184] };
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+function scanImage(T, W2, cave) {
+  const c = document.createElement('canvas'); c.width = T.cw; c.height = T.ch;
+  const x = c.getContext('2d'), img = x.createImageData(T.cw, T.ch), p = img.data;
+  const el = i => B64.indexOf(T.elev[i] || 'A');
+  for (let cy = 0; cy < T.ch; cy++) for (let cx = 0; cx < T.cw; cx++) {
+    const i = cy * T.cw + cx, cls = T.cls[i] || '?';
+    let rgb = TCOL[cls] || TCOL['?'], k = 1;
+    const e = el(i), en = cx > 0 && cy > 0 ? el(i - T.cw - 1) : e;
+    if (cls !== '?' && !(cave && cls === ' ')) k = 0.72 + 0.28 * (e / 63) + Math.max(-0.18, Math.min(0.18, (en - e) * -0.05));
+    if (W2 && !cave) {
+      const b = W2.body[i];
+      if (b && b !== ' ') { const d = +(W2.depth[i] || 1); rgb = WCOL[b] || WCOL.r; k = 1.12 - Math.min(0.5, d * 0.08); }
+    }
+    p[i * 4] = Math.min(255, rgb[0] * k); p[i * 4 + 1] = Math.min(255, rgb[1] * k); p[i * 4 + 2] = Math.min(255, rgb[2] * k); p[i * 4 + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  return c;
+}
+const MAPV = { scale: 0, ox: 0, oy: 0, fitSel: false, built: false, hover: null, dragging: null };
+const LVCOL = { H: '#46a35a', C: '#e8912a', A: '#e0453d', V: '#8a8f8c' };
+function viewBand() {
+  if (st.mapView === 'surface') return null;
+  const d = +st.mapView.slice(4);
+  return arr(MAP.live && MAP.live.caves).find(c => c.depth === d) || { depth: d, zlo: -1, zhi: -1 };
+}
+function inView(layerCode, z, grp) {
+  if (st.mapView === 'surface') return layerCode === 0 || layerCode === 1;
+  const b = viewBand();
+  if (layerCode !== 2) return false;
+  if (grp && grp.depth != null) return grp.depth === b.depth;
+  return z >= b.zlo - 1 && z <= b.zhi + 1;
+}
+function groupsInView() {
+  const L = MAP.live; if (!L) return [];
+  return arr(L.groups).filter(g => g.n > 0 && g.c && inView(LCODE.indexOf(g.layer), g.c[2], g) && layerOk(BY[g.key] || { layer: g.layer }));
+}
+function fitMap(cv) {
+  if (!MAP.w) return;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  MAPV.scale = Math.min(W / MAP.w, H / MAP.h);
+  MAPV.ox = (W - MAP.w * MAPV.scale) / 2; MAPV.oy = (H - MAP.h * MAPV.scale) / 2;
+}
+const sx = x => MAPV.ox + (x + 0.5) * MAPV.scale, sy = y => MAPV.oy + (y + 0.5) * MAPV.scale;
+function drawMap(cv, mini = false) {
+  if (!cv) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const save = { ...MAPV };
+  if (mini || !MAPV.scale) fitMap(cv);
+  const cave = st.mapView !== 'surface' && !mini;
+  const T = cave ? MAP.caves[+st.mapView.slice(4)] : MAP.terrain;
+  if (T && T.cls) {
+    if (cave) { if (!MAP.cvImg || MAP.cvImg.tv !== T.tv + ':' + T.cls.length + ':' + T.pct) { MAP.cvImg = scanImage(T, null, true); MAP.cvImg.tv = T.tv + ':' + T.cls.length + ':' + T.pct; } }
+    else if (!MAP.tvImg || MAP.tvImg.key !== T.tv + ':' + T.pct + ':' + (MAP.water ? MAP.water.wv : '')) { MAP.tvImg = scanImage(T, MAP.water, false); MAP.tvImg.key = T.tv + ':' + T.pct + ':' + (MAP.water ? MAP.water.wv : ''); }
+    const img = cave ? MAP.cvImg : MAP.tvImg;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, MAPV.ox, MAPV.oy, T.cw * T.stride * MAPV.scale, T.ch * T.stride * MAPV.scale);
+  } else if (MAP.w) {
+    ctx.fillStyle = 'rgba(128,128,128,.15)'; ctx.fillRect(MAPV.ox, MAPV.oy, MAP.w * MAPV.scale, MAP.h * MAPV.scale);
+  }
+  const L = MAP.live;
+  if (L) {
+    const sel = st.mapSel, selGroup = sel && groupBy(sel), selKey = selGroup ? null : sel;
+    const show = mini ? { units: true, labels: false, kills: false, links: false } : st.mapShow;
+    if (show.links && !cave) {
+      ctx.strokeStyle = 'rgba(165,149,239,.55)'; ctx.lineWidth = 1;
+      for (const k of MAP.links) { ctx.beginPath(); ctx.moveTo(sx(k[2]), sy(k[3])); ctx.lineTo(sx(k[5]), sy(k[6])); ctx.stroke(); }
+    }
+    const r0 = Math.max(1.4, Math.min(4, MAPV.scale * 0.45));
+    if (show.units) for (const u of arr(L.units)) {
+      const g = u[6] >= 0 ? arr(L.groups)[u[6]] : null;
+      if (!inView(u[5], u[3], g)) continue;
+      const key = arr(L.keys)[u[4]], s = BY[key];
+      if (!layerOk(s || { layer: LCODE[u[5]] })) continue;
+      const hi = (selGroup && g && g.gid === selGroup.gid) || (selKey && key === selKey);
+      ctx.beginPath(); ctx.arc(sx(u[1]), sy(u[2]), hi ? r0 + 1.5 : r0, 0, 7);
+      if (g) { ctx.fillStyle = LVCOL[levelOf(s)] || '#ccc'; ctx.fill(); }
+      else { ctx.strokeStyle = '#f2f2ee'; ctx.lineWidth = 1.2; ctx.stroke(); }
+      if (hi) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); }
+    }
+    if (show.kills && !cave) for (const e of arr(L.kills)) {
+      if (e.x == null) continue;
+      const a = Math.max(0.25, 1 - ((L.day || 0) - e.t) / 3), X = sx(e.x), Y = sy(e.y), r = 4;
+      ctx.strokeStyle = `rgba(236,80,72,${a})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(X - r, Y - r); ctx.lineTo(X + r, Y + r); ctx.moveTo(X + r, Y - r); ctx.lineTo(X - r, Y + r); ctx.stroke();
+    }
+    const now = performance.now();
+    for (const g of groupsInView()) {
+      const s = BY[g.key], X = sx(g.c[0]), Y = sy(g.c[1]), R = (mini ? 2.5 : 5) + Math.sqrt(g.n) * (mini ? 1 : 2.2);
+      const on = (selGroup && selGroup.gid === g.gid) || (selKey && g.key === selKey);
+      if (g.box && (g.layer === 'water' || on) && g.n > 1 && !mini) {   // a school or pod: corner brackets on its box
+        const x0 = sx(g.box[0]) - 4, y0 = sy(g.box[1]) - 4, x1 = sx(g.box[2]) + 4, y1 = sy(g.box[3]) + 4, c = 6;
+        ctx.strokeStyle = on ? '#fff' : 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (const [px, py, dx, dy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x0, y1, 1, -1], [x1, y1, -1, -1]]) { ctx.moveTo(px + dx * c, py); ctx.lineTo(px, py); ctx.lineTo(px, py + dy * c); }
+        ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(X, Y, R, 0, 7);
+      ctx.fillStyle = (LVCOL[levelOf(s)] || '#bbb') + 'cc'; ctx.fill();
+      ctx.lineWidth = on ? 3 : 1.5; ctx.strokeStyle = on ? '#ffffff' : 'rgba(0,0,0,.55)'; ctx.stroke();
+      if (g.origin === 'irruption') { const p = (now % 1400) / 1400; ctx.beginPath(); ctx.arc(X, Y, R + 3 + p * 10, 0, 7); ctx.strokeStyle = `rgba(236,80,72,${1 - p})`; ctx.lineWidth = 2; ctx.stroke(); }
+      if (g.panic) { ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(X, Y, R + 4, 0, 7); ctx.strokeStyle = '#ec6b67'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]); }
+      if (String(g.origin).startsWith('apex') || levelOf(s) === 'A') { ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.moveTo(X - 4, Y - R - 2); ctx.lineTo(X, Y - R - 8); ctx.lineTo(X + 4, Y - R - 2); ctx.closePath(); ctx.fill(); }
+      if (g.lpos && !mini) { ctx.beginPath(); ctx.arc(sx(g.lpos[0]), sy(g.lpos[1]), r0 + 3, 0, 7); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 1.3; ctx.stroke(); }
+      if (show.labels && !mini && (MAPV.scale >= 2.2 || on)) {
+        const t = `${s ? s.name : tokName(g.token)} ${g.n}`;
+        ctx.font = '600 11px ui-sans-serif,system-ui,sans-serif'; ctx.textAlign = 'left';
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.strokeText(t, X + R + 4, Y + 4); ctx.fillStyle = '#fff'; ctx.fillText(t, X + R + 4, Y + 4);
+      }
+    }
+  }
+  if (mini) Object.assign(MAPV, save);
+}
+function mapHit(cv, ex, ey) {
+  const L = MAP.live; if (!L) return null;
+  let best = null, bd = 18;
+  for (const g of groupsInView()) { const d = Math.hypot(sx(g.c[0]) - ex, sy(g.c[1]) - ey); if (d < bd) { bd = d; best = { g }; } }
+  if (best) return best;
+  bd = 8;
+  for (const u of arr(L.units)) {
+    const g = u[6] >= 0 ? arr(L.groups)[u[6]] : null;
+    if (!inView(u[5], u[3], g)) continue;
+    const d = Math.hypot(sx(u[1]) - ex, sy(u[2]) - ey); if (d < bd) { bd = d; best = { u, g, key: arr(L.keys)[u[4]] }; }
+  }
+  return best;
+}
+function renderMap() {
+  const P = $('p-map');
+  if (!P.dataset.built) {
+    P.innerHTML = `<div class="mapwrap"><div class="mapbox" id="mapbox"><canvas id="mapc" aria-label="The embark from above: terrain, water, and the wild animals on it"></canvas>
+        <div class="maptools"><div class="seg small" id="mapView"></div></div>
+        <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zfit" aria-label="Fit">⤢</button></div>
+        <div class="mapstat" id="mapstat"></div><div class="maptip" id="maptip"></div></div>
+      <div style="display:grid;gap:12px;align-content:start">
+        <div class="panel"><h2>Show</h2><div class="checks" id="mapChecks"></div>
+          <div class="legend" style="margin-top:10px"><span><i class="dot lvH"></i>herbivore</span><span><i class="dot lvC"></i>carnivore</span><span><i class="dot lvA"></i>apex ▲</span><span><i class="dot" style="border:1.5px solid var(--ink-2)"></i>untracked</span><span style="color:var(--crit)">✕ kill</span><span>◯ ring: leader</span><span>⌜⌟ school</span></div>
+          <p class="sub" id="mapNote" style="margin:8px 0 0"></p></div>
+        <div class="panel"><h2 id="glh">Groups in view</h2><div class="glist" id="glist"></div></div></div></div>`;
+    P.dataset.built = 1;
+    const cv = $('mapc');
+    cv.addEventListener('wheel', e => { e.preventDefault(); zoomAt(cv, e.offsetX, e.offsetY, e.deltaY < 0 ? 1.25 : 0.8); }, { passive: false });
+    cv.addEventListener('pointerdown', e => { MAPV.dragging = { x: e.clientX, y: e.clientY, ox: MAPV.ox, oy: MAPV.oy, moved: false }; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', e => {
+      const d = MAPV.dragging;
+      if (d) { const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) + Math.abs(dy) > 3) { d.moved = true; cv.classList.add('drag'); } MAPV.ox = d.ox + dx; MAPV.oy = d.oy + dy; drawMap(cv); return; }
+      const h = mapHit(cv, e.offsetX, e.offsetY), tip = $('maptip');
+      if (!h) { tip.style.display = 'none'; return; }
+      const s = spAny(h.g ? h.g.key : h.key);
+      tip.innerHTML = h.g ? `<b style="text-transform:capitalize">${nm(s) || esc(h.g.token)}</b> x${h.g.n}<br><span class="sub">${esc(h.g.origin)} · ${esc(h.g.lk)} · here ${dfix(h.g.days_here)} d · leaves ${h.g.leaves != null ? dfix(h.g.leaves) + ' d' : '—'}</span>`
+        : `<b style="text-transform:capitalize">${nm(s) || esc(h.key)}</b> #${h.u[0]}<br><span class="sub">${h.g ? 'in a group' : 'untracked'} · ${h.u[1]}, ${h.u[2]}, z${h.u[3]}</span>`;
+      tip.style.display = 'block'; tip.style.left = Math.min(e.offsetX + 14, cv.clientWidth - 260) + 'px'; tip.style.top = (e.offsetY + 12) + 'px';
+    });
+    cv.addEventListener('pointerup', e => {
+      const d = MAPV.dragging; MAPV.dragging = null; cv.classList.remove('drag');
+      if (d && d.moved) return;
+      const h = mapHit(cv, e.offsetX, e.offsetY);
+      if (h && h.g) { st.mapSel = h.g.gid; openInsp('g:' + h.g.gid); } else if (h) { st.mapSel = h.key; openInsp('sp:' + h.key); } else st.mapSel = null;
+      drawMap(cv); renderGroupList();
+    });
+    cv.addEventListener('pointerleave', () => { $('maptip').style.display = 'none'; });
+    $('zin').onclick = () => zoomAt(cv, cv.clientWidth / 2, cv.clientHeight / 2, 1.4);
+    $('zout').onclick = () => zoomAt(cv, cv.clientWidth / 2, cv.clientHeight / 2, 1 / 1.4);
+    $('zfit').onclick = () => { fitMap(cv); drawMap(cv); };
+    new ResizeObserver(() => { if (!MAPV.scale) fitMap(cv); drawMap(cv); }).observe(cv);
+  }
+  const caves = arr(MAP.live && MAP.live.caves);
+  $('mapView').innerHTML = [['surface', 'Surface'], ...[0, 1, 2].map(d => ['cave' + d, `Cavern ${d + 1}${caves.some(c => c.depth === d) ? '' : ' ·'}`])].map(([k, n]) => `<button type="button" data-v="${k}" aria-pressed="${st.mapView === k}">${n}</button>`).join('');
+  $('mapView').querySelectorAll('button').forEach(b => b.onclick = () => { st.mapView = b.dataset.v; MAP.cvImg = null; kick('map'); renderMap(); });
+  $('mapChecks').innerHTML = [['units', 'Every animal'], ['labels', 'Names'], ['kills', 'Kills (3 days)'], ['links', 'Predator-prey relations DF holds']].map(([k, n]) => `<label><input type="checkbox" data-k="${k}" ${st.mapShow[k] ? 'checked' : ''}> ${n}</label>`).join('');
+  $('mapChecks').querySelectorAll('input').forEach(i => i.onchange = () => { st.mapShow[i.dataset.k] = i.checked; store.set('mapShow', st.mapShow); if (i.dataset.k === 'links') kick('map'); drawMap($('mapc')); });
+  onMapFrame();
+}
+function zoomAt(cv, x, y, k) { const s0 = MAPV.scale, s1 = Math.max(0.5, Math.min(40, s0 * k)); MAPV.ox = x - (x - MAPV.ox) * s1 / s0; MAPV.oy = y - (y - MAPV.oy) * s1 / s0; MAPV.scale = s1; drawMap(cv); }
+function renderGroupList() {
+  const el = $('glist'); if (!el) return;
+  const gs = groupsInView().sort((a, b) => b.n - a.n);
+  $('glh').textContent = `Groups in view (${gs.length})`;
+  el.innerHTML = gs.map(g => { const s = spAny(g.key); return `<button class="gitem" data-g="${esc(g.gid)}" aria-current="${st.mapSel === g.gid}">${tile(s, 18)}<span class="nm">${nm(s) || esc(g.token)} <span class="sub">x${g.n}</span></span><span class="sub">${g.leaves != null ? dfix(g.leaves) + ' d' : ''}</span></button>`; }).join('') || '<p class="sub" style="margin:0">No tracked group in this view.</p>';
+  el.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { st.mapSel = b.dataset.g; centerOn(groupBy(b.dataset.g)); openInsp('g:' + b.dataset.g); renderGroupList(); });
+}
+function centerOn(g) {
+  const cv = $('mapc'); if (!cv || !g || !g.c) return;
+  if (MAPV.scale < 3) MAPV.scale = 4;
+  MAPV.ox = cv.clientWidth / 2 - (g.c[0] + 0.5) * MAPV.scale; MAPV.oy = cv.clientHeight / 2 - (g.c[1] + 0.5) * MAPV.scale;
+  drawMap(cv);
+}
+function onMapFrame() {
+  if (st.tab === 'map' && $('mapc')) {
+    const cv = $('mapc');
+    if (MAP.w && $('mapbox').style.getPropertyValue('--ar') !== `${MAP.w} / ${MAP.h}`) { $('mapbox').style.setProperty('--ar', `${MAP.w} / ${MAP.h}`); MAPV.scale = 0; }
+    if (!MAPV.scale) fitMap(cv);
+    if (MAPV.fitSel && st.mapSel && MAP.live) { const g = groupBy(st.mapSel) || arr(MAP.live.groups).find(x => x.key === st.mapSel); if (g) { MAPV.fitSel = false; centerOn(g); } }
+    drawMap(cv); renderGroupList();
+    const T = st.mapView === 'surface' ? MAP.terrain : MAP.caves[+st.mapView.slice(4)];
+    const L = MAP.live || {};
+    $('mapstat').textContent = `${MAP.w || '?'} x ${MAP.h || '?'} tiles · ${L.nwild ?? '?'} wild · ${arr(L.groups).length} groups · day ${dayLabel(L.day)} · ${MAP.moved ?? 0} moved since the last read · ${MAP.ms ?? '?'} ms in DF`
+      + (T && !T.done ? ` · surveying the ${T.kind === 'cavern' ? 'cavern' : 'terrain'} ${T.pct}%` : '');
+    const vb = viewBand();
+    $('mapNote').innerHTML = st.mapView === 'surface'
+      ? `Terrain: the topmost solid tile of one column in ${T ? T.stride * T.stride : '?'} (every ${T ? ({ 2: 'second', 4: 'fourth', 8: 'eighth', 16: 'sixteenth' }[T.stride] || T.stride + 'th') : '?'} along each side), shaded by its level (z ${T ? T.zlo : '?'}–${T ? T.zhi : '?'}). Water: the tool's own water scan${MAP.water ? '' : ' — <b>not run yet</b> (the water job surveys it; Controls › Water › Survey)'}.${MAP.linksSkipped ? ' <br>' + esc(MAP.linksSkipped) : ''}`
+      : (T && T.none ? esc(T.none) : `Cavern ${vb.depth + 1}: levels ${vb.zlo}–${vb.zhi}; floor and lakes from the top of the band down. Animals of this cavern only.`);
+  }
+  if (st.tab === 'overview' && $('minimap')) {
+    const mm = $('minimap');
+    if (MAP.w && mm.style.getPropertyValue('--ar') !== `${MAP.w} / ${MAP.h}`) mm.style.setProperty('--ar', `${MAP.w} / ${MAP.h}`);
+    drawMap(mm, true);
+  }
+  if (st.tab === 'groups' && !editing($('p-groups'))) renderPanel('groups');
+  if (st.insp) renderInsp();
+}
+setInterval(() => { if (st.tab === 'map' && !document.hidden && groupsInView().some(g => g.origin === 'irruption')) drawMap($('mapc')); }, 120);
+
+// ---------------------------------------------------------------- Overview
+function layerSeries(l, days) {
+  const end = HIST.samples.length ? HIST.samples[HIST.samples.length - 1].t : 0;
+  return HIST.samples.filter(x => x.t >= end - days).map(x => [x.t, obj(x.w)[l] || 0]);
+}
+function eventsSince(days) { const end = (MAP.live && MAP.live.day) || (HIST.samples.length ? HIST.samples[HIST.samples.length - 1].t : 0); return HIST.events.filter(e => e.t >= end - days); }
+function renderOverview() {
+  const P = $('p-overview');
+  const ev24 = eventsSince(1);
+  const cards = LAYERS.filter(l => st.layer === 'all' || st.layer === l).map(l => {
+    const L = obj(LIM[l]), groups = L.groups_now ?? 0, cap = L.groups || 0;
+    // water and caverns: the cap is per body / per cavern, so the card compares each one with it (a total over a
+    // per-body cap reads as wildly over); the counts are the map's tracked groups by layer key, seeded schools aside
+    const per = {};
+    if (l !== 'land' && MAP.live) for (const g of arr(MAP.live.groups)) if (g.layer === l && g.lk && !g.seeded) per[g.lk] = (per[g.lk] || 0) + 1;
+    const perE = Object.entries(per).sort((x, y) => y[1] - x[1]), fullest = perE.length ? perE[0][1] : 0, atCap = perE.filter(([, n]) => cap && n >= cap).length;
+    const unit = l === 'water' ? 'body' : 'cavern', units = l === 'water' ? 'bodies' : 'caverns';
+    const full = l === 'land' ? cap && groups >= cap : cap && atCap > 0;
+    const inS = SP.filter(s => s.layer === l && !isVermin(s) && inSeason(s)).length, act = SP.filter(s => s.layer === l && s.active && !isVermin(s)).length;
+    const draws = l === 'water' && obj(CTLBY['water.enabled']).value === true;
+    const chip = L.on === false ? (draws ? '<span class="chip accent" title="The water layer switch is off, but water draws are on: the water job still draws groups into each body">Layer off · draws on</span>'
+        : groups > 0 ? `<span class="chip" title="The layer switch is off: the tool does not manage it, but ${groups} group(s) are here">Layer off · ${groups} here</span>` : '<span class="chip">Off</span>') : act && !inS ? '<span class="chip warn">Nothing in season</span>' : full ? `<span class="chip warn">${l === 'land' ? 'Full' : `${atCap} ${atCap === 1 ? unit : units} at cap`}</span>`
+      : (L.gate_days || 0) > 0 ? `<span class="chip">Next wave in ${dfix(L.gate_days)} d</span>` : '<span class="chip good">Open</span>';
+    const pts = layerSeries(l, 7);
+    const a = ev24.filter(e => e.k === 'arrive' && e.l === l && e.src !== 'ledger').length, d = ev24.filter(e => e.k === 'leave' && e.l === l).length, k = ev24.filter(e => e.k === 'kill' && e.l === l).length;
+    return `<div class="panel lcard"><div class="lhead"><span class="dot ${l}"></span><h3>${LNAME[l]}</h3>${chip}</div>
+      <div class="kpis"><div class="kpi"><div class="big">${L.wild ?? 0}</div><div class="lab">wild on the map${L.ceiling ? ' / ' + L.ceiling : ''}</div></div>
+        ${l === 'land' || !perE.length ? `<div class="kpi"><div class="big" style="font-size:22px">${groups}<span class="sub"> / ${cap || '?'}</span></div><div class="lab">groups${l === 'land' ? '' : ` in all (cap ${cap || '?'} per ${unit})`}</div></div>`
+          : `<div class="kpi" title="${perE.map(([k, n]) => `${lkName(k)}: ${n} of ${cap}`).join('\n')}"><div class="big" style="font-size:22px">${fullest}<span class="sub"> / ${cap || '?'}</span></div><div class="lab">groups in the fullest ${unit}</div><div class="sub" style="font-size:11.5px">${perE.slice(0, 3).map(([k, n]) => `${esc(l === 'water' ? k.split(':')[1] : 'C' + ((+k.split(':')[1]) + 1))} ${n}`).join(' · ')}${perE.length > 3 ? ' …' : ''} · ${groups} in all</div></div>`}
+        <div class="kpi"><div class="mono" style="font-size:13px"><span style="color:var(--good)">▲${a}</span> <span style="color:var(--muted)">▼${d}</span> <span style="color:var(--crit)">✕${k}</span></div><div class="lab">last 24 h</div></div></div>
+      ${pts.length > 1 ? sparkSvg(pts, `var(--${l})`) : '<p class="sub" style="margin:0">The line starts after the second sample (a quarter day of game time).</p>'}
+      <div class="sub">${inS} of ${act} active species in season · pattern ${esc(L.pattern || 'steady')}</div></div>`;
+  }).join('');
+  const al = alertsList();
+  const feed = [...HIST.events.slice(-14).map(e => ({ t: e.t, h: evLine(e) })),
+                ...LED.entries.slice(-10).filter(e => ['edit', 'undo', 'hold', 'dismiss', 'irruption', 'cavern'].includes(e.k)).map(e => ({ t: e.d, h: `<li><span class="mono sub">${esc(e.ts)}</span><span class="ic edit">●</span><span><span class="chip">${esc(e.k)}</span> ${linkify(e.s)}</span></li>` }))]
+    .sort((a, b) => b.t - a.t).slice(0, 14).map(x => x.h).join('');
+  const nxt = (NOW + 1) % 4;
+  const nextIn = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(nxt) && !s.seasons.includes(NOW));
+  const nextOut = SP.filter(s => layerOk(s) && !isVermin(s) && s.active && s.seasons.includes(NOW) && !s.seasons.includes(nxt));
+  const chips = a => a.length ? a.slice(0, 12).map(s => spLink(s.key)).join('') + (a.length > 12 ? `<span class="more">+${a.length - 12}</span>` : '') : '<span class="sub">none</span>';
+  P.innerHTML = `
+    ${D.mock && D.mock.fixture ? `<div class="banner"><span><b>Offline: a recorded live snapshot of ${esc(D.fort)}${D.dfhack ? ' (DFHack ' + esc(D.dfhack) + ')' : ''}.</b> Every route as the game answered it during a live run, replayed by tests/web/mock_server.py (${esc(D.mock.src)}); it does not move, and DF's sprite sheets are not served, so creatures show as DF's ASCII glyphs. Nothing reaches a game.</span></div>`
+      : D.mock ? `<div class="banner"><span><b>Offline: the real server code on a simulated fort.</b> This page is served by tests/web/mock_server.py, which replays frames that seasonal-wildlife-web.lua built on a small fake DF world (roster: ${esc(D.mock.src)}; frame ${D.mock.frame + 1} of ${D.mock.frames}). Nothing reaches a game.</span></div>` : ''}
+    <div class="grid3">${cards}</div>
+    <div class="grid2">
+      <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">The embark now</h2><button class="btn small" data-go="map">Open the map</button></div>
+        <canvas class="minimap" id="minimap" style="margin-top:10px;${MAP.w ? `--ar:${MAP.w} / ${MAP.h}` : ''}" title="Open the map"></canvas>
+        <div class="legend" style="margin-top:6px"><span><i class="dot lvH"></i>herbivores</span><span><i class="dot lvC"></i>carnivores</span><span><i class="dot lvA"></i>apexes</span><span class="sub">groups sized by members</span></div></div>
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="panel"><h2>Needs a look</h2><div class="alerts">${al.map(a => `<div class="banner ${a.lv === 'crit' ? 'crit' : a.lv === 'warn' ? 'warn' : ''}"><span>${esc(a.t)}${a.go ? ` <button class="link" data-go="${esc(a.go)}">Open</button>` : ''}</span></div>`).join('') || '<p class="sub" style="margin:0">Nothing: every layer has something in season and room to receive it.</p>'}</div></div>
+        <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">What just happened</h2><button class="btn small" data-go="ledger">Ledger</button></div><ul class="feed" style="margin-top:6px">${feed || '<li><span></span><span></span><span class="sub">Arrivals, departures and kills appear here as the game runs (the server samples every quarter day).</span></li>'}</ul></div>
+      </div></div>
+    <div class="grid2">
+      <div class="panel"><h2>At the season change, in ${DATE.days_to_next ?? '?'} days</h2><div class="grid3" style="grid-template-columns:1fr 1fr">
+        <div><div class="sub" style="margin-bottom:6px">Arriving with ${SEASONS[nxt]} (${nextIn.length})</div><div class="blist">${chips(nextIn)}</div></div>
+        <div><div class="sub" style="margin-bottom:6px">Held out after ${SEASONS[NOW]} (${nextOut.length})</div><div class="blist">${chips(nextOut)}</div></div></div></div>
+      <div class="panel"><h2>Background jobs</h2>${jobsHtml()}</div></div>
+    ${switchesPanel()}`;
+  $('minimap').onclick = () => go('map');
+  drawMap($('minimap'), true);
+  bindLinks(P);
+  if (CTL) { bindWidgets(P, id => CTLBY[id]); bindActions(P); }
+}
+function jobsHtml() {
+  const all = arr(D.jobs), B = D.budget || 50, max = Math.max(160, ...all.map(j => j.worst));
+  // the slowest ten (by worst run); the live tool times ~30 job parts, and a name loses its module prefix to fit
+  const J = all.slice().sort((a, b) => b.worst - a.worst || b.last - a.last).slice(0, 10);
+  return J.length ? `<div style="display:grid;gap:6px">${J.map(j => `<div style="display:grid;grid-template-columns:minmax(0,170px) 1fr 130px;gap:10px;align-items:center;font-size:12.5px"><span class="mono" title="${esc(j.name)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(String(j.name).replace(/^seasonal-wildlife\/?/, '') || 'seasonal-wildlife')}</span>
+      <div style="position:relative;height:9px;background:var(--surface-2);border-radius:5px"><span style="position:absolute;left:0;top:0;bottom:0;width:${j.last / max * 100}%;background:var(--ink-2);opacity:.55;border-radius:5px"></span><span style="position:absolute;top:-4px;bottom:-4px;left:${B / max * 100}%;border-left:2px dashed var(--muted)"></span><span style="position:absolute;top:-3px;bottom:-3px;width:2px;left:${Math.min(j.worst, max) / max * 100}%;background:var(--ink)"></span></div>
+      <span class="mono num" style="text-align:right">${j.last} / ${j.worst} ms${j.worst > B ? ' <span class="chip warn">over</span>' : ''}</span></div>`).join('')}</div><p class="sub" style="margin:8px 0 0">${all.length > J.length ? `The slowest ${J.length} of ${all.length} timed parts. ` : ''}Bar: last run; tick: worst; dashed: the ${B} ms budget. ${esc(D.fuse || '')}</p>`
+    : '<p class="sub" style="margin:0">No job has run in this session yet.</p>';
+}
+// species tokens inside a ledger line become links
+function linkify(s) {
+  return esc(s).replace(/\b([A-Z][A-Z0-9_]{2,}(?:[ ,][A-Z0-9_]+)*)\b/g, m => BYTOK[m] ? `<button class="link" data-insp="sp:${esc(BYTOK[m].key)}">${esc(BYTOK[m].name)}</button>`
+    : OTHERS[m] ? `<button class="link" data-insp="sp:${esc(m)}">${esc(OTHERS[m].name)}</button>` : m);
+}
+
+// ---------------------------------------------------------------- Groups
+const lkName = k => { const [p, x] = String(k).split(':'); return p === 'water' ? `Water · ${x}` : p === 'cavern' ? `Cavern ${(+x) + 1}` : (LNAME[p] || p); };
+function renderGroups() {
+  const P = $('p-groups');
+  const gm = STATUS.groupmap ? arr(STATUS.groupmap.layers) : [];
+  const meta = Object.fromEntries(gm.map(L => [L.key, L]));
+  const by = {};
+  for (const g of arr(MAP.live && MAP.live.groups)) (by[g.lk || g.layer] ||= []).push(g);
+  for (const L of gm) by[L.key] ||= [];
+  const keys = Object.keys(by).filter(k => st.layer === 'all' || k.split(':')[0] === st.layer).sort((a, b) => (a === 'land' ? -1 : b === 'land' ? 1 : a.localeCompare(b)));
+  const cards = keys.map(k => {
+    const l = k.split(':')[0], M = meta[k] || {}, gs = by[k].sort((a, b) => (a.leaves ?? 99) - (b.leaves ?? 99));
+    const n = gs.filter(g => !g.seeded).length, cap = M.cap || obj(LIM[l]).groups || 0;
+    return `<div class="panel gcard"><div class="lhead"><span class="dot ${l}"></span><h3>${esc(lkName(k))}</h3><span class="chip ${cap && n >= cap ? 'warn' : ''}">${n} / ${cap || '?'} groups</span></div>
+      <div class="pips">${Array.from({ length: Math.max(1, cap) }, (_, i) => `<i style="${i < n ? `background:var(--${l})` : ''}"></i>`).join('')}</div>
+      <div class="sub">${M.target != null ? `target ${dfix(M.target)} · ` : ''}${M.w_days != null ? `typical stay ${dfix(M.w_days)} d · ` : ''}${M.next_days ? `next release in ${dfix(M.next_days)} d` : gm.length ? 'release due, or waiting on DF' : 'release clock: reading…'}</div>
+      <div>${gs.map(g => { const s = spAny(g.key), cd = g.leaves != null ? Math.min(1, g.leaves / 28) : 0; return `<div class="grow">
+          <span class="gname">${tile(s, 20)}<b>${nm(s) || esc(g.token)}</b></span><span class="mono">x${g.n}${g.size > g.n ? `<span class="sub">/${g.size}</span>` : ''}</span>
+          <span class="row" style="gap:4px"><span class="chip">${esc(g.origin)}</span>${g.panic ? '<span class="chip crit">panic</span>' : ''}${g.held ? '<span class="chip accent">held</span>' : ''}</span>
+          <span title="here ${dfix(g.days_here)} d; leaves in ${g.leaves != null ? dfix(g.leaves) : '?'} d"><span class="sub">here ${dfix(g.days_here)} d · leaves ${g.leaves != null ? dfix(g.leaves) + ' d' : '—'}</span><div class="cd"><span class="${g.held ? 'held' : ''}" style="width:${cd * 100}%"></span></div></span>
+          <span class="row" style="gap:4px;justify-content:flex-end"><button class="btn small" data-go="map/${esc(g.gid)}" title="Show on the map">Map</button><button class="btn small" data-insp="g:${esc(g.gid)}">Inspect</button><button class="btn small" data-hold="${esc(g.act)}" title="groups hold ${esc(g.act)} 3">Hold</button><button class="btn small danger" data-off="${esc(g.act)}" data-offname="${esc(tokName(g.token))}" title="groups dismiss ${esc(g.act)}">Send off</button></span></div>`; }).join('') || '<p class="sub" style="margin:0">No group here now.</p>'}</div></div>`;
+  }).join('');
+  const untracked = arr(D.live).filter(g => g.tracked === false && layerOk(BY[g.key]));
+  P.innerHTML = `<div class="row"><span class="sub">Every tracked group, by the layer key its cap counts in. Hold raises the members' leave countdowns to 3 days; Send off zeroes them (the group walks off). Both are the console's <span class="mono">groups hold|dismiss</span>.</span><span class="spacer"></span>
+      <button class="btn small danger" data-sendoff="land">Send off every land group</button><button class="btn small danger" data-sendoff="cavern">Send off every cavern group</button><button class="btn small" data-go="controls/limits">Limits and clock</button></div>
+    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr))">${cards || '<div class="panel"><p class="sub" style="margin:0">No layer to show.</p></div>'}</div>
+    ${untracked.length ? `<div class="panel"><h2>On the map, not in a tracked group</h2><div class="blist">${untracked.map(g => `${spLink(g.key)}<span class="sub">x${g.n} · ${esc(g.origin)}</span>`).join(' ')}</div></div>` : ''}
+    <div class="panel"><h2>The groups job says</h2>${statusBox('groups')}</div>`;
+  bindLinks(P);
+  P.querySelectorAll('[data-sendoff]').forEach(b => b.onclick = () => { const l = b.dataset.sendoff; if (confirm(`Send off every gated ${l} group? DF may send the next wave.`)) send(['sendoff', l], `Every ${l} group sent off`); });
+}
+
+// ---------------------------------------------------------------- Species
+const BAND = { small: 0, medium: 1, large: 2 };
+function share(s, freq = s.freq) {
+  if (!s.active || isVermin(s)) return null;
+  const k = s.seasons.includes(NOW) ? NOW : s.seasons[0];
+  const p = SP.filter(x => x.layer === s.layer && !isVermin(x) && inSeason(x, k) && x.key !== s.key);
+  const tot = p.reduce((t, x) => t + x.freq, 0) + freq;
+  return tot > 0 ? { pct: freq / tot * 100, now: k === NOW } : null;
+}
+const pct = v => v >= 10 ? v.toFixed(0) + '%' : v.toFixed(1) + '%';
+function shareText(s) { const r = share(s); if (!r) return '—'; return r.now ? pct(r.pct) : '(' + pct(r.pct) + ')'; }
+function seasonStrip(s) { return `<span class="seasons" aria-label="${s.seasons.map(i => SEASONS[i]).join(', ') || 'no seasons'}">${[0, 1, 2, 3].map(i => `<i class="${s.seasons.includes(i) ? 'on' : ''} ${i === NOW ? 'now' : ''}"></i>`).join('')}</span>`; }
+function filtered() {
+  const q = st.q.trim().toLowerCase();
+  const a = SP.filter(s => layerOk(s) && (st.fActive === 'all' || (st.fActive === 'active') === s.active) && (st.fRole === 'all' || s.role === st.fRole)
+    && (!st.fNow || inSeason(s)) && (!st.fMap || onMap[s.key]) && (!q || s.name.toLowerCase().includes(q) || s.token.toLowerCase().includes(q)));
+  const k = st.sort.k, d = st.sort.dir;
+  const val = s => k === 'name' ? s.name : k === 'stock' ? s.stock : k === 'onmap' ? (onMap[s.key] || 0) : k === 'odds' ? (share(s)?.pct ?? -1) : k === 'size' ? (BAND[s.band] ?? -1) : k === 'seasons' ? s.seasons.length : k === 'active' ? +s.active : s[k];
+  return a.sort((x, y) => { const u = val(x), v = val(y); return (u < v ? -1 : u > v ? 1 : 0) * d || x.name.localeCompare(y.name); });
+}
+function renderSpecies() {
+  const P = $('p-species');
+  if (!P.dataset.built) {
+    P.innerHTML = `<div class="split"><div><div class="filters">
+        <select id="fActive" class="sel" aria-label="Active"><option value="all">Active and inactive</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        <select id="fRole" class="sel" aria-label="Role"><option value="all">Any role</option><option value="predator">Predators</option><option value="prey">Prey</option><option value="vermin">Vermin</option></select>
+        <label class="chip" style="cursor:pointer"><input type="checkbox" id="fNow" style="margin:0"> In season</label>
+        <label class="chip" style="cursor:pointer"><input type="checkbox" id="fMap" style="margin:0"> On the map</label>
+        <span class="sub" id="fCount"></span></div><div class="list" id="list"></div></div><div class="panel detail" id="detail"></div></div>`;
+    P.dataset.built = 1;
+    for (const [id, k] of [['fActive', 'fActive'], ['fRole', 'fRole']]) P.querySelector('#' + id).onchange = e => { st[k] = e.target.value; renderList(); };
+    P.querySelector('#fNow').onchange = e => { st.fNow = e.target.checked; renderList(); };
+    P.querySelector('#fMap').onchange = e => { st.fMap = e.target.checked; renderList(); };
+  }
+  if (!st.sel || !BY[st.sel]) st.sel = (SP.slice().sort((a, b) => (onMap[b.key] || 0) - (onMap[a.key] || 0))[0] || {}).key;
+  renderList(); renderDetail();
+}
+function renderList() {
+  const a = filtered(), L = $('list'); if (!L) return;
+  $('fCount').textContent = `${a.length} of ${SP.filter(layerOk).length}`;
+  const cols = [['name', 'Species'], ['onmap', 'On map'], ['role', 'Role'], ['seasons', 'Seasons'], ['stock', 'Stock'], ['odds', 'Odds'], ['active', 'Active']];
+  const top = L.scrollTop;
+  L.innerHTML = `<table><thead><tr>${cols.map(([k, n]) => `<th data-sort="${k}" aria-sort="${st.sort.k === k ? (st.sort.dir > 0 ? 'ascending' : 'descending') : 'none'}">${n}</th>`).join('')}</tr></thead><tbody>
+    ${a.map(s => `<tr data-key="${esc(s.key)}" aria-selected="${s.key === st.sel}" class="${s.active ? '' : 'inactive'}">
+      <td><span class="name"><span class="dot ${s.layer}"></span>${tile(s, 22)}<span style="text-transform:capitalize">${nm(s)}</span></span></td>
+      <td class="mono num">${onMap[s.key] ? `<b>${onMap[s.key]}</b>` : '<span class="sub">0</span>'}</td>
+      <td>${isVermin(s) ? `<span class="chip fam">vermin</span>` : `<span class="dot lv${levelOf(s)}"></span> ${s.role}`}</td><td>${seasonStrip(s)}</td>
+      <td class="mono num">${fmt(s.stock)}</td><td class="mono num">${shareText(s)}</td>
+      <td><button class="switch" role="switch" aria-checked="${s.active}" aria-label="${nm(s)} active" data-act="${esc(s.key)}"></button></td></tr>`).join('') || '<tr><td colspan="7" class="sub">No species match.</td></tr>'}</tbody></table>`;
+  L.scrollTop = top;
+  L.querySelectorAll('th').forEach(th => th.onclick = () => { const k = th.dataset.sort; st.sort = { k, dir: st.sort.k === k ? -st.sort.dir : (['stock', 'odds', 'active', 'onmap'].includes(k) ? -1 : 1) }; renderList(); });
+  L.querySelectorAll('tbody tr[data-key]').forEach(tr => tr.onclick = e => { if (e.target.closest('.switch')) return; st.sel = tr.dataset.key; history.replaceState(null, '', '#species/' + encodeURIComponent(st.sel)); renderList(); renderDetail(); loadSpeciesDetail(st.sel); });
+  L.querySelectorAll('[data-act]').forEach(b => b.onclick = () => toggleActive(BY[b.dataset.act]));
+}
+function toggleActive(s) { const on = !s.active; send(['roster', s.key, on ? 'active' : 'inactive'], on ? `${s.name} is active` : `${s.name} is inactive`, { undo: true }); }
+async function loadSpeciesDetail(key) {
+  if (!key || SPEC_DETAIL[key] && Date.now() - SPEC_DETAIL[key].at < 15000) return;
+  try { const j = await getJSON('/species.json', { key }); SPEC_DETAIL[key] = { ...j, at: Date.now() }; if (st.tab === 'species' && st.sel === key) renderDetail(); } catch { /* the state feed reports a lost game */ }
+}
+function egoList(keys, cap, cls = k => onMap[k] ? 'live' : '') {
+  if (!keys || !keys.length) return '<span class="sub">none</span>';
+  const a = [...new Set(keys)].filter(k => BY[k]).sort((x, y) => ((onMap[y] || 0) - (onMap[x] || 0)) || keyName(x).localeCompare(keyName(y)));
+  return a.slice(0, cap).map(k => spLink(k, cls(k))).join('') + (a.length > cap ? `<span class="more">+${a.length - cap}</span>` : '');
+}
+function renderDetail() {
+  const s = BY[st.sel], el = $('detail'); if (!s || !el) return;
+  if (el.contains(document.activeElement) && ['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
+  const vm = isVermin(s), sh = share(s);
+  const gs = arr(MAP.live && MAP.live.groups).filter(g => g.key === s.key);
+  const killsBy = HIST.events.filter(e => e.k === 'kill' && e.by === s.key), killsOf = HIST.events.filter(e => e.k === 'kill' && e.key === s.key);
+  const det = SPEC_DETAIL[s.key];
+  if (!det) loadSpeciesDetail(s.key);
+  el.innerHTML = `
+    <div class="row" style="align-items:flex-start"><div class="dtile">${tile(s, st.tiles === 'steam' ? 60 : 44, true)}</div>
+      <div class="dhead" style="flex:1;min-width:0"><span class="mono sub">${esc(s.key)}</span><h3>${nm(s)}</h3>
+      <div class="readings"><span class="chip"><span class="dot ${s.layer}"></span>${LNAME[s.layer] || s.layer}</span><span class="chip">${esc(s.habitat)}</span><span class="chip"><i class="dot lv${levelOf(s)}"></i>${vm ? 'vermin: ' + esc(FAM[s.family] || s.family || '') : LVNAME[levelOf(s)]}</span>${s.band ? `<span class="chip">${s.band}</span>` : ''}${s.slot ? `<span class="chip" title="the builder's slot">${esc(s.slot)}</span>` : ''}${s.giant ? '<span class="chip">giant</span>' : ''}${s.extinct ? '<span class="chip">extinct</span>' : ''}${s.animal_person ? '<span class="chip">animal person</span>' : ''}</div></div></div>
+    <div class="field"><span class="lab">On the map now</span>
+      <div class="kv"><span>animals</span><span><b>${onMap[s.key] || 0}</b> in ${gs.length} group(s)</span><span>kills seen</span><span>${killsBy.length} made · ${killsOf.length} suffered</span></div>
+      ${sparkFor(s.key)}
+      <div class="blist">${gs.map(g => `<button class="elink" data-insp="g:${esc(g.gid)}">x${g.n} · ${esc(g.lk)} · leaves ${g.leaves != null ? dfix(g.leaves) + ' d' : '—'}</button>`).join('')}${gs.length ? `<button class="btn small" data-go="map/${esc(s.key)}">On the map</button>` : ''}</div></div>
+    <div class="row" style="justify-content:space-between"><span style="font-weight:600">${s.active ? 'Active: may arrive in its seasons' : 'Inactive: never arrives'}</span><button class="switch" role="switch" aria-checked="${s.active}" aria-label="Active" id="dAct"></button></div>
+    <div class="field"><span class="lab">Seasons</span><div class="seasonbtns">${[0, 1, 2, 3].map(i => `<button type="button" data-season="${i}" aria-pressed="${s.seasons.includes(i)}" class="${i === NOW ? 'now' : ''}">${SEASONS[i]}</button>`).join('')}</div>
+      <span class="refuse" id="refuse" hidden>An active species keeps at least one season. To stop it arriving, make it inactive.</span></div>
+    <div class="field"><label for="dStock">Stock <span class="sub" style="text-transform:none;letter-spacing:0">(left in the region to arrive${s.stock_set ? '; you set it' : ''})</span></label>
+      <div class="row"><span class="stepper"><button type="button" data-step="-10">−</button><input id="dStock" type="number" min="0" value="${s.stock}"><button type="button" data-step="10">+</button></span><button class="btn small" id="dStockSet">Set stock</button></div></div>
+    ${vm ? '' : `<div class="field"><label for="dOdds">Odds</label><input id="dOdds" type="range" min="1" max="${Math.max(200, s.freq)}" value="${s.freq}" ${s.active ? '' : 'disabled'}>
+      <div class="row" style="justify-content:space-between;font-size:12.5px"><span>Weight <b class="mono" id="dOddsV">${s.freq}</b></span><span id="dShare">${shareLine(s, sh)}</span></div></div>
+      <div class="field"><label for="dSize">Group size <span class="sub" style="text-transform:none;letter-spacing:0">(${s.gsize_set ? 'you set it' : 'the raw\'s range'}: ${s.gmin === s.gmax ? s.gmin : `${Math.min(s.gmin, s.gmax)} to ${Math.max(s.gmin, s.gmax)}`})</span></label>
+      <div class="row"><input id="dSize" class="num-in" type="number" min="0" max="50" placeholder="0 = raw" value="${s.gsize_set ? s.gmin : ''}"><button class="btn small" id="dSizeSet">Set size</button>
+      <button class="btn primary small" id="dCall" ${inSeason(s) && s.stock > 0 ? '' : 'disabled'} title="${!s.active ? 'Inactive species cannot be called' : !s.seasons.includes(NOW) ? 'Out of season' : s.stock <= 0 ? 'No stock left' : 'The next wave of its layer will be this species'}">Call a wave</button></div></div>`}
+    <div class="field"><span class="lab">Food web</span><div class="ego"><div><h4>Eats (${(eats[s.key] || []).length})</h4><div class="blist">${egoList(eats[s.key], 10, k => killsBy.some(e => e.key === k) ? 'kill' : onMap[k] ? 'live' : '')}</div></div>
+      <div><h4>Eaten by (${(eatenBy[s.key] || []).length})</h4><div class="blist">${egoList(eatenBy[s.key], 10, k => killsOf.some(e => e.by === k) ? 'kill' : onMap[k] ? 'live' : '')}</div></div></div>
+      <span class="sub">Violet edge: on the map now. Red: a kill seen this session.</span> <button class="link" data-goweb="${esc(s.key)}">Open in the food web</button></div>
+    ${vm ? '' : speciesCtlField(s)}
+    ${s.why ? `<div class="why">Why: ${esc(s.why)}</div>` : ''}
+    <div class="field"><span class="lab">The engine's reading</span><pre class="pre">${det ? esc(arr(det.detail).join('\n')) : 'reading…'}</pre></div>
+    ${det && arr(det.ledger).length ? `<div class="field"><span class="lab">Ledger lines naming it</span><ul class="feed">${arr(det.ledger).slice(-8).reverse().map(e => `<li><span class="mono sub">${esc(e.ts)}</span><span class="ic edit">•</span><span><span class="chip">${esc(e.k)}</span> ${esc(e.s)}</span></li>`).join('')}</ul></div>` : ''}`;
+  el.querySelector('#dAct').onclick = () => toggleActive(s);
+  el.querySelectorAll('[data-season]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.season, has = s.seasons.includes(i);
+    if (has && s.seasons.length === 1 && s.active) { el.querySelector('#refuse').hidden = false; return; }
+    const next = has ? s.seasons.filter(x => x !== i) : [...s.seasons, i].sort();
+    b.setAttribute('aria-pressed', String(!has)); b.style.opacity = .6;
+    send(['seasons', s.key, next.length === 4 ? 'all' : next.map(x => SHORT[x]).join('')], `${s.name}: ${next.map(x => SEASONS[x]).join(', ')}`, { undo: true });
+  });
+  const inp = el.querySelector('#dStock');
+  el.querySelectorAll('[data-step]').forEach(b => b.onclick = () => { inp.value = Math.max(0, (+inp.value || 0) + +b.dataset.step); });
+  el.querySelector('#dStockSet').onclick = () => { const v = Math.max(0, Math.round(+inp.value || 0)); inp.blur(); send(['stock', s.key, String(v)], `${s.name}: stock ${fmt(v)}`, { undo: true }); };
+  const od = el.querySelector('#dOdds');
+  if (od) {
+    od.oninput = () => { const v = +od.value; el.querySelector('#dOddsV').textContent = v; el.querySelector('#dShare').textContent = shareLine(s, share(s, v)); };
+    od.onchange = () => { od.blur(); send(['odds', s.key, String(+od.value)], `${s.name}: odds ${od.value}`, { undo: true }); };
+    el.querySelector('#dSizeSet').onclick = () => { const v = Math.max(0, Math.min(50, Math.round(+el.querySelector('#dSize').value || 0))); el.querySelector('#dSize').blur(); send(['size', s.key, String(v)], `${s.name}: group size ${v || 'from the raw'}`, { undo: true }); };
+    el.querySelector('#dCall').onclick = () => send(['call', s.key], `The next ${(LNAME[s.layer] || '').toLowerCase()} wave will be ${s.name}`);
+  }
+  bindWidgets(el, id => arr(CTL && CTL.species).find(r => r.id === id));
+  el.querySelectorAll('[data-goweb]').forEach(b => b.onclick = () => { st.webFocus = b.dataset.goweb; st.webScope = 'all'; go('web'); });
+  bindLinks(el);
+}
+function shareLine(s, r) { return r ? (r.now ? `${pct(r.pct)} of ${SEASONS[NOW]}'s ${(LNAME[s.layer] || '').toLowerCase()} waves` : `(${pct(r.pct)} when ${SEASONS[s.seasons[0]]} comes)`) : 'inactive: no share'; }
+function speciesRowsFor(s) {
+  return arr(CTL && CTL.species).filter(r => r.when === 'all' ? true : r.when === 'pred' ? s.role === 'predator'
+    : r.when === 'raptor' ? (s.guild === 'RP' || s.slot === 'RP') : r.when === 'aquatic' ? s.role === 'predator' && (s.habitat === 'aquatic' || s.habitat === 'semiaquatic')
+    : r.when === 'extinct' ? !!s.extinct : false);
+}
+function speciesVal(r, s) {
+  const m = obj(obj(CTL && CTL.maps)[r.id]), v = m[s.token];
+  if (r.type === 'bool') return r.id.startsWith('extinct.skip') ? v !== true : v === true;
+  if (r.opts && arr(r.opts).includes('on') && typeof v === 'boolean') return v ? 'on' : 'off';
+  return v ?? r.nilv ?? null;
+}
+function speciesCtlField(s) {
+  const rows = speciesRowsFor(s);
+  if (!rows.length) return '';
+  return `<div class="field"><span class="lab">v7 settings for this species</span>${rows.map(r => `<div class="crow" data-row="${esc(r.id)}"><div class="cl"><b>${esc(r.label)}</b>${r.help ? `<span class="h">${esc(r.help)}</span>` : ''}<span class="v">seasonal-wildlife ${esc(String(r.verb || '').replace('{T}', s.token))}</span></div><div class="cw">${widget(r, speciesVal(r, s), s.token)}</div></div>`).join('')}</div>`;
+}
+
+// ---------------------------------------------------------------- Food web: trophic levels, three kinds of edge
+const famId = s => `fam:${s.layer}:${s.family}`;
+function heldSet() {   // token pairs DF holds a predator-or-prey relation for now (unordered)
+  const h = new Set(); for (const r of arr(WEB && WEB.relations)) { h.add(r[0] + '|' + r[1]); h.add(r[1] + '|' + r[0]); } return h;
+}
+function killCounts() { const k = {}; for (const e of HIST.events) if (e.k === 'kill' && e.by) k[e.by + '>' + e.key] = (k[e.by + '>' + e.key] || 0) + 1; return k; }
+function renderWeb() {
+  const P = $('p-web');
+  if (st.webSeason === null) st.webSeason = NOW;
+  const scope = st.webScope;
+  const pass = s => layerOk(s) && (scope === 'map' ? !isVermin(s) && onMap[s.key] > 0 : scope === 'season' ? inSeason(s, st.webSeason) || (isVermin(s) && s.seasons.includes(st.webSeason)) : true);
+  const vis = SP.filter(pass);
+  const nodes = new Map();
+  for (const s of vis) {
+    if (!isVermin(s)) { nodes.set(s.key, { id: s.key, s, name: s.name, lv: levelOf(s), n: onMap[s.key] || 0, layer: s.layer }); continue; }
+    const id = famId(s);
+    if (!nodes.has(id)) nodes.set(id, { id, fam: s.family, name: FAM[s.family] || s.family, lv: 'V', n: 0, layer: s.layer, members: [] });
+    nodes.get(id).members.push(s);
+  }
+  const held = heldSet(), kc = killCounts(), seen = new Set(), edges = [];
+  for (const p of arr(D.pairs)) {
+    const [a, b] = p; if (!nodes.has(a)) continue;
+    const to = BY[b] && isVermin(BY[b]) ? famId(BY[b]) : b;
+    if (!nodes.has(to) || seen.has(a + '>' + to)) continue; seen.add(a + '>' + to);
+    const kill = kc[a + '>' + b] || 0, h = BY[a] && BY[b] && held.has(BY[a].token + '|' + BY[b].token);
+    edges.push({ p: a, q: to, kind: kill ? 'kill' : h ? 'held' : 'poss', kill });
+  }
+  for (const [k, n] of Object.entries(kc)) { const [a, b] = k.split('>'); if (nodes.has(a) && nodes.has(b) && !seen.has(k)) { seen.add(k); edges.push({ p: a, q: b, kind: 'kill', kill: n }); } }
+  const ROWS = [['A', 'Apex predators'], ['C', 'Carnivores'], ['H', 'Herbivores and prey'], ['V', 'Vermin families']];
+  const Wd = 1080, colW = 132, perRow = Math.floor((Wd - 140) / colW), rowH = 64;
+  let y = 30; const pos = new Map(), heads = [];
+  for (const [lv, title] of ROWS) {
+    const list = [...nodes.values()].filter(n => n.lv === lv).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+    if (!list.length) continue;
+    heads.push(`<text x="16" y="${y - 8}" font-size="11" font-weight="650" fill="var(--muted)" letter-spacing=".06em">${title.toUpperCase()} (${list.length})</text>`);
+    list.forEach((n, i) => pos.set(n.id, [76 + (i % perRow) * colW + (Math.floor(i / perRow) % 2 ? colW / 2 : 0), y + 16 + Math.floor(i / perRow) * rowH]));
+    y += Math.ceil(list.length / perRow) * rowH + 34;
+  }
+  const H = Math.max(200, y);
+  const order = { poss: 0, held: 1, kill: 2 };
+  const ed = edges.filter(e => pos.has(e.p) && pos.has(e.q)).sort((a, b) => order[a.kind] - order[b.kind]).map(e => {
+    const [x1, y1] = pos.get(e.p), [x2, y2] = pos.get(e.q), mx = (x1 + x2) / 2 + (y1 === y2 ? 0 : 0), my = y1 === y2 ? y1 - 40 : (y1 + y2) / 2;
+    return `<path class="we ${e.kind === 'poss' ? '' : e.kind}" data-p="${esc(e.p)}" data-q="${esc(e.q)}" d="M${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}" ${e.kill ? `stroke-width="${Math.min(5, 1.5 + e.kill)}"` : ''}/>`;
+  }).join('');
+  const nd = [...nodes.values()].filter(n => pos.has(n.id)).map(n => {
+    const [x, yy] = pos.get(n.id), r = 5 + Math.min(14, Math.sqrt(n.n) * 2.4), t = n.fam ? `${n.name} (${n.members.length})` : n.name;
+    return `<g class="wn" data-key="${esc(n.id)}" tabindex="0"><circle cx="${x}" cy="${yy}" r="${r}" fill="${LVCOL[n.lv]}" fill-opacity="${n.n || n.fam ? 0.9 : 0.35}" stroke="${n.n ? 'var(--ink)' : 'none'}" stroke-width="1.2" ${n.fam ? 'stroke-dasharray="3 2" stroke="var(--ink-2)"' : ''}/>
+      <text x="${x}" y="${yy + r + 13}" text-anchor="middle" font-size="11.5" style="text-transform:${n.fam ? 'none' : 'capitalize'}">${esc(t.length > 18 ? t.slice(0, 17) + '…' : t)}</text>${n.n ? `<text x="${x}" y="${yy + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${n.n}</text>` : ''}</g>`;
+  }).join('');
+  const nk = edges.filter(e => e.kind === 'kill').length, nh = edges.filter(e => e.kind === 'held').length;
+  const g = LAYERS.map(l => [0, 1, 2, 3].map(k => arr(D.pairs).some(([p, q]) => BY[p] && BY[q] && !isVermin(BY[q]) && BY[p].layer === l && BY[q].layer === l && inSeason(BY[p], k) && inSeason(BY[q], k))));
+  const kl = Object.entries(kc).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const eco = WEB && WEB.ecology;
+  P.innerHTML = `<div class="row">
+      <div class="seg" id="webScope">${[['map', 'On the map now'], ['season', 'In season'], ['all', 'Whole roster']].map(([k, n]) => `<button data-s="${k}" aria-pressed="${scope === k}">${n}</button>`).join('')}</div>
+      ${scope === 'season' ? `<div class="seg small" id="webSeason">${[0, 1, 2, 3].map(k => `<button data-k="${k}" aria-pressed="${st.webSeason === k}">${SEASONS[k]}${k === NOW ? ' (now)' : ''}</button>`).join('')}</div>` : ''}
+      <span class="sub">${nodes.size} nodes · ${edges.length} edges: <b style="color:var(--crit)">${nk} with kills seen</b>, <b style="color:var(--accent)">${nh} held by DF now</b>, the rest possible (the tool's pairing rule)</span></div>
+    ${scope === 'map' && nodes.size < 2 ? '<div class="banner"><span>Fewer than two species are on the map now; switch to <b>In season</b> to see the web the roster allows.</span></div>' : ''}
+    <div class="grid2" style="grid-template-columns:minmax(0,1fr) 320px">
+      <div class="svgbox ${st.webFocus ? 'focus' : ''}" id="webbox"><svg width="${Wd}" height="${H}" viewBox="0 0 ${Wd} ${H}" role="img" aria-label="Food web by trophic level">${heads.join('')}${ed}${nd}</svg></div>
+      <div style="display:grid;gap:14px;align-content:start">
+        <div class="panel" id="webSide"></div>
+        <div class="panel"><h2>Kills seen this session</h2>${kl.length ? `<table style="table-layout:fixed"><colgroup><col style="width:44%"><col style="width:18px"><col><col style="width:28px"></colgroup><tbody>${kl.map(([k, n]) => { const [a, b] = k.split('>'); return `<tr><td>${spLink(a, 'kill')}</td><td class="sub">→</td><td>${spLink(b)}</td><td class="mono">${n}</td></tr>`; }).join('')}</tbody></table>` : '<p class="sub" style="margin:0">None yet. A kill is DF\'s own death incident naming the killer, read when a wild animal seen at one sample is dead at the next.</p>'}</div>
+        <div class="panel"><h2>The ecology job</h2>${eco ? `<div class="kv"><span>last pass</span><span>${dayLabel(eco.day)} (${ago(((MAP.live && MAP.live.day) || eco.day) - eco.day)})</span><span>predators</span><span>${eco.preds}</span><span>targets</span><span>${eco.targets}</span><span>pairs written</span><span>${eco.pairs}</span><span>passes</span><span>${WEB.writes}</span></div>` : '<p class="sub" style="margin:0">No ecology pass yet this session.</p>'}
+          ${WEB && WEB.skipped ? `<p class="sub">${esc(WEB.skipped)}</p>` : ''}${WEB && !WEB.hunting ? '<p class="sub" style="margin:6px 0 0">Vermin hunting is off: vermin links are what hunters would take once it is on.</p>' : ''}</div>
+        <div class="panel"><h2>Pair guarantee</h2><table class="matrix"><thead><tr><th></th>${SHORT.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${LAYERS.map((l, gi) => `<tr><td><span class="dot ${l}"></span> ${LNAME[l]}</td>${g[gi].map((ok, k) => `<td class="${k === NOW ? 'now-col' : ''}">${ok ? '<span class="chip good">✓</span>' : '<span class="chip crit">✗</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      </div></div>`;
+  P.querySelectorAll('#webScope button').forEach(b => b.onclick = () => { st.webScope = b.dataset.s; store.set('webScope', st.webScope); renderWeb(); });
+  P.querySelectorAll('#webSeason button').forEach(b => b.onclick = () => { st.webSeason = +b.dataset.k; renderWeb(); });
+  const box = $('webbox');
+  const focus = id => {
+    box.classList.toggle('focus', !!id);
+    const on = new Set(id ? [id] : []);
+    box.querySelectorAll('.we').forEach(p => { const hit = id && (p.dataset.p === id || p.dataset.q === id); p.classList.toggle('on', !!hit); if (hit) { on.add(p.dataset.p); on.add(p.dataset.q); } });
+    box.querySelectorAll('.wn').forEach(n => n.classList.toggle('on', on.has(n.dataset.key)));
+    const n = id && nodes.get(id), el = $('webSide');
+    if (!n) { el.innerHTML = '<h2>Trace a species</h2><p class="sub" style="margin:0">Click a node: its edges light up. Circle size: animals on the map now (the number inside). Red edges: kills seen. Violet: a predator-or-prey relation DF holds between animals on the map now. Grey: possible under the tool\'s pairing rule.</p>'; return; }
+    const out = edges.filter(e => e.p === id), inn = edges.filter(e => e.q === id);
+    el.innerHTML = `<h2 style="text-transform:none">${esc(n.name)}</h2><div class="field"><span class="lab">Eats (${out.length})</span><div class="blist">${out.map(e => BY[e.q] ? spLink(e.q, e.kind === 'kill' ? 'kill' : e.kind === 'held' ? 'live' : '') : `<span class="chip fam">${esc(nodes.get(e.q).name)}</span>`).join('') || '<span class="sub">none</span>'}</div></div>
+      <div class="field" style="margin-top:8px"><span class="lab">Eaten by (${inn.length})</span><div class="blist">${inn.map(e => spLink(e.p, e.kind === 'kill' ? 'kill' : e.kind === 'held' ? 'live' : '')).join('') || '<span class="sub">none</span>'}</div></div>
+      ${n.s ? `<button class="btn small" style="margin-top:10px" data-insp="sp:${esc(n.id)}">Inspect</button>` : ''}`;
+    bindLinks(el);
+  };
+  box.querySelectorAll('.wn').forEach(n => { n.onclick = () => { st.webFocus = st.webFocus === n.dataset.key ? null : n.dataset.key; focus(st.webFocus); }; n.ondblclick = () => openInsp('sp:' + n.dataset.key); });
+  if (st.webFocus && !nodes.has(st.webFocus)) st.webFocus = null;
+  focus(st.webFocus);
+  bindLinks(P);
+}
+
+// ---------------------------------------------------------------- Seasons: the matrix and the history timeline
+function renderSeasons() {
+  const P = $('p-seasons');
+  const rows = SP.filter(s => layerOk(s) && !isVermin(s) && s.active).sort((a, b) => a.layer.localeCompare(b.layer) || levelOf(b).localeCompare(levelOf(a)) || a.name.localeCompare(b.name));
+  const cell = (s, k) => { const on = s.seasons.includes(k), prev = s.seasons.includes((k + 3) % 4);
+    return on ? (prev ? '<span class="mx on" title="stays">·</span>' : '<span class="mx in" title="arrives at this season">+</span>') : prev ? '<span class="mx out" title="held out from this season">−</span>' : '<span class="mx"></span>'; };
+  let lastL = null;
+  const body = rows.slice(0, 400).map(s => { const h = s.layer !== lastL ? `<tr><td colspan="7" style="padding-top:10px"><span class="dot ${s.layer}"></span> <b>${LNAME[s.layer]}</b></td></tr>` : ''; lastL = s.layer;
+    return h + `<tr><td><button class="elink" data-insp="sp:${esc(s.key)}">${tile(s, 16)}<span class="t">${nm(s)}</span></button></td><td><i class="dot lv${levelOf(s)}"></i></td>${[0, 1, 2, 3].map(k => `<td class="${k === NOW ? 'now-col' : ''}">${cell(s, k)}</td>`).join('')}<td class="mono">${onMap[s.key] || ''}</td></tr>`; }).join('');
+  P.innerHTML = `<div class="grid2" style="grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)">
+    <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Wild animals on the map over time</h2><div class="seg small" id="hr">${[[1, '24 h'], [7, '7 days'], [28, '28 days'], [9999, 'All']].map(([d, n]) => `<button data-d="${d}" aria-pressed="${st.histRange === d}">${n}</button>`).join('')}</div></div>
+      <div class="legend" style="margin:8px 0">${LAYERS.map(l => `<span><i class="dot ${l}"></i>${LNAME[l]}</span>`).join('')}<span style="color:var(--good)">▲ arrival</span><span style="color:var(--muted)">▼ departure</span><span style="color:var(--crit)">✕ kill</span></div>
+      <div class="chart" id="hchart"></div>
+      <p class="sub" style="margin:8px 0 0">The server samples every ${HIST.period * 24} game hours while it runs (${HIST.samples.length} samples, since ${dayLabel(HIST.samples[0] && HIST.samples[0].t)}). It forgets when DF restarts.</p></div>
+    <div class="panel"><h2>Who is in season (active species)</h2><p class="sub" style="margin:0 0 8px"><span class="mx in">+</span> arrives at that season · <span class="mx on">·</span> stays · <span class="mx out">−</span> held out from it. The highlighted column is now (${SEASONS[NOW]}); the last column is on the map now.</p>
+      <div class="tscroll" style="max-height:calc(100vh - 300px);overflow:auto"><table class="matrix"><thead><tr><th>Species</th><th></th>${SHORT.map((x, k) => `<th class="${k === NOW ? 'now-col' : ''}">${x}</th>`).join('')}<th>map</th></tr></thead><tbody>${body || '<tr><td colspan="7" class="sub">No active species.</td></tr>'}</tbody></table></div></div></div>`;
+  P.querySelectorAll('#hr button').forEach(b => b.onclick = () => { st.histRange = +b.dataset.d; renderSeasons(); });
+  drawHistory($('hchart'));
+  bindLinks(P);
+}
+function drawHistory(el) {
+  if (!el) return;
+  const ls = LAYERS.filter(l => st.layer === 'all' || st.layer === l);
+  const end = HIST.samples.length ? HIST.samples[HIST.samples.length - 1].t : 0;
+  const S = HIST.samples.filter(x => x.t >= end - st.histRange);
+  if (S.length < 2) { el.innerHTML = '<p class="sub" style="margin:8px 0">The line starts after the second sample (a quarter day of game time). Unpause the game.</p>'; return; }
+  const W = 640, Hh = 240, m = { l: 34, r: 14, t: 10, b: 52 }, t0 = S[0].t, t1 = S[S.length - 1].t, span = Math.max(1e-6, t1 - t0);
+  const top = Math.max(5, ...S.flatMap(p => ls.map(l => obj(p.w)[l] || 0))), ymax = Math.ceil(top / 5) * 5;
+  const x = t => m.l + (t - t0) / span * (W - m.l - m.r), y = v => Hh - m.b - v / ymax * (Hh - m.t - m.b);
+  let g = [0, .5, 1].map(f => `<line class="gl" x1="${m.l}" x2="${W - m.r}" y1="${y(ymax * f)}" y2="${y(ymax * f)}"/><text class="ax" x="${m.l - 5}" y="${y(ymax * f) + 4}" text-anchor="end">${Math.round(ymax * f)}</text>`).join('');
+  g += [0, .25, .5, .75, 1].map(f => `<text class="ax" x="${x(t0 + f * span)}" y="${Hh - m.b + 14}" text-anchor="middle">${dayLabel(t0 + f * span)}</text>`).join('');
+  for (const l of ls) g += `<path d="${S.map((p, i) => (i ? 'L' : 'M') + x(p.t).toFixed(1) + ' ' + y(obj(p.w)[l] || 0).toFixed(1)).join(' ')}" fill="none" stroke="var(--${l})" stroke-width="2"/>`;
+  const lanes = { arrive: [Hh - 26, 'var(--good)', '▲'], leave: [Hh - 15, 'var(--muted)', '▼'], kill: [Hh - 4, 'var(--crit)', '✕'] };
+  for (const e of HIST.events) { const L = lanes[e.k]; if (!L || e.t < t0 || e.t > t1) continue; g += `<text x="${x(e.t)}" y="${L[0]}" font-size="9" fill="${L[1]}" text-anchor="middle">${L[2]}</text>`; }
+  g += `<line id="hx" y1="${m.t}" y2="${Hh - m.b}" stroke="var(--muted)" stroke-dasharray="3 3" opacity="0"/><rect id="hhit" x="${m.l}" y="0" width="${W - m.l - m.r}" height="${Hh}" fill="transparent"/>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Wild animals per layer over game time, with arrivals, departures and kills">${g}</svg><div class="tip" id="htip"></div>`;
+  const svg = el.querySelector('svg'), tip = el.querySelector('#htip'), hx = el.querySelector('#hx');
+  el.querySelector('#hhit').addEventListener('pointermove', ev => {
+    const r = svg.getBoundingClientRect(), tx = t0 + ((ev.clientX - r.left) / r.width * W - m.l) / (W - m.l - m.r) * span;
+    let best = S[0]; for (const p of S) if (Math.abs(p.t - tx) < Math.abs(best.t - tx)) best = p;
+    hx.setAttribute('x1', x(best.t)); hx.setAttribute('x2', x(best.t)); hx.setAttribute('opacity', 1);
+    const evs = HIST.events.filter(e => Math.abs(e.t - best.t) <= HIST.period / 2);
+    tip.innerHTML = `<div class="sub">${dayLabel(best.t)} ${String(Math.floor((best.t % 1) * 24)).padStart(2, '0')}h</div>` + ls.map(l => `<div class="row" style="justify-content:space-between"><span><i class="dot ${l}"></i> ${LNAME[l]}</span><b>${obj(best.w)[l] || 0}</b></div>`).join('')
+      + (evs.length ? `<div class="sub" style="margin-top:4px">${evs.slice(0, 5).map(e => `${e.k} ${esc(keyName(e.key || e.token))}`).join('<br>')}</div>` : '');
+    tip.style.display = 'block'; tip.style.left = Math.min((x(best.t) / W) * r.width + 10, r.width - 160) + 'px'; tip.style.top = '6px';
+  });
+  el.querySelector('#hhit').addEventListener('pointerleave', () => { tip.style.display = 'none'; hx.setAttribute('opacity', 0); });
+}
+
+// ---------------------------------------------------------------- Roster: the pyramid against its targets, and on the map
+const PARTS = ['land', 'flying', 'water', 'cavern'], PNAME = { land: 'Land', flying: 'Flying', water: 'Water', cavern: 'Caverns' };
+const GUILD = { APX: 'apex', APE: 'pelagic apex', AL: 'land apex', AW: 'water apex', ML: 'ground mesocarnivore', MW: 'water mesopredator', RP: 'raptor', SN: 'sentient attacker',
+  GZ: 'grazer herd', PL: 'land prey', SH: 'shore', LB: 'land bird', WB: 'waterbird', PE: 'pelagic', FC: 'coastal fish', FF: 'freshwater fish', SNP: 'sentient prey', V: 'vermin' };
+function pyramidOf(list, weight) {
+  const u = { H: 0, C: 0, A: 0 };
+  for (const s of list) { const l = levelOf(s); if (l in u) u[l] += weight(s); }
+  const t = u.H + u.C + u.A; return Object.fromEntries(Object.entries(u).map(([k, v]) => [k, t ? v / t * 100 : 0]));
+}
+function bar(sh, cls = '') { return `<div class="pyrbar ${cls}">${['H', 'C', 'A'].map(l => `<span class="lv${l}" style="width:${sh[l]}%" title="${LVNAME[l]} ${sh[l].toFixed(1)}%"></span>`).join('')}</div>`; }
+function renderRoster() {
+  const P = $('p-roster'); if (editing(P)) return;
+  const last = HIST.samples[HIST.samples.length - 1], spNow = obj(last && last.sp);
+  const cards = PARTS.map(p => {
+    const sp = SP.filter(s => s.part === p && !isVermin(s)), act = sp.filter(s => s.active), now = act.filter(s => s.seasons.includes(NOW));
+    const key = p === 'water' ? 'ocean' : p, tH = CTLBY[`roster.pyramid.${key}.H`], tC = CTLBY[`roster.pyramid.${key}.C`];
+    const T = tH && tC && tH.value != null ? { H: tH.value, C: tC.value, A: Math.max(0, 100 - tH.value - tC.value) } : null;
+    const plan = pyramidOf(now.length ? now : act, s => s.freq * (s.gmin + s.gmax) / 2);
+    const onm = sp.reduce((t, s) => t + (spNow[s.key] || 0), 0), real = pyramidOf(sp, s => spNow[s.key] || 0);
+    const bySlot = {}; for (const s of sp) (bySlot[s.slot || s.guild || '?'] ||= []).push(s);
+    const slots = Object.keys(bySlot).sort((a, b) => (bySlot[b][0].tier || 0) - (bySlot[a][0].tier || 0) || a.localeCompare(b));
+    return `<div class="panel" style="display:grid;gap:10px"><div class="lhead"><h3>${PNAME[p]}</h3><span class="chip">${act.length} active of ${sp.length}</span>${now.length ? `<span class="chip good">${now.length} in ${SEASONS[NOW]}</span>` : '<span class="chip"></span>'}</div>
+      <div class="pyr"><div class="pyrrow"><span class="sub">on the map</span>${onm ? bar(real) : '<span class="sub">no animal of this part on the map</span>'}</div>
+        <div class="pyrrow"><span class="sub">planned</span>${bar(plan)}</div>${T ? `<div class="pyrrow"><span class="sub">target</span>${bar(T, 'target')}</div>` : ''}
+        <div class="legend">${['H', 'C', 'A'].map(l => `<span><i class="dot lv${l}"></i>${LVNAME[l]} ${onm ? real[l].toFixed(0) + '% now, ' : ''}${plan[l].toFixed(0)}% planned${T ? `, ${Math.round(T[l])}% target` : ''}</span>`).join('')}</div></div>
+      <div>${slots.map(g => `<div class="guild"><span class="gn"><b>${esc(g)}</b>${esc(GUILD[g] || '')}<br><span class="sub">${bySlot[g].filter(s => s.active).length} active</span></span><div class="blist">${bySlot[g].sort((a, b) => (+b.active - +a.active) || a.name.localeCompare(b.name)).slice(0, 16).map(s => spLink(s.key, onMap[s.key] ? 'live' : '')).join('')}${bySlot[g].length > 16 ? `<span class="more">+${bySlot[g].length - 16}</span>` : ''}</div></div>`).join('') || '<span class="sub">No species on this part.</span>'}</div></div>`;
+  }).join('');
+  const acts = arr(CTL && CTL.actions).filter(a => a.sec === 'roster');
+  P.innerHTML = `<div class="grid2"><div class="panel"><h2>Apex scheduler</h2>${statusBox('roster')}<div class="acts" style="margin-top:10px">${actButtons(acts)}<button class="btn small" data-go="controls/roster">Every roster control</button></div></div>
+      <div class="panel"><h2>Reading the pyramid</h2><p class="sub" style="margin:0"><b>On the map</b>: animals of each level there now (the server's last sample). <b>Planned</b>: each active species in season weighted by odds x mean group, what the builder's ladder sets (R59). <b>Target</b>: the builder's aim (<span class="mono">roster set pyramid</span>).</p></div></div>
+    <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));align-items:start">${cards}</div>`;
+  bindLinks(P); if (CTL) bindActions(P);
+}
+
+// ---------------------------------------------------------------- Waters & caverns: what swims, what stirs, and their controls
+function ctxRows(ids) { return ids.map(id => CTLBY[id]).filter(Boolean).map(rowHtml).join(''); }
+function renderWaters() {
+  const P = $('p-waters'); if (editing(P)) return;
+  const W2 = WATERS || {};
+  const gm = Object.fromEntries(arr(W2.groupmap).map(L => [L.key, L]));
+  const bodies = arr(W2.bodies).sort((a, b) => b.units - a.units);
+  const wcards = bodies.map(B => { const lv = obj(B.lv), t = (lv.H || 0) + (lv.C || 0) + (lv.A || 0) || 1, G = gm['water:' + B.body] || {}, src = obj(B.src);
+    return `<div class="panel wcard"><div class="lhead"><span class="dot water"></span><h3 style="text-transform:capitalize">${esc(B.body)}</h3><span class="chip">${B.groups} group(s) · ${B.units} animals</span></div>
+      <div class="lvbar">${['H', 'C', 'A'].map(l => `<span class="lv${l}" style="width:${(lv[l] || 0) / t * 100}%" title="${LVNAME[l]} ${lv[l] || 0}"></span>`).join('')}</div>
+      <div class="sub">${['H', 'C', 'A'].map(l => `${LVNAME[l]} ${lv[l] || 0}`).join(' · ')} · apex groups ${B.apex || 0}${G.cap ? ` · cap ${G.cap}${G.next_days ? `, next draw in ${dfix(G.next_days)} d` : ''}` : ''}</div>
+      <div class="field"><span class="lab">What swims here now</span><div class="blist">${arr(B.sp).map(x => `${spLink(BYTOK[x.token] ? BYTOK[x.token].key : 'water:' + x.token)}<span class="sub">x${x.n}</span>`).join(' ') || '<span class="sub">nothing</span>'}</div></div>
+      <div class="readings">${Object.entries(src).filter(([, n]) => n).map(([k, n]) => `<span class="chip">${esc(k)} ${n}</span>`).join('')}</div></div>`; }).join('');
+  const ccards = [0, 1, 2].map(d => {
+    const band = arr(W2.caves).find(c => c.depth === d), ir = arr(W2.irrupt).find(r => r.depth === d) || {}, G = gm['cavern:' + d] || {};
+    const thr = obj(CTLBY['irruption.threshold']).value || 1, pr = ir.pressure;
+    const gs = arr(MAP.live && MAP.live.groups).filter(g => g.layer === 'cavern' && g.depth === d);
+    return `<div class="panel wcard"><div class="lhead"><span class="dot cavern"></span><h3>Cavern ${d + 1}</h3>${band ? `<span class="chip">z ${band.zlo}–${band.zhi}</span>` : '<span class="chip">not at the map edge</span>'}</div>
+      ${band ? `<div class="sub">edge: ${band.open} open tile(s), ${band.water ? band.water + ' water' : 'dry'} · groups ${G.n ?? gs.length} / ${G.cap ?? '?'}${G.next_days ? ` · next release ${dfix(G.next_days)} d` : ''}</div>` : '<div class="sub">The cavern survey found no tile of it at the map edge, so no wave reaches it here.</div>'}
+      <div><span class="phase ${ir.phase === 'active' ? 'chip crit' : ir.phase === 'warning' ? 'chip warn' : 'chip'}">${esc(ir.on ? (ir.text || ir.phase || 'quiet') : 'irruptions off')}</span></div>
+      ${ir.on && pr != null ? `<div title="pressure ${dfix(pr, 2)} of ${thr}"><div class="pbar"><span style="width:${Math.min(100, pr / (thr * 1.5) * 100)}%"></span><i style="left:${100 / 1.5}%"></i></div><span class="sub">pressure ${dfix(pr, 2)} · threshold ${thr}${ir.pinned ? ' · pinned' : ''}</span></div>` : ''}
+      <div class="blist">${gs.map(g => `<button class="elink" data-insp="g:${esc(g.gid)}">${tile(spAny(g.key), 14)}<span class="t">${esc(tokName(g.token))} x${g.n}</span></button>`).join('') || '<span class="sub">no group here</span>'}</div>
+      <div class="row"><button class="btn small" data-go="map">Map</button>${actButtons(arr(CTL && CTL.actions).filter(a => ['irr_stir', 'irr_now'].includes(a.id)), String(d + 1))}</div></div>`;
+  }).join('');
+  P.innerHTML = `${W2.scanned === false ? '<div class="banner warn"><span><b>The water scan has not run.</b> The water job surveys the map\'s water once (or Survey below); until then no body is known.</span></div>' : ''}
+    ${W2.census_error ? `<div class="banner crit"><span>Water census failed: ${esc(W2.census_error)}</span></div>` : ''}
+    <h2 style="margin:4px 0 0">Water bodies</h2>
+    <div class="grid3">${wcards || '<div class="panel"><p class="sub" style="margin:0">No animal swims in any body now.</p></div>'}
+      <div class="panel"><h2>Water controls</h2><div class="ctxctl">${ctxRows(['water.enabled', 'water.layer_mode', 'water.mix.enabled', 'water.pull.enabled', 'aquarium.enabled', 'aquarium.lens', 'aquarium.legend'])}</div>
+        <div class="acts" style="margin-top:8px">${actButtons(arr(CTL && CTL.actions).filter(a => ['water_now', 'water_survey'].includes(a.id)))}<button class="btn small" data-go="controls/water">Every water control</button><button class="btn small" data-go="controls/aquarium">Aquarium</button></div></div></div>
+    <h2 style="margin:8px 0 0">Caverns</h2>
+    <div class="grid3">${ccards}<div class="panel"><h2>Cavern controls</h2><div class="ctxctl">${ctxRows(['groups.cavern', 'groups.cavern_cap', 'groups.cavern_hold', 'irruption.enabled', 'irruption.threshold'])}</div>
+      <div class="acts" style="margin-top:8px">${actButtons(arr(CTL && CTL.actions).filter(a => ['irr_end', 'irr_cool', 'natives_now'].includes(a.id)))}<button class="btn small" data-go="controls/caverns">Cavern gate</button><button class="btn small" data-go="controls/irruption">Irruptions</button></div></div></div>
+    <p class="sub">Read every 5 s from <span class="mono">/waters.json</span> (the water census the aquarium legend uses, the cavern survey, the irruption state)${W2.ms != null ? `, built in ${W2.ms} ms` : ''}.</p>`;
+  bindLinks(P); if (CTL) { bindWidgets(P, id => CTLBY[id]); bindActions(P); }
+}
+
+// ---------------------------------------------------------------- Ledger: the live feed
+function renderLedger() {
+  const P = $('p-ledger');
+  if (editing(P) && document.activeElement.id !== 'lq') return;
+  const kinds = ['all', ...new Set(LED.entries.map(e => e.k))];
+  const q = st.lq.trim().toLowerCase();
+  const rows = LED.entries.filter(e => (st.lkind === 'all' || e.k === st.lkind) && (st.llayer === 'all' || e.l === st.llayer) && (!q || e.s.toLowerCase().includes(q))).slice().reverse();
+  let day = null;
+  const lis = rows.slice(0, 400).map(e => { const d = String(e.ts).split(' ').slice(0, 3).join(' '), h = d !== day ? `<li class="day">${esc(d)}</li>` : ''; day = d;
+    return h + `<li class="${LED.fresh.has(e.q) ? 'new' : ''}"><span class="mono sub">#${e.q}</span><span><span class="chip">${esc(e.k)}</span></span><span class="sub">${e.l ? `<span class="dot ${esc(e.l)}"></span> ${esc(e.l)}` : '—'}</span><span>${linkify(e.s)}</span></li>`; }).join('');
+  LED.fresh.clear();
+  P.innerHTML = `<div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Ledger <span class="sub" style="text-transform:none;letter-spacing:0">· ${LED.seq} written, the last ${LED.entries.length} here, live</span></h2>
+      <span class="row"><input id="lq" class="ctlsearch" type="search" placeholder="Search the ledger" value="${esc(st.lq)}"><select id="ll" class="sel">${['all', 'land', 'water', 'cavern'].map(l => `<option ${st.llayer === l ? 'selected' : ''}>${l}</option>`).join('')}</select><button class="btn small" id="undo" ${D.undo_depth ? '' : 'disabled'}>Undo the last edit (${D.undo_depth || 0})</button></span></div>
+      <div class="seg small" role="group" aria-label="Kind" style="margin-bottom:6px">${kinds.map(k => `<button type="button" data-kind="${esc(k)}" aria-pressed="${st.lkind === k}">${esc(k)}</button>`).join('')}</div>
+      <ul class="ledger">${lis || '<li><span></span><span></span><span></span><span class="sub">Nothing recorded yet.</span></li>'}</ul></div>`;
+  $('undo').onclick = () => send(['undo'], 'Undid the last edit');
+  P.querySelectorAll('[data-kind]').forEach(b => b.onclick = () => { st.lkind = b.dataset.kind; renderLedger(); });
+  $('ll').onchange = e => { st.llayer = e.target.value; e.target.blur(); renderLedger(); };
+  $('lq').oninput = e => { const c = e.target.selectionStart; st.lq = e.target.value; renderLedger(); const n = $('lq'); n.focus(); n.setSelectionRange(c, c); };
+  bindLinks(P);
+}
+
+// ---------------------------------------------------------------- the control registry (seasonal-wildlife-controls)
+// Every control the tool has, with its type, range, default, current value and the verb it runs. A change is
+// POST /set?id=&v=[&tok=]: checked here (no round trip for a refusal), checked again by the server, sent as the tool's
+// own verb, and read back; the row shows pending, then flashes with the value the game read back; the toast has Undo.
+const NOVERB = new Set(['by choice', 'Panel switch', 'config only']);
+function ingestControls(c) { CTL = c || null; CTLBY = {}; for (const r of arr(c && c.controls)) CTLBY[r.id] = r; }
+const fmtNum = (v, r) => (r && r.type === 'int') ? String(Math.round(v)) : String(+(+v).toFixed(6));
+function showVal(r, v) {
+  if (v == null) return '—';
+  if (r.type === 'bool') return v ? 'on' : 'off';
+  if (r.labels && r.labels[String(v)]) return r.labels[String(v)];
+  if (r.type === 'seasons') return v === '' ? 'none' : String(v);
+  return typeof v === 'number' ? fmtNum(v, r) : String(v);
+}
+const sameVal = (a, b) => (typeof a === 'number' && typeof b === 'number') ? Math.abs(a - b) < 1e-6 : String(a) === String(b);
+const canSet = r => r && r.available !== false;
+function checkVal(r, v) {
+  if (r.type === 'int' || r.type === 'float') {
+    if (r.nilv != null && v === r.nilv) return null;
+    const n = Number(v);
+    if (v === '' || !Number.isFinite(n)) return 'a number';
+    if (r.type === 'int' && !Number.isInteger(n)) return 'a whole number';
+    if (r.min != null && n < r.min) return 'at least ' + r.min;
+    if (r.max != null && n > r.max) return 'at most ' + r.max;
+  }
+  return null;
+}
+function widget(r, v, tok) {
+  const dis = canSet(r) ? '' : 'disabled';
+  const a = `data-cid="${esc(r.id)}"${tok ? ` data-tok="${esc(tok)}"` : ''}`;
+  const lab = o => (r.labels && r.labels[String(o)]) || String(o);
+  switch (r.type) {
+    case 'bool': return `<button type="button" class="switch" role="switch" aria-checked="${!!v}" aria-label="${esc(r.label)}" ${a} data-kind="bool" ${dis}></button>`;
+    case 'int': case 'float': {
+      const span = (r.max ?? 0) - (r.min ?? 0), slider = r.min != null && r.max != null && span > 0 && span <= 20000;
+      const step = r.step || (r.type === 'int' ? 1 : 0.01), val = typeof v === 'number' ? v : '';
+      return (slider ? `<input type="range" min="${r.min}" max="${r.max}" step="${step}" value="${val === '' ? r.min : val}" ${a} data-kind="range" ${dis} aria-label="${esc(r.label)}">` : '')
+        + `<input class="num-in" type="number"${r.min != null ? ` min="${r.min}"` : ''}${r.max != null ? ` max="${r.max}"` : ''} step="${step}" value="${val}" placeholder="${esc(r.nilv ?? '')}" ${a} data-kind="num" ${dis} aria-label="${esc(r.label)}">`
+        + (r.unit ? `<span class="unit">${esc(r.unit)}</span>` : '') + (r.nilv != null ? `<button type="button" class="reset" ${a} data-kind="nil" ${dis}>${esc(r.nilv)}</button>` : '');
+    }
+    case 'enum': {
+      const opts = arr(r.opts);
+      if (opts.length <= 4 && opts.every(o => lab(o).length <= 16))
+        return `<div class="seg small" role="group" aria-label="${esc(r.label)}">${opts.map(o => `<button type="button" ${a} data-kind="enum" data-v="${esc(o)}" aria-pressed="${String(o) === String(v)}" ${dis}>${esc(lab(o))}</button>`).join('')}</div>`;
+      return `<select ${a} data-kind="select" ${dis} aria-label="${esc(r.label)}">${opts.map(o => `<option value="${esc(o)}" ${String(o) === String(v) ? 'selected' : ''}>${esc(lab(o))}</option>`).join('')}</select>`;
+    }
+    case 'seasons': { const cur = String(v || ''); return `<div class="seg small" role="group" aria-label="${esc(r.label)}">${SHORT.map(c => `<button type="button" ${a} data-kind="season" data-v="${c}" aria-pressed="${cur.includes(c)}" ${dis}>${c}</button>`).join('')}</div>`; }
+    case 'text': return `<input type="text" value="${esc(v ?? '')}" ${a} data-kind="text" ${dis} aria-label="${esc(r.label)}" style="width:140px"><button type="button" class="btn small" ${a} data-kind="textset" ${dis}>Set</button>`;
+  }
+  return '';
+}
+function bindWidgets(root, rowOf) {
+  root.querySelectorAll('[data-cid]').forEach(el => {
+    const r = rowOf(el.dataset.cid), tok = el.dataset.tok, k = el.dataset.kind;
+    if (!r) return;
+    const set = v => setControl(r, v, tok, el);
+    if (k === 'bool') el.onclick = () => set(el.getAttribute('aria-checked') !== 'true');
+    else if (k === 'range') { const num = el.parentElement.querySelector('[data-kind="num"]'); el.oninput = () => { if (num) num.value = el.value; }; el.onchange = () => { el.blur(); set(el.value); }; }
+    else if (k === 'num') el.onchange = () => { el.blur(); if (el.value !== '') set(el.value); };
+    else if (k === 'nil') el.onclick = () => set(r.nilv);
+    else if (k === 'enum') el.onclick = () => set(el.dataset.v);
+    else if (k === 'select') el.onchange = () => { el.blur(); set(el.value); };
+    else if (k === 'season') el.onclick = () => {
+      const on = new Set([...el.parentElement.querySelectorAll('[data-kind="season"]')].filter(b => b.getAttribute('aria-pressed') === 'true').map(b => b.dataset.v));
+      on.has(el.dataset.v) ? on.delete(el.dataset.v) : on.add(el.dataset.v);
+      set(SHORT.filter(c => on.has(c)).join('') || 'none');
+    };
+    else if (k === 'textset') el.onclick = () => set(el.parentElement.querySelector('[data-kind="text"]').value.trim());
+  });
+}
+const FLASH = new Set();
+async function setControl(r, v, tok, el) {
+  const wire = r.type === 'bool' ? (v ? 'on' : 'off') : String(v);
+  const label = r.label + (tok ? ` (${tok})` : '');
+  const bad = checkVal(r, wire === 'none' && r.type === 'seasons' ? '' : wire);
+  if (bad) { toast(`${label}: ${bad}`); renderActive(); return; }
+  const row = el && el.closest('.crow, .swrow');
+  if (row) { row.classList.add('pending'); row.querySelectorAll('button,input,select').forEach(x => x.disabled = true); }
+  const line = logLine(`set ${r.id}${tok ? ' ' + tok : ''} = ${wire}`);
+  try {
+    const j = await post('/set', { id: r.id, v: wire, tok });
+    line.cmd = j.cmd || line.cmd; line.res = j.ok ? 'done' : 'refused'; line.out = String(j.out ?? '').trim();
+    toast(j.ok ? `${label}: ${showVal(r, j.value ?? v)} (read back from the game)` : 'Refused: ' + (line.out.split('\n')[0] || 'unknown'), j.ok);
+    if (j.ok) FLASH.add(r.id);
+  } catch (e) { line.res = 'failed'; line.out = String(e); toast('Could not reach the game: ' + e.message); }
+  renderConsole(); await loadControls(); for (const f of ['state', 'events', 'status', 'waters']) kick(f);
+}
+function actButtons(acts, preset) {
+  return acts.map(a => `<span class="acts" style="gap:4px">${arr(a.arg).length && !preset ? `<select data-arg="${esc(a.id)}" aria-label="${esc(a.label)}: choice">${arr(a.arg).map(o => `<option>${esc(o)}</option>`).join('')}</select>` : ''}<button type="button" class="btn small ${a.confirm ? 'danger' : ''}" data-act="${esc(a.id)}" ${preset && arr(a.arg).includes(preset) ? `data-preset="${esc(preset)}"` : ''} title="${esc(a.help || '')}" ${canSet(a) ? '' : 'disabled'}>${esc(a.label)}</button></span>`).join('');
+}
+async function runAction(a, arg) {
+  if (a.confirm && !window.confirm(`${a.label}${arg ? ' (' + arg + ')' : ''}?\n\n${a.help || ''}`)) return;
+  const line = logLine(`${a.label}${arg ? ' ' + arg : ''}`);
+  try {
+    const j = await post('/act', { id: a.id, arg });
+    line.cmd = j.cmd || line.cmd; line.res = j.ok ? 'done' : 'refused'; line.out = String(j.out ?? '').trim();
+    st.readouts['act:' + a.id] = { cmd: line.cmd, out: line.out, ok: j.ok };
+    toast(j.ok ? (line.out.split('\n')[0] || a.label) : 'Refused: ' + (line.out.split('\n')[0] || 'unknown'));
+  } catch (e) { line.res = 'failed'; line.out = String(e); toast('Could not reach the game: ' + e.message); }
+  renderConsole(); await loadControls(); for (const f of ['state', 'map', 'events', 'status', 'waters', 'hist']) kick(f);
+}
+async function runReadout(r) {
+  st.readouts[r.id] = { cmd: 'seasonal-wildlife ' + r.verb, out: 'reading…', ok: true }; renderActive();
+  try { const j = await post('/read', { id: r.id }); st.readouts[r.id] = { cmd: j.cmd, out: String(j.out ?? ''), ok: j.ok }; }
+  catch (e) { st.readouts[r.id] = { cmd: r.verb, out: String(e), ok: false }; }
+  renderActive();
+}
+async function loadControls() {
+  try { const j = await getJSON('/controls.json'); ingestControls(j); renderActive(); } catch { /* the state feed reports a lost game */ }
+}
+function statusNeeded() {
+  if (st.tab === 'controls') { const s = arr(CTL && CTL.sections).find(x => x.id === st.csec); return s && s.status ? [s.status] : []; }
+  if (st.tab === 'groups') return ['groupmap', 'groups'];
+  if (st.tab === 'roster') return ['roster'];
+  return [];
+}
+async function loadStatus(ids, force) {
+  const want = [...new Set(ids)].filter(id => id && (force || !STATUS_AT[id] || Date.now() - STATUS_AT[id] > 4500));
+  if (!want.length) return;
+  const j = await getJSON('/status.json', { s: want.join(',') });
+  for (const [id, v] of Object.entries(obj(j.sections))) { STATUS[id] = v; STATUS_AT[id] = Date.now(); }
+  if (!editing($('p-' + st.tab))) renderPanel(st.tab);
+}
+function statusBox(id) {
+  const s = STATUS[id];
+  if (!s) return '<div class="statusbox"><span class="sub">Reading the status…</span></div>';
+  return `<div class="statusbox" role="log">${s.error ? `<span class="err">${esc(s.error)}</span>\n` : ''}${arr(s.lines).map(esc).join('\n') || '<span class="sub">nothing to report</span>'}</div>`;
+}
+function rowHtml(r) {
+  const v = r.value, changed = r.default != null && v != null && !sameVal(v, r.default);
+  const fl = FLASH.has(r.id); FLASH.delete(r.id);
+  return `<div class="crow ${r.available === false ? 'na' : ''} ${changed ? 'changed' : ''} ${fl ? 'flash' : ''}" data-row="${esc(r.id)}">
+    <div class="cl"><b>${esc(r.label)}${r.optin ? ' <span class="chip">opt-in</span>' : ''}${r.available === false ? ' <span class="na-chip">not in this version</span>' : ''}</b>
+      ${r.help ? `<span class="h">${esc(r.help)}</span>` : ''}
+      <span class="v" title="${esc(r.id)}">${r.verb && !NOVERB.has(r.verb) ? 'seasonal-wildlife ' + esc(r.verb) : esc(r.verb || r.id)}${r.default != null ? ' · default ' + esc(showVal(r, r.default)) : ''}</span></div>
+    <div class="cw">${widget(r, v)}${changed && canSet(r) ? `<button type="button" class="reset" data-reset="${esc(r.id)}">reset</button>` : ''}</div></div>`;
+}
+function actionsHtml(sec) {
+  const acts = arr(CTL && CTL.actions).filter(a => a.sec === sec), reads = arr(CTL && CTL.readouts).filter(r => r.sec === sec);
+  if (!acts.length && !reads.length) return '';
+  const out = [...acts.map(a => 'act:' + a.id), ...reads.map(r => r.id)].map(k => st.readouts[k] ? [k, st.readouts[k]] : null).filter(Boolean);
+  return `<div class="panel"><h2>Actions and readouts</h2><div class="acts">${actButtons(acts)}</div>
+    ${reads.length ? `<div class="acts" style="margin-top:10px"><span class="sub">Read:</span>${reads.map(r => `<button type="button" class="btn small" data-read="${esc(r.id)}" title="seasonal-wildlife ${esc(r.verb)}" ${r.available === false ? 'disabled' : ''}>${esc(r.label)}</button>`).join('')}</div>` : ''}
+    ${out.map(([k, x]) => `<div style="margin-top:8px"><div class="row" style="justify-content:space-between"><span class="mono sub">${esc(x.cmd || '')}</span><button type="button" class="reset" data-close="${esc(k)}">close</button></div><pre class="pre ${x.ok ? '' : 'refuse'}">${esc(x.out || '')}</pre></div>`).join('')}</div>`;
+}
+function bindActions(P) {
+  P.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
+    const a = arr(CTL && CTL.actions).find(x => x.id === b.dataset.act), sel = P.querySelector(`[data-arg="${CSS.escape(b.dataset.act)}"]`);
+    if (a) runAction(a, b.dataset.preset || (sel ? sel.value : undefined));
+  });
+  P.querySelectorAll('[data-read]').forEach(b => b.onclick = () => { const r = arr(CTL.readouts).find(x => x.id === b.dataset.read); if (r) runReadout(r); });
+  P.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { delete st.readouts[b.dataset.close]; renderActive(); });
+  P.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => { const r = CTLBY[b.dataset.reset]; if (r) setControl(r, r.default, null, b); });
+}
+function switchesPanel() {
+  if (!CTL) return '';
+  const rows = arr(CTL.controls).filter(r => r.sec === 'switches'), acts = arr(CTL.actions).filter(a => a.sec === 'switches');
+  return `<div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Switches</h2><span class="acts">${actButtons(acts)}<button type="button" class="btn small" data-go="controls/switches">Every control</button></span></div>
+    <div class="swgrid">${rows.map(r => `<div class="swrow" title="${esc(r.help || '')}"><span>${esc(r.label)}${r.optin ? ' <span class="sub">(opt-in)</span>' : ''}</span>${widget(r, r.value)}</div>`).join('')}</div></div>`;
+}
+function renderControls() {
+  const P = $('p-controls');
+  if (editing(P) && document.activeElement.id !== 'cq') return;
+  if (!CTL) { P.innerHTML = '<div class="banner"><span>Reading the control registry from the game…</span></div>'; return; }
+  const secs = arr(CTL.sections);
+  if (!st.csec || !secs.some(s => s.id === st.csec)) st.csec = secs[0] && secs[0].id;
+  const S = secs.find(s => s.id === st.csec) || {}, q = st.cq.trim().toLowerCase(), all = arr(CTL.controls);
+  const rows = q ? all.filter(r => (r.label + ' ' + r.id + ' ' + (r.help || '') + ' ' + (r.verb || '')).toLowerCase().includes(q)) : all.filter(r => r.sec === S.id);
+  const count = id => all.filter(r => r.sec === id).length;
+  const changedIn = id => all.filter(r => r.sec === id && r.default != null && r.value != null && !sameVal(r.value, r.default)).length;
+  const groups = [];
+  for (const r of rows) { const g = q ? (secs.find(s => s.id === r.sec) || {}).label + (r.grp ? ' · ' + r.grp : '') : (r.grp || ''); let G = groups.find(x => x.name === g); if (!G) groups.push(G = { name: g, rows: [] }); G.rows.push(r); }
+  P.innerHTML = `<div class="ctlwrap">
+    <nav class="secnav" aria-label="Control sections">${secs.map(s => `<button type="button" data-sec="${esc(s.id)}" aria-current="${!q && s.id === S.id}" title="${esc(s.note || '')}"><span>${esc(s.label)}${s.available === false ? ' <span class="na-chip">n/a</span>' : ''}</span><span class="n">${changedIn(s.id) ? `<span style="color:var(--accent)">${changedIn(s.id)}•</span> ` : ''}${count(s.id)}</span></button>`).join('')}</nav>
+    <div style="display:grid;gap:14px;min-width:0">
+      <div class="panel" style="display:grid;gap:8px"><div class="row" style="justify-content:space-between"><span class="mono sub">${q ? 'search' : esc(S.id || '')}</span><input class="ctlsearch" id="cq" type="search" placeholder="Find a control" value="${esc(st.cq)}" aria-label="Find a control"></div>
+        <h3 style="font-family:var(--serif);font-weight:500;font-size:24px">${q ? `${rows.length} controls match` : esc(S.label || '')}</h3>
+        ${q ? '' : `<p class="sub" style="margin:0">${esc(S.note || '')}</p>${statusBox(S.status)}`}
+        <p class="sub" style="margin:0">Each change is checked against the control's range, sent as the console verb shown under it and read back from the game; the toast offers Undo (the tool's 50-step undo). A dot marks a value changed from its default.</p></div>
+      ${groups.map(G => `<div class="panel">${G.name ? `<h2>${esc(G.name)}</h2>` : ''}${G.rows.map(rowHtml).join('')}</div>`).join('') || '<div class="panel"><p class="sub" style="margin:0">No control matches.</p></div>'}
+      ${q ? '' : actionsHtml(S.id)}</div></div>`;
+  P.querySelectorAll('[data-sec]').forEach(b => b.onclick = () => { st.csec = b.dataset.sec; st.cq = ''; store.set('csec', st.csec); history.replaceState(null, '', '#controls/' + st.csec); renderControls(); kick('status'); });
+  const cq = P.querySelector('#cq');
+  cq.oninput = () => { const c = cq.selectionStart; st.cq = cq.value; renderControls(); const n = $('cq'); n.focus(); n.setSelectionRange(c, c); };
+  bindWidgets(P, id => CTLBY[id]); bindActions(P); bindLinks(P);
+}
+
+// ---------------------------------------------------------------- rendering and boot
+const PANELS = { overview: renderOverview, map: renderMap, groups: renderGroups, species: renderSpecies, web: renderWeb, seasons: renderSeasons,
+                 roster: renderRoster, waters: renderWaters, controls: renderControls, ledger: renderLedger };
+function renderPanel(tab) {
+  if (!tab || !PANELS[tab] || tab !== st.tab) return;
+  try { PANELS[tab](); } catch (e) { console.error('render ' + tab, e); $('p-' + tab).insertAdjacentHTML('afterbegin', `<div class="banner crit"><span>This tab failed to draw: ${esc(e.message)}</span></div>`); }
+}
+function renderActive() { renderPanel(st.tab); renderTabs(); }
+function renderAll() { renderChrome(); renderLayerSeg(); renderTabs(); renderPanel(st.tab); renderConn(); }
+$('q').addEventListener('input', e => { st.q = e.target.value; if (st.tab !== 'species') go('species'); else renderList(); });
+document.addEventListener('keydown', e => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  const n = +e.key; if (n >= 1 && n <= 9 && !e.metaKey && !e.ctrlKey) go(TABS[n - 1][0]); if (e.key === '0') go('ledger');
+});
+// read-only probe for the live-run kit's browser check (tests/web/live-browser.mjs): what the page holds now
+window.SWC = Object.freeze({ snapshot: () => ({ conn: CONN.state, pill: $('conn').textContent, ok: CONN.ok, date: DATE.abs_day, fort: D.fort, release: D.release,
+  dfhack: D.dfhack, mock: !!D.mock, units: arr(MAP.live && MAP.live.units).map(u => [u[0], u[1], u[2], u[3]]), groups: arr(MAP.live && MAP.live.groups).length,
+  histSeq: HIST.seq, ledSeq: LED.seq, notModified: STATS.notModified, terrain: !!(MAP.terrain && MAP.terrain.done), tab: st.tab }) });
+renderConsole();
+ingest({ fort: 'Connecting', species: [] });
+fromHash();
+tickFeeds();
+loadControls();
+})();
+</script>
