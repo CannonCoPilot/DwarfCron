@@ -1087,3 +1087,16 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   | smooth on, no reuse (fastdraw off) | 92 us | 112 us | 392 us |
   Reuse is no worse with smooth on. But with smooth on (either arm) a moving fish shows twice: the plugin's tinted copy on its tile under the water and smooth-movement's untinted gliding proxy over the water; without reuse also smeared doubles and stray squares from its lone redraws. Open for the user: make the two cooperate (swimmers drawn at smooth's interpolated offset, its proxies suppressed under water).
 - **Recorder:** `scripts/cx-record.sh SECONDS [NAME] [--crop X,Y,W,H] [--gif] [--frames N]` -> data/recordings/<time>-NAME/ (mp4, gif, PNG frames). ScreenCaptureKit (`scripts/cx-wincap.swift`, built to scripts/.bin) captures the DF window itself; ffmpeg's avfoundation screen input recorded whatever was on top (another session's terminal; that clip is to be deleted). ~30 fps at 1920x1080.
+
+### E63. Swimmers and smooth-movement cooperate (user 6 Oct: "Make the swimmers and smooth-movement cooperate now"; plugin d18d6bf)
+- **Cause (E62):** smooth-movement (stock DFHack 53.16-r2, author notliad; not modified) diffs each viewport's creature layers against their *_old copies after DF's passes and glides what moved. The plugin blanked its swimmers only during DF's pass and put them back, so smooth-movement drew them again, untinted, over the water.
+- **Now:** while smooth-movement animates a level (the view level whenever it is enabled; lower levels with `zlevel on`; read every 2 s from its status), DF's copies of the swimmers the plugin draws stay blanked until update_all returns, so smooth-movement never sees them; the plugin glides them itself with smooth-movement's timing (100 ms smoothstep; a new move starts from where the last had got to; jumps over 2 tiles snap). Under-water swimmers are tinted as before; view-level swimmers (newly drawn by the plugin while gliding) use their wet sprite (B9) over DF's main pass, under the glow: paused, plugin vs DF 0 pixels differ by more than 24. `aquarium-plugin glide auto|on|off`.
+- **Swimmer sheet:** each sprite, depth and water type drawn once into a sheet; frames copy from it (a per-frame redraw switched the render target twice, each flushing SDL's batch).
+- **Bugs found on the way (all caught by the window recorder / paused A-B):** the sheet overwrote each swimmer's screen tile with its slot (view-level fish vanished); view-level swimmers used the dry sprite.
+- **Results, FALLS, game running (b9v/smooth, recordings sm-*):**
+  | smooth-movement | swimmer layer | its lone redraws | plugin total |
+  |---|---|---|---|
+  | lower levels on (z134 / z133) | 8.4 / 20.1 us | 11.9 / 0.8 us | 117 / 65 us |
+  | main level only | 14.2 / 17.1 us | 0 | 147 / 55 us |
+  | off | 7.1 / 1.1 us | 0 | 115 / 35 us |
+  Before (E62): smooth on 56-92 us swimmers + 112-158 us lone redraws, with doubled fish. All six recordings: every swimmer tinted under the water, no untinted copies. Glide frames counted (a swimmer between tiles): 1,759 in one 6 s run. GIFs: b9v/smooth/glide-z134.gif, glide-z133.gif (not committed, 10 MB).
