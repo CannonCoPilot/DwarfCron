@@ -621,11 +621,30 @@ open_site_screen() {
     [ -n "$wname" ] || err "DF lists no world in folder '$world'"
     # DF names a world from its seed and the list is clicked by name: two worlds of one seed (FPS6 reuses seeds
     # across cells) would open whichever is listed first -- 29 Sep 2026 the pilot's survey+embark ran on region8
-    [ "$(echo "$ws" | awk -F'\t' -v n="$wname" '$2==n' | wc -l | tr -d ' ')" = 1 ] ||
-        err "world name '$wname' is shared by folders $(echo "$ws" | awk -F'\t' -v n="$wname" '$2==n {printf "%s ", $1}')-- move the others out of the save dir"
+    # A shared name (7 Oct 2026: region18 and region19 are both Smaksmo Oxdu): click the row's unique "Folder: <dir>"
+    # label instead, scrolled into view (scroll_position_region_choice; the list ignores the scroll keys), and check the
+    # folder that loaded. A folder name that prefixes another (region1 / region19) would match the wrong row: refused.
+    local nsame; nsame=$(echo "$ws" | awk -F'\t' -v n="$wname" '$2==n' | wc -l | tr -d ' ')
+    local label="World: $wname"
+    if [ "$nsame" != 1 ]; then
+        local longer; longer=$(echo "$ws" | awk -F'\t' -v f="$world" '$1!=f && index($1, f)==1 {printf "%s ", $1}')
+        [ -z "$longer" ] || err "world name '$wname' is shared and folder '$world' prefixes $longer-- move the others out of the save dir"
+        label="Folder: $world"
+    fi
     click_when_drawn "Start new game in existing world" || err "title never showed 'Start new game in existing world'"
-    click_when_drawn "World: $wname" || err "world list never showed 'World: $wname'"
+    local w=0
+    until wait_drawn "$label" 2 >/dev/null; do
+        w=$((w + 1))
+        [ "$w" -gt 15 ] && err "world list never showed '$label' (scrolled down 15 times)"
+        cmd_lua 'local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local n=#t.region_choice t.scroll_position_region_choice=math.min(math.max(n-1,0), t.scroll_position_region_choice+2) end' >/dev/null 2>&1
+        sleep 0.5
+    done
+    cmd_ui click "$label" >/dev/null 2>&1; sleep 1
     wait_state screen viewscreen_choose_game_typest 90 || err "world did not load to the game-type screen (state: $(ui_state))"
+    if [ "$nsame" != 1 ]; then
+        local got; got=$(cmd_lua "print(df.global.world.cur_savegame.save_dir)" 2>/dev/null | tr -d "\r" | tail -1)
+        [ "$got" = "$world" ] || log "WARNING: shared name '$wname': the loaded world reports folder '$got' (wanted '$world')"
+    fi
     click_when_drawn "Fortress" || err "no 'Fortress' choice"
     wait_state screen viewscreen_choose_start_sitest 60 || err "no site screen (state: $(ui_state))"
     dismiss_okay
