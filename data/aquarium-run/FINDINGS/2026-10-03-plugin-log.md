@@ -1075,3 +1075,15 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   - swimmer layer: redrawn only when a swimmer's tile, sprite or tint changes (two render-target switches, each flushing SDL's batch, per redraw): 109 us a frame with a 7 ms peak -> 6.9 us (14 us peak).
 - **Still-frame plugin cost after the pass:** 98-129 us a frame at the large water views (swaps and the surface shimmer ~45 us each), 6 us at BROOK's small pools.
 - **Stability:** no new crash log (last: 14:30, before this work); no bed-printer fault in any save; DF autosave set to NONE during the loads and restored to SEMIANNUAL; no save written (BROOK's files still 15:34).
+
+### E62. The pan band; smooth-movement with the swimmer layer; a window recorder (user 6 Oct 7.26 PM screenshots; plugin 148335b)
+- **Band:** a light band across the water every 10 tiles while panning down with 's', gone after a zoom or z change. Cause: the map's last row hangs off the screen (origin_y 4; 68 x 16 px > 1080, 27 x 40 px > 1080), so the layer held only its top 4 px; compose_shift slid it up as a cell already drawn, its lower 12 px (36 px at 40 px tiles) empty. Fix: an old cell counts only if its whole tile was in the layer; anything slid onto a cell is cleared before it is redrawn. With the old rule (composecheck debug 6, heal off): 192 tiles / 36,864 px wrong after three 10-tile steps over LAKE_RIVER's lake; fixed: 0; 24 mixed pans over the lake with the heal off: 0.
+- **Why E60/E61's checks missed it:** the checks ran a second after each move, after the 1/16-of-the-view heal had repainted the band; and `composecheck debug 4` (draw history) also redrew every cell, so the two earlier empty bottom-row tiles (after 9-tile jumps) stopped reproducing under it. Debug modes no longer change drawing; checks now run with the heal off.
+- **smooth-movement** (DFHack 53.16-r2 plugin; hooks update_all, redraws moving creatures' tiles through update_viewport_tile and draws gliding proxies): FALLS, 9 fish, game running (b9v/smooth/):
+  | arm | swimmer layer | lone tiles | plugin |
+  |---|---|---|---|
+  | smooth off, reuse | 5.8 us | 0 | 93 us |
+  | smooth on, reuse | 56 us | 158 us | 318 us |
+  | smooth on, no reuse (fastdraw off) | 92 us | 112 us | 392 us |
+  Reuse is no worse with smooth on. But with smooth on (either arm) a moving fish shows twice: the plugin's tinted copy on its tile under the water and smooth-movement's untinted gliding proxy over the water; without reuse also smeared doubles and stray squares from its lone redraws. Open for the user: make the two cooperate (swimmers drawn at smooth's interpolated offset, its proxies suppressed under water).
+- **Recorder:** `scripts/cx-record.sh SECONDS [NAME] [--crop X,Y,W,H] [--gif] [--frames N]` -> data/recordings/<time>-NAME/ (mp4, gif, PNG frames). ScreenCaptureKit (`scripts/cx-wincap.swift`, built to scripts/.bin) captures the DF window itself; ffmpeg's avfoundation screen input recorded whatever was on top (another session's terminal; that clip is to be deleted). ~30 fps at 1920x1080.
