@@ -1100,3 +1100,22 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   | main level only | 14.2 / 17.1 us | 0 | 147 / 55 us |
   | off | 7.1 / 1.1 us | 0 | 115 / 35 us |
   Before (E62): smooth on 56-92 us swimmers + 112-158 us lone redraws, with doubled fish. All six recordings: every swimmer tinted under the water, no untinted copies. Glide frames counted (a swimmer between tiles): 1,759 in one 6 s run. GIFs: b9v/smooth/glide-z134.gif, glide-z133.gif (not committed, 10 MB).
+
+### E64. B13: no tearing on 's' with the current plugin (user 6 Oct: "start B13. Evaluate first. Repair as needed. Verify in all saves of Smaksmo Oxdu."; plugin d18d6bf, unchanged)
+- **How it was pressed:** real keys, not `pantest`. `scripts/cx-mouse.py hold KEY SECONDS` (new) posts one key-down, OS-style autorepeat key-downs and the key-up; DF applies its own hold/repeat on top, so a held 's' moves the camera 10 tiles a step, about 6-7 steps a second, accelerating (19 camera moves in a 3 s hold). Taps (`key s`) are one 10-tile step. smooth-movement was on (lower levels on) throughout, as the user runs it.
+- **Three checks, each shown to fail on the old E62 band rule (`composecheck debug 6`) before its zeros were trusted:**
+  - layer check, heal off (`composecheck debug 5`), after every pan: old rule 48-80 cells wrong per pan; current 0.
+  - `bandscan.py` on every recorded frame (60 fps, ScreenCaptureKit): a step inside the tiles at one height along >= 80% of a tile row. Old rule: 272 of 345 frames banded (rows 2 and 12, split 20 px at 48 px tiles; split 36 at 40 px). Current: 0.
+  - `shiftcheck.py`: a moved frame must equal the last frame slid by whole tiles, and a still frame must not change a tile row. **It is blind to the band at 10-tile steps** (the overlap it compares misses rows 2 and 12), so it was kept only for transient faults; its hits were all explained (the hover panel over a slid map, river streaks animating, the encoder's keyframe at frame 250, and camera moves over uniform water read as still).
+- **Results (heal off for the layer checks; user's 48 px tiles unless noted):**
+  | save | water | layer checks run / wrong | recorded frames / banded |
+  |---|---|---|---|
+  | LAKE_RIVER | lake, river, murky; own level + one above | 18+8 / 0 | 2,784 / 0 |
+  | OCEAN_RIVER | river, murky, ocean; both levels | 24 / 0 | 2,436 / 0 |
+  | FALLS | river; both levels | 8 / 0 | 826 / 0 |
+  | BROOK | brook, murky; both levels | 16 / 0 | 1,648 / 0 |
+  | LAKE_RIVER, 40 px tiles | lake; both levels | 12 / 0 | 808 / 0 |
+  | BROOK, 40 px tiles | brook | 6 / 0 (its control also 0: a narrow brook rarely fills the bottom row; vacuous, so redone over the lake) | 427 / 0 |
+  Checks "not run" (18) are pans that carried all water out of view (the plugin has no plan to check, and the reader used to print the previous result; the driver now marks them) and the level above BROOK's brook, which sits under its walkable top (W7).
+- **Cost of a held 's':** a 10-tile step redraws most of the view: plugin render 1.18 ms on average per moved frame, 4.7 ms at most (compose 1.08 / 4.6 ms; bed print 0.20 / 0.30 ms on the game thread); still frames 68 us. DF's own viewports 0.85 ms a frame; GFPS ~210.
+- **State:** no crash log since 14:30; no bed-printer fault; no save written (all four saves 15:34-15:47); autosave NONE during the runs, SEMIANNUAL restored; DF left at the title, as found. Evidence and tools: data/aquarium-run/b13v/ (per-save keys.txt, control images, tools/b13save.sh, b13keys.sh, bandscan.py, shiftcheck.py).

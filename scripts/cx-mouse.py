@@ -21,6 +21,9 @@ grid is 10x16 px per tile, so tile (tx,ty) is pixel (tx*10+5, ty*16+8).
     cx-mouse.py rclick <px> <py>
     cx-mouse.py tile  <tx> <ty> [right]  click a DF tile coordinate
     cx-mouse.py key   <esc|return|space|w|a|s|d>   a real keypress
+    cx-mouse.py hold  <key> <seconds> [repeat_ms]   hold a key down, with the
+                      OS-style autorepeat a held key sends (macOS default:
+                      225 ms delay, then every 30 ms)
 """
 import subprocess
 import sys
@@ -85,6 +88,30 @@ def key(name):
     time.sleep(0.3)
 
 
+def hold(name, secs, repeat_ms=30, delay_ms=225):
+    """Hold a key the way a person does: one key-down, autorepeat key-downs
+    (flagged as repeats, which SDL reports as repeat=1) until SECS have passed,
+    then the key-up."""
+    code = KEYCODES.get(name.lower())
+    if code is None:
+        raise SystemExit(f"unknown key {name}; known: {' '.join(KEYCODES)}")
+    down = Quartz.CGEventCreateKeyboardEvent(None, code, True)
+    Quartz.CGEventPost(Quartz.kCGHIDEventTap, down)
+    t0 = time.monotonic()
+    time.sleep(delay_ms / 1000)
+    n = 0
+    while time.monotonic() - t0 < secs:
+        rep = Quartz.CGEventCreateKeyboardEvent(None, code, True)
+        Quartz.CGEventSetIntegerValueField(rep, Quartz.kCGKeyboardEventAutorepeat, 1)
+        Quartz.CGEventPost(Quartz.kCGHIDEventTap, rep)
+        n += 1
+        time.sleep(repeat_ms / 1000)
+    up = Quartz.CGEventCreateKeyboardEvent(None, code, False)
+    Quartz.CGEventPost(Quartz.kCGHIDEventTap, up)
+    time.sleep(0.3)
+    return n
+
+
 def main(argv):
     if len(argv) < 2:
         print(__doc__); return 2
@@ -99,6 +126,11 @@ def main(argv):
         print(f"{cmd} {x},{y}"); return 0
     if cmd == "key":
         activate(); key(argv[2]); print(f"key {argv[2]}"); return 0
+    if cmd == "hold":
+        secs = float(argv[3])
+        rms = int(argv[4]) if len(argv) > 4 else 30
+        activate(); n = hold(argv[2], secs, rms)
+        print(f"hold {argv[2]} {secs}s ({n} repeats)"); return 0
     if cmd == "tile":
         tx, ty = int(argv[2]), int(argv[3])
         right = len(argv) > 4 and argv[4] == "right"
