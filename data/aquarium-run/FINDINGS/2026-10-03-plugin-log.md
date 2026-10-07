@@ -1018,3 +1018,46 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - Two process slips, no harm: a map-wide Lua scan over RPC timed out (the user's game recovered; heavy scans belong in
   the plugin, memory no-polling-user-game), and one check read DF's screen buffer from the core thread (memory
   df-render-pipeline-facts).
+
+### E60. Cheaper redraws: fastdraw (user 6 Oct: "any and all slowdowns matter to me. Make all redraws cheaper."; plugin 6f8de8b)
+- **Measured first** (new `perf` stage timers, `pantest DX DY STEPS LEGS` moves the camera from the core thread):
+  BROOK cavern pools, 120x68, z26, paused. Per moved frame the bed print cost 1.37-1.47 ms (game thread), the
+  recompose 0.54-0.81 ms, the plan 0.16 ms; still, the bed print reprinted everything every 250 ms (1.4 ms spikes)
+  and a full plan rebuild ran every 60 frames (~0.8 ms spike). DF's own viewports: 8-9.5 ms a frame.
+- **DF's printer (`bedtest X0 Y0 X1 Y1 [LEVEL]`, all compared cell by cell with a full print):**
+  - it clears all 8 lower viewports every call; handed them sized 0x0 (still fully allocated) it skips that and
+    prints the same: full print 2.14 -> 1.75 ms at level 1;
+  - map_viewport min/max limit the work, but items are drawn only when min is 0,0 (both test items lost in a
+    [50,70)x[25,45) print; a [0,X)x[0,Y) block kept them). Printing the rectangle as a view of its own (corner moved
+    to its top left, min 0,0, max its size) matches the full print in every cell, items included: 20x20 126 us,
+    2x10 53 us, 1x68 79 us (full 1.7 ms). Per call ~40-160 us fixed.
+  - bit 31 of spatter_flag (ACCEPTS_SPATTER) differs between rectangle and full prints on tiles with no spatter;
+    it draws nothing there and is dropped where spatter is 0.
+- **fastdraw (default on; `fastdraw off` is the old path, for A/B):**
+  - bed print: on a pan the last print slides and only the strip that came into view is printed; standing still,
+    a rolling refresh prints a few columns a frame (at least dim_x/16) inside the box of cells with a bed at that
+    level, the whole box every 250 ms as before; nothing printed until the render thread's plan is for the camera's z;
+    a print a frame behind the plan is attached shifted.
+  - plan: on a pan the columns still in view are copied from the last plan (raw current kept as flow0); the
+    once-a-second full rebuild became a rolling check of 1/60 of the columns a frame, rebuilding only when one
+    differs; a new bed print copies the plan and re-attaches instead of rebuilding.
+  - compose: the underlay and glow layers slide by the pan (GPU copy into spare textures) and only cells that came
+    into view or differ (under_same / glow_same / rim mask) are cleared and redrawn; after a pan, a heal pass redraws
+    the layers dim_x/16 columns a frame once still.
+  - every frame: per-level cell lists (by_top) replace whole-plan loops in the swaps and the cavern darkening; the
+    darkening is one SDL_RenderFillRects per darkness; learn_water runs on a new plan or every 30 frames; the
+    creature layer is skipped when no swimmer is drawn, and otherwise clears/copies only its tiles.
+- **Bug found and fixed on the way:** SDL trims a source rectangle that overhangs the texture but still fills the
+  whole destination, stretching it. The map's last row runs past the screen (origin_y 4, 68 x 16 px > 1080), so the
+  first slides came out squashed (69k-113k pixels off). `copy_rect` trims both sides 1:1; the existing lone-tile
+  copies of the underlay, glow and creature layers had the same flaw at the bottom row and use it too.
+- **Exactness (`composecheck now`: the slid/patched layers read back against a full compose of the same plan):**
+  0 differing pixels after 5 single moves and 3 pans (cave), 6 pans (murky pool with the test barrel and logs; river
+  with the glow layer), then 12 + 30 mixed pans across the three sites, then 12 more with healing; twice before
+  that (of ~60 pans) one tile drawn on the frame of a 9-tile jump came out empty, never reproduced with the draw
+  history on (`composecheck debug 4`); the heal pass covers it. fastdraw off: 0 in 6.
+- **Result, per moved frame (cave, two alternating pairs):** plugin render 0.90-1.00 -> 0.22-0.23 ms, bed print
+  1.37-1.40 -> 0.25 ms: ~2.3 -> ~0.47 ms. Still: own render 73 -> ~30-40 us a frame (swaps 15.7 -> 9.8, cavern
+  darkening 47.7 -> 17.8, learn 2.9 -> 0.3); the 1.4 ms bed spike became ~0.15-0.25 ms rolling calls (total -40%
+  at the cave, -90% at the murky pool); the 0.8 ms plan spike is gone (plan max 42 us; 0 rebuilds in 6 s still).
+- The user's GFPS in these views (42-56) is DF's own: `depth off` gave the same.
