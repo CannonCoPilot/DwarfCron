@@ -1125,3 +1125,33 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
 - **Changes:** (1) the layers are wrapped on the map: map cell (x, y) lives at (x mod dim_x, y mod dim_y) of a layer of whole tiles, placed on screen in up to four copies; a pan of any size draws only cells whose map place or look changed, nothing slides; whole tiles also retire the E62 band class. (2) a bed tile sheet: each distinct bed tile (level, floor, ramp/decoration, DF's items) drawn once by DF's drawer, then one copy per cell (103-165 distinct tiles at the lake; 107,710 hits to 207 draws). (3) SDL_RenderGeometry: a pass's copies, clears and tints each go in one draw call. (4) the heal pass is removed: it caused 5-12 ms still-frame spikes after every pan, and with exact incremental drawing nothing needs repair (every check below ran without it). (5) cells empty on a layer before and after are skipped (above a lake the glow layer is never touched).
 - **Exact:** `composecheck` (reference: full compose drawn directly by DF, never the sheet) 0 differing pixels in 44 real-key pans ('s','w','a','d'; lake z35 and z36); screen after pans vs a fresh redraw: 0 tiles off in 8 structured views (the control, the same view one tile off, flags 68-163 tiles; over open lake it flags none, so those views were not used).
 - **Cost, LAKE_RIVER lake, 3 s held 's' + 2.5 s still, 3 alternations old (d18d6bf) / new:** plugin time over the window z36 90-105 -> 71-87 ms, z35 64-70 -> 52-70 ms; still frames 34-52 -> 22-27 us; worst still frame 0.3-6.2 ms -> 0.05-0.12 ms. Moved frames' worst (4-7 ms) is DF's own queued drawing flushed at the plugin's first switch, not plugin work. Wall time per camera move: DF alone 6.8-7.1 ms, with the plugin 7.2-7.9 ms (+0.3-0.6 ms, noisy); every frame on average 4.3-4.6 ms with the plugin against 5.7 ms without it (the plugin's swaps spare DF its own water drawing).
+
+### E66. B14: big swimmers whole (plugin af19a05)
+- A big creature is a 3 x 2 block: its tile plus parts in the neighbours' side layers (left_creature at x-1, right_creature at x+1, upleft/up/upright on the row above; probed on LAKE_RIVER's Jaekelopterus, unit 10013). The plugin took only the centre; DF drew the five parts untinted over the water and smooth-movement glid them while the centre waited. Now the parts are learned with the centre (seen_parts by race/caste), blanked with it (deferred while gliding), and drawn as swimmer picks at the neighbour tiles with the centre's tint and glide. One level above: whole body tinted; gliding as one body (smooth-movement flip + zlevel on); own level plugin vs DF 0 px > 24 (max 18).
+- probe crashed DF (6 Oct 23:35): `std::string("screentexpos").substr(13)` threw out_of_range into the render thread on a creature's tile. Fixed; DF restarted by the rig on port 5100 (AirPlay holds 5000).
+
+### E67. B15: lakes are lakes (plugin bd7b16b, rc 4c50356)
+- DF sets perm_flow_dir on lake water too (LAKE_RIVER: every non-stagnant tile, lake region and river alike; Shortsling: Lake-region SOIL tiles with currents 1-10) and leaves it inactive on many rivers. The renderer, the plugin's scan_water and the tool's Lua scan all took a current as river evidence. Now a river is DF's RIVER/BROOK tiles at the column's top or bed, or falling water. Shortsling: lake 1,436 / river 39,789 -> lake 39,102 / river 2,123 (sampled RIVER tiles x16 ~ 2,200). Smaksmo Oxdu saves unchanged (their lake current is "down", already ignored).
+- River tiles carry a heading (RiverE, RiverN, ...) that agrees with DF's current where both are known: the fallback for a river's flow.
+
+### E68. W4: river flow as drifting dashes (plugin bd7b16b)
+- Each river cell (surface, not a brook) launches a soft dash 3 cells in 5, drifting along the cell's smoothed heading (fang: continuous degrees from the existing channel-axis smoothing) over a 2.6 s life and 1.7 tiles, cut where it would leave the river; one SDL_RenderGeometry call. First try (0.62-tile dashes, 1-2 per cell) read as rain under Shortsling's rain; kept: 0.95 tile, alpha streaks x 1.5.
+
+### E69. W5: pools (plugin 6a78bf4, 5a04757, 54d7a79)
+- plan_cell::wt (tint class): bed family, or TINT_POOL / TINT_CAVE / TINT_SEA. Seen from above, the water's colour was DF's own translucent sprite on the first water level (liquid_flag at k = top); for pool/cave/sea water it is dropped and under_alpha() folds a "veil" into the under-water tint (1 - (1-a)^n (1-v)), so the colour sits under DF's level (a first version veiled DF's whole level and dimmed canopies). Pool: #3c6438 alpha 90 veil 70 (olive read as mud flat once the sheet went). Pool shimmer: the lake web at 55%, colour-modded green.
+- Shallow view-level water (1-3/7, B5): DF draws the real floor under it and a bright near-opaque sprite; the sprite is dropped (not on falling water) and the glow tint is the water. Test puddle (59 tiles on grass, unsaved): grass visible.
+
+### E70. Bed art (plugin 0df63e9, 6c72e46)
+- bed_art_at(): by water kind and levels over the bed, chances x a value-noise cluster field (cell 5); DF's own sheets (see decisions). plan_cell::art drawn as its own sheet tile after the water tint with a third of the swimmers' multiply (vertex colour), so its colours survive (coral pink-red). same_cells now compares every new field.
+
+### E71. W7: brooks (plugin a4f686a)
+- BROOK_TOP is see-through to the plan; the existing sheet-level swap blanks DF's top sprite; the bed is BROOK page 0-3,0 (DF's pebbles under water); surface kind 0 ripple, no dashes. BROOK: 1,084 surfaces under a roof -> drawn.
+
+### E72. W6 caverns, W8 falls (plugin 5a04757)
+- Cavern water TINT_CAVE #4a5238 alpha 100 veil 110, no shimmer; canopies over the lake stay bright. W8: no change (DF's falling column reads as falling water; the light-blue far below is the plunge pool 17 levels down, past the 8-level reach); falling water exempt from the shallow rule.
+
+### E73. W1: one-way sea (plugin 6c72e46)
+- Sea runs (kind 3) draw one web sliding toward the land of the view's shore edges (mean land side of foam edges; last heading kept). Measured +34/-28 px in 3 s toward an E/NE shore.
+
+### E74. W2: sea colour; review (plugin 6c72e46)
+- TINT_SEA #0b8088 alpha 88 veil 50 (DF's sea sprite dropped): turquoise, light over sand shallows, darker with depth; the subtle version (DF's sheet kept) left coral grey. Crests and landing swash reviewed running (867-1,098 fronts after ~300 ticks; this 768x768 fort runs ~11 ticks/s): unchanged.
