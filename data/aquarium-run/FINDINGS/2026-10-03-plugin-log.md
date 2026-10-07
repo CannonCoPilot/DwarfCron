@@ -1062,3 +1062,16 @@ shimmer and river streaks (in the plugin, on by default); the Lua overlay stands
   at the cave, -90% at the murky pool); the 0.8 ms plan spike is gone (plan max 42 us; 0 rebuilds in 6 s still).
 - The user's GFPS in these views (42-56) is DF's own: `depth off` gave the same.
 - **Refresh halved (user 6 Oct: "yes, refresh every half second"; plugin 57e8ea7):** the rolling bed refresh covers the box every 500 ms. Murky pool, still: 33 print calls in 356 frames (was 50 in 265 at 250 ms), ~154 us each; both test items captured.
+
+### E61. B9-B12 re-checked in Smaksmo Oxdu; efficiency and stability pass (user 6 Oct: "B7 and B8 passed, B9-B12 probably just need a quick verification ... code efficiency, stability, and applied uniformity across all saves"; plugin a008b65)
+- **Driver** (session scratchpad b9check.sh) per save: `aquarium-plugin audit` (new: every water surface on the map planned from the level above it), bed survey picks, each pick viewed at the water's own level and one above (status, `composecheck now`, screenshot), a 20-step pan with `perf`. Evidence: data/aquarium-run/b9v/<save>/.
+- **Audit, all four saves:** every visible surface planned with top at the surface (LAKE_RIVER lake 23,296 + river 3,583; OCEAN_RIVER sea 21,752, lake 364, river 1,905; FALLS river 960; BROOK lake 710). B10: OCEAN_RIVER's 656 sea driftwood beds all hidden, 0 wrong. B12: branches over water 2,466 / 2,544 / 696 / 406, all 0 wrong. Only problem: 6 air gaps inside FALLS' falling column (48,119-122, z129-133): plan_column stops at a non-water tile under the first water, DF draws those (its flat falling-water look, the same with `depth off`; W9/W10). Brooks sit under their walkable tops (1,084 "under a roof"; W7). Caverns are unexplored in the saved games (hidden).
+- **B9:** wet copies made with none waiting wherever sprites stand in view-level water (LAKE_RIVER murky 5, OCEAN_RIVER river/murky 8-9, FALLS river 11; 1,700-5,100 swaps); murky ramps at their own level carry the water tone (b9v/b9-brook-murky.png, b9-ocean-murky.png).
+- **B11:** items on beds come from DF's own print since E58; no body parts lie in water in these saves.
+- **Pixel checks:** every view in every save 0 differing pixels (slid/patched layers against a full compose).
+- **Efficiency fixes found on the way** (a 4,352-cell lake view and FALLS' 9 fish):
+  - the post-pan heal redrew 1/16 of the view a frame (~0.5 ms a frame, 16 frames; still-frame peak 3.7 ms): now only the cells drawn during the pan, 64 a frame (peak 0.34 ms);
+  - full compose: view-level tint/darkening and the underlay depth tint as one SDL_RenderFillRects per colour, pixel-identical (4.5 -> 3.1-4.2 ms; the rest is DF drawing each bed tile);
+  - swimmer layer: redrawn only when a swimmer's tile, sprite or tint changes (two render-target switches, each flushing SDL's batch, per redraw): 109 us a frame with a 7 ms peak -> 6.9 us (14 us peak).
+- **Still-frame plugin cost after the pass:** 98-129 us a frame at the large water views (swaps and the surface shimmer ~45 us each), 6 us at BROOK's small pools.
+- **Stability:** no new crash log (last: 14:30, before this work); no bed-printer fault in any save; DF autosave set to NONE during the loads and restored to SEMIANNUAL; no save written (BROOK's files still 15:34).
