@@ -1,0 +1,170 @@
+<title>Smaksmo Oxdu Season Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f4f2ec; --panel:#fbfaf6; --ink:#1d2321; --ink2:#4c5552; --muted:#7a827e; --rule:#d9d6cc;
+  --accent:#1f6b6b; --accent-soft:#dbe9e6; --warn:#a4561a; --ok:#2f7a3a;
+  --s1:#2a78d6; --s2:#eb6834; --grid:#e3e0d7;
+  --display:"Alegreya SC", Georgia, serif; --body:"Alegreya Sans", "Gill Sans", "Segoe UI", sans-serif; --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ color-scheme:dark;
+    --bg:#141917; --panel:#1b2220; --ink:#e7ebe8; --ink2:#b9c2be; --muted:#8c9692; --rule:#2f3a37;
+    --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --grid:#26302d; }
+}
+:root[data-theme="dark"]{ color-scheme:dark;
+  --bg:#141917; --panel:#1b2220; --ink:#e7ebe8; --ink2:#b9c2be; --muted:#8c9692; --rule:#2f3a37;
+  --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --grid:#26302d; }
+body{background:var(--bg);color:var(--ink);font:17px/1.55 var(--body);}
+main{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:2.3rem;line-height:1.1}
+h2{font-size:1.6rem;border-bottom:1px solid var(--rule);padding-bottom:6px}
+h3{font-size:1.15rem;margin-top:10px;color:var(--accent)}
+p{margin:0;max-width:68ch}
+.lede{color:var(--ink2);font-size:1.08rem}
+.eyebrow{font:600 .78rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header{display:grid;gap:10px}
+section{display:grid;gap:12px}
+code{font:.86em var(--mono);background:var(--accent-soft);padding:1px 5px;border-radius:3px}
+.tw{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{padding:6px 10px;text-align:left;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{font:600 .74rem/1.2 var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:last-child td{border-bottom:0}
+table.demo td:first-child{font-weight:500}
+table.sum th{white-space:normal;vertical-align:bottom}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:720px){.pair{grid-template-columns:1fr}}
+.where{color:var(--muted);font-size:.92rem}
+.note{color:var(--ink2);font-size:.95rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpis div{display:grid;gap:2px;padding:8px 12px;border-left:3px solid var(--accent);background:var(--panel)}
+.kpis b{font:600 1.2rem var(--mono);font-variant-numeric:tabular-nums}
+.kpis span{font-size:.82rem;color:var(--muted)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:.88rem;color:var(--ink2)}
+.legend .sw{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.sw.s1{background:var(--s1)} .sw.s2{background:var(--s2)}
+figure{margin:0}
+.chart{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px}
+.chart svg{display:block;width:100%;height:auto}
+.chart .grid{stroke:var(--grid);stroke-width:1}
+.chart .tick{fill:var(--muted);font:11px var(--mono)}
+.chart .season{stroke:var(--accent);stroke-dasharray:3 3;stroke-width:1}
+.chart .season-lab{fill:var(--accent)}
+.chart .line{fill:none;stroke-width:2;stroke-linejoin:round}
+.chart .line.s1{stroke:var(--s1)} .chart .line.s2{stroke:var(--s2)}
+.chart .end{stroke:var(--panel);stroke-width:2} .chart .end.s1{fill:var(--s1)} .chart .end.s2{fill:var(--s2)}
+.chart .cross{stroke:var(--ink2);stroke-width:1;stroke-dasharray:2 2}
+.chart .hit{fill:transparent;cursor:crosshair}
+.tip{position:absolute;top:8px;pointer-events:none;background:var(--ink);color:var(--bg);font:12px/1.4 var(--mono);padding:6px 8px;border-radius:4px;white-space:nowrap}
+details{border:1px solid var(--rule);border-radius:6px;background:var(--panel);padding:6px 12px}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500}
+details[open]>summary{margin-bottom:8px}
+details .tw{border:0}
+.flow{font-size:.9rem;line-height:1.8;color:var(--ink2)}
+.flow b{color:var(--ink);font-weight:500}
+.quotes{margin:0;padding-left:18px;font-size:.9rem;color:var(--ink2);display:grid;gap:6px}
+.quotes b{font:600 .78rem var(--mono);color:var(--accent);margin-right:6px}
+.findings{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.findings li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:10px 12px;background:var(--panel);border:1px solid var(--rule);border-radius:6px}
+.pill{font:600 .72rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.pill.fixed{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.pill.open{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.note{background:var(--accent-soft);color:var(--accent)}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.shots img{border-radius:6px;border:1px solid var(--rule);display:block;width:100%;image-rendering:pixelated}
+.shots figcaption{font-size:.88rem;color:var(--ink2);margin-top:6px}
+@media (max-width:640px){.shots{grid-template-columns:1fr}}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.92rem}
+nav.toc a{color:var(--accent)}
+a{color:var(--accent)}
+a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+<main>
+<header>
+  <span class="eyebrow">Seasonal Wildlife 7.2 &middot; test item 1 &middot; 7 October 2026</span>
+  <h1>Smaksmo Oxdu Season Test</h1>
+  <p class="lede">Four 16x16 forts in Smaksmo Oxdu (region19) and the 6x6 waterfall fort you embarked (Whitepaged), each run from
+  mid-spring through the change into summer with every Seasonal Wildlife feature on at its defaults, <code>reveal</code> applied and
+  30 dwarves. An in-game recorder logged every creature that is not a citizen every 100 game ticks: who arrived, left, fought,
+  killed and died, and where. The tool's own ledger and roster were dumped at the end of each run.</p>
+  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#falls">Waterfall look</a>
+  <a href="#t1_ocean_river">River + ocean</a><a href="#t1_lake_river">Lake + river</a><a href="#t1_brook">Brook</a><a href="#t1_falls">River drop</a><a href="#falls_2">Waterfall</a></nav>
+</header>
+
+<section id="summary">
+  <h2>Summary</h2>
+  <p class="note">Every fort reached summer with all 30 dwarves alive. The river + ocean fort is its second attempt: the first lost every
+  dwarf to cavern jabberers the tool teleported to the surface (finding 1). Cavern-surface teleports counts units that moved between a
+  cavern and the surface more than 15 levels within 1,000 ticks, faster than any can walk.</p>
+  {{SUMMARY}}
+</section>
+
+<section id="findings">
+  <h2>Findings</h2>
+  <ul class="findings">
+    <li><span class="pill fixed">Fixed</span><p><b>The ecology nudge teleported cavern predators to the surface.</b> With "livestock as prey"
+    on (enable turns the opt-ins on), the nudge let the fort's own animals through its same-realm check. Cavern-2 jabberers and crundles
+    were moved ~80 levels up beside them; the jabberers struck down all 30 dwarves in late spring on the first river + ocean fort. Now the
+    nudge never moves a unit out of its realm (seasonal-wildlife e494d331). Cavern-surface teleports: 9 on that attempt, 0 on every fort since.</p></li>
+    <li><span class="pill fixed">Fixed</span><p><b>Waterfall streaks ran several ways at once, and the falling water looked like dry ground.</b>
+    Each lip tile pointed at its nearest top and the river's dashes crossed them; the falling water had no cell of its own, so through DF's
+    translucent sprite it showed the gorge floor. Now one heading per edge, true diagonals, and a white-water curtain over the falling
+    tiles (seasonal-wildlife 749384b). See <a href="#falls">Waterfall look</a>.</p></li>
+    <li><span class="pill note">Works</span><p><b>The season change rotates the roster as designed.</b> On summer 1 every fort applied
+    the summer roster; 14-28 summer species per fort had no stock left in the world, and each handed its niche to an off-season
+    species of the same layer and role (on the waterfall fort: troll &rarr; molemarian, hippo &rarr; tigerfish, jaguar &rarr; hyena).
+    Seasons lent in spring (9-105 per fort) went back. Details under each fort's <i>The season change</i>.</p></li>
+    <li><span class="pill note">Works</span><p><b>The waterfall fort ran clean.</b> 30 of 30 dwarves into summer, one cat lost, a median
+    86 fps (lowest 54), 108 arrivals (64 surface, 44 caverns), 30 deaths, 24 of them in the caverns; molemarians the top killers (13).
+    No unit moved between a cavern and the surface.</p></li>
+    <li><span class="pill fixed">Fixed</span><p><b>Departures were unnamed in this morning's tables.</b> When DF drops a unit from its
+    unit list the recorder logs it as <code>?</code>, because it is already gone. The analysis now names each one from its earlier
+    record (all 1,403 resolved), drops removals of the already dead (4) and keeps DF's underworld demons out by race. This page uses the
+    corrected numbers; the per-fort summaries are regenerated.</p></li>
+    <li><span class="pill open">Open</span><p><b>Frame rate on 16x16 forts.</b> Median 18-29 fps with lows of 1-4,
+    against 86 on the 6x6 fort. The tool's worst pass was 543 ms on the waterfall fort. For tuning.</p></li>
+    <li><span class="pill open">Open</span><p><b>Minks drown in the lake in a loop.</b> The water layer draws minks into the lake at the map
+    edge (5 levels deep); its balance and feed weights multiply the species x20 while the role is missing, each one drowns, and the role
+    stays missing. 55 minks drowned on the lake fort. Ospreys drown too, 2-4 per fort. For test item 4.</p></li>
+    <li><span class="pill open">Open</span><p><b>The cavern gate cannot hold DF's waves.</b> The cap is 5 groups per cavern; the ledger shows
+    23-31 groups in cavern 2 while the gate sends off one gated wave a pass. For test item 2.</p></li>
+    <li><span class="pill open">Open</span><p><b>The brook fort's water census lists no brook</b> (23 rivers, 282 pools), so whether the brook
+    rule (small freshwater animals only) saw it is unverified. For test item 4.</p></li>
+    <li><span class="pill note">Note</span><p><b>An 11-level river drop is not a waterfall.</b> The river-drop fort (picked from region
+    elevations) came down in steps: no surface mist, no falling column. The waterfall fort here is the one you embarked.</p></li>
+  </ul>
+</section>
+
+<section id="falls">
+  <h2>Waterfall look</h2>
+  <p class="note">Whitepaged's falls, the view at level 64. The river comes in from the north over a lip and pours south into a gorge;
+  DF's digits are the water depth (7 full). Both frames are from the live game.</p>
+  {{SHOTS}}
+</section>
+
+{{FORTS}}
+</main>
+<script>
+document.querySelectorAll('figure.chart').forEach(function(fig){
+  var pts = JSON.parse(fig.dataset.series), x0 = +fig.dataset.x0, x1 = +fig.dataset.x1, top = +fig.dataset.top;
+  var svg = fig.querySelector('svg'), hit = fig.querySelector('.hit'), cross = fig.querySelector('.cross'), tip = fig.querySelector('.tip');
+  var L = 44, W = 560, R = 12;
+  function lab(d){ return d < 84 ? 'spring ' + Math.floor(d + 1) : 'summer ' + Math.floor(d - 83); }
+  function move(ev){
+    var r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * W;
+    var day = x0 + (sx - L) / (W - L - R) * (x1 - x0), best = pts[0];
+    pts.forEach(function(p){ if (Math.abs(p[0] - day) < Math.abs(best[0] - day)) best = p; });
+    var x = L + (best[0] - x0) / Math.max(1e-9, x1 - x0) * (W - L - R);
+    cross.setAttribute('x1', x); cross.setAttribute('x2', x);
+    tip.hidden = false;
+    tip.textContent = lab(best[0]) + ' · wild ' + best[1] + ' · in groups ' + best[2] + ' · ' + best[3] + ' fps';
+    var px = x / W * r.width; tip.style.left = Math.min(Math.max(px - 80, 4), r.width - 230) + 'px';
+  }
+  hit.addEventListener('mousemove', move);
+  hit.addEventListener('mouseleave', function(){ tip.hidden = true; cross.setAttribute('x1', -10); cross.setAttribute('x2', -10); });
+});
+</script>

@@ -2,12 +2,12 @@
 
 ## On the map at the start
 
-- **wild** (119): HIPPO 37, FISH_TIGERFISH 30, MAGMA_CRAB 20, FISH_MILKFISH 11, FISH_CARP 10, DEMON_16 5, RIVER OTTER 2, FISH_STINGRAY 2, ALLIGATOR 2
+- **wild** (114): HIPPO 37, FISH_TIGERFISH 30, MAGMA_CRAB 20, FISH_MILKFISH 11, FISH_CARP 10, RIVER OTTER 2, FISH_STINGRAY 2, ALLIGATOR 2
 - **wild-group** (134): CRUNDLE 57, BUGBAT 20, POND_GRABBER 13, FLESH_BALL 8, CAVE_BLOB 7, TROGLODYTE 5, BIRD_RAVEN 5, RIVER OTTER 4, TROLL 3, TOAD_GIANT_CAVE 2, MOLE_GIANT 2, CROCODILE_CAVE 2, BLOOD_MAN 2, REACHER 1, PANGOLIN 1, OLM_GIANT 1, BLACK_MAMBA 1
 - **pet/livestock** (11): DOG 3, CAT 2, YAK 1, RABBIT 1, LLAMA 1, GOAT 1, ELEPHANT 1, BIRD_GUINEAFOWL 1
 - **invader** (1): SPIDER_CAVE_GIANT 1
 - **other** (94): OLM_MAN 51, CAVE_SWALLOW_MAN 23, SERPENT_MAN 20
-- underworld residents (z <= 8, sealed): DEMON_17 6, DEMON_16 5, DEMON_11 3, DEMON_1 2, DEMON_4 2
+- underworld residents (sealed: DEMON_ races, or z <= 8): DEMON_16 10, DEMON_17 6, DEMON_11 3, DEMON_1 2, DEMON_4 2
 
 ## Arrivals during the run
 
@@ -45,7 +45,6 @@
 | BIRD_OSPREY | wild-group | surface | 5 | spring d58 |
 | POND_GRABBER | wild-group | underground | 5 | spring d60 |
 | BLACK_MAMBA | wild-group | surface | 4 | spring d37 |
-| DEMON_17 | wild | underground | 4 | spring d38 |
 | FISH_STINGRAY | wild-group | surface | 4 | spring d44 |
 | BIRD_OWL_BARN | wild-group | surface | 3 | spring d38 |
 | CAMEL_1_HUMP | wild-group | surface | 3 | spring d72 |
@@ -55,7 +54,6 @@
 | RATTLESNAKE | wild | surface | 3 | spring d56 |
 | BIRD_OWL_GREAT_HORNED | wild | surface | 2 | spring d62 |
 | BIRD_RAVEN | wild | surface | 2 | spring d62 |
-| DEMON_20 | wild | underground | 2 | spring d55 |
 | ELEMENTMAN_MUD | wild-group | underground | 2 | spring d66 |
 | IGUANA | wild | surface | 2 | spring d44 |
 | IMP_FIRE | wild | underground | 2 | spring d84 |
@@ -67,7 +65,6 @@
 | BIRD_FALCON_PEREGRINE | wild-group | surface | 1 | spring d39 |
 | BLIND_CAVE_BEAR | wild-group | underground | 1 | summer d2 |
 | COUGAR | wild | surface | 1 | spring d38 |
-| DEMON_16 | wild | underground | 1 | spring d77 |
 | HELMET_SNAKE | wild | underground | 1 | summer d1 |
 | HELMET_SNAKE | wild-group | underground | 1 | summer d1 |
 | IGUANA | wild-group | surface | 1 | spring d78 |
@@ -75,11 +72,11 @@
 | RATTLESNAKE | wild-group | surface | 1 | spring d78 |
 | WEASEL | wild-group | surface | 1 | spring d44 |
 
-Underworld residents that appeared (DF's own, below the seal): DEMON_20 17, DEMON_17 13, DEMON_5 11, DEMON_4 10, DEMON_1 6, DEMON_11 3
+Underworld residents that appeared (DF's own, below the seal): DEMON_20 19, DEMON_17 17, DEMON_5 11, DEMON_4 10, DEMON_1 6, DEMON_11 3, DEMON_16 1
 
 ## Departures
 
-358 left the map (0 came back later). ? (wild-group) 262, ? (wild) 90, RIVER OTTER (wild-group) 4, ? (invader) 1, DEMON_17 (wild) 1
+307 left the map (0 came back later). RIVER OTTER (wild-group) 79, CROCODILE_CAVE (wild-group) 43, CRUNDLE (wild-group) 28, HIPPO (wild) 22, IMPALA (wild-group) 15, BUGBAT (wild-group) 11, MAGMA_CRAB (wild) 11, CAMEL_1_HUMP (wild-group) 10, BIRD_EAGLE (wild-group) 9, GORLAK (wild-group) 7, ALLIGATOR (wild-group) 6, BLACK_MAMBA (wild-group) 6, HYENA (wild-group) 6, FLESH_BALL (wild-group) 5, TROGLODYTE (wild-group) 4, BIRD_OWL_BARN (wild-group) 4, REACHER (wild-group) 4, BLOOD_MAN (wild-group) 4, BIRD_RAVEN (wild-group) 4, BIRD_STORK_WHITE (wild-group) 4, CAVE_BLOB (wild-group) 3, RIVER OTTER (wild) 2, ALLIGATOR (wild) 2, MONITOR_LIZARD (wild-group) 2, ELEMENTMAN_FIRE (wild) 2, JABBERER (wild-group) 2, TROLL (wild-group) 1, COUGAR (wild-group) 1, SPIDER_CAVE_GIANT (invader) 1, IGUANA (wild-group) 1, MANERA (wild-group) 1, BIRD_FALCON_PEREGRINE (wild-group) 1, FISH_TIGERFISH (wild) 1, OLM_GIANT (wild-group) 1, POND_GRABBER (wild-group) 1, RATTLESNAKE (wild-group) 1, CAMEL_2_HUMP (wild-group) 1, WEASEL (wild-group) 1
 
 ## Deaths
 

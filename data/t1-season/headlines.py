@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """One block of headline numbers per fort for the test item 1 report: headlines.py DIR [DIR...]"""
 import collections, csv, re, sys
+from analyze import fill_removed
 UZ = 8
 def read(p):
     with open(p, newline='', encoding='cp437') as f:
         return [r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()]
 for d in sys.argv[1:]:
-    ev, s = read(d + '/events.tsv'), read(d + '/samples.tsv')
-    und = lambda x: x['z'] not in ('-1', '') and int(x['z']) <= UZ and x['layer'] == 'underground'
+    ev, s = fill_removed(read(d + '/events.tsv')), read(d + '/samples.tsv')
+    und = lambda x: x['race'].startswith('DEMON_') or (x['z'] not in ('-1', '') and int(x['z']) <= UZ and x['layer'] == 'underground')
     ev = [x for x in ev if not und(x)]
     c = collections.Counter(x['event'] for x in ev)
     die = [x for x in ev if x['event'] == 'DIE']
     k = collections.Counter()
     for x in die:
-        m = re.search(r'killer (\S+)', x['detail']); k[m.group(1) if m else '?'] += 1
+        m = re.search(r'killer (.+?)(?: #\d+)?$', x['detail']); k[m.group(1) if m else '?'] += 1
     arr = [x for x in ev if x['event'] == 'ARRIVE']
     top = collections.Counter(x['race'] for x in arr).most_common(8)
     pets = collections.Counter(x['race'] for x in die if x['kind'] == 'pet/livestock')

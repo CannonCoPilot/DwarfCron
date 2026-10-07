@@ -22,6 +22,25 @@ def read(path):
         return [r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()]
 
 
+def fill_removed(ev):
+    """A unit DF drops from its unit vector is logged LEAVE with race '?' (it is gone when the recorder looks): name it, and
+    place it, from the unit's last earlier event. A dead unit's removal is DF clearing the body, not a departure: drop it."""
+    last, dead, out = {}, set(), []
+    for r in ev:
+        if r['event'] == 'LEAVE' and r['race'] == '?':
+            if r['id'] in dead:
+                continue
+            k = last.get(r['id'])
+            if k:
+                r = dict(r, **{f: k[f] for f in ('race', 'caste', 'kind', 'x', 'y', 'z', 'layer')})
+        elif r['race'] not in ('?', ''):
+            last[r['id']] = r
+        if r['event'] == 'DIE':
+            dead.add(r['id'])
+        out.append(r)
+    return out
+
+
 def when(t):
     t = int(t)
     yt = t % TPY
@@ -33,7 +52,7 @@ def main():
     uz = 8
     if '--underworld-z' in sys.argv:
         uz = int(sys.argv[sys.argv.index('--underworld-z') + 1])
-    ev = read(os.path.join(d, 'events.tsv'))
+    ev = fill_removed(read(os.path.join(d, 'events.tsv')))
     smp = read(os.path.join(d, 'samples.tsv'))
     rep = read(os.path.join(d, 'reports.tsv'))
     out = []
@@ -42,7 +61,7 @@ def main():
     t0, t1 = int(smp[0]['tick']), int(smp[-1]['tick'])
     W('# %s: animal activity, %s to %s (%d ticks, %d samples every 100 ticks)' % (name, when(t0), when(t1), t1 - t0, len(smp)))
     W('')
-    under = lambda r: r['z'] not in ('-1', '') and int(r['z']) <= uz and r['layer'] == 'underground'
+    under = lambda r: r['race'].startswith('DEMON_') or (r['z'] not in ('-1', '') and int(r['z']) <= uz and r['layer'] == 'underground')
     pres = [r for r in ev if r['event'] == 'PRESENT']
     W('## On the map at the start')
     W('')
@@ -53,7 +72,7 @@ def main():
             W('- **%s** (%d): %s' % (kind, sum(n for n, _ in rows), ', '.join('%s %d' % (race, n) for n, race in rows)))
     u0 = collections.Counter(r['race'] for r in pres if under(r))
     if u0:
-        W('- underworld residents (z <= %d, sealed): %s' % (uz, ', '.join('%s %d' % kv for kv in u0.most_common())))
+        W('- underworld residents (sealed: DEMON_ races, or z <= %d): %s' % (uz, ', '.join('%s %d' % kv for kv in u0.most_common())))
     W('')
     W('## Arrivals during the run')
     W('')
@@ -87,7 +106,7 @@ def main():
         W('| %s | %s | %s | %s | %s |' % (when(r['tick']), r['race'], r['kind'], r['layer'] + (' (underworld)' if under(r) else ''), r['detail']))
     kills = collections.Counter()
     for r in die:
-        m = re.search(r'killer (\S+)', r['detail'])
+        m = re.search(r'killer (.+?)(?: #\d+)?$', r['detail'])
         if m and m.group(1) != 'none':
             kills[(m.group(1), r['race'])] += 1
     if kills:
