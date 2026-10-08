@@ -110,13 +110,13 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
 </style>
 <main>
 <header>
-  <span class="eyebrow">Seasonal Wildlife 7.2 &middot; test item 1 &middot; 7 October 2026</span>
+  <span class="eyebrow">Seasonal Wildlife 7.2 &middot; test item 1 &middot; 7 October 2026 &middot; v7.3 season-cast runs 8 October</span>
   <h1>Smaksmo Oxdu Season Test</h1>
   <p class="lede">Four 16x16 forts in Smaksmo Oxdu (region19) and the 6x6 waterfall fort you embarked (Whitepaged), each run from
   mid-spring through the change into summer with every Seasonal Wildlife feature on at its defaults, <code>reveal</code> applied and
   30 dwarves. An in-game recorder logged every creature that is not a citizen every 100 game ticks: who arrived, left, fought,
   killed and died, and where. The tool's own ledger and roster were dumped at the end of each run.</p>
-  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#questions">Your questions</a><a href="#falls">Waterfall look</a>
+  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#v73">v7.3 season casts</a><a href="#questions">Your questions</a><a href="#falls">Waterfall look</a>
   <a href="#t1_ocean_river">River + ocean</a><a href="#t1_lake_river">Lake + river</a><a href="#t1_brook">Brook</a><a href="#t1_falls">River drop</a><a href="#falls_2">Waterfall</a></nav>
 </header>
 
@@ -139,10 +139,14 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     Each lip tile pointed at its nearest top and the river's dashes crossed them; the falling water had no cell of its own, so through DF's
     translucent sprite it showed the gorge floor. Now one heading per edge, true diagonals, and a white-water curtain over the falling
     tiles (seasonal-wildlife 749384b). See <a href="#falls">Waterfall look</a>.</p></li>
-    <li><span class="pill note">Works</span><p><b>The season change rotates the roster as designed.</b> On summer 1 every fort applied
-    the summer roster; 14-28 summer species per fort had no stock left in the world, and each handed its niche to an off-season
-    species of the same layer and role (on the waterfall fort: troll &rarr; molemarian, hippo &rarr; tigerfish, jaguar &rarr; hyena).
-    Seasons lent in spring (9-105 per fort) went back. Details under each fort's <i>The season change</i>.</p></li>
+    <li><span class="pill fixed">Fixed</span><p><b>Corrected (8 Oct): the summer-1 hand-overs were a timing bug, not exhaustion.</b>
+    This page first read them as the roster working: on summer 1, 14-28 summer species per fort showed no stock and handed their niche to
+    an off-season species (waterfall fort: troll &rarr; molemarian, hippo &rarr; tigerfish, jaguar &rarr; hyena). Those species were not
+    exhausted. They were resting at 0, with their stock in the tool's reserve. The exhaustion check runs every 300 ticks and the season's
+    apply, which gives that stock back, runs once a day. On every fort the check reached summer first: every season-change hand-over is
+    logged before &ldquo;Summer roster applied&rdquo; and none after it. The stand-ins then held the niche all season. Now the check waits
+    for the season's apply (seasonal-wildlife 6e1ffb2). Hand-overs in mid-spring (0-15 per fort) were real exhaustion. Seasons lent in
+    spring (9-105 per fort) went back as designed.</p></li>
     <li><span class="pill note">Works</span><p><b>The waterfall fort ran clean.</b> 30 of 30 dwarves into summer, one cat lost, a median
     86 fps (lowest 54), 108 arrivals (64 surface, 44 caverns), 30 deaths, 24 of them in the caverns; molemarians the top killers (13).
     No unit moved between a cavern and the surface.</p></li>
@@ -163,6 +167,28 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     elevations) came down in steps: no surface mist, no falling column. The waterfall fort here is the one you embarked.</p></li>
   </ul>
 </section>
+
+<section id="v73">
+  <h2>v7.3 season casts: first runs</h2>
+  <p class="note">v7.3 makes the cast the season's roster: per layer and season a small set grown from a high-value seed (your ruling of 7 October: the pool is not the roster), every other species resting. These runs check that arrivals follow the cast. <i>Groups</i> come from the tool's ledger: a tool draw (water) or a DF wave the tool found (land, caverns). <i>Units</i> come from the recorder and include births. A <i>stand-in</i> is a species the exhaustion check handed a cast member's niche.</p>
+  <p class="note"><b>Result.</b> Arrivals follow the cast. On the two runs with the fixed engine (the waterfall fort into winter, the new brook fort into summer), every land and water arrival and all but one cavern arrival belonged to its season's cast. The exceptions were a troll 291 ticks after the change and DF's embark-time residents, which were sent off at once. At each change the tool sent off the groups whose species left the cast (10-13 a change). The first run found a bug: at autumn 1 the exhaustion check ran before the season's apply and handed 17 of the 22 autumn cast species' niches to out-of-cast stand-ins for the whole season. That is fixed (seasonal-wildlife 6e1ffb2), and the same bug explains the summer-1 hand-overs in test item 1 (corrected under Findings). Still open: 10 giant wrens on the waterfall fort in summer, a winter-only species, source pending.</p>
+  <h3>Waterfall fort, summer &rarr; autumn</h3>
+  <p class="note">The waterfall fort from test item 1, its casts rebuilt in summer (<code>cast rebuild</code>), run into autumn on the first v7.3 engine. Ledger groups are from the end-of-run dump, which holds only the tool's newest 300 entries: the run's first weeks are missing from that column.</p>
+<div class="tw"><table class=""><thead><tr><th>season</th><th>layer</th><th>brought by</th><th class="n">groups: in the cast</th><th class="n">stand-in</th><th class="n">off the cast</th><th class="n">units: cast + stand-in</th></tr></thead><tbody><tr><td>Summer</td><td>land</td><td>DF</td><td class="n">10</td><td class="n">0</td><td class="n"><b>10</b></td><td class="n">40 + 0 of 50</td></tr><tr><td>Summer</td><td>water</td><td>tool</td><td class="n">22</td><td class="n">0</td><td class="n">0</td><td class="n">51 + 0 of 51</td></tr><tr><td>Summer</td><td>cavern</td><td>DF</td><td class="n">93</td><td class="n">0</td><td class="n">0</td><td class="n">212 + 0 of 212</td></tr><tr><td>Autumn</td><td>land</td><td>DF</td><td class="n">0</td><td class="n">1</td><td class="n">0</td><td class="n">0 + 1 of 1</td></tr><tr><td>Autumn</td><td>water</td><td>-</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">0 + 3 of 3</td></tr><tr><td>Autumn</td><td>cavern</td><td>DF</td><td class="n">0</td><td class="n">2</td><td class="n">0</td><td class="n">0 + 2 of 2</td></tr></tbody></table></div>
+<ul class="gap"><li>Summer land: GIANT_WREN x10 (DF); from the held entry #3634 (54,25), cast only in winter; source pending: the ledger dump lost the run&#x27;s first 33 days, and a departure refund was measured not to reopen the entry (extinct stays set)</li><li>Autumn cavern: GORLAK x2 (DF); stand-in for MANERA</li><li>Autumn land: BIRD_OWL_GREAT_HORNED x1 (DF); stand-in for BIRD_OWL_BARN</li></ul>
+  <p class="note">Hand-overs logged before their season's apply: <b>20 (Autumn 20)</b>. Groups sent off at a season change because their species left the cast: 10 group(s) of species not cast this season sent off (GIANT TORTOISE, WILD_BOAR, WILD_BOAR, CROCODILE_CAVE, GIANT TORTOISE, CROCODILE_CAVE, CROCODILE_CAVE, CROC. Relation pairs the tool wrote: 30 species pairs; DF's own at the end: 10.</p>
+  <h3>Waterfall fort, autumn &rarr; winter</h3>
+  <p class="note">The same fort run on into winter after the exhaustion fix (seasonal-wildlife 6e1ffb2). Its autumn ran on the stand-ins the bug had put in at autumn 1. Ledger groups are from the end-of-run dump, which holds only the tool's newest 300 entries: the run's first weeks are missing from that column.</p>
+<div class="tw"><table class=""><thead><tr><th>season</th><th>layer</th><th>brought by</th><th class="n">groups: in the cast</th><th class="n">stand-in</th><th class="n">off the cast</th><th class="n">units: cast + stand-in</th></tr></thead><tbody><tr><td>Autumn</td><td>land</td><td>DF</td><td class="n">8</td><td class="n">5</td><td class="n">0</td><td class="n">11 + 14 of 27</td></tr><tr><td>Autumn</td><td>water</td><td>tool</td><td class="n">6</td><td class="n">12</td><td class="n">0</td><td class="n">15 + 34 of 49</td></tr><tr><td>Autumn</td><td>cavern</td><td>DF</td><td class="n">0</td><td class="n">83</td><td class="n">0</td><td class="n">0 + 184 of 184</td></tr><tr><td>Winter</td><td>land</td><td>DF</td><td class="n">4</td><td class="n">0</td><td class="n">0</td><td class="n">4 + 0 of 4</td></tr><tr><td>Winter</td><td>water</td><td>tool</td><td class="n">4</td><td class="n">0</td><td class="n">0</td><td class="n">4 + 0 of 4</td></tr><tr><td>Winter</td><td>cavern</td><td>DF</td><td class="n">25</td><td class="n">0</td><td class="n">0</td><td class="n">25 + 0 of 25</td></tr></tbody></table></div>
+<ul class="gap"><li>Autumn cavern: CRUNDLE x74 (DF); stand-in for REACHER</li><li>Autumn cavern: GORLAK x9 (DF); stand-in for MANERA</li><li>Autumn land: BLACK_MAMBA x3 (DF); stand-in for RATTLESNAKE</li><li>Autumn land: BIRD_OWL_GREAT_HORNED x2 (DF); stand-in for BIRD_OWL_BARN</li><li>Autumn water: RIVER OTTER x12 (the tool's draw); stand-in for DEVONIAN_TIKTAALIK</li></ul>
+  <p class="note">Hand-overs logged before their season's apply: <b>none</b>. Groups sent off at a season change because their species left the cast: 12 group(s) of species not cast this season sent off (FISH_MILKFISH, GORLAK, BIRD_STORK_WHITE, BIRD_STORK_WHITE, BIRD_STORK_WHITE, GORLAK, GORLAK, GORLAK, BIRD_. Relation pairs the tool wrote: 35 species pairs; DF's own at the end: 7.</p>
+  <h3>New 2x2 brook fort, spring &rarr; summer</h3>
+  <p class="note">A fresh 2x2 embark on region19 (21,22, marsh and brook): casts built at enable, the fixed engine and the live ledger from the start.</p>
+<div class="tw"><table class=""><thead><tr><th>season</th><th>layer</th><th>brought by</th><th class="n">groups: in the cast</th><th class="n">stand-in</th><th class="n">off the cast</th><th class="n">units: cast + stand-in</th></tr></thead><tbody><tr><td>Spring</td><td>land</td><td>DF</td><td class="n">28</td><td class="n">0</td><td class="n">0</td><td class="n">28 + 0 of 28</td></tr><tr><td>Spring</td><td>water</td><td>tool</td><td class="n">5</td><td class="n">0</td><td class="n">0</td><td class="n">5 + 0 of 5</td></tr><tr><td>Spring</td><td>cavern</td><td>DF</td><td class="n">72</td><td class="n">0</td><td class="n"><b>6</b></td><td class="n">72 + 0 of 72</td></tr><tr><td>Summer</td><td>land</td><td>DF</td><td class="n">17</td><td class="n">0</td><td class="n">0</td><td class="n">17 + 0 of 17</td></tr><tr><td>Summer</td><td>water</td><td>-</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">1 + 0 of 1</td></tr><tr><td>Summer</td><td>cavern</td><td>DF</td><td class="n">0</td><td class="n">0</td><td class="n"><b>1</b></td><td class="n">23 + 0 of 24</td></tr></tbody></table></div>
+<ul class="gap"><li>Spring cavern: HUNGRY_HEAD x6 (DF); DF&#x27;s embark-time cavern residents, found on the first pass and sent off at once as not cast this season (not a wave)</li><li>Summer cavern: TROLL x1 (DF); a spring species arriving 291 ticks into summer: the caverns&#x27; hold is set by the daily tick, so a boundary leaves up to a day at the old odds</li></ul>
+  <p class="note">Hand-overs logged before their season's apply: <b>none</b>. Groups sent off at a season change because their species left the cast: 1 group(s) of species not cast this season sent off (HUNGRY_HEAD); 13 group(s) of species not cast this season sent off (TROLL, ALLIGATOR SNAPPING TURTLE, BUGBAT, BUGBAT, BUGBAT, BUGBAT, BUGBAT, TROLL, TROLL, TROLL, ALLIGATOR S. Relation pairs the tool wrote: 9 species pairs; DF's own at the end: 0.</p>
+</section>
+
 
 <section id="questions" class="qa">
   <h2>Your questions</h2>
@@ -223,7 +249,7 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     <li><b>Every active species gets a season.</b> Each role group (realm, habitat, role) is sorted by climate and dealt one season per
     species in quarters, so each season gets about a quarter of the active roster. The rules forbid a species with no season.</li>
     <li><b>Additions on top.</b> The pair guarantee (up to 4 a group), vermin defaults (3-4 seasons each), exhaustion hand-overs
-    (14-28 a fort at summer) and water season spill each add seasons.</li>
+    (14-28 a fort at summer, all of them the timing bug in the findings) and water season spill each add seasons.</li>
     <li>Arrivals follow the roster: in spring 7-13 cavern species arrived on each fort. Every cavern arrival was an in-season roster
     species, or one the roster leaves unassigned (blood men, mud men: 17-26% of cavern arrivals), which the tool never holds back. No
     off-season cavern species arrived.</li>

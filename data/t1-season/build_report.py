@@ -254,6 +254,8 @@ def main():
     page = page.replace('{{GAP_FIG}}', gap).replace('{{SEASON_COUNTS}}', counts)
     np_ = os.path.join(HERE, 'natives.part.html')
     page = page.replace('{{NATIVES}}', open(np_).read() if os.path.exists(np_) else '')
+    vp = os.path.join(HERE, 'v73.part.html')
+    page = page.replace('{{V73}}', open(vp).read() if os.path.exists(vp) else '')
     page = page.replace('{{SHOTS}}', shots)
     page = page.replace('{{FORTS}}', '\n'.join(fort_section(fid, name, where, save, data[fid]) for fid, name, where, save in FORTS if fid in data))
     open(sys.argv[1], 'w').write(page)

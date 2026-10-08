@@ -110,13 +110,13 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
 </style>
 <main>
 <header>
-  <span class="eyebrow">Seasonal Wildlife 7.2 &middot; test item 1 &middot; 7 October 2026</span>
+  <span class="eyebrow">Seasonal Wildlife 7.2 &middot; test item 1 &middot; 7 October 2026 &middot; v7.3 season-cast runs 8 October</span>
   <h1>Smaksmo Oxdu Season Test</h1>
   <p class="lede">Four 16x16 forts in Smaksmo Oxdu (region19) and the 6x6 waterfall fort you embarked (Whitepaged), each run from
   mid-spring through the change into summer with every Seasonal Wildlife feature on at its defaults, <code>reveal</code> applied and
   30 dwarves. An in-game recorder logged every creature that is not a citizen every 100 game ticks: who arrived, left, fought,
   killed and died, and where. The tool's own ledger and roster were dumped at the end of each run.</p>
-  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#questions">Your questions</a><a href="#falls">Waterfall look</a>
+  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#v73">v7.3 season casts</a><a href="#questions">Your questions</a><a href="#falls">Waterfall look</a>
   <a href="#t1_ocean_river">River + ocean</a><a href="#t1_lake_river">Lake + river</a><a href="#t1_brook">Brook</a><a href="#t1_falls">River drop</a><a href="#falls_2">Waterfall</a></nav>
 </header>
 
@@ -139,10 +139,14 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     Each lip tile pointed at its nearest top and the river's dashes crossed them; the falling water had no cell of its own, so through DF's
     translucent sprite it showed the gorge floor. Now one heading per edge, true diagonals, and a white-water curtain over the falling
     tiles (seasonal-wildlife 749384b). See <a href="#falls">Waterfall look</a>.</p></li>
-    <li><span class="pill note">Works</span><p><b>The season change rotates the roster as designed.</b> On summer 1 every fort applied
-    the summer roster; 14-28 summer species per fort had no stock left in the world, and each handed its niche to an off-season
-    species of the same layer and role (on the waterfall fort: troll &rarr; molemarian, hippo &rarr; tigerfish, jaguar &rarr; hyena).
-    Seasons lent in spring (9-105 per fort) went back. Details under each fort's <i>The season change</i>.</p></li>
+    <li><span class="pill fixed">Fixed</span><p><b>Corrected (8 Oct): the summer-1 hand-overs were a timing bug, not exhaustion.</b>
+    This page first read them as the roster working: on summer 1, 14-28 summer species per fort showed no stock and handed their niche to
+    an off-season species (waterfall fort: troll &rarr; molemarian, hippo &rarr; tigerfish, jaguar &rarr; hyena). Those species were not
+    exhausted. They were resting at 0, with their stock in the tool's reserve. The exhaustion check runs every 300 ticks and the season's
+    apply, which gives that stock back, runs once a day. On every fort the check reached summer first: every season-change hand-over is
+    logged before &ldquo;Summer roster applied&rdquo; and none after it. The stand-ins then held the niche all season. Now the check waits
+    for the season's apply (seasonal-wildlife 6e1ffb2). Hand-overs in mid-spring (0-15 per fort) were real exhaustion. Seasons lent in
+    spring (9-105 per fort) went back as designed.</p></li>
     <li><span class="pill note">Works</span><p><b>The waterfall fort ran clean.</b> 30 of 30 dwarves into summer, one cat lost, a median
     86 fps (lowest 54), 108 arrivals (64 surface, 44 caverns), 30 deaths, 24 of them in the caverns; molemarians the top killers (13).
     No unit moved between a cavern and the surface.</p></li>
@@ -163,6 +167,8 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     elevations) came down in steps: no surface mist, no falling column. The waterfall fort here is the one you embarked.</p></li>
   </ul>
 </section>
+
+{{V73}}
 
 <section id="questions" class="qa">
   <h2>Your questions</h2>
@@ -190,7 +196,7 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
     <li><b>Every active species gets a season.</b> Each role group (realm, habitat, role) is sorted by climate and dealt one season per
     species in quarters, so each season gets about a quarter of the active roster. The rules forbid a species with no season.</li>
     <li><b>Additions on top.</b> The pair guarantee (up to 4 a group), vermin defaults (3-4 seasons each), exhaustion hand-overs
-    (14-28 a fort at summer) and water season spill each add seasons.</li>
+    (14-28 a fort at summer, all of them the timing bug in the findings) and water season spill each add seasons.</li>
     <li>Arrivals follow the roster: in spring 7-13 cavern species arrived on each fort. Every cavern arrival was an in-season roster
     species, or one the roster leaves unassigned (blood men, mud men: 17-26% of cavern arrivals), which the tool never holds back. No
     off-season cavern species arrived.</li>
