@@ -55,77 +55,99 @@ def demo_bars(species, n=12):
     return legend([('s%d' % (j + 1), lab) for j, (_, lab) in enumerate(MEASURES)]) + '<figure class="fig">%s<div class="tip" hidden></div></figure>' % svg
 
 
-def kill_graph(kills, species, max_edges=40):
-    """directed weighted graph: killer -> victim, edge width by kills; node area by kills made + deaths; colour by layer"""
-    ks = [k for k in kills if k['killer'] not in ('none', '?')][:max_edges]
-    if not ks:
-        return '<p class="note">No kills with a named killer.</p>'
-    layer = {s['race']: s['layer'] for s in species}
-    edges, made, lost = {}, {}, {}
-    for k in ks:
-        edges[(k['killer'], k['victim'])] = edges.get((k['killer'], k['victim']), 0) + k['n']
-        made[k['killer']] = made.get(k['killer'], 0) + k['n']
-        lost[k['victim']] = lost.get(k['victim'], 0) + k['n']
-    nodes = sorted(set(made) | set(lost))
-    # circle: surface species on the left arc, cavern species on the right; within each, connected species sit together
-    # (ordered by their strongest partner) so most arcs stay short; labels sit outside the ring
-    W, H = 960, 600
-    cx, cy, Rr, Ry = W / 2, H / 2, 290, 235
-    def order(group):
-        left, out_ = set(group), []
-        while left:
-            n = max(left, key=lambda m: made.get(m, 0) + lost.get(m, 0))
-            out_.append(n); left.discard(n)
-            while True:
-                nb = [(w, b if a == n else a) for (a, b), w in edges.items() if n in (a, b) and (b if a == n else a) in left]
-                if not nb:
-                    break
-                n = max(nb)[1]; out_.append(n); left.discard(n)
-        return out_
-    surf = order([n for n in nodes if layer.get(n) != 'underground'])
-    cav = order([n for n in nodes if layer.get(n) == 'underground'])
-    ring = surf + cav
-    gapn = 1 if surf and cav else 0
-    slots = len(ring) + 2 * gapn
-    ang = {}
-    for i, n in enumerate(surf):
-        ang[n] = math.pi / 2 + (i + 0.5 + gapn * 0.5) * 2 * math.pi / slots
-    for i, n in enumerate(cav):
-        ang[n] = math.pi / 2 + (len(surf) + gapn + i + 0.5 + gapn * 0.5) * 2 * math.pi / slots
-    XY = {n: (cx + Rr * math.cos(a), cy - Ry * math.sin(a)) for n, a in ang.items()}
-    wmax = max(edges.values())
-    big = max(made.get(n, 0) + lost.get(n, 0) for n in nodes)
-    rad = {n: 3.5 + 8 * math.sqrt((made.get(n, 0) + lost.get(n, 0)) / big) for n in nodes}
-    out = ['<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">'
-           '<path d="M0 0L10 5L0 10z" class="arrow"/></marker></defs>']
-    for (a, b), w in sorted(edges.items(), key=lambda kv: kv[1]):
-        sw = 0.8 + 6 * math.sqrt(w / wmax)
-        tip = '%s killed %s: %d' % (name(a), name(b), w)
+HAB = [('land', 's1', 'land'), ('amphibious', 's4', 'amphibious'), ('water', 's3', 'water'), ('cavern', 's2', 'caverns')]
+
+
+def kill_graph(kills, species, pairs=None, max_edges=45):
+    """the food web on the map: species round a ring (land, amphibious, water, caverns), arrows from predator to prey.
+    Edge source: 'tool' = a pair the tool wrote (ecology pairs), 'df' = a pair live in DF's relation table that the tool
+    never wrote, 'kill' = a kill with no logged relation. Width: kills (DF's death records). Click a node to pick out its
+    edges. With no pair log (runs before v7.3) every edge is a kill."""
+    hab = {s['race']: s.get('habitat', 'land') for s in species}
+    EDG = {}
+    for k in kills:
+        if k['killer'] in ('none', '?'):
+            continue
+        e = EDG.setdefault((k['killer'], k['victim']), {'kills': 0, 'src': 'kill'})
+        e['kills'] += k['n']
+    if pairs:
+        for p in pairs:
+            a, b = p['predator'], p['prey']
+            if p['source'] == 'tool':
+                EDG.setdefault((a, b), {'kills': 0, 'src': 'tool'})['src'] = 'tool'
+        for p in pairs:
+            if p['source'] == 'live-df':
+                a, b = p['predator'], p['prey']
+                key = (a, b) if (a, b) in EDG or (b, a) not in EDG else (b, a)
+                e = EDG.setdefault(key, {'kills': 0, 'src': 'df'})
+                if e['src'] != 'tool':
+                    e['src'] = 'df'
+    if not EDG:
+        return '<p class="note">No kills with a named killer and no relation pairs.</p>'
+    top = sorted(EDG.items(), key=lambda kv: (-(kv[1]['src'] == 'tool'), -kv[1]['kills']))[:max_edges]
+    edges = dict(top)
+    made, lost = {}, {}
+    for (a, b), e in edges.items():
+        made[a] = made.get(a, 0) + e['kills']; lost[b] = lost.get(b, 0) + e['kills']
+    nodes = set(made) | set(lost)
+    order = []
+    for h, _, _ in HAB:
+        grp = sorted((n for n in nodes if hab.get(n, 'land') == h), key=lambda n: (-(made.get(n, 0) + lost.get(n, 0)), n))
+        order += grp
+    W, H = 960, 620
+    cx, cy, Rx, Ry = W / 2, H / 2, 290, 245
+    N = max(len(order), 1)
+    ang = {n: math.pi / 2 + (i + 0.5) * 2 * math.pi / N for i, n in enumerate(order)}
+    XY = {n: (cx + Rx * math.cos(a), cy - Ry * math.sin(a)) for n, a in ang.items()}
+    wmax = max([e['kills'] for e in edges.values()] + [1])
+    big = max([made.get(n, 0) + lost.get(n, 0) for n in order] + [1])
+    rad = {n: 4 + 8 * math.sqrt((made.get(n, 0) + lost.get(n, 0)) / big) for n in order}
+    out = ['<defs>' + ''.join('<marker id="ah-%s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" '
+                              'orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrow %s"/></marker>' % (c, c)
+                              for c in ('tool', 'df', 'kill')) + '</defs>']
+    for (a, b), e in sorted(edges.items(), key=lambda kv: kv[1]['kills']):
+        sw = 1.0 + 6 * math.sqrt(e['kills'] / wmax) if e['kills'] else 0.9
+        what = {'tool': 'a pair the tool wrote', 'df': 'a pair DF set (the tool never wrote it)', 'kill': 'a kill with no logged relation'}[e['src']]
+        tip = '%s > %s: %s; %d kill(s)' % (name(a), name(b), what, e['kills'])
         if a == b:
             x, y = XY[a]
-            ox, oy = (x - cx) / Rr, (y - cy) / Ry
-            out.append('<circle class="edge" cx="%.1f" cy="%.1f" r="10" stroke-width="%.1f" data-tip="%s"/>' % (x + ox * (rad[a] + 9), y + oy * (rad[a] + 9), sw, E(tip)))
+            ox, oy = (x - cx) / Rx, (y - cy) / Ry
+            out.append('<circle class="edge %s" data-a="%s" data-b="%s" cx="%.1f" cy="%.1f" r="10" stroke-width="%.1f" data-tip="%s"/>' % (
+                e['src'], E_(a), E_(b), x + ox * (rad[a] + 9), y + oy * (rad[a] + 9), sw, E(tip)))
             continue
         (x1, y1), (x2, y2) = XY[a], XY[b]
-        # a quadratic curve pulled toward the centre; it stops at the victim's rim
         mx, my = cx + ((x1 + x2) / 2 - cx) * 0.25, cy + ((y1 + y2) / 2 - cy) * 0.25
         dd = max(math.hypot(x2 - mx, y2 - my), 1)
         ex, ey = x2 - (x2 - mx) / dd * (rad[b] + 3), y2 - (y2 - my) / dd * (rad[b] + 3)
-        out.append('<path class="edge" d="M%.1f %.1f Q%.1f %.1f %.1f %.1f" stroke-width="%.1f" marker-end="url(#ah)" data-tip="%s"/>'
-                   % (x1, y1, mx, my, ex, ey, sw, E(tip)))
-    for n in nodes:
+        out.append('<path class="edge %s" data-a="%s" data-b="%s" d="M%.1f %.1f Q%.1f %.1f %.1f %.1f" stroke-width="%.1f" '
+                   'marker-end="url(#ah-%s)" data-tip="%s"/>' % (e['src'], E_(a), E_(b), x1, y1, mx, my, ex, ey, sw, e['src'], E(tip)))
+    cls = {h: c for h, c, _ in HAB}
+    for n in order:
         x, y = XY[n]
-        cls = 's2' if layer.get(n) == 'underground' else 's1'
-        tip = '%s (%s): killed %d, killed by others %d' % (name(n), 'caverns' if cls == 's2' else 'surface', made.get(n, 0), lost.get(n, 0))
-        out.append('<circle class="node %s" cx="%.1f" cy="%.1f" r="%.1f" data-tip="%s"/>' % (cls, x, y, rad[n], E(tip)))
+        h = hab.get(n, 'land')
+        tip = '%s (%s): killed %d, killed by others %d' % (name(n), dict((k, l) for k, _, l in HAB)[h], made.get(n, 0), lost.get(n, 0))
+        out.append('<g class="nd" data-n="%s" tabindex="0" role="button" aria-label="%s"><circle class="node %s" cx="%.1f" cy="%.1f" r="%.1f" data-tip="%s"/>' % (
+            E_(n), E(name(n)), cls[h], x, y, rad[n], E(tip)))
         a = ang[n]
-        lx, ly = cx + (Rr + rad[n] + 8) * math.cos(a), cy - (Ry + rad[n] + 8) * math.sin(a)
+        lx, ly = cx + (Rx + rad[n] + 8) * math.cos(a), cy - (Ry + rad[n] + 8) * math.sin(a)
         anchor = 'start' if math.cos(a) > 0.15 else ('end' if math.cos(a) < -0.15 else 'middle')
-        out.append('<text class="nlab" x="%.1f" y="%.1f" text-anchor="%s">%s</text>' % (lx, ly + 4, anchor, E(name(n))))
-    svg = '<svg viewBox="0 0 %d %d" role="img" aria-label="Kill network: arrows from killer to victim, thicker for more kills">%s</svg>' % (W, H, ''.join(out))
-    return (legend([('s1', 'surface species'), ('s2', 'cavern species')]) +
-            '<p class="note">Arrows run from killer to victim; the thicker the line, the more kills. Surface species fill the left of the ring, cavern species the right; a circle\'s size is the kills it made '
-            'plus its losses. Top %d pairs by kills; hover for numbers.</p><figure class="fig">%s<div class="tip" hidden></div></figure>' % (len(ks), svg))
+        out.append('<text class="nlab" x="%.1f" y="%.1f" text-anchor="%s">%s</text></g>' % (lx, ly + 4, anchor, E(name(n))))
+    svg = '<svg viewBox="0 0 %d %d" role="img" aria-label="Food web: arrows from predator to prey, thicker for more kills">%s</svg>' % (W, H, ''.join(out))
+    srcs = {e['src'] for e in edges.values()}
+    leg = [(c, l) for h, c, l in HAB if any(hab.get(n, 'land') == h for n in order)]
+    eleg = ''.join('<span><i class="ln %s"></i>%s</span>' % (k, t) for k, t in
+                   (('tool', 'pair the tool wrote'), ('df', 'pair DF set itself'), ('kill', 'kill, no logged relation')) if k in srcs)
+    note = ('Arrows run from predator to prey; width is kills. ' +
+            ('The tool logged its relation writes on this run, so every edge is marked by who set it. ' if pairs else
+             'This run predates v7.3: the tool did not log which pairs it wrote, so every edge is a kill from DF\'s death records, '
+             'and which of them followed a tool-written relation cannot be told apart. ') +
+            'Click a species to pick out its edges; click it again to clear.')
+    return (legend([(c, l) for c, l in leg]) + '<div class="legend">%s</div>' % eleg +
+            '<p class="note">%s</p><figure class="fig web">%s<div class="tip" hidden></div></figure>' % (note, svg))
+
+
+def E_(t):
+    return html.escape(t, quote=True)
 
 
 def timeline(days, d0, d1):
@@ -202,9 +224,8 @@ def timeline(days, d0, d1):
             '<figure class="fig tl" data-rows=\'%s\' data-l="%d" data-w="%d" data-bw="%.4f">%s<div class="tip" hidden></div></figure>' % (data, L, W, bw, svg))
 
 
-GAP = [('grouped', 's1', 'in the tool\'s groups'), ('demons', 's2', 'DF\'s underworld demons'), ('magma', 's3', 'magma-sea life'),
-       ('sponge', 's4', 'sponges (placed like plants)'), ('native', 's5', 'here before the tool loaded, not adopted'),
-       ('other', 's6', 'other ungrouped')]
+GAP = [('grouped', 's1', 'in the tool\'s groups'), ('native', 's2', 'here before the tool loaded, not adopted'),
+       ('sponge', 's3', 'sponges (placed like plants)'), ('other', 's4', 'other ungrouped')]
 
 
 def gap_bars(rows):

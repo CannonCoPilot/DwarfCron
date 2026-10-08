@@ -1,0 +1,33 @@
+  <h3 id="natives">Land natives, water natives: what happened to the river fish</h3>
+  <p class="note"><b>Correction.</b> My first answer (river fish file as land natives because rivers are not water features) was
+  wrong. A probe of every wild animal in the water on three end saves (waterfall, lake + river, ocean + river) shows what really
+  happens.</p>
+  <ul class="gap">
+    <li><b>Where a wild animal comes from.</b> Every wild animal DF puts on the map belongs to a <i>population</i>: a region's
+    population (land animals), a <i>feature's</i> population (water animals: on all three forts every water animal, river or lake,
+    points at feature 0 of type <code>outdoor_river</code>), or a cave's population (cavern animals). The tool reads a unit's
+    layer from that source: a feature means <b>water</b>, a cave means <b>cavern</b>, anything else <b>land</b>. So the river fish
+    are water animals to the tool, correctly.</li>
+    <li><b>Natives and waves in DF.</b> DF stocks the map once at embark (the <i>natives</i>), then sends more from the map edge
+    over time (the <i>waves</i>, each unit flagged <code>roaming_wilderness_population_source</code>, which is how DF knows to
+    send it away again). The probe found that DF's embark <b>fish</b> carry that wave flag too: the waterfall's carp, milkfish,
+    tigerfish and stingrays, the lake fort's sturgeon and alligator. Its embark otters and turtles do not.</li>
+    <li><b>Natives and waves in the tool.</b> The tool takes a wild animal into its groups in one of two ways. <i>Discovery</i>
+    takes every flagged DF wave, but skips any whose source is a water feature, because DF sends no water waves in play (finding
+    E20). <i>Adoption</i> takes unflagged natives: in the caverns always, in the water always (<code>seeded_water</code>), on land only
+    with <code>natives_land</code> on (off by default). A flagged fish from a water feature is neither: discovery skips it for its
+    source, adoption skips it for its flag. That is the whole gap: 37 on the waterfall, 64 on the river drop, 2 on the lake fort.</li>
+    <li><b>Why the lake fort had so few.</b> Not because lakes differ: its water animals at embark were few (8). Everything else in
+    its water was the tool's own draws, which join a group the moment they are placed.</li>
+    <li><b>Ocean + river.</b> Two sources, two gaps. River (and lake) animals come from the river feature, as above: an embark
+    fish carries the wave flag and falls between discovery and adoption. Sea animals are different: an earlier probe (F14, the
+    OCEAN test fort) found that ocean life has <i>no</i> feature index; it comes from the ocean tile's own surface entries, so the
+    tool reads a sea fish's source as <b>land</b>, and an unflagged one is a land native, which is not adopted while
+    <code>natives_land</code> is off. On the ocean + river fort no native fish were left at the end to show either case (its water
+    held the tool's draws, all grouped, and 50 sponges); its embark otters were unflagged river natives and were adopted.</li>
+    <li><b>Land natives</b> are the land animals DF placed at embark (unflagged). DF leaves them be: they wander and stay. The tool
+    leaves them as DF's (no group, no leader, never sent off) unless <code>natives_land</code> is on.</li>
+  </ul>
+  <p class="note"><b>The fix (in the v7.3 build).</b> Under season casts only cast species may be on the map, so natives can no
+  longer be left as DF's. Every native, on every managed layer and with or without the flag, is adopted into a group at load;
+  a native of a species not in the season's cast is sent off with the season's other off-cast groups.</p>

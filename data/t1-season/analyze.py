@@ -19,7 +19,20 @@ SEASONS = ['spring', 'summer', 'autumn', 'winter']
 def read(path):
     with open(path, newline='', encoding='cp437') as f:
         # a file copied while the recorder writes can end in a half line: drop rows with a missing field
-        return [r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()]
+        return norm([r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()])
+
+
+def norm(rows):
+    """recorders from 7 Oct evening write the tool's layer for wild animals (land, water, cavern, deep): keep it as 'tlayer' and
+    map 'layer' back to the old surface/underground, with deep at z 0 so every underworld test catches it"""
+    for r in rows:
+        L = r.get('layer')
+        if L in ('land', 'water', 'cavern', 'deep'):
+            r['tlayer'] = L
+            r['layer'] = 'surface' if L in ('land', 'water') else 'underground'
+            if L == 'deep':
+                r['z'] = '0'
+    return rows
 
 
 def fill_removed(ev):

@@ -59,13 +59,20 @@ figure{margin:0}
 .fig .bar.s4{fill:var(--s4)} .fig .bar.s5{fill:var(--s5)} .fig .bar.s6{fill:var(--s6)} .fig .bar.ink{fill:var(--ink2)}
 .fig .line{fill:none;stroke-width:2;stroke-linejoin:round} .fig .line.s1{stroke:var(--s1)} .fig .line.s2{stroke:var(--s2)}
 .fig .line.s3{stroke:var(--s3)} .fig .line.ink{stroke:var(--ink2)} .fig .line.dash{stroke-dasharray:5 3}
-.fig .node{stroke:var(--panel);stroke-width:1.5}
+.fig .node{stroke:var(--panel);stroke-width:1.5} .fig .node.s3{fill:var(--s3)} .fig .node.s4{fill:var(--s4)}
+.fig .edge.tool{stroke:var(--ink2);stroke-opacity:.5} .fig .edge.df{stroke:var(--warn);stroke-opacity:.75;stroke-dasharray:5 3}
+.fig .edge.kill{stroke:var(--muted);stroke-opacity:.45}
+.fig .arrow.tool{fill:var(--ink2)} .fig .arrow.df{fill:var(--warn)} .fig .arrow.kill{fill:var(--muted)}
+.fig.web .nd{cursor:pointer} .fig.web.picked .edge{opacity:.08} .fig.web.picked .edge.hi{opacity:1;stroke-opacity:1}
+.fig.web.picked .nd{opacity:.35} .fig.web.picked .nd.hi{opacity:1} .fig.web .nd:focus-visible{outline:none} .fig.web .nd:focus-visible circle{stroke:var(--accent);stroke-width:3}
+.legend .ln{display:inline-block;width:18px;height:0;border-top:2px solid var(--ink2);vertical-align:middle;margin-right:6px}
+.legend .ln.df{border-top:2px dashed var(--warn)} .legend .ln.kill{border-top-color:var(--muted)}
 .fig .edge{fill:none;stroke:var(--ink2);stroke-opacity:.42} .fig .arrow{fill:var(--ink2);fill-opacity:.7}
 .fig [data-tip]:hover{opacity:.75} .fig .edge[data-tip]:hover{stroke-opacity:.95;opacity:1}
 .fig .season{stroke:var(--accent);stroke-dasharray:3 3;stroke-width:1}
 .fig .cross{stroke:var(--ink2);stroke-width:1;stroke-dasharray:2 2} .fig .hit{fill:transparent;cursor:crosshair}
 ul.gap,ol.gap{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.95rem;color:var(--ink2)} ul.gap b{color:var(--ink);font-variant-numeric:tabular-nums}
-.qa{display:grid;gap:12px} .dim{color:var(--muted)} table.seasons tr.first td{border-top:2px solid var(--rule)} .qa h3{margin-top:4px}
+.qa{display:grid;gap:12px} details.foot{font-size:.92rem} .dim{color:var(--muted)} table.seasons tr.first td{border-top:2px solid var(--rule)} .qa h3{margin-top:4px}
 .chart{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px}
 .chart svg{display:block;width:100%;height:auto}
 .chart .grid{stroke:var(--grid);stroke-width:1}
@@ -160,25 +167,16 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
 <section id="questions" class="qa">
   <h2>Your questions</h2>
   <h3>The gap between &ldquo;wild animals on the map&rdquo; and &ldquo;in the tool&rsquo;s groups&rdquo;</h3>
-  <p class="note">The recorder counts every wild unit on the map, but the tool only manages land, water and the first three caverns.
-  At the end of each run almost all of the gap is creatures the tool leaves alone by design. Every flagged DF wave becomes a group,
-  with no cap and no roster test, so nothing on the managed layers waits ungrouped except what the list below names.</p>
+  <p class="note">Every count on this page now covers only the layers the tool manages: land, water and the first three caverns.
+  DF&rsquo;s underworld demons and the magma sea&rsquo;s life (8-40 and 5-40 a fort before) moved to a footnote under each fort.
+  Every flagged DF wave becomes a group, with no cap and no roster test, so what is left of the gap is two things:</p>
   {{GAP_FIG}}
   <ul class="gap">
-    <li><b>Underworld demons</b> (8-40 a fort): DF's sealed residents. The engine's layer test rejects the deep layer, so they are
-    never discovered, adopted or placed.</li>
-    <li><b>Magma-sea life</b> (5-40): magma crabs, fire imps, magma and fire men: the same deep-layer rule.</li>
-    <li><b>Sponges</b> (50 on the ocean fort): placed like plants on the sea floor and kept out of every count, by your ruling.</li>
-    <li><b>River fish from before the tool loaded</b> (64 on the river drop, 37 on the waterfall): the tool reads a unit's layer from
-    its population source. River fish come from the region's population (rivers are not water features), so they file as land natives,
-    and land-native adoption (<code>natives_land</code>) is off by default. Lake fish come from a feature, which is why the lake fort's
-    natives were adopted. Read from the code, not yet checked on a live unit.</li>
-    <li>Everything else: at most 3 units on any fort.</li>
+    <li><b>Animals already in the water when the tool loaded</b> (64 on the river drop, 37 on the waterfall): see
+    <a href="#natives">Land natives, water natives</a> below.</li>
+    <li><b>Sponges</b> (50 on the ocean fort): placed like plants on the sea floor and kept out of every group, by your ruling.</li>
   </ul>
-  <p class="note">To close the real part of the gap: turn <code>natives_land</code> on, or have adoption file a native river fish as
-  water by its tile rather than its source. To make the line itself honest: have the recorder (and the window) count only the
-  managed layers, so the underworld and the magma sea stop showing up as a gap.</p>
-
+  {{NATIVES}}
   <h3>Why so many species per layer per season</h3>
   <p class="note">Active roster species per layer and season on each fort, with the count leaving out vermin in brackets (vermin are
   handled by foraging, not waves). Rosters as dumped at the end of each run, in summer: summer includes the exhaustion hand-overs.</p>
@@ -275,6 +273,22 @@ document.querySelectorAll('figure.fig').forEach(function(fig){
     else if (!fig.classList.contains('tl')) tip.hidden = true;
   });
   fig.addEventListener('mouseleave', function(){ tip.hidden = true; });
+});
+// food web: click (or Enter on) a species to pick out its edges; again to clear
+document.querySelectorAll('figure.web').forEach(function(fig){
+  var cur = null;
+  function pick(n){
+    cur = (cur === n) ? null : n;
+    fig.classList.toggle('picked', cur !== null);
+    fig.querySelectorAll('.edge').forEach(function(e){ e.classList.toggle('hi', cur !== null && (e.dataset.a === cur || e.dataset.b === cur)); });
+    var near = {}; near[cur] = true;
+    fig.querySelectorAll('.edge.hi').forEach(function(e){ near[e.dataset.a] = true; near[e.dataset.b] = true; });
+    fig.querySelectorAll('.nd').forEach(function(g){ g.classList.toggle('hi', cur !== null && !!near[g.dataset.n]); });
+  }
+  fig.querySelectorAll('.nd').forEach(function(g){
+    g.addEventListener('click', function(){ pick(g.dataset.n); });
+    g.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pick(g.dataset.n); } });
+  });
 });
 // timeline: one crosshair over both panels, the day's numbers and the running totals
 document.querySelectorAll('figure.tl').forEach(function(fig){

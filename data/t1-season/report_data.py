@@ -13,18 +13,19 @@ import os
 import re
 import sys
 
-from analyze import fill_removed
+from analyze import fill_removed, norm
 
 TPY, SEASON_T, DAY_T = 403200, 100800, 1200
 SEASONS = ['spring', 'summer', 'autumn', 'winter']
 UZ = 8
+MAGMA = {'MAGMA_CRAB', 'IMP_FIRE', 'ELEMENTMAN_MAGMA', 'ELEMENTMAN_FIRE', 'SNAKE_FIRE'}
 
 
 def read(p):
     if not os.path.exists(p):
         return []
     with open(p, newline='', encoding='cp437') as f:
-        return [r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()]
+        return norm([r for r in csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE) if None not in r.values()])
 
 
 def day_of(t):
@@ -44,12 +45,15 @@ ATTACK = re.compile(r"^(?:The |An? )?(.+?) (bites|scratches|kicks|punches|gores|
 def main():
     d = sys.argv[1]
     ev, smp, rep = fill_removed(read(d + '/events.tsv')), read(d + '/samples.tsv'), read(d + '/reports.tsv')
-    under = lambda r: r['race'].startswith('DEMON_') or (r['z'] not in ('-1', '') and int(r['z']) <= UZ and r['layer'] == 'underground')
+    # the unmanaged deep: DF's underworld (DEMON_ races, z <= UZ underground) and the magma sea's life; reported apart, as a footnote
+    under = lambda r: r['race'].startswith('DEMON_') or r['race'] in MAGMA or (r['z'] not in ('-1', '') and int(r['z']) <= UZ and r['layer'] == 'underground')
     world = [r for r in ev if not under(r) and r['event'] != 'SAMPLE_START']
     out: dict = {'fort': os.path.basename(d.rstrip('/'))}
     t0, t1 = int(smp[0]['tick']), int(smp[-1]['tick'])
     out['span'] = {'from': label(day_of(t0)), 'to': label(day_of(t1)), 'ticks': t1 - t0, 'samples': len(smp)}
     out['underworld'] = dict(collections.Counter(r['race'] for r in ev if under(r) and r['event'] in ('PRESENT', 'ARRIVE')))
+    out['deep'] = {e: dict(collections.Counter(r['race'] for r in ev if under(r) and r['event'] == e).most_common())
+                   for e in ('PRESENT', 'ARRIVE', 'LEAVE', 'DIE')}
     # demographics per species: present at start, arrived, left, died, alive at the end (from the last state)
     sp = collections.defaultdict(lambda: collections.Counter())
     state, kind_of, layer_of = {}, {}, {}
@@ -85,6 +89,12 @@ def main():
         species.append({'race': race, 'kind': kinds.most_common(1)[0][0] if kinds else '?',
                         'layer': layers.most_common(1)[0][0] if layers else '?', **{k: c[k] for k in
                         ('start', 'arrived', 'left', 'returned', 'died', 'grouped', 'end')}})
+    from roster_classes import raws
+    T = raws()
+    for s_ in species:
+        t = T.get(s_['race'], set())
+        s_['habitat'] = ('cavern' if s_['layer'] == 'underground' else 'water' if 'AQUATIC' in t
+                         else 'amphibious' if 'AMPHIBIOUS' in t else 'land')
     species.sort(key=lambda s: -(s['start'] + s['arrived']))
     out['species'] = species
     # kills: killer -> victim, and causes
@@ -125,8 +135,21 @@ def main():
         if r['event'] == 'ARRIVE' and r['race'] not in out['first_seen']:
             out['first_seen'][r['race']] = label(day_of(r['tick']))
     # population over time (every 1,000 ticks)
-    out['series'] = [{'day': round(((int(s['tick']) % TPY) / DAY_T), 2), 'wild': int(s['wild']), 'grouped': int(s['wild_in_groups']),
-                      'pets': int(s['pets_livestock']), 'fps': int(s['fps'])} for s in smp[::10] + ([smp[-1]] if (len(smp) - 1) % 10 else [])]
+    pos = read(d + '/positions.tsv')
+    fps = {int(x['tick']): int(x['fps']) for x in smp}
+    ser = collections.defaultdict(lambda: [0, 0, 0])
+    for r in pos:
+        if r['alive'] != '1' or r['kind'] not in ('wild', 'wild-group'):
+            continue
+        k = ser[int(r['tick'])]
+        if under(r):
+            k[2] += 1
+        else:
+            k[0] += 1
+            k[1] += r['kind'] == 'wild-group'
+    fk = sorted(fps)
+    near = lambda t: fps[min(fk, key=lambda x: abs(x - t))]
+    out['series'] = [{'day': round((t % TPY) / DAY_T, 2), 'wild': v[0], 'grouped': v[1], 'deep': v[2], 'fps': near(t)} for t, v in sorted(ser.items())]
     out['fps_min'] = min(int(s['fps']) for s in smp)
     out['fps_median'] = sorted(int(s['fps']) for s in smp)[len(smp) // 2]
     # the tool's ledger: actions by kind and by day, plus the lines worth quoting
@@ -151,20 +174,16 @@ def main():
     out['jumps_cross'] = cross
     # the gap between "wild on the map" and "in the tool's groups": what the wild units on the map at the end are.
     # The recorder's wild count takes every wild unit, including DF's sealed underworld and the magma sea.
-    pos = read(d + '/positions.tsv')
     tl = max(int(r['tick']) for r in pos)
     present = {r['id'] for r in ev if r['event'] == 'PRESENT'}
-    magma = {'MAGMA_CRAB', 'IMP_FIRE', 'ELEMENTMAN_MAGMA', 'ELEMENTMAN_FIRE', 'SNAKE_FIRE'}
     gap, gap_sp = collections.Counter(), collections.defaultdict(collections.Counter)
     for r in pos:
         if int(r['tick']) != tl or r['alive'] != '1' or r['kind'] not in ('wild', 'wild-group'):
             continue
+        if under(r):
+            continue
         if r['kind'] == 'wild-group':
             k = 'grouped'
-        elif r['race'].startswith('DEMON_'):
-            k = 'demons'
-        elif r['race'] in magma or (r['layer'] == 'underground' and r['z'] not in ('', '-1') and int(r['z']) <= UZ):
-            k = 'magma'
         elif 'SPONGE' in r['race']:
             k = 'sponge'
         elif r['id'] in present:
@@ -226,6 +245,9 @@ def main():
             'on_roster_arrived': sorted({r['token'] for r in ro} & arrived),
             'arrived_not_on_roster': sorted(arrived - {r['token'] for r in ro}),
         }
+    pp = d + '/pairs.tsv'   # `seasonal-wildlife ecology pairs tsv` at the end of a v7.3 run
+    if os.path.exists(pp):
+        out['pairs'] = [{'source': r['source'], 'predator': r['predator'], 'prey': r['prey'], 'n': int(r['n'] or 0)} for r in read(pp)]
     json.dump(out, sys.stdout, indent=1)
 
 
