@@ -1,6 +1,7 @@
 -- sw-t1-recorder: animal activity on a fort, recorded in game (no RPC polling), for test item 1 (PLAN R5, 7 Oct 2026).
 --
---   sw-t1-recorder start DIR [EVERY=100]   record into DIR (relative to the DF folder) every EVERY ticks
+--   sw-t1-recorder start DIR [EVERY=100] [POPS]   record into DIR (relative to the DF folder) every EVERY ticks;
+--                                          POPS: population indices (comma-separated) to watch in pops.tsv
 --   sw-t1-recorder stop                    flush and stop
 --   sw-t1-recorder status                  one line: samples, units known, events, reports
 --
@@ -10,6 +11,10 @@
 -- DIR/positions.tsv every unit above every 1,000 ticks: tick, id, race, kind, x, y, z, layer, alive
 -- DIR/reports.tsv  every new announcement report: tick, report id, type, text (combat, hunting, deaths, arrivals ...)
 -- DIR/samples.tsv  tick, wild units on the map, of them in the tool's groups, pets/livestock, dead this sample, fps
+-- DIR/pops.tsv     (with POPS) tick, population index, race, quantity, extinct -- a row at start and on every change
+--                  (a refund that lifts a held entry between the tool's daily holds shows as a 0 -> n row)
+-- DIR/ledger.tsv   every seasonal-wildlife ledger entry as it is written: abs tick, kind, layer, text (the tool keeps
+--                  only its newest 300, and a season writes ~900: V73_WATERFALL's dump began 33 days into the run)
 -- Citizens and residents are not recorded (they are the fort, not its animals); every other creature is.
 -- luacheck: globals SWT1
 local args = { ... }
@@ -64,19 +69,22 @@ local function kindOf(u, groups)
     return 'other'
 end
 
--- surface, water (in or over water), cavern (below the first cavern ceiling seen), magma depth: a coarse layer by z
+-- the layer: a wild animal takes Seasonal Wildlife's own (land, water, cavern, deep: from its population source, as the tool
+-- manages it); any other unit is surface or underground by its tile. (7 Oct: the old tile test never returned 'water'.)
+local SW = nil
 local function layerOf(u)
     local x, y, z = dfhack.units.getPosition(u)
     if not x then return '?', -1, -1, -1 end
-    local layer = 'surface'
-    local b = dfhack.maps.getTileBlock(x, y, z)
-    if b then
-        local d = b.designation[x % 16][y % 16]
-        if d.liquid_type == df.tile_liquid.Water and d.flow_size > 0 then layer = 'water' end
-        if d.subterranean then layer = (d.liquid_type == df.tile_liquid.Magma and d.flow_size > 0) and 'magma' or 'underground' end
+    if SW == nil then local ok, m = pcall(reqscript, 'seasonal-wildlife'); SW = ok and m or false end
+    if SW and SW.WILD and (dfhack.units.isWildlife(u) or dfhack.units.isAnimal(u)) and u.animal.population.region_x >= 0 then
+        local ok, L = pcall(SW.WILD.layerOf, u)
+        if ok and L then return L, x, y, z end
     end
+    local b = dfhack.maps.getTileBlock(x, y, z)
+    local layer = (b and b.designation[x % 16][y % 16].subterranean) and 'underground' or 'surface'
     return layer, x, y, z
 end
+local function managed(L) return L == 'land' or L == 'water' or L == 'cavern' end
 
 local function deathDetail(u)
     local inc = u.counters.death_id >= 0 and df.incident.find(u.counters.death_id) or nil
@@ -99,7 +107,7 @@ local function sample()
     local t = now()
     local groups = groupIds()
     local present = {}
-    local nWild, nGroup, nPet, nDead = 0, 0, 0, 0
+    local nWild, nGroup, nPet, nDead, nManaged, nDeep = 0, 0, 0, 0, 0, 0
     local snap = t - (S.lastSnap or -1e9) >= 1000
     for _, u in ipairs(df.global.world.units.all) do
         local kind = kindOf(u, groups)
@@ -128,7 +136,10 @@ local function sample()
             end
             if active and not dead then
                 present[id] = true
-                if kind == 'wild' or kind == 'wild-group' then nWild = nWild + 1 end
+                if kind == 'wild' or kind == 'wild-group' then
+                    nWild = nWild + 1
+                    if managed((layerOf(u))) then nManaged = nManaged + 1 else nDeep = nDeep + 1 end
+                end
                 if kind == 'wild-group' then nGroup = nGroup + 1 end
                 if kind == 'pet/livestock' then nPet = nPet + 1 end
                 if snap then
@@ -160,10 +171,33 @@ local function sample()
         if r.id > S.lastReport then S.lastReport = r.id end
     end
     S.newReps = {}
-    S.smp:write(table.concat({ t, nWild, nGroup, nPet, nDead, df.global.enabler.calculated_fps }, '\t'), '\n')
+    S.smp:write(table.concat({ t, nWild, nGroup, nPet, nDead, df.global.enabler.calculated_fps, nManaged, nDeep }, '\t'), '\n')
+    local L = rawget(_G, '__seasonal_wildlife_cache')
+    L = L and L.ledger
+    if L and L.count and S.ledCount and L.count > S.ledCount then
+        local new, es = L.count - S.ledCount, L.entries
+        if new > #es then S.led:write(table.concat({ t, 'GAP', '', (new - #es) .. ' entries lost' }, '\t'), '\n'); new = #es end
+        for i = #es - new + 1, #es do
+            local e = es[i]
+            S.led:write(table.concat({ e.t, e.k, e.l, (tostring(e.s):gsub('[\t\n]', ' ')) }, '\t'), '\n')
+        end
+    end
+    if L and L.count then S.ledCount = L.count end
+    if S.pops then
+        local all = df.global.world.populations.all
+        for _, i in ipairs(S.pops) do
+            local p = all[i]
+            local v = p and (p.quantity .. '\t' .. tostring(p.flags.extinct)) or 'gone\t-'
+            if S.popLast[i] ~= v then
+                local cr = p and df.creature_raw.find(p.race)
+                S.pop:write(table.concat({ t, i, cr and cr.creature_id or '?', v }, '\t'), '\n')
+                S.popLast[i] = v
+            end
+        end
+    end
     S.n = S.n + 1
     S.first = false
-    if S.n % 20 == 0 then S.ev:flush(); S.pos:flush(); S.rep:flush(); S.smp:flush() end
+    if S.n % 20 == 0 then S.ev:flush(); S.pos:flush(); S.rep:flush(); S.smp:flush(); if S.pop then S.pop:flush() end; S.led:flush() end
     dfhack.timeout(S.every, 'ticks', sample)
 end
 
@@ -177,7 +211,14 @@ if cmd == 'start' then
     S.ev = open('events.tsv', 'tick\tevent\tid\trace\tcaste\tkind\tx\ty\tz\tlayer\tdetail')
     S.pos = open('positions.tsv', 'tick\tid\trace\tkind\tx\ty\tz\tlayer\talive')
     S.rep = open('reports.tsv', 'tick\treport_id\ttype\ttext')
-    S.smp = open('samples.tsv', 'tick\twild\twild_in_groups\tpets_livestock\tdied\tfps')
+    S.smp = open('samples.tsv', 'tick\twild\twild_in_groups\tpets_livestock\tdied\tfps\twild_managed\twild_deep')
+    S.pops, S.pop, S.popLast = nil, nil, {}
+    S.led, S.ledCount = open('ledger.tsv', 'tick\tkind\tlayer\ttext'), nil
+    if args[4] then
+        S.pops = {}
+        for i in args[4]:gmatch('%d+') do S.pops[#S.pops + 1] = tonumber(i) end
+        S.pop = open('pops.tsv', 'tick\tpop\trace\tquantity\textinct')
+    end
     S.known, S.newReps, S.n, S.nev, S.nrep, S.first, S.lastSnap = {}, {}, 0, 0, 0, true, nil
     local reps = df.global.world.status.reports
     S.lastReport = #reps > 0 and reps[#reps - 1].id or -1
@@ -188,7 +229,8 @@ if cmd == 'start' then
 elseif cmd == 'stop' then
     if not S.on and not S.ev then print('sw-t1-recorder: not recording'); return end
     S.on = false
-    for _, f in ipairs({ S.ev, S.pos, S.rep, S.smp }) do pcall(function() f:flush(); f:close() end) end
+    for _, f in ipairs({ S.ev, S.pos, S.rep, S.smp, S.pop, S.led }) do pcall(function() f:flush(); f:close() end) end
+    S.pop, S.pops, S.led = nil, nil, nil
     S.ev = nil
     print(('sw-t1-recorder: stopped; %d samples, %d events, %d reports in %s'):format(S.n or 0, S.nev or 0, S.nrep or 0, tostring(S.dir)))
 else
