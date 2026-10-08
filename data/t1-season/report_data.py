@@ -236,9 +236,10 @@ def main():
         for r in ro:
             vermin = klass(T.get(r['token'], set())) == 'vermin'
             for sname in ('Sp', 'Su', 'Au', 'Wi'):
-                if sname in r['seasons']:
-                    sc[r['layer']][sname][0] += 1
-                    sc[r['layer']][sname][1] += 0 if vermin else 1
+                if sname in r['seasons']:   # the tool's own layer (norm() files the row as surface/underground)
+                    L = r.get('tlayer') or r['layer']
+                    sc[L][sname][0] += 1
+                    sc[L][sname][1] += 0 if vermin else 1
         out['season_counts'] = {L: dict(v) for L, v in sc.items()}
         out['roster_vermin'] = sum(klass(T.get(r['token'], set())) == 'vermin' for r in ro)
         out['roster_vs_arrivals'] = {
