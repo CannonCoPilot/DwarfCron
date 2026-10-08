@@ -1,0 +1,129 @@
+<section class="sec" id="mech" data-toc="M. Mechanics from the code">
+  <div class="sechead"><h2><span class="secnum">M</span>How the tool works, read from the code</h2>
+  <p class="answer">Four agents read the merged source (<code>v7.2-plugin</code> @ 8185d85: the 18,778-line engine, the C++ plugin, the registry, the window and the web server) one mechanic each, and wrote down what the code does with function names and line numbers. This section summarises it layer by layer and mechanic by mechanic; each subsection ends with the full notes, folded. Nothing here was run for the review.</p></div>
+
+  <div class="full tbl card"><table>
+    <thead><tr><th>Layer</th><th>Who may come (roster)</th><th>How out-of-season species are kept away</th><th>How arrivals are capped</th><th>Food web written</th><th>Known gaps (M5)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Land</b> (walking)</td><td>Season cast "land": apex 1, meso 2, grazer 2, ground prey 2, sentient 1 (never fills), + 3 vermin; grown from a high-value seed through prey and predators.</td><td>Population entry held at 0 and marked extinct, re-pinned every 300 ticks (DF refunds departing animals); stock kept in the tool's reserve.</td><td>Cap = floor(√embark tiles) + 1 groups; the adaptive clock releases DF's gated waves; <b>no trim</b>, so DF's per-border waves, adopted natives and apex placements overshoot (9.65 v 9).</td><td>Every armed (non-BENIGN) predator × every non-armed wild animal in reach, in the cast's edge list, both directions, every 3,000 ticks; other wild-on-wild pairs swept.</td><td>Ladder and apex scheduler idle under casts; land natives always adopted; stand-ins get no pairs.</td></tr>
+      <tr><td><b>Flying</b></td><td>Merged into the land cast: raptor 1 (a flying apex recoded FAPX), bird 1.</td><td>As land.</td><td>As land (one land key).</td><td>Raptors armed (BENIGN cleared), prey up to 2× own mass. The stoop is parked.</td><td>FAPX eats no vermin (no VDIET row); stoop/fishers cannot be un-parked by verb.</td></tr>
+      <tr><td><b>Ocean</b></td><td>Season cast "water": apex 1, meso 1, fish 3, pelagic 1, shore 2, waterbird 1, + 2 vermin; curated aquatic apex list (33).</td><td>As land; ocean life rides land-layer entries (no feature index), so its groups are filed under a land key; the turnover falls back to it (8817eb4).</td><td>The tool draws water groups itself (Driver B) under a per-body-type cap; the mix weighs balance, pyramid and prey pull (×20 cap).</td><td>Same pass; with casts on <b>no cross-layer pair</b> is written (no shark × seal on land, no osprey × fish).</td><td>Caps and mix are per body <i>type</i>, not per body; air-breathers placed on the deepest tile.</td></tr>
+      <tr><td><b>Lake, river, brook</b></td><td>The same water cast; brooks use the river palette and rules.</td><td>As land; feature-sourced embark fish carry DF's wave flag and are adopted only under casts.</td><td>As ocean. A dismissed school in an enclosed lake has no edge to walk to; nothing checks it leaves.</td><td>As ocean; bears never fish under casts (the fisher exception is cut by the cast filter).</td><td>Mink drowning loop (55 on one fort); water season spill off under casts.</td></tr>
+      <tr><td><b>Murky pool</b></td><td>Water cast, pool body type.</td><td>As land.</td><td>Thin bodies drew 0 groups in 2/5 reps (v7.1); cavern pools get no tool draws at all.</td><td>As lake.</td><td>Pools share one key with every other pool.</td></tr>
+      <tr><td><b>Caverns 1-3</b></td><td>Season cast "cavern": apex 1, meso 2, ground prey 3, flier 1, shore 1, sentient 1, + 3 vermin.</td><td>Raw FREQUENCY of resting species set to <code>restfreq</code> (1, or 0 with the vermin guard) at the change and daily; DF picks cavern waves by FREQUENCY.</td><td>Gate at 5 groups a cavern: holds in-season species at FREQUENCY/10 (a weight, not a gate), withholds releases from sources it can see, trims one group a day; <code>trim_gated</code> sends off DF waves too.</td><td>Same pass, in-realm; civ races hunt by guild; irruption (opt-in, but <code>enable</code> turns it on) adds token-carrying waves and agitated animals.</td><td>Trim sends off the new cast after a turnover; one-shot turnover misses late off-cast arrivals; restfreq 0 bumped back to 1 by the hold.</td></tr>
+      <tr><td><b>Deep</b> (magma sea, underworld)</td><td>Not in any cast.</td><td><code>enable</code> turns the deep layer on, so magma-sea species get one default season and are rotated; <code>restfreq 0</code> can zero a deep raw.</td><td>Never grouped or placed (R60 holds for groups only).</td><td>Never written.</td><td>Contradicts R60 ("no impact on the deep").</td></tr>
+    </tbody></table></div>
+</section>
+
+<section class="sec" id="mech-roster" data-toc="M1. Roster and season casts">
+  <div class="sechead"><h2><span class="secnum">M1</span>Roster building and season casts</h2>
+  <p class="answer">Three roster paths exist side by side: the old biome preset, the guild builder (<code>roster build</code>) and, since 7 October, the season casts. On a new fort <code>enable</code> builds casts, and they are regrown at each new year. Casts decide who may come and when; they do not set how often (the FREQUENCY ladder) or schedule apexes.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>The pool</h3>
+      <p><code>getEmbarkRegions</code> gathers the site's region tiles and all nine neighbours of every block (DF draws from all of them); <code>buildPool</code> marks each species <i>in the embark</i> (DF stocked it) or merely <i>eligible</i> (the biome fits; used only by Add invasive). <code>classify</code> fills habitat, role, guild, mass, animal-person root, giant, civ, raw depth, lava-only and the 83 extinct corrections. Only the "natural" class is managed by default.</p>
+      <h3>The season cast</h3>
+      <ul>
+        <li><b>Rule.</b> The pool is not the roster. Each season the tool grows one cast per layer (land with flying, water, cavern); a cast species is active in the seasons it is cast in, and every other managed species rests.</li>
+        <li><b>Growing it.</b> A weighted seed is drawn among high-value in-season species (pet value ≥ 200, war or hunting trainable, mass ≥ 1,000,000 cm³, or ivory, pearl, silk or shell). The cast grows through prey and predators, emptiest slot first, then 2-3 vermin a member eats. Weights: pack hunters ×3, last season's members ×0.25 (turnover), giants ×0.2, animal people ×0.1.</li>
+        <li><b>Size.</b> At most 13 / 12 / 12 with vermin (land / water / cavern); the sentient slot never fills with the default settings, so 12 / 11 / 11 in practice. The desk's means were 8.8 + 2.7, 8.2 + 2.0 and 9.0 + 2.8.</li>
+        <li><b>Resting.</b> Land and water species out of the cast are held at stock 0; cavern species drop to raw FREQUENCY 1 (or 0).</li>
+        <li><b>Storage.</b> Casts are saved with the fort and reloaded (fixed 8 Oct, b0895b9). <code>cast status</code>, <code>cast show SEASON</code>, <code>cast rebuild [salt]</code>, <code>cast restfreq 0|1</code>, <code>cast on|off</code> are console-only.</li>
+      </ul>
+    </div>
+    <div class="prose">
+      <h3>The guild builder (still there)</h3>
+      <p><code>ROSTER.build</code> fills guild slots per layer from a weighted seed, writes a FREQUENCY ladder in units (FREQUENCY ÷ mean group size) toward the pyramid targets, with a biomass guard and a floor of 1, and no apex step (R34): apexes are placed by the apex scheduler against a presence target. Under casts it runs only when you type <code>roster build</code>, and the casts then overwrite its roster at the next new year while its odds stay.</p>
+      <h3>What it writes, and what goes back</h3>
+      <p>Raw FREQUENCY (cavern rest, ladder), cluster sizes, extinct corrections, skill caste tokens, NO_&lt;season&gt; flags (cleared under <code>seasons_own</code>), and population entry quantities and extinct flags. Disable and All off restore the raws and flags; <b>they do not restore population quantities</b>, so a fort switched off keeps its resting species empty in the saved world.</p>
+      <p class="caveat"><b>Most consequential findings.</b> The ladder and apex scheduler are idle under casts (P1). <code>cast off</code> comes back on after a reload because of an <code>and/or</code> idiom on a boolean (P3). Hand edits, stand-ins and newly enabled layers get no predator-prey writes, because the ecology keeps only cast edges (P12, P13). The raw NO_&lt;season&gt; filter can silently switch off after an undo or an extinct toggle (P9).</p>
+    </div>
+  </div>
+  <details class="appx"><summary>Full code notes: roster building (mech/roster.md)</summary>{{mechmd:roster}}</details>
+</section>
+
+<section class="sec" id="mech-rotation" data-toc="M2. Rotation and arrivals">
+  <div class="sechead"><h2><span class="secnum">M2</span>Seasonal rotation and arrival control</h2>
+  <p class="answer">The daily job arms a timer for the exact season-change tick; the change gives back borrowed seasons, regrows casts at a new year, zeroes the out-of-season entries into the reserve, refills the in-season ones, and resets cavern frequencies. Between changes the groups pass (every 300 ticks) re-pins the holds, releases DF's gated waves on an adaptive clock, trims caverns and sends off off-cast groups once per season.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>The jobs</h3>
+      <ul>
+        <li><b>Groups pass</b>, every 300 ticks: re-pin holds, discovery and adoption, the release clock, the cavern gate and trim, the cast turnover, the exhaustion check.</li>
+        <li><b>Daily</b>: the season timer, cavern FREQUENCY, the spill (off under casts), the apex scheduler, a registry rescan.</li>
+        <li><b>Ecology</b>, every 3,000 ticks: the relation writes (M3). Scavenging every 200, curious thieves every 50, quiet fights every 10.</li>
+        <li>All are DFHack repeat timers behind fuses; the C++ plugin only bridges autostart and map load and schedules none of this.</li>
+      </ul>
+      <h3>One season change, in tick order</h3>
+      <ol>
+        <li>The timer fires at the boundary (retrying 10-120 ticks until DF's own season turns).</li>
+        <li><code>V7.ST.turn</code>: spill borrows given back; at Winter → Spring the year's casts regrow; <code>applyLive</code> zeroes out-of-season entries into the reserve (extinct set) and refills in-season ones from it; <code>CACHE.appliedStamp</code> is set.</li>
+        <li><code>CAVERN.apply</code>: resting cavern species to <code>restfreq</code>, vermin always 1.</li>
+        <li>Next groups pass: <code>castTurnover</code> zeroes the leave countdown of every tracked group whose species left the cast (water groups via their land key); DF walks them off. Nothing is teleported.</li>
+        <li>The exhaustion check, now waiting for the apply's stamp, hands an empty cast niche to a stand-in.</li>
+      </ol>
+    </div>
+    <div class="prose">
+      <h3>The caps</h3>
+      <p>Land and each water body type: floor(√embark tiles) + 1 groups, or one fixed cap. Caverns: 5 each. DF decides when a wave comes; the tool can only withhold the release of a gated wave (land, caverns) or draw a group itself (water). That asymmetry is why land overshoots slightly and caverns a lot.</p>
+      <p class="caveat"><b>Most consequential findings.</b> The cavern trim counts groups already sent off at the turnover and so trims the new cast for days (P3, a bug with a one-line fix). The turnover runs once per season, so an off-cast group arriving after it stays all season (P4). The reserve is discarded when a DF refund lands just before the apply (P6). An error in the season turn stops rotation for the season, because the daily job calls it without a guard (P8). Disable leaves the world held (P9). <code>enable</code> turns on the deep layer against R60 (P15). Air-breathing "semiaquatic" species are placed on the deepest water tile and drown, and the mix then boosts them (P5).</p>
+    </div>
+  </div>
+  <details class="appx"><summary>Full code notes: rotation and arrivals (mech/rotation.md)</summary>{{mechmd:rotation}}</details>
+</section>
+
+<section class="sec" id="mech-foodweb" data-toc="M3. Food web">
+  <div class="sechead"><h2><span class="secnum">M3</span>Food web construction</h2>
+  <p class="answer">Animals act only on what the ecology pass writes: every 3,000 ticks it pairs each armed predator with each non-armed wild animal in its realm, checks reach, the raptor size cap, the pack-mass floor and (under casts) the season cast's edge list, and writes PREDATOR_OR_PREY both ways; then it sweeps every wild-on-wild pair it did not allow. Four different edge rules exist in the code, and only this one moves animals.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>The four edge rules</h3>
+      <ul>
+        <li><b>The mass rule</b> (<code>eats()</code>, with the ×1.5 LARGE_PREDATOR factor): the old matrix roster, coupling, the water pull and the web page's food-web view.</li>
+        <li><b>The tier rule</b>: the builder and the casts (higher tier, reach, shared cavern depth; pack bonus as a pick weight).</li>
+        <li><b>The relation write's filter</b>: armed × non-armed, reach, size cap, pack floor, cast edges. The only rule DF acts on.</li>
+        <li><b>The vermin wiring</b>: GOBBLE_VERMIN_CLASS through the ten SWV_* classes.</li>
+      </ul>
+      <h3>Hunters and the rest</h3>
+      <p>Skill profiles on DF's 0-20 scale with a rust floor (confirmed on the rig), packs inferred within 10 tiles, raptors armed, cohesion and leaders (the largest adult male), scavenging at a natural cadence (confirmed), curious thieves reformed after one theft, irruption v2 in the caverns. Parked by default and forced off at every load: the nudge, coupling, vermin foraging, the raptor stoop, bear fishing and panic flight.</p>
+    </div>
+    <div class="prose">
+      <h3>With the seasons</h3>
+      <p>Under casts the writes are limited to the current season's edges, groups sent off at a change are dismissed once a season, and their wild pairs are swept. So the web does change with the season, but only along edges grown into the cast.</p>
+      <p class="caveat"><b>Most consequential findings.</b> <code>enable</code> turns "livestock as prey" on, so every armed predator in every realm is related to the fort's animals, and caravan animals always are (P1). Under casts no cross-layer pair is ever written: no alligator × deer, osprey × fish or otter × land prey, and bears cannot fish (P2). The cast's edges do not match who hunts: BENIGN members (badger, fox, stoat, sperm whale) fill slots but never hunt, and apex × mesopredator edges are never written because armed predators are never targets (P3). Parked features cannot be un-parked by their verbs (P4). Thieves sent off at a change are reformed and stay (P5). Disable leaves relation cells, follow links and fishing and panic paths in place (P6).</p>
+      <p>The field reports read the same way from the code: the stoop adds nothing because it is parked and acts only on pairs already written; panic shows no scatter because it is parked; VF1 never scored a meal because forage is parked and a meal counts only when a whole vermin object vanishes.</p>
+    </div>
+  </div>
+  <details class="appx"><summary>Full code notes: food web (mech/foodweb.md)</summary>{{mechmd:foodweb}}</details>
+</section>
+
+<section class="sec" id="mech-switch" data-toc="M4. On, off, presets, the bundle">
+  <div class="sechead"><h2><span class="secnum">M4</span>On, off, presets and the bundle</h2>
+  <p class="answer">One switch nearly exists: <code>enable seasonal-wildlife</code> (or <code>seasonal-wildlife on</code>) turns on the water renderer, saves an autostart, and on a loaded fort switches every Panel switch on (opt-ins included, parked ones excluded), every layer, the extinct corrections and the aquarium, and builds the casts. <code>off</code> reverses it, short of the population stock. What is missing is the switch in the places a player looks, and presets in the sense a player means.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>Four "on"s, three "off"s</h3>
+      <ul>
+        <li><code>enable seasonal-wildlife</code> = <code>seasonal-wildlife on</code>: everything (above).</li>
+        <li><code>seasonal-wildlife enable rotation</code>: the old rotation-only enable. Panel <b>All on</b>: restores the saved switches. First open of the window on a new fort: the biome preset roster, not the casts.</li>
+        <li><code>disable seasonal-wildlife</code> = <code>off</code>: renderer off, autostart cleared, writes put back on the loaded fort. <code>seasonal-wildlife disable</code>: rotation only. Panel <b>All off</b>: jobs off, writes put back, renderer left on.</li>
+      </ul>
+      <h3>"Preset" means four things</h3>
+      <p>The biome roster preset, the season casts, the aquarium mod's transparency presets (vanilla, subtle, aquarium, clear, shallows, custom) and the renderer's look, which has no presets and whose settings (tints, palettes, veil) are not saved: they reset at every DF start.</p>
+    </div>
+    <div class="prose">
+      <h3>Gaps against "on and off at the flip of a switch, presets ready"</h3>
+      <ol>
+        <li>No master on/off in the Panel or on the web page; the page cannot send <code>on</code>, <code>off</code>, <code>cast</code> or <code>preset</code>.</li>
+        <li>Casts are console-only.</li>
+        <li>Most Panel and web aquarium controls drive the retired Lua overlay and do nothing while the plugin draws the water.</li>
+        <li><code>off</code> acts on the loaded fort only, and leaves population stock held.</li>
+        <li>The renderer's settings are not persisted; no named look presets.</li>
+        <li>The browser page is not started by <code>enable</code>.</li>
+        <li>The ecological summary pages are not in the package.</li>
+        <li>Version strings read 7.2.0 everywhere; the newest zip (749384b1) predates the casts and the water palettes; help text is stale in places.</li>
+      </ol>
+    </div>
+  </div>
+  <details class="appx"><summary>Full code notes: on/off, presets, bundle (mech/switch.md)</summary>{{mechmd:switch}}</details>
+</section>

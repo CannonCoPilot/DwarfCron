@@ -1,8 +1,8 @@
 <header class="hero" id="top">
   <div style="display:grid;gap:14px">
-    <span class="eyebrow">ECO study · Dwarf Fortress 53.16 · DFHack 53.16-r1.1 · seasonal-wildlife v6.9–v7.1 · revised after your review</span>
+    <span class="eyebrow">ECO study · Dwarf Fortress 53.16 · DFHack 53.16-r2 · seasonal-wildlife v6.9–v7.3 · rev 4, 8 October 2026</span>
     <h1>How Dwarf Fortress wildlife really behaves, and what it means for seasonal-wildlife</h1>
-    <p class="lede">Wild animals in DF 53.16 hunt only when a predator relation exists, and only a non-BENIGN animal acts on one; LARGE_PREDATOR starts nothing we could measure. DF writes those relations from the fort's side toward new arrivals, almost never between two surface wild animals, so hunting between wild animals there needs the tool. Pack size predicts kills; prey mass doesn't lower them, and it harms hunters only at elephant scale or when the prey fights back. Leaders hold groups together. The threshold sweep could not judge most of the tool's dials, because three of its manipulations never reached their subject. Your rulings on all of it are in, and seasonal-wildlife v7.1 builds them; none of v7.1 has run on the rig yet.</p>
+    <p class="lede">Wild animals in DF 53.16 hunt only when a predator relation exists, and only a non-BENIGN animal acts on one; LARGE_PREDATOR starts nothing we could measure. DF writes those relations from the fort's side toward new arrivals, almost never between two surface wild animals, so hunting between wild animals there needs the tool. Pack size predicts kills; prey mass doesn't lower them, and it harms hunters only at elephant scale or when the prey fights back. Leaders hold groups together. The threshold sweep could not judge most of the tool's dials, because three of its manipulations never reached their subject. Your rulings on all of it are built. Since then the tool became one DFHack plugin (v7.2) with season casts (v7.3), most of it has run on the rig, and a code review of the merged line sets out what still stands between the code and its design, with the rig runs that will check each fix (sections 0, M and X).</p>
   </div>
   <div class="meta">
     <div class="facts">
@@ -12,12 +12,14 @@
       <span><b>{{n_decided}}</b>rulings recorded</span>
       <span><b>{{oicount}}</b>open items</span>
     </div>
-    <div>Rig runs 29 Sep – 1 Oct 2026 on the CrossOver test rig; desk work over the 767 vanilla creatures. Released: v6.9.0 (master 1abe109). v7.0 (99c1ec8) passed the full validator, 214 PASS, 0 FAIL (run 20261001-074833), and is pushed to origin but not merged or released. v7.1 (fce7d68, pushed) merges every build stream from your review: roster, groups, ecology, scavenging, vermin, extinct, water, irruption, fixes, web, Panel and performance. It is built, not tested: no v7.1 code has run on the rig, and the validator has no v7.1 claims yet.</div>
-    <div class="caveat"><b>DFHack version.</b> Every block here and the v7.0 validation ran on DFHack 53.16-r1.1. The rig now runs 53.16-r2 (02e77acf, since 1 Oct about 08:55); nothing has run on r2, and the r2 re-validation is the first step of the testing stage.</div>
-    <div><b>Your review.</b> Part 1 (19 items) and Part 2 (rulings R1–R63) are worked into every section below. Where a ruling settled a question, the text says so and names it (R-number); where an answer changed a finding, the finding is corrected in place. Testing waits until everything is built (your directive), at 5 replicates per arm on world region8.</div>
+    <div>The study's rig runs: 29 Sep – 1 Oct 2026 on the CrossOver test rig, with desk work over the 767 vanilla creatures. Since then: the r2 re-validation and Alpha Four (2 Oct), the aquarium plugin (3-8 Oct), the v7.2 package and test item 1 (7 Oct), and the v7.3 season-cast runs (7-8 Oct). Released: v6.9.0 (origin/master 1abe109). Every later branch is merged into <code>v7.2-plugin</code> @ 8185d85, which the rig runs; local master now points there too, unpushed.</div>
+    <div class="caveat"><b>DFHack version.</b> Sections 1-19 and the v7.0 validation ran on DFHack 53.16-r1.1. Everything since 1 Oct ran on 53.16-r2 (02e77acf); the r2 re-validation (2 Oct) found no r2 regression.</div>
+    <div><b>Your review.</b> Part 1 (19 items) and Part 2 (rulings R1–R63) are worked into every section below. Where a ruling settled a question, the text says so and names it (R-number); where an answer changed a finding, the finding is corrected in place. Testing then ran on region9 (RinghatchetsReady) and region19 (Smaksmo Oxdu) rather than region8.</div>
     <div>Every number comes from <code>DwarfCron/data/eco-desk/findings.md</code>, the run directories under <code>data/experiments/</code> and the review answers in <code>data/eco-review/</code>. Hover a chart for values; each figure's Data row lists its rows.</div>
   </div>
 </header>
+
+{{include:status}}
 
 <section class="sec" id="findings" data-toc="Key findings">
   <div class="sechead"><h2><span class="secnum">1</span>Key findings</h2>
@@ -517,16 +519,20 @@
   </div>
 </section>
 
+{{include:mech-overview}}
+
+{{include:plan}}
+
 <section class="sec" id="recs" data-toc="Recommendations and status">
   <div class="sechead"><h2><span class="secnum">20</span>Recommendations and where they stand</h2>
-  <p class="answer">Every recommendation from the study now has a ruling. The early ones shipped in v6.9 (released) or v7.0 (validated, pushed, not released); the rest are built into v7.1, which has not yet run on the rig. Two proposals your rulings rejected (pack_sneak 0, removing the ×3 pack bonus) are listed as such.</p></div>
+  <p class="answer">Every recommendation from the study has a ruling. The early ones shipped in v6.9 (released) or v7.0; the rest were built into v7.1 and are now in the merged line and largely run on the rig (section 0). The status column below is as of 1 October; section M5 holds the current problems. Two proposals your rulings rejected (pack_sneak 0, removing the ×3 pack bonus) are listed as such.</p></div>
   <div class="full tbl card">{{rectable}}</div>
   <p class="caveat" style="max-width:none">Not recommended: CRAZED or OPPOSED_TO_LIFE as predation levers outside an irruption (they send wildlife at the fort), and UBIQUITOUS at run time (it does nothing at the pick).</p>
 </section>
 
 <section class="sec" id="v71" data-toc="What v7.1 builds">
   <div class="sechead"><h2><span class="secnum">21</span>What v7.1 builds from this study</h2>
-  <p class="answer">Your directive was to build everything first on an optimistic reading of every result, then test. seasonal-wildlife v7.1 (branch v7.1, fce7d68, pushed) merges twelve streams built from this study and your rulings. Every row below is built and untested: nothing in v7.1 has run on the rig, and the validator's v7.1 claims are still being written. The DwarfCron test harness was rebuilt alongside it for the testing stage.</p></div>
+  <p class="answer">Your directive was to build everything first on an optimistic reading of every result, then test. seasonal-wildlife v7.1 (branch v7.1, fce7d68, pushed) merges twelve streams built from this study and your rulings. As of 1 October every row was built and untested; since then most have run in Alpha Four and section 7 (see the Alpha Four Progress page), and v7.2 and v7.3 have built on them. The DwarfCron test harness was rebuilt alongside it for the testing stage.</p></div>
   <div class="full tbl card">{{v71table}}</div>
   <div class="split">
     <div class="prose">
@@ -555,13 +561,13 @@
 
 <section class="sec" id="open" data-toc="Rulings and open items">
   <div class="sechead"><h2><span class="secnum">22</span>Your rulings, open items and the testing stage</h2>
-  <p class="answer">Every item from the report, the findings log, the design notes, the tool's plan and code, the validator and the backlog, updated with your rulings and the v7.1 build. {{n_decided}} items are decided or rejected by ruling, {{n_built}} are built and await testing, and {{n_test}} are experiments for the testing stage, all at 5 replicates per arm on region8. Done, decided and held items stay listed and are not counted as open.</p></div>
+  <p class="answer">Every item from the report, the findings log, the design notes, the tool's plan and code, the validator and the backlog, updated with your rulings and the v7.1 build. {{n_decided}} items are decided or rejected by ruling, {{n_built}} are built and await testing, and {{n_test}} are experiments for the testing stage. Done, decided and held items stay listed and are not counted as open. The statuses here are as of 1 October; the current problem list is section M5 and the run plan section X.</p></div>
   {{openitems}}
 </section>
 
 <section class="sec" id="validation" data-toc="Validation">
   <div class="sechead"><h2><span class="secnum">23</span>Validation</h2>
-  <p class="answer">The full validator passed v7.0 (commit 1e65e03): 214 PASS, 0 FAIL, 0 DEAD, 30 not testable on the forts it loads, 13 backlog, on DFHack 53.16-r1.1. v7.1 has not been validated: its claims are being written, and the rig now runs r2.</p></div>
+  <p class="answer">The full validator passed v7.0 (commit 1e65e03): 214 PASS, 0 FAIL on DFHack 53.16-r1.1. On r2 the v7.1 release candidate passed 357 / 0 on CTRL and 360 / 3 on RinghatchetsReady (2 Oct), the 3 since fixed; validate-full now holds 411 claims. No claim yet covers the v7.3 season casts (fix F22).</p></div>
   <div class="split">
     <div class="prose">
       <p>The first full v7.0 run failed 4 claims, all written before v7.0 and contradicted by its intended changes: the largest male now leads groups; per-water-body and per-cavern limits word their output differently; and the tool's season deal overrides NO_&lt;season&gt;. Those claims are now v7.0-aware, and the v7.0 claims testing the new behaviour directly pass, including <code>mech.v70.seasons_own</code>.</p>
@@ -578,5 +584,5 @@
   {{gallery:other wide}}
 </section>
 
-<footer>ECO study report, rebuilt 1 Oct 2026 from <code>DwarfCron/scripts/eco-report/build.py</code>. Data: <code>data/eco-report/experiments.json</code>, <code>raws.json</code>, <code>open-items.json</code>; review answers in <code>data/eco-review/part1/</code> and <code>part2/</code>. The editable Claude Doc version holds the earlier single-column text and its comment threads; it has not been corrected.<br>
-Revisions. Page rev 3, 1 October 2026 (evening): your review, Parts 1 and 2. Figures: eight value-first specs that drew empty frames fixed (leader spread, flocks and schools, the v2.2 ladder, cavern species-or-spot, size gate, gobble tokens, elephant choice, RELS), the kangaroo exhaustion axis, the builder's aim band, the RELS bar replaced by a holder × target grid with a forced-release panel, the token heatmap at full width with a caption that explains its grouping and order, the UNDERGROUND_DEPTH figure sorted by depth then name with a per-layer membership figure, and a build check that fails on such specs. Text: LARGE_PREDATOR's role; the four origins and "the fort's side" defined; pack size against prey mass, and prey mass against predator harm; the sweep's vacuous dials and the cell-order confound; Little's law for groups; SNEAK's evidence and your ruling; the pyramid targets; water depth vocabulary; colony counts; extinct-creature gaps; curious beasts; invasions disabled in DF's code and irruption's purpose; rulings in place of open questions; a new section on what v7.1 builds; open items updated with the testing stage. Page rev 2, 1 October 2026: review pass (DFHack note, release state, 13 captions corrected, single-run results labelled). Page rev 1, 1 October 2026 (morning): rebuilt as a wide multi-column page from doc rev 326.</footer>
+<footer>ECO study report, rebuilt 8 Oct 2026 from <code>DwarfCron/scripts/eco-report/build.py</code>. Data: <code>data/eco-report/experiments.json</code>, <code>raws.json</code>, <code>open-items.json</code>; review answers in <code>data/eco-review/part1/</code> and <code>part2/</code>. The editable Claude Doc version holds the earlier single-column text and its comment threads; it has not been corrected.<br>
+Revisions. Page rev 4, 8 October 2026: section 0 (where the tool stands), sections M and M1-M5 (the mechanics of roster building, season casts, rotation, the food web and the switch, from a line-by-line read of the merged code, with the full notes folded under each), section X (ten rig-run designs and the run kit), the header and the status lines of sections 20-23 brought to 8 October. Page rev 3, 1 October 2026 (evening): your review, Parts 1 and 2. Figures: eight value-first specs that drew empty frames fixed (leader spread, flocks and schools, the v2.2 ladder, cavern species-or-spot, size gate, gobble tokens, elephant choice, RELS), the kangaroo exhaustion axis, the builder's aim band, the RELS bar replaced by a holder × target grid with a forced-release panel, the token heatmap at full width with a caption that explains its grouping and order, the UNDERGROUND_DEPTH figure sorted by depth then name with a per-layer membership figure, and a build check that fails on such specs. Text: LARGE_PREDATOR's role; the four origins and "the fort's side" defined; pack size against prey mass, and prey mass against predator harm; the sweep's vacuous dials and the cell-order confound; Little's law for groups; SNEAK's evidence and your ruling; the pyramid targets; water depth vocabulary; colony counts; extinct-creature gaps; curious beasts; invasions disabled in DF's code and irruption's purpose; rulings in place of open questions; a new section on what v7.1 builds; open items updated with the testing stage. Page rev 2, 1 October 2026: review pass (DFHack note, release state, 13 captions corrected, single-run results labelled). Page rev 1, 1 October 2026 (morning): rebuilt as a wide multi-column page from doc rev 326.</footer>

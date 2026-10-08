@@ -267,6 +267,11 @@ def main(argv=None):
     content = content.replace("{{openitems}}", open_items_html(oi))
     content = content.replace("{{rectable}}", recs.table()).replace("{{appendix}}", appendix.build())
     content = content.replace("{{v71table}}", v71.table())
+    # {{include:NAME}}: a fragment from data/eco-report/parts/NAME.html (rev 4: status, mechanics, experiment plan)
+    content = re.sub(r"\{\{include:([\w-]+)\}\}", lambda m: (DATA / "parts" / f"{m.group(1)}.html").read_text(), content)
+    # {{mechmd:NAME}}: the code-review notes data/eco-report/mech/NAME.md, converted (mechmd.py)
+    import mechmd
+    content = re.sub(r"\{\{mechmd:([\w-]+)\}\}", lambda m: '<div class="mechnote">' + mechmd.convert((DATA / "mech" / f"{m.group(1)}.md").read_text()) + "</div>", content)
     blocks = set()
     for f in exp.get("figures", []):
         for t in re.split(r"[,/+ ]+", f.get("block", "")):

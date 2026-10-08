@@ -1,0 +1,37 @@
+<section class="sec" id="now" data-toc="Where the tool stands (8 Oct)">
+  <div class="sechead"><h2><span class="secnum">0</span>Where seasonal-wildlife stands on 8 October</h2>
+  <p class="answer">Everything the study recommended is built, and most of it has now run on the rig. The tool became one DFHack plugin (v7.2) and its season roster became <b>season casts</b> (v7.3). Every branch is merged into one line. A code review of the merged line (sections M1 to M5) found the mechanics mostly as designed, but with about a dozen real bugs and a few design gaps, three of which stand between the tool and "on and off at the flip of a switch". Section X sets out the fixes in order and the rig runs that check them.</p></div>
+  <div class="keys">
+    <div class="key"><div class="claim">One line of code, all branches in.</div><p>All 40 seasonal-wildlife branches and every worktree are contained in <code>v7.2-plugin</code> @ 8185d85; no worktree had uncommitted work, and the rig's deployed scripts and plugin match the repo byte for byte. <code>master</code> and <code>v7.1</code> were fast-forwarded to it locally on 8 Oct; nothing was pushed. DwarfCron's one stray research commit was already on Dev.</p><span class="src">git rev-list · cmp on the rig</span></div>
+    <div class="key"><div class="claim">One package: engine, water renderer, Panel, browser page.</div><p>The v7.2 zip ships the C++ plugin (aquarium water, autostart, map-load bridge), its Lua module, the engine, the window, the control registry and the browser companion. <code>enable seasonal-wildlife</code> turns everything on; <code>off</code> turns it off. The ecological summary pages are not in the zip, and the newest zip predates the casts.</p><span class="src">mech/switch.md</span></div>
+    <div class="key"><div class="claim">Season casts hold on every layer.</div><p>Lake and ocean 2×2 forts ran spring → summer → autumn on the final engine: 329/329 and 392/392 arrivals belonged to their season's cast, both season changes applied at their own tick, and each change sent off the groups whose species left the cast. Resting cavern species at FREQUENCY 0 instead of 1 were safe and leak-free (n = 1 per arm).</p><span class="src">Season-test page v6 · V73_LAKE3 · V73_OCEAN3 · F0</span></div>
+    <div class="key"><div class="claim">Alpha Four round 1 resolved; section 7 mostly measured.</div><p>109 steps: 83 pass, 19 anomalies (all fixed and passing on re-run), 7 skipped for want of an ocean, a bear, a curious beast, a calm map or a water draw. Of the 15 rows a walkthrough cannot check, 6 are done, 1 explained, 1 fixed awaiting the rig, 5 partly done and 2 open.</p><span class="src">Alpha Four Progress page</span></div>
+    <div class="key"><div class="claim">"Off" does not yet put everything back.</div><p>Disable, <code>off</code> and All off restore raws, flags and units, but not the population stock the tool holds at 0 for resting and out-of-season species: those entries stay empty and marked extinct in the saved world. The code says "every write put back". This is the first fix for a safe off switch.</p><span class="src">M2 · roster P2 · rotation P9</span></div>
+    <div class="key"><div class="claim">Under casts, the ladder and the apex scheduler sit idle.</div><p>Casts write who may come and when, but not the FREQUENCY ladder or the apex keys; nothing calls <code>roster build</code> on its own. A v7.3 fort runs on raw FREQUENCY with no apex scheduling, so the pyramid targets the study set are not being steered.</p><span class="src">M1 · roster P1</span></div>
+    <div class="key"><div class="claim">The cavern gate is a weight, not a gate.</div><p>Holding a full cavern cuts every species' FREQUENCY by the same factor, which keeps their ratios; DF keeps sending waves from sources the gate cannot see, and the trim removes one group a day. A bug makes the trim send off the new season's own cast after a turnover. 23-31 groups in a cavern capped at 5 is the result.</p><span class="src">M2 · rotation P2-P4</span></div>
+    <div class="key"><div class="claim">Air-breathers are placed on the lake bed.</div><p>Every tool water draw enters at the deepest full-water tile, with no check that the species breathes water. Minks drown, the mix sees a missing predator and boosts minks up to ×20, and the loop repeats: 55 minks drowned on one lake fort.</p><span class="src">M2 · rotation P5 · test item 1</span></div>
+  </div>
+  <div class="split">
+    <div class="prose">
+      <h3>What ran since this report's last revision (1 Oct)</h3>
+      <ul>
+        <li><b>2 Oct</b>: DFHack r2 re-validation (CTRL 357/0, RinghatchetsReady 360/3, all 3 fixed); Alpha Four round 1; section 7 on the release candidate; the web companion rebuilt and passed live (0 FAIL of 23).</li>
+        <li><b>3-6 Oct</b>: the aquarium water moved from a Lua overlay to a C++ DFHack plugin and was tuned with you item by item (waves, foam, mist, streaks, beds, sponges).</li>
+        <li><b>7 Oct</b>: the v7.2 single-plugin package built and installed; test item 1 (five region19 forts into summer, everything on, 30/30 dwarves each) found the ecology nudge teleporting cavern predators to the surface (fixed, and the nudge is now parked).</li>
+        <li><b>7-8 Oct</b>: v7.3 season casts built and run on waterfall, brook, lake and ocean forts; five fixes (the exhaustion race, the season timer, aquatic vermin, the water-group turnover, casts reloaded from the save); restfreq 0 tested.</li>
+        <li><b>8 Oct</b>: unified water palettes, plants at every level, cavern water opacity; this code review.</li>
+      </ul>
+    </div>
+    <div class="prose">
+      <h3>The four pages this one consolidates</h3>
+      <ul>
+        <li><a href="https://claude.ai/artifact/6sPcvuJAWB6FbRtkei78Cs">Smaksmo Oxdu Season Test</a> (v6, 8 Oct): test item 1 and every v7.3 cast run. Fixed today: its per-season species table read 0 everywhere.</li>
+        <li><a href="https://claude.ai/artifact/LkH3XxosysRgMSq6FSiFfC">Alpha Four Progress</a>: brought to 8 Oct (stages, what ran since 2 Oct, the pending list from section X).</li>
+        <li><a href="https://claude.ai/artifact/RCdoPTWhabmMBQQw2azpHr">Seasonal Wildlife Alpha Four</a> (v2): the 109-step walkthrough with its round-1 corrections and an 8 Oct table of the steps the current build changes.</li>
+        <li>This page: the study (sections 1-23, unchanged where the evidence is unchanged), and new sections 0, M1-M5 and X.</li>
+        <li><a href="https://claude.ai/artifact/96NzYdH3LkYVbkNkzjJ9wX">Seasonal Wildlife Mechanics</a>: sections M and X on their own, for reading without the study around them.</li>
+      </ul>
+      <p class="caveat"><b>How to read M1-M5.</b> They come from reading the merged code (8185d85) line by line; nothing in them was run for this review. Each claim names its function and line. A "problem" there is a code-level finding until a rig run in section X confirms it.</p>
+    </div>
+  </div>
+</section>

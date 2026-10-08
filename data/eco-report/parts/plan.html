@@ -1,0 +1,102 @@
+<section class="sec" id="mech-problems" data-toc="M5. Problems, ranked">
+  <div class="sechead"><h2><span class="secnum">M5</span>What stands between the code and its design, in fix order</h2>
+  <p class="answer">The four reviews found 70-odd items. Merged and ranked by what they block, they come to 22 fixes. Fourteen are plain bugs with small, local fixes and need no decision. Five need your ruling, because the design itself has to choose. Three are packaging. The order below is the shortest path to "every layer works as designed, on and off at a switch".</p></div>
+  <div class="full tbl card"><table>
+    <thead><tr><th>#</th><th>Fix</th><th>Why (what the code does now)</th><th>Layers</th><th>Kind</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td colspan="6"><b>Tier 1. A safe switch</b></td></tr>
+      <tr><td>F1</td><td><code>off</code>, disable and All off give back population stock and clear the extinct flags (from the reserve, else the worldgen snapshot); clear the relation cells and follow links the tool wrote.</td><td>Resting and out-of-season entries stay at 0 and extinct in the saved world; relation cells, cohesion links and fishing and panic paths stay. The code claims "every write put back".</td><td>all</td><td>bug</td><td>roster P2 · rotation P9 · foodweb P6</td></tr>
+      <tr><td>F2</td><td><code>cast off</code> survives a save and load.</td><td><code>castSanitize</code> uses <code>(type match) and r or v</code>: a saved <code>false</code> loads back as <code>true</code>.</td><td>all</td><td>bug</td><td>roster P3</td></tr>
+      <tr><td>F3</td><td><code>enable</code> leaves the deep layer off (R60), and leaves "livestock as prey" as you set it.</td><td><code>PANEL.fortOn</code> sets every non-opt-in switch: the deep layer rotates magma-sea species, and every armed predator in every realm is aimed at the fort's animals.</td><td>deep, all</td><td><b>ruling</b>: should <code>enable</code> also turn irruptions on?</td><td>rotation P15 · foodweb P1</td></tr>
+      <tr><td>F4</td><td>One master switch and a preset picker in the Panel and on the web page (On, Off, Season casts, Look); the renderer's look saved with the config.</td><td>The page cannot send <code>on</code>/<code>off</code>/<code>cast</code>/<code>preset</code>; casts are console-only; the water look resets at every DF start; the Panel's aquarium controls drive the retired overlay.</td><td>all</td><td>gap</td><td>switch (d)</td></tr>
+      <tr><td colspan="6"><b>Tier 2. Rotation that does what it says</b></td></tr>
+      <tr><td>F5</td><td>The cavern trim counts groups already sent off as leaving.</td><td>After a turnover it trims the new season's own cast, one group a day, until the old groups walk out.</td><td>caverns</td><td>bug (one line)</td><td>rotation P3</td></tr>
+      <tr><td>F6</td><td>The turnover becomes a standing rule (any off-cast tracked group, any pass), and its stamp is dropped on load.</td><td>It runs once per season stamp: a late DF wave or a leak stays all season, and a reload in the same season skips the turnover.</td><td>all</td><td>bug</td><td>rotation P4, P11 · roster P14</td></tr>
+      <tr><td>F7</td><td>The reserve is added to, not discarded, when a refund arrived before the apply.</td><td><code>res[id] = nil</code> runs whenever the entry is above 0, so a 300-tick refund can wipe a stock of thousands. Same in exhaustion and spill.</td><td>land, water</td><td>bug</td><td>rotation P6</td></tr>
+      <tr><td>F8</td><td>The season turn runs under a guard, and marks the season done only when it succeeds.</td><td>An error in the daily call stops rotation, holds, cavern frequencies and the apex scheduler for the rest of the season, and the fallback never retries.</td><td>all</td><td>bug</td><td>rotation P8</td></tr>
+      <tr><td>F9</td><td>The cavern hold respects <code>restfreq</code>.</td><td>At the cap the hold writes FREQUENCY 1 over a resting species set to 0.</td><td>caverns</td><td>bug</td><td>roster P21</td></tr>
+      <tr><td>F10</td><td>The raw NO_&lt;season&gt; flags are read from the snapshot, not the live raw.</td><td>After an undo, an extinct toggle or the <code>v7</code> verb, reclassification sees the flags already cleared and later casts ignore them.</td><td>all</td><td>bug</td><td>roster P9 · rotation P10</td></tr>
+      <tr><td colspan="6"><b>Tier 3. A food web that matches the casts</b></td></tr>
+      <tr><td>F11</td><td>Casts set the FREQUENCY ladder for cast members and hand the cast's apexes to the apex scheduler.</td><td>Casts write only who and when; a v7.3 fort runs on raw FREQUENCY with no apex scheduling, so the pyramid targets steer nothing.</td><td>land, water, caverns</td><td><b>ruling</b>: ladder under casts, yes or no?</td><td>roster P1</td></tr>
+      <tr><td>F12</td><td>Cross-layer edges in the cast's edge list (shore and amphibious hunters, fish-eating birds, fishing bears).</td><td>Under casts no cross-layer pair is ever written; the fisher exception is cut by the next line.</td><td>land × water</td><td>bug</td><td>foodweb P2</td></tr>
+      <tr><td>F13</td><td>Cast predator slots take only species that can hunt, or the cast arms them; apex × mesopredator edges become writable.</td><td>BENIGN members (badger, fox, stoat, sperm whale) fill predator slots and never hunt; armed predators are never targets, so apexes never take mesopredators.</td><td>all</td><td><b>ruling</b>: exclude or arm BENIGN predators? allow apex × meso?</td><td>foodweb P3</td></tr>
+      <tr><td>F14</td><td>Stand-ins and species you activate by hand get their predator-prey edges.</td><td>The ecology keeps only edges grown into the cast.</td><td>all</td><td>bug</td><td>roster P12, P13</td></tr>
+      <tr><td>F15</td><td>Parked features can be un-parked by their own verbs.</td><td><code>hunters stoop on</code> and <code>v7 fishers on</code> are reverted by the config reload they trigger.</td><td>land, flying, water</td><td>bug</td><td>foodweb P4</td></tr>
+      <tr><td>F16</td><td>A thief sent off at a season change is not reformed into staying.</td><td>Curious reform reads the zeroed countdown as a theft and keeps it, up to ten times.</td><td>land</td><td>bug</td><td>foodweb P5</td></tr>
+      <tr><td colspan="6"><b>Tier 4. Layer behaviour</b></td></tr>
+      <tr><td>F17</td><td>Air-breathers enter at the top of the water column or on the shore; deaths soon after a draw count against the species in the mix.</td><td>Every draw enters at the deepest full tile; minks drown, the mix boosts them up to ×20, and the loop repeats.</td><td>lake, river, ocean</td><td>bug</td><td>rotation P5 · foodweb</td></tr>
+      <tr><td>F18</td><td>Land: a trim for groups over the cap, or accept the overshoot.</td><td>Nothing reduces the land count; under casts every land native is adopted and counted, and apex placements obey only their own cap.</td><td>land</td><td><b>ruling</b> (you accepted 9.65 v 9 on v7.1)</td><td>rotation P1</td></tr>
+      <tr><td>F19</td><td>Caverns: a gate that holds (trim by count, not one a day; trimmed DF waves keep their source closed; hold shared species too).</td><td>The hold is a weight that keeps ratios; DF sends from sources the gate cannot see; 23-31 groups at cap 5.</td><td>caverns</td><td><b>ruling</b>: how hard should the gate be?</td><td>rotation P2</td></tr>
+      <tr><td>F20</td><td>Water caps and the mix per body, not per body type; enclosed bodies get a send-off that works.</td><td>Two lakes share one count, cap and clock; a dismissed school in a closed lake never leaves.</td><td>water</td><td>gap</td><td>rotation P16, P17</td></tr>
+      <tr><td>F21</td><td>Small items: the web's "Build all" builds every layer; the sentient slot and water GZ/PL/RP slots; FAPX vermin diet; snake gobble rule; dead code.</td><td>See the notes.</td><td>various</td><td>bug</td><td>roster P7, P8, P17, P18 · foodweb</td></tr>
+      <tr><td colspan="6"><b>Tier 5. The package</b></td></tr>
+      <tr><td>F22</td><td>Release 7.3.0: version strings, a fresh zip with the casts and water palettes, the ecological summary pages in the package, offline tests for the casts, HANDOFF / USAGE / changelog brought up to date.</td><td>The newest zip predates both; the docs still describe the stranding guard and 7.1.0; no test covers <code>castYear</code>.</td><td>-</td><td>packaging</td><td>switch (c), (e) · roster P23</td></tr>
+    </tbody></table></div>
+</section>
+
+<section class="sec" id="plan" data-toc="X. Rig runs: the plan">
+  <div class="sechead"><h2><span class="secnum">X</span>Rig runs to check the fixes and watch the processes</h2>
+  <p class="answer">Ten run designs on four saved forts that already exist, plus three forts to make. One run kit records every run the same way, so each run doubles as a monitor of wildlife behaviour and of the tool's own processes. Screening runs use 3 replicates; a run that decides a ruling uses 5. About 22 rig hours in all, most of it in unattended overnight chains.</p></div>
+  <div class="split">
+    <div class="prose">
+      <h3>The run kit (build first)</h3>
+      <p>Today the v7.3 season tooling is a set of scripts with no single driver. One driver, <code>season-run</code>, will do for every run:</p>
+      <ol>
+        <li><b>Load</b> a backed-up fort by folder (never the original), with a per-chunk timeout.</li>
+        <li><b>Receipts first</b>: the fort's casts, settings and the manipulation under test are read back and the subject is proven on the map; any failure aborts the cell (manifest-subject rule).</li>
+        <li><b>Record</b>: the in-game recorder (arrivals, departures, attacks, kills, deaths, positions every 100 ticks) and the tool's ledger captured live (its buffer keeps only 300 lines), plus <code>ecology pairs tsv</code> and cast status every 3,000 ticks.</li>
+        <li><b>Step</b> in 20,000-tick chunks, saving each (DF hangs about every 40-60k ticks at speed), watering and feeding the dwarves each chunk (rig embarks carry no drink).</li>
+        <li><b>Dump and analyse</b>: one JSON per cell (v73_check, f0_compare and the food-web graph), then the season-test page rebuilt and republished.</li>
+      </ol>
+      <h3>Forts</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Code</th><th>Fort</th><th>What it has</th></tr></thead>
+        <tbody>
+          <tr><td>L</td><td>V73_LAKE2 (region19 10,42, 2×2)</td><td>1,062-tile lake, two river runs, a pool, three caverns</td></tr>
+          <tr><td>O</td><td>V73_OCEAN2 (63,46, 2×2)</td><td>6,191-tile salt ocean up to 4 deep, shrubland, caverns</td></tr>
+          <tr><td>B</td><td>V73_BROOK (21,22, 2×2)</td><td>marsh and brook, caverns</td></tr>
+          <tr><td>W</td><td>T1END_WATERFALL (6×6)</td><td>a real waterfall, river, caverns, 30 dwarves</td></tr>
+          <tr><td>C, F, E</td><td>to embark</td><td>a calm map; a pool with bears; an extinct land apex in the embark</td></tr>
+        </tbody></table></div>
+      <p class="caveat">None of the V73_* or T1END_* forts has a backup yet; the runners refuse an un-backed fort, so X0 makes them.</p>
+    </div>
+    <div class="prose">
+      <h3>Order</h3>
+      <ol>
+        <li><b>Fix batch A</b> (F1, F2, F5-F10, F14-F17, F21): no rulings needed; each with an offline test.</li>
+        <li><b>X0-X3</b> on batch A: kit check, the switch round trip, persistence, the season-boundary audit.</li>
+        <li><b>Your rulings</b> on F3, F11, F13, F18, F19 (listed at the end of this section).</li>
+        <li><b>Fix batch B</b> (the ruled items, F4, F12, F20), then <b>X4-X8</b>.</li>
+        <li><b>X9</b>, the one-year run, on the release candidate; then <b>F22</b>, release 7.3.0.</li>
+      </ol>
+      <h3>Rules every run follows</h3>
+      <ul>
+        <li>A fresh load per cell; the order of arms reversed on even replicates.</li>
+        <li>DF restarted between arms on long runs (one process loses up to 28% speed over 300k ticks).</li>
+        <li>Arms of a frame-rate comparison paired inside one session (identical loads differ by 10-16%).</li>
+        <li>A run that comes back thin (too few subjects) is marked <b>pending</b>, not re-fixed mid-round.</li>
+        <li>Counts are by the unit's own population source and the tool's group, never by DF's wave flag alone (readout traps 29-34).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="full tbl card"><table>
+    <thead><tr><th>Run</th><th>Question</th><th>Forts · arms · n · length</th><th>What is measured</th><th>Passes when</th><th>Needs</th><th>Rig time</th></tr></thead>
+    <tbody>
+      <tr><td><b>X0</b> Kit and backups</td><td>Do the forts load, and does the kit record what it claims?</td><td>L, O, B, W · one arm · 1 · 2,000 t</td><td>Backups byte-identical; every receipt and output file present; recorder rows match a live count.</td><td>All four forts pass.</td><td>the kit</td><td>0.5 h</td></tr>
+      <tr><td><b>X1</b> The switch round trip</td><td>Does <code>off</code> put the world back exactly, and <code>on</code> bring the tool back?</td><td>L, O · on → one season → off → save → reload with the tool absent → on · 1 (a deterministic check)</td><td>Every population entry's quantity and extinct flag against the worldgen snapshot; every touched raw against its file; relation cells written by the tool; renderer and autostart state; casts after <code>on</code>.</td><td>0 differences after <code>off</code>; casts identical after <code>on</code>.</td><td>F1, F3</td><td>1 h</td></tr>
+      <tr><td><b>X2</b> Persistence</td><td>Do <code>cast off</code>, the turnover and the reserve survive a reload?</td><td>L · four scripted cases (cast off + reload; reload mid-season; reload just before a change; a refund just before a change) · 1 each</td><td>Cast state after reload; turnover receipts after a same-season reload; reserve plus quantity per entry before and after the change.</td><td>Each case behaves as specified; the reserve is conserved.</td><td>F2, F6, F7</td><td>1 h</td></tr>
+      <tr><td><b>X3</b> Season-boundary audit (the regression run)</td><td>Across every layer, does each change hand over cleanly?</td><td>L, O, B · spring → summer → autumn · 3 · two changes each</td><td>Off-cast arrivals per layer and season, and their lead time after a change; in-cast groups trimmed or sent off (should be 0); stand-ins made and retired; turnover send-offs that actually left; reserve conservation; tool time per pass.</td><td>0 off-cast arrivals later than one day after a change; 0 in-cast trims; every dismissed group off the map within 10 days.</td><td>batch A</td><td>7 h (overnight)</td></tr>
+      <tr><td><b>X4</b> Cavern gate</td><td>How hard does the gate hold, and does the stronger gate cost the cast?</td><td>L, O caverns · gate off / gate as built / gate per F19 · 5 · 30,000 t from the same summer save</td><td>Groups per cavern every 300 t against the cap; arrivals per day; share of arrivals in the cast; trims and their source reopening.</td><td>F19 arm holds groups ≤ cap + 1 in 90% of samples, with the cast share no lower than gate off.</td><td>F5, F9, F19</td><td>2.5 h</td></tr>
+      <tr><td><b>X5</b> Land cap</td><td>Is the land count where the design puts it?</td><td>L, O · current / land trim (if ruled) · 5 · 50,000 t</td><td>Land groups over time by origin (DF wave, adopted native, apex placement); fraction of samples over the cap.</td><td>Your ruling's target (accept, or ≤ cap in 90% of samples).</td><td>F18</td><td>2 h</td></tr>
+      <tr><td><b>X6</b> Water placement and survival</td><td>Do air-breathing swimmers survive their draw, and does the loop stop?</td><td>L (5-deep lake), O · old placement / F17 · 5 · one season</td><td>Deaths within 2 days of a draw by species and cause (drowning); groups per body; the mix weight for each species over time.</td><td>Drowning deaths of drawn units at or near 0; no species weighted to the ×20 cap by its own deaths.</td><td>F17</td><td>3 h</td></tr>
+      <tr><td><b>X7</b> The realised food web, per layer and season</td><td>Who is related to whom, who attacks whom, who eats whom, and how does it match the cast?</td><td>L, O, W · one season each, at defaults · 3</td><td>For every pair: tool-written, DF-written, attacks, kills, by layer (land, flying, water body, cavern) and season; cross-layer pairs; BENIGN cast members; parked features' counters. Output: one food-web network per season with tool, DF and kill edges.</td><td>Every cast predator-prey edge written; no write outside the cast; kills only along written edges; cross-layer edges present after F12.</td><td>F12, F13, F14</td><td>4 h</td></tr>
+      <tr><td><b>X8</b> Ladder and apexes under casts</td><td>Do the pyramid targets and apex presence hold once casts set the ladder?</td><td>W, L · two full seasons · 3</td><td>H/C/A unit shares per layer per season against the targets; apex presence against 25% land, 20% water, 70% cavern; the ladder values written.</td><td>Shares within 10 points of target; presence within 10 points.</td><td>F11</td><td>3 h</td></tr>
+      <tr><td><b>X9</b> One year</td><td>Does a fort run a whole year cleanly on the release candidate?</td><td>O · four changes, new-year cast regrow · 1 · 403,200 t, DF restarted each season</td><td>Everything in X3 and X7, plus casts regrown at the new year, frame rate and the tool's worst pass per season, save size.</td><td>No error, no stall, the X3 criteria at each change, frame rate within load noise of the first season.</td><td>batch A + B</td><td>4 h</td></tr>
+      <tr><td><b>X10</b> Leftovers</td><td>Close the section-7 rows still open.</td><td>TRIM (with the adoption fix in the harness); INV3 on C; EXF1 on E; fishing on F (after F15); PELA and orca cohesion on O</td><td>As in section 7.</td><td>Each row read, or marked not testable with the reason.</td><td>forts C, F, E</td><td>3 h</td></tr>
+    </tbody></table></div>
+
+  <details class="appx"><summary>Full notes: the rig harness, saved forts and the rig's traps (mech/harness.md)</summary>{{mechmd:harness}}</details>
+
+  <div class="note"><b>Rulings these runs wait on.</b> F3: should <code>enable</code> turn irruptions on, or leave them opt-in like livestock as prey? F11: should casts set the FREQUENCY ladder and seat their apexes in the apex scheduler (recommended: yes; that is what the pyramid targets need)? F13: should a BENIGN species be kept out of cast predator slots (recommended), or be armed by the cast? And may apexes take mesopredators? F18: keep accepting the land overshoot, or add a land trim? F19: how hard should the cavern gate be: as now, or holding at cap + 1? Also open from section 7: a lost leader's scatter (row 5) and the water spill's give-back (row 12), both moot while panic is parked and the spill is off under casts. Recommendation: retire both rows.</div>
+</section>

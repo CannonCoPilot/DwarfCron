@@ -103,25 +103,43 @@ CHIP = {"done": ("Done", "ok"), "fixed": ("Fixed, needs rig check", "fix"), "par
 
 STAGES = [
     ("DFHack r2 re-validation", "ok", "Done",
-     "CTRL 357 PASS / 0 FAIL and RinghatchetsReady 360 / 3 on the release candidate. The 3 are fixed (2 probe scrolling, "
-     "1 water-draw timing) and wait for a re-run."),
-    ("Alpha Four walkthrough, 109 steps", "part", "Round 1 resolved",
-     "Round 1: 83 PASS, 19 ANOMALY, 7 SKIPPED. All 19 anomalies resolved (11 tool fixes, driver and page fixes) and passing "
-     "on re-run. A full round on the final build is still to run; the 7 skips need an ocean, a bear, a curious beast, a calm "
-     "map or a water draw."),
+     "CTRL 357 PASS / 0 FAIL and RinghatchetsReady 360 / 3 on the v7.1 release candidate (2 Oct). The 3 were fixed (2 probe "
+     "scrolling, 1 water-draw timing). No r2 regression has turned up since, through test item 1 and the v7.3 runs."),
+    ("Alpha Four walkthrough, 109 steps", "part", "Round 1 resolved; page behind the code",
+     "Round 1 (v7.1): 83 PASS, 19 ANOMALY, 7 SKIPPED; all 19 anomalies resolved and passing on re-run. Since then v7.2 made the "
+     "tool one plugin and v7.3 replaced the season roster with season casts, so a few steps describe superseded behaviour "
+     "(the walkthrough page now lists them). A full round on the final build is still to run."),
     ("Section 7, the 15 rows the page cannot check", "part", "Mostly measured",
-     "13 blocks completed on 9e5aabe, 8 re-run on the Alpha Four fixes, and the release-candidate list done (2 Oct "
-     "15:05-21:55): 7 blocks read, TRIM and VF1 aborted (pending). Detail below."),
-    ("Web companion", "ok", "Live run passed",
-     "Rebuilt on branch v7.1-web2 (10 tabs: map, groups, species, food web, seasons, roster, waters and caverns, controls, "
-     "ledger). Live on RinghatchetsReady, 19:21-19:31: 0 FAIL of 23 checks. 1,150 reads at the page's own cadence, no "
-     "5xx; the game date, units, groups, history and ledger all moved; 304s while paused; every route's server time p95 "
-     "under 50 ms (state 17, worst poll 108 ms); terrain scan 66 ms; 37 of 44 markers moved in 5 min; 0 console errors. "
-     "Display nits: per-body caps read as '27 / 9'; a few cavern sprites blank. Merge with the release."),
-    ("Aquarium package", "part", "Built, offline-tested",
-     "Translucent-water mod (generated from your own sheets), depth lens, legend, waves, 17 controls. Aquarium world region10 "
-     "(region9's terrain with the mod) and fort AQUA_LAKE exist. In-game tests T1-T11 and AQUA_SHORE are pending."),
-    ("Release", "open", "Waiting", "Merge into v7.1, push, release notes, and the pages, after the above."),
+     "6 done, 1 explained, 1 fixed awaiting a rig check, 5 partly done, 2 open (rows 5 and 12). TRIM and VF1 aborted at their "
+     "receipts on 2 Oct and stay pending; the new experiment plan in the ECO report folds them in."),
+    ("Web companion", "ok", "Live run passed; in the package",
+     "Rebuilt on v7.1-web2 (10 tabs). Live on RinghatchetsReady: 0 FAIL of 23 checks, every route p95 under 50 ms. Merged, and "
+     "shipped inside the v7.2 package with the engine and the water plugin."),
+    ("Aquarium water", "ok", "Live on the rig; looks under your review",
+     "The Lua overlay was replaced on 3 Oct by a C++ DFHack plugin (deeper levels, beds, creatures and plants under water, "
+     "waves, foam, mist, river streaks), tuned with you item by item through 8 Oct: unified per-kind water palettes (sea, lake, "
+     "river, pool, cave), plants at every level, cavern water opacity. All of it is in the v7.2 plugin."),
+    ("v7.2 single-plugin package", "ok", "Built and installed on the rig",
+     "One DFHack plugin (water renderer, autostart, map-load bridge) plus its Lua module and the tool's scripts, packaged as "
+     "seasonal-wildlife-7.2.0-dfhack-53.16-r2-*.zip and installed on the rig on 7 Oct. The rig now runs the dev build of the "
+     "same tree (v7.2-plugin 8185d85)."),
+    ("Test item 1 and v7.3 season casts", "ok", "Run",
+     "Test item 1 (7 Oct): five region19 forts into summer with everything on, 30/30 dwarves each (one nudge bug found and "
+     "fixed). v7.3 season casts (8 Oct): lake and ocean forts through two season changes, 329/329 and 392/392 arrivals in "
+     "their season's cast after five fixes; resting cavern species at frequency 0 safe. See the season-test page."),
+    ("Release", "open", "Waiting",
+     "Every branch is merged into v7.2-plugin; master and v7.1 were fast-forwarded to it locally on 8 Oct (not pushed). "
+     "Release after the mechanics review and the experiment plan in the ECO report."),
+]
+
+SINCE_OCT2 = [
+    "3 Oct: your play test of the Lua water overlay found it not good enough; the water moved into a C++ DFHack plugin, working on the rig the same day.",
+    "4-6 Oct: the water checklist, one change at a time at your direction: DF's wave cycle decoded, wave art, foam, mist, river streaks, beds, sponges, pools.",
+    "7 Oct: the v7.2 single-plugin package built and installed on the rig (engine, water plugin, Panel, browser companion in one zip).",
+    "7 Oct: test item 1, five forts on region19 into summer with everything on; the ecology nudge's realm bug found (cavern jabberers teleported up) and fixed.",
+    "7-8 Oct: v7.3 season casts built (the pool is not the roster; a small cast per layer and season); validated on waterfall, brook, lake and ocean forts; five fixes.",
+    "8 Oct: resting cavern species at frequency 0 tested (safe, leak-free); aquarium palettes, plants and cavern opacity tuned with you.",
+    "8 Oct: every branch confirmed merged into v7.2-plugin; master and v7.1 fast-forwarded locally; mechanics review and experiment plan in the ECO report.",
 ]
 
 RUNNING_HEAD = [
@@ -178,57 +196,43 @@ def live_running():
     return out
 
 PENDING = [
-    ("Merge and re-deploy (right after the chain)", [
-        "Merge v7.1-web2 (52f6566, a fast-forward) into the release candidate; deploy it (trim_gated on, the water-draw "
-        "timing fix, the new companion).",
-        "Re-run RinghatchetsReady validation, the gui and timing phases (the 3 fixed FAILs), and a 5-min live re-time of "
-        "the companion's /state.json.",
+    ("Fix batch A (no rulings needed; ECO report section M5)", [
+        "F1 off, disable and All off give back population stock and clear the relation cells; F2 cast off survives a reload.",
+        "F5 the cavern trim stops trimming the new cast after a turnover; F6 the turnover becomes a standing rule; F7 the reserve is kept when a refund lands first; F8 the season turn runs under a guard.",
+        "F9 the cavern hold respects restfreq; F10 the raw season flags are read from the snapshot; F14 stand-ins get their edges; F15 parked features can be un-parked; F16 sent-off thieves are not reformed; F17 air-breathers enter at the top of the water; F21 small items.",
+        "Each with an offline test; deploy to the rig.",
     ]),
-    ("Aquarium until it works (your ruling: no test is skipped; fix, repair or redesign)", [
-        "Water transparency: the mod loads in the aquarium world (T1), the lake and river beds and the fish show through "
-        "the water (T2), deep ocean reads as fog not black (T3). Measured by screenshot: vanilla v aquarium preset.",
-        "Water and mist animations: river and brook flow streaks and waterfall mist restyled and animating; ocean waves "
-        "and foam spawn (T4) and are drawn (T5). Measured by frame bursts at a mist source and on the surf.",
-        "Embark AQUA_SHORE (region10 tile 205,170, ocean to the south) for the ocean tests.",
-        "Then the lens, legend, veil, cost, fuse, controls and uninstall guard (T6-T11). Alpha Four pauses only after this.",
+    ("Rig runs on batch A (ECO report section X)", [
+        "X0 the run kit and backups of the V73 and T1END forts; X1 the switch round trip; X2 persistence; X3 the season-boundary audit on the lake, ocean and brook forts (overnight).",
     ]),
-    ("Rig checks for the new tool fixes", [
-        "trim_gated sends off a DF wave from a cavern over its cap: PENDING with S7_TRIM (harness), after this round.",
+    ("Your rulings", [
+        "F3 should enable turn irruptions on? F11 should casts set the FREQUENCY ladder and seat their apexes? F13 BENIGN species in cast predator slots, and apex x mesopredator edges? F18 land overshoot: accept or trim? F19 how hard should the cavern gate hold?",
     ]),
-    ("Section 7 leftovers", [
-        "Fix the Panel round-trip harness and re-run PANEL.",
-        "A block that comes back thin (too few subjects) is marked pending, not re-run this round.",
-        "Section 7 ocean rows on AQUA_SHORE: PELA, PEL1, orca cohesion, PERF3, the ocean half of FSH4; the walkthrough's "
-        "ocean skips (1.8, 4.11).",
+    ("Fix batch B, then X4-X8", [
+        "The ruled items, F4 (master switch and presets in the Panel and on the page, the water look saved), F12 (cross-layer edges), F20 (water caps per body).",
+        "X4 cavern gate, X5 land cap, X6 water placement and survival, X7 the realised food web per layer and season, X8 ladder and apexes under casts.",
     ]),
-    ("Forts still needed", [
-        "A fort whose pool has bears, for FSH3/FSH4.",
-        "A calm map, for INV3 and walkthrough step 1.3.",
-        "An extinct land apex in the embark, for EXF1.",
+    ("Leftovers and forts", [
+        "X10: TRIM with the harness's adoption fix; INV3 on a calm map; EXF1 on a fort with an extinct land apex; fishing on a fort whose pool has bears; PELA and orca cohesion on the ocean fort.",
+        "Retire section-7 rows 5 (panic) and 12 (spill give-back) while panic is parked and the spill is off under casts.",
     ]),
-    ("Final rounds", [
-        "A full Alpha Four regression round on the final build.",
-        "The Chrome pass of every companion tab.",
-    ]),
-    ("Release and pages", [
-        "Merge v7.1-rc into v7.1, push, release notes.",
-        "Republish the docket, backlog, design and Wilderpop pages (with the new ECO link) and the Alpha Four page with this "
-        "round's marks.",
+    ("Release 7.3.0", [
+        "X9, one year on the release candidate; version strings, a fresh zip with the casts and water palettes, the ecological summary pages in the package, docs; then push with your word.",
     ]),
 ]
 
 DECISIONS = [
     ("Answered", "Should the cavern trim also send off DF waves? Yes: trim_gated, default on."),
-    ("Answered", "Land cap overshoot (9.65 v cap 9 on the release candidate): acceptable."),
+    ("Answered", "Land cap overshoot (9.65 v cap 9 on the release candidate): acceptable (on v7.1; reopened as F18 under casts)."),
     ("Answered", "Inconclusive results (too few subjects) are marked pending; the round moves on without re-fixing."),
-    ("Answered", "Stranding guard replaced by placement: ocean and river swimmers enter at a map-edge tile of the body; a lake at "
-     "a map-edge tile if it has one, else the water tile nearest its centroid; only breathable depth (4/7+); real beaching "
-     "left to DF. Being built on v7.1-place; GRD1 retired."),
+    ("Answered", "Stranding guard replaced by placement at a map-edge tile of the body, in breathable depth."),
     ("Answered", "The aquarium is the exception: its failed tests are fixed until transparency, waves and mist work."),
     ("Answered", "Irruption flags carrier: the save-safe wound by default, the syndrome route as an option."),
-    ("Open", "Row 5: no detectable scatter from a lost leader at n = 5. A larger n, another measure, or accept?"),
-    ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little "
-     "pressure. Keep?"),
+    ("Answered", "The pool is not the roster: season casts, about 10-12 species a layer and season, vermin included (7 Oct)."),
+    ("Answered", "Resting cavern species at FREQUENCY 1 by default; 0 offered as a setting with the vermin guard (8 Oct)."),
+    ("Open", "F3, F11, F13, F18, F19: the five rulings the ECO report's section X waits on."),
+    ("Open", "Row 5 (lost-leader scatter) and row 12 (spill give-back): retire while panic is parked and the spill is off under casts?"),
+    ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little pressure. Keep?"),
     ("Open", "A stock you set by hand is rewritten when its season returns, so an irruption's draw on it doesn't carry over."),
     ("Open", "Exhaustion on the cavern layer can open an out-of-season cavern species for the rest of a season. Keep it off "
      "the caverns?"),
@@ -262,12 +266,13 @@ def build():
     stages = "".join(f'<li class="stage"><span class="chip {c}">{E(lab)}</span><h3>{E(t)}</h3><p>{E(d)}</p></li>'
                      for t, c, lab, d in STAGES)
     running = "".join(f'<li class="{c}"><span class="dot"></span>{E(t)}</li>' for c, t in live_running())
+    since = "".join(f'<li class="done"><span class="dot"></span>{E(t)}</li>' for t in SINCE_OCT2)
     pending = "".join(f"<li><h3>{E(h)}</h3><ul>" + "".join(f"<li>{E(x)}</li>" for x in items) + "</ul></li>"
                       for h, items in PENDING)
     decisions = "".join(f'<li><span class="chip {"ok" if a == "Answered" else "open"}">{a}</span> {E(t)}</li>'
                         for a, t in DECISIONS)
     nt = mdlite.convert(RES.split("## Not testable here, and what each needs", 1)[1].split("## Reproduce", 1)[0])
-    page = TEMPLATE.format(as_of=AS_OF or __import__("datetime").datetime.now().strftime("%-d %b %Y, %H:%M MDT"), stages=stages, running=running, s7="".join(s7), tally=tally, pending=pending,
+    page = TEMPLATE.format(as_of=AS_OF or __import__("datetime").datetime.now().strftime("%-d %b %Y, %H:%M MDT"), stages=stages, running=running, since=since, s7="".join(s7), tally=tally, pending=pending,
                            decisions=decisions, nt=nt)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(page)
@@ -356,18 +361,21 @@ th {{ font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--mut
 </style>
 <div class="wrap">
 <section class="lede">
-  <span class="eyebrow">Seasonal Wildlife v7.1 · test fort RinghatchetsReady (region9)</span>
+  <span class="eyebrow">Seasonal Wildlife v7.1 → v7.3 · test forts RinghatchetsReady (region9), Smaksmo Oxdu (region19)</span>
   <h1>Alpha Four Progress</h1>
   <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
   walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
-  <span class="meta">As of {as_of} · release candidate v7.1-rc c2adab0 · rig running v7.1-rc 16f85e6</span>
+  <span class="meta">As of {as_of} · seasonal-wildlife v7.2-plugin 8185d85 (all branches merged) · rig running the same tree</span>
 </section>
 
 <h2>Stages</h2>
 <ul class="stages">{stages}</ul>
 
-<h2>On the rig now</h2>
-<p class="meta" style="margin-bottom:10px">The release-candidate chain: deploy, both validations (done), then the section-7 re-run list.</p>
+<h2>Since 2 October</h2>
+<ul class="run">{since}</ul>
+
+<h2>The 2 October release-candidate chain</h2>
+<p class="meta" style="margin-bottom:10px">Deploy, both validations, then the section-7 re-run list (finished 2 Oct, 21:55).</p>
 <ul class="run">{running}</ul>
 
 <h2>Section 7, row by row</h2>
@@ -382,6 +390,7 @@ reached the animals. Full analysis lives in <code>data/alpha4-sec7/SECTION7-RESU
 <div class="nt md">{nt}</div>
 
 <h2>Pending work, in order</h2>
+<p class="meta" style="margin-bottom:10px">From the ECO report rev 4, sections M5 and X (https://claude.ai/artifact/UY2KevMooCW4mRr5F19M26).</p>
 <ol class="pending">{pending}</ol>
 
 <h2>Decisions</h2>
