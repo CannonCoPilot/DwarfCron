@@ -84,6 +84,49 @@ def off_list(S, d):
     return ('<ul class="gap">%s</ul>' % ''.join(items)) if items else ''
 
 
+F0_PAIRS = [('Lake fort', 'V73_LAKE3', 'V73_LAKE_F0', 19), ('Ocean fort', 'V73_OCEAN3', 'V73_OCEAN_F0', 25)]
+
+
+def f0_section():
+    """resting cavern species at frequency 0 (cast restfreq 0) against 1, same save and casts, spring -> autumn"""
+    import f0_compare
+    rows = []
+    for name, a, b, nz in F0_PAIRS:
+        if not (os.path.exists(os.path.join(HERE, a, 'events.tsv')) and os.path.exists(os.path.join(HERE, b, 'events.tsv'))):
+            continue
+        for arm, d in (('1', a), ('0', b)):
+            S, species, gate, fps, steps = f0_compare.cavern(os.path.join(HERE, d))
+            per = []
+            for s in ('Spring', 'Summer', 'Autumn'):
+                ok = S['arr'][('cavern', s, True)]
+                off = S['arr'][('cavern', s, False)] + S['arr'][('cavern', s, 'stand-in')]
+                per.append('%d / %d' % (ok, off))
+            rows.append([E(name), arm, *per, str(sum(gate.values())),
+                         '%.0f' % (sorted(steps)[len(steps) // 2] if steps else 0), '%.0f' % (max(steps) if steps else 0)])
+    if not rows:
+        return ''
+    return ('  <h3>Resting cavern species at frequency 0</h3>\n'
+            '  <p class="note">The test you asked for (8 Oct): <code>cast restfreq 0</code> holds every resting non-vermin cavern '
+            'species at raw FREQUENCY 0 instead of 1; vermin stay at 1 (FREQUENCY 0 on CREEPY_CRAWLER, a vermin, once froze DF, and the '
+            'guard now keeps any raw with a vermin tag at 1). Each fort\'s embark save ran spring &rarr; summer &rarr; autumn twice with '
+            'the same casts: frequency 1 (V73_LAKE3, V73_OCEAN3) and frequency 0 (V73_LAKE_F0 with 19 species at 0, V73_OCEAN_F0 with 25). '
+            'Cavern arrivals per season as in the cast / not in it:</p>\n'
+            + table([('fort', 0), ('rest freq', 1), ('spring', 1), ('summer', 1), ('autumn (2,000 ticks)', 1), ('gate sendoffs', 1),
+                     ('s per 10k ticks, median', 1), ('worst', 1)], rows) +
+            '\n  <ul class="gap">'
+            '<li><b>Safe.</b> No freeze in either run: about 320,000 game ticks at frequency 0, the set at 0 changing at each season '
+            'change, with the same step times as frequency 1. CREEPY_CRAWLER stayed at 1 while resting (ocean fort, spring).</li>'
+            '<li><b>No leak to stop.</b> At frequency 1 no off-cast cavern species arrived on either fort (the only ones were DF\'s '
+            'embark-time residents, sent off on the first pass), so frequency 0 had nothing to remove: 0 off-cast arrivals in both '
+            'arms. The ~15% leak measured at frequency 1 before v7.3 is not there under season casts, where the turnover and the cavern '
+            'gate send off what DF does bring.</li>'
+            '<li><b>Rates: pending.</b> Cavern arrivals in summer were higher at frequency 0 on both forts (lake 129 vs 75, ocean 173 '
+            'vs 162, mostly crundles), which would fit DF spreading its cavern waves over fewer species, but one run per arm cannot '
+            'tell that from DF\'s own variation.</li>'
+            '<li><b>Recommendation:</b> keep frequency 1 as the default (it is already leak-free under casts and carries no freeze '
+            'risk); frequency 0 is safe to offer as a setting with the vermin guard.</li></ul>')
+
+
 def main():
     out = ['<section id="v73">', '  <h2>v7.3 season casts: first runs</h2>',
            '  <p class="note">v7.3 makes the cast the season\'s roster: per layer and season a small set grown from a high-value seed '
@@ -125,6 +168,7 @@ def main():
                    % (('%d (%s)' % (early, ', '.join('%s %d' % kv for kv in S['early'].items()))) if early else 'none',
                       E('; '.join(t.split(': ', 1)[-1][:160] for t in S['turn'])) or 'none in the window',
                       S['pairs']['tool'], S['pairs']['live-df']))
+    out.append(f0_section())
     out.append('</section>')
     print('\n'.join(out))
 
