@@ -37,6 +37,8 @@ RUNS = [
      '30 dwarves died of dehydration by mid-summer and DF ended the fort. Not the tool; the season runner now waters and feeds the '
      'dwarves each chunk. Reloading that save then showed a tool bug: the casts were saved but never read back, so the reloaded fort '
      'had none. Fixed (b0895b9): the save now loads with its casts, identical to the first run\'s.'),
+    ('V73_LAKE3', 'Lake fort again, spring &rarr; summer &rarr; autumn', (),
+     'The lake fort\'s embark save through two season changes on the final engine, its casts reloaded from the save.'),
 ]
 LAYERS = ('land', 'water', 'cavern')
 # what an off-cast group was, where the run's data show it (read by hand from ledger and recorder; 8 Oct)
@@ -45,6 +47,8 @@ WHY = {
         'replay with the wren held (V73_WREN, below) had no wren arrive in 100 days, and a departure refund was measured not to reopen '
         'the entry (extinct stays set, the hold pins it back within 100-300 ticks). The first run\'s casts came from an earlier build in '
         'a session whose steps before the recorder are not logged',
+    ('V73_LAKE3', 'Spring', 'cavern', 'RUTHERER'): 'DF\'s embark-time cavern residents, found on the first pass after the load and '
+        'sent off at once as not cast this season (not a wave)',
     ('V73_WREN', 'Autumn', 'cavern', 'REACHER'): 'a summer species walking in 28 ticks after the change: the season now applies at its '
         'own tick, so this is DF\'s own lead time between choosing a wave and placing it',
     ('V73_BROOK', 'Spring', 'cavern', 'HUNGRY_HEAD'): 'DF\'s embark-time cavern residents, found on the first pass and sent off at once '
@@ -86,14 +90,25 @@ def main():
            '(your ruling of 7 October: the pool is not the roster), every other species resting. These runs check that arrivals follow the cast. '
            '<i>Groups</i> come from the tool\'s ledger: a tool draw (water) or a DF wave the tool found (land, caverns). <i>Units</i> '
            'come from the recorder and include births. A <i>stand-in</i> is a species the exhaustion check handed a cast member\'s niche.</p>',
-           '  <p class="note"><b>Result.</b> Arrivals follow the cast. On the two runs with the fixed engine (the waterfall fort into '
-           'winter, the new brook fort into summer), every land and water arrival and all but one cavern arrival belonged to its '
-           'season\'s cast. The exceptions were a troll 291 ticks after the change and DF\'s embark-time residents, which were sent off '
-           'at once. At each change the tool sent off the groups whose species left the cast (10-13 a change). The first run found a bug: '
-           'at autumn 1 the exhaustion check ran before the season\'s apply and handed 17 of the 22 autumn cast species\' niches to '
-           'out-of-cast stand-ins for the whole season. That is fixed (seasonal-wildlife 6e1ffb2), and the same bug explains the '
-           'summer-1 hand-overs in test item 1 (corrected under Findings). Still open: 10 giant wrens on the waterfall fort in summer, '
-           'a winter-only species, source pending.</p>']
+           '  <p class="note"><b>Result.</b> Arrivals follow the cast. On the final engine the ocean fort (V73_OCEAN3) and the lake fort '
+           '(V73_LAKE3) ran through two season changes each: every arrival on land, in the water and in the caverns belonged to its '
+           'season\'s cast, each season applied at its own tick, and each change sent off the groups whose species left the cast, '
+           'ocean groups included. The runs found and fixed five things in the tool, and settled one question:</p>',
+           '  <ul class="gap">',
+           '    <li><b>The exhaustion check ran before the season\'s apply</b> (6e1ffb2): at autumn 1 it handed 17 of the 22 cast species\' '
+           'niches to stand-ins. The same bug made test item 1\'s summer-1 hand-overs (corrected under Findings).</li>',
+           '    <li><b>A season change waited for the daily job</b> (34a3a4b): up to a day at the old season\'s odds; a spring troll '
+           'came in 291 ticks into summer. The change now applies at its own tick.</li>',
+           '    <li><b>Aquatic vermin were cast on land, and one species could fill two vermin slots</b> (29a8a91).</li>',
+           '    <li><b>Ocean and river groups escaped the turnover</b> (8817eb4): their species are filed under a land key; 3 orcas, '
+           'cast spring and winter, stayed into summer.</li>',
+           '    <li><b>The casts were saved but never loaded</b> (b0895b9): after any save and load a fort ran with no casts. This would '
+           'have hit every fort you save.</li>',
+           '    <li>The giant wrens of the first run were not reproduced with the wren held; the hold was measured to work.</li>',
+           '  </ul>',
+           '  <p class="note">Two rig lessons, not tool faults: a small fort on a lake or ocean seam can miss the water (the water tile\'s '
+           'edge rows take their neighbours\' biomes; forts are now placed on the water tile\'s own cells), and the rig\'s embarks carry no '
+           'drink, so a salt-water fort died of thirst (the runner now waters the dwarves).</p>']
     for d, title, prev, what in RUNS:
         if not os.path.exists(os.path.join(HERE, d, 'casts-start.txt')) or not os.path.exists(os.path.join(HERE, d, 'events.tsv')):
             continue
