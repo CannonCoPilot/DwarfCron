@@ -46,14 +46,14 @@ local function casteName(r, c)
     return ca and ca.caste_id or tostring(c)
 end
 
--- the tool's tracked group members (its groups record), read once per sample
+-- the tool's tracked group members (its groups record), read once per sample: id -> the group's layer
 local function groupIds()
     local ids = {}
     local ok, sw = pcall(reqscript, 'seasonal-wildlife')
     if not ok then return ids end
     local okG, g = pcall(function() return sw.loadGroups() end)
     if okG and type(g) == 'table' then
-        for _, grp in ipairs(g.groups or {}) do for _, id in ipairs(grp.ids or {}) do ids[id] = true end end
+        for _, grp in ipairs(g.groups or {}) do for _, id in ipairs(grp.ids or {}) do ids[id] = grp.layer or 'land' end end
     end
     return ids
 end
@@ -75,6 +75,10 @@ local SW = nil
 local function layerOf(u)
     local x, y, z = dfhack.units.getPosition(u)
     if not x then return '?', -1, -1, -1 end
+    -- a group member: the tool's own layer for it (8 Oct, V73_OCEAN2: ocean life has no feature index, so the population
+    -- test files the water layer's orcas and sharks as land)
+    local gl = S.grpLayer and S.grpLayer[u.id]
+    if type(gl) == 'string' then return gl, x, y, z end
     if SW == nil then local ok, m = pcall(reqscript, 'seasonal-wildlife'); SW = ok and m or false end
     if SW and SW.WILD and (dfhack.units.isWildlife(u) or dfhack.units.isAnimal(u)) and u.animal.population.region_x >= 0 then
         local ok, L = pcall(SW.WILD.layerOf, u)
@@ -116,6 +120,7 @@ local function sample()
     if not dfhack.isMapLoaded() then S.on = false; return end
     local t = now()
     local groups = groupIds()
+    S.grpLayer = groups
     local present = {}
     local nWild, nGroup, nPet, nDead, nManaged, nDeep = 0, 0, 0, 0, 0, 0
     local snap = t - (S.lastSnap or -1e9) >= 1000

@@ -26,7 +26,11 @@ RUNS = [
     ('V73_OCEAN2', 'New 2x2 ocean fort, spring &rarr; summer', (),
      'A fresh 2x2 on region19 (63,46, no river) placed on the ocean tile\'s own cells: one column ocean, one shrubland; a 6,191-tile '
      'salt ocean up to 4 levels deep. A first try on the seam with the shrubland tile (63,45) had only freshwater pools. Its casts '
-     'were built by the engine with the vermin fixes (29a8a91).'),
+     'were built by the engine with the vermin fixes (29a8a91). Its <i>units</i> column lists 17 orcas, sharks and a halibut under '
+     'land: the recorder took the layer from the population source, and ocean life has none, so it filed the water layer\'s own draws '
+     '(the ledger\'s 17 water groups) as land. The recorder now takes a group member\'s layer from its group. The same mix-up hid '
+     'these groups from the season turnover: 3 orcas, cast spring and winter, stayed into summer. Fixed (8817eb4) and checked on '
+     'this fort: the next pass sent off the orcas, the dogfish and the halibut.'),
 ]
 LAYERS = ('land', 'water', 'cavern')
 # what an off-cast group was, where the run's data show it (read by hand from ledger and recorder; 8 Oct)
