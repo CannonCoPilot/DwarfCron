@@ -101,6 +101,16 @@ local function event(t, ev, u, kind, detail)
     S.nev = S.nev + 1
 end
 
+-- ARRIVE detail (8 Oct, V73_WREN): how old the unit is, its mother if DF recorded one, and whether it stands on the map
+-- edge -- a hatchling or newborn is days old and inside the map; a wave walks in at an edge. Births count as arrivals.
+local function arriveDetail(u, t)
+    local age = t - (u.birth_year * TICKS_PER_YEAR + u.birth_time)
+    local m = df.global.world.map
+    local edge = u.pos.x <= 1 or u.pos.y <= 1 or u.pos.x >= m.x_count - 2 or u.pos.y >= m.y_count - 2
+    local mom = u.relationship_ids.Mother
+    return ('age %d; %s%s'):format(age, edge and 'edge' or 'inside', (mom and mom >= 0) and ('; mother #' .. mom) or '')
+end
+
 local function sample()
     if not S.on then return end
     if not dfhack.isMapLoaded() then S.on = false; return end
@@ -119,7 +129,7 @@ local function sample()
             if not k then
                 if active and not dead then
                     S.known[id] = { state = 'here', kind = kind }
-                    event(t, S.first and 'PRESENT' or 'ARRIVE', u, kind)
+                    event(t, S.first and 'PRESENT' or 'ARRIVE', u, kind, (not S.first) and arriveDetail(u, t) or nil)
                 end
             else
                 if dead and k.state ~= 'dead' then
