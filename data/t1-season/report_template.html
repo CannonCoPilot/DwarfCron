@@ -5,17 +5,17 @@
 :root{
   --bg:#f4f2ec; --panel:#fbfaf6; --ink:#1d2321; --ink2:#4c5552; --muted:#7a827e; --rule:#d9d6cc;
   --accent:#1f6b6b; --accent-soft:#dbe9e6; --warn:#a4561a; --ok:#2f7a3a;
-  --s1:#2a78d6; --s2:#eb6834; --grid:#e3e0d7;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --grid:#e3e0d7;
   --display:"Alegreya SC", Georgia, serif; --body:"Alegreya Sans", "Gill Sans", "Segoe UI", sans-serif; --mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){ color-scheme:dark;
     --bg:#141917; --panel:#1b2220; --ink:#e7ebe8; --ink2:#b9c2be; --muted:#8c9692; --rule:#2f3a37;
-    --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --grid:#26302d; }
+    --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --grid:#26302d; }
 }
 :root[data-theme="dark"]{ color-scheme:dark;
   --bg:#141917; --panel:#1b2220; --ink:#e7ebe8; --ink2:#b9c2be; --muted:#8c9692; --rule:#2f3a37;
-  --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --grid:#26302d; }
+  --accent:#6fc2b7; --accent-soft:#213330; --warn:#e39a5c; --ok:#7cc487; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --grid:#26302d; }
 body{background:var(--bg);color:var(--ink);font:17px/1.55 var(--body);}
 main{max-width:980px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:grid;gap:28px}
 h1,h2,h3{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:.01em}
@@ -48,6 +48,24 @@ table.sum th{white-space:normal;vertical-align:bottom}
 .legend .sw{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .sw.s1{background:var(--s1)} .sw.s2{background:var(--s2)}
 figure{margin:0}
+.sw.s3{background:var(--s3)} .sw.s4{background:var(--s4)} .sw.s5{background:var(--s5)} .sw.s6{background:var(--s6)} .sw.ink{background:var(--ink2)}
+.fig{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:8px}
+.fig{overflow-x:auto}
+.fig svg{display:block;width:100%;min-width:620px;height:auto}
+.fig .grid{stroke:var(--grid);stroke-width:1} .fig .axis{stroke:var(--muted);stroke-width:1}
+.fig .tick{fill:var(--muted);font:11px var(--mono)} .fig .lab,.fig .nlab{fill:var(--ink2);font:12px var(--body)}
+.fig .elab{fill:var(--ink2);font:11px var(--mono)}
+.fig .bar.s1,.fig .node.s1{fill:var(--s1)} .fig .bar.s2,.fig .node.s2{fill:var(--s2)} .fig .bar.s3{fill:var(--s3)}
+.fig .bar.s4{fill:var(--s4)} .fig .bar.s5{fill:var(--s5)} .fig .bar.s6{fill:var(--s6)} .fig .bar.ink{fill:var(--ink2)}
+.fig .line{fill:none;stroke-width:2;stroke-linejoin:round} .fig .line.s1{stroke:var(--s1)} .fig .line.s2{stroke:var(--s2)}
+.fig .line.s3{stroke:var(--s3)} .fig .line.ink{stroke:var(--ink2)} .fig .line.dash{stroke-dasharray:5 3}
+.fig .node{stroke:var(--panel);stroke-width:1.5}
+.fig .edge{fill:none;stroke:var(--ink2);stroke-opacity:.42} .fig .arrow{fill:var(--ink2);fill-opacity:.7}
+.fig [data-tip]:hover{opacity:.75} .fig .edge[data-tip]:hover{stroke-opacity:.95;opacity:1}
+.fig .season{stroke:var(--accent);stroke-dasharray:3 3;stroke-width:1}
+.fig .cross{stroke:var(--ink2);stroke-width:1;stroke-dasharray:2 2} .fig .hit{fill:transparent;cursor:crosshair}
+ul.gap,ol.gap{margin:0;padding-left:18px;display:grid;gap:4px;font-size:.95rem;color:var(--ink2)} ul.gap b{color:var(--ink);font-variant-numeric:tabular-nums}
+.qa{display:grid;gap:12px} .dim{color:var(--muted)} table.seasons tr.first td{border-top:2px solid var(--rule)} .qa h3{margin-top:4px}
 .chart{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px}
 .chart svg{display:block;width:100%;height:auto}
 .chart .grid{stroke:var(--grid);stroke-width:1}
@@ -91,7 +109,7 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
   mid-spring through the change into summer with every Seasonal Wildlife feature on at its defaults, <code>reveal</code> applied and
   30 dwarves. An in-game recorder logged every creature that is not a citizen every 100 game ticks: who arrived, left, fought,
   killed and died, and where. The tool's own ledger and roster were dumped at the end of each run.</p>
-  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#falls">Waterfall look</a>
+  <nav class="toc"><a href="#summary">Summary</a><a href="#findings">Findings</a><a href="#questions">Your questions</a><a href="#falls">Waterfall look</a>
   <a href="#t1_ocean_river">River + ocean</a><a href="#t1_lake_river">Lake + river</a><a href="#t1_brook">Brook</a><a href="#t1_falls">River drop</a><a href="#falls_2">Waterfall</a></nav>
 </header>
 
@@ -139,6 +157,84 @@ a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-of
   </ul>
 </section>
 
+<section id="questions" class="qa">
+  <h2>Your questions</h2>
+  <h3>The gap between &ldquo;wild animals on the map&rdquo; and &ldquo;in the tool&rsquo;s groups&rdquo;</h3>
+  <p class="note">The recorder counts every wild unit on the map, but the tool only manages land, water and the first three caverns.
+  At the end of each run almost all of the gap is creatures the tool leaves alone by design. Every flagged DF wave becomes a group,
+  with no cap and no roster test, so nothing on the managed layers waits ungrouped except what the list below names.</p>
+  {{GAP_FIG}}
+  <ul class="gap">
+    <li><b>Underworld demons</b> (8-40 a fort): DF's sealed residents. The engine's layer test rejects the deep layer, so they are
+    never discovered, adopted or placed.</li>
+    <li><b>Magma-sea life</b> (5-40): magma crabs, fire imps, magma and fire men: the same deep-layer rule.</li>
+    <li><b>Sponges</b> (50 on the ocean fort): placed like plants on the sea floor and kept out of every count, by your ruling.</li>
+    <li><b>River fish from before the tool loaded</b> (64 on the river drop, 37 on the waterfall): the tool reads a unit's layer from
+    its population source. River fish come from the region's population (rivers are not water features), so they file as land natives,
+    and land-native adoption (<code>natives_land</code>) is off by default. Lake fish come from a feature, which is why the lake fort's
+    natives were adopted. Read from the code, not yet checked on a live unit.</li>
+    <li>Everything else: at most 3 units on any fort.</li>
+  </ul>
+  <p class="note">To close the real part of the gap: turn <code>natives_land</code> on, or have adoption file a native river fish as
+  water by its tile rather than its source. To make the line itself honest: have the recorder (and the window) count only the
+  managed layers, so the underworld and the magma sea stop showing up as a gap.</p>
+
+  <h3>Why so many species per layer per season</h3>
+  <p class="note">Active roster species per layer and season on each fort, with the count leaving out vermin in brackets (vermin are
+  handled by foraging, not waves). Rosters as dumped at the end of each run, in summer: summer includes the exhaustion hand-overs.</p>
+  {{SEASON_COUNTS}}
+  <p class="note">The count comes straight from how the roster is dealt, and nothing in the code bounds it:</p>
+  <ul class="gap">
+    <li><b>The candidate pool is large.</b> It is every population entry in the embark's region tiles plus every neighbour a map
+    block draws from (DF draws from all nine). A 16x16 embark spans several biomes: the river + ocean fort's land pool was 168 species.</li>
+    <li><b>The preset activates every candidate.</b> Every in-embark species that is not mega, night or locked is turned on. The
+    guild-first builder (<code>roster build</code>), whose slot maxima would cap land at about 8 species, only runs when called by hand.</li>
+    <li><b>Every active species gets a season.</b> Each role group (realm, habitat, role) is sorted by climate and dealt one season per
+    species in quarters, so each season gets about a quarter of the active roster. The rules forbid a species with no season.</li>
+    <li><b>Additions on top.</b> The pair guarantee (up to 4 a group), vermin defaults (3-4 seasons each), exhaustion hand-overs
+    (14-28 a fort at summer) and water season spill each add seasons.</li>
+    <li>Arrivals follow the roster: in spring 7-13 cavern species arrived on each fort. Every cavern arrival was an in-season roster
+    species, or one the roster leaves unassigned (blood men, mud men: 17-26% of cavern arrivals), which the tool never holds back. No
+    off-season cavern species arrived.</li>
+  </ul>
+  <p class="note"><b>What would bring it to 5-10 per layer per season (deep: 1-3):</b></p>
+  <ol class="gap">
+    <li><b>A cast per season.</b> Pick up to N species per layer per season (default 8, deep 2) by guild slot: on land 1 apex, 2
+    mesopredators, 3 grazers, 2 others, along the trophic pyramid, with your uniform selection and the x3 pack bonus. Every other
+    species stays active but seasonless (resting) this year. That needs one rule change: &ldquo;at least one season&rdquo; becomes
+    &ldquo;at least one season or resting&rdquo;. Rotate the cast each year so variety comes across years, not within a season.</li>
+    <li><b>Enforce it at one gate.</b> <code>ROSTER.wants</code> is the single check behind the live stock writes, the out-of-season hold,
+    the cavern odds, the water draw candidates, the apex scheduler and the exhaustion check. A cap there holds everywhere.</li>
+    <li><b>Make the additions swap, not add.</b> An exhaustion hand-over or a spill borrow replaces a cast member one for one, and the pair
+    guarantee works inside the cast.</li>
+    <li><b>Leave vermin out of the count</b> (they never come as waves), and run the builder automatically at embark instead of the
+    plain preset.</li>
+  </ol>
+
+  <h3>Stopping DF's own waves, so only the tool's waves and placements arrive</h3>
+  <p class="note">Where arrivals come from now (the tool's ledger, last stretch of each run): every land and cavern arrival is a DF wave
+  the tool opened the gate for or failed to hold; every water arrival is the tool's own draw. DF's water features never send waves (E20).
+  So water is already tool-only, apart from what DF stocked at embark.</p>
+  <ul class="gap">
+    <li><b>Land: doable with what exists.</b> The tool already zeroes the stock (and sets <code>extinct</code>) of out-of-season and
+    inactive land entries every pass; either one alone stops DF drawing that species (E8, N1). Zero every managed land entry in every
+    season instead, keep the stock in the tool's reserve, and have the tool place its land waves itself at the map edge
+    (<code>dfhack.units.create</code> plus the six writes that work headless). The irruption code already places from the reserve this
+    way. The cost: a placed wave has to walk in and later leave like a DF wave, and send-off must not refund the stock to DF.</li>
+    <li><b>Caverns: needs an experiment first.</b> Population counts do nothing underground: zeroing all 914 cave entries left arrivals
+    unchanged. Frequency 0 stopped cavern arrivals completely and reversibly (E34), but frequency 0 on CREEPY_CRAWLER froze DF. Candidate:
+    frequency 0 for every non-vermin cavern species, including the ones the roster leaves unassigned (blood men, mud men),
+    vermin held at 1, and the tool placing its cavern waves itself; first find which
+    species freeze at 0 and why. A second lever, writing a cave's <code>underground_layer</code>, also suppressed a species once but is
+    untested in code.</li>
+    <li><b>Not recommended:</b> removing units as they arrive. Nothing in the code does it, DFHack has no clean unit delete, and a
+    send-off refunds the stock, so DF draws again (churn).</li>
+    <li><b>Left as DF's:</b> the underworld, the magma sea, forgotten beasts and megabeasts, and visitors. Invasions are already off in
+    your game.</li>
+  </ul>
+  <p class="note">Suggested order: the land change and a one-season test on two 1x1 forts (recorder on: every arrival must be in a tool
+  record), then the cavern frequency experiment on its own.</p>
+</section>
 <section id="falls">
   <h2>Waterfall look</h2>
   <p class="note">Whitepaged's falls, the view at level 64. The river comes in from the north over a lip and pours south into a gorge;
@@ -165,6 +261,34 @@ document.querySelectorAll('figure.chart').forEach(function(fig){
     var px = x / W * r.width; tip.style.left = Math.min(Math.max(px - 80, 4), r.width - 230) + 'px';
   }
   hit.addEventListener('mousemove', move);
+  hit.addEventListener('mouseleave', function(){ tip.hidden = true; cross.setAttribute('x1', -10); cross.setAttribute('x2', -10); });
+});
+
+// hover: any mark with data-tip shows it beside the pointer
+document.querySelectorAll('figure.fig').forEach(function(fig){
+  var tip = fig.querySelector('.tip');
+  function place(ev){ var r = fig.getBoundingClientRect(); var x = ev.clientX - r.left + 12, y = ev.clientY - r.top + 12;
+    tip.style.left = Math.min(x, r.width - tip.offsetWidth - 6) + 'px'; tip.style.top = y + 'px'; }
+  fig.addEventListener('mousemove', function(ev){
+    var t = ev.target.closest('[data-tip]');
+    if (t){ tip.hidden = false; tip.textContent = t.dataset.tip; place(ev); }
+    else if (!fig.classList.contains('tl')) tip.hidden = true;
+  });
+  fig.addEventListener('mouseleave', function(){ tip.hidden = true; });
+});
+// timeline: one crosshair over both panels, the day's numbers and the running totals
+document.querySelectorAll('figure.tl').forEach(function(fig){
+  var rows = JSON.parse(fig.dataset.rows), L = +fig.dataset.l, W = +fig.dataset.w, bw = +fig.dataset.bw;
+  var svg = fig.querySelector('svg'), hit = fig.querySelector('.hit'), cross = fig.querySelector('.cross'), tip = fig.querySelector('.tip');
+  hit.addEventListener('mousemove', function(ev){
+    var r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * W;
+    var i = Math.max(0, Math.min(rows.length - 1, Math.floor((sx - L) / bw))), d = rows[i], x = L + (i + .5) * bw;
+    cross.setAttribute('x1', x); cross.setAttribute('x2', x);
+    tip.hidden = false;
+    tip.textContent = d[0] + ': arrived ' + d[1] + ' surface, ' + d[2] + ' caverns; left ' + d[3] + '; died ' + d[4] +
+      '  |  totals: ' + d[5] + ' / ' + d[6] + ' / ' + d[7] + ' / ' + d[8];
+    var px = x / W * r.width; tip.style.top = '8px'; tip.style.left = Math.min(Math.max(px - 120, 4), r.width - tip.offsetWidth - 4) + 'px';
+  });
   hit.addEventListener('mouseleave', function(){ tip.hidden = true; cross.setAttribute('x1', -10); cross.setAttribute('x2', -10); });
 });
 </script>

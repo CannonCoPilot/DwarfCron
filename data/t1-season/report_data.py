@@ -149,6 +149,32 @@ def main():
                 cross += 1
         last[k] = r
     out['jumps_cross'] = cross
+    # the gap between "wild on the map" and "in the tool's groups": what the wild units on the map at the end are.
+    # The recorder's wild count takes every wild unit, including DF's sealed underworld and the magma sea.
+    pos = read(d + '/positions.tsv')
+    tl = max(int(r['tick']) for r in pos)
+    present = {r['id'] for r in ev if r['event'] == 'PRESENT'}
+    magma = {'MAGMA_CRAB', 'IMP_FIRE', 'ELEMENTMAN_MAGMA', 'ELEMENTMAN_FIRE', 'SNAKE_FIRE'}
+    gap, gap_sp = collections.Counter(), collections.defaultdict(collections.Counter)
+    for r in pos:
+        if int(r['tick']) != tl or r['alive'] != '1' or r['kind'] not in ('wild', 'wild-group'):
+            continue
+        if r['kind'] == 'wild-group':
+            k = 'grouped'
+        elif r['race'].startswith('DEMON_'):
+            k = 'demons'
+        elif r['race'] in magma or (r['layer'] == 'underground' and r['z'] not in ('', '-1') and int(r['z']) <= UZ):
+            k = 'magma'
+        elif 'SPONGE' in r['race']:
+            k = 'sponge'
+        elif r['id'] in present:
+            k = 'native'
+        else:
+            k = 'other'
+        gap[k] += 1
+        gap_sp[k][r['race']] += 1
+    out['gap'] = dict(gap)
+    out['gap_species'] = {k: dict(c.most_common(6)) for k, c in gap_sp.items()}
     out['ledger_quotes'] = {k: [l['season'] + ' ' + str(l['day']) + ': ' + l['text'] for l in led if l['kind'] == k][:6]
                             for k in ('wave', 'arrive', 'dismiss', 'eco', 'ecology', 'panic', 'lead', 'coupling', 'sweep', 'edit', 'season', 'cavern', 'bodies')}
     draws = collections.Counter()
@@ -185,6 +211,17 @@ def main():
         ro = read(rp)
         out['roster'] = ro
         arrived = {s['race'] for s in species if s['arrived'] > 0}
+        from roster_classes import raws, klass
+        T = raws()
+        sc = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0]))
+        for r in ro:
+            vermin = klass(T.get(r['token'], set())) == 'vermin'
+            for sname in ('Sp', 'Su', 'Au', 'Wi'):
+                if sname in r['seasons']:
+                    sc[r['layer']][sname][0] += 1
+                    sc[r['layer']][sname][1] += 0 if vermin else 1
+        out['season_counts'] = {L: dict(v) for L, v in sc.items()}
+        out['roster_vermin'] = sum(klass(T.get(r['token'], set())) == 'vermin' for r in ro)
         out['roster_vs_arrivals'] = {
             'on_roster_arrived': sorted({r['token'] for r in ro} & arrived),
             'arrived_not_on_roster': sorted(arrived - {r['token'] for r in ro}),

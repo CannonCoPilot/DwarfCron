@@ -7,6 +7,8 @@ import json
 import os
 import sys
 
+import figures
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 FORTS = [
     ('T1_OCEAN_RIVER', 'River + ocean', 'region tile 54,45 (+0,8), 16x16; shrubland with a major river, temperate ocean', 'T1END_OCEAN_RIVER'),
@@ -70,6 +72,27 @@ def table(head, rows, cls=''):
     return '<div class="tw"><table class="%s"><thead><tr>%s</tr></thead><tbody>%s</tbody></table></div>' % (cls, h, b)
 
 
+GAP_WHY = {
+    'demons': 'DF\'s sealed underworld residents: they count as wild in the recorder, but the tool never manages the underworld',
+    'magma': 'magma-sea life (magma crabs, fire imps, magma and fire men): the deep layer is never grouped',
+    'sponge': 'sponges: placed like plants in clusters on the sea floor, never counted as groups (by design)',
+    'native': 'animals already in the river when the tool loaded: DF stocked them from the region\'s population, not a water feature, so the tool files them as land natives, and land-native adoption is off by default',
+    'other': 'other wild units outside a group',
+}
+
+
+def gap_note(d):
+    g, gs = d['gap'], d['gap_species']
+    total = sum(g.values())
+    parts = []
+    for k in ('demons', 'magma', 'sponge', 'native', 'other'):
+        if g.get(k):
+            sp = ', '.join('%s %d' % (r.replace('_', ' ').lower(), n) for r, n in gs[k].items()) if k != 'demons' else ''
+            parts.append('<li><b>%d</b> %s%s</li>' % (g[k], E(GAP_WHY[k]), (' (%s)' % E(sp)) if sp else ''))
+    return ('<h3>The gap</h3><p class="note">At the last position snapshot %d wild units were on the map and %d of them were in the '
+            'tool\'s groups. The other %d:</p><ul class="gap">%s</ul>' % (total, g.get('grouped', 0), total - g.get('grouped', 0), ''.join(parts)))
+
+
 def fort_section(fid, name, where, save, d):
     sp = d['species']
     tot = lambda k: sum(s[k] for s in sp)
@@ -82,6 +105,7 @@ def fort_section(fid, name, where, save, d):
         ('frame rate, median (lowest)', '%d (%d)' % (d['fps_median'], d['fps_min']))]).replace('&amp;rarr;', '&rarr;') + '</div>')
     out.append('<div class="legend"><span><i class="sw s1"></i>wild animals on the map</span><span><i class="sw s2"></i>of them in the tool\'s groups</span></div>')
     out.append(chart(fid, d['series']))
+    out.append(gap_note(d))
     # demographics
     rows = []
     for s in sp[:40]:
@@ -91,14 +115,18 @@ def fort_section(fid, name, where, save, d):
                'left the map, died, taken into the tool\'s groups, and still on the map at the end. Top 40 by numbers seen; '
                'DF\'s sealed underworld demons are left out%s.</p>' % (
                    (' (%s)' % E(', '.join('%s %d' % kv for kv in d['underworld'].items()))) if d['underworld'] else ''))
-    out.append(table([('species', 0), ('layer', 0), ('kind', 0), ('start', 1), ('arrived', 1), ('left', 1), ('died', 1), ('grouped', 1), ('end', 1)], rows, 'demo'))
+    out.append(figures.demo_bars(sp))
+    out.append('<details><summary>The table (top 40)</summary>%s</details>' % table(
+        [('species', 0), ('layer', 0), ('kind', 0), ('start', 1), ('arrived', 1), ('left', 1), ('died', 1), ('grouped', 1), ('end', 1)], rows, 'demo'))
     # interactions
     k = [[E(x['killer'].replace('_', ' ').lower()), E(x['victim'].replace('_', ' ').lower()), str(x['n'])] for x in d['kills'][:25]]
     a = [[E(x['attacker']), E(x['target']), str(x['n'])] for x in d['attacks'][:25]]
     causes = ', '.join('%s %d' % (c.replace('_', ' ').lower(), n) for c, n in sorted(d['death_causes'].items(), key=lambda kv: -kv[1]))
     out.append('<h3>Interactions</h3><p class="note">Deaths by cause: %s. Kills are DF\'s death records (the killer it names); '
-               'attacks are the opening line of each fight in DF\'s combat reports.</p><div class="pair">%s%s</div>' % (
-                   E(causes), table([('killer', 0), ('victim', 0), ('kills', 1)], k), table([('attacker', 0), ('target', 0), ('fights', 1)], a)))
+               'attacks are the opening line of each fight in DF\'s combat reports.</p>%s<details><summary>Kills and fights as tables</summary>'
+               '<div class="pair">%s%s</div></details>' % (
+                   E(causes), figures.kill_graph(d['kills'], sp), table([('killer', 0), ('victim', 0), ('kills', 1)], k),
+                   table([('attacker', 0), ('target', 0), ('fights', 1)], a)))
     # timings
     days = d['days']
     trows = []
@@ -106,7 +134,11 @@ def fort_section(fid, name, where, save, d):
         trows.append([E(x['label']), str(x.get('arrive_surface', 0)), str(x.get('arrive_cavern', 0)), str(x.get('leave_surface', 0) + x.get('leave_cavern', 0)),
                       str(x.get('die_surface', 0)), str(x.get('die_cavern', 0))])
     first = sorted(d['first_seen'].items(), key=lambda kv: (kv[1].split()[0] != 'spring', int(kv[1].split()[1])))
-    out.append('<h3>Timings</h3><details><summary>Arrivals, departures and deaths by day (%d days)</summary>%s</details>' % (
+    d0, d1 = int(d['series'][0]['day']), int(d['series'][-1]['day'])
+    out.append('<h3>Timings</h3><p class="note">Each day of the run: arrivals stack above the line (surface, caverns), departures and '
+               'deaths hang below it; the panel beneath runs the totals on one scale. Hover for the day\'s numbers.</p>')
+    out.append(figures.timeline(days, d0, d1))
+    out.append('<details><summary>Arrivals, departures and deaths by day (%d days)</summary>%s</details>' % (
         len(days), table([('day', 0), ('arrived, surface', 1), ('arrived, caverns', 1), ('left', 1), ('died, surface', 1), ('died, caverns', 1)], trows)))
     out.append('<details><summary>First arrival of each species (%d)</summary><p class="flow">%s</p></details>' % (
         len(first), ' &middot; '.join('<b>%s</b> %s' % (E(r.replace('_', ' ').lower()), E(t)) for r, t in first)))
@@ -162,6 +194,24 @@ def fort_section(fid, name, where, save, d):
     return '\n'.join(out)
 
 
+def questions(data):
+    """the user's questions of 7 Oct evening: the gap, species per season, DF's own waves (text in report_template.html)"""
+    rows = [{'name': name, 'gap': data[fid]['gap']} for fid, name, _, _ in FORTS if fid in data]
+    gap = figures.gap_bars(rows)
+    head = '<tr><th>fort</th><th>layer</th>' + ''.join('<th class="n">%s</th>' % s for s in ('spring', 'summer', 'autumn', 'winter')) + '</tr>'
+    body = ''
+    for fid, name, _, _ in FORTS:
+        sc = data.get(fid, {}).get('season_counts')
+        if not sc:
+            continue
+        for i, L in enumerate(('land', 'water', 'cavern', 'deep')):
+            v = sc.get(L, {})
+            cells = ''.join('<td class="n">%d <span class="dim">(%d)</span></td>' % tuple(v.get(s, [0, 0])) for s in ('Sp', 'Su', 'Au', 'Wi'))
+            body += '<tr%s><td>%s</td><td>%s</td>%s</tr>' % (' class="first"' if i == 0 else '', E(name) if i == 0 else '', L, cells)
+    counts = '<div class="tw"><table class="seasons"><thead>%s</thead><tbody>%s</tbody></table></div>' % (head, body)
+    return gap, counts
+
+
 def main():
     data = {}
     for fid, *_ in FORTS:
@@ -192,6 +242,8 @@ def main():
     page = open(os.path.join(HERE, 'report_template.html')).read()
     page = page.replace('{{SUMMARY}}', table([('fort', 0), ('dwarves at the end', 0), ('arrived', 1), ('left', 1), ('died', 1),
                                               ('wild on the map', 1), ('fps, median (lowest)', 1), ('cavern-surface teleports', 1)], rows, 'sum'))
+    gap, counts = questions(data)
+    page = page.replace('{{GAP_FIG}}', gap).replace('{{SEASON_COUNTS}}', counts)
     page = page.replace('{{SHOTS}}', shots)
     page = page.replace('{{FORTS}}', '\n'.join(fort_section(fid, name, where, save, data[fid]) for fid, name, where, save in FORTS if fid in data))
     open(sys.argv[1], 'w').write(page)
