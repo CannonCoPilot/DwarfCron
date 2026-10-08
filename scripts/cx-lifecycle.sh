@@ -922,7 +922,10 @@ cmd_load() {
             wait_state titlemode CONTINUE_ACTIVE 15 || err "the second world row did not open its save list (state: $(ui_state))"
             alt=1; s=0; continue
         fi
-        cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; cmd_ui key STANDARDSCROLL_DOWN >/dev/null 2>&1; sleep 0.5
+        # 8 Oct 2026: the save list ignores the scroll keys too (region19: 17 saves, V73_OCEAN2 below the panel); step the
+        # title screen's scroll_position_game_choice, 2 rows at a time, as the world list does
+        cmd_lua 'local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local n=#t.savegame_header_game t.scroll_position_game_choice=math.min(math.max(n-1,0), t.scroll_position_game_choice+2) end' >/dev/null 2>&1
+        sleep 0.5
     done
     cmd_ui clickrel "Folder: $folder" -1 "Fortress" >/dev/null 2>&1 || err "could not click the fortress row for $folder"
     log "clicked through to $folder (world: $world); waiting for the map"

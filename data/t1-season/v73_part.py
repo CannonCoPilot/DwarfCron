@@ -31,6 +31,12 @@ RUNS = [
      '(the ledger\'s 17 water groups) as land. The recorder now takes a group member\'s layer from its group. The same mix-up hid '
      'these groups from the season turnover: 3 orcas, cast spring and winter, stayed into summer. Fixed (8817eb4) and checked on '
      'this fort: the next pass sent off the orcas, the dogfish and the halibut.'),
+    ('V73_OCEAN3', 'Ocean fort again, spring &rarr; summer &rarr; autumn', (),
+     'The ocean fort\'s embark save run through two season changes on the engine with every fix of these runs. The first attempt '
+     'at its autumn (V73_OCEAN2_AU) was lost to thirst: the rig\'s embarks carry no drink and this site has only salt water, so all '
+     '30 dwarves died of dehydration by mid-summer and DF ended the fort. Not the tool; the season runner now waters and feeds the '
+     'dwarves each chunk. Reloading that save then showed a tool bug: the casts were saved but never read back, so the reloaded fort '
+     'had none. Fixed (b0895b9): the save now loads with its casts, identical to the first run\'s.'),
 ]
 LAYERS = ('land', 'water', 'cavern')
 # what an off-cast group was, where the run's data show it (read by hand from ledger and recorder; 8 Oct)
