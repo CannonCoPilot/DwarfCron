@@ -16,12 +16,27 @@ RUNS = [
      'bug had put in at autumn 1.'),
     ('V73_BROOK', 'New 2x2 brook fort, spring &rarr; summer', (),
      'A fresh 2x2 embark on region19 (21,22, marsh and brook): casts built at enable, the fixed engine and the live ledger from the start.'),
+    ('V73_WREN', 'Waterfall fort replayed, summer &rarr; autumn, giant wren held', (),
+     'The waterfall fort\'s summer save run again on the engine with both boundary fixes, casts rebuilt so the giant wren is out of '
+     'summer (autumn only), to see whether the summer wrens of the first run come back. Recorder detail on every arrival: age, edge or '
+     'inside, mother.'),
+    ('V73_LAKE2', 'New 2x2 lake fort, spring &rarr; summer', (),
+     'A fresh 2x2 on region19 (10,42) placed on the lake tile\'s own lake cell: a 1,062-tile freshwater lake, two river runs, a pool. '
+     'A first try on the seam with the savanna tile (10,41) had no water at all: the lake tile\'s edge rows take their neighbours\' biomes.'),
+    ('V73_OCEAN2', 'New 2x2 ocean fort, spring &rarr; summer', (),
+     'A fresh 2x2 on region19 (63,46, no river) placed on the ocean tile\'s own cells: one column ocean, one shrubland; a 6,191-tile '
+     'salt ocean up to 4 levels deep. A first try on the seam with the shrubland tile (63,45) had only freshwater pools. Its casts '
+     'were built by the engine with the vermin fixes (29a8a91).'),
 ]
 LAYERS = ('land', 'water', 'cavern')
 # what an off-cast group was, where the run's data show it (read by hand from ledger and recorder; 8 Oct)
 WHY = {
-    ('V73_WATERFALL', 'Summer', 'land', 'GIANT_WREN'): 'from the held entry #3634 (54,25), cast only in winter; source pending: the '
-        'ledger dump lost the run\'s first 33 days, and a departure refund was measured not to reopen the entry (extinct stays set)',
+    ('V73_WATERFALL', 'Summer', 'land', 'GIANT_WREN'): 'from the held entry #3634 (54,25), cast only in winter. Not reproduced: the '
+        'replay with the wren held (V73_WREN, below) had no wren arrive in 100 days, and a departure refund was measured not to reopen '
+        'the entry (extinct stays set, the hold pins it back within 100-300 ticks). The first run\'s casts came from an earlier build in '
+        'a session whose steps before the recorder are not logged',
+    ('V73_WREN', 'Autumn', 'cavern', 'REACHER'): 'a summer species walking in 28 ticks after the change: the season now applies at its '
+        'own tick, so this is DF\'s own lead time between choosing a wave and placing it',
     ('V73_BROOK', 'Spring', 'cavern', 'HUNGRY_HEAD'): 'DF\'s embark-time cavern residents, found on the first pass and sent off at once '
         'as not cast this season (not a wave)',
     ('V73_BROOK', 'Summer', 'cavern', 'TROLL'): 'a spring species arriving 291 ticks into summer: the caverns\' hold is set by the daily '
