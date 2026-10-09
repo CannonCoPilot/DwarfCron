@@ -127,6 +127,11 @@ STAGES = [
      "Test item 1 (7 Oct): five region19 forts into summer with everything on, 30/30 dwarves each (one nudge bug found and "
      "fixed). v7.3 season casts (8 Oct): lake and ocean forts through two season changes, 329/329 and 392/392 arrivals in "
      "their season's cast after five fixes; resting cavern species at frequency 0 safe. See the season-test page."),
+    ("Fix batch A and the run kit", "ok", "Built; X0-X2 passed on the rig",
+     "Batch A (F1 F2 F5-F10 F14-F17 F21) in the engine (v7.2-plugin fc27ffa + 4e9677f), 23/23 offline, deployed. The run kit "
+     "(scripts/season-run.py) ran X0 (4/4 forts), X1 the switch round trip (lake and ocean 10/10 each: off gives back 628 and 691 held "
+     "entries' stock and clears 8 and 10 wild-on-wild relation cells; the cells were a bug X1 found and 4e9677f fixed) and X2 persistence (F2, F6, "
+     "F7 pass). New finding: a few turnover-dismissed cavern animals and a sea lamprey stay on the map past 10 days."),
     ("Release", "open", "Waiting",
      "Every branch is merged into v7.2-plugin; master and v7.1 were fast-forwarded to it locally on 8 Oct (not pushed). "
      "Release after the mechanics review and the experiment plan in the ECO report."),
@@ -140,6 +145,8 @@ SINCE_OCT2 = [
     "7-8 Oct: v7.3 season casts built (the pool is not the roster; a small cast per layer and season); validated on waterfall, brook, lake and ocean forts; five fixes.",
     "8 Oct: resting cavern species at frequency 0 tested (safe, leak-free); aquarium palettes, plants and cavern opacity tuned with you.",
     "8 Oct: every branch confirmed merged into v7.2-plugin; master and v7.1 fast-forwarded locally; mechanics review and experiment plan in the ECO report.",
+    "9 Oct: fix batch A built (13 fixes, 23/23 offline) and deployed; the run kit (season-run.py) built; X0, X1 and X2 passed on the lake, ocean, brook and waterfall forts.",
+    "9 Oct: the runs found one engine bug (off left wild-on-wild relation cells live; fixed) and four in the kit's own scoring and audit, fixed before they were counted.",
 ]
 
 RUNNING_HEAD = [
@@ -196,14 +203,9 @@ def live_running():
     return out
 
 PENDING = [
-    ("Fix batch A (no rulings needed; ECO report section M5)", [
-        "F1 off, disable and All off give back population stock and clear the relation cells; F2 cast off survives a reload.",
-        "F5 the cavern trim stops trimming the new cast after a turnover; F6 the turnover becomes a standing rule; F7 the reserve is kept when a refund lands first; F8 the season turn runs under a guard.",
-        "F9 the cavern hold respects restfreq; F10 the raw season flags are read from the snapshot; F14 stand-ins get their edges; F15 parked features can be un-parked; F16 sent-off thieves are not reformed; F17 air-breathers enter at the top of the water; F21 small items.",
-        "Each with an offline test; deploy to the rig.",
-    ]),
-    ("Rig runs on batch A (ECO report section X)", [
-        "X0 the run kit and backups of the V73 and T1END forts; X1 the switch round trip; X2 persistence; X3 the season-boundary audit on the lake, ocean and brook forts (overnight).",
+    ("Rig runs left on batch A (ECO report section X)", [
+        "X3, the season-boundary audit on the lake, ocean and brook forts (overnight, ~7 h): season-run.py run experiments/season-runs/X3.json.",
+        "Watch in X3: turnover-dismissed animals that do not leave (X2: giant cave toads, draltha, a giant cave swallow, a sea lamprey still on the map 10+ days after the change). A fix (re-send, or a cavern exit path) waits for X3's numbers.",
     ]),
     ("Your rulings", [
         "F3 should enable turn irruptions on? F11 should casts set the FREQUENCY ladder and seat their apexes? F13 BENIGN species in cast predator slots, and apex x mesopredator edges? F18 land overshoot: accept or trim? F19 how hard should the cavern gate hold?",
@@ -365,7 +367,7 @@ th {{ font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--mut
   <h1>Alpha Four Progress</h1>
   <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
   walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
-  <span class="meta">As of {as_of} · seasonal-wildlife v7.2-plugin 8185d85 (all branches merged) · rig running the same tree</span>
+  <span class="meta">As of {as_of} · seasonal-wildlife v7.2-plugin 4e9677f (all branches merged, fix batch A) · rig running the same tree</span>
 </section>
 
 <h2>Stages</h2>
