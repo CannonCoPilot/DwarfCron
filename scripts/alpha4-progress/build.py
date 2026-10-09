@@ -127,11 +127,18 @@ STAGES = [
      "Test item 1 (7 Oct): five region19 forts into summer with everything on, 30/30 dwarves each (one nudge bug found and "
      "fixed). v7.3 season casts (8 Oct): lake and ocean forts through two season changes, 329/329 and 392/392 arrivals in "
      "their season's cast after five fixes; resting cavern species at frequency 0 safe. See the season-test page."),
-    ("Fix batch A and the run kit", "ok", "Built; X0-X2 passed on the rig",
+    ("Fix batch A and the run kit", "ok", "Built; X0-X3 run on the rig",
      "Batch A (F1 F2 F5-F10 F14-F17 F21) in the engine (v7.2-plugin fc27ffa + 4e9677f), 23/23 offline, deployed. The run kit "
      "(scripts/season-run.py) ran X0 (4/4 forts), X1 the switch round trip (lake and ocean 10/10 each: off gives back 628 and 691 held "
      "entries' stock and clears 8 and 10 wild-on-wild relation cells; the cells were a bug X1 found and 4e9677f fixed) and X2 persistence (F2, F6, "
-     "F7 pass). New finding: a few turnover-dismissed cavern animals and a sea lamprey stay on the map past 10 days."),
+     "F7 pass). X3, the season-boundary audit (lake, ocean, brook x 3, two changes each): 9/9 cells clean, 3,487 managed "
+     "arrivals, none off-cast late, no in-cast send-off, reserve kept, no drowning. One fault everywhere: dismissed cavern and "
+     "water animals that do not leave (cavern 8 of 42 send-offs, water 7 of 28, land 0 of 10)."),
+    ("v7.4: one roster builder", "fix", "Built; offline and one rig check pass",
+     "Your 9 Oct rulings: the guild builder removed, the season casts the one builder, carrying its FREQUENCY ladder and apex "
+     "keys; casts built once at enable (no new casts at a new year); high value relative to the layer-season pool; reuse "
+     "weight x (1 - N/10); a dev switch that lifts the ecology guards for one map. Offline 42/42 fixes, 459/0 verbs; on the lake "
+     "fort roster build, odds, apex keys and the dev rebuild all read back, 3,000 ticks with no error. Engine v7.4-onebuilder 13ae6bd."),
     ("Release", "open", "Waiting",
      "Every branch is merged into v7.2-plugin; master and v7.1 were fast-forwarded to it locally on 8 Oct (not pushed). "
      "Release after the mechanics review and the experiment plan in the ECO report."),
@@ -146,7 +153,8 @@ SINCE_OCT2 = [
     "8 Oct: resting cavern species at frequency 0 tested (safe, leak-free); aquarium palettes, plants and cavern opacity tuned with you.",
     "8 Oct: every branch confirmed merged into v7.2-plugin; master and v7.1 fast-forwarded locally; mechanics review and experiment plan in the ECO report.",
     "9 Oct: fix batch A built (13 fixes, 23/23 offline) and deployed; the run kit (season-run.py) built; X0, X1 and X2 passed on the lake, ocean, brook and waterfall forts.",
-    "9 Oct: the runs found one engine bug (off left wild-on-wild relation cells live; fixed) and four in the kit's own scoring and audit, fixed before they were counted.",
+    "9 Oct: the runs found one engine bug (off left wild-on-wild relation cells live; fixed) and seven in the kit's own scoring and audit, fixed before they were counted.",
+    "9 Oct: X3 audit clean but for dismissed cavern/water animals that stay; v7.4 one roster builder built with the dev switch (guard audit in the mechanics notes).",
 ]
 
 RUNNING_HEAD = [
@@ -203,12 +211,14 @@ def live_running():
     return out
 
 PENDING = [
-    ("Rig runs left on batch A (ECO report section X)", [
-        "X3, the season-boundary audit on the lake, ocean and brook forts (overnight, ~7 h): season-run.py run experiments/season-runs/X3.json.",
-        "Watch in X3: turnover-dismissed animals that do not leave (X2: giant cave toads, draltha, a giant cave swallow, a sea lamprey still on the map 10+ days after the change). A fix (re-send, or a cavern exit path) waits for X3's numbers.",
+    ("Next on v7.4", [
+        "Dismissed cavern and water animals that do not leave (X2, X3): find why (path to an edge, the gate's re-release, leave countdown 0) and fix; land dismissals all leave.",
+        "Small pools seed the same species every season (lake fort land: kangaroo all four seasons; DF's raws mark few species out of season). Decide whether that is acceptable.",
+        "A short X3 on v7.4 (lake, ocean, brook x 1) to confirm the merged builder through two season changes.",
     ]),
     ("Your rulings", [
-        "F3 should enable turn irruptions on? F11 should casts set the FREQUENCY ladder and seat their apexes? F13 BENIGN species in cast predator slots, and apex x mesopredator edges? F18 land overshoot: accept or trim? F19 how hard should the cavern gate hold?",
+        "F3 should enable turn irruptions on? F13 BENIGN species in cast predator slots, and apex x mesopredator edges? F18 land overshoot: accept or trim? F19 how hard should the cavern gate hold? (F11 answered by the merge.)",
+        "The reuse weight: x (1 - N/10), or x 0.1 per appearance? Animal people as seeds? Apex by size within the layer pool instead of DF's LARGE_PREDATOR flag?",
     ]),
     ("Fix batch B, then X4-X8", [
         "The ruled items, F4 (master switch and presets in the Panel and on the page, the water look saved), F12 (cross-layer edges), F20 (water caps per body).",
@@ -232,7 +242,8 @@ DECISIONS = [
     ("Answered", "Irruption flags carrier: the save-safe wound by default, the syndrome route as an option."),
     ("Answered", "The pool is not the roster: season casts, about 10-12 species a layer and season, vermin included (7 Oct)."),
     ("Answered", "Resting cavern species at FREQUENCY 1 by default; 0 offered as a setting with the vermin guard (8 Oct)."),
-    ("Open", "F3, F11, F13, F18, F19: the five rulings the ECO report's section X waits on."),
+    ("Answered", "One roster builder: merge the builders, no year-to-year variety at all, high value relative to the layer-season pool, a dev switch (9 Oct)."),
+    ("Open", "F3, F13, F18, F19: the rulings the ECO report's section X waits on."),
     ("Open", "Row 5 (lost-leader scatter) and row 12 (spill give-back): retire while panic is parked and the spill is off under casts?"),
     ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little pressure. Keep?"),
     ("Open", "A stock you set by hand is rewritten when its season returns, so an irruption's draw on it doesn't carry over."),
@@ -367,7 +378,7 @@ th {{ font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--mut
   <h1>Alpha Four Progress</h1>
   <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
   walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
-  <span class="meta">As of {as_of} · seasonal-wildlife v7.2-plugin 4e9677f (all branches merged, fix batch A) · rig running the same tree</span>
+  <span class="meta">As of {as_of} · seasonal-wildlife v7.4-onebuilder 13ae6bd (batch A + one builder) · rig running the same tree</span>
 </section>
 
 <h2>Stages</h2>
