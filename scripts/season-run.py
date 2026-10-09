@@ -1140,6 +1140,12 @@ class Run:
         old += [p for p in (os.listdir(SAVE_ROOT) if SAVE_ROOT.exists() else []) if p.startswith(f'SR_{safe(self.id)}_')]
         if old and not self.rig.dry:
             raise RunFail(f'run {self.id} has left recorder dirs or saves already ({old[:3]}); pick another --name')
+        # other runs' chunk saves share their fort's world name and push the fort off DF's load list (X2, 9 Oct)
+        left = sorted(p for p in (os.listdir(SAVE_ROOT) if SAVE_ROOT.exists() else []) if p.startswith('SR_'))
+        if left and not self.rig.dry:
+            runs = sorted({re.match(r'SR_(.+?)_[^_]+_r\d+_', p).group(1) for p in left if re.match(r'SR_(.+?)_[^_]+_r\d+_', p)})
+            raise RunFail(f'{len(left)} chunk save(s) from earlier runs are still in the save dir ({", ".join(runs) or left[0]}): '
+                          'park them with DF stopped (season-run.py park data/season-run/RUN) before a new run')
         if not self.rig.running():
             self.log('DF is not running: starting it')
             self.rig.must('start', timeout=300)
@@ -1321,7 +1327,10 @@ def analyse_cell(d: Path) -> dict:
         for r in recs.values():
             r.update(left_after(snaps, r['race'], r['tick'], t_end))
             (trims if r['in_cast'] else turnover).append(r)
-        A['in_cast_sendoffs'] = trims
+        # the cavern gate holding a layer to its group cap sends in-cast groups off by design (F19); only a turnover's
+        # or a trim's send-off of an in-cast group is the fault X3 looks for
+        A['in_cast_sendoffs'] = [r for r in trims if r['why'] != 'gate']
+        A['gate_sendoffs'] = [r for r in trims if r['why'] == 'gate']
         A['offcast_sendoffs'] = turnover
         A['sendoffs_not_left'] = [x for x in turnover if x.get('left') is False]
         # stand-ins made, and whether the stand-in species went on arriving off-cast after its season
@@ -1353,15 +1362,19 @@ def analyse_cell(d: Path) -> dict:
             arrivals = [(int(r['tick']), r['race']) for r in v73().read(str(d / 'events.tsv')) if r['event'] == 'ARRIVE']
         pairs = []
         for a, b in zip(states, states[1:]):
-            lost = []
+            lost, drawn = [], []
             ta, tb = totals(a), totals(b)
+            # DF itself draws vermin and colony stock with no ARRIVE event (spawning from the entry), so a drop there
+            # is DF's draw, not a lost reserve
+            vermin = {p[2] for p in a['pops'] if len(p) > 5 and ('Vermin' in str(p[5]) or 'Colony' in str(p[5]))}
             for key, (race, before) in ta.items():
                 after = tb.get(key, (race, 0))[1]
                 came = sum(1 for t, r in arrivals if a['tick'] < t <= b['tick'] and r == race)
                 if before > 0 and after < before - came - 2:
-                    lost.append({'key': key, 'before': before, 'after': after, 'arrivals_between': came})
+                    (drawn if key in vermin else lost).append({'key': key, 'before': before, 'after': after,
+                                                               'arrivals_between': came})
             pairs.append({'from': a['tick'], 'to': b['tick'], 'crosses_change': a['tick'] // TPS != b['tick'] // TPS,
-                          'keys_lost': lost})
+                          'keys_lost': lost, 'vermin_drawn': drawn})
         A['reserve'] = {'pairs': pairs, 'conserved': all(not p['keys_lost'] for p in pairs)}
     # tool time per pass: the last perf table of each DF session (FUSE stats reset at a reload)
     perf = sorted((d / 'perf').glob('*.txt'), key=lambda p: tick_of(p.name)) if (d / 'perf').exists() else []
@@ -1431,6 +1444,7 @@ def cmd_analyse(rundir: Path):
                      'status': R.get('status', '?'), 'reason': R.get('reason', ''), 'verdict': A.get('verdict', '-'),
                      'managed_arrivals': A.get('managed_arrivals'), 'offcast_late': A.get('offcast_late'),
                      'in_cast_sendoffs': len(A.get('in_cast_sendoffs', [])),
+                     'gate_sendoffs': len(A.get('gate_sendoffs', [])),
                      'sendoffs_not_left': len(A.get('sendoffs_not_left', [])),
                      'drowned_2d_draw': sum(v.get('within_2d_of_a_draw', 0) for v in A.get('drownings', {}).values()),
                      'reserve_conserved': A.get('reserve', {}).get('conserved'),
@@ -1443,22 +1457,22 @@ def cmd_analyse(rundir: Path):
         a = arms.setdefault(r['arm'], collections.Counter())
         a['cells'] += 1
         a['ok'] += r['status'] == 'OK'
-        for k in ('managed_arrivals', 'offcast_late', 'in_cast_sendoffs', 'sendoffs_not_left', 'drowned_2d_draw', 'hangs'):
+        for k in ('managed_arrivals', 'offcast_late', 'in_cast_sendoffs', 'gate_sendoffs', 'sendoffs_not_left', 'drowned_2d_draw', 'hangs'):
             a[k] += r[k] or 0
         a['checks_failed'] += len(r['checks_failed'])
     summary = {'rundir': str(rundir), 'analysed': now(), 'cells': rows, 'arms': {k: dict(v) for k, v in arms.items()}}
     (rundir / 'summary.json').write_text(json.dumps(summary, indent=1, default=str) + '\n')
     md = [f'# {rundir.name}: season-run summary ({now()})', '',
-          '| cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s |',
-          '|---|---|---|---|---|---|---|---|---|---|---|---|']
+          '| cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s |',
+          '|---|---|---|---|---|---|---|---|---|---|---|---|---|']
     for r in rows:
         md.append(f'| {r["cell"]} | {r["status"]} {r["reason"][:60]} | {r["verdict"]} | {r["managed_arrivals"]} | {r["offcast_late"]} | '
-                  f'{r["in_cast_sendoffs"]} | {r["sendoffs_not_left"]} | {r["drowned_2d_draw"]} | {r["reserve_conserved"]} | '
+                  f'{r["in_cast_sendoffs"]} | {r["gate_sendoffs"]} | {r["sendoffs_not_left"]} | {r["drowned_2d_draw"]} | {r["reserve_conserved"]} | '
                   f'{", ".join(r["checks_failed"]) or "-"} ({r["checks_passed"]} passed) | {r["hangs"]} | {r["ticks_per_s"]} |')
-    md += ['', '| arm | cells | OK | managed arrivals | off-cast late | in-cast send-offs | not left | drowned after a draw | checks failed | hangs |',
-           '|---|---|---|---|---|---|---|---|---|---|']
+    md += ['', '| arm | cells | OK | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left | drowned after a draw | checks failed | hangs |',
+           '|---|---|---|---|---|---|---|---|---|---|---|']
     for k, a in arms.items():
-        md.append(f'| {k} | {a["cells"]} | {a["ok"]} | {a["managed_arrivals"]} | {a["offcast_late"]} | {a["in_cast_sendoffs"]} | '
+        md.append(f'| {k} | {a["cells"]} | {a["ok"]} | {a["managed_arrivals"]} | {a["offcast_late"]} | {a["in_cast_sendoffs"]} | {a["gate_sendoffs"]} | '
                   f'{a["sendoffs_not_left"]} | {a["drowned_2d_draw"]} | {a["checks_failed"]} | {a["hangs"]} |')
     (rundir / 'summary.md').write_text('\n'.join(md) + '\n')
     print(f'wrote {rundir / "summary.json"} and summary.md ({len(rows)} cells)')

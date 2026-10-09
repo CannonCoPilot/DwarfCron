@@ -1,0 +1,285 @@
+{
+ "id": "X2",
+ "spec": {
+  "id": "X2",
+  "description": "Persistence (ECO report X2): do `cast off`, the turnover and the reserve survive a reload? Four scripted cases on the lake fort, one cell each: castoff (cast off + save + reload: F2), midseason (reload 20,000 ticks into summer: the turnover is a standing rule after a same-season reload, F6), prechange (reload 2,000 ticks before the change, then cross it), refund (send groups off 2 days before the change, cross it; reserve plus quantity per entry before and after: F7). Analyse reports reserve conservation from the state dumps.",
+  "needs": "fix batch A: F2, F6, F7; backups from X0",
+  "reps": 1,
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: ",
+    "name": "the tool answers"
+   }
+  ],
+  "arms": [
+   {
+    "name": "castoff",
+    "fort": "V73_LAKE2",
+    "phases": [
+     {
+      "do": "pre"
+     },
+     {
+      "do": "receipts"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "cast",
+       "off"
+      ],
+      "expect": "^cast: off"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "cast",
+       "status"
+      ],
+      "save_as": "casts-off-before.txt",
+      "expect": "season casts off"
+     },
+     {
+      "do": "save",
+      "tag": "castoff"
+     },
+     {
+      "do": "title"
+     },
+     {
+      "do": "load_saved",
+      "tag": "castoff"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "cast",
+       "status"
+      ],
+      "save_as": "casts-off-after.txt",
+      "check": "season casts off",
+      "name": "cast off survives a save and reload (F2)"
+     },
+     {
+      "do": "state",
+      "tag": "after-reload"
+     },
+     {
+      "do": "json_check",
+      "file": "states/after-reload.json",
+      "key": "tool.cast_enabled",
+      "value": false,
+      "name": "the saved config reads cast off"
+     }
+    ]
+   },
+   {
+    "name": "midseason",
+    "fort": "V73_LAKE2",
+    "phases": [
+     {
+      "do": "pre"
+     },
+     {
+      "do": "receipts"
+     },
+     {
+      "do": "run",
+      "until": "season:1+20000"
+     },
+     {
+      "do": "audit",
+      "tag": "before-reload"
+     },
+     {
+      "do": "save",
+      "tag": "mid"
+     },
+     {
+      "do": "title"
+     },
+     {
+      "do": "load_saved",
+      "tag": "mid"
+     },
+     {
+      "do": "run",
+      "until": "ticks:3000"
+     },
+     {
+      "do": "audit",
+      "tag": "after-reload"
+     },
+     {
+      "do": "json_check",
+      "file": "audits/after-reload.json",
+      "key": "offcast",
+      "value": 0,
+      "name": "no off-cast tracked group 3,000 ticks after a same-season reload (F6)"
+     }
+    ]
+   },
+   {
+    "name": "prechange",
+    "fort": "V73_LAKE2",
+    "phases": [
+     {
+      "do": "pre"
+     },
+     {
+      "do": "receipts"
+     },
+     {
+      "do": "run",
+      "until": "before_change:2000"
+     },
+     {
+      "do": "audit",
+      "tag": "before-reload"
+     },
+     {
+      "do": "save",
+      "tag": "pre"
+     },
+     {
+      "do": "title"
+     },
+     {
+      "do": "load_saved",
+      "tag": "pre"
+     },
+     {
+      "do": "run",
+      "until": "season:1+3000"
+     },
+     {
+      "do": "audit",
+      "tag": "after-change"
+     },
+     {
+      "do": "json_check",
+      "file": "audits/after-change.json",
+      "key": "offcast",
+      "value": 0,
+      "name": "the turnover ran after a reload just before the change"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "ledger",
+       "300",
+       "season"
+      ],
+      "save_as": "ledger-season.txt",
+      "check": "roster applied",
+      "name": "the new season was applied after the reload"
+     }
+    ]
+   },
+   {
+    "name": "refund",
+    "fort": "V73_LAKE2",
+    "state_every_chunk": true,
+    "phases": [
+     {
+      "do": "pre"
+     },
+     {
+      "do": "receipts"
+     },
+     {
+      "do": "run",
+      "until": "before_change:2400"
+     },
+     {
+      "do": "state",
+      "tag": "pre-sendoff"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "sendoff",
+       "land"
+      ],
+      "save_as": "sendoff-land.txt",
+      "expect": "sent off"
+     },
+     {
+      "do": "cmd",
+      "args": [
+       "seasonal-wildlife",
+       "sendoff",
+       "cavern"
+      ],
+      "save_as": "sendoff-cavern.txt",
+      "expect": "sent off"
+     },
+     {
+      "do": "run",
+      "until": "season:1+2000",
+      "chunk": 1200
+     },
+     {
+      "do": "state",
+      "tag": "post-change"
+     },
+     {
+      "do": "diff",
+      "a": "pre-sendoff",
+      "b": "post-change",
+      "what": [
+       "pops"
+      ],
+      "name": "entries across the change:"
+     }
+    ]
+   }
+  ]
+ },
+ "started": "2026-10-09 13:45:05",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "9a6835cb",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1186175,
+    "blob": "d81fec4d35365955ff3f06972033cf14f0472392",
+    "release": "7.2.0",
+    "mtime": "2026-10-09T13:27:10",
+    "commit": "4e9677f734 F1 fix: V7.clearRelations reads a relation cell's .ur (it compared the cell struct to the enum, so X1 on the "
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ }
+}

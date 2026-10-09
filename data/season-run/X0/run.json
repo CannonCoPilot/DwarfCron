@@ -1,0 +1,149 @@
+{
+ "id": "X0",
+ "spec": {
+  "id": "X0",
+  "description": "Kit and backups (ECO report X0): do the four forts load, and does the kit record what it claims? One cell per fort, 2,000 ticks, one chunk save, dumps every 1,000 ticks. Passes when the backups are byte-identical (season-run.py backup, run first), every receipt and output file is present, and the recorder's last wild count matches a live count.",
+  "needs": "season-run.py backup V73_LAKE2 V73_OCEAN2 V73_BROOK T1END_WATERFALL (DF at the title or stopped)",
+  "reps": 1,
+  "until": "ticks:2000",
+  "chunk": 2000,
+  "pairs_every": 1000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "live_count": true,
+  "check_files": true,
+  "restart_between_arms": false,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^casts for year \\d+",
+    "name": "the fort has casts"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: ",
+    "name": "the tool answers"
+   },
+   {
+    "cmd": "sw-t1-recorder status",
+    "expect": "^sw-t1-recorder: ",
+    "name": "the recorder is deployed"
+   }
+  ],
+  "arms": [
+   {
+    "name": "L",
+    "fort": "V73_LAKE2",
+    "receipts": [
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "lake [1-9]",
+      "name": "the lake is on the map"
+     }
+    ]
+   },
+   {
+    "name": "O",
+    "fort": "V73_OCEAN2",
+    "receipts": [
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "ocean [1-9]",
+      "name": "the ocean is on the map"
+     }
+    ]
+   },
+   {
+    "name": "B",
+    "fort": "V73_BROOK"
+   },
+   {
+    "name": "W",
+    "fort": "T1END_WATERFALL"
+   }
+  ]
+ },
+ "started": "2026-10-09 12:56:51",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "9a6835cb",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1186057,
+    "blob": "41ec9e5a16f5617cd39ce1884e5beecdb90c9a32",
+    "release": "7.2.0",
+    "mtime": "2026-10-09T12:53:30",
+    "commit": "fc27ffa3e8 v7.3 fix batch A (ECO report rev 4, section M5): F1 off/disable/All off give back held population stock and c"
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-09 13:05:49",
+ "cells": [
+  {
+   "arm": "L",
+   "rep": 1,
+   "fort": "V73_LAKE2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 148.3,
+   "ticks": 2052,
+   "ticks_per_s": 100.6
+  },
+  {
+   "arm": "O",
+   "rep": 1,
+   "fort": "V73_OCEAN2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 152.4,
+   "ticks": 2085,
+   "ticks_per_s": 121.1
+  },
+  {
+   "arm": "B",
+   "rep": 1,
+   "fort": "V73_BROOK",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 148.6,
+   "ticks": 2110,
+   "ticks_per_s": 124.2
+  },
+  {
+   "arm": "W",
+   "rep": 1,
+   "fort": "T1END_WATERFALL",
+   "status": "ABORTED",
+   "reason": "receipt `seasonal-wildlife cast status` failed: expect /^casts for year \\d+/ not found",
+   "wall_s": 88.4,
+   "ticks": 0,
+   "ticks_per_s": null
+  }
+ ],
+ "saves_written": [
+  "SR_X0_L_r01_c001",
+  "SR_X0_L_r01_c002",
+  "SR_X0_O_r01_c001",
+  "SR_X0_O_r01_c002",
+  "SR_X0_B_r01_c001",
+  "SR_X0_B_r01_c002"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}

@@ -15,16 +15,56 @@
   "check_files": true,
   "restart_between_arms": false,
   "receipts": [
-    {"cmd": "seasonal-wildlife cast status", "expect": "^casts for year \\d+", "name": "the fort has casts"},
-    {"cmd": "seasonal-wildlife status", "expect": "^Layers: ", "name": "the tool answers"},
-    {"cmd": "sw-t1-recorder status", "expect": "^sw-t1-recorder: ", "name": "the recorder is deployed"}
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^casts for year \\d+",
+      "name": "the fort has casts"
+    },
+    {
+      "cmd": "seasonal-wildlife status",
+      "expect": "^Layers: ",
+      "name": "the tool answers"
+    },
+    {
+      "cmd": "sw-t1-recorder status",
+      "expect": "^sw-t1-recorder: ",
+      "name": "the recorder is deployed"
+    }
   ],
   "arms": [
-    {"name": "L", "fort": "V73_LAKE2",
-     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "lake [1-9]", "name": "the lake is on the map"}]},
-    {"name": "O", "fort": "V73_OCEAN2",
-     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "ocean [1-9]", "name": "the ocean is on the map"}]},
-    {"name": "B", "fort": "V73_BROOK"},
-    {"name": "W", "fort": "T1END_WATERFALL"}
+    {
+      "name": "L",
+      "fort": "V73_LAKE2",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "lake [1-9]",
+          "name": "the lake is on the map"
+        }
+      ]
+    },
+    {
+      "name": "O",
+      "fort": "V73_OCEAN2",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "ocean [1-9]",
+          "name": "the ocean is on the map"
+        }
+      ]
+    },
+    {
+      "name": "B",
+      "fort": "V73_BROOK"
+    },
+    {
+      "name": "W",
+      "fort": "T1END_WATERFALL",
+      "pre": [
+        "seasonal-wildlife cast rebuild 1"
+      ],
+      "note": "T1END_WATERFALL predates season casts (enabled before v7.3: roster P22), so its casts are built here (salt 1, as V73_WREN)"
+    }
   ]
 }

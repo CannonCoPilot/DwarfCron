@@ -1,0 +1,248 @@
+{
+ "id": "X1",
+ "spec": {
+  "id": "X1",
+  "description": "The switch round trip (ECO report X1): does `off` put the world back exactly, and does `on` bring the tool back? On -> one season -> off -> state -> named save -> title -> reload with the tool off (off clears the autostart, so no tool code runs at the load) -> state -> on -> casts. Deterministic, one cell per fort. Passes with 0 differences after off (population entries zeroed or extinct against the worldgen snapshot, entries and raws between the off state and the reloaded world, no tool-written relation pair left live) and casts identical after on.",
+  "needs": "fix batch A: F1 (off gives back stock, clears extinct flags and relation cells), F3; backups from X0",
+  "reps": 1,
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: ",
+    "name": "the tool answers"
+   }
+  ],
+  "finally": [
+   {
+    "cmd": "seasonal-wildlife on",
+    "name": "put the tool and its autostart back on (off clears the global autostart)"
+   }
+  ],
+  "phases": [
+   {
+    "do": "pre"
+   },
+   {
+    "do": "receipts"
+   },
+   {
+    "do": "state",
+    "tag": "s0-load"
+   },
+   {
+    "do": "cmd",
+    "args": [
+     "seasonal-wildlife",
+     "cast",
+     "status"
+    ],
+    "save_as": "casts-before.txt"
+   },
+   {
+    "do": "run",
+    "until": "season:1"
+   },
+   {
+    "do": "cmd",
+    "args": [
+     "seasonal-wildlife",
+     "off"
+    ],
+    "save_as": "off.txt",
+    "expect": "this fort: off",
+    "check": "water renderer: (off|not loaded)",
+    "name": "off: the renderer is off too"
+   },
+   {
+    "do": "state",
+    "tag": "s1-off"
+   },
+   {
+    "do": "cmd",
+    "args": [
+     "seasonal-wildlife",
+     "ecology",
+     "pairs",
+     "tsv"
+    ],
+    "save_as": "pairs-off.tsv",
+    "check_not": "^live-tool\\t",
+    "name": "no tool-written relation pair live after off"
+   },
+   {
+    "do": "diff",
+    "b": "s1-off",
+    "what": [
+     "snapshot"
+    ],
+    "expect_zero": [
+     "zeroed",
+     "extinct"
+    ],
+    "name": "after off vs the worldgen snapshot:"
+   },
+   {
+    "do": "save",
+    "tag": "off"
+   },
+   {
+    "do": "title"
+   },
+   {
+    "do": "load_saved",
+    "tag": "off"
+   },
+   {
+    "do": "state",
+    "tag": "s2-reload"
+   },
+   {
+    "do": "json_check",
+    "file": "states/s2-reload.json",
+    "key": "tool.enabled",
+    "value": false,
+    "name": "the tool is off in the reloaded fort"
+   },
+   {
+    "do": "diff",
+    "a": "s1-off",
+    "b": "s2-reload",
+    "what": [
+     "pops",
+     "raws",
+     "rel"
+    ],
+    "expect_zero": [
+     "pops",
+     "raws"
+    ],
+    "name": "off state vs reloaded world (raws reload from the files):"
+   },
+   {
+    "do": "diff",
+    "b": "s2-reload",
+    "what": [
+     "snapshot"
+    ],
+    "expect_zero": [
+     "zeroed",
+     "extinct"
+    ],
+    "name": "reloaded world vs the worldgen snapshot:"
+   },
+   {
+    "do": "cmd",
+    "args": [
+     "seasonal-wildlife",
+     "on"
+    ],
+    "save_as": "on.txt"
+   },
+   {
+    "do": "cmd",
+    "args": [
+     "seasonal-wildlife",
+     "cast",
+     "status"
+    ],
+    "save_as": "casts-after-on.txt"
+   },
+   {
+    "do": "diff_text",
+    "a": "casts-before.txt",
+    "b": "casts-after-on.txt",
+    "name": "casts identical after on"
+   },
+   {
+    "do": "state",
+    "tag": "s3-on"
+   }
+  ],
+  "arms": [
+   {
+    "name": "L",
+    "fort": "V73_LAKE2"
+   },
+   {
+    "name": "O",
+    "fort": "V73_OCEAN2"
+   }
+  ]
+ },
+ "started": "2026-10-09 13:09:22",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "9a6835cb",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1186057,
+    "blob": "41ec9e5a16f5617cd39ce1884e5beecdb90c9a32",
+    "release": "7.2.0",
+    "mtime": "2026-10-09T12:53:30",
+    "commit": "fc27ffa3e8 v7.3 fix batch A (ECO report rev 4, section M5): F1 off/disable/All off give back held population stock and c"
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-09 13:26:55",
+ "cells": [
+  {
+   "arm": "L",
+   "rep": 1,
+   "fort": "V73_LAKE2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 542.0,
+   "ticks": 58661,
+   "ticks_per_s": 222.7
+  },
+  {
+   "arm": "O",
+   "rep": 1,
+   "fort": "V73_OCEAN2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 509.9,
+   "ticks": 58677,
+   "ticks_per_s": 271.4
+  }
+ ],
+ "saves_written": [
+  "SR_X1_L_r01_c001",
+  "SR_X1_L_r01_c002",
+  "SR_X1_L_r01_c003",
+  "SR_X1_L_r01_c004",
+  "SR_X1_L_r01_off",
+  "SR_X1_O_r01_c001",
+  "SR_X1_O_r01_c002",
+  "SR_X1_O_r01_c003",
+  "SR_X1_O_r01_c004",
+  "SR_X1_O_r01_off"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}

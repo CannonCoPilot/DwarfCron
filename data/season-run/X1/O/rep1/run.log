@@ -1,0 +1,57 @@
+13:18:25 restarting DF after the restore (restart_each_cell)
+13:20:06 loaded V73_OCEAN2 (restored from preverify): tick 100844191 (y250 Spring 37), season Spring
+13:20:06 phase pre {}
+13:20:06 phase receipts {}
+13:20:07 phase state {"tag": "s0-load"}
+13:20:09 phase cmd {"args": ["seasonal-wildlife", "cast", "status"], "save_as": "casts-before.txt"}
+13:20:10 phase run {"until": "season:1"}
+13:20:10 run from 100844191 (y250 Spring 37) to 100902800 (y250 Summer 2): 58609 ticks, chunk 20000, dumps every 3000
+13:20:44 step 3000: [cx-lifecycle] stepped 3086 ticks (44191 -> 47277) in 10s (rc 0) season=0
+13:20:55 step 2914: [cx-lifecycle] stepped 3061 ticks (47277 -> 50338) in 5s (rc 0) season=0
+13:21:05 step 2853: [cx-lifecycle] stepped 2933 ticks (50338 -> 53271) in 5s (rc 0) season=0
+13:21:16 step 2920: [cx-lifecycle] stepped 2962 ticks (53271 -> 56233) in 5s (rc 0) season=0
+13:21:27 step 2958: [cx-lifecycle] stepped 3100 ticks (56233 -> 59333) in 5s (rc 0) season=0
+13:21:38 step 2858: [cx-lifecycle] stepped 2907 ticks (59333 -> 62240) in 5s (rc 0) season=0
+13:21:45 step 1951: [cx-lifecycle] stepped 2029 ticks (62240 -> 64269) in 3s (rc 0) season=0
+13:22:08 step 922: [cx-lifecycle] stepped 965 ticks (64269 -> 65234) in 1s (rc 0) season=0
+13:22:19 step 2957: [cx-lifecycle] stepped 3002 ticks (65234 -> 68236) in 5s (rc 0) season=0
+13:22:30 step 2955: [cx-lifecycle] stepped 3033 ticks (68236 -> 71269) in 5s (rc 0) season=0
+13:22:41 step 2922: [cx-lifecycle] stepped 3045 ticks (71269 -> 74314) in 5s (rc 0) season=0
+13:22:52 step 2877: [cx-lifecycle] stepped 2989 ticks (74314 -> 77303) in 5s (rc 0) season=0
+13:23:04 step 2888: [cx-lifecycle] stepped 2964 ticks (77303 -> 80267) in 5s (rc 0) season=0
+13:23:15 step 2924: [cx-lifecycle] stepped 3041 ticks (80267 -> 83308) in 5s (rc 0) season=0
+13:23:20 step 961: [cx-lifecycle] stepped 1025 ticks (83308 -> 84333) in 1s (rc 0) season=0
+13:23:46 step 1858: [cx-lifecycle] stepped 1947 ticks (84333 -> 86280) in 3s (rc 0) season=0
+13:23:57 step 2911: [cx-lifecycle] stepped 2988 ticks (86280 -> 89268) in 5s (rc 0) season=0
+13:24:09 step 2923: [cx-lifecycle] stepped 2959 ticks (89268 -> 92227) in 5s (rc 0) season=0
+13:24:21 step 2964: [cx-lifecycle] stepped 3118 ticks (92227 -> 95345) in 6s (rc 0) season=0
+13:24:32 step 2846: [cx-lifecycle] stepped 2885 ticks (95345 -> 98230) in 5s (rc 0) season=0
+13:24:44 step 2961: [cx-lifecycle] stepped 3016 ticks (98230 -> 101246) in 6s (rc 0) season=0
+13:24:51 step 1554: [cx-lifecycle] stepped 1622 ticks (101246 -> 102868) in 3s (rc 0) season=1
+13:25:10 recorder: sw-t1-recorder: stopped; 587 samples, 373 events, 417 reports in sw-t1/SR_X1_O_r01_s1
+13:25:10 phase cmd {"args": ["seasonal-wildlife", "off"], "save_as": "off.txt", "expect": "this fort: off", "check": "water renderer: (off|not loaded)", "name": "off: the renderer
+13:25:10 check off: the renderer is off too: PASS matched
+13:25:10 phase state {"tag": "s1-off"}
+13:25:13 phase cmd {"args": ["seasonal-wildlife", "ecology", "pairs", "tsv"], "save_as": "pairs-off.tsv", "check_not": "^live-tool\\t", "name": "no tool-written relation pair live
+13:25:13 check no tool-written relation pair live after off: FAIL check_not /^live-tool\t/ found
+13:25:13 phase diff {"b": "s1-off", "what": ["snapshot"], "expect_zero": ["zeroed", "extinct"], "name": "after off vs the worldgen snapshot:"}
+13:25:13 check after off vs the worldgen snapshot: zeroed: PASS 0 difference(s) (snapshot vs s1-off)
+13:25:13 check after off vs the worldgen snapshot: extinct: PASS 0 difference(s) (snapshot vs s1-off)
+13:25:13 phase save {"tag": "off"}
+13:25:31 phase title {}
+13:25:39 phase load_saved {"tag": "off"}
+13:26:39 loaded the save SR_X1_O_r01_off: tick 100902868 (y250 Summer 2)
+13:26:39 phase state {"tag": "s2-reload"}
+13:26:42 phase json_check {"file": "states/s2-reload.json", "key": "tool.enabled", "value": false, "name": "the tool is off in the reloaded fort"}
+13:26:42 check the tool is off in the reloaded fort: PASS value False
+13:26:42 phase diff {"a": "s1-off", "b": "s2-reload", "what": ["pops", "raws", "rel"], "expect_zero": ["pops", "raws"], "name": "off state vs reloaded world (raws reload from the f
+13:26:42 check off state vs reloaded world (raws reload from the files): pops: PASS 0 difference(s) (s1-off vs s2-reload)
+13:26:42 check off state vs reloaded world (raws reload from the files): raws: PASS 0 difference(s) (s1-off vs s2-reload)
+13:26:42 phase diff {"b": "s2-reload", "what": ["snapshot"], "expect_zero": ["zeroed", "extinct"], "name": "reloaded world vs the worldgen snapshot:"}
+13:26:42 check reloaded world vs the worldgen snapshot: zeroed: PASS 0 difference(s) (snapshot vs s2-reload)
+13:26:42 check reloaded world vs the worldgen snapshot: extinct: PASS 0 difference(s) (snapshot vs s2-reload)
+13:26:42 phase cmd {"args": ["seasonal-wildlife", "on"], "save_as": "on.txt"}
+13:26:43 phase cmd {"args": ["seasonal-wildlife", "cast", "status"], "save_as": "casts-after-on.txt"}
+13:26:43 phase diff_text {"a": "casts-before.txt", "b": "casts-after-on.txt", "name": "casts identical after on"}
+13:26:43 check casts identical after on: PASS 
+13:26:43 phase state {"tag": "s3-on"}
