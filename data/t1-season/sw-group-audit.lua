@@ -2,9 +2,11 @@
 --
 --   cx-lifecycle.sh lua "<this file>"   (scripts/season-run.py sends it as code; it takes no arguments)
 --
--- {"ok":true,"tick":..,"season":..,"cast_on":..,"groups":[[layer, token, members on the map, in the cast]],
---  "offcast":N,"offcast_units":N}  -- an off-cast group is a tracked land/water/cavern group whose species is in
--- neither the members nor the vermin of its layer's cast for the current season. Every read is inside one pcall, so a
+-- {"ok":true,"tick":..,"season":..,"cast_on":..,"groups":[[layer, token, members on the map, in the cast, dismissed]],
+--  "offcast":N,"offcast_units":N,"dismissed_offcast":N,"dismissed_offcast_units":N}  -- an off-cast group is a tracked
+-- land/water/cavern group whose species is in neither the members nor the vermin of its layer's cast for the current
+-- season. offcast counts only groups the tool has not dismissed (the turnover's fault, F6); a dismissed group whose
+-- animals are still walking off is counted apart (X2 midseason, 9 Oct: 3 dismissed cavern units read as a FAIL). Every read is inside one pcall, so a
 -- failure prints {"ok":false,"error":..} and is never read as "no groups" (readout traps 14 and 24).
 local TPY = 403200
 
@@ -41,7 +43,7 @@ local function audit()
         for _, k in ipairs(x and x.members or {}) do inCast[layer][tok(k)] = true end
         for _, k in ipairs(x and x.vermin or {}) do inCast[layer][tok(k)] = true end
     end
-    local rows, off, offUnits = {}, 0, 0
+    local rows, off, offUnits, dOff, dOffUnits = {}, 0, 0, 0, 0
     for _, grp in ipairs(g.groups or {}) do
         local layer = grp.layer or 'land'
         local n = 0
@@ -51,11 +53,15 @@ local function audit()
         end
         local managed = inCast[layer] ~= nil
         local ok = (not castOn) or (not managed) or inCast[layer][grp.token or ''] == true
-        rows[#rows + 1] = { layer, grp.token or '?', n, ok }
-        if managed and not ok and n > 0 then off = off + 1; offUnits = offUnits + n end
+        local gone = grp.dismissed == true
+        rows[#rows + 1] = { layer, grp.token or '?', n, ok, gone }
+        if managed and not ok and n > 0 then
+            if gone then dOff = dOff + 1; dOffUnits = dOffUnits + n else off = off + 1; offUnits = offUnits + n end
+        end
     end
     return { ok = true, tick = df.global.cur_year * TPY + df.global.cur_year_tick, season = s, cast_on = castOn,
-             groups = rows, offcast = off, offcast_units = offUnits }
+             groups = rows, offcast = off, offcast_units = offUnits, dismissed_offcast = dOff,
+             dismissed_offcast_units = dOffUnits }
 end
 
 local ok, res = pcall(audit)
