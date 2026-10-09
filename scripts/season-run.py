@@ -1298,6 +1298,12 @@ def analyse_cell(d: Path) -> dict:
             if r['race'] in C.get((L, s), set()):
                 per[(L, s)]['in_cast'] += 1
                 continue
+            # a species another layer casts this season, arriving through its other entry (X3 brook: ALLIGATOR, a curated
+            # water apex in the summer water cast, walks in through its land entry and records as land) is in the cast:
+            # the tool's turnover keys it the same way and rightly leaves it
+            if any(r['race'] in C.get((L2, s), set()) for L2 in MANAGED):
+                per[(L, s)]['in_cast_other_layer'] += 1
+                continue
             stand = (L, s, r['race']) in S['stand']
             lead = t - (t - t % TPS)
             per[(L, s)]['stand_in' if stand else ('off_birth' if birth else 'off')] += 1
@@ -1378,11 +1384,14 @@ def analyse_cell(d: Path) -> dict:
             arrivals = [(int(r['tick']), r['race']) for r in v73().read(str(d / 'events.tsv')) if r['event'] == 'ARRIVE']
         pairs = []
         for a, b in zip(states, states[1:]):
-            lost, drawn, short = [], [], []
+            lost, drawn, short, untracked = [], [], [], []
             ta, tb = totals(a), totals(b)
             # DF itself draws vermin and colony stock with no ARRIVE event (spawning from the entry), so a drop there
             # is DF's draw, not a lost reserve
             vermin = {p[2] for p in a['pops'] if len(p) > 5 and ('Vermin' in str(p[5]) or 'Colony' in str(p[5]))}
+            # F7 is about the tool's reserve: an entry it never held is DF's to draw (X3 ocean: cave:MAGMA_CRAB 180 -> 175,
+            # a magma-sea species of the unmanaged deep layer whose arrivals the recorder does not log)
+            held = {p[2] for st in (a, b) for p in st['pops'] if str(p[0]) in ((st.get('reserve') or {}) if isinstance(st.get('reserve'), dict) else {})}
             for key, (race, before) in ta.items():
                 after = tb.get(key, (race, 0))[1]
                 came = sum(1 for t, r in arrivals if a['tick'] < t <= b['tick'] and r == race)
@@ -1391,9 +1400,9 @@ def analyse_cell(d: Path) -> dict:
                     # DF debits a wave's planned size from the entry and may land fewer animals (X3 ocean: SEA OTTER
                     # 13 -> 6 on one entry, "x2 arrived", no tool action), so a drop with a DF arrival of the species
                     # in the window is DF's draw, not a lost reserve
-                    (drawn if key in vermin else short if came else lost).append(row)
+                    (drawn if key in vermin else short if came else lost if key in held else untracked).append(row)
             pairs.append({'from': a['tick'], 'to': b['tick'], 'crosses_change': a['tick'] // TPS != b['tick'] // TPS,
-                          'keys_lost': lost, 'vermin_drawn': drawn, 'df_wave_shortfall': short})
+                          'keys_lost': lost, 'vermin_drawn': drawn, 'df_wave_shortfall': short, 'never_held': untracked})
         A['reserve'] = {'pairs': pairs, 'conserved': all(not p['keys_lost'] for p in pairs)}
     # tool time per pass: the last perf table of each DF session (FUSE stats reset at a reload)
     perf = sorted((d / 'perf').glob('*.txt'), key=lambda p: tick_of(p.name)) if (d / 'perf').exists() else []

@@ -1,0 +1,284 @@
+{
+ "id": "X3",
+ "spec": {
+  "id": "X3",
+  "description": "Season-boundary audit, the regression run (ECO report X3): across every layer, does each season change hand over cleanly? Lake, ocean and brook forts, spring -> summer -> autumn (two changes, 2,000 ticks past the second), 3 replicates, arms counterbalanced, DF restarted for every cell. Measured: off-cast arrivals per layer and season and their lead time after the change; in-cast groups trimmed or sent off; stand-ins; turnover send-offs that actually left; reserve conservation (state dump every chunk); tool time per pass. Passes with 0 off-cast arrivals later than one day after a change, 0 in-cast trims, and every dismissed group off the map within 10 days.",
+  "needs": "fix batch A; backups from X0",
+  "reps": 3,
+  "until": "season:2",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+land\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a land cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: .*land",
+    "name": "the tool runs the land layer"
+   }
+  ],
+  "arms": [
+   {
+    "name": "L",
+    "fort": "V73_LAKE2",
+    "receipts": [
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "lake [1-9]",
+      "name": "the lake is on the map"
+     },
+     {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+water\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a water cast for summer"
+     }
+    ]
+   },
+   {
+    "name": "O",
+    "fort": "V73_OCEAN2",
+    "receipts": [
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "ocean [1-9]",
+      "name": "the ocean is on the map"
+     },
+     {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+water\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a water cast for summer"
+     }
+    ]
+   },
+   {
+    "name": "B",
+    "fort": "V73_BROOK"
+   }
+  ]
+ },
+ "started": "2026-10-09 15:05:21",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "15e12b71",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1186175,
+    "blob": "d81fec4d35365955ff3f06972033cf14f0472392",
+    "release": "7.2.0",
+    "mtime": "2026-10-09T13:27:10",
+    "commit": "4e9677f734 F1 fix: V7.clearRelations reads a relation cell's .ur (it compared the cell struct to the enum, so X1 on the "
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-09 17:37:56",
+ "cells": [
+  {
+   "arm": "L",
+   "rep": 1,
+   "fort": "V73_LAKE2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 1047.5,
+   "ticks": 159494,
+   "ticks_per_s": 217.7
+  },
+  {
+   "arm": "O",
+   "rep": 1,
+   "fort": "V73_OCEAN2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 996.7,
+   "ticks": 159493,
+   "ticks_per_s": 234.0
+  },
+  {
+   "arm": "B",
+   "rep": 1,
+   "fort": "V73_BROOK",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 981.2,
+   "ticks": 159555,
+   "ticks_per_s": 234.4
+  },
+  {
+   "arm": "B",
+   "rep": 2,
+   "fort": "V73_BROOK",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 922.8,
+   "ticks": 159498,
+   "ticks_per_s": 255.9
+  },
+  {
+   "arm": "O",
+   "rep": 2,
+   "fort": "V73_OCEAN2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 1014.8,
+   "ticks": 159547,
+   "ticks_per_s": 226.9
+  },
+  {
+   "arm": "L",
+   "rep": 2,
+   "fort": "V73_LAKE2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 1172.4,
+   "ticks": 159485,
+   "ticks_per_s": 186.0
+  },
+  {
+   "arm": "L",
+   "rep": 3,
+   "fort": "V73_LAKE2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 1184.3,
+   "ticks": 159453,
+   "ticks_per_s": 183.9
+  },
+  {
+   "arm": "O",
+   "rep": 3,
+   "fort": "V73_OCEAN2",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 954.3,
+   "ticks": 159548,
+   "ticks_per_s": 250.0
+  },
+  {
+   "arm": "B",
+   "rep": 3,
+   "fort": "V73_BROOK",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 865.6,
+   "ticks": 159544,
+   "ticks_per_s": 275.9
+  }
+ ],
+ "saves_written": [
+  "SR_X3_L_r01_c001",
+  "SR_X3_L_r01_c002",
+  "SR_X3_L_r01_c003",
+  "SR_X3_L_r01_c004",
+  "SR_X3_L_r01_c005",
+  "SR_X3_L_r01_c006",
+  "SR_X3_L_r01_c007",
+  "SR_X3_L_r01_c008",
+  "SR_X3_L_r01_c009",
+  "SR_X3_O_r01_c001",
+  "SR_X3_O_r01_c002",
+  "SR_X3_O_r01_c003",
+  "SR_X3_O_r01_c004",
+  "SR_X3_O_r01_c005",
+  "SR_X3_O_r01_c006",
+  "SR_X3_O_r01_c007",
+  "SR_X3_O_r01_c008",
+  "SR_X3_O_r01_c009",
+  "SR_X3_B_r01_c001",
+  "SR_X3_B_r01_c002",
+  "SR_X3_B_r01_c003",
+  "SR_X3_B_r01_c004",
+  "SR_X3_B_r01_c005",
+  "SR_X3_B_r01_c006",
+  "SR_X3_B_r01_c007",
+  "SR_X3_B_r01_c008",
+  "SR_X3_B_r01_c009",
+  "SR_X3_B_r02_c001",
+  "SR_X3_B_r02_c002",
+  "SR_X3_B_r02_c003",
+  "SR_X3_B_r02_c004",
+  "SR_X3_B_r02_c005",
+  "SR_X3_B_r02_c006",
+  "SR_X3_B_r02_c007",
+  "SR_X3_B_r02_c008",
+  "SR_X3_B_r02_c009",
+  "SR_X3_O_r02_c001",
+  "SR_X3_O_r02_c002",
+  "SR_X3_O_r02_c003",
+  "SR_X3_O_r02_c004",
+  "SR_X3_O_r02_c005",
+  "SR_X3_O_r02_c006",
+  "SR_X3_O_r02_c007",
+  "SR_X3_O_r02_c008",
+  "SR_X3_O_r02_c009",
+  "SR_X3_L_r02_c001",
+  "SR_X3_L_r02_c002",
+  "SR_X3_L_r02_c003",
+  "SR_X3_L_r02_c004",
+  "SR_X3_L_r02_c005",
+  "SR_X3_L_r02_c006",
+  "SR_X3_L_r02_c007",
+  "SR_X3_L_r02_c008",
+  "SR_X3_L_r02_c009",
+  "SR_X3_L_r03_c001",
+  "SR_X3_L_r03_c002",
+  "SR_X3_L_r03_c003",
+  "SR_X3_L_r03_c004",
+  "SR_X3_L_r03_c005",
+  "SR_X3_L_r03_c006",
+  "SR_X3_L_r03_c007",
+  "SR_X3_L_r03_c008",
+  "SR_X3_L_r03_c009",
+  "SR_X3_O_r03_c001",
+  "SR_X3_O_r03_c002",
+  "SR_X3_O_r03_c003",
+  "SR_X3_O_r03_c004",
+  "SR_X3_O_r03_c005",
+  "SR_X3_O_r03_c006",
+  "SR_X3_O_r03_c007",
+  "SR_X3_O_r03_c008",
+  "SR_X3_O_r03_c009",
+  "SR_X3_B_r03_c001",
+  "SR_X3_B_r03_c002",
+  "SR_X3_B_r03_c003",
+  "SR_X3_B_r03_c004",
+  "SR_X3_B_r03_c005",
+  "SR_X3_B_r03_c006",
+  "SR_X3_B_r03_c007",
+  "SR_X3_B_r03_c008",
+  "SR_X3_B_r03_c009"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}
