@@ -676,7 +676,7 @@ class Cell:
             # and `load` scrolls at most ~30 rows. A restart after the restore puts the fort (touched: newest) on top,
             # and resets process age (memory fps-load-facts).
             self.L('restarting DF after the restore (restart_each_cell)')
-            self.restart_rig()
+            self.restart_rig(park=True)
         if self.rig.dry:
             self.info['restore_verified'] = 'dry run (not hashed)'
         else:
@@ -698,9 +698,25 @@ class Cell:
             self.rig.must('load', folder, timeout=int(os.environ.get('CX_LOAD_TIMEOUT', 180)) + 150)
         self.rig.must('fps', self.c['fps'], self.c['gfps'], timeout=60)
 
-    def restart_rig(self):
+    def restart_rig(self, park=False):
         try:
-            self.rig.must('restart', timeout=400)
+            if not park:
+                self.rig.must('restart', timeout=400)
+                return
+            # the run's earlier cells' chunk saves share their fort's world name and, past ~12 under one world, push the
+            # fort off DF's load list (X2, 9 Oct); move them out while DF is down (never with DF up: 2 Oct crash)
+            self.rig.must('stop', timeout=200)
+            mine = self.base + '_'
+            done = sorted(n for n in (os.listdir(SAVE_ROOT) if SAVE_ROOT.exists() else [])
+                          if n.startswith(f'SR_{safe(self.run.id)}_') and not n.startswith(mine))
+            if done:
+                dest = PARK_ROOT / f'season-run-{self.run.id}'
+                if not self.rig.dry:
+                    dest.mkdir(parents=True, exist_ok=True)
+                    for n in done:
+                        shutil.move(str(SAVE_ROOT / n), str(dest / n))
+                self.L(f'parked {len(done)} earlier cell save(s) -> {dest}')
+            self.rig.must('start', timeout=300)
         except (Hang, RuntimeError) as e:
             raise RunFail(f'DF could not be restarted: {e}')
 
