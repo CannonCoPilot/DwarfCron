@@ -1,0 +1,15 @@
+13:48:10 restarting DF after the restore (restart_each_cell)
+13:49:34 loaded V73_LAKE2 (restored from preverify): tick 100844191 (y250 Spring 37), season Spring
+13:49:34 phase pre {}
+13:49:34 phase receipts {}
+13:49:34 phase cmd {"args": ["seasonal-wildlife", "cast", "off"], "expect": "^cast: off"}
+13:49:34 phase cmd {"args": ["seasonal-wildlife", "cast", "status"], "save_as": "casts-off-before.txt", "expect": "season casts off"}
+13:49:35 phase save {"tag": "castoff"}
+13:49:53 phase title {}
+13:50:04 phase load_saved {"tag": "castoff"}
+13:51:11 loaded the save SR_X2b_castoff_r01_castoff: tick 100844191 (y250 Spring 37)
+13:51:11 phase cmd {"args": ["seasonal-wildlife", "cast", "status"], "save_as": "casts-off-after.txt", "check": "season casts off", "name": "cast off survives a save and reload (F
+13:51:11 check cast off survives a save and reload (F2): PASS matched
+13:51:11 phase state {"tag": "after-reload"}
+13:51:13 phase json_check {"file": "states/after-reload.json", "key": "tool.cast_enabled", "value": false, "name": "the saved config reads cast off"}
+13:51:13 check the saved config reads cast off: PASS value False
