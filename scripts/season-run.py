@@ -1378,7 +1378,7 @@ def analyse_cell(d: Path) -> dict:
             arrivals = [(int(r['tick']), r['race']) for r in v73().read(str(d / 'events.tsv')) if r['event'] == 'ARRIVE']
         pairs = []
         for a, b in zip(states, states[1:]):
-            lost, drawn = [], []
+            lost, drawn, short = [], [], []
             ta, tb = totals(a), totals(b)
             # DF itself draws vermin and colony stock with no ARRIVE event (spawning from the entry), so a drop there
             # is DF's draw, not a lost reserve
@@ -1387,10 +1387,13 @@ def analyse_cell(d: Path) -> dict:
                 after = tb.get(key, (race, 0))[1]
                 came = sum(1 for t, r in arrivals if a['tick'] < t <= b['tick'] and r == race)
                 if before > 0 and after < before - came - 2:
-                    (drawn if key in vermin else lost).append({'key': key, 'before': before, 'after': after,
-                                                               'arrivals_between': came})
+                    row = {'key': key, 'before': before, 'after': after, 'arrivals_between': came}
+                    # DF debits a wave's planned size from the entry and may land fewer animals (X3 ocean: SEA OTTER
+                    # 13 -> 6 on one entry, "x2 arrived", no tool action), so a drop with a DF arrival of the species
+                    # in the window is DF's draw, not a lost reserve
+                    (drawn if key in vermin else short if came else lost).append(row)
             pairs.append({'from': a['tick'], 'to': b['tick'], 'crosses_change': a['tick'] // TPS != b['tick'] // TPS,
-                          'keys_lost': lost, 'vermin_drawn': drawn})
+                          'keys_lost': lost, 'vermin_drawn': drawn, 'df_wave_shortfall': short})
         A['reserve'] = {'pairs': pairs, 'conserved': all(not p['keys_lost'] for p in pairs)}
     # tool time per pass: the last perf table of each DF session (FUSE stats reset at a reload)
     perf = sorted((d / 'perf').glob('*.txt'), key=lambda p: tick_of(p.name)) if (d / 'perf').exists() else []
