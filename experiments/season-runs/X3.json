@@ -1,0 +1,31 @@
+{
+  "id": "X3",
+  "description": "Season-boundary audit, the regression run (ECO report X3): across every layer, does each season change hand over cleanly? Lake, ocean and brook forts, spring -> summer -> autumn (two changes, 2,000 ticks past the second), 3 replicates, arms counterbalanced, DF restarted for every cell. Measured: off-cast arrivals per layer and season and their lead time after the change; in-cast groups trimmed or sent off; stand-ins; turnover send-offs that actually left; reserve conservation (state dump every chunk); tool time per pass. Passes with 0 off-cast arrivals later than one day after a change, 0 in-cast trims, and every dismissed group off the map within 10 days.",
+  "needs": "fix batch A; backups from X0",
+  "reps": 3,
+  "until": "season:2",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+    {"cmd": "seasonal-wildlife cast status", "expect": "season casts on", "name": "casts on"},
+    {"cmd": "seasonal-wildlife cast status", "expect": "^\\s+land\\s+Summer\\s+\\d+\\+\\d+\\s+seed", "name": "a land cast for summer"},
+    {"cmd": "seasonal-wildlife cast status", "expect": "^\\s+cavern\\s+Summer\\s+\\d+\\+\\d+\\s+seed", "name": "a cavern cast for summer"},
+    {"cmd": "seasonal-wildlife status", "expect": "^Layers: .*land", "name": "the tool runs the land layer"}
+  ],
+  "arms": [
+    {"name": "L", "fort": "V73_LAKE2",
+     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "lake [1-9]", "name": "the lake is on the map"},
+                  {"cmd": "seasonal-wildlife cast status", "expect": "^\\s+water\\s+Summer\\s+\\d+\\+\\d+\\s+seed", "name": "a water cast for summer"}]},
+    {"name": "O", "fort": "V73_OCEAN2",
+     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "ocean [1-9]", "name": "the ocean is on the map"},
+                  {"cmd": "seasonal-wildlife cast status", "expect": "^\\s+water\\s+Summer\\s+\\d+\\+\\d+\\s+seed", "name": "a water cast for summer"}]},
+    {"name": "B", "fort": "V73_BROOK"}
+  ]
+}

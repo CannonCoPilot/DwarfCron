@@ -1,0 +1,30 @@
+{
+  "id": "X0",
+  "description": "Kit and backups (ECO report X0): do the four forts load, and does the kit record what it claims? One cell per fort, 2,000 ticks, one chunk save, dumps every 1,000 ticks. Passes when the backups are byte-identical (season-run.py backup, run first), every receipt and output file is present, and the recorder's last wild count matches a live count.",
+  "needs": "season-run.py backup V73_LAKE2 V73_OCEAN2 V73_BROOK T1END_WATERFALL (DF at the title or stopped)",
+  "reps": 1,
+  "until": "ticks:2000",
+  "chunk": 2000,
+  "pairs_every": 1000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "live_count": true,
+  "check_files": true,
+  "restart_between_arms": false,
+  "receipts": [
+    {"cmd": "seasonal-wildlife cast status", "expect": "^casts for year \\d+", "name": "the fort has casts"},
+    {"cmd": "seasonal-wildlife status", "expect": "^Layers: ", "name": "the tool answers"},
+    {"cmd": "sw-t1-recorder status", "expect": "^sw-t1-recorder: ", "name": "the recorder is deployed"}
+  ],
+  "arms": [
+    {"name": "L", "fort": "V73_LAKE2",
+     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "lake [1-9]", "name": "the lake is on the map"}]},
+    {"name": "O", "fort": "V73_OCEAN2",
+     "receipts": [{"cmd": "seasonal-wildlife water bodies", "expect": "ocean [1-9]", "name": "the ocean is on the map"}]},
+    {"name": "B", "fort": "V73_BROOK"},
+    {"name": "W", "fort": "T1END_WATERFALL"}
+  ]
+}
