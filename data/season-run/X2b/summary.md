@@ -1,4 +1,4 @@
-# X2b: season-run summary (2026-10-09 14:23:39)
+# X2b: season-run summary (2026-10-09 19:27:17)
 
 | cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

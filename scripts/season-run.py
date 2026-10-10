@@ -1328,8 +1328,13 @@ def analyse_cell(d: Path) -> dict:
             m = re.search(r'season cast: .*sent off \((.*)\)', text) if kind == 'dismiss' and t is not None else None
             if m:
                 turn[t].update(x.strip() for x in m.group(1).split(','))
-        recs = collections.OrderedDict()
+        recs, taken = collections.OrderedDict(), []
         for t, kind, L, text in led:
+            if kind == 'dismiss' and 'taken off the map' in text:   # v7.4 leaveCheck: an earlier send-off taken off, not a new one
+                mt = re.search(r'([A-Z][A-Z0-9_ ]*?) x(\d+) sent off ([0-9.]+) days ago', text)
+                if mt:
+                    taken.append({'tick': t, 'layer': L, 'race': mt.group(1).strip(), 'units': int(mt.group(2)), 'after_days': float(mt.group(3))})
+                continue
             m = re.search(r'([A-Z][A-Z0-9_ ]*?) x(\d+) (?:dismissed|sent off)', text) if kind == 'dismiss' and t is not None else None
             if not (m and L in MANAGED):
                 continue
@@ -1351,6 +1356,7 @@ def analyse_cell(d: Path) -> dict:
             (trims if r['in_cast'] else turnover).append(r)
         # the cavern gate holding a layer to its group cap sends in-cast groups off by design (F19); only a turnover's
         # or a trim's send-off of an in-cast group is the fault X3 looks for
+        A['taken_off'] = taken   # v7.4: send-offs still here after the grace, taken off the map by the tool
         A['in_cast_sendoffs'] = [r for r in trims if r['why'] != 'gate']
         A['gate_sendoffs'] = [r for r in trims if r['why'] == 'gate']
         A['offcast_sendoffs'] = turnover
