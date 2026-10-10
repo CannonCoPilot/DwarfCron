@@ -67,8 +67,8 @@ function render(){
   h+=step(3,`Slots for ${ex.sub&&L==='fresh'?'freshwater ('+ex.sub+')':LN[L]}`,'The layer\'s slot table; a range draws its count for this cast.',
     `<div class="tbl"><table><thead><tr><th data-t="cat">slot</th><th class="num" data-t="num">range</th><th class="num" data-t="num">drawn</th><th class="num" data-t="num">filled</th><th>note</th></tr></thead><tbody>${srows}</tbody></table></div>`);
   // 4 apex
-  h+=step(4,'Apex','As built (v7.4 "the mix"): the largest flagged predator in season keeps the apex slot; the rest can take meso. None flagged: the largest non-sentient predator is promoted.',
-    'apex' in tr.want?`<p><b>Rule used:</b> ${esc(tr.apex_rule||'no candidate')}</p>${tr.apex_rank.length?`<div class="tbl" style="max-height:260px"><table><thead><tr><th class="num" data-t="num">#</th><th>species</th><th class="num" data-t="num">adult cm³</th><th data-t="cat">result</th></tr></thead><tbody>${tr.apex_rank.map(([t,m],i)=>`<tr><td class="num">${i+1}</td><td class="mono">${esc(t)}</td><td class="num">${fmt(m)}</td><td>${i===0?'<span class="chip bad">apex</span>':'<span class="chip warn">can take meso</span>'}</td></tr>`).join('')}</tbody></table></div>`:''}`:'<p class="note">This layer has no apex slot.</p>');
+  h+=step(4,'Apex','Rebuilt 10 Oct: a weighted draw among the predators eligible in season (true apexes; the local ones only when there is no true apex). Weight: square root of group size against the largest, x3 pack hunters, x0.1 per cast the species is already on this year, x0.2 giants, x0.1 animal people. The others can still take meso.',
+    'apex' in tr.want?`<p><b>Rule used:</b> ${esc(tr.apex_rule||'no candidate')}</p>${tr.apex_rank.length?`<div class="tbl" style="max-height:300px"><table><thead><tr><th>species</th><th data-t="cat">tier</th><th class="num" data-t="num">adult cm³</th><th class="num" data-t="num">group size cm³</th><th class="num" data-t="num">chance</th><th data-t="cat">result</th></tr></thead><tbody>${tr.apex_rank.map(([t,m,g,w,tier,res])=>`<tr><td class="mono">${esc(t)}</td><td>${esc(tier)}</td><td class="num">${fmt(m)}</td><td class="num">${fmt(g)}</td><td class="num" data-v="${w}">${w?(w*100).toFixed(1)+'%':''}</td><td>${res==='apex'?'<span class="chip bad">apex</span>':`<span class="chip warn">${esc(res)}</span>`}</td></tr>`).join('')}</tbody></table></div>`:''}`:'<p class="note">This layer has no apex slot.</p>');
   // 5 fill log
   const hv=Object.entries(tr.hv||{});
   h+=step(5,`Seed and fill (${tr.log.length} picks)`,
@@ -194,6 +194,14 @@ def lists_table(data):
     return f"<div class='tbl' style='max-height:560px'><table><thead><tr>{hd}</tr></thead><tbody>{''.join(rows)}</tbody></table></div>"
 
 
+def real_apex_table(meta):
+    rows = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td>{LN.get(r['layer'], r['layer'])}</td><td><span class='chip {'bad' if r['tier'] == 'apex' else 'warn'}'>{r['tier']}</span></td>"
+                   f"<td class='num'>{r['m']:,}</td><td>{'yes' if r['carn'] else 'no'}</td><td>{esc(r['role'])} ({esc(r['g'])})</td><td class='note'>{esc(r['why'])}</td></tr>"
+                   for r in meta['real_apex'])
+    return ("<div class='tbl'><table><thead><tr><th>species</th><th data-t='cat'>layer</th><th data-t='cat'>tier</th><th class='num' data-t='num'>adult cm³</th>"
+            "<th data-t='cat'>CARNIVORE in DF</th><th data-t='cat'>tool reads it as</th><th>why</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+
+
 def judgement_table(meta):
     rows = ''.join(f"<tr><td><b>{esc(k)}</b></td><td>{esc(v)}</td></tr>" for k, v in meta['judgement'])
     return f"<div class='tbl'><table><thead><tr><th data-t='cat'>decision</th><th>what the simulation does</th></tr></thead><tbody>{rows}</tbody></table></div>"
@@ -218,6 +226,10 @@ def stats(data):
                 ocean_g_df=df_n(by['ocean'], 'ground'), lake_gu=uniq(by['lake'], 'ground'), ocean_ou=uniq(by['ocean'], 'ocean'),
                 savage_g=pool_n(by['savage'], 'ground'), brook_g=pool_n(by['brook'], 'ground'), brook_f=pool_n(by['brook'], 'fresh'), w1=wd('cavern1'), w2=wd('cavern2'), w3=wd('cavern3'),
                 taiga_ext=sum(1 for sp in by['taiga']['species'].values() if 'extinct' in sp['f']),
+                rot=sum(1 for e in data for L in e['active'] if len({next((t for t, sl in e['casts'][f'{L}|{s}']['members'] if sl == 'apex'), None) for s in SEASONS} - {None}) > 1),
+                nl=sum(1 for e in data for L in e['active'] if any(sl == 'apex' for s in SEASONS for _, sl in e['casts'][f'{L}|{s}']['members'])),
+                oc_apex=' → '.join(next((t.lower().replace('_', ' ') for t, sl in by['ocean']['casts'][f'ocean|{s}']['members'] if sl == 'apex'), '-') for s in SEASONS),
+                tg_apex=' → '.join(next((t.lower().replace('_', ' ') for t, sl in by['taiga']['casts'][f'ground|{s}']['members'] if sl == 'apex'), '-') for s in SEASONS),
                 pools_cast=sorted({t for s in SEASONS for t, _ in by['pools']['casts'][f'fresh|{s}']['members']}))
 
 
@@ -267,9 +279,9 @@ cover the other cases: an arctic coast with a river and extinct creatures in any
 <p>All {data[0]['funnel']['all creatures']:,} creatures in the raws (vanilla and extinct files, giants and animal people included) through the gates.
 "Wild" is DF's own test for region populations: a BIOME, and LARGE_ROAMING or a vermin tag (colony insects included). It drops the 30 creatures with
 no BIOME or no roaming tag: domestic animals and civilised races (no BIOME), the three DOES_NOT_EXIST entries and the wagon, and the megabeasts and
-titans (dragon, hydra, roc, colossus, cyclops, ettin, giant, minotaur) and the sponge. "Natural" drops the 14 unliving: the elemental men and blood man,
-fire imp and fire snake, grimeling, nightwing, purring maggot, and the giant sponge and sponge man. The 28 GOOD and EVIL species stay in until the
-alignment gate, which checks each biome.</p>
+titans (dragon, hydra, roc, colossus, cyclops, ettin, giant, minotaur) and the sponge. "Natural" drops 12 unliving: the elemental men and blood man,
+fire imp and fire snake, grimeling, nightwing and purring maggot. The giant sponge and sponge man are kept (filter feeders, 10 Oct); the
+giant sponge, immobile, is placed like a plant and takes no cast slot. The 28 GOOD and EVIL species stay in until the alignment gate, which checks each biome.</p>
 {funnel_table(data)}
 
 <h2>The 28 lists and their casts</h2>
@@ -283,9 +295,9 @@ different species the year's four casts used. Filter the embark or layer columns
 (its extinct species, giants and animal people all qualify). The casts stay the size you set; the variety shows across the year.</li>
 <li><b>A marsh has few walkers.</b> The brook fort's land-ground pool is {st['brook_g']} species: most marsh animals are amphibious and now belong to the
 water layer, as you ruled. Its freshwater pool is {st['brook_f']}.</li>
-<li><b>The apex never changes within a layer.</b> Under the built rule (largest flagged predator keeps apex) the land apex is the same species in all four
-seasons on every embark (dingo, cougar, polar bear, tyrannosaurus, ogre); the flying apex is the eagle everywhere; the sea apex is still the sperm whale.
-With pools this large, a weighted apex pick (by size, x0.1 per earlier cast) would rotate it. Your call, together with the open orca question.</li>
+<li><b>The apex rotates.</b> Under the rebuilt rule the apex differs between seasons on {st['rot']} of the {st['nl']} layers with an apex slot.
+The ocean fort's sea goes {st['oc_apex']}; the arctic coast's land {st['tg_apex']}. Where it stays put, only one predator is eligible: the dingo is the
+only flagged hunter of a temperate savanna or marsh in DF's raws (lake and brook forts).</li>
 <li><b>Murky pools work as a mini roster</b> once the pool's fish slot can draw DF's pool fish and amphibians, which are all vermin: on the
 evil savanna the year casts {', '.join(st['pools_cast'])}.</li>
 <li><b>River-only freshwater has no apex</b>, as you listed; the alligator and similar predators take its one meso slot.</li>
@@ -295,6 +307,28 @@ woolly rhinoceros among them); with "savage regions only" the calm real forts ge
 saltwater marsh, penguins on an arctic coast.</li>
 <li><b>Caverns are the same three pools on every fort</b> (DF's cave species are not biome-bound), so only the draw differs between forts.</li>
 </ul>
+
+<h2>Who can hold the apex</h2>
+<p>Rebuilt 10 Oct. A species can be drawn for the apex slot of a layer when it is:</p>
+<ul class="find">
+<li>a LARGE_PREDATOR species (land, flying and caverns; caverns keep their sentients in the sentient slot);</li>
+<li>a giant of any predator, mesopredators included (giant fox, giant badger, giant kestrel);</li>
+<li>an animal person whose root animal is eligible (bear man, cougar man, quetzalcoatlus man), drawn at x0.1 as all animal people;</li>
+<li>on water layers, one of the engine's curated water apexes (orca, sperm whale, great white, crocodiles, the large sharks) or a giant or animal
+person of one; DF's other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso, as before;</li>
+<li>a raptor of 2,000 cm³ or more on land-flying (eagle, the large owls, osprey; never a scavenger);</li>
+<li>a real-life apex that DF does not tag, below.</li>
+</ul>
+<p>The draw then weights each by the square root of its group size against the largest (a pack's mean size times the adult size), x3 for pack hunters,
+x0.1 for each cast it is already on this year, x0.2 giants and x0.1 animal people. That is what puts the orca beside the sperm whale: a pod of six
+orcas outweighs one whale.</p>
+<h3>Real-life apexes DF does not tag LARGE_PREDATOR</h3>
+<p>Every carnivore in the raws without the flag (56) and the large predators DF does not even mark CARNIVORE were checked against their real ecology.
+"Apex" joins the draw; "local" holds the apex only where no true apex is in season (the top of a small or depleted community). Several are not
+CARNIVORE in DF's raws, so the tool reads them as prey everywhere else: a separate fix for the classifier.</p>
+{real_apex_table(meta)}
+<p class="note">Considered and left as mesopredators: honey badger, ocelot, bobcat, jackal, king cobra, the otters, octopus, walrus and narwhal
+(predators, but not at the top of their webs), the vulture (a scavenger), and the elephant seal (hunted by orcas and great whites).</p>
 
 <h2>Step through an embark</h2>
 <div class="controls" id="exPick"></div>

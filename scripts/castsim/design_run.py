@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from design import Design, LAYERS, SLOTS, JUDGEMENT, EXTINCT_RULE, WEIRD  # noqa: E402
+from design import Design, LAYERS, SLOTS, JUDGEMENT, EXTINCT_RULE, WEIRD, REAL_APEX  # noqa: E402
 from engine import SEASONS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -166,7 +166,11 @@ def main():
             apex = [next((m for m, sl in r['casts'][(L, s)]['members'] if sl == 'apex'), '-') for s in range(4)]
             wd = [r['casts'][(L, s)]['weird'] for s in range(4)] if L.startswith('cavern') else ''
             print(f"   {L:8} pool {len(r['layers'][L]):3} (DF stocked {dfn})  lists {sizes}  distinct cast {len(uniq):2}  apex {apex} {wd}")
-    meta = {'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD}
+    real = []
+    for tok, (layer, tier, why) in REAL_APEX.items():
+        c = D.R.creature(tok); i = D.E.classify(tok)
+        real.append({'t': tok, 'layer': layer, 'tier': tier, 'why': why, 'm': i['mass'], 'carn': c['any']('CARNIVORE'), 'role': i['role'], 'g': i['guild']})
+    meta = {'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD, 'real_apex': real}
     OUT.write_text(json.dumps({'meta': meta, 'embarks': out}, default=lambda o: sorted(o) if isinstance(o, set) else str(o)))
     print('wrote', OUT, OUT.stat().st_size)
 

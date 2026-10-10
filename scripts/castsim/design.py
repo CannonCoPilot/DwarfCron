@@ -74,6 +74,29 @@ WEIRD = {
 }
 
 
+# Real-life apex predators that DF does not tag LARGE_PREDATOR (several not even CARNIVORE, so the tool reads them as
+# prey). 'apex': joins the apex draw like a flagged predator. 'local': apex only where no true apex is in season on the
+# layer (the top predator of a small or depleted community). Proposed 10 Oct; the user's call.
+REAL_APEX = {
+    'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
+    'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
+    'LYNX': ('ground', 'local', 'the Eurasian lynx tops forests that have no wolves or bears'),
+    'COYOTE': ('ground', 'local', 'the apex where wolves are gone; hunts in packs'),
+    'WOLVERINE': ('ground', 'local', 'tops tundra and taiga communities; drives wolves off kills'),
+    'BIRD_FALCON_PEREGRINE': ('flying', 'apex', 'the apex aerial hunter of other birds (under the 2,000 cm3 raptor floor)'),
+    'LEOPARD_SEAL': ('ocean', 'apex', 'the apex of Antarctic waters: penguins, other seals (DF: not CARNIVORE, read as shore prey)'),
+    'FISH_GROUPER_GIANT': ('ocean', 'local', 'top reef predator where sharks are few (DF: read as fish prey)'),
+    'FISH_BARRACUDA_GREAT': ('ocean', 'local', 'a reef top predator (DF: read as fish prey)'),
+    'FISH_PIKE': ('fresh', 'apex', 'the top predator of northern lakes and rivers (DF: read as fish prey)'),
+    'FISH_GAR_LONGNOSE': ('fresh', 'local', 'top predator of warm rivers without crocodilians (DF: read as fish prey)'),
+    'ALLIGATOR SNAPPING TURTLE': ('fresh', 'local', 'the ambush apex of southern rivers'),
+}
+APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
+# filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
+# bed (user 30 Sep) and takes no cast slot
+FILTER_FEEDERS = {'GIANT_SPONGE', 'SPONGE_MAN'}
+
+
 def weird_weight(k, s):
     """the cavern pick multiplier for weirdness s in cavern k (1 favours the plain, 2 the middle, 3 the strange)"""
     if k == 1: return (1 - s) ** 2 + 0.05
@@ -84,7 +107,9 @@ def weird_weight(k, s):
 JUDGEMENT = [
     ('land-ground slots', 'not specified: kept the v7.4 land cast without its raptor, bird and sentient slots (apex 1, meso 2, grazer 2, ground prey 2, vermin 3).'),
     ('ranges', '"1-2" and "2-3": each cast draws its count inside the range, so cast sizes vary from season to season.'),
-    ('apex rule', 'kept as built (the mix): the largest flagged predator in season keeps the apex slot; the others can take meso. With full pools this makes the apex the same species in every season it is in season (see the diversity table).'),
+    ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x3 for pack hunters, x0.1 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
+    ('local apexes', 'a "local" real-life apex (lynx, coyote, wolverine, gar, grouper...) holds the apex only when no true apex is in season; with none of either, the largest non-sentient predator is promoted (the old fallback, still your open question).'),
+    ('sponges', 'the giant sponge and the sponge man pass the natural filter (filter feeders, not unliving); the giant sponge is immobile and, by the 30 Sep ruling, placed like a plant on the bed, so it takes no cast slot.'),
     ('river-only apex', 'no apex slot (your list has none); flagged predators there can take the meso slot.'),
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
@@ -174,6 +199,8 @@ class Design:
                 info = dict(info, gameVermin=True, category='vermin', guild='V')
             if not ('LARGE_ROAMING' in f or info['gameVermin']): continue
             funnel['wild'] += 1
+            if tok in FILTER_FEEDERS and info['eco'] == 'unliving' and info['ecoWhy'] == ['NO_EAT+NO_DRINK']:
+                info = dict(info, eco='natural', ecoWhy=['filter feeder (kept, user 10 Oct)'], locked=False)
             if info['eco'] != 'natural' or info['mega'] or info['night']: continue
             funnel['natural (not locked)'] += 1
             hit = [b for b in c['biomes'] if b in fbs]
@@ -233,13 +260,29 @@ class Design:
         return out, notes
 
     # ------------------------------------------------------------------ slot eligibility
+    def apex_tier(self, e, layer):
+        """'apex', 'local' or None: can this species hold the apex slot on this layer?"""
+        if e['civ'] or e['gameVermin']: return None
+        if self.flagged(e, layer): return 'apex'
+        for tok in (e['token'], e.get('root')):
+            r = REAL_APEX.get(tok)
+            if r and r[0] == layer: return r[1]
+        if e['giant']:   # a giant of a real-life apex
+            r = REAL_APEX.get(e['token'][6:])
+            if r and r[0] == layer: return 'apex'
+        return None
+
     def flagged(self, e, layer):
         if e['civ'] or e['gameVermin']: return False
-        if layer == 'flying': return self.E.fly_apex(dict(e, layer='land'))
-        kind = R0['aquatic_apex'].get(e['token'])
+        if layer == 'flying':
+            if e['ap'] and e['largePred'] and e['habitat'] in ('flier', 'waterbird'): return True   # an animal person of a flagged flier
+            return self.E.fly_apex(dict(e, layer='land'))
         if layer in ('ocean', 'fresh'):
-            if kind in ('apex', 'pelagic'): return True
-            return e['habitat'] in ('aquatic', 'semiaquatic') and (e['guild'] in ('AL', 'AW') or self.E.boosted(e))
+            # as the engine (slotOf): only the curated water apexes hold a water apex slot -- a giant or an animal person
+            # of one too; DF's other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso (R49)
+            for tok in (e['token'], e.get('root'), e['token'][6:] if e['giant'] else None):
+                if tok and R0['aquatic_apex'].get(tok) in ('apex', 'pelagic'): return True
+            return False
         return e['guild'] in ('AL', 'AW') or self.E.boosted(e)
 
     @staticmethod
@@ -252,7 +295,7 @@ class Design:
         if layer.startswith('cavern'):
             if e['sentient']: return ['sentient']
             s = []
-            if self.flagged(e, layer): s.append('apex')
+            if self.apex_tier(e, layer): s.append('apex')
             if pred: s.append('meso')
             if hab == 'land' and not pred: s.append('ground prey')
             if hab in ('flier', 'waterbird'): s.append('flier')
@@ -260,13 +303,13 @@ class Design:
             return s
         if layer == 'ground':
             s = []
-            if self.flagged(e, layer): s.append('apex')
+            if self.apex_tier(e, layer): s.append('apex')
             if pred: s.append('meso')
             elif g == 'GZ': s.append('grazer')
             else: s.append('ground prey')
             return s
         if layer == 'flying':
-            return (['apex'] if self.flagged(e, layer) else []) + ['flier']
+            return (['apex'] if self.apex_tier(e, layer) else []) + ['flier']
         # water layers
         s = []
         flyer = hab in ('flier', 'waterbird')
@@ -276,7 +319,8 @@ class Design:
             if pred: s.append('meso')
             elif wet: s.append('fish')
             return s
-        if self.flagged(e, layer) and not (layer == 'fresh' and sub == 'river'): s.append('apex')
+        if e['token'] == 'GIANT_SPONGE': return []   # immobile: placed like a plant on the bed, no cast slot
+        if self.apex_tier(e, layer) and not (layer == 'fresh' and sub == 'river'): s.append('apex')
         if pred and (wet or hab == 'land'): s.append('meso')
         if hab == 'aquatic' and not pred:
             s.append('pelagic' if (g == 'PE' and layer == 'ocean') else 'fish')
@@ -362,18 +406,43 @@ class Design:
                 r -= w
                 if r <= 0: return c
             return pool[-1]
-        # apex: the mix (largest flagged in season), else the largest non-sentient predator is promoted
-        rank = sorted([c for c in cands if 'apex' in c['slots']], key=lambda c: (-c['e']['mass'], c['e']['token']))
-        tr['apex_rank'] = [(c['e']['token'], c['e']['mass']) for c in rank]
-        tr['apex_rule'] = None
+        # apex (rebuilt 10 Oct): a weighted draw among the eligible in season -- true apexes first, local ones only when
+        # there is none; group size (adult size x the pack's mean size) sets a floor and a square-root weight
+        tr['apex_rank'], tr['apex_rule'] = [], None
         if 'apex' in want:
-            if rank:
-                put(rank[0], 'apex', 'apex: largest flagged predator'); tr['apex_rule'] = 'largest flagged predator'
+            elig = [c for c in cands if 'apex' in c['slots']]
+            tier = 'apex' if any(c['tier'] == 'apex' for c in elig) else ('local' if elig else None)
+            elig = [c for c in elig if c['tier'] == tier]
+            if elig:
+                def gsize(c):
+                    e = c['e']
+                    pack = self.predator(e) and not e['benign'] and e['cmax'] > 1
+                    return e['mass'] * ((e['cmin'] + e['cmax']) / 2 if pack else 1)
+                mx = max(gsize(c) for c in elig)
+                rows = []
+                for c in sorted(elig, key=lambda c: (-gsize(c), c['e']['token'])):
+                    g = gsize(c)
+                    ok = g >= APEX_FLOOR * mx
+                    w = (g / mx) ** 0.5 * self.weight(c, used, layer) if ok else 0.0
+                    rows.append((c, g, w, ok))
+                tot = sum(w for _, _, w, _ in rows)
+                r, chosen = rng.random() * tot, None
+                for c, g, w, ok in rows:
+                    if not ok: continue
+                    r -= w
+                    if r <= 0: chosen = c; break
+                chosen = chosen or next(c for c, _, _, ok in rows if ok)
+                tr['apex_rank'] = [(c['e']['token'], c['e']['mass'], round(g), round(w / tot, 3) if tot else 0, c['tier'],
+                                    'apex' if c is chosen else ('below the size floor' if not ok else 'eligible: can take meso'))
+                                   for c, g, w, ok in rows]
+                tr['apex_rule'] = ('weighted draw among the true apexes in season' if tier == 'apex'
+                                   else 'weighted draw among the local apexes (no true apex in season)')
+                put(chosen, 'apex', f'apex: drawn ({tier}, chance {round(dict((x["e"]["token"], w) for x, _, w, _ in rows)[chosen["e"]["token"]] / tot * 100)}%)')
             else:
                 pr = sorted([c for c in cands if 'meso' in c['slots'] and not c['e']['sentient']], key=lambda c: (-c['e']['mass'], c['e']['token']))
                 if pr:
-                    put(pr[0], 'apex', 'apex: largest predator (none flagged)'); tr['apex_rule'] = 'largest predator promoted (none flagged)'
-                    tr['apex_rank'] = [(c['e']['token'], c['e']['mass']) for c in pr[:6]]
+                    put(pr[0], 'apex', 'apex: largest predator (none eligible)'); tr['apex_rule'] = 'largest predator promoted (no eligible apex in season)'
+                    tr['apex_rank'] = [(c['e']['token'], c['e']['mass'], c['e']['mass'], 0, 'none', 'apex' if i == 0 else 'promotion order') for i, c in enumerate(pr[:6])]
         def room(c): return [s for s in c['slots'] if s in want and have[s] < want[s] and s != 'apex']
         # seed: high value, not sentient, with room
         free = [c for c in cands if c['e']['token'] not in taken and room(c)]
@@ -474,10 +543,10 @@ class Design:
                         lst.append({'e': e, 'vermin': True, 'vclass': vc, 'slots': ['vermin']})
                         # murky pools: DF's pool fish and amphibians are vermin, so the fish slot draws them too
                         if L == 'fresh' and sub == 'pool' and (vc == 'VF' or e['habitat'] == 'semiaquatic'):
-                            lst.append({'e': e, 'vermin': False, 'slots': ['fish'], 'vermin_fish': True})
+                            lst.append({'e': e, 'vermin': False, 'slots': ['fish'], 'vermin_fish': True, 'tier': None})
                     else:
                         sl = self.slots_for(e, L, sub)
-                        if sl: lst.append({'e': e, 'vermin': False, 'slots': sl})
+                        if sl: lst.append({'e': e, 'vermin': False, 'slots': sl, 'tier': self.apex_tier(e, L) if 'apex' in sl else None})
                 lists[(L, s)] = lst
                 seed = (site * 7919 + year * 104729 + s * 131 + LAYERS.index(L) * 17) % 2147483647
                 casts[(L, s)] = self.cast(lst, L, sub, s, used, random.Random(seed))
