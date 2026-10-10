@@ -265,8 +265,11 @@ cover the other cases: an arctic coast with a river and extinct creatures in any
 
 <h2>The top-level filters</h2>
 <p>All {data[0]['funnel']['all creatures']:,} creatures in the raws (vanilla and extinct files, giants and animal people included) through the gates.
-"Wild" is DF's own test for region populations (a BIOME and LARGE_ROAMING or a vermin tag); "natural" drops the locked classes (megabeasts, night
-creatures, unliving, and the GOOD/EVIL species outside an aligned region).</p>
+"Wild" is DF's own test for region populations: a BIOME, and LARGE_ROAMING or a vermin tag (colony insects included). It drops the 30 creatures with
+no BIOME or no roaming tag: domestic animals and civilised races (no BIOME), the three DOES_NOT_EXIST entries and the wagon, and the megabeasts and
+titans (dragon, hydra, roc, colossus, cyclops, ettin, giant, minotaur) and the sponge. "Natural" drops the 14 unliving: the elemental men and blood man,
+fire imp and fire snake, grimeling, nightwing, purring maggot, and the giant sponge and sponge man. The 28 GOOD and EVIL species stay in until the
+alignment gate, which checks each biome.</p>
 {funnel_table(data)}
 
 <h2>The 28 lists and their casts</h2>

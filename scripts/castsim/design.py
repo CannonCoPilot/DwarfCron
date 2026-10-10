@@ -97,7 +97,7 @@ JUDGEMENT = [
     ('cavern savagery', 'caverns ignore surface savagery: DF stocks savage cave species (giant cave spider) on calm forts.'),
     ('extinct rule', 'DF\'s raws tag every real-world-extinct species SAVAGE; the world\'s REAL_WORLD_EXTINCT setting is read in place of that tag (UNTAMED_WILDS and ISOLATED: savage regions only; WILDERNESS and DOMESTICATED: any wild region). Extinct animal people stay savage-only, as all animal people.'),
     ('extinct setting', 'region19\'s REAL_WORLD_EXTINCT cannot be read without DF (world.raws.param_real_world_extinct); the real forts assume UNTAMED_WILDS, the install\'s default preset value.'),
-    ('wild', 'a creature is wild when it has a BIOME and either LARGE_ROAMING or a vermin tag (DF\'s own test for region populations).'),
+    ('wild', 'a creature is wild when it has a BIOME and either LARGE_ROAMING or a vermin tag, colony insects (VERMIN_SOIL_COLONY: ants, bees, termites) included (DF\'s own test for region populations).'),
 ]
 
 
@@ -170,6 +170,8 @@ class Design:
             f = c['flags']
             if 'DOES_NOT_EXIST' in f or 'EQUIPMENT_WAGON' in f or not c['biomes']: continue
             info = self.E.classify(tok)
+            if 'VERMIN_SOIL_COLONY' in f and not info['gameVermin']:   # colony insects: DF stocks them as ColonyInsect populations
+                info = dict(info, gameVermin=True, category='vermin', guild='V')
             if not ('LARGE_ROAMING' in f or info['gameVermin']): continue
             funnel['wild'] += 1
             if info['eco'] != 'natural' or info['mega'] or info['night']: continue

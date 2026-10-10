@@ -94,7 +94,7 @@ def stocked(dump):
     snap = set((st.get('snapshot') or {}).keys())
     out = {}
     for idx, tok, key, qty, ext, typ in st['pops']:
-        if ':' not in key and snap and key not in snap: continue
+        if ':' not in key and snap and key not in snap and typ != 'ColonyInsect': continue
         layer = 'water' if key.startswith('water:') else ('cavern' if key.startswith('cave:') else 'land')
         out.setdefault(tok, set()).add(layer)
     return out, str(Path(f).relative_to(ROOT))
