@@ -126,7 +126,7 @@ class Raws:
         toks = self.tokens(tok)
         castes, order, sel = {}, [], ['ALL']
         allc, cre = set(), set()
-        biomes, gobble, cclass = set(), set(), set()
+        biomes, gobble, cclass, btoks = set(), set(), set(), set()
         vals = {'FREQUENCY': 50, 'CLUSTER_NUMBER': None, 'UNDERGROUND_DEPTH': None, 'PETVALUE': {}, 'BODY_SIZE': {}, 'SIZE_PERC': 100,
                 'FREQ_PERC': 100, 'GRAVITATE': None}
         def target():
@@ -142,6 +142,7 @@ class Raws:
                 sel = (sel if sel != ['ALL'] else []) + [t[1]]; continue
             if k == 'BIOME':
                 for b in AGG.get(t[1], [t[1]]): biomes.add(b)
+                btoks.add(t[1])
             elif k == 'FREQUENCY': vals['FREQUENCY'] = int(t[1])
             elif k == 'CHANGE_FREQUENCY_PERC': vals['FREQ_PERC'] = int(t[1])
             elif k == 'CLUSTER_NUMBER': vals['CLUSTER_NUMBER'] = (int(t[1]), int(t[2]))
@@ -165,7 +166,7 @@ class Raws:
         size = max([v for v in vals['BODY_SIZE'].values()] or [0])
         pet = max([v for v in vals['PETVALUE'].values()] or [0])
         return {'token': tok, 'castes': cs, 'flags': cre, 'any': anyc, 'every': everyc, 'biomes': biomes, 'gobble': gobble,
-                'cclass': cclass, 'freq': vals['FREQUENCY'] * vals['FREQ_PERC'] // 100, 'cluster': vals['CLUSTER_NUMBER'],
+                'cclass': cclass, 'biome_tokens': btoks, 'freq': vals['FREQUENCY'] * vals['FREQ_PERC'] // 100, 'cluster': vals['CLUSTER_NUMBER'],
                 'depth': vals['UNDERGROUND_DEPTH'], 'pet': pet, 'size_raw': size, 'size_perc': vals['SIZE_PERC'],
                 'gravitate': vals['GRAVITATE'], 'extinct': self.src[tok]['extinct'], 'file': self.src[tok]['file'],
                 'root': next((t[1] for t in self.src[tok]['toks'] if t[0] == 'COPY_TAGS_FROM'), None),
