@@ -314,21 +314,26 @@ class Engine:
         L = CAST[layer]
         cands, by_key = [], {}
         out_part, out_season = {}, []
-        for part in L['parts']:
-            for e in sorted(pool.values(), key=lambda x: x['key']):
-                if e['key'] in by_key: continue
-                ok, why = self.in_part(e, part)
-                if not ok:
-                    if why and part == L['parts'][-1] and e['key'] not in by_key and e['category'] != 'vermin':
-                        out_part.setdefault(e['key'], why)
-                    continue
-                out_part.pop(e['key'], None)
-                if e['noSeason'][season]:
-                    out_season.append(e['token']); continue
-                slot, code = self.cast_slot(e, part, layer)
-                c = dict(e=e, part=part, slot=slot, code=code, vermin=False)
-                cands.append(c); by_key[e['key']] = c
-        toks = set()
+        # v7.4 (sw 834f92e): one candidate per species, the layer's own entry first (as vermin)
+        toks, same_species = set(), []
+        for own in (True, False):
+            for part in L['parts']:
+                for e in sorted(pool.values(), key=lambda x: x['key']):
+                    if (e['layer'] == layer) != own or e['key'] in by_key: continue
+                    ok, why = self.in_part(e, part)
+                    if not ok:
+                        if why and part == L['parts'][-1] and e['key'] not in by_key and e['category'] != 'vermin':
+                            out_part.setdefault(e['key'], why)
+                        continue
+                    out_part.pop(e['key'], None)
+                    if e['noSeason'][season]:
+                        if e['token'] not in out_season: out_season.append(e['token'])
+                        continue
+                    if e['token'] in toks:
+                        same_species.append(e['key']); continue
+                    slot, code = self.cast_slot(e, part, layer)
+                    c = dict(e=e, part=part, slot=slot, code=code, vermin=False)
+                    cands.append(c); by_key[e['key']] = c; toks.add(e['token'])
         vermin_out = []
         for own in (True, False):
             for e in sorted(pool.values(), key=lambda x: x['key']):
@@ -339,7 +344,8 @@ class Engine:
                 cands.append(c); by_key[e['key']] = c; toks.add(e['token'])
         cands.sort(key=lambda c: c['e']['key'])
         trace.update(not_in_layer={k: v for k, v in out_part.items() if pool[k]['layer'] in ((layer,) if layer != 'land' else ('land',))},
-                     out_of_season=sorted(out_season), vermin_out_of_season=sorted(vermin_out))
+                     out_of_season=sorted(out_season), vermin_out_of_season=sorted(vermin_out),
+                     same_species=sorted(same_species))
         return cands, by_key
 
     def rank_apex(self, cands, layer):
@@ -450,7 +456,11 @@ class Engine:
         hv, k, rows = self.high_value(allc)
         tr['high_value'] = {'k': k, 'n': len(allc), 'flagged': {by_key[key]['e']['token']: w for key, w in hv.items()},
                             'pet_rank': [(r[0]['e']['token'], r[1]) for r in sorted(rows, key=lambda r: -r[1])[:max(k, 3)]],
-                            'size_rank': [(r[0]['e']['token'], r[3]) for r in sorted(rows, key=lambda r: -r[3])[:max(k, 3)]]}
+                            'size_rank': [(r[0]['e']['token'], r[3]) for r in sorted(rows, key=lambda r: -r[3])[:max(k, 3)]],
+                            # every non-vermin candidate, for the report's sortable table: token, pet, war, size, why not a seed
+                            'all': [(r[0]['e']['token'], r[1], bool(r[2]), r[3],
+                                     'never castable' if r[0]['e']['key'] in excl else
+                                     'sentient' if (r[0]['e']['ap'] or r[0]['e']['civ'] or r[0]['e']['sentient']) else '') for r in rows]}
         plain = [c for c in anyc if not (c['e']['ap'] or c['e']['civ'] or c['e']['sentient'])]
         seeds = [c for c in plain if c['e']['key'] in hv]
         tr['seed_pool'] = [(c['e']['token'], round(weight(c), 4)) for c in seeds]
