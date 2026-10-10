@@ -134,11 +134,15 @@ STAGES = [
      "F7 pass). X3, the season-boundary audit (lake, ocean, brook x 3, two changes each): 9/9 cells clean, 3,487 managed "
      "arrivals, none off-cast late, no in-cast send-off, reserve kept, no drowning. One fault everywhere: dismissed cavern and "
      "water animals that do not leave (cavern 8 of 42 send-offs, water 7 of 28, land 0 of 10)."),
-    ("v7.4: one roster builder", "fix", "Built; offline and one rig check pass",
+    ("v7.4: one roster builder and your 9 Oct rulings", "ok", "Built; X3 on v7.4 passes",
      "Your 9 Oct rulings: the guild builder removed, the season casts the one builder, carrying its FREQUENCY ladder and apex "
      "keys; casts built once at enable (no new casts at a new year); high value relative to the layer-season pool; reuse "
      "weight x (1 - N/10); a dev switch that lifts the ecology guards for one map. Offline 42/42 fixes, 459/0 verbs; on the lake "
-     "fort roster build, odds, apex keys and the dev rebuild all read back, 3,000 ticks with no error. Engine v7.4-onebuilder 13ae6bd."),
+     "fort roster build, odds, apex keys and the dev rebuild all read back. Then: a send-off that works (an animal sent off "
+     "and still here after 7 days -- swimmers in closed lakes and cavern pools -- is taken off and handed back to its "
+     "population), absolute caps for caverns and land (F19, F18), F3, F13, reuse x0.1 per appearance, no sentient seeds, "
+     "apexes ranked by size within each pool. X3 on v7.4 (lake, ocean, brook x1): 3/3 PASS, none left on the map past 10 "
+     "days (14 records on v7.3), 11 animals taken off after 7 days. Engine v7.4-onebuilder cd08293."),
     ("Release", "open", "Waiting",
      "Every branch is merged into v7.2-plugin; master and v7.1 were fast-forwarded to it locally on 8 Oct (not pushed). "
      "Release after the mechanics review and the experiment plan in the ECO report."),
@@ -155,6 +159,7 @@ SINCE_OCT2 = [
     "9 Oct: fix batch A built (13 fixes, 23/23 offline) and deployed; the run kit (season-run.py) built; X0, X1 and X2 passed on the lake, ocean, brook and waterfall forts.",
     "9 Oct: the runs found one engine bug (off left wild-on-wild relation cells live; fixed) and seven in the kit's own scoring and audit, fixed before they were counted.",
     "9 Oct: X3 audit clean but for dismissed cavern/water animals that stay; v7.4 one roster builder built with the dev switch (guard audit in the mechanics notes).",
+    "9 Oct: cause found on the rig (swimmers in water that reaches no map edge cannot leave) and fixed; absolute caps, F3, F13, apex ranking built; X3 on v7.4 passes.",
 ]
 
 RUNNING_HEAD = [
@@ -212,13 +217,12 @@ def live_running():
 
 PENDING = [
     ("Next on v7.4", [
-        "Dismissed cavern and water animals that do not leave (X2, X3): find why (path to an edge, the gate's re-release, leave countdown 0) and fix; land dismissals all leave.",
-        "Small pools seed the same species every season (lake fort land: kangaroo all four seasons; DF's raws mark few species out of season). Decide whether that is acceptable.",
-        "A short X3 on v7.4 (lake, ocean, brook x 1) to confirm the merged builder through two season changes.",
+        "Apex ranking by size puts a sperm whale over orcas and great whites on the ocean fort: decide whether pack hunters or the curated pelagic list should outrank size.",
+        "Small pools seed the same species every season (lake fort land: kangaroo all four seasons).",
+        "A large-embark check of the absolute caps (RinghatchetsReady 8x8: many DF border sources), and the water caps per body (F20).",
     ]),
     ("Your rulings", [
-        "F3 should enable turn irruptions on? F13 BENIGN species in cast predator slots, and apex x mesopredator edges? F18 land overshoot: accept or trim? F19 how hard should the cavern gate hold? (F11 answered by the merge.)",
-        "The reuse weight: x (1 - N/10), or x 0.1 per appearance? Animal people as seeds? Apex by size within the layer pool instead of DF's LARGE_PREDATOR flag?",
+        "F20: water caps and the mix per body, not per body type.",
     ]),
     ("Fix batch B, then X4-X8", [
         "The ruled items, F4 (master switch and presets in the Panel and on the page, the water look saved), F12 (cross-layer edges), F20 (water caps per body).",
@@ -243,7 +247,8 @@ DECISIONS = [
     ("Answered", "The pool is not the roster: season casts, about 10-12 species a layer and season, vermin included (7 Oct)."),
     ("Answered", "Resting cavern species at FREQUENCY 1 by default; 0 offered as a setting with the vermin guard (8 Oct)."),
     ("Answered", "One roster builder: merge the builders, no year-to-year variety at all, high value relative to the layer-season pool, a dev switch (9 Oct)."),
-    ("Open", "F3, F13, F18, F19: the rulings the ECO report's section X waits on."),
+    ("Answered", "9 Oct: reuse x0.1 per appearance; no animal-people seeds; F3 yes; F13 arm BENIGN predators, apex x meso; F18 trim; F19 absolute; apex ranking: the mix."),
+    ("Open", "F20 (water caps per body); whether pack hunters should outrank size for the apex slot."),
     ("Open", "Row 5 (lost-leader scatter) and row 12 (spill give-back): retire while panic is parked and the spill is off under casts?"),
     ("Open", "Irruption pressure: a cavern whose species are all held out of season reads as scarce and gains a little pressure. Keep?"),
     ("Open", "A stock you set by hand is rewritten when its season returns, so an irruption's draw on it doesn't carry over."),
@@ -378,7 +383,7 @@ th {{ font: 600 0.72rem var(--mono); text-transform: uppercase; color: var(--mut
   <h1>Alpha Four Progress</h1>
   <p>Where every part of Alpha Four testing stands: the r2 re-validation, the 109-step walkthrough, the 15 rows the
   walkthrough page cannot check, the web companion, the new aquarium package, and what is left before the release.</p>
-  <span class="meta">As of {as_of} · seasonal-wildlife v7.4-onebuilder 13ae6bd (batch A + one builder) · rig running the same tree</span>
+  <span class="meta">As of {as_of} · seasonal-wildlife v7.4-onebuilder cd08293 (batch A, one builder, 9 Oct rulings) · rig running the same tree</span>
 </section>
 
 <h2>Stages</h2>
