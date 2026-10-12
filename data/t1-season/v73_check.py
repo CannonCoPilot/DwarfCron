@@ -40,15 +40,24 @@ def split_tokens(text, known):
     return out
 
 
+# v7.5 casts: seven layers, folded onto the recorder's three (the per-layer keys are kept too: ('cavern2', 'Summer'))
+FOLD = {'ground': 'land', 'flying': 'land', 'ocean': 'water', 'fresh': 'water',
+        'cavern1': 'cavern', 'cavern2': 'cavern', 'cavern3': 'cavern'}
+
+
 def casts(path):
-    """{(layer, season): set(tokens)} from `cast status`"""
+    """{(layer, season): set(tokens)} from `cast status` (v7.4 land/water/cavern, or v7.5's seven layers, folded)"""
     out, known = {}, raw_tokens()
     for line in open(path, encoding='utf-8', errors='replace'):
-        m = re.match(r'^\s+(land|water|cavern)\s+(\w+)\s+\d+\+\d+\s+seed\s+(.*)$', line.rstrip())
+        m = re.match(r'^\s+(land|water|cavern[123]?|ground|flying|ocean|fresh)\s+(\w+)\s+\d+\+\d+\s+seed\s+(.*)$', line.rstrip())
         if m:
             members, _, vermin = m.group(3).partition('|')
             toks = split_tokens(members, known)[1:]  # first token is the seed
-            out[(m.group(1), m.group(2))] = set(toks) | set(split_tokens(vermin, known))
+            got = set(toks) | set(split_tokens(vermin, known))
+            L = m.group(1)
+            out[(L, m.group(2))] = out.get((L, m.group(2)), set()) | got
+            if L in FOLD:
+                out[(FOLD[L], m.group(2))] = out.get((FOLD[L], m.group(2)), set()) | got
     return out
 
 

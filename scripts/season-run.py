@@ -1381,6 +1381,7 @@ def analyse_cell(d: Path) -> dict:
                     if any(race == r['race'] and a - 600 <= td <= a + 300 for td, race in draws):
                         c['within_2d_of_a_draw'] += 1
         A['drownings'] = {k: dict(v) for k, v in sorted(drown.items())}
+        A.update(v75_audit(d, ev, C, t_start))
     # reserve conservation, from consecutive state dumps (live quantity + held reserve per config key)
     states = sorted((json.loads(p.read_text()) for p in (d / 'states').glob('*.json')), key=lambda j: j['tick']) \
         if (d / 'states').exists() else []
@@ -1438,10 +1439,56 @@ def analyse_cell(d: Path) -> dict:
         crit = {'no off-cast arrival later than a day after a change': A['offcast_late'] == 0,
                 'no in-cast group trimmed or sent off': not A['in_cast_sendoffs'],
                 'every dismissed group off the map within 10 days': not A['sendoffs_not_left']}
+        if 'cavern_wrong_depth_late' in A:   # v7.5: each cavern its own cast
+            crit['no cavern arrival at a depth its species is not cast at, later than a day'] = A['cavern_wrong_depth_late'] == 0
         A['criteria'] = crit
         A['verdict'] = (f'PENDING (inconclusive: {A["managed_arrivals"]} managed-layer arrivals)' if thin
                         else ('PASS' if all(crit.values()) else 'FAIL'))
     return A
+
+
+def v75_audit(d: Path, ev: list, C: dict, t_start: int) -> dict:
+    """v7.5: cavern arrivals against their own depth's cast (the band of the arrival's z, from the `caverns` receipt),
+    and the arrivals of species whose population entry the tool created (the fp_created receipt)"""
+    out: dict = {}
+    rc = (d / 'receipts.txt').read_text(errors='replace') if (d / 'receipts.txt').exists() else ''
+    bands = [(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+             for m in re.finditer(r'depth (\d) \(cave -?\d+\) z(\d+)-(\d+)', rc)]
+    created = collections.defaultdict(set)   # token -> {'surface'} | {depth, ...}
+    for m in re.finditer(r'^fp_created (surface|cave) (.+?) (-?\d+)$', rc, re.M):
+        created[m.group(2)].add('surface' if m.group(1) == 'surface' else int(m.group(3)))
+    if bands and any(L.startswith('cavern') and L != 'cavern' for L, _ in C):
+        per = collections.defaultdict(collections.Counter)
+        wrong = []
+        for r in ev:
+            if r['event'] != 'ARRIVE' or r.get('tlayer') != 'cavern':
+                continue
+            z, t = int(r['z']), int(r['tick'])
+            dep = next((b[0] for b in bands if b[1] <= z <= b[2]), None)
+            s = season_of(t)
+            if dep is None:
+                per[('?', s)]['no_band'] += 1
+                continue
+            here = r['race'] in C.get((f'cavern{dep + 1}', s), set())
+            other = [k for k in (1, 2, 3) if k != dep + 1 and r['race'] in C.get((f'cavern{k}', s), set())]
+            lead = t - (t - t % TPS)
+            kind = 'own_depth_cast' if here else ('other_depth_cast_only' if other else 'no_cavern_cast')
+            per[(dep + 1, s)][kind] += 1
+            if not here and other:
+                wrong.append({'race': r['race'], 'id': r['id'], 'depth': dep + 1, 'season': s, 'cast_at': other,
+                              'lead_days': round(lead / TPD, 2), 'tick': t})
+        out['cavern_depth'] = {f'cavern{k} {s}': dict(c) for (k, s), c in sorted(per.items(), key=str)}
+        out['cavern_wrong_depth'] = wrong
+        out['cavern_wrong_depth_late'] = sum(1 for w in wrong if w['lead_days'] > 1)
+    if created:
+        drawn = collections.Counter()
+        for r in ev:
+            if r['event'] == 'ARRIVE' and r['race'] in created and int(r['tick']) >= t_start:
+                drawn[(r['race'], r.get('tlayer') or r.get('layer'))] += 1
+        out['created_entries'] = {'species': len(created),
+                                  'cave_species': sorted(k for k, v in created.items() if v - {'surface'}),
+                                  'arrived': {f'{k[0]} ({k[1]})': n for k, n in sorted(drawn.items())}}
+    return out
 
 
 def totals(state: dict) -> dict:
@@ -1484,7 +1531,9 @@ def cmd_analyse(rundir: Path):
                      'reserve_conserved': A.get('reserve', {}).get('conserved'),
                      'checks_failed': [c['name'] for c in R.get('checks', []) if not c['pass']],
                      'checks_passed': sum(1 for c in R.get('checks', []) if c['pass']),
-                     'hangs': len(R.get('hangs', [])), 'ticks_per_s': R.get('ticks_per_s')})
+                     'hangs': len(R.get('hangs', [])), 'ticks_per_s': R.get('ticks_per_s'),
+                     'wrong_depth_late': A.get('cavern_wrong_depth_late'),
+                     'created_arrivals': sum((A.get('created_entries') or {}).get('arrived', {}).values()) if A.get('created_entries') else None})
         print(f'{rows[-1]["cell"]}: {rows[-1]["status"]} {rows[-1]["verdict"]}')
     arms = collections.OrderedDict()
     for r in rows:
@@ -1497,12 +1546,13 @@ def cmd_analyse(rundir: Path):
     summary = {'rundir': str(rundir), 'analysed': now(), 'cells': rows, 'arms': {k: dict(v) for k, v in arms.items()}}
     (rundir / 'summary.json').write_text(json.dumps(summary, indent=1, default=str) + '\n')
     md = [f'# {rundir.name}: season-run summary ({now()})', '',
-          '| cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s |',
-          '|---|---|---|---|---|---|---|---|---|---|---|---|---|']
+          '| cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s | cavern wrong depth late | arrivals from created entries |',
+          '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|']
     for r in rows:
         md.append(f'| {r["cell"]} | {r["status"]} {r["reason"][:60]} | {r["verdict"]} | {r["managed_arrivals"]} | {r["offcast_late"]} | '
                   f'{r["in_cast_sendoffs"]} | {r["gate_sendoffs"]} | {r["sendoffs_not_left"]} | {r["drowned_2d_draw"]} | {r["reserve_conserved"]} | '
-                  f'{", ".join(r["checks_failed"]) or "-"} ({r["checks_passed"]} passed) | {r["hangs"]} | {r["ticks_per_s"]} |')
+                  f'{", ".join(r["checks_failed"]) or "-"} ({r["checks_passed"]} passed) | {r["hangs"]} | {r["ticks_per_s"]} | '
+                  f'{"-" if r["wrong_depth_late"] is None else r["wrong_depth_late"]} | {"-" if r["created_arrivals"] is None else r["created_arrivals"]} |')
     md += ['', '| arm | cells | OK | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left | drowned after a draw | checks failed | hangs |',
            '|---|---|---|---|---|---|---|---|---|---|---|']
     for k, a in arms.items():
