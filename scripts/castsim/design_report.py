@@ -373,7 +373,7 @@ slot all season with nothing to rotate with. Rivers and murky pools have no apex
 <h3>Proposed hand-wiring</h3>
 <p>For your review; not applied to the casts on this page. "Promote" makes a species that already lives in the biome a true apex there; "wire" treats
 an existing apex species as living in the biome (the tool's pool, not a raw edit). With all of them the flagged biomes reach two or more true apexes
-in every season, except the glacier's winter.</p>
+in every season, except the glacier's flying layer (the snowy owl alone: little else flies over an ice sheet).</p>
 {proposal_table(meta)}
 
 <h2>Step through an embark</h2>
