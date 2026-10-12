@@ -1350,10 +1350,29 @@ def analyse_cell(d: Path) -> dict:
                     s = season_of(t)
                     recs[(t, '?', race)] = {'tick': t, 'layer': '?', 'season': s, 'race': race, 'groups': n, 'units': None,
                                             'why': 'turnover', 'in_cast': any(race in C.get((L2, s), set()) for L2 in MANAGED)}
-        trims, turnover = [], []
+        trims, turnover, depth_off = [], [], []
+        # v7.5: each cavern has its own cast, so the turnover rightly sends off a group at a depth its species is not
+        # cast at while it is cast at another (folded 'cavern' says in cast). castTurnover dismisses a species whose key
+        # is in season for that reason only, so a turnover send-off of a species cast in some caverns but not all is one;
+        # the 'detached RACE xN in cavern K' lines before it give the depths where known (an adopted group has none).
+        det = collections.defaultdict(list)
+        for t, kind, L, text in led:
+            m = re.match(r'detached (.+?) x\d+ in cavern (\d)', text) if kind == 'wave' and t is not None else None
+            if m:
+                det[m.group(1)].append((t, int(m.group(2))))
         for r in recs.values():
             r.update(left_after(snaps, r['race'], r['tick'], t_end))
+            if r['in_cast'] and r['layer'] == 'cavern' and r['why'] == 'turnover' and any(L.startswith('cavern') and L != 'cavern' for L, _ in C):
+                cast_at = {k for k in (1, 2, 3) if r['race'] in C.get((f'cavern{k}', r['season']), set())}
+                off_depth = [k for t, k in det.get(r['race'], []) if t < r['tick'] and k not in cast_at]
+                caverns = {int(L[-1]) for L, _ in C if L.startswith('cavern') and L != 'cavern'}
+                if cast_at and cast_at != caverns:
+                    r.update(why='depth turnover', in_cast=False, depths=sorted(set(off_depth)), cast_at=sorted(cast_at),
+                             note='left is by race: other units of it stay in its cast cavern')
+                    depth_off.append(r)
+                    continue
             (trims if r['in_cast'] else turnover).append(r)
+        A['depth_sendoffs'] = depth_off
         # the cavern gate holding a layer to its group cap sends in-cast groups off by design (F19); only a turnover's
         # or a trim's send-off of an in-cast group is the fault X3 looks for
         A['taken_off'] = taken   # v7.4: send-offs still here after the grace, taken off the map by the tool
