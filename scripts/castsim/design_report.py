@@ -209,26 +209,60 @@ def carnivore_table(meta):
             "<th data-t='cat'>guild now</th><th>hunts</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
 
 
+REG = lambda r: f"{r['sav']} {r['align']}"
+
+
+def roll_summary(meta):
+    import collections
+    c = collections.Counter((r['sav'], r['align'], r['layer'], r['kind']) for r in meta['audit']['roll'])
+    kinds = ['ordinary', 'GOOD', 'EVIL', 'giant', 'animal person', 'extinct']
+    rows = []
+    for sav, al in meta['audit']['conditions']:
+        for L in ('ground', 'flying', 'ocean', 'fresh'):
+            n = [c[(sav, al, L, k)] for k in kinds]
+            rows.append(f"<tr><td>{sav}</td><td>{al}</td><td>{LN[L]}</td>" + ''.join(f"<td class='num'>{x or ''}</td>" for x in n) + f"<td class='num'><b>{sum(n)}</b></td></tr>")
+    return ("<div class='tbl'><table><thead><tr><th data-t='cat'>savagery</th><th data-t='cat'>alignment</th><th data-t='cat'>layer</th>"
+            + ''.join(f"<th class='num' data-t='num'>{k}</th>" for k in kinds) + "<th class='num' data-t='num'>all</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
+
+
+def roll_table(meta):
+    rows = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td>{r['sav']}</td><td>{r['align']}</td><td>{LN[r['layer']]}</td><td>{esc(r['kind'])}</td>"
+                   f"<td class='num'>{r['n']}</td><td>{''.join(f'<span class=sp>{esc(b)}</span>' for b in r['biomes'])}</td></tr>" for r in meta['audit']['roll'])
+    return ("<div class='tbl' style='max-height:520px'><table><thead><tr><th>species</th><th data-t='cat'>savagery</th><th data-t='cat'>alignment</th>"
+            "<th data-t='cat'>layer</th><th data-t='cat'>kind</th><th class='num' data-t='num'>biomes</th><th data-t='multi'>biome list</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+
+
 def audit_table(meta):
     rows = []
     for r in meta['audit']['rows']:
         tr = sorted({t for p in r['seasons'] for t in p['true']}); lo = sorted({t for p in r['seasons'] for t in p['local']})
-        flag = 'too few' if r['min_true'] < 2 else 'ok'
-        rows.append(f"<tr><td class='mono'>{esc(r['biome'])}</td><td>{LN.get(r['layer'], r['layer'])}</td><td><span class='chip {'bad' if flag != 'ok' else 'ok'}'>{flag}</span></td>"
-                    f"<td class='num'>{r['min_true']}</td><td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in tr) or '<span class=note>none</span>'}</td>"
-                    f"<td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in lo)}</td><td class='note'>{esc(', '.join(r['proposals']))}</td>"
-                    f"<td class='num'>{r['min_after'] if r['proposals'] else ''}</td></tr>")
-    return ("<div class='tbl' style='max-height:560px'><table><thead><tr><th data-t='cat'>biome</th><th data-t='cat'>layer</th><th data-t='cat'>verdict</th>"
+        flag = 'short' if r['min_true'] < 2 else 'ok'
+        prop = ', '.join(f"{p['t']} ({p['kind']})" for p in r['proposal'])
+        rows.append(f"<tr><td class='mono'>{esc(r['biome'])}</td><td>{LN[r['layer']]}</td><td>{r['sav']}</td><td>{r['align']}</td><td class='num'>{r['n']}</td>"
+                    f"<td><span class='chip {'bad' if flag == 'short' else 'ok'}'>{flag}</span></td><td class='num'>{r['min_true']}</td>"
+                    f"<td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in tr) or '<span class=note>none</span>'}</td>"
+                    f"<td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in lo)}</td><td class='note'>{esc(prop)}</td>"
+                    f"<td class='num'>{r['min_after'] if r['proposal'] else ''}</td></tr>")
+    return ("<div class='tbl' style='max-height:560px'><table><thead><tr><th data-t='cat'>biome</th><th data-t='cat'>layer</th><th data-t='cat'>savagery</th>"
+            "<th data-t='cat'>alignment</th><th class='num' data-t='num'>potential cast members</th><th data-t='cat'>verdict</th>"
             "<th class='num' data-t='num'>fewest true apexes in a season</th><th data-t='multi'>true apexes</th><th data-t='multi'>local apexes</th>"
-            "<th>proposed</th><th class='num' data-t='num'>fewest, with the proposals</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
+            "<th>automatic proposal</th><th class='num' data-t='num'>fewest, with it</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
 
 
-def proposal_table(meta):
-    rows = ''.join(f"<tr><td class='mono'>{esc(p['t'])}</td><td>{p['kind']}</td><td>{LN.get(p['layer'], p['layer'])}</td>"
-                   f"<td>{''.join(f'<span class=sp>{esc(b)}</span>' for b in p['biomes'])}</td><td class='note'>{esc(p['why'])}</td></tr>"
-                   for p in meta['audit']['proposals'])
-    return ("<div class='tbl'><table><thead><tr><th>species</th><th data-t='cat'>kind</th><th data-t='cat'>layer</th><th data-t='multi'>biomes</th>"
-            "<th>real-life basis</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+def candidate_table(meta):
+    rows = []
+    for r in meta['audit']['rows']:
+        if r['min_true'] >= 2: continue
+        chosen = {p['t'] for p in r['proposal']}
+        for kind, lst in (('promote', r['promote']), ('wire', r['wire'])):
+            for c in lst:
+                k = 'promote (local apex)' if c.get('local') else kind
+                rows.append(f"<tr><td class='mono'>{esc(r['biome'])}</td><td>{LN[r['layer']]}</td><td>{r['sav']} {r['align']}</td><td class='mono'>{esc(c['t'])}</td>"
+                            f"<td>{k}</td><td class='num'>{c['score']}</td><td class='num'>{c['g']:,}</td><td>{'proposed' if c['t'] in chosen else ''}</td>"
+                            f"<td class='note'>{esc(', '.join(c.get('homes', [])))}</td></tr>")
+    return ("<div class='tbl' style='max-height:520px'><table><thead><tr><th data-t='cat'>biome</th><th data-t='cat'>layer</th><th data-t='cat'>region</th>"
+            "<th>candidate</th><th data-t='cat'>kind</th><th class='num' data-t='num'>score</th><th class='num' data-t='num'>group size cm³</th>"
+            "<th data-t='cat'>in the proposal</th><th>its biomes (wire)</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
 
 
 def judgement_table(meta):
@@ -245,7 +279,7 @@ def weird_table(meta):
             + rows + '</tbody></table></div>')
 
 
-def stats(data):
+def stats(data, meta_roll=()):
     by = {e['id']: e for e in data}
     def pool_n(e, L): return sum(1 for sp in e['species'].values() if L in sp['L'] and not sp['v'])
     def df_n(e, L): return sum(1 for sp in e['species'].values() if L in sp['L'] and not sp['v'] and sp['st'])
@@ -259,13 +293,16 @@ def stats(data):
                 nl=sum(1 for e in data for L in e['active'] if any(sl == 'apex' for s in SEASONS for _, sl in e['casts'][f'{L}|{s}']['members'])),
                 oc_apex=' → '.join(next((t.lower().replace('_', ' ') for t, sl in by['ocean']['casts'][f'ocean|{s}']['members'] if sl == 'apex'), '-') for s in SEASONS),
                 tg_apex=' → '.join(next((t.lower().replace('_', ' ') for t, sl in by['taiga']['casts'][f'ground|{s}']['members'] if sl == 'apex'), '-') for s in SEASONS),
+                roll_wn_ground=sum(1 for r in meta_roll if (r['sav'], r['align'], r['layer']) == ('wild', 'neutral', 'ground')),
+                roll_wn_temperate=sum(1 for r in meta_roll if (r['sav'], r['align'], r['layer']) == ('wild', 'neutral', 'ground')
+                                      and any(('TEMPERATE' in b or b in ('FOREST_TAIGA', 'TUNDRA', 'GLACIER', 'MOUNTAIN')) for b in r['biomes'])),
                 pools_cast=sorted({t for s in SEASONS for t, _ in by['pools']['casts'][f'fresh|{s}']['members']}))
 
 
 def main():
     d = json.loads(DATA.read_text())
     data, meta = d['embarks'], d['meta']
-    st = stats(data)
+    st = stats(data, meta['audit']['roll'])
     blob = json.dumps(d, separators=(',', ':')).replace('</', '<\\/')
     html = f"""<title>Cast Pipeline Trace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -365,16 +402,27 @@ mid-level fish (cod, carp, bluefish, skate) stay in the fish slot and penguins s
 not a raptor, so it never holds the flying apex. In the engine this is a set of 'predator' entries in MODEL.ROLE.</p>
 {carnivore_table(meta)}
 
-<h2>Biomes × apex audit</h2>
-<p>For every surface biome on a calm-to-wild, neutral region (no savage species, no GOOD or EVIL species, no extinct species), the species that can hold
-each layer's apex in each season under the rule above. A biome is flagged when some season has fewer than two true apexes: one species then holds the
-slot all season with nothing to rotate with. Rivers and murky pools have no apex slot; caverns are the same in every fort.</p>
+<h2>Biomes × region × apex audit</h2>
+<p>Built programmatically over the whole creature list (scripts/castsim/apex_audit.py): every surface biome (27 land, 3 oceans, temperate and
+tropical lakes) under six region types (not savage or savage, × good, neutral or evil; extinct species under UNTAMED_WILDS, so only on savage
+regions), through the same filters and layer split as the casts. For each it counts the layer's potential cast members and, per season, the species
+that can hold the apex. A row is short when some season has fewer than two true apexes. Rivers and murky pools have no apex slot; caverns do not
+depend on the region.</p>
+<h3>Every true apex in DF's raws, by region type</h3>
+<p>The species that can hold a layer's apex in at least one biome. On a region that is not savage, the whole raws give {st['roll_wn_ground']} land apexes
+({st['roll_wn_temperate']} of them temperate or cold); evil regions add their EVIL predators; savage regions add giants, animal people and extinct species.</p>
+{roll_summary(meta)}
+<details><summary>Every apex species, with its biomes</summary>{roll_table(meta)}</details>
+<h3>Every biome, layer and region type</h3>
 {audit_table(meta)}
-<h3>Proposed hand-wiring</h3>
-<p>For your review; not applied to the casts on this page. "Promote" makes a species that already lives in the biome a true apex there; "wire" treats
-an existing apex species as living in the biome (the tool's pool, not a raw edit). With all of them the flagged biomes reach two or more true apexes
-in every season, except the glacier's flying layer (the snowy owl alone: little else flies over an ice sheet).</p>
-{proposal_table(meta)}
+<h3>Candidates for the short rows</h3>
+<p>Generated, not hand-picked. <b>Promote</b>: every resident predator that cannot hold the apex today, the resident local apexes (lynx, coyote,
+wolverine) first, then by group size against the largest resident. <b>Wire</b>: every species that is a true apex of the same layer in another biome
+of the same region type and climate band, scored by fauna overlap (the share of this biome's residents that also live in the candidate's biomes).
+The automatic proposal takes local promotions, then wires with overlap 0.5 or more, then other promotions, then other wires, until every season has
+two true apexes. The scores say how well a candidate fits DF's own fauna, not real-life range: a wired dingo in the taiga scores well because DF's
+dingo shares most of the taiga's animals. Not applied to the casts on this page.</p>
+{candidate_table(meta)}
 
 <h2>Step through an embark</h2>
 <div class="controls" id="exPick"></div>
@@ -414,16 +462,22 @@ each phase can ship and be checked on the rig before the next.</p>
 <tr><td class='num'>5</td><td>Where DF will not send a species from an entry (a savage species on a calm tile today; perhaps the hand-wired biome additions), the tool places it</td><td>ROSTER.invasiveAdded 9093; ROSTER.placeGroup 8913; apex scheduler 9009/9057</td><td>medium</td><td>to measure on the rig before relying on either path</td></tr>
 <tr><td class='num'>6</td><td>Rig validation: the three region19 forts and a savage embark; unstocked species arrive in their season, breed, leave at the change; no leaks; FPS</td><td>season-run kit (DwarfCron scripts/season-run.py)</td><td>runs</td><td>save each chunk (the fast-step hang)</td></tr>
 </tbody></table></div>
-<h3>Questions the build needs answered</h3>
+<h3>Decided (12 Oct)</h3>
 <ul class="find">
-<li><b>A new draw every year, or the same year repeated?</b> castYear runs at enable and on a rebuild, not at the new year (your 9 Oct ruling: no
-year-to-year variety). Building the 28 casts at each new year is a one-line hook at the year change, and the x0.01 reuse count restarts with it.</li>
-<li><b>What happens to created entries when the tool is turned off?</b> Removing them returns the save to DF's own stocking; keeping them leaves the
-new species in the world.</li>
+<li><b>The casts are not redrawn each year</b> (9 Oct ruling stands). What resets at each new year is the draw: every cast species' arrival odds and
+its population entry go back to their start-of-year values (the ladder's FREQUENCY, the entry quantity and the reserve), so a species used up during
+the year arrives as often next year as this year. Where: a year hook beside the season timer (V7.ST), calling castLadder 8712 and CAVERN.apply 3795 on
+the kept casts and restocking from the reserve (applyLive 3100, RESERVE 3039). Phase 3.</li>
+<li><b>Created entries are removed when the tool is turned off.</b> The tool records every entry it creates (region tile, race, master and live row) in
+its saved config; <code>off</code> zeroes them, lets or sends their units off the map, clears any unit's population reference to them, and then deletes
+both rows, next to the reserve give-back (RESERVE.giveBack 3071). A unit still pointing at a deleted entry is the risk to test first. Phase 5.</li>
+</ul>
+<h3>Still open</h3>
+<ul class="find">
 <li><b>Freshwater feature entries.</b> Lake, river and pool species live on water-feature entries, which the engine cannot create yet. The ocean is
 easier: DF keeps sea life on land entries, which addNewSpecies already makes.</li>
-<li><b>The hand-wired biome additions</b> (audit above): whether DF sends a wave from a created entry for a species whose raws do not name the biome
-decides between an entry and placement.</li>
+<li><b>The audit's proposals</b> (above): which promotions and wires to adopt. For a wired species, whether DF sends a wave from a created entry when
+its raws do not name the biome decides between an entry and placement (a rig test).</li>
 </ul>
 <h2>Method notes</h2>
 <p><b>Raws.</b> DF 53.16's vanilla and extinct creature files compiled as DF compiles them (COPY_TAGS_FROM, the GIANT and ANIMAL_PERSON variations,
