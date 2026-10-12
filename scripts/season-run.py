@@ -1457,7 +1457,29 @@ def v75_audit(d: Path, ev: list, C: dict, t_start: int) -> dict:
     created = collections.defaultdict(set)   # token -> {'surface'} | {depth, ...}
     for m in re.finditer(r'^fp_created (surface|cave) (.+?) (-?\d+)$', rc, re.M):
         created[m.group(2)].add('surface' if m.group(1) == 'surface' else int(m.group(3)))
-    if bands and any(L.startswith('cavern') and L != 'cavern' for L, _ in C):
+    seven = any(L.startswith('cavern') and L != 'cavern' for L, _ in C)
+    # by entry: the tool's group tracker names the cavern of the population entry a group came from ("detached TOKEN xN in
+    # cavern K"), which is what the per-depth mask controls. The arrival's z (below) is where DF put it: a cavern band's
+    # z range from the survey is only where it opens at the map edge (X3v75: units of the cavern-3 entry arrived at z26,
+    # inside cavern 2's edge band)
+    if seven and (d / 'ledger.tsv').exists():
+        per_e = collections.defaultdict(collections.Counter)
+        wrong_e = []
+        for t, kind, L, text in ledger_rows(d):
+            m = re.match(r'detached (.+?) x(\d+) in cavern (\d)', text) if kind == 'wave' and t is not None else None
+            if not m:
+                continue
+            tok, n, k, s = m.group(1), int(m.group(2)), int(m.group(3)), season_of(t)
+            here = tok in C.get((f'cavern{k}', s), set())
+            other = [j for j in (1, 2, 3) if j != k and tok in C.get((f'cavern{j}', s), set())]
+            per_e[(k, s)]['own_depth_cast' if here else ('other_depth_cast_only' if other else 'no_cavern_cast')] += n
+            if not here and other:
+                wrong_e.append({'race': tok, 'units': n, 'depth': k, 'season': s, 'cast_at': other,
+                                'lead_days': round((t % TPS) / TPD, 2), 'tick': t})
+        out['cavern_entry_depth'] = {f'cavern{k} {s}': dict(c) for (k, s), c in sorted(per_e.items(), key=str)}
+        out['cavern_wrong_depth'] = wrong_e
+        out['cavern_wrong_depth_late'] = sum(w['units'] for w in wrong_e if w['lead_days'] > 1)
+    if bands and seven:
         per = collections.defaultdict(collections.Counter)
         wrong = []
         for r in ev:
@@ -1477,9 +1499,8 @@ def v75_audit(d: Path, ev: list, C: dict, t_start: int) -> dict:
             if not here and other:
                 wrong.append({'race': r['race'], 'id': r['id'], 'depth': dep + 1, 'season': s, 'cast_at': other,
                               'lead_days': round(lead / TPD, 2), 'tick': t})
-        out['cavern_depth'] = {f'cavern{k} {s}': dict(c) for (k, s), c in sorted(per.items(), key=str)}
-        out['cavern_wrong_depth'] = wrong
-        out['cavern_wrong_depth_late'] = sum(1 for w in wrong if w['lead_days'] > 1)
+        out['cavern_z_depth'] = {f'cavern{k} {s}': dict(c) for (k, s), c in sorted(per.items(), key=str)}
+        out['cavern_z_elsewhere'] = len(wrong)   # where DF put the units; informational
     if created:
         drawn = collections.Counter()
         for r in ev:

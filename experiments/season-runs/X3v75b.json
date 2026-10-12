@@ -1,0 +1,103 @@
+{
+  "id": "X3v75b",
+  "description": "Season-boundary audit on v7.5 (rerun after the per-depth mask fix c0c9918; X3v75 stopped after its lake cell) (full pool, seven layers, created entries, per-depth cavern casts): lake, ocean and brook forts, spring -> summer -> autumn (two changes, 2,000 ticks past the second), 1 replicate, DF restarted for every cell. The forts' saved v7.4 casts are rebuilt on the seven layers at load, which creates the population entries for cast species DF never stocked. Measured as X3, plus: cavern arrivals against their own depth's cast, and arrivals drawn from the tool's created entries. Passes with 0 off-cast arrivals later than one day after a change, 0 in-cast trims, every dismissed group off the map within 10 days, and 0 cavern arrivals at a depth their species is not cast at later than one day after a change.",
+  "needs": "sw-wt/plugin v7.5-fullpool c0c9918 deployed (per-depth mask fixed after X3v75); backups from X0",
+  "reps": 1,
+  "until": "season:2",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "season casts on",
+      "name": "casts on"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+ground\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "v7.5 casts: a land-ground cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+flying\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a land-flying cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+cavern1\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a cavern-1 cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast extinct",
+      "expect": "cast extinct: \\w+",
+      "name": "the world's extinct rule"
+    },
+    {
+      "cmd": "seasonal-wildlife caverns",
+      "expect": "cavern map",
+      "check": "depth \\d \\(cave",
+      "name": "an open cavern (for the depth audit)"
+    },
+    {
+      "lua": "local c = reqscript('seasonal-wildlife').loadConfig(); for _, r in ipairs(c.fp_created or {}) do local d = -1; if r.kind == 'cave' then d = df.global.world.world_data.underground_regions[r.cave].layer_depth end; print(('fp_created %s %s %d'):format(r.kind, r.token, d)) end; print('fp_created total ' .. #(c.fp_created or {}))",
+      "expect": "fp_created total",
+      "check": "fp_created total [1-9]",
+      "name": "population entries created for unstocked cast species"
+    },
+    {
+      "cmd": "seasonal-wildlife sponges",
+      "expect": "sponges",
+      "name": "sponge line (giant sponges allowed or not)"
+    },
+    {
+      "cmd": "seasonal-wildlife status",
+      "expect": "^Layers: .*land",
+      "name": "the tool runs the land layer"
+    }
+  ],
+  "arms": [
+    {
+      "name": "L",
+      "fort": "V73_LAKE2",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "lake [1-9]",
+          "name": "the lake is on the map"
+        },
+        {
+          "cmd": "seasonal-wildlife cast status",
+          "expect": "^\\s+fresh\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+          "name": "a freshwater cast for summer"
+        }
+      ]
+    },
+    {
+      "name": "O",
+      "fort": "V73_OCEAN2",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "ocean [1-9]",
+          "name": "the ocean is on the map"
+        },
+        {
+          "cmd": "seasonal-wildlife cast status",
+          "expect": "^\\s+ocean\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+          "name": "an ocean cast for summer"
+        }
+      ]
+    },
+    {
+      "name": "B",
+      "fort": "V73_BROOK"
+    }
+  ]
+}
