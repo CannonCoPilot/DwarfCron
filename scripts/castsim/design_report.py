@@ -408,6 +408,127 @@ def stats(data, meta_roll=()):
                 pools_cast=sorted({t for s in SEASONS for t, _ in by['pools']['casts'][f'fresh|{s}']['members']}))
 
 
+RUNS = ROOT / 'data/season-run'
+FORT = {'L': 'Lake fort', 'O': 'Ocean-shore fort', 'B': 'Brook fort'}
+
+
+def rig_cells(run='X3v75c'):
+    out = {}
+    for a in 'LOB':
+        f = RUNS / run / a / 'rep1' / 'cell.json'
+        if f.exists():
+            J = json.loads(f.read_text())
+            led = (RUNS / run / a / 'rep1' / 'ledger.tsv')
+            J['keepalive'] = led.read_text(encoding='cp437').count('keep-alive') if led.exists() else None
+            out[a] = J
+    return out
+
+
+def rig_section():
+    C = rig_cells()
+    if len(C) < 3:
+        return ''
+    yes = "<span class='chip ok'>pass</span>"
+    no = "<span class='chip bad'>fail</span>"
+    rows, tot = [], {'arr': 0, 'made': 0, 'cave': 0, 'ka': 0, 'hang': 0}
+    for a in 'LOB':
+        J = C[a]; A, R = J['analysis'], J['run']
+        ce = A.get('created_entries') or {}
+        arr = ce.get('arrived') or {}
+        made = sum(arr.values()); cave = sum(v for k, v in arr.items() if '(cavern)' in k)
+        crit = A.get('criteria', {})
+        tot['arr'] += A['managed_arrivals']; tot['made'] += made; tot['cave'] += cave; tot['ka'] += J['keepalive'] or 0
+        tot['hang'] += len(R.get('hangs', []))
+        rows.append(f"<tr><td>{FORT[a]}</td><td>{yes if A.get('verdict') == 'PASS' else no}</td>"
+                    f"<td class='num'>{A['managed_arrivals']}</td><td class='num'>{made}</td><td class='num'>{cave}</td>"
+                    f"<td class='num'>{A['offcast_late']}</td><td class='num'>{len(A['in_cast_sendoffs'])}</td>"
+                    f"<td class='num'>{len(A.get('depth_sendoffs', []))}</td><td class='num'>{A.get('cavern_wrong_depth_late', 0)}</td>"
+                    f"<td class='num'>{len(A['sendoffs_not_left'])}</td><td>{yes if A.get('reserve', {}).get('conserved') else no}</td>"
+                    f"<td class='num'>{J['keepalive']}</td><td class='num'>{len(R.get('hangs', []))}</td></tr>")
+    tbl = ("<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>verdict</th><th class='num' data-t='num'>arrivals</th>"
+           "<th class='num' data-t='num'>from created entries</th><th class='num' data-t='num'>of which in caverns</th>"
+           "<th class='num' data-t='num'>off-cast, later than a day</th><th class='num' data-t='num'>in-cast groups sent off</th>"
+           "<th class='num' data-t='num'>sent off for depth</th><th class='num' data-t='num'>cavern arrivals at a wrong depth</th>"
+           "<th class='num' data-t='num'>sent off, still here at 10 days</th><th data-t='cat'>reserve kept</th>"
+           "<th class='num' data-t='num'>keep-alive writes</th><th class='num' data-t='num'>DF hangs</th></tr></thead><tbody>"
+           + ''.join(rows) + '</tbody></table></div>')
+    # arrivals by layer and season, all forts
+    seasons = ['Spring', 'Summer', 'Autumn']
+    lrows = []
+    for a in 'LOB':
+        ar = C[a]['analysis']['arrivals']
+        for L in ('land', 'water', 'cavern'):
+            cells = []
+            for s in seasons:
+                c = ar.get(f'{L} {s}', {})
+                n = sum(c.values()); off = n - c.get('in_cast', 0) - c.get('in_cast_other_layer', 0)
+                cells.append(f"<td class='num' data-v='{n}'>{n}{f' <span class=small>({off} off-cast, early)</span>' if off else ''}</td>")
+            lrows.append(f"<tr><td>{FORT[a]}</td><td><span class='chip {L}'>{L}</span></td>{''.join(cells)}</tr>")
+    ltbl = ("<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>layer</th>"
+            + ''.join(f"<th class='num' data-t='num'>{s}</th>" for s in seasons) + '</tr></thead><tbody>' + ''.join(lrows) + '</tbody></table></div>')
+    # created-entry arrivals by species
+    sp = {}
+    for a in 'LOB':
+        for k, v in ((C[a]['analysis'].get('created_entries') or {}).get('arrived') or {}).items():
+            tok, _, lay = k.partition(' (')
+            sp.setdefault((tok, lay.rstrip(')')), {})[a] = v
+    srows = ''.join(f"<tr><td class='mono'>{esc(t)}</td><td><span class='chip {lay}'>{lay}</span></td>"
+                    + ''.join(f"<td class='num'>{d.get(a, '')}</td>" for a in 'LOB') + f"<td class='num'>{sum(d.values())}</td></tr>"
+                    for (t, lay), d in sorted(sp.items(), key=lambda x: -sum(x[1].values())))
+    stbl = ("<div class='tbl' style='max-height:420px'><table><thead><tr><th>species</th><th data-t='cat'>layer</th><th class='num' data-t='num'>lake</th>"
+            "<th class='num' data-t='num'>ocean</th><th class='num' data-t='num'>brook</th><th class='num' data-t='num'>all</th></tr></thead><tbody>"
+            + srows + '</tbody></table></div>')
+    return f"""
+<h2 id="rig">On the rig: the v7.5 build, run (12 Oct)</h2>
+<p>The design on this page is now the engine (seasonal-wildlife v7.5, branch v7.5-fullpool). It ran on the three region19 forts from early spring
+through two season changes into autumn, one replicate each, with DF restarted for every fort: run X3v75c, on the final code after two earlier runs
+found four bugs (below). Before that, on the lake fort, the engine's pools matched this simulation species for species on every one of its layers.</p>
+<div class="grid2">
+<div class="card"><h4>All three forts pass</h4><p><span class="big">3 / 3</span> no species arrived outside its cast later than a day after a change,
+no cast group was sent off, every sent-off group left within 10 days, and the reserve held its stock. {tot['arr']:,} managed arrivals in all.</p></div>
+<div class="card"><h4>Species DF never stocked arrive</h4><p><span class="big">{tot['made']}</span> arrivals came from population entries the tool
+created, {tot['cave']} of them in the caverns (the dralthas and molemarians most of all). The full pool reaches the map.</p></div>
+<div class="card"><h4>Each cavern keeps its own cast</h4><p><span class="big">0</span> cavern arrivals at a depth their species is not cast at.
+A group still in a cavern its species has left is sent off at the change, as on the surface.</p></div>
+<div class="card"><h4>No DF hangs</h4><p><span class="big">{tot['hang']}</span> hangs in the three forts, where the run before hung eight times
+(one cause found and fixed below). The guard that fixed it wrote {tot['ka']} times.</p></div>
+</div>
+{tbl}
+<p class="note">Arrivals are animals entering the map in the managed layers (births included). "Off-cast, later than a day" is the fault the run looks for:
+a wave DF picks just before a change may land just after it, so the first day is allowed. Sponges are left out: they are placed scenery, never cast.</p>
+<h3>Arrivals by layer and season</h3>
+<p>Every arrival on every layer was a species cast for that season, apart from the few marked, all inside the first day after a change.</p>
+{ltbl}
+<h3>Arrivals from the entries the tool created</h3>
+<p>Species DF had not stocked on the fort, drawn by DF itself from the entries the tool made for them (and, for the apexes, placed by the tool's scheduler).
+Each entry is masked by its cast's seasons like DF's own and removed when the tool is turned off.</p>
+{stbl}
+<h3>What the runs found</h3>
+<div class='tbl'><table><thead><tr><th data-t='cat'>run</th><th>result</th><th>cause and fix</th></tr></thead><tbody>
+<tr><td>X3v75</td><td>stopped after the lake fort</td><td class='note'>Each cavern's mask was lost at every load (the saved casts dropped their version on reload), so every
+depth stayed open: 10 animals came in through a cavern their species was not cast in. Fixed; and a species DF stocked in one cavern but cast in another
+now gets an entry at the cast depth.</td></tr>
+<tr><td>X3v75b</td><td>ocean pass; lake one fault; brook hung four times</td><td class='note'><b>The tool could freeze DF.</b> DF picks a cavern wave by raw FREQUENCY among one
+region tile's stocked animals in one cave; when every one reads 0 the pick never ends and the simulation stops while the screen still draws. With a cast
+per cavern, a tile's stock is its own cast, which the cap gate holds at 0 when the cavern is full. A guard now keeps one species of each such group at 1.
+The save that froze every time ran clean after it. <br><b>A pike in autumn</b>, cast for spring and winter: six created entries for freshwater species
+were filed where no season reached them. Each created entry now follows the cast it was made for.<br><b>No sponges on the ocean fort</b>, ever (older than
+v7.5): the sponge pass looked only for water-feature entries, which sea life does not have. Fixed: 58 sponges now on the floor.</td></tr>
+<tr><td>X3v75c</td><td>all three pass, no hangs</td><td class='note'>The final code. The three tables above.</td></tr>
+</tbody></table></div>
+<h3>Not yet seen on the rig</h3>
+<ul class="find">
+<li><b>A giant sponge on a savage ocean.</b> None of the three forts has one; a ribbon forced on the ocean fort placed 16 correctly.</li>
+<li><b>A full year and a second one.</b> The run covers spring to early autumn: the winter casts, the new-year turnover and how fast created entries
+run down (local extinction) are still to watch.</li>
+<li><b>Savage, evil and extinct-rich embarks.</b> All three forts are calm and neutral, so the giants, animal people, harpy, grimeling and wired apexes
+of the audit have only been simulated.</li>
+<li><b><code>off</code> after a long run.</b> Removing created entries was checked once (45 entries, 45k ticks); not yet after a season-run with their
+animals breeding on the map.</li>
+</ul>
+"""
+
+
 def main():
     d = json.loads(DATA.read_text())
     data, meta = d['embarks'], d['meta']
@@ -420,13 +541,14 @@ def main():
 <style>{report.CSS}{CSS_EXTRA}</style>
 <div class="wrap">
 <section class="lede">
-  <span class="eyebrow">Seasonal Wildlife · the full-pool design · desk simulation · 9 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · the full-pool design · simulated 9 Oct · built and run on the rig 12 Oct 2026</span>
   <h1>Cast Pipeline Trace</h1>
   <p>Your design of 9 Oct (evening), simulated on DF's own raws for six embarks. The pool is no longer the short list DF stocked on the
   region: every creature in the raws is a candidate, filtered first by wild and natural, then BIOME, SAVAGE, GOOD/EVIL and the world's
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
-  Each of those lists feeds one season cast with the slot table you set for its layer. Nothing here ran DF and the engine is unchanged; this is
-  the design, ahead of building it. Every table sorts by a click on its header; categorical columns filter.</p>
+  Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
+  the rig: the results come first, in <a href="#rig">On the rig</a>. The sections after it are the desk simulation the build followed.
+  Every table sorts by a click on its header; categorical columns filter.</p>
 </section>
 
 <h2>What changes, in numbers</h2>
@@ -440,6 +562,7 @@ except the locked unliving cave species, the lava-only magma crab, demons, and o
 <div class="card"><h4>Caverns get stranger with depth</h4><p>Mean weirdness of the casts: cavern 1 <b>{st['w1']}</b>, cavern 2 <b>{st['w2']}</b>,
 cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p></div>
 </div>
+{rig_section()}
 
 <h2>The layers and their slots</h2>
 <p>As you set them, with land-ground (not specified) kept from v7.4 without its bird, raptor and sentient slots. A range draws its count per cast.</p>
@@ -515,6 +638,10 @@ sets the entry's count to zero (and marks it extinct) whenever the species is ou
 same count back when the species' cast season comes (applyLive, holdOutOfSeason). DF's own stocking is untouched underneath and comes back whole when the
 tool is turned off. A cast species DF never stocked gets a new entry beside DF's (phase 5), masked the same way and removed at <code>off</code>. The reserve
 only ever holds an entry's own animals; it creates none.</p>
+<p>In the caverns the mask works per cavern: each has its own cast, so a species cast in cavern 1 alone keeps its cavern 2 and 3 entries at zero, and a
+species DF stocked in one cavern but cast in another gets an entry where it is cast. One limit comes from DF itself (found on the rig, 12 Oct): when every
+stocked animal of one region tile in one cave has FREQUENCY 0, DF's wave pick never ends and the game stops. The tool's cap gate can do exactly that, so
+after every FREQUENCY write a guard puts one species of each such group back at 1.</p>
 <h3>Build order</h3>
 <p>Because the repeat weight counts casts already built, the cast built first gets the unpenalised pick of every species eligible all year. Built Spring
 first, the high-weight species (pack hunters x3, high-value seeds) gathered in Spring; built in a random order (seeded by site and year), each season
@@ -604,6 +731,9 @@ decides which caverns a species can live in, and the weight only tilts the draw.
 {judgement_table(meta)}
 
 <h2>Building it into seasonal-wildlife</h2>
+<p><b>Built 12 Oct</b>, every phase below, and run on the rig (<a href="#rig">results</a>). The table is the plan as it stood before the build, with
+its line numbers in v7.4; phase 5's freshwater entries were solved without a water-feature creator, as surface entries filed under the species'
+water key, which DF draws waves from. The original text follows.</p>
 <p>A pass through the engine (scripts/seasonal-wildlife.lua on v7.4-onebuilder 834f92e, 19,102 lines; line numbers below) for the shortest path from
 today's code to the patterns on this page. Most of the machinery exists: the engine already scans every raw creature against the embark's biomes,
 already creates population entries on land and in caverns, and already places units with an on-site population reference. Order matters:
@@ -633,12 +763,11 @@ its saved config; <code>off</code> zeroes them, lets or sends their units off th
 both rows, next to the reserve give-back (RESERVE.giveBack 3071). A unit still pointing at a deleted entry is the risk to test first. Phase 5.</li>
 <li><b>The audit's proposals are approved</b>, with the harpy and grimeling for evil regions: a wiring table the engine reads beside MODEL.ROLE.</li>
 </ul>
-<h3>Still open</h3>
+<h3>Settled by the build</h3>
 <ul class="find">
-<li><b>Freshwater feature entries.</b> Lake, river and pool species live on water-feature entries, which the engine cannot create yet. The ocean is
-easier: DF keeps sea life on land entries, which addNewSpecies already makes.</li>
-<li><b>Wired species on the map.</b> Whether DF sends a wave from a created entry when the species' raws do not name the biome decides between an
-entry and placement (a rig test).</li>
+<li><b>Freshwater entries.</b> No water-feature creator was needed: a surface entry for the species, masked by its freshwater cast, is enough for DF to
+send it (the longnose gar, pike and sturgeon arrived this way).</li>
+<li><b>Wired species on the map</b> remain untested: the three rig forts wire none (see <a href="#rig">Not yet seen on the rig</a>).</li>
 </ul>
 <h2>Method notes</h2>
 <p><b>Raws.</b> DF 53.16's vanilla and extinct creature files compiled as DF compiles them (COPY_TAGS_FROM, the GIANT and ANIMAL_PERSON variations,
