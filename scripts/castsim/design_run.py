@@ -143,8 +143,18 @@ def species_row(D, e, st):
             'st': sorted(st[e['token']]) if st is not None and e['token'] in st else ([] if st is not None else None)}
 
 
+def wiring():
+    """the approved apex hand-wiring: the audit's automatic proposals (user 12 Oct)"""
+    a = json.loads((ROOT / 'data/castsim/apex_audit.json').read_text())
+    out = {}
+    for r in a['rows']:
+        for p in r['proposal']:
+            out.setdefault((r['sav'], r['align'], r['layer'], r['biome']), []).append((p['t'], p['kind']))
+    return out
+
+
 def main():
-    D = Design()
+    D = Design(wiring=wiring())
     out = []
     for site, ex in enumerate(examples(D.R), 1):
         st, src = (stocked(ex['dump']) if ex['kind'] == 'real' else (None, None))

@@ -18,6 +18,19 @@ SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
 ENHANCER = report.JS[report.JS.index('// every table:'):report.JS.index('\nconst SEASONS=')]
 
 CSS_EXTRA = """
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#4a3aa7;--s8:#e34948;--s0:#9aa59f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9;--s8:#e66767;--s0:#5f6b66}}
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9;--s8:#e66767;--s0:#5f6b66}
+.web{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.webscroll{overflow-x:auto}.webscroll svg{display:block;min-width:640px;width:100%;height:auto}
+.web .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+.web .row>label{font:600 .7rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);min-width:5.5em}
+.tog{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:2px 9px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+.tog[aria-pressed="false"]{opacity:.45;text-decoration:line-through}.tog:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sw{width:10px;height:10px;border-radius:50%;display:inline-block}
+.wtip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:300px;display:none;z-index:5}
+.wtip b{font-family:var(--mono);font-size:.78rem}
+
 .lede h1{margin-top:4px}.lede p{max-width:78ch}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
@@ -42,6 +55,88 @@ function step(n,title,why,body){return `<section class="step"><header><span clas
 function slotKey(ex,L){return L==='fresh'?'fresh:'+ex.sub:(L.startsWith('cavern')?'cavern':L);}
 function dfCell(sp){return sp.st==null?'':(sp.st.length?'yes':'no');}
 """ + ENHANCER + r"""
+const PAL=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)','var(--s7)','var(--s8)'];
+const webState={color:'slot',hidden:{slot:new Set(),season:new Set(),biome:new Set()}};
+const pretty=b=>b.toLowerCase().replace(/_/g,' ');
+function webData(ex,L){
+  const sp=ex.species, nodes={}, edges={};
+  const node=t=>nodes[t]||(nodes[t]={t,slot:new Set(),season:new Set(),biome:[...new Set((sp[t].b||[]))],vermin:false,eats:new Set(),eatenBy:new Set()});
+  SEASONS.forEach(s=>{const c=ex.casts[L+'|'+s];if(!c)return;
+    c.members.forEach(([t,sl])=>{const n=node(t);n.slot.add(sl==='swimmer'?'amphib or aquatic':sl);n.season.add(s);});
+    c.vermin.forEach(([t])=>{const n=node(t);n.slot.add('vermin');n.season.add(s);n.vermin=true;});
+    c.edges.forEach(([a,b])=>{const k=a+'>'+b;(edges[k]=edges[k]||{source:a,target:b,season:new Set()}).season.add(s);});});
+  const ns=Object.values(nodes);
+  ns.forEach(n=>{const sl=[...n.slot];n.tier=sl.includes('apex')?3:(sl.some(x=>x==='meso'||x==='sentient')?2:(n.vermin&&sl.length===1?0:(sp[n.t].r==='predator'?2:1)));});
+  const es=Object.values(edges).filter(e=>nodes[e.source]&&nodes[e.target]);
+  es.forEach(e=>{nodes[e.source].eats.add(e.target);nodes[e.target].eatenBy.add(e.source);});
+  const sk=slotKey(ex,L), order={slot:[...Object.keys(M.slots[sk]).filter(x=>x!=='_vermin').map(x=>x==='swimmer'?'amphib or aquatic':x),'vermin'],season:SEASONS,
+    biome:[...new Set(ns.flatMap(n=>n.biome))].sort()};
+  return {nodes:ns,edges:es,order};
+}
+function colorOf(dim,order,v){const i=order[dim].indexOf(v);return i>=0&&i<8?PAL[i]:'var(--s0)';}
+function renderWeb(ex,L){
+  const host=document.getElementById('web');
+  if(!window.d3){host.innerHTML='<p class="note">The graph needs d3 (cdn.jsdelivr.net), which did not load.</p>';return;}
+  const {nodes,edges,order}=webData(ex,L);
+  if(!nodes.length){host.innerHTML='<p class="note">No cast on this layer.</p>';return;}
+  // layered layout: four bands (apex, meso and predators, prey, vermin); within a band species are spread evenly and ordered
+  // by the mean position of their links (down, up, down), which keeps predator-prey lines short and crossings few
+  const W=960,bandH=125,R=9,top=34,H=top+3*bandH+40;
+  const band=[3,2,1,0].map(t=>nodes.filter(n=>n.tier===t));
+  const so=order.slot;
+  band.forEach(b=>b.sort((a,c)=>so.indexOf([...a.slot][0])-so.indexOf([...c.slot][0])||a.t.localeCompare(c.t)));
+  const place=b=>{const n=b.length,x0=140,x1=W-50;b.forEach((d,i)=>{d.x=n===1?(x0+x1)/2:x0+i*(x1-x0)/(n-1);});};
+  band.forEach(place);
+  const byT0=Object.fromEntries(nodes.map(n=>[n.t,n]));
+  const mean=(d,set)=>{const xs=[...set].map(t=>byT0[t]).filter(Boolean).map(o=>o.x);return xs.length?xs.reduce((a,c)=>a+c,0)/xs.length:d.x;};
+  const sweep=(ix,useUp)=>{const b=band[ix];b.forEach(d=>d.k=mean(d,useUp?d.eatenBy:d.eats));b.sort((a,c)=>a.k-c.k||a.t.localeCompare(c.t));place(b);};
+  [1,2,3].forEach(i=>sweep(i,true));[2,1,0].forEach(i=>sweep(i,false));[1,2,3].forEach(i=>sweep(i,true));
+  band.forEach((b,i)=>b.forEach((d,j)=>{d.y=top+i*bandH+(b.length>9?(j%2?16:-16):0);}));
+  const labelled=d=>d.tier===3||band[3-d.tier].length<=7;
+  const byT=Object.fromEntries(nodes.map(n=>[n.t,n]));
+  const dims=['slot','season','biome'], dimName={slot:'trophic slot',season:'season',biome:'biome'};
+  let h=`<div class="row"><label>Color by</label><div class="seg" id="webColor" role="group">${dims.map(d=>`<button type="button" data-v="${d}" aria-pressed="${webState.color===d}">${dimName[d]}</button>`).join('')}</div></div>`;
+  dims.forEach(d=>{h+=`<div class="row" role="group" aria-label="Show ${dimName[d]}"><label>${d==='slot'?'Slots':d==='season'?'Seasons':'Biomes'}</label>${order[d].filter(v=>d!=='slot'||nodes.some(n=>n.slot.has(v))).map(v=>`<button type="button" class="tog" data-d="${d}" data-v="${esc(v)}" aria-pressed="${!webState.hidden[d].has(v)}">${webState.color===d?`<span class="sw" style="background:${colorOf(d,order,v)}"></span>`:''}${esc(d==='biome'?pretty(v):v)}</button>`).join('')}</div>`;});
+  const bands=['apex','predators','prey','vermin'];
+  h+=`<div class="webscroll"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Food web of the ${LN[L]} casts on ${esc(ex.name)}: ${nodes.length} species, ${edges.length} links. The year's roster table below lists the same species.">
+    ${bands.map((b,i)=>`<text x="4" y="${top+i*bandH+4}" font-size="11" fill="var(--muted)" font-family="var(--mono)">${b}</text>${i<3?`<line x1="0" x2="${W}" y1="${top+i*bandH+bandH/2}" y2="${top+i*bandH+bandH/2}" stroke="var(--line)" stroke-dasharray="2 4"/>`:''}`).join('')}
+    <g class="edges">${edges.map((e,i)=>`<line data-i="${i}" x1="${byT[e.source].x}" y1="${byT[e.source].y}" x2="${byT[e.target].x}" y2="${byT[e.target].y}" stroke="var(--muted)" stroke-width="1.2" stroke-opacity=".3"/>`).join('')}</g>
+    <g class="nodes"></g></svg></div><div class="wtip" id="wtip"></div>
+    <p class="note">${nodes.length} species and ${edges.length} predator→prey links over the year; a predator sits above its prey. A node split into sectors has more than one value (several seasons, slots or biomes). Hover a node for its links; click it to keep them lit.</p>`;
+  host.innerHTML=h;
+  const gN=d3.select(host).select('g.nodes'), arc=d3.arc().innerRadius(0).outerRadius(R).padAngle(.06);
+  const vals=n=>[...n[webState.color]].sort((a,b)=>order[webState.color].indexOf(a)-order[webState.color].indexOf(b));
+  const visible=n=>dims.every(d=>[...n[d]].some(v=>!webState.hidden[d].has(v)));
+  const g=gN.selectAll('g').data(nodes).join('g').attr('transform',d=>`translate(${d.x},${d.y})`).attr('tabindex',0).style('cursor','pointer');
+  g.each(function(d){const el=d3.select(this),v=vals(d);
+    el.append('circle').attr('r',R+2).attr('fill','var(--surface)');
+    if(v.length<=1)el.append('circle').attr('r',R).attr('fill',colorOf(webState.color,order,v[0]));
+    else el.selectAll('path').data(d3.pie().value(1).sort(null)(v)).join('path').attr('d',arc).attr('fill',p=>colorOf(webState.color,order,p.data));
+    el.append('text').attr('y',d.tier===3?-(R+6):R+13).attr('text-anchor','middle').attr('font-size',10.5).attr('fill','var(--ink)').attr('font-family','var(--mono)')
+      .attr('stroke','var(--surface)').attr('stroke-width',3).attr('paint-order','stroke')
+      .attr('class','lbl').text(d.t.toLowerCase().replace(/_/g,' ')).style('display',labelled(d)?null:'none');});
+  let pinned=null;
+  const tip=host.querySelector('#wtip'), lines=host.querySelectorAll('g.edges line');
+  function paint(focus){
+    const vis=new Map(nodes.map(n=>[n.t,visible(n)]));
+    g.style('display',d=>vis.get(d.t)?null:'none').style('opacity',d=>!focus||d===focus||focus.eats.has(d.t)||focus.eatenBy.has(d.t)?1:.25);
+    g.select('.lbl').style('display',d=>(focus?(d===focus||focus.eats.has(d.t)||focus.eatenBy.has(d.t)):labelled(d))?null:'none');
+    edges.forEach((e,i)=>{const on=vis.get(e.source)&&vis.get(e.target)&&[...e.season].some(s=>!webState.hidden.season.has(s));
+      const hot=focus&&(e.source===focus.t||e.target===focus.t);
+      lines[i].style.display=on?'':'none';lines[i].setAttribute('stroke',hot?'var(--ink)':'var(--muted)');lines[i].setAttribute('stroke-opacity',hot?'.85':(focus?'.08':'.3'));});
+  }
+  function show(d,ev){
+    const box=host.getBoundingClientRect();
+    tip.innerHTML=`<b>${esc(d.t)}</b><br>${[...d.slot].map(esc).join(', ')} · ${[...d.season].join(', ')}<br><span class="note">${d.biome.map(pretty).join(', ')||'-'}</span><br>eats ${d.eats.size} · eaten by ${d.eatenBy.size}`;
+    tip.style.display='block';tip.style.left=Math.min(box.width-310,Math.max(0,ev.clientX-box.left+12))+'px';tip.style.top=(ev.clientY-box.top+12)+'px';
+  }
+  g.on('mouseenter',(ev,d)=>{if(!pinned)paint(d);show(d,ev);}).on('mousemove',(ev,d)=>show(d,ev)).on('mouseleave',()=>{tip.style.display='none';if(!pinned)paint(null);})
+   .on('click',(ev,d)=>{pinned=pinned===d?null:d;paint(pinned);})
+   .on('focus',function(ev,d){const r=this.getBoundingClientRect();paint(d);show(d,{clientX:r.x,clientY:r.y});}).on('blur',()=>{tip.style.display='none';paint(pinned);});
+  paint(null);
+  host.querySelectorAll('#webColor button').forEach(b=>b.onclick=()=>{webState.color=b.dataset.v;renderWeb(ex,L);});
+  host.querySelectorAll('.tog').forEach(b=>b.onclick=()=>{const H=webState.hidden[b.dataset.d];H.has(b.dataset.v)?H.delete(b.dataset.v):H.add(b.dataset.v);b.setAttribute('aria-pressed',!H.has(b.dataset.v));paint(pinned);});
+}
 function render(){
   const ex=D.find(d=>d.id===state.ex);
   if(!ex.active.includes(state.layer)) state.layer=ex.active[0];
@@ -88,6 +183,8 @@ function render(){
     `<div class="tbl" style="max-height:300px"><table><thead><tr><th data-t="cat">predator</th><th data-t="cat">prey</th></tr></thead><tbody>${tr.edges.map(([a,b])=>`<tr><td class="mono">${esc(a)}</td><td class="mono">${esc(b)}</td></tr>`).join('')}</tbody></table></div>${tr.isolated.length?`<p><b>No link to the rest of the cast:</b> ${chips(tr.isolated)}</p>`:''}`);
   document.getElementById('steps').innerHTML=h;
   enhance(document.getElementById('steps'));
+  renderWeb(ex,L);
+  document.querySelectorAll('.layername').forEach(e=>e.textContent=LN[L]);
   // the year's roster and the gates for this embark
   const yr={};
   ex.active.forEach(l=>SEASONS.forEach(s=>{const c=ex.casts[l+'|'+s];c.members.forEach(([t,sl])=>{const k=l+'|'+t;(yr[k]=yr[k]||{l,t,sl:new Set(),s:new Set()});yr[k].s.add(s);yr[k].sl.add(sl)});c.vermin.forEach(([t])=>{const k=l+'|'+t;(yr[k]=yr[k]||{l,t,sl:new Set(),s:new Set()});yr[k].s.add(s);yr[k].sl.add('vermin')});}));
@@ -374,6 +471,34 @@ saltwater marsh, penguins on an arctic coast.</li>
 <li><b>Caverns are the same three pools on every fort</b> (DF's cave species are not biome-bound), so only the draw differs between forts.</li>
 </ul>
 
+<h2>Two odds: being cast, and arriving</h2>
+<p>The tool weighs a species twice, at two different times, by two different mechanisms.</p>
+<div class='tbl'><table><thead><tr><th data-t='cat'>stage</th><th>when</th><th>who decides</th><th>what sets the odds</th></tr></thead><tbody>
+<tr><td><b>1. Inclusion</b>: is the species in a season's cast?</td><td>once, at embark (or first enable, or a redraw); all 28 casts at once,
+Spring to Winter</td><td>the tool (castYear, castGrow)</td><td>the seed's high-value test, food-web links into the emptiest slot, and the pick weights:
+x3 pack hunters, x0.2 giants, x0.1 animal people, x0.01 per earlier season the species is cast; the apex draw (size, the same weights)</td></tr>
+<tr><td><b>2. Appearance</b>: which cast species comes in the next wave?</td><td>every wave, all season, every year</td><td>DF, drawing from the region's
+population entries</td><td>DF picks in proportion to each creature's raw FREQUENCY. The tool rewrites FREQUENCY to the cast's ladder (the pyramid: grazers
+and prey common, predators rarer, apexes at most 5; castLadder writes one number per species, CAVERN.apply copies it into the raw) and holds every
+out-of-season species' entry at zero, so only cast species can be drawn. Apexes are placed by the tool's scheduler.</td></tr>
+</tbody></table></div>
+<p><b>Where the x0.01 belongs: at inclusion.</b> That is where it is now, and where it does what you want: across the year it makes a species unlikely to
+be cast in a second season while others are free, so the four casts of a layer differ, and a species that is cast twice is cast because nothing else fits
+(a thin pool, or the only apex). Applied to appearance instead (a grizzly cast all year arriving at x1, x0.01, x0.01², x0.01³), three things break:</p>
+<ul class="find">
+<li><b>Hollow casts.</b> The grizzly keeps its summer, autumn and winter slots but almost never arrives in them, so those casts show one apex short
+and the food web the cast was built on does not appear on the map.</li>
+<li><b>DF cannot hold the numbers.</b> FREQUENCY is a whole number per creature, 1 to 100 in practice; 50 x 0.01 = 0.5 and 50 x 0.0001 both round to 0 or
+the floor of 1. Only one step of the decay is representable.</li>
+<li><b>It needs seasonal FREQUENCY.</b> Today's ladder writes one number per species for the year; a decaying odds would have to be rewritten at every
+season change (the season timer can, at the cost of one more write pass).</li>
+</ul>
+<p>So the simulation keeps x0.01 at inclusion, counted by earlier seasons as your grizzly example sets out: a species cast in Spring draws x0.01 for
+Summer's cast, x0.01² for Autumn's if it was cast again, and so on. Arrival odds are then the ladder's, the same every year, so nothing needs a
+yearly reset. Population entries are never reset: each wave debits its entry, and a species whose entry runs out is gone from the fort's region
+(local extinction). The tool's reserve does not add animals: while a species is out of season the tool parks its entry's quantity aside (entry at
+zero, so DF cannot draw it) and puts the same number back when its season returns; on <code>off</code> it gives everything back. It stays as it is.</p>
+
 <h2>Who can hold the apex</h2>
 <p>Rebuilt 10 Oct. A species can be drawn for the apex slot of a layer when it is:</p>
 <ul class="find">
@@ -383,7 +508,11 @@ saltwater marsh, penguins on an arctic coast.</li>
 <li>on water layers, one of the engine's curated water apexes (orca, sperm whale, great white, crocodiles, the large sharks) or a giant or animal
 person of one; DF's other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso, as before;</li>
 <li>a raptor of 2,000 cm³ or more on land-flying (eagle, the large owls, osprey; never a scavenger);</li>
-<li>a real-life apex that DF does not tag, below.</li>
+<li>a real-life apex that DF does not tag, below;</li>
+<li>a species the biomes × region audit promotes or wires in for a biome that had too few apexes (approved 12 Oct, applied);</li>
+<li>on an evil region, the harpy on land-flying (an EVIL LARGE_PREDATOR raptor, kept out before only by its sentience) and the grimeling on freshwater
+(the only EVIL water hunter besides the sea monster; DF tags it NO_EAT and NO_DRINK, so it is let through as a hand-wired apex). A lake is the only
+freshwater layer with an apex slot; on a river or murky pools the grimeling can take meso (it is too large for the murky-pool roster).</li>
 </ul>
 <p>The draw then weights each by the square root of its group size against the largest (a pack's mean size times the adult size), x3 for pack hunters,
 x0.01 for each cast it is already on this year (counted only once drawn: the year's 28 casts are built together at its start), x0.2 giants and x0.1 animal people. That is what puts the orca beside the sperm whale: a pod of six
@@ -421,12 +550,15 @@ wolverine) first, then by group size against the largest resident. <b>Wire</b>: 
 of the same region type and climate band, scored by fauna overlap (the share of this biome's residents that also live in the candidate's biomes).
 The automatic proposal takes local promotions, then wires with overlap 0.5 or more, then other promotions, then other wires, until every season has
 two true apexes. The scores say how well a candidate fits DF's own fauna, not real-life range: a wired dingo in the taiga scores well because DF's
-dingo shares most of the taiga's animals. Not applied to the casts on this page.</p>
+dingo shares most of the taiga's animals. <b>Approved 12 Oct and applied to the casts on this page</b> (the automatic proposal of each short row).</p>
 {candidate_table(meta)}
 
 <h2>Step through an embark</h2>
 <div class="controls" id="exPick"></div>
 <div class="steps" id="steps"></div>
+
+<h3>The year's food web: <span class="exname"></span>, <span class="layername"></span></h3>
+<div class="web" id="web"></div>
 
 <h3>The year's roster: <span class="exname"></span></h3>
 <div id="year"></div>
@@ -464,20 +596,21 @@ each phase can ship and be checked on the rig before the next.</p>
 </tbody></table></div>
 <h3>Decided (12 Oct)</h3>
 <ul class="find">
-<li><b>The casts are not redrawn each year</b> (9 Oct ruling stands). What resets at each new year is the draw: every cast species' arrival odds and
-its population entry go back to their start-of-year values (the ladder's FREQUENCY, the entry quantity and the reserve), so a species used up during
-the year arrives as often next year as this year. Where: a year hook beside the season timer (V7.ST), calling castLadder 8712 and CAVERN.apply 3795 on
-the kept casts and restocking from the reserve (applyLive 3100, RESERVE 3039). Phase 3.</li>
+<li><b>Casts are built once</b>, at embark, at first enable, or when the player asks for a redraw; all 28 at once, Spring to Winter. They are not redrawn
+at a new year.</li>
+<li><b>The x0.01 repeat weight is an inclusion weight</b> (section above): x0.01 per earlier season the species is cast. Arrival odds are the ladder's,
+the same each year; population entries run down naturally, and a species whose entry is spent is locally extinct. The reserve is unchanged.</li>
 <li><b>Created entries are removed when the tool is turned off.</b> The tool records every entry it creates (region tile, race, master and live row) in
 its saved config; <code>off</code> zeroes them, lets or sends their units off the map, clears any unit's population reference to them, and then deletes
 both rows, next to the reserve give-back (RESERVE.giveBack 3071). A unit still pointing at a deleted entry is the risk to test first. Phase 5.</li>
+<li><b>The audit's proposals are approved</b>, with the harpy and grimeling for evil regions: a wiring table the engine reads beside MODEL.ROLE.</li>
 </ul>
 <h3>Still open</h3>
 <ul class="find">
 <li><b>Freshwater feature entries.</b> Lake, river and pool species live on water-feature entries, which the engine cannot create yet. The ocean is
 easier: DF keeps sea life on land entries, which addNewSpecies already makes.</li>
-<li><b>The audit's proposals</b> (above): which promotions and wires to adopt. For a wired species, whether DF sends a wave from a created entry when
-its raws do not name the biome decides between an entry and placement (a rig test).</li>
+<li><b>Wired species on the map.</b> Whether DF sends a wave from a created entry when the species' raws do not name the biome decides between an
+entry and placement (a rig test).</li>
 </ul>
 <h2>Method notes</h2>
 <p><b>Raws.</b> DF 53.16's vanilla and extinct creature files compiled as DF compiles them (COPY_TAGS_FROM, the GIANT and ANIMAL_PERSON variations,
@@ -485,6 +618,7 @@ castes, derived flags, aggregate biome tokens expanded), as in the earlier trace
 corrections) is the engine's classify, mirrored in scripts/castsim/engine.py. <b>The design</b> is scripts/castsim/design.py; the runner is
 design_run.py. Random draws are seeded per embark, layer and season, so one run is one possible year.</p>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script id="data" type="application/json">{blob}</script>
 <script>{JS}</script>
 """

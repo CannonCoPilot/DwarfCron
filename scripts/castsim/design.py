@@ -112,6 +112,11 @@ REUSE = 0.01          # x per cast the species is already on this year (user 12 
 # sponges are placed like plants on the bed (user 30 Sep, 12 Oct): they pass the wild and natural filters and the biome
 # gates, enter the water layers they live in, and take no cast slot; the sponge man is a natural filter-feeder creature
 PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
+# Evil apexes for the layers an evil region had none on (user 12 Oct): the harpy (EVIL, LARGE_PREDATOR raptor; kept out of
+# the flying apex only by its sentience) on land-flying, the grimeling (EVIL, LARGE_PREDATOR semiaquatic hunter of marshes
+# and swamps; DF tags it NO_EAT+NO_DRINK, so it is let through the natural filter like the sponge man) on freshwater.
+# Wired into every land biome / freshwater body of an evil region.
+EVIL_APEX = {'HARPY': 'flying', 'GRIMELING': 'fresh'}
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
 # filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
 # bed (user 30 Sep) and takes no cast slot
@@ -129,10 +134,11 @@ JUDGEMENT = [
     ('land-ground slots', 'not specified: kept the v7.4 land cast without its raptor, bird and sentient slots (apex 1, meso 2, grazer 2, ground prey 2, vermin 3).'),
     ('ranges', '"1-2" and "2-3": each cast draws its count inside the range, so cast sizes vary from season to season.'),
     ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x3 for pack hunters, x0.01 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
+    ('hand-wiring', 'the audit\'s automatic proposal is approved and applied (12 Oct): per biome and region type, promoted residents and wired apexes are true apexes; a wired species is treated as living in the biome. Evil regions also get the harpy on land-flying and the grimeling on freshwater (the grimeling let through the natural filter as a hand-wired apex).'),
     ('local apexes', 'a "local" real-life apex (lynx, coyote, wolverine, gar, grouper...) holds the apex only when no true apex is in season; with none of either, the largest non-sentient predator is promoted (the old fallback, still your open question).'),
     ('sponges', 'the sponge and the giant sponge are placed like plants on the bed (30 Sep, 12 Oct): they pass the filters, enter the water layers they live in, and take no cast slot; the sponge man passes as a natural filter-feeder creature and can be cast.'),
     ('CARNIVORE fix', 'real-life hunters DF does not tag CARNIVORE are read as predators (table on the page): upper-level fish and small sharks, seals, walrus, mink, weasel, fish-eating seabirds and the white stork. Mid-level fish (cod, carp, bluefish, skate) and penguins are left as they were.'),
-    ('reuse', 'x0.01 per cast the species is already on this year (12 Oct; was x0.1). It counts only casts already drawn: all 28 casts of a year are built at once at the start of the year, layer by layer, season by season, so a species is penalised only after it has been drawn.'),
+    ('reuse', 'x0.01^N at cast inclusion, N = the number of earlier seasons whose casts (any layer) hold the species: the 28 casts are built at once at embark (or first enable, or a redraw), Spring first, every layer within a season, so a species cast all year draws x1, x0.01, x0.01^2, x0.01^3. Within one season, two layers may share a species without a penalty.'),
     ('river-only apex', 'no apex slot (your list has none); flagged predators there can take the meso slot.'),
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
@@ -165,7 +171,10 @@ def explicit_water(raw_tokens, water_biomes):
 
 
 class Design:
-    def __init__(self, raws=None):
+    def __init__(self, raws=None, wiring=None):
+        """wiring: {(savagery, alignment, layer, biome): [(token, 'promote'|'wire'), ...]} -- the approved apex hand-wiring"""
+        self.wiring = wiring or {}
+        self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
         self.R = self.E.R
@@ -181,6 +190,25 @@ class Design:
                 out[w['biome']] = {'sav': w['sav'], 'evil': w['evil'], 'kind': k}
         if spec.get('caverns'):
             for b in SUBTER: out[b] = {'sav': 0, 'evil': 50, 'kind': 'cavern'}
+        return out
+
+    @staticmethod
+    def region_type(fb):
+        return ('savage' if fb['sav'] >= SAVAGE_AT else 'wild',
+                'evil' if fb['evil'] >= EVIL_AT else ('good' if fb['evil'] <= GOOD_AT else 'neutral'))
+
+    def wires_for(self, fbs):
+        """the hand-wiring that applies on this embark: [(layer, token, kind, biome)]"""
+        out = []
+        for b, fb in fbs.items():
+            if fb['kind'] == 'cavern': continue
+            sav, al = self.region_type(fb)
+            layers = ['ground', 'flying'] if fb['kind'] == 'land' else (['ocean'] if fb['kind'] == 'ocean' else ['fresh'])
+            for L in layers:
+                for t, kind in self.wiring.get((sav, al, L, b), ()): out.append((L, t, kind, b))
+                if al == 'evil':
+                    for t, el in EVIL_APEX.items():
+                        if el == L: out.append((L, t, 'wire', b))
         return out
 
     @staticmethod
@@ -242,6 +270,20 @@ class Design:
             e = dict(info)
             e.update(key=tok, matched=sorted(ok), weird=WEIRD.get(tok))
             pool[tok] = e
+        # the approved hand-wiring: a wired species is treated as living in the biome; wired and promoted species are true
+        # apexes of the layer on this embark
+        self.promoted = set()
+        for L, t, kind, b in self.wires_for(fbs):
+            self.promoted.add((L, t))
+            if kind != 'wire': continue
+            if t in pool:
+                if b not in pool[t]['matched']: pool[t]['matched'] = sorted(set(pool[t]['matched']) | {b}); pool[t].setdefault('wired', []).append(b)
+                continue
+            info = self.E.classify(t)
+            if info['eco'] != 'natural':
+                info = dict(info, eco='natural', ecoWhy=['hand-wired apex (user 12 Oct)'], locked=False)
+            e = dict(info); e.update(key=t, matched=[b], weird=WEIRD.get(t), wired=[b])
+            pool[t] = e
         return pool, funnel, rejected
 
     # ------------------------------------------------------------------ step 2: the seven layers
@@ -289,6 +331,7 @@ class Design:
     def apex_tier(self, e, layer):
         """'apex', 'local' or None: can this species hold the apex slot on this layer?"""
         if e['civ'] or e['gameVermin']: return None
+        if (layer, e['token']) in self.promoted: return 'apex'
         if self.flagged(e, layer): return 'apex'
         for tok in (e['token'], e.get('root')):
             r = REAL_APEX.get(tok)
@@ -411,7 +454,7 @@ class Design:
             for c in lst[:k]: note(c, f'{label} {c["e"][fld]:,}')
         return why
 
-    def cast(self, lst, layer, sub, season, used, rng):
+    def cast(self, lst, layer, sub, season, used, rng, drawn=None):
         key = self.slot_key(layer, sub)
         table = SLOTS[key]
         want = {s: rng.randint(lo, hi) for s, (lo, hi) in table.items() if s != '_vermin'}
@@ -536,7 +579,9 @@ class Design:
         allm = ms + [dict(v, slot='vermin', layer=layer) for v in vsel]
         edges = [(a['e']['token'], b['e']['token']) for a in allm for b in allm if a is not b and self.eats(a, b)]
         linked_set = {x for ed in edges for x in ed}
-        for m in members: used[m['e']['token']] = used.get(m['e']['token'], 0) + 1
+        for m in members:
+            if drawn is not None: drawn.add(m['e']['token'])
+            else: used[m['e']['token']] = used.get(m['e']['token'], 0) + 1
         ws = [m['e']['weird'] for m in members if m['e'].get('weird') is not None]
         tr.update(members=[(m['e']['token'], m['slot']) for m in members],
                   placed=[c['e']['token'] for c in lst if 'placed plant' in c['slots']],
@@ -559,9 +604,13 @@ class Design:
             for L, why in ns: notes.append({'token': tok, 'layer': L, 'why': why})
         active = [L for L in LAYERS if layer_sets[L] and (L != 'ocean' or spec['water'].get('ocean'))
                   and (L != 'fresh' or sub) and (not L.startswith('cavern') or int(L[-1]) in (spec.get('caverns') or ()))]
+        # all 28 casts at once, season by season (Spring first), every layer within a season; the x0.01 repeat weight counts
+        # the earlier SEASONS whose casts (any layer) hold the species -- a grizzly cast all year draws x1, x0.01, x0.01^2,
+        # x0.01^3 (user 12 Oct)
         lists, casts, used = {}, {}, {}
-        for L in active:
-            for s in range(4):
+        for s in range(4):
+            drawn = set()
+            for L in active:
                 lst = []
                 for tok in sorted(layer_sets[L]):
                     e = pool[tok]
@@ -577,6 +626,7 @@ class Design:
                         if sl: lst.append({'e': e, 'vermin': False, 'slots': sl, 'tier': self.apex_tier(e, L) if 'apex' in sl else None})
                 lists[(L, s)] = lst
                 seed = (site * 7919 + year * 104729 + s * 131 + LAYERS.index(L) * 17) % 2147483647
-                casts[(L, s)] = self.cast(lst, L, sub, s, used, random.Random(seed))
+                casts[(L, s)] = self.cast(lst, L, sub, s, used, random.Random(seed), drawn)
+            for t in drawn: used[t] = used.get(t, 0) + 1
         return {'pool': pool, 'funnel': funnel, 'rejected': rejected, 'notes': notes, 'layers': layer_sets, 'active': active,
                 'sub': sub, 'lists': lists, 'casts': casts, 'fbs': fbs}
