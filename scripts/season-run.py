@@ -75,6 +75,7 @@ PORT = os.environ.get('CX_PORT', '5555')
 TPY, TPS, TPD = 403_200, 100_800, 1_200
 SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
 MANAGED = ('land', 'water', 'cavern')
+PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
 DEFAULT_FORTS = ['V73_LAKE2', 'V73_OCEAN2', 'V73_BROOK', 'T1END_WATERFALL']
 # dry run: the finished run folder each fort's fake answers come from
 CANNED = {'V73_LAKE2': 'V73_LAKE3', 'V73_OCEAN2': 'V73_OCEAN3', 'V73_BROOK': 'V73_BROOK', 'T1END_WATERFALL': 'V73_WATERFALL'}
@@ -1289,6 +1290,8 @@ def analyse_cell(d: Path) -> dict:
             arrive_tick[r['id']] = int(r['tick'])
             L = r.get('tlayer')
             if L not in MANAGED:
+                continue
+            if r['race'] in PLACED_PLANTS:   # v7.5: sponges are scenery the tool places, never cast (user 12 Oct)
                 continue
             t = int(r['tick'])
             s = season_of(t)
