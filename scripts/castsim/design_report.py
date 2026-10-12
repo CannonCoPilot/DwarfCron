@@ -521,6 +521,9 @@ first, the high-weight species (pack hunters x3, high-value seeds) gathered in S
 gets its fair share. Measured over {st['ob_years']} simulated years on each of the six embarks, counting every non-apex cast place of a species eligible on its
 layer in all four seasons:</p>
 {order_table(meta)}
+<p><b>The rule this produces</b> (confirmed 12 Oct): a species goes, at random, into whichever season × layer casts it is eligible for, and every
+further appearance is penalised x0.01 cumulatively, in whatever order the casts happen to be built. It is discouraged from a second season and from a
+second layer in the same season alike.</p>
 <p class="note">The total per season is the same either way, because each cast has fixed slot counts; what the order changes is <i>which</i> species
 fill them. "Concentration" is the mean share of a species' casts that fall in its most common season (25% would be perfectly even).</p>
 
