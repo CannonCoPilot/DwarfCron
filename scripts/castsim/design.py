@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 import random
 
-from engine import Engine, REACH, R0, CAST_DEF
+from engine import Engine, REACH, R0, CAST_DEF, ROLE
 
 SAVAGE_AT, EVIL_AT, GOOD_AT = 66, 66, 32          # DF: savagery 66+ = savage; evil 66+ = evil, 0-32 = good
 SALT_WET = {'MARSH_TEMPERATE_SALTWATER', 'MARSH_TROPICAL_SALTWATER', 'SWAMP_TEMPERATE_SALTWATER', 'SWAMP_TROPICAL_SALTWATER',
@@ -91,10 +91,31 @@ REAL_APEX = {
     'FISH_GAR_LONGNOSE': ('fresh', 'local', 'top predator of warm rivers without crocodilians (DF: read as fish prey)'),
     'ALLIGATOR SNAPPING TURTLE': ('fresh', 'local', 'the ambush apex of southern rivers'),
 }
+# Real-life hunters DF does not tag CARNIVORE (or BONECARN), so the tool reads them as prey (user 12 Oct: apply). Upper-level
+# predators only: mid-level fish (cod, carp, bluefish, skate) stay in the fish slot, penguins stay shore birds. In the
+# engine this is MODEL.ROLE = 'predator' entries.
+REAL_CARNIVORE = {
+    'FISH_PIKE': 'freshwater ambush predator of fish, frogs, ducklings', 'FISH_GAR_LONGNOSE': 'freshwater fish hunter',
+    'FISH_TIGERFISH': 'pack-hunting freshwater predator', 'FISH_BARRACUDA_GREAT': 'reef predator of fish',
+    'FISH_GROUPER_GIANT': 'reef predator: fish, rays, small sharks, turtles', 'FISH_CONGER_EEL': 'nocturnal fish and octopus hunter',
+    'FISH_MARLIN': 'pelagic hunter of tuna and squid', 'FISH_SWORDFISH': 'pelagic hunter of fish and squid',
+    'FISH_TUNA_BLUEFIN': 'pelagic hunter of fish and squid', 'FISH_HALIBUT': 'large benthic fish hunter',
+    'FISH_COELACANTH': 'deep-water fish hunter', 'FISH_OPAH': 'hunter of squid and small fish',
+    'SHARK_ANGEL': 'ambush shark', 'SHARK_NURSE': 'benthic shark: fish, crustaceans, squid', 'SHARK_REEF_WHITETIP': 'reef shark',
+    'SHARK_SPINY_DOGFISH': 'pack-hunting small shark', 'SHARK_WOBBEGONG_SPOTTED': 'ambush shark',
+    'LEOPARD_SEAL': 'hunts penguins and other seals', 'ELEPHANT_SEAL': 'hunts squid and fish', 'HARP_SEAL': 'hunts fish and crustaceans',
+    'WALRUS': 'eats clams; takes seals at times', 'MINK': 'semiaquatic hunter of fish, frogs, rodents', 'WEASEL': 'hunter of rodents and birds',
+    'BIRD_ALBATROSS': 'catches squid and fish', 'BIRD_LOON': 'diving fish hunter', 'BIRD_PUFFIN': 'diving fish hunter',
+    'BIRD_STORK_WHITE': 'hunts frogs, fish, rodents',
+}
+REUSE = 0.01          # x per cast the species is already on this year (user 12 Oct; was CAST_DEF reuse 0.1)
+# sponges are placed like plants on the bed (user 30 Sep, 12 Oct): they pass the wild and natural filters and the biome
+# gates, enter the water layers they live in, and take no cast slot; the sponge man is a natural filter-feeder creature
+PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
 # filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
 # bed (user 30 Sep) and takes no cast slot
-FILTER_FEEDERS = {'GIANT_SPONGE', 'SPONGE_MAN'}
+FILTER_FEEDERS = {'SPONGE_MAN'}
 
 
 def weird_weight(k, s):
@@ -107,9 +128,11 @@ def weird_weight(k, s):
 JUDGEMENT = [
     ('land-ground slots', 'not specified: kept the v7.4 land cast without its raptor, bird and sentient slots (apex 1, meso 2, grazer 2, ground prey 2, vermin 3).'),
     ('ranges', '"1-2" and "2-3": each cast draws its count inside the range, so cast sizes vary from season to season.'),
-    ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x3 for pack hunters, x0.1 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
+    ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x3 for pack hunters, x0.01 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
     ('local apexes', 'a "local" real-life apex (lynx, coyote, wolverine, gar, grouper...) holds the apex only when no true apex is in season; with none of either, the largest non-sentient predator is promoted (the old fallback, still your open question).'),
-    ('sponges', 'the giant sponge and the sponge man pass the natural filter (filter feeders, not unliving); the giant sponge is immobile and, by the 30 Sep ruling, placed like a plant on the bed, so it takes no cast slot.'),
+    ('sponges', 'the sponge and the giant sponge are placed like plants on the bed (30 Sep, 12 Oct): they pass the filters, enter the water layers they live in, and take no cast slot; the sponge man passes as a natural filter-feeder creature and can be cast.'),
+    ('CARNIVORE fix', 'real-life hunters DF does not tag CARNIVORE are read as predators (table on the page): upper-level fish and small sharks, seals, walrus, mink, weasel, fish-eating seabirds and the white stork. Mid-level fish (cod, carp, bluefish, skate) and penguins are left as they were.'),
+    ('reuse', 'x0.01 per cast the species is already on this year (12 Oct; was x0.1). It counts only casts already drawn: all 28 casts of a year are built at once at the start of the year, layer by layer, season by season, so a species is penalised only after it has been drawn.'),
     ('river-only apex', 'no apex slot (your list has none); flagged predators there can take the meso slot.'),
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
@@ -143,6 +166,7 @@ def explicit_water(raw_tokens, water_biomes):
 
 class Design:
     def __init__(self, raws=None):
+        for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
         self.R = self.E.R
 
@@ -195,11 +219,13 @@ class Design:
             f = c['flags']
             if 'DOES_NOT_EXIST' in f or 'EQUIPMENT_WAGON' in f or not c['biomes']: continue
             info = self.E.classify(tok)
+            if tok in PLACED_PLANTS:
+                info = dict(info, eco='natural', ecoWhy=['placed like a plant on the bed (user 30 Sep, 12 Oct)'], locked=False, plant=True)
             if 'VERMIN_SOIL_COLONY' in f and not info['gameVermin']:   # colony insects: DF stocks them as ColonyInsect populations
                 info = dict(info, gameVermin=True, category='vermin', guild='V')
-            if not ('LARGE_ROAMING' in f or info['gameVermin']): continue
+            if not ('LARGE_ROAMING' in f or info['gameVermin'] or info.get('plant')): continue
             funnel['wild'] += 1
-            if tok in FILTER_FEEDERS and info['eco'] == 'unliving' and info['ecoWhy'] == ['NO_EAT+NO_DRINK']:
+            if (tok in FILTER_FEEDERS and info['eco'] == 'unliving' and info['ecoWhy'] == ['NO_EAT+NO_DRINK']):
                 info = dict(info, eco='natural', ecoWhy=['filter feeder (kept, user 10 Oct)'], locked=False)
             if info['eco'] != 'natural' or info['mega'] or info['night']: continue
             funnel['natural (not locked)'] += 1
@@ -276,6 +302,7 @@ class Design:
         if e['civ'] or e['gameVermin']: return False
         if layer == 'flying':
             if e['ap'] and e['largePred'] and e['habitat'] in ('flier', 'waterbird'): return True   # an animal person of a flagged flier
+            if e['token'] in REAL_CARNIVORE: return False   # fish-eating seabirds and the stork hunt, but are not raptors
             return self.E.fly_apex(dict(e, layer='land'))
         if layer in ('ocean', 'fresh'):
             # as the engine (slotOf): only the curated water apexes hold a water apex slot -- a giant or an animal person
@@ -319,7 +346,7 @@ class Design:
             if pred: s.append('meso')
             elif wet: s.append('fish')
             return s
-        if e['token'] == 'GIANT_SPONGE': return []   # immobile: placed like a plant on the bed, no cast slot
+        if e.get('plant'): return ['placed plant']   # sponges: placed on the bed, no cast slot
         if self.apex_tier(e, layer) and not (layer == 'fresh' and sub == 'river'): s.append('apex')
         if pred and (wet or hab == 'land'): s.append('meso')
         if hab == 'aquatic' and not pred:
@@ -367,7 +394,7 @@ class Design:
     def weight(self, c, used, layer):
         e, w = c['e'], 1.0
         if self.predator(e) and not e['benign'] and e['cmax'] > 1: w *= CAST_DEF['pack']
-        w *= CAST_DEF['reuse'] ** used.get(e['token'], 0)
+        w *= REUSE ** used.get(e['token'], 0)   # only once drawn: `used` counts casts already built this year
         if e['giant']: w *= CAST_DEF['giant']
         if e['ap'] and not e['civ']: w *= R0['ap_pick']
         if layer.startswith('cavern') and e.get('weird') is not None: w *= weird_weight(int(layer[-1]), e['weird'])
@@ -389,7 +416,7 @@ class Design:
         table = SLOTS[key]
         want = {s: rng.randint(lo, hi) for s, (lo, hi) in table.items() if s != '_vermin'}
         vwant = rng.randint(*table['_vermin'])
-        cands = [c for c in lst if not c['vermin']]
+        cands = [c for c in lst if not c['vermin'] and 'placed plant' not in c['slots']]
         verm = [c for c in lst if c['vermin']]
         tr = {'want': dict(want), 'vermin_want': vwant, 'log': []}
         members, have, taken = [], {s: 0 for s in want}, set()
@@ -512,6 +539,7 @@ class Design:
         for m in members: used[m['e']['token']] = used.get(m['e']['token'], 0) + 1
         ws = [m['e']['weird'] for m in members if m['e'].get('weird') is not None]
         tr.update(members=[(m['e']['token'], m['slot']) for m in members],
+                  placed=[c['e']['token'] for c in lst if 'placed plant' in c['slots']],
                   vermin=[(v['e']['token'], v['vclass'], eaten[v['e']['token']]) for v in vsel],
                   vermin_eligible=len(verm), unfilled=unfilled, edges=edges,
                   isolated=sorted(m['e']['token'] for m in members if m['e']['token'] not in linked_set),

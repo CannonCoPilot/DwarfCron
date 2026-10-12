@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from design import Design, LAYERS, SLOTS, JUDGEMENT, EXTINCT_RULE, WEIRD, REAL_APEX  # noqa: E402
+from design import Design, LAYERS, SLOTS, JUDGEMENT, EXTINCT_RULE, WEIRD, REAL_APEX, REAL_CARNIVORE  # noqa: E402
 from engine import SEASONS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -170,7 +170,12 @@ def main():
     for tok, (layer, tier, why) in REAL_APEX.items():
         c = D.R.creature(tok); i = D.E.classify(tok)
         real.append({'t': tok, 'layer': layer, 'tier': tier, 'why': why, 'm': i['mass'], 'carn': c['any']('CARNIVORE'), 'role': i['role'], 'g': i['guild']})
-    meta = {'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD, 'real_apex': real}
+    carn = []
+    for tok, why in REAL_CARNIVORE.items():
+        i = D.E.classify(tok)
+        carn.append({'t': tok, 'why': why, 'm': i['mass'], 'h': i['habitat'], 'g': i['guild']})
+    audit = json.loads((ROOT / 'data/castsim/apex_audit.json').read_text())
+    meta = {'carnivore': carn, 'audit': audit, 'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD, 'real_apex': real}
     OUT.write_text(json.dumps({'meta': meta, 'embarks': out}, default=lambda o: sorted(o) if isinstance(o, set) else str(o)))
     print('wrote', OUT, OUT.stat().st_size)
 

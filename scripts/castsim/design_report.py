@@ -67,13 +67,13 @@ function render(){
   h+=step(3,`Slots for ${ex.sub&&L==='fresh'?'freshwater ('+ex.sub+')':LN[L]}`,'The layer\'s slot table; a range draws its count for this cast.',
     `<div class="tbl"><table><thead><tr><th data-t="cat">slot</th><th class="num" data-t="num">range</th><th class="num" data-t="num">drawn</th><th class="num" data-t="num">filled</th><th>note</th></tr></thead><tbody>${srows}</tbody></table></div>`);
   // 4 apex
-  h+=step(4,'Apex','Rebuilt 10 Oct: a weighted draw among the predators eligible in season (true apexes; the local ones only when there is no true apex). Weight: square root of group size against the largest, x3 pack hunters, x0.1 per cast the species is already on this year, x0.2 giants, x0.1 animal people. The others can still take meso.',
+  h+=step(4,'Apex','Rebuilt 10 Oct: a weighted draw among the predators eligible in season (true apexes; the local ones only when there is no true apex). Weight: square root of group size against the largest, x3 pack hunters, x0.01 per cast the species is already on this year, x0.2 giants, x0.1 animal people. The others can still take meso.',
     'apex' in tr.want?`<p><b>Rule used:</b> ${esc(tr.apex_rule||'no candidate')}</p>${tr.apex_rank.length?`<div class="tbl" style="max-height:300px"><table><thead><tr><th>species</th><th data-t="cat">tier</th><th class="num" data-t="num">adult cm³</th><th class="num" data-t="num">group size cm³</th><th class="num" data-t="num">chance</th><th data-t="cat">result</th></tr></thead><tbody>${tr.apex_rank.map(([t,m,g,w,tier,res])=>`<tr><td class="mono">${esc(t)}</td><td>${esc(tier)}</td><td class="num">${fmt(m)}</td><td class="num">${fmt(g)}</td><td class="num" data-v="${w}">${w?(w*100).toFixed(1)+'%':''}</td><td>${res==='apex'?'<span class="chip bad">apex</span>':`<span class="chip warn">${esc(res)}</span>`}</td></tr>`).join('')}</tbody></table></div>`:''}`:'<p class="note">This layer has no apex slot.</p>');
   // 5 fill log
   const hv=Object.entries(tr.hv||{});
   h+=step(5,`Seed and fill (${tr.log.length} picks)`,
-    L==='flying'?'Land-flying: each slot is drawn directly from its eligible fliers (weighted: x3 pack hunters, x0.1 per earlier cast this year, x0.2 giants); the food web is assigned after.':
-    'The seed is a weighted pick among the high-value species (war-trainable, top 10% by pet value, top 10% by size; never a sentient). Then each pick takes a species linked to the cast (its prey or predator) into the emptiest slot; a slot nothing links to is filled from its eligible species anyway ("no link"). Weights: x3 pack hunters, x0.1 per earlier cast this year, x0.2 giants'+(L.startsWith('cavern')?', and the cavern\'s weirdness weight.':'.'),
+    L==='flying'?'Land-flying: each slot is drawn directly from its eligible fliers (weighted: x3 pack hunters, x0.01 per earlier cast this year, x0.2 giants); the food web is assigned after.':
+    'The seed is a weighted pick among the high-value species (war-trainable, top 10% by pet value, top 10% by size; never a sentient). Then each pick takes a species linked to the cast (its prey or predator) into the emptiest slot; a slot nothing links to is filled from its eligible species anyway ("no link"). Weights: x3 pack hunters, x0.01 per earlier cast this year, x0.2 giants'+(L.startsWith('cavern')?', and the cavern\'s weirdness weight.':'.'),
     `${hv.length?`<p class="note"><b>High value here:</b> ${hv.map(([t,w])=>`${esc(t)} (${esc(w)})`).join(', ')}</p>`:''}<div class="tbl"><table><thead><tr><th class="num" data-t="num">#</th><th>species</th><th data-t="cat">slot</th><th data-t="cat">how</th><th>detail</th></tr></thead><tbody>${tr.log.map((l,i)=>{const how=l.how.split(' (')[0];return `<tr><td class="num">${i+1}</td><td class="mono">${esc(l.species)}</td><td>${esc(l.slot==='swimmer'?'amphib or aquatic':l.slot)}</td><td>${esc(how.startsWith('apex')?'apex':how)}</td><td class="note">${esc(l.how)}</td></tr>`}).join('')}</tbody></table></div>`);
   // 6 vermin
   h+=step(6,`Vermin (${tr.vermin.length} of ${tr.vermin_eligible} eligible)`,'The vermin the members eat, one per class first, then the rest of the count from any eligible vermin.',
@@ -81,7 +81,7 @@ function render(){
   // 7 the cast
   const deg={};tr.edges.forEach(([a,b])=>{deg[a]=(deg[a]||0)+1;deg[b]=(deg[b]||0)+1;});
   const crow=tr.members.map(([t,s])=>`<tr><td><b>${esc(s==='swimmer'?'amphib or aquatic':s)}</b></td><td class="mono">${esc(t)}</td><td class="num">${fmt(sp[t].m)}</td><td>${esc(sp[t].h)}</td><td class="num">${deg[t]||0}</td><td>${dfCell(sp[t])}</td></tr>`).join('')+tr.vermin.map(([t,c])=>`<tr><td><b>vermin</b></td><td class="mono">${esc(t)}</td><td class="num">${fmt(sp[t].m)}</td><td>${esc(sp[t].h)}</td><td class="num">${deg[t]||0}</td><td>${dfCell(sp[t])}</td></tr>`).join('');
-  h+=step(7,`The ${state.season} ${LN[L]} cast: ${tr.members.length} species + ${tr.vermin.length} vermin`,`${tr.weird!=null?'Mean weirdness of the cast: <b>'+tr.weird+'</b>. ':''}${Object.keys(tr.unfilled).length?'Unfilled: '+Object.entries(tr.unfilled).map(([s,w])=>esc(s)+' '+esc(w)).join('; ')+'.':'Every slot filled.'}`,
+  h+=step(7,`The ${state.season} ${LN[L]} cast: ${tr.members.length} species + ${tr.vermin.length} vermin`,`${(tr.placed||[]).length?'Placed like plants on the bed (no slot): <b>'+tr.placed.map(esc).join(', ')+'</b>. ':''}${tr.weird!=null?'Mean weirdness of the cast: <b>'+tr.weird+'</b>. ':''}${Object.keys(tr.unfilled).length?'Unfilled: '+Object.entries(tr.unfilled).map(([s,w])=>esc(s)+' '+esc(w)).join('; ')+'.':'Every slot filled.'}`,
     `<div class="tbl"><table><thead><tr><th data-t="cat">slot</th><th>species</th><th class="num" data-t="num">adult cm³</th><th data-t="cat">habitat</th><th class="num" data-t="num">web links</th><th data-t="cat">DF stocked</th></tr></thead><tbody>${crow}</tbody></table></div>`);
   // 8 web
   h+=step(8,`The food web, after the draw (${tr.edges.length} edges)`,'Who eats whom among the cast: the slot tiers (apex over meso over the rest; vermin last), habitat reach, and the new shore rule: a shore creature or waterbird takes aquatic creatures no larger than itself (or 20,000 cm³) and aquatic vermin.',
@@ -202,6 +202,35 @@ def real_apex_table(meta):
             "<th data-t='cat'>CARNIVORE in DF</th><th data-t='cat'>tool reads it as</th><th>why</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
 
 
+def carnivore_table(meta):
+    rows = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td>{esc(r['h'])}</td><td class='num'>{r['m']:,}</td><td class='mono'>{esc(r['g'])}</td><td class='note'>{esc(r['why'])}</td></tr>"
+                   for r in meta['carnivore'])
+    return ("<div class='tbl' style='max-height:420px'><table><thead><tr><th>species</th><th data-t='cat'>habitat</th><th class='num' data-t='num'>adult cm³</th>"
+            "<th data-t='cat'>guild now</th><th>hunts</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+
+
+def audit_table(meta):
+    rows = []
+    for r in meta['audit']['rows']:
+        tr = sorted({t for p in r['seasons'] for t in p['true']}); lo = sorted({t for p in r['seasons'] for t in p['local']})
+        flag = 'too few' if r['min_true'] < 2 else 'ok'
+        rows.append(f"<tr><td class='mono'>{esc(r['biome'])}</td><td>{LN.get(r['layer'], r['layer'])}</td><td><span class='chip {'bad' if flag != 'ok' else 'ok'}'>{flag}</span></td>"
+                    f"<td class='num'>{r['min_true']}</td><td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in tr) or '<span class=note>none</span>'}</td>"
+                    f"<td>{''.join(f'<span class=sp>{esc(t)}</span>' for t in lo)}</td><td class='note'>{esc(', '.join(r['proposals']))}</td>"
+                    f"<td class='num'>{r['min_after'] if r['proposals'] else ''}</td></tr>")
+    return ("<div class='tbl' style='max-height:560px'><table><thead><tr><th data-t='cat'>biome</th><th data-t='cat'>layer</th><th data-t='cat'>verdict</th>"
+            "<th class='num' data-t='num'>fewest true apexes in a season</th><th data-t='multi'>true apexes</th><th data-t='multi'>local apexes</th>"
+            "<th>proposed</th><th class='num' data-t='num'>fewest, with the proposals</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
+
+
+def proposal_table(meta):
+    rows = ''.join(f"<tr><td class='mono'>{esc(p['t'])}</td><td>{p['kind']}</td><td>{LN.get(p['layer'], p['layer'])}</td>"
+                   f"<td>{''.join(f'<span class=sp>{esc(b)}</span>' for b in p['biomes'])}</td><td class='note'>{esc(p['why'])}</td></tr>"
+                   for p in meta['audit']['proposals'])
+    return ("<div class='tbl'><table><thead><tr><th>species</th><th data-t='cat'>kind</th><th data-t='cat'>layer</th><th data-t='multi'>biomes</th>"
+            "<th>real-life basis</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+
+
 def judgement_table(meta):
     rows = ''.join(f"<tr><td><b>{esc(k)}</b></td><td>{esc(v)}</td></tr>" for k, v in meta['judgement'])
     return f"<div class='tbl'><table><thead><tr><th data-t='cat'>decision</th><th>what the simulation does</th></tr></thead><tbody>{rows}</tbody></table></div>"
@@ -260,7 +289,7 @@ def main():
 <div class="card"><h4>Every species DF stocked is still in</h4><p>On all three real forts the new pool contains every species in DF's population list,
 except the locked unliving cave species, the lava-only magma crab, demons, and one damselfly. The biome reading matches DF's own stocking.</p></div>
 <div class="card"><h4>Variety across the year</h4><p>{st['lake_gu']} different species cast on the lake fort's land-ground over four seasons,
-{st['ocean_ou']} in the ocean fort's sea. The x0.1-per-earlier-cast weight spreads the picks.</p></div>
+{st['ocean_ou']} in the ocean fort's sea. The x0.01-per-earlier-cast weight spreads the picks.</p></div>
 <div class="card"><h4>Caverns get stranger with depth</h4><p>Mean weirdness of the casts: cavern 1 <b>{st['w1']}</b>, cavern 2 <b>{st['w2']}</b>,
 cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p></div>
 </div>
@@ -277,11 +306,11 @@ cover the other cases: an arctic coast with a river and extinct creatures in any
 
 <h2>The top-level filters</h2>
 <p>All {data[0]['funnel']['all creatures']:,} creatures in the raws (vanilla and extinct files, giants and animal people included) through the gates.
-"Wild" is DF's own test for region populations: a BIOME, and LARGE_ROAMING or a vermin tag (colony insects included). It drops the 30 creatures with
-no BIOME or no roaming tag: domestic animals and civilised races (no BIOME), the three DOES_NOT_EXIST entries and the wagon, and the megabeasts and
-titans (dragon, hydra, roc, colossus, cyclops, ettin, giant, minotaur) and the sponge. "Natural" drops 12 unliving: the elemental men and blood man,
-fire imp and fire snake, grimeling, nightwing and purring maggot. The giant sponge and sponge man are kept (filter feeders, 10 Oct); the
-giant sponge, immobile, is placed like a plant and takes no cast slot. The 28 GOOD and EVIL species stay in until the alignment gate, which checks each biome.</p>
+"Wild" is DF's own test for region populations: a BIOME, and LARGE_ROAMING or a vermin tag (colony insects included). It drops 29 creatures:
+domestic animals and civilised races (no BIOME), the three DOES_NOT_EXIST entries and the wagon, and the megabeasts and titans (dragon, hydra, roc,
+colossus, cyclops, ettin, giant, minotaur). The sponge passes as a placed plant. "Natural" drops 12 unliving: the elemental men and blood man,
+fire imp and fire snake, grimeling, nightwing and purring maggot. Kept (12 Oct): the sponge and giant sponge as plants placed on the bed (no cast slot),
+the sponge man as a filter-feeding creature. The 28 GOOD and EVIL species stay in until the alignment gate, which checks each biome.</p>
 {funnel_table(data)}
 
 <h2>The 28 lists and their casts</h2>
@@ -320,15 +349,32 @@ person of one; DF's other LARGE_PREDATOR water species (sea lamprey, frill shark
 <li>a real-life apex that DF does not tag, below.</li>
 </ul>
 <p>The draw then weights each by the square root of its group size against the largest (a pack's mean size times the adult size), x3 for pack hunters,
-x0.1 for each cast it is already on this year, x0.2 giants and x0.1 animal people. That is what puts the orca beside the sperm whale: a pod of six
+x0.01 for each cast it is already on this year (counted only once drawn: the year's 28 casts are built together at its start), x0.2 giants and x0.1 animal people. That is what puts the orca beside the sperm whale: a pod of six
 orcas outweighs one whale.</p>
 <h3>Real-life apexes DF does not tag LARGE_PREDATOR</h3>
 <p>Every carnivore in the raws without the flag (56) and the large predators DF does not even mark CARNIVORE were checked against their real ecology.
 "Apex" joins the draw; "local" holds the apex only where no true apex is in season (the top of a small or depleted community). Several are not
-CARNIVORE in DF's raws, so the tool reads them as prey everywhere else: a separate fix for the classifier.</p>
+CARNIVORE in DF's raws; the CARNIVORE fix below now reads them as predators.</p>
 {real_apex_table(meta)}
 <p class="note">Considered and left as mesopredators: honey badger, ocelot, bobcat, jackal, king cobra, the otters, octopus, walrus and narwhal
 (predators, but not at the top of their webs), the vulture (a scavenger), and the elephant seal (hunted by orcas and great whites).</p>
+
+<h2>The CARNIVORE fix</h2>
+<p>Real-life hunters DF does not tag CARNIVORE (or BONECARN), which the tool used to read as prey (12 Oct: applied). Upper-level predators only:
+mid-level fish (cod, carp, bluefish, skate) stay in the fish slot and penguins stay shore birds. A fish-eating bird gains the predator role but is
+not a raptor, so it never holds the flying apex. In the engine this is a set of 'predator' entries in MODEL.ROLE.</p>
+{carnivore_table(meta)}
+
+<h2>Biomes × apex audit</h2>
+<p>For every surface biome on a calm-to-wild, neutral region (no savage species, no GOOD or EVIL species, no extinct species), the species that can hold
+each layer's apex in each season under the rule above. A biome is flagged when some season has fewer than two true apexes: one species then holds the
+slot all season with nothing to rotate with. Rivers and murky pools have no apex slot; caverns are the same in every fort.</p>
+{audit_table(meta)}
+<h3>Proposed hand-wiring</h3>
+<p>For your review; not applied to the casts on this page. "Promote" makes a species that already lives in the biome a true apex there; "wire" treats
+an existing apex species as living in the biome (the tool's pool, not a raw edit). With all of them the flagged biomes reach two or more true apexes
+in every season, except the glacier's winter.</p>
+{proposal_table(meta)}
 
 <h2>Step through an embark</h2>
 <div class="controls" id="exPick"></div>
@@ -349,17 +395,36 @@ decides which caverns a species can live in, and the weight only tilts the draw.
 <p>Everything the design left open and the simulation had to decide. Each is a single rule you can change.</p>
 {judgement_table(meta)}
 
-<h2>What building it means for the engine</h2>
+<h2>Building it into seasonal-wildlife</h2>
+<p>A pass through the engine (scripts/seasonal-wildlife.lua on v7.4-onebuilder 834f92e, 19,102 lines; line numbers below) for the shortest path from
+today's code to the patterns on this page. Most of the machinery exists: the engine already scans every raw creature against the embark's biomes,
+already creates population entries on land and in caverns, and already places units with an on-site population reference. Order matters:
+each phase can ship and be checked on the rig before the next.</p>
+<div class='tbl'><table><thead><tr><th class='num' data-t='num'>phase</th><th>change</th><th>where (line)</th><th data-t='cat'>size</th><th>notes</th></tr></thead><tbody>
+<tr><td class='num'>0</td><td>The desk simulation becomes the oracle: export its pools, 28 lists, slot and apex eligibility for a few embarks as fixtures, and check the engine against them offline</td><td>tests/web/harness.lua, MODE fixes and sim (fakeworld.lua)</td><td>small</td><td>every phase below adds checks here first</td></tr>
+<tr><td class='num'>1</td><td>CARNIVORE fix: the 27 species as 'predator' in the curated role table; the four fish-eating birds kept out of the flying apex</td><td>MODEL.ROLE 1733; MODEL.guild 1962 already reads it (1968); fly apex test</td><td>small</td><td>guild follows the role table, so no other change</td></tr>
+<tr><td class='num'>1</td><td>Reuse x0.01 per cast already drawn this year</td><td>ROSTER.CAST_DEF 8259 (reuse); castGrow 8534; castYear 8678 counts after each cast</td><td>trivial</td><td>castYear already builds all of a year's casts at once and counts only casts drawn</td></tr>
+<tr><td class='num'>1</td><td>Sponges: the sponge man natural (filter feeder); the giant sponge placed like the sponge, savage regions only</td><td>ecoOf 1698 (exception); V7.SPONGE 9517-9635 (ribbons, SPONGE only today)</td><td>small</td><td>both sponges already sit in MODEL.NEVER_PREY (2570)</td></tr>
+<tr><td class='num'>2</td><td>The full pool: drop the stocked-only rule; gate each species by the savagery, alignment and extinct rule of the biome it matches; water layers only where the raws name the water body; colony insects as vermin</td><td>buildPool 2351 (already walks all raws via creatureEligible 2322, tagging them inEmbark=false); ROSTER.savage 7827; V7.alignment 1640; ROSTER.inPart 7907 and castPartOk 8384 (drop inEmbark)</td><td>medium</td><td>DF compiles the raws itself, so the TAIGA alias and COPY_TAGS_FROM need nothing in the engine</td></tr>
+<tr><td class='num'>2</td><td>Read the world's REAL_WORLD_EXTINCT</td><td>new, beside V7.alignment 1640: <code>df.global.world.worldgen.worldgen_parms.real_world_extinct</code></td><td>small</td><td>nothing reads it today; the number for each setting to be confirmed on the rig (region2's file says UNTAMED_WILDS)</td></tr>
+<tr><td class='num'>3</td><td>Seven layers with the slot tables on this page; freshwater subtype from the water-body registry; caverns 1-3 by raw depth range, weighted by weirdness</td><td>ROSTER.CAST 8243; castPool 8390; castYear 8662 (layer loop, seeds); castSanitize 8286 and castManages 8649 (hard-code three layers); V7.WB.build 6763 and typeOf 6740; CAVE.survey 4736</td><td>large</td><td>saved casts change shape: a load of an older save must migrate them</td></tr>
+<tr><td class='num'>3</td><td>The year's roster, the ladder and turnover keyed by the seven layers</td><td>castLadder 8712; V7.GRP.castTurnover 13006; applyLive 3100; holdOutOfSeason 3152</td><td>medium</td><td></td></tr>
+<tr><td class='num'>4</td><td>Apex: the weighted draw, the real-life apex set, giants and animal people of eligible roots, the promote-largest fallback</td><td>castRankApex 8430 (rewrite); castEats 8464 reads the drawn codes</td><td>small</td><td>the draw uses castGrow's own generator so a rebuild reproduces it</td></tr>
+<tr><td class='num'>5</td><td>Make unstocked cast species arrive: at castYear, create a population entry for each cast species the region lacks; DF then sends waves from it, and the FREQUENCY ladder and hold logic apply as for DF's own entries</td><td>land and sea: addNewSpecies 4106 (live-tested: DF drew a wave from a created entry); caverns: ROSTER.caveEntryFor 9169; lakes, rivers, pools: new (no water-feature entry creator exists)</td><td>large</td><td>created entries belong to the site, so placed units can breed (they carry its population reference, PLACE.one 4929)</td></tr>
+<tr><td class='num'>5</td><td>Where DF will not send a species from an entry (a savage species on a calm tile today; perhaps the hand-wired biome additions), the tool places it</td><td>ROSTER.invasiveAdded 9093; ROSTER.placeGroup 8913; apex scheduler 9009/9057</td><td>medium</td><td>to measure on the rig before relying on either path</td></tr>
+<tr><td class='num'>6</td><td>Rig validation: the three region19 forts and a savage embark; unstocked species arrive in their season, breed, leave at the change; no leaks; FPS</td><td>season-run kit (DwarfCron scripts/season-run.py)</td><td>runs</td><td>save each chunk (the fast-step hang)</td></tr>
+</tbody></table></div>
+<h3>Questions the build needs answered</h3>
 <ul class="find">
-<li><b>Species DF never stocked need a population.</b> DF only sends wildlife from the region's population list; a cast species with no entry there
-(most of a full pool) needs an entry created for this site, or the tool places the units itself. Units placed with a population off the site never
-breed (rig finding), so created entries should belong to the site.</li>
-<li><b>The FREQUENCY ladder then applies to those entries</b> as it does now.</li>
-<li><b>Each biome's savagery and alignment</b> come from the region data the engine already reads; the extinct rule from
-<code>world.raws.param_real_world_extinct</code> (its value for region19 is not yet read).</li>
-<li><b>Caverns become three layers</b> with their own casts, and freshwater picks its subtype from the water-body scan the tool already runs at load.</li>
+<li><b>A new draw every year, or the same year repeated?</b> castYear runs at enable and on a rebuild, not at the new year (your 9 Oct ruling: no
+year-to-year variety). Building the 28 casts at each new year is a one-line hook at the year change, and the x0.01 reuse count restarts with it.</li>
+<li><b>What happens to created entries when the tool is turned off?</b> Removing them returns the save to DF's own stocking; keeping them leaves the
+new species in the world.</li>
+<li><b>Freshwater feature entries.</b> Lake, river and pool species live on water-feature entries, which the engine cannot create yet. The ocean is
+easier: DF keeps sea life on land entries, which addNewSpecies already makes.</li>
+<li><b>The hand-wired biome additions</b> (audit above): whether DF sends a wave from a created entry for a species whose raws do not name the biome
+decides between an entry and placement.</li>
 </ul>
-
 <h2>Method notes</h2>
 <p><b>Raws.</b> DF 53.16's vanilla and extinct creature files compiled as DF compiles them (COPY_TAGS_FROM, the GIANT and ANIMAL_PERSON variations,
 castes, derived flags, aggregate biome tokens expanded), as in the earlier trace. <b>Classification</b> (guild, habitat, size, pet value, the 83 extinct
