@@ -138,7 +138,7 @@ JUDGEMENT = [
     ('local apexes', 'a "local" real-life apex (lynx, coyote, wolverine, gar, grouper...) holds the apex only when no true apex is in season; with none of either, the largest non-sentient predator is promoted (the old fallback, still your open question).'),
     ('sponges', 'the sponge and the giant sponge are placed like plants on the bed (30 Sep, 12 Oct): they pass the filters, enter the water layers they live in, and take no cast slot; the sponge man passes as a natural filter-feeder creature and can be cast.'),
     ('CARNIVORE fix', 'real-life hunters DF does not tag CARNIVORE are read as predators (table on the page): upper-level fish and small sharks, seals, walrus, mink, weasel, fish-eating seabirds and the white stork. Mid-level fish (cod, carp, bluefish, skate) and penguins are left as they were.'),
-    ('reuse', 'x0.01^N at cast inclusion, N = the number of earlier seasons whose casts (any layer) hold the species: the 28 casts are built at once at embark (or first enable, or a redraw), Spring first, every layer within a season, so a species cast all year draws x1, x0.01, x0.01^2, x0.01^3. Within one season, two layers may share a species without a penalty.'),
+    ('reuse', 'x0.01^N at cast inclusion, N = the number of casts already built that hold the species (any layer, any season). The 28 casts are built at once at embark (or first enable, or a redraw) in a random order, seeded by site and year, so no season gets the first pick of the species eligible all year (a Spring-first order gave Spring the unpenalised pick; measured on the page).'),
     ('river-only apex', 'no apex slot (your list has none); flagged predators there can take the meso slot.'),
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
@@ -171,9 +171,10 @@ def explicit_water(raw_tokens, water_biomes):
 
 
 class Design:
-    def __init__(self, raws=None, wiring=None):
+    def __init__(self, raws=None, wiring=None, order='random'):
         """wiring: {(savagery, alignment, layer, biome): [(token, 'promote'|'wire'), ...]} -- the approved apex hand-wiring"""
         self.wiring = wiring or {}
+        self.order = order        # 'random' (user 12 Oct) or 'season' (Spring first, for the bias comparison)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
@@ -604,12 +605,11 @@ class Design:
             for L, why in ns: notes.append({'token': tok, 'layer': L, 'why': why})
         active = [L for L in LAYERS if layer_sets[L] and (L != 'ocean' or spec['water'].get('ocean'))
                   and (L != 'fresh' or sub) and (not L.startswith('cavern') or int(L[-1]) in (spec.get('caverns') or ()))]
-        # all 28 casts at once, season by season (Spring first), every layer within a season; the x0.01 repeat weight counts
-        # the earlier SEASONS whose casts (any layer) hold the species -- a grizzly cast all year draws x1, x0.01, x0.01^2,
-        # x0.01^3 (user 12 Oct)
-        lists, casts, used = {}, {}, {}
+        # all 28 casts at once, in a random order (seeded by site and year; user 12 Oct): a fixed Spring-first order handed
+        # the early seasons the first, unpenalised pick of every species eligible all year. The x0.01 repeat weight counts
+        # the casts already built that hold the species (any layer, any season).
+        lists = {}
         for s in range(4):
-            drawn = set()
             for L in active:
                 lst = []
                 for tok in sorted(layer_sets[L]):
@@ -625,8 +625,13 @@ class Design:
                         sl = self.slots_for(e, L, sub)
                         if sl: lst.append({'e': e, 'vermin': False, 'slots': sl, 'tier': self.apex_tier(e, L) if 'apex' in sl else None})
                 lists[(L, s)] = lst
-                seed = (site * 7919 + year * 104729 + s * 131 + LAYERS.index(L) * 17) % 2147483647
-                casts[(L, s)] = self.cast(lst, L, sub, s, used, random.Random(seed), drawn)
-            for t in drawn: used[t] = used.get(t, 0) + 1
+        order = [(L, s) for s in range(4) for L in active]
+        if self.order == 'random':
+            random.Random((site * 7919 + year * 104729 + 7) % 2147483647).shuffle(order)
+        casts, used = {}, {}
+        for n, (L, s) in enumerate(order):
+            seed = (site * 7919 + year * 104729 + s * 131 + LAYERS.index(L) * 17) % 2147483647
+            casts[(L, s)] = self.cast(lists[(L, s)], L, sub, s, used, random.Random(seed))
+            casts[(L, s)]['built'] = n + 1
         return {'pool': pool, 'funnel': funnel, 'rejected': rejected, 'notes': notes, 'layers': layer_sets, 'active': active,
                 'sub': sub, 'lists': lists, 'casts': casts, 'fbs': fbs}

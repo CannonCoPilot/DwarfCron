@@ -185,7 +185,7 @@ def main():
         i = D.E.classify(tok)
         carn.append({'t': tok, 'why': why, 'm': i['mass'], 'h': i['habitat'], 'g': i['guild']})
     audit = json.loads((ROOT / 'data/castsim/apex_audit.json').read_text())
-    meta = {'carnivore': carn, 'audit': audit, 'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD, 'real_apex': real}
+    meta = {'carnivore': carn, 'audit': audit, 'order_bias': json.loads((ROOT / 'data/castsim/order_bias.json').read_text()), 'layers': LAYERS, 'slots': SLOTS, 'judgement': JUDGEMENT, 'extinct_rule': EXTINCT_RULE, 'weird': WEIRD, 'real_apex': real}
     OUT.write_text(json.dumps({'meta': meta, 'embarks': out}, default=lambda o: sorted(o) if isinstance(o, set) else str(o)))
     print('wrote', OUT, OUT.stat().st_size)
 

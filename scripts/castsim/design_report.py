@@ -362,6 +362,18 @@ def candidate_table(meta):
             "<th data-t='cat'>in the proposal</th><th>its biomes (wire)</th></tr></thead><tbody>" + ''.join(rows) + '</tbody></table></div>')
 
 
+def order_table(meta):
+    ob = meta['order_bias']
+    rows = ''
+    for k, name in (('season', 'Spring first'), ('random', 'random order')):
+        a, n = ob[k]['all']; p, pn = ob[k]['pack']
+        rows += (f"<tr><td>{name}</td>" + ''.join(f"<td class='num'>{x}%</td>" for x in p) + f"<td class='num'>{pn:,}</td>"
+                 + ''.join(f"<td class='num'>{x}%</td>" for x in a) + f"<td class='num'>{ob[k]['concentration']}%</td></tr>")
+    return ("<div class='tbl'><table><thead><tr><th data-t='cat'>build order</th>" + ''.join(f"<th class='num' data-t='num'>pack hunters {s}</th>" for s in SEASONS)
+            + "<th class='num' data-t='num'>pack places</th>" + ''.join(f"<th class='num' data-t='num'>all {s}</th>" for s in SEASONS)
+            + "<th class='num' data-t='num'>concentration</th></tr></thead><tbody>" + rows + '</tbody></table></div>')
+
+
 def judgement_table(meta):
     rows = ''.join(f"<tr><td><b>{esc(k)}</b></td><td>{esc(v)}</td></tr>" for k, v in meta['judgement'])
     return f"<div class='tbl'><table><thead><tr><th data-t='cat'>decision</th><th>what the simulation does</th></tr></thead><tbody>{rows}</tbody></table></div>"
@@ -400,6 +412,7 @@ def main():
     d = json.loads(DATA.read_text())
     data, meta = d['embarks'], d['meta']
     st = stats(data, meta['audit']['roll'])
+    st['ob_years'] = meta['order_bias']['years']
     blob = json.dumps(d, separators=(',', ':')).replace('</', '<\\/')
     html = f"""<title>Cast Pipeline Trace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -475,8 +488,8 @@ saltwater marsh, penguins on an arctic coast.</li>
 <p>The tool weighs a species twice, at two different times, by two different mechanisms.</p>
 <div class='tbl'><table><thead><tr><th data-t='cat'>stage</th><th>when</th><th>who decides</th><th>what sets the odds</th></tr></thead><tbody>
 <tr><td><b>1. Inclusion</b>: is the species in a season's cast?</td><td>once, at embark (or first enable, or a redraw); all 28 casts at once,
-Spring to Winter</td><td>the tool (castYear, castGrow)</td><td>the seed's high-value test, food-web links into the emptiest slot, and the pick weights:
-x3 pack hunters, x0.2 giants, x0.1 animal people, x0.01 per earlier season the species is cast; the apex draw (size, the same weights)</td></tr>
+in a random order</td><td>the tool (castYear, castGrow)</td><td>the seed's high-value test, food-web links into the emptiest slot, and the pick weights:
+x3 pack hunters, x0.2 giants, x0.1 animal people, x0.01 per cast already built that holds the species; the apex draw (size, the same weights)</td></tr>
 <tr><td><b>2. Appearance</b>: which cast species comes in the next wave?</td><td>every wave, all season, every year</td><td>DF, drawing from the region's
 population entries</td><td>DF picks in proportion to each creature's raw FREQUENCY. The tool rewrites FREQUENCY to the cast's ladder (the pyramid: grazers
 and prey common, predators rarer, apexes at most 5; castLadder writes one number per species, CAVERN.apply copies it into the raw) and holds every
@@ -493,11 +506,23 @@ the floor of 1. Only one step of the decay is representable.</li>
 <li><b>It needs seasonal FREQUENCY.</b> Today's ladder writes one number per species for the year; a decaying odds would have to be rewritten at every
 season change (the season timer can, at the cost of one more write pass).</li>
 </ul>
-<p>So the simulation keeps x0.01 at inclusion, counted by earlier seasons as your grizzly example sets out: a species cast in Spring draws x0.01 for
-Summer's cast, x0.01² for Autumn's if it was cast again, and so on. Arrival odds are then the ladder's, the same every year, so nothing needs a
-yearly reset. Population entries are never reset: each wave debits its entry, and a species whose entry runs out is gone from the fort's region
-(local extinction). The tool's reserve does not add animals: while a species is out of season the tool parks its entry's quantity aside (entry at
-zero, so DF cannot draw it) and puts the same number back when its season returns; on <code>off</code> it gives everything back. It stays as it is.</p>
+<p>So x0.01 stays at inclusion (confirmed 12 Oct): each cast built before this one that holds the species multiplies its weight by 0.01. Arrival
+odds are then the ladder's, the same every year, so nothing needs a yearly reset. Population entries are never reset: each wave debits its entry, and a
+species whose entry runs out is gone from the fort's region (local extinction).</p>
+<h3>How the region's population list is made to match the casts</h3>
+<p>The tool does not overwrite DF's entries; it masks them. DF draws a wave only from entries with animals left, so for each managed species the tool
+sets the entry's count to zero (and marks it extinct) whenever the species is out of season or not cast, parking that count in its reserve, and puts the
+same count back when the species' cast season comes (applyLive, holdOutOfSeason). DF's own stocking is untouched underneath and comes back whole when the
+tool is turned off. A cast species DF never stocked gets a new entry beside DF's (phase 5), masked the same way and removed at <code>off</code>. The reserve
+only ever holds an entry's own animals; it creates none.</p>
+<h3>Build order</h3>
+<p>Because the repeat weight counts casts already built, the cast built first gets the unpenalised pick of every species eligible all year. Built Spring
+first, the high-weight species (pack hunters x3, high-value seeds) gathered in Spring; built in a random order (seeded by site and year), each season
+gets its fair share. Measured over {st['ob_years']} simulated years on each of the six embarks, counting every non-apex cast place of a species eligible on its
+layer in all four seasons:</p>
+{order_table(meta)}
+<p class="note">The total per season is the same either way, because each cast has fixed slot counts; what the order changes is <i>which</i> species
+fill them. "Concentration" is the mean share of a species' casts that fall in its most common season (25% would be perfectly even).</p>
 
 <h2>Who can hold the apex</h2>
 <p>Rebuilt 10 Oct. A species can be drawn for the apex slot of a layer when it is:</p>
@@ -596,9 +621,9 @@ each phase can ship and be checked on the rig before the next.</p>
 </tbody></table></div>
 <h3>Decided (12 Oct)</h3>
 <ul class="find">
-<li><b>Casts are built once</b>, at embark, at first enable, or when the player asks for a redraw; all 28 at once, Spring to Winter. They are not redrawn
-at a new year.</li>
-<li><b>The x0.01 repeat weight is an inclusion weight</b> (section above): x0.01 per earlier season the species is cast. Arrival odds are the ladder's,
+<li><b>Casts are built once</b>, at embark, at first enable, or when the player asks for a redraw; all 28 at once, in a random order seeded by site and
+year. They are not redrawn at a new year.</li>
+<li><b>The x0.01 repeat weight is an inclusion weight</b> (section above): x0.01 per cast already built that holds the species. Arrival odds are the ladder's,
 the same each year; population entries run down naturally, and a species whose entry is spent is locally extinct. The reserve is unchanged.</li>
 <li><b>Created entries are removed when the tool is turned off.</b> The tool records every entry it creates (region tile, race, master and live row) in
 its saved config; <code>off</code> zeroes them, lets or sends their units off the map, clears any unit's population reference to them, and then deletes
