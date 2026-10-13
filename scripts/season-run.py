@@ -1344,7 +1344,10 @@ def analyse_cell(d: Path) -> dict:
             race, s = m.group(1).strip(), season_of(t)
             r = recs.setdefault((t, L, race), {'tick': t, 'layer': L, 'season': s, 'race': race, 'groups': 0, 'units': 0,
                                                'why': 'turnover' if turn[t][race] else ('gate' if 'over its cap' in text else 'dismiss'),
-                                               'in_cast': race in C.get((L, s), set())})
+                                               # a species another layer casts this season (X4v75b ocean: BIRD_ALBATROSS, in the
+                                               # summer water cast, arrives and is gated as land) is in the cast, as for arrivals:
+                                               # its gate send-off is the cap's, and 'left' by race never reads 0 while its cast stays
+                                               'in_cast': any(race in C.get((L2, s), set()) for L2 in (L,) + MANAGED)})
             r['groups'] += 1
             r['units'] += int(m.group(2))
         for t, c in turn.items():          # a species the turnover named with no dismiss line of its own
