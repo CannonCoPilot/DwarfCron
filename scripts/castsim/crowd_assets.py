@@ -31,7 +31,7 @@ CSS = r"""
 JS = r"""
 (function(){
 const C = JSON.parse(document.getElementById('crowd-data').textContent);
-const root = document.getElementById('crowd');
+const root = document.getElementById('crowd-charts');
 if (!root || typeof d3 === 'undefined') return;
 const TYPES = C.type_order, SLOT = t => 'var(--s' + (TYPES.indexOf(t) + 1) + ')';
 const FORT = {L: 'Lake fort', O: 'Ocean-shore fort', B: 'Brook fort'};
@@ -44,19 +44,36 @@ const charts = {}, arms = {};
 for (const L of ['land', 'water', 'cavern']) {
   const box = document.createElement('div'); box.className = 'crowd-chart';
   box.innerHTML = `<h4>${LAYER[L]}</h4><div class="crowd-filters"><span>Fort</span>` + Object.keys(C.forts).map((a, i) =>
-    `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('') + `</div>
+    `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('') +
+    (L === 'cavern' ? '<span style="margin-left:14px">Caverns</span>' + [1, 2, 3].map(k =>
+      `<button type="button" data-cave="${k}" aria-pressed="true">${k}</button>`).join('') : '') + `</div>
     <p class="sub"></p><div class="crowd-legend"></div><div class="plot"></div>
     <details><summary>Species table</summary><div class="tbl"></div></details>`;
   root.appendChild(box); charts[L] = box; arms[L] = Object.keys(C.forts)[0];
-  box.querySelector('.crowd-filters').addEventListener('click', ev => { const b = ev.target.closest('button[data-arm]'); if (!b) return;
-    arms[L] = b.dataset.arm; box.querySelectorAll('.crowd-filters button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(L); });
+  box.querySelector('.crowd-filters').addEventListener('click', ev => {
+    const c = ev.target.closest('button[data-cave]');
+    if (c) {   // the cavern toggles: any combination of caverns 1, 2, 3 (at least one stays on)
+      const on = c.getAttribute('aria-pressed') === 'true', n = box.querySelectorAll('button[data-cave][aria-pressed="true"]').length;
+      if (on && n === 1) return;
+      c.setAttribute('aria-pressed', String(!on)); draw(L); return;
+    }
+    const b = ev.target.closest('button[data-arm]'); if (!b) return;
+    arms[L] = b.dataset.arm; box.querySelectorAll('button[data-arm]').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(L); });
 }
 const tip = document.createElement('div'); tip.className = 'crowd-tip'; tip.hidden = true; root.appendChild(tip);
 function draw(only) {
   for (const L of ['land', 'water', 'cavern']) {
     if (only && L !== only) continue;
     const arm = arms[L], F = C.forts[arm];
-    const box = charts[L], D = F.layers[L], days = F.days, sp = D.species;
+    const box = charts[L], days = F.days;
+    let D = F.layers[L];
+    if (L === 'cavern') {   // keep the caverns toggled on, summed per species
+      const caves = new Set([...box.querySelectorAll('button[data-cave][aria-pressed="true"]')].map(b => +b.dataset.cave));
+      D = {species: D.species, counts: D.counts.map(c => { const m = new Map();
+        for (const [k, n, d] of c) if (caves.has(d)) m.set(k, (m.get(k) || 0) + n);
+        return [...m.entries()].sort((a, b) => a[0] - b[0]); })};
+    }
+    const sp = D.species;
     const tot = totals(D.counts);
     const present = new Set(sp.map(t => C.types[t]));
     box.querySelector('.crowd-legend').innerHTML = TYPES.filter(t => present.has(t))

@@ -565,7 +565,7 @@ def crowd_section(run='X4v75b'):
 number of segments is its diversity that day), coloured by animal type. Sponges (placed scenery, never cast) are not counted, and a fully aquatic species recorded on land is counted in the water chart (amphibians stay on land). Each
 chart has its own fort selector. Dashed lines mark the season changes, when the casts turn over. Each chart's
 y-axis fits its own data, so read the axis when comparing forts. Hover a day for its species; each chart's table lists them all.</p>
-<div id="crowd" class="viz-root"></div>
+<div id="crowd-charts" class="viz-root"></div>
 <script id="crowd-data" type="application/json">{blob}</script>
 """
 
