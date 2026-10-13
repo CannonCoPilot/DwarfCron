@@ -1404,6 +1404,9 @@ def analyse_cell(d: Path) -> dict:
                         c['within_2d_of_a_draw'] += 1
         A['drownings'] = {k: dict(v) for k, v in sorted(drown.items())}
         A.update(v75_audit(d, ev, C, t_start))
+        yt = year_turn(d, ev, C, t_start, t_end)
+        if yt:
+            A['year_turn'] = yt
     # reserve conservation, from consecutive state dumps (live quantity + held reserve per config key)
     states = sorted((json.loads(p.read_text()) for p in (d / 'states').glob('*.json')), key=lambda j: j['tick']) \
         if (d / 'states').exists() else []
@@ -1461,6 +1464,8 @@ def analyse_cell(d: Path) -> dict:
         crit = {'no off-cast arrival later than a day after a change': A['offcast_late'] == 0,
                 'no in-cast group trimmed or sent off': not A['in_cast_sendoffs'],
                 'every dismissed group off the map within 10 days': not A['sendoffs_not_left']}
+        if 'year_turn' in A:   # the casts are built once: the year turn changes nothing
+            crit['the casts unchanged across the new year, none rebuilt'] = A['year_turn']['casts_unchanged'] and not A['year_turn']['cast_builds_after_start']
         if 'cavern_wrong_depth_late' in A:   # v7.5: each cavern its own cast
             crit['no cavern arrival at a depth its species is not cast at, later than a day'] = A['cavern_wrong_depth_late'] == 0
         A['criteria'] = crit
@@ -1531,6 +1536,32 @@ def v75_audit(d: Path, ev: list, C: dict, t_start: int) -> dict:
         out['created_entries'] = {'species': len(created),
                                   'cave_species': sorted(k for k, v in created.items() if v - {'surface'}),
                                   'arrived': {f'{k[0]} ({k[1]})': n for k, n in sorted(drawn.items())}}
+    return out
+
+
+def year_turn(d: Path, ev: list, C: dict, t_start: int, t_end: int) -> dict:
+    """a run that crosses a new year: the casts are the same at the end (no rebuild: casts are built once, user 12 Oct),
+    no cast build in the ledger after the start, and the new year's arrivals are the cast of their season"""
+    y0, y1 = t_start // TPY, t_end // TPY
+    if y1 <= y0:
+        return {}
+    out: dict = {'from_year_tick': y1 * TPY}
+    def body(f):
+        t = (d / f).read_text(errors='replace') if (d / f).exists() else ''
+        return t.split('\n', 1)[0], [ln for ln in t.splitlines()[1:] if ln.strip()]
+    h0, b0 = body('casts-start.txt')
+    h1, b1 = body('casts-end.txt')
+    out['casts_header'] = [h0, h1]
+    out['casts_unchanged'] = bool(b0) and b0 == b1
+    out['cast_builds_after_start'] = [text for t, kind, L, text in ledger_rows(d)
+                                      if t is not None and t > t_start + 600 and 'casts for year' in text]
+    per = collections.Counter()
+    for r in ev:
+        if r['event'] != 'ARRIVE' or int(r['tick']) < y1 * TPY or r.get('tlayer') not in MANAGED or r['race'] in PLACED_PLANTS:
+            continue
+        s = season_of(int(r['tick']))
+        per['in_cast' if any(r['race'] in C.get((L, s), set()) for L in MANAGED) else 'off_cast'] += 1
+    out['new_year_arrivals'] = dict(per)
     return out
 
 
