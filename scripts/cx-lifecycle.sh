@@ -987,6 +987,9 @@ cmd_save() {
     cmd_ui key OPTIONS >/dev/null 2>&1
     click_when_drawn "Save and continue playing" || err "Options menu never showed 'Save and continue playing'"
     wait_drawn "name this manual" >/dev/null || err "no save-name prompt appeared"
+    # 13 Oct 2026 (X5v75e3): the field held a stray 'w' and the chunk save landed as wSR_..._c005; the runner then waited
+    # 90 s for a folder that never came. Clear the field first (STRING_A000 is DF's backspace).
+    cmd_ui key $(printf 'STRING_A000 %.0s' $(seq 1 40)) >/dev/null 2>&1
     cmd_ui type "$name" >/dev/null 2>&1
     cmd_ui key SELECT >/dev/null 2>&1
     local waited=0
