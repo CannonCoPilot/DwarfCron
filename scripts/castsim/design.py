@@ -35,7 +35,7 @@ POOL_CAP = 20000                                   # "small" for the murky-pool 
 SUBTER = ('SUBTERRANEAN_WATER', 'SUBTERRANEAN_CHASM')
 EXTINCT_RULE = {
     'NONE': 'absent from the world',
-    'ISOLATED': 'only in isolated savage regions (small savage islands and patches)',
+    'ISOLATED': 'only in isolated regions: world regions of 5 tiles or less, savage or not (measured on region16, 13 Oct)',
     'UNTAMED_WILDS': 'only in savage regions',
     'WILDERNESS': 'in any wild region',
     'DOMESTICATED': 'in any wild region (and kept by civilisations)',
@@ -203,7 +203,7 @@ JUDGEMENT = [
     ('region biomes', 'a real fort\'s biomes are the 3x3 world tiles around it (DF draws a block\'s wildlife from all nine region neighbours); each biome takes the savagery and evil of the nearest tile that has it.'),
     ('alignment', 'GOOD species only where the biome is good (evil 0-32), EVIL only where evil (66+); cavern species are exempt (v7: alignment only limits taming).'),
     ('cavern savagery', 'caverns ignore surface savagery: DF stocks savage cave species (giant cave spider) on calm forts.'),
-    ('extinct rule', 'DF\'s raws tag every real-world-extinct species SAVAGE; the world\'s REAL_WORLD_EXTINCT setting is read in place of that tag (UNTAMED_WILDS and ISOLATED: savage regions only; WILDERNESS and DOMESTICATED: any wild region). Extinct animal people stay savage-only, as all animal people.'),
+    ('extinct rule', 'DF\'s raws tag every real-world-extinct species SAVAGE; the world\'s REAL_WORLD_EXTINCT setting is read in place of that tag (UNTAMED_WILDS: savage regions only; ISOLATED: small world regions of 5 tiles or less, savage or not, as DF stocks them on region16; WILDERNESS and DOMESTICATED: any wild region). Extinct animal people stay savage-only, as all animal people.'),
     ('extinct setting', 'region19\'s REAL_WORLD_EXTINCT cannot be read without DF (world.raws.param_real_world_extinct); the real forts assume UNTAMED_WILDS, the install\'s default preset value.'),
     ('wild', 'a creature is wild when it has a BIOME and either LARGE_ROAMING or a vermin tag, colony insects (VERMIN_SOIL_COLONY: ants, bees, termites) included (DF\'s own test for region populations).'),
 ]
@@ -285,8 +285,9 @@ class Design:
         if info['extinct'] and not info['ap']:
             rule = spec.get('extinct', 'UNTAMED_WILDS')
             if rule == 'NONE': return 'extinct: absent from this world'
-            if rule in ('UNTAMED_WILDS', 'ISOLATED') and fb['sav'] < SAVAGE_AT: return f'extinct ({rule}): biome not savage'
-            if rule == 'ISOLATED' and not spec.get('isolated'): return 'extinct (ISOLATED): region not isolated'
+            if rule == 'UNTAMED_WILDS' and fb['sav'] < SAVAGE_AT: return 'extinct (UNTAMED_WILDS): biome not savage'
+            # 13 Oct: DF stocks them in small world regions (5 tiles or less), savage or not; this was 'never' before
+            if rule == 'ISOLATED' and not fb.get('iso'): return 'extinct (ISOLATED): no small (isolated) region for this biome'
         elif info['savage'] and fb['sav'] < SAVAGE_AT:
             return 'SAVAGE (giant / animal person / tagged): biome not savage'
         if info['good'] and fb['evil'] > GOOD_AT: return 'GOOD: biome not good'
