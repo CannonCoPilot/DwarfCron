@@ -695,6 +695,12 @@ cmd_embark() {
     [ -n "$world" ] && [ -n "$rx" ] && [ -n "$ry" ] && [ -n "$name" ] || err "usage: embark <world-folder> <region-x> <region-y> <save-name> [off-x=6] [off-y=6]"
     is_running || err "start the session first"
     [ -e "$SAVE_ROOT/$name" ] && err "save '$name' already exists"
+    # Every rig embark starts with 50 dwarves (user 13 Oct 2026: 7-dwarf forts withered on savage land, X6xw lost at tick 84,470).
+    # CX_STARTDWARF=N for another count, 0 to keep DF's own 7. DFHack's startdwarf lasts until DF restarts.
+    local sd="${CX_STARTDWARF:-50}"
+    if [ "$sd" != "0" ]; then
+        cmd_cmd startdwarf "$sd" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
+    fi
     open_site_screen "$world"
     cmd_cmd cx-embark center "$rx" "$ry" 2>/dev/null | tr -d "\r" | tail -1 | sed 's/^/[cx-lifecycle] /'
     sleep 1
