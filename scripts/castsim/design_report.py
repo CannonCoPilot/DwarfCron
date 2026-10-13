@@ -562,8 +562,8 @@ def crowd_section(run='X4v75b'):
     return f"""
 <h2 id="crowd">Crowdedness and diversity through the year</h2>
 <p>Every wild animal on the map in run {run}, one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
-number of segments is its diversity that day), coloured by animal type. Dashed lines mark the season changes, when the casts turn over. The three charts
-share their y-scale across the forts, so switching fort compares like with like. Hover a day for its species; each chart's table lists them all.</p>
+number of segments is its diversity that day), coloured by animal type. Dashed lines mark the season changes, when the casts turn over. Each chart's
+y-axis fits its own data, so read the axis when comparing forts. Hover a day for its species; each chart's table lists them all.</p>
 <div id="crowd" class="viz-root"></div>
 <script id="crowd-data" type="application/json">{blob}</script>
 """

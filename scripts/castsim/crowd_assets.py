@@ -39,9 +39,6 @@ const LAYER = {land: 'Land', water: 'Water', cavern: 'Caverns'};
 const SEASON = d => { const s = Math.floor((d % 336) / 84), n = ['Spring', 'Summer', 'Autumn', 'Winter'][s];
   return n + ' ' + (d % 84 + 1) + (d >= 336 ? ' (y251)' : ''); };
 const totals = (cs) => cs.map(c => c.reduce((a, p) => a + p[1], 0));
-// one y-scale per layer across the forts, so switching forts compares crowding
-const ymax = {};
-for (const L of ['land', 'water', 'cavern']) ymax[L] = d3.max(Object.values(C.forts), f => d3.max(totals(f.layers[L].counts))) || 1;
 const filt = document.createElement('div'); filt.className = 'crowd-filters';
 filt.innerHTML = '<span>Fort</span>' + Object.keys(C.forts).map((a, i) =>
   `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('');
@@ -69,7 +66,7 @@ function draw() {
     const W = Math.max(320, plot.clientWidth || 900), H = 210, m = {t: 18, r: 8, b: 22, l: 34};
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
     const x = d3.scaleBand().domain(days).range([0, iw]).paddingInner(days.length > 200 ? 0.15 : 0.25);
-    const y = d3.scaleLinear().domain([0, ymax[L]]).nice().range([ih, 0]);
+    const y = d3.scaleLinear().domain([0, Math.max(4, d3.max(tot) || 0)]).nice().range([ih, 0]);   // fits this chart (user 13 Oct)
     const svg = d3.select(plot).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
       .attr('aria-label', `${LAYER[L]}: wild animals on the map per day, ${FORT[arm]}`);
     const g = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
