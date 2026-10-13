@@ -1244,13 +1244,15 @@ def season_of(t: int) -> str:
 
 
 def positions_by_tick(d: Path) -> dict:
-    """{snapshot tick: Counter(race)} of wild units in positions.tsv (written every 1,000 ticks)"""
+    """{snapshot tick: Counter(race)} of wild units in groups in positions.tsv (written every 1,000 ticks). A send-off acts on
+    groups: an ungrouped resident has no countdown to zero (X5v75 terrifying coast: every sent-off cave toad, olm, draltha
+    and elk bird left within 10 days, and the race's ungrouped residents, some there before the send-off, read 'not left')"""
     snaps = collections.defaultdict(collections.Counter)
     p = d / 'positions.tsv'
     if p.exists():
         for line in p.read_text(encoding='cp437').splitlines()[1:]:
             x = line.split('\t')
-            if len(x) >= 4 and x[0].isdigit() and x[3] in ('wild', 'wild-group'):
+            if len(x) >= 4 and x[0].isdigit() and x[3] == 'wild-group':
                 snaps[int(x[0])][x[2]] += 1
     return dict(sorted(snaps.items()))
 
