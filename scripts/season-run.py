@@ -969,11 +969,30 @@ class Cell:
         out = self.rig.lua(code, timeout=60).strip()
         self.info['live_wild'] = int(out) if out.isdigit() else out
 
+    def fort_lost(self):
+        """a lost fort stops DF's clock while DF still answers: no citizen left (X5v75 evil coast: infernal ash turned every
+        dwarf undead, the runner read the stopped clock as four hangs). One short read; a real hang leaves the RPC dead -> None"""
+        code = ('-- sr:lost\nlocal U, c, d, u = dfhack.units, 0, 0, 0\nfor _, x in ipairs(df.global.world.units.active) do\n'
+                ' if x.race == df.global.plotinfo.race_id and not U.isDead(x) then d = d + 1; if U.isUndead(x) then u = u + 1 end end\n'
+                ' if U.isCitizen(x) and not U.isDead(x) then c = c + 1 end\nend\n'
+                'print(df.global.cur_year_tick, c, d, u)')
+        try:
+            out = self.rig.lua(code, timeout=15).split()
+        except (Hang, RuntimeError):
+            return None
+        if len(out) != 4 or not all(x.isdigit() for x in out) or int(out[1]) > 0:
+            return None
+        return f'the fort is lost at tick {out[0]}: no citizen left ({out[2]} dwarves on the map, {out[3]} of them undead)'
+
     # -- a hang
     def recover(self, e: Exception, c: dict) -> int:
         t_lost = time.time()
         self.info['hangs'].append({'at': now(), 'why': str(e), 'resume_from': self.last_save[0] if self.last_save else None})
         self.L(f'HANG: {e}')
+        lost = self.fort_lost()
+        if lost:
+            self.info['hangs'][-1]['fort_lost'] = lost
+            raise CellFail('LOST', lost)
         if len(self.info['hangs']) > c['max_hangs']:
             raise CellFail('HUNG', f'{len(self.info["hangs"])} hangs (max {c["max_hangs"]})')
         if not self.last_save:
