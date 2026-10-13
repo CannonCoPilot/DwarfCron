@@ -93,11 +93,11 @@ tr:last-child td{border-bottom:0}th.nm,td.nm{min-width:8em;max-width:13em}th sel
 .sp.apex{background:var(--bad-bg);color:var(--bad)}.sp.meso{background:var(--warn-bg);color:var(--warn)}.sp.seed{outline:2px solid var(--accent)}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:10px 4px}
 .controls label{font:600 .72rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
 .seg button{font:inherit;font-size:.86rem;border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .seg button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.steps{display:grid;gap:12px;margin-top:12px}
+.steps{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px}
 .step{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
 .step>header{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.step>header .n{font:700 1.05rem var(--serif);color:var(--accent);min-width:1.6em}
 .step>header h4{margin:0;flex:1 1 260px}.step .why{color:var(--muted);font-size:.86rem;margin:6px 0 8px;max-width:80ch}

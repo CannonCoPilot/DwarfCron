@@ -417,6 +417,17 @@ RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the regio
 }
 
 
+RERUN = {('X5v75', 'E'): 'X5v75e'}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
+
+
+def cell_dir(run, a):
+    """the folder holding a run's arm: its rerun's, once that has a cell"""
+    r = RERUN.get((run, a))
+    if r and RUNS.joinpath(r, a, 'rep1', 'cell.json').exists():
+        return RUNS.joinpath(r, a, 'rep1')
+    return RUNS.joinpath(run, a, 'rep1')
+
+
 def run_arms(run):
     return RUN_FORTS.get(run) or [(a, FORT[a]) for a in 'LOB']
 
@@ -424,10 +435,10 @@ def run_arms(run):
 def rig_cells(run='X3v75c'):
     out = {}
     for a, _ in run_arms(run):
-        f = RUNS.joinpath(run, a, 'rep1', 'cell.json')
+        f = cell_dir(run, a) / 'cell.json'
         if f.exists():
             J = json.loads(f.read_text())
-            led = RUNS.joinpath(run, a, 'rep1', 'ledger.tsv')
+            led = cell_dir(run, a) / 'ledger.tsv'
             J['keepalive'] = led.read_text(encoding='cp437').count('keep-alive') if led.exists() else None
             out[a] = J
     return out
@@ -449,7 +460,12 @@ def run_tables(run):
         crit = A.get('criteria', {})
         tot['arr'] += A['managed_arrivals']; tot['made'] += made; tot['cave'] += cave; tot['ka'] += J['keepalive'] or 0
         tot['hang'] += len(R.get('hangs', []))
-        rows.append(f"<tr><td>{FORT[a]}</td><td>{yes if A.get('verdict') == 'PASS' else no}</td>"
+        st = R.get('status', 'OK')
+        ran = (A.get('ticks') or [0, 0])
+        verd = ((yes if A.get('verdict') == 'PASS' else no) if st == 'OK' else
+                f"<span class='chip bad'>not finished</span> <span class=small>{'passed' if A.get('verdict') == 'PASS' else 'failed'} "
+                f"its {(ran[1] - ran[0]) // 1000}k ticks</span>")
+        rows.append(f"<tr><td>{FORT[a]}</td><td>{verd}</td>"
                     f"<td class='num'>{A['managed_arrivals']}</td><td class='num'>{made}</td><td class='num'>{cave}</td>"
                     f"<td class='num'>{A['offcast_late']}</td><td class='num'>{len(A['in_cast_sendoffs'])}</td>"
                     f"<td class='num'>{len(A.get('depth_sendoffs', []))}</td><td class='num'>{A.get('cavern_wrong_depth_late', 0)}</td>"
@@ -517,7 +533,7 @@ def rig_section(run='X3v75c'):
 <p>The design on this page is the engine (seasonal-wildlife v7.5, branch v7.5-fullpool). It ran on the three region19 forts for a whole year, from early
 spring through winter and 17 days into the next year, one replicate each, with DF restarted for every fort: run X4v75b, on the code after the review
 fixes. Earlier runs (X3v75 to X3v75c, spring to autumn) found and fixed four bugs (below). The rules applied on 13 Oct (<a href="#applied">below</a>)
-came after this run and have not run on the rig yet.</p>
+came after this run; they ran next, on the region-type forts (<a href="#regions">X5v75</a>).</p>
 <div class="grid2">
 <div class="card"><h4>The year turn changes nothing</h4><p><span class="big">3 / 3</span> forts ended with the casts they began with, none rebuilt at
 the new year, and every arrival of the new year ({sum(C[a]['analysis']['year_turn']['new_year_arrivals'].get('in_cast', 0) for a in T['arms'])} in all) was cast for its season.</p></div>
@@ -558,10 +574,7 @@ cast's own birds stayed on the map; the tool's leave check found none of the sen
 </tbody></table></div>
 <h3>Not yet seen on the rig</h3>
 <ul class="find">
-<li><b>The 13 Oct rules</b> (biome additions, the narrowed dingo, giant bug apexes, the new water apexes, the x1.5 apex pack weight).</li>
-<li><b>Savage, evil and good embarks.</b> Five new forts are embarked for this (good and evil coasts, a small savage patch on a lake, untamed wilds on
-a lake, joyous wilds on a coast) with their water on the map; the giants, animal people, harpy, grimeling and wired apexes run there next.</li>
-<li><b>A giant sponge on a savage ocean</b> (the joyous wilds coast has one).</li>
+<li><b>The 13 Oct rules and the savage, evil and good embarks</b> ran next, in X5v75: <a href="#regions">the region-type forts</a>.</li>
 <li><b><code>off</code> after a long run.</b> Removing created entries was checked once (45 entries, 45k ticks); not yet after a year of their animals
 breeding on the map.</li>
 </ul>
@@ -575,11 +588,96 @@ CROWD_FORTS = [   # (run, arm, name) shown in the crowdedness charts, in selecto
 ]
 
 
+ERAS = ('SILURIAN_', 'DEVONIAN_', 'CARBONIFEROUS_', 'PERMIAN_', 'TRIASSIC_', 'JURASSIC_', 'CRETACEOUS_', 'CENOZOIC_')
+SPECIALS = {'HARPY', 'NIGHTWING', 'GRIMELING', 'UNICORN', 'OGRE', 'GIANT_MANTIS', 'TIGERFISH', 'ANACONDA', 'GIANT_SPONGE'}
+REGION_NOTES = {   # X5v75: what each fort found, by arm (filled in as the forts are analysed)
+    'G': "<b>68 river otters out of season.</b> The casts were built before the water scan had registered the fort's water, so the fort had no "
+         "freshwater cast: the otter never rested and kept the old roster's summer in its murky pools. Fixed twice over: a layer with no cast now rests "
+         "its species, and the engine builds a missing layer's four casts when the scan later finds that water (13 Oct, your word).",
+    'E': "<b>The fort was lost, three times.</b> Infernal ash, the evil coast's weather, turns every dwarf it catches into an infernal ash zombie. "
+         "A fort with no citizen left stops DF's clock while DF still answers, so the runner read it as a hang and reloaded. The first run "
+         "stopped at about tick 70,000 (and its reload missed the save, a loader bug fixed since). A rerun passed every check for 45,000 ticks of play, "
+         "then was lost at tick 103,400, early summer, with 4 dwarves left, all undead. The same tile embarked again with 50 dwarves was lost by about tick 100,000. "
+         "The runner now reports a lost fort as LOST. Before the ash, an ogre came in from the tool's entries on both runs, and two harpies on the first "
+         "(the table shows the rerun); the giant mantis was wired as the calm evil land's apex.",
+    'S': "<b>Extinct species arrive on a small savage region.</b> The ISOLATED fix (a world region of five tiles or fewer) let DF's own extinct stock "
+         "through: two Hibbertopterus species, Eryops and Jaekelopterus. The pygmy mammoth was cast for autumn, the seed of that land cast, but no group came.",
+    'U': "<b>Passes once the analyser knows stand-ins.</b> Four animal-person populations ran out during the year; the engine's stand-in rule filled each "
+         "empty slot with a species cast for another season (sparrow and grackle men). The analyser had scored their send-offs as off-cast and their "
+         "species as 'not left'; it now scores them as in the cast for their stand-in season.",
+    'J': "<b>Passes; no sponges on its savage ocean.</b> The ocean was frozen at the load and thawed by summer (2, then 11 bodies), so the sea casts "
+         "arrived: orcas, a sea serpent, a gigantic squid, giant nautiluses. The sponge pass, though, read a tile list taken once at the load and said "
+         "'no ocean on the map' all year; it now reads the water again when the scan finds it changed. Two stand-ins in the sea (a sea serpent for the "
+         "megalodon man, an octopus for Psephoderma) were logged under land and first scored as off-cast; the analyser now matches a stand-in on any layer.",
+    'T': "<b>78 river otters and otter men out of season,</b> the good coast's fault again: the ocean and its fresh pools were frozen at the build "
+         "and registered only at the summer thaw, so there was no freshwater cast. Fixed (above), not yet on the rig for this run. Otherwise the terror "
+         "casts came: Jurassic and Permian hunters on the ground (afrovenator, anteosaurus, utahraptor), giant roaches all winter. The apex fliers "
+         "barely showed: spring's giant mantis came once, as one DF wave, and the land gate sent it off at once (six groups over a cap of five); the "
+         "winter harpy never came. Nine send-offs first read 'not left in 10 days': every sent-off group did "
+         "leave, and the species' ungrouped cavern residents stayed; the analyser now counts grouped units only.",
+}
+
+
+def region_section(run='X5v75'):
+    """the region-type forts: one table of checks, one of what reached the map, and each fort's finding"""
+    T = run_tables(run)
+    if not T['arms']:
+        return ''
+    names = dict(run_arms(run))
+    arms = [a for a, _ in run_arms(run) if a in T['C']]
+
+    def kind(tok):
+        if tok.endswith('_MAN') or '_MAN_' in tok:
+            return 'animal people'
+        if tok.startswith(ERAS):
+            return 'extinct'
+        if tok in SPECIALS:
+            return 'good, evil and bug apexes'
+        if tok.startswith(('GIANT_', 'GIANT ')) or tok.endswith('_GIANT'):
+            return 'giants'
+        return None
+    KINDS = ('animal people', 'giants', 'extinct', 'good, evil and bug apexes')
+    rows = []
+    for a in arms:
+        ev = cell_dir(run, a) / 'events.tsv'
+        if not ev.exists():
+            continue
+        got = {k: {} for k in KINDS}
+        for ln in ev.read_text(encoding='cp437').splitlines()[1:]:
+            f = ln.split('\t')
+            if len(f) > 9 and f[1] == 'ARRIVE' and f[9] in ('land', 'water', 'surface'):
+                k = kind(f[3])
+                if k:
+                    got[k][f[3]] = got[k].get(f[3], 0) + 1
+        cell = lambda d: ', '.join(f"{t.lower().replace('_', ' ')} <span class=small>{n}</span>" for t, n in sorted(d.items(), key=lambda x: -x[1])) or '<span class=small>none</span>'
+        rows.append(f"<tr><td>{names[a]}</td>" + ''.join(f"<td>{cell(got[k])}</td>" for k in KINDS) + '</tr>')
+    mtbl = ("<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th>" + ''.join(f'<th>{k}</th>' for k in KINDS)
+            + '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>')
+    notes = ''.join(f"<tr><td>{names[a]}</td><td class='note'>{REGION_NOTES[a]}</td></tr>" for a in arms if a in REGION_NOTES)
+    passed = sum(1 for a in arms if T['C'][a]['analysis'].get('verdict') == 'PASS' and T['C'][a]['run'].get('status', 'OK') == 'OK')
+    return f"""
+<h2 id="regions">On the rig: the region-type forts (13 Oct)</h2>
+<p>Run {run}: a full year each on {len(arms)} forts embarked for the kinds of region the 13 Oct rules are about (good, evil, savage, joyous and terrifying
+wilds, and a small savage patch that DF counts as isolated), one replicate each, on the engine with the 13 Oct rules. <span class="big">{passed} / {len(arms)}</span> pass.
+Arrivals are counted only on the surface layers below (land and water); the caverns' giant cave toads and olms are DF's ordinary stock.</p>
+{T['tbl']}
+<h3>What reached the map</h3>
+{mtbl}
+<h3>What each fort found</h3>
+<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th><th>finding</th></tr></thead><tbody>{notes}</tbody></table></div>
+<h3>Arrivals by layer and season</h3>
+{T['ltbl']}
+{T['ytbl']}
+<h3>Arrivals from the entries the tool created</h3>
+{T['stbl']}
+"""
+
+
 def crowd_section(run='X4v75b'):
     """stacked bars per day: the crowd (height), the diversity (one segment per species) and the mix (colour by animal type)"""
     import crowd
     from design import Design
-    cells = [(f'{r}:{a}', n, RUNS.joinpath(r, a, 'rep1')) for r, a, n in CROWD_FORTS if RUNS.joinpath(r, a, 'rep1', 'positions.tsv').exists()]
+    cells = [(f'{r}:{a}', n, cell_dir(r, a)) for r, a, n in CROWD_FORTS if cell_dir(r, a).joinpath('positions.tsv').exists()]
     S = crowd.series(cells, Design().E.classify)
     if not S['forts']:
         return ''
@@ -649,7 +747,8 @@ def main():
     st = stats(data, meta['audit']['roll'])
     st['ob_years'] = meta['order_bias']['years']
     blob = json.dumps(d, separators=(',', ':')).replace('</', '<\\/')
-    html = f"""<title>Cast Pipeline Trace</title>
+    html = f"""<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cast Pipeline Trace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>{report.CSS}{CSS_EXTRA}{crowd_assets.CSS}</style>
@@ -677,6 +776,7 @@ except the locked unliving cave species, the lava-only magma crab, demons, and o
 cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p></div>
 </div>
 {rig_section('X4v75b')}
+{region_section('X5v75')}
 {crowd_section('X4v75b')}
 {applied_section()}
 
