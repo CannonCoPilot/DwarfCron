@@ -232,14 +232,20 @@ elseif cmd == 'survey' then
         local ok, e = pcall(dfhack.maps.getRegionBiome, x, y)
         if not ok or not e then return nil end
         local ok2, bt = pcall(dfhack.maps.getBiomeType, x, y)
-        return {
+        local out = {
             biome = (ok2 and bt and df.biome_type[bt]) or '?',
             river = flag(e, 'has_river') or flag(e, 'is_brook') or flag(e, 'temp_river'),
             brook = flag(e, 'is_brook'), major = flag(e, 'has_river') and not flag(e, 'is_brook'),
             lake = flag(e, 'is_lake') or flag(e, 'new_lake'),
             site = flag(e, 'has_site'), peak = flag(e, 'is_peak'),
             sav = e.savagery, evil = e.evilness, elev = e.elevation, volc = e.volcanism,
+            -- 12 Oct 2026: the world region's own flags; DF places GOOD/EVIL wildlife by these, and a tile's evilness can
+            -- read 95 inside a region that is neither (seasonal-wildlife d7b7d46)
+            rid = e.region_id, rgood = false, revil = false,
         }
+        local reg = df.world_region.find(e.region_id)
+        if reg then out.rgood, out.revil = reg.good == true, reg.evil == true end
+        return out
     end
     -- TSV, one row per tile: x y biome river lake site sav evil elev volc same8 nbr_river nbr_ocean volcano brook major nbr_major
     -- (brook/major/nbr_major added 29 Sep 2026 for FPS6's site rule: on a SMALLER world 485 of 493 temperate tiles had
@@ -249,7 +255,7 @@ elseif cmd == 'survey' then
     for _, pk in ipairs(wd.mountain_peaks) do
         if flag(pk, 'is_volcano') then volcano[pk.pos.x .. ',' .. pk.pos.y] = true end
     end
-    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean\tvolcano\tbrook\tmajor\tnbr_major')
+    print('x\ty\tbiome\triver\tlake\tsite\tsav\tevil\telev\tvolc\tsame8\tnbr_river\tnbr_ocean\tvolcano\tbrook\tmajor\tnbr_major\tregion\trgood\trevil')
     for y = 0, H - 1 do
         for x = 0, W - 1 do
             local t = info(x, y)
@@ -266,10 +272,10 @@ elseif cmd == 'survey' then
                         end
                     end
                 end end
-                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
+                print(('%d\t%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d'):format(
                     x, y, t.biome, t.river and 1 or 0, t.lake and 1 or 0, t.site and 1 or 0,
                     t.sav, t.evil, t.elev, t.volc, same, riv, ocean, volcano[x .. ',' .. y] and 1 or 0,
-                    t.brook and 1 or 0, t.major and 1 or 0, maj))
+                    t.brook and 1 or 0, t.major and 1 or 0, maj, t.rid, t.rgood and 1 or 0, t.revil and 1 or 0))
             end
         end
     end
