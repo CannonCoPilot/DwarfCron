@@ -1284,6 +1284,7 @@ def analyse_cell(d: Path) -> dict:
         # off-cast arrivals with their lead time after the season change
         per = collections.defaultdict(lambda: collections.Counter())
         offs, arrive_tick = [], {}
+        stand_any = {(s, si) for (_, s, si) in S['stand']}
         for r in ev:
             if r['event'] != 'ARRIVE':
                 continue
@@ -1307,7 +1308,9 @@ def analyse_cell(d: Path) -> dict:
             if any(r['race'] in C.get((L2, s), set()) for L2 in MANAGED):
                 per[(L, s)]['in_cast_other_layer'] += 1
                 continue
-            stand = (L, s, r['race']) in S['stand']
+            # a stand-in on any layer: the engine logs an ocean niche's stand-in under 'land' (X5v75 joyous coast: SEA_SERPENT for
+            # CENOZOIC_MEGALODON_MAN, OCTOPUS for TRIASSIC_PSEPHODERMA, both cast in the ocean and drawn into it)
+            stand = (s, r['race']) in stand_any
             lead = t - (t - t % TPS)
             per[(L, s)]['stand_in' if stand else ('off_birth' if birth else 'off')] += 1
             if not stand and not birth and lead > TPD:
@@ -1350,7 +1353,7 @@ def analyse_cell(d: Path) -> dict:
                                                'in_cast': any(race in C.get((L2, s), set()) for L2 in (L,) + MANAGED)
                                                # X5v75 untamed: a stand-in holds its exhausted niche for the season, so the
                                                # cap's send-offs of it are the gate's; 'left' by race never reads 0 meanwhile
-                                               or (L, s, race) in S['stand']})
+                                               or (s, race) in stand_any})
             r['groups'] += 1
             r['units'] += int(m.group(2))
         for t, c in turn.items():          # a species the turnover named with no dismiss line of its own
