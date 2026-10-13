@@ -20,6 +20,8 @@
 --   cx-embark place <mm_x> <mm_y>     on choose_start_site in placement mode: put the
 --                                     square's top-left on that mid-level tile and click
 --   cx-embark site                    on a loaded fort: the site's mid-level min corner
+--   cx-embark cells                   on a loaded fort: region_details around it, per mid-level cell
+--                                     "direction:elevation" (numpad, 5 = own tile), one RD row per tile
 --
 -- ⚠️ Why the params command edits preset 0 and not the one you picked: the
 -- Advanced screen's editable rows (`member[]`) are pointers bound to whichever
@@ -335,6 +337,25 @@ elseif cmd == 'site' then
     if not dfhack.isMapLoaded() then qerror('site needs a loaded fort') end
     local site = df.world_site.find(df.global.plotinfo.site_id)
     print(('site mm_min=%d,%d mm_max=%d,%d'):format(site.global_min_x, site.global_min_y, site.global_max_x, site.global_max_y))
+
+elseif cmd == 'cells' then
+    -- 12 Oct 2026: where a square's water really is. A cell takes its biome from the tile its direction names, but holds
+    -- water only if it lies low (ocean below 100, a lake at its tile's elevation); cells borrowing a water biome at land
+    -- height are dry. Inside an embarked square DF stores the direction as an ASCII digit ('5' = 53); both are printed 1-9.
+    -- scripts/embark-place.py reads this.
+    for _, rd in ipairs(df.global.world.world_data.midmap_data.region_details) do
+        local rows = {}
+        for y = 0, 15 do
+            local r = {}
+            for x = 0, 15 do
+                local d = rd.biome[x][y]
+                if d >= 48 then d = d - 48 end
+                r[#r+1] = d .. ':' .. rd.elevation[x][y]
+            end
+            rows[#rows+1] = table.concat(r, ',')
+        end
+        print(('RD %d %d %s'):format(rd.pos.x, rd.pos.y, table.concat(rows, '/')))
+    end
 
 elseif cmd == 'size' then
     -- embark square side in mid-level tiles (1..16), written in placement mode before the click; DF 53 has no resize

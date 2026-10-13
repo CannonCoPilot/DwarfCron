@@ -912,11 +912,16 @@ cmd_load() {
     local s=0 alt=0
     until wait_drawn "Folder: $folder" 2 >/dev/null; do
         s=$((s + 1))
-        if [ "$s" -gt 12 ]; then
+        # 12 Oct 2026: region19 holds 22 forts (V75_* below the panel after 12 steps); step until the whole list has passed
+        if [ "$s" -gt 30 ]; then
             [ "$alt" -eq 1 ] && err "save list never showed 'Folder: $folder' under either world named '$world'"
             log "'Folder: $folder' not under the first 'World: $world'; trying the last world row of that name"
             cmd_ui key LEAVESCREEN >/dev/null 2>&1
             wait_state titlemode CONTINUE_ACTIVE_WORLD 10 || err "could not back out to the world list (state: $(ui_state))"
+            # 12 Oct 2026: with 12 worlds the second row of a shared name sat below the panel and clicklast opened the first
+            # again (region19's V75_* forts); scroll the world list so the last row of the name is the top one drawn
+            cmd_lua "local t=dfhack.gui.getViewscreenByType(df.viewscreen_titlest,0) if t then local k=nil for i,w in ipairs(t.savegame_header_world) do if w.world_name=='$world' then k=i end end if k then t.scroll_position_world_choice=k end end" >/dev/null 2>&1
+            sleep 0.5
             wait_drawn "World: $world" 10 >/dev/null || err "world list lost 'World: $world'"
             cmd_ui clicklast "World: $world" >/dev/null 2>&1; sleep 1
             wait_state titlemode CONTINUE_ACTIVE 15 || err "the second world row did not open its save list (state: $(ui_state))"
