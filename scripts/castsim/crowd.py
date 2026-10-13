@@ -13,6 +13,7 @@ TPD, TPY, TPS = 1200, 403200, 100800
 SUPER = ('land', 'water', 'cavern')
 # animal types: at most seven, so the categorical palette never cycles (the order is the stacking order, bottom first)
 TYPES = ['large predators', 'predators', 'fliers', 'grazers', 'small land prey', 'water life', 'sentients']
+PLACED = {'SPONGE', 'GIANT_SPONGE'}   # placed scenery on the bed, never cast: not counted (user 13 Oct)
 
 
 def animal_type(e: dict) -> str:
@@ -26,10 +27,16 @@ def animal_type(e: dict) -> str:
     return 'small land prey'
 
 
+def chart_layer(layer: str, info: dict) -> str:
+    """the land charts show no water life unless it is amphibious (user 13 Oct): a fully aquatic species the run recorded
+    on land (a fish over a flooded tile, a shark in the shallows) is counted in the water chart instead"""
+    return 'water' if layer == 'land' and info.get('habitat') == 'aquatic' else layer
+
+
 def series(rundir: Path, classify) -> dict:
     """{'forts': {arm: {'days': [yday...], 'layers': {L: {'species': [tok...], 'counts': [[[i, n], ...] per day]}}}},
         'types': {tok: type}, 'seasons': [(yday, label)]}"""
-    out, types, y0 = {}, {}, None
+    out, types, info, y0 = {}, {}, {}, None
     for arm in 'LOB':
         f = rundir / arm / 'rep1' / 'positions.tsv'
         if not f.exists(): continue
@@ -38,7 +45,11 @@ def series(rundir: Path, classify) -> dict:
             x = line.split('\t')
             if len(x) < 8 or not x[0].isdigit() or x[3] not in ('wild', 'wild-group') or x[7] not in SUPER: continue
             if len(x) > 8 and x[8] == '0': continue          # dead
-            snaps[int(x[0])][x[7]][x[2]] += 1
+            if x[2] in PLACED: continue
+            if x[2] not in info:
+                try: info[x[2]] = classify(x[2])
+                except Exception: info[x[2]] = {}
+            snaps[int(x[0])][chart_layer(x[7], info[x[2]])][x[2]] += 1
         ticks = sorted(snaps)
         if not ticks: continue
         if y0 is None: y0 = ticks[0] // TPY * TPY
@@ -55,8 +66,7 @@ def series(rundir: Path, classify) -> dict:
             toks = sorted({tok for c in per[L] for tok in c})
             for tok in toks:
                 if tok not in types:
-                    try: types[tok] = animal_type(classify(tok))
-                    except Exception: types[tok] = 'small land prey'
+                    types[tok] = animal_type(info[tok]) if info.get(tok) else 'small land prey'
             toks.sort(key=lambda t: (TYPES.index(types[t]), t))
             idx = {t: i for i, t in enumerate(toks)}
             layers[L] = {'species': toks, 'counts': [[[idx[t], n] for t, n in sorted(c.items(), key=lambda kv: idx[kv[0]])] for c in per[L]]}

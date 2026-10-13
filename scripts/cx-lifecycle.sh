@@ -107,6 +107,9 @@ live_port() {
     # closed" while a direct --port 5555 worked. Found 2026-09-16.
     local want="${CX_PORT:-5555}"
     if lsof -nP -iTCP:"$want" -sTCP:LISTEN >/dev/null 2>&1; then echo "$want"; return 0; fi
+    # 13 Oct 2026: with the USER's DF up (their DFHack on 5000) and the rig down, the scan below picked a wine listener
+    # (51072) and the rig verbs aimed title/load at it. The rig shares the bottle with the user's game: never guess a port.
+    [ -n "${CX_PORT_SCAN:-}" ] || { echo "[cx-lifecycle] rig RPC port $want is not listening (a DF that is up is not the rig's)" >&2; return 1; }
     # NR>1 skips lsof's header row -- without it every caller gets the
     # literal string "NAME" as the port.
     lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null \

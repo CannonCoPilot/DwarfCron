@@ -4,7 +4,7 @@ CSS = r"""
 .viz-root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#4a3aa7}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .viz-root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9}}
 :root[data-theme="dark"] .viz-root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9}
-.crowd-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 14px}
+.crowd-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 6px}
 .crowd-filters span{color:var(--muted);font-size:13px;margin-right:4px}
 .crowd-filters button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .crowd-filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
@@ -39,22 +39,23 @@ const LAYER = {land: 'Land', water: 'Water', cavern: 'Caverns'};
 const SEASON = d => { const s = Math.floor((d % 336) / 84), n = ['Spring', 'Summer', 'Autumn', 'Winter'][s];
   return n + ' ' + (d % 84 + 1) + (d >= 336 ? ' (y251)' : ''); };
 const totals = (cs) => cs.map(c => c.reduce((a, p) => a + p[1], 0));
-const filt = document.createElement('div'); filt.className = 'crowd-filters';
-filt.innerHTML = '<span>Fort</span>' + Object.keys(C.forts).map((a, i) =>
-  `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('');
-root.appendChild(filt);
-const charts = {};
+// each chart has its own fort selector (user 13 Oct): land, water and caverns can each show any of the forts
+const charts = {}, arms = {};
 for (const L of ['land', 'water', 'cavern']) {
   const box = document.createElement('div'); box.className = 'crowd-chart';
-  box.innerHTML = `<h4>${LAYER[L]}</h4><p class="sub"></p><div class="crowd-legend"></div><div class="plot"></div>
+  box.innerHTML = `<h4>${LAYER[L]}</h4><div class="crowd-filters"><span>Fort</span>` + Object.keys(C.forts).map((a, i) =>
+    `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('') + `</div>
+    <p class="sub"></p><div class="crowd-legend"></div><div class="plot"></div>
     <details><summary>Species table</summary><div class="tbl"></div></details>`;
-  root.appendChild(box); charts[L] = box;
+  root.appendChild(box); charts[L] = box; arms[L] = Object.keys(C.forts)[0];
+  box.querySelector('.crowd-filters').addEventListener('click', ev => { const b = ev.target.closest('button[data-arm]'); if (!b) return;
+    arms[L] = b.dataset.arm; box.querySelectorAll('.crowd-filters button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(L); });
 }
 const tip = document.createElement('div'); tip.className = 'crowd-tip'; tip.hidden = true; root.appendChild(tip);
-let arm = Object.keys(C.forts)[0];
-function draw() {
-  const F = C.forts[arm];
+function draw(only) {
   for (const L of ['land', 'water', 'cavern']) {
+    if (only && L !== only) continue;
+    const arm = arms[L], F = C.forts[arm];
     const box = charts[L], D = F.layers[L], days = F.days, sp = D.species;
     const tot = totals(D.counts);
     const present = new Set(sp.map(t => C.types[t]));
@@ -120,9 +121,7 @@ function draw() {
       st.map(r => `<tr><td class="mono">${r.t}</td><td>${r.type}</td><td class="num">${r.dd}</td><td class="num">${r.mean.toFixed(1)}</td><td class="num">${r.pk}</td></tr>`).join('') + '</tbody></table>';
   }
 }
-filt.addEventListener('click', ev => { const b = ev.target.closest('button[data-arm]'); if (!b) return;
-  arm = b.dataset.arm; filt.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
-let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(draw, 120); }).observe(root);
+let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => draw(), 120); }).observe(root);
 draw();
 })();
 """
