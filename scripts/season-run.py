@@ -1347,7 +1347,10 @@ def analyse_cell(d: Path) -> dict:
                                                # a species another layer casts this season (X4v75b ocean: BIRD_ALBATROSS, in the
                                                # summer water cast, arrives and is gated as land) is in the cast, as for arrivals:
                                                # its gate send-off is the cap's, and 'left' by race never reads 0 while its cast stays
-                                               'in_cast': any(race in C.get((L2, s), set()) for L2 in (L,) + MANAGED)})
+                                               'in_cast': any(race in C.get((L2, s), set()) for L2 in (L,) + MANAGED)
+                                               # X5v75 untamed: a stand-in holds its exhausted niche for the season, so the
+                                               # cap's send-offs of it are the gate's; 'left' by race never reads 0 meanwhile
+                                               or (L, s, race) in S['stand']})
             r['groups'] += 1
             r['units'] += int(m.group(2))
         for t, c in turn.items():          # a species the turnover named with no dismiss line of its own
