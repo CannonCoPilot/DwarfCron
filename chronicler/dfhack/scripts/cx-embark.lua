@@ -357,6 +357,24 @@ elseif cmd == 'cells' then
         print(('RD %d %d %s'):format(rd.pos.x, rd.pos.y, table.concat(rows, '/')))
     end
 
+elseif cmd == 'rivercells' then
+    -- 13 Oct 2026: which mid-level cells of each loaded region tile carry a river or brook segment (embark-assistant's rule:
+    -- rivers_vertical/horizontal.active; a brook when the world tile is_brook). V73_BROOK was embarked 2x2 beside its
+    -- brook and had none on the map. One row per tile: RIV rx ry brook|river|none <x:y of each wet cell, x,y 0-15>
+    local wd = df.global.world.world_data
+    for _, rd in ipairs(wd.midmap_data.region_details) do
+        local rx, ry = rd.pos.x, rd.pos.y
+        local ok, e = pcall(dfhack.maps.getRegionBiome, rx, ry)
+        local brook = ok and e and flag(e, 'is_brook')
+        local cells = {}
+        for x = 0, 15 do
+            for y = 0, 15 do
+                if rd.rivers_vertical.active[x][y] ~= 0 or rd.rivers_horizontal.active[x][y] ~= 0 then cells[#cells+1] = x .. ':' .. y end
+            end
+        end
+        print(('RIV %d %d %s %s'):format(rx, ry, #cells == 0 and 'none' or (brook and 'brook' or 'river'), table.concat(cells, ' ')))
+    end
+
 elseif cmd == 'size' then
     -- embark square side in mid-level tiles (1..16), written in placement mode before the click; DF 53 has no resize
     -- keys, and the square follows embark_dx/dy (verified 28 Sep 2026: 6 -> mm_max - mm_min = 5)
