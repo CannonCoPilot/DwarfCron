@@ -34,7 +34,7 @@ const C = JSON.parse(document.getElementById('crowd-data').textContent);
 const root = document.getElementById('crowd-charts');
 if (!root || typeof d3 === 'undefined') return;
 const TYPES = C.type_order, SLOT = t => 'var(--s' + (TYPES.indexOf(t) + 1) + ')';
-const FORT = {L: 'Lake fort', O: 'Ocean-shore fort', B: 'Brook fort'};
+const FORT = Object.fromEntries(Object.entries(C.forts).map(([k, f]) => [k, f.name]));
 const LAYER = {land: 'Land', water: 'Water', cavern: 'Caverns'};
 const SEASON = d => { const s = Math.floor((d % 336) / 84), n = ['Spring', 'Summer', 'Autumn', 'Winter'][s];
   return n + ' ' + (d % 84 + 1) + (d >= 336 ? ' (y251)' : ''); };

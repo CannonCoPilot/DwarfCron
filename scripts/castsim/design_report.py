@@ -411,28 +411,37 @@ def stats(data, meta_roll=()):
 
 RUNS = ROOT / 'data/season-run'
 FORT = {'L': 'Lake fort', 'O': 'Ocean-shore fort', 'B': 'Brook fort'}
+RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the region-type forts of 13 Oct)
+    'X5v75': [('G', 'Good coast'), ('E', 'Evil coast'), ('S', 'Small savage lake'), ('U', 'Untamed wilds lake'),
+              ('J', 'Joyous wilds coast'), ('T', 'Terrifying coast')],
+}
+
+
+def run_arms(run):
+    return RUN_FORTS.get(run) or [(a, FORT[a]) for a in 'LOB']
 
 
 def rig_cells(run='X3v75c'):
     out = {}
-    for a in 'LOB':
-        f = RUNS / run / a / 'rep1' / 'cell.json'
+    for a, _ in run_arms(run):
+        f = RUNS.joinpath(run, a, 'rep1', 'cell.json')
         if f.exists():
             J = json.loads(f.read_text())
-            led = (RUNS / run / a / 'rep1' / 'ledger.tsv')
+            led = RUNS.joinpath(run, a, 'rep1', 'ledger.tsv')
             J['keepalive'] = led.read_text(encoding='cp437').count('keep-alive') if led.exists() else None
             out[a] = J
     return out
 
 
-def rig_section(run='X3v75c'):
+def run_tables(run):
+    """the result tables of one season-run, any arms: {'C', 'tot', 'tbl', 'ltbl', 'ytbl', 'stbl', 'arms'}"""
     C = rig_cells(run)
-    if len(C) < 3:
-        return ''
+    arms = [a for a, _ in run_arms(run) if a in C]
+    FORT = dict(run_arms(run))
     yes = "<span class='chip ok'>pass</span>"
     no = "<span class='chip bad'>fail</span>"
     rows, tot = [], {'arr': 0, 'made': 0, 'cave': 0, 'ka': 0, 'hang': 0}
-    for a in 'LOB':
+    for a in arms:
         J = C[a]; A, R = J['analysis'], J['run']
         ce = A.get('created_entries') or {}
         arr = ce.get('arrived') or {}
@@ -455,9 +464,9 @@ def rig_section(run='X3v75c'):
            + ''.join(rows) + '</tbody></table></div>')
     # arrivals by layer and season, all forts
     # the seasons the run reached, in calendar order (a full-year run adds Winter)
-    seasons = [s for s in SEASONS if any(k.endswith(' ' + s) for a in 'LOB' for k in C[a]['analysis']['arrivals'])]
+    seasons = [s for s in SEASONS if any(k.endswith(' ' + s) for a in arms for k in C[a]['analysis']['arrivals'])]
     lrows = []
-    for a in 'LOB':
+    for a in arms:
         ar = C[a]['analysis']['arrivals']
         for L in ('land', 'water', 'cavern'):
             cells = []
@@ -470,7 +479,7 @@ def rig_section(run='X3v75c'):
             + ''.join(f"<th class='num' data-t='num'>{s}</th>" for s in seasons) + '</tr></thead><tbody>' + ''.join(lrows) + '</tbody></table></div>')
     # a run that crosses a new year: the casts are built once, so the year turn must change nothing
     yrows = []
-    for a in 'LOB':
+    for a in arms:
         Y = C[a]['analysis'].get('year_turn')
         if not Y:
             continue
@@ -485,16 +494,24 @@ def rig_section(run='X3v75c'):
             + ''.join(yrows) + '</tbody></table></div>') if yrows else ''
     # created-entry arrivals by species
     sp = {}
-    for a in 'LOB':
+    for a in arms:
         for k, v in ((C[a]['analysis'].get('created_entries') or {}).get('arrived') or {}).items():
             tok, _, lay = k.partition(' (')
             sp.setdefault((tok, lay.rstrip(')')), {})[a] = v
     srows = ''.join(f"<tr><td class='mono'>{esc(t)}</td><td><span class='chip {lay}'>{lay}</span></td>"
-                    + ''.join(f"<td class='num'>{d.get(a, '')}</td>" for a in 'LOB') + f"<td class='num'>{sum(d.values())}</td></tr>"
+                    + ''.join(f"<td class='num'>{d.get(a, '')}</td>" for a in arms) + f"<td class='num'>{sum(d.values())}</td></tr>"
                     for (t, lay), d in sorted(sp.items(), key=lambda x: -sum(x[1].values())))
-    stbl = ("<div class='tbl' style='max-height:420px'><table><thead><tr><th>species</th><th data-t='cat'>layer</th><th class='num' data-t='num'>lake</th>"
-            "<th class='num' data-t='num'>ocean</th><th class='num' data-t='num'>brook</th><th class='num' data-t='num'>all</th></tr></thead><tbody>"
-            + srows + '</tbody></table></div>')
+    stbl = ("<div class='tbl' style='max-height:420px'><table><thead><tr><th>species</th><th data-t='cat'>layer</th>"
+            + ''.join(f"<th class='num' data-t='num'>{FORT[a].lower()}</th>" for a in arms)
+            + "<th class='num' data-t='num'>all</th></tr></thead><tbody>" + srows + '</tbody></table></div>')
+    return {'C': C, 'tot': tot, 'tbl': tbl, 'ltbl': ltbl, 'ytbl': ytbl, 'stbl': stbl, 'arms': arms}
+
+
+def rig_section(run='X3v75c'):
+    T = run_tables(run)
+    if len(T['arms']) < 3:
+        return ''
+    C, tot, tbl, ltbl, ytbl, stbl = T['C'], T['tot'], T['tbl'], T['ltbl'], T['ytbl'], T['stbl']
     return f"""
 <h2 id="rig">On the rig: a full year on v7.5 (12 Oct)</h2>
 <p>The design on this page is the engine (seasonal-wildlife v7.5, branch v7.5-fullpool). It ran on the three region19 forts for a whole year, from early
@@ -503,7 +520,7 @@ fixes. Earlier runs (X3v75 to X3v75c, spring to autumn) found and fixed four bug
 came after this run and have not run on the rig yet.</p>
 <div class="grid2">
 <div class="card"><h4>The year turn changes nothing</h4><p><span class="big">3 / 3</span> forts ended with the casts they began with, none rebuilt at
-the new year, and every arrival of the new year ({sum(C[a]['analysis']['year_turn']['new_year_arrivals'].get('in_cast', 0) for a in 'LOB')} in all) was cast for its season.</p></div>
+the new year, and every arrival of the new year ({sum(C[a]['analysis']['year_turn']['new_year_arrivals'].get('in_cast', 0) for a in T['arms'])} in all) was cast for its season.</p></div>
 <div class="card"><h4>Two pass, one fault found and fixed</h4><p><span class="big">2 / 3</span> pass every check. The lake fort's one fault: a cavern
 group sent off at the autumn change was released again 1.1 days later at a depth its species is not cast at. The release step now skips sent-off groups.</p></div>
 <div class="card"><h4>Species DF never stocked arrive</h4><p><span class="big">{tot['made']}</span> arrivals came from population entries the tool
@@ -551,19 +568,27 @@ breeding on the map.</li>
 """
 
 
+CROWD_FORTS = [   # (run, arm, name) shown in the crowdedness charts, in selector order
+    ('X4v75b', 'L', 'Lake'), ('X4v75b', 'O', 'Ocean shore'), ('X4v75b', 'B', 'Brook'),
+    ('X5v75', 'G', 'Good coast'), ('X5v75', 'E', 'Evil coast'), ('X5v75', 'S', 'Small savage lake'),
+    ('X5v75', 'U', 'Untamed wilds lake'), ('X5v75', 'J', 'Joyous wilds coast'), ('X5v75', 'T', 'Terrifying coast'),
+]
+
+
 def crowd_section(run='X4v75b'):
     """stacked bars per day: the crowd (height), the diversity (one segment per species) and the mix (colour by animal type)"""
     import crowd
     from design import Design
-    S = crowd.series(RUNS / run, Design().E.classify)
+    cells = [(f'{r}:{a}', n, RUNS.joinpath(r, a, 'rep1')) for r, a, n in CROWD_FORTS if RUNS.joinpath(r, a, 'rep1', 'positions.tsv').exists()]
+    S = crowd.series(cells, Design().E.classify)
     if not S['forts']:
         return ''
     blob = json.dumps(S, separators=(',', ':')).replace('</', '<\\/')
     return f"""
 <h2 id="crowd">Crowdedness and diversity through the year</h2>
-<p>Every wild animal on the map in run {run}, one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
+<p>Every wild animal on the map in the full-year runs ({', '.join(sorted({k.split(':')[0] for k in S['forts']}))}), one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
 number of segments is its diversity that day), coloured by animal type. Sponges (placed scenery, never cast) are not counted, and a fully aquatic species recorded on land is counted in the water chart (amphibians stay on land). Each
-chart has its own fort selector. Dashed lines mark the season changes, when the casts turn over. Each chart's
+chart has its own fort selector, and the cavern chart a Caverns 1 2 3 toggle (each unit's cavern by its level). Dashed lines mark the season changes, when the casts turn over. Each chart's
 y-axis fits its own data, so read the axis when comparing forts. Hover a day for its species; each chart's table lists them all.</p>
 <div id="crowd-charts" class="viz-root"></div>
 <script id="crowd-data" type="application/json">{blob}</script>

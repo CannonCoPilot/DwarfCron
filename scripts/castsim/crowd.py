@@ -47,12 +47,13 @@ def depth_of(bands: list, z: int) -> int:
     return min(bands, key=lambda b: 0 if b[0] <= z <= b[1] else min(abs(z - b[0]), abs(z - b[1])))[2]
 
 
-def series(rundir: Path, classify) -> dict:
-    """{'forts': {arm: {'days': [yday...], 'layers': {L: {'species': [tok...], 'counts': [[[i, n], ...] per day]}}}},
-        'types': {tok: type}, 'seasons': [(yday, label)]}"""
-    out, types, info, y0 = {}, {}, {}, None
-    for arm in 'LOB':
-        f = rundir / arm / 'rep1' / 'positions.tsv'
+def series(cells, classify) -> dict:
+    """cells: [(key, name, cell_dir)], any runs. {'forts': {key: {'name', 'days': [yday...], 'layers': {L: {'species': [tok...],
+    'counts': [[[i, n], ...] per day]}}}}, 'types': {tok: type}, 'seasons': [(yday, label)]}; days are each fort's own day of
+    the year (forts of different worlds start in different years)"""
+    out, types, info = {}, {}, {}
+    for key, name, cell in cells:
+        f = Path(cell).joinpath('positions.tsv')
         if not f.exists(): continue
         snaps = collections.defaultdict(lambda: {L: collections.Counter() for L in SUPER})
         bands = cavern_bands(f.parent)
@@ -65,11 +66,11 @@ def series(rundir: Path, classify) -> dict:
                 try: info[x[2]] = classify(x[2])
                 except Exception: info[x[2]] = {}
             L = chart_layer(x[7], info[x[2]])
-            key = (x[2], depth_of(bands, int(x[6]))) if L == 'cavern' and x[6].lstrip('-').isdigit() else x[2]
-            snaps[int(x[0])][L][key] += 1
+            sk = (x[2], depth_of(bands, int(x[6]))) if L == 'cavern' and x[6].lstrip('-').isdigit() else x[2]
+            snaps[int(x[0])][L][sk] += 1
         ticks = sorted(snaps)
         if not ticks: continue
-        if y0 is None: y0 = ticks[0] // TPY * TPY
+        y0 = ticks[0] // TPY * TPY
         d0, d1 = -(-(ticks[0] - y0) // TPD), (ticks[-1] - y0) // TPD
         days, per = [], {L: [] for L in SUPER}
         j = 0
@@ -90,6 +91,6 @@ def series(rundir: Path, classify) -> dict:
                 layers[L] = {'species': toks, 'counts': [[[idx[k[0]], n, k[1]] for k, n in sorted(c.items(), key=lambda kv: (idx[kv[0][0]], kv[0][1]))] for c in per[L]]}
             else:
                 layers[L] = {'species': toks, 'counts': [[[idx[t], n] for t, n in sorted(c.items(), key=lambda kv: idx[kv[0]])] for c in per[L]]}
-        out[arm] = {'days': days, 'layers': layers}
+        out[key] = {'name': name, 'days': days, 'layers': layers}
     seasons = [(0, 'Spring'), (84, 'Summer'), (168, 'Autumn'), (252, 'Winter'), (336, 'new year · Spring')]
     return {'forts': out, 'types': types, 'type_order': TYPES, 'seasons': seasons}
