@@ -90,6 +90,9 @@ REAL_APEX = {
     'FISH_PIKE': ('fresh', 'apex', 'the top predator of northern lakes and rivers (DF: read as fish prey)'),
     'FISH_GAR_LONGNOSE': ('fresh', 'local', 'top predator of warm rivers without crocodilians (DF: read as fish prey)'),
     'ALLIGATOR SNAPPING TURTLE': ('fresh', 'local', 'the ambush apex of southern rivers'),
+    # user 13 Oct: two more freshwater apexes
+    'FISH_TIGERFISH': ('fresh', 'apex', 'the goliath tigerfish tops African rivers and lakes'),
+    'ANACONDA': ('fresh', 'apex', 'the apex of Amazon rivers and lakes (reaches tropical lakes and rivers through EXTRA_BIOMES)'),
 }
 # Real-life hunters DF does not tag CARNIVORE (or BONECARN), so the tool reads them as prey (user 12 Oct: apply). Upper-level
 # predators only: mid-level fish (cod, carp, bluefish, skate) stay in the fish slot, penguins stay shore birds. In the
@@ -107,6 +110,9 @@ REAL_CARNIVORE = {
     'WALRUS': 'eats clams; takes seals at times', 'MINK': 'semiaquatic hunter of fish, frogs, rodents', 'WEASEL': 'hunter of rodents and birds',
     'BIRD_ALBATROSS': 'catches squid and fish', 'BIRD_LOON': 'diving fish hunter', 'BIRD_PUFFIN': 'diving fish hunter',
     'BIRD_STORK_WHITE': 'hunts frogs, fish, rodents',
+    # user 13 Oct: giant bugs eat whatever they can catch (the raws give these no CARNIVORE)
+    'GIANT_MANTIS': 'ambush hunter', 'GIANT_DRAGONFLY': 'the top aerial insect predator', 'GIANT_TICK': 'blood-feeder, carries disease',
+    'GIANT_MOSQUITO': 'blood-feeder, carries disease', 'GIANT_ROACH': 'eats anything it can catch',
 }
 REUSE = 0.01          # x per cast the species is already on this year (user 12 Oct; was CAST_DEF reuse 0.1)
 # sponges are placed like plants on the bed (user 30 Sep, 12 Oct): they pass the wild and natural filters and the biome
@@ -116,7 +122,52 @@ PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
 # the flying apex only by its sentience) on land-flying, the grimeling (EVIL, LARGE_PREDATOR semiaquatic hunter of marshes
 # and swamps; DF tags it NO_EAT+NO_DRINK, so it is let through the natural filter like the sponge man) on freshwater.
 # Wired into every land biome / freshwater body of an evil region.
-EVIL_APEX = {'HARPY': 'flying', 'GRIMELING': 'fresh'}
+EVIL_APEX = {'HARPY': 'flying', 'GRIMELING': 'fresh', 'NIGHTWING': 'flying'}
+# user 13 Oct: the nightwing (EVIL, LARGE_PREDATOR desert flier; DF tags it NO_EAT+NO_DRINK and sentient) is the evil desert
+# flier, wired only into an evil region's deserts (the harpy covers its grass, savanna, shrub and marsh)
+EVIL_APEX_BIOMES = {'NIGHTWING': {'DESERT_BADLAND', 'DESERT_ROCK', 'DESERT_SAND'}}
+def _bx(*names):
+    """biome names, ANY_* groups expanded"""
+    from raws import AGG
+    return {b for n in names for b in AGG.get(n, [n])}
+
+
+# Tool-side biome additions (user 13 Oct): the species is treated as living in these biomes as well as its raws' own. Apex
+# predators stuck in tropical-only subtypes (DF rarely makes tropical land) moved into the realistic ecotypes beside them,
+# MOUNTAIN given its first true apex, and the temperate wetlands kept an apex once the dingo is narrowed. The gates
+# (savage, alignment, extinct) still apply per biome. In the engine: ROSTER.EXTRA_BIOMES, read by buildPool.
+EXTRA_BIOMES = {
+    'LION': _bx('GRASSLAND_TEMPERATE', 'SAVANNA_TEMPERATE', 'SHRUBLAND_TEMPERATE', 'DESERT_BADLAND', 'DESERT_SAND'),
+    'TIGER': _bx('GRASSLAND_TROPICAL', 'SAVANNA_TROPICAL', 'FOREST_TAIGA', 'ANY_TEMPERATE_FOREST', 'GRASSLAND_TEMPERATE'),
+    'HYENA': _bx('ANY_DESERT', 'SAVANNA_TEMPERATE'),
+    'CHEETAH': _bx('DESERT_SAND', 'DESERT_ROCK', 'SAVANNA_TEMPERATE'),
+    'PYTHON': _bx('ANY_TROPICAL_SWAMP', 'ANY_TROPICAL_MARSH', 'FOREST_TROPICAL_DRY_BROADLEAF', 'GRASSLAND_TROPICAL', 'SAVANNA_TROPICAL'),
+    'MONITOR_LIZARD': _bx('ANY_DESERT', 'SWAMP_MANGROVE', 'MARSH_TROPICAL_FRESHWATER'),
+    'COUGAR': _bx('MOUNTAIN', 'DESERT_BADLAND', 'DESERT_ROCK', 'GRASSLAND_TEMPERATE', 'SWAMP_TEMPERATE_FRESHWATER'),
+    'LEOPARD': _bx('MOUNTAIN'),
+    'JAGUAR': _bx('ANY_TEMPERATE_WETLAND'),
+    'BEAR_BLACK': _bx('ANY_TEMPERATE_WETLAND'),
+    'WOLF': _bx('ANY_TEMPERATE_WETLAND'),
+    'ANACONDA': _bx('LAKE_TROPICAL_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
+}
+# ... and on evil biomes only: the evil roster widened beyond its narrow raw ranges (user 13 Oct)
+EVIL_EXTRA_BIOMES = {
+    'BEAK_DOG': _bx('ANY_WETLAND'),
+    'STRANGLER': _bx('ANY_TROPICAL_FOREST', 'ANY_TEMPERATE_FOREST'),
+    'BLENDEC_FOUL': _bx('ANY_FOREST'),
+    'OGRE': _bx('MOUNTAIN', 'ANY_DESERT'),
+}
+# the dingo's raws say NOT_FREEZING (23 of 27 land biomes), so it took half the ground apex draws: kept to arid, open and dry
+# country (user 13 Oct)
+BIOME_LIMIT = {
+    'DINGO': _bx('ANY_DESERT', 'ANY_GRASSLAND', 'ANY_SAVANNA', 'ANY_SHRUBLAND', 'FOREST_TROPICAL_DRY_BROADLEAF', 'FOREST_TEMPERATE_BROADLEAF'),
+}
+# Giant bug apexes (user 13 Oct): the giant bug-likes that hunt (the three giant arachnids, and five the raws left without
+# CARNIVORE, made predators in REAL_CARNIVORE) live in ANY savage or evil land biome of the fort, a calm evil one included
+# (past their giant SAVAGE tag), and are true apexes there; a flier is eligible on land-ground as well as land-flying.
+GIANT_BUGS = {'GIANT_JUMPING_SPIDER', 'GIANT_BARK_SCORPION', 'GIANT_BROWN_RECLUSE_SPIDER', 'GIANT_MANTIS', 'GIANT_DRAGONFLY',
+              'GIANT_TICK', 'GIANT_MOSQUITO', 'GIANT_ROACH'}
+APEX_PACK = 1.5       # the apex draw's pack bonus (user 13 Oct; was the cast-wide x3): group size already counts the pack
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
 # filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
 # bed (user 30 Sep) and takes no cast slot
@@ -133,12 +184,15 @@ def weird_weight(k, s):
 JUDGEMENT = [
     ('land-ground slots', 'not specified: kept the v7.4 land cast without its raptor, bird and sentient slots (apex 1, meso 2, grazer 2, ground prey 2, vermin 3).'),
     ('ranges', '"1-2" and "2-3": each cast draws its count inside the range, so cast sizes vary from season to season.'),
-    ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x3 for pack hunters, x0.01 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
+    ('apex rule', 'rebuilt 10 Oct: the apex is a weighted draw among the eligible predators in season, not the largest. Eligible: LARGE_PREDATOR species, giants of any predator, animal people whose root is eligible, the curated water apexes, raptors of 2,000 cm3 and up, and the real-life apexes DF does not flag (table on the page). Weight: the square root of group size (adult size x the pack\'s mean size) against the largest, x1.5 for pack hunters (13 Oct; x3 before: the pack was counted twice, in group size and again as the bonus), x0.01 per cast the species is already on this year, x0.2 giants, x0.1 animal people. No size floor (a 10% floor cut lions and hyenas beside a pair of ogres, and the great white beside an orca pod). The rest can still take meso. Water layers: only the curated water apexes (and their giants and animal people) are eligible, as in the engine; DF\'s other LARGE_PREDATOR water species (sea lamprey, frill shark, blacktip) take meso.'),
     ('hand-wiring', 'the audit\'s automatic proposal is approved and applied (12 Oct): per biome and region type, promoted residents and wired apexes are true apexes; a wired species is treated as living in the biome. Evil regions also get the harpy on land-flying and the grimeling on freshwater (the grimeling let through the natural filter as a hand-wired apex).'),
     ('local apexes', 'a "local" real-life apex (lynx, coyote, wolverine, gar, grouper...) holds the apex only when no true apex is in season; with none of either, the largest non-sentient predator is promoted (the old fallback, still your open question).'),
     ('sponges', 'the sponge and the giant sponge are placed like plants on the bed (30 Sep, 12 Oct): they pass the filters, enter the water layers they live in, and take no cast slot; the sponge man passes as a natural filter-feeder creature and can be cast.'),
     ('CARNIVORE fix', 'real-life hunters DF does not tag CARNIVORE are read as predators (table on the page): upper-level fish and small sharks, seals, walrus, mink, weasel, fish-eating seabirds and the white stork. Mid-level fish (cod, carp, bluefish, skate) and penguins are left as they were.'),
     ('reuse', 'x0.01^N at cast inclusion, N = the number of casts already built that hold the species (any layer, any season). The 28 casts are built at once at embark (or first enable, or a redraw) in a random order, seeded by site and year, so no season gets the first pick of the species eligible all year (a Spring-first order gave Spring the unpenalised pick; measured on the page).'),
+    ('biome additions', 'tool-side (13 Oct): apex predators DF keeps in tropical subtypes, which worldgen rarely makes, also live in the realistic ecotypes beside them (lion, tiger, hyena, cheetah, python, monitor lizard, cougar; leopard to mountains, jaguar, black bear and wolf to temperate wetlands; table on the page). The dingo is kept to arid, open and dry country. On evil regions the evil roster is widened (beak dog to every wetland, strangler and blendec foul to forests, ogre to mountains and deserts) and the nightwing is the evil desert flier. The gates still apply per biome.'),
+    ('giant bug apexes', 'giant bugs eat what they can catch (13 Oct): the mantis, dragonfly, tick, mosquito and roach are read as predators, and they and the three giant arachnids are true apexes in any savage or evil land biome, a calm evil one included; the fliers can take the land-ground apex as well as land-flying. The x0.2 giant weight still applies.'),
+    ('new water apexes', 'the tigerfish (tropical lakes and rivers) and the anaconda (wired into tropical lakes and rivers) are freshwater apexes (13 Oct).'),
     ('river-only apex', 'no apex slot (your list has none); flagged predators there can take the meso slot.'),
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
@@ -209,7 +263,7 @@ class Design:
                 for t, kind in self.wiring.get((sav, al, L, b), ()): out.append((L, t, kind, b))
                 if al == 'evil':
                     for t, el in EVIL_APEX.items():
-                        if el == L: out.append((L, t, 'wire', b))
+                        if el == L and b in EVIL_APEX_BIOMES.get(t, (b,)): out.append((L, t, 'wire', b))
         return out
 
     @staticmethod
@@ -224,6 +278,8 @@ class Design:
     def gate(self, info, b, fb, spec):
         """can this species live in fort biome b? (None = yes, else the reason)"""
         if b in SUBTER: return None
+        if info['token'] in GIANT_BUGS and fb['kind'] == 'land' and (fb['sav'] >= SAVAGE_AT or fb['evil'] >= EVIL_AT):
+            return None   # a giant bug apex lives in any savage or evil land biome (user 13 Oct)
         # a real-world-extinct species (not its animal person) follows the world's REAL_WORLD_EXTINCT rule in place of
         # its raw SAVAGE tag: DF's raws tag them all SAVAGE, the worldgen setting says savage-only or any wild region
         if info['extinct'] and not info['ap']:
@@ -258,7 +314,7 @@ class Design:
                 info = dict(info, eco='natural', ecoWhy=['filter feeder (kept, user 10 Oct)'], locked=False)
             if info['eco'] != 'natural' or info['mega'] or info['night']: continue
             funnel['natural (not locked)'] += 1
-            hit = [b for b in c['biomes'] if b in fbs]
+            hit = sorted(b for b in self.biomes_of(tok, c, fbs) if b in fbs)
             if not hit: continue
             funnel['BIOME matches the fort'] += 1
             ok, why = [], []
@@ -270,6 +326,8 @@ class Design:
             funnel['passes savage / alignment / extinct'] += 1
             e = dict(info)
             e.update(key=tok, matched=sorted(ok), weird=WEIRD.get(tok))
+            added = sorted(set(ok) - set(c['biomes']))
+            if added: e['extra'] = added      # biomes the tool-side tables gave it (not its raws')
             pool[tok] = e
         # the approved hand-wiring: a wired species is treated as living in the biome; wired and promoted species are true
         # apexes of the layer on this embark
@@ -287,6 +345,18 @@ class Design:
             pool[t] = e
         return pool, funnel, rejected
 
+    def biomes_of(self, tok, c, fbs):
+        """the biomes a species lives in: its raws' (narrowed by BIOME_LIMIT), the tool-side additions, the evil-only additions
+        on an evil biome, and for a giant bug apex every savage or evil land biome of the fort (user 13 Oct)"""
+        bs = set(c['biomes'])
+        if tok in BIOME_LIMIT: bs &= BIOME_LIMIT[tok]
+        bs |= EXTRA_BIOMES.get(tok, set())
+        for b in EVIL_EXTRA_BIOMES.get(tok, ()):
+            if b in fbs and fbs[b]['evil'] >= EVIL_AT: bs.add(b)
+        if tok in GIANT_BUGS:
+            bs |= {b for b, fb in fbs.items() if fb['kind'] == 'land' and (fb['sav'] >= SAVAGE_AT or fb['evil'] >= EVIL_AT)}
+        return bs
+
     # ------------------------------------------------------------------ step 2: the seven layers
     def layers_of(self, e, spec, fbs):
         """the layers a pool species belongs to, and the notes on layers it was kept out of"""
@@ -300,12 +370,15 @@ class Design:
                 if vc in ('VB', 'VI'): out.append('flying')
                 elif vc != 'VF': out.append('ground')
             elif hab == 'land': out.append('ground')
-            elif hab in ('flier', 'waterbird'): out.append('flying')
+            elif hab in ('flier', 'waterbird'):
+                out.append('flying')
+                if e['token'] in GIANT_BUGS: out.append('ground')   # a giant bug flier hunts on the ground too (user 13 Oct)
             elif hab == 'semiaquatic': notes.append(('ground', 'amphibious: never on land-ground'))
         # a water layer takes aquatic and amphibious species on any biome match; land animals, fliers and insects only
         # where their raws name the water body itself (ALL_MAIN or ANY_TROPICAL would put rats and beetles in every pool)
         wet = hab in ('aquatic', 'semiaquatic')
         named = explicit_water(self.R.creature(e['token'])['biome_tokens'], {b for b in m if fbs[b]['kind'] not in ('land', 'cavern')})
+        named |= set(e.get('extra', ())) & {b for b in m if fbs[b]['kind'] not in ('land', 'cavern')}   # a tool-side addition is named on purpose
         seas = {w['biome'] for w in spec['water'].get('ocean') or ()}
         if seas:
             if (m & seas and (wet or m & seas & named)) or (not verm and hab in ('semiaquatic', 'waterbird') and set(land) & SALT_WET):
@@ -333,6 +406,7 @@ class Design:
         """'apex', 'local' or None: can this species hold the apex slot on this layer?"""
         if e['civ'] or e['gameVermin']: return None
         if (layer, e['token']) in self.promoted: return 'apex'
+        if e['token'] in GIANT_BUGS and layer in ('ground', 'flying'): return 'apex'
         if self.flagged(e, layer): return 'apex'
         for tok in (e['token'], e.get('root')):
             r = REAL_APEX.get(tok)
@@ -435,9 +509,9 @@ class Design:
         return True
 
     # ------------------------------------------------------------------ one season cast
-    def weight(self, c, used, layer):
+    def weight(self, c, used, layer, pack=None):
         e, w = c['e'], 1.0
-        if self.predator(e) and not e['benign'] and e['cmax'] > 1: w *= CAST_DEF['pack']
+        if self.predator(e) and not e['benign'] and e['cmax'] > 1: w *= CAST_DEF['pack'] if pack is None else pack
         w *= REUSE ** used.get(e['token'], 0)   # only once drawn: `used` counts casts already built this year
         if e['giant']: w *= CAST_DEF['giant']
         if e['ap'] and not e['civ']: w *= R0['ap_pick']
@@ -494,7 +568,7 @@ class Design:
                 for c in sorted(elig, key=lambda c: (-gsize(c), c['e']['token'])):
                     g = gsize(c)
                     ok = g >= APEX_FLOOR * mx
-                    w = (g / mx) ** 0.5 * self.weight(c, used, layer) if ok else 0.0
+                    w = (g / mx) ** 0.5 * self.weight(c, used, layer, pack=APEX_PACK) if ok else 0.0
                     rows.append((c, g, w, ok))
                 tot = sum(w for _, _, w, _ in rows)
                 r, chosen = rng.random() * tot, None

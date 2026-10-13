@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import report  # noqa: E402
+import crowd_assets  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / 'data/castsim/design.json'
@@ -495,19 +496,20 @@ def rig_section(run='X3v75c'):
             "<th class='num' data-t='num'>ocean</th><th class='num' data-t='num'>brook</th><th class='num' data-t='num'>all</th></tr></thead><tbody>"
             + srows + '</tbody></table></div>')
     return f"""
-<h2 id="rig">On the rig: the v7.5 build, run (12 Oct)</h2>
-<p>The design on this page is now the engine (seasonal-wildlife v7.5, branch v7.5-fullpool). It ran on the three region19 forts from early spring
-through two season changes into autumn, one replicate each, with DF restarted for every fort: run X3v75c, on the final code after two earlier runs
-found four bugs (below). Before that, on the lake fort, the engine's pools matched this simulation species for species on every one of its layers.</p>
+<h2 id="rig">On the rig: a full year on v7.5 (12 Oct)</h2>
+<p>The design on this page is the engine (seasonal-wildlife v7.5, branch v7.5-fullpool). It ran on the three region19 forts for a whole year, from early
+spring through winter and 17 days into the next year, one replicate each, with DF restarted for every fort: run X4v75b, on the code after the review
+fixes. Earlier runs (X3v75 to X3v75c, spring to autumn) found and fixed four bugs (below). The rules applied on 13 Oct (<a href="#applied">below</a>)
+came after this run and have not run on the rig yet.</p>
 <div class="grid2">
-<div class="card"><h4>All three forts pass</h4><p><span class="big">3 / 3</span> no species arrived outside its cast later than a day after a change,
-no cast group was sent off, every sent-off group left within 10 days, and the reserve held its stock. {tot['arr']:,} managed arrivals in all.</p></div>
+<div class="card"><h4>The year turn changes nothing</h4><p><span class="big">3 / 3</span> forts ended with the casts they began with, none rebuilt at
+the new year, and every arrival of the new year ({sum(C[a]['analysis']['year_turn']['new_year_arrivals'].get('in_cast', 0) for a in 'LOB')} in all) was cast for its season.</p></div>
+<div class="card"><h4>Two pass, one fault found and fixed</h4><p><span class="big">2 / 3</span> pass every check. The lake fort's one fault: a cavern
+group sent off at the autumn change was released again 1.1 days later at a depth its species is not cast at. The release step now skips sent-off groups.</p></div>
 <div class="card"><h4>Species DF never stocked arrive</h4><p><span class="big">{tot['made']}</span> arrivals came from population entries the tool
-created, {tot['cave']} of them in the caverns (the dralthas and molemarians most of all). The full pool reaches the map.</p></div>
-<div class="card"><h4>Each cavern keeps its own cast</h4><p><span class="big">0</span> cavern arrivals at a depth their species is not cast at.
-A group still in a cavern its species has left is sent off at the change, as on the surface.</p></div>
-<div class="card"><h4>No DF hangs</h4><p><span class="big">{tot['hang']}</span> hangs in the three forts, where the run before hung eight times
-(one cause found and fixed below). The guard that fixed it wrote {tot['ka']} times.</p></div>
+created, {tot['cave']} of them in the caverns. {tot['arr']:,} managed arrivals in all.</p></div>
+<div class="card"><h4>No DF hangs in a year</h4><p><span class="big">{tot['hang']}</span> hangs on three forts over about 1.1 million ticks. The cavern
+keep-alive guard wrote {tot['ka']} times.</p></div>
 </div>
 {tbl}
 <p class="note">Arrivals are animals entering the map in the managed layers (births included). "Off-cast, later than a day" is the fault the run looks for:
@@ -526,23 +528,92 @@ Each entry is masked by its cast's seasons like DF's own and removed when the to
 depth stayed open: 10 animals came in through a cavern their species was not cast in. Fixed; and a species DF stocked in one cavern but cast in another
 now gets an entry at the cast depth.</td></tr>
 <tr><td>X3v75b</td><td>ocean pass; lake one fault; brook hung four times</td><td class='note'><b>The tool could freeze DF.</b> DF picks a cavern wave by raw FREQUENCY among one
-region tile's stocked animals in one cave; when every one reads 0 the pick never ends and the simulation stops while the screen still draws. With a cast
-per cavern, a tile's stock is its own cast, which the cap gate holds at 0 when the cavern is full. A guard now keeps one species of each such group at 1.
-The save that froze every time ran clean after it. <br><b>A pike in autumn</b>, cast for spring and winter: six created entries for freshwater species
-were filed where no season reached them. Each created entry now follows the cast it was made for.<br><b>No sponges on the ocean fort</b>, ever (older than
-v7.5): the sponge pass looked only for water-feature entries, which sea life does not have. Fixed: 58 sponges now on the floor.</td></tr>
-<tr><td>X3v75c</td><td>all three pass, no hangs</td><td class='note'>The final code. The three tables above.</td></tr>
+region tile's stocked animals in one cave; when every one reads 0 the pick never ends and the simulation stops while the screen still draws. A guard now
+keeps one species of each such group at 1. <br><b>A pike in autumn</b>, cast for spring and winter: created entries for freshwater species were filed where
+no season reached them; each now follows the cast it was made for.<br><b>No sponges on the ocean fort</b>: the sponge pass looked only for water-feature
+entries, which sea life does not have. Fixed.</td></tr>
+<tr><td>X3v75c</td><td>all three pass, no hangs</td><td class='note'>Spring to early autumn on the final code of the build.</td></tr>
+<tr><td>X4v75b</td><td>full year: ocean and brook pass; lake one fault</td><td class='note'><b>A sent-off group released again.</b> A DF wave the cavern gate holds
+back is released later, oldest first; one sent off by the season change could still be picked, so a draltha, cast only in cavern 1 for autumn, was
+released in cavern 2 1.1 days in (two more on the ocean fort, inside the day). The release now skips sent-off groups, as it skipped trimmed ones.
+The analyser also scored two albatross groups "not left in 10 days": albatrosses are cast on the water layer in summer and gated as land, so the
+cast's own birds stayed on the map; the tool's leave check found none of the sent-off ones still there. Scored now as in the cast.</td></tr>
 </tbody></table></div>
 <h3>Not yet seen on the rig</h3>
 <ul class="find">
-<li><b>A giant sponge on a savage ocean.</b> None of the three forts has one; a ribbon forced on the ocean fort placed 16 correctly.</li>
-<li><b>A full year and a second one.</b> The run covers spring to early autumn: the winter casts, the new-year turnover and how fast created entries
-run down (local extinction) are still to watch.</li>
-<li><b>Savage, evil and extinct-rich embarks.</b> All three forts are calm and neutral, so the giants, animal people, harpy, grimeling and wired apexes
-of the audit have only been simulated.</li>
-<li><b><code>off</code> after a long run.</b> Removing created entries was checked once (45 entries, 45k ticks); not yet after a season-run with their
-animals breeding on the map.</li>
+<li><b>The 13 Oct rules</b> (biome additions, the narrowed dingo, giant bug apexes, the new water apexes, the x1.5 apex pack weight).</li>
+<li><b>Savage, evil and good embarks.</b> Five new forts are embarked for this (good and evil coasts, a small savage patch on a lake, untamed wilds on
+a lake, joyous wilds on a coast) with their water on the map; the giants, animal people, harpy, grimeling and wired apexes run there next.</li>
+<li><b>A giant sponge on a savage ocean</b> (the joyous wilds coast has one).</li>
+<li><b><code>off</code> after a long run.</b> Removing created entries was checked once (45 entries, 45k ticks); not yet after a year of their animals
+breeding on the map.</li>
 </ul>
+"""
+
+
+def crowd_section(run='X4v75b'):
+    """stacked bars per day: the crowd (height), the diversity (one segment per species) and the mix (colour by animal type)"""
+    import crowd
+    from design import Design
+    S = crowd.series(RUNS / run, Design().E.classify)
+    if not S['forts']:
+        return ''
+    blob = json.dumps(S, separators=(',', ':')).replace('</', '<\\/')
+    return f"""
+<h2 id="crowd">Crowdedness and diversity through the year</h2>
+<p>Every wild animal on the map in run {run}, one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
+number of segments is its diversity that day), coloured by animal type. Dashed lines mark the season changes, when the casts turn over. The three charts
+share their y-scale across the forts, so switching fort compares like with like. Hover a day for its species; each chart's table lists them all.</p>
+<div id="crowd" class="viz-root"></div>
+<script id="crowd-data" type="application/json">{blob}</script>
+"""
+
+
+def applied_section():
+    """the user's decisions of 13 Oct and what they change"""
+    import design as Dz
+    from apex_share import compare
+    raw = Dz.Design().R
+    def biomes(toks):
+        return ', '.join(sorted(b.lower().replace('_', ' ') for b in toks))
+    rows = ''.join(f"<tr><td class='mono'>{t}</td><td class='num'>{len(raw.creature(t)['biomes'])}</td><td>{biomes(bs)}</td><td>any region</td></tr>"
+                   for t, bs in sorted(Dz.EXTRA_BIOMES.items()))
+    rows += ''.join(f"<tr><td class='mono'>{t}</td><td class='num'>{len(raw.creature(t)['biomes'])}</td><td>{biomes(bs)}</td><td>evil regions only</td></tr>"
+                    for t, bs in sorted(Dz.EVIL_EXTRA_BIOMES.items()))
+    rows += ''.join(f"<tr><td class='mono'>{t}</td><td class='num'>{len(raw.creature(t)['biomes'])}</td><td>{biomes(bs)}</td><td>evil deserts (wired evil flier)</td></tr>"
+                    for t, bs in sorted(Dz.EVIL_APEX_BIOMES.items()))
+    limit = ''.join(f"<tr><td class='mono'>{t}</td><td class='num'>{len(raw.creature(t)['biomes'])}</td><td>{biomes(bs)}</td><td>kept to these (narrowed)</td></tr>"
+                    for t, bs in sorted(Dz.BIOME_LIMIT.items()))
+    bugs = ''.join(f"<tr><td class='mono'>{t}</td><td>{'flier: land-ground or land-flying' if Dz.Design().E.classify(t)['habitat'] in ('flier', 'waterbird') else 'land-ground'}</td>"
+                   f"<td class='note'>{Dz.REAL_CARNIVORE.get(t, 'already a predator in the raws (CARNIVORE)')}</td></tr>" for t in sorted(Dz.GIANT_BUGS))
+    before, after, _, none_after = compare()
+    top = sorted(set(before) | set(after), key=lambda t: -after.get(t, 0))
+    share = ''.join(f"<tr><td class='mono'>{t}</td><td class='num' data-v='{before.get(t, 0):.4f}'>{before.get(t, 0):.1%}</td>"
+                    f"<td class='num' data-v='{after.get(t, 0):.4f}'>{after.get(t, 0):.1%}</td></tr>"
+                    for t in top if max(before.get(t, 0), after.get(t, 0)) >= 0.005)
+    return f"""
+<h2 id="applied">Applied 13 Oct: your apex decisions</h2>
+<p>Your answers to the apex review, now in the simulation (every table on this page is regenerated with them) and ported to the engine. Not yet run on
+the rig.</p>
+<ul class="find">
+<li><b>The audit bug is fixed.</b> The audit read every row's apex tiers after its last embark, so one embark's wiring stood for all: the grimeling showed
+as an evil freshwater apex everywhere and the harpy nowhere. Tiers are now read with each row; the harpy and the nightwing are in the evil flying rows.</li>
+<li><b>Two new freshwater apexes:</b> the tigerfish (tropical lakes and rivers) and the anaconda (into tropical lakes and rivers through the table below).</li>
+<li><b>The dingo is narrowed</b> to arid, open and dry country; the temperate wetlands it held alone get the black bear, the wolf, the cougar and the jaguar.</li>
+<li><b>The apex draw's pack bonus is x1.5</b> (it was the cast-wide x3; the pack is also counted in group size). Every other slot keeps x3.</li>
+<li><b>Tool-side biome additions</b> for the apexes DF keeps in tropical subtypes, and a wider evil roster on evil regions (table). The savage, alignment
+and extinct gates still apply per biome, and the engine creates population entries for cast species DF has not stocked, so DF sends them itself.</li>
+<li><b>Giant bug apexes:</b> the giant mantis and four more giant bugs the raws leave without CARNIVORE are read as predators; they and the three giant
+arachnids are true apexes in any savage or evil land biome, a calm evil one included, and the fliers can take the land-ground apex as well as land-flying.</li>
+</ul>
+<h3>Who takes the land-ground apex</h3>
+<p>Each species' share of the land-ground apex draw on a calm, neutral region, every land biome and season weighted equally, under the rules of 12 Oct
+and of 13 Oct.{(' Biomes with no apex after: ' + ', '.join(none_after) + '.') if none_after else ' Every land biome keeps an apex.'}</p>
+<div class='tbl'><table><thead><tr><th>species</th><th class='num' data-t='num'>12 Oct</th><th class='num' data-t='num'>13 Oct</th></tr></thead><tbody>{share}</tbody></table></div>
+<h3>Biome additions and limits</h3>
+<div class='tbl'><table><thead><tr><th>species</th><th class='num' data-t='num'>raw biomes (water ones included)</th><th>added (or kept to)</th><th data-t='cat'>where</th></tr></thead><tbody>{rows}{limit}</tbody></table></div>
+<h3>Giant bug apexes</h3>
+<div class='tbl'><table><thead><tr><th>species</th><th data-t='cat'>apex on</th><th>why a predator</th></tr></thead><tbody>{bugs}</tbody></table></div>
 """
 
 
@@ -555,7 +626,7 @@ def main():
     html = f"""<title>Cast Pipeline Trace</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
-<style>{report.CSS}{CSS_EXTRA}</style>
+<style>{report.CSS}{CSS_EXTRA}{crowd_assets.CSS}</style>
 <div class="wrap">
 <section class="lede">
   <span class="eyebrow">Seasonal Wildlife · the full-pool design · simulated 9 Oct · built and run on the rig 12 Oct 2026</span>
@@ -579,7 +650,9 @@ except the locked unliving cave species, the lava-only magma crab, demons, and o
 <div class="card"><h4>Caverns get stranger with depth</h4><p>Mean weirdness of the casts: cavern 1 <b>{st['w1']}</b>, cavern 2 <b>{st['w2']}</b>,
 cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p></div>
 </div>
-{rig_section()}
+{rig_section('X4v75b')}
+{crowd_section('X4v75b')}
+{applied_section()}
 
 <h2>The layers and their slots</h2>
 <p>As you set them, with land-ground (not specified) kept from v7.4 without its bird, raptor and sentient slots. A range draws its count per cast.</p>
@@ -795,6 +868,7 @@ design_run.py. Random draws are seeded per embark, layer and season, so one run 
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 <script id="data" type="application/json">{blob}</script>
 <script>{JS}</script>
+<script>{crowd_assets.JS}</script>
 """
     OUT.write_text(html)
     print('wrote', OUT, len(html))

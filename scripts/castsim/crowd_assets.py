@@ -1,0 +1,131 @@
+"""castsim.crowd_assets: the CSS and JS for the crowdedness-and-diversity charts (design_report.crowd_section)."""
+
+CSS = r"""
+.viz-root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#4a3aa7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .viz-root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9}}
+:root[data-theme="dark"] .viz-root{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#008300;--s7:#9085e9}
+.crowd-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 14px}
+.crowd-filters span{color:var(--muted);font-size:13px;margin-right:4px}
+.crowd-filters button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.crowd-filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.crowd-chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 6px;margin:0 0 14px;position:relative}
+.crowd-chart h4{margin:0 0 2px;font-size:15px}
+.crowd-chart .sub{color:var(--muted);font:400 12.5px/1.45 var(--sans);margin:0 0 6px;max-width:none}
+.crowd-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink);margin:4px 0 4px}
+.crowd-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.crowd-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.crowd-chart .grid line{stroke:var(--line);stroke-width:1}
+.crowd-chart .axis text{fill:var(--muted);font-size:11px;font-family:var(--sans)}
+.crowd-chart .season line{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3;opacity:.7}
+.crowd-chart .season text{fill:var(--muted);font-size:11px}
+.crowd-chart .hl{fill:var(--ink);opacity:.06}
+.crowd-tip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  box-shadow:0 6px 18px rgba(0,0,0,.14);padding:8px 10px;font-size:12.5px;min-width:190px;max-width:280px;color:var(--ink)}
+.crowd-tip b{font-weight:600}.crowd-tip .m{color:var(--muted)}
+.crowd-tip table{border-collapse:collapse;margin-top:4px;width:100%}.crowd-tip td{padding:1px 0;font-family:var(--mono);font-size:11.5px}
+.crowd-tip td.n{text-align:right;padding-left:10px}
+.crowd-tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.crowd-chart details{margin:4px 0 6px;font-size:13px}.crowd-chart details summary{cursor:pointer;color:var(--muted)}
+"""
+
+JS = r"""
+(function(){
+const C = JSON.parse(document.getElementById('crowd-data').textContent);
+const root = document.getElementById('crowd');
+if (!root || typeof d3 === 'undefined') return;
+const TYPES = C.type_order, SLOT = t => 'var(--s' + (TYPES.indexOf(t) + 1) + ')';
+const FORT = {L: 'Lake fort', O: 'Ocean-shore fort', B: 'Brook fort'};
+const LAYER = {land: 'Land', water: 'Water', cavern: 'Caverns'};
+const SEASON = d => { const s = Math.floor((d % 336) / 84), n = ['Spring', 'Summer', 'Autumn', 'Winter'][s];
+  return n + ' ' + (d % 84 + 1) + (d >= 336 ? ' (y251)' : ''); };
+const totals = (cs) => cs.map(c => c.reduce((a, p) => a + p[1], 0));
+// one y-scale per layer across the forts, so switching forts compares crowding
+const ymax = {};
+for (const L of ['land', 'water', 'cavern']) ymax[L] = d3.max(Object.values(C.forts), f => d3.max(totals(f.layers[L].counts))) || 1;
+const filt = document.createElement('div'); filt.className = 'crowd-filters';
+filt.innerHTML = '<span>Fort</span>' + Object.keys(C.forts).map((a, i) =>
+  `<button type="button" data-arm="${a}" aria-pressed="${i === 0}">${FORT[a]}</button>`).join('');
+root.appendChild(filt);
+const charts = {};
+for (const L of ['land', 'water', 'cavern']) {
+  const box = document.createElement('div'); box.className = 'crowd-chart';
+  box.innerHTML = `<h4>${LAYER[L]}</h4><p class="sub"></p><div class="crowd-legend"></div><div class="plot"></div>
+    <details><summary>Species table</summary><div class="tbl"></div></details>`;
+  root.appendChild(box); charts[L] = box;
+}
+const tip = document.createElement('div'); tip.className = 'crowd-tip'; tip.hidden = true; root.appendChild(tip);
+let arm = Object.keys(C.forts)[0];
+function draw() {
+  const F = C.forts[arm];
+  for (const L of ['land', 'water', 'cavern']) {
+    const box = charts[L], D = F.layers[L], days = F.days, sp = D.species;
+    const tot = totals(D.counts);
+    const present = new Set(sp.map(t => C.types[t]));
+    box.querySelector('.crowd-legend').innerHTML = TYPES.filter(t => present.has(t))
+      .map(t => `<span><i style="background:${SLOT(t)}"></i>${t}</span>`).join('');
+    const nsp = D.counts.map(c => c.length);
+    box.querySelector('.sub').textContent = `${FORT[arm]}: up to ${d3.max(tot) || 0} animals and ${d3.max(nsp) || 0} species on one day; ${sp.length} species over the run. One bar per day, one segment per species.`;
+    const plot = box.querySelector('.plot'); plot.innerHTML = '';
+    const W = Math.max(320, plot.clientWidth || 900), H = 210, m = {t: 18, r: 8, b: 22, l: 34};
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const x = d3.scaleBand().domain(days).range([0, iw]).paddingInner(days.length > 200 ? 0.15 : 0.25);
+    const y = d3.scaleLinear().domain([0, ymax[L]]).nice().range([ih, 0]);
+    const svg = d3.select(plot).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', `${LAYER[L]}: wild animals on the map per day, ${FORT[arm]}`);
+    const g = svg.append('g').attr('transform', `translate(${m.l},${m.t})`);
+    g.append('g').attr('class', 'grid').selectAll('line').data(y.ticks(4)).join('line')
+      .attr('x1', 0).attr('x2', iw).attr('y1', d => y(d)).attr('y2', d => y(d));
+    g.append('g').attr('class', 'axis').selectAll('text').data(y.ticks(4)).join('text')
+      .attr('x', -6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').text(d => d);
+    const hl = g.append('rect').attr('class', 'hl').attr('y', 0).attr('height', ih).attr('width', x.bandwidth()).attr('visibility', 'hidden');
+    const bw = x.bandwidth(), gap = 1;
+    days.forEach((d, i) => {
+      let acc = 0;
+      for (const [k, n] of D.counts[i]) {
+        const y0 = y(acc), y1 = y(acc + n); acc += n;
+        const h = Math.max(0.5, y0 - y1 - gap);
+        g.append('rect').attr('x', x(d)).attr('y', y1 + gap).attr('width', bw).attr('height', h)
+          .attr('rx', Math.min(1.5, bw / 3)).attr('fill', SLOT(C.types[sp[k]]));
+      }
+    });
+    const sg = g.append('g').attr('class', 'season');
+    for (const [d, label] of C.seasons) {
+      if (d < days[0] || d > days[days.length - 1] + 1) continue;
+      const xx = d === days[0] ? 0 : (x(d) ?? iw) - 0.5;
+      sg.append('line').attr('x1', xx).attr('x2', xx).attr('y1', -6).attr('y2', ih);
+      sg.append('text').attr('x', xx + 4).attr('y', -6).text(label);
+    }
+    if (days[0] > 0) sg.append('text').attr('x', 2).attr('y', -6).text('Spring ' + (days[0] + 1));
+    g.append('g').attr('class', 'axis').selectAll('text').data(days.filter(d => d % 28 === 0)).join('text')
+      .attr('x', d => x(d) + bw / 2).attr('y', ih + 15).attr('text-anchor', 'middle').text(d => 'day ' + d);
+    // hover: the day under the pointer (hit target = the whole column)
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', iw).attr('height', ih).attr('fill', 'transparent')
+      .on('pointermove', ev => {
+        const [px] = d3.pointer(ev, g.node());
+        const i = Math.max(0, Math.min(days.length - 1, Math.floor(px / x.step())));
+        hl.attr('x', x(days[i])).attr('visibility', 'visible');
+        const rows = D.counts[i].slice().sort((a, b) => b[1] - a[1]);
+        tip.innerHTML = `<b>${SEASON(days[i])}</b> <span class="m">· day ${days[i]}</span><br>${tot[i]} animals, ${rows.length} species` +
+          (rows.length ? '<table>' + rows.slice(0, 14).map(([k, n]) => `<tr><td><i style="background:${SLOT(C.types[sp[k]])}"></i>${sp[k].toLowerCase()}</td><td class="n">${n}</td></tr>`).join('') +
+          (rows.length > 14 ? `<tr><td class="m">+ ${rows.length - 14} more</td><td></td></tr>` : '') + '</table>' : '');
+        tip.hidden = false;
+        const rb = root.getBoundingClientRect(), bb = box.getBoundingClientRect();
+        let left = ev.clientX - rb.left + 14; const tw = tip.offsetWidth;
+        if (left + tw > rb.width) left = ev.clientX - rb.left - tw - 14;
+        tip.style.left = Math.max(0, left) + 'px'; tip.style.top = (bb.top - rb.top + 40) + 'px';
+      })
+      .on('pointerleave', () => { hl.attr('visibility', 'hidden'); tip.hidden = true; });
+    // table view: species, type, days on the map, mean on the days present, peak
+    const st = sp.map((t, k) => { let dd = 0, s = 0, pk = 0;
+      for (const c of D.counts) { const p = c.find(q => q[0] === k); if (p) { dd++; s += p[1]; pk = Math.max(pk, p[1]); } }
+      return {t, type: C.types[t], dd, mean: dd ? s / dd : 0, pk}; }).sort((a, b) => b.dd - a.dd || b.pk - a.pk);
+    box.querySelector('details .tbl').innerHTML = '<table><thead><tr><th>species</th><th data-t="cat">type</th><th class="num" data-t="num">days on the map</th><th class="num" data-t="num">mean when present</th><th class="num" data-t="num">peak</th></tr></thead><tbody>' +
+      st.map(r => `<tr><td class="mono">${r.t}</td><td>${r.type}</td><td class="num">${r.dd}</td><td class="num">${r.mean.toFixed(1)}</td><td class="num">${r.pk}</td></tr>`).join('') + '</tbody></table>';
+  }
+}
+filt.addEventListener('click', ev => { const b = ev.target.closest('button[data-arm]'); if (!b) return;
+  arm = b.dataset.arm; filt.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(draw, 120); }).observe(root);
+draw();
+})();
+"""

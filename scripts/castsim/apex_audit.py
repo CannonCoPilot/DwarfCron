@@ -67,7 +67,9 @@ def gsize(D, e):
 def main():
     D = Design()
     # residents[(cond, layer, biome)] = {token: entry}
-    res = {}
+    res, tiers = {}, {}
+    # the tiers are read right after each pool: Design.promoted holds only the CURRENT embark's wiring, so tiers read after
+    # the loop saw the last embark's (GRIMELING everywhere, HARPY nowhere; fixed 13 Oct)
     for cond in CONDITIONS:
         for b in LAND + OCEANS + LAKES + RIVERS:
             spec, layers = spec_for(b, *cond)
@@ -76,11 +78,12 @@ def main():
             for L in layers:
                 res[(cond, L, b)] = {t: e for t, e in pool.items()
                                      if L in D.layers_of(e, spec, fbs)[0] and not e['gameVermin'] and not e.get('plant')}
+                tiers[(cond, L, b)] = {t: D.apex_tier(e, L) for t, e in res[(cond, L, b)].items()}
     rows = []
     for cond in CONDITIONS:
         for (c2, L, b), mem in sorted(res.items()):
             if c2 != cond or b in RIVERS: continue
-            tier = {t: D.apex_tier(e, L) for t, e in mem.items()}
+            tier = tiers[(c2, L, b)]
             per = [{'true': sorted(t for t, e in mem.items() if tier[t] == 'apex' and not e['noSeason'][s]),
                     'local': sorted(t for t, e in mem.items() if tier[t] == 'local' and not e['noSeason'][s])} for s in range(4)]
             min_true = min(len(p['true']) for p in per)
@@ -99,7 +102,7 @@ def main():
                 for (c3, L3, b3), m3 in res.items():
                     if c3 != cond or L3 != L or b3 == b or not bands_match(band(b), band(b3)): continue
                     for t, e in m3.items():
-                        if t in mem or D.apex_tier(e, L) != 'apex': continue
+                        if t in mem or tiers[(c3, L3, b3)][t] != 'apex': continue
                         cands.setdefault(t, (e, set()))[1].add(b3)
                 for t, (e, homes) in cands.items():
                     union = set()
@@ -127,7 +130,7 @@ def main():
             for (c2, L2, b), mem in res.items():
                 if c2 != cond or L2 != L: continue
                 for t, e in mem.items():
-                    if D.apex_tier(e, L) == 'apex': by.setdefault(t, set()).add(b)
+                    if tiers[(c2, L2, b)][t] == 'apex': by.setdefault(t, set()).add(b)
             for t, bs in sorted(by.items()):
                 e = D.E.classify(t)
                 roll.append({'sav': cond[0], 'align': cond[1], 'layer': L, 't': t, 'n': len(bs), 'biomes': sorted(bs),
