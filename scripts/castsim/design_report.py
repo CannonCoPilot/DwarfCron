@@ -424,8 +424,8 @@ def rig_cells(run='X3v75c'):
     return out
 
 
-def rig_section():
-    C = rig_cells()
+def rig_section(run='X3v75c'):
+    C = rig_cells(run)
     if len(C) < 3:
         return ''
     yes = "<span class='chip ok'>pass</span>"
@@ -453,7 +453,8 @@ def rig_section():
            "<th class='num' data-t='num'>keep-alive writes</th><th class='num' data-t='num'>DF hangs</th></tr></thead><tbody>"
            + ''.join(rows) + '</tbody></table></div>')
     # arrivals by layer and season, all forts
-    seasons = ['Spring', 'Summer', 'Autumn']
+    # the seasons the run reached, in calendar order (a full-year run adds Winter)
+    seasons = [s for s in SEASONS if any(k.endswith(' ' + s) for a in 'LOB' for k in C[a]['analysis']['arrivals'])]
     lrows = []
     for a in 'LOB':
         ar = C[a]['analysis']['arrivals']
@@ -466,6 +467,21 @@ def rig_section():
             lrows.append(f"<tr><td>{FORT[a]}</td><td><span class='chip {L}'>{L}</span></td>{''.join(cells)}</tr>")
     ltbl = ("<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>layer</th>"
             + ''.join(f"<th class='num' data-t='num'>{s}</th>" for s in seasons) + '</tr></thead><tbody>' + ''.join(lrows) + '</tbody></table></div>')
+    # a run that crosses a new year: the casts are built once, so the year turn must change nothing
+    yrows = []
+    for a in 'LOB':
+        Y = C[a]['analysis'].get('year_turn')
+        if not Y:
+            continue
+        na = Y.get('new_year_arrivals') or {}
+        yrows.append(f"<tr><td>{FORT[a]}</td><td>{yes if Y['casts_unchanged'] else no}</td>"
+                     f"<td class='num'>{len(Y['cast_builds_after_start'])}</td><td class='num'>{na.get('in_cast', 0)}</td>"
+                     f"<td class='num'>{na.get('off_cast', 0)}</td></tr>")
+    ytbl = ("<h3>Across the new year</h3><p>The casts are built once at embark and kept: the year turn must rebuild nothing, and the new year's "
+            "arrivals must be the casts of their season.</p><div class='tbl'><table><thead><tr><th data-t='cat'>fort</th>"
+            "<th data-t='cat'>casts the same at the end</th><th class='num' data-t='num'>cast builds after the start</th>"
+            "<th class='num' data-t='num'>new-year arrivals in cast</th><th class='num' data-t='num'>off cast</th></tr></thead><tbody>"
+            + ''.join(yrows) + '</tbody></table></div>') if yrows else ''
     # created-entry arrivals by species
     sp = {}
     for a in 'LOB':
@@ -499,6 +515,7 @@ a wave DF picks just before a change may land just after it, so the first day is
 <h3>Arrivals by layer and season</h3>
 <p>Every arrival on every layer was a species cast for that season, apart from the few marked, all inside the first day after a change.</p>
 {ltbl}
+{ytbl}
 <h3>Arrivals from the entries the tool created</h3>
 <p>Species DF had not stocked on the fort, drawn by DF itself from the entries the tool made for them (and, for the apexes, placed by the tool's scheduler).
 Each entry is masked by its cast's seasons like DF's own and removed when the tool is turned off.</p>
