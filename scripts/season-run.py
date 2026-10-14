@@ -1364,18 +1364,33 @@ def analyse_cell(d: Path) -> dict:
         # one record per (tick, layer, species): its groups' own dismiss lines summed; the turnover's summary line
         # ("season cast: N group(s) ... sent off (A, B)") names the same groups, so it only tags them
         turn = collections.defaultdict(collections.Counter)
+        # X7v75d: DF ids can hold a comma ('PLATYPUS, GIANT'), which the list also uses; join list items back into the names the
+        # per-group dismiss lines of the same tick carry
+        RACE = r'([A-Z][A-Z0-9_ ]*(?:, [A-Z][A-Z0-9_ ]*)?)'
+        named = collections.defaultdict(set)
+        for t, kind, L, text in led:
+            mg = re.match(RACE + r' x(\d+) (?:dismissed|sent off)', text) if kind == 'dismiss' and t is not None else None
+            if mg:
+                named[t].add(mg.group(1).strip())
         for t, kind, L, text in led:
             m = re.search(r'season cast: .*sent off \((.*)\)', text) if kind == 'dismiss' and t is not None else None
             if m:
-                turn[t].update(x.strip() for x in m.group(1).split(','))
+                parts, out = [x.strip() for x in m.group(1).split(',')], []
+                i = 0
+                while i < len(parts):
+                    if i + 1 < len(parts) and f'{parts[i]}, {parts[i + 1]}' in named[t]:
+                        out.append(f'{parts[i]}, {parts[i + 1]}'); i += 2
+                    else:
+                        out.append(parts[i]); i += 1
+                turn[t].update(out)
         recs, taken = collections.OrderedDict(), []
         for t, kind, L, text in led:
             if kind == 'dismiss' and 'taken off the map' in text:   # v7.4 leaveCheck: an earlier send-off taken off, not a new one
-                mt = re.search(r'([A-Z][A-Z0-9_ ]*?) x(\d+) sent off ([0-9.]+) days ago', text)
+                mt = re.match(RACE + r' x(\d+) sent off ([0-9.]+) days ago', text)
                 if mt:
                     taken.append({'tick': t, 'layer': L, 'race': mt.group(1).strip(), 'units': int(mt.group(2)), 'after_days': float(mt.group(3))})
                 continue
-            m = re.search(r'([A-Z][A-Z0-9_ ]*?) x(\d+) (?:dismissed|sent off)', text) if kind == 'dismiss' and t is not None else None
+            m = re.match(RACE + r' x(\d+) (?:dismissed|sent off)', text) if kind == 'dismiss' and t is not None else None
             if not (m and L in MANAGED):
                 continue
             race, s = m.group(1).strip(), season_of(t)

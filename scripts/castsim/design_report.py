@@ -412,19 +412,25 @@ def stats(data, meta_roll=()):
 RUNS = ROOT / 'data/season-run'
 FORT = {'L': 'Lake fort', 'O': 'Ocean-shore fort', 'B': 'Brook fort'}
 RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the region-type forts of 13 Oct)
+    'X7v75': [('B', 'Brook'), ('X', 'Extinct wilds'), ('E', 'Evil coast, sheltered'), ('G', 'Good coast'), ('S', 'Small savage lake'),
+              ('U', 'Untamed wilds lake'), ('J', 'Joyous wilds coast'), ('T', 'Terrifying coast')],
     'X5v75': [('G', 'Good coast'), ('E', 'Evil coast'), ('S', 'Small savage lake'), ('U', 'Untamed wilds lake'),
               ('J', 'Joyous wilds coast'), ('T', 'Terrifying coast')],
 }
 
 
-RERUN = {('X5v75', 'E'): 'X5v75e'}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
+RERUN = {('X5v75', 'E'): 'X5v75e',
+         # X7v75: the continuation (X7v75b) ran G S U J T; the reruns on the fixes found (X7v75c) ran B E G J T -- the newest cell wins
+         **{('X7v75', a): ['X7v75b', 'X7v75c'] for a in 'GJ'}, **{('X7v75', a): 'X7v75b' for a in 'SU'},
+         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
 
 
 def cell_dir(run, a):
     """the folder holding a run's arm: its rerun's, once that has a cell"""
-    r = RERUN.get((run, a))
-    if r and RUNS.joinpath(r, a, 'rep1', 'cell.json').exists():
-        return RUNS.joinpath(r, a, 'rep1')
+    rs = RERUN.get((run, a)) or []
+    for r in reversed([rs] if isinstance(rs, str) else rs):
+        if RUNS.joinpath(r, a, 'rep1', 'cell.json').exists():
+            return RUNS.joinpath(r, a, 'rep1')
     return RUNS.joinpath(run, a, 'rep1')
 
 
@@ -675,6 +681,31 @@ Arrivals are counted only on the surface layers below (land and water); the cave
 """
 
 
+X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES.md of each run)
+    'B': "<b>The brook got no animals of its own</b> in its first year: every 'water' arrival was an osprey DF sent. Its fresh casts held species too "
+         "large for a brook (your 6 Oct cap, 10,000 cm³), and its one small species, the platypus, had only a land entry the water draw ignored. "
+         "Fixed (the brook cap on the fresh cast; the water draw takes the season's water-cast species from land entries): the rerun drew platypus "
+         "23 times, and frogs, turtles and beavers, into the brook and its 16 murky pools all year. It also put giant tree frogs (200,700 cm³) into "
+         "the pools, so the draw now keeps pools to small creatures too. The table shows the last run, with the casts rebuilt on those rules.",
+    'X': "<b>The walker fix holds for a whole year:</b> 49 extinct arrivals (ankylosaurus 10, kelenken 9, triceratops 9, kosmoceratops 7, "
+         "megacerops 5, nodosaurus 4, allosaurus 2, torvosaurus, glyptodon, smilodon). One population ran out (a longnose gar); no stand-in passed "
+         "the checks (the closest failed the guild check) and its slot stayed empty, as designed.",
+    'E': "<b>The first full evil-coast year.</b> The first sheltered run was lost in autumn: a mink drawn into a pool was raised as an ash zombie, "
+         "walked down the shelter's open stair and bit the mayor, and the infection took the fort. A hatch cover over the stair (animals cannot open "
+         "it) and the rerun passed every check with the fort alive.",
+    'G': "<b>One season change sent a cast species off:</b> a sturgeon drawn into the ocean from the summer cast was sent off the same day, because "
+         "ocean species carry two keys and the check read the one not cast. Fixed. The rerun's one miss: a weasel sent off at the autumn change "
+         "stood on the map's edge and did not vanish at day 8 when told to; it left on day 14 (pending).",
+    'S': "<b>Passes.</b> 220 pauses and not one group sent off over a cap.",
+    'U': "<b>No false exhaustion any more.</b> Last run this fort logged four animal-people populations as exhausted and brought in off-season "
+         "stand-ins; this year it logged none, because those readings were waves on their way, not dead populations.",
+    'J': "<b>Passes</b> on the rerun (the first run had the same sturgeon send-off as the good coast). One stand-in under the new checks: an "
+         "octopus for a Triassic Psephoderma that ran out in autumn.",
+    'T': "<b>Lost twice to its own dead.</b> Terrifying land raises corpses: with 7 dwarves a reanimated stegosaurus killed the leader in spring; "
+         "with 50, risen echidnas, utahraptors, brontosauruses and storks overran them in summer. Sheltered like the evil coast for the last run.",
+}
+
+
 def changes_section():
     """13 Oct afternoon and evening: the walker fix, the pauses, pools and brooks, exhaustion and stand-ins, the shelter"""
     def tbl(head, rows):
@@ -838,6 +869,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {rig_section('X4v75b')}
 {region_section('X5v75')}
 {changes_section()}
+{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b, X7v75c).")}
 {crowd_section('X4v75b')}
 {applied_section()}
 
