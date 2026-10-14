@@ -224,7 +224,7 @@ def layer_table(meta):
         'ocean': 'species whose raws name the fort\'s sea (aquatic and amphibious on any match), shore creatures and waterbirds of a saltwater marsh, swamp or mangrove; sea vermin',
         'fresh:lake': 'a lake (or lake + river): species naming the fort\'s lake, river or pool; amphibians matching a fort land biome',
         'fresh:river': 'river or brook, no lake: as the lake, smaller',
-        'fresh:pool': 'murky pools only: small aquatic or amphibious species (up to 20,000 cm³); the fish slot also takes fish and amphibious vermin',
+        'fresh:pool': 'murky pools only: small lake and river species (up to 20,000 cm³) and vermin; raws must reach fresh water; the fish slot also takes fish and amphibious vermin',
         'cavern': 'each cavern its own layer: species of the caverns whose raw depth range includes it; weighted by weirdness (1 plain, 3 strange)',
     }
     rows = []

@@ -31,7 +31,7 @@ from engine import Engine, REACH, R0, CAST_DEF, ROLE
 SAVAGE_AT, EVIL_AT, GOOD_AT = 66, 66, 32          # DF: savagery 66+ = savage; evil 66+ = evil, 0-32 = good
 SALT_WET = {'MARSH_TEMPERATE_SALTWATER', 'MARSH_TROPICAL_SALTWATER', 'SWAMP_TEMPERATE_SALTWATER', 'SWAMP_TROPICAL_SALTWATER',
             'SWAMP_MANGROVE'}
-POOL_CAP = 20000                                   # "small" for the murky-pool mini roster, cm3 (judgement)
+POOL_CAP = 20000                                   # "small" for the murky-pool mini roster, cm3 (engine V7.WB.POOL_MAX_MASS)
 SUBTER = ('SUBTERRANEAN_WATER', 'SUBTERRANEAN_CHASM')
 EXTINCT_RULE = {
     'NONE': 'absent from the world',
@@ -197,7 +197,7 @@ JUDGEMENT = [
     ('fill fallback', 'a slot with room and no candidate linked to the cast is filled anyway from its eligible species ("no link"), so no slot stays empty while candidates exist; the food web is computed after the draw on every layer, as you asked for land-flying.'),
     ('amphibians', 'an amphibious (water-breathing, not aquatic) creature never enters land-ground; if its BIOME names a fort land biome it can enter the freshwater layer (its shore slot), and on a saltwater marsh, swamp or mangrove the ocean layer.'),
     ('shore and fliers', 'a shore creature or a waterbird eats an aquatic creature no larger than itself (or 20,000 cm3), and aquatic vermin.'),
-    ('murky pools', '"small" = adult size up to 20,000 cm3 for the pool mini roster; DF\'s pool fish and amphibians are vermin (lungfish, pond turtle, toad), so the pool\'s fish slot draws fish-class and amphibious vermin too (a species drawn as fish is not also drawn as vermin).'),
+    ('murky pools', 'plan B (user 13 Oct: a murky pool is a subset of lake and river, keeping small creatures and vermin): aquatic or amphibious species of adult size up to 20,000 cm3 whose raws reach lake, river or pool water, plus vermin; a small lake or river species fits a pool body in the engine\'s draw too. DF\'s pool fish and amphibians are vermin (lungfish, pond turtle, toad), so the pool\'s fish slot draws fish-class and amphibious vermin too (a species drawn as fish is not also drawn as vermin). The engine also admits small lake/river species DF stocked in water near the fort; this desk sim builds from raws only, so it shows the raws path.'),
     ('cavern sentients', 'a sentient cavern species (troll, blind cave ogre, gorlak, animal people, troglodyte) fills only the sentient slot.'),
     ('weirdness', 'a first-cut 0-1 score per cavern species (table in the step-through); cavern 1 picks weight (1-w)^2, cavern 2 the middle, cavern 3 w^2. DF\'s own raw depth range still decides which caverns a species can live in.'),
     ('region biomes', 'a real fort\'s biomes are the 3x3 world tiles around it (DF draws a block\'s wildlife from all nine region neighbours); each biome takes the savagery and evil of the nearest tile that has it.'),
@@ -222,6 +222,26 @@ def explicit_water(raw_tokens, water_biomes):
         for b in AGG.get(t, [t]):
             if b in water_biomes and b.startswith(WATER_WORDS): out.add(b)
     return out
+
+
+def raw_bodies(biomes):
+    """the water body types a creature's raws reach (the engine's MODEL.waters): ocean, cavern, lake, river, pool"""
+    out = set()
+    for b in biomes:
+        if b.startswith('OCEAN'): out.add('ocean')
+        elif b == 'SUBTERRANEAN_WATER': out.add('cavern')
+        else:
+            parts = b.split('_')
+            if len(parts) == 3 and parts[0] in ('LAKE', 'RIVER', 'POOL') and parts[2] in ('FRESHWATER', 'BRACKISHWATER', 'SALTWATER'):
+                out.add(parts[0].lower())
+    return out
+
+
+def fresh_raw(biomes):
+    """v7.5 plan B (engine ROSTER.FP.freshRaw, 13 Oct): the raws reach fresh water -- a lake, river or pool -- or name no water
+    body at all (read as any water, the engine's V7.WB.typesFor)"""
+    w = raw_bodies(biomes)
+    return not w or bool(w & {'lake', 'river', 'pool'})
 
 
 class Design:
@@ -394,6 +414,9 @@ class Design:
             if via:
                 if sub == 'pool' and not verm and e['mass'] > POOL_CAP: notes.append(('fresh', f'too large for the murky-pool roster ({e["mass"]:,} cm3)'))
                 elif sub == 'pool' and not verm and hab in ('flier', 'waterbird', 'land'): notes.append(('fresh', 'not aquatic or amphibious (murky-pool roster)'))
+                # v7.5 plan B (13 Oct): a murky pool takes only a species whose raws reach lake, river or pool water
+                elif sub == 'pool' and not verm and not fresh_raw(self.R.creature(e['token'])['biomes']):
+                    notes.append(('fresh', 'no lake, river or pool in its raws (murky-pool roster)'))
                 else: out.append('fresh')
         if m & set(SUBTER):
             lo, hi = e['depthLo'], e['depthHi']
