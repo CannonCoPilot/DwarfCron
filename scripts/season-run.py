@@ -1724,7 +1724,10 @@ def cmd_park(rundir: Path, rig: Rig):
     if rig.running():
         sys.exit('park: DF is running; stop it first (moving saves under a running DF crashed it, 2 Oct)')
     dest = PARK_ROOT / f'season-run-{meta["id"]}'
-    for name in meta.get('saves_written', []):
+    # X7v75: a runner stopped mid-run never writes saves_written for its last cells; its own prefix finds them
+    pre = f'SR_{safe(meta["id"])}_'
+    own = sorted(n for n in (os.listdir(SAVE_ROOT) if SAVE_ROOT.exists() else []) if n.startswith(pre))
+    for name in sorted(set(meta.get('saves_written', [])) | set(own)):
         if (SAVE_ROOT / name).is_dir():
             print(f'{"would move" if rig.dry else "moving"} {name} -> {dest}')
             if not rig.dry:
