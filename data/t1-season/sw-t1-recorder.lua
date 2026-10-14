@@ -6,7 +6,7 @@
 --   sw-t1-recorder status                  one line: samples, units known, events, reports
 --
 -- DIR/events.tsv   tick, event (ARRIVE | LEAVE | RETURN | DIE | TAME | SAMPLE_START), unit id, race, caste, kind
---                  (wild | wild-group | pet/livestock | visitor | merchant | invader | other), x, y, z, layer, detail
+--                  (wild | wild-group | undead | pet/livestock | visitor | merchant | invader | other), x, y, z, layer, detail
 --                  (DIE: the incident's cause and killer, when DF recorded one)
 -- DIR/positions.tsv every unit above every 1,000 ticks: tick, id, race, kind, x, y, z, layer, alive
 -- DIR/reports.tsv  every new announcement report: tick, report id, type, text (combat, hunting, deaths, arrivals ...)
@@ -65,6 +65,9 @@ local function kindOf(u, groups)
     if U.isInvader(u) then return 'invader' end
     if U.isVisitor(u) then return 'visitor' end
     if U.isAnimal(u) and (U.isTame(u) or U.isDomesticated(u) or U.isFortControlled(u)) then return 'pet/livestock' end
+    -- 13 Oct (X5v75e4): an evil biome's weather raises dead wildlife; the tool never manages the undead (V7.natural), so
+    -- they are their own kind, outside 'wild'/'wild-group' (two zombie emus read as a send-off that never left)
+    if (U.isWildlife(u) or U.isAnimal(u)) and U.isUndead(u) then return 'undead' end
     if U.isWildlife(u) or U.isAnimal(u) then return groups[u.id] and 'wild-group' or 'wild' end
     return 'other'
 end
