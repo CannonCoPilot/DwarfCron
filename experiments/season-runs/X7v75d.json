@@ -1,7 +1,7 @@
 {
   "id": "X7v75d",
-  "description": "Brook fort once more, on sw f83d300 (pool size cap in the draw) with its casts rebuilt before the year (pre: cast rebuild) so the 38c2fa8 brook rule (fresh cast obeys the brook cap, aquatic or amphibious) is what the casts hold: X7v75c ran on the casts V76_BROOK built before the fix. Expect: fresh casts of small species only, animals drawn into the brook and pools every season, no pool species over 20,000 cm3.",
-  "needs": "sw-wt/plugin f83d300 scripts deployed",
+  "description": "Brook fort once more, on sw f83d300 (pool size cap in the draw) with its casts rebuilt before the year (pre: cast rebuild) so the 38c2fa8 brook rule (fresh cast obeys the brook cap, aquatic or amphibious) is what the casts hold: X7v75c ran on the casts V76_BROOK built before the fix. Expect: fresh casts of small species only, animals drawn into the brook and pools every season, no pool species over 20,000 cm3. Also T: the terrifying coast with 50 dwarves sheltered like the evil coast (scripts/shelter.sh + shelter-hatch.sh: room z 123, stair 93,94 from z 127 under a hatch; all 50 inside after 3,000 ticks) -- X7v75c's 50 were killed outdoors by reanimated corpses.",
+  "needs": "sw-wt/plugin f83d300 scripts deployed; V76_BROOK, V75_TERROR50S .preverify",
   "reps": 1,
   "until": "season:4+20000",
   "chunk": 20000,
@@ -106,6 +106,24 @@
       ],
       "pre": [
         "seasonal-wildlife cast rebuild"
+      ]
+    },
+    {
+      "name": "T",
+      "fort": "V75_TERROR50S",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "ocean [1-9]",
+          "name": "the ocean is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "wired: NIGHTWING",
+          "name": "the nightwing on the evil desert"
+        }
       ]
     }
   ]
