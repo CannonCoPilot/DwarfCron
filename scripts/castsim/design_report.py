@@ -422,7 +422,7 @@ RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the regio
 RERUN = {('X5v75', 'E'): 'X5v75e',
          # X7v75: the continuation (X7v75b) ran G S U J T; the reruns on the fixes found (X7v75c) ran B E G J T -- the newest cell wins
          **{('X7v75', a): ['X7v75b', 'X7v75c'] for a in 'GJ'}, **{('X7v75', a): 'X7v75b' for a in 'SU'},
-         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
+         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d', 'X7v75e']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
 
 
 def cell_dir(run, a):
@@ -703,10 +703,13 @@ X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES
          "stand-ins; this year it logged none, because those readings were waves on their way, not dead populations.",
     'J': "<b>Passes</b> on the rerun (the first run had the same sturgeon send-off as the good coast). One stand-in under the new checks: an "
          "octopus for a Triassic Psephoderma that ran out in autumn.",
-    'T': "<b>Lost three times to its own dead (pending).</b> Terrifying land raises corpses: with 7 dwarves a reanimated stegosaurus killed the "
-         "leader in spring; with 50, risen echidnas, utahraptors, brontosauruses and storks overran them in summer; sheltered with a hatch, at "
-         "nearly the same tick, because the shelter's all-category stockpile takes refuse and corpses and the dwarves hauled animal corpses in. "
-         "Next: a shelter stockpile without refuse and corpses, and a burrow that keeps the dwarves inside.",
+    'T': "<b>The first full terrifying year, with the shelter sealed.</b> Terrifying land raises corpses, and the fort was lost three times: "
+         "with 7 dwarves a reanimated stegosaurus killed the leader in spring; with 50, risen echidnas, utahraptors and storks overran them in "
+         "summer; sheltered under a hatch, at nearly the same tick, because a risen echidna and velociraptor walked 50 tiles to the stair and down "
+         "past the hatch while dwarves held it open going out for corpses. The fix locks the hatch, keeps every citizen in a burrow over the room, "
+         "and takes refuse and corpses off the shelter stockpile. The rerun lived the year and passed every check, and nothing came through the "
+         "hatch. It still lost 23 dwarves (50, then 55 with migrants, ending at 32): the fort's own horse starved in the sealed room, its corpse "
+         "rose and killed 11 within a few days, and dwarves who died inside kept rising. Next: take the animals out before sealing (pending).",
 }
 
 
@@ -873,7 +876,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {rig_section('X4v75b')}
 {region_section('X5v75')}
 {changes_section()}
-{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b, X7v75c).")}
+{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75e).")}
 {crowd_section('X4v75b')}
 {applied_section()}
 
