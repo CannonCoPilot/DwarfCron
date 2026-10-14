@@ -669,7 +669,11 @@ class Cell:
         ml, sd = self.rig.where() if self.rig.running() else (False, '')
         if ml:
             self.L(f'a map is loaded ({sd}); quitting it without saving')
-            self.rig.must('title', timeout=200)
+            try:
+                self.rig.must('title', timeout=200)
+            except Exception as e:   # X7v75: a lost fort left DF in its Options menu; every later cell failed on this quit
+                self.L(f'could not quit to the title ({str(e)[:120]}); restarting DF instead (nothing there is saved)')
+                self.restart_rig()
         tag = self.c['backup_tag']
         self.rig.must('save-restore', f'{self.fort}.{tag}', timeout=300)
         if self.c.get('restart_each_cell'):
@@ -1085,7 +1089,11 @@ class Cell:
                     self.L(f'finally: {e.reason}')
 
     def quit_and_hash(self):
-        self.rig.must('title', timeout=200)    # quit WITHOUT saving
+        try:
+            self.rig.must('title', timeout=200)    # quit WITHOUT saving
+        except Exception as e:   # X7v75: a lost fort's quit failed; a restart leaves nothing saved either
+            self.L(f'WARNING: could not quit to the title ({str(e)[:120]}); restarting DF instead')
+            self.restart_rig()
         if not self.rig.dry:
             diffs = compare_trees(BACKUP_ROOT / f'{self.fort}.{self.c["backup_tag"]}', SAVE_ROOT / self.fort)
             self.info['post_hash_ok'] = not diffs
