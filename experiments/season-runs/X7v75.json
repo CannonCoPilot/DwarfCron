@@ -1,0 +1,228 @@
+{
+  "id": "X7v75",
+  "description": "Validation year (user 13 Oct, items 1-5 approved) of the eight region forts on today's engine: walker fix (bebb00d), land pause (6b74260), cavern pause on by default (6245358, 8b473b7), pause margin 2 (414d494), murky pools plan B (0127d7c), exhaustion = stock 0 + none on the map + 1 day and stand-in checks that leave a slot empty (52cdfcb), aquarium brook/pool art (37baf8d). Forts: B brook (V76_BROOK, region19 6,56 off 7,7, 50 dwarves, 1,141-tile brook + 16 murky pools), X extinct wilds (50), E sheltered evil coast (50), G good, S small savage, U untamed wilds, J joyous wilds, T terrifying. Spring -> next spring +20,000, 1 rep, DF restarted per fort. Measures as X5v75 plus: land/cavern pause lines, over-cap send-offs (expect 0 on land and caverns), layer group counts over the cap, stand-in promotions v empty slots, exhaustion lines.",
+  "needs": "sw-wt/plugin v7.5-fullpool 414d494 scripts deployed; seasonal-wildlife.plug.dll 37baf8d installed; recorder with kind 'undead'; .preverify backups",
+  "reps": 1,
+  "until": "season:4+20000",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "season casts on",
+      "name": "casts on"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+ground\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "v7.5 casts: a land-ground cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+flying\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a land-flying cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast status",
+      "expect": "^\\s+cavern1\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+      "name": "a cavern-1 cast for summer"
+    },
+    {
+      "cmd": "seasonal-wildlife cast extinct",
+      "expect": "cast extinct: \\w+",
+      "name": "the world's extinct rule"
+    },
+    {
+      "cmd": "seasonal-wildlife caverns",
+      "expect": "cavern map",
+      "check": "depth \\d \\(cave",
+      "name": "an open cavern (for the depth audit)"
+    },
+    {
+      "lua": "local c = reqscript('seasonal-wildlife').loadConfig(); for _, r in ipairs(c.fp_created or {}) do local d = -1; if r.kind == 'cave' then d = df.global.world.world_data.underground_regions[r.cave].layer_depth end; print(('fp_created %s %s %d'):format(r.kind, r.token, d)) end; print('fp_created total ' .. #(c.fp_created or {}))",
+      "expect": "fp_created total",
+      "check": "fp_created total [1-9]",
+      "name": "population entries created for unstocked cast species"
+    },
+    {
+      "cmd": "seasonal-wildlife sponges",
+      "expect": "sponges",
+      "name": "sponge line (giant sponges allowed or not)"
+    },
+    {
+      "cmd": "seasonal-wildlife status",
+      "expect": "^Layers: .*land",
+      "name": "the tool runs the land layer"
+    },
+    {
+      "cmd": "seasonal-wildlife groups pause",
+      "expect": "land pause",
+      "check": "land pause: on.*reopens 2 group",
+      "name": "land pause on, margin 2"
+    },
+    {
+      "cmd": "seasonal-wildlife groups cavern",
+      "expect": "groups: cavern",
+      "check": "pause on",
+      "name": "cavern pause on"
+    }
+  ],
+  "arms": [
+    {
+      "name": "B",
+      "fort": "V76_BROOK",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "river [1-9]",
+          "name": "the brook is a river body"
+        },
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "pool [1-9]",
+          "name": "murky pools on the map"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "freshwater river",
+          "name": "the fresh cast is the brook's (river)"
+        }
+      ]
+    },
+    {
+      "name": "X",
+      "fort": "V75_XWILDS50",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife cast extinct",
+          "expect": "cast extinct",
+          "check": "UNTAMED_WILDS",
+          "name": "the world rule is UNTAMED_WILDS"
+        }
+      ]
+    },
+    {
+      "name": "E",
+      "fort": "V75_EVIL50S",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "ocean [1-9]",
+          "name": "the ocean is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "wired: HARPY",
+          "name": "the harpy wired"
+        },
+        {
+          "cmd": "seasonal-wildlife cast pool GIANT_MANTIS",
+          "expect": "cast pool",
+          "check": "GIANT_MANTIS .*layers",
+          "name": "a giant bug apex on calm evil land"
+        }
+      ]
+    },
+    {
+      "name": "G",
+      "fort": "V75_GOOD",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "ocean [1-9]",
+          "name": "the ocean is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "good\\)",
+          "name": "a good biome"
+        }
+      ]
+    },
+    {
+      "name": "S",
+      "fort": "V75_SMALLSAV",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "lake [1-9]",
+          "name": "the lake is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast pool CENOZOIC_MAMMOTH_PYGMY",
+          "expect": "cast pool",
+          "check": "CENOZOIC_MAMMOTH_PYGMY .*layers",
+          "name": "an extinct species under ISOLATED (small region)"
+        }
+      ]
+    },
+    {
+      "name": "U",
+      "fort": "V75_UNTAMED",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "lake [1-9]",
+          "name": "the lake is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast extinct",
+          "expect": "UNTAMED_WILDS",
+          "name": "extinct rule untamed wilds"
+        }
+      ]
+    },
+    {
+      "name": "J",
+      "fort": "V75_JOYOUS",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "ocean [1-9]",
+          "name": "the ocean is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "savage, good",
+          "name": "savage and good"
+        }
+      ]
+    },
+    {
+      "name": "T",
+      "fort": "V75_TERROR",
+      "receipts": [
+        {
+          "cmd": "seasonal-wildlife water bodies",
+          "expect": "water bodies",
+          "check": "ocean [1-9]",
+          "name": "the ocean is on the map (soft: may be frozen at embark)"
+        },
+        {
+          "cmd": "seasonal-wildlife cast fort",
+          "expect": "cast fort",
+          "check": "wired: NIGHTWING",
+          "name": "the nightwing on the evil desert"
+        }
+      ]
+    }
+  ]
+}
