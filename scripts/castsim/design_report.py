@@ -686,7 +686,9 @@ X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES
          "large for a brook (your 6 Oct cap, 10,000 cm³), and its one small species, the platypus, had only a land entry the water draw ignored. "
          "Fixed (the brook cap on the fresh cast; the water draw takes the season's water-cast species from land entries): the rerun drew platypus "
          "23 times, and frogs, turtles and beavers, into the brook and its 16 murky pools all year. It also put giant tree frogs (200,700 cm³) into "
-         "the pools, so the draw now keeps pools to small creatures too. The table shows the last run, with the casts rebuilt on those rules.",
+         "the pools, so the draw now keeps pools to small creatures too. The table shows the last run, with the casts rebuilt on those rules: "
+         "Diplocaulus and platypus every season (only two species fit a brook here), drawn into the brook and pools in all four seasons; its one "
+         "flag is a giant platypus that walked in after the mid-season rebuild (pending).",
     'X': "<b>The walker fix holds for a whole year:</b> 49 extinct arrivals (ankylosaurus 10, kelenken 9, triceratops 9, kosmoceratops 7, "
          "megacerops 5, nodosaurus 4, allosaurus 2, torvosaurus, glyptodon, smilodon). One population ran out (a longnose gar); no stand-in passed "
          "the checks (the closest failed the guild check) and its slot stayed empty, as designed.",
@@ -701,8 +703,10 @@ X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES
          "stand-ins; this year it logged none, because those readings were waves on their way, not dead populations.",
     'J': "<b>Passes</b> on the rerun (the first run had the same sturgeon send-off as the good coast). One stand-in under the new checks: an "
          "octopus for a Triassic Psephoderma that ran out in autumn.",
-    'T': "<b>Lost twice to its own dead.</b> Terrifying land raises corpses: with 7 dwarves a reanimated stegosaurus killed the leader in spring; "
-         "with 50, risen echidnas, utahraptors, brontosauruses and storks overran them in summer. Sheltered like the evil coast for the last run.",
+    'T': "<b>Lost three times to its own dead (pending).</b> Terrifying land raises corpses: with 7 dwarves a reanimated stegosaurus killed the "
+         "leader in spring; with 50, risen echidnas, utahraptors, brontosauruses and storks overran them in summer; sheltered with a hatch, at "
+         "nearly the same tick, because the shelter's all-category stockpile takes refuse and corpses and the dwarves hauled animal corpses in. "
+         "Next: a shelter stockpile without refuse and corpses, and a burrow that keeps the dwarves inside.",
 }
 
 
