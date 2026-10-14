@@ -1,4 +1,4 @@
-# X6xw3b: season-run summary (2026-10-13 17:07:53)
+# X6xw3b: season-run summary (2026-10-13 22:42:19)
 
 | cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s | cavern wrong depth late | arrivals from created entries |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|

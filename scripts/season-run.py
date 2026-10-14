@@ -1297,6 +1297,11 @@ def analyse_cell(d: Path) -> dict:
         C = V.casts(str(d / 'casts-start.txt'))
         ev = V.fill_removed(V.read(str(d / 'events.tsv')))
         led = ledger_rows(d)
+        # X7v75 extinct wilds: a layer's casts added mid-run when the water scan found its water ('casts added for fresh ...; the
+        # other casts unchanged', engine 1d3db1d, user 13 Oct) are the cast from then on; the start file lacks them
+        if any('casts added for' in text for _, _, _, text in led) and (d / 'casts-end.txt').exists():
+            for k, v in V.casts(str(d / 'casts-end.txt')).items():
+                C[k] = set(C.get(k, set())) | set(v)
         starts = [int(r['tick']) for r in ev if r['event'] == 'SAMPLE_START']
         t_start = min(starts) if starts else min((int(r['tick']) for r in ev), default=0)
         t_end = max((int(r['tick']) for r in ev), default=t_start)
@@ -1582,7 +1587,12 @@ def year_turn(d: Path, ev: list, C: dict, t_start: int, t_end: int) -> dict:
     h0, b0 = body('casts-start.txt')
     h1, b1 = body('casts-end.txt')
     out['casts_header'] = [h0, h1]
-    out['casts_unchanged'] = bool(b0) and b0 == b1
+    # a layer added mid-run ('casts added for L', when its water appeared) is allowed: the casts the start held must be unchanged
+    added = sorted({m.group(1) for _, _, _, text in ledger_rows(d) for m in [re.search(r'casts added for (\w+)', text)] if m})
+    lay = lambda ln: (ln.split() or [''])[0]
+    have = {lay(ln) for ln in b0}
+    out['casts_added_layers'] = added
+    out['casts_unchanged'] = bool(b0) and b0 == [ln for ln in b1 if lay(ln) in have or lay(ln) not in added]
     out['cast_builds_after_start'] = [text for t, kind, L, text in ledger_rows(d)
                                       if t is not None and t > t_start + 600 and 'casts for year' in text]
     per = collections.Counter()

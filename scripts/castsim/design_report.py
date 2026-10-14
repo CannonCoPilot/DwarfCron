@@ -618,8 +618,9 @@ REGION_NOTES = {   # X5v75: what each fort found, by arm (filled in as the forts
 }
 
 
-def region_section(run='X5v75'):
+def region_section(run='X5v75', notes_by=None, sid='regions', title='On the rig: the region-type forts (13 Oct)', intro=None):
     """the region-type forts: one table of checks, one of what reached the map, and each fort's finding"""
+    notes_by = REGION_NOTES if notes_by is None else notes_by
     T = run_tables(run)
     if not T['arms']:
         return ''
@@ -653,12 +654,13 @@ def region_section(run='X5v75'):
         rows.append(f"<tr><td>{names[a]}</td>" + ''.join(f"<td>{cell(got[k])}</td>" for k in KINDS) + '</tr>')
     mtbl = ("<div class='tbl'><table><thead><tr><th data-t='cat'>fort</th>" + ''.join(f'<th>{k}</th>' for k in KINDS)
             + '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table></div>')
-    notes = ''.join(f"<tr><td>{names[a]}</td><td class='note'>{REGION_NOTES[a]}</td></tr>" for a in arms if a in REGION_NOTES)
+    notes = ''.join(f"<tr><td>{names[a]}</td><td class='note'>{notes_by[a]}</td></tr>" for a in arms if a in notes_by)
     passed = sum(1 for a in arms if T['C'][a]['analysis'].get('verdict') == 'PASS' and T['C'][a]['run'].get('status', 'OK') == 'OK')
+    intro = intro or ("a full year each on {n} forts embarked for the kinds of region the 13 Oct rules are about (good, evil, savage, joyous and terrifying "
+                      "wilds, and a small savage patch that DF counts as isolated), one replicate each, on the engine with the 13 Oct rules.")
     return f"""
-<h2 id="regions">On the rig: the region-type forts (13 Oct)</h2>
-<p>Run {run}: a full year each on {len(arms)} forts embarked for the kinds of region the 13 Oct rules are about (good, evil, savage, joyous and terrifying
-wilds, and a small savage patch that DF counts as isolated), one replicate each, on the engine with the 13 Oct rules. <span class="big">{passed} / {len(arms)}</span> pass.
+<h2 id="{sid}">{title}</h2>
+<p>Run {run}: {intro.format(n=len(arms))} <span class="big">{passed} / {len(arms)}</span> pass.
 Arrivals are counted only on the surface layers below (land and water); the caverns' giant cave toads and olms are DF's ordinary stock.</p>
 {T['tbl']}
 <h3>What reached the map</h3>
@@ -670,6 +672,63 @@ Arrivals are counted only on the surface layers below (land and water); the cave
 {T['ytbl']}
 <h3>Arrivals from the entries the tool created</h3>
 {T['stbl']}
+"""
+
+
+def changes_section():
+    """13 Oct afternoon and evening: the walker fix, the pauses, pools and brooks, exhaustion and stand-ins, the shelter"""
+    def tbl(head, rows):
+        return ("<div class='tbl'><table><thead><tr>" + ''.join(f"<th{' data-t=cat' if i == 0 else ''}>{h}</th>" for i, h in enumerate(head))
+                + '</tr></thead><tbody>' + ''.join('<tr>' + ''.join(f"<td{' class=num' if isinstance(c, (int, float)) else ''}>{c}</td>" for c in r) + '</tr>' for r in rows)
+                + '</tbody></table></div>')
+    walk = tbl(['cast slots whose species arrived (extinct-wilds fort)', 'before', 'after'],
+               [['land-ground', '3 of 21', '9 of 21'], ['extinct', '1 of 10', '6 of 10'], ['spring', '1 of 7', '5 of 7']])
+    probe = tbl(['25 days, cavern cap 1, same winter save', 'the old trim', 'the pause'],
+                [['cavern waves (animals)', '82 (252)', '2 (17)'], ['groups sent off for being over the cap', 93, 0],
+                 ['taken off the map (sent off, never left)', 5, 4], ['DF stalls', 'none', 'none']])
+    sizes = tbl(['kind of species', 'species compared', "DF's entry per tile / the tool's (median, p10-p90)"],
+                [['animal people', 120, '0.80 (0.40-1.20)'], ['giants', 82, '0.87 (0.47-1.20)'], ['other surface species', 293, '0.76 (0.44-1.16)']])
+    return f"""
+<h2 id="changes">Changes of 13 Oct (afternoon and evening)</h2>
+<h3>Walkers and extinct animals: the missing arrivals</h3>
+<p>DF sends a <b>walking</b> animal's wave only from the fort's own region tile; a flier also comes from the neighbouring tiles. The tool had put the
+entries it creates on the first tile of the world region, usually a neighbour, so fliers came and walkers never did. Moving one kelenken entry onto the
+fort's tile brought a group of three within 20 days. Entries now go on the fort's own tiles, also for walkers DF stocked only next door (bebb00d).
+Before the fix, across nine forts, 97 of 241 ground cast slots and 16 of 64 extinct slots ever saw their species.</p>
+{walk}
+<p class=small>Arrivals after the fix: ankylosaurus 19, triceratops 9, kelenken 5, glyptodon 5, megaceros 3, torvosaurus 1.</p>
+<h3>Caps pause arrivals; nothing is sent off</h3>
+<p>Your rule: a cap stops new groups arriving and lets the groups on the map leave on their own timers. At a layer's cap every open population entry
+of that layer gets DF's extinct flag, which alone stops a draw; stock and frequency are never touched. Land pauses as one layer (6b74260), each cavern
+depth on its own (6245358). A paused layer reopens only two groups under its cap (414d494): reopening at the first group to leave let DF send two waves
+within a day. The water bodies already worked this way (the tool draws water groups itself, only under each body's cap). The cavern pause was tested
+before it was switched on:</p>
+{probe}
+<p>On the sheltered evil coast (X5v75e4, a full year): 62 land pause and resume lines, no land group sent off. On the brook fort (X7v75): 57 pauses,
+6 that began one group over the cap (a wave already on its way), none two over, no send-offs.</p>
+<h3>Murky pools (plan B) and brooks</h3>
+<p>A murky pool is a subset of lake and river water: a small lake or river species (adult size up to 20,000 cm³) fits a pool, and a pool cast takes only
+species whose raws reach fresh water; a DF water entry no longer lets an ocean species in (0127d7c). The brook fort's first year found the same gap in
+brooks: its fresh casts held species too large for a brook (your 6 Oct cap, 10,000 cm³) and drew nothing, and its one small species, the platypus, had
+only a land entry the water draw did not take. Both fixed (38c2fa8); the brook fort is rerun on it.</p>
+<h3>Exhaustion and stand-ins</h3>
+<p>A species is exhausted only when its stock reads 0, none of it is on the map, and both hold for a day (DF debits a wave's planned size when it starts
+the wave; 284 arrivals had followed 'exhausted' readings). A stand-in must share the slot's layer, guild and a biome, be within four times its adult
+size, have stock DF can actually send on that layer (for a walker: on the fort's own tile), and link to the season's food web; if none passes, the
+slot stays empty and the ledger names the closest candidate and the check it failed (52cdfcb). An entry is never refilled from the world region's
+total any more (one bluefish entry had been given 515,871).</p>
+<p>Your two questions. <b>Entry sizes:</b> per tile, the tool's entries match DF's own (DF stocks its entries a little below the raws' midpoint the tool
+uses); the differences are that DF stocks a flier on up to nine tiles where the tool creates one or two, and the refill above.
+<b>When a stand-in was picked:</b> per species, the moment its summed stock read 0, never for a whole trophic layer.</p>
+{sizes}
+<h3>The evil coast, sheltered</h3>
+<p>Fifty dwarves in a 9x9 room dug four levels down, every item stockpiled inside, the wagon deconstructed, a meeting area in the room. The fort lived
+the whole year past the summer ash that had zombified three earlier runs (X5v75e4: OK). Its one failed check was two sent-off emus that never left:
+both had been raised undead by the evil weather, and the tool never manages the undead. The run recorder now logs undead animals as their own kind.</p>
+<h3>Water art</h3>
+<p>Brooks: DF's pebbles at half opacity over a mud bed so animals show through, a frozen brook drawn as ice over pebbles, and every brook-top corner
+and edge sprite cleared. Murky pools: the lake's blue with a green cast, and a mud ramp at the view level. DF's depth numbers and ramp arrows are
+drawn over the plugin's water when switched on.</p>
 """
 
 
@@ -760,7 +819,8 @@ def main():
   region: every creature in the raws is a candidate, filtered first by wild and natural, then BIOME, SAVAGE, GOOD/EVIL and the world's
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
   Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
-  the rig: the results come first, in <a href="#rig">On the rig</a>. The sections after it are the desk simulation the build followed.
+  the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
+  pools and brooks, stand-ins) and <a href="#validate">the validation year</a> on eight forts. The sections after them are the desk simulation the build followed.
   Every table sorts by a click on its header; categorical columns filter.</p>
 </section>
 
@@ -777,6 +837,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 </div>
 {rig_section('X4v75b')}
 {region_section('X5v75')}
+{changes_section()}
 {crowd_section('X4v75b')}
 {applied_section()}
 

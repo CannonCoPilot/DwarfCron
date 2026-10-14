@@ -1,4 +1,4 @@
-# X4v75b: season-run summary (2026-10-13 14:11:57)
+# X4v75b: season-run summary (2026-10-13 22:42:18)
 
 | cell | status | verdict | managed arrivals | off-cast late | in-cast send-offs | gate send-offs | not left in 10 d | drowned after a draw | reserve kept | checks failed | hangs | t/s | cavern wrong depth late | arrivals from created entries |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
