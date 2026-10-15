@@ -1,0 +1,170 @@
+{
+ "id": "X7v75g",
+ "spec": {
+  "id": "X7v75g",
+  "description": "Brook fort re-embarked (user 14 Oct: new forts, never hand-rebuilt casts) on V76_BROOK's tile, region19 6,56 off 7,7, startdwarf 50 (V77_BROOK), on sw b180907: the brook cap default 25,000 cm3 (was 10,000; user 14 Oct 'Brook list: you choose the rules'), so the tool builds brook casts at embark with beaver, sea lamprey, longnose gar and Eryops allowed. X7v75c/d: only platypus and Diplocaulus fitted. Expect: more brook species cast and drawn in every season, nothing over 25,000 cm3 in the brook, pools still at most 20,000 cm3.",
+  "needs": "sw-wt/plugin b180907 scripts deployed; V77_BROOK .preverify",
+  "reps": 1,
+  "until": "season:4+20000",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+ground\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "v7.5 casts: a land-ground cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+flying\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a land-flying cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern1\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-1 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast extinct",
+    "expect": "cast extinct: \\w+",
+    "name": "the world's extinct rule"
+   },
+   {
+    "cmd": "seasonal-wildlife caverns",
+    "expect": "cavern map",
+    "check": "depth \\d \\(cave",
+    "name": "an open cavern (for the depth audit)"
+   },
+   {
+    "lua": "local c = reqscript('seasonal-wildlife').loadConfig(); for _, r in ipairs(c.fp_created or {}) do local d = -1; if r.kind == 'cave' then d = df.global.world.world_data.underground_regions[r.cave].layer_depth end; print(('fp_created %s %s %d'):format(r.kind, r.token, d)) end; print('fp_created total ' .. #(c.fp_created or {}))",
+    "expect": "fp_created total",
+    "check": "fp_created total [1-9]",
+    "name": "population entries created for unstocked cast species"
+   },
+   {
+    "cmd": "seasonal-wildlife sponges",
+    "expect": "sponges",
+    "name": "sponge line (giant sponges allowed or not)"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: .*land",
+    "name": "the tool runs the land layer"
+   },
+   {
+    "cmd": "seasonal-wildlife groups pause",
+    "expect": "land pause",
+    "check": "land pause: on.*reopens 2 group",
+    "name": "land pause on, margin 2"
+   },
+   {
+    "cmd": "seasonal-wildlife groups cavern",
+    "expect": "groups: cavern",
+    "check": "pause on",
+    "name": "cavern pause on"
+   }
+  ],
+  "arms": [
+   {
+    "name": "B",
+    "fort": "V77_BROOK",
+    "receipts": [
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "water bodies",
+      "check": "river [1-9]",
+      "name": "the brook is a river body"
+     },
+     {
+      "cmd": "seasonal-wildlife water bodies",
+      "expect": "water bodies",
+      "check": "pool [1-9]",
+      "name": "murky pools on the map"
+     },
+     {
+      "cmd": "seasonal-wildlife cast fort",
+      "expect": "cast fort",
+      "check": "freshwater river",
+      "name": "the fresh cast is the brook's (river)"
+     }
+    ]
+   }
+  ]
+ },
+ "started": "2026-10-14 19:09:17",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "d343fe21",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1303884,
+    "blob": "8d5d2a38b118b183942c49e37e30b5110b393b63",
+    "release": "7.5.0",
+    "mtime": "2026-10-14T19:06:07",
+    "commit": "b1809071b2 v7.5 brook: water.brook_max_mass default 10,000 -> 25,000 cm3 (user 14 Oct: 'Brook list: you choose the rules"
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-14 19:56:05",
+ "cells": [
+  {
+   "arm": "B",
+   "rep": 1,
+   "fort": "V77_BROOK",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 2792.4,
+   "ticks": 378993,
+   "ticks_per_s": 190.4
+  }
+ ],
+ "saves_written": [
+  "SR_X7v75g_B_r01_c001",
+  "SR_X7v75g_B_r01_c002",
+  "SR_X7v75g_B_r01_c003",
+  "SR_X7v75g_B_r01_c004",
+  "SR_X7v75g_B_r01_c005",
+  "SR_X7v75g_B_r01_c006",
+  "SR_X7v75g_B_r01_c007",
+  "SR_X7v75g_B_r01_c008",
+  "SR_X7v75g_B_r01_c009",
+  "SR_X7v75g_B_r01_c010",
+  "SR_X7v75g_B_r01_c011",
+  "SR_X7v75g_B_r01_c012",
+  "SR_X7v75g_B_r01_c013",
+  "SR_X7v75g_B_r01_c014",
+  "SR_X7v75g_B_r01_c015",
+  "SR_X7v75g_B_r01_c016",
+  "SR_X7v75g_B_r01_c017",
+  "SR_X7v75g_B_r01_c018",
+  "SR_X7v75g_B_r01_c019",
+  "SR_X7v75g_B_r01_c020"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}
