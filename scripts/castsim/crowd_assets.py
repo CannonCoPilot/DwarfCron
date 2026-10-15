@@ -75,11 +75,13 @@ function draw(only) {
     }
     const sp = D.species;
     const tot = totals(D.counts);
-    const present = new Set(sp.map(t => C.types[t]));
+    // only species seen in the shown data: the cavern toggle leaves the others at 0 (user 14 Oct: no 0-count rows)
+    const seen = new Set(D.counts.flatMap(c => c.map(p => p[0])));
+    const present = new Set(sp.filter((t, k) => seen.has(k)).map(t => C.types[t]));
     box.querySelector('.crowd-legend').innerHTML = TYPES.filter(t => present.has(t))
       .map(t => `<span><i style="background:${SLOT(t)}"></i>${t}</span>`).join('');
     const nsp = D.counts.map(c => c.length);
-    box.querySelector('.sub').textContent = `${FORT[arm]}: up to ${d3.max(tot) || 0} animals and ${d3.max(nsp) || 0} species on one day; ${sp.length} species over the run. One bar per day, one segment per species.`;
+    box.querySelector('.sub').textContent = `${FORT[arm]}: up to ${d3.max(tot) || 0} animals and ${d3.max(nsp) || 0} species on one day; ${seen.size} species over the run. One bar per day, one segment per species.`;
     const plot = box.querySelector('.plot'); plot.innerHTML = '';
     const W = Math.max(320, plot.clientWidth || 900), H = 210, m = {t: 18, r: 8, b: 22, l: 34};
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
@@ -133,7 +135,7 @@ function draw(only) {
     // table view: species, type, days on the map, mean on the days present, peak
     const st = sp.map((t, k) => { let dd = 0, s = 0, pk = 0;
       for (const c of D.counts) { const p = c.find(q => q[0] === k); if (p) { dd++; s += p[1]; pk = Math.max(pk, p[1]); } }
-      return {t, type: C.types[t], dd, mean: dd ? s / dd : 0, pk}; }).sort((a, b) => b.dd - a.dd || b.pk - a.pk);
+      return {t, type: C.types[t], dd, mean: dd ? s / dd : 0, pk}; }).filter(r => r.dd > 0).sort((a, b) => b.dd - a.dd || b.pk - a.pk);
     box.querySelector('details .tbl').innerHTML = '<table><thead><tr><th>species</th><th data-t="cat">type</th><th class="num" data-t="num">days on the map</th><th class="num" data-t="num">mean when present</th><th class="num" data-t="num">peak</th></tr></thead><tbody>' +
       st.map(r => `<tr><td class="mono">${r.t}</td><td>${r.type}</td><td class="num">${r.dd}</td><td class="num">${r.mean.toFixed(1)}</td><td class="num">${r.pk}</td></tr>`).join('') + '</tbody></table>';
   }

@@ -3,6 +3,7 @@
 (design_run.py) -> data/castsim/cast-pipeline-v2.html. Styles and the table sort/filter enhancer are report.py's."""
 from __future__ import annotations
 
+import collections
 import json
 import sys
 from pathlib import Path
@@ -591,6 +592,10 @@ CROWD_FORTS = [   # (run, arm, name) shown in the crowdedness charts, in selecto
     ('X4v75b', 'L', 'Lake'), ('X4v75b', 'O', 'Ocean shore'), ('X4v75b', 'B', 'Brook'),
     ('X5v75', 'G', 'Good coast'), ('X5v75', 'E', 'Evil coast'), ('X5v75', 'S', 'Small savage lake'),
     ('X5v75', 'U', 'Untamed wilds lake'), ('X5v75', 'J', 'Joyous wilds coast'), ('X5v75', 'T', 'Terrifying coast'),
+    # 14 Oct (user: every completed run): the validation year on today's engine, the newest full-year cell of each fort
+    ('X7v75c', 'B', 'Brook · 14 Oct'), ('X7v75', 'X', 'Extinct wilds · 14 Oct'), ('X7v75c', 'E', 'Evil coast · 14 Oct'),
+    ('X7v75c', 'G', 'Good coast · 14 Oct'), ('X7v75b', 'S', 'Small savage lake · 14 Oct'), ('X7v75b', 'U', 'Untamed wilds lake · 14 Oct'),
+    ('X7v75c', 'J', 'Joyous wilds coast · 14 Oct'), ('X7v75e', 'T', 'Terrifying coast · 14 Oct'),
 ]
 
 
@@ -781,12 +786,194 @@ def crowd_section(run='X4v75b'):
     blob = json.dumps(S, separators=(',', ':')).replace('</', '<\\/')
     return f"""
 <h2 id="crowd">Crowdedness and diversity through the year</h2>
-<p>Every wild animal on the map in the full-year runs ({', '.join(sorted({k.split(':')[0] for k in S['forts']}))}), one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
+<p>Every wild animal on the map in the full-year runs ({', '.join(sorted({k.split(':')[0] for k in S['forts']}))}; forts marked 14 Oct ran on today's engine), one bar per day of the year: the height is how crowded the layer was, each segment one species (so the
 number of segments is its diversity that day), coloured by animal type. Sponges (placed scenery, never cast) are not counted, and a fully aquatic species recorded on land is counted in the water chart (amphibians stay on land). Each
 chart has its own fort selector, and the cavern chart a Caverns 1 2 3 toggle (each unit's cavern by its level). Dashed lines mark the season changes, when the casts turn over. Each chart's
 y-axis fits its own data, so read the axis when comparing forts. Hover a day for its species; each chart's table lists them all.</p>
 <div id="crowd-charts" class="viz-root"></div>
 <script id="crowd-data" type="application/json">{blob}</script>
+"""
+
+
+ECO_ANSWERS = [   # (your observation, what the runs show) -- user 14 Oct
+    ("Land, lake (spring, summer): low counts, then a burst of ravens",
+     "The lake ran on the 12 Oct engine, before the walker fix: the tool's entries for walkers sat on a neighbouring region tile, from which DF never "
+     "sends walkers, so 2 to 6 of each ground cast's 7 species came. The ravens are the flying cast's autumn and winter species: FREQUENCY 100, eight of DF's "
+     "own entries around the fort with 130 to 140 each, and flocks of 2 to 10, so 41 and 62 of them came, 98-100% of the season's fliers."),
+    ("Land, ocean shore: mostly ravens",
+     "The same two causes. Its flying casts brought nothing in spring and summer and ravens (with a few keas and kestrels) in autumn and winter."),
+    ("Land, brook: few predators, a fine variety of birds",
+     "Its ground layer was nearly one species all year, wild boar (39, 43, 17, 32 arrivals): the walker gap again: of its cast's four "
+     "species, the boar alone came in three of the four seasons. Fliers come from all nine tiles around the fort, so the bird casts arrived nearly whole (9 of 12 cast slots): geese, buzzards, an eagle, "
+     "falcons, owls, swans in winter. The 14 Oct brook fort's ground layer filled out through the year (porcupine, skunk, entelodon)."),
+    ("Land, good coast: almost nothing in autumn",
+     "Its land layer was full, of birds. In autumn 11 kestrel waves (FREQUENCY 55) and 5 of the sea's ospreys and albatrosses took the land cap's five "
+     "groups; the cap paused the layer 12 times, so 1 of 17 waves was a walker. The 13 Oct run looked the same: one cougar and 12 kestrels."),
+    ("Land, evil coast: virtually nothing evil, hardly any land animals",
+     "Two things. DF has few evil animals: 19 non-vermin species in the raws carry EVIL, most of them cavern or civilised (troll, goblin, dark gnome). "
+     "The casts held the harpy (spring), the ogre (spring) and the giant mantis wired as the evil apex; none of them arrived on the surface. And the "
+     "land cap was held by sea birds: 4 to 11 osprey and albatross waves a season counted against the land's five groups."),
+    ("Land, small savage lake: winter practically nothing but ravens",
+     "The winter flying cast held the raven: 62 of 64 fliers on the 13 Oct engine, 92% on the 14 Oct one."),
+    ("Land, untamed wilds lake: interesting, mostly bird animal people",
+     "Savage land's flying pool is rich in animal people (cardinal, sparrow, bat and great horned owl men), and they come in flocks of 5 to 10. "
+     "A good scene; the ground layer under them stayed thin (2 or 3 of 7 species a season)."),
+    ("Land, joyous wilds: spring almost nothing but two fliers",
+     "Kestrels (23) and firefly men; the one ground arrival was a tyrannosaurus. On the 14 Oct engine spring brought 13 flier waves and 2 walker waves."),
+    ("Land, terrifying coast: winter nearly all giant roaches",
+     "The giant roach is a flier the winter ground cast held, and it comes in groups of 5 to 10. On the 14 Oct engine winter "
+     "was more even: five species, the roach 50%."),
+    ("Water, brook: only otters, nothing in summer and autumn",
+     "Only the otter fitted a brook (your 6 Oct cap, 10,000 cm³), and it was cast in spring and winter; the summer and autumn fresh casts held nothing "
+     "brook-sized, so nothing came. Fixed in two steps: brook-sized fresh casts (13 Oct) and, my call on your word today, a 25,000 cm³ brook cap, "
+     "which lets in beavers, lampreys, gar and Eryops. The rerun on a fresh brook embark is in the validation year."),
+]
+
+ECO_FIXES = [   # (title, what, expected) -- proposals for the user (14 Oct)
+    ("1. A cap for each land sub-layer",
+     "Walkers, fliers and the water casts' birds now share the land's five groups. Give ground walkers their own cap (5 groups), fliers theirs (3), "
+     "and count a sea or lake bird against its water cast's body cap. Each cap pauses only its own entries.",
+     "Walkers stop losing their slots to fliers: the good coast's autumn, the evil coast's land, the joyous spring."),
+    ("2. Even odds inside a cast",
+     "The FREQUENCY ladder sets the trophic pyramid across levels, but inside one cast it spreads 1 to 100, and DF draws by FREQUENCY. Keep the ladder "
+     "between levels and limit the spread inside a cast (no species above four times a cast-mate's odds); or let species take turns: a species that "
+     "has had two waves in a season while a cast-mate with stock has had none waits until the others have had theirs.",
+     "More of each cast arrives (47% of cast species now) and no one species takes a season."),
+    ("3. Caps that count animals",
+     "A cap of five groups is 5 animals of a solitary species and about 85 of crundles (15-20 a group). Count a group as one per five animals (a crundle "
+     "group is four), or add an animal ceiling per layer.",
+     "The cavern and raven bursts flatten; seasons hold similar numbers of animals."),
+    ("4. A freeze guard",
+     "Water life the tool draws in the days before a body freezes over dies in the ice (DF kills everything in a frozen tile), and so do the sponges it "
+     "places. Stop water draws and sponge placement on a body for about ten days before its freeze-up (the date learned from the first freeze, or read "
+     "from the water's temperature), and give a frozen body's season to its shore birds.",
+     "No more ice kills (25-86 a coastal fort); the frozen sea's season is not wasted."),
+    ("5. Evil flavour on evil land",
+     "Seat the evil species first in their slots on evil land and give them the cast's top odds, as the unicorn has on the good coast (44 came).",
+     "Harpies, ogres and the mantis arrive; the raws allow little more."),
+    ("6. Full layers that never turn over",
+     "On the terrifying coast cavern 2 sat at its cap for two seasons on cave toads that never left, so nothing new came. Your rule is pause, never send "
+     "off; one way inside it is to let in-cast groups leave at the season change after two seasons on the map.",
+     "Needs your ruling: it touches the pause-not-trim principle."),
+]
+
+
+def ecology_section():
+    """14 Oct (user): the year as an ecologist reads it -- every full-year fort, layer by layer and season by season"""
+    import ecology as Eco
+    from design import Design
+    D = Design()
+    known = set(D.R.src)
+    res = Eco.run()
+    if not res:
+        return ''
+    new = [c for c in Eco.CELLS if c[0] == '14 Oct']
+    def tbl(head, rows, cls=''):
+        return (f"<div class='tbl'{cls}><table><thead><tr>" + ''.join(f"<th{' data-t=cat' if i == 0 else ''}>{h}</th>" for i, h in enumerate(head))
+                + '</tr></thead><tbody>' + ''.join('<tr>' + ''.join(f"<td{' class=num' if isinstance(c, (int, float)) else ''}>{c}</td>" for c in r) + '</tr>' for r in rows)
+                + '</tbody></table></div>')
+    # headline numbers, 14 Oct forts
+    nn = [f for f in res if f['engine'] == '14 Oct']
+    surf = [r for f in nn for r in f['rows'] if r['layer'] in ('ground', 'flying', 'ocean', 'fresh') and r['cast']]
+    cav = [r for f in nn for r in f['rows'] if r['layer'].startswith('cavern') and r['cast']]
+    cov = sum(len(r['cast_arrived']) for r in surf), sum(len(r['cast']) for r in surf)
+    covc = sum(len(r['cast_arrived']) for r in cav), sum(len(r['cast']) for r in cav)
+    dom = [r for f in nn for r in f['rows'] if r['layer'] in Eco.LAYERS and r['units'] >= 5]
+    mono = sum(1 for r in dom if r['dominance'] >= 0.75)
+    land_rich = [r['crowd'][1] for f in nn for r in f['rows'] if r['layer'] == 'ground' and r['crowd']]
+    cav_rich = [r['crowd'][1] for f in nn for r in f['rows'] if r['layer'] == 'cavern1' and r['crowd']]
+    fb = Eco.freq_bands(new, known)
+    ls = Eco.land_sources(new, known)
+    fr = Eco.freezes(new)
+    kl = Eco.kills(new)
+    lsum = collections.Counter()
+    for r in ls:
+        for k in ('ground', 'flying', 'water', 'caps'): lsum[k] += r[k]
+    land_rows = [[r['fort'], r['season'], r['ground'], r['flying'], r['water'], r['caps']] for r in ls]
+    freq_rows = [[f'FREQUENCY {n}', g, t, f'{g / t:.0%}' if t else '-'] for n, g, t in fb]
+    frz_rows = [[r['fort'], r['n'], r['placed'], ', '.join(f'{esc(k.lower())} {v}' for k, v in r['animals']) or '-',
+                 ', '.join(str(d) for d in r['days']), r['age'] if r['age'] is not None else '-'] for r in fr]
+    kill_rows = [[r['fort'], r['deaths'], '; '.join(f'{esc(p.lower())} → {esc(q.lower())} {v}' for (p, q), v in r['top'])] for r in kl]
+    ans = ''.join(f"<tr><td class='note'><b>{esc(q)}</b></td><td class='note'>{esc(a)}</td></tr>" for q, a in ECO_ANSWERS)
+    fixes = ''.join(f"<tr><td><b>{esc(a)}</b></td><td class='note'>{esc(b)}</td><td class='note'>{esc(c)}</td></tr>" for a, b, c in ECO_FIXES)
+    # the full table: every fort, layer and season
+    full = []
+    for f in res:
+        for r in f['rows']:
+            if r['layer'].startswith('never cast deep') or (not r['units'] and not r['cast']):
+                continue
+            cr = r['crowd']
+            full.append(f"<tr><td>{esc(f['fort'])}</td><td>{f['engine']}</td><td>{esc(f['biome'])}</td><td>{esc(f['region'])}</td><td>{esc(r['layer'])}</td>"
+                        f"<td>{r['season']}</td><td class='num' data-v='{len(r['cast_arrived'])}'>{len(r['cast_arrived'])} of {len(r['cast'])}</td>"
+                        f"<td class='num'>{r['per28'] if r['per28'] is not None else ''}</td><td class='num'>{r['S']}</td><td class='num'>{r['H']:.2f}</td>"
+                        f"<td class='num'>{'' if r['dominance'] is None else f'{r['dominance']:.2f}'}</td>"
+                        f"<td class='num'>{'' if not cr else f'{cr[0]:.1f}'}</td><td class='note'>{', '.join(f'{esc(t.lower())} {k}' for t, k in r['top'])}</td></tr>")
+    return f"""
+<h2 id="ecology">The year as an ecologist reads it (14 Oct)</h2>
+<p>Every full-year fort so far, read layer by layer and season by season: what each cast brought, how many kinds, how even, and what lived on the map.
+{len(res)} forts: {sum(1 for f in res if f['engine'] != '14 Oct')} on the engines of 12 and 13 Oct (the forts your crowdedness charts show) and
+{len(nn)} on today's engine (the validation year). Arrivals are counted per 28 days, so the embark spring, which is short, compares with a whole season.
+The goals you set: similar numbers of animals across the seasons, and varied casts in every season.</p>
+<div class="grid2">
+<div class="card"><h4>Less than half of each surface cast arrives</h4><p><span class="big">{cov[0]} / {cov[1]}</span> surface cast slots (ground, flying, ocean, fresh)
+saw their species in their season on today's engine; caverns {covc[0]} / {covc[1]}.</p></div>
+<div class="card"><h4>One species often takes the season</h4><p><span class="big">{mono} / {len(dom)}</span> layer-seasons with five or more arrivals had one species
+at 75% or more of them.</p></div>
+<div class="card"><h4>Land is thin, caverns are steady</h4><p>On a given day: <span class="big">{sum(land_rich) / len(land_rich):.1f}</span> species on land,
+<span class="big">{sum(cav_rich) / len(cav_rich):.1f}</span> in the caverns. The cavern pause flattened the old winter bursts (the lake's cavern 2: 68 arrivals per 28 days in winter on 12 Oct).</p></div>
+<div class="card"><h4>Fliers and sea birds fill the land</h4><p>Of {lsum['ground'] + lsum['flying'] + lsum['water']} land waves on today's forts,
+<span class="big">{lsum['ground']}</span> were walkers, {lsum['flying']} fliers and {lsum['water']} the water casts' birds; the land cap paused the layer {lsum['caps']} times.</p></div>
+</div>
+<h3>Your observations, one by one</h3>
+<div class='tbl'><table><thead><tr><th>what you saw</th><th>what the runs show</th></tr></thead><tbody>{ans}</tbody></table></div>
+
+<h3>What the tool mishandles, and what is DF</h3>
+<p><b>1. One cap for walkers, fliers and sea birds (the tool).</b> The land layer's five groups are shared by the ground cast, the flying cast, and the
+ocean and lake casts' birds (ospreys, albatrosses), which DF files as land. Fliers come from all nine tiles around the fort, walkers only from its own
+tile, so fliers fill the cap first; at the cap every land entry closes, walkers' included. Land waves on today's forts, by the cast that holds the species:</p>
+{tbl(['fort', 'season', 'walkers', 'fliers', "water casts' birds", 'cap pauses'], land_rows, " style='max-height:340px'")}
+<p><b>2. One species takes the season (the tool's odds, DF's draw).</b> DF picks a wave's species by FREQUENCY. The tool's ladder writes FREQUENCY to
+build the trophic pyramid, and inside one cast that spreads from 1 to 100 (the good coast's autumn fliers: kestrel 55, great horned owl 5, white stork 1).
+Species at low odds rarely come; when the cap is full they wait for a turn that seldom arrives. Every surface cast species of today's forts by its
+FREQUENCY in mid-season:</p>
+{tbl(['odds', 'arrived in their season', 'cast', 'share'], freq_rows)}
+<p>DF's own stock adds to it: a species DF stocked keeps its entries on several tiles with hundreds in stock (ravens: eight entries of 130-140 at the lake, 250-330 on the good coast), while an entry the tool
+creates holds about one wave on one tile.</p>
+<p><b>3. Caps count groups, not animals (the tool).</b> Five groups are five animals of a solitary hunter and about 85 crundles (groups of 15-20),
+75 creeping eyes (10-20), 50 bugbats (5-15) or 30 ravens (2-10). The biggest bursts of every fort are these species.</p>
+<p><b>4. Ice (DF, and the tool's timing).</b> DF kills everything in a water tile that freezes. Shallow coasts and lakes freeze over in one or two days
+of autumn. The tool keeps placing sponges and drawing water life until then, some of it days before the freeze:</p>
+{tbl(['fort', 'killed by ice', 'of them placed sponges', 'animals', 'day of the year', 'median days on the map'], frz_rows)}
+<p>After the freeze the cold coasts' seas hold nothing until the thaw (the good, joyous, terrifying and evil coasts: no ocean arrivals in winter, and none
+in spring where the sea was frozen at embark), so an 8- to 11-species ocean cast waits out the season. That is real ecology, a sea under ice; the cast is
+what is wasted.</p>
+<p><b>5. Few evil animals (DF).</b> Only 19 non-vermin species carry EVIL in the raws, most of them cavern or civilised. Evil land's look comes from its
+weather and its dead (risen echidnas and raptors on the terrifying coast; ash zombies on the evil coast), not from its wildlife.</p>
+<p><b>6. Fixed already.</b> Walkers from the fort's own tile (13 Oct: the 12 and 13 Oct engines' thin ground layers); the cavern pause (13 Oct: the
+winter cavern bursts); freshwater casts built when a frozen lake thaws (13 Oct: 68 river otters out of season on the good coast); brook-sized fresh casts
+(13 Oct) and the 25,000 cm³ brook cap (today).</p>
+
+<h3>Scenes worth keeping</h3>
+<p>The food webs work. Ospreys hunt the brook's platypus and giant barn owls hunt the ospreys; mosasaurs take bluefish and crabs off the joyous coast;
+blue sharks feed on trilobites off the terrifying coast; peregrines take ravens over the lakes; and in the untamed wilds' lake alligator snapping turtles,
+Diplocaulus and sea scorpions (Jaekelopterus) prey on Hibbertopterus, a Devonian lake food web with Permian and modern hunters in it. In summer the
+coasts fill with albatrosses and ospreys, as seabird colonies do; in winter ravens gather in flocks, as corvids do. The caverns run their own web:
+cave crocodiles on crundles and troglodytes, cave dragons on hungry heads and flesh balls, giant cave spiders on creeping eyes. Kills between wild animals
+on today's forts:</p>
+{tbl(['fort', 'wild deaths', 'most frequent kills'], kill_rows)}
+
+<h3>Proposed fixes and tweaks</h3>
+<p>For your word; none of them is built. Each is aimed at an effect above and would run on new forts embarked for the purpose.</p>
+<div class='tbl'><table><thead><tr><th>change</th><th>what</th><th>expected</th></tr></thead><tbody>{fixes}</tbody></table></div>
+
+<h3>Every fort, layer and season</h3>
+<p class=small>Cast: how many of the season's cast species arrived. Arrivals per 28 days; species S; Shannon H'; dominance = the top species' share;
+on the map = the mean number of wild animals present on the layer's super-layer (land, water, caverns) per day. Layers 'other season' and 'never cast'
+are arrivals of species not in that season's casts (stand-ins, stragglers, DF's own stock).</p>
+<div class='tbl' style='max-height:520px'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>engine</th><th data-t='cat'>biome</th>
+<th data-t='cat'>region</th><th data-t='cat'>layer</th><th data-t='cat'>season</th><th class='num' data-t='num'>cast arrived</th>
+<th class='num' data-t='num'>per 28 d</th><th class='num' data-t='num'>S</th><th class='num' data-t='num'>H'</th><th class='num' data-t='num'>dominance</th>
+<th class='num' data-t='num'>on the map</th><th>top species</th></tr></thead><tbody>{''.join(full)}</tbody></table></div>
 """
 
 
@@ -857,7 +1044,8 @@ def main():
   region: every creature in the raws is a candidate, filtered first by wild and natural, then BIOME, SAVAGE, GOOD/EVIL and the world's
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
   Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
-  the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
+  the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#ecology">the year as an ecologist reads it</a> (14 Oct:
+  every full-year fort, layer by layer, with what the tool mishandles and six proposed fixes), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
   pools and brooks, stand-ins) and <a href="#validate">the validation year</a> on eight forts. The sections after them are the desk simulation the build followed.
   Every table sorts by a click on its header; categorical columns filter.</p>
 </section>
@@ -878,6 +1066,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {changes_section()}
 {region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75e).")}
 {crowd_section('X4v75b')}
+{ecology_section()}
 {applied_section()}
 
 <h2>The layers and their slots</h2>
