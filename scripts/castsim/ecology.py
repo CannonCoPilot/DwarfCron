@@ -50,7 +50,7 @@ CELLS = [
     ('14 Oct', 'X7v75b', 'S', 'Small savage lake', 'lake', 'savage, isolated'),
     ('14 Oct', 'X7v75b', 'U', 'Untamed wilds lake', 'lake', 'savage'),
     ('14 Oct', 'X7v75c', 'J', 'Joyous wilds coast', 'ocean', 'good, savage'),
-    ('14 Oct', 'X7v75e', 'T', 'Terrifying coast', 'ocean', 'evil, savage'),
+    ('14 Oct', 'X7v75f', 'T', 'Terrifying coast', 'ocean', 'evil, savage'),
 ]
 
 
@@ -101,6 +101,7 @@ def analyse(cell: Path, classify, known: set) -> dict:
         for t in v['cast'] + v['vermin']:
             where[s].setdefault(t, L)
     ev = (cell / 'events.tsv').read_text(encoding='cp437').splitlines()[1:]
+    bands = crowd.cavern_bands(cell)
     arr = collections.defaultdict(collections.Counter)    # (layer, season) -> species -> units
     births = collections.Counter()
     ticks = []
@@ -113,6 +114,8 @@ def analyse(cell: Path, classify, known: set) -> dict:
             continue
         t, s, sp = int(x[0]), season_of(int(x[0])), x[3]
         L = where[s].get(sp)
+        if x[9] == 'cavern' and bands and x[8].lstrip('-').isdigit():   # a cavern arrival is filed by the cavern it came into
+            L = 'cavern%d' % crowd.depth_of(bands, int(x[8]))
         if L is None:   # another season's cast (a stand-in, a straggler) or never cast (DF's own stock); 'deep' is the magma sea
             L = ('other season ' if sp in anywhen else 'never cast ') + x[9]
         arr[(L, s)][sp] += 1

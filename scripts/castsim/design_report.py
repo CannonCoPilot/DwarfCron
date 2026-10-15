@@ -423,7 +423,7 @@ RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the regio
 RERUN = {('X5v75', 'E'): 'X5v75e',
          # X7v75: the continuation (X7v75b) ran G S U J T; the reruns on the fixes found (X7v75c) ran B E G J T -- the newest cell wins
          **{('X7v75', a): ['X7v75b', 'X7v75c'] for a in 'GJ'}, **{('X7v75', a): 'X7v75b' for a in 'SU'},
-         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d', 'X7v75e']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
+         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d', 'X7v75e', 'X7v75f']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
 
 
 def cell_dir(run, a):
@@ -595,7 +595,7 @@ CROWD_FORTS = [   # (run, arm, name) shown in the crowdedness charts, in selecto
     # 14 Oct (user: every completed run): the validation year on today's engine, the newest full-year cell of each fort
     ('X7v75c', 'B', 'Brook · 14 Oct'), ('X7v75', 'X', 'Extinct wilds · 14 Oct'), ('X7v75c', 'E', 'Evil coast · 14 Oct'),
     ('X7v75c', 'G', 'Good coast · 14 Oct'), ('X7v75b', 'S', 'Small savage lake · 14 Oct'), ('X7v75b', 'U', 'Untamed wilds lake · 14 Oct'),
-    ('X7v75c', 'J', 'Joyous wilds coast · 14 Oct'), ('X7v75e', 'T', 'Terrifying coast · 14 Oct'),
+    ('X7v75c', 'J', 'Joyous wilds coast · 14 Oct'), ('X7v75f', 'T', 'Terrifying coast · 14 Oct'),
 ]
 
 
@@ -708,13 +708,13 @@ X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES
          "stand-ins; this year it logged none, because those readings were waves on their way, not dead populations.",
     'J': "<b>Passes</b> on the rerun (the first run had the same sturgeon send-off as the good coast). One stand-in under the new checks: an "
          "octopus for a Triassic Psephoderma that ran out in autumn.",
-    'T': "<b>The first full terrifying year, with the shelter sealed.</b> Terrifying land raises corpses, and the fort was lost three times: "
-         "with 7 dwarves a reanimated stegosaurus killed the leader in spring; with 50, risen echidnas, utahraptors and storks overran them in "
-         "summer; sheltered under a hatch, at nearly the same tick, because a risen echidna and velociraptor walked 50 tiles to the stair and down "
-         "past the hatch while dwarves held it open going out for corpses. The fix locks the hatch, keeps every citizen in a burrow over the room, "
-         "and takes refuse and corpses off the shelter stockpile. The rerun lived the year and passed every check, and nothing came through the "
-         "hatch. It still lost 23 dwarves (50, then 55 with migrants, ending at 32): the fort's own horse starved in the sealed room, its corpse "
-         "rose and killed 11 within a few days, and dwarves who died inside kept rising. Next: take the animals out before sealing (pending).",
+    'T': "<b>A good terrifying year at last, with 100 dwarves sealed in and no animals.</b> Terrifying land raises corpses, and the fort was "
+         "lost three times: with 7 dwarves a reanimated stegosaurus killed the leader in spring; with 50, risen echidnas, utahraptors and storks "
+         "overran them in summer; sheltered under a hatch, at nearly the same tick, because a risen echidna and velociraptor walked 50 tiles to the "
+         "stair and down past the hatch while dwarves held it open going out for corpses. Locking the hatch, a burrow over the room and a stockpile "
+         "without corpses kept everything out (X7v75e), but the fort's own horse starved in the sealed room, rose and killed 11, and 23 of 55 were "
+         "lost. The final run, re-embarked with 100 dwarves (your word), a 15x15 room, and the fort's animals taken off before sealing: 100 in, "
+         "103 at the end (migrants), three deaths, all outside the hatch, no undead in the room, nobody lost to stress. Every check passed.",
 }
 
 
@@ -821,8 +821,8 @@ ECO_ANSWERS = [   # (your observation, what the runs show) -- user 14 Oct
     ("Land, joyous wilds: spring almost nothing but two fliers",
      "Kestrels (23) and firefly men; the one ground arrival was a tyrannosaurus. On the 14 Oct engine spring brought 13 flier waves and 2 walker waves."),
     ("Land, terrifying coast: winter nearly all giant roaches",
-     "The giant roach is a flier the winter ground cast held, and it comes in groups of 5 to 10. On the 14 Oct engine winter "
-     "was more even: five species, the roach 50%."),
+     "The giant roach is a flier the winter ground cast held, and it comes in groups of 5 to 10. On today's engine winter "
+     "still had the roach first: 17 of the 24 ground-cast arrivals (71%), with Diadectes men and kakapos."),
     ("Water, brook: only otters, nothing in summer and autumn",
      "Only the otter fitted a brook (your 6 Oct cap, 10,000 cm³), and it was cast in spring and winter; the summer and autumn fresh casts held nothing "
      "brook-sized, so nothing came. Fixed in two steps: brook-sized fresh casts (13 Oct) and, my call on your word today, a 25,000 cm³ brook cap, "
@@ -851,10 +851,6 @@ ECO_FIXES = [   # (title, what, expected) -- proposals for the user (14 Oct)
     ("5. Evil flavour on evil land",
      "Seat the evil species first in their slots on evil land and give them the cast's top odds, as the unicorn has on the good coast (44 came).",
      "Harpies, ogres and the mantis arrive; the raws allow little more."),
-    ("6. Full layers that never turn over",
-     "On the terrifying coast cavern 2 sat at its cap for two seasons on cave toads that never left, so nothing new came. Your rule is pause, never send "
-     "off; one way inside it is to let in-cast groups leave at the season change after two seasons on the map.",
-     "Needs your ruling: it touches the pause-not-trim principle."),
 ]
 
 
@@ -920,7 +916,7 @@ saw their species in their season on today's engine; caverns {covc[0]} / {covc[1
 <div class="card"><h4>One species often takes the season</h4><p><span class="big">{mono} / {len(dom)}</span> layer-seasons with five or more arrivals had one species
 at 75% or more of them.</p></div>
 <div class="card"><h4>Land is thin, caverns are steady</h4><p>On a given day: <span class="big">{sum(land_rich) / len(land_rich):.1f}</span> species on land,
-<span class="big">{sum(cav_rich) / len(cav_rich):.1f}</span> in the caverns. The cavern pause flattened the old winter bursts (the lake's cavern 2: 68 arrivals per 28 days in winter on 12 Oct).</p></div>
+<span class="big">{sum(cav_rich) / len(cav_rich):.1f}</span> in the caverns. The cavern pause lowered the old winter bursts (the lake's cavern 2: 68 arrivals per 28 days in winter on 12 Oct).</p></div>
 <div class="card"><h4>Fliers and sea birds fill the land</h4><p>Of {lsum['ground'] + lsum['flying'] + lsum['water']} land waves on today's forts,
 <span class="big">{lsum['ground']}</span> were walkers, {lsum['flying']} fliers and {lsum['water']} the water casts' birds; the land cap paused the layer {lsum['caps']} times.</p></div>
 </div>
@@ -955,7 +951,7 @@ winter cavern bursts); freshwater casts built when a frozen lake thaws (13 Oct: 
 
 <h3>Scenes worth keeping</h3>
 <p>The food webs work. Ospreys hunt the brook's platypus and giant barn owls hunt the ospreys; mosasaurs take bluefish and crabs off the joyous coast;
-blue sharks feed on trilobites off the terrifying coast; peregrines take ravens over the lakes; and in the untamed wilds' lake alligator snapping turtles,
+peregrines take ravens over the lakes; and in the untamed wilds' lake alligator snapping turtles,
 Diplocaulus and sea scorpions (Jaekelopterus) prey on Hibbertopterus, a Devonian lake food web with Permian and modern hunters in it. In summer the
 coasts fill with albatrosses and ospreys, as seabird colonies do; in winter ravens gather in flocks, as corvids do. The caverns run their own web:
 cave crocodiles on crundles and troglodytes, cave dragons on hungry heads and flesh balls, giant cave spiders on creeping eyes. Kills between wild animals
@@ -1045,7 +1041,7 @@ def main():
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
   Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
   the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#ecology">the year as an ecologist reads it</a> (14 Oct:
-  every full-year fort, layer by layer, with what the tool mishandles and six proposed fixes), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
+  every full-year fort, layer by layer, with what the tool mishandles and five proposed fixes), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
   pools and brooks, stand-ins) and <a href="#validate">the validation year</a> on eight forts. The sections after them are the desk simulation the build followed.
   Every table sorts by a click on its header; categorical columns filter.</p>
 </section>
@@ -1064,7 +1060,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {rig_section('X4v75b')}
 {region_section('X5v75')}
 {changes_section()}
-{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75e).")}
+{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75g).")}
 {crowd_section('X4v75b')}
 {ecology_section()}
 {applied_section()}
