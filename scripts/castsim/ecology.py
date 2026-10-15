@@ -139,6 +139,14 @@ def analyse(cell: Path, classify, known: set) -> dict:
                 per[s].append((sum(p[1] for p in c), len({p[0] for p in c})))
             for s, v in per.items():
                 stand[(sup, s)] = (sum(a for a, _ in v) / len(v), sum(b for _, b in v) / len(v))
+    # vermin on the map (recorder vermin.tsv, from 15 Oct): per season, the species seen in any sample and their mean swarms
+    vseen = collections.defaultdict(lambda: collections.defaultdict(list))
+    vf = cell / 'vermin.tsv'
+    if vf.exists():
+        for line in vf.read_text(encoding='cp437').splitlines()[1:]:
+            x = line.split('\t')
+            if len(x) > 3 and x[0].isdigit():
+                vseen[season_of(int(x[0]))][x[1]].append(int(x[2]))
     rows = []
     keys = sorted({k for k in arr} | set(C), key=lambda k: (LAYERS.index(k[0]) if k[0] in LAYERS else 9, k[0], SEASONS.index(k[1])))
     for L, s in keys:
@@ -157,6 +165,7 @@ def analyse(cell: Path, classify, known: set) -> dict:
         rows.append({
             'layer': L, 'season': s, 'days': days[s],
             'cast': cast.get('cast', []), 'vermin': cast.get('vermin', []), 'seed': cast.get('seed'),
+            'vermin_seen': sorted(v for v in cast.get('vermin', []) if vseen[s].get(v)) if vf.exists() else None,
             'cast_arrived': sorted(t for t in cast.get('cast', []) if c.get(t)),
             'units': n, 'per28': round(n * 28 / days[s], 1) if days[s] else None, 'births': births[(L, s)],
             'S': len(c), 'H': round(h, 2), 'J': round(j, 2),
@@ -164,7 +173,8 @@ def analyse(cell: Path, classify, known: set) -> dict:
             'types': dict(types.most_common()),
             'crowd': stand.get((SUPER.get(L, L.split()[-1]), s)),
         })
-    return {'rows': rows, 'days': dict(days)}
+    return {'rows': rows, 'days': dict(days),
+            'vermin_map': {s: {k: round(sum(v) / len(v), 1) for k, v in d.items()} for s, d in vseen.items()} if vf.exists() else None}
 
 
 def run(cells=CELLS) -> list:
@@ -322,6 +332,9 @@ def categories(res, classify) -> list:
                     got[k].add(t)
             for t in r['vermin']:
                 cast['vermin'].add(t); names[SUPER[r['layer']]].add(t)
+                if r.get('vermin_seen') and t in r['vermin_seen']:
+                    got['vermin'].add(t)
         out.append({'fort': f['fort'], 'engine': f['engine'], 'cast': {k: len(v) for k, v in cast.items()},
-                    'got': {k: len(v) for k, v in got.items()}, 'vermin_by': {k: sorted(v) for k, v in names.items()}})
+                    'got': {k: len(v) for k, v in got.items()}, 'vermin_by': {k: sorted(v) for k, v in names.items()},
+                    'vermin_sampled': f.get('vermin_map') is not None})
     return out

@@ -892,7 +892,7 @@ def ecology_section():
         vb = c['vermin_by']
         vnote = '; '.join(f"<b>{L}</b> {', '.join(esc(x.lower()) for x in vb[L])}" for L in ('land', 'water', 'cavern') if vb.get(L))
         cat_rows.append(f"<tr><td>{esc(c['fort'])}</td><td>{c['engine']}</td>" + ''.join(f"<td class='num'>{x}</td>" for x in cells)
-                        + f"<td class='num'>{c['cast'].get('vermin', 0)}</td><td class='note'>{vnote}</td></tr>")
+                        + f"<td class='num'>{c['cast'].get('vermin', 0)}{(' (%d)' % c['got'].get('vermin', 0)) if c.get('vermin_sampled') else ''}</td><td class='note'>{vnote}</td></tr>")
     cat_tbl = ("<div class='tbl' style='max-height:460px'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>engine</th>"
                + ''.join(f"<th class='num'>{esc(k)}</th>" for k in Eco.CATEGORIES[:-1])
                + "<th class='num' data-t='num'>vermin</th><th>the vermin, by where they live</th></tr></thead><tbody>" + ''.join(cat_rows) + '</tbody></table></div>')
@@ -937,7 +937,8 @@ at 75% or more of them.</p></div>
 <h3>Every kind of animal the casts held, vermin included</h3>
 <p>Distinct species each fort's casts held over the year, by animal type, with vermin as a category of their own (the casts' '+N' part:
 insects, small birds, small fish and the like). For the larger animals the number in brackets is how many of them arrived; vermin have no
-arrivals to count, because DF spawns them as swarms rather than as animals, and the run recorder does not sample those yet.</p>
+arrivals to count, because DF spawns them as swarms rather than as animals. The run recorder samples the swarms on the map from 15 Oct
+(vermin.tsv); a run that has it shows in brackets how many of its cast vermin were seen on the map in their season.</p>
 {cat_tbl}
 <h3>Your observations, one by one</h3>
 <div class='tbl'><table><thead><tr><th>what you saw</th><th>what the runs show</th></tr></thead><tbody>{ans}</tbody></table></div>
@@ -971,16 +972,23 @@ winter cavern bursts); freshwater casts built when a frozen lake thaws (13 Oct: 
 <h3>How the mechanics fit together (your questions of 15 Oct)</h3>
 <p><b>Where a wave comes from.</b> Population entries sit on world region tiles. A fort's map points at up to nine of them: its own tile and the
 neighbours its edge blocks borrow biomes from. Measured on the rig: DF sends a <b>walking</b> wave only from the fort's own tile, and a
-<b>flying</b> wave from any of the nine (the walker fix of 13 Oct came from this). Not yet measured: whether a species with entries on more tiles
-is also drawn <i>more often</i>, or only from more places. The runs hint that fliers do better per slot: on today's forts 162 flier waves came for
-96 flying cast slot-seasons (1.7 each) and 209 walker waves for 224 ground slot-seasons (0.9 each). But fliers also carry higher odds (small
-solitary birds score high on the ladder, below), so the two causes are tangled. A short rig test would separate them: two fliers at the same
-FREQUENCY, one with an entry on the fort's tile only, one on all nine, swapped between replicates. Ways to keep tile counts from steering the mix,
-from lightest to strongest:</p>
+<b>flying</b> wave from any of the nine (the walker fix of 13 Oct came from this). <b>Measured 15 Oct (the tile-reach test, TR2):</b> DF picks a
+wave per population <i>entry</i>, not per species. On the small savage lake (six draw tiles, three of them the fort's own), every other surface entry
+was closed and two solitary fliers were left at the same FREQUENCY and stock: one on a single site tile, the other on the five tiles its biomes allow.
+Each arrival was recorded with its source tile and removed so the next wave could come. Over four replicates, with the two species swapping roles,
+the five-tile species took 124 of 161 waves (77%; p ≈ 4×10<sup>-12</sup> against an even split), whichever species it was. Entries do not all
+weigh the same: the two species' entries on the same site tile drew alike (8/7, 14/10, 12/11, 9/9), the fort's two big tiles drew 40 to 58 waves
+per entry, and each neighbour tile 5 to 10. The weight follows how much of the map a tile covers (the big tiles hold 59% and 35% of the surface),
+with neighbours drawing more than their sliver (0.3%) would give; that last rule is still open. So a species' odds are its FREQUENCY times the summed
+weight of its open entries, and the site tiles carry most of it. On the forts: a species DF stocked on two or three of a straddling fort's own tiles
+out-draws one the tool created on a single tile, walker or flier alike; the neighbours give fliers a little extra on top.</p>
+<p class=small>The table and the per-tile counts: data/tile-reach/TR2 (waves.tsv, summary.md, NOTES.md). A first run (TR1) was void: the test's
+record of animals already seen survived the reload between replicates, so later arrivals were never removed and held DF's gate shut.</p>
+<p>Ways to keep tile counts from steering the mix, from lightest to strongest:</p>
 <ul class="find">
 <li><b>Separate caps</b> for walkers, fliers and the water casts' birds: fliers can no longer take walkers' slots; tile reach then matters only among fliers.</li>
-<li><b>One source per species</b>: during a season keep each cast species open on the fort's own tile only and close its copies on neighbour tiles
-(the same extinct flag the pause uses). Every species then has the same reach, walker or flier.</li>
+<li><b>One entry per species, on the same tile</b>: during a season keep each cast species open on one entry, on the same site tile for every species
+(the fort's biggest), and close its other copies (the same extinct flag the pause uses). The test shows this makes the odds FREQUENCY alone.</li>
 <li><b>One group per species at a time</b> (below): however many tiles a species has, it holds at most one slot.</li>
 <li><b>Turns chosen by the tool</b>: when a slot opens, open only the species whose turn it is; DF's pick, its odds and its tiles stop mattering.
 DF's wave usually follows within 450 ticks, once in four trials it took ten days, so it needs a fallback.</li>

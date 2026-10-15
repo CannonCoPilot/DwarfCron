@@ -158,6 +158,9 @@ if cmd == 'setup' then
     end
     df.creature_raw.find(ia).frequency = F
     df.creature_raw.find(ib).frequency = F
+    -- TR1 (15 Oct): the seen set outlived the reload between replicates; a reloaded save hands out the same unit ids, so later
+    -- arrivals read as seen, were never vanished, and held DF's surface gate shut (5 waves in 90,000 ticks, then none)
+    S.seen = {}
     local gone = 0
     for _, u in ipairs(df.global.world.units.active) do
         if not U.isDead(u) and (U.isWildlife(u) or (U.isAnimal(u) and not U.isTame(u) and not U.isDomesticated(u) and not U.isFortControlled(u)))
@@ -178,6 +181,10 @@ if cmd == 'collect' then
     local t = df.global.cur_year * 403200 + df.global.cur_year_tick
     local waves, order = {}, {}
     for _, u in ipairs(df.global.world.units.active) do
+        if not U.isDead(u) and u.animal.population.cave_id == -1
+           and (U.isWildlife(u) or (U.isAnimal(u) and not U.isTame(u) and not U.isDomesticated(u) and not U.isFortControlled(u))) then
+            u.animal.vanish_countdown = 1   -- every wild surface animal goes, recorded or not, so nothing holds the gate
+        end
         if not S.seen[u.id] and not U.isDead(u) and u.animal.population.cave_id == -1
            and (U.isWildlife(u) or (U.isAnimal(u) and not U.isTame(u) and not U.isDomesticated(u) and not U.isFortControlled(u))) then
             S.seen[u.id] = true
