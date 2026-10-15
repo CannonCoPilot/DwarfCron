@@ -43,7 +43,7 @@ CELLS = [
     ('13 Oct', 'X5v75', 'U', 'Untamed wilds lake', 'lake', 'savage'),
     ('13 Oct', 'X5v75', 'J', 'Joyous wilds coast', 'ocean', 'good, savage'),
     ('13 Oct', 'X5v75', 'T', 'Terrifying coast', 'ocean', 'evil, savage'),
-    ('14 Oct', 'X7v75c', 'B', 'Brook', 'brook', 'calm'),
+    ('14 Oct', 'X7v75h', 'B', 'Brook', 'brook', 'calm'),
     ('14 Oct', 'X7v75', 'X', 'Extinct wilds', 'lake', 'savage, isolated'),
     ('14 Oct', 'X7v75c', 'E', 'Evil coast', 'ocean', 'evil'),
     ('14 Oct', 'X7v75c', 'G', 'Good coast', 'ocean', 'good'),

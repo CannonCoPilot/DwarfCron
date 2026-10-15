@@ -423,7 +423,7 @@ RUN_FORTS = {   # a run's arms in table order, and their names (X5v75: the regio
 RERUN = {('X5v75', 'E'): 'X5v75e',
          # X7v75: the continuation (X7v75b) ran G S U J T; the reruns on the fixes found (X7v75c) ran B E G J T -- the newest cell wins
          **{('X7v75', a): ['X7v75b', 'X7v75c'] for a in 'GJ'}, **{('X7v75', a): 'X7v75b' for a in 'SU'},
-         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d', 'X7v75e', 'X7v75f']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
+         ('X7v75', 'E'): 'X7v75c', ('X7v75', 'B'): ['X7v75c', 'X7v75d', 'X7v75g', 'X7v75h'], ('X7v75', 'T'): ['X7v75b', 'X7v75c', 'X7v75d', 'X7v75e', 'X7v75f']}   # the rerun that played 45k ticks; X5v75e2 (50 dwarves) was stopped at its first loss   # an arm rerun under its own run name (the evil coast, after its first run hung)
 
 
 def cell_dir(run, a):
@@ -593,7 +593,7 @@ CROWD_FORTS = [   # (run, arm, name) shown in the crowdedness charts, in selecto
     ('X5v75', 'G', 'Good coast'), ('X5v75', 'E', 'Evil coast'), ('X5v75', 'S', 'Small savage lake'),
     ('X5v75', 'U', 'Untamed wilds lake'), ('X5v75', 'J', 'Joyous wilds coast'), ('X5v75', 'T', 'Terrifying coast'),
     # 14 Oct (user: every completed run): the validation year on today's engine, the newest full-year cell of each fort
-    ('X7v75c', 'B', 'Brook · 14 Oct'), ('X7v75', 'X', 'Extinct wilds · 14 Oct'), ('X7v75c', 'E', 'Evil coast · 14 Oct'),
+    ('X7v75h', 'B', 'Brook · 14 Oct'), ('X7v75', 'X', 'Extinct wilds · 14 Oct'), ('X7v75c', 'E', 'Evil coast · 14 Oct'),
     ('X7v75c', 'G', 'Good coast · 14 Oct'), ('X7v75b', 'S', 'Small savage lake · 14 Oct'), ('X7v75b', 'U', 'Untamed wilds lake · 14 Oct'),
     ('X7v75c', 'J', 'Joyous wilds coast · 14 Oct'), ('X7v75f', 'T', 'Terrifying coast · 14 Oct'),
 ]
@@ -687,13 +687,15 @@ Arrivals are counted only on the surface layers below (land and water); the cave
 
 
 X7_NOTES = {   # X7v75 (+ b, c, d): what each fort found, by arm (from the NOTES.md of each run)
-    'B': "<b>The brook got no animals of its own</b> in its first year: every 'water' arrival was an osprey DF sent. Its fresh casts held species too "
-         "large for a brook (your 6 Oct cap, 10,000 cm³), and its one small species, the platypus, had only a land entry the water draw ignored. "
-         "Fixed (the brook cap on the fresh cast; the water draw takes the season's water-cast species from land entries): the rerun drew platypus "
-         "23 times, and frogs, turtles and beavers, into the brook and its 16 murky pools all year. It also put giant tree frogs (200,700 cm³) into "
-         "the pools, so the draw now keeps pools to small creatures too. The table shows the last run, with the casts rebuilt on those rules: "
-         "Diplocaulus and platypus every season (only two species fit a brook here), drawn into the brook and pools in all four seasons; its one "
-         "flag is a giant platypus that walked in after the mid-season rebuild (pending).",
+    'B': "<b>The brook has its own animals in every season now.</b> Its first year drew nothing: every 'water' arrival was an osprey DF sent. "
+         "Its fresh casts held species too large for a brook (your 6 Oct cap, 10,000 cm³), and its one small species, the platypus, had only a "
+         "land entry the water draw ignored. Fixed (brook-sized fresh casts; the water draw takes water-cast species from land entries), but at "
+         "10,000 cm³ only two species fitted this brook. On your word I chose the rule: a brook takes animals up to 25,000 cm³, which adds beavers, "
+         "lampreys, gar and Eryops and keeps out pike, carp and snapping turtles. A fresh embark on the same tile (no rebuilt casts) cast gar, "
+         "beaver and platypus, with trout, char, perch, shad and Drepanopterus as its vermin, and drew beavers and gar in spring and winter and "
+         "platypus in summer and autumn, mostly into its murky pools (beaver ponds). Its first run found one more bug: a platypus walking in "
+         "overland was sent off on arrival, 8 times in an autumn, because the turnover read its land key only (fixed). The rerun on the same fort "
+         "passed every check. One species a season is the in-cast odds issue in the ecology section.",
     'X': "<b>The walker fix holds for a whole year:</b> 49 extinct arrivals (ankylosaurus 10, kelenken 9, triceratops 9, kosmoceratops 7, "
          "megacerops 5, nodosaurus 4, allosaurus 2, torvosaurus, glyptodon, smilodon). One population ran out (a longnose gar); no stand-in passed "
          "the checks (the closest failed the guild check) and its slot stayed empty, as designed.",
@@ -826,7 +828,8 @@ ECO_ANSWERS = [   # (your observation, what the runs show) -- user 14 Oct
     ("Water, brook: only otters, nothing in summer and autumn",
      "Only the otter fitted a brook (your 6 Oct cap, 10,000 cm³), and it was cast in spring and winter; the summer and autumn fresh casts held nothing "
      "brook-sized, so nothing came. Fixed in two steps: brook-sized fresh casts (13 Oct) and, my call on your word today, a 25,000 cm³ brook cap, "
-     "which lets in beavers, lampreys, gar and Eryops. The rerun on a fresh brook embark is in the validation year."),
+     "which lets in beavers, lampreys, gar and Eryops. A fresh embark on the same tile now has water life every season: beavers and gar "
+     "in spring and winter, platypus in summer and autumn (X7v75h)."),
 ]
 
 ECO_FIXES = [   # (title, what, expected) -- proposals for the user (14 Oct)
@@ -950,7 +953,7 @@ winter cavern bursts); freshwater casts built when a frozen lake thaws (13 Oct: 
 (13 Oct) and the 25,000 cm³ brook cap (today).</p>
 
 <h3>Scenes worth keeping</h3>
-<p>The food webs work. Ospreys hunt the brook's platypus and giant barn owls hunt the ospreys; mosasaurs take bluefish and crabs off the joyous coast;
+<p>The food webs work. On the first brook fort ospreys hunted the platypus and giant barn owls hunted the ospreys; on the new one hyenas take beavers at the ponds; mosasaurs take bluefish and crabs off the joyous coast;
 peregrines take ravens over the lakes; and in the untamed wilds' lake alligator snapping turtles,
 Diplocaulus and sea scorpions (Jaekelopterus) prey on Hibbertopterus, a Devonian lake food web with Permian and modern hunters in it. In summer the
 coasts fill with albatrosses and ospreys, as seabird colonies do; in winter ravens gather in flocks, as corvids do. The caverns run their own web:
@@ -1060,7 +1063,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {rig_section('X4v75b')}
 {region_section('X5v75')}
 {changes_section()}
-{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75g).")}
+{region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75h).")}
 {crowd_section('X4v75b')}
 {ecology_section()}
 {applied_section()}
