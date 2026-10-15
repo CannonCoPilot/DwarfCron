@@ -885,6 +885,17 @@ def ecology_section():
     ls = Eco.land_sources(new, known)
     fr = Eco.freezes(new)
     kl = Eco.kills(new)
+    cats = Eco.categories(res, D.E.classify)
+    cat_rows = []
+    for c in cats:
+        cells = [f"{c['cast'].get(k, 0)} ({c['got'].get(k, 0)})" for k in Eco.CATEGORIES[:-1]]
+        vb = c['vermin_by']
+        vnote = '; '.join(f"<b>{L}</b> {', '.join(esc(x.lower()) for x in vb[L])}" for L in ('land', 'water', 'cavern') if vb.get(L))
+        cat_rows.append(f"<tr><td>{esc(c['fort'])}</td><td>{c['engine']}</td>" + ''.join(f"<td class='num'>{x}</td>" for x in cells)
+                        + f"<td class='num'>{c['cast'].get('vermin', 0)}</td><td class='note'>{vnote}</td></tr>")
+    cat_tbl = ("<div class='tbl' style='max-height:460px'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>engine</th>"
+               + ''.join(f"<th class='num'>{esc(k)}</th>" for k in Eco.CATEGORIES[:-1])
+               + "<th class='num' data-t='num'>vermin</th><th>the vermin, by where they live</th></tr></thead><tbody>" + ''.join(cat_rows) + '</tbody></table></div>')
     lsum = collections.Counter()
     for r in ls:
         for k in ('ground', 'flying', 'water', 'caps'): lsum[k] += r[k]
@@ -906,7 +917,7 @@ def ecology_section():
                         f"<td>{r['season']}</td><td class='num' data-v='{len(r['cast_arrived'])}'>{len(r['cast_arrived'])} of {len(r['cast'])}</td>"
                         f"<td class='num'>{r['per28'] if r['per28'] is not None else ''}</td><td class='num'>{r['S']}</td><td class='num'>{r['H']:.2f}</td>"
                         f"<td class='num'>{'' if r['dominance'] is None else f'{r['dominance']:.2f}'}</td>"
-                        f"<td class='num'>{'' if not cr else f'{cr[0]:.1f}'}</td><td class='note'>{', '.join(f'{esc(t.lower())} {k}' for t, k in r['top'])}</td></tr>")
+                        f"<td class='num'>{'' if not cr else f'{cr[0]:.1f}'}</td><td class='note'>{', '.join(f'{esc(t.lower())} {k}' for t, k in r['top'])}</td><td class='note'>{', '.join(esc(v.lower()) for v in r.get('vermin', []))}</td></tr>")
     return f"""
 <h2 id="ecology">The year as an ecologist reads it (14 Oct)</h2>
 <p>Every full-year fort so far, read layer by layer and season by season: what each cast brought, how many kinds, how even, and what lived on the map.
@@ -923,6 +934,11 @@ at 75% or more of them.</p></div>
 <div class="card"><h4>Fliers and sea birds fill the land</h4><p>Of {lsum['ground'] + lsum['flying'] + lsum['water']} land waves on today's forts,
 <span class="big">{lsum['ground']}</span> were walkers, {lsum['flying']} fliers and {lsum['water']} the water casts' birds; the land cap paused the layer {lsum['caps']} times.</p></div>
 </div>
+<h3>Every kind of animal the casts held, vermin included</h3>
+<p>Distinct species each fort's casts held over the year, by animal type, with vermin as a category of their own (the casts' '+N' part:
+insects, small birds, small fish and the like). For the larger animals the number in brackets is how many of them arrived; vermin have no
+arrivals to count, because DF spawns them as swarms rather than as animals, and the run recorder does not sample those yet.</p>
+{cat_tbl}
 <h3>Your observations, one by one</h3>
 <div class='tbl'><table><thead><tr><th>what you saw</th><th>what the runs show</th></tr></thead><tbody>{ans}</tbody></table></div>
 
@@ -952,6 +968,48 @@ weather and its dead (risen echidnas and raptors on the terrifying coast; ash zo
 winter cavern bursts); freshwater casts built when a frozen lake thaws (13 Oct: 68 river otters out of season on the good coast); brook-sized fresh casts
 (13 Oct) and the 25,000 cm³ brook cap (today).</p>
 
+<h3>How the mechanics fit together (your questions of 15 Oct)</h3>
+<p><b>Where a wave comes from.</b> Population entries sit on world region tiles. A fort's map points at up to nine of them: its own tile and the
+neighbours its edge blocks borrow biomes from. Measured on the rig: DF sends a <b>walking</b> wave only from the fort's own tile, and a
+<b>flying</b> wave from any of the nine (the walker fix of 13 Oct came from this). Not yet measured: whether a species with entries on more tiles
+is also drawn <i>more often</i>, or only from more places. The runs hint that fliers do better per slot: on today's forts 162 flier waves came for
+96 flying cast slot-seasons (1.7 each) and 209 walker waves for 224 ground slot-seasons (0.9 each). But fliers also carry higher odds (small
+solitary birds score high on the ladder, below), so the two causes are tangled. A short rig test would separate them: two fliers at the same
+FREQUENCY, one with an entry on the fort's tile only, one on all nine, swapped between replicates. Ways to keep tile counts from steering the mix,
+from lightest to strongest:</p>
+<ul class="find">
+<li><b>Separate caps</b> for walkers, fliers and the water casts' birds: fliers can no longer take walkers' slots; tile reach then matters only among fliers.</li>
+<li><b>One source per species</b>: during a season keep each cast species open on the fort's own tile only and close its copies on neighbour tiles
+(the same extinct flag the pause uses). Every species then has the same reach, walker or flier.</li>
+<li><b>One group per species at a time</b> (below): however many tiles a species has, it holds at most one slot.</li>
+<li><b>Turns chosen by the tool</b>: when a slot opens, open only the species whose turn it is; DF's pick, its odds and its tiles stop mattering.
+DF's wave usually follows within 450 ticks, once in four trials it took ten days, so it needs a fallback.</li>
+</ul>
+<p><b>The odds and the wave budget.</b> DF picks the species of each wave by FREQUENCY among the open entries; stock does not enter the pick. The engine
+writes FREQUENCY with its ladder: a weight per guild, scaled by body size, split between the herbivore level (by default 73% of animals) and the carnivore
+level (20%), divided by the species' mean group size (so the target is animals, not waves), and finally rescaled so the top member is 100, with a floor of 1.
+A cast therefore always runs from 100 down to as low as 1: the good coast's autumn fliers were kestrel 55, great horned owl 5, white stork 1. Each layer
+also gets few waves a season, because the cap holds five groups and a group stays about 17 to 25 days: the median was 7 ground waves, 5 flier waves,
+14 ocean and 15 fresh-water draws per season. A species with a share p of the odds comes at least once in N waves with chance 1 − (1 − p)<sup>N</sup>;
+the white stork above, at 1 in 61 over that autumn's 11 flier waves, had a 17% chance. Applied to every surface cast slot of today's forts, the odds and the wave counts
+predict 291 of 576 slots getting a wave; the tool's ledgers show 230 (272 arrivals counted on the map, births and walk-ins included). So the odds
+explain most of it, and reach and stock the rest. Even perfectly even odds would leave species out: seven waves among seven species miss about a third
+of them, so a whole cast in one season needs both more even odds and more waves (or one group per species).</p>
+<p><b>One group per species at a time.</b> At the moments one species dominated, it held most of the layer's groups at once:</p>
+<div class='tbl'><table><thead><tr><th data-t='cat'>fort and layer</th><th>species</th><th class='num'>mean group</th><th class='num'>peak animals of it at once</th><th class='num'>about how many groups</th><th class='num'>of all wild animals on the layer then</th></tr></thead><tbody>
+<tr><td>Good coast, land, autumn</td><td>kestrel</td><td class=num>1</td><td class=num>5</td><td class=num>5</td><td class=num>all five land slots</td></tr>
+<tr><td>Brook, water</td><td>beaver</td><td class=num>6</td><td class=num>34</td><td class=num>5.7</td><td class=num>34 of 39</td></tr>
+<tr><td>Small savage lake, land, winter</td><td>raven</td><td class=num>6</td><td class=num>20</td><td class=num>3.3</td><td class=num>20 of 21</td></tr>
+<tr><td>Joyous wilds coast, land, summer</td><td>wild boar</td><td class=num>7</td><td class=num>19</td><td class=num>2.7</td><td class=num>19 of 22</td></tr>
+<tr><td>Terrifying coast, caverns</td><td>crundle</td><td class=num>17</td><td class=num>34</td><td class=num>2.0</td><td class=num>34 of 49</td></tr>
+</tbody></table></div>
+<p>A cap of one group per species (the layer cap of five groups kept) would turn each of these into one group among at least five species whenever
+the layer is full: a diversity floor, and turn-taking without a scheduler, since the species on the map is closed while a cast-mate is open. It uses
+levers the tool already has: the extinct flag on one species' entries (land), a frequency hold (caverns), and the tool's own draw (water). What it
+does not change: a herd still comes as one whole group (a crundle group is still 15 to 20; DF reads the raw's cluster size at the draw, so a lower
+cluster for the biggest groups is a separate lever, and fliers sometimes overshoot it); a wave DF picked before the close can still land, one over,
+as with the pause; and a cast with fewer reachable species than slots runs below its cap.</p>
+
 <h3>Scenes worth keeping</h3>
 <p>The food webs work. On the first brook fort ospreys hunted the platypus and giant barn owls hunted the ospreys; on the new one hyenas take beavers at the ponds; mosasaurs take bluefish and crabs off the joyous coast;
 peregrines take ravens over the lakes; and in the untamed wilds' lake alligator snapping turtles,
@@ -962,7 +1020,7 @@ on today's forts:</p>
 {tbl(['fort', 'wild deaths', 'most frequent kills'], kill_rows)}
 
 <h3>Proposed fixes and tweaks</h3>
-<p>For your word; none of them is built. Each is aimed at an effect above and would run on new forts embarked for the purpose.</p>
+<p>On hold (your word, 15 Oct) until the mechanics above are clear; none is built. Your idea of one group per species at a time is weighed in the mechanics section, and the tile-reach test there would come first. Each change would run on new forts embarked for the purpose.</p>
 <div class='tbl'><table><thead><tr><th>change</th><th>what</th><th>expected</th></tr></thead><tbody>{fixes}</tbody></table></div>
 
 <h3>Every fort, layer and season</h3>
@@ -972,7 +1030,7 @@ are arrivals of species not in that season's casts (stand-ins, stragglers, DF's 
 <div class='tbl' style='max-height:520px'><table><thead><tr><th data-t='cat'>fort</th><th data-t='cat'>engine</th><th data-t='cat'>biome</th>
 <th data-t='cat'>region</th><th data-t='cat'>layer</th><th data-t='cat'>season</th><th class='num' data-t='num'>cast arrived</th>
 <th class='num' data-t='num'>per 28 d</th><th class='num' data-t='num'>S</th><th class='num' data-t='num'>H'</th><th class='num' data-t='num'>dominance</th>
-<th class='num' data-t='num'>on the map</th><th>top species</th></tr></thead><tbody>{''.join(full)}</tbody></table></div>
+<th class='num' data-t='num'>on the map</th><th>top species</th><th>vermin cast</th></tr></thead><tbody>{''.join(full)}</tbody></table></div>
 """
 
 

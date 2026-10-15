@@ -156,7 +156,7 @@ def analyse(cell: Path, classify, known: set) -> dict:
         top = c.most_common(3)
         rows.append({
             'layer': L, 'season': s, 'days': days[s],
-            'cast': cast.get('cast', []), 'seed': cast.get('seed'),
+            'cast': cast.get('cast', []), 'vermin': cast.get('vermin', []), 'seed': cast.get('seed'),
             'cast_arrived': sorted(t for t in cast.get('cast', []) if c.get(t)),
             'units': n, 'per28': round(n * 28 / days[s], 1) if days[s] else None, 'births': births[(L, s)],
             'S': len(c), 'H': round(h, 2), 'J': round(j, 2),
@@ -296,4 +296,32 @@ def kills(cells, n=5):
                 if m and m.group(1) not in ('DWARF',):
                     k[(m.group(1), x[3])] += 1
         out.append({'fort': name, 'deaths': deaths, 'top': k.most_common(n)})
+    return out
+
+
+CATEGORIES = crowd.TYPES + ['vermin']
+
+
+def categories(res, classify) -> list:
+    """per fort: the distinct species its casts held over the year by animal type, vermin as a category of its own (user 15 Oct:
+    'include vermin categorically'), and how many of each type arrived. Vermin never arrive as units (DF spawns them as swarms
+    and the engine's holds rewrite their stock), so for them only the casts are known."""
+    out = []
+    for f in res:
+        cast, got, names = collections.defaultdict(set), collections.defaultdict(set), collections.defaultdict(set)
+        for r in f['rows']:
+            if r['layer'] not in LAYERS:
+                continue
+            for t in r['cast']:
+                try:
+                    k = crowd.animal_type(classify(t))
+                except Exception:
+                    k = 'small land prey'
+                cast[k].add(t)
+                if t in r['cast_arrived']:
+                    got[k].add(t)
+            for t in r['vermin']:
+                cast['vermin'].add(t); names[SUPER[r['layer']]].add(t)
+        out.append({'fort': f['fort'], 'engine': f['engine'], 'cast': {k: len(v) for k, v in cast.items()},
+                    'got': {k: len(v) for k, v in got.items()}, 'vermin_by': {k: sorted(v) for k, v in names.items()}})
     return out
