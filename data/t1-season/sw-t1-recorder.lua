@@ -11,6 +11,10 @@
 -- DIR/positions.tsv every unit above every 1,000 ticks: tick, id, race, kind, x, y, z, layer, alive
 -- DIR/reports.tsv  every new announcement report: tick, report id, type, text (combat, hunting, deaths, arrivals ...)
 -- DIR/samples.tsv  tick, wild units on the map, of them in the tool's groups, pets/livestock, dead this sample, fps
+-- DIR/vermin.tsv   (15 Oct, user: vermin as a category) every 1,000 ticks, one row per vermin species on the map: tick, race,
+--                  swarms (DF's vermin objects), animals (their summed number; an innumerable swarm counts 1 and is counted
+--                  apart), innumerable swarms, colonies, swarms on the surface, underground, in water, visible, and DF's
+--                  creation types (Eater, Grounder, Swamper, Colony, ...). Caught vermin (in a cage or trap item) are skipped.
 -- DIR/pops.tsv     (with POPS) tick, population index, race, quantity, extinct -- a row at start and on every change
 --                  (a refund that lifts a held entry between the tool's daily holds shows as a 0 -> n row)
 -- DIR/ledger.tsv   every seasonal-wildlife ledger entry as it is written: abs tick, kind, layer, text (the tool keeps
@@ -174,6 +178,32 @@ local function sample()
             S.ev:write(table.concat({ t, 'LEAVE', id, '?', '?', k.kind, -1, -1, -1, '?', 'removed from the unit vector' }, '\t'), '\n')
         end
     end
+    if snap and S.vrm then
+        local per = {}
+        for _, v in ipairs(df.vermin.get_vector()) do
+            if not v.item and v.pos.x >= 0 and not v.flags.already_deleting then
+                local r = per[v.race]
+                if not r then r = { n = 0, a = 0, inf = 0, col = 0, surf = 0, under = 0, water = 0, vis = 0, cat = {} }; per[v.race] = r end
+                r.n = r.n + 1
+                if v.amount >= 10000001 then r.inf = r.inf + 1; r.a = r.a + 1 else r.a = r.a + math.max(0, v.amount) end
+                if v.flags.is_colony then r.col = r.col + 1 end
+                if v.visible then r.vis = r.vis + 1 end
+                local d = dfhack.maps.getTileFlags(v.pos)
+                if d then
+                    if d.subterranean then r.under = r.under + 1 else r.surf = r.surf + 1 end
+                    if d.flow_size > 0 and not d.liquid_type then r.water = r.water + 1 end
+                end
+                local c = df.vermin_category[v.category] or tostring(v.category)
+                r.cat[c] = (r.cat[c] or 0) + 1
+            end
+        end
+        for race, r in pairs(per) do
+            local cs = {}
+            for c, k in pairs(r.cat) do cs[#cs + 1] = c .. ' ' .. k end
+            table.sort(cs)
+            S.vrm:write(table.concat({ t, raceName(race), r.n, r.a, r.inf, r.col, r.surf, r.under, r.water, r.vis, table.concat(cs, ', ') }, '\t'), '\n')
+        end
+    end
     if snap then S.lastSnap = t end
     -- new reports (announcements): their text is the readable record of hunts, fights and deaths
     local reps = df.global.world.status.reports
@@ -215,7 +245,7 @@ local function sample()
     end
     S.n = S.n + 1
     S.first = false
-    if S.n % 20 == 0 then S.ev:flush(); S.pos:flush(); S.rep:flush(); S.smp:flush(); if S.pop then S.pop:flush() end; S.led:flush() end
+    if S.n % 20 == 0 then S.ev:flush(); S.pos:flush(); S.rep:flush(); S.smp:flush(); if S.pop then S.pop:flush() end; S.led:flush(); S.vrm:flush() end
     dfhack.timeout(S.every, 'ticks', sample)
 end
 
@@ -232,6 +262,7 @@ if cmd == 'start' then
     S.smp = open('samples.tsv', 'tick\twild\twild_in_groups\tpets_livestock\tdied\tfps\twild_managed\twild_deep')
     S.pops, S.pop, S.popLast = nil, nil, {}
     S.led, S.ledCount = open('ledger.tsv', 'tick\tkind\tlayer\ttext'), nil
+    S.vrm = open('vermin.tsv', 'tick\trace\tswarms\tanimals\tinnumerable\tcolonies\tsurface\tunderground\twater\tvisible\ttypes')
     if args[4] then
         S.pops = {}
         for i in args[4]:gmatch('%d+') do S.pops[#S.pops + 1] = tonumber(i) end
@@ -247,8 +278,8 @@ if cmd == 'start' then
 elseif cmd == 'stop' then
     if not S.on and not S.ev then print('sw-t1-recorder: not recording'); return end
     S.on = false
-    for _, f in ipairs({ S.ev, S.pos, S.rep, S.smp, S.pop, S.led }) do pcall(function() f:flush(); f:close() end) end
-    S.pop, S.pops, S.led = nil, nil, nil
+    for _, f in ipairs({ S.ev, S.pos, S.rep, S.smp, S.pop, S.led, S.vrm }) do pcall(function() f:flush(); f:close() end) end
+    S.pop, S.pops, S.led, S.vrm = nil, nil, nil, nil
     S.ev = nil
     print(('sw-t1-recorder: stopped; %d samples, %d events, %d reports in %s'):format(S.n or 0, S.nev or 0, S.nrep or 0, tostring(S.dir)))
 else

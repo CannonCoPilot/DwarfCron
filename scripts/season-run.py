@@ -389,7 +389,7 @@ class FakeRig(Rig):
         t0, t1 = self.rec.get(name, [self.t, self.t])
         t1 = self.t if t1 is None else t1
         dest.mkdir(parents=True, exist_ok=True)
-        for f in ('events.tsv', 'positions.tsv', 'reports.tsv', 'samples.tsv', 'ledger.tsv', 'pops.tsv'):
+        for f in ('events.tsv', 'positions.tsv', 'reports.tsv', 'samples.tsv', 'ledger.tsv', 'pops.tsv', 'vermin.tsv'):
             src = self.canned / f
             if not src.exists():
                 if f == 'ledger.tsv':   # the recorder always writes its ledger table (V73_WATERFALL predates it)
@@ -950,7 +950,7 @@ class Cell:
         started from (a resume rewinds to the chunk save, so the abandoned rows after it are dropped)"""
         if not self.segments:
             return
-        for f in ('events.tsv', 'positions.tsv', 'reports.tsv', 'samples.tsv', 'ledger.tsv', 'pops.tsv'):
+        for f in ('events.tsv', 'positions.tsv', 'reports.tsv', 'samples.tsv', 'ledger.tsv', 'pops.tsv', 'vermin.tsv'):
             head, rows = None, []
             for i, (name, _) in enumerate(self.segments):
                 p = self.d / 'recorder' / name / f
