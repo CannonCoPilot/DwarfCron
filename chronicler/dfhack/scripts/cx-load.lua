@@ -17,7 +17,7 @@
 --                                    `cx-eco wipe` (its receipt line, counts by origin). clearwild stays as it was
 --                                    (isWildlife only, always closes the pools) for the FPS series that used it.
 --   cx-load hold                     every wild unit's leave countdown to 10,000,000 (nobody leaves)
---   cx-load sustain                  every living citizen's thirst and hunger timers to 0 (FPS5b: fresh embarks at
+--   cx-load sustain                  every living citizen's (and fort dwarf's) thirst and hunger timers to 0 (FPS5b: fresh embarks at
 --                                    region4 29,20 have no water; in the first year-long session all 20 dwarves died
 --                                    of THIRST and the settlement withered). Dwarves then never walk to eat or drink.
 --   cx-load citizens <n>             n new dwarves at existing citizens' tiles, made citizens with makeown
@@ -128,9 +128,17 @@ elseif cmd == 'wipe' then
     print(ok and (tostring(o or ''):gsub('%s+$', '')) or ('eco error wipe: ' .. tostring(o)))
 
 elseif cmd == 'sustain' then
-    local n = 0
-    for _, u in ipairs(citizens()) do u.counters2.thirst_timer = 0; u.counters2.hunger_timer = 0; n = n + 1 end
-    print(('sustain: %d citizen(s) watered and fed'):format(n))
+    -- also the fort's own dwarves who are no longer citizens: one gone stark raving mad in X7v75e's sealed shelter died of thirst
+    -- and rose among the others (14 Oct 2026)
+    local n, other = 0, 0
+    for _, u in ipairs(w.units.active) do
+        if not dfhack.units.isDead(u) and not u.flags1.inactive and (dfhack.units.isCitizen(u)
+                or (u.race == df.global.plotinfo.race_id and u.civ_id == df.global.plotinfo.civ_id)) then
+            u.counters2.thirst_timer = 0; u.counters2.hunger_timer = 0
+            if dfhack.units.isCitizen(u) then n = n + 1 else other = other + 1 end
+        end
+    end
+    print(('sustain: %d citizen(s) watered and fed%s'):format(n, other > 0 and (', and %d other fort dwarf(s)'):format(other) or ''))
 
 elseif cmd == 'hold' then
     print(('hold: %d wild unit(s) will not leave'):format(holdWild()))
