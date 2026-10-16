@@ -26,7 +26,10 @@ def na_verdicts(run):
     for ln in f.read_text().splitlines():
         c = [x.strip() for x in ln.strip('|').split('|')]
         if len(c) >= 9 and c[0] and c[0] not in ('subject',) and not c[0].startswith('---'):
-            out[c[0].replace('_', ' ') if c[0].replace('_', ' ') in NA_SUBJECTS else c[0]] = (c[8], f'{c[2]} v {c[3]}')
+            v = c[8]
+            if v.startswith('never drawn'):   # 16 Oct: one fort, caverns never breached -- not a rule about DF
+                v = 'no wave on an unbreached rig fort (breach test next)'
+            out[c[0].replace('_', ' ') if c[0].replace('_', ' ') in NA_SUBJECTS else c[0]] = (v, f'{c[2]} v {c[3]}')
     return out
 
 
