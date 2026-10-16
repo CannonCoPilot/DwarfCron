@@ -359,6 +359,28 @@ record of animals already seen survived the reload between replicates, so later 
 <li><b>Turns chosen by the tool</b>: when a slot opens, open only the species whose turn it is; DF's pick, its odds and its tiles stop mattering.
 DF's wave usually follows within 450 ticks, once in four trials it took ten days, so it needs a fallback.</li>
 </ul>
+<p id="x8s1"><b>Built and tested (15-16 Oct): one entry per species.</b> You asked for the second of these. The engine (sw d1e198a, switch
+<code>groups single</code>, on by default) now keeps each cast species open on one surface entry, anchored on the fort's biggest site tile where its
+biomes allow it, and holds its other copies like an out-of-season species, with their reserve kept. On the rig, after one day the small savage lake had
+no species with more than one open entry (20 before; the kakapo had 6). Run X8s1 compared it off and on, spring to the end of autumn, one replicate
+per arm, on the small savage lake (three site tiles) and the good coast (one). The good coast's first off arm was lost to a badger pack (that fort has
+only 7 dwarves; a replay from its last save passed the point alive) and was rerun as X8s1b. All four cells pass the run checks.</p>
+<div class="tbl"><table><thead><tr><th data-t="cat">fort</th><th data-t="cat">one entry per species</th><th class="num" data-t="num">walker waves</th>
+<th class="num" data-t="num">flier waves</th><th class="num" data-t="num">water-cast bird waves</th><th class="num" data-t="num">land cap hits</th>
+<th class="num" data-t="num">ground cast species reached</th><th class="num" data-t="num">flying cast species reached</th>
+<th class="num" data-t="num">dominance</th><th class="num" data-t="num">odds gap</th></tr></thead><tbody>
+<tr><td>Small savage lake</td><td>off</td><td class="num">21</td><td class="num">19</td><td class="num">0</td><td class="num">20</td><td class="num">7 of 28</td><td class="num">6 of 12</td><td class="num">0.66</td><td class="num">0.115</td></tr>
+<tr><td>Small savage lake</td><td>on</td><td class="num">29</td><td class="num">11</td><td class="num">0</td><td class="num">18</td><td class="num">9 of 28</td><td class="num">4 of 12</td><td class="num">0.62</td><td class="num">0.147</td></tr>
+<tr><td>Good coast</td><td>off (X8s1b)</td><td class="num">9</td><td class="num">15</td><td class="num">10</td><td class="num">21</td><td class="num">6 of 28</td><td class="num">2 of 12</td><td class="num">0.89</td><td class="num">0.138</td></tr>
+<tr><td>Good coast</td><td>on</td><td class="num">11</td><td class="num">18</td><td class="num">6</td><td class="num">12</td><td class="num">7 of 28</td><td class="num">4 of 12</td><td class="num">0.67</td><td class="num">0.120</td></tr>
+</tbody></table></div>
+<p>Dominance is the top species' mean share of a layer-season's land waves; the odds gap is, inside each ground or flying cast, the mean distance
+between a species' share of the waves and its share of the cast's FREQUENCY. With one replicate per arm these are small counts. What moved the way the
+test expected: walkers gained on the straddling lake (21 to 29 waves) while fliers lost their extra tiles (19 to 11); more of the ground casts arrived
+on both forts (7 to 9, 6 to 7 of 28); dominance fell on both (0.66 to 0.62, 0.89 to 0.67); the good coast hit the land cap far less (21 to 12). What
+did not: the odds gap shrank on the good coast but grew on the lake (0.115 to 0.147), and the lake's flying casts reached fewer species (6 to 4 of 12).
+The ladder's spread (FREQUENCY 1 to 100 inside one cast) still sets the odds; that is the second fix on hold. Data: data/season-run/X8s1 and X8s1b,
+scripts/castsim/compare_arms.py.</p>
 <p><b>The odds and the wave budget.</b> DF picks the species of each wave by FREQUENCY among the open entries; stock does not enter the pick. The engine
 writes FREQUENCY with its ladder: a weight per guild, scaled by body size, split between the herbivore level (by default 73% of animals) and the carnivore
 level (20%), divided by the species' mean group size (so the target is animals, not waves), and finally rescaled so the top member is 100, with a floor of 1.
