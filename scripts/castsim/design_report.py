@@ -467,6 +467,7 @@ the one cavern species with no score (vermin, weight 1).</li>
 <th class="num" data-t="num">effective, no score</th><th class="num" data-t="num">effective, with score</th><th>top species, no score</th>
 <th>top species, with score</th><th class="num" data-t="num">weight ≤ 0.15</th></tr></thead><tbody>{srow}</tbody></table></div>
 {na_section()}
+{assign_section()}
 <h3>Every cavern species</h3>
 <p class=small>Weights are the score's multiplier in each cavern the species can live in (− = outside its raw depth range). Slot share = its
 share of that cavern slot's draw with the score (without it in brackets). Base weight = pack ×3, giant ×0.2, animal person ×0.1. Guild codes:
@@ -542,6 +543,60 @@ landing would mean a wave drawn but never placed.</p>
 <th class="num">stock debited (subject / draltha)</th><th class="num" data-t="num">ticks</th><th data-t="cat">verdict</th></tr></thead><tbody>{body}</tbody></table></div>
 <p class=small>Data: data/cave-arrive/{esc(run)} (waves.tsv, qty.tsv, setup.txt with each pair's raws, the summary); harness cx-cavearrive.lua and
 scripts/cave-arrive.py.</p>
+"""
+
+
+def assign_section():
+    """16 Oct (user): the user's cavern layer picks reviewed -- the out-of-range draw test (OOR1, OOR3), the desk food-web
+    simulation (cavern_assign.py) and Claude's proposal (data/castsim/cavern-picks/proposal.json)"""
+    rows = na_rows('OOR1') + na_rows('OOR3')
+    sim = ROOT / 'data/castsim/cavern_assign.json'
+    prop = ROOT / 'data/castsim/cavern-picks/proposal.json'
+    if not rows or not sim.exists():
+        return ''
+    ctl = {'OOR1': 'draltha', 'OOR3': 'elk bird'}
+    body = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td class='num'>{esc(r['cave'])}</td><td class='num'>{esc(r['ns'])}</td>"
+                   f"<td class='num'>{esc(r['nc'])}</td><td class='num'>{esc(r['p'])}</td><td>{'yes' if r['t'] != 'GIANT_EARTHWORM' else 'no (inside; never cast before)'}</td></tr>"
+                   for r in rows)
+    S = {a['arm']: a for a in json.loads(sim.read_text())}
+    def web(a, k):
+        v = [a['cells'][f'{k}|{s}']['web'] for s in SEASONS]
+        return f"{round(100 * min(v))}%" if min(v) == max(v) else f"{round(100 * min(v))}-{round(100 * max(v))}%"
+    def dead(a, k):
+        return round(sum(a['cells'][f'{k}|{s}']['thief'] for s in SEASONS) / 4, 2)
+    arms = [('raw depth (today)', 'today'), ('your picks', 'your picks'), ('review + web guarantee', 'proposal + guarantee')]
+    srow = ''.join(f"<tr><td>{lab}</td>" + ''.join(f"<td class='num'>{web(S[a], k)}</td>" for k in (1, 2, 3))
+                   + ''.join(f"<td class='num'>{S[a]['distinct'][str(k)]}</td>" for k in (1, 2, 3))
+                   + ''.join(f"<td class='num'>{dead(S[a], k)}</td>" for k in (1, 2, 3)) + '</tr>' for a, lab in arms if a in S)
+    P = json.loads(prop.read_text()) if prop.exists() else {}
+    plist = ''.join(f"<li><b>{esc(t.replace('_', ' ').lower())}</b>: {'out of the cavern casts' if not v['caverns'] else 'caverns ' + ', '.join(map(str, v['caverns']))}. {esc(v['why'])}.</li>"
+                    for t, v in P.items())
+    return f"""<h3 id="cavern-assign">Your cavern assignment, reviewed (16 Oct)</h3>
+<p>Your picks in the Cavern Layer Picks tool aim at more diversity, the weirdest species in cavern 3 only, the civ-like sentients in caverns 2 and 3,
+the mundane in all three, and a calmer cavern 1. Thirty-three of them (26 animals, 7 vermin) put a species in a cavern outside DF's raw depth range (UNDERGROUND_DEPTH), which DF itself
+never does when it stocks a cavern, and which the engine refuses today. So the first question was whether DF sends a species from a cavern entry
+outside its range at all. It does: every out-of-range species tested arrived on the same footing as an in-range control (the never-arrive harness,
+one entry each on the cavern's 6 tile and cave pairs, FREQUENCY 50, stock 100).</p>
+<div class="tbl"><table><thead><tr><th>species</th><th class="num" data-t="num">cavern</th><th class="num" data-t="num">its waves</th>
+<th class="num" data-t="num">control's waves</th><th class="num" data-t="num">p (v 0.5)</th><th data-t="cat">outside its raw depth</th></tr></thead><tbody>{body}</tbody></table></div>
+<p class=small>Controls: the draltha in cavern 1, the elk bird in cavern 3. Data: data/cave-arrive/OOR1 and OOR3.</p>
+<p>Then the casts. The desk cast builder (the engine's mirror) built a year of casts on 20 sites for each arrangement. A cavern-season counts as a
+minimally complete food web when its arriving members include a prey animal, a predator, and at least two vermin; the six thief-tagged species
+count as empty slots, since DF never sends them.</p>
+<div class="tbl"><table><thead><tr><th>arrangement</th><th class="num">web, cavern 1</th><th class="num">cavern 2</th><th class="num">cavern 3</th>
+<th class="num">species a year, cavern 1</th><th class="num">cavern 2</th><th class="num">cavern 3</th><th class="num">empty slots per cast, cavern 1</th>
+<th class="num">cavern 2</th><th class="num">cavern 3</th></tr></thead><tbody>{srow}</tbody></table></div>
+<p>Your picks give cavern 1 a complete web in every season and fix cavern 3's (today it has one vermin, the creepy crawler, so it never has two).
+What they cost: the thief-tagged rats, moles and drunian still take about half a slot per cast in caverns 1 and 2, and in cavern 2 they win the prey slot
+often enough that a quarter to nearly half of its seasons have no prey; cavern 1's only flier is the bugbat and its main prey the rutherer, both outside
+their raw depth (fine now that DF sends them); and two additions run against a calmer cavern 1, the crundle (packs of 15 to 20, the cavern swarms) and
+the blind cave ogre. The proposal changes eleven species and adds a food-web guarantee: when a cavern-season would lack prey or a predator, it is filled
+from that cavern's candidates even if the species is already cast in another season (your allowance). With it, every cavern-season has a complete web,
+and the guarantee is rarely needed once the empty slots are gone.</p>
+<ul class="find">{plist}</ul>
+<p class=small>The proposal is in the tool's proposed column, one button per species or all at once. Desk model: scripts/castsim/cavern_assign.py;
+inputs data/castsim/cavern-picks (your picks as read on 16 Oct, the review, the proposal). Nothing is built into the engine yet: it needs the
+assignment to override the raw-depth check, the thief exclusion and the guarantee.</p>
 """
 
 

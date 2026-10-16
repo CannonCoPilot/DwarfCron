@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'data/castsim/cavern_weird.json'
 OUT = ROOT / 'data/castsim/cavern-picks.html'
+PROPOSAL = ROOT / 'data/castsim/cavern-picks/proposal.json'   # Claude's proposed changes {token: {caverns, why}}
 NA_SUBJECTS = {'AMPHIBIAN_MAN', 'ANT_MAN', 'BAT_MAN', 'CAVE_FISH_MAN', 'CAVE_SWALLOW_MAN', 'DRUNIAN', 'GREMLIN', 'MOLE_DOG_NAKED',
                'MOLE_GIANT', 'OLM_MAN', 'RAT_GIANT', 'RAT_LARGE', 'REPTILE_MAN', 'RODENT MAN', 'SERPENT_MAN', 'MANERA'}
 
@@ -33,6 +34,7 @@ def main():
     run = sys.argv[sys.argv.index('--na') + 1] if '--na' in sys.argv else None
     d = json.loads(SRC.read_text())
     na = na_verdicts(run) if run else {}
+    prop = json.loads(PROPOSAL.read_text()) if PROPOSAL.exists() else {}
     rows = []
     for r in d['rows']:
         k = lambda x, i: x.get(str(i), x.get(i, 0))  # noqa: E731
@@ -45,6 +47,7 @@ def main():
             'cl': r['cl'], 'fq': r['fq'], 'tags': r['tags'],
             'casts': [k(r['rig']['casts'], i) for i in (1, 2, 3)], 'units': None if r['v'] else [k(r['rig']['units'], i) for i in (1, 2, 3)],
             'na': (v[0] if v else ('pending' if t in NA_SUBJECTS else None)), 'nan': v[1] if v else '',
+            'prop': prop.get(t.replace(' ', '_')) or prop.get(t),
         })
     meta = {'fy': d['fort_years'], 'na_run': run or ''}
     blob = json.dumps({'rows': rows, 'meta': meta}, separators=(',', ':')).replace('</', '<\\/')
@@ -119,7 +122,7 @@ tr.changed td.tok{box-shadow:inset 3px 0 0 var(--accent)}
 <h1>Cavern Layer Picks</h1>
 <p class="lede">Every species the full pool can put in a cavern, with its weirdness score, the slots it can fill and what the rig cast and saw
 arrive. Mark the caverns you want each species to be able to appear in. Your picks are saved as you make them, and Claude reads them back
-to change the casts. A pick outside DF's raw depth range is allowed, and it is flagged, because DF itself stocks a species only inside that range.</p>
+to change the casts. A pick outside DF's raw depth range is allowed and flagged: DF stocks a species only inside that range, but on the rig it drew species the tool placed outside it. The proposed column is Claude's suggested change for a species, with the reason; use one, or all of them, and the change saves like any pick.</p>
 <div class="strip" id="strip"></div>
 <div class="bar">
   <input type="search" id="q" placeholder="Search species or tag" aria-label="Search species or tag">
@@ -127,6 +130,8 @@ to change the casts. A pick outside DF's raw depth range is allowed, and it is f
   <select id="fkind" aria-label="Kind"><option value="">Animals and vermin</option><option value="a">Animals</option><option value="v">Vermin</option></select>
   <label><input type="checkbox" id="fchg"> Changed only</label>
   <label><input type="checkbox" id="fna"> No-shows only</label>
+  <label><input type="checkbox" id="fprop"> Proposed changes only</label>
+  <button type="button" class="btn" id="useall">Use every proposal</button>
   <button type="button" class="btn" id="copy">Copy picks</button>
   <span class="count" id="count"></span>
 </div>
@@ -152,16 +157,19 @@ const COLS=[
  ['cl','group',r=>r.cl&&r.cl.length?r.cl[1]:0,'num'],['fq','FREQUENCY',r=>r.fq??-1,'num'],
  ['c1','casts c1',r=>r.casts[0],'num'],['c2','casts c2',r=>r.casts[1],'num'],['c3','casts c3',r=>r.casts[2],'num'],
  ['u','units seen',r=>r.units?r.units[0]+r.units[1]+r.units[2]:-1,'num'],['na','never-arrive test',r=>r.na||'',''],
- ['note','your note',null,''],['tags','raw tags',r=>r.tags.join(' '),'']];
+ ['prop','proposed',r=>r.prop?1:0,''],['note','your note',null,''],['tags','raw tags',r=>r.tags.join(' '),'']];
 let sortKey='wd', sortDir=1;
 const thead=document.querySelector('#t thead tr');
 thead.innerHTML=COLS.map(([k,l,f,c])=>`<th class="${c==='num'?'num':''} ${k==='tok'?'tok':''}" data-k="${k}">${f?`<button type="button">${esc(l)}</button>`:esc(l)}</th>`).join('');
 thead.querySelectorAll('th button').forEach(b=>b.addEventListener('click',()=>{const k=b.parentElement.dataset.k;sortDir=sortKey===k?-sortDir:1;sortKey=k;render()}));
 const slots=[...new Set(R.flatMap(r=>r.v?['vermin']:r.slots))].sort();
 document.getElementById('fslot').insertAdjacentHTML('beforeend',slots.map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join(''));
-['q','fslot','fkind','fchg','fna'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+['q','fslot','fkind','fchg','fna','fprop'].forEach(id=>document.getElementById(id).addEventListener('input',render));
 function naChip(r){if(!r.na)return '<span class="w0">−</span>';const v=r.na;const cls=v==='pending'?'':(v.startsWith('arrives')?'ok':(v.startsWith('never')?'bad':'warn'));
   return `<span class="chip ${cls}">${esc(v.split(' (')[0])}</span>${r.nan?` <span class="w0">${esc(r.nan)}</span>`:''}`}
+function propCell(r){const p=r.prop.caverns, same=cur(r).slice().sort().join()===p.slice().sort().join();
+  return `<span class="lay">${p.length?p.map(k=>`<span class="l${k}">C${k}</span>`).join(''):'<span class="chip bad">none</span>'}</span> `
+   +(same?'<span class="chip ok">matches</span>':(canWrite?`<button type="button" class="reset" data-use="${esc(r.id)}">use</button>`:''))+`<div class="w0" style="white-space:normal;max-width:22em;font-size:.75rem">${esc(r.prop.why)}</div>`}
 function row(r){
   const c=cur(r), out=c.filter(k=>!r.caves.includes(k));
   const pick=`<span class="pick" role="group" aria-label="Caverns for ${esc(r.t)}">${[1,2,3].map(k=>`<button type="button" class="p${k}" data-id="${esc(r.id)}" data-k="${k}" aria-pressed="${c.includes(k)}" ${canWrite?'':'disabled'} title="Cavern ${k}">C${k}</button>`).join('')}</span>`
@@ -175,15 +183,16 @@ function row(r){
     cl:r.cl&&r.cl.length?(r.cl[0]===r.cl[1]?r.cl[0]:r.cl[0]+'-'+r.cl[1]):'−',fq:fmt(r.fq),c1:r.casts[0],c2:r.casts[1],c3:r.casts[2],
     u:units==null?'<span class="w0">−</span>':`<span class="${uc}">${fmt(units)}</span>`,na:naChip(r),
     note:`<input class="note" id="note-${esc(r.id)}" data-note="${esc(r.id)}" value="${esc((picks[r.id]&&picks[r.id].note)||'')}" ${canWrite?'':'disabled'} aria-label="Note for ${esc(r.t)}">`,
-    tags:r.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join('')};
+    tags:r.tags.map(t=>`<span class="chip">${esc(t)}</span>`).join(''),
+    prop:r.prop?propCell(r):'<span class="w0">−</span>'};
   return `<tr class="${changed(r)?'changed':''}">`+COLS.map(([k,,,c])=>`<td class="${c==='num'?'num':''} ${k==='tok'?'tok':''} ${k==='tags'?'wrapc':''}">${cells[k]}</td>`).join('')+'</tr>';
 }
 function render(){
   const q=document.getElementById('q').value.trim().toLowerCase(), fs=document.getElementById('fslot').value, fk=document.getElementById('fkind').value;
-  const fc=document.getElementById('fchg').checked, fn=document.getElementById('fna').checked;
+  const fc=document.getElementById('fchg').checked, fn=document.getElementById('fna').checked, fp=document.getElementById('fprop').checked;
   const col=COLS.find(c=>c[0]===sortKey);
   let L=R.filter(r=>(!q||r.t.toLowerCase().includes(q)||r.tags.join(' ').toLowerCase().includes(q))&&(!fs||(fs==='vermin'?r.v:r.slots.includes(fs)))
-    &&(!fk||(fk==='v')===r.v)&&(!fc||changed(r))&&(!fn||r.na));
+    &&(!fk||(fk==='v')===r.v)&&(!fc||changed(r))&&(!fn||r.na)&&(!fp||r.prop));
   if(col&&col[2])L.sort((a,b)=>{const x=col[2](a),y=col[2](b);return (x<y?-1:x>y?1:0)*sortDir||a.t.localeCompare(b.t)});
   const active=document.activeElement&&document.activeElement.id;
   document.querySelector('#t tbody').innerHTML=L.map(row).join('');
@@ -218,10 +227,16 @@ document.querySelector('#t tbody').addEventListener('click',e=>{
   if(b&&canWrite){const r=R.find(x=>x.id===b.dataset.id),k=+b.dataset.k;const c=new Set(cur(r));c.has(k)?c.delete(k):c.add(k);
     picks[r.id]=Object.assign({},picks[r.id],{caverns:[...c].sort()});render();save(r.id)}
   if(rs&&canWrite){const r=R.find(x=>x.id===rs.dataset.reset);picks[r.id]={caverns:def(r),note:''};render();save(r.id)}
+  const us=e.target.closest('button[data-use]');
+  if(us&&canWrite){const r=R.find(x=>x.id===us.dataset.use);picks[r.id]=Object.assign({},picks[r.id],{caverns:r.prop.caverns.slice()});render();save(r.id)}
 });
 document.querySelector('#t tbody').addEventListener('input',e=>{const id=e.target.dataset&&e.target.dataset.note;if(!id||!canWrite)return;
   const r=R.find(x=>x.id===id);picks[id]=Object.assign({caverns:cur(r)},picks[id],{note:e.target.value});save(id);
   const tr=e.target.closest('tr');tr.classList.toggle('changed',changed(r));document.getElementById('count').textContent=`${R.length} species · ${R.filter(changed).length} changed`});
+const useAll=document.getElementById('useall');let armed=false;
+useAll.addEventListener('click',()=>{if(!canWrite)return;if(!armed){armed=true;useAll.textContent='Click again to apply all';setTimeout(()=>{armed=false;useAll.textContent='Use every proposal'},4000);return}
+  armed=false;useAll.textContent='Use every proposal';const todo=R.filter(r=>r.prop&&cur(r).slice().sort().join()!==r.prop.caverns.slice().sort().join());
+  todo.forEach((r,i)=>{picks[r.id]=Object.assign({},picks[r.id],{caverns:r.prop.caverns.slice()});setTimeout(()=>save(r.id),i*120)});render()});
 document.getElementById('copy').addEventListener('click',async()=>{
   const lines=R.filter(changed).map(r=>`${r.t}: caverns ${cur(r).join(',')||'none'} (today ${def(r).join(',')})${picks[r.id]&&picks[r.id].note?' -- '+picks[r.id].note:''}`);
   const txt=lines.length?lines.join('\n'):'No changes yet.';const b=document.getElementById('copy');
