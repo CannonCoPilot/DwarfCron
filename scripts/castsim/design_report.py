@@ -41,7 +41,9 @@ CSS_EXTRA = """
 ul.find{max-width:84ch;display:grid;gap:8px;padding-left:1.2rem;font-size:.92rem}
 details.sect>summary{color:inherit;font-weight:400;font-size:inherit;list-style:none}details.sect>summary::-webkit-details-marker{display:none}
 details.sect>summary h2{display:flex;gap:8px;align-items:baseline}details.sect>summary h2::before{content:'▸';color:var(--accent);font-size:1rem}
-details.sect[open]>summary h2::before{content:'▾'}details.sect>summary .small{display:block;margin-top:-6px}
+details.sect[open]>summary h2::before{content:'▾'}details.sect{margin-top:0}details.sect>summary h2{margin-block:14px 6px}
+details.sect[open]>summary h2{margin-block:28px 12px}details.sect>summary:hover h2{color:var(--accent)}
+.sectbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}.sectbar button{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}.sectbar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .sp.vm{background:var(--sunk);color:var(--muted)}.sp.no{opacity:.55}
 td .sp{margin:1px 2px 1px 0}
 """
@@ -385,7 +387,7 @@ def judgement_table(meta):
 
 
 def cavern_weird_section():
-    """15 Oct (user): the cavern weirdness scores against cavern diversity, from cavern_weird.py; a collapsible section"""
+    """15 Oct (user): the cavern weirdness scores against cavern diversity, from cavern_weird.py"""
     f = ROOT / 'data/castsim/cavern_weird.json'
     if not f.exists():
         return ''
@@ -435,8 +437,8 @@ def cavern_weird_section():
            f"<td class='mono'>{esc(x['top'])} {x['top_share']:.0f}%</td>{num(x['suppressed'])}" if x['n'] else "<td></td><td></td><td></td><td></td><td></td>")
         + '</tr>' for x in summ)
     return f"""
-<details class="sect" id="cavern-weird"><summary><h2>Cavern weirdness and cavern diversity (15 Oct)</h2>
-<span class="small">{len(nv)} cavern species and {len(rows) - len(nv)} vermin: score, weights, slots, raw tags, and what the rig cast and saw arrive · click to open or close</span></summary>
+<h2 id="cavern-weird">Cavern weirdness and cavern diversity (15 Oct)</h2>
+<p class="small">{len(nv)} cavern species and {len(rows) - len(nv)} vermin: score, weights, slots, raw tags, and what the rig cast and saw arrive.</p>
 <p>Your question: does the weirdness score, which tilts each cavern's draw (cavern 1 toward the plain, cavern 2 the middle, cavern 3 the
 strange), cut cavern diversity? The score is a hand score (0 a real animal's cave form, 1 wholly alien; no cave species carries DF's
 MUNDANE tag, so the raws give no ready measure). The pick weight it gives is (1 − w)² + 0.05 in cavern 1, 1 − 1.8 × |w − 0.5| (floor 0.05)
@@ -478,8 +480,6 @@ events into that cavern; vermin are not units on DF's list, so they show −. So
 <th data-t="multi">raw tags</th></tr></thead><tbody>{''.join(body)}</tbody></table></div>
 <p class=small>Source: scripts/castsim/cavern_weird.py (data/castsim/cavern_weird.json); scores and weights from design.WEIRD / ROSTER.FP.WEIRD,
 which the engine and the desk share.</p>
-</details>
-<script>(function(){{function o(){{var d=document.getElementById('cavern-weird');if(d&&location.hash==='#cavern-weird')d.open=true}}o();addEventListener('hashchange',o)}})()</script>
 """
 
 
@@ -1446,8 +1446,39 @@ design_run.py. Random draws are seeded per embark, layer and season, so one run 
 <script>{JS}</script>
 <script>{crowd_assets.JS}</script>
 """
+    html = collapse_sections(html)
     OUT.write_text(html)
     print('wrote', OUT, len(html))
+
+
+SECT_JS = """<script>(function(){
+const all=()=>[...document.querySelectorAll('details.sect')];
+function reveal(){const id=decodeURIComponent(location.hash.slice(1));const el=id&&document.getElementById(id);if(!el)return;
+  for(let d=el.closest('details');d;d=d.parentElement&&d.parentElement.closest('details'))d.open=true;el.scrollIntoView();}
+document.getElementById('sectAll').addEventListener('click',()=>all().forEach(d=>d.open=true));
+document.getElementById('sectNone').addEventListener('click',()=>all().forEach(d=>d.open=false));
+addEventListener('hashchange',reveal);reveal();})();</script>"""
+
+
+def collapse_sections(html):
+    """user 15 Oct: every main (h2) section collapsible, closed until opened; a link to a section or anything in one opens it"""
+    import re
+    a = html.index('<h2')
+    b = html.index('\n</div>\n<script src="https://cdn.jsdelivr.net/npm/d3')
+    head, body, tail = html[:a], html[a:b], html[b:]
+    parts = re.split(r'(?=<h2[ >])', body)
+    out, used = [], set()
+    for part in parts:
+        m = re.match(r'<h2(?: id="([^"]+)")?>(.*?)</h2>', part, re.S)
+        if not m:
+            out.append(part); continue
+        sid = m.group(1) or re.sub(r'[^a-z0-9]+', '-', re.sub(r'<[^>]+>', '', m.group(2)).lower()).strip('-')[:40]
+        while sid in used: sid += '-2'
+        used.add(sid)
+        out.append(f'<details class="sect" id="{sid}"><summary><h2>{m.group(2)}</h2></summary>\n{part[m.end():]}</details>\n')
+    bar = ('<p class="sectbar"><button type="button" id="sectAll">Open every section</button>'
+           '<button type="button" id="sectNone">Close every section</button></p>\n')
+    return head + bar + ''.join(out) + tail.replace('</div>\n', '</div>\n' + SECT_JS + '\n', 1)
 
 
 if __name__ == '__main__':
