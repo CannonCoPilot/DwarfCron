@@ -457,7 +457,8 @@ one vermin (the creepy crawler). Cavern 1 has {S[(1, 'flier')]['n']} fliers. Slo
 <li><b>Many cast species never arrive.</b> {len(dead)} non-vermin species were cast in the rig forts and never arrived in {fy} fort-years:
 {', '.join(r['t'].lower().replace('_', ' ') for r in dead)}. That includes {len(dead_sent)} of the sentients (every cave animal person
 and the gremlin): {dead_sent_casts} of {sent_casts} sentient-slot casts went to species that never showed. Plain benign ground prey (rats, moles,
-the naked mole dog, the drunian) has the same problem. This costs more diversity than the score does. Why these units never arrive is not yet measured.</li>
+the naked mole dog, the drunian) has the same problem. This costs more diversity than the score does. The <a href="#never-arrive">never-arrive test</a> found why: the animal people
+lose on odds (one created entry against many), and the six species with thief tags are never drawn for a cavern wave at all.</li>
 <li>Three scored species never reach the cavern pool: {', '.join(d['scored_not_in_pool'])} (the magma crab and the fire snake live in lava; the purring maggot and the fire snake are locked unliving, NO_EAT + NO_DRINK). The cave bat is
 the one cavern species with no score (vermin, weight 1).</li>
 </ul>
@@ -465,6 +466,7 @@ the one cavern species with no score (vermin, weight 1).</li>
 <div class="tbl"><table><thead><tr><th data-t="cat">cavern</th><th data-t="cat">slot</th><th class="num" data-t="num">species</th>
 <th class="num" data-t="num">effective, no score</th><th class="num" data-t="num">effective, with score</th><th>top species, no score</th>
 <th>top species, with score</th><th class="num" data-t="num">weight ≤ 0.15</th></tr></thead><tbody>{srow}</tbody></table></div>
+{na_section()}
 <h3>Every cavern species</h3>
 <p class=small>Weights are the score's multiplier in each cavern the species can live in (− = outside its raw depth range). Slot share = its
 share of that cavern slot's draw with the score (without it in brackets). Base weight = pack ×3, giant ×0.2, animal person ×0.1. Guild codes:
@@ -480,6 +482,66 @@ events into that cavern; vermin are not units on DF's list, so they show −. So
 <th data-t="multi">raw tags</th></tr></thead><tbody>{''.join(body)}</tbody></table></div>
 <p class=small>Source: scripts/castsim/cavern_weird.py (data/castsim/cavern_weird.json); scores and weights from design.WEIRD / ROSTER.FP.WEIRD,
 which the engine and the desk share.</p>
+"""
+
+
+NA_RUN = 'NA1'
+NA_INTRO = """<ul class="find">
+<li><b>Two causes, cleanly split.</b> All nine cave animal people and the manera arrive on equal footing (5 to 11 waves each against the
+draltha's 5 to 10, no share far from half). Six species were never drawn: the drunian, the gremlin, the naked mole dog, the giant mole,
+the giant rat and the large rat got 0 waves against the draltha's 14 to 16, with no stock debited (p 1.2e-4 or less each). So nothing was
+drawn and lost in placement: DF never picks them for a cavern wave.</li>
+<li><b>The six barred species are exactly the cavern species with thief tags.</b> The five plain prey carry DF's CURIOUSBEAST tags
+(EATER, GUZZLER or ITEM: animals that come to steal food, drink or items) and the gremlin carries MISCHIEVOUS, LOCKPICKER and TRAPAVOID. Not
+one of the 31 cavern species that arrived in the rig forts carries any of these. Which of DF's rules sends such creatures some other way
+(or only under conditions these runs lack) is not measured; what is measured is that an ordinary cavern wave never takes them.</li>
+<li><b>The animal people's absence was odds.</b> In the rig forts each cast animal person had one cave entry, the one the engine creates
+on a single tile of its cavern, at a FREQUENCY of about 1 to 2. The species that arrived had 10 to 20 entries (DF's own stock on many tiles).
+DF weighs each entry (the tile-reach test), so one entry against many rarely won. Given the same entries and FREQUENCY, every one came.</li>
+<li><b>Options, for your decision (not built).</b> (1) Keep the six thief-tagged species out of the cavern casts, or have the tool place
+them itself, as it places a cavern apex. (2) Give a species the engine creates in a cavern an entry on every draw tile and cave of that
+cavern, as DF stocks its own, or move the caverns to one entry per species as the land now has (sw d1e198a). (3) Narrow the FREQUENCY
+ladder inside a cavern cast (the second of the five fixes on hold).</li>
+</ul>"""
+
+
+def na_rows(run=NA_RUN):
+    """the never-arrive run's per-subject rows from its summary.md"""
+    f = ROOT / 'data' / 'cave-arrive' / run / 'summary.md'
+    out = []
+    if not f.exists():
+        return out
+    for ln in f.read_text().splitlines():
+        c = [x.strip() for x in ln.strip().strip('|').split('|')]
+        if len(c) >= 9 and c[0] not in ('subject', '') and not c[0].startswith('---'):
+            out.append({'t': c[0].replace('_', ' ') if c[0] == 'RODENT_MAN' else c[0], 'cave': c[1], 'ns': c[2], 'nc': c[3], 'share': c[4],
+                        'p': c[5], 'debit': c[6], 'ticks': c[7], 'verdict': c[8]})
+    return out
+
+
+def na_section(run=NA_RUN):
+    rows = na_rows(run)
+    if not rows:
+        return ''
+    def chip(v):
+        cls = 'ok' if v.startswith('arrives') else ('bad' if v.startswith('never') else 'warn')
+        return f"<span class='chip {cls}'>{esc(v)}</span>"
+    body = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td class='num'>{esc(r['cave'])}</td><td class='num'>{esc(r['ns'])}</td>"
+                   f"<td class='num'>{esc(r['nc'])}</td><td class='num'>{esc(r['share'])}</td><td class='num'>{esc(r['p'])}</td>"
+                   f"<td class='num'>{esc(r['debit'])}</td><td class='num'>{esc(r['ticks'])}</td><td>{chip(r['verdict'])}</td></tr>" for r in rows)
+    return f"""<h3 id="never-arrive">The never-arrive test ({esc(run)}, 15 Oct)</h3>
+<p>Each species cast in the rig forts and never seen (and the manera, never cast) was put beside a control that arrives, the draltha, on the
+small savage lake's caverns: one open entry each on every draw tile and cave of the subject's cavern (6 tile and cave pairs), the same raw
+FREQUENCY (50) and stock (100), every other cave Animal entry there closed, the tool disabled, and every wild cavern animal removed as it
+landed so DF's cavern gate stayed clear. DF restarted and the fort loaded fresh for each subject, never saved. Equal footing gives the subject
+about half the waves; a bar gives it none. DF debits a wave's planned size from its entry when it plans it, so stock debited with no unit
+landing would mean a wave drawn but never placed.</p>
+{NA_INTRO}
+<div class="tbl"><table><thead><tr><th>subject</th><th class="num" data-t="num">cavern</th><th class="num" data-t="num">subject waves</th>
+<th class="num" data-t="num">draltha waves</th><th class="num" data-t="num">subject share</th><th class="num" data-t="num">p (v 0.5)</th>
+<th class="num">stock debited (subject / draltha)</th><th class="num" data-t="num">ticks</th><th data-t="cat">verdict</th></tr></thead><tbody>{body}</tbody></table></div>
+<p class=small>Data: data/cave-arrive/{esc(run)} (waves.tsv, qty.tsv, setup.txt with each pair's raws, the summary); harness cx-cavearrive.lua and
+scripts/cave-arrive.py.</p>
 """
 
 
