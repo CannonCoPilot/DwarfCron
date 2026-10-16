@@ -39,6 +39,9 @@ CSS_EXTRA = """
 .card h4{margin:0 0 6px}.card p{font-size:.9rem;margin:0 0 6px}
 .big{font:700 1.5rem var(--serif)}.small{font-size:.8rem;color:var(--muted)}
 ul.find{max-width:84ch;display:grid;gap:8px;padding-left:1.2rem;font-size:.92rem}
+details.sect>summary{color:inherit;font-weight:400;font-size:inherit;list-style:none}details.sect>summary::-webkit-details-marker{display:none}
+details.sect>summary h2{display:flex;gap:8px;align-items:baseline}details.sect>summary h2::before{content:'▸';color:var(--accent);font-size:1rem}
+details.sect[open]>summary h2::before{content:'▾'}details.sect>summary .small{display:block;margin-top:-6px}
 .sp.vm{background:var(--sunk);color:var(--muted)}.sp.no{opacity:.55}
 td .sp{margin:1px 2px 1px 0}
 """
@@ -381,13 +384,109 @@ def judgement_table(meta):
     return f"<div class='tbl'><table><thead><tr><th data-t='cat'>decision</th><th>what the simulation does</th></tr></thead><tbody>{rows}</tbody></table></div>"
 
 
-def weird_table(meta):
-    rows = ''.join(f"<tr><td class='mono'>{esc(k)}</td><td class='num'>{v}</td><td class='num'>{round((1 - v) ** 2 + .05, 2)}</td>"
-                   f"<td class='num'>{round(max(.05, 1 - abs(v - .5) * 1.8), 2)}</td><td class='num'>{round(v * v + .05, 2)}</td></tr>"
-                   for k, v in sorted(meta['weird'].items(), key=lambda kv: kv[1]))
-    return ("<div class='tbl' style='max-height:380px'><table><thead><tr><th>species</th><th class='num' data-t='num'>weirdness</th>"
-            "<th class='num' data-t='num'>weight in cavern 1</th><th class='num' data-t='num'>cavern 2</th><th class='num' data-t='num'>cavern 3</th></tr></thead><tbody>"
-            + rows + '</tbody></table></div>')
+def cavern_weird_section():
+    """15 Oct (user): the cavern weirdness scores against cavern diversity, from cavern_weird.py; a collapsible section"""
+    f = ROOT / 'data/castsim/cavern_weird.json'
+    if not f.exists():
+        return ''
+    d = json.loads(f.read_text())
+    rows, summ, fy = d['rows'], d['summary'], d['fort_years']
+    nv = [r for r in rows if not r['v']]
+    def num(v, fmt='{:,}'): return f"<td class='num'>{fmt.format(v)}</td>" if v is not None else "<td class='num' data-v='-1'>-</td>"
+    def k3(x, k): return x.get(str(k), x.get(k, 0)) if isinstance(x, dict) else 0
+    # findings, computed
+    per = {k: [r for r in nv if k in r['caves']] for k in (1, 2, 3)}
+    S = {(x['cave'], x['slot']): x for x in summ}
+    casts3 = sum(k3(r['rig']['casts'], 3) for r in nv if r['t'] == 'FLESH_BALL')
+    dead = [r for r in nv if sum(k3(r['rig']['casts'], k) for k in (1, 2, 3)) and not sum(k3(r['rig']['units'], k) for k in (1, 2, 3))]
+    dead_sent = [r for r in dead if r['sent']]
+    sent_casts = sum(k3(r['rig']['casts'], k) for r in nv if r['sent'] for k in (1, 2, 3))
+    dead_sent_casts = sum(k3(r['rig']['casts'], k) for r in dead_sent for k in (1, 2, 3))
+    def effs(k): return [S[(k, s)] for s in ('apex', 'meso', 'ground prey', 'flier', 'swimmer', 'sentient') if S[(k, s)]['n']]
+    narrowed = [x for k in (1, 2, 3) for x in effs(k) if x['eff'] < x['eff_flat'] - 0.4]
+    widened = [x for k in (1, 2, 3) for x in effs(k) if x['eff'] > x['eff_flat'] + 0.4]
+    def ef(x): return f"{LNC[x['cave']]} {x['slot']} {x['eff_flat']} → {x['eff']}"
+    # the species table
+    def share(r):
+        out = []
+        for k in r['caves']:
+            for s in r['slots']:
+                v = (r.get('share') or {}).get(f'{k}|{s}')
+                if v: out.append(f"c{k} {s} {v[0]:.0f}% <span class=small>({v[1]:.0f}%)</span>")
+        return '<br>'.join(out)
+    body = []
+    for r in sorted(rows, key=lambda r: (r['v'], r['wd'] if r['wd'] is not None else 9, r['t'])):
+        rc = r['rig']
+        slots = (f"vermin {r['vc']}" if r['v'] else ', '.join(r['slots']) or '-')
+        dep = f"{r['dep'][0]}-{r['dep'][1]}" if r['dep'] else '-'
+        units = ''.join(num(None) if r['v'] else num(k3(rc['units'], k)) for k in (1, 2, 3))
+        body.append(
+            f"<tr><td class='mono'>{esc(r['t'])}</td>{num(r['wd'], '{:.2f}') if r['wd'] is not None else num(None)}"
+            + ''.join(f"<td class='num'>{r['mult'][str(k)] if str(k) in r['mult'] else r['mult'][k]:.2f}</td>" if k in r['caves']
+                      else "<td class='num small' data-v='-1'>-</td>" for k in (1, 2, 3))
+            + f"<td>{dep}</td><td>{chipsp(slots.split(', '))}</td><td>{esc(r['g'])}</td><td>{esc(r['h'])}</td>{num(r['m'])}"
+            f"<td class='num' data-v='{r['cl'][1] if r['cl'] else 0}'>{rng(r['cl']) if r['cl'] else '-'}</td>{num(r['fq'])}{num(r['w0'], '{:g}')}"
+            f"<td class='mono' style='font-size:.75rem'>{share(r)}</td>"
+            + ''.join(num(k3(rc['casts'], k)) for k in (1, 2, 3)) + units
+            + f"<td>{chipsp(r['tags'])}</td></tr>")
+    srow = ''.join(
+        f"<tr><td>{LNC[x['cave']]}</td><td>{esc(x['slot'])}</td>{num(x['n'])}"
+        + (f"{num(x['eff_flat'], '{:g}')}{num(x['eff'], '{:g}')}<td class='mono'>{esc(x['top_flat'])} {x['top_flat_share']:.0f}%</td>"
+           f"<td class='mono'>{esc(x['top'])} {x['top_share']:.0f}%</td>{num(x['suppressed'])}" if x['n'] else "<td></td><td></td><td></td><td></td><td></td>")
+        + '</tr>' for x in summ)
+    return f"""
+<details class="sect" id="cavern-weird"><summary><h2>Cavern weirdness and cavern diversity (15 Oct)</h2>
+<span class="small">{len(nv)} cavern species and {len(rows) - len(nv)} vermin: score, weights, slots, raw tags, and what the rig cast and saw arrive · click to open or close</span></summary>
+<p>Your question: does the weirdness score, which tilts each cavern's draw (cavern 1 toward the plain, cavern 2 the middle, cavern 3 the
+strange), cut cavern diversity? The score is a hand score (0 a real animal's cave form, 1 wholly alien; no cave species carries DF's
+MUNDANE tag, so the raws give no ready measure). The pick weight it gives is (1 − w)² + 0.05 in cavern 1, 1 − 1.8 × |w − 0.5| (floor 0.05)
+in cavern 2, and w² + 0.05 in cavern 3. It only acts inside the set DF's raw depth range (UNDERGROUND_DEPTH) already allows in that cavern.
+Rig columns are from the {fy} full-year forts of 13 and 14 Oct ({fy} fort-years, 4 season casts per cavern each).</p>
+<ul class="find">
+<li><b>The score narrows some slots, but it is not the main limit.</b> Measured as the effective number of species a slot draws from
+(1 / Σ share², from the base pick weight: pack ×3, giant ×0.2, animal person ×0.1; reuse and food-web links left out, which change cast by cast).
+Narrowed by the score: {'; '.join(ef(x) for x in narrowed) or 'none'}. Widened, because it damps a species that would otherwise lead
+the draw: {'; '.join(ef(x) for x in widened) or 'none'}. Cavern 2 loses the most, since its middle-peaked weight cuts both ends: a plain
+species (0.10) and a strange one (0.90) each weigh 0.28 there. The giant bat, for one, was cast 56 times in cavern 1 and twice in cavern 2.</li>
+<li><b>DF's depth range fences the caverns first.</b> Non-vermin species per cavern: {len(per[1])}, {len(per[2])} and {len(per[3])}.
+The strange species mostly carry depth 2-3 and the plain ones 1-2, so cavern 1 has almost nothing strange to tilt toward, and cavern 3
+almost nothing plain. Cavern 3 has <b>one</b> swimmer (the flesh ball, cast in {casts3} of {4 * fy} cavern-3 casts), {S[(3, 'flier')]['n']} fliers and
+one vermin (the creepy crawler). Cavern 1 has {S[(1, 'flier')]['n']} fliers. Slots like these repeat the same species whatever the score.</li>
+<li><b>Many cast species never arrive.</b> {len(dead)} non-vermin species were cast in the rig forts and never arrived in {fy} fort-years:
+{', '.join(r['t'].lower().replace('_', ' ') for r in dead)}. That includes {len(dead_sent)} of the sentients (every cave animal person
+and the gremlin): {dead_sent_casts} of {sent_casts} sentient-slot casts went to species that never showed. Plain benign ground prey (rats, moles,
+the naked mole dog, the drunian) has the same problem. This costs more diversity than the score does. Why these units never arrive is not yet measured.</li>
+<li>Three scored species never reach the cavern pool: {', '.join(d['scored_not_in_pool'])} (the magma crab and the fire snake live in lava; the purring maggot and the fire snake are locked unliving, NO_EAT + NO_DRINK). The cave bat is
+the one cavern species with no score (vermin, weight 1).</li>
+</ul>
+<h3>Per cavern and slot: effective species without and with the score</h3>
+<div class="tbl"><table><thead><tr><th data-t="cat">cavern</th><th data-t="cat">slot</th><th class="num" data-t="num">species</th>
+<th class="num" data-t="num">effective, no score</th><th class="num" data-t="num">effective, with score</th><th>top species, no score</th>
+<th>top species, with score</th><th class="num" data-t="num">weight ≤ 0.15</th></tr></thead><tbody>{srow}</tbody></table></div>
+<h3>Every cavern species</h3>
+<p class=small>Weights are the score's multiplier in each cavern the species can live in (− = outside its raw depth range). Slot share = its
+share of that cavern slot's draw with the score (without it in brackets). Base weight = pack ×3, giant ×0.2, animal person ×0.1. Guild codes:
+AL/AW land/water apex, ML/MW land/water meso, RP raptor, LB small flier, PL plain prey, GZ grazer, SH shore, V vermin. Units = wild ARRIVE
+events into that cavern; vermin are not units on DF's list, so they show −. Sort by any column, filter slots, guilds, habitats and tags.</p>
+<div class="tbl" style="max-height:620px"><table><thead><tr><th>species</th><th class="num" data-t="num">weirdness</th>
+<th class="num" data-t="num">weight c1</th><th class="num" data-t="num">weight c2</th><th class="num" data-t="num">weight c3</th>
+<th data-t="cat">raw depth</th><th data-t="multi">cast slots</th><th data-t="cat">guild</th><th data-t="cat">habitat</th>
+<th class="num" data-t="num">adult cm³</th><th class="num" data-t="num">group</th><th class="num" data-t="num">FREQUENCY</th>
+<th class="num" data-t="num">base weight</th><th>slot share</th>
+<th class="num" data-t="num">casts c1</th><th class="num" data-t="num">casts c2</th><th class="num" data-t="num">casts c3</th>
+<th class="num" data-t="num">units c1</th><th class="num" data-t="num">units c2</th><th class="num" data-t="num">units c3</th>
+<th data-t="multi">raw tags</th></tr></thead><tbody>{''.join(body)}</tbody></table></div>
+<p class=small>Source: scripts/castsim/cavern_weird.py (data/castsim/cavern_weird.json); scores and weights from design.WEIRD / ROSTER.FP.WEIRD,
+which the engine and the desk share.</p>
+</details>
+<script>(function(){{function o(){{var d=document.getElementById('cavern-weird');if(d&&location.hash==='#cavern-weird')d.open=true}}o();addEventListener('hashchange',o)}})()</script>
+"""
+
+
+LNC = {1: 'cavern 1', 2: 'cavern 2', 3: 'cavern 3'}
+
+
+def chipsp(xs): return ''.join(f"<span class='sp'>{esc(x)}</span>" for x in xs if x)
 
 
 def stats(data, meta_roll=()):
@@ -1110,7 +1209,8 @@ def main():
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
   Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
   the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#ecology">the year as an ecologist reads it</a> (14 Oct:
-  every full-year fort, layer by layer, with what the tool mishandles and five proposed fixes), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
+  every full-year fort, layer by layer, with what the tool mishandles and five proposed fixes),
+  <a href="#cavern-weird">cavern weirdness and cavern diversity</a> (15 Oct, a collapsible table of every cavern species), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
   pools and brooks, stand-ins) and <a href="#validate">the validation year</a> on eight forts. The sections after them are the desk simulation the build followed.
   Every table sorts by a click on its header; categorical columns filter.</p>
 </section>
@@ -1132,6 +1232,7 @@ cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p
 {region_section('X7v75', X7_NOTES, 'validate', 'On the rig: the validation year (13-14 Oct)', "a full year each on {n} forts on the engine with the 13 Oct changes (walkers, both pauses, pools and brooks, exhaustion and stand-ins); one replicate each; a fort whose run found a fault shows its rerun on the fix (X7v75b to X7v75h).")}
 {crowd_section('X4v75b')}
 {ecology_section()}
+{cavern_weird_section()}
 {applied_section()}
 
 <h2>The layers and their slots</h2>
@@ -1290,11 +1391,6 @@ dingo shares most of the taiga's animals. <b>Approved 12 Oct and applied to the 
 
 <h3>Kept out by the savage, alignment and extinct gates: <span class="exname"></span></h3>
 <div id="gates"></div>
-
-<h2>Cavern weirdness, first cut</h2>
-<p>No cave species carries DF's MUNDANE tag, so the raws give no ready measure. This is a hand score for you to adjust; DF's raw depth range still
-decides which caverns a species can live in, and the weight only tilts the draw.</p>
-{weird_table(meta)}
 
 <h2>Judgement calls in this simulation</h2>
 <p>Everything the design left open and the simulation had to decide. Each is a single rule you can change.</p>
