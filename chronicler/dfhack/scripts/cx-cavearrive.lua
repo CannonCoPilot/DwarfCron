@@ -54,8 +54,10 @@ local function caveAnimal(p)
     return p.type == df.world_population_type.Animal and p.population.cave_id >= 0 and p.population.region_x >= 0
 end
 
-local function raceIdx(tok)
+local function raceIdx(tok)   -- an underscore also stands for a space ('RODENT_MAN' = 'RODENT MAN': the rig's cmd splits words)
+    local alt = tostring(tok):gsub('_', ' ')
     for i, cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id == tok then return i end end
+    for i, cr in ipairs(df.global.world.raws.creatures.all) do if cr.creature_id == alt then return i end end
     qerror('unknown creature ' .. tostring(tok))
 end
 
@@ -154,11 +156,24 @@ if cmd == 'setup' then
             end
         end
     end
+    local f0 = { [is] = df.creature_raw.find(is).frequency, [ic] = df.creature_raw.find(ic).frequency }   -- as loaded (the tool's write, if any)
     df.creature_raw.find(is).frequency = F
     df.creature_raw.find(ic).frequency = F
-    S.seen = {}
+    S.seen, S.depth, S.races = {}, ld, { is, ic }
     local gone = vanishCave()
     for _, u in ipairs(df.global.world.units.active) do if wild(u) and u.animal.population.cave_id >= 0 then S.seen[u.id] = true end end
+    for _, r in ipairs({ is, ic }) do
+        local cr = df.creature_raw.find(r)
+        local fl = {}
+        for _, f in ipairs({ 'LARGE_ROAMING', 'AMPHIBIOUS', 'AQUATIC', 'FLIER', 'HAS_ANY_INTELLIGENT_LEARNS', 'HAS_ANY_INTELLIGENT_SPEAKS', 'HAS_ANY_CAN_SWIM',
+                             'LARGE_PREDATOR', 'BENIGN', 'EVIL', 'GOOD', 'SAVAGE', 'FANCIFUL', 'HAS_ANY_NOT_LIVING', 'UBIQUITOUS', 'VERMIN_GROUNDER' }) do
+            local ok, v = pcall(function() return cr.flags[f] end)
+            if ok and v then fl[#fl + 1] = f end
+        end
+        local _, lo, hi = pcall(function() return cr.underground_layer_min, cr.underground_layer_max end)
+        print(('RAW %s freq %d (as loaded) cluster %d-%d depth %s-%s pop %d-%d flags %s'):format(cr.creature_id, f0[r], cr.cluster_number[0], cr.cluster_number[1],
+            tostring(lo), tostring(hi), cr.population_number[0], cr.population_number[1], table.concat(fl, ',')))
+    end
     print(('SETUP cavern %d: %s and %s each on %d tile x cave pair(s), FREQUENCY %d, quantity %d; %d opened, %d created, %d failed, %d other entries closed; %d wild cavern animal(s) vanished')
         :format(D, SUBJ, CTRL, nslots, F, Q, opened, created, failed, closed, gone))
     return
@@ -185,6 +200,15 @@ if cmd == 'collect' then
     for _, key in ipairs(order) do
         local w = waves[key]
         print(('WAVE %d %s %d %d %d %d'):format(t, df.creature_raw.find(w.race).creature_id:gsub(' ', '_'), w.n, w.rx, w.ry, w.d))
+    end
+    -- the test pair's stock at the test depth: DF debits a wave's PLANNED size when it plans it, so a debit with no unit
+    -- arriving is a drawn wave that could not be placed; no debit is a wave never drawn
+    if S.races then
+        local q = { [S.races[1]] = 0, [S.races[2]] = 0 }
+        for _, p in ipairs(df.global.world.populations.all) do
+            if q[p.race] and caveAnimal(p) and not p.flags.extinct and caveDepth(p.population.cave_id) == S.depth then q[p.race] = q[p.race] + p.quantity end
+        end
+        print(('QTY %d %d'):format(q[S.races[1]], q[S.races[2]]))
     end
     print(('COLLECT %d wave(s) at %d'):format(#order, t))
     return
