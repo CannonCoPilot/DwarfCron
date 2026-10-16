@@ -84,7 +84,7 @@ ERR_RE = re.compile(r'traceback|Could not find script|\.lua:\d+:|attempt to (?:i
 
 DEFAULTS = dict(reps=1, until='season:1', chunk=20000, save_chunks=True, sustain=True, recorder=True, recorder_every=100,
                 pairs_every=3000, ledger_live=True, perf=True, state_every_chunk=False, restart_between_arms=False,
-                restart_each_cell=False, check_files=False,
+                restart_each_cell=False, check_files=False, breach=True,
                 fps=1000, gfps=10, max_hangs=3, pre_on_resume=False, live_count=False, backup_tag='preverify',
                 pre=[], receipts=[], phases=None, finally_=[])
 
@@ -623,6 +623,28 @@ class Cell:
             raise CellFail('ABORTED', f'{kind} `{label}` failed: {"; ".join(hard)}')
         return out
 
+    def breach(self):
+        """user 16 Oct: breach the caverns at the outset of every fort test -- a stair shaft from a floor the dwarves reach
+        to a floor in each of caverns 1-3 (never the magma sea or the underworld), caves marked discovered, then one short
+        step and a walk check from the shaft's top. A failed breach is recorded, not fatal (`breach: false` in a spec
+        or arm turns it off, e.g. an unbreached arm of the breach test)."""
+        rc, out, err = self.rig.cmd('cx-load', 'breach', 'auto', timeout=90)
+        walk = ''
+        dug = 'breach: dug' in out
+        if dug:
+            self.rig.sh('step', 20, 60, timeout=180)   # DF rebuilds the walkable groups on its next tick
+            _, walk, _ = self.rig.cmd('cx-load', 'walk', timeout=60)
+        with open(self.d / 'breach.txt', 'a') as f:
+            f.write(f'### {now()}\n{out.rstrip()}\n{err.strip()}\n{walk.rstrip()}\n\n')
+        bands = re.search(r'breach: bands (.*)', out)
+        res = re.findall(r'(\d)=(true|false)', walk)
+        ok = dug and bool(res) and all(v == 'true' for _, v in res)
+        self.info['breach'] = {'dug': dug, 'bands': bands.group(1) if bands else '', 'walk': dict(res),
+                               'line': next((l for l in out.splitlines() if l.startswith('breach: column')), '')}
+        self.check('caverns breached at the outset', ok,
+                   f'bands {self.info["breach"]["bands"]}; walk {" ".join(f"{k}={v}" for k, v in res) or "-"}'
+                   + ('' if dug else f'; {out.strip().splitlines()[-1] if out.strip() else "no output"}'))
+
     def json_item(self, path: Path, args: list, tag: str, folder: str) -> dict:
         out = self.rig.lua(lua_with_args(path.read_text(), args, 'state' if path == STATE_LUA else 'audit'), timeout=120)
         line = next((l for l in out.splitlines() if l.startswith('{')), '')
@@ -729,6 +751,8 @@ class Cell:
         do = ph.get('do')
         self.L(f'phase {do} {json.dumps({k: v for k, v in ph.items() if k != "do"})[:160]}')
         if do == 'pre':
+            if self.c.get('breach', True):
+                self.breach()
             for d in self.c['pre']:
                 self.do_item(d, 'pre')
         elif do == 'receipts':

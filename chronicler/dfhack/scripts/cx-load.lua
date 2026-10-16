@@ -28,6 +28,9 @@
 --                                    so every loose item becomes a hauling job (BOATS: 0 stockpiles, 745 loose items,
 --                                    29 of 29 citizens haul, 0 jobs before)
 --   cx-load rework [side]            remove the last stockpile and lay the next >= 50 tiles away (sustained hauling)
+--   cx-load breach auto [dry]        (user 16 Oct: breach the caverns at the outset of every fort test) the bands from
+--                                    seasonal-wildlife's cavern survey -- caverns 1-3 only (depth 0-2); the magma sea and
+--                                    the underworld (HFS) are never bands, and the shaft stops at a floor in cavern 3
 --   cx-load breach <zlo-zhi,...> [n] [dry]
 --                                    dig one up/down stair shaft from a surface floor the citizens reach down to
 --                                    the first n cavern bands (default all listed), through rock only, sealing
@@ -277,8 +280,24 @@ elseif cmd == 'work' or cmd == 'rework' then
 
 elseif cmd == 'breach' then
     local BANDS = {}
-    for lo, hi in (args[2] or ''):gmatch('(%d+)-(%d+)') do BANDS[#BANDS + 1] = { tonumber(lo), tonumber(hi) } end
-    if #BANDS == 0 then qerror('usage: cx-load breach <zlo-zhi,...> [n] [dry]') end
+    if args[2] == 'auto' then
+        local ok, rec = pcall(function() return reqscript('seasonal-wildlife').caveSurvey() end)
+        if not ok or not rec or not rec.bands then print('breach: no cavern survey (' .. tostring(rec) .. ')'); return end
+        local got = {}
+        for _, b in ipairs(rec.bands) do
+            if b.depth >= 0 and b.depth <= 2 then   -- caverns 1-3; never the magma sea (3) or the underworld (4)
+                BANDS[#BANDS + 1] = { b.zlo, b.zhi }; got[#got + 1] = ('c%d %d-%d'):format(b.depth + 1, b.zlo, b.zhi)
+            end
+        end
+        table.sort(BANDS, function(a, b) return a[1] > b[1] end)   -- shallowest first
+        print('breach: bands ' .. (#got > 0 and table.concat(got, ', ') or 'none'))
+        if #BANDS == 0 then return end
+        if args[3] == 'dry' then args[4] = 'dry' end
+        args[3] = nil
+    else
+        for lo, hi in (args[2] or ''):gmatch('(%d+)-(%d+)') do BANDS[#BANDS + 1] = { tonumber(lo), tonumber(hi) } end
+    end
+    if #BANDS == 0 then qerror('usage: cx-load breach auto [dry] | breach <zlo-zhi,...> [n] [dry]') end
     local want = math.min(tonumber(args[3]) or #BANDS, #BANDS)
     local dry = args[4] == 'dry' or args[3] == 'dry'
     local T = df.tiletype

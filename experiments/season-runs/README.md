@@ -49,7 +49,12 @@ A cell is one arm and one replicate. Arms run in the written order on odd replic
 1. Restore the fort from `df-snapshots/saves/<FORT>.preverify` (`save-restore`), and check the restored tree against the backup by size and sha256. The run never touches the original folder.
 2. Optionally restart DF (`restart_each_cell`). This puts the restored fort at the top of the Continue list and resets process age.
 3. Load the fort by folder, then set fps 1000 and gfps 10. Read the ledger's baseline into `ledger-before.txt`.
-4. Run the phases. The default cell is `pre`, `receipts`, `run`; a spec's own `phases` replace it.
+4. Run the phases. The default cell is `pre`, `receipts`, `run`; a spec's own `phases` replace it. The `pre` phase starts
+   with the **cavern breach** (user 16 Oct, `breach`, default on): `cx-load breach auto` digs one stair shaft from a floor
+   the dwarves reach to a floor in each of caverns 1-3 (never the magma sea or the underworld), seals any aquifer around
+   it and marks the caves discovered; then a 20-tick step and `cx-load walk`. The check `caverns breached at the outset`
+   records it in cell.json (`breach`); a failed breach is recorded, not fatal. It runs on the fresh load only, not after a
+   hang (the chunk saves already hold the shaft). `breach: false` leaves the caverns closed (an unbreached arm).
 5. At the end, whatever happened:
    - stop the recorder and copy its TSVs;
    - make the final ledger, pairs and casts dumps, and run the spec's `finally` items;
@@ -83,7 +88,7 @@ After `max_hangs` (3) hangs, or a hang before the first save, the cell is HUNG.
 Top level, overridable per arm:
 - `reps`, `until`, `chunk`, `pairs_every`, `save_chunks`, `sustain`, `recorder`, `recorder_every`, `ledger_live`, `perf`
 - `state_every_chunk`, `restart_between_arms`, `restart_each_cell`, `fps`, `gfps`, `max_hangs`, `pre_on_resume`
-- `live_count`, `check_files`, `backup_tag`
+- `live_count`, `check_files`, `backup_tag`, `breach`
 
 Item lists (the top-level list runs first, then the arm's): `pre`, `receipts`, `finally`.
 

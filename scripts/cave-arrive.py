@@ -7,7 +7,7 @@ same footing in one cavern (one open entry each on every draw tile x cave of tha
 every other Animal entry there closed). Waves are collected as they land and every wild cavern animal vanished so the
 gate stays clear. Equal footing gives the subject about half the waves; a bar gives it none.
 
-    cave-arrive.py FORT CONTROL SUBJ[@DEPTH] [SUBJ ...] [--depth 1] [--waves 20] [--step 1000] [--max-ticks 50000] [--name RUN]
+    cave-arrive.py FORT CONTROL SUBJ[@DEPTH] [SUBJ ...] [--no-breach] [--depth 1] [--waves 20] [--step 1000] [--max-ticks 50000] [--name RUN]
 Writes data/cave-arrive/RUN/: waves.tsv (subject, tick, race, n, rx, ry, depth), qty.tsv (the pair's stock after each step: DF debits a
 wave's planned size, so a debit with no unit is a drawn wave that could not be placed), setup.txt, summary.md.
 Every subject's fort is left unsaved (quit to title)."""
@@ -35,6 +35,19 @@ def sh(*a, timeout=600) -> str:
     return (r.stdout + r.stderr).replace('\r', '')
 
 
+def breach(log) -> str:
+    """user 16 Oct: breach the caverns at the outset of every fort test (cx-load breach auto: a stair shaft to a floor in
+    each of caverns 1-3, never the magma sea or the underworld), then a short step and a walk check. Returns one line."""
+    out = sh('cmd', 'cx-load', 'breach', 'auto', timeout=180)
+    walk = ''
+    if 'breach: dug' in out:
+        sh('step', '20', timeout=180)
+        walk = sh('cmd', 'cx-load', 'walk', timeout=120)
+    log.write('BREACH ' + out.strip().replace('\n', '\nBREACH ') + '\n' + walk)
+    bands = next((x for x in out.splitlines() if x.startswith('breach: bands')), 'breach: bands ?')
+    return (bands[len('breach: '):] + '; ' + (walk.strip() or out.strip().splitlines()[-1] if out.strip() else 'no output')).strip()
+
+
 def binom_p(k: int, n: int) -> float:
     """two-sided exact binomial p for k of n at 0.5"""
     if n == 0:
@@ -53,6 +66,8 @@ def one(o, spec, W, Q, log):
         raise SystemExit(f'load failed: {r[-400:]}')
     log.write(f'== {subj} v {o.control}, cavern {depth}\n')
     log.write(sh('cmd', 'seasonal-wildlife', 'disable'))
+    if o.breach:
+        print('  ' + breach(log), flush=True)
     s = sh('cmd', 'cx-cavearrive', 'setup', str(depth), subj, o.control, str(o.freq), str(o.qty))
     log.write(s); log.write(sh('cmd', 'cx-cavearrive', 'state', str(depth))); log.flush()
     line = next((x for x in s.splitlines() if x.startswith('SETUP')), '')
@@ -120,6 +135,7 @@ def main():
     ap.add_argument('--step', type=int, default=1000); ap.add_argument('--max-ticks', type=int, default=50000)
     ap.add_argument('--freq', type=int, default=50); ap.add_argument('--qty', type=int, default=100)
     ap.add_argument('--name', default=dt.datetime.now().strftime('%Y%m%d-%H%M%S'))
+    ap.add_argument('--no-breach', dest='breach', action='store_false', help='leave the caverns unbreached (default: breach, user 16 Oct)')
     o = ap.parse_args()
     out = ROOT / 'data' / 'cave-arrive' / o.name
     out.mkdir(parents=True, exist_ok=True)
@@ -143,7 +159,7 @@ def main():
         print(f"  {r['subj']}: {r['n_subj']} v {o.control} {r['n_ctrl']} in {r['ticks']} ticks; debits {r['debit']}; {verdict(r)}; other {r['other']}", flush=True)
     sh('stop', timeout=120)
     with open(out / 'summary.md', 'w') as f:
-        f.write(f'# never-arrive {o.name}: {o.fort}, control {o.control}, FREQUENCY {o.freq}, quantity {o.qty}\n\n'
+        f.write(f'# never-arrive {o.name}: {o.fort}, control {o.control}, FREQUENCY {o.freq}, quantity {o.qty}, caverns {"breached" if o.breach else "NOT breached"}\n\n'
                 '| subject | cavern | subject waves | control waves | share | p (v 0.5) | stock debited (subject / control) | ticks | verdict | other waves |\n'
                 '|---|---|---|---|---|---|---|---|---|---|\n')
         for r in res:

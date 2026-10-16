@@ -7,7 +7,7 @@ flier open on the site tile only, the other on every draw tile (cx-tilereach set
 species effect cancels. If DF picks per entry, the many-tile species takes about k/(k+1) of the waves (k = its tiles); if
 it picks per species, about half.
 
-    tile-reach.py FORT A B [--reps 4] [--waves 40] [--step 600] [--max-ticks 90000] [--name RUN]
+    tile-reach.py FORT A B [--no-breach] [--reps 4] [--waves 40] [--step 600] [--max-ticks 90000] [--name RUN]
 Writes data/tile-reach/RUN/: waves.tsv (rep, one, tick, race, n, rx, ry, site|neighbour), setup.txt, summary.md.
 Runs on the loaded rig; every replicate loads FORT fresh and leaves it unsaved (quit to title)."""
 from __future__ import annotations
@@ -27,6 +27,19 @@ def sh(*a, timeout=600) -> str:
     return (r.stdout + r.stderr).replace('\r', '')
 
 
+def breach(log) -> str:
+    """user 16 Oct: breach the caverns at the outset of every fort test (cx-load breach auto: a stair shaft to a floor in
+    each of caverns 1-3, never the magma sea or the underworld), then a short step and a walk check. Returns one line."""
+    out = sh('cmd', 'cx-load', 'breach', 'auto', timeout=180)
+    walk = ''
+    if 'breach: dug' in out:
+        sh('step', '20', timeout=180)
+        walk = sh('cmd', 'cx-load', 'walk', timeout=120)
+    log.write('BREACH ' + out.strip().replace('\n', '\nBREACH ') + '\n' + walk)
+    bands = next((x for x in out.splitlines() if x.startswith('breach: bands')), 'breach: bands ?')
+    return (bands[len('breach: '):] + '; ' + (walk.strip() or out.strip().splitlines()[-1] if out.strip() else 'no output')).strip()
+
+
 def binom_p(k: int, n: int) -> float:
     """two-sided exact binomial p for k of n at 0.5"""
     if n == 0:
@@ -41,6 +54,7 @@ def main():
     ap.add_argument('--reps', type=int, default=4); ap.add_argument('--waves', type=int, default=40)
     ap.add_argument('--step', type=int, default=600); ap.add_argument('--max-ticks', type=int, default=90000)
     ap.add_argument('--name', default=dt.datetime.now().strftime('%Y%m%d-%H%M%S'))
+    ap.add_argument('--no-breach', dest='breach', action='store_false', help='leave the caverns unbreached (default: breach, user 16 Oct)')
     o = ap.parse_args()
     out = ROOT / 'data' / 'tile-reach' / o.name
     out.mkdir(parents=True, exist_ok=True)
@@ -59,6 +73,8 @@ def main():
             raise SystemExit(f'load failed: {r[-400:]}')
         log.write(f'== rep {rep} (one tile: {one})\n')
         log.write(sh('cmd', 'seasonal-wildlife', 'disable'))
+        if o.breach:
+            print('  ' + breach(log), flush=True)
         if rep == 1:
             log.write(sh('cmd', 'cx-tilereach', 'info'))
         s = sh('cmd', 'cx-tilereach', 'setup', o.a, o.b, one)
