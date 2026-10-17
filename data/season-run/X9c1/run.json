@@ -1,0 +1,173 @@
+{
+ "id": "X9c1",
+ "spec": {
+  "id": "X9c1",
+  "description": "Cavern assignment full year (user 16 Oct: 'number 2' -- a fresh fort runs a whole year so the tool builds its own casts). Small savage lake re-embarked (V78_SMALLSAV, region16 118,56 off 14,14, startdwarf 50; same square as V75_SMALLSAV) on sw 551ef30 (v7.6: the user's Cavern Layer Picks + Claude's proposal as CAVE.ASSIGN, thief bar, food-web guarantee, anti-freeze guard reopens cast species only). Expect: every cavern arrival is a species cast at that depth that season (0 off-cast cavern arrivals after the season change's lead time); no thief-tagged species in any cavern; each cavern-season's arrivals form a minimal web (prey + predator); no sentient civ species in cavern 1; the weird set (cave dragon, voracious cave crawler, green devourer, floaters, reacher) only in cavern 3; surface and water layers as X7v75h.",
+  "needs": "sw-wt/plugin 551ef30 scripts deployed; V78_SMALLSAV .preverify",
+  "reps": 1,
+  "until": "season:4+20000",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+ground\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "v7.5 casts: a land-ground cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+flying\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a land-flying cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern1\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-1 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast extinct",
+    "expect": "cast extinct: \\w+",
+    "name": "the world's extinct rule"
+   },
+   {
+    "cmd": "seasonal-wildlife caverns",
+    "expect": "cavern map",
+    "check": "depth \\d \\(cave",
+    "name": "an open cavern (for the depth audit)"
+   },
+   {
+    "lua": "local c = reqscript('seasonal-wildlife').loadConfig(); for _, r in ipairs(c.fp_created or {}) do local d = -1; if r.kind == 'cave' then d = df.global.world.world_data.underground_regions[r.cave].layer_depth end; print(('fp_created %s %s %d'):format(r.kind, r.token, d)) end; print('fp_created total ' .. #(c.fp_created or {}))",
+    "expect": "fp_created total",
+    "check": "fp_created total [1-9]",
+    "name": "population entries created for unstocked cast species"
+   },
+   {
+    "cmd": "seasonal-wildlife sponges",
+    "expect": "sponges",
+    "name": "sponge line (giant sponges allowed or not)"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: .*land",
+    "name": "the tool runs the land layer"
+   },
+   {
+    "cmd": "seasonal-wildlife groups pause",
+    "expect": "land pause",
+    "check": "land pause: on.*reopens 2 group",
+    "name": "land pause on, margin 2"
+   },
+   {
+    "cmd": "seasonal-wildlife groups cavern",
+    "expect": "groups: cavern",
+    "check": "pause on",
+    "name": "cavern pause on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast caverns",
+    "expect": "cast caverns:",
+    "check": "assignment on, food-web guarantee on, thief bar on",
+    "name": "cavern assignment, web guarantee and thief bar on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast caverns",
+    "expect": "in no cavern:",
+    "check": "in no cavern: DRUNIAN GREMLIN MOLE_DOG_NAKED MOLE_GIANT RAT_GIANT RAT_LARGE",
+    "name": "the six thief-tagged species in no cavern"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern2\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-2 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern3\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-3 cast for summer"
+   }
+  ],
+  "arms": [
+   {
+    "name": "C",
+    "fort": "V78_SMALLSAV",
+    "receipts": []
+   }
+  ]
+ },
+ "started": "2026-10-16 15:55:53",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "0f7fef52",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1325624,
+    "blob": "06555fe5727037fc3e9a75ba95bb983ab8dca5c9",
+    "release": "7.5.0",
+    "mtime": "2026-10-16T15:01:05",
+    "commit": "551ef30722 v7.6 thief bar: DFHack's flag names (CURIOUS_BEAST_EATER/GUZZLER/ITEM; the raws spell CURIOUSBEAST_*, and an "
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-16 17:02:37",
+ "cells": [
+  {
+   "arm": "C",
+   "rep": 1,
+   "fort": "V78_SMALLSAV",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 4003.1,
+   "ticks": 365045,
+   "ticks_per_s": 122.2
+  }
+ ],
+ "saves_written": [
+  "SR_X9c1_C_r01_c001",
+  "SR_X9c1_C_r01_c002",
+  "SR_X9c1_C_r01_c003",
+  "SR_X9c1_C_r01_c004",
+  "SR_X9c1_C_r01_c005",
+  "SR_X9c1_C_r01_c006",
+  "SR_X9c1_C_r01_c007",
+  "SR_X9c1_C_r01_c008",
+  "SR_X9c1_C_r01_c009",
+  "SR_X9c1_C_r01_c010",
+  "SR_X9c1_C_r01_c011",
+  "SR_X9c1_C_r01_c012",
+  "SR_X9c1_C_r01_c013",
+  "SR_X9c1_C_r01_c014",
+  "SR_X9c1_C_r01_c015",
+  "SR_X9c1_C_r01_c016",
+  "SR_X9c1_C_r01_c017",
+  "SR_X9c1_C_r01_c018",
+  "SR_X9c1_C_r01_c019",
+  "SR_X9c1_C_r01_c020"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}
