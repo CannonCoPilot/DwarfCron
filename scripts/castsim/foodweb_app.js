@@ -290,7 +290,8 @@
     const cs = castSet();
     const sel = state.sel && VIEW.byT[state.sel] ? VIEW.byT[state.sel] : null;
     const A = sel ? VIEW.adj.get(sel.t) : null;
-    const lit = n => cs ? cs.set.has(n.t) : (sel ? (n === sel || A.prey.has(n.t) || A.pred.has(n.t)) : true);
+    const Q = searchHits();   // live search: matches light up over everything else
+    const lit = n => Q ? Q.has(n.t) : (cs ? cs.set.has(n.t) : (sel ? (n === sel || A.prey.has(n.t) || A.pred.has(n.t)) : true));
     // edges
     let edges = [];
     if (cs) edges = cs.tr.edges.map(([x, y]) => VIEW.why.get(x + '>' + y) || { a: VIEW.byT[x], b: VIEW.byT[y], f: 'ladder', fams: [{ f: 'ladder', d: 'the cast\'s own growth link' }] }).filter(e => e.a && e.b);
@@ -334,6 +335,7 @@
       if (k >= 2.4) for (const n of VIEW.nodes) lab.add(n);
       if (hov) lab.add(hov);
     }
+    if (Q && Q.size <= 60) for (const t of Q) lab.add(VIEW.byT[t]);
     ctx.font = `${11.5 / k}px "Atkinson Hyperlegible", system-ui, sans-serif`;
     ctx.lineJoin = 'round';
     for (const n of lab) {
@@ -341,6 +343,10 @@
       const s = n.c.nm;
       ctx.lineWidth = 3 / k; ctx.strokeStyle = TOK.surface; ctx.strokeText(s, n.x + n.r + 3 / k, n.y + 4 / k);
       ctx.fillStyle = TOK.ink; ctx.fillText(s, n.x + n.r + 3 / k, n.y + 4 / k);
+    }
+    if (Q) {   // ring every match; label them while there are few enough to read
+      ctx.lineWidth = 2 / k; ctx.strokeStyle = TOK.accent;
+      for (const t of Q) { const n = VIEW.byT[t]; drawShape('circle', n.x, n.y, n.r + 4); ctx.stroke(); }
     }
     if (sel) { ctx.lineWidth = 2 / k; ctx.strokeStyle = TOK.accent; drawShape('circle', sel.x, sel.y, sel.r + 5); ctx.stroke(); }
     ctx.restore();
@@ -756,11 +762,27 @@
   $('#run1').onclick = runYear;
   $('#runN').onclick = runYears;
   $('#pin').onclick = () => { if (STATS) { BASE = STATS; $('#pinState').textContent = `Baseline: ${STATS.n} years, ${prmText(STATS.prm)}`; renderStats(); } };
-  $('#search').addEventListener('change', e => {
-    const q = e.target.value.trim().toLowerCase(); if (!q) return;
+  // live search (user 17 Oct): every keystroke lights the creatures whose name or token holds the text; Enter selects the
+  // best match; Escape clears
+  function searchHits() {
+    const q = state.search;
+    if (!q || !VIEW) return null;
+    const hits = new Set();
+    for (const n of VIEW.nodes) if (n.c.nm.toLowerCase().includes(q) || n.t.toLowerCase().includes(q)) hits.add(n.t);
+    return hits;
+  }
+  function searchNote() {
+    const Q = searchHits();
+    $('#searchNote').textContent = !Q ? '' : (Q.size ? `${Q.size} match${Q.size === 1 ? '' : 'es'} lit${Q.size > 60 ? ' (labels shown for 60 or fewer)' : ''}; Enter selects the first, Esc clears.`
+      : 'No creature in this view matches: widen the fort or pick All layers.');
+  }
+  $('#search').addEventListener('input', e => { state.search = e.target.value.trim().toLowerCase(); searchNote(); draw(); });
+  $('#search').addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.target.value = ''; state.search = ''; searchNote(); draw(); return; }
+    if (e.key !== 'Enter') return;
+    const q = state.search; if (!q) return;
     const n = VIEW.nodes.find(n => n.c.nm.toLowerCase() === q || n.t.toLowerCase() === q) || VIEW.nodes.find(n => n.c.nm.toLowerCase().includes(q) || n.t.toLowerCase().includes(q));
-    $('#searchNote').textContent = n ? '' : 'Not in this view: widen the fort or pick All layers.';
-    if (n) { state.sel = n.t; state.castSel = null; renderInspector(); draw(); }
+    if (n) { state.sel = n.t; state.castSel = null; e.target.value = ''; state.search = ''; searchNote(); renderInspector(); renderYear(); draw(); }
   });
   const dl = $('#names');
 
@@ -782,6 +804,7 @@
     dl.innerHTML = VIEW.nodes.map(n => `<option value="${esc(n.c.nm)}">`).join('');
     if (state.sel && !VIEW.byT[state.sel]) state.sel = null;
     state.selEdge = null; $('#edgepop').hidden = true;
+    searchNote();
     renderLegend(); renderInspector(); draw();
   }
   function boot() {

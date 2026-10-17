@@ -152,7 +152,7 @@ BODY = r"""
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
     <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
-    <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="name or token"><datalist id="names"></datalist></div>
+    <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="type to light matches" autocomplete="off"><datalist id="names"></datalist></div>
   </div>
   <div><span class="lbl">Feeding links: the rules seasonal-wildlife applies (engine default in brackets)</span><div id="fams" class="fams"></div></div>
   <p class="small" id="searchNote"></p>
