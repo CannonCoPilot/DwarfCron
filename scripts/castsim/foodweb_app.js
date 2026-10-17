@@ -1,0 +1,710 @@
+/* foodweb_app.js -- the Food Web Explorer's page logic: fort filters, the network (canvas + d3-force), the cast simulator
+   panels. Needs window.FWSim (foodweb_sim.js), window.FWDATA (creatures.json) and d3 v7. */
+(function () {
+  'use strict';
+  const sim = FWSim.make(FWDATA);
+  const M = sim.M, BY = sim.BY, LAYERS = sim.LAYERS;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  const SHORT = { ground: 'Ground', flying: 'Flying', ocean: 'Ocean', fresh: 'Fresh', cavern1: 'Cav 1', cavern2: 'Cav 2', cavern3: 'Cav 3' };
+  const LNAME = { ground: 'Land-ground', flying: 'Land-flying', ocean: 'Ocean', fresh: 'Freshwater', cavern1: 'Cavern 1', cavern2: 'Cavern 2', cavern3: 'Cavern 3' };
+  const BIOME_GROUPS = [
+    ['Forest', ['FOREST_TAIGA', 'FOREST_TEMPERATE_CONIFER', 'FOREST_TEMPERATE_BROADLEAF', 'FOREST_TROPICAL_CONIFER', 'FOREST_TROPICAL_DRY_BROADLEAF', 'FOREST_TROPICAL_MOIST_BROADLEAF']],
+    ['Grass, savanna, shrub', ['GRASSLAND_TEMPERATE', 'SAVANNA_TEMPERATE', 'SHRUBLAND_TEMPERATE', 'GRASSLAND_TROPICAL', 'SAVANNA_TROPICAL', 'SHRUBLAND_TROPICAL']],
+    ['Marsh and swamp', ['MARSH_TEMPERATE_FRESHWATER', 'MARSH_TEMPERATE_SALTWATER', 'MARSH_TROPICAL_FRESHWATER', 'MARSH_TROPICAL_SALTWATER', 'SWAMP_TEMPERATE_FRESHWATER', 'SWAMP_TEMPERATE_SALTWATER', 'SWAMP_TROPICAL_FRESHWATER', 'SWAMP_TROPICAL_SALTWATER', 'SWAMP_MANGROVE']],
+    ['Desert', ['DESERT_BADLAND', 'DESERT_ROCK', 'DESERT_SAND']],
+    ['Cold and high', ['MOUNTAIN', 'GLACIER', 'TUNDRA']],
+  ];
+  const bname = b => b.toLowerCase().replace(/_/g, ' ').replace('freshwater', 'fresh').replace('saltwater', 'salt').replace('temperate', 'temp.').replace('tropical', 'trop.');
+  // slot -> colour token (validated: five hues, both themes; shape carries the trophic level as the second encoding)
+  const SLOT_COL = { apex: 'c-red', meso: 'c-purple', sentient: 'ink', grazer: 'c-green', 'ground prey': 'c-amber', flier: 'c-blue',
+    waterbird: 'c-blue', fish: 'c-green', pelagic: 'c-green', shore: 'c-amber', swimmer: 'c-green', vermin: 'muted' };
+  const SLOT_LEGEND = [['apex', 'apex'], ['meso', 'meso predator'], ['sentient', 'sentient'], ['grazer', 'grazer · fish · pelagic · swimmer'],
+    ['ground prey', 'ground prey · shore'], ['flier', 'flier · waterbird'], ['vermin', 'vermin']];
+  const HAB_COL = { land: 'c-amber', flier: 'c-blue', waterbird: 'c-purple', aquatic: 'c-green', semiaquatic: 'c-red' };
+  const LEVEL_NAME = ['vermin', 'prey', 'predator', 'apex'];
+  const GUILD_FAM = g => ({ AL: 'predator', AW: 'predator', ML: 'predator', MW: 'predator', RP: 'raptor', GZ: 'grazer', PL: 'small prey',
+    LB: 'bird', WB: 'bird', FF: 'fish', FC: 'fish', PE: 'fish', SH: 'shore', V: 'vermin' }[g] || 'other');
+  const FAM_SHAPE = { predator: 'tri', raptor: 'star', grazer: 'circle', 'small prey': 'square', bird: 'diamond', fish: 'cross', shore: 'square', vermin: 'dot', other: 'circle' };
+  const HAB_SHAPE = { land: 'circle', flier: 'tri', waterbird: 'diamond', aquatic: 'cross', semiaquatic: 'square' };
+  const LEVEL_SHAPE = ['dot', 'circle', 'diamond', 'tri'];
+
+  // ------------------------------------------------------------------ state
+  const state = {
+    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), sav: 'savage', al: 'neutral', iso: false,
+    extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
+    caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
+    edges: 'focus', vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true }),
+  };
+  const PRESETS = {
+    coast: { label: 'Savage tropical coast', land: ['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF'], sav: 'savage', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL' },
+    lake: { label: 'Calm temperate forest lake', land: ['FOREST_TEMPERATE_BROADLEAF', 'GRASSLAND_TEMPERATE'], sav: 'wild', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: true, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
+    brook: { label: 'Good temperate brook', land: ['FOREST_TEMPERATE_CONIFER', 'SHRUBLAND_TEMPERATE'], sav: 'wild', al: 'good', extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: false, river: false, brook: true, pool: true, fz: 'TEMPERATE' },
+    tundra: { label: 'Evil tundra with murky pools', land: ['TUNDRA', 'FOREST_TAIGA'], sav: 'wild', al: 'evil', extinct: 'WILDERNESS', iso: false, ocean: false, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: true, fz: 'TEMPERATE' },
+    arctic: { label: 'Savage good arctic coast', land: ['GLACIER', 'TUNDRA'], sav: 'savage', al: 'good', extinct: 'WILDERNESS', iso: false, ocean: true, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
+    all: { label: 'Every creature', land: M.land.slice(), sav: 'any', al: 'any', extinct: 'WILDERNESS', iso: true, ocean: true, oz: 'ALL', lake: true, river: true, brook: false, pool: true, fz: 'ALL' },
+  };
+  function applyPreset(k) {
+    const p = PRESETS[k];
+    Object.assign(state, { land: new Set(p.land), sav: p.sav, al: p.al, extinct: p.extinct, iso: p.iso, ocean: p.ocean, oz: p.oz, lake: p.lake,
+      river: p.river, brook: p.brook, pool: p.pool, fz: p.fz, caverns: new Set([1, 2, 3]), sel: null, castSel: null });
+    syncControls(); rebuild(true);
+  }
+
+  // ------------------------------------------------------------------ the fort -> builds
+  const SAVS = { wild: 30, savage: 80 }, ALS = { good: 10, neutral: 50, evil: 90 };
+  const zones = (z, kind) => z === 'ALL' ? (kind === 'ocean' ? ['ARCTIC', 'TEMPERATE', 'TROPICAL'] : ['TEMPERATE', 'TROPICAL']) : z;
+  function specFor(sav, al) {
+    const fz = zones(state.fz, 'fresh');
+    return {
+      land: [...state.land], rtype: { sav, evil: al, iso: state.iso }, extinct: state.extinct,
+      water: { ocean: state.ocean ? zones(state.oz, 'ocean') : null, lake: state.lake ? fz : null,
+        river: (state.river || state.brook) ? fz : null, pool: state.pool ? fz : null, brook: state.brook && !state.river },
+      caverns: [...state.caverns].sort(), assign: state.assign,
+    };
+  }
+  function concrete() { return state.sav !== 'any' && state.al !== 'any'; }
+  let BUILD = null;   // { B (merged or single), spec (single or null), key }
+  function buildAll() {
+    const savs = state.sav === 'any' ? ['wild', 'savage'] : [state.sav];
+    const als = state.al === 'any' ? ['good', 'neutral', 'evil'] : [state.al];
+    const bs = [];
+    for (const s of savs) for (const a of als) { const sp = specFor(SAVS[s], ALS[a]); bs.push([sp, sim.build(sp)]); }
+    if (bs.length === 1) return { B: bs[0][1], spec: bs[0][0] };
+    // browse union: a species is in when any region type admits it; its slots from the first that does
+    const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [] };
+    for (const L of LAYERS) B.layerSets[L] = [];
+    for (const [, b] of bs) {
+      for (const t in b.P) if (!B.P[t]) B.P[t] = b.P[t];
+      for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
+      for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
+      for (const k in b.lists) {
+        const cur = B.lists[k] || (B.lists[k] = []);
+        const have = new Set(cur.map(x => x.c.t + (x.vermin ? '|v' : '')));
+        for (const x of b.lists[k]) if (!have.has(x.c.t + (x.vermin ? '|v' : ''))) cur.push(x);
+      }
+    }
+    B.active.sort((a, b) => LAYERS.indexOf(a) - LAYERS.indexOf(b));
+    return { B, spec: null };
+  }
+
+  // ------------------------------------------------------------------ nodes and edges for the view
+  let VIEW = null;   // { nodes, byT, edges (array of {a,b,L}), adj }
+  const edgeCache = new Map();
+  function seasonsIn() { return state.season === 'all' ? [0, 1, 2, 3] : [+state.season]; }
+  function layerItems(L) {
+    const map = new Map();
+    for (const s of seasonsIn()) for (const x of (BUILD.B.lists[L + '|' + s] || [])) {
+      if (x.vfish) continue;
+      const k = x.c.t;
+      if (!map.has(k)) map.set(k, { c: x.c, vermin: x.vermin, vclass: x.vclass, slots: x.slots.slice(), tier: x.tier });
+    }
+    return [...map.values()];
+  }
+  function levelOf(it, L) {
+    if (it.vermin) return 0;
+    const s = it.slots[0];
+    if (s === 'apex') return 3;
+    return sim.tierOf({ c: it.c, slot: s, vermin: false }) >= 2 ? 2 : 1;
+  }
+  function viewLayers() { return state.layer === 'all' ? BUILD.B.active : (BUILD.B.active.includes(state.layer) ? [state.layer] : []); }
+  function makeView() {
+    const nodes = [], byT = {};
+    const ls = viewLayers();
+    const items = {};
+    for (const L of ls) {
+      items[L] = layerItems(L).filter(it => state.vermin || !it.vermin);
+      for (const it of items[L]) {
+        if (byT[it.c.t]) { byT[it.c.t].layers.push(L); byT[it.c.t].slotsBy[L] = it.slots; continue; }
+        const n = { t: it.c.t, c: it.c, L, layers: [L], slotsBy: { [L]: it.slots }, slot: it.vermin ? 'vermin' : it.slots[0], vermin: it.vermin,
+          level: levelOf(it, L), r: radius(it.c) };
+        byT[n.t] = n; nodes.push(n);
+      }
+    }
+    const edges = [];
+    for (const L of ls) {
+      const key = BUILD.key + '|' + L + '|' + state.season + '|' + state.vermin;
+      let E = edgeCache.get(key);
+      if (!E) { E = sim.potentialEdges(items[L], L); edgeCache.set(key, E); }
+      for (const [a, b] of E) edges.push({ a: byT[a], b: byT[b], L });
+    }
+    const adj = new Map();
+    for (const n of nodes) adj.set(n.t, { prey: new Set(), pred: new Set() });
+    for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); }
+    // value: within the view, the higher of the pet-value and body-size percentiles; war animals at the top
+    const pct = (arr, f) => { const v = arr.map(f).filter(x => x > 0).sort((a, b) => a - b); return x => x <= 0 ? 0 : (d3.bisectRight(v, x) / v.length); };
+    const nv = nodes.filter(n => !n.vermin);
+    const pp = pct(nv, n => n.c.pet), mp = pct(nv, n => n.c.m);
+    for (const n of nodes) n.value = n.vermin ? 0 : (n.c.war ? 1 : Math.max(pp(n.c.pet), mp(n.c.m)));
+    // the high-value (seed) set of each layer over the view's lists, the cast builder's own rule
+    for (const L of ls) {
+      const free = items[L].filter(it => !it.vermin && !it.slots.includes('placed plant'));
+      const hv = sim.hvSet(free.map(it => ({ c: it.c })), state.prm);
+      for (const t in hv) if (byT[t] && byT[t].L === L) byT[t].hv = hv[t];
+    }
+    VIEW = { nodes, byT, edges, adj, layers: ls };
+  }
+  function radius(c) { return 2.6 + 1.9 * Math.sqrt(Math.min(40, Math.max(1, c.c1 || 1))); }
+
+  // ------------------------------------------------------------------ layout
+  let W = 800, H = 560, transform = d3.zoomIdentity;
+  const canvas = $('#net'), ctx = canvas.getContext('2d');
+  function layout() {
+    const nodes = VIEW.nodes, ls = VIEW.layers;
+    const pad = 28, padL = state.layout === 'levels' ? 64 : 28;
+    const cols = {};
+    if (state.layout === 'levels') {
+      // one column per layer, width by the square root of its node count; four bands top to bottom (apex .. vermin)
+      const wts = ls.map(L => Math.sqrt(nodes.filter(n => n.L === L).length + 4));
+      const tot = wts.reduce((a, b) => a + b, 0);
+      let x = padL;
+      ls.forEach((L, i) => { const w = (W - pad - padL) * wts[i] / tot; cols[L] = { x0: x, x1: x + w, cx: x + w / 2 }; x += w; });
+      const band = l => pad + 18 + (3 - l) * (H - 2 * pad - 18) / 4 + (H - 2 * pad - 18) / 8;
+      for (const n of nodes) {
+        const col = cols[n.L];
+        n.x = n.x != null && n._lay === 'levels' ? n.x : col.cx + (Math.random() - 0.5) * (col.x1 - col.x0) * 0.8;
+        n.y = n.y != null && n._lay === 'levels' ? n.y : band(n.level) + (Math.random() - 0.5) * 30;
+        n.tx = col.cx; n.ty = band(n.level); n._lay = 'levels';
+      }
+      const s = d3.forceSimulation(nodes).stop()
+        .force('x', d3.forceX(n => n.tx).strength(n => 0.02 + 0.6 / Math.max(1, (cols[n.L].x1 - cols[n.L].x0) / 60)))
+        .force('y', d3.forceY(n => n.ty).strength(0.22))
+        .force('c', d3.forceCollide(n => n.r + 1.4).iterations(2));
+      for (let i = 0; i < 220; i++) s.tick();
+      for (const n of nodes) { const c = cols[n.L]; n.x = Math.max(c.x0 + n.r, Math.min(c.x1 - n.r, n.x)); }
+      VIEW.cols = cols; VIEW.band = band;
+    } else {
+      for (const n of nodes) { if (n._lay !== 'force') { n.x = W / 2 + (Math.random() - 0.5) * W * 0.6; n.y = H / 2 + (Math.random() - 0.5) * H * 0.6; } n._lay = 'force'; }
+      // a dense lattice draws as a hairball, so the layout uses a sample of the links: at most 6 per node
+      const deg = new Map(), links = [];
+      const shuffled = d3.shuffle(VIEW.edges.slice());
+      for (const e of shuffled) {
+        if (!e.a || !e.b) continue;
+        const da = deg.get(e.a) || 0, db = deg.get(e.b) || 0;
+        if (da < 6 && db < 6) { links.push({ source: e.a, target: e.b }); deg.set(e.a, da + 1); deg.set(e.b, db + 1); }
+      }
+      const s = d3.forceSimulation(nodes).stop()
+        .force('l', d3.forceLink(links).distance(38).strength(0.25))
+        .force('q', d3.forceManyBody().strength(-26).distanceMax(240))
+        .force('x', d3.forceX(W / 2).strength(0.04)).force('y', d3.forceY(H / 2).strength(0.06))
+        .force('c', d3.forceCollide(n => n.r + 1.2));
+      for (let i = 0; i < 260; i++) s.tick();
+      VIEW.cols = null;
+    }
+  }
+
+  // ------------------------------------------------------------------ drawing
+  let TOK = {};
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ['ink', 'muted', 'line', 'surface', 'bg', 'accent', 'c-red', 'c-purple', 'c-green', 'c-amber', 'c-blue', 'seq-lo', 'seq-hi', 'faint'])
+      TOK[k] = cs.getPropertyValue('--' + k).trim();
+  }
+  const seq = t => d3.interpolateLab(TOK['seq-lo'], TOK['seq-hi'])(Math.max(0, Math.min(1, t)));
+  function colorOf(n) {
+    if (state.color === 'slot') return TOK[SLOT_COL[n.slot] || 'muted'];
+    if (state.color === 'habitat') return n.vermin ? TOK.muted : TOK[HAB_COL[n.c.h] || 'muted'];
+    if (state.color === 'value') return n.vermin ? TOK.muted : seq(n.value);
+    if (state.color === 'inclusion') {
+      const st = STATS && STATS.by[n.L];
+      if (!st) return TOK.faint;
+      const v = (st.seasons[n.t] || 0) / st.casts;
+      return v > 0 ? seq(Math.sqrt(v)) : TOK.faint;
+    }
+    return TOK.muted;
+  }
+  function shapeOf(n) {
+    if (state.shape === 'habitat') return n.vermin ? 'dot' : (HAB_SHAPE[n.c.h] || 'circle');
+    if (state.shape === 'guild') return FAM_SHAPE[GUILD_FAM(n.c.g)] || 'circle';
+    return LEVEL_SHAPE[n.level];
+  }
+  function drawShape(sh, x, y, r) {
+    ctx.beginPath();
+    if (sh === 'circle') ctx.arc(x, y, r, 0, 2 * Math.PI);
+    else if (sh === 'dot') ctx.arc(x, y, Math.max(1.6, r * 0.6), 0, 2 * Math.PI);
+    else if (sh === 'square') { const s = r * 0.9; ctx.rect(x - s, y - s, 2 * s, 2 * s); }
+    else if (sh === 'diamond') { const s = r * 1.25; ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y); ctx.closePath(); }
+    else if (sh === 'tri') { const s = r * 1.35; ctx.moveTo(x, y - s); ctx.lineTo(x + s * 0.92, y + s * 0.62); ctx.lineTo(x - s * 0.92, y + s * 0.62); ctx.closePath(); }
+    else if (sh === 'star') { const s = r * 1.4; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? s * 0.45 : s; ctx.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); } ctx.closePath(); }
+    else if (sh === 'cross') { const s = r * 1.1, w = r * 0.42; ctx.rect(x - s, y - w, 2 * s, 2 * w); ctx.rect(x - w, y - s, 2 * w, 2 * s); }
+  }
+  function castSet() {
+    if (!state.castSel || !YEAR) return null;
+    const tr = YEAR[state.castSel];
+    if (!tr) return null;
+    return { tr, set: new Set(tr.members.map(m => m.t).concat(tr.vermin.map(v => v.t))) };
+  }
+  function draw() {
+    if (!VIEW) return;
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = TOK.surface; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.translate(transform.x, transform.y); ctx.scale(transform.k, transform.k);
+    const k = transform.k;
+    // bands and columns
+    if (VIEW.cols) {
+      ctx.font = `600 ${11 / k}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.fillStyle = TOK.muted; ctx.strokeStyle = TOK.line; ctx.lineWidth = 1 / k;
+      for (const L in VIEW.cols) {
+        const c = VIEW.cols[L];
+        ctx.fillText(SHORT[L].toUpperCase(), c.x0 + 4, 20);
+        ctx.beginPath(); ctx.moveTo(c.x1, 8); ctx.lineTo(c.x1, H - 8); ctx.stroke();
+      }
+      for (let l = 3; l >= 0; l--) ctx.fillText(LEVEL_NAME[l], 6, VIEW.band(l) + 4);
+    }
+    const cs = castSet();
+    const sel = state.sel && VIEW.byT[state.sel] ? VIEW.byT[state.sel] : null;
+    const A = sel ? VIEW.adj.get(sel.t) : null;
+    const lit = n => cs ? cs.set.has(n.t) : (sel ? (n === sel || A.prey.has(n.t) || A.pred.has(n.t)) : true);
+    // edges
+    let edges = [];
+    if (cs) edges = cs.tr.edges.map(([a, b]) => ({ a: VIEW.byT[a], b: VIEW.byT[b] })).filter(e => e.a && e.b);
+    else if (sel) edges = VIEW.edges.filter(e => e.a === sel || e.b === sel);
+    else if (state.edges === 'all') edges = VIEW.edges;
+    ctx.lineWidth = (edges.length > 3000 ? 0.5 : 1) / k;
+    ctx.globalAlpha = edges.length > 3000 ? 0.07 : (edges.length > 600 ? 0.18 : 0.5);
+    ctx.strokeStyle = TOK.ink;
+    ctx.beginPath();
+    for (const e of edges) { if (!e.a || !e.b) continue; if (sel && e.b === sel) continue; ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
+    ctx.stroke();
+    if (sel) {   // predators of the selection: dashed
+      ctx.setLineDash([4 / k, 3 / k]); ctx.beginPath();
+      for (const e of edges) if (e.b === sel) { ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = 1;
+    // nodes, dim first
+    const order = VIEW.nodes.slice().sort((a, b) => (lit(a) - lit(b)) || (b.r - a.r));
+    for (const n of order) {
+      const on = lit(n);
+      ctx.globalAlpha = on ? 1 : 0.16;
+      drawShape(shapeOf(n), n.x, n.y, n.r);
+      ctx.fillStyle = colorOf(n); ctx.fill();
+      ctx.lineWidth = 1.2 / k; ctx.strokeStyle = TOK.surface; ctx.stroke();
+      if (n.hv && on && !n.vermin && state.color !== 'inclusion') { ctx.lineWidth = 1.4 / k; ctx.strokeStyle = TOK.ink; drawShape('circle', n.x, n.y, n.r + 3); ctx.stroke(); }
+    }
+    ctx.globalAlpha = 1;
+    // labels: the selection and its links, a highlighted cast, the hover; everything when zoomed in
+    const lab = new Set();
+    if (sel) { lab.add(sel); if (A.prey.size + A.pred.size <= 40) for (const t of [...A.prey, ...A.pred]) lab.add(VIEW.byT[t]); }
+    if (cs) for (const t of cs.set) if (VIEW.byT[t]) lab.add(VIEW.byT[t]);
+    if (k >= 2.4) for (const n of VIEW.nodes) lab.add(n);
+    const hov = state.hover && VIEW.byT[state.hover];
+    if (hov) lab.add(hov);
+    ctx.font = `${11.5 / k}px "Atkinson Hyperlegible", system-ui, sans-serif`;
+    ctx.lineJoin = 'round';
+    for (const n of lab) {
+      if (!n) continue;
+      const s = n.c.nm;
+      ctx.lineWidth = 3 / k; ctx.strokeStyle = TOK.surface; ctx.strokeText(s, n.x + n.r + 3 / k, n.y + 4 / k);
+      ctx.fillStyle = TOK.ink; ctx.fillText(s, n.x + n.r + 3 / k, n.y + 4 / k);
+    }
+    if (sel) { ctx.lineWidth = 2 / k; ctx.strokeStyle = TOK.accent; drawShape('circle', sel.x, sel.y, sel.r + 5); ctx.stroke(); }
+    ctx.restore();
+  }
+  function resize() {
+    const box = $('#netbox');
+    W = Math.max(300, box.clientWidth); H = Math.max(360, Math.min(720, Math.round(W * 0.62)));
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  }
+  const zoom = d3.zoom().scaleExtent([0.5, 8]).on('zoom', ev => { transform = ev.transform; draw(); });
+  d3.select(canvas).call(zoom).on('dblclick.zoom', null);
+  function nodeAt(px, py) {
+    const [x, y] = transform.invert([px, py]);
+    let best = null, bd = Infinity;
+    for (const n of VIEW.nodes) { const d = Math.hypot(n.x - x, n.y - y); if (d < n.r + 5 / transform.k && d < bd) { bd = d; best = n; } }
+    return best;
+  }
+  const tip = $('#tip');
+  canvas.addEventListener('mousemove', ev => {
+    const r = canvas.getBoundingClientRect();
+    const n = nodeAt(ev.clientX - r.left, ev.clientY - r.top);
+    const t = n ? n.t : null;
+    if (t !== state.hover) { state.hover = t; draw(); }
+    if (n) {
+      const A = VIEW.adj.get(n.t);
+      tip.innerHTML = `<b>${esc(n.c.nm)}</b> <span class="mono">${esc(n.t)}</span><br>${esc(LNAME[n.L])} · ${esc(n.vermin ? 'vermin ' + (n.c.vc || '') : n.slotsBy[n.L].join(' / '))}` +
+        `<br>${fmtMass(n.c.m)} · groups of ${n.c.c0}-${n.c.c1}${n.c.pet ? ' · pet value ' + n.c.pet : ''}` +
+        `<br>eats ${A.prey.size} · eaten by ${A.pred.size}${n.hv ? '<br>high value: ' + esc(n.hv) : ''}` + statLine(n);
+      tip.hidden = false;
+      const bx = $('#netbox').getBoundingClientRect();
+      let x = ev.clientX - bx.left + 14, y = ev.clientY - bx.top + 12;
+      if (x + 240 > bx.width) x -= 260;
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+    } else tip.hidden = true;
+  });
+  canvas.addEventListener('mouseleave', () => { tip.hidden = true; state.hover = null; draw(); });
+  canvas.addEventListener('click', ev => {
+    const r = canvas.getBoundingClientRect();
+    const n = nodeAt(ev.clientX - r.left, ev.clientY - r.top);
+    state.sel = n ? n.t : null; state.castSel = null;
+    renderInspector(); renderYear(); draw();
+  });
+  function statLine(n) {
+    const st = STATS && STATS.by[n.L];
+    if (!st) return '';
+    const v = (st.seasons[n.t] || 0) / st.casts;
+    return `<br>cast in ${pct(v)} of ${LNAME[n.L].toLowerCase()} season casts`;
+  }
+  const pct = v => (v * 100 >= 10 || v === 0 ? Math.round(v * 100) : (v * 100).toFixed(1)) + '%';
+  const fmtMass = m => m >= 1e6 ? (m / 1e6).toFixed(m >= 1e7 ? 0 : 1) + ' m³ body' : m >= 1000 ? Math.round(m / 1000) + ' L body' : (m || 0) + ' cm³ body';
+
+  // ------------------------------------------------------------------ legend
+  function renderLegend() {
+    const sw = (col, sh) => `<svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true">${shapeSvg(sh, col)}</svg>`;
+    let colorPart = '';
+    if (state.color === 'slot') colorPart = SLOT_LEGEND.map(([s, lab]) => `<span>${sw(`var(--${SLOT_COL[s]})`, 'circle')}${esc(lab)}</span>`).join('');
+    else if (state.color === 'habitat') colorPart = Object.entries(HAB_COL).map(([h, c]) => `<span>${sw(`var(--${c})`, 'circle')}${h}</span>`).join('') + `<span>${sw('var(--muted)', 'circle')}vermin</span>`;
+    else colorPart = `<span class="ramp"><i></i>${state.color === 'value' ? 'low → high value (pet value or body size percentile; war animals top)' : (STATS ? 'never → most often cast (√ share of season casts)' : 'run the simulator to colour by how often cast')}</span>`;
+    let shapePart = '';
+    if (state.shape === 'level') shapePart = [[3, 'apex'], [2, 'predator'], [1, 'prey'], [0, 'vermin']].map(([l, lab]) => `<span>${sw('var(--muted)', LEVEL_SHAPE[l])}${lab}</span>`).join('');
+    else if (state.shape === 'habitat') shapePart = Object.entries(HAB_SHAPE).map(([h, s]) => `<span>${sw('var(--muted)', s)}${h}</span>`).join('');
+    else shapePart = Object.entries(FAM_SHAPE).filter(([f]) => f !== 'other').map(([f, s]) => `<span>${sw('var(--muted)', s)}${f}</span>`).join('');
+    $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>largest group the raws allow (cluster max)</span>` +
+      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span class="dash">eats it (dashed: eaten by it)</span></div>`;
+  }
+  function shapeSvg(sh, col) {
+    const f = `fill="${col}"`;
+    switch (sh) {
+      case 'ring': return '<circle r="6" fill="none" stroke="var(--ink)" stroke-width="1.4"/><circle r="3" fill="var(--muted)"/>';
+      case 'dot': return `<circle r="3" ${f}/>`;
+      case 'square': return `<rect x="-5" y="-5" width="10" height="10" ${f}/>`;
+      case 'diamond': return `<path d="M0 -6.5L6.5 0L0 6.5L-6.5 0Z" ${f}/>`;
+      case 'tri': return `<path d="M0 -6.8L6.3 4.3L-6.3 4.3Z" ${f}/>`;
+      case 'star': return `<path d="${d3.range(10).map(i => { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 3 : 7; return (i ? 'L' : 'M') + (r * Math.cos(a)).toFixed(1) + ' ' + (r * Math.sin(a)).toFixed(1); }).join('')}Z" ${f}/>`;
+      case 'cross': return `<path d="M-6 -2.2H-2.2V-6H2.2V-2.2H6V2.2H2.2V6H-2.2V2.2H-6Z" ${f}/>`;
+      default: return `<circle r="5.5" ${f}/>`;
+    }
+  }
+
+  // ------------------------------------------------------------------ inspector
+  function renderInspector() {
+    const box = $('#inspect');
+    const n = state.sel && VIEW.byT[state.sel];
+    if (!n) {
+      const nv = VIEW.nodes.filter(x => !x.vermin).length;
+      box.innerHTML = `<h3>${VIEW.nodes.length} creatures in view</h3><p class="note">${nv} animals and ${VIEW.nodes.length - nv} vermin on ${VIEW.layers.length} layer${VIEW.layers.length === 1 ? '' : 's'}, ${VIEW.edges.length.toLocaleString('en')} potential feeding links.` +
+        ` Click a creature to see what it eats, what eats it, and how often the cast builder picks it.</p>` + rejectedNote();
+      return;
+    }
+    const c = n.c, A = VIEW.adj.get(n.t);
+    const flags = [c.gi && 'giant', c.ap && 'animal person', c.se && 'sentient', c.sav && 'savage', c.gd && 'good', c.ev && 'evil', c.ex && 'real-world extinct',
+      c.war && 'war-trainable', c.lp && 'large predator', c.bn && 'benign', c.th.length && ('thief: ' + c.th.join(', ').toLowerCase())].filter(Boolean);
+    const ns = c.ns.map((x, i) => x ? SEASONS[i] : null).filter(Boolean);
+    const list = (set) => [...set].map(t => VIEW.byT[t]).filter(Boolean).sort((a, b) => b.level - a.level || (a.c.nm < b.c.nm ? -1 : 1))
+      .map(x => `<button type="button" class="sp" data-t="${esc(x.t)}"><i style="background:var(--${SLOT_COL[x.slot] || 'muted'})"></i>${esc(x.c.nm)}</button>`).join('');
+    let st = '';
+    for (const L of n.layers) {
+      const S = STATS && STATS.by[L];
+      if (!S) continue;
+      const share = (S.seasons[n.t] || 0) / S.casts, seed = (S.seed[n.t] || 0) / S.casts, apex = (S.apex[n.t] || 0) / S.casts;
+      const slots = Object.entries(S.slot).filter(([k]) => k.startsWith(n.t + '|')).map(([k, v]) => `${k.split('|')[1]} ${pct(v / S.casts)}`).join(', ');
+      st += `<tr><td>${esc(LNAME[L])}</td><td class="num">${pct(share)}</td><td class="num">${pct(seed)}</td><td class="num">${pct(apex)}</td><td>${esc(slots || '-')}</td></tr>`;
+    }
+    box.innerHTML = `<h3>${esc(c.nm)}</h3><p class="mono small">${esc(n.t)}${c.rt ? ' · root ' + esc(c.rt) : ''}</p>
+      <div class="chips">${n.layers.map(L => `<span class="chip">${esc(LNAME[L])}: ${esc(n.vermin ? 'vermin ' + (c.vc || '') : n.slotsBy[L].join(' / '))}</span>`).join('')}</div>
+      <dl class="kv"><div><dt>body</dt><dd>${fmtMass(c.m)}</dd></div><div><dt>group</dt><dd>${c.c0}-${c.c1}</dd></div>
+      <div><dt>habitat</dt><dd>${esc(c.h)}</dd></div><div><dt>guild</dt><dd>${esc(c.g)} · ${esc(GUILD_FAM(c.g))}</dd></div>
+      <div><dt>pet value</dt><dd>${c.pet || '-'}</dd></div><div><dt>raw FREQUENCY</dt><dd>${c.fq ?? '-'}</dd></div>
+      ${c.wd != null ? `<div><dt>weirdness</dt><dd>${c.wd}</dd></div>` : ''}${c.d ? `<div><dt>raw depth</dt><dd>${c.d[0]}-${c.d[1]}</dd></div>` : ''}</dl>
+      ${flags.length ? `<p class="chips">${flags.map(f => `<span class="chip flag">${esc(f)}</span>`).join('')}</p>` : ''}
+      ${ns.length ? `<p class="note">Absent in ${ns.join(', ')} (NO_ season tags).</p>` : ''}
+      ${n.hv ? `<p class="note"><b>High value</b> on ${esc(LNAME[n.L].toLowerCase())}: ${esc(n.hv)}. It can seed a cast.</p>` : ''}
+      ${st ? `<h4>In the simulated years</h4><div class="tbl"><table><thead><tr><th>layer</th><th class="num">cast</th><th class="num">seed</th><th class="num">apex</th><th>by slot</th></tr></thead><tbody>${st}</tbody></table></div>` : ''}
+      <h4>Eats (${A.prey.size})</h4><div class="splist">${list(A.prey) || '<span class="note">nothing in view</span>'}</div>
+      <h4>Eaten by (${A.pred.size})</h4><div class="splist">${list(A.pred) || '<span class="note">nothing in view</span>'}</div>`;
+  }
+  function rejectedNote() {
+    const r = BUILD.B.rejected || [];
+    if (!r.length) return '';
+    const by = d3.rollup(r, v => v.length, x => x.why);
+    return `<h4>Kept out by the gates (${r.length})</h4><ul class="small">${[...by].sort((a, b) => b[1] - a[1]).map(([w, k]) => `<li>${esc(w)}: ${k}</li>`).join('')}</ul>`;
+  }
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('button.sp[data-t]');
+    if (!b) return;
+    const t = b.dataset.t;
+    if (!VIEW.byT[t]) { state.layer = 'all'; syncControls(); refreshView(); }
+    state.sel = t; state.castSel = null; renderInspector(); renderYear(); draw();
+    $('#netbox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+
+  // ------------------------------------------------------------------ simulation
+  let STATS = null, BASE = null, YEAR = null, running = 0;
+  function prmNow() { return Object.assign({}, state.prm); }
+  function runYear() {
+    if (!BUILD.spec) return;
+    const site = 1 + Math.floor(Math.random() * 9999);
+    YEAR = sim.year(BUILD.B, BUILD.spec, prmNow(), site, 250);
+    YEAR._site = site;
+    state.castSel = null;
+    renderYear(); draw();
+  }
+  function runYears() {
+    if (!BUILD.spec) return;
+    const myRun = ++running, n = state.years, prm = prmNow(), B = BUILD.B, spec = BUILD.spec;
+    const acc = { n: 0, by: {}, prm, key: BUILD.key };
+    for (const L of B.active) acc.by[L] = { casts: 0, seasons: {}, seed: {}, apex: {}, slot: {}, guarantee: 0, unfilled: 0, links: [0, 0] };
+    const btn = $('#runN'); btn.disabled = true;
+    function chunk() {
+      if (myRun !== running) return;
+      const t0 = performance.now();
+      while (acc.n < n && performance.now() - t0 < 30) {
+        const cs = sim.year(B, spec, prm, 1, 250 + acc.n);
+        for (const key in cs) {
+          const tr = cs[key], S = acc.by[tr.L];
+          S.casts++;
+          for (const m of tr.members) {
+            S.seasons[m.t] = (S.seasons[m.t] || 0) + 1;
+            S.slot[m.t + '|' + m.slot] = (S.slot[m.t + '|' + m.slot] || 0) + 1;
+            if (m.slot === 'apex') S.apex[m.t] = (S.apex[m.t] || 0) + 1;
+          }
+          for (const v of tr.vermin) S.seasons[v.t] = (S.seasons[v.t] || 0) + 1;
+          if (tr.seed) S.seed[tr.seed] = (S.seed[tr.seed] || 0) + 1;
+          S.guarantee += tr.guarantee.length;
+          if (Object.keys(tr.unfilled).length) S.unfilled++;
+          for (const [l, f] of (tr.linkStats || [])) { S.links[0] += l; S.links[1] += f; }
+        }
+        acc.n++;
+      }
+      $('#runState').textContent = acc.n < n ? `${acc.n} of ${n} years…` : `${n} years, ${prmText(prm)}`;
+      if (acc.n < n) return setTimeout(chunk, 0);
+      btn.disabled = false;
+      STATS = acc;
+      if (!state.statsLayer || !B.active.includes(state.statsLayer)) state.statsLayer = state.layer !== 'all' && B.active.includes(state.layer) ? state.layer : B.active[0];
+      renderStats(); renderInspector(); renderLegend(); draw();
+    }
+    chunk();
+  }
+  function prmText(p) {
+    const d = sim.P0, out = [];
+    if (p.ap_pick !== d.ap_pick) out.push(`animal people ×${p.ap_pick}`);
+    if (p.giant !== d.giant) out.push(`giants ×${p.giant}`);
+    if (p.pack !== d.pack) out.push(`pack ×${p.pack}`);
+    if (p.apex_pack !== d.apex_pack) out.push(`apex pack ×${p.apex_pack}`);
+    if (p.reuse !== d.reuse) out.push(`repeat ×${p.reuse}`);
+    if (p.hv_top !== d.hv_top) out.push(`high value top ${Math.round(p.hv_top * 100)}%`);
+    if (!p.seed) out.push('no seed');
+    if (!p.weird) out.push('no weirdness tilt');
+    if (!p.guarantee) out.push('no web guarantee');
+    return out.length ? out.join(', ') : 'engine defaults';
+  }
+  function eff(o) { const v = Object.values(o); const t = v.reduce((a, b) => a + b, 0); return t ? 1 / v.reduce((a, b) => a + (b / t) ** 2, 0) : 0; }
+  function renderStats() {
+    const box = $('#stats');
+    if (!STATS || STATS.key !== BUILD.key) { box.innerHTML = `<p class="note">${BUILD.spec ? 'Run the simulator to see how often each species is cast.' : ''}</p>`; return; }
+    const L = state.statsLayer, S = STATS.by[L];
+    if (!S) { box.innerHTML = ''; return; }
+    const Bs = BASE && BASE.key === BUILD.key ? BASE.by[L] : null;
+    const memb = o => Object.fromEntries(Object.entries(o).filter(([t]) => !BY[t].v));
+    const m = memb(S.seasons), places = Object.values(m).reduce((a, b) => a + b, 0) || 1;
+    const share = f => Object.entries(m).reduce((a, [t, v]) => a + (f(BY[t]) ? v : 0), 0) / places;
+    const elig = new Set(); for (let s = 0; s < 4; s++) for (const x of (BUILD.B.lists[L + '|' + s] || [])) if (!x.vermin) elig.add(x.c.t);
+    const seeds = Object.entries(S.seed).sort((a, b) => b[1] - a[1]);
+    const tiles = [
+      ['eligible species', elig.size, null],
+      ['effective species', eff(m).toFixed(1), Bs ? eff(memb(Bs.seasons)).toFixed(1) : null],
+      ['animal people, share of places', pct(share(c => c.ap && !c.civ)), Bs ? pctOf(Bs, c => c.ap && !c.civ) : null],
+      ['giants, share of places', pct(share(c => c.gi)), Bs ? pctOf(Bs, c => c.gi) : null],
+      ['top seed', seeds.length ? `${BY[seeds[0][0]].nm} ${pct(seeds[0][1] / S.casts)}` : 'none', null],
+      ['growth: linked candidates', S.links[1] ? pct(S.links[0] / S.links[1]) : 'n/a', null],
+    ];
+    if (L.startsWith('cavern')) tiles.push(['web guarantee fills per cast', (S.guarantee / S.casts).toFixed(2), null]);
+    tiles.push(['casts with an unfilled slot', pct(S.unfilled / S.casts), null]);
+    const rows = Object.entries(S.seasons).map(([t, v]) => ({ t, v: v / S.casts, seed: (S.seed[t] || 0) / S.casts, apex: (S.apex[t] || 0) / S.casts,
+      b: Bs ? (Bs.seasons[t] || 0) / Bs.casts : null, n: VIEW.byT[t] }));
+    for (const t of elig) if (!S.seasons[t]) rows.push({ t, v: 0, seed: 0, apex: 0, b: Bs ? (Bs.seasons[t] || 0) / Bs.casts : null, n: VIEW.byT[t] });
+    rows.sort((a, b) => b.v - a.v || (a.t < b.t ? -1 : 1));
+    STATS.rows = rows;
+    box.innerHTML = `<div class="tabs" role="tablist">${BUILD.B.active.map(x => `<button type="button" role="tab" aria-selected="${x === L}" data-sl="${x}">${esc(LNAME[x])}</button>`).join('')}</div>
+      <div class="tiles">${tiles.map(([k, v, b]) => `<div class="tile"><span>${esc(k)}</span><b>${esc(v)}</b>${b != null ? `<em>baseline ${esc(b)}</em>` : ''}</div>`).join('')}</div>
+      <div class="chartrow"><div class="chart"><h4>How often each species is cast <span class="note">share of ${S.casts / 4 | 0} years × 4 season casts${Bs ? '; tick = baseline' : ''}</span></h4><div id="bars"></div>
+      <p class="small"><button type="button" class="linkish" id="moreBars">${state.allBars ? 'Show the top 40' : `Show all ${rows.length}`}</button> · <button type="button" class="linkish" id="tblToggle">${state.tbl ? 'Hide' : 'Show'} as a table</button></p>
+      ${state.tbl ? statsTable(rows) : ''}</div>
+      <div class="chart"><h4>Feeding links against how often cast <span class="note">one dot per species; links in this layer's potential web</span></h4><div id="scatter"></div></div></div>`;
+    drawBars(rows, S, L); drawScatter(rows, L);
+  }
+  function pctOf(S, f) {
+    const m = Object.entries(S.seasons).filter(([t]) => !BY[t].v);
+    const tot = m.reduce((a, [, v]) => a + v, 0) || 1;
+    return pct(m.reduce((a, [t, v]) => a + (f(BY[t]) ? v : 0), 0) / tot);
+  }
+  function statsTable(rows) {
+    return `<div class="tbl"><table><thead><tr><th>species</th><th>slot</th><th class="num">cast</th><th class="num">seed</th><th class="num">apex</th>${BASE ? '<th class="num">baseline</th>' : ''}</tr></thead><tbody>` +
+      rows.map(r => `<tr><td>${esc(BY[r.t].nm)}</td><td>${esc(r.n ? r.n.slot : '')}</td><td class="num">${pct(r.v)}</td><td class="num">${pct(r.seed)}</td><td class="num">${pct(r.apex)}</td>${BASE ? `<td class="num">${r.b == null ? '' : pct(r.b)}</td>` : ''}</tr>`).join('') + '</tbody></table></div>';
+  }
+  function drawBars(rows, S, L) {
+    const host = $('#bars');
+    const show = state.allBars ? rows : rows.slice(0, 40);
+    const w = Math.max(280, host.clientWidth), lw = Math.min(170, w * 0.36), rh = 17, h = show.length * rh + 26;
+    const mx = Math.max(0.05, d3.max(show, r => Math.max(r.v, r.b || 0)));
+    const x = d3.scaleLinear([0, mx], [lw, w - 40]);
+    const svg = d3.select(host).html('').append('svg').attr('width', w).attr('height', h).attr('role', 'img').attr('aria-label', 'species by share of season casts');
+    const ticks = x.ticks(4);
+    svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', d => x(d)).attr('x2', d => x(d)).attr('y1', 4).attr('y2', h - 18).attr('stroke', 'var(--line)');
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('x', d => x(d)).attr('y', h - 4).attr('text-anchor', 'middle').attr('class', 'axis').text(d => Math.round(d * 100) + '%');
+    const g = svg.append('g').selectAll('g').data(show).join('g').attr('transform', (d, i) => `translate(0,${6 + i * rh})`).attr('class', 'barrow');
+    g.append('rect').attr('x', 0).attr('y', -2).attr('width', w).attr('height', rh).attr('fill', 'transparent');
+    g.append('text').attr('x', lw - 6).attr('y', 10).attr('text-anchor', 'end').attr('class', 'lab').text(d => trunc(BY[d.t].nm, 24));
+    g.append('rect').attr('x', lw).attr('y', 2).attr('height', 10).attr('rx', 2).attr('width', d => Math.max(0, x(d.v) - lw))
+      .attr('fill', d => `var(--${SLOT_COL[d.n ? d.n.slot : 'vermin'] || 'muted'})`);
+    g.append('rect').attr('x', lw).attr('y', 5).attr('height', 4).attr('width', d => Math.max(0, x(d.seed) - lw)).attr('fill', 'var(--ink)').attr('opacity', 0.55);
+    g.filter(d => d.b != null).append('line').attr('x1', d => x(d.b)).attr('x2', d => x(d.b)).attr('y1', 0).attr('y2', 14).attr('stroke', 'var(--ink)').attr('stroke-width', 2);
+    g.append('text').attr('x', d => x(d.v) + 4).attr('y', 11).attr('class', 'val').text(d => pct(d.v));
+    g.on('mousemove', (ev, d) => showTip(ev, `<b>${esc(BY[d.t].nm)}</b><br>cast ${pct(d.v)} · seed ${pct(d.seed)} · apex ${pct(d.apex)}${d.b != null ? '<br>baseline ' + pct(d.b) : ''}`))
+      .on('mouseleave', hideTip).on('click', (ev, d) => { state.sel = d.t; state.castSel = null; renderInspector(); draw(); });
+    svg.append('text').attr('x', lw).attr('y', h - 4).attr('class', 'axis').attr('text-anchor', 'start').text('');
+  }
+  const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+  function drawScatter(rows, L) {
+    const host = $('#scatter');
+    const w = Math.max(260, host.clientWidth), h = 260, m = { l: 44, r: 12, t: 10, b: 34 };
+    const pts = rows.filter(r => r.n && !r.n.vermin).map(r => { const A = VIEW.adj.get(r.t); return { r, d: A ? A.prey.size + A.pred.size : 0 }; });
+    const x = d3.scaleLinear([0, d3.max(pts, p => p.d) || 1], [m.l, w - m.r]).nice();
+    const y = d3.scaleLinear([0, d3.max(pts, p => p.r.v) || 0.05], [h - m.b, m.t]).nice();
+    const svg = d3.select(host).html('').append('svg').attr('width', w).attr('height', h).attr('role', 'img').attr('aria-label', 'feeding links against share of casts');
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', d => y(d)).attr('y2', d => y(d)).attr('stroke', 'var(--line)');
+    svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('class', 'axis').text(d => Math.round(d * 100) + '%');
+    svg.append('g').selectAll('text').data(x.ticks(5)).join('text').attr('x', d => x(d)).attr('y', h - m.b + 16).attr('text-anchor', 'middle').attr('class', 'axis').text(d => d);
+    svg.append('text').attr('x', w - m.r).attr('y', h - 4).attr('text-anchor', 'end').attr('class', 'axis').text('feeding links (eats + eaten by)');
+    svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', p => x(p.d)).attr('cy', p => y(p.r.v)).attr('r', 4.5)
+      .attr('fill', p => `var(--${SLOT_COL[p.r.n.slot] || 'muted'})`).attr('stroke', 'var(--surface)').attr('stroke-width', 1.5)
+      .on('mousemove', (ev, p) => showTip(ev, `<b>${esc(BY[p.r.t].nm)}</b><br>${p.d} links · cast ${pct(p.r.v)}`)).on('mouseleave', hideTip)
+      .on('click', (ev, p) => { state.sel = p.r.t; state.castSel = null; renderInspector(); draw(); });
+  }
+  const ctip = $('#ctip');
+  function showTip(ev, html) { ctip.innerHTML = html; ctip.hidden = false; ctip.style.left = (ev.clientX + 14) + 'px'; ctip.style.top = (ev.clientY + 12) + 'px'; }
+  function hideTip() { ctip.hidden = true; }
+  function renderYear() {
+    const box = $('#year');
+    if (!YEAR || !BUILD.spec) { box.innerHTML = ''; return; }
+    const act = BUILD.B.active;
+    const cell = (L, s) => {
+      const tr = YEAR[L + '|' + s];
+      if (!tr) return '<td></td>';
+      const k = L + '|' + s;
+      const mem = SLOTSORT(tr.members).map(m => `<li class="${m.slot === 'apex' ? 'apex' : ''}" title="${esc(m.how)}"><i style="background:var(--${SLOT_COL[m.slot] || 'muted'})"></i>${esc(BY[m.t].nm)}${tr.seed === m.t ? ' <em>seed</em>' : ''}${tr.guarantee.includes(m.t) ? ' <em>added</em>' : ''}${state.sel === m.t ? ' ◆' : ''}</li>`).join('');
+      const vm = tr.vermin.map(v => esc(BY[v.t].nm)).join(', ');
+      const un = Object.keys(tr.unfilled).length ? `<p class="warnline">unfilled: ${esc(Object.entries(tr.unfilled).map(([s, w]) => s + ' ' + w.split(':')[0]).join('; '))}</p>` : '';
+      return `<td><button type="button" class="cast${state.castSel === k ? ' on' : ''}" data-cast="${k}" aria-pressed="${state.castSel === k}"><span class="built">built ${tr.built} of ${Object.keys(YEAR).length - 1}</span><ul>${mem}</ul><p class="verm">${vm}</p>${un}</button></td>`;
+    };
+    box.innerHTML = `<div class="tbl"><table class="yeargrid"><thead><tr><th>layer</th>${SEASONS.map(s => `<th>${s}</th>`).join('')}</tr></thead><tbody>` +
+      act.map(L => `<tr><th scope="row">${esc(LNAME[L])}</th>${[0, 1, 2, 3].map(s => cell(L, s)).join('')}</tr>`).join('') + '</tbody></table></div>';
+  }
+  const SLOTSORT = ms => ms.slice().sort((a, b) => sim.SLOT_ORDER.indexOf(a.slot) - sim.SLOT_ORDER.indexOf(b.slot));
+  document.addEventListener('click', ev => {
+    const b = ev.target.closest('button.cast[data-cast]');
+    if (b) {
+      const k = b.dataset.cast;
+      state.castSel = state.castSel === k ? null : k; state.sel = null;
+      const L = k.split('|')[0];
+      if (state.castSel && state.layer !== 'all' && state.layer !== L) { state.layer = L; syncControls(); refreshView(); }
+      renderYear(); renderInspector(); draw();
+      return;
+    }
+    const t = ev.target.closest('[data-sl]');
+    if (t) { state.statsLayer = t.dataset.sl; renderStats(); return; }
+    if (ev.target.id === 'moreBars') { state.allBars = !state.allBars; renderStats(); }
+    if (ev.target.id === 'tblToggle') { state.tbl = !state.tbl; renderStats(); }
+  });
+
+  // ------------------------------------------------------------------ controls
+  function seg(id, opts, cur, cb) {
+    const el = $(id);
+    el.innerHTML = opts.map(([v, lab]) => `<button type="button" aria-pressed="${String(v) === String(cur)}" data-v="${v}">${esc(lab)}</button>`).join('');
+    el.onclick = ev => { const b = ev.target.closest('button[data-v]'); if (b) cb(b.dataset.v); };
+  }
+  function syncControls() {
+    $('#biomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)} <button type="button" class="linkish" data-grp="${esc(g)}">${bs.every(b => state.land.has(b)) ? 'none' : 'all'}</button></legend>` +
+      bs.map(b => `<label class="ck"><input type="checkbox" id="b_${b}" data-b="${b}" ${state.land.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
+    seg('#sav', [['any', 'Any'], ['wild', 'Not savage'], ['savage', 'Savage']], state.sav, v => { state.sav = v; rebuild(); });
+    seg('#al', [['any', 'Any'], ['good', 'Good'], ['neutral', 'Neutral'], ['evil', 'Evil']], state.al, v => { state.al = v; rebuild(); });
+    $('#extinct').value = state.extinct; $('#iso').checked = state.iso;
+    for (const k of ['ocean', 'lake', 'river', 'brook', 'pool']) $('#w_' + k).checked = state[k];
+    $('#oz').value = state.oz; $('#fz').value = state.fz;
+    for (const k of [1, 2, 3]) $('#cv' + k).checked = state.caverns.has(k);
+    $('#assign').checked = state.assign;
+    seg('#season', [['all', 'All'], [0, 'Spring'], [1, 'Summer'], [2, 'Autumn'], [3, 'Winter']], state.season, v => { state.season = v; refreshView(); });
+    seg('#layer', [['all', 'All layers']].concat(LAYERS.map(L => [L, LNAME[L]])), state.layer, v => { state.layer = v; state.sel = null; refreshView(); });
+    seg('#color', [['slot', 'Trophic slot'], ['value', 'Value'], ['habitat', 'Habitat'], ['inclusion', 'How often cast']], state.color, v => { state.color = v; syncControls(); renderLegend(); draw(); });
+    seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
+    seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
+    seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
+    $('#verm').checked = state.vermin;
+    for (const [k, id] of [['ap_pick', 'p_ap'], ['giant', 'p_gi'], ['pack', 'p_pack'], ['apex_pack', 'p_apack'], ['reuse', 'p_reuse'], ['hv_top', 'p_hv']]) $('#' + id).value = state.prm[k];
+    $('#p_seed').checked = state.prm.seed; $('#p_weird').checked = state.prm.weird; $('#p_guar').checked = state.prm.guarantee;
+    $('#p_years').value = state.years;
+    const cap = concrete();
+    $('#simNote').hidden = cap; $('#runN').disabled = !cap; $('#run1').disabled = !cap;
+    const sub = (state.lake && 'lake') || ((state.river || state.brook) && (state.brook && !state.river ? 'brook (river table, small aquatic species only)' : 'river')) || (state.pool && 'murky pool') || null;
+    $('#subNote').textContent = sub ? `Freshwater cast uses the ${sub} slot table (the engine builds one: lake, then river or brook, then pool).` : 'No freshwater cast.';
+  }
+  $('#biomes').addEventListener('change', ev => { const b = ev.target.dataset.b; if (!b) return; ev.target.checked ? state.land.add(b) : state.land.delete(b); rebuild(); });
+  $('#biomes').addEventListener('click', ev => {
+    const g = ev.target.dataset.grp; if (!g) return;
+    const bs = BIOME_GROUPS.find(x => x[0] === g)[1], all = bs.every(b => state.land.has(b));
+    for (const b of bs) all ? state.land.delete(b) : state.land.add(b);
+    syncControls(); rebuild();
+  });
+  $('#extinct').onchange = e => { state.extinct = e.target.value; rebuild(); };
+  $('#iso').onchange = e => { state.iso = e.target.checked; rebuild(); };
+  for (const k of ['ocean', 'lake', 'river', 'brook', 'pool']) $('#w_' + k).onchange = e => { state[k] = e.target.checked; rebuild(); };
+  $('#oz').onchange = e => { state.oz = e.target.value; rebuild(); };
+  $('#fz').onchange = e => { state.fz = e.target.value; rebuild(); };
+  for (const k of [1, 2, 3]) $('#cv' + k).onchange = e => { e.target.checked ? state.caverns.add(k) : state.caverns.delete(k); rebuild(); };
+  $('#assign').onchange = e => { state.assign = e.target.checked; rebuild(); };
+  $('#verm').onchange = e => { state.vermin = e.target.checked; refreshView(); };
+  $('#presets').onclick = ev => { const b = ev.target.closest('button[data-p]'); if (b) applyPreset(b.dataset.p); };
+  const num = (id, k) => { $('#' + id).onchange = e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) state.prm[k] = v; else e.target.value = state.prm[k]; }; };
+  num('p_ap', 'ap_pick'); num('p_gi', 'giant'); num('p_pack', 'pack'); num('p_apack', 'apex_pack'); num('p_reuse', 'reuse'); num('p_hv', 'hv_top');
+  $('#p_seed').onchange = e => { state.prm.seed = e.target.checked; };
+  $('#p_weird').onchange = e => { state.prm.weird = e.target.checked; };
+  $('#p_guar').onchange = e => { state.prm.guarantee = e.target.checked; };
+  $('#p_years').onchange = e => { state.years = +e.target.value; };
+  $('#p_reset').onclick = () => { state.prm = Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true }); syncControls(); };
+  $('#run1').onclick = runYear;
+  $('#runN').onclick = runYears;
+  $('#pin').onclick = () => { if (STATS) { BASE = STATS; $('#pinState').textContent = `Baseline: ${STATS.n} years, ${prmText(STATS.prm)}`; renderStats(); } };
+  $('#search').addEventListener('change', e => {
+    const q = e.target.value.trim().toLowerCase(); if (!q) return;
+    const n = VIEW.nodes.find(n => n.c.nm.toLowerCase() === q || n.t.toLowerCase() === q) || VIEW.nodes.find(n => n.c.nm.toLowerCase().includes(q) || n.t.toLowerCase().includes(q));
+    $('#searchNote').textContent = n ? '' : 'Not in this view: widen the fort or pick All layers.';
+    if (n) { state.sel = n.t; state.castSel = null; renderInspector(); draw(); }
+  });
+  const dl = $('#names');
+
+  // ------------------------------------------------------------------ rebuild chain
+  function rebuild(keepView) {
+    BUILD = buildAll();
+    BUILD.key = JSON.stringify([...state.land].sort()) + state.sav + state.al + state.iso + state.extinct + state.ocean + state.oz + state.lake + state.river + state.brook + state.pool + state.fz + [...state.caverns].sort() + state.assign;
+    YEAR = null; state.castSel = null;
+    syncControls();
+    refreshView();
+    renderYear();
+    const nP = Object.keys(BUILD.B.P).length;
+    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
+    if (concrete() && !keepView) { /* stats stay until the next run */ }
+    renderStats();
+  }
+  function refreshView() {
+    makeView(); layout(); transform = d3.zoomIdentity; d3.select(canvas).call(zoom.transform, transform);
+    dl.innerHTML = VIEW.nodes.map(n => `<option value="${esc(n.c.nm)}">`).join('');
+    if (state.sel && !VIEW.byT[state.sel]) state.sel = null;
+    renderLegend(); renderInspector(); draw();
+  }
+  function boot() {
+    readTokens(); resize();
+    syncControls(); rebuild(true);
+    runYear(); runYears();
+  }
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', () => { readTokens(); draw(); });
+  new MutationObserver(() => { readTokens(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const w0 = W; resize(); if (Math.abs(W - w0) > 20) { layout(); } draw(); if (STATS) renderStats(); }, 150); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
+  boot();
+})();
