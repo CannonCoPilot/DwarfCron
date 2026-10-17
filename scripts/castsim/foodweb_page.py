@@ -52,6 +52,13 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
+table.surr{border-collapse:separate;border-spacing:3px;width:100%;font-size:.72rem;table-layout:fixed}
+table.surr th{background:none;font:600 .6rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0 2px;border:0;text-align:center}
+table.surr th[scope=row]{text-align:right;width:3.6em}table.surr td{padding:0;border:0}
+table.surr button{all:unset;box-sizing:border-box;display:grid;gap:1px;width:100%;min-height:42px;padding:4px 3px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);text-align:center;cursor:pointer}
+table.surr button b{font-weight:700;font-size:.66rem;line-height:1.15}table.surr button span{font:600 .74rem var(--mono);color:var(--muted)}
+table.surr button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}table.surr button[aria-pressed="true"] span{color:var(--accent-ink)}
+table.surr button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 #edgepop{position:absolute;z-index:6;width:320px;max-width:calc(100% - 12px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:.8rem}
 #edgepop h4{margin:0 18px 6px 0}#edgepop .arrow{font:600 .66rem var(--mono);text-transform:uppercase;color:var(--muted)}
 #edgepop ul,ul.rules{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:5px}#edgepop li,ul.rules li{display:block;line-height:1.35}
@@ -125,8 +132,9 @@ BODY = r"""
 <div class="app">
 <aside id="fort" class="panel" aria-label="Fort">
   <div><span class="lbl">Land biomes</span><div id="biomes"></div></div>
-  <div><span class="lbl">Savagery</span><div class="seg" id="sav"></div></div>
-  <div><span class="lbl">Alignment</span><div class="seg" id="al"></div></div>
+  <div><span class="lbl">Surroundings <button type="button" class="linkish" id="surrAll">all nine</button></span><div id="surr"></div>
+    <p class="small">Click a cell for one surrounding (the simulator needs exactly one); shift-click to add or remove cells and browse several at once.</p>
+    <p class="small" id="tagline"></p></div>
   <div class="row"><label class="ck" for="extinct"><span class="lbl" style="margin:0">Extinct rule</span></label>
     <select id="extinct"><option value="UNTAMED_WILDS">untamed wilds (savage only)</option><option value="WILDERNESS">wilderness (any wild)</option>
     <option value="ISOLATED">isolated regions</option><option value="NONE">none</option></select>
@@ -152,10 +160,6 @@ BODY = r"""
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
     <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
-    <div><span class="lbl">Show tagged</span><div class="row tags" title="Creatures carrying the raws' SAVAGE, GOOD or EVIL tag; one unticked hides every creature with that tag (giants, animal people and real-world-extinct species all carry SAVAGE)">
-      <label class="ck"><input type="checkbox" id="tg_sav">SAVAGE <span class="small" id="tgn_sav"></span></label>
-      <label class="ck"><input type="checkbox" id="tg_gd">GOOD <span class="small" id="tgn_gd"></span></label>
-      <label class="ck"><input type="checkbox" id="tg_ev">EVIL <span class="small" id="tgn_ev"></span></label></div></div>
     <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="type to light matches" autocomplete="off"><datalist id="names"></datalist></div>
   </div>
   <div><span class="lbl">Feeding links: the rules seasonal-wildlife applies (engine default in brackets)</span><div id="fams" class="fams"></div></div>
@@ -170,7 +174,7 @@ BODY = r"""
   <h2>Build casts</h2>
   <p class="note">The engine's cast builder on the fort above: all 28 season casts of a year, built at once in a random order, as at embark.
   One year shows the casts; many years show how often each species is cast. Pin a run as the baseline, change a rule, and run again to compare.</p>
-  <p id="simNote" hidden>Pick one savagery and one alignment to build casts; "Any" is for browsing the network.</p>
+  <p id="simNote" hidden>Select exactly one surrounding (one cell of the matrix) to build casts; several cells are for browsing the network.</p>
   <div class="simhead">
     <div class="params">
       <label>animal people ×<input type="number" id="p_ap" step="0.05" min="0"></label>

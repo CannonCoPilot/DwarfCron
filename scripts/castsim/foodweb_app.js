@@ -42,29 +42,34 @@
 
   // ------------------------------------------------------------------ state
   const state = {
-    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), sav: 'savage', al: 'neutral', iso: false,
+    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'all', fam: { hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, tags: { sav: true, gd: true, ev: true }, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    edges: 'all', fam: { hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
+  // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)
+  const SAVK = ['benign', 'neutral', 'savage'], ALK = ['good', 'neutral', 'evil'];
+  const ALLCELLS = ALK.flatMap(a => SAVK.map(v => v + '|' + a));
+  const CELLNAME = { 'benign|good': 'Serene', 'neutral|good': 'Mirthful', 'savage|good': 'Joyous Wilds', 'benign|neutral': 'Calm',
+    'neutral|neutral': 'Wilderness', 'savage|neutral': 'Untamed Wilds', 'benign|evil': 'Sinister', 'neutral|evil': 'Haunted', 'savage|evil': 'Terrifying' };
   const PRESETS = {
-    coast: { label: 'Savage tropical coast', land: ['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF'], sav: 'savage', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL' },
-    lake: { label: 'Calm temperate forest lake', land: ['FOREST_TEMPERATE_BROADLEAF', 'GRASSLAND_TEMPERATE'], sav: 'wild', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: true, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
-    brook: { label: 'Good temperate brook', land: ['FOREST_TEMPERATE_CONIFER', 'SHRUBLAND_TEMPERATE'], sav: 'wild', al: 'good', extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: false, river: false, brook: true, pool: true, fz: 'TEMPERATE' },
-    tundra: { label: 'Evil tundra with murky pools', land: ['TUNDRA', 'FOREST_TAIGA'], sav: 'wild', al: 'evil', extinct: 'WILDERNESS', iso: false, ocean: false, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: true, fz: 'TEMPERATE' },
-    arctic: { label: 'Savage good arctic coast', land: ['GLACIER', 'TUNDRA'], sav: 'savage', al: 'good', extinct: 'WILDERNESS', iso: false, ocean: true, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
-    all: { label: 'Every creature', land: M.land.slice(), sav: 'any', al: 'any', extinct: 'WILDERNESS', iso: true, ocean: true, oz: 'ALL', lake: true, river: true, brook: false, pool: true, fz: 'ALL' },
+    coast: { label: 'Savage tropical coast', land: ['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF'], cells: ['savage|neutral'], extinct: 'UNTAMED_WILDS', iso: false, ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL' },
+    lake: { label: 'Calm temperate forest lake', land: ['FOREST_TEMPERATE_BROADLEAF', 'GRASSLAND_TEMPERATE'], cells: ['neutral|neutral'], extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: true, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
+    brook: { label: 'Good temperate brook', land: ['FOREST_TEMPERATE_CONIFER', 'SHRUBLAND_TEMPERATE'], cells: ['neutral|good'], extinct: 'UNTAMED_WILDS', iso: false, ocean: false, oz: 'TEMPERATE', lake: false, river: false, brook: true, pool: true, fz: 'TEMPERATE' },
+    tundra: { label: 'Evil tundra with murky pools', land: ['TUNDRA', 'FOREST_TAIGA'], cells: ['neutral|evil'], extinct: 'WILDERNESS', iso: false, ocean: false, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: true, fz: 'TEMPERATE' },
+    arctic: { label: 'Savage good arctic coast', land: ['GLACIER', 'TUNDRA'], cells: ['savage|good'], extinct: 'WILDERNESS', iso: false, ocean: true, oz: 'ARCTIC', lake: false, river: false, brook: false, pool: false, fz: 'TEMPERATE' },
+    all: { label: 'Every creature', land: M.land.slice(), cells: ALLCELLS, extinct: 'WILDERNESS', iso: true, ocean: true, oz: 'ALL', lake: true, river: true, brook: false, pool: true, fz: 'ALL' },
   };
   function applyPreset(k) {
     const p = PRESETS[k];
-    Object.assign(state, { land: new Set(p.land), sav: p.sav, al: p.al, extinct: p.extinct, iso: p.iso, ocean: p.ocean, oz: p.oz, lake: p.lake,
+    Object.assign(state, { land: new Set(p.land), cells: new Set(p.cells), extinct: p.extinct, iso: p.iso, ocean: p.ocean, oz: p.oz, lake: p.lake,
       river: p.river, brook: p.brook, pool: p.pool, fz: p.fz, caverns: new Set([1, 2, 3]), sel: null, castSel: null });
     syncControls(); rebuild(true);
   }
 
   // ------------------------------------------------------------------ the fort -> builds
-  const SAVS = { wild: 30, savage: 80 }, ALS = { good: 10, neutral: 50, evil: 90 };
+  const SAVS = { benign: 10, neutral: 50, savage: 80 }, ALS = { good: 10, neutral: 50, evil: 90 };
   const zones = (z, kind) => z === 'ALL' ? (kind === 'ocean' ? ['ARCTIC', 'TEMPERATE', 'TROPICAL'] : ['TEMPERATE', 'TROPICAL']) : z;
   function specFor(sav, al) {
     const fz = zones(state.fz, 'fresh');
@@ -75,13 +80,14 @@
       caverns: [...state.caverns].sort(), assign: state.assign,
     };
   }
-  function concrete() { return state.sav !== 'any' && state.al !== 'any'; }
+  function fortKey() {
+    return JSON.stringify([...state.land].sort()) + state.iso + state.extinct + state.ocean + state.oz + state.lake + state.river + state.brook + state.pool + state.fz + [...state.caverns].sort() + state.assign;
+  }
+  function concrete() { return state.cells.size === 1; }
   let BUILD = null;   // { B (merged or single), spec (single or null), key }
   function buildAll() {
-    const savs = state.sav === 'any' ? ['wild', 'savage'] : [state.sav];
-    const als = state.al === 'any' ? ['good', 'neutral', 'evil'] : [state.al];
     const bs = [];
-    for (const s of savs) for (const a of als) { const sp = specFor(SAVS[s], ALS[a]); bs.push([sp, sim.build(sp)]); }
+    for (const cell of ALLCELLS) if (state.cells.has(cell)) { const [v, a] = cell.split('|'); const sp = specFor(SAVS[v], ALS[a]); bs.push([sp, sim.build(sp)]); }
     if (bs.length === 1) return { B: bs[0][1], spec: bs[0][0] };
     // browse union: a species is in when any region type admits it; its slots from the first that does
     const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [] };
@@ -99,6 +105,44 @@
     B.active.sort((a, b) => LAYERS.indexOf(a) - LAYERS.indexOf(b));
     return { B, spec: null };
   }
+
+  let CELLPOOLS = null;
+  function cellPools() {
+    const key = fortKey();
+    if (CELLPOOLS && CELLPOOLS.key === key) return CELLPOOLS;
+    const by = {}, union = {};
+    for (const cell of ALLCELLS) {
+      const [v, a] = cell.split('|');
+      const P = sim.build(specFor(SAVS[v], ALS[a])).P;
+      by[cell] = new Set(Object.keys(P).filter(t => !P[t].c.pl && P[t].layers.length));
+      for (const t of by[cell]) union[t] = P[t].c;
+    }
+    CELLPOOLS = { key, by, union };
+    return CELLPOOLS;
+  }
+  function renderSurroundings() {
+    const C = cellPools();
+    const ok = t => state.vermin || !BY[t].v;
+    const n = cell => [...C.by[cell]].filter(ok).length;
+    $('#surr').innerHTML = `<table class="surr"><thead><tr><th></th>${SAVK.map(v => `<th scope="col">${v}</th>`).join('')}</tr></thead><tbody>` +
+      ALK.map(a => `<tr><th scope="row">${a}</th>${SAVK.map(v => { const cell = v + '|' + a, on = state.cells.has(cell);
+        return `<td><button type="button" data-cell="${cell}" aria-pressed="${on}"><b>${CELLNAME[cell]}</b><span>${n(cell)}</span></button></td>`; }).join('')}</tr>`).join('') +
+      '</tbody></table>';
+    const all = Object.values(C.union).filter(c => state.vermin || !c.v);
+    const tag = (k, lab) => { const xs = all.filter(c => c[k]); const v = xs.filter(c => c.v).length; return `${lab} ${xs.length}${v ? ` (${v} vermin)` : ''}`; };
+    $('#tagline').textContent = `Creatures that can live here in any surroundings: ${all.length}. Tagged ${tag('sav', 'SAVAGE')}, ${tag('gd', 'GOOD')}, ${tag('ev', 'EVIL')}. ` +
+      'Each cell counts the creatures that fit it: a SAVAGE tag needs savage surroundings, GOOD good, EVIL evil; an untagged creature fits all nine. ' +
+      'No raw tag asks for benign surroundings, so the benign and neutral columns hold the same creatures. Real-world-extinct species follow the extinct rule in place of their SAVAGE tag.';
+  }
+  $('#surr').addEventListener('click', ev => {
+    const b = ev.target.closest('button[data-cell]'); if (!b) return;
+    const cell = b.dataset.cell;
+    if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { if (state.cells.has(cell) && state.cells.size > 1) state.cells.delete(cell); else state.cells.add(cell); }
+    else if (state.cells.size === 1 && state.cells.has(cell)) return;
+    else state.cells = new Set([cell]);
+    state.sel = null; rebuild();
+  });
+  $('#surrAll').onclick = () => { state.cells = new Set(ALLCELLS); rebuild(); };
 
   // ------------------------------------------------------------------ nodes and edges for the view
   let VIEW = null;   // { nodes, byT, edges (array of {a,b,L}), adj }
@@ -123,12 +167,9 @@
   function makeView() {
     const nodes = [], byT = {};
     const ls = viewLayers();
-    const items = {}, tagSeen = { sav: new Set(), gd: new Set(), ev: new Set() };
+    const items = {};
     for (const L of ls) {
-      const raw = layerItems(L).filter(it => state.vermin || !it.vermin);
-      for (const it of raw) for (const k of ['sav', 'gd', 'ev']) if (it.c[k]) tagSeen[k].add(it.c.t);
-      // the raws' SAVAGE / GOOD / EVIL tags, shown or hidden (user 17 Oct): a creature is hidden when any tag it carries is off
-      items[L] = raw.filter(it => !['sav', 'gd', 'ev'].some(k => it.c[k] && !state.tags[k]));
+      items[L] = layerItems(L).filter(it => state.vermin || !it.vermin);
       for (const it of items[L]) {
         if (byT[it.c.t]) { byT[it.c.t].layers.push(L); byT[it.c.t].slotsBy[L] = it.slots; continue; }
         const n = { t: it.c.t, c: it.c, L, layers: [L], slotsBy: { [L]: it.slots }, slot: it.vermin ? 'vermin' : it.slots[0], vermin: it.vermin,
@@ -137,8 +178,7 @@
       }
     }
     const edges = [];
-    for (const k in tagSeen) { const el = $('#tgn_' + k); if (el) el.textContent = tagSeen[k].size; }
-    const fkey = BUILD.key + '|' + state.season + '|' + state.vermin + '|' + ['sav', 'gd', 'ev'].map(k => state.tags[k] ? 1 : 0).join('') + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
+    const fkey = BUILD.key + '|' + state.season + '|' + state.vermin + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
     let E = edgeCache.get(fkey);
     if (!E) { E = computeEdges(nodes); edgeCache.set(fkey, E); }
     for (const [x, y, fams] of E) edges.push({ a: byT[x], b: byT[y], fams, f: FAM_ORDER.find(f => fams.some(z => z.f === f)) });
@@ -720,8 +760,7 @@
   function syncControls() {
     $('#biomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)} <button type="button" class="linkish" data-grp="${esc(g)}">${bs.every(b => state.land.has(b)) ? 'none' : 'all'}</button></legend>` +
       bs.map(b => `<label class="ck"><input type="checkbox" id="b_${b}" data-b="${b}" ${state.land.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
-    seg('#sav', [['any', 'Any'], ['wild', 'Not savage'], ['savage', 'Savage']], state.sav, v => { state.sav = v; rebuild(); });
-    seg('#al', [['any', 'Any'], ['good', 'Good'], ['neutral', 'Neutral'], ['evil', 'Evil']], state.al, v => { state.al = v; rebuild(); });
+    renderSurroundings();
     $('#extinct').value = state.extinct; $('#iso').checked = state.iso;
     for (const k of ['ocean', 'lake', 'river', 'brook', 'pool']) $('#w_' + k).checked = state[k];
     $('#oz').value = state.oz; $('#fz').value = state.fz;
@@ -736,7 +775,6 @@
     $('#fams').innerHTML = FAM_ORDER.map(f => `<label class="ck" title="${esc(FAM[f].note)}"><input type="checkbox" id="f_${f}" data-f="${f}" ${state.fam[f] ? 'checked' : ''}><i class="ln" style="--lc:var(--${FAM[f].col})"></i>${esc(FAM[f].lab)} <span class="small">(${esc(FAM[f].def)})</span></label>`).join('');
     seg('#p_links', [['engine', 'Cast ladder (engine)'], ['network', 'Rules switched on above']], state.prm.links, v => { state.prm.links = v; syncControls(); });
     $('#verm').checked = state.vermin;
-    for (const k of ['sav', 'gd', 'ev']) $('#tg_' + k).checked = state.tags[k];
     for (const [k, id] of [['ap_pick', 'p_ap'], ['giant', 'p_gi'], ['pack', 'p_pack'], ['apex_pack', 'p_apack'], ['reuse', 'p_reuse'], ['hv_top', 'p_hv']]) $('#' + id).value = state.prm[k];
     $('#p_seed').checked = state.prm.seed; $('#p_weird').checked = state.prm.weird; $('#p_guar').checked = state.prm.guarantee;
     $('#p_years').value = state.years;
@@ -759,8 +797,7 @@
   $('#fz').onchange = e => { state.fz = e.target.value; rebuild(); };
   for (const k of [1, 2, 3]) $('#cv' + k).onchange = e => { e.target.checked ? state.caverns.add(k) : state.caverns.delete(k); rebuild(); };
   $('#assign').onchange = e => { state.assign = e.target.checked; rebuild(); };
-  $('#verm').onchange = e => { state.vermin = e.target.checked; refreshView(); };
-  for (const k of ['sav', 'gd', 'ev']) $('#tg_' + k).onchange = e => { state.tags[k] = e.target.checked; refreshView(); };
+  $('#verm').onchange = e => { state.vermin = e.target.checked; renderSurroundings(); refreshView(); };
   $('#fams').addEventListener('change', ev => { const f = ev.target.dataset.f; if (!f) return; state.fam[f] = ev.target.checked; refreshView(); });
   $('#presets').onclick = ev => { const b = ev.target.closest('button[data-p]'); if (b) applyPreset(b.dataset.p); };
   const num = (id, k) => { $('#' + id).onchange = e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) state.prm[k] = v; else e.target.value = state.prm[k]; }; };
@@ -800,13 +837,13 @@
   // ------------------------------------------------------------------ rebuild chain
   function rebuild(keepView) {
     BUILD = buildAll();
-    BUILD.key = JSON.stringify([...state.land].sort()) + state.sav + state.al + state.iso + state.extinct + state.ocean + state.oz + state.lake + state.river + state.brook + state.pool + state.fz + [...state.caverns].sort() + state.assign;
+    BUILD.key = fortKey() + [...state.cells].sort().join(',');
     YEAR = null; state.castSel = null;
     syncControls();
     refreshView();
     renderYear();
     const nP = Object.keys(BUILD.B.P).length;
-    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
+    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'} in ${state.cells.size === 9 ? 'all nine surroundings' : [...state.cells].map(c => CELLNAME[c]).join(', ')}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
     if (concrete() && !keepView) { /* stats stay until the next run */ }
     renderStats();
   }
