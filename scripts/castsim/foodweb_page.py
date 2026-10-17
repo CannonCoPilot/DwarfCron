@@ -52,6 +52,7 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
+details.nb summary{cursor:pointer;color:inherit;font-weight:400}details.nb{margin-top:-4px}
 .viewtabs{display:inline-flex;gap:0;border-bottom:2px solid var(--line)}
 .viewtabs button{font:inherit;font-size:.92rem;font-weight:700;border:0;background:none;color:var(--muted);padding:5px 14px 6px;margin-bottom:-2px;border-bottom:3px solid transparent;cursor:pointer}
 .viewtabs button span{font:600 .72rem var(--mono);color:var(--muted);margin-left:3px}
@@ -137,6 +138,9 @@ BODY = r"""
 <div class="app">
 <aside id="fort" class="panel" aria-label="Fort">
   <div><span class="lbl">Land biomes</span><div id="biomes"></div></div>
+  <details class="nb"><summary><span class="lbl" style="display:inline">Neighbouring tiles</span> <span class="small" id="nbCount"></span></summary>
+    <p class="small">The biomes of the region tiles around the embark. DF stocks vermin from them too; one that lives there and is on none of the fort's layers is on the map only (drawn hollow): never cast, but eaten, by the sides its raws give it.</p>
+    <div id="nbiomes"></div></details>
   <div><span class="lbl">Surroundings <button type="button" class="linkish" id="surrAll">all</button> <button type="button" class="linkish" id="surrNone">none</button></span><div id="surr"></div>
     <p class="small">Each cell switches on or off by itself; the network shows creatures that fit any cell that is on. Building casts needs exactly one cell on.</p>
     <p class="small" id="tagline"></p></div>

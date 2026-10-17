@@ -175,6 +175,7 @@ GIANT_BUGS = {'GIANT_JUMPING_SPIDER', 'GIANT_BARK_SCORPION', 'GIANT_BROWN_RECLUS
 HABITAT = {'GIANT_MANTIS': 'flier', 'GIANT_ROACH': 'flier'}
 WATER_BUG_APEX = {'GIANT_DRAGONFLY', 'GIANT_MOSQUITO'}
 VERMIN_FRESH = {'MOSQUITO'}
+VERMIN_GROUND = {'ROACH_LARGE'}   # user 17 Oct: the large roach is ground vermin (engine ROSTER.FP.VERMIN_GROUND; class VG)
 APEX_PACK = 1.5       # the apex draw's pack bonus (user 13 Oct; was the cast-wide x3): group size already counts the pack
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
 # filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
@@ -395,7 +396,7 @@ class Design:
         land = [b for b in m if fbs[b]['kind'] == 'land']
         hab, verm = e['habitat'], e['gameVermin']
         out, notes = [], []
-        vc = self.E.vclass(e) if verm else None
+        vc = ('VG' if e['token'] in VERMIN_GROUND else self.E.vclass(e)) if verm else None
         if land and not (verm and e['token'] in VERMIN_FRESH):
             if verm:
                 if vc in ('VB', 'VI'): out.append('flying')
@@ -727,7 +728,7 @@ class Design:
                     e = pool[tok]
                     if e['noSeason'][s]: continue
                     if e['gameVermin']:
-                        vc = self.E.vclass(e)
+                        vc = 'VG' if tok in VERMIN_GROUND else self.E.vclass(e)
                         lst.append({'e': e, 'vermin': True, 'vclass': vc, 'slots': ['vermin']})
                         # murky pools: DF's pool fish and amphibians are vermin, so the fish slot draws them too
                         if L == 'fresh' and sub == 'pool' and (vc == 'VF' or e['habitat'] == 'semiaquatic'):

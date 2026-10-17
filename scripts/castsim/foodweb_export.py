@@ -108,7 +108,7 @@ def main():
         bodies = sorted(e['bodies'])
         rows.append({
             't': tok, 'nm': name_of(D, tok), 'g': e['guild'], 'h': e['habitat'], 'ro': e['role'], 'v': bool(e['gameVermin']),
-            'vc': E.vclass(e) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
+            'vc': ('VG' if tok in DS.VERMIN_GROUND else E.vclass(e)) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
             'bn': bool(e['benign']), 'gi': bool(e['giant']), 'ap': bool(e['ap']), 'apv': bool(e['apVermin']), 'civ': bool(e['civ']),
             'se': bool(e['sentient']), 'lp': bool(e['largePred']), 'war': bool(e['war']), 'pet': pet or 0, 'pet0': e['pet'] or 0,
             'sav': bool(e['savage']), 'gd': bool(e['good']), 'ev': bool(e['evil']), 'ex': bool(e['extinct']),

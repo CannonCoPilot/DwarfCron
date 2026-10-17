@@ -296,10 +296,24 @@
     // VERMIN SIDES (user 17 Oct; engine VERMIN composite classes SWV_<type>@<SIDE>): a vermin is fed on only from the sides a
     // consumer may take -- none for a giant, a land-ground apex or an ocean apex; FLYING only for a land-flying apex; else
     // all but GROUND when the consumer is on the ocean or freshwater, OCEAN when on freshwater, FRESH when on the ocean
-    let CUR = { P: {}, promoted: new Set() };
+    let CUR = { P: {}, promoted: new Set(), mapOnly: {} };
     const SIDE = { ground: 'GROUND', flying: 'FLYING', ocean: 'OCEAN', fresh: 'FRESH', cavern1: 'CAVERN', cavern2: 'CAVERN', cavern3: 'CAVERN' };
     const laysOf = t => ((CUR.P[t] && CUR.P[t].layers) || []);
-    const sidesOf = t => [...new Set(laysOf(t).map(L => SIDE[L]))];
+    // a vermin DF has on the map but on none of the fort's layers (stocked from a neighbouring region tile): its sides come from
+    // its raws (engine VERMIN.verminSides): small fish by the water they name (freshwater when none), small birds, bats and
+    // flying insects FLYING, the rest GROUND (the large roach GROUND), and CAVERN too when its raws name the caverns
+    function rawSides(c) {
+      const out = new Set(), b = c.b || [];
+      if (c.swv === 'SWV_SMALL_FISH') {
+        if (b.some(x => x.startsWith('OCEAN'))) out.add('OCEAN');
+        if (b.some(x => /^(LAKE|RIVER|POOL)_/.test(x))) out.add('FRESH');
+        if (!out.size) out.add('FRESH');
+      } else if (['SWV_SMALL_BIRD', 'SWV_BAT', 'SWV_FLYING_INSECT'].includes(c.swv) && c.vc !== 'VG') out.add('FLYING');
+      else out.add('GROUND');
+      if (b.some(x => x.startsWith('SUBTERRANEAN'))) out.add('CAVERN');
+      return [...out];
+    }
+    const sidesOf = t => CUR.mapOnly[t] ? CUR.mapOnly[t].sides : [...new Set(laysOf(t).map(L => SIDE[L]))];
     function allowedSides(c) {
       const lays = laysOf(c.t);
       if (c.gi) return { sides: [], why: 'a giant eats no vermin' };
@@ -310,7 +324,11 @@
       if (wet) s = s.filter(x => x !== 'GROUND');
       if (lays.includes('fresh')) s = s.filter(x => x !== 'OCEAN');
       if (lays.includes('ocean')) s = s.filter(x => x !== 'FRESH');
-      return { sides: s, why: wet ? 'on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin' : '' };
+      const why = [];
+      if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
+      // user 17 Oct: a land-ground predator takes no flying, ocean or freshwater vermin
+      if (lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
+      return { sides: s, why: why.join('; ') };
     }
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
@@ -461,8 +479,20 @@
         }
         lists[L + '|' + s] = lst;
       }
-      CUR = { P, promoted };
-      return { P, fbs, promoted, rejected, sub, layerSets, active, lists };
+      // spec.neighbours: land biomes of the region tiles around the embark; DF stocks vermin from them too. A vermin that lives
+      // there (gated by the same surroundings) and is on none of the fort's layers is on the map only: never cast, but eaten
+      const mapOnly = {};
+      if ((spec.neighbours || []).length) {
+        const nfb = {};
+        for (const b of spec.neighbours) nfb[b] = { sav: spec.rtype.sav, evil: spec.rtype.evil, iso: !!spec.rtype.iso, kind: 'land' };
+        for (const c of DATA.creatures) {
+          if (!c.nat || !c.v || c.pl || (P[c.t] && P[c.t].layers.length)) continue;
+          const hit = [...biomesOf(c, nfb)].filter(b => nfb[b] && !gate(c, b, nfb[b], spec));
+          if (hit.length) mapOnly[c.t] = { c, sides: rawSides(c), from: hit };
+        }
+      }
+      CUR = { P, promoted, mapOnly };
+      return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly };
     }
 
     // ------------------------------------------------------------ one season cast (ROSTER.FP.grow)
@@ -716,7 +746,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set() }; }, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {} }; }, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };

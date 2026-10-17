@@ -49,7 +49,7 @@
 
   // ------------------------------------------------------------------ state
   const state = {
-    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), iso: false,
+    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), neighbours: new Set(), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
     tab: 'surface', edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
@@ -84,11 +84,11 @@
       land: [...state.land], rtype: { sav, evil: al, iso: state.iso }, extinct: state.extinct,
       water: { ocean: state.ocean ? zones(state.oz, 'ocean') : null, lake: state.lake ? fz : null,
         river: (state.river || state.brook) ? fz : null, pool: state.pool ? fz : null, brook: state.brook && !state.river },
-      caverns: [...state.caverns].sort(), assign: state.assign,
+      caverns: [...state.caverns].sort(), assign: state.assign, neighbours: [...state.neighbours],
     };
   }
   function fortKey() {
-    return JSON.stringify([...state.land].sort()) + state.iso + state.extinct + state.ocean + state.oz + state.lake + state.river + state.brook + state.pool + state.fz + [...state.caverns].sort() + state.assign;
+    return JSON.stringify([...state.land].sort()) + '|nb:' + [...state.neighbours].sort().join(',') + '|' + state.iso + state.extinct + state.ocean + state.oz + state.lake + state.river + state.brook + state.pool + state.fz + [...state.caverns].sort() + state.assign;
   }
   function concrete() { return state.cells.size === 1; }
   let BUILD = null;   // { B (merged or single), spec (single or null), key }
@@ -101,10 +101,11 @@
       return { B: { P: {}, layerSets: L0, active: [], lists: {}, sub: null, rejected: [] }, spec: null };
     }
     // browse union: a species is in when any region type admits it; its slots from the first that does
-    const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [], promoted: new Set() };
+    const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [], promoted: new Set(), mapOnly: {} };
     for (const L of LAYERS) B.layerSets[L] = [];
     for (const [, b] of bs) {
       for (const t in b.P) if (!B.P[t]) B.P[t] = b.P[t];
+      for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
@@ -193,6 +194,19 @@
           level: levelOf(it, L), r: radius(it.c), cavs: cavsOf(it.c.t), surf: surfOf(it.c.t) };
         byT[n.t] = n; nodes.push(n);
       }
+    }
+    // map-only vermin (stocked from a neighbouring region tile, on none of the fort's layers): placed by the sides their raws
+    // give them, drawn hollow, never cast
+    const SIDE_LAYERS = { GROUND: ['ground'], FLYING: ['flying'], OCEAN: ['ocean'], FRESH: ['fresh'], CAVERN: CAVS };
+    if (state.vermin) for (const t in (BUILD.B.mapOnly || {})) {
+      const mo = BUILD.B.mapOnly[t];
+      if (byT[t]) continue;
+      if (state.season !== 'all' && mo.c.ns[+state.season]) continue;
+      const lays = mo.sides.flatMap(x => SIDE_LAYERS[x]).filter(L => ls.includes(L));
+      if (!lays.length) continue;
+      const n = { t, c: mo.c, L: lays[0], layers: lays, slotsBy: Object.fromEntries(lays.map(L => [L, ['vermin']])), slot: 'vermin', vermin: true,
+        level: 0, r: radius(mo.c), cavs: lays.filter(L => CAVS.includes(L)).map(L => +L.slice(-1)), surf: lays.filter(L => SURF.includes(L)), mapOnly: mo };
+      byT[t] = n; nodes.push(n);
     }
     const edges = [];
     const fkey = BUILD.key + '|' + state.season + '|' + state.vermin + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
@@ -391,7 +405,8 @@
         n.cavs.forEach((k, i) => { ctx.fillStyle = TOK[CAV_COL[k]]; ctx.fillRect(n.x - 1.4 * n.r + i * w, n.y - 1.5 * n.r, w + 0.3, 3 * n.r); });
         ctx.restore();
         drawShape(shapeOf(n), n.x, n.y, n.r);
-      } else { ctx.fillStyle = colorOf(n); ctx.fill(); }
+      } else if (n.mapOnly) { ctx.fillStyle = TOK.surface; ctx.fill(); ctx.lineWidth = 1.6 / k; ctx.strokeStyle = colorOf(n); ctx.stroke(); }
+      else { ctx.fillStyle = colorOf(n); ctx.fill(); }
       ctx.lineWidth = 1.2 / k; ctx.strokeStyle = TOK.surface; ctx.stroke();
       if (n.hv && on && !n.vermin && state.color !== 'inclusion') { ctx.lineWidth = 1.4 / k; ctx.strokeStyle = TOK.ink; drawShape('circle', n.x, n.y, n.r + 3); ctx.stroke(); }
     }
@@ -451,7 +466,7 @@
     if (t !== state.hover) { state.hover = t; draw(); }
     if (n) {
       const A = VIEW.adj.get(n.t);
-      tip.innerHTML = `<b>${esc(n.c.nm)}</b> <span class="mono">${esc(n.t)}</span><br>${esc(LNAME[n.L])} · ${esc(n.vermin ? 'vermin ' + (n.c.vc || '') : n.slotsBy[n.L].join(' / '))}` +
+      tip.innerHTML = `<b>${esc(n.c.nm)}</b> <span class="mono">${esc(n.t)}</span>${n.mapOnly ? '<br><i>on the map only: from a neighbouring tile (' + esc(n.mapOnly.from.map(b => bname(b)).join(', ')) + '), never cast</i>' : ''}<br>${esc(LNAME[n.L])} · ${esc(n.vermin ? 'vermin ' + (n.c.vc || '') : n.slotsBy[n.L].join(' / '))}` +
         `<br>${fmtMass(n.c.m)} · groups of ${n.c.c0}-${n.c.c1}${n.c.pet ? ' · pet value ' + n.c.pet : ''}` +
         `<br>eats ${A.prey.size} · eaten by ${A.pred.size}${n.hv ? '<br>high value: ' + esc(n.hv) : ''}` + statLine(n);
       tip.hidden = false;
@@ -519,7 +534,7 @@
     else if (state.shape === 'habitat') shapePart = Object.entries(HAB_SHAPE).map(([h, s]) => `<span>${sw('var(--muted)', s)}${h}</span>`).join('');
     else shapePart = Object.entries(FAM_SHAPE).filter(([f]) => f !== 'other').map(([f, s]) => `<span>${sw('var(--muted)', s)}${f}</span>`).join('');
     $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>largest group the raws allow (cluster max)</span>` +
-      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span>${FAM_ORDER.filter(f => state.fam[f]).map(f => `<span class="ln" style="--lc:var(--${FAM[f].col})">${esc(FAM[f].lab.toLowerCase())}</span>`).join(' ')}; dashed: the selection's predators; click a link for details</span></div>`;
+      `<span>${sw('none', 'ring')}high-value: a possible seed</span>${Object.keys(BUILD.B.mapOnly || {}).length ? '<span>hollow: map-only vermin from a neighbouring tile</span>' : ''}<span>${FAM_ORDER.filter(f => state.fam[f]).map(f => `<span class="ln" style="--lc:var(--${FAM[f].col})">${esc(FAM[f].lab.toLowerCase())}</span>`).join(' ')}; dashed: the selection's predators; click a link for details</span></div>`;
   }
   function shapeSvg(sh, col) {
     const f = `fill="${col}"`;
@@ -560,7 +575,7 @@
       st += `<tr><td>${esc(LNAME[L])}</td><td class="num">${pct(share)}</td><td class="num">${pct(seed)}</td><td class="num">${pct(apex)}</td><td>${esc(slots || '-')}</td></tr>`;
     }
     box.innerHTML = `<h3>${esc(c.nm)}</h3><p class="mono small">${esc(n.t)}${c.rt ? ' · root ' + esc(c.rt) : ''}</p>
-      ${n.cavs.length && state.tab === 'surface' ? `<p class="note">Also cast in cavern ${n.cavs.join(', ')} (Caverns tab).</p>` : ''}${n.surf.length && state.tab === 'cavern' ? `<p class="note">Also on the surface: ${n.surf.map(L => LNAME[L].toLowerCase()).join(', ')} (Surface tab).</p>` : ''}
+      ${n.mapOnly ? `<p class="note">On the map only: DF stocks it from a neighbouring tile (${esc(n.mapOnly.from.map(b => bname(b)).join(', '))}). It is on none of the fort's layers, so it is never cast, but consumers still eat it; its sides come from its raws: ${esc(n.mapOnly.sides.join(', ').toLowerCase())}.</p>` : ''}${n.cavs.length && state.tab === 'surface' ? `<p class="note">Also cast in cavern ${n.cavs.join(', ')} (Caverns tab).</p>` : ''}${n.surf.length && state.tab === 'cavern' ? `<p class="note">Also on the surface: ${n.surf.map(L => LNAME[L].toLowerCase()).join(', ')} (Surface tab).</p>` : ''}
       <div class="chips">${n.layers.map(L => `<span class="chip">${esc(LNAME[L])}: ${esc(n.vermin ? 'vermin ' + (c.vc || '') : n.slotsBy[L].join(' / '))}</span>`).join('')}</div>
       <dl class="kv"><div><dt>body</dt><dd>${fmtMass(c.m)}</dd></div><div><dt>group</dt><dd>${c.c0}-${c.c1}</dd></div>
       <div><dt>habitat</dt><dd>${esc(c.h)}</dd></div><div><dt>guild</dt><dd>${esc(c.g)} · ${esc(GUILD_FAM(c.g))}</dd></div>
@@ -794,6 +809,9 @@
     el.onclick = ev => { const b = ev.target.closest('button[data-v]'); if (b) cb(b.dataset.v); };
   }
   function syncControls() {
+    $('#nbiomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)}</legend>` +
+      bs.map(b => `<label class="ck"><input type="checkbox" id="nb_${b}" data-nb="${b}" ${state.neighbours.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
+    $('#nbCount').textContent = state.neighbours.size ? `(${state.neighbours.size} ticked; ${Object.keys(BUILD ? BUILD.B.mapOnly || {} : {}).length} map-only vermin)` : '(none ticked)';
     $('#biomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)} <button type="button" class="linkish" data-grp="${esc(g)}">${bs.every(b => state.land.has(b)) ? 'none' : 'all'}</button></legend>` +
       bs.map(b => `<label class="ck"><input type="checkbox" id="b_${b}" data-b="${b}" ${state.land.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
     renderSurroundings();
@@ -822,6 +840,7 @@
     const sub = (state.lake && 'lake') || ((state.river || state.brook) && (state.brook && !state.river ? 'brook (river table, small aquatic species only)' : 'river')) || (state.pool && 'murky pool') || null;
     $('#subNote').textContent = sub ? `Freshwater cast uses the ${sub} slot table (the engine builds one: lake, then river or brook, then pool).` : 'No freshwater cast.';
   }
+  $('#nbiomes').addEventListener('change', ev => { const b = ev.target.dataset.nb; if (!b) return; ev.target.checked ? state.neighbours.add(b) : state.neighbours.delete(b); rebuild(); });
   $('#biomes').addEventListener('change', ev => { const b = ev.target.dataset.b; if (!b) return; ev.target.checked ? state.land.add(b) : state.land.delete(b); rebuild(); });
   $('#biomes').addEventListener('click', ev => {
     const g = ev.target.dataset.grp; if (!g) return;
