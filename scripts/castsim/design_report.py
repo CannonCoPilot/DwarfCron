@@ -458,7 +458,8 @@ one vermin (the creepy crawler). Cavern 1 has {S[(1, 'flier')]['n']} fliers. Slo
 {', '.join(r['t'].lower().replace('_', ' ') for r in dead)}. That includes {len(dead_sent)} of the sentients (every cave animal person
 and the gremlin): {dead_sent_casts} of {sent_casts} sentient-slot casts went to species that never showed. Plain benign ground prey (rats, moles,
 the naked mole dog, the drunian) has the same problem. This costs more diversity than the score does. The <a href="#never-arrive">never-arrive test</a> found why: the animal people
-lose on odds (one created entry against many), and the six species with thief tags are never drawn for a cavern wave at all.</li>
+lose on odds (one created entry against many), and the six species with thief tags are never drawn for a cavern wave (DF stocks them as residents instead, and the tool now places
+them itself: <a href="#beta-step0">beta step 0</a>).</li>
 <li>Three scored species never reach the cavern pool: {', '.join(d['scored_not_in_pool'])} (the magma crab and the fire snake live in lava; the purring maggot and the fire snake are locked unliving, NO_EAT + NO_DRINK). The cave bat is
 the one cavern species with no score (vermin, weight 1).</li>
 </ul>
@@ -492,7 +493,11 @@ NA_INTRO = """<ul class="find">
 draltha's 5 to 10, no share far from half). Six species were never drawn: the drunian, the gremlin, the naked mole dog, the giant mole,
 the giant rat and the large rat got 0 waves against the draltha's 14 to 16, with no stock debited (p 1.2e-4 or less each). So nothing was
 drawn and lost in placement: DF never picks them for a cavern wave.</li>
-<li><b>The six barred species are exactly the cavern species with thief tags.</b> The five plain prey carry DF's CURIOUSBEAST tags
+<li><b>Corrected 16 Oct: this is not a bar on the species.</b> You see all six in your own play. A wave test sees only waves: the
+breached rerun (BR1, <a href="#beta-step0">beta step 0</a>) drew 0 waves for each against the draltha's 20 too, yet DF puts them in its caverns
+as residents at embark (a giant rat was there on the rig fort's first day). The thief bar built on this result (v7.6) was wrong and was
+withdrawn in v7.6.1; the tool now places a cast thief itself, as it places a cavern apex.</li>
+<li><b>The six species with no waves are exactly the cavern species with thief tags.</b> The five plain prey carry DF's CURIOUSBEAST tags
 (EATER, GUZZLER or ITEM: animals that come to steal food, drink or items) and the gremlin carries MISCHIEVOUS, LOCKPICKER and TRAPAVOID. Not
 one of the 31 cavern species that arrived in the rig forts carries any of these. Which of DF's rules sends such creatures some other way
 (or only under conditions these runs lack) is not measured; what is measured is that an ordinary cavern wave never takes them.</li>
@@ -582,7 +587,7 @@ one entry each on the cavern's 6 tile and cave pairs, FREQUENCY 50, stock 100).<
 <p class=small>Controls: the draltha in cavern 1, the elk bird in cavern 3. Data: data/cave-arrive/OOR1 and OOR3.</p>
 <p>Then the casts. The desk cast builder (the engine's mirror) built a year of casts on 20 sites for each arrangement. A cavern-season counts as a
 minimally complete food web when its arriving members include a prey animal, a predator, and at least two vermin; the six thief-tagged species
-count as empty slots, since DF never sends them.</p>
+count as empty slots, since DF sends them in no wave. (Superseded: the tool now places cast thieves itself; see <a href="#beta-step0">beta step 0</a>.)</p>
 <div class="tbl"><table><thead><tr><th>arrangement</th><th class="num">web, cavern 1</th><th class="num">cavern 2</th><th class="num">cavern 3</th>
 <th class="num">species a year, cavern 1</th><th class="num">cavern 2</th><th class="num">cavern 3</th><th class="num">empty slots per cast, cavern 1</th>
 <th class="num">cavern 2</th><th class="num">cavern 3</th></tr></thead><tbody>{srow}</tbody></table></div>
@@ -1328,6 +1333,86 @@ and of 13 Oct.{(' Biomes with no apex after: ' + ', '.join(none_after) + '.') if
 """
 
 
+X9C = [  # (run, arm, fort, what changed, breached)
+    ('X9c1', 'C', 'Small savage lake (V78)', 'baseline: v7.6 with your cavern assignment', False),
+    ('X9c2', 'C', 'Small savage lake (V79)', '0.1 the tool places cast thieves; 0.2 one entry per species per cavern', True),
+    ('X9c3', 'C', 'Small savage lake (V80)', '0.2 fix: each cavern anchored in the cave with the widest map-edge opening', True),
+    ('X9c4', 'S', 'Small savage lake (V81)', 'cavern cap 5 to 7 groups; thief target 25% to 50%', True),
+    ('X9c4', 'G', 'Good coast (V81)', 'the same, on a second region type', True),
+]
+
+
+def beta_section():
+    """16-17 Oct: beta plan step 0 (tune existing code, one problem at a time) -- the breach test BR1 and the X9c runs"""
+    import collections
+    br = na_rows('BR1')
+    rows = []
+    for run, arm, fort, what, breached in X9C:
+        f = ROOT / 'data/season-run' / run / 'ecology.json'
+        sm = ROOT / 'data/season-run' / run / 'summary.json'
+        if not f.exists():
+            continue
+        e = next((x for x in json.loads(f.read_text()) if x['arm'] == arm), None)
+        if not e:
+            continue
+        agg = collections.defaultdict(lambda: [0, 0])
+        for r in e['rows']:
+            L = r['layer']
+            if L.startswith(('other', 'never')):
+                continue
+            agg[L][0] += len(r['cast_arrived']); agg[L][1] += len(r['cast'])
+        water = agg.get('fresh') or agg.get('ocean') or [0, 0]
+        cav = [sum(agg[f'cavern{k}'][i] for k in (1, 2, 3)) for i in (0, 1)]
+        verdict = ''
+        for ln in (ROOT / 'data/season-run' / run / 'summary.md').read_text().splitlines():
+            if ln.startswith(f'| {arm}/rep1 '):
+                verdict = ln.split('|')[3].strip()
+        cell = lambda a: f"<td class='num'>{a[0]}/{a[1]}</td>"
+        rows.append(f"<tr><td class='mono'>{run} {arm}</td><td>{esc(fort)}</td><td>{esc(what)}</td><td>{'yes' if breached else 'no'}</td>"
+                    f"{cell(agg['ground'])}{cell(agg['flying'])}{cell(water)}{cell(agg['cavern1'])}{cell(agg['cavern2'])}{cell(agg['cavern3'])}"
+                    f"<td class='num'><b>{cav[0]}/{cav[1]}</b></td><td><span class='chip {'ok' if verdict == 'PASS' else 'warn'}'>{esc(verdict)}</span></td></tr>")
+    brb = ''.join(f"<tr><td class='mono'>{esc(r['t'])}</td><td class='num'>{esc(r['ns'])}</td><td class='num'>{esc(r['nc'])}</td>"
+                  f"<td class='num'>{esc(r['debit'])}</td><td class='num'>{esc(r['p'])}</td></tr>" for r in br)
+    return f"""<h2 id="beta-step0">Beta step 0 on the rig: caverns and thieves (16-17 Oct)</h2>
+<p>Step 0 of the beta plan tunes the code that exists, one problem at a time, with no new caps or guards, and checks each change on a fresh fort
+the tool builds its own casts for, with the caverns breached at the outset (your rule of 16 Oct). One full year per fort. A cast slot counts as
+arrived when that species came at least once in its season.</p>
+<h3>The breach test (BR1)</h3>
+<p>The never-arrive test again, on the same fort with its caverns breached by a stair shaft (caverns 1 to 3, never the magma sea). Each thief-tagged
+species against the draltha, one entry each on cavern 1's 6 tile and cave pairs, FREQUENCY 50, stock 100.</p>
+<div class="tbl"><table><thead><tr><th>species</th><th class="num" data-t="num">its waves</th><th class="num" data-t="num">draltha waves</th>
+<th class="num">stock debited (it / draltha)</th><th class="num" data-t="num">p (v 0.5)</th></tr></thead><tbody>{brb}</tbody></table></div>
+<ul class="find">
+<li><b>A breach does not bring thieves in waves.</b> All six drew no wave and no stock debit, breached as unbreached. What puts them in play is
+DF's embark stocking: they live in the caverns as residents from day one. So <b>step 0.1</b> has the tool place a cast thief itself, at a chance per
+season (the thief target), the way it places a cavern apex; the bar of v7.6 is gone.</li>
+</ul>
+<h3>The cast slots that arrived</h3>
+<div class="tbl"><table><thead><tr><th>run</th><th>fort</th><th>what changed</th><th data-t="cat">breached</th><th class="num">ground</th>
+<th class="num">flying</th><th class="num">water</th><th class="num">cavern 1</th><th class="num">cavern 2</th><th class="num">cavern 3</th>
+<th class="num">all caverns</th><th data-t="cat">verdict</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
+<ul class="find">
+<li><b>The caverns went from 32 to 51 of 72 cast slots on the same kind of fort</b>, and 59 on the good coast, where cavern 1 brought all six
+cast species every season. Three changes did it (and X9c1 alone was not breached, so the breach is folded into X9c2's step). One entry per species per cavern (0.2) puts each cast species on the same footing however many
+entries DF had stocked for it. Before it, a species the tool created had one entry against the 16 to 40 of a DF-stocked one, and in X9c1 none of
+them arrived all year. The first anchors sat in a pocket cave (X9c2's cavern 1 fell to 17 units); anchoring each cavern in its cave with the widest
+map-edge opening fixed that (X9c3: 125 units). Raising the cavern cap from 5 to 7 groups added 7 more slots on the lake fort.</li>
+<li><b>Thieves are placed now, when their cavern is open.</b> X9c2: naked mole dogs (10 and 7) and 2 gremlins. X9c4 on the good coast: all three cast
+thieves (naked mole dog, gremlin, 7 drunians in winter). On the lake fort only the naked mole dog came, because its cavern 1 sat at the cap for
+about 224 of 336 days, and a thief is never placed into a paused cavern (checked in the game: the gremlin's anchor entry was stocked and held).</li>
+<li><b>Even at cap 7 every cavern was paused 55 to 67% of the year</b> on both forts. That holds back thieves on the lake fort and is the likely
+limit on cavern 3, the weakest (2 to 5 of 6 a season).</li>
+<li><b>Flying is the weakest surface layer</b> (3 to 4 of 12 on the lake forts). Walkers, fliers and the water casts' birds share one land cap; on the
+lake fort walkers took 17 to 24 waves a season and fliers 1 to 4, and on the good coast the ocean cast's birds took 3 to 7 of the 17 to 22.
+That is step 0.3, awaiting your choice.</li>
+<li><b>The two FAILs are each one surface straggler</b> (a hyena in X9c2, a torvosaurus in X9c4 S): a unit sent off at the season change that never
+walked off, which the 7-day backstop removed. No hangs in any run; no cavern arrival at the wrong depth; no off-cast late arrivals.</li>
+</ul>
+<p class=small>Data: data/cave-arrive/BR1; data/season-run/X9c1 to X9c4 (ecology.json, summary.md). Engine: seasonal-wildlife v7.5-fullpool,
+sw d921f36 (0.1), 9f7459f and 39cf2bc (0.2), c244e34 (cap 7, thief target 50).</p>
+"""
+
+
 def main():
     d = json.loads(DATA.read_text())
     data, meta = d['embarks'], d['meta']
@@ -1347,7 +1432,7 @@ def main():
   region: every creature in the raws is a candidate, filtered first by wild and natural, then BIOME, SAVAGE, GOOD/EVIL and the world's
   real-world-extinct rule, then split into seven layers (land-ground, land-flying, ocean, freshwater, cavern 1, 2, 3) and four seasons.
   Each of those lists feeds one season cast with the slot table you set for its layer. The design is now built into the engine (v7.5) and has run on
-  the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#ecology">the year as an ecologist reads it</a> (14 Oct:
+  the rig: the results come first, in <a href="#rig">On the rig</a>. Newest: <a href="#beta-step0">beta step 0</a> (16-17 Oct: caverns from 32 to 51-59 of 72 cast slots, thieves placed by the tool, the breach test); then <a href="#ecology">the year as an ecologist reads it</a> (14 Oct:
   every full-year fort, layer by layer, with what the tool mishandles and five proposed fixes),
   <a href="#cavern-weird">cavern weirdness and cavern diversity</a> (15 Oct, a collapsible table of every cavern species), <a href="#changes">the changes of 13 Oct</a> (walkers, pauses,
   pools and brooks, stand-ins) and <a href="#validate">the validation year</a> on eight forts. The sections after them are the desk simulation the build followed.
@@ -1365,6 +1450,7 @@ except the locked unliving cave species, the lava-only magma crab, demons, and o
 <div class="card"><h4>Caverns get stranger with depth</h4><p>Mean weirdness of the casts: cavern 1 <b>{st['w1']}</b>, cavern 2 <b>{st['w2']}</b>,
 cavern 3 <b>{st['w3']}</b> (0 = a real animal's cave form, 1 = wholly alien).</p></div>
 </div>
+{beta_section()}
 {rig_section('X4v75b')}
 {region_section('X5v75')}
 {changes_section()}
