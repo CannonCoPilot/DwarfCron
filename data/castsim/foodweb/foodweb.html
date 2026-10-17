@@ -1250,7 +1250,12 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     const dpr = window.devicePixelRatio || 1;
     canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   }
-  const zoom = d3.zoom().scaleExtent([0.5, 8]).on('zoom', ev => { transform = ev.transform; draw(); });
+  // the view never leaves the figure (user 17 Oct): no zooming out past the whole figure, no panning beyond its edges
+  const zoom = d3.zoom().scaleExtent([1, 8]).on('zoom', ev => { transform = ev.transform; draw(); });
+  function bindZoom() {
+    zoom.extent([[0, 0], [W, H]]).translateExtent([[0, 0], [W, H]]);
+    d3.select(canvas).call(zoom.transform, d3.zoomTransform(canvas));   // re-clamp the current view to the new bounds
+  }
   d3.select(canvas).call(zoom).on('dblclick.zoom', null);
   function nodeAt(px, py) {
     const [x, y] = transform.invert([px, py]);
@@ -1701,14 +1706,14 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     renderLegend(); renderInspector(); draw();
   }
   function boot() {
-    readTokens(); resize();
+    readTokens(); resize(); bindZoom();
     syncControls(); rebuild(true);
     runYear(); runYears();
   }
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
   mq.addEventListener('change', () => { readTokens(); draw(); });
   new MutationObserver(() => { readTokens(); draw(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const w0 = W; resize(); if (Math.abs(W - w0) > 20) { layout(); } draw(); if (STATS) renderStats(); }, 150); });
+  let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { const w0 = W; resize(); bindZoom(); if (Math.abs(W - w0) > 20) { layout(); } draw(); if (STATS) renderStats(); }, 150); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
   boot();
 })();
