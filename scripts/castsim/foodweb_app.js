@@ -101,10 +101,11 @@
       return { B: { P: {}, layerSets: L0, active: [], lists: {}, sub: null, rejected: [] }, spec: null };
     }
     // browse union: a species is in when any region type admits it; its slots from the first that does
-    const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [] };
+    const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [], promoted: new Set() };
     for (const L of LAYERS) B.layerSets[L] = [];
     for (const [, b] of bs) {
       for (const t in b.P) if (!B.P[t]) B.P[t] = b.P[t];
+      for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
       for (const k in b.lists) {
@@ -180,6 +181,7 @@
   const cavsOf = t => ((BUILD.B.P[t] && BUILD.B.P[t].layers) || []).filter(L => CAVS.includes(L) && BUILD.B.active.includes(L)).map(L => +L.slice(-1));
   const surfOf = t => ((BUILD.B.P[t] && BUILD.B.P[t].layers) || []).filter(L => SURF.includes(L) && BUILD.B.active.includes(L));
   function makeView() {
+    sim.useBuild(BUILD.B);   // the side rules read this fort's layers (the matrix's nine builds must not leak in)
     const nodes = [], byT = {};
     const ls = viewLayers();
     const items = {};
@@ -577,11 +579,13 @@
     const arm = sim.armedWhy(c, n.slotsBy[L], L);
     if (arm) rows.push(['hunt', 'armed: ' + arm]);
     const g = sim.gobbleSet(c, L);
-    if (g) rows.push(['gobble', 'GOBBLE_VERMIN_CLASS written: ' + [...g.keys()].map(k => k.replace('SWV_', '').toLowerCase().replace('_', ' ')).join(', ')]);
+    const al = sim.allowedSides(c);
+    if (g && !al.sides.length) rows.push(['gobble', 'no vermin: ' + al.why]);
+    else if (g) rows.push(['gobble', 'GOBBLE_VERMIN_CLASS written: ' + [...g.keys()].map(k => k.replace('SWV_', '').toLowerCase().replace('_', ' ')).join(', ') + ' from ' + al.sides.join(', ').toLowerCase() + (al.why ? ' (' + al.why + ')' : '')]);
     if (c.gvc.length || c.gvt.length || c.dhv) rows.push(['raws', [c.gvc.length && 'GOBBLE_VERMIN_CLASS:' + c.gvc.join(','), c.dhv && 'hunts vermin'].filter(Boolean).join('; ')]);
     const hf = sim.huntFlag(c);
     if (hf) rows.push(['flags', hf]);
-    if (n.vermin) rows.push(['gobble', 'vermin class ' + (c.swv || '?').replace('SWV_', '').toLowerCase().replace('_', ' ')]);
+    if (n.vermin) rows.push(['gobble', 'vermin class ' + (c.swv || '?').replace('SWV_', '').toLowerCase().replace('_', ' ') + ' on ' + sim.sidesOf(c.t).join(', ').toLowerCase()]);
     return rows.length ? `<ul class="rules">${rows.map(([f, t]) => `<li><i style="background:var(--${FAM[f].col})"></i>${esc(t)}${state.fam[f] ? '' : ' <em>(rule off)</em>'}</li>`).join('')}</ul>` : '<p class="note">No rule the tool applies gives it prey.</p>';
   }
   function rejectedNote() {
@@ -604,6 +608,7 @@
   function prmNow() { return Object.assign({}, state.prm, { network: Object.assign({}, state.fam) }); }
   function runYear() {
     if (!BUILD.spec) return;
+    sim.useBuild(BUILD.B);
     const site = 1 + Math.floor(Math.random() * 9999);
     YEAR = sim.year(BUILD.B, BUILD.spec, prmNow(), site, 250);
     YEAR._site = site;
@@ -613,6 +618,7 @@
   function runYears() {
     if (!BUILD.spec) return;
     const myRun = ++running, n = state.years, prm = prmNow(), B = BUILD.B, spec = BUILD.spec;
+    sim.useBuild(B);
     const acc = { n: 0, by: {}, prm, key: BUILD.key };
     for (const L of B.active) acc.by[L] = { casts: 0, seasons: {}, seed: {}, apex: {}, slot: {}, guarantee: 0, unfilled: 0, links: [0, 0] };
     const btn = $('#runN'); btn.disabled = true;

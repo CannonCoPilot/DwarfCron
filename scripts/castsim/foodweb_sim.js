@@ -31,6 +31,7 @@
     const setOf = o => { const r = {}; for (const k in o) r[k] = new Set(o[k]); return r; };
     const EXTRA = setOf(M.extra_biomes), EVIL_EXTRA = setOf(M.evil_extra_biomes), LIMIT = setOf(M.biome_limit);
     const EVIL_APEX_B = setOf(M.evil_apex_biomes);
+    const WATER_BUG_APEX = new Set(M.water_bug_apex), VERMIN_FRESH = new Set(M.vermin_fresh);
     const GIANT_BUGS = new Set(M.giant_bugs), SALT_WET = new Set(M.salt_wet), NOT_RAPTOR = new Set(M.fly_not_raptor);
     const VDIET = {};
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
@@ -78,7 +79,7 @@
     // ------------------------------------------------------------ step 1: the gates
     function gate(c, b, fb, spec) {
       if (SUBTER.includes(b)) return null;
-      if (GIANT_BUGS.has(c.t) && fb.kind === 'land' && (fb.sav >= M.savage_at || fb.evil >= M.evil_at)) return null;
+      if (GIANT_BUGS.has(c.t) && (fb.kind === 'land' || (WATER_BUG_APEX.has(c.t) && (fb.kind === 'lake' || fb.kind === 'river'))) && (fb.sav >= M.savage_at || fb.evil >= M.evil_at)) return null;
       if (c.ex && !c.ap) {
         const rule = spec.extinct || 'UNTAMED_WILDS';
         if (rule === 'NONE') return 'extinct: absent from this world';
@@ -126,15 +127,15 @@
       const land = p.matched.filter(b => fbs[b].kind === 'land');
       const hab = c.h, verm = c.v, vc = c.vc;
       if (c.pl) return out;
-      if (land.length) {
+      if (land.length && !(verm && VERMIN_FRESH.has(c.t))) {   // the mosquito: freshwater vermin only (user 17 Oct)
         if (verm) { if (vc === 'VB' || vc === 'VI') out.push('flying'); else if (vc !== 'VF') out.push('ground'); }
         else if (hab === 'land') out.push('ground');
-        else if (hab === 'flier' || hab === 'waterbird') { out.push('flying'); if (GIANT_BUGS.has(c.t)) out.push('ground'); }
+        else if (hab === 'flier' || hab === 'waterbird') out.push('flying');   // no giant bug flier on land-ground (user 17 Oct)
       }
       const wet = hab === 'aquatic' || hab === 'semiaquatic';
       const waterHere = p.matched.filter(b => fbs[b].kind !== 'land' && fbs[b].kind !== 'cavern');
       const named = new Set(c.wn.filter(b => m.has(b)));
-      for (const b of p.extra) if (waterHere.includes(b)) named.add(b);
+      for (const b of waterHere) if (EXTRA[c.t] && EXTRA[c.t].has(b)) named.add(b);   // engine: an EXTRA_BIOMES water is named, raws or not
       const seas = p.matched.filter(b => fbs[b].kind === 'ocean');
       const anySea = Object.keys(fbs).some(b => fbs[b].kind === 'ocean');
       if (anySea) {
@@ -186,6 +187,7 @@
       if (c.civ || c.v) return null;
       if (promoted.has(L + '|' + c.t)) return 'apex';
       if (GIANT_BUGS.has(c.t) && (L === 'ground' || L === 'flying')) return 'apex';
+      if (WATER_BUG_APEX.has(c.t) && L === 'fresh') return 'apex';
       if (flagged(c, L)) return 'apex';
       for (const t of [c.t, c.rt]) { const r = t && M.real_apex[t]; if (r && r[0] === L) return r[1]; }
       if (c.gi) { const r = M.real_apex[c.t.slice(6)]; if (r && r[0] === L) return 'apex'; }
@@ -206,7 +208,11 @@
       }
       if (L === 'ground') { if (tier) s.push('apex'); s.push(pred ? 'meso' : (g === 'GZ' ? 'grazer' : 'ground prey')); return s; }
       if (L === 'flying') return (tier ? ['apex'] : []).concat(['flier']);
-      if (hab === 'flier' || hab === 'waterbird') return (L === 'fresh' && sub === 'pool') ? [] : ['waterbird'];
+      if (hab === 'flier' || hab === 'waterbird') {
+        if (L === 'fresh' && sub === 'pool') return [];
+        if (WATER_BUG_APEX.has(c.t) && L === 'fresh' && sub !== 'river' && tier) return ['apex', 'waterbird'];
+        return ['waterbird'];
+      }
       const wet = hab === 'aquatic' || hab === 'semiaquatic';
       if (L === 'fresh' && sub === 'pool') { if (pred) s.push('meso'); else if (wet) s.push('fish'); return s; }
       if (c.pl) return ['placed plant'];
@@ -287,12 +293,39 @@
     const VCLASS = { VG: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_SMALL_MAMMAL', 'SWV_HERP', 'SWV_OTHER'], VC: ['SWV_COLONY'], VF: ['SWV_SMALL_FISH'],
       VB: ['SWV_SMALL_BIRD', 'SWV_BAT'], VI: ['SWV_FLYING_INSECT'] };
     const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
+    // VERMIN SIDES (user 17 Oct; engine VERMIN composite classes SWV_<type>@<SIDE>): a vermin is fed on only from the sides a
+    // consumer may take -- none for a giant, a land-ground apex or an ocean apex; FLYING only for a land-flying apex; else
+    // all but GROUND when the consumer is on the ocean or freshwater, OCEAN when on freshwater, FRESH when on the ocean
+    let CUR = { P: {}, promoted: new Set() };
+    const SIDE = { ground: 'GROUND', flying: 'FLYING', ocean: 'OCEAN', fresh: 'FRESH', cavern1: 'CAVERN', cavern2: 'CAVERN', cavern3: 'CAVERN' };
+    const laysOf = t => ((CUR.P[t] && CUR.P[t].layers) || []);
+    const sidesOf = t => [...new Set(laysOf(t).map(L => SIDE[L]))];
+    function allowedSides(c) {
+      const lays = laysOf(c.t);
+      if (c.gi) return { sides: [], why: 'a giant eats no vermin' };
+      for (const L of ['ground', 'ocean']) if (lays.includes(L) && apexTier(c, L, CUR.promoted)) return { sides: [], why: `an apex on ${L === 'ground' ? 'land-ground' : 'the ocean'} eats no vermin` };
+      if (lays.includes('flying') && apexTier(c, 'flying', CUR.promoted)) return { sides: ['FLYING'], why: 'a land-flying apex eats flying vermin only' };
+      let s = ['GROUND', 'FLYING', 'OCEAN', 'FRESH', 'CAVERN'];
+      const wet = lays.includes('ocean') || lays.includes('fresh');
+      if (wet) s = s.filter(x => x !== 'GROUND');
+      if (lays.includes('fresh')) s = s.filter(x => x !== 'OCEAN');
+      if (lays.includes('ocean')) s = s.filter(x => x !== 'FRESH');
+      return { sides: s, why: wet ? 'on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin' : '' };
+    }
+    function gobbleWhy(a, b, L) {
+      if (!b.vermin) return null;
+      const g = gobbleSet(a.c, L);
+      if (!g || !g.has(b.c.swv)) return null;
+      const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x));
+      if (!hit.length) return null;
+      return `GOBBLE_VERMIN_CLASS:${hit.map(x => b.c.swv + '@' + x).join(', ')} written (${g.get(b.c.swv)})${al.why ? '; ' + al.why : ''}`;
+    }
     const FAMILIES = ['newrules', 'hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
     // NEW RULES (user 17 Oct): the rule set we build together. One entry per rule; the user adds or removes them by name.
     // Each test takes the predator side a and the prey side b ({c, slots, vermin}) on layer L and returns a reason or null.
     const NEW_RULES = [
       { id: 'raws', label: "DF's own diet tokens", test: (a, b) => vanillaEats(a.c, b.c) },
-      { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => { if (!b.vermin) return null; const g = gobbleSet(a.c, L); return g && g.has(b.c.swv) ? `GOBBLE_VERMIN_CLASS:${b.c.swv} written (${g.get(b.c.swv)})` : null; } },
+      { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => gobbleWhy(a, b, L) },
     ];
     const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
     function armedWhy(c, slots, L) {
@@ -363,7 +396,7 @@
             out.push({ f: 'hunt', d: `armed: ${arm}; cast edge (${lw}); ${rw}; pack share ${share >= 10 ? Math.round(share) : share.toFixed(2)}x the prey's mass${ca.g === 'RP' ? `; raptor prey ${(cb.m / ca.m).toFixed(2)}x its mass (max 2)` : ''}` });
         }
       }
-      if (on.gobble && b.vermin) { const g = gobbleSet(ca, L); if (g && g.has(cb.swv)) out.push({ f: 'gobble', d: `GOBBLE_VERMIN_CLASS:${cb.swv} written (${g.get(cb.swv)})` }); }
+      if (on.gobble && b.vermin) { const w = gobbleWhy(a, b, L); if (w) out.push({ f: 'gobble', d: w }); }
       if (on.raws) { const w = vanillaEats(ca, cb); if (w) out.push({ f: 'raws', d: w }); }
       if (on.flags && b.vermin) { const w = huntFlag(ca); if (w) out.push({ f: 'flags', d: w + ': hunts any vermin' }); }
       if (on.ladder) { const w = ladder(); if (w) out.push({ f: 'ladder', d: `tier ladder: ${w}` }); }
@@ -428,6 +461,7 @@
         }
         lists[L + '|' + s] = lst;
       }
+      CUR = { P, promoted };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists };
     }
 
@@ -682,7 +716,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set() }; }, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };

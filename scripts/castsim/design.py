@@ -149,6 +149,8 @@ EXTRA_BIOMES = {
     'BEAR_BLACK': _bx('ANY_TEMPERATE_WETLAND'),
     'WOLF': _bx('ANY_TEMPERATE_WETLAND'),
     'ANACONDA': _bx('LAKE_TROPICAL_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
+    # user 17 Oct: the giant dragonfly and giant mosquito hunt over lakes and rivers; the mosquito is freshwater vermin
+    'GIANT_DRAGONFLY': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'GIANT_MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
 }
 # ... and on evil biomes only: the evil roster widened beyond its narrow raw ranges (user 13 Oct)
 EVIL_EXTRA_BIOMES = {
@@ -167,6 +169,12 @@ BIOME_LIMIT = {
 # (past their giant SAVAGE tag), and are true apexes there; a flier is eligible on land-ground as well as land-flying.
 GIANT_BUGS = {'GIANT_JUMPING_SPIDER', 'GIANT_BARK_SCORPION', 'GIANT_BROWN_RECLUSE_SPIDER', 'GIANT_MANTIS', 'GIANT_DRAGONFLY',
               'GIANT_TICK', 'GIANT_MOSQUITO', 'GIANT_ROACH'}
+# user 17 Oct ("Changing Vermin the Tool Feeds"; engine ROSTER.FP.HABITAT / WATER_BUG_APEX / VERMIN_FRESH): the giant mantis and
+# giant roach are fliers, not waterbirds; no giant bug flier is on land-ground; the giant dragonfly and giant mosquito are
+# freshwater apexes and waterbirds (lake: apex + waterbird; river: waterbird); the mosquito is freshwater vermin only
+HABITAT = {'GIANT_MANTIS': 'flier', 'GIANT_ROACH': 'flier'}
+WATER_BUG_APEX = {'GIANT_DRAGONFLY', 'GIANT_MOSQUITO'}
+VERMIN_FRESH = {'MOSQUITO'}
 APEX_PACK = 1.5       # the apex draw's pack bonus (user 13 Oct; was the cast-wide x3): group size already counts the pack
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
 # filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
@@ -298,7 +306,8 @@ class Design:
     def gate(self, info, b, fb, spec):
         """can this species live in fort biome b? (None = yes, else the reason)"""
         if b in SUBTER: return None
-        if info['token'] in GIANT_BUGS and fb['kind'] == 'land' and (fb['sav'] >= SAVAGE_AT or fb['evil'] >= EVIL_AT):
+        if info['token'] in GIANT_BUGS and (fb['kind'] == 'land' or (info['token'] in WATER_BUG_APEX and fb['kind'] in ('lake', 'river'))) \
+                and (fb['sav'] >= SAVAGE_AT or fb['evil'] >= EVIL_AT):
             return None   # a giant bug apex lives in any savage or evil land biome (user 13 Oct)
         # a real-world-extinct species (not its animal person) follows the world's REAL_WORLD_EXTINCT rule in place of
         # its raw SAVAGE tag: DF's raws tag them all SAVAGE, the worldgen setting says savage-only or any wild region
@@ -325,6 +334,7 @@ class Design:
             f = c['flags']
             if 'DOES_NOT_EXIST' in f or 'EQUIPMENT_WAGON' in f or not c['biomes']: continue
             info = self.E.classify(tok)
+            if tok in HABITAT: info = dict(info, habitat=HABITAT[tok])
             if tok in PLACED_PLANTS:
                 info = dict(info, eco='natural', ecoWhy=['placed like a plant on the bed (user 30 Sep, 12 Oct)'], locked=False, plant=True)
             if 'VERMIN_SOIL_COLONY' in f and not info['gameVermin']:   # colony insects: DF stocks them as ColonyInsect populations
@@ -386,20 +396,19 @@ class Design:
         hab, verm = e['habitat'], e['gameVermin']
         out, notes = [], []
         vc = self.E.vclass(e) if verm else None
-        if land:
+        if land and not (verm and e['token'] in VERMIN_FRESH):
             if verm:
                 if vc in ('VB', 'VI'): out.append('flying')
                 elif vc != 'VF': out.append('ground')
             elif hab == 'land': out.append('ground')
             elif hab in ('flier', 'waterbird'):
-                out.append('flying')
-                if e['token'] in GIANT_BUGS: out.append('ground')   # a giant bug flier hunts on the ground too (user 13 Oct)
+                out.append('flying')   # user 17 Oct: no giant bug flier on land-ground (was: hunts on the ground too, 13 Oct)
             elif hab == 'semiaquatic': notes.append(('ground', 'amphibious: never on land-ground'))
         # a water layer takes aquatic and amphibious species on any biome match; land animals, fliers and insects only
         # where their raws name the water body itself (ALL_MAIN or ANY_TROPICAL would put rats and beetles in every pool)
         wet = hab in ('aquatic', 'semiaquatic')
         named = explicit_water(self.R.creature(e['token'])['biome_tokens'], {b for b in m if fbs[b]['kind'] not in ('land', 'cavern')})
-        named |= set(e.get('extra', ())) & {b for b in m if fbs[b]['kind'] not in ('land', 'cavern')}   # a tool-side addition is named on purpose
+        named |= EXTRA_BIOMES.get(e['token'], set()) & {b for b in m if fbs[b]['kind'] not in ('land', 'cavern')}   # a tool-side addition is named on purpose (engine FP.layersOf: EXTRA_BIOMES, raws or not)
         seas = {w['biome'] for w in spec['water'].get('ocean') or ()}
         if seas:
             if (m & seas and (wet or m & seas & named)) or (not verm and hab in ('semiaquatic', 'waterbird') and set(land) & SALT_WET):
@@ -431,6 +440,7 @@ class Design:
         if e['civ'] or e['gameVermin']: return None
         if (layer, e['token']) in self.promoted: return 'apex'
         if e['token'] in GIANT_BUGS and layer in ('ground', 'flying'): return 'apex'
+        if e['token'] in WATER_BUG_APEX and layer == 'fresh': return 'apex'
         if self.flagged(e, layer): return 'apex'
         for tok in (e['token'], e.get('root')):
             r = REAL_APEX.get(tok)
@@ -482,7 +492,10 @@ class Design:
         # water layers
         s = []
         flyer = hab in ('flier', 'waterbird')
-        if flyer: return ['waterbird'] if not (layer == 'fresh' and sub == 'pool') else []
+        if flyer:
+            if layer == 'fresh' and sub == 'pool': return []
+            if e['token'] in WATER_BUG_APEX and layer == 'fresh' and sub != 'river' and self.apex_tier(e, layer): return ['apex', 'waterbird']
+            return ['waterbird']
         wet = hab in ('aquatic', 'semiaquatic')
         if sub == 'pool':
             if pred: s.append('meso')

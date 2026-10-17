@@ -80,6 +80,7 @@ def main():
         if 'DOES_NOT_EXIST' in f or 'EQUIPMENT_WAGON' in f:
             continue
         info = E.classify(tok)
+        if tok in DS.HABITAT: info = dict(info, habitat=DS.HABITAT[tok])
         plant = tok in DS.PLACED_PLANTS
         if plant:
             info = dict(info, eco='natural', locked=False)
@@ -127,7 +128,7 @@ def main():
         'extra_biomes': {k: sorted(v) for k, v in DS.EXTRA_BIOMES.items()},
         'evil_extra_biomes': {k: sorted(v) for k, v in DS.EVIL_EXTRA_BIOMES.items()},
         'biome_limit': {k: sorted(v) for k, v in DS.BIOME_LIMIT.items()},
-        'giant_bugs': sorted(DS.GIANT_BUGS), 'evil_apex': DS.EVIL_APEX,
+        'giant_bugs': sorted(DS.GIANT_BUGS), 'water_bug_apex': sorted(DS.WATER_BUG_APEX), 'vermin_fresh': sorted(DS.VERMIN_FRESH), 'evil_apex': DS.EVIL_APEX,
         'evil_apex_biomes': {k: sorted(v) for k, v in DS.EVIL_APEX_BIOMES.items()},
         'salt_wet': sorted(DS.SALT_WET), 'fly_not_raptor': ['BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'], 'wiring': W, 'cave_assign': cave_assign(),
         'params': {'pack': EN.CAST_DEF['pack'], 'giant': EN.CAST_DEF['giant'], 'hv_top': EN.CAST_DEF['hv_top'],
