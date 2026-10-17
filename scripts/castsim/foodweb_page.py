@@ -152,6 +152,10 @@ BODY = r"""
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
     <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
+    <div><span class="lbl">Show tagged</span><div class="row tags" title="Creatures carrying the raws' SAVAGE, GOOD or EVIL tag; one unticked hides every creature with that tag (giants, animal people and real-world-extinct species all carry SAVAGE)">
+      <label class="ck"><input type="checkbox" id="tg_sav">SAVAGE <span class="small" id="tgn_sav"></span></label>
+      <label class="ck"><input type="checkbox" id="tg_gd">GOOD <span class="small" id="tgn_gd"></span></label>
+      <label class="ck"><input type="checkbox" id="tg_ev">EVIL <span class="small" id="tgn_ev"></span></label></div></div>
     <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="type to light matches" autocomplete="off"><datalist id="names"></datalist></div>
   </div>
   <div><span class="lbl">Feeding links: the rules seasonal-wildlife applies (engine default in brackets)</span><div id="fams" class="fams"></div></div>
