@@ -212,6 +212,7 @@ BODY = r"""
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
   </ol>
+  <p class="small"><b>New Rules</b> is the rule set we are building together, one rule at a time; its current rules are listed in the switch's tooltip and in every link's popup. It starts as DF's own diet tokens plus the vermin the tool feeds.</p>
   <p class="small"><b>The network's links are the rules seasonal-wildlife applies to creatures</b> (engine v7.6.1; switch each on or off above the network):
   <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
   <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes);

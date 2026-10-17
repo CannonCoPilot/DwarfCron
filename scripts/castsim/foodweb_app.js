@@ -25,6 +25,7 @@
   const HAB_COL = { land: 'c-amber', flier: 'c-blue', waterbird: 'c-purple', aquatic: 'c-green', semiaquatic: 'c-red' };
   const LEVEL_NAME = ['vermin', 'prey', 'predator', 'apex'];
   const FAM = {
+    newrules: { lab: 'New Rules', col: 'c-green', def: sim.NEW_RULES.map(r => r.label).join(' + '), note: 'the rule set we are building: ' + sim.NEW_RULES.map(r => r.label).join(' + ') },
     hunt: { lab: 'Hunting pairs written in play', col: 'ink', def: 'on', note: 'ecology relation write: armed predator x target, on the season cast\'s own edges' },
     gobble: { lab: 'Vermin the tool feeds', col: 'c-blue', def: 'on', note: 'GOBBLE_VERMIN_CLASS written onto consumers (guild rules) over the tool\'s SWV vermin classes' },
     raws: { lab: "DF's own diet tokens", col: 'c-amber', def: 'always', note: 'GOBBLE_VERMIN_CLASS/_CREATURE, DIVE_HUNTS_VERMIN, HUNTS_VERMIN in the vanilla raws' },
@@ -32,7 +33,7 @@
     ladder: { lab: 'Cast-growth ladder', col: 'muted', def: 'build only', note: 'ROSTER.FP.eats: tiers + habitat; the hunting pairs are filtered through it' },
     mass: { lab: 'Mass and numbers', col: 'c-red', def: 'off', note: 'MODEL eats (pack mass v prey mass); used only by coupling, off by default' },
   };
-  const FAM_ORDER = ['hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
+  const FAM_ORDER = ['newrules', 'hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
   const realmOf = L => L.startsWith('cavern') ? L : 'surface';
   const GUILD_FAM = g => ({ AL: 'predator', AW: 'predator', ML: 'predator', MW: 'predator', RP: 'raptor', GZ: 'grazer', PL: 'small prey',
     LB: 'bird', WB: 'bird', FF: 'fish', FC: 'fish', PE: 'fish', SH: 'shore', V: 'vermin' }[g] || 'other');
@@ -45,7 +46,7 @@
     land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'all', fam: { hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)

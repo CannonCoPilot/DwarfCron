@@ -204,6 +204,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
   </ol>
+  <p class="small"><b>New Rules</b> is the rule set we are building together, one rule at a time; its current rules are listed in the switch's tooltip and in every link's popup. It starts as DF's own diet tokens plus the vermin the tool feeds.</p>
   <p class="small"><b>The network's links are the rules seasonal-wildlife applies to creatures</b> (engine v7.6.1; switch each on or off above the network):
   <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
   <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes);
@@ -508,7 +509,13 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     const VCLASS = { VG: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_SMALL_MAMMAL', 'SWV_HERP', 'SWV_OTHER'], VC: ['SWV_COLONY'], VF: ['SWV_SMALL_FISH'],
       VB: ['SWV_SMALL_BIRD', 'SWV_BAT'], VI: ['SWV_FLYING_INSECT'] };
     const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
-    const FAMILIES = ['hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
+    const FAMILIES = ['newrules', 'hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
+    // NEW RULES (user 17 Oct): the rule set we build together. One entry per rule; the user adds or removes them by name.
+    // Each test takes the predator side a and the prey side b ({c, slots, vermin}) on layer L and returns a reason or null.
+    const NEW_RULES = [
+      { id: 'raws', label: "DF's own diet tokens", test: (a, b) => vanillaEats(a.c, b.c) },
+      { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => { if (!b.vermin) return null; const g = gobbleSet(a.c, L); return g && g.has(b.c.swv) ? `GOBBLE_VERMIN_CLASS:${b.c.swv} written (${g.get(b.c.swv)})` : null; } },
+    ];
     const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
     function armedWhy(c, slots, L) {
       if (c.v) return null;
@@ -563,6 +570,11 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
         }
         return null;
       };
+      if (on.newrules) {
+        const hits = [];
+        for (const r of NEW_RULES) { const w = r.test(a, b, L); if (w) hits.push(`${r.label}: ${w}`); }
+        if (hits.length) out.push({ f: 'newrules', d: hits.join(' | ') });
+      }
       if (on.hunt && !b.vermin) {
         const arm = armedWhy(ca, a.slots, L), rw = arm && reachWhy(ca, cb), lw = rw && ladder();
         if (lw) {
@@ -892,7 +904,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
@@ -926,6 +938,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   const HAB_COL = { land: 'c-amber', flier: 'c-blue', waterbird: 'c-purple', aquatic: 'c-green', semiaquatic: 'c-red' };
   const LEVEL_NAME = ['vermin', 'prey', 'predator', 'apex'];
   const FAM = {
+    newrules: { lab: 'New Rules', col: 'c-green', def: sim.NEW_RULES.map(r => r.label).join(' + '), note: 'the rule set we are building: ' + sim.NEW_RULES.map(r => r.label).join(' + ') },
     hunt: { lab: 'Hunting pairs written in play', col: 'ink', def: 'on', note: 'ecology relation write: armed predator x target, on the season cast\'s own edges' },
     gobble: { lab: 'Vermin the tool feeds', col: 'c-blue', def: 'on', note: 'GOBBLE_VERMIN_CLASS written onto consumers (guild rules) over the tool\'s SWV vermin classes' },
     raws: { lab: "DF's own diet tokens", col: 'c-amber', def: 'always', note: 'GOBBLE_VERMIN_CLASS/_CREATURE, DIVE_HUNTS_VERMIN, HUNTS_VERMIN in the vanilla raws' },
@@ -933,7 +946,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     ladder: { lab: 'Cast-growth ladder', col: 'muted', def: 'build only', note: 'ROSTER.FP.eats: tiers + habitat; the hunting pairs are filtered through it' },
     mass: { lab: 'Mass and numbers', col: 'c-red', def: 'off', note: 'MODEL eats (pack mass v prey mass); used only by coupling, off by default' },
   };
-  const FAM_ORDER = ['hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
+  const FAM_ORDER = ['newrules', 'hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
   const realmOf = L => L.startsWith('cavern') ? L : 'surface';
   const GUILD_FAM = g => ({ AL: 'predator', AW: 'predator', ML: 'predator', MW: 'predator', RP: 'raptor', GZ: 'grazer', PL: 'small prey',
     LB: 'bird', WB: 'bird', FF: 'fish', FC: 'fish', PE: 'fish', SH: 'shore', V: 'vermin' }[g] || 'other');
@@ -946,7 +959,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'all', fam: { hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)

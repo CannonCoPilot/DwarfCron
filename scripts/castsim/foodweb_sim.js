@@ -287,7 +287,13 @@
     const VCLASS = { VG: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_SMALL_MAMMAL', 'SWV_HERP', 'SWV_OTHER'], VC: ['SWV_COLONY'], VF: ['SWV_SMALL_FISH'],
       VB: ['SWV_SMALL_BIRD', 'SWV_BAT'], VI: ['SWV_FLYING_INSECT'] };
     const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
-    const FAMILIES = ['hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
+    const FAMILIES = ['newrules', 'hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
+    // NEW RULES (user 17 Oct): the rule set we build together. One entry per rule; the user adds or removes them by name.
+    // Each test takes the predator side a and the prey side b ({c, slots, vermin}) on layer L and returns a reason or null.
+    const NEW_RULES = [
+      { id: 'raws', label: "DF's own diet tokens", test: (a, b) => vanillaEats(a.c, b.c) },
+      { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => { if (!b.vermin) return null; const g = gobbleSet(a.c, L); return g && g.has(b.c.swv) ? `GOBBLE_VERMIN_CLASS:${b.c.swv} written (${g.get(b.c.swv)})` : null; } },
+    ];
     const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
     function armedWhy(c, slots, L) {
       if (c.v) return null;
@@ -342,6 +348,11 @@
         }
         return null;
       };
+      if (on.newrules) {
+        const hits = [];
+        for (const r of NEW_RULES) { const w = r.test(a, b, L); if (w) hits.push(`${r.label}: ${w}`); }
+        if (hits.length) out.push({ f: 'newrules', d: hits.join(' | ') });
+      }
       if (on.hunt && !b.vermin) {
         const arm = armedWhy(ca, a.slots, L), rw = arm && reachWhy(ca, cb), lw = rw && ladder();
         if (lw) {
@@ -671,7 +682,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
