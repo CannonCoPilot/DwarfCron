@@ -76,6 +76,10 @@ def main():
         root = c.get('root') if e['giant'] else None
         pet = R.creature(root)['pet'] if root and root in R.src else e['pet']   # ROSTER.hvInfo: a giant reads its root's value
         thief = [t for t in THIEF_TAGS if c['any'](t)]
+        # vanilla 'this eats that': the raws' only creature-to-creature diet tokens (17 Oct survey of every creature token)
+        gvc = sorted({t[1] for t in R.src[tok]['toks'] if t[0] == 'GOBBLE_VERMIN_CLASS' and len(t) > 1})
+        gvt = sorted({t[1] for t in R.src[tok]['toks'] if t[0] == 'GOBBLE_VERMIN_CREATURE' and len(t) > 1})
+        dhv = any(t[0] in ('DIVE_HUNTS_VERMIN', 'HUNTS_VERMIN') for t in R.src[tok]['toks'])
         rows.append({
             't': tok, 'nm': name_of(D, tok), 'g': e['guild'], 'h': e['habitat'], 'ro': e['role'], 'v': bool(e['gameVermin']),
             'vc': E.vclass(e) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
@@ -87,7 +91,7 @@ def main():
             'b': sorted(c['biomes']), 'wn': sorted(explicit_water(c['biome_tokens'], set(WATER_ALL))),
             'fr': fresh_raw(c['biomes']), 'fa': bool(E.fly_apex(dict(e, layer='land'))), 'bo': bool(E.boosted(e)),
             'pl': plant, 'nat': bool(wild and natural), 'th': thief,
-            'cc': sorted(c['cclass'])[:6],
+            'cc': sorted(c['cclass']), 'gvc': gvc, 'gvt': gvt, 'dhv': dhv,
         })
     W = {f'{sav}|{al}|{L}|{b}': [[t, k] for t, k in v] for (sav, al, L, b), v in D.wiring.items()}
     meta = {

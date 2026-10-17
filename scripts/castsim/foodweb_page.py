@@ -33,7 +33,7 @@ header.top{display:grid;gap:8px;margin-bottom:14px}header.top p{color:var(--mute
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.app{display:grid;grid-template-columns:270px minmax(0,1fr) 300px;gap:16px;align-items:start}
+.app{display:grid;grid-template-columns:270px minmax(0,1fr) 150px;gap:16px;align-items:start}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
 aside#fort{display:grid;gap:12px;max-height:calc(100vh - 40px);overflow:auto;position:sticky;top:env(safe-area-inset-top,0px)}
 .lbl{font:600 .68rem var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:5px}
@@ -52,12 +52,13 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
-#legend{display:grid;gap:4px;font-size:.78rem;color:var(--muted)}#legend>div{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+#legend{display:grid;gap:3px;font-size:.68rem;color:var(--muted)}#legend>div{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
 #legend b{font:600 .66rem var(--mono);text-transform:uppercase;letter-spacing:.06em;min-width:3.6em;color:var(--ink)}
 #legend span{display:inline-flex;gap:5px;align-items:center}#legend svg{flex:none}
 #legend .ramp i{display:inline-block;width:90px;height:9px;border-radius:2px;background:linear-gradient(90deg,var(--seq-lo),var(--seq-hi))}
 #legend .dash::before{content:"";display:inline-block;width:22px;border-top:1.5px solid var(--ink)}
-#inspect{min-width:0}#inspect h3{margin-bottom:2px}
+#inspect{min-width:0;padding:10px;font-size:.8rem}#inspect h3{margin-bottom:2px;font-size:.92rem;overflow-wrap:anywhere}#inspect p{font-size:.76rem}
+#inspect dl.kv{grid-template-columns:1fr}#inspect .chip{font-size:.6rem;white-space:normal}#inspect th,#inspect td{padding:3px 4px;font-size:.7rem}
 .chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.chip{font:600 .68rem var(--mono);padding:2px 7px;border-radius:999px;background:var(--sunk);color:var(--ink)}
 .chip.flag{background:var(--warn-bg);color:var(--warn)}
 dl.kv{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin:8px 0}dl.kv div{display:grid}dt{font:600 .64rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}dd{margin:0;font-size:.86rem;font-variant-numeric:tabular-nums}
@@ -103,7 +104,7 @@ BODY = r"""
 <header class="top">
   <span class="eyebrow">Seasonal Wildlife · the cast builder of engine v7.6.1 · DF 53.16 raws</span>
   <h1>Food Web Explorer</h1>
-  <p>Every wild creature in the raws, the feeding links the cast builder sees between them, and the builder itself, running in the page.
+  <p>Every wild creature in the raws, the feeding links the raws themselves name, and the cast builder, running in the page.
   Choose a fort on the left; the network shows what passes its gates, layer by layer. Then build casts below and change the rules
   (rarity multipliers, pack bonus, the seed, the repeat weight) to see how often each species would be cast.</p>
   <div class="presets" id="presets"><span>Forts</span>
@@ -140,7 +141,8 @@ BODY = r"""
     <div><span class="lbl">Colour</span><div class="seg" id="color"></div></div>
     <div><span class="lbl">Shape</span><div class="seg" id="shape"></div></div>
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
-    <div><span class="lbl">Links</span><div class="seg" id="edges"></div></div>
+    <div><span class="lbl">Feeding links</span><div class="seg" id="linksrc"></div></div>
+    <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
     <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="name or token"><datalist id="names"></datalist></div>
   </div>
@@ -164,6 +166,7 @@ BODY = r"""
       <label>apex pack ×<input type="number" id="p_apack" step="0.5" min="0"></label>
       <label>repeat weight ×<input type="number" id="p_reuse" step="0.01" min="0"></label>
       <label>high value, top share<input type="number" id="p_hv" step="0.05" min="0" max="1"></label>
+      <label>growth links<span class="seg" id="p_links"></span></label>
       <label class="ck"><input type="checkbox" id="p_seed">seed each cast</label>
       <label class="ck"><input type="checkbox" id="p_weird">cavern weirdness tilt</label>
       <label class="ck"><input type="checkbox" id="p_guar">cavern web guarantee</label>
@@ -192,7 +195,7 @@ BODY = r"""
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
   </ol>
-  <p class="small">A link here is the engine's feeding test: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class.
+  <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
   Not modelled: DF's own stocking on a real fort (stocked water entries, the zone read from stocked species), exhaustion stand-ins, placed thieves and apexes, and everything after the cast (FREQUENCY, caps, pauses).
   Source: castsim foodweb_export.py and foodweb_sim.js, checked against the desk simulator (exact pools, layers and slots; cast rates within sampling noise).</p>
   </details>

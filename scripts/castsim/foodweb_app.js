@@ -35,8 +35,8 @@
     land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), sav: 'savage', al: 'neutral', iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'focus', vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
-    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true }),
+    edges: 'all', linksrc: 'vanilla', vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'vanilla' }),
   };
   const PRESETS = {
     coast: { label: 'Savage tropical coast', land: ['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF'], sav: 'savage', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL' },
@@ -124,15 +124,21 @@
       }
     }
     const edges = [];
-    for (const L of ls) {
+    if (state.linksrc === 'vanilla') {   // the raws' own diet tokens, between any two creatures in view
+      // only where the two share a layer (a peregrine hunts the vermin of the sky it flies in, not the caverns')
+      for (const [a, b, why] of sim.vanillaEdges(nodes.map(n => ({ c: n.c, vermin: n.vermin })))) {
+        if (byT[a].layers.some(L => byT[b].layers.includes(L)) || (byT[a].layers.includes('flying') && byT[b].layers.includes('ground'))) edges.push({ a: byT[a], b: byT[b], why });
+      }
+    } else for (const L of ls) {
       const key = BUILD.key + '|' + L + '|' + state.season + '|' + state.vermin;
       let E = edgeCache.get(key);
       if (!E) { E = sim.potentialEdges(items[L], L); edgeCache.set(key, E); }
-      for (const [a, b] of E) edges.push({ a: byT[a], b: byT[b], L });
+      for (const [a, b] of E) edges.push({ a: byT[a], b: byT[b], L, why: 'engine tier ladder' });
     }
     const adj = new Map();
     for (const n of nodes) adj.set(n.t, { prey: new Set(), pred: new Set() });
-    for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); }
+    const why = new Map();
+    for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); why.set(e.a.t + '>' + e.b.t, e.why); }
     // value: within the view, the higher of the pet-value and body-size percentiles; war animals at the top
     const pct = (arr, f) => { const v = arr.map(f).filter(x => x > 0).sort((a, b) => a - b); return x => x <= 0 ? 0 : (d3.bisectRight(v, x) / v.length); };
     const nv = nodes.filter(n => !n.vermin);
@@ -144,7 +150,7 @@
       const hv = sim.hvSet(free.map(it => ({ c: it.c })), state.prm);
       for (const t in hv) if (byT[t] && byT[t].L === L) byT[t].hv = hv[t];
     }
-    VIEW = { nodes, byT, edges, adj, layers: ls };
+    VIEW = { nodes, byT, edges, adj, why, layers: ls };
   }
   function radius(c) { return 2.6 + 1.9 * Math.sqrt(Math.min(40, Math.max(1, c.c1 || 1))); }
 
@@ -289,11 +295,15 @@
     ctx.globalAlpha = 1;
     // labels: the selection and its links, a highlighted cast, the hover; everything when zoomed in
     const lab = new Set();
-    if (sel) { lab.add(sel); if (A.prey.size + A.pred.size <= 40) for (const t of [...A.prey, ...A.pred]) lab.add(VIEW.byT[t]); }
-    if (cs) for (const t of cs.set) if (VIEW.byT[t]) lab.add(VIEW.byT[t]);
-    if (k >= 2.4) for (const n of VIEW.nodes) lab.add(n);
     const hov = state.hover && VIEW.byT[state.hover];
-    if (hov) lab.add(hov);
+    if (sel) {   // a selection shows only its own label and those of what it eats and what eats it
+      lab.add(sel); for (const t of [...A.prey, ...A.pred]) lab.add(VIEW.byT[t]);
+      if (hov && (A.prey.has(hov.t) || A.pred.has(hov.t))) lab.add(hov);
+    } else {
+      if (cs) for (const t of cs.set) if (VIEW.byT[t]) lab.add(VIEW.byT[t]);
+      if (k >= 2.4) for (const n of VIEW.nodes) lab.add(n);
+      if (hov) lab.add(hov);
+    }
     ctx.font = `${11.5 / k}px "Atkinson Hyperlegible", system-ui, sans-serif`;
     ctx.lineJoin = 'round';
     for (const n of lab) {
@@ -307,7 +317,7 @@
   }
   function resize() {
     const box = $('#netbox');
-    W = Math.max(300, box.clientWidth); H = Math.max(360, Math.min(720, Math.round(W * 0.62)));
+    W = Math.max(300, box.clientWidth); H = Math.max(430, Math.min(864, Math.round(W * 0.744)));
     const dpr = window.devicePixelRatio || 1;
     canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
   }
@@ -365,7 +375,7 @@
     else if (state.shape === 'habitat') shapePart = Object.entries(HAB_SHAPE).map(([h, s]) => `<span>${sw('var(--muted)', s)}${h}</span>`).join('');
     else shapePart = Object.entries(FAM_SHAPE).filter(([f]) => f !== 'other').map(([f, s]) => `<span>${sw('var(--muted)', s)}${f}</span>`).join('');
     $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>largest group the raws allow (cluster max)</span>` +
-      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span class="dash">eats it (dashed: eaten by it)</span></div>`;
+      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span class="dash">${state.linksrc === 'vanilla' ? 'eats (raws)' : 'eats (engine ladder)'}; dashed: eaten by the selection's predators</span></div>`;
   }
   function shapeSvg(sh, col) {
     const f = `fill="${col}"`;
@@ -387,7 +397,7 @@
     const n = state.sel && VIEW.byT[state.sel];
     if (!n) {
       const nv = VIEW.nodes.filter(x => !x.vermin).length;
-      box.innerHTML = `<h3>${VIEW.nodes.length} creatures in view</h3><p class="note">${nv} animals and ${VIEW.nodes.length - nv} vermin on ${VIEW.layers.length} layer${VIEW.layers.length === 1 ? '' : 's'}, ${VIEW.edges.length.toLocaleString('en')} potential feeding links.` +
+      box.innerHTML = `<h3>${VIEW.nodes.length} creatures in view</h3><p class="note">${nv} animals and ${VIEW.nodes.length - nv} vermin on ${VIEW.layers.length} layer${VIEW.layers.length === 1 ? '' : 's'}, ${VIEW.edges.length.toLocaleString('en')} feeding link${VIEW.edges.length === 1 ? '' : 's'} (${state.linksrc === 'vanilla' ? "the raws' own diet tokens" : "the engine's tier ladder"}).` +
         ` Click a creature to see what it eats, what eats it, and how often the cast builder picks it.</p>` + rejectedNote();
       return;
     }
@@ -415,8 +425,18 @@
       ${ns.length ? `<p class="note">Absent in ${ns.join(', ')} (NO_ season tags).</p>` : ''}
       ${n.hv ? `<p class="note"><b>High value</b> on ${esc(LNAME[n.L].toLowerCase())}: ${esc(n.hv)}. It can seed a cast.</p>` : ''}
       ${st ? `<h4>In the simulated years</h4><div class="tbl"><table><thead><tr><th>layer</th><th class="num">cast</th><th class="num">seed</th><th class="num">apex</th><th>by slot</th></tr></thead><tbody>${st}</tbody></table></div>` : ''}
+      ${whyList(n, A)}
       <h4>Eats (${A.prey.size})</h4><div class="splist">${list(A.prey) || '<span class="note">nothing in view</span>'}</div>
       <h4>Eaten by (${A.pred.size})</h4><div class="splist">${list(A.pred) || '<span class="note">nothing in view</span>'}</div>`;
+  }
+  function whyList(n, A) {
+    if (state.linksrc !== 'vanilla') return '';
+    const ws = new Set();
+    for (const t of A.prey) ws.add(VIEW.why.get(n.t + '>' + t));
+    for (const t of A.pred) ws.add(VIEW.why.get(t + '>' + n.t));
+    ws.delete(undefined);
+    const tags = [n.c.gvc.length && 'GOBBLE_VERMIN_CLASS:' + n.c.gvc.join(','), n.c.dhv && 'hunts vermin'].filter(Boolean);
+    return `<p class="note">${tags.length ? 'Raw diet: ' + esc(tags.join('; ')) + '. ' : 'Its raws name no prey. '}${ws.size ? 'Links from: ' + esc([...ws].join('; ')) + '.' : ''}</p>`;
   }
   function rejectedNote() {
     const r = BUILD.B.rejected || [];
@@ -491,7 +511,8 @@
     if (!p.seed) out.push('no seed');
     if (!p.weird) out.push('no weirdness tilt');
     if (!p.guarantee) out.push('no web guarantee');
-    return out.length ? out.join(', ') : 'engine defaults';
+    out.push(p.links === 'engine' ? 'engine-ladder links' : 'raws links');
+    return out.join(', ');
   }
   function eff(o) { const v = Object.values(o); const t = v.reduce((a, b) => a + b, 0); return t ? 1 / v.reduce((a, b) => a + (b / t) ** 2, 0) : 0; }
   function renderStats() {
@@ -634,6 +655,8 @@
     seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
     seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
+    seg('#linksrc', [['vanilla', 'Raws'], ['engine', 'Engine ladder']], state.linksrc, v => { state.linksrc = v; state.sel = null; refreshView(); syncControls(); });
+    seg('#p_links', [['vanilla', 'Raws'], ['engine', 'Engine ladder']], state.prm.links, v => { state.prm.links = v; syncControls(); });
     $('#verm').checked = state.vermin;
     for (const [k, id] of [['ap_pick', 'p_ap'], ['giant', 'p_gi'], ['pack', 'p_pack'], ['apex_pack', 'p_apack'], ['reuse', 'p_reuse'], ['hv_top', 'p_hv']]) $('#' + id).value = state.prm[k];
     $('#p_seed').checked = state.prm.seed; $('#p_weird').checked = state.prm.weird; $('#p_guar').checked = state.prm.guarantee;
@@ -665,7 +688,7 @@
   $('#p_weird').onchange = e => { state.prm.weird = e.target.checked; };
   $('#p_guar').onchange = e => { state.prm.guarantee = e.target.checked; };
   $('#p_years').onchange = e => { state.years = +e.target.value; };
-  $('#p_reset').onclick = () => { state.prm = Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true }); syncControls(); };
+  $('#p_reset').onclick = () => { state.prm = Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: state.prm.links }); syncControls(); };
   $('#run1').onclick = runYear;
   $('#runN').onclick = runYears;
   $('#pin').onclick = () => { if (STATS) { BASE = STATS; $('#pinState').textContent = `Baseline: ${STATS.n} years, ${prmText(STATS.prm)}`; renderStats(); } };

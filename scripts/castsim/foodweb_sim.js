@@ -251,8 +251,22 @@
       if (t !== undefined) return t;
       return predator(x.c) ? 2 : 1;
     }
+    // VANILLA (user 17 Oct): the raws' own 'this eats that' -- GOBBLE_VERMIN_CLASS (a vermin of that CREATURE_CLASS),
+    // GOBBLE_VERMIN_CREATURE (that vermin), DIVE_HUNTS_VERMIN / HUNTS_VERMIN (any vermin). Nothing else in the raws names prey.
+    function vanillaEats(ca, cb) {
+      if (!cb.v) return null;
+      if (ca.gvt.includes(cb.t)) return 'GOBBLE_VERMIN_CREATURE';
+      for (const k of ca.gvc) if (cb.cc.includes(k)) return 'GOBBLE_VERMIN_CLASS:' + k;
+      if (ca.dhv) return 'hunts vermin';
+      return null;
+    }
+    let LINKS = 'engine';   // set per cast from prm.links: 'engine' (the v7.6.1 tier ladder) or 'vanilla'
     // a and b: {c, slot, vermin, vclass}; on layer L
     function eats(a, b, L) {
+      if (LINKS === 'vanilla') return !!vanillaEats(a.c, b.c);
+      return engineEats(a, b, L);
+    }
+    function engineEats(a, b, L) {
       if (a.vermin) return false;
       const ea = a.c, eb = b.c;
       const shore = a.slot === 'shore' || a.slot === 'waterbird' || ((a.slot === 'flier' || a.slot === 'swimmer') && (ea.h === 'semiaquatic' || ea.h === 'waterbird'));
@@ -307,6 +321,7 @@
 
     // ------------------------------------------------------------ one season cast (ROSTER.FP.grow)
     function cast(lst, L, sub, used, rng, prm, spec) {
+      LINKS = prm.links || 'engine';
       const tbl = M.slots[slotKey(L, sub)];
       const order = Object.keys(tbl).filter(s => s !== '_vermin');
       const want = {}, have = {};
@@ -525,7 +540,17 @@
     }
     // the potential web of a layer: every pair that eats under some slot either can hold, among one list (or the union of
     // the four seasons' lists)
+    // the view's vanilla edges: [a, b, why] among the items (any layer)
+    function vanillaEdges(items) {
+      const out = [];
+      for (const a of items) {
+        if (a.vermin || !(a.c.gvc.length || a.c.gvt.length || a.c.dhv)) continue;
+        for (const b of items) { const why = a !== b && vanillaEats(a.c, b.c); if (why) out.push([a.c.t, b.c.t, why]); }
+      }
+      return out;
+    }
     function potentialEdges(items, L) {
+      const keep = LINKS; LINKS = 'engine';
       const edges = [];
       for (const a of items) {
         if (a.vermin) continue;
@@ -542,9 +567,10 @@
           if (hit) edges.push([a.c.t, b.c.t]);
         }
       }
+      LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
