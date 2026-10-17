@@ -52,6 +52,15 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
+#edgepop{position:absolute;z-index:6;width:320px;max-width:calc(100% - 12px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:.8rem}
+#edgepop h4{margin:0 18px 6px 0}#edgepop .arrow{font:600 .66rem var(--mono);text-transform:uppercase;color:var(--muted)}
+#edgepop ul,ul.rules{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:5px}#edgepop li,ul.rules li{display:block;line-height:1.35}
+#edgepop li i,ul.rules li i{display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+#edgepop .x{position:absolute;top:4px;right:6px;font:inherit;font-size:1.1rem;background:none;border:0;color:var(--muted);cursor:pointer}
+ul.rules li{font-size:.72rem}ul.rules em{font-style:normal;color:var(--muted)}
+.fams{display:flex;flex-wrap:wrap;gap:2px 14px}.fams .ck{font-size:.8rem}
+i.ln{display:inline-block;width:16px;height:0;border-top:2px solid var(--lc);vertical-align:middle;margin:0 2px}
+#legend .ln{display:inline-flex;align-items:center;gap:4px}#legend .ln::before{content:"";display:inline-block;width:14px;border-top:2px solid var(--lc)}
 #legend{display:grid;gap:3px;font-size:.68rem;color:var(--muted)}#legend>div{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
 #legend b{font:600 .66rem var(--mono);text-transform:uppercase;letter-spacing:.06em;min-width:3.6em;color:var(--ink)}
 #legend span{display:inline-flex;gap:5px;align-items:center}#legend svg{flex:none}
@@ -104,7 +113,7 @@ BODY = r"""
 <header class="top">
   <span class="eyebrow">Seasonal Wildlife · the cast builder of engine v7.6.1 · DF 53.16 raws</span>
   <h1>Food Web Explorer</h1>
-  <p>Every wild creature in the raws, the feeding links the raws themselves name, and the cast builder, running in the page.
+  <p>Every wild creature in the raws, the feeding links seasonal-wildlife imposes on them (each rule switchable, each link clickable for the rule and numbers behind it), and the cast builder, running in the page.
   Choose a fort on the left; the network shows what passes its gates, layer by layer. Then build casts below and change the rules
   (rarity multipliers, pack bonus, the seed, the repeat weight) to see how often each species would be cast.</p>
   <div class="presets" id="presets"><span>Forts</span>
@@ -141,13 +150,13 @@ BODY = r"""
     <div><span class="lbl">Colour</span><div class="seg" id="color"></div></div>
     <div><span class="lbl">Shape</span><div class="seg" id="shape"></div></div>
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
-    <div><span class="lbl">Feeding links</span><div class="seg" id="linksrc"></div></div>
     <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
     <div><label class="lbl" for="search">Find</label><input type="search" id="search" list="names" placeholder="name or token"><datalist id="names"></datalist></div>
   </div>
+  <div><span class="lbl">Feeding links: the rules seasonal-wildlife applies (engine default in brackets)</span><div id="fams" class="fams"></div></div>
   <p class="small" id="searchNote"></p>
-  <div id="netbox"><canvas id="net" aria-label="Food web network: scroll to zoom, drag to pan, click a creature"></canvas><div id="tip" hidden></div></div>
+  <div id="netbox"><canvas id="net" aria-label="Food web network: scroll to zoom, drag to pan, click a creature or a link"></canvas><div id="tip" hidden></div><div id="edgepop" hidden></div></div>
   <div id="legend"></div>
 </section>
 <aside id="inspect" class="panel" aria-live="polite"></aside>
@@ -195,6 +204,11 @@ BODY = r"""
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
   </ol>
+  <p class="small"><b>The network's links are the rules seasonal-wildlife applies to creatures</b> (engine v7.6.1; switch each on or off above the network):
+  <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
+  <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes);
+  <b>DF's own diet tokens</b> (always); <b>hunting flags</b> (DIVE_HUNTS_VERMIN and HUNTS_VERMIN written by the tool, off by default); <b>the cast-growth ladder</b> (ROSTER.FP.eats, which the hunting pairs pass through); <b>mass and numbers</b> (MODEL eats, used only by coupling, off by default).
+  Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
   <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
   Not modelled: DF's own stocking on a real fort (stocked water entries, the zone read from stocked species), exhaustion stand-ins, placed thieves and apexes, and everything after the cast (FREQUENCY, caps, pauses).
   Source: castsim foodweb_export.py and foodweb_sim.js, checked against the desk simulator (exact pools, layers and slots; cast rates within sampling noise).</p>

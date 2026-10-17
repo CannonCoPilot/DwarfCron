@@ -260,10 +260,111 @@
       if (ca.dhv) return 'hunts vermin';
       return null;
     }
+    // ------------------------------------------------------------ the rules seasonal-wildlife imposes (user 17 Oct)
+    // Each family is a rule the engine applies to creatures, with its default in a fresh config:
+    //   hunt   ecology relation write (on): an armed predator x a target unit, under casts only on the cast's own edges,
+    //          MODEL.reaches, R47 raptor prey <= 2x its mass, civ_prey, pack_floor (pack mass >= 5% of the prey's)
+    //   gobble VERMIN.gobbleApply (v7 gobble on): GOBBLE_VERMIN_CLASS written on consumers by VERMIN.GOBBLE_RULES and the
+    //          guild rows VERMIN.GOBBLE_EDGES, onto the tool's own SWV_* vermin classes
+    //   raws   DF's own diet tokens (GOBBLE_VERMIN_CLASS/_CREATURE, DIVE_HUNTS_VERMIN, HUNTS_VERMIN), always in force
+    //   flags  HUNT.apply (hunting off by default): DIVE_HUNTS_VERMIN on waterbirds and predatory fliers, HUNTS_VERMIN on small
+    //          land predators (MODEL size band small: < 150,000 cm3)
+    //   ladder ROSTER.FP.eats, the cast builder's growth link (tier ladder), which the hunt family is filtered through
+    //   mass   MODEL eats (mass and numbers), used only by coupling (off by default)
+    const PREDG = { AL: 1, AW: 1, ML: 1, MW: 1, RP: 1 };
+    const PREDCODE = { APX: 1, ML: 1, MW: 1, RP: 1 };
+    const REACHM = {
+      land: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1 }, flier: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1 },
+      waterbird: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1, aquatic: 1 }, semiaquatic: { land: 1, waterbird: 1, semiaquatic: 1, aquatic: 1 },
+      aquatic: { waterbird: 1, semiaquatic: 1, aquatic: 1 } };
+    const GOBBLE_RULES = [
+      { name: 'small land insectivore/omnivore', classes: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_COLONY'], match: c => ({ ML: 1, PL: 1, SH: 1 })[c.g] && c.m < 10000 && (c.carn || !c.grz) },
+      { name: 'waterbird / fish-eater', classes: ['SWV_SMALL_FISH'], match: c => ({ WB: 1, FF: 1, FC: 1 })[c.g] },
+      { name: 'raptor', classes: ['SWV_SMALL_BIRD', 'SWV_BAT', 'SWV_SMALL_MAMMAL'], match: c => c.g === 'RP' },
+      { name: 'bat / land bird', classes: ['SWV_FLYING_INSECT'], match: c => c.g === 'LB' },
+      { name: 'snake', classes: ['SWV_SMALL_MAMMAL', 'SWV_HERP'], match: c => c.g === 'ML' && c.lg },
+    ];
+    const VCLASS = { VG: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_SMALL_MAMMAL', 'SWV_HERP', 'SWV_OTHER'], VC: ['SWV_COLONY'], VF: ['SWV_SMALL_FISH'],
+      VB: ['SWV_SMALL_BIRD', 'SWV_BAT'], VI: ['SWV_FLYING_INSECT'] };
+    const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
+    const FAMILIES = ['hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
+    const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
+    function armedWhy(c, slots, L) {
+      if (c.v) return null;
+      if (c.civ && PREDG[c.g] && !c.bn) return 'a cavern civ race that hunts by its guild (civ_hunt)';
+      if (c.g === 'RP' && !c.civ) return 'a raptor (armed whatever its raws say; R47)';
+      if (slots && slots.some(s => PREDCODE[codeFor(s, c, L)])) return 'holds a predator slot in the cast (BENIGN cleared; F13)';
+      if (c.ro === 'predator' && !c.bn) return 'a predator not wholly BENIGN';
+      return null;
+    }
+    function sharesWater(a, b) {
+      if (!a.wb.length || !b.wb.length) return true;
+      return a.wb.some(x => b.wb.includes(x));
+    }
+    function reachWhy(a, b) {
+      if (!REACHM[a.h || 'land'][b.h || 'land']) return null;
+      const aq = h => h === 'aquatic' || h === 'semiaquatic';
+      if (aq(a.h) && aq(b.h) && !sharesWater(a, b)) return null;
+      return `${a.h} reaches ${b.h}`;
+    }
+    function gobbleSet(c, L) {
+      if (c.v) return null;
+      const set = new Map();
+      for (const r of GOBBLE_RULES) if (r.match(c)) for (const k of r.classes) set.set(k, (set.get(k) ? set.get(k) + '; ' : '') + 'rule: ' + r.name);
+      for (const r of GOBBLE_EDGES) if (r.g === c.g && (!r.cave || L.startsWith('cavern')))
+        for (const vg of r.v) for (const k of VCLASS[vg]) set.set(k, (set.get(k) ? set.get(k) + '; ' : '') + `guild row ${r.g} eats ${vg}${r.cave ? ' (caverns)' : ''}`);
+      return set.size ? set : null;
+    }
+    function huntFlag(c) {
+      if (c.v) return null;
+      if (c.h === 'waterbird') return 'DIVE_HUNTS_VERMIN (waterbird)';
+      if (c.h === 'flier' && c.ro === 'predator') return 'DIVE_HUNTS_VERMIN (predatory flier)';
+      if (c.ro === 'predator' && c.m < 150000 && (c.h === 'land' || c.h === 'semiaquatic')) return 'HUNTS_VERMIN (small land predator)';
+      return null;
+    }
+    function massWhy(a, b) {
+      if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
+      if (!reachWhy(a, b)) return null;
+      if (!b.v && b.ro === 'predator' && b.m >= a.m * 0.5) return null;
+      const take = a.m * Math.pow(grpOf(a), 0.75) * ((a.lp || a.amb) ? 1.5 : 1);
+      const need = b.m * (grpOf(b) > 1 ? 0.9 : 0.6);
+      if (take < need) return null;
+      const r = b.m / (0.4 * a.m), pref = b.v ? 0.05 : Math.exp(-(Math.log(r) ** 2) / (2 * 1.44));
+      return `take ${Math.round(take).toLocaleString('en')} >= need ${Math.round(need).toLocaleString('en')} (group ${grpOf(a)} v ${grpOf(b)}); preference ${pref.toFixed(2)}`;
+    }
+    // every rule that links a -> b on layer L. a, b: {c, slots, vermin}; returns [{f, d}]
+    function linkWhy(a, b, L, on) {
+      const out = [], ca = a.c, cb = b.c;
+      if (ca.t === cb.t || a.vermin) return out;
+      const ladder = () => {
+        for (const sa of a.slots) for (const sb of (b.vermin ? ['vermin'] : b.slots)) {
+          if (engineEats({ c: ca, slot: sa, vermin: false }, { c: cb, slot: sb, vermin: b.vermin, vclass: b.vclass }, L)) return `${sa} over ${sb}`;
+        }
+        return null;
+      };
+      if (on.hunt && !b.vermin) {
+        const arm = armedWhy(ca, a.slots, L), rw = arm && reachWhy(ca, cb), lw = rw && ladder();
+        if (lw) {
+          const tooBig = ca.g === 'RP' && cb.m > ca.m * 2;
+          const civBlock = cb.civ && !((ca.g === 'AL' || ca.g === 'AW') && !ca.civ);
+          const share = cb.m > 0 ? grpOf(ca) * ca.m / cb.m : 1;
+          if (!tooBig && !civBlock && share >= 0.05)
+            out.push({ f: 'hunt', d: `armed: ${arm}; cast edge (${lw}); ${rw}; pack share ${share >= 10 ? Math.round(share) : share.toFixed(2)}x the prey's mass${ca.g === 'RP' ? `; raptor prey ${(cb.m / ca.m).toFixed(2)}x its mass (max 2)` : ''}` });
+        }
+      }
+      if (on.gobble && b.vermin) { const g = gobbleSet(ca, L); if (g && g.has(cb.swv)) out.push({ f: 'gobble', d: `GOBBLE_VERMIN_CLASS:${cb.swv} written (${g.get(cb.swv)})` }); }
+      if (on.raws) { const w = vanillaEats(ca, cb); if (w) out.push({ f: 'raws', d: w }); }
+      if (on.flags && b.vermin) { const w = huntFlag(ca); if (w) out.push({ f: 'flags', d: w + ': hunts any vermin' }); }
+      if (on.ladder) { const w = ladder(); if (w) out.push({ f: 'ladder', d: `tier ladder: ${w}` }); }
+      if (on.mass) { const w = massWhy(ca, cb); if (w) out.push({ f: 'mass', d: w }); }
+      return out;
+    }
+    let NETWORK_ON = null;   // the families the 'network' growth mode uses
     let LINKS = 'engine';   // set per cast from prm.links: 'engine' (the v7.6.1 tier ladder) or 'vanilla'
     // a and b: {c, slot, vermin, vclass}; on layer L
     function eats(a, b, L) {
       if (LINKS === 'vanilla') return !!vanillaEats(a.c, b.c);
+      if (LINKS === 'network') return linkWhy({ c: a.c, slots: [a.slot], vermin: a.vermin }, { c: b.c, slots: [b.slot], vermin: b.vermin, vclass: b.vclass }, L, NETWORK_ON || {}).length > 0;
       return engineEats(a, b, L);
     }
     function engineEats(a, b, L) {
@@ -321,7 +422,7 @@
 
     // ------------------------------------------------------------ one season cast (ROSTER.FP.grow)
     function cast(lst, L, sub, used, rng, prm, spec) {
-      LINKS = prm.links || 'engine';
+      LINKS = prm.links || 'engine'; NETWORK_ON = prm.network || null;
       const tbl = M.slots[slotKey(L, sub)];
       const order = Object.keys(tbl).filter(s => s !== '_vermin');
       const want = {}, have = {};
@@ -570,7 +671,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, gobbleSet, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };

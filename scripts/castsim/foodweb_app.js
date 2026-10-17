@@ -24,6 +24,16 @@
     ['ground prey', 'ground prey · shore'], ['flier', 'flier · waterbird'], ['vermin', 'vermin']];
   const HAB_COL = { land: 'c-amber', flier: 'c-blue', waterbird: 'c-purple', aquatic: 'c-green', semiaquatic: 'c-red' };
   const LEVEL_NAME = ['vermin', 'prey', 'predator', 'apex'];
+  const FAM = {
+    hunt: { lab: 'Hunting pairs written in play', col: 'ink', def: 'on', note: 'ecology relation write: armed predator x target, on the season cast\'s own edges' },
+    gobble: { lab: 'Vermin the tool feeds', col: 'c-blue', def: 'on', note: 'GOBBLE_VERMIN_CLASS written onto consumers (guild rules) over the tool\'s SWV vermin classes' },
+    raws: { lab: "DF's own diet tokens", col: 'c-amber', def: 'always', note: 'GOBBLE_VERMIN_CLASS/_CREATURE, DIVE_HUNTS_VERMIN, HUNTS_VERMIN in the vanilla raws' },
+    flags: { lab: 'Hunting flags', col: 'c-purple', def: 'off', note: 'DIVE_HUNTS_VERMIN / HUNTS_VERMIN written by the tool (hunting off by default)' },
+    ladder: { lab: 'Cast-growth ladder', col: 'muted', def: 'build only', note: 'ROSTER.FP.eats: tiers + habitat; the hunting pairs are filtered through it' },
+    mass: { lab: 'Mass and numbers', col: 'c-red', def: 'off', note: 'MODEL eats (pack mass v prey mass); used only by coupling, off by default' },
+  };
+  const FAM_ORDER = ['hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
+  const realmOf = L => L.startsWith('cavern') ? L : 'surface';
   const GUILD_FAM = g => ({ AL: 'predator', AW: 'predator', ML: 'predator', MW: 'predator', RP: 'raptor', GZ: 'grazer', PL: 'small prey',
     LB: 'bird', WB: 'bird', FF: 'fish', FC: 'fish', PE: 'fish', SH: 'shore', V: 'vermin' }[g] || 'other');
   const FAM_SHAPE = { predator: 'tri', raptor: 'star', grazer: 'circle', 'small prey': 'square', bird: 'diamond', fish: 'cross', shore: 'square', vermin: 'dot', other: 'circle' };
@@ -35,8 +45,8 @@
     land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), sav: 'savage', al: 'neutral', iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'all', linksrc: 'vanilla', vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
-    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'vanilla' }),
+    edges: 'all', fam: { hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   const PRESETS = {
     coast: { label: 'Savage tropical coast', land: ['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF'], sav: 'savage', al: 'neutral', extinct: 'UNTAMED_WILDS', iso: false, ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL' },
@@ -124,21 +134,14 @@
       }
     }
     const edges = [];
-    if (state.linksrc === 'vanilla') {   // the raws' own diet tokens, between any two creatures in view
-      // only where the two share a layer (a peregrine hunts the vermin of the sky it flies in, not the caverns')
-      for (const [a, b, why] of sim.vanillaEdges(nodes.map(n => ({ c: n.c, vermin: n.vermin })))) {
-        if (byT[a].layers.some(L => byT[b].layers.includes(L)) || (byT[a].layers.includes('flying') && byT[b].layers.includes('ground'))) edges.push({ a: byT[a], b: byT[b], why });
-      }
-    } else for (const L of ls) {
-      const key = BUILD.key + '|' + L + '|' + state.season + '|' + state.vermin;
-      let E = edgeCache.get(key);
-      if (!E) { E = sim.potentialEdges(items[L], L); edgeCache.set(key, E); }
-      for (const [a, b] of E) edges.push({ a: byT[a], b: byT[b], L, why: 'engine tier ladder' });
-    }
+    const fkey = BUILD.key + '|' + state.season + '|' + state.vermin + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
+    let E = edgeCache.get(fkey);
+    if (!E) { E = computeEdges(nodes); edgeCache.set(fkey, E); }
+    for (const [x, y, fams] of E) edges.push({ a: byT[x], b: byT[y], fams, f: FAM_ORDER.find(f => fams.some(z => z.f === f)) });
     const adj = new Map();
     for (const n of nodes) adj.set(n.t, { prey: new Set(), pred: new Set() });
     const why = new Map();
-    for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); why.set(e.a.t + '>' + e.b.t, e.why); }
+    for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); why.set(e.a.t + '>' + e.b.t, e); }
     // value: within the view, the higher of the pet-value and body-size percentiles; war animals at the top
     const pct = (arr, f) => { const v = arr.map(f).filter(x => x > 0).sort((a, b) => a - b); return x => x <= 0 ? 0 : (d3.bisectRight(v, x) / v.length); };
     const nv = nodes.filter(n => !n.vermin);
@@ -151,6 +154,29 @@
       for (const t in hv) if (byT[t] && byT[t].L === L) byT[t].hv = hv[t];
     }
     VIEW = { nodes, byT, edges, adj, why, layers: ls };
+  }
+  // every pair in one realm (the surface, or one cavern) that a switched-on rule links; the cast-bound rules (hunting pairs,
+  // the ladder) need a layer both are on, the others only the realm (a raptor's vermin, the tool's gobble, the raws' tokens)
+  function computeEdges(nodes) {
+    const out = [], on = state.fam;
+    for (const a of nodes) {
+      if (a.vermin) continue;
+      const ra = new Set(a.layers.map(realmOf));
+      for (const b of nodes) {
+        if (a === b) continue;
+        const common = a.layers.filter(L => b.layers.includes(L));
+        let fams = [];
+        if (common.length) {
+          for (const L of common) for (const x of sim.linkWhy({ c: a.c, slots: a.slotsBy[L], vermin: false }, { c: b.c, slots: b.slotsBy[L], vermin: b.vermin, vclass: b.c.vc }, L, on))
+            if (!fams.some(y => y.f === x.f)) fams.push(Object.assign({ L }, x));
+        } else if (b.layers.some(L => ra.has(realmOf(L)))) {
+          const L = a.L, off = Object.assign({}, on, { hunt: false, ladder: false });
+          fams = sim.linkWhy({ c: a.c, slots: a.slotsBy[L], vermin: false }, { c: b.c, slots: b.slotsBy[b.L], vermin: b.vermin, vclass: b.c.vc }, L, off).map(x => Object.assign({ L }, x));
+        }
+        if (fams.length) out.push([a.t, b.t, fams]);
+      }
+    }
+    return out;
   }
   function radius(c) { return 2.6 + 1.9 * Math.sqrt(Math.min(40, Math.max(1, c.c1 || 1))); }
 
@@ -267,20 +293,24 @@
     const lit = n => cs ? cs.set.has(n.t) : (sel ? (n === sel || A.prey.has(n.t) || A.pred.has(n.t)) : true);
     // edges
     let edges = [];
-    if (cs) edges = cs.tr.edges.map(([a, b]) => ({ a: VIEW.byT[a], b: VIEW.byT[b] })).filter(e => e.a && e.b);
+    if (cs) edges = cs.tr.edges.map(([x, y]) => VIEW.why.get(x + '>' + y) || { a: VIEW.byT[x], b: VIEW.byT[y], f: 'ladder', fams: [{ f: 'ladder', d: 'the cast\'s own growth link' }] }).filter(e => e.a && e.b);
     else if (sel) edges = VIEW.edges.filter(e => e.a === sel || e.b === sel);
     else if (state.edges === 'all') edges = VIEW.edges;
-    ctx.lineWidth = (edges.length > 3000 ? 0.5 : 1) / k;
-    ctx.globalAlpha = edges.length > 3000 ? 0.07 : (edges.length > 600 ? 0.18 : 0.5);
-    ctx.strokeStyle = TOK.ink;
-    ctx.beginPath();
-    for (const e of edges) { if (!e.a || !e.b) continue; if (sel && e.b === sel) continue; ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
-    ctx.stroke();
-    if (sel) {   // predators of the selection: dashed
-      ctx.setLineDash([4 / k, 3 / k]); ctx.beginPath();
-      for (const e of edges) if (e.b === sel) { ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
-      ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth = (edges.length > 3000 ? 0.6 : 1.1) / k;
+    const alpha = edges.length > 3000 ? 0.09 : (edges.length > 600 ? 0.22 : 0.6);
+    for (const f of FAM_ORDER.concat([undefined])) {
+      ctx.strokeStyle = f ? TOK[FAM[f].col] : TOK.ink; ctx.globalAlpha = alpha;
+      for (const dash of [false, true]) {   // dashed: the selection's predators
+        if (dash && !sel) continue;
+        ctx.setLineDash(dash ? [4 / k, 3 / k] : []); ctx.beginPath();
+        for (const e of edges) { if (!e.a || !e.b || e.f !== f || (sel && (e.b === sel) !== dash)) continue; ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); }
+        ctx.stroke();
+      }
     }
+    ctx.setLineDash([]);
+    const se = state.selEdge;
+    if (se && se.a && se.b) { ctx.globalAlpha = 1; ctx.lineWidth = 3 / k; ctx.strokeStyle = TOK.accent; ctx.beginPath(); ctx.moveTo(se.a.x, se.a.y); ctx.lineTo(se.b.x, se.b.y); ctx.stroke(); }
+    VIEW.drawn = edges;
     ctx.globalAlpha = 1;
     // nodes, dim first
     const order = VIEW.nodes.slice().sort((a, b) => (lit(a) - lit(b)) || (b.r - a.r));
@@ -334,6 +364,7 @@
     const r = canvas.getBoundingClientRect();
     const n = nodeAt(ev.clientX - r.left, ev.clientY - r.top);
     const t = n ? n.t : null;
+    canvas.style.cursor = n ? 'pointer' : (edgeAt(ev.clientX - r.left, ev.clientY - r.top) ? 'pointer' : 'crosshair');
     if (t !== state.hover) { state.hover = t; draw(); }
     if (n) {
       const A = VIEW.adj.get(n.t);
@@ -348,9 +379,38 @@
     } else tip.hidden = true;
   });
   canvas.addEventListener('mouseleave', () => { tip.hidden = true; state.hover = null; draw(); });
+  function edgeAt(px, py) {
+    const [x, y] = transform.invert([px, py]);
+    let best = null, bd = 5 / transform.k;
+    for (const e of (VIEW.drawn || [])) {
+      if (!e.a || !e.b) continue;
+      const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - e.a.x) * dx + (y - e.a.y) * dy) / L2));
+      const d = Math.hypot(e.a.x + t * dx - x, e.a.y + t * dy - y);
+      if (d < bd) { bd = d; best = e; }
+    }
+    return best;
+  }
+  const pop = $('#edgepop');
+  function showEdge(e, px, py) {
+    state.selEdge = e;
+    const back = VIEW.why.get(e.b.t + '>' + e.a.t);
+    pop.innerHTML = `<button type="button" class="x" aria-label="Close">×</button><h4>${esc(e.a.c.nm)} <span class="arrow">eats</span> ${esc(e.b.c.nm)}</h4>` +
+      `<ul>${(e.fams || []).map(x => `<li><i style="background:var(--${FAM[x.f].col})"></i><b>${esc(FAM[x.f].lab)}</b>${x.L ? ` <span class="small">${esc(LNAME[x.L])}</span>` : ''}<br>${esc(x.d)}</li>`).join('')}</ul>` +
+      `<p class="small">${esc(e.a.c.nm)}: ${fmtMass(e.a.c.m)}, groups ${e.a.c.c0}-${e.a.c.c1}, ${esc(e.a.c.h)}, ${esc(e.a.c.g)}. ${esc(e.b.c.nm)}: ${fmtMass(e.b.c.m)}, groups ${e.b.c.c0}-${e.b.c.c1}, ${esc(e.b.vermin ? 'vermin ' + (e.b.c.swv || '') : e.b.c.h + ', ' + e.b.c.g)}.</p>` +
+      (back ? `<p class="small">Also the other way: ${esc(e.b.c.nm)} eats ${esc(e.a.c.nm)} (${esc(back.fams.map(x => FAM[x.f].lab).join(', '))}).</p>` : '') +
+      `<p class="row"><button type="button" class="sp" data-t="${esc(e.a.t)}">select ${esc(e.a.c.nm)}</button><button type="button" class="sp" data-t="${esc(e.b.t)}">select ${esc(e.b.c.nm)}</button></p>`;
+    pop.hidden = false;
+    const bw = $('#netbox').clientWidth;
+    pop.style.left = Math.max(6, Math.min(bw - 330, px + 12)) + 'px'; pop.style.top = Math.max(6, py - 20) + 'px';
+    draw();
+  }
+  pop.addEventListener('click', ev => { if (ev.target.closest('.x')) { pop.hidden = true; state.selEdge = null; draw(); } });
   canvas.addEventListener('click', ev => {
-    const r = canvas.getBoundingClientRect();
-    const n = nodeAt(ev.clientX - r.left, ev.clientY - r.top);
+    const r = canvas.getBoundingClientRect(), px = ev.clientX - r.left, py = ev.clientY - r.top;
+    const n = nodeAt(px, py);
+    if (!n) { const e = edgeAt(px, py); if (e) { showEdge(e, px, py); return; } }
+    pop.hidden = true; state.selEdge = null;
     state.sel = n ? n.t : null; state.castSel = null;
     renderInspector(); renderYear(); draw();
   });
@@ -375,7 +435,7 @@
     else if (state.shape === 'habitat') shapePart = Object.entries(HAB_SHAPE).map(([h, s]) => `<span>${sw('var(--muted)', s)}${h}</span>`).join('');
     else shapePart = Object.entries(FAM_SHAPE).filter(([f]) => f !== 'other').map(([f, s]) => `<span>${sw('var(--muted)', s)}${f}</span>`).join('');
     $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>largest group the raws allow (cluster max)</span>` +
-      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span class="dash">${state.linksrc === 'vanilla' ? 'eats (raws)' : 'eats (engine ladder)'}; dashed: eaten by the selection's predators</span></div>`;
+      `<span>${sw('none', 'ring')}high-value: a possible seed</span><span>${FAM_ORDER.filter(f => state.fam[f]).map(f => `<span class="ln" style="--lc:var(--${FAM[f].col})">${esc(FAM[f].lab.toLowerCase())}</span>`).join(' ')}; dashed: the selection's predators; click a link for details</span></div>`;
   }
   function shapeSvg(sh, col) {
     const f = `fill="${col}"`;
@@ -397,7 +457,7 @@
     const n = state.sel && VIEW.byT[state.sel];
     if (!n) {
       const nv = VIEW.nodes.filter(x => !x.vermin).length;
-      box.innerHTML = `<h3>${VIEW.nodes.length} creatures in view</h3><p class="note">${nv} animals and ${VIEW.nodes.length - nv} vermin on ${VIEW.layers.length} layer${VIEW.layers.length === 1 ? '' : 's'}, ${VIEW.edges.length.toLocaleString('en')} feeding link${VIEW.edges.length === 1 ? '' : 's'} (${state.linksrc === 'vanilla' ? "the raws' own diet tokens" : "the engine's tier ladder"}).` +
+      box.innerHTML = `<h3>${VIEW.nodes.length} creatures in view</h3><p class="note">${nv} animals and ${VIEW.nodes.length - nv} vermin on ${VIEW.layers.length} layer${VIEW.layers.length === 1 ? '' : 's'}, ${VIEW.edges.length.toLocaleString('en')} feeding link${VIEW.edges.length === 1 ? '' : 's'} from the rules switched on. Click a link for its rule.` +
         ` Click a creature to see what it eats, what eats it, and how often the cast builder picks it.</p>` + rejectedNote();
       return;
     }
@@ -430,13 +490,16 @@
       <h4>Eaten by (${A.pred.size})</h4><div class="splist">${list(A.pred) || '<span class="note">nothing in view</span>'}</div>`;
   }
   function whyList(n, A) {
-    if (state.linksrc !== 'vanilla') return '';
-    const ws = new Set();
-    for (const t of A.prey) ws.add(VIEW.why.get(n.t + '>' + t));
-    for (const t of A.pred) ws.add(VIEW.why.get(t + '>' + n.t));
-    ws.delete(undefined);
-    const tags = [n.c.gvc.length && 'GOBBLE_VERMIN_CLASS:' + n.c.gvc.join(','), n.c.dhv && 'hunts vermin'].filter(Boolean);
-    return `<p class="note">${tags.length ? 'Raw diet: ' + esc(tags.join('; ')) + '. ' : 'Its raws name no prey. '}${ws.size ? 'Links from: ' + esc([...ws].join('; ')) + '.' : ''}</p>`;
+    const c = n.c, L = n.L, rows = [];
+    const arm = sim.armedWhy(c, n.slotsBy[L], L);
+    if (arm) rows.push(['hunt', 'armed: ' + arm]);
+    const g = sim.gobbleSet(c, L);
+    if (g) rows.push(['gobble', 'GOBBLE_VERMIN_CLASS written: ' + [...g.keys()].map(k => k.replace('SWV_', '').toLowerCase().replace('_', ' ')).join(', ')]);
+    if (c.gvc.length || c.gvt.length || c.dhv) rows.push(['raws', [c.gvc.length && 'GOBBLE_VERMIN_CLASS:' + c.gvc.join(','), c.dhv && 'hunts vermin'].filter(Boolean).join('; ')]);
+    const hf = sim.huntFlag(c);
+    if (hf) rows.push(['flags', hf]);
+    if (n.vermin) rows.push(['gobble', 'vermin class ' + (c.swv || '?').replace('SWV_', '').toLowerCase().replace('_', ' ')]);
+    return rows.length ? `<ul class="rules">${rows.map(([f, t]) => `<li><i style="background:var(--${FAM[f].col})"></i>${esc(t)}${state.fam[f] ? '' : ' <em>(rule off)</em>'}</li>`).join('')}</ul>` : '<p class="note">No rule the tool applies gives it prey.</p>';
   }
   function rejectedNote() {
     const r = BUILD.B.rejected || [];
@@ -455,7 +518,7 @@
 
   // ------------------------------------------------------------------ simulation
   let STATS = null, BASE = null, YEAR = null, running = 0;
-  function prmNow() { return Object.assign({}, state.prm); }
+  function prmNow() { return Object.assign({}, state.prm, { network: Object.assign({}, state.fam) }); }
   function runYear() {
     if (!BUILD.spec) return;
     const site = 1 + Math.floor(Math.random() * 9999);
@@ -511,7 +574,7 @@
     if (!p.seed) out.push('no seed');
     if (!p.weird) out.push('no weirdness tilt');
     if (!p.guarantee) out.push('no web guarantee');
-    out.push(p.links === 'engine' ? 'engine-ladder links' : 'raws links');
+    out.push(p.links === 'network' ? 'growth on ' + FAM_ORDER.filter(f => p.network[f]).join('+') : 'ladder growth');
     return out.join(', ');
   }
   function eff(o) { const v = Object.values(o); const t = v.reduce((a, b) => a + b, 0); return t ? 1 / v.reduce((a, b) => a + (b / t) ** 2, 0) : 0; }
@@ -655,8 +718,8 @@
     seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
     seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
-    seg('#linksrc', [['vanilla', 'Raws'], ['engine', 'Engine ladder']], state.linksrc, v => { state.linksrc = v; state.sel = null; refreshView(); syncControls(); });
-    seg('#p_links', [['vanilla', 'Raws'], ['engine', 'Engine ladder']], state.prm.links, v => { state.prm.links = v; syncControls(); });
+    $('#fams').innerHTML = FAM_ORDER.map(f => `<label class="ck" title="${esc(FAM[f].note)}"><input type="checkbox" id="f_${f}" data-f="${f}" ${state.fam[f] ? 'checked' : ''}><i class="ln" style="--lc:var(--${FAM[f].col})"></i>${esc(FAM[f].lab)} <span class="small">(${esc(FAM[f].def)})</span></label>`).join('');
+    seg('#p_links', [['engine', 'Cast ladder (engine)'], ['network', 'Rules switched on above']], state.prm.links, v => { state.prm.links = v; syncControls(); });
     $('#verm').checked = state.vermin;
     for (const [k, id] of [['ap_pick', 'p_ap'], ['giant', 'p_gi'], ['pack', 'p_pack'], ['apex_pack', 'p_apack'], ['reuse', 'p_reuse'], ['hv_top', 'p_hv']]) $('#' + id).value = state.prm[k];
     $('#p_seed').checked = state.prm.seed; $('#p_weird').checked = state.prm.weird; $('#p_guar').checked = state.prm.guarantee;
@@ -681,6 +744,7 @@
   for (const k of [1, 2, 3]) $('#cv' + k).onchange = e => { e.target.checked ? state.caverns.add(k) : state.caverns.delete(k); rebuild(); };
   $('#assign').onchange = e => { state.assign = e.target.checked; rebuild(); };
   $('#verm').onchange = e => { state.vermin = e.target.checked; refreshView(); };
+  $('#fams').addEventListener('change', ev => { const f = ev.target.dataset.f; if (!f) return; state.fam[f] = ev.target.checked; refreshView(); });
   $('#presets').onclick = ev => { const b = ev.target.closest('button[data-p]'); if (b) applyPreset(b.dataset.p); };
   const num = (id, k) => { $('#' + id).onchange = e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) state.prm[k] = v; else e.target.value = state.prm[k]; }; };
   num('p_ap', 'ap_pick'); num('p_gi', 'giant'); num('p_pack', 'pack'); num('p_apack', 'apex_pack'); num('p_reuse', 'reuse'); num('p_hv', 'hv_top');
@@ -717,6 +781,7 @@
     makeView(); layout(); transform = d3.zoomIdentity; d3.select(canvas).call(zoom.transform, transform);
     dl.innerHTML = VIEW.nodes.map(n => `<option value="${esc(n.c.nm)}">`).join('');
     if (state.sel && !VIEW.byT[state.sel]) state.sel = null;
+    state.selEdge = null; $('#edgepop').hidden = true;
     renderLegend(); renderInspector(); draw();
   }
   function boot() {

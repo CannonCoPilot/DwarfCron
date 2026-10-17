@@ -30,6 +30,27 @@ BROOK_MAX_MASS = 25000      # engine V7.WB.BROOK_MAX_MASS
 WATER_ALL = OCEANS + LAKES + RIVERS + POOLS
 
 
+LEG_WORDS = ('LEG', 'FOOT', 'FEET', 'TOE', 'QUADRUPED', 'HUMANOID', 'INSECT', 'SPIDER', 'CLAW', 'PINCER', 'HOOF', 'STANCE', '2PARTBODY_LEGS', 'BIRD')
+
+
+def swv_class(c):
+    """VERMIN.swvClass (engine): the tool's own vermin class, from flags and creature classes"""
+    a, f, cc = c['any'], c['flags'], c['cclass']
+    if 'EDIBLE_GROUND_BUG' in cc: return 'SWV_GROUND_BUG'
+    if 'VERMIN_FISH' in f: return 'SWV_SMALL_FISH'
+    if a('AQUATIC') or a('IMMOBILE_LAND'): return 'SWV_SMALL_FISH'
+    if a('VERMIN_MICRO') or 'VERMIN_ROTTER' in f: return 'SWV_FLYING_INSECT'
+    if 'VERMIN_SOIL_COLONY' in f: return 'SWV_COLONY'
+    if 'VERMIN_SOIL' in f: return 'SWV_SOIL'
+    if 'MAMMAL' in cc: return 'SWV_BAT' if a('FLIER') else 'SWV_SMALL_MAMMAL'
+    if a('FLIER') and a('LAYS_EGGS'): return 'SWV_SMALL_BIRD'
+    if a('FLIER'): return 'SWV_FLYING_INSECT'
+    if a('AMPHIBIOUS'): return 'SWV_HERP'
+    if not a('NOBONES'): return 'SWV_HERP'
+    if 'VERMIN_GROUNDER' in f: return 'SWV_GROUND_BUG'
+    return 'SWV_OTHER'
+
+
 def cave_assign():
     """CAVE.ASSIGN as the engine has it (the user's 56 picks, 16 Oct), read from the Lua source"""
     src = SW.read_text()
@@ -80,6 +101,10 @@ def main():
         gvc = sorted({t[1] for t in R.src[tok]['toks'] if t[0] == 'GOBBLE_VERMIN_CLASS' and len(t) > 1})
         gvt = sorted({t[1] for t in R.src[tok]['toks'] if t[0] == 'GOBBLE_VERMIN_CREATURE' and len(t) > 1})
         dhv = any(t[0] in ('DIVE_HUNTS_VERMIN', 'HUNTS_VERMIN') for t in R.src[tok]['toks'])
+        body = [x for t in R.src[tok]['toks'] if t[0] == 'BODY' for x in t[1:]]
+        legless = bool(body) and not any(w in x for x in body for w in LEG_WORDS)   # engine VERMIN.legless: no STANCE part
+        swv = swv_class(c) if e['gameVermin'] else None
+        bodies = sorted(e['bodies'])
         rows.append({
             't': tok, 'nm': name_of(D, tok), 'g': e['guild'], 'h': e['habitat'], 'ro': e['role'], 'v': bool(e['gameVermin']),
             'vc': E.vclass(e) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
@@ -91,7 +116,7 @@ def main():
             'b': sorted(c['biomes']), 'wn': sorted(explicit_water(c['biome_tokens'], set(WATER_ALL))),
             'fr': fresh_raw(c['biomes']), 'fa': bool(E.fly_apex(dict(e, layer='land'))), 'bo': bool(E.boosted(e)),
             'pl': plant, 'nat': bool(wild and natural), 'th': thief,
-            'cc': sorted(c['cclass']), 'gvc': gvc, 'gvt': gvt, 'dhv': dhv,
+            'cc': sorted(c['cclass']), 'gvc': gvc, 'gvt': gvt, 'dhv': dhv, 'swv': swv, 'carn': bool(e['carnivore']), 'grz': bool(c['any']('GRAZER') or c['any']('STANDARD_GRAZER')), 'lg': legless, 'amb': bool(c['any']('AMBUSHPREDATOR')), 'wb': bodies,
         })
     W = {f'{sav}|{al}|{L}|{b}': [[t, k] for t, k in v] for (sav, al, L, b), v in D.wiring.items()}
     meta = {
