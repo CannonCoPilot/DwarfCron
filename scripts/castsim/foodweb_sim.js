@@ -295,7 +295,10 @@
     const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
     // VERMIN SIDES (user 17 Oct; engine VERMIN composite classes SWV_<type>@<SIDE>): a vermin is fed on only from the sides a
     // consumer may take -- none for a giant, a land-ground apex or an ocean apex; FLYING only for a land-flying apex; else
-    // all but GROUND when the consumer is on the ocean or freshwater, OCEAN when on freshwater, FRESH when on the ocean
+    // all but GROUND when the consumer is on the ocean or freshwater, OCEAN when on freshwater only, FRESH when on the ocean only
+    // (user 17 Oct, later: a consumer on both waters eats both, no ground); the duck, goose and swan also take every
+    // freshwater vermin whatever their sides (engine VERMIN.FRESH_EATERS; vanilla has no heron)
+    const FRESH_EATERS = new Set(['BIRD_DUCK', 'BIRD_GOOSE', 'BIRD_SWAN']);
     let CUR = { P: {}, promoted: new Set(), mapOnly: {} };
     const SIDE = { ground: 'GROUND', flying: 'FLYING', ocean: 'OCEAN', fresh: 'FRESH', cavern1: 'CAVERN', cavern2: 'CAVERN', cavern3: 'CAVERN' };
     const laysOf = t => ((CUR.P[t] && CUR.P[t].layers) || []);
@@ -322,20 +325,22 @@
       let s = ['GROUND', 'FLYING', 'OCEAN', 'FRESH', 'CAVERN'];
       const wet = lays.includes('ocean') || lays.includes('fresh');
       if (wet) s = s.filter(x => x !== 'GROUND');
-      if (lays.includes('fresh')) s = s.filter(x => x !== 'OCEAN');
-      if (lays.includes('ocean')) s = s.filter(x => x !== 'FRESH');
+      if (lays.includes('fresh') && !lays.includes('ocean')) s = s.filter(x => x !== 'OCEAN');
+      if (lays.includes('ocean') && !lays.includes('fresh')) s = s.filter(x => x !== 'FRESH');
       const why = [];
       if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
+      if (FRESH_EATERS.has(c.t)) why.push('and every freshwater vermin (duck, goose, swan)');
       // user 17 Oct: a land-ground predator takes no flying, ocean or freshwater vermin
       if (lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
       return { sides: s, why: why.join('; ') };
     }
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
+      const fresh = FRESH_EATERS.has(a.c.t) && !a.c.gi && sidesOf(b.c.t).includes('FRESH') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@FRESH written (every freshwater vermin: duck, goose, swan)` : null;
       const g = gobbleSet(a.c, L);
-      if (!g || !g.has(b.c.swv)) return null;
+      if (!g || !g.has(b.c.swv)) return fresh;
       const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x));
-      if (!hit.length) return null;
+      if (!hit.length) return fresh;
       return `GOBBLE_VERMIN_CLASS:${hit.map(x => b.c.swv + '@' + x).join(', ')} written (${g.get(b.c.swv)})${al.why ? '; ' + al.why : ''}`;
     }
     const FAMILIES = ['newrules', 'hunt', 'gobble', 'raws', 'flags', 'ladder', 'mass'];
@@ -746,7 +751,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {} }; }, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {} }; }, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };

@@ -44,6 +44,14 @@
   const GUILD_FAM = g => ({ AL: 'predator', AW: 'predator', ML: 'predator', MW: 'predator', RP: 'raptor', GZ: 'grazer', PL: 'small prey',
     LB: 'bird', WB: 'bird', FF: 'fish', FC: 'fish', PE: 'fish', SH: 'shore', V: 'vermin' }[g] || 'other');
   const FAM_SHAPE = { predator: 'tri', raptor: 'star', grazer: 'circle', 'small prey': 'square', bird: 'diamond', fish: 'cross', shore: 'square', vermin: 'dot', other: 'circle' };
+  // the Levels layout's sub-columns: a guild type for creatures, a vermin type for vermin (left to right in this order)
+  const VERMIN_GROUP = { SWV_GROUND_BUG: 'bug', SWV_SOIL: 'soil', SWV_COLONY: 'colony', SWV_SMALL_MAMMAL: 'mammal', SWV_HERP: 'herp',
+    SWV_SMALL_FISH: 'small fish', SWV_SMALL_BIRD: 'small bird', SWV_BAT: 'bat', SWV_FLYING_INSECT: 'insect', SWV_OTHER: 'other vermin' };
+  const GROUP_ORDER = ['land hunter', 'raptor', 'grazer', 'small prey', 'land bird', 'waterbird', 'shore', 'water hunter', 'fish', 'pelagic', 'other',
+    'mammal', 'herp', 'bug', 'soil', 'colony', 'insect', 'small bird', 'bat', 'small fish', 'other vermin'];
+  const GUILD_GROUP = { AL: 'land hunter', ML: 'land hunter', AW: 'water hunter', MW: 'water hunter', RP: 'raptor', GZ: 'grazer',
+    PL: 'small prey', LB: 'land bird', WB: 'waterbird', SH: 'shore', FF: 'fish', FC: 'fish', PE: 'pelagic' };
+  const groupOf = n => n.vermin ? (VERMIN_GROUP[n.c.swv] || 'other vermin') : (GUILD_GROUP[n.c.g] || 'other');
   const HAB_SHAPE = { land: 'circle', flier: 'tri', waterbird: 'diamond', aquatic: 'cross', semiaquatic: 'square' };
   const LEVEL_SHAPE = ['dot', 'circle', 'diamond', 'tri'];
 
@@ -272,20 +280,37 @@
       const tot = wts.reduce((a, b) => a + b, 0);
       let x = padL;
       keys.forEach((k, i) => { const w = (W - pad - padL) * wts[i] / tot; cols[k] = { x0: x, x1: x + w, cx: x + w / 2, label: state.tab === 'cavern' ? CAVGROUP_LABEL[k] : SHORT[k] }; x += w; });
-      const band = l => pad + 18 + (3 - l) * (H - 2 * pad - 18) / 4 + (H - 2 * pad - 18) / 8;
+      const bandH = (H - 2 * pad - 18) / 4;
+      const band = l => pad + 18 + (3 - l) * bandH + bandH / 2;
+      // within each column and tier, one sub-column per guild type (vermin: per vermin type), width by its node count
+      const sub = [], cell = {};
+      for (const n of nodes) { n.grp = groupOf(n); const k = n.col + '|' + n.level; (cell[k] = cell[k] || {}); (cell[k][n.grp] = cell[k][n.grp] || []).push(n); }
+      for (const k in cell) {
+        const [ck, lv] = [k.slice(0, k.lastIndexOf('|')), +k.slice(k.lastIndexOf('|') + 1)], col = cols[ck];
+        const gs = Object.keys(cell[k]).sort((a, b) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b));
+        const wt = g => cell[k][g].length + 1.5, tot = gs.reduce((a, g) => a + wt(g), 0);
+        let x0 = col.x0 + 2;
+        for (const g of gs) {
+          const w = (col.x1 - col.x0 - 4) * wt(g) / tot, sc = { x0, x1: x0 + w, cx: x0 + w / 2, last: g === gs[gs.length - 1], l: lv, label: g, n: cell[k][g].length, many: gs.length > 1 };
+          for (const n of cell[k][g]) n.sc = sc;
+          sub.push(sc); x0 += w;
+        }
+      }
       for (const n of nodes) {
-        const col = cols[n.col];
-        n.x = n.x != null && n._lay === 'levels' ? n.x : col.cx + (Math.random() - 0.5) * (col.x1 - col.x0) * 0.8;
+        const sc = n.sc;
+        n.x = n.x != null && n._lay === 'levels' && n._grp === n.grp ? n.x : sc.cx + (Math.random() - 0.5) * (sc.x1 - sc.x0) * 0.8;
         n.y = n.y != null && n._lay === 'levels' ? n.y : band(n.level) + (Math.random() - 0.5) * 30;
-        n.tx = col.cx; n.ty = band(n.level); n._lay = 'levels';
+        n.tx = sc.cx; n.ty = band(n.level); n._lay = 'levels'; n._grp = n.grp;
       }
       const s = d3.forceSimulation(nodes).stop()
-        .force('x', d3.forceX(n => n.tx).strength(n => 0.02 + 0.6 / Math.max(1, (cols[n.col].x1 - cols[n.col].x0) / 60)))
+        .force('x', d3.forceX(n => n.tx).strength(n => 0.05 + 0.6 / Math.max(1, (n.sc.x1 - n.sc.x0) / 40)))
         .force('y', d3.forceY(n => n.ty).strength(0.22))
         .force('c', d3.forceCollide(n => n.r + 1.4).iterations(2));
-      for (let i = 0; i < 220; i++) s.tick();
-      for (const n of nodes) { const c = cols[n.col]; n.x = Math.max(c.x0 + n.r, Math.min(c.x1 - n.r, n.x)); }
-      VIEW.cols = cols; VIEW.band = band;
+      for (let i = 0; i < 220; i++) {
+        s.tick();
+        if (i % 20 === 19 || i === 219) for (const n of nodes) { const c = n.sc; n.x = c.x1 - c.x0 > 2 * n.r ? Math.max(c.x0 + n.r, Math.min(c.x1 - n.r, n.x)) : c.cx; }
+      }
+      VIEW.cols = cols; VIEW.band = band; VIEW.bandH = bandH; VIEW.sub = sub;
     } else {
       for (const n of nodes) { if (n._lay !== 'force') { n.x = W / 2 + (Math.random() - 0.5) * W * 0.6; n.y = H / 2 + (Math.random() - 0.5) * H * 0.6; } n._lay = 'force'; }
       // a dense lattice draws as a hairball, so the layout uses a sample of the links: at most 6 per node
@@ -366,6 +391,18 @@
         ctx.beginPath(); ctx.moveTo(c.x1, 8); ctx.lineTo(c.x1, H - 8); ctx.stroke();
       }
       for (let l = 3; l >= 0; l--) ctx.fillText(LEVEL_NAME[l], 6, VIEW.band(l) + 4);
+      // guild sub-columns: a faint divider between neighbours and the guild's name where it fits
+      ctx.font = `${9 / k}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.setLineDash([2 / k, 3 / k]);
+      for (const sc of VIEW.sub || []) {
+        if (!sc.many) continue;
+        const top = VIEW.band(sc.l) - VIEW.bandH / 2 + 4;
+        if (!sc.last) {
+          ctx.beginPath(); ctx.moveTo(sc.x1, top); ctx.lineTo(sc.x1, top + VIEW.bandH - 8); ctx.stroke();
+        }
+        if (ctx.measureText(sc.label).width < sc.x1 - sc.x0 - 4 / k) ctx.fillText(sc.label, sc.x0 + 3 / k, top + 8 / k);
+      }
+      ctx.setLineDash([]);
     }
     const cs = castSet();
     const sel = state.sel && VIEW.byT[state.sel] ? VIEW.byT[state.sel] : null;
