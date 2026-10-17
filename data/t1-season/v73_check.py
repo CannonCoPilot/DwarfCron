@@ -72,6 +72,9 @@ def ledger(d):
         for r in rows:
             if r['kind'] == 'GAP':
                 continue
+            if not (r['tick'] or '').strip().isdigit():   # a text that carried a line break (an item name, X9c5): join it to its row
+                if out: out[-1] = out[-1][:3] + (out[-1][3] + ' ' + '\t'.join(v for v in r.values() if isinstance(v, str)).strip(),)
+                continue
             t = int(r['tick'])
             out.append((SEASONS[(t % TPY) // ST], r['kind'], r['layer'] or '-', r['text']))
         return out, True

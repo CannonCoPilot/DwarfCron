@@ -1,0 +1,232 @@
+{
+ "id": "X9c5",
+ "spec": {
+  "id": "X9c5",
+  "description": "Step 0.3 (user 17 Oct): (1) a bird of a water cast (ocean or fresh, not on the ground or flying cast) counts against its water body's group cap, not the land cap: its DF wave is a released water group of the cast's body, its entries are left out of the land pause and held by the body's own pause; (2) the animal-person x0.1 and giant x0.2 rarity act at cast selection only (roster ap_freq and giant_freq 1, were 0.25 / 0.5). sw e238bcb, on two fresh forts embarked on X9c4's squares, caverns breached at the outset: small savage lake (V82_SMALLSAV, region16 118,56 off 14,14) and good coast (V82_GOOD, region16 135,23 off 11,7), startdwarf 50. Land cap unchanged (user: leave it). Baseline X9c4 (S 4/12 flying, G 7/12 flying; G sea birds 3-7 of 17-22 land waves a season). Expect: on G no ocean-cast bird wave counted against land; land-flying cast coverage at or above X9c4's; animal people and giants of the casts at the plain ladder FREQUENCY; no hangs.",
+  "needs": "sw-wt/plugin e238bcb scripts deployed; V82_SMALLSAV and V82_GOOD .preverify",
+  "reps": 1,
+  "until": "season:4+20000",
+  "chunk": 20000,
+  "pairs_every": 3000,
+  "save_chunks": true,
+  "sustain": true,
+  "recorder": true,
+  "ledger_live": true,
+  "perf": true,
+  "state_every_chunk": true,
+  "restart_each_cell": true,
+  "receipts": [
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "season casts on",
+    "name": "casts on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+ground\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "v7.5 casts: a land-ground cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+flying\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a land-flying cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern1\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-1 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast extinct",
+    "expect": "cast extinct: \\w+",
+    "name": "the world's extinct rule"
+   },
+   {
+    "cmd": "seasonal-wildlife caverns",
+    "expect": "cavern map",
+    "check": "depth \\d \\(cave",
+    "name": "an open cavern (for the depth audit)"
+   },
+   {
+    "lua": "local c = reqscript('seasonal-wildlife').loadConfig(); for _, r in ipairs(c.fp_created or {}) do local d = -1; if r.kind == 'cave' then d = df.global.world.world_data.underground_regions[r.cave].layer_depth end; print(('fp_created %s %s %d'):format(r.kind, r.token, d)) end; print('fp_created total ' .. #(c.fp_created or {}))",
+    "expect": "fp_created total",
+    "check": "fp_created total [1-9]",
+    "name": "population entries created for unstocked cast species"
+   },
+   {
+    "cmd": "seasonal-wildlife sponges",
+    "expect": "sponges",
+    "name": "sponge line (giant sponges allowed or not)"
+   },
+   {
+    "cmd": "seasonal-wildlife status",
+    "expect": "^Layers: .*land",
+    "name": "the tool runs the land layer"
+   },
+   {
+    "cmd": "seasonal-wildlife groups pause",
+    "expect": "land pause",
+    "check": "land pause: on.*reopens 2 group",
+    "name": "land pause on, margin 2"
+   },
+   {
+    "cmd": "seasonal-wildlife groups cavern",
+    "expect": "groups: cavern",
+    "check": "pause on",
+    "name": "cavern pause on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast caverns",
+    "expect": "cast caverns:",
+    "check": "assignment on, food-web guarantee on",
+    "name": "cavern assignment and food-web guarantee on"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern2\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-2 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast status",
+    "expect": "^\\s+cavern3\\s+Summer\\s+\\d+\\+\\d+\\s+seed",
+    "name": "a cavern-3 cast for summer"
+   },
+   {
+    "cmd": "seasonal-wildlife cast caverns",
+    "expect": "thief-tagged",
+    "check": "the tool places them when cast, on",
+    "name": "thief placement on"
+   },
+   {
+    "cmd": "seasonal-wildlife groups single",
+    "expect": "one entry per species",
+    "check": "caverns on\\).*anchors c1 \\S+.*c2 \\S+.*c3 \\S+",
+    "name": "one entry per species in each cavern, an anchor per depth"
+   },
+   {
+    "lua": "local c=reqscript('seasonal-wildlife').loadConfig(); print('cavern_cap '..tostring(c.groups.cavern_cap)..' thief '..tostring(c.roster.apex.thief_presence))",
+    "expect": "cavern_cap",
+    "check": "cavern_cap 7 thief 50",
+    "name": "cavern cap 7, thief target 50"
+   },
+   {
+    "lua": "local c=reqscript('seasonal-wildlife').loadConfig(); print('ap_freq '..tostring(c.roster.ap_freq)..' giant_freq '..tostring(c.roster.giant_freq))",
+    "expect": "ap_freq",
+    "check": "ap_freq 1 giant_freq 1",
+    "name": "0.3: rarity at the pick only (seated FREQUENCY x1)"
+   },
+   {
+    "lua": "local V7=reqscript('seasonal-wildlife').V7; print('birdpause '..tostring(V7.GRP.birdPause ~= nil and V7.GRP.waterBirdGroups ~= nil))",
+    "expect": "birdpause",
+    "check": "birdpause true",
+    "name": "0.3: water-cast birds counted by their body (engine e238bcb)"
+   }
+  ],
+  "arms": [
+   {
+    "name": "S",
+    "fort": "V82_SMALLSAV",
+    "receipts": []
+   },
+   {
+    "name": "G",
+    "fort": "V82_GOOD",
+    "receipts": []
+   }
+  ]
+ },
+ "started": "2026-10-17 11:05:10",
+ "dry_run": false,
+ "provenance": {
+  "dwarfcron_commit": "84272f59",
+  "sw_repo": "/Users/nathanielcannon/Claude/Projects/sw-wt/plugin",
+  "dry_run": false,
+  "engine": {
+   "shadow (dfhack-config/scripts)": {
+    "bytes": 1346625,
+    "blob": "63d58abe4b096428608e8787000dc66e53d69457",
+    "release": "7.5.0",
+    "mtime": "2026-10-17T11:00:37",
+    "commit": "e238bcb129 v7.6.1 step 0.3 (user 17 Oct): (1) \"Yes\" -- a bird of a water cast counts against its water body's cap, not t"
+   },
+   "package (DFHack/hack/scripts)": {
+    "bytes": 1124466,
+    "blob": "d802c82070498db87475edbd314870745e060fad",
+    "release": "7.2.0",
+    "mtime": "2026-10-07T09:49:36",
+    "commit": "e494d33189 ecology nudge: never move a unit out of its realm (test item 1: cavern jabberers teleported to the surface ki"
+   }
+  },
+  "engine_in_use": "shadow (dfhack-config/scripts)",
+  "recorder_deployed": true,
+  "recorder_matches_repo": true,
+  "autostart_file": "{\n\t\"autostart\": true\n}",
+  "df_dfhack": "v0.53.16 win64 STEAM\t53.16-r2"
+ },
+ "ended": "2026-10-17 13:21:26",
+ "cells": [
+  {
+   "arm": "S",
+   "rep": 1,
+   "fort": "V82_SMALLSAV",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 4281.5,
+   "ticks": 364839,
+   "ticks_per_s": 112.1
+  },
+  {
+   "arm": "G",
+   "rep": 1,
+   "fort": "V82_GOOD",
+   "status": "OK",
+   "reason": "",
+   "wall_s": 3894.3,
+   "ticks": 365005,
+   "ticks_per_s": 124.7
+  }
+ ],
+ "saves_written": [
+  "SR_X9c5_S_r01_c001",
+  "SR_X9c5_S_r01_c002",
+  "SR_X9c5_S_r01_c003",
+  "SR_X9c5_S_r01_c004",
+  "SR_X9c5_S_r01_c005",
+  "SR_X9c5_S_r01_c006",
+  "SR_X9c5_S_r01_c007",
+  "SR_X9c5_S_r01_c008",
+  "SR_X9c5_S_r01_c009",
+  "SR_X9c5_S_r01_c010",
+  "SR_X9c5_S_r01_c011",
+  "SR_X9c5_S_r01_c012",
+  "SR_X9c5_S_r01_c013",
+  "SR_X9c5_S_r01_c014",
+  "SR_X9c5_S_r01_c015",
+  "SR_X9c5_S_r01_c016",
+  "SR_X9c5_S_r01_c017",
+  "SR_X9c5_S_r01_c018",
+  "SR_X9c5_S_r01_c019",
+  "SR_X9c5_S_r01_c020",
+  "SR_X9c5_G_r01_c001",
+  "SR_X9c5_G_r01_c002",
+  "SR_X9c5_G_r01_c003",
+  "SR_X9c5_G_r01_c004",
+  "SR_X9c5_G_r01_c005",
+  "SR_X9c5_G_r01_c006",
+  "SR_X9c5_G_r01_c007",
+  "SR_X9c5_G_r01_c008",
+  "SR_X9c5_G_r01_c009",
+  "SR_X9c5_G_r01_c010",
+  "SR_X9c5_G_r01_c011",
+  "SR_X9c5_G_r01_c012",
+  "SR_X9c5_G_r01_c013",
+  "SR_X9c5_G_r01_c014",
+  "SR_X9c5_G_r01_c015",
+  "SR_X9c5_G_r01_c016",
+  "SR_X9c5_G_r01_c017",
+  "SR_X9c5_G_r01_c018",
+  "SR_X9c5_G_r01_c019",
+  "SR_X9c5_G_r01_c020"
+ ],
+ "autostart_file_after": "{\n\t\"autostart\": true\n}"
+}
