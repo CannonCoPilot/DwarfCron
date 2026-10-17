@@ -132,8 +132,8 @@ BODY = r"""
 <div class="app">
 <aside id="fort" class="panel" aria-label="Fort">
   <div><span class="lbl">Land biomes</span><div id="biomes"></div></div>
-  <div><span class="lbl">Surroundings <button type="button" class="linkish" id="surrAll">all nine</button></span><div id="surr"></div>
-    <p class="small">Click a cell for one surrounding (the simulator needs exactly one); shift-click to add or remove cells and browse several at once.</p>
+  <div><span class="lbl">Surroundings <button type="button" class="linkish" id="surrAll">all</button> <button type="button" class="linkish" id="surrNone">none</button></span><div id="surr"></div>
+    <p class="small">Each cell switches on or off by itself; the network shows creatures that fit any cell that is on. Building casts needs exactly one cell on.</p>
     <p class="small" id="tagline"></p></div>
   <div class="row"><label class="ck" for="extinct"><span class="lbl" style="margin:0">Extinct rule</span></label>
     <select id="extinct"><option value="UNTAMED_WILDS">untamed wilds (savage only)</option><option value="WILDERNESS">wilderness (any wild)</option>
@@ -174,7 +174,7 @@ BODY = r"""
   <h2>Build casts</h2>
   <p class="note">The engine's cast builder on the fort above: all 28 season casts of a year, built at once in a random order, as at embark.
   One year shows the casts; many years show how often each species is cast. Pin a run as the baseline, change a rule, and run again to compare.</p>
-  <p id="simNote" hidden>Select exactly one surrounding (one cell of the matrix) to build casts; several cells are for browsing the network.</p>
+  <p id="simNote" hidden>Switch exactly one surrounding on (one cell of the matrix) to build casts; several cells are for browsing the network.</p>
   <div class="simhead">
     <div class="params">
       <label>animal people ×<input type="number" id="p_ap" step="0.05" min="0"></label>

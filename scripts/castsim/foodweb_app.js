@@ -137,12 +137,12 @@
   $('#surr').addEventListener('click', ev => {
     const b = ev.target.closest('button[data-cell]'); if (!b) return;
     const cell = b.dataset.cell;
-    if (ev.shiftKey || ev.metaKey || ev.ctrlKey) { if (state.cells.has(cell) && state.cells.size > 1) state.cells.delete(cell); else state.cells.add(cell); }
-    else if (state.cells.size === 1 && state.cells.has(cell)) return;
-    else state.cells = new Set([cell]);
+    // each cell toggles on its own (user 17 Oct)
+    if (state.cells.has(cell)) state.cells.delete(cell); else state.cells.add(cell);
     state.sel = null; rebuild();
   });
   $('#surrAll').onclick = () => { state.cells = new Set(ALLCELLS); rebuild(); };
+  $('#surrNone').onclick = () => { state.cells = new Set(); rebuild(); };
 
   // ------------------------------------------------------------------ nodes and edges for the view
   let VIEW = null;   // { nodes, byT, edges (array of {a,b,L}), adj }
@@ -843,7 +843,7 @@
     refreshView();
     renderYear();
     const nP = Object.keys(BUILD.B.P).length;
-    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'} in ${state.cells.size === 9 ? 'all nine surroundings' : [...state.cells].map(c => CELLNAME[c]).join(', ')}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
+    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'} in ${state.cells.size === 9 ? 'all nine surroundings' : (state.cells.size ? [...state.cells].map(c => CELLNAME[c]).join(', ') : 'no surroundings (switch a cell on)')}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
     if (concrete() && !keepView) { /* stats stay until the next run */ }
     renderStats();
   }
