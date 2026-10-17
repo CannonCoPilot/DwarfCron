@@ -89,6 +89,10 @@
     const bs = [];
     for (const cell of ALLCELLS) if (state.cells.has(cell)) { const [v, a] = cell.split('|'); const sp = specFor(SAVS[v], ALS[a]); bs.push([sp, sim.build(sp)]); }
     if (bs.length === 1) return { B: bs[0][1], spec: bs[0][0] };
+    if (!bs.length) {   // every cell off: an empty view
+      const L0 = {}; for (const L of LAYERS) L0[L] = [];
+      return { B: { P: {}, layerSets: L0, active: [], lists: {}, sub: null, rejected: [] }, spec: null };
+    }
     // browse union: a species is in when any region type admits it; its slots from the first that does
     const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [] };
     for (const L of LAYERS) B.layerSets[L] = [];
