@@ -52,6 +52,11 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
+.viewtabs{display:inline-flex;gap:0;border-bottom:2px solid var(--line)}
+.viewtabs button{font:inherit;font-size:.92rem;font-weight:700;border:0;background:none;color:var(--muted);padding:5px 14px 6px;margin-bottom:-2px;border-bottom:3px solid transparent;cursor:pointer}
+.viewtabs button span{font:600 .72rem var(--mono);color:var(--muted);margin-left:3px}
+.viewtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.viewtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 table.surr{border-collapse:separate;border-spacing:3px;width:100%;font-size:.72rem;table-layout:fixed}
 table.surr th{background:none;font:600 .6rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0 2px;border:0;text-align:center}
 table.surr th[scope=row]{text-align:right;width:3.6em}table.surr td{padding:0;border:0}
@@ -151,6 +156,7 @@ BODY = r"""
 </aside>
 <section id="view" aria-label="Network">
   <div class="toolbar">
+    <div><span class="lbl">View</span><div class="viewtabs" id="tabs" role="tablist"></div></div>
     <div><span class="lbl">Layer</span><div class="seg" id="layer"></div></div>
     <div><span class="lbl">Season</span><div class="seg" id="season"></div></div>
   </div>

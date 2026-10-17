@@ -45,6 +45,11 @@ section#view{display:grid;gap:8px;min-width:0}
 #net{display:block;cursor:crosshair;touch-action:none}
 #tip,#ctip{position:absolute;pointer-events:none;z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;font-size:.8rem;box-shadow:0 4px 14px rgba(0,0,0,.18);max-width:260px;line-height:1.4}
 #ctip{position:fixed}
+.viewtabs{display:inline-flex;gap:0;border-bottom:2px solid var(--line)}
+.viewtabs button{font:inherit;font-size:.92rem;font-weight:700;border:0;background:none;color:var(--muted);padding:5px 14px 6px;margin-bottom:-2px;border-bottom:3px solid transparent;cursor:pointer}
+.viewtabs button span{font:600 .72rem var(--mono);color:var(--muted);margin-left:3px}
+.viewtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.viewtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 table.surr{border-collapse:separate;border-spacing:3px;width:100%;font-size:.72rem;table-layout:fixed}
 table.surr th{background:none;font:600 .6rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:0 2px;border:0;text-align:center}
 table.surr th[scope=row]{text-align:right;width:3.6em}table.surr td{padding:0;border:0}
@@ -143,6 +148,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
 </aside>
 <section id="view" aria-label="Network">
   <div class="toolbar">
+    <div><span class="lbl">View</span><div class="viewtabs" id="tabs" role="tablist"></div></div>
     <div><span class="lbl">Layer</span><div class="seg" id="layer"></div></div>
     <div><span class="lbl">Season</span><div class="seg" id="season"></div></div>
   </div>
@@ -920,6 +926,12 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+  // VIEWER TABS (user 17 Oct): the surface layers as columns; the caverns in their own tab, sorted left to right by the set
+  // of caverns a creature can be cast in (staggered by mean depth), since most cavern creatures live in more than one
+  const SURF = ['ground', 'flying', 'ocean', 'fresh'], CAVS = ['cavern1', 'cavern2', 'cavern3'];
+  const CAVGROUPS = ['1', '1,2', '2', '1,2,3', '1,3', '2,3', '3'];
+  const CAVGROUP_LABEL = { '1': 'Cav 1', '1,2': '1 + 2', '2': 'Cav 2', '1,2,3': 'all three', '1,3': '1 + 3', '2,3': '2 + 3', '3': 'Cav 3' };
+  const CAV_COL = { 1: 'c-green', 2: 'c-blue', 3: 'c-purple' };
   const SHORT = { ground: 'Ground', flying: 'Flying', ocean: 'Ocean', fresh: 'Fresh', cavern1: 'Cav 1', cavern2: 'Cav 2', cavern3: 'Cav 3' };
   const LNAME = { ground: 'Land-ground', flying: 'Land-flying', ocean: 'Ocean', fresh: 'Freshwater', cavern1: 'Cavern 1', cavern2: 'Cavern 2', cavern3: 'Cavern 3' };
   const BIOME_GROUPS = [
@@ -959,7 +971,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    tab: 'surface', edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)
@@ -1081,7 +1093,11 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     if (s === 'apex') return 3;
     return sim.tierOf({ c: it.c, slot: s, vermin: false }) >= 2 ? 2 : 1;
   }
-  function viewLayers() { return state.layer === 'all' ? BUILD.B.active : (BUILD.B.active.includes(state.layer) ? [state.layer] : []); }
+  function tabLayers() { return BUILD.B.active.filter(L => (state.tab === 'cavern' ? CAVS : SURF).includes(L)); }
+  function viewLayers() { const t = tabLayers(); return state.layer === 'all' ? t : (t.includes(state.layer) ? [state.layer] : []); }
+  // the caverns a species can be cast in on this fort, whatever the tab shows
+  const cavsOf = t => ((BUILD.B.P[t] && BUILD.B.P[t].layers) || []).filter(L => CAVS.includes(L) && BUILD.B.active.includes(L)).map(L => +L.slice(-1));
+  const surfOf = t => ((BUILD.B.P[t] && BUILD.B.P[t].layers) || []).filter(L => SURF.includes(L) && BUILD.B.active.includes(L));
   function makeView() {
     const nodes = [], byT = {};
     const ls = viewLayers();
@@ -1091,7 +1107,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       for (const it of items[L]) {
         if (byT[it.c.t]) { byT[it.c.t].layers.push(L); byT[it.c.t].slotsBy[L] = it.slots; continue; }
         const n = { t: it.c.t, c: it.c, L, layers: [L], slotsBy: { [L]: it.slots }, slot: it.vermin ? 'vermin' : it.slots[0], vermin: it.vermin,
-          level: levelOf(it, L), r: radius(it.c) };
+          level: levelOf(it, L), r: radius(it.c), cavs: cavsOf(it.c.t), surf: surfOf(it.c.t) };
         byT[n.t] = n; nodes.push(n);
       }
     }
@@ -1150,24 +1166,28 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     const pad = 28, padL = state.layout === 'levels' ? 64 : 28;
     const cols = {};
     if (state.layout === 'levels') {
-      // one column per layer, width by the square root of its node count; four bands top to bottom (apex .. vermin)
-      const wts = ls.map(L => Math.sqrt(nodes.filter(n => n.L === L).length + 4));
+      // one column per layer (surface) or per set of caverns (caverns: 1, 1+2, 2, all three, 1+3, 2+3, 3, by mean depth),
+      // width by the square root of its node count; four bands top to bottom (apex .. vermin)
+      const keyOf = n => state.tab === 'cavern' ? n.layers.map(L => L.slice(-1)).sort().join(',') : n.L;
+      for (const n of nodes) n.col = keyOf(n);
+      const keys = state.tab === 'cavern' ? CAVGROUPS.filter(k => nodes.some(n => n.col === k)) : ls;
+      const wts = keys.map(k => Math.sqrt(nodes.filter(n => n.col === k).length + 4));
       const tot = wts.reduce((a, b) => a + b, 0);
       let x = padL;
-      ls.forEach((L, i) => { const w = (W - pad - padL) * wts[i] / tot; cols[L] = { x0: x, x1: x + w, cx: x + w / 2 }; x += w; });
+      keys.forEach((k, i) => { const w = (W - pad - padL) * wts[i] / tot; cols[k] = { x0: x, x1: x + w, cx: x + w / 2, label: state.tab === 'cavern' ? CAVGROUP_LABEL[k] : SHORT[k] }; x += w; });
       const band = l => pad + 18 + (3 - l) * (H - 2 * pad - 18) / 4 + (H - 2 * pad - 18) / 8;
       for (const n of nodes) {
-        const col = cols[n.L];
+        const col = cols[n.col];
         n.x = n.x != null && n._lay === 'levels' ? n.x : col.cx + (Math.random() - 0.5) * (col.x1 - col.x0) * 0.8;
         n.y = n.y != null && n._lay === 'levels' ? n.y : band(n.level) + (Math.random() - 0.5) * 30;
         n.tx = col.cx; n.ty = band(n.level); n._lay = 'levels';
       }
       const s = d3.forceSimulation(nodes).stop()
-        .force('x', d3.forceX(n => n.tx).strength(n => 0.02 + 0.6 / Math.max(1, (cols[n.L].x1 - cols[n.L].x0) / 60)))
+        .force('x', d3.forceX(n => n.tx).strength(n => 0.02 + 0.6 / Math.max(1, (cols[n.col].x1 - cols[n.col].x0) / 60)))
         .force('y', d3.forceY(n => n.ty).strength(0.22))
         .force('c', d3.forceCollide(n => n.r + 1.4).iterations(2));
       for (let i = 0; i < 220; i++) s.tick();
-      for (const n of nodes) { const c = cols[n.L]; n.x = Math.max(c.x0 + n.r, Math.min(c.x1 - n.r, n.x)); }
+      for (const n of nodes) { const c = cols[n.col]; n.x = Math.max(c.x0 + n.r, Math.min(c.x1 - n.r, n.x)); }
       VIEW.cols = cols; VIEW.band = band;
     } else {
       for (const n of nodes) { if (n._lay !== 'force') { n.x = W / 2 + (Math.random() - 0.5) * W * 0.6; n.y = H / 2 + (Math.random() - 0.5) * H * 0.6; } n._lay = 'force'; }
@@ -1198,6 +1218,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   }
   const seq = t => d3.interpolateLab(TOK['seq-lo'], TOK['seq-hi'])(Math.max(0, Math.min(1, t)));
   function colorOf(n) {
+    if (state.color === 'cavern') return n.cavs.length ? TOK[CAV_COL[n.cavs[0]]] : TOK.faint;
     if (state.color === 'slot') return TOK[SLOT_COL[n.slot] || 'muted'];
     if (state.color === 'habitat') return n.vermin ? TOK.muted : TOK[HAB_COL[n.c.h] || 'muted'];
     if (state.color === 'value') return n.vermin ? TOK.muted : seq(n.value);
@@ -1244,7 +1265,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       ctx.fillStyle = TOK.muted; ctx.strokeStyle = TOK.line; ctx.lineWidth = 1 / k;
       for (const L in VIEW.cols) {
         const c = VIEW.cols[L];
-        ctx.fillText(SHORT[L].toUpperCase(), c.x0 + 4, 20);
+        ctx.fillText(c.label.toUpperCase(), c.x0 + 4, 20);
         ctx.beginPath(); ctx.moveTo(c.x1, 8); ctx.lineTo(c.x1, H - 8); ctx.stroke();
       }
       for (let l = 3; l >= 0; l--) ctx.fillText(LEVEL_NAME[l], 6, VIEW.band(l) + 4);
@@ -1281,7 +1302,13 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       const on = lit(n);
       ctx.globalAlpha = on ? 1 : 0.16;
       drawShape(shapeOf(n), n.x, n.y, n.r);
-      ctx.fillStyle = colorOf(n); ctx.fill();
+      if (state.color === 'cavern' && n.cavs.length) {
+        ctx.save(); ctx.clip();
+        const w = 2.8 * n.r / n.cavs.length;
+        n.cavs.forEach((k, i) => { ctx.fillStyle = TOK[CAV_COL[k]]; ctx.fillRect(n.x - 1.4 * n.r + i * w, n.y - 1.5 * n.r, w + 0.3, 3 * n.r); });
+        ctx.restore();
+        drawShape(shapeOf(n), n.x, n.y, n.r);
+      } else { ctx.fillStyle = colorOf(n); ctx.fill(); }
       ctx.lineWidth = 1.2 / k; ctx.strokeStyle = TOK.surface; ctx.stroke();
       if (n.hv && on && !n.vermin && state.color !== 'inclusion') { ctx.lineWidth = 1.4 / k; ctx.strokeStyle = TOK.ink; drawShape('circle', n.x, n.y, n.r + 3); ctx.stroke(); }
     }
@@ -1402,6 +1429,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     let colorPart = '';
     if (state.color === 'slot') colorPart = SLOT_LEGEND.map(([s, lab]) => `<span>${sw(`var(--${SLOT_COL[s]})`, 'circle')}${esc(lab)}</span>`).join('');
     else if (state.color === 'habitat') colorPart = Object.entries(HAB_COL).map(([h, c]) => `<span>${sw(`var(--${c})`, 'circle')}${h}</span>`).join('') + `<span>${sw('var(--muted)', 'circle')}vermin</span>`;
+    else if (state.color === 'cavern') colorPart = [1, 2, 3].map(k => `<span>${sw(`var(--${CAV_COL[k]})`, 'circle')}cavern ${k}</span>`).join('') + '<span>one stripe per cavern it can be cast in (left to right 1, 2, 3); grey: never in the caverns</span>';
     else colorPart = `<span class="ramp"><i></i>${state.color === 'value' ? 'low → high value (pet value or body size percentile; war animals top)' : (STATS ? 'never → most often cast (√ share of season casts)' : 'run the simulator to colour by how often cast')}</span>`;
     let shapePart = '';
     if (state.shape === 'level') shapePart = [[3, 'apex'], [2, 'predator'], [1, 'prey'], [0, 'vermin']].map(([l, lab]) => `<span>${sw('var(--muted)', LEVEL_SHAPE[l])}${lab}</span>`).join('');
@@ -1449,6 +1477,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       st += `<tr><td>${esc(LNAME[L])}</td><td class="num">${pct(share)}</td><td class="num">${pct(seed)}</td><td class="num">${pct(apex)}</td><td>${esc(slots || '-')}</td></tr>`;
     }
     box.innerHTML = `<h3>${esc(c.nm)}</h3><p class="mono small">${esc(n.t)}${c.rt ? ' · root ' + esc(c.rt) : ''}</p>
+      ${n.cavs.length && state.tab === 'surface' ? `<p class="note">Also cast in cavern ${n.cavs.join(', ')} (Caverns tab).</p>` : ''}${n.surf.length && state.tab === 'cavern' ? `<p class="note">Also on the surface: ${n.surf.map(L => LNAME[L].toLowerCase()).join(', ')} (Surface tab).</p>` : ''}
       <div class="chips">${n.layers.map(L => `<span class="chip">${esc(LNAME[L])}: ${esc(n.vermin ? 'vermin ' + (c.vc || '') : n.slotsBy[L].join(' / '))}</span>`).join('')}</div>
       <dl class="kv"><div><dt>body</dt><dd>${fmtMass(c.m)}</dd></div><div><dt>group</dt><dd>${c.c0}-${c.c1}</dd></div>
       <div><dt>habitat</dt><dd>${esc(c.h)}</dd></div><div><dt>guild</dt><dd>${esc(c.g)} · ${esc(GUILD_FAM(c.g))}</dd></div>
@@ -1484,7 +1513,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     const b = ev.target.closest('button.sp[data-t]');
     if (!b) return;
     const t = b.dataset.t;
-    if (!VIEW.byT[t]) { state.layer = 'all'; syncControls(); refreshView(); }
+    if (!VIEW.byT[t]) { const p = BUILD.B.P[t]; if (p && (p.layers || []).some(L => (state.tab === 'cavern' ? SURF : CAVS).includes(L))) setTab(state.tab === 'cavern' ? 'surface' : 'cavern'); state.layer = 'all'; syncControls(); refreshView(); }
     state.sel = t; state.castSel = null; renderInspector(); renderYear(); draw();
     $('#netbox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   });
@@ -1659,6 +1688,8 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       const k = b.dataset.cast;
       state.castSel = state.castSel === k ? null : k; state.sel = null;
       const L = k.split('|')[0];
+      const want = CAVS.includes(L) ? 'cavern' : 'surface';
+      if (state.castSel && state.tab !== want) { const keep = state.castSel; setTab(want); state.castSel = keep; }
       if (state.castSel && state.layer !== 'all' && state.layer !== L) { state.layer = L; syncControls(); refreshView(); }
       renderYear(); renderInspector(); draw();
       return;
@@ -1685,8 +1716,11 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     for (const k of [1, 2, 3]) $('#cv' + k).checked = state.caverns.has(k);
     $('#assign').checked = state.assign;
     seg('#season', [['all', 'All'], [0, 'Spring'], [1, 'Summer'], [2, 'Autumn'], [3, 'Winter']], state.season, v => { state.season = v; refreshView(); });
-    seg('#layer', [['all', 'All layers']].concat(LAYERS.map(L => [L, LNAME[L]])), state.layer, v => { state.layer = v; state.sel = null; refreshView(); });
-    seg('#color', [['slot', 'Trophic slot'], ['value', 'Value'], ['habitat', 'Habitat'], ['inclusion', 'How often cast']], state.color, v => { state.color = v; syncControls(); renderLegend(); draw(); });
+    $('#tabs').innerHTML = [['surface', 'Surface'], ['cavern', 'Caverns']].map(([t, lab]) => {
+      const n = !BUILD ? '' : Object.values(BUILD.B.P).filter(p => (p.layers || []).some(L => (t === 'cavern' ? CAVS : SURF).includes(L) && BUILD.B.active.includes(L)) && (state.vermin || !p.c.v)).length;
+      return `<button type="button" role="tab" aria-selected="${state.tab === t}" data-tab="${t}">${lab} <span>${n}</span></button>`; }).join('');
+    seg('#layer', [['all', state.tab === 'cavern' ? 'All caverns' : 'All surface layers']].concat((state.tab === 'cavern' ? CAVS : SURF).map(L => [L, LNAME[L]])), state.layer, v => { state.layer = v; state.sel = null; refreshView(); });
+    seg('#color', [['slot', 'Trophic slot'], ['cavern', 'Cavern layer'], ['value', 'Value'], ['habitat', 'Habitat'], ['inclusion', 'How often cast']], state.color, v => { state.color = v; syncControls(); renderLegend(); draw(); });
     seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
     seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
@@ -1715,6 +1749,14 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   $('#fz').onchange = e => { state.fz = e.target.value; rebuild(); };
   for (const k of [1, 2, 3]) $('#cv' + k).onchange = e => { e.target.checked ? state.caverns.add(k) : state.caverns.delete(k); rebuild(); };
   $('#assign').onchange = e => { state.assign = e.target.checked; rebuild(); };
+  function setTab(t) {
+    if (state.tab === t) return;
+    state.tab = t; state.layer = 'all'; state.sel = null; state.castSel = null;
+    state.color = t === 'cavern' ? 'cavern' : (state.color === 'cavern' ? 'slot' : state.color);
+    for (const n of (VIEW ? VIEW.nodes : [])) n._lay = null;
+    syncControls(); refreshView();
+  }
+  $('#tabs').addEventListener('click', ev => { const b = ev.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); });
   $('#verm').onchange = e => { state.vermin = e.target.checked; renderSurroundings(); refreshView(); };
   $('#fams').addEventListener('change', ev => { const f = ev.target.dataset.f; if (!f) return; state.fam[f] = ev.target.checked; refreshView(); });
   $('#presets').onclick = ev => { const b = ev.target.closest('button[data-p]'); if (b) applyPreset(b.dataset.p); };
