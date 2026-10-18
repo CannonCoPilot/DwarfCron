@@ -193,6 +193,7 @@
       if (c.gi) { const r = M.real_apex[c.t.slice(6)]; if (r && r[0] === L) return 'apex'; }
       return null;
     }
+    const usedKey = (t, slot) => slot === 'sentient' ? 'SN|' + t : t;
     function slotKey(L, sub) { return L === 'fresh' ? 'fresh:' + sub : (L.startsWith('cavern') ? 'cavern' : L); }
     function slotsFor(c, L, sub, promoted) {
       const hab = c.h, pred = predator(c), g = c.g, s = [];
@@ -524,11 +525,12 @@
       const weirdK = L.startsWith('cavern') ? +L.slice(-1) : null;
       const out = { L, members: [], vermin: [], log: [], seed: null, apexRank: [], hv: {}, guarantee: [], unfilled: {}, pool: cands.length, want: wantFixed };
       const taken = new Set(), members = [];
-      function weight(x, pack) {
+      // user 17 Oct: a sentient seat counts only against the species' later sentient seats (engine FP.usedKey)
+      function weight(x, pack, apexDraw) {
         const c = x.c;
         let w = 1;
         if (predator(c) && !c.bn && (c.c1 || 1) > 1) w *= (pack === undefined ? prm.pack : pack);
-        w *= Math.pow(prm.reuse, used[c.t] || 0);
+        w *= Math.pow(prm.reuse, used[usedKey(c.t, c.se && !apexDraw ? 'sentient' : null)] || 0);
         if (c.gi) w *= prm.giant;
         if (c.ap && !c.civ) w *= prm.ap_pick;
         if (weirdK && c.wd != null && prm.weird) w *= weirdWeight(weirdK, c.wd);
@@ -559,7 +561,7 @@
           const gsize = x => { const c = x.c; const pk = predator(c) && !c.bn && (c.c1 || 1) > 1; return (c.m || 0) * (pk ? ((c.c0 || 1) + (c.c1 || 1)) / 2 : 1); };
           let mx = 1;
           for (const x of el) mx = Math.max(mx, gsize(x));
-          const ws = el.map(x => Math.sqrt(gsize(x) / mx) * weight(x, prm.apex_pack));
+          const ws = el.map(x => Math.sqrt(gsize(x) / mx) * weight(x, prm.apex_pack, true));
           const tot = ws.reduce((a, b) => a + b, 0);
           let r = rng.random() * tot, chosen = null;
           for (let i = 0; i < el.length; i++) { r -= ws[i]; if (r <= 0) { chosen = el[i]; break; } }
@@ -663,7 +665,7 @@
       for (const a of all) for (const b of all) if (a !== b && eats(a, b, L)) out.edges.push([a.c.t, b.c.t]);
       const linkedSet = new Set(out.edges.flat());
       out.isolated = members.filter(m => !linkedSet.has(m.c.t)).map(m => m.c.t);
-      for (const m of members) used[m.c.t] = (used[m.c.t] || 0) + 1;
+      for (const m of members) { const k = usedKey(m.c.t, m.slot); used[k] = (used[k] || 0) + 1; }
       return out;
     }
     function hvSet(free, prm) {

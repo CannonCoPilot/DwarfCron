@@ -57,9 +57,12 @@
   const LEVEL_SHAPE = ['dot', 'circle', 'diamond', 'tri'];
 
   // ------------------------------------------------------------------ state
+  // user 17 Oct: the page opens on everything -- every land biome, all nine surroundings, every neighbouring tile, every water
+  // body in every zone, all three caverns
+  const ALL_LAND = BIOME_GROUPS.flatMap(([, bs]) => bs);
   const state = {
-    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), neighbours: new Set(), iso: false,
-    extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
+    land: new Set(ALL_LAND), cells: new Set(['benign', 'neutral', 'savage'].flatMap(v => ['good', 'neutral', 'evil'].map(a => v + '|' + a))), neighbours: new Set(ALL_LAND), iso: false,
+    extinct: 'UNTAMED_WILDS', ocean: true, oz: 'ALL', lake: true, river: true, brook: true, pool: true, fz: 'ALL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
     tab: 'surface', edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
@@ -226,6 +229,8 @@
     for (const n of nodes) adj.set(n.t, { prey: new Set(), pred: new Set() });
     const why = new Map();
     for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); why.set(e.a.t + '>' + e.b.t, e); }
+    // user 17 Oct: an apex or predator that eats nothing under the links switched on drops to the prey tier
+    for (const n of nodes) { n.demoted = !n.vermin && n.level >= 2 && adj.get(n.t).prey.size === 0; if (n.demoted) n.level = 1; }
     // value: within the view, the higher of the pet-value and body-size percentiles; war animals at the top
     const pct = (arr, f) => { const v = arr.map(f).filter(x => x > 0).sort((a, b) => a - b); return x => x <= 0 ? 0 : (d3.bisectRight(v, x) / v.length); };
     const nv = nodes.filter(n => !n.vermin);
@@ -600,7 +605,7 @@
     }
     const c = n.c, A = VIEW.adj.get(n.t);
     const flags = [c.gi && 'giant', c.ap && 'animal person', c.se && 'sentient', c.sav && 'savage', c.gd && 'good', c.ev && 'evil', c.ex && 'real-world extinct',
-      c.war && 'war-trainable', c.lp && 'large predator', c.bn && 'benign', c.th.length && ('thief: ' + c.th.join(', ').toLowerCase())].filter(Boolean);
+      c.war && 'war-trainable', c.lp && 'large predator', c.bn && 'benign', c.th.length && ('thief: ' + c.th.join(', ').toLowerCase()), n.demoted && 'eats nothing: drawn as prey'].filter(Boolean);
     const ns = c.ns.map((x, i) => x ? SEASONS[i] : null).filter(Boolean);
     const list = (set) => [...set].map(t => VIEW.byT[t]).filter(Boolean).sort((a, b) => b.level - a.level || (a.c.nm < b.c.nm ? -1 : 1))
       .map(x => `<button type="button" class="sp" data-t="${esc(x.t)}"><i style="background:var(--${SLOT_COL[x.slot] || 'muted'})"></i>${esc(x.c.nm)}</button>`).join('');

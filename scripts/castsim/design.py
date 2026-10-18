@@ -551,10 +551,16 @@ class Design:
         return True
 
     # ------------------------------------------------------------------ one season cast
-    def weight(self, c, used, layer, pack=None):
+    @staticmethod
+    def used_key(token, slot):
+        """user 17 Oct: a sentient seat is exempt from the repeat penalty of the species' other seats (engine FP.usedKey)"""
+        return 'SN|' + token if slot == 'sentient' else token
+
+    def weight(self, c, used, layer, pack=None, apex_draw=False):
         e, w = c['e'], 1.0
         if self.predator(e) and not e['benign'] and e['cmax'] > 1: w *= CAST_DEF['pack'] if pack is None else pack
-        w *= REUSE ** used.get(e['token'], 0)   # only once drawn: `used` counts casts already built this year
+        # only once drawn: `used` counts casts already built this year; a sentient's sentient seats apart (user 17 Oct)
+        w *= REUSE ** used.get(self.used_key(e['token'], 'sentient' if e['sentient'] and not apex_draw else None), 0)
         if e['giant']: w *= CAST_DEF['giant']
         if e['ap'] and not e['civ']: w *= R0['ap_pick']
         if layer.startswith('cavern') and e.get('weird') is not None: w *= weird_weight(int(layer[-1]), e['weird'])
@@ -610,7 +616,7 @@ class Design:
                 for c in sorted(elig, key=lambda c: (-gsize(c), c['e']['token'])):
                     g = gsize(c)
                     ok = g >= APEX_FLOOR * mx
-                    w = (g / mx) ** 0.5 * self.weight(c, used, layer, pack=APEX_PACK) if ok else 0.0
+                    w = (g / mx) ** 0.5 * self.weight(c, used, layer, pack=APEX_PACK, apex_draw=True) if ok else 0.0
                     rows.append((c, g, w, ok))
                 tot = sum(w for _, _, w, _ in rows)
                 r, chosen = rng.random() * tot, None
@@ -698,7 +704,7 @@ class Design:
         linked_set = {x for ed in edges for x in ed}
         for m in members:
             if drawn is not None: drawn.add(m['e']['token'])
-            else: used[m['e']['token']] = used.get(m['e']['token'], 0) + 1
+            else: k = self.used_key(m['e']['token'], m['slot']); used[k] = used.get(k, 0) + 1
         ws = [m['e']['weird'] for m in members if m['e'].get('weird') is not None]
         tr.update(members=[(m['e']['token'], m['slot']) for m in members],
                   placed=[c['e']['token'] for c in lst if 'placed plant' in c['slots']],

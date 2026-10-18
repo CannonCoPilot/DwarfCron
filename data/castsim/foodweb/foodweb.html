@@ -210,7 +210,8 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     <li><b>Slots.</b> Each layer has a slot table (apex, meso, grazer, ground prey, flier, fish, pelagic, shore, waterbird, swimmer, sentient, vermin); a creature's habitat, guild and apex eligibility say which slots it can take.</li>
     <li><b>Apex.</b> A weighted draw among the eligible apexes in season: the square root of group size (body × mean pack) against the largest, times the pick weight.</li>
     <li><b>Seed.</b> One high-value species (war-trainable, or the top share by pet value or by body size; never sentient), not on land-flying.</li>
-    <li><b>Growth.</b> Candidates linked to any member (it eats a member or a member eats it) fill the emptiest slot, by pick weight; a slot nothing links to is filled anyway. Pick weight: pack hunters ×pack bonus, animal people ×, giants ×, ×repeat weight per cast already holding the species this year, and in caverns the weirdness tilt.</li>
+    <li><b>Growth.</b> Candidates linked to any member (it eats a member or a member eats it) fill the emptiest slot, by pick weight; a slot nothing links to is filled anyway. Pick weight: pack hunters ×pack bonus, animal people ×, giants ×, ×repeat weight per cast already holding the species this year (a sentient seat counts only against its later sentient seats), and in caverns the weirdness tilt.</li>
+    <li><b>Sentients.</b> Every layer has one sentient slot; a sentient fills only that slot (the harpy and nightwing also keep their evil flying apex seat).</li>
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
   </ol>
@@ -219,6 +220,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
   <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes; since 17 Oct by side too, as composite classes SWV_type@SIDE: a giant, a land-ground apex and an ocean apex eat no vermin, a land-flying apex flying vermin only, an ocean or freshwater creature no ground vermin, a freshwater-only creature no ocean vermin and an ocean-only creature no freshwater vermin (one on both waters eats both), a land-ground predator no flying, ocean or freshwater vermin, and the duck, goose and swan every freshwater vermin);
   <b>DF's own diet tokens</b> (always); <b>hunting flags</b> (DIVE_HUNTS_VERMIN and HUNTS_VERMIN written by the tool, off by default); <b>the cast-growth ladder</b> (ROSTER.FP.eats, which the hunting pairs pass through); <b>mass and numbers</b> (MODEL eats, used only by coupling, off by default; since 17 Oct a vermin only from a side the consumer may eat from, by the same rules as the vermin the tool feeds without the land-ground predator rule).
+  In the Levels layout an apex or predator that eats nothing under the links switched on is drawn in the prey tier.
   Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
   <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
   Not modelled: DF's own stocking on a real fort (stocked water entries, the zone read from stocked species), exhaustion stand-ins, placed thieves and apexes, and everything after the cast (FREQUENCY, caps, pauses).
@@ -425,6 +427,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       if (c.gi) { const r = M.real_apex[c.t.slice(6)]; if (r && r[0] === L) return 'apex'; }
       return null;
     }
+    const usedKey = (t, slot) => slot === 'sentient' ? 'SN|' + t : t;
     function slotKey(L, sub) { return L === 'fresh' ? 'fresh:' + sub : (L.startsWith('cavern') ? 'cavern' : L); }
     function slotsFor(c, L, sub, promoted) {
       const hab = c.h, pred = predator(c), g = c.g, s = [];
@@ -756,11 +759,12 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       const weirdK = L.startsWith('cavern') ? +L.slice(-1) : null;
       const out = { L, members: [], vermin: [], log: [], seed: null, apexRank: [], hv: {}, guarantee: [], unfilled: {}, pool: cands.length, want: wantFixed };
       const taken = new Set(), members = [];
-      function weight(x, pack) {
+      // user 17 Oct: a sentient seat counts only against the species' later sentient seats (engine FP.usedKey)
+      function weight(x, pack, apexDraw) {
         const c = x.c;
         let w = 1;
         if (predator(c) && !c.bn && (c.c1 || 1) > 1) w *= (pack === undefined ? prm.pack : pack);
-        w *= Math.pow(prm.reuse, used[c.t] || 0);
+        w *= Math.pow(prm.reuse, used[usedKey(c.t, c.se && !apexDraw ? 'sentient' : null)] || 0);
         if (c.gi) w *= prm.giant;
         if (c.ap && !c.civ) w *= prm.ap_pick;
         if (weirdK && c.wd != null && prm.weird) w *= weirdWeight(weirdK, c.wd);
@@ -791,7 +795,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
           const gsize = x => { const c = x.c; const pk = predator(c) && !c.bn && (c.c1 || 1) > 1; return (c.m || 0) * (pk ? ((c.c0 || 1) + (c.c1 || 1)) / 2 : 1); };
           let mx = 1;
           for (const x of el) mx = Math.max(mx, gsize(x));
-          const ws = el.map(x => Math.sqrt(gsize(x) / mx) * weight(x, prm.apex_pack));
+          const ws = el.map(x => Math.sqrt(gsize(x) / mx) * weight(x, prm.apex_pack, true));
           const tot = ws.reduce((a, b) => a + b, 0);
           let r = rng.random() * tot, chosen = null;
           for (let i = 0; i < el.length; i++) { r -= ws[i]; if (r <= 0) { chosen = el[i]; break; } }
@@ -895,7 +899,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       for (const a of all) for (const b of all) if (a !== b && eats(a, b, L)) out.edges.push([a.c.t, b.c.t]);
       const linkedSet = new Set(out.edges.flat());
       out.isolated = members.filter(m => !linkedSet.has(m.c.t)).map(m => m.c.t);
-      for (const m of members) used[m.c.t] = (used[m.c.t] || 0) + 1;
+      for (const m of members) { const k = usedKey(m.c.t, m.slot); used[k] = (used[k] || 0) + 1; }
       return out;
     }
     function hvSet(free, prm) {
@@ -1059,9 +1063,12 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   const LEVEL_SHAPE = ['dot', 'circle', 'diamond', 'tri'];
 
   // ------------------------------------------------------------------ state
+  // user 17 Oct: the page opens on everything -- every land biome, all nine surroundings, every neighbouring tile, every water
+  // body in every zone, all three caverns
+  const ALL_LAND = BIOME_GROUPS.flatMap(([, bs]) => bs);
   const state = {
-    land: new Set(['SHRUBLAND_TROPICAL', 'SWAMP_MANGROVE', 'FOREST_TROPICAL_MOIST_BROADLEAF']), cells: new Set(['savage|neutral']), neighbours: new Set(), iso: false,
-    extinct: 'UNTAMED_WILDS', ocean: true, oz: 'TROPICAL', lake: false, river: true, brook: false, pool: false, fz: 'TROPICAL',
+    land: new Set(ALL_LAND), cells: new Set(['benign', 'neutral', 'savage'].flatMap(v => ['good', 'neutral', 'evil'].map(a => v + '|' + a))), neighbours: new Set(ALL_LAND), iso: false,
+    extinct: 'UNTAMED_WILDS', ocean: true, oz: 'ALL', lake: true, river: true, brook: true, pool: true, fz: 'ALL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
     tab: 'surface', edges: 'all', fam: { newrules: true, hunt: true, gobble: true, raws: true, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
@@ -1228,6 +1235,8 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     for (const n of nodes) adj.set(n.t, { prey: new Set(), pred: new Set() });
     const why = new Map();
     for (const e of edges) { if (!e.a || !e.b) continue; adj.get(e.a.t).prey.add(e.b.t); adj.get(e.b.t).pred.add(e.a.t); why.set(e.a.t + '>' + e.b.t, e); }
+    // user 17 Oct: an apex or predator that eats nothing under the links switched on drops to the prey tier
+    for (const n of nodes) { n.demoted = !n.vermin && n.level >= 2 && adj.get(n.t).prey.size === 0; if (n.demoted) n.level = 1; }
     // value: within the view, the higher of the pet-value and body-size percentiles; war animals at the top
     const pct = (arr, f) => { const v = arr.map(f).filter(x => x > 0).sort((a, b) => a - b); return x => x <= 0 ? 0 : (d3.bisectRight(v, x) / v.length); };
     const nv = nodes.filter(n => !n.vermin);
@@ -1602,7 +1611,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     }
     const c = n.c, A = VIEW.adj.get(n.t);
     const flags = [c.gi && 'giant', c.ap && 'animal person', c.se && 'sentient', c.sav && 'savage', c.gd && 'good', c.ev && 'evil', c.ex && 'real-world extinct',
-      c.war && 'war-trainable', c.lp && 'large predator', c.bn && 'benign', c.th.length && ('thief: ' + c.th.join(', ').toLowerCase())].filter(Boolean);
+      c.war && 'war-trainable', c.lp && 'large predator', c.bn && 'benign', c.th.length && ('thief: ' + c.th.join(', ').toLowerCase()), n.demoted && 'eats nothing: drawn as prey'].filter(Boolean);
     const ns = c.ns.map((x, i) => x ? SEASONS[i] : null).filter(Boolean);
     const list = (set) => [...set].map(t => VIEW.byT[t]).filter(Boolean).sort((a, b) => b.level - a.level || (a.c.nm < b.c.nm ? -1 : 1))
       .map(x => `<button type="button" class="sp" data-t="${esc(x.t)}"><i style="background:var(--${SLOT_COL[x.slot] || 'muted'})"></i>${esc(x.c.nm)}</button>`).join('');
