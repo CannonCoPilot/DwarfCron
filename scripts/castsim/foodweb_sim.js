@@ -206,6 +206,8 @@
         if (hab === 'aquatic' || hab === 'semiaquatic') s.push('swimmer');
         return s;
       }
+      // user 17 Oct: a sentient fills the surface layers' sentient slot only (engine FP.slotsFor); a curated evil apex keeps its seat
+      if (c.se) return tier && M.evil_apex[c.t] === L ? ['apex', 'sentient'] : ['sentient'];
       if (L === 'ground') { if (tier) s.push('apex'); s.push(pred ? 'meso' : (g === 'GZ' ? 'grazer' : 'ground prey')); return s; }
       if (L === 'flying') return (tier ? ['apex'] : []).concat(['flier']);
       if (hab === 'flier' || hab === 'waterbird') {
@@ -317,7 +319,8 @@
       return [...out];
     }
     const sidesOf = t => CUR.mapOnly[t] ? CUR.mapOnly[t].sides : [...new Set(laysOf(t).map(L => SIDE[L]))];
-    function allowedSides(c) {
+    // family 'mass' (user 17 Oct, "Changing Mass and numbers"): the same rules without the land-ground predator rule
+    function allowedSides(c, family) {
       const lays = laysOf(c.t);
       if (c.gi) return { sides: [], why: 'a giant eats no vermin' };
       for (const L of ['ground', 'ocean']) if (lays.includes(L) && apexTier(c, L, CUR.promoted)) return { sides: [], why: `an apex on ${L === 'ground' ? 'land-ground' : 'the ocean'} eats no vermin` };
@@ -331,7 +334,7 @@
       if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
       if (FRESH_EATERS.has(c.t)) why.push('and every freshwater vermin (duck, goose, swan)');
       // user 17 Oct: a land-ground predator takes no flying, ocean or freshwater vermin
-      if (lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
+      if (family !== 'mass' && lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
       return { sides: s, why: why.join('; ') };
     }
     function gobbleWhy(a, b, L) {
@@ -349,6 +352,7 @@
     const NEW_RULES = [
       { id: 'raws', label: "DF's own diet tokens", test: (a, b) => vanillaEats(a.c, b.c) },
       { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => gobbleWhy(a, b, L) },
+      { id: 'mass', label: 'Mass and numbers (side rules)', test: (a, b) => massWhy(a.c, b.c) },
     ];
     const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
     function armedWhy(c, slots, L) {
@@ -392,7 +396,13 @@
       const need = b.m * (grpOf(b) > 1 ? 0.9 : 0.6);
       if (take < need) return null;
       const r = b.m / (0.4 * a.m), pref = b.v ? 0.05 : Math.exp(-(Math.log(r) ** 2) / (2 * 1.44));
-      return `take ${Math.round(take).toLocaleString('en')} >= need ${Math.round(need).toLocaleString('en')} (group ${grpOf(a)} v ${grpOf(b)}); preference ${pref.toFixed(2)}`;
+      let side = '';
+      if (b.v) {   // engine MODEL.vermSideOk: a vermin only from a side the consumer may eat from
+        const al = allowedSides(a, 'mass'), hit = sidesOf(b.t).filter(x => al.sides.includes(x));
+        if (!hit.length) return null;
+        side = `; from the ${hit.join('/').toLowerCase()} side${al.why ? ' (' + al.why + ')' : ''}`;
+      }
+      return `take ${Math.round(take).toLocaleString('en')} >= need ${Math.round(need).toLocaleString('en')} (group ${grpOf(a)} v ${grpOf(b)}); preference ${pref.toFixed(2)}${side}`;
     }
     // every rule that links a -> b on layer L. a, b: {c, slots, vermin}; returns [{f, d}]
     function linkWhy(a, b, L, on) {

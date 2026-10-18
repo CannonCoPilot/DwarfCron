@@ -46,12 +46,12 @@ LAYER_NAME = {'ground': 'land-ground', 'flying': 'land-flying', 'ocean': 'ocean 
               'cavern1': 'cavern 1', 'cavern2': 'cavern 2', 'cavern3': 'cavern 3'}
 # slot -> (min, max) per cast; the count is drawn per cast inside the range
 SLOTS = {
-    'ground': {'apex': (1, 1), 'meso': (2, 2), 'grazer': (2, 2), 'ground prey': (2, 2), '_vermin': (3, 3)},
-    'flying': {'apex': (1, 1), 'flier': (2, 2), '_vermin': (2, 3)},
-    'ocean': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'pelagic': (1, 1), 'shore': (1, 2), 'waterbird': (1, 2), '_vermin': (2, 3)},
-    'fresh:lake': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'shore': (1, 2), 'waterbird': (1, 2), '_vermin': (2, 3)},
-    'fresh:river': {'meso': (1, 1), 'fish': (2, 2), 'shore': (1, 1), 'waterbird': (1, 1), '_vermin': (2, 2)},
-    'fresh:pool': {'meso': (1, 1), 'fish': (2, 2), '_vermin': (2, 2)},
+    'ground': {'apex': (1, 1), 'meso': (2, 2), 'grazer': (2, 2), 'ground prey': (2, 2), 'sentient': (1, 1), '_vermin': (3, 3)},
+    'flying': {'apex': (1, 1), 'flier': (2, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
+    'ocean': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'pelagic': (1, 1), 'shore': (1, 2), 'waterbird': (1, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
+    'fresh:lake': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'shore': (1, 2), 'waterbird': (1, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
+    'fresh:river': {'meso': (1, 1), 'fish': (2, 2), 'shore': (1, 1), 'waterbird': (1, 1), 'sentient': (1, 1), '_vermin': (2, 2)},
+    'fresh:pool': {'meso': (1, 1), 'fish': (2, 2), 'sentient': (1, 1), '_vermin': (2, 2)},
     'cavern': {'apex': (1, 1), 'meso': (1, 1), 'ground prey': (1, 1), 'flier': (1, 1), 'swimmer': (1, 1), 'sentient': (1, 1), '_vermin': (2, 2)},
 }
 SLOT_LABEL = {'swimmer': 'amphib or aquatic', 'flier': 'flier'}
@@ -481,6 +481,10 @@ class Design:
             if hab in ('flier', 'waterbird'): s.append('flier')
             if hab in ('aquatic', 'semiaquatic'): s.append('swimmer')
             return s
+        # user 17 Oct: a sentient fills the surface layers' sentient slot only (engine FP.slotsFor); a curated evil apex keeps its seat
+        if e['sentient']:
+            if EVIL_APEX.get(e['token']) == layer and self.apex_tier(e, layer): return ['apex', 'sentient']
+            return ['sentient']
         if layer == 'ground':
             s = []
             if self.apex_tier(e, layer): s.append('apex')

@@ -37,7 +37,7 @@
     raws: { lab: "DF's own diet tokens", col: 'c-amber', def: 'always', note: 'GOBBLE_VERMIN_CLASS/_CREATURE, DIVE_HUNTS_VERMIN, HUNTS_VERMIN in the vanilla raws' },
     flags: { lab: 'Hunting flags', col: 'c-purple', def: 'off', note: 'DIVE_HUNTS_VERMIN / HUNTS_VERMIN written by the tool (hunting off by default)' },
     ladder: { lab: 'Cast-growth ladder', col: 'muted', def: 'build only', note: 'ROSTER.FP.eats: tiers + habitat; the hunting pairs are filtered through it' },
-    mass: { lab: 'Mass and numbers', col: 'c-red', def: 'off', note: 'MODEL eats (pack mass v prey mass); used only by coupling, off by default' },
+    mass: { lab: 'Mass and numbers', col: 'c-red', def: 'off', note: 'MODEL eats (pack mass v prey mass), vermin only from the sides the user\'s rules allow; used only by coupling, off by default' },
   };
   const FAM_ORDER = ['newrules', 'hunt', 'raws', 'gobble', 'flags', 'mass', 'ladder'];
   const realmOf = L => L.startsWith('cavern') ? L : 'surface';
@@ -47,11 +47,12 @@
   // the Levels layout's sub-columns: a guild type for creatures, a vermin type for vermin (left to right in this order)
   const VERMIN_GROUP = { SWV_GROUND_BUG: 'bug', SWV_SOIL: 'soil', SWV_COLONY: 'colony', SWV_SMALL_MAMMAL: 'mammal', SWV_HERP: 'herp',
     SWV_SMALL_FISH: 'small fish', SWV_SMALL_BIRD: 'small bird', SWV_BAT: 'bat', SWV_FLYING_INSECT: 'insect', SWV_OTHER: 'other vermin' };
-  const GROUP_ORDER = ['land hunter', 'raptor', 'grazer', 'small prey', 'land bird', 'waterbird', 'shore', 'water hunter', 'fish', 'pelagic', 'other',
+  const GROUP_ORDER = ['land hunter', 'raptor', 'grazer', 'small prey', 'land bird', 'waterbird', 'shore', 'water hunter', 'fish', 'pelagic', 'other', 'sentient',
     'mammal', 'herp', 'bug', 'soil', 'colony', 'insect', 'small bird', 'bat', 'small fish', 'other vermin'];
   const GUILD_GROUP = { AL: 'land hunter', ML: 'land hunter', AW: 'water hunter', MW: 'water hunter', RP: 'raptor', GZ: 'grazer',
     PL: 'small prey', LB: 'land bird', WB: 'waterbird', SH: 'shore', FF: 'fish', FC: 'fish', PE: 'pelagic' };
-  const groupOf = n => n.vermin ? (VERMIN_GROUP[n.c.swv] || 'other vermin') : (GUILD_GROUP[n.c.g] || 'other');
+  // a sentient-slot member gets its own sub-column (user 17 Oct: a sentient slot on every layer), at the right of its tier
+  const groupOf = n => n.vermin ? (VERMIN_GROUP[n.c.swv] || 'other vermin') : n.slot === 'sentient' ? 'sentient' : (GUILD_GROUP[n.c.g] || 'other');
   const HAB_SHAPE = { land: 'circle', flier: 'tri', waterbird: 'diamond', aquatic: 'cross', semiaquatic: 'square' };
   const LEVEL_SHAPE = ['dot', 'circle', 'diamond', 'tri'];
 
@@ -634,6 +635,7 @@
     const al = sim.allowedSides(c);
     if (g && !al.sides.length) rows.push(['gobble', 'no vermin: ' + al.why]);
     else if (g) rows.push(['gobble', 'GOBBLE_VERMIN_CLASS written: ' + [...g.keys()].map(k => k.replace('SWV_', '').toLowerCase().replace('_', ' ')).join(', ') + ' from ' + al.sides.join(', ').toLowerCase() + (al.why ? ' (' + al.why + ')' : '')]);
+    if (!c.v && c.ro === 'predator') { const am = sim.allowedSides(c, 'mass'); rows.push(['mass', 'vermin by mass and numbers from ' + (am.sides.length ? am.sides.join(', ').toLowerCase() : 'no side') + (am.why ? ' (' + am.why + ')' : '')]); }
     if (c.gvc.length || c.gvt.length || c.dhv) rows.push(['raws', [c.gvc.length && 'GOBBLE_VERMIN_CLASS:' + c.gvc.join(','), c.dhv && 'hunts vermin'].filter(Boolean).join('; ')]);
     const hf = sim.huntFlag(c);
     if (hf) rows.push(['flags', hf]);
