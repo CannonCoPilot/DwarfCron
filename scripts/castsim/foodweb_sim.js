@@ -341,7 +341,7 @@
     }
     // user 17 Oct: every land-ground prey animal (on land-ground, not a predator, not an apex there; a giant excepted) takes
     // every vermin on the GROUND side (engine VERMIN.groundPrey)
-    const groundPrey = c => !c.v && !c.gi && laysOf(c.t).includes('ground') && !predator(c) && !apexTier(c, 'ground', CUR.promoted);
+    const groundPrey = c => !c.v && !c.gi && c.g !== 'GZ' && laysOf(c.t).includes('ground') && !predator(c) && !apexTier(c, 'ground', CUR.promoted);
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
       const ground = groundPrey(a.c) && sidesOf(b.c.t).includes('GROUND') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@GROUND written (every land-ground vermin: land-ground prey)` : null;
@@ -424,6 +424,7 @@
     function linkWhy(a, b, L, on) {
       const out = [], ca = a.c, cb = b.c;
       if (ca.t === cb.t || a.vermin) return out;
+      if (ca.g === 'GZ') return out;   // user 17 Oct: no grazer eats anything, under any rule (engine: ecoArmed, eats, FP.eats, gobble)
       const ladder = () => {
         for (const sa of a.slots) for (const sb of (b.vermin ? ['vermin'] : b.slots)) {
           if (engineEats({ c: ca, slot: sa, vermin: false }, { c: cb, slot: sb, vermin: b.vermin, vclass: b.vclass }, L)) return `${sa} over ${sb}`;
@@ -463,6 +464,7 @@
     function engineEats(a, b, L) {
       if (a.vermin) return false;
       const ea = a.c, eb = b.c;
+      if (ea.g === 'GZ') return false;   // user 17 Oct: no grazer eats anything
       if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex or predator never takes anything on land-flying
       const shore = a.slot === 'shore' || a.slot === 'waterbird' || ((a.slot === 'flier' || a.slot === 'swimmer') && (ea.h === 'semiaquatic' || ea.h === 'waterbird'));
       if (b.vermin) {

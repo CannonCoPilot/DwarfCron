@@ -541,6 +541,7 @@ class Design:
     def eats(self, a, b):
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
+        if ea['guild'] == 'GZ': return False   # user 17 Oct: no grazer eats anything
         if self.apex_bar(ea, eb): return False   # user 17 Oct: a ground apex or predator never takes anything on land-flying
         shore_like = a['slot'] in ('shore', 'waterbird') or (a['slot'] in ('flier', 'swimmer') and ea['habitat'] in ('semiaquatic', 'waterbird'))
         if b['vermin']:
