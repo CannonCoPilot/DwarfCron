@@ -334,13 +334,18 @@
       const why = [];
       if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
       if (FRESH_EATERS.has(c.t)) why.push('and every freshwater vermin (duck, goose, swan)');
+      if (groundPrey(c)) why.push('and every land-ground vermin (land-ground prey)');
       // user 17 Oct: a land-ground predator takes no flying, ocean or freshwater vermin
       if (family !== 'mass' && lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
       return { sides: s, why: why.join('; ') };
     }
+    // user 17 Oct: every land-ground prey animal (on land-ground, not a predator, not an apex there; a giant excepted) takes
+    // every vermin on the GROUND side (engine VERMIN.groundPrey)
+    const groundPrey = c => !c.v && !c.gi && laysOf(c.t).includes('ground') && !predator(c) && !apexTier(c, 'ground', CUR.promoted);
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
-      const fresh = FRESH_EATERS.has(a.c.t) && !a.c.gi && sidesOf(b.c.t).includes('FRESH') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@FRESH written (every freshwater vermin: duck, goose, swan)` : null;
+      const ground = groundPrey(a.c) && sidesOf(b.c.t).includes('GROUND') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@GROUND written (every land-ground vermin: land-ground prey)` : null;
+      const fresh = ground || (FRESH_EATERS.has(a.c.t) && !a.c.gi && sidesOf(b.c.t).includes('FRESH') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@FRESH written (every freshwater vermin: duck, goose, swan)` : null);
       const g = gobbleSet(a.c, L);
       if (!g || !g.has(b.c.swv)) return fresh;
       const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x));
@@ -782,7 +787,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
