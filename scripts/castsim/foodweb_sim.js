@@ -389,11 +389,13 @@
       if (c.ro === 'predator' && c.m < 150000 && (c.h === 'land' || c.h === 'semiaquatic')) return 'HUNTS_VERMIN (small land predator)';
       return null;
     }
-    // user 17 Oct: no link from a land-ground apex to a land-flying apex, unless the predator is a land-flying apex too and the
-    // prey a land-ground apex (a flying apex preying on a ground apex is kept); engine MODEL.apexBar
+    // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
+    // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
     function apexBar(a, b) {
-      const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t];
-      return !!(x && y && x.ground && y.flying && !(x.flying && y.ground));
+      const A = CUR.apexOn || {}, x = A[a.t];
+      let y = A[b.t];
+      if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING') }; }
+      return !!(x && y && x.hunter && y.flying && !(x.flying && y.ground));
     }
     function massWhy(a, b) {
       if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
@@ -455,6 +457,7 @@
     function engineEats(a, b, L) {
       if (a.vermin) return false;
       const ea = a.c, eb = b.c;
+      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex or predator never takes anything on land-flying
       const shore = a.slot === 'shore' || a.slot === 'waterbird' || ((a.slot === 'flier' || a.slot === 'swimmer') && (ea.h === 'semiaquatic' || ea.h === 'waterbird'));
       if (b.vermin) {
         const d = vdiet(ea, codeFor(a.slot, ea, L), L);
@@ -462,7 +465,6 @@
         return d.has(b.vclass);
       }
       if (tierOf(a) <= tierOf(b)) return false;
-      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex never takes a flying apex
       if (shore && eb.h === 'aquatic') return (eb.m || 0) <= Math.max(ea.m || 0, M.pool_cap);
       const reach = M.reach[ea.h || 'land'] || M.reach.land;
       return reach[eb.h || 'land'] === true;
@@ -515,12 +517,11 @@
           if (hit.length) mapOnly[c.t] = { c, sides: rawSides(c), from: hit };
         }
       }
-      // apex on land-ground / land-flying (engine VERMIN.apexMark), for apexBar
+      // land-ground hunters (an apex there, or a predator) and land-flying members (engine VERMIN.apexMark), for apexBar
       const apexOn = {};
       for (const t in P) {
-        const p = P[t]; if (p.c.v) continue;
-        const g = p.layers.includes('ground') && !!apexTier(p.c, 'ground', promoted), f = p.layers.includes('flying') && !!apexTier(p.c, 'flying', promoted);
-        if (g || f) apexOn[t] = { ground: g, flying: f };
+        const p = P[t], g = p.layers.includes('ground'), f = p.layers.includes('flying');
+        if (g || f) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };

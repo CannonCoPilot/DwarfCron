@@ -220,7 +220,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
   <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes; since 17 Oct by side too, as composite classes SWV_type@SIDE: a giant, a land-ground apex and an ocean apex eat no vermin, a land-flying apex flying vermin only, an ocean or freshwater creature no ground vermin, a freshwater-only creature no ocean vermin and an ocean-only creature no freshwater vermin (one on both waters eats both), a land-ground predator no flying, ocean or freshwater vermin, and the duck, goose and swan every freshwater vermin);
   <b>DF's own diet tokens</b> (always); <b>hunting flags</b> (DIVE_HUNTS_VERMIN and HUNTS_VERMIN written by the tool, off by default); <b>the cast-growth ladder</b> (ROSTER.FP.eats, which the hunting pairs pass through); <b>mass and numbers</b> (MODEL eats, used only by coupling, off by default; since 17 Oct a vermin only from a side the consumer may eat from, by the same rules as the vermin the tool feeds without the land-ground predator rule).
-  No rule links a land-ground apex to a land-flying apex as its prey (a flying apex preying on a ground apex is kept; user 17 Oct).
+  No rule the tool applies links a land-ground apex or predator to anything on land-flying, vermin included (a flying hunter preying on the ground is kept; user 17 Oct); only the hunting flags, off by default, still do: DF's HUNTS_VERMIN takes any vermin.
   In the Levels layout an apex or predator that eats nothing under the links switched on is drawn in the prey tier.
   Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
   <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
@@ -624,11 +624,13 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       if (c.ro === 'predator' && c.m < 150000 && (c.h === 'land' || c.h === 'semiaquatic')) return 'HUNTS_VERMIN (small land predator)';
       return null;
     }
-    // user 17 Oct: no link from a land-ground apex to a land-flying apex, unless the predator is a land-flying apex too and the
-    // prey a land-ground apex (a flying apex preying on a ground apex is kept); engine MODEL.apexBar
+    // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
+    // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
     function apexBar(a, b) {
-      const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t];
-      return !!(x && y && x.ground && y.flying && !(x.flying && y.ground));
+      const A = CUR.apexOn || {}, x = A[a.t];
+      let y = A[b.t];
+      if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING') }; }
+      return !!(x && y && x.hunter && y.flying && !(x.flying && y.ground));
     }
     function massWhy(a, b) {
       if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
@@ -690,6 +692,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     function engineEats(a, b, L) {
       if (a.vermin) return false;
       const ea = a.c, eb = b.c;
+      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex or predator never takes anything on land-flying
       const shore = a.slot === 'shore' || a.slot === 'waterbird' || ((a.slot === 'flier' || a.slot === 'swimmer') && (ea.h === 'semiaquatic' || ea.h === 'waterbird'));
       if (b.vermin) {
         const d = vdiet(ea, codeFor(a.slot, ea, L), L);
@@ -697,7 +700,6 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
         return d.has(b.vclass);
       }
       if (tierOf(a) <= tierOf(b)) return false;
-      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex never takes a flying apex
       if (shore && eb.h === 'aquatic') return (eb.m || 0) <= Math.max(ea.m || 0, M.pool_cap);
       const reach = M.reach[ea.h || 'land'] || M.reach.land;
       return reach[eb.h || 'land'] === true;
@@ -750,12 +752,11 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
           if (hit.length) mapOnly[c.t] = { c, sides: rawSides(c), from: hit };
         }
       }
-      // apex on land-ground / land-flying (engine VERMIN.apexMark), for apexBar
+      // land-ground hunters (an apex there, or a predator) and land-flying members (engine VERMIN.apexMark), for apexBar
       const apexOn = {};
       for (const t in P) {
-        const p = P[t]; if (p.c.v) continue;
-        const g = p.layers.includes('ground') && !!apexTier(p.c, 'ground', promoted), f = p.layers.includes('flying') && !!apexTier(p.c, 'flying', promoted);
-        if (g || f) apexOn[t] = { ground: g, flying: f };
+        const p = P[t], g = p.layers.includes('ground'), f = p.layers.includes('flying');
+        if (g || f) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
@@ -1145,7 +1146,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
         else if (b.P[t].layers.some(L => !B.P[t].layers.includes(L))) B.P[t] = Object.assign({}, B.P[t], { layers: [...new Set(B.P[t].layers.concat(b.P[t].layers))] });
       }
       for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
-      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { ground: x.ground || y.ground, flying: x.flying || y.flying }; }
+      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { hunter: x.hunter || y.hunter, ground: x.ground || y.ground, flying: x.flying || y.flying }; }
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
