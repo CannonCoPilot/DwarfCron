@@ -259,6 +259,7 @@ class Design:
         self.wiring = wiring or {}
         self.order = order        # 'random' (user 12 Oct) or 'season' (Spring first, for the bias comparison)
         self.ground_fly = {}      # token -> {hunter, ground, flying} on the current embark (apex_bar)
+        self.apex_any = set()     # tokens that are an apex on some layer of the current embark (never prey)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
@@ -720,6 +721,7 @@ class Design:
     def apex_bar(self, ea, eb):
         """user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too), unless the predator
         is on land-flying too and the prey on land-ground (a flying hunter preying on the ground is kept). Engine MODEL.apexBar."""
+        if eb['token'] in self.apex_any: return True   # user 17 Oct: no apex is eaten by anything
         a, b = self.ground_fly.get(ea['token']), self.ground_fly.get(eb['token'])
         if not a or not b: return False
         return a['hunter'] and b['flying'] and not (a['flying'] and b['ground'])
@@ -738,6 +740,8 @@ class Design:
         self.ground_fly = {tok: {'hunter': (not e['gameVermin']) and 'ground' in e['layers'] and bool(self.apex_tier(e, 'ground') or self.predator(e)),
                                  'ground': 'ground' in e['layers'], 'flying': 'flying' in e['layers']}
                            for tok, e in pool.items() if 'ground' in e['layers'] or 'flying' in e['layers']}
+        # an apex on any layer it is on (engine CACHE.apexAny): never prey
+        self.apex_any = {tok for tok, e in pool.items() if not e['gameVermin'] and any(self.apex_tier(e, L) for L in e['layers'])}
         active = [L for L in LAYERS if layer_sets[L] and (L != 'ocean' or spec['water'].get('ocean'))
                   and (L != 'fresh' or sub) and (not L.startswith('cavern') or int(L[-1]) in (spec.get('caverns') or ()))]
         # all 28 casts at once, in a random order (seeded by site and year; user 12 Oct): a fixed Spring-first order handed

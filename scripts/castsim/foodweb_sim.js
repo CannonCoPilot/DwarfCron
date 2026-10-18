@@ -394,6 +394,7 @@
     function apexBar(a, b) {
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
+      if (y && y.apex) return true;   // user 17 Oct: no apex is eaten by anything
       if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING') }; }
       return !!(x && y && x.hunter && y.flying && !(x.flying && y.ground));
     }
@@ -521,7 +522,8 @@
       const apexOn = {};
       for (const t in P) {
         const p = P[t], g = p.layers.includes('ground'), f = p.layers.includes('flying');
-        if (g || f) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f };
+        const ap = !p.c.v && p.layers.some(L => !!apexTier(p.c, L, promoted));   // user 17 Oct: an apex anywhere is never prey
+        if (g || f || ap) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f, apex: ap };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };

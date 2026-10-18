@@ -220,6 +220,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
   <b>hunting pairs written in play</b> (the ecology relation write, on: an armed predator (not wholly BENIGN, a raptor, a cast predator slot, or a cavern civ race) and a target unit whose habitat it reaches, two water animals sharing a water body, never a raptor's prey over twice its mass, never a civ race unless the hunter is a non-civ apex guild, the hunting group at least 5% of the prey's mass (mean group size stands in for the live pack), and, under casts, only a pair the season's cast links);
   <b>vermin the tool feeds</b> (GOBBLE_VERMIN_CLASS written onto consumers, on: small land insectivores take ground bugs, soil life and colony insects; waterbirds and fish-eaters small fish; raptors small birds, bats and small mammals; land birds flying insects; snakes small mammals and herps; plus the guild rows ML, AW, MW, RP and cavern LB, over the tool's own SWV vermin classes; since 17 Oct by side too, as composite classes SWV_type@SIDE: a giant, a land-ground apex and an ocean apex eat no vermin, a land-flying apex flying vermin only, an ocean or freshwater creature no ground vermin, a freshwater-only creature no ocean vermin and an ocean-only creature no freshwater vermin (one on both waters eats both), a land-ground predator no flying, ocean or freshwater vermin, and the duck, goose and swan every freshwater vermin);
   <b>DF's own diet tokens</b> (always); <b>hunting flags</b> (DIVE_HUNTS_VERMIN and HUNTS_VERMIN written by the tool, off by default); <b>the cast-growth ladder</b> (ROSTER.FP.eats, which the hunting pairs pass through); <b>mass and numbers</b> (MODEL eats, used only by coupling, off by default; since 17 Oct a vermin only from a side the consumer may eat from, by the same rules as the vermin the tool feeds without the land-ground predator rule).
+  No apex (a species eligible for the apex seat on any layer it is on) is ever prey (user 17 Oct).
   No rule the tool applies links a land-ground apex or predator to anything on land-flying, vermin included (a flying hunter preying on the ground is kept; user 17 Oct); only the hunting flags, off by default, still do: DF's HUNTS_VERMIN takes any vermin.
   In the Levels layout an apex or predator that eats nothing under the links switched on is drawn in the prey tier.
   Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
@@ -629,6 +630,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
     function apexBar(a, b) {
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
+      if (y && y.apex) return true;   // user 17 Oct: no apex is eaten by anything
       if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING') }; }
       return !!(x && y && x.hunter && y.flying && !(x.flying && y.ground));
     }
@@ -756,7 +758,8 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
       const apexOn = {};
       for (const t in P) {
         const p = P[t], g = p.layers.includes('ground'), f = p.layers.includes('flying');
-        if (g || f) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f };
+        const ap = !p.c.v && p.layers.some(L => !!apexTier(p.c, L, promoted));   // user 17 Oct: an apex anywhere is never prey
+        if (g || f || ap) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f, apex: ap };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
@@ -1146,7 +1149,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
         else if (b.P[t].layers.some(L => !B.P[t].layers.includes(L))) B.P[t] = Object.assign({}, B.P[t], { layers: [...new Set(B.P[t].layers.concat(b.P[t].layers))] });
       }
       for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
-      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { hunter: x.hunter || y.hunter, ground: x.ground || y.ground, flying: x.flying || y.flying }; }
+      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { hunter: x.hunter || y.hunter, ground: x.ground || y.ground, flying: x.flying || y.flying, apex: x.apex || y.apex }; }
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);

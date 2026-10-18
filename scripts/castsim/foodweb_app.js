@@ -122,7 +122,7 @@
         else if (b.P[t].layers.some(L => !B.P[t].layers.includes(L))) B.P[t] = Object.assign({}, B.P[t], { layers: [...new Set(B.P[t].layers.concat(b.P[t].layers))] });
       }
       for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
-      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { hunter: x.hunter || y.hunter, ground: x.ground || y.ground, flying: x.flying || y.flying }; }
+      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = { hunter: x.hunter || y.hunter, ground: x.ground || y.ground, flying: x.flying || y.flying, apex: x.apex || y.apex }; }
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
