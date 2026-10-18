@@ -116,7 +116,11 @@
     const B = { P: {}, layerSets: {}, active: [], lists: {}, sub: bs[0][1].sub, rejected: [], promoted: new Set(), mapOnly: {} };
     for (const L of LAYERS) B.layerSets[L] = [];
     for (const [, b] of bs) {
-      for (const t in b.P) if (!B.P[t]) B.P[t] = b.P[t];
+      // a species' layers can differ by surroundings (the bat man reaches land-flying and the ocean only where savage): union them
+      for (const t in b.P) {
+        if (!B.P[t]) B.P[t] = b.P[t];
+        else if (b.P[t].layers.some(L => !B.P[t].layers.includes(L))) B.P[t] = Object.assign({}, B.P[t], { layers: [...new Set(B.P[t].layers.concat(b.P[t].layers))] });
+      }
       for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
@@ -953,7 +957,10 @@
     refreshView();
     renderYear();
     const nP = Object.keys(BUILD.B.P).length;
-    $('#fortline').textContent = `${nP} species and vermin pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'} in ${state.cells.size === 9 ? 'all nine surroundings' : (state.cells.size ? [...state.cells].map(c => CELLNAME[c]).join(', ') : 'no surroundings (switch a cell on)')}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
+    const PV = Object.values(BUILD.B.P), onS = p => p.layers.some(L => SURF.includes(L)), onC = p => p.layers.some(L => CAVS.includes(L));
+    const nS = PV.filter(onS).length, nC = PV.filter(onC).length, nB = PV.filter(p => onS(p) && onC(p)).length, nN = PV.filter(p => !p.layers.length).length;
+    const split = ` (${nS} on the surface layers, ${nC} in the caverns${nB ? `, ${nB} of them on both` : ''}${nN ? `, ${nN} placed plant${nN === 1 ? '' : 's'} with no layer` : ''})`;
+    $('#fortline').textContent = `${nP} species and vermin${nP ? split : ''} pass the gates on ${state.land.size} land biome${state.land.size === 1 ? '' : 's'} in ${state.cells.size === 9 ? 'all nine surroundings' : (state.cells.size ? [...state.cells].map(c => CELLNAME[c]).join(', ') : 'no surroundings (switch a cell on)')}; active layers: ${BUILD.B.active.map(L => LNAME[L]).join(', ') || 'none'}.`;
     if (concrete() && !keepView) { /* stats stay until the next run */ }
     renderStats();
   }
