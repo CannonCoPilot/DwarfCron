@@ -258,6 +258,7 @@ class Design:
         """wiring: {(savagery, alignment, layer, biome): [(token, 'promote'|'wire'), ...]} -- the approved apex hand-wiring"""
         self.wiring = wiring or {}
         self.order = order        # 'random' (user 12 Oct) or 'season' (Spring first, for the bias comparison)
+        self.apex_on = {}         # token -> (ground apex, flying apex) on the current embark (apex_bar)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
@@ -545,6 +546,7 @@ class Design:
             if shore_like and self.predator(ea): d = set(d) | {'VF'}
             return b['vclass'] in d
         if self.tier(a) <= self.tier(b): return False
+        if self.apex_bar(ea, eb): return False   # user 17 Oct: a ground apex never takes a flying apex
         if shore_like and eb['habitat'] == 'aquatic':
             return eb['mass'] <= max(ea['mass'], POOL_CAP)
         if not REACH.get(ea['habitat'], REACH['land']).get(eb['habitat'], False): return False
@@ -715,6 +717,13 @@ class Design:
         return tr
 
     # ------------------------------------------------------------------ the whole embark
+    def apex_bar(self, ea, eb):
+        """user 17 Oct: no link from a land-ground apex to a land-flying apex, unless the predator is a land-flying apex too and
+        the prey a land-ground apex (a flying apex preying on a ground apex is kept). Engine MODEL.apexBar."""
+        a, b = self.apex_on.get(ea['token']), self.apex_on.get(eb['token'])
+        if not a or not b: return False
+        return a[0] and b[1] and not (a[1] and b[0])
+
     def run(self, spec, year=250, site=1):
         pool, funnel, rejected = self.pool(spec)
         fbs = self.fort_biomes(spec)
@@ -725,6 +734,9 @@ class Design:
             e['layers'] = ls
             for L in ls: layer_sets[L].append(tok)
             for L, why in ns: notes.append({'token': tok, 'layer': L, 'why': why})
+        # apex on land-ground / land-flying, as the engine's VERMIN.apexMark (eligibility on a layer the species is on)
+        self.apex_on = {tok: ('ground' in e['layers'] and bool(self.apex_tier(e, 'ground')), 'flying' in e['layers'] and bool(self.apex_tier(e, 'flying')))
+                        for tok, e in pool.items() if not e['gameVermin']}
         active = [L for L in LAYERS if layer_sets[L] and (L != 'ocean' or spec['water'].get('ocean'))
                   and (L != 'fresh' or sub) and (not L.startswith('cavern') or int(L[-1]) in (spec.get('caverns') or ()))]
         # all 28 casts at once, in a random order (seeded by site and year; user 12 Oct): a fixed Spring-first order handed

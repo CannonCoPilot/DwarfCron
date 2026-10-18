@@ -389,8 +389,15 @@
       if (c.ro === 'predator' && c.m < 150000 && (c.h === 'land' || c.h === 'semiaquatic')) return 'HUNTS_VERMIN (small land predator)';
       return null;
     }
+    // user 17 Oct: no link from a land-ground apex to a land-flying apex, unless the predator is a land-flying apex too and the
+    // prey a land-ground apex (a flying apex preying on a ground apex is kept); engine MODEL.apexBar
+    function apexBar(a, b) {
+      const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t];
+      return !!(x && y && x.ground && y.flying && !(x.flying && y.ground));
+    }
     function massWhy(a, b) {
       if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
+      if (apexBar(a, b)) return null;
       if (!reachWhy(a, b)) return null;
       if (!b.v && b.ro === 'predator' && b.m >= a.m * 0.5) return null;
       const take = a.m * Math.pow(grpOf(a), 0.75) * ((a.lp || a.amb) ? 1.5 : 1);
@@ -455,6 +462,7 @@
         return d.has(b.vclass);
       }
       if (tierOf(a) <= tierOf(b)) return false;
+      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex never takes a flying apex
       if (shore && eb.h === 'aquatic') return (eb.m || 0) <= Math.max(ea.m || 0, M.pool_cap);
       const reach = M.reach[ea.h || 'land'] || M.reach.land;
       return reach[eb.h || 'land'] === true;
@@ -507,8 +515,15 @@
           if (hit.length) mapOnly[c.t] = { c, sides: rawSides(c), from: hit };
         }
       }
-      CUR = { P, promoted, mapOnly };
-      return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly };
+      // apex on land-ground / land-flying (engine VERMIN.apexMark), for apexBar
+      const apexOn = {};
+      for (const t in P) {
+        const p = P[t]; if (p.c.v) continue;
+        const g = p.layers.includes('ground') && !!apexTier(p.c, 'ground', promoted), f = p.layers.includes('flying') && !!apexTier(p.c, 'flying', promoted);
+        if (g || f) apexOn[t] = { ground: g, flying: f };
+      }
+      CUR = { P, promoted, mapOnly, apexOn };
+      return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
     }
 
     // ------------------------------------------------------------ one season cast (ROSTER.FP.grow)
@@ -698,6 +713,7 @@
       const sh = Rng((site * 7919 + yr * 104729 + 7) % 2147483647);
       for (let i = order.length - 1; i >= 1; i--) { const j = sh.below(i + 1); [order[i], order[j]] = [order[j], order[i]]; }
       const casts = {}, used = {};
+      CUR = Object.assign({}, CUR, { apexOn: B.apexOn || {} });   // the ladder's apex bar reads this build's apexes
       order.forEach(([L, s], n) => {
         const seed = (site * 7919 + yr * 104729 + s * 131 + LAYERS.indexOf(L) * 17) % 2147483647;
         const tr = cast(B.lists[L + '|' + s], L, B.sub, used, Rng(seed), prm, spec);
@@ -763,7 +779,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {} }; }, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
