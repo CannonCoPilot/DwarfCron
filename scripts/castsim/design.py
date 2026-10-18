@@ -77,6 +77,10 @@ WEIRD = {
 # Real-life apex predators that DF does not tag LARGE_PREDATOR (several not even CARNIVORE, so the tool reads them as
 # prey). 'apex': joins the apex draw like a flagged predator. 'local': apex only where no true apex is in season on the
 # layer (the top predator of a small or depleted community). Proposed 10 Oct; the user's call.
+# user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine ROSTER.FP.LINK_AS)
+LINK_AS = {'GIGANTIC SQUID': 'GIANT_OCTOPUS', 'GIANT_LEOPARD_SEAL': 'LEOPARD_SEAL'}
+# user 17 Oct: every apex of the layer takes this species (engine ROSTER.FP.FORCED_PREY)
+FORCED_PREY = {'LEOPARD_SEAL': 'ocean'}
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
     'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
@@ -84,7 +88,8 @@ REAL_APEX = {
     'COYOTE': ('ground', 'local', 'the apex where wolves are gone; hunts in packs'),
     'WOLVERINE': ('ground', 'local', 'tops tundra and taiga communities; drives wolves off kills'),
     'BIRD_FALCON_PEREGRINE': ('flying', 'apex', 'the apex aerial hunter of other birds (under the 2,000 cm3 raptor floor)'),
-    'LEOPARD_SEAL': ('ocean', 'apex', 'the apex of Antarctic waters: penguins, other seals (DF: not CARNIVORE, read as shore prey)'),
+    # user 17 Oct: "take away apex from leopard seal" (every ocean apex takes it: FORCED_PREY) and give the giant leopard seal apex
+    'GIANT_LEOPARD_SEAL': ('ocean', 'apex', 'user 17 Oct: apex/meso/shore, with the leopard seal\'s links (LINK_AS)'),
     'FISH_GROUPER_GIANT': ('ocean', 'local', 'top reef predator where sharks are few (DF: read as fish prey)'),
     'FISH_BARRACUDA_GREAT': ('ocean', 'local', 'a reef top predator (DF: read as fish prey)'),
     'FISH_PIKE': ('fresh', 'apex', 'the top predator of northern lakes and rivers (DF: read as fish prey)'),
@@ -259,7 +264,8 @@ class Design:
         self.wiring = wiring or {}
         self.order = order        # 'random' (user 12 Oct) or 'season' (Spring first, for the bias comparison)
         self.ground_fly = {}      # token -> {hunter, ground, flying} on the current embark (apex_bar)
-        self.apex_any = set()     # tokens that are an apex on some layer of the current embark (never prey)
+        self.apex_any = {}        # token -> the layers it is an apex of on the current embark (never prey)
+        self.cur_pool = {}        # the current embark's pool (LINK_AS models)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
@@ -471,9 +477,15 @@ class Design:
     def predator(e):
         return e['guild'] in ('ML', 'MW', 'RP', 'AL', 'AW') or e['role'] == 'predator'
 
+    def link(self, e):
+        """the entry a link test reads e as (LINK_AS, when the model is in this embark's pool), else e"""
+        m = LINK_AS.get(e['token'])
+        return self.cur_pool.get(m, e) if m else e
+
     def slots_for(self, e, layer, sub):
         """the cast slots a (non-vermin) candidate can fill on this layer"""
-        hab, pred, g = e['habitat'], self.predator(e), e['guild']
+        le = self.link(e)
+        hab, pred, g = le['habitat'], self.predator(le), le['guild']
         if layer.startswith('cavern'):
             if e['sentient']: return ['sentient']
             s = []
@@ -541,8 +553,10 @@ class Design:
     def eats(self, a, b):
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
+        if self.apex_bar(ea, eb): return False   # user 17 Oct: the link bars on the real species
+        if FORCED_PREY.get(eb['token']) in self.apex_any.get(ea['token'], ()): return True   # the leopard seal to every ocean apex
+        ea, eb = self.link(ea), self.link(eb)    # LINK_AS
         if ea['guild'] == 'GZ': return False   # user 17 Oct: no grazer eats anything
-        if self.apex_bar(ea, eb): return False   # user 17 Oct: a ground apex or predator never takes anything on land-flying
         shore_like = a['slot'] in ('shore', 'waterbird') or (a['slot'] in ('flier', 'swimmer') and ea['habitat'] in ('semiaquatic', 'waterbird'))
         if b['vermin']:
             d, _ = self.E.vdiet(ea, self.diet_code(a), 'cavern' if a['layer'].startswith('cavern') else 'land')
@@ -720,12 +734,16 @@ class Design:
 
     # ------------------------------------------------------------------ the whole embark
     def apex_bar(self, ea, eb):
-        """user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too), unless the predator
-        is on land-flying too and the prey on land-ground (a flying hunter preying on the ground is kept). Engine MODEL.apexBar."""
-        if eb['token'] in self.apex_any: return True   # user 17 Oct: no apex is eaten by anything
+        """user 17 Oct, the link bars (engine MODEL.apexBar): no apex is prey; no land-ground apex or predator takes anything on
+        land-flying (a flying hunter on the ground is kept); no ocean or freshwater apex or predator links either way with a
+        land-ground or land-flying creature unless either can take a shore seat."""
+        if eb['token'] in self.apex_any: return True
         a, b = self.ground_fly.get(ea['token']), self.ground_fly.get(eb['token'])
         if not a or not b: return False
-        return a['hunter'] and b['flying'] and not (a['flying'] and b['ground'])
+        if a['hunter'] and b['flying'] and not (a['flying'] and b['ground']): return True
+        gfb = (b['ground'] or b['flying']) and not (b['verm'] and b['wet'])   # a vermin also in water is water vermin here
+        if ((a['water'] and gfb) or (b['water'] and (a['ground'] or a['flying']))) and not (a['shore'] or b['shore']): return True
+        return False
 
     def run(self, spec, year=250, site=1):
         pool, funnel, rejected = self.pool(spec)
@@ -737,12 +755,24 @@ class Design:
             e['layers'] = ls
             for L in ls: layer_sets[L].append(tok)
             for L, why in ns: notes.append({'token': tok, 'layer': L, 'why': why})
-        # land-ground hunters and land-flying members, as the engine's VERMIN.apexMark
-        self.ground_fly = {tok: {'hunter': (not e['gameVermin']) and 'ground' in e['layers'] and bool(self.apex_tier(e, 'ground') or self.predator(e)),
-                                 'ground': 'ground' in e['layers'], 'flying': 'flying' in e['layers']}
-                           for tok, e in pool.items() if 'ground' in e['layers'] or 'flying' in e['layers']}
-        # an apex on any layer it is on (engine CACHE.apexAny): never prey
-        self.apex_any = {tok for tok, e in pool.items() if not e['gameVermin'] and any(self.apex_tier(e, L) for L in e['layers'])}
+        # the bars' table, as the engine's VERMIN.apexMark: ground hunters, water hunters, shore seats, layers
+        self.cur_pool = pool
+        self.ground_fly = {}
+        for tok, e in pool.items():
+            ls = e['layers']
+            if not any(L in ls for L in ('ground', 'flying', 'ocean', 'fresh')): continue
+            v, le = e['gameVermin'], self.link(e)
+            wet = [L for L in ('ocean', 'fresh') if L in ls]
+            self.ground_fly[tok] = {
+                'hunter': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground') or self.predator(le)),
+                'water': (not v) and bool(wet) and bool(any(self.apex_tier(e, L) for L in wet) or self.predator(le)),
+                'shore': (not v) and any('shore' in self.slots_for(e, L, sub) for L in wet),
+                'ground': 'ground' in ls, 'flying': 'flying' in ls, 'verm': v, 'wet': bool(wet)}
+        self.apex_any = {}
+        for tok, e in pool.items():
+            if e['gameVermin']: continue
+            ls = {L for L in e['layers'] if self.apex_tier(e, L)}
+            if ls: self.apex_any[tok] = ls
         active = [L for L in LAYERS if layer_sets[L] and (L != 'ocean' or spec['water'].get('ocean'))
                   and (L != 'fresh' or sub) and (not L.startswith('cavern') or int(L[-1]) in (spec.get('caverns') or ()))]
         # all 28 casts at once, in a random order (seeded by site and year; user 12 Oct): a fixed Spring-first order handed

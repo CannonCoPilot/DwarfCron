@@ -36,6 +36,9 @@
     const VDIET = {};
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
     const P0 = Object.assign({}, M.params);
+    // user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine MODEL.link)
+    const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {};
+    const link = c => (LINK_AS[c.t] && BY[LINK_AS[c.t]]) || c;
 
     // ------------------------------------------------------------ the fort
     // spec: { land: [biome], rtype: {sav, evil, iso}, extinct, water: {ocean, lake, river, pool: zone|null, brook: bool},
@@ -196,7 +199,7 @@
     const usedKey = (t, slot) => slot === 'sentient' ? 'SN|' + t : t;
     function slotKey(L, sub) { return L === 'fresh' ? 'fresh:' + sub : (L.startsWith('cavern') ? 'cavern' : L); }
     function slotsFor(c, L, sub, promoted) {
-      const hab = c.h, pred = predator(c), g = c.g, s = [];
+      const lc = link(c), hab = lc.h, pred = predator(lc), g = lc.g, s = [];
       const tier = apexTier(c, L, promoted);
       if (L.startsWith('cavern')) {
         if (c.se) return ['sentient'];
@@ -325,7 +328,11 @@
       const lays = laysOf(c.t);
       if (c.gi) return { sides: [], why: 'a giant eats no vermin' };
       for (const L of ['ground', 'ocean']) if (lays.includes(L) && apexTier(c, L, CUR.promoted)) return { sides: [], why: `an apex on ${L === 'ground' ? 'land-ground' : 'the ocean'} eats no vermin` };
-      if (lays.includes('flying') && apexTier(c, 'flying', CUR.promoted)) return { sides: ['FLYING'], why: 'a land-flying apex eats flying vermin only' };
+      if (lays.includes('flying') && apexTier(c, 'flying', CUR.promoted)) {
+        const gx = (CUR.apexOn || {})[c.t];   // user 17 Oct: one that also hunts the water with no shore seat takes none
+        if (gx && gx.water && !gx.shore) return { sides: [], why: 'a land-flying apex that hunts the water with no shore seat eats no vermin' };
+        return { sides: ['FLYING'], why: 'a land-flying apex eats flying vermin only' };
+      }
       let s = ['GROUND', 'FLYING', 'OCEAN', 'FRESH', 'CAVERN'];
       const wet = lays.includes('ocean') || lays.includes('fresh');
       if (wet) s = s.filter(x => x !== 'GROUND');
@@ -333,19 +340,45 @@
       if (lays.includes('ocean') && !lays.includes('fresh')) s = s.filter(x => x !== 'FRESH');
       const why = [];
       if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
-      if (FRESH_EATERS.has(c.t)) why.push('and every freshwater vermin (duck, goose, swan)');
-      if (groundPrey(c)) why.push('and every land-ground vermin (land-ground prey)');
+      // user 17 Oct: an ocean or freshwater apex or predator with no shore seat takes no ground or flying vermin
+      const gf = (CUR.apexOn || {})[c.t];
+      if (gf && gf.water && !gf.shore) {
+        // a vermin's side tags are the species' own, so a cavern tag would feed it a bat (flying and cavern) at the surface
+        const inCave = lays.some(L => L.startsWith('cavern'));
+        s = s.filter(x => x !== 'GROUND' && x !== 'FLYING' && (inCave || x !== 'CAVERN'));
+        why.push('an ocean or freshwater hunter with no shore seat: no ground or flying vermin' + (inCave ? '' : ', nor cavern vermin (it is not in the caverns)'));
+      }
+      for (const x of extras(c)) why.push('and ' + x.why);
       // user 17 Oct: a land-ground predator takes no flying, ocean or freshwater vermin
-      if (family !== 'mass' && lays.includes('ground') && predator(c)) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
+      if (family !== 'mass' && lays.includes('ground') && predator(link(c))) { s = s.filter(x => !['FLYING', 'OCEAN', 'FRESH'].includes(x)); why.push('a land-ground predator: no flying, ocean or freshwater vermin'); }
       return { sides: s, why: why.join('; ') };
     }
     // user 17 Oct: every land-ground prey animal (on land-ground, not a predator, not an apex there; a giant excepted) takes
     // every vermin on the GROUND side (engine VERMIN.groundPrey)
-    const groundPrey = c => !c.v && !c.gi && c.g !== 'GZ' && laysOf(c.t).includes('ground') && !predator(c) && !apexTier(c, 'ground', CUR.promoted);
+    const groundPrey = c => !c.v && !c.gi && c.g !== 'GZ' && laysOf(c.t).includes('ground') && !predator(link(c)) && !apexTier(c, 'ground', CUR.promoted);
+    // prey on a layer: not vermin, a grazer, a predator (read as its LINK_AS model) or an apex of that layer (engine VERMIN.preyOn)
+    const preyOn = (c, L) => !c.v && c.g !== 'GZ' && laysOf(c.t).includes(L) && !predator(link(c)) && !apexTier(c, L, CUR.promoted);
+    const GIANT_FLY_SKIP = new Set(['GIANT_MOTH', 'GIANT_BUTTERFLY_MONARCH']);
+    // every extra wiring of a consumer (engine VERMIN.extras): { side, only, skip, why }
+    function extras(c) {
+      const out = [];
+      if (FRESH_EATERS.has(c.t) && !c.gi) out.push({ side: 'FRESH', why: 'every freshwater vermin: duck, goose, swan' });
+      if (groundPrey(c)) out.push({ side: 'GROUND', why: 'every land-ground vermin: land-ground prey' });
+      const x = (CUR.apexOn || {})[c.t];
+      if (x && x.shore && !c.gi && (preyOn(c, 'ocean') || preyOn(c, 'fresh'))) {
+        out.push({ side: 'OCEAN', why: 'every ocean vermin: shore prey' }); out.push({ side: 'FRESH', why: 'every freshwater vermin: shore prey' });
+      }
+      if (preyOn(c, 'flying')) {
+        if (c.gi && !GIANT_FLY_SKIP.has(c.t)) out.push({ side: 'FLYING', skip: 'SWV_FLYING_INSECT', why: 'every flying vermin but insects: giant flying prey' });
+        else if (!c.gi) out.push({ side: 'FLYING', only: 'SWV_FLYING_INSECT', why: 'every flying insect vermin: flying prey' });
+      }
+      return out;
+    }
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
-      const ground = groundPrey(a.c) && sidesOf(b.c.t).includes('GROUND') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@GROUND written (every land-ground vermin: land-ground prey)` : null;
-      const fresh = ground || (FRESH_EATERS.has(a.c.t) && !a.c.gi && sidesOf(b.c.t).includes('FRESH') && b.c.swv ? `GOBBLE_VERMIN_CLASS:${b.c.swv}@FRESH written (every freshwater vermin: duck, goose, swan)` : null);
+      const sd = sidesOf(b.c.t), sw = b.c.swv;
+      const ex = sw ? extras(a.c).find(x => sd.includes(x.side) && (!x.only || x.only === sw) && (!x.skip || x.skip !== sw)) : null;
+      const fresh = ex ? `GOBBLE_VERMIN_CLASS:${sw}@${ex.side} written (${ex.why})` : null;
       const g = gobbleSet(a.c, L);
       if (!g || !g.has(b.c.swv)) return fresh;
       const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x));
@@ -400,12 +433,26 @@
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
       if (y && y.apex) return true;   // user 17 Oct: no apex is eaten by anything
-      if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING') }; }
-      return !!(x && y && x.hunter && y.flying && !(x.flying && y.ground));
+      if (!y && b.v) { const sd = sidesOf(b.t); y = { ground: sd.includes('GROUND'), flying: sd.includes('FLYING'), wet: sd.includes('OCEAN') || sd.includes('FRESH') }; }
+      if (!x || !y) return false;
+      if (x.hunter && y.flying && !(x.flying && y.ground)) return true;
+      // user 17 Oct: no ocean or freshwater apex or predator links either way with a ground or flying creature, unless shore
+      // a vermin that also lives in water (a frog on land and fresh water) is water vermin here, as its side wiring reads it
+      const gfY = (y.ground || y.flying) && !(b.v && y.wet);
+      if (((x.water && gfY) || (y.water && (x.ground || x.flying))) && !(x.shore || y.shore)) return true;
+      return false;
+    }
+    // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
+    function forcedPrey(a, b) {
+      const L = FORCED_PREY[b.t], x = L && (CUR.apexOn || {})[a.t];
+      return !!(x && x.apexL && x.apexL.includes(L));
     }
     function massWhy(a, b) {
-      if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
       if (apexBar(a, b)) return null;
+      if (forcedPrey(a, b)) return 'every ocean apex takes the leopard seal (user 17 Oct)';
+      const ra = a, rb = b;
+      a = link(a); b = link(b);
+      if (a.v || a.ro !== 'predator' || !(a.m > 0) || !(b.m > 0)) return null;
       if (!reachWhy(a, b)) return null;
       if (!b.v && b.ro === 'predator' && b.m >= a.m * 0.5) return null;
       const take = a.m * Math.pow(grpOf(a), 0.75) * ((a.lp || a.amb) ? 1.5 : 1);
@@ -414,7 +461,7 @@
       const r = b.m / (0.4 * a.m), pref = b.v ? 0.05 : Math.exp(-(Math.log(r) ** 2) / (2 * 1.44));
       let side = '';
       if (b.v) {   // engine MODEL.vermSideOk: a vermin only from a side the consumer may eat from
-        const al = allowedSides(a, 'mass'), hit = sidesOf(b.t).filter(x => al.sides.includes(x));
+        const al = allowedSides(ra, 'mass'), hit = sidesOf(rb.t).filter(x => al.sides.includes(x));
         if (!hit.length) return null;
         side = `; from the ${hit.join('/').toLowerCase()} side${al.why ? ' (' + al.why + ')' : ''}`;
       }
@@ -437,13 +484,14 @@
         if (hits.length) out.push({ f: 'newrules', d: hits.join(' | ') });
       }
       if (on.hunt && !b.vermin) {
-        const arm = armedWhy(ca, a.slots, L), rw = arm && reachWhy(ca, cb), lw = rw && ladder();
+        const la = link(ca), lb = link(cb);   // user 17 Oct: LINK_AS
+        const arm = armedWhy(la, a.slots, L), rw = arm && (forcedPrey(ca, cb) ? 'the leopard seal to every ocean apex' : reachWhy(la, lb)), lw = rw && ladder();
         if (lw) {
-          const tooBig = ca.g === 'RP' && cb.m > ca.m * 2;
-          const civBlock = cb.civ && !((ca.g === 'AL' || ca.g === 'AW') && !ca.civ);
-          const share = cb.m > 0 ? grpOf(ca) * ca.m / cb.m : 1;
+          const tooBig = la.g === 'RP' && lb.m > la.m * 2;
+          const civBlock = lb.civ && !((la.g === 'AL' || la.g === 'AW') && !la.civ);
+          const share = lb.m > 0 ? grpOf(la) * la.m / lb.m : 1;
           if (!tooBig && !civBlock && share >= 0.05)
-            out.push({ f: 'hunt', d: `armed: ${arm}; cast edge (${lw}); ${rw}; pack share ${share >= 10 ? Math.round(share) : share.toFixed(2)}x the prey's mass${ca.g === 'RP' ? `; raptor prey ${(cb.m / ca.m).toFixed(2)}x its mass (max 2)` : ''}` });
+            out.push({ f: 'hunt', d: `armed: ${arm}; cast edge (${lw}); ${rw}; pack share ${share >= 10 ? Math.round(share) : share.toFixed(2)}x the prey's mass${la.g === 'RP' ? `; raptor prey ${(lb.m / la.m).toFixed(2)}x its mass (max 2)` : ''}` });
         }
       }
       if (on.gobble && b.vermin) { const w = gobbleWhy(a, b, L); if (w) out.push({ f: 'gobble', d: w }); }
@@ -463,9 +511,10 @@
     }
     function engineEats(a, b, L) {
       if (a.vermin) return false;
-      const ea = a.c, eb = b.c;
+      if (apexBar(a.c, b.c)) return false;   // user 17 Oct: the link bars on the real species
+      if (forcedPrey(a.c, b.c)) return true;   // the leopard seal to every ocean apex
+      const ea = link(a.c), eb = link(b.c);
       if (ea.g === 'GZ') return false;   // user 17 Oct: no grazer eats anything
-      if (apexBar(ea, eb)) return false;   // user 17 Oct: a ground apex or predator never takes anything on land-flying
       const shore = a.slot === 'shore' || a.slot === 'waterbird' || ((a.slot === 'flier' || a.slot === 'swimmer') && (ea.h === 'semiaquatic' || ea.h === 'waterbird'));
       if (b.vermin) {
         const d = vdiet(ea, codeFor(a.slot, ea, L), L);
@@ -525,12 +574,17 @@
           if (hit.length) mapOnly[c.t] = { c, sides: rawSides(c), from: hit };
         }
       }
-      // land-ground hunters (an apex there, or a predator) and land-flying members (engine VERMIN.apexMark), for apexBar
+      // the bars' table (engine VERMIN.apexMark): ground hunters, water hunters, shore seats, layers, the apex's layers
       const apexOn = {};
       for (const t in P) {
-        const p = P[t], g = p.layers.includes('ground'), f = p.layers.includes('flying');
-        const ap = !p.c.v && p.layers.some(L => !!apexTier(p.c, L, promoted));   // user 17 Oct: an apex anywhere is never prey
-        if (g || f || ap) apexOn[t] = { hunter: !p.c.v && g && (!!apexTier(p.c, 'ground', promoted) || predator(p.c)), ground: g, flying: f, apex: ap };
+        const p = P[t], c = p.c, lc = link(c), ls = p.layers, v = !!c.v;
+        const apexL = v ? [] : ls.filter(L => !!apexTier(c, L, promoted));
+        const wet = ls.filter(L => L === 'ocean' || L === 'fresh');
+        const g = ls.includes('ground'), f = ls.includes('flying');
+        if (!(g || f || wet.length || apexL.length)) continue;
+        apexOn[t] = { hunter: !v && g && (apexL.includes('ground') || predator(lc)), ground: g, flying: f,
+          water: !v && wet.length > 0 && (wet.some(L => apexL.includes(L)) || predator(lc)),
+          shore: !v && wet.some(L => slotsFor(c, L, sub, promoted).includes('shore')), apex: apexL.length > 0, apexL, wet: wet.length > 0 };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
@@ -789,7 +843,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, extras, link, forcedPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };
