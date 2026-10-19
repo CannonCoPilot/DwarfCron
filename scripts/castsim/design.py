@@ -88,6 +88,8 @@ FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp 
     'BIRD_OSPREY': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
     'BIRD_EAGLE': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
     'BIRD_OWL_GREAT_HORNED': {'prey': ['HARE'], 'vermin': [('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]},
+    # user 19 Oct: the peregrine takes ground snakes and never the raven, duck or rabbit
+    'BIRD_FALCON_PEREGRINE': {'snake': True, 'never': ['BIRD_RAVEN', 'BIRD_DUCK', 'RABBIT'], 'vermin': []},
 }
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
@@ -748,6 +750,7 @@ class Design:
         land-flying (a flying hunter on the ground is kept); no ocean or freshwater apex or predator links either way with a
         land-ground or land-flying creature unless either can take a shore seat."""
         if eb['token'] in self.apex_any: return True
+        if eb['token'] in FORCED_DIET.get(ea['token'], {}).get('never', ()): return True   # user 19 Oct: a bird's 'never' list
         a, b = self.ground_fly.get(ea['token']), self.ground_fly.get(eb['token'])
         if not a or not b: return False
         if a['hunter'] and b['flying'] and not (a['flying'] and b['ground']): return True

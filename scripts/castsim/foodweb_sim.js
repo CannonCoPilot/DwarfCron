@@ -432,6 +432,7 @@
     // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
     // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
     function apexBar(a, b) {
+      if (((FORCED_DIET[a.t] || {}).never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
       if (y && y.apex) return true;   // user 17 Oct: no apex is eaten by anything
