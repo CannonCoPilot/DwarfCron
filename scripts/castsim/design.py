@@ -90,6 +90,11 @@ FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp 
     'BIRD_OWL_GREAT_HORNED': {'prey': ['HARE'], 'vermin': [('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]},
     # user 19 Oct: the peregrine takes ground snakes and never the raven, duck or rabbit
     'BIRD_FALCON_PEREGRINE': {'snake': True, 'never': ['BIRD_RAVEN', 'BIRD_DUCK', 'RABBIT'], 'vermin': []},
+    # user 19 Oct: the grizzly and black bear take every ocean vermin and freshwater small fish; the polar bear every
+    # non-vermin on the ocean layer (no cast holds a bear with ocean creatures, so the desk's casts do not change)
+    'BEAR_GRIZZLY': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
+    'BEAR_BLACK': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
+    'BEAR_POLAR': {'ocean': True, 'vermin': []},
 }
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
@@ -564,7 +569,8 @@ class Design:
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
         d = FORCED_DIET.get(ea['token'])
-        if d and eb['token'] not in self.apex_any and (eb['token'] in d.get('prey', ()) or (d.get('fish') and self.ground_fly.get(eb['token'], {}).get('fish'))): return True
+        if d and eb['token'] not in self.apex_any and (eb['token'] in d.get('prey', ()) or (d.get('fish') and self.ground_fly.get(eb['token'], {}).get('fish'))
+                                                     or (d.get('ocean') and not eb['gameVermin'] and 'ocean' in eb.get('layers', ()))): return True
         if self.apex_bar(ea, eb): return False   # user 17 Oct: the link bars on the real species
         if FORCED_PREY.get(eb['token']) in self.apex_any.get(ea['token'], ()): return True   # the leopard seal to every ocean apex
         ea, eb = self.link(ea), self.link(eb)    # LINK_AS

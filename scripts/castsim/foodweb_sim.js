@@ -369,7 +369,7 @@
         out.push({ side: 'OCEAN', why: 'every ocean vermin: shore prey' }); out.push({ side: 'FRESH', why: 'every freshwater vermin: shore prey' });
       }
       for (const [side, only] of (FORCED_DIET[c.t] || {}).vermin || [])   // user 19 Oct: osprey, eagle, great horned owl
-        out.push({ side, only, why: `every ${side.toLowerCase()} ${only.replace('SWV_', '').toLowerCase().replace('_', ' ')} vermin: its own diet` });
+        out.push({ side, only, why: `every ${side.toLowerCase()} ${only ? only.replace('SWV_', '').toLowerCase().replace('_', ' ') + ' ' : ''}vermin: its own diet` });
       if (preyOn(c, 'flying')) {
         if (c.gi && !GIANT_FLY_SKIP.has(c.t)) out.push({ side: 'FLYING', skip: 'SWV_FLYING_INSECT', why: 'every flying vermin but insects: giant flying prey' });
         else if (!c.gi) out.push({ side: 'FLYING', only: 'SWV_FLYING_INSECT', why: 'every flying insect vermin: flying prey' });
@@ -454,7 +454,7 @@
       const y = (CUR.apexOn || {})[b.t];
       if (y && y.apex) return false;
       if ((d.prey || []).includes(b.t)) return true;
-      return !!(y && ((d.fish && y.fish) || (d.snake && y.snake)));
+      return !!(y && ((d.fish && y.fish) || (d.snake && y.snake) || (d.ocean && y.ocean)));
     }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
     function forcedPrey(a, b) {
@@ -462,7 +462,7 @@
       return !!(x && x.apexL && x.apexL.includes(L));
     }
     function massWhy(a, b) {
-      if (forcedDiet(a, b)) return 'its own diet (user 19 Oct: osprey and eagle fish and snakes, great horned owl hare)';
+      if (forcedDiet(a, b)) return 'its own diet (user 19 Oct: osprey and eagle fish and snakes, great horned owl hare, polar bear ocean creatures)';
       if (apexBar(a, b)) return null;
       if (forcedPrey(a, b)) return 'every ocean apex takes the leopard seal (user 17 Oct)';
       const ra = a, rb = b;
@@ -606,7 +606,8 @@
           oshore: !v && ls.includes('ocean') && slotsFor(c, 'ocean', sub, promoted).includes('shore') && (predator(lc) || apexL.includes('ocean')),
           gapex: !v && apexL.includes('ground'),
           // user 19 Oct: fish prey of the ocean and fresh water; a ground snake (legless, a hunter guild)
-          fish: !v && wet.length > 0 && lc.h === 'aquatic' && !predator(lc), snake: !v && g && !!c.lg && (lc.g === 'ML' || lc.g === 'AL') };
+          fish: !v && wet.length > 0 && lc.h === 'aquatic' && !predator(lc), snake: !v && g && !!c.lg && (lc.g === 'ML' || lc.g === 'AL'),
+          ocean: !v && ls.includes('ocean') };   // user 19 Oct: on the ocean layer (the polar bear's diet)
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
