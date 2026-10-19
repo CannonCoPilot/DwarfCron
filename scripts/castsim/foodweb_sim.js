@@ -37,7 +37,7 @@
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
     const P0 = Object.assign({}, M.params);
     // user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine MODEL.link)
-    const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {};
+    const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {}, FORCED_DIET = new Set(M.forced_diet || []);
     const link = c => (LINK_AS[c.t] && BY[LINK_AS[c.t]]) || c;
 
     // ------------------------------------------------------------ the fort
@@ -368,6 +368,10 @@
       if (x && x.shore && !c.gi && (preyOn(c, 'ocean') || preyOn(c, 'fresh'))) {
         out.push({ side: 'OCEAN', why: 'every ocean vermin: shore prey' }); out.push({ side: 'FRESH', why: 'every freshwater vermin: shore prey' });
       }
+      if (FORCED_DIET.has(c.t)) {   // user 19 Oct: the osprey and the eagle
+        out.push({ side: 'OCEAN', only: 'SWV_SMALL_FISH', why: 'every ocean fish vermin: osprey, eagle' }, { side: 'FRESH', only: 'SWV_SMALL_FISH', why: 'every freshwater fish vermin: osprey, eagle' },
+          { side: 'GROUND', only: 'SWV_SMALL_MAMMAL', why: 'every land mammal vermin: osprey, eagle' }, { side: 'GROUND', only: 'SWV_HERP', why: 'every land herp vermin: osprey, eagle' });
+      }
       if (preyOn(c, 'flying')) {
         if (c.gi && !GIANT_FLY_SKIP.has(c.t)) out.push({ side: 'FLYING', skip: 'SWV_FLYING_INSECT', why: 'every flying vermin but insects: giant flying prey' });
         else if (!c.gi) out.push({ side: 'FLYING', only: 'SWV_FLYING_INSECT', why: 'every flying insect vermin: flying prey' });
@@ -444,12 +448,19 @@
       if (y.oshore && x.gapex) return true;    // ... and no land-ground apex takes it
       return false;
     }
+    // user 19 Oct: the osprey's and eagle's own diet (engine MODEL.forcedDiet): fish prey and ground snakes, never an apex
+    function forcedDiet(a, b) {
+      if (!FORCED_DIET.has(a.t)) return false;
+      const y = (CUR.apexOn || {})[b.t];
+      return !!(y && !y.apex && (y.fish || y.snake));
+    }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
     function forcedPrey(a, b) {
       const L = FORCED_PREY[b.t], x = L && (CUR.apexOn || {})[a.t];
       return !!(x && x.apexL && x.apexL.includes(L));
     }
     function massWhy(a, b) {
+      if (forcedDiet(a, b)) return 'the osprey\'s and eagle\'s diet: fish prey and ground snakes (user 19 Oct)';
       if (apexBar(a, b)) return null;
       if (forcedPrey(a, b)) return 'every ocean apex takes the leopard seal (user 17 Oct)';
       const ra = a, rb = b;
@@ -487,12 +498,13 @@
       }
       if (on.hunt && !b.vermin) {
         const la = link(ca), lb = link(cb);   // user 17 Oct: LINK_AS
-        const arm = armedWhy(la, a.slots, L), rw = arm && (forcedPrey(ca, cb) ? 'the leopard seal to every ocean apex' : reachWhy(la, lb)), lw = rw && ladder();
+        const fd = forcedDiet(ca, cb);
+        const arm = armedWhy(la, a.slots, L), rw = arm && (fd ? 'the osprey\'s and eagle\'s diet' : forcedPrey(ca, cb) ? 'the leopard seal to every ocean apex' : reachWhy(la, lb)), lw = rw && ladder();
         if (lw) {
-          const tooBig = la.g === 'RP' && lb.m > la.m * 2;
+          const tooBig = !fd && la.g === 'RP' && lb.m > la.m * 2;
           const civBlock = lb.civ && !((la.g === 'AL' || la.g === 'AW') && !la.civ);
           const share = lb.m > 0 ? grpOf(la) * la.m / lb.m : 1;
-          if (!tooBig && !civBlock && share >= 0.05)
+          if (!tooBig && !civBlock && (fd || share >= 0.05))
             out.push({ f: 'hunt', d: `armed: ${arm}; cast edge (${lw}); ${rw}; pack share ${share >= 10 ? Math.round(share) : share.toFixed(2)}x the prey's mass${la.g === 'RP' ? `; raptor prey ${(lb.m / la.m).toFixed(2)}x its mass (max 2)` : ''}` });
         }
       }
@@ -513,6 +525,7 @@
     }
     function engineEats(a, b, L) {
       if (a.vermin) return false;
+      if (!b.vermin && forcedDiet(a.c, b.c)) return true;   // user 19 Oct: the osprey's and eagle's diet
       if (apexBar(a.c, b.c)) return false;   // user 17 Oct: the link bars on the real species
       if (forcedPrey(a.c, b.c)) return true;   // the leopard seal to every ocean apex
       const ea = link(a.c), eb = link(b.c);
@@ -589,7 +602,9 @@
           shore: !v && wet.some(L => slotsFor(c, L, sub, promoted).includes('shore')), apex: apexL.length > 0, apexL, wet: wet.length > 0,
           // user 19 Oct: an ocean-shore predator; a land-ground apex
           oshore: !v && ls.includes('ocean') && slotsFor(c, 'ocean', sub, promoted).includes('shore') && (predator(lc) || apexL.includes('ocean')),
-          gapex: !v && apexL.includes('ground') };
+          gapex: !v && apexL.includes('ground'),
+          // user 19 Oct: fish prey of the ocean and fresh water; a ground snake (legless, a hunter guild)
+          fish: !v && wet.length > 0 && lc.h === 'aquatic' && !predator(lc), snake: !v && g && !!c.lg && (lc.g === 'ML' || lc.g === 'AL') };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };

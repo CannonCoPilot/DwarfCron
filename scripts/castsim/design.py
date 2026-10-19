@@ -81,6 +81,9 @@ WEIRD = {
 LINK_AS = {'GIGANTIC SQUID': 'GIANT_OCTOPUS', 'GIANT_LEOPARD_SEAL': 'LEOPARD_SEAL'}
 # user 17 Oct: every apex of the layer takes this species (engine ROSTER.FP.FORCED_PREY)
 FORCED_PREY = {'LEOPARD_SEAL': 'ocean'}
+# user 19 Oct: the osprey and eagle eat every ocean and freshwater fish prey and ground snake, never an apex (engine
+# MODEL.forcedDiet). The desk has no body plan, so it models the fish only: no cast holds them with a ground snake.
+FORCED_DIET = {'BIRD_OSPREY', 'BIRD_EAGLE'}
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
     'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
@@ -553,6 +556,7 @@ class Design:
     def eats(self, a, b):
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
+        if ea['token'] in FORCED_DIET and eb['token'] not in self.apex_any and self.ground_fly.get(eb['token'], {}).get('fish'): return True
         if self.apex_bar(ea, eb): return False   # user 17 Oct: the link bars on the real species
         if FORCED_PREY.get(eb['token']) in self.apex_any.get(ea['token'], ()): return True   # the leopard seal to every ocean apex
         ea, eb = self.link(ea), self.link(eb)    # LINK_AS
@@ -772,7 +776,8 @@ class Design:
                 'ground': 'ground' in ls, 'flying': 'flying' in ls, 'verm': v, 'wet': bool(wet),
                 # user 19 Oct: an ocean-shore predator; a land-ground apex
                 'oshore': (not v) and 'ocean' in ls and 'shore' in self.slots_for(e, 'ocean', sub) and bool(self.predator(le) or self.apex_tier(e, 'ocean')),
-                'gapex': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground'))}
+                'gapex': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground')),
+                'fish': (not v) and bool(wet) and le['habitat'] == 'aquatic' and not self.predator(le)}
         self.apex_any = {}
         for tok, e in pool.items():
             if e['gameVermin']: continue
