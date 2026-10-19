@@ -95,6 +95,10 @@ FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp 
     'BEAR_GRIZZLY': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
     'BEAR_BLACK': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
     'BEAR_POLAR': {'ocean': True, 'vermin': []},
+    # user 19 Oct: the alligator takes nothing that flies, no insect vermin, and every swimming (ocean or freshwater) vermin.
+    # The desk's ladder has no vermin types; the alligator's ladder vermin are small fish only, so only noFliers matters here.
+    'ALLIGATOR': {'noFliers': True, 'noTypes': ['SWV_FLYING_INSECT', 'SWV_GROUND_BUG', 'SWV_COLONY'], 'swimVermin': True,
+                  'vermin': [('OCEAN',), ('FRESH',)]},
 }
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
@@ -757,6 +761,8 @@ class Design:
         land-ground or land-flying creature unless either can take a shore seat."""
         if eb['token'] in self.apex_any: return True
         if eb['token'] in FORCED_DIET.get(ea['token'], {}).get('never', ()): return True   # user 19 Oct: a bird's 'never' list
+        if FORCED_DIET.get(ea['token'], {}).get('noFliers') and (('flying' in eb.get('layers', ())) or (not eb['gameVermin'] and eb['habitat'] in ('flier', 'waterbird'))):
+            return True   # user 19 Oct: the alligator takes nothing that flies
         a, b = self.ground_fly.get(ea['token']), self.ground_fly.get(eb['token'])
         if not a or not b: return False
         if a['hunter'] and b['flying'] and not (a['flying'] and b['ground']): return True

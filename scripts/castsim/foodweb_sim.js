@@ -379,11 +379,13 @@
     function gobbleWhy(a, b, L) {
       if (!b.vermin) return null;
       const sd = sidesOf(b.c.t), sw = b.c.swv;
+      const fdA = FORCED_DIET[a.c.t] || {};
+      if ((fdA.noTypes || []).includes(sw)) return null;   // user 19 Oct: the alligator's barred vermin types
       const ex = sw ? extras(a.c).find(x => sd.includes(x.side) && (!x.only || x.only === sw) && (!x.skip || x.skip !== sw)) : null;
       const fresh = ex ? `GOBBLE_VERMIN_CLASS:${sw}@${ex.side} written (${ex.why})` : null;
       const g = gobbleSet(a.c, L);
       if (!g || !g.has(b.c.swv)) return fresh;
-      const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x));
+      const al = allowedSides(a.c), hit = sidesOf(b.c.t).filter(x => al.sides.includes(x) && !(fdA.noFliers && x === 'FLYING'));
       if (!hit.length) return fresh;
       return `GOBBLE_VERMIN_CLASS:${hit.map(x => b.c.swv + '@' + x).join(', ')} written (${g.get(b.c.swv)})${al.why ? '; ' + al.why : ''}`;
     }
@@ -432,7 +434,11 @@
     // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
     // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
     function apexBar(a, b) {
-      if (((FORCED_DIET[a.t] || {}).never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
+      const fdA = FORCED_DIET[a.t] || {};
+      if ((fdA.never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
+      // user 19 Oct: the alligator takes nothing that flies, and no insect vermin
+      if (fdA.noFliers && ((!b.v && (b.h === 'flier' || b.h === 'waterbird')) || laysOf(b.t).includes('flying') || (b.v && sidesOf(b.t).includes('FLYING')))) return true;
+      if (b.v && (fdA.noTypes || []).includes(b.swv)) return true;
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
       if (y && y.apex) return true;   // user 17 Oct: no apex is eaten by anything
@@ -454,6 +460,7 @@
       const y = (CUR.apexOn || {})[b.t];
       if (y && y.apex) return false;
       if ((d.prey || []).includes(b.t)) return true;
+      if (d.swimVermin && b.v && !(d.noTypes || []).includes(b.swv)) { const sd = sidesOf(b.t); if ((sd.includes('OCEAN') || sd.includes('FRESH')) && !sd.includes('FLYING')) return true; }
       return !!(y && ((d.fish && y.fish) || (d.snake && y.snake) || (d.ocean && y.ocean)));
     }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
