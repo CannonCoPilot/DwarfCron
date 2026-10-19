@@ -743,6 +743,8 @@ class Design:
         if a['hunter'] and b['flying'] and not (a['flying'] and b['ground']): return True
         gfb = (b['ground'] or b['flying']) and not (b['verm'] and b['wet'])   # a vermin also in water is water vermin here
         if ((a['water'] and gfb) or (b['water'] and (a['ground'] or a['flying']))) and not (a['shore'] or b['shore']): return True
+        if a['oshore'] and b['ground']: return True    # user 19 Oct: no ocean-shore predator takes a land-ground creature
+        if b['oshore'] and a['gapex']: return True     # ... and no land-ground apex takes it
         return False
 
     def run(self, spec, year=250, site=1):
@@ -767,7 +769,10 @@ class Design:
                 'hunter': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground') or self.predator(le)),
                 'water': (not v) and bool(wet) and bool(any(self.apex_tier(e, L) for L in wet) or self.predator(le)),
                 'shore': (not v) and any('shore' in self.slots_for(e, L, sub) for L in wet),
-                'ground': 'ground' in ls, 'flying': 'flying' in ls, 'verm': v, 'wet': bool(wet)}
+                'ground': 'ground' in ls, 'flying': 'flying' in ls, 'verm': v, 'wet': bool(wet),
+                # user 19 Oct: an ocean-shore predator; a land-ground apex
+                'oshore': (not v) and 'ocean' in ls and 'shore' in self.slots_for(e, 'ocean', sub) and bool(self.predator(le) or self.apex_tier(e, 'ocean')),
+                'gapex': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground'))}
         self.apex_any = {}
         for tok, e in pool.items():
             if e['gameVermin']: continue

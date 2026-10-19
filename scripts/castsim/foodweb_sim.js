@@ -440,6 +440,8 @@
       // a vermin that also lives in water (a frog on land and fresh water) is water vermin here, as its side wiring reads it
       const gfY = (y.ground || y.flying) && !(b.v && y.wet);
       if (((x.water && gfY) || (y.water && (x.ground || x.flying))) && !(x.shore || y.shore)) return true;
+      if (x.oshore && y.ground) return true;   // user 19 Oct: no ocean-shore predator takes a land-ground creature
+      if (y.oshore && x.gapex) return true;    // ... and no land-ground apex takes it
       return false;
     }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
@@ -584,7 +586,10 @@
         if (!(g || f || wet.length || apexL.length)) continue;
         apexOn[t] = { hunter: !v && g && (apexL.includes('ground') || predator(lc)), ground: g, flying: f,
           water: !v && wet.length > 0 && (wet.some(L => apexL.includes(L)) || predator(lc)),
-          shore: !v && wet.some(L => slotsFor(c, L, sub, promoted).includes('shore')), apex: apexL.length > 0, apexL, wet: wet.length > 0 };
+          shore: !v && wet.some(L => slotsFor(c, L, sub, promoted).includes('shore')), apex: apexL.length > 0, apexL, wet: wet.length > 0,
+          // user 19 Oct: an ocean-shore predator; a land-ground apex
+          oshore: !v && ls.includes('ocean') && slotsFor(c, 'ocean', sub, promoted).includes('shore') && (predator(lc) || apexL.includes('ocean')),
+          gapex: !v && apexL.includes('ground') };
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };
