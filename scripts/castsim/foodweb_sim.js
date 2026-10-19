@@ -37,7 +37,7 @@
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
     const P0 = Object.assign({}, M.params);
     // user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine MODEL.link)
-    const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {}, FORCED_DIET = new Set(M.forced_diet || []);
+    const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {}, FORCED_DIET = M.forced_diet || {};
     const link = c => (LINK_AS[c.t] && BY[LINK_AS[c.t]]) || c;
 
     // ------------------------------------------------------------ the fort
@@ -368,10 +368,8 @@
       if (x && x.shore && !c.gi && (preyOn(c, 'ocean') || preyOn(c, 'fresh'))) {
         out.push({ side: 'OCEAN', why: 'every ocean vermin: shore prey' }); out.push({ side: 'FRESH', why: 'every freshwater vermin: shore prey' });
       }
-      if (FORCED_DIET.has(c.t)) {   // user 19 Oct: the osprey and the eagle
-        out.push({ side: 'OCEAN', only: 'SWV_SMALL_FISH', why: 'every ocean fish vermin: osprey, eagle' }, { side: 'FRESH', only: 'SWV_SMALL_FISH', why: 'every freshwater fish vermin: osprey, eagle' },
-          { side: 'GROUND', only: 'SWV_SMALL_MAMMAL', why: 'every land mammal vermin: osprey, eagle' }, { side: 'GROUND', only: 'SWV_HERP', why: 'every land herp vermin: osprey, eagle' });
-      }
+      for (const [side, only] of (FORCED_DIET[c.t] || {}).vermin || [])   // user 19 Oct: osprey, eagle, great horned owl
+        out.push({ side, only, why: `every ${side.toLowerCase()} ${only.replace('SWV_', '').toLowerCase().replace('_', ' ')} vermin: its own diet` });
       if (preyOn(c, 'flying')) {
         if (c.gi && !GIANT_FLY_SKIP.has(c.t)) out.push({ side: 'FLYING', skip: 'SWV_FLYING_INSECT', why: 'every flying vermin but insects: giant flying prey' });
         else if (!c.gi) out.push({ side: 'FLYING', only: 'SWV_FLYING_INSECT', why: 'every flying insect vermin: flying prey' });
@@ -450,9 +448,12 @@
     }
     // user 19 Oct: the osprey's and eagle's own diet (engine MODEL.forcedDiet): fish prey and ground snakes, never an apex
     function forcedDiet(a, b) {
-      if (!FORCED_DIET.has(a.t)) return false;
+      const d = FORCED_DIET[a.t];
+      if (!d) return false;
       const y = (CUR.apexOn || {})[b.t];
-      return !!(y && !y.apex && (y.fish || y.snake));
+      if (y && y.apex) return false;
+      if ((d.prey || []).includes(b.t)) return true;
+      return !!(y && ((d.fish && y.fish) || (d.snake && y.snake)));
     }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
     function forcedPrey(a, b) {
@@ -460,7 +461,7 @@
       return !!(x && x.apexL && x.apexL.includes(L));
     }
     function massWhy(a, b) {
-      if (forcedDiet(a, b)) return 'the osprey\'s and eagle\'s diet: fish prey and ground snakes (user 19 Oct)';
+      if (forcedDiet(a, b)) return 'its own diet (user 19 Oct: osprey and eagle fish and snakes, great horned owl hare)';
       if (apexBar(a, b)) return null;
       if (forcedPrey(a, b)) return 'every ocean apex takes the leopard seal (user 17 Oct)';
       const ra = a, rb = b;
@@ -499,7 +500,7 @@
       if (on.hunt && !b.vermin) {
         const la = link(ca), lb = link(cb);   // user 17 Oct: LINK_AS
         const fd = forcedDiet(ca, cb);
-        const arm = armedWhy(la, a.slots, L), rw = arm && (fd ? 'the osprey\'s and eagle\'s diet' : forcedPrey(ca, cb) ? 'the leopard seal to every ocean apex' : reachWhy(la, lb)), lw = rw && ladder();
+        const arm = armedWhy(la, a.slots, L), rw = arm && (fd ? 'its own diet (user 19 Oct)' : forcedPrey(ca, cb) ? 'the leopard seal to every ocean apex' : reachWhy(la, lb)), lw = rw && ladder();
         if (lw) {
           const tooBig = !fd && la.g === 'RP' && lb.m > la.m * 2;
           const civBlock = lb.civ && !((la.g === 'AL' || la.g === 'AW') && !la.civ);

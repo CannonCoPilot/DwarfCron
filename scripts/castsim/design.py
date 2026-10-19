@@ -83,7 +83,12 @@ LINK_AS = {'GIGANTIC SQUID': 'GIANT_OCTOPUS', 'GIANT_LEOPARD_SEAL': 'LEOPARD_SEA
 FORCED_PREY = {'LEOPARD_SEAL': 'ocean'}
 # user 19 Oct: the osprey and eagle eat every ocean and freshwater fish prey and ground snake, never an apex (engine
 # MODEL.forcedDiet). The desk has no body plan, so it models the fish only: no cast holds them with a ground snake.
-FORCED_DIET = {'BIRD_OSPREY', 'BIRD_EAGLE'}
+_FISH_LAND_VERMIN = [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH'), ('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]
+FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp vermin, and the hare
+    'BIRD_OSPREY': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
+    'BIRD_EAGLE': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
+    'BIRD_OWL_GREAT_HORNED': {'prey': ['HARE'], 'vermin': [('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]},
+}
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
     'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
@@ -556,7 +561,8 @@ class Design:
     def eats(self, a, b):
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
-        if ea['token'] in FORCED_DIET and eb['token'] not in self.apex_any and self.ground_fly.get(eb['token'], {}).get('fish'): return True
+        d = FORCED_DIET.get(ea['token'])
+        if d and eb['token'] not in self.apex_any and (eb['token'] in d.get('prey', ()) or (d.get('fish') and self.ground_fly.get(eb['token'], {}).get('fish'))): return True
         if self.apex_bar(ea, eb): return False   # user 17 Oct: the link bars on the real species
         if FORCED_PREY.get(eb['token']) in self.apex_any.get(ea['token'], ()): return True   # the leopard seal to every ocean apex
         ea, eb = self.link(ea), self.link(eb)    # LINK_AS
