@@ -27,6 +27,8 @@ CAST, CAST_DEF, TIER, LEVEL, VDIET, REACH = T['CAST'], T['CAST_DEF'], T['TIER'],
 TIER.setdefault('FAPX', 3)
 ROLE, PREDG, FLY_SCAV, EXT = T['ROLE'], T['PREDG'], T['FLY_SCAV'], T['EXTINCT']
 LARGE = T['MODEL_LARGE']
+# per-token habitat and guild, ahead of the raws' reading (engine MODEL.HABITAT_OVERRIDE, MODEL.GUILD_OVERRIDE); design.py fills them
+HABITAT_OVERRIDE, GUILD_OVERRIDE = {}, {}
 SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
 TPY = 403200
 WATER_PREFIX = ('OCEAN', 'POOL', 'LAKE', 'RIVER', 'SUBTERRANEAN_WATER')
@@ -86,7 +88,8 @@ class Engine:
         role = ROLE.get(tok) or ('predator' if any(c['any'](x) for x in ('CARNIVORE', 'BONECARN', 'LARGE_PREDATOR', 'AMBUSHPREDATOR')) else 'prey')
         water = any(is_water(b) for b in c['biomes']); land = any(not is_water(b) for b in c['biomes'])
         flier = c['any']('FLIER')
-        if c['any']('IMMOBILE_LAND') or c['any']('CANNOT_BREATHE_AIR'): hab = 'aquatic'          # MODEL.habitat (sw:1917)
+        if tok in HABITAT_OVERRIDE: hab = HABITAT_OVERRIDE[tok]
+        elif c['any']('IMMOBILE_LAND') or c['any']('CANNOT_BREATHE_AIR'): hab = 'aquatic'      # MODEL.habitat (sw:1917)
         elif flier: hab = 'waterbird' if water else 'flier'
         elif c['any']('CAN_BREATHE_WATER') or (water and not land): hab = 'semiaquatic'
         else: hab = 'land'
@@ -131,6 +134,7 @@ class Engine:
     def guild(self, c, o):
         if o['gameVermin']: return 'V'
         if o['apVermin']: return 'RP' if o['flier'] else ('MW' if o['habitat'] == 'aquatic' else 'ML')
+        if c['token'] in GUILD_OVERRIDE: return GUILD_OVERRIDE[c['token']]
         aquatic = o['habitat'] == 'aquatic'
         amphib = (not aquatic) and c['any']('CAN_BREATHE_WATER')
         lp, flier = o['largePred'], o['flier']

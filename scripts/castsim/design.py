@@ -26,7 +26,7 @@ from __future__ import annotations
 import math
 import random
 
-from engine import Engine, REACH, R0, CAST_DEF, ROLE
+from engine import Engine, REACH, R0, CAST_DEF, ROLE, HABITAT_OVERRIDE, GUILD_OVERRIDE
 
 SAVAGE_AT, EVIL_AT, GOOD_AT = 66, 66, 32          # DF: savagery 66+ = savage; evil 66+ = evil, 0-32 = good
 SALT_WET = {'MARSH_TEMPERATE_SALTWATER', 'MARSH_TROPICAL_SALTWATER', 'SWAMP_TEMPERATE_SALTWATER', 'SWAMP_TROPICAL_SALTWATER',
@@ -152,8 +152,6 @@ REAL_CARNIVORE = {
     'SHARK_SPINY_DOGFISH': 'pack-hunting small shark', 'SHARK_WOBBEGONG_SPOTTED': 'ambush shark',
     'LEOPARD_SEAL': 'hunts penguins and other seals', 'ELEPHANT_SEAL': 'hunts squid and fish', 'HARP_SEAL': 'hunts fish and crustaceans',
     'WALRUS': 'eats clams; takes seals at times', 'MINK': 'semiaquatic hunter of fish, frogs, rodents', 'WEASEL': 'hunter of rodents and birds',
-    'BIRD_ALBATROSS': 'catches squid and fish', 'BIRD_LOON': 'diving fish hunter', 'BIRD_PUFFIN': 'diving fish hunter',
-    'BIRD_STORK_WHITE': 'hunts frogs, fish, rodents',
     # user 13 Oct: giant bugs eat whatever they can catch (the raws give these no CARNIVORE)
     'GIANT_MANTIS': 'ambush hunter', 'GIANT_DRAGONFLY': 'the top aerial insect predator', 'GIANT_TICK': 'blood-feeder, carries disease',
     'GIANT_MOSQUITO': 'blood-feeder, carries disease', 'GIANT_ROACH': 'eats anything it can catch',
@@ -193,6 +191,8 @@ EXTRA_BIOMES = {
     'BEAR_BLACK': _bx('ANY_TEMPERATE_WETLAND'),
     'WOLF': _bx('ANY_TEMPERATE_WETLAND'),
     'ANACONDA': _bx('LAKE_TROPICAL_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
+    # user 20 Oct: the grimeling to any marsh, any swamp, any lake or any river (its raws name every marsh and swamp already)
+    'GRIMELING': _bx('ANY_LAKE', 'ANY_RIVER'),
     # user 17 Oct: the giant dragonfly and giant mosquito hunt over lakes and rivers; the mosquito is freshwater vermin
     'GIANT_DRAGONFLY': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'GIANT_MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
 }
@@ -216,7 +216,14 @@ GIANT_BUGS = {'GIANT_JUMPING_SPIDER', 'GIANT_BARK_SCORPION', 'GIANT_BROWN_RECLUS
 # user 17 Oct ("Changing Vermin the Tool Feeds"; engine ROSTER.FP.HABITAT / WATER_BUG_APEX / VERMIN_FRESH): the giant mantis and
 # giant roach are fliers, not waterbirds; no giant bug flier is on land-ground; the giant dragonfly and giant mosquito are
 # freshwater apexes and waterbirds (lake: apex + waterbird; river: waterbird); the mosquito is freshwater vermin only
-HABITAT = {'GIANT_MANTIS': 'flier', 'GIANT_ROACH': 'flier'}
+HABITAT = {'GIANT_MANTIS': 'flier', 'GIANT_ROACH': 'flier',
+           # user 20 Oct: the gila monster is a desert land animal (its raws' AMPHIBIOUS read semiaquatic); the giant follows
+           'GILA_MONSTER': 'land', 'GIANT_GILA_MONSTER': 'land'}
+# user 20 Oct: white stork and kea land-bird prey; puffin, loon and albatross waterbird prey (engine MODEL.ROLE 'prey' and
+# MODEL.GUILD_OVERRIDE; the four were REAL_CARNIVORE from 12 Oct, the kea's BONECARN reads raptor)
+PREY_BIRDS = {'BIRD_STORK_WHITE': 'LB', 'BIRD_KEA': 'LB', 'BIRD_PUFFIN': 'WB', 'BIRD_LOON': 'WB', 'BIRD_ALBATROSS': 'WB'}
+# seabirds and the stork are never flying apexes (engine ROSTER.FLY_NOT_RAPTOR)
+FLY_NOT_RAPTOR = {'BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'}
 WATER_BUG_APEX = {'GIANT_DRAGONFLY', 'GIANT_MOSQUITO'}
 VERMIN_FRESH = {'MOSQUITO'}
 VERMIN_GROUND = {'ROACH_LARGE'}
@@ -308,6 +315,8 @@ class Design:
         self.cur_pool = {}        # the current embark's pool (LINK_AS models)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
         for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
+        for tok, g in PREY_BIRDS.items(): ROLE[tok] = 'prey'; GUILD_OVERRIDE[tok] = g
+        HABITAT_OVERRIDE.update(HABITAT)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
         self.R = self.E.R
 
@@ -503,7 +512,7 @@ class Design:
         if e['civ'] or e['gameVermin']: return False
         if layer == 'flying':
             if e['ap'] and e['largePred'] and e['habitat'] in ('flier', 'waterbird'): return True   # an animal person of a flagged flier
-            if e['token'] in REAL_CARNIVORE: return False   # fish-eating seabirds and the stork hunt, but are not raptors
+            if e['token'] in REAL_CARNIVORE or e['token'] in FLY_NOT_RAPTOR: return False   # seabirds and the stork are not raptors
             return self.E.fly_apex(dict(e, layer='land'))
         if layer in ('ocean', 'fresh'):
             # as the engine (slotOf): only the curated water apexes hold a water apex slot -- a giant or an animal person

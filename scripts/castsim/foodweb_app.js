@@ -13,7 +13,8 @@
   const CAVGROUPS = ['1', '1,2', '2', '1,2,3', '1,3', '2,3', '3'];
   const CAVGROUP_LABEL = { '1': 'Cav 1', '1,2': '1 + 2', '2': 'Cav 2', '1,2,3': 'all three', '1,3': '1 + 3', '2,3': '2 + 3', '3': 'Cav 3' };
   const CAV_COL = { 1: 'c-green', 2: 'c-blue', 3: 'c-purple' };
-  const SHORT = { ground: 'Ground', flying: 'Flying', ocean: 'Ocean', fresh: 'Fresh', cavern1: 'Cav 1', cavern2: 'Cav 2', cavern3: 'Cav 3' };
+  const BOTH = 'ocean+fresh';   // the vermin on both waters (layout)
+  const SHORT = { ground: 'Ground', flying: 'Flying', ocean: 'Ocean', fresh: 'Fresh', cavern1: 'Cav 1', cavern2: 'Cav 2', cavern3: 'Cav 3', [BOTH]: 'Both' };
   const LNAME = { ground: 'Land-ground', flying: 'Land-flying', ocean: 'Ocean', fresh: 'Freshwater', cavern1: 'Cavern 1', cavern2: 'Cavern 2', cavern3: 'Cavern 3' };
   const BIOME_GROUPS = [
     ['Forest', ['FOREST_TAIGA', 'FOREST_TEMPERATE_CONIFER', 'FOREST_TEMPERATE_BROADLEAF', 'FOREST_TROPICAL_CONIFER', 'FOREST_TROPICAL_DRY_BROADLEAF', 'FOREST_TROPICAL_MOIST_BROADLEAF']],
@@ -314,13 +315,17 @@
     if (state.layout === 'levels') {
       // one column per layer (surface) or per set of caverns (caverns: 1, 1+2, 2, all three, 1+3, 2+3, 3, by mean depth),
       // width by the square root of its node count; four bands top to bottom (apex .. vermin)
-      const keyOf = n => state.tab === 'cavern' ? n.layers.map(L => L.slice(-1)).sort().join(',') : n.L;
+      // user 20 Oct: a vermin on both the ocean and fresh water (salmon, steelhead, brook lamprey ...) stands in a narrow
+      // 'Both' column between the two, not under Ocean alone
+      const both = n => state.tab !== 'cavern' && n.vermin && n.layers.includes('ocean') && n.layers.includes('fresh');
+      const keyOf = n => state.tab === 'cavern' ? n.layers.map(L => L.slice(-1)).sort().join(',') : (both(n) ? BOTH : n.L);
       for (const n of nodes) n.col = keyOf(n);
-      const keys = state.tab === 'cavern' ? CAVGROUPS.filter(k => nodes.some(n => n.col === k)) : ls;
-      const wts = keys.map(k => Math.sqrt(nodes.filter(n => n.col === k).length + 4));
-      const tot = wts.reduce((a, b) => a + b, 0);
+      const keys = state.tab === 'cavern' ? CAVGROUPS.filter(k => nodes.some(n => n.col === k))
+        : ls.flatMap(L => L === 'ocean' && nodes.some(n => n.col === BOTH) ? [L, BOTH] : [L]);
+      const wts = keys.map(k => k === BOTH ? 0 : Math.sqrt(nodes.filter(n => n.col === k).length + 4));
+      const tot = wts.reduce((a, b) => a + b, 0), BOTH_W = 56, room = W - pad - padL - (keys.includes(BOTH) ? BOTH_W : 0);
       let x = padL;
-      keys.forEach((k, i) => { const w = (W - pad - padL) * wts[i] / tot; cols[k] = { x0: x, x1: x + w, cx: x + w / 2, label: state.tab === 'cavern' ? CAVGROUP_LABEL[k] : SHORT[k] }; x += w; });
+      keys.forEach((k, i) => { const w = k === BOTH ? BOTH_W : room * wts[i] / tot; cols[k] = { x0: x, x1: x + w, cx: x + w / 2, label: state.tab === 'cavern' ? CAVGROUP_LABEL[k] : SHORT[k] }; x += w; });
       const bandH = (H - 2 * pad - 18) / 4;
       const band = l => pad + 18 + (3 - l) * bandH + bandH / 2;
       // within each column and tier, one sub-column per guild type (vermin: per vermin type), width by its node count
