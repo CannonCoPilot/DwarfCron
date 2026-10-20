@@ -1,0 +1,198 @@
+<title>New Rules Rebuild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{color-scheme:light;
+--bg:#eef2ef;--surface:#ffffff;--sunk:#e2e9e4;--ink:#1c2925;--muted:#5a6a64;--line:#cdd8d2;
+--accent:#2b6656;--accent-ink:#ffffff;--warn:#8a5a12;--warn-bg:#f5ead2;--ok:#2f7a4a;--ok-bg:#dcefe2;
+--serif:"Literata",Georgia,serif;--sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+--bg:#121a17;--surface:#19231f;--sunk:#202c27;--ink:#dfe8e3;--muted:#97a8a0;--line:#2d3b35;
+--accent:#7fbfa8;--accent-ink:#0e1613;--warn:#e0b467;--warn-bg:#382c16;--ok:#7cc79a;--ok-bg:#1d3326}}
+:root[data-theme="dark"]{color-scheme:dark;
+--bg:#121a17;--surface:#19231f;--sunk:#202c27;--ink:#dfe8e3;--muted:#97a8a0;--line:#2d3b35;
+--accent:#7fbfa8;--accent-ink:#0e1613;--warn:#e0b467;--warn-bg:#382c16;--ok:#7cc79a;--ok-bg:#1d3326}
+body{background:var(--bg);color:var(--ink);font:15.5px/1.6 var(--sans)}
+.wrap{max-width:960px;margin:0 auto;padding-inline:20px;padding-block:28px 72px;display:grid;gap:30px}
+h1,h2,h3{font-family:var(--serif);margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:2.1rem}h2{font-size:1.4rem}h3{font-size:1.06rem}
+p{margin:0;max-width:70ch}
+code,.mono{font-family:var(--mono);font-size:.86em}
+.eyebrow{font:600 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+header{display:grid;gap:10px}
+header .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:.8rem var(--mono);color:var(--muted)}
+section{display:grid;gap:14px}
+.lede{font-size:1.06rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:8px 11px;border-bottom:1px solid var(--line)}
+th{font:600 .68rem var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.decisions{display:grid;gap:12px}
+.dec{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:grid;gap:8px}
+.dec h3{display:flex;gap:10px;align-items:baseline}
+.dec h3 .id{font:600 .78rem var(--mono);color:var(--accent);flex:none}
+.rec{border-left:3px solid var(--accent);padding-left:10px}
+.rec b{color:var(--accent)}
+ol.phases{list-style:none;margin:0;padding:0;display:grid;gap:14px;counter-reset:ph}
+ol.phases>li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 14px}
+ol.phases>li>.tag{font:700 1.25rem var(--serif);color:var(--accent);padding-top:1px}
+ol.phases>li>div{display:grid;gap:7px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+ol.phases>li:last-child>div{border-bottom:0}
+ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
+.exit{font-size:.88rem;background:var(--ok-bg);border-radius:6px;padding:7px 10px;max-width:72ch}
+.exit b{font:600 .7rem var(--mono);letter-spacing:.05em;text-transform:uppercase;margin-right:6px}
+.note{font-size:.88rem;color:var(--muted)}
+.flag{font-size:.88rem;background:var(--warn-bg);color:var(--ink);border-radius:6px;padding:8px 11px;max-width:72ch}
+.flag b{color:var(--warn)}
+.order{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font:.82rem var(--mono)}
+.order span{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.order span.new{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.order i{color:var(--muted);font-style:normal}
+@media (max-width:560px){h1{font-size:1.6rem}ol.phases>li{grid-template-columns:30px minmax(0,1fr)}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 6 (draft for review) · 20 Oct 2026</span>
+  <h1>New Rules Rebuild</h1>
+  <p class="lede">Make the New Rules the one feeding test the tool uses: to grow each season's cast, to write who hunts whom in play, and to feed vermin. The Food Web Explorer becomes the specification, and the tool is generated from the same rules.</p>
+  <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
+</header>
+
+<section>
+  <h2>Why a rebuild, not another rule</h2>
+  <p>From 17 to 20 October we set about 45 feeding rules in the explorer, and each was mirrored by hand into the engine. Three things measured today say the next step is structural:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Finding</th><th>Measured</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td>Growing casts on New Rules instead of the tool's tier ladder barely changes them</td><td class="num">mean cast-rate change 0.7 points; 1 species moves &gt;5 points (savage tropical coast, 150 years, ground + ocean)</td><td>Switching the growth mode alone would be a relabel.</td></tr>
+      <tr><td>Among animals, New Rules adds no links of its own</td><td class="num">DF diet tokens and tool-fed vermin link 0% of animal candidates; hunting pairs 88%, mass and numbers 82%</td><td>The animal links come from "hunting pairs", which still pass through the ladder, and from mass and numbers, which is broad. New Rules needs its own animal-to-animal rule.</td></tr>
+      <tr><td>Growth links almost every candidate under either mode</td><td class="num">85–99% of candidates link to some cast member at each growth step</td><td>The slot tables shape the casts, and the food web hardly does. A selective animal rule changes that.</td></tr>
+      <tr><td>The rules live in three copies</td><td class="num">engine Lua, desk Python, explorer JS; 21 diet overrides, 28 role fixes, 16 extra-biome entries and more</td><td>Every rule today costs three edits, an export, tests and a deploy. Drift has already happened (next row).</td></tr>
+      <tr><td>The engine and the explorer admit the evil apexes differently</td><td class="num">engine: raw biomes past the unliving filter; desk and explorer: by wiring only</td><td>Parity tests pass on their forts but do not cover this path.</td></tr>
+      <tr><td>Six separate feeding predicates in the engine</td><td class="num"><code>ROSTER.FP.eats</code>, <code>V7.WAT.eats</code>, <code>ROSTER.linkable</code>, gobble edges, <code>MODEL</code> predation, <code>VERMIN.eats</code></td><td>One question ("does A eat B here?") should have one answer.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The cast numbers come from the explorer's own cast builder (the desk-checked mirror of the engine), not from the rig. None of the 17–20 Oct rules has been tried in a running game yet.</p>
+</section>
+
+<section>
+  <h2>Decisions for you</h2>
+  <p>Six choices change what gets built. Each has my recommendation; nothing below starts until you have answered D1–D4.</p>
+  <div class="decisions">
+    <div class="dec"><h3><span class="id">D1</span>What makes one animal hunt another, with the ladder gone</h3>
+      <p>Today's hunting-pair rule already checks: the hunter is armed (a predator not wholly BENIGN, a raptor, a predator seat, a hunting cavern civ race), its habitat reaches the prey's, two water animals share a water body, a raptor takes nothing over twice its mass, civ races are spared, the hunting group weighs at least 5% of the prey, and every one of your bars and diets applies. Then it also requires the ladder.</p>
+      <p class="rec"><b>Recommendation:</b> keep every check above, drop the ladder, and add one size rule in its place: prey no heavier than the hunting group (group size × body mass) times a factor <code>k</code>. Before you choose <code>k</code>, the explorer shows each value's effect (links per predator, candidates linked, species whose cast rate moves) so the choice is made on numbers.</p></div>
+    <div class="dec"><h3><span class="id">D2</span>Mass and numbers: keep it in New Rules?</h3>
+      <p>It was the coupling nudge's test (off by default) and is broad: alone it links 82% of animal candidates. Its vermin side rules duplicate the vermin rule's.</p>
+      <p class="rec"><b>Recommendation:</b> drop it from New Rules once D1's rule exists; keep its vermin side rules inside the vermin rule, where they already run.</p></div>
+    <div class="dec"><h3><span class="id">D3</span>How a cast grows on the web</h3>
+      <p>Growth adds a candidate linked to any member (it eats one or is eaten by one); a slot nothing links to is filled anyway; caverns guarantee one predator and one prey.</p>
+      <p class="rec"><b>Recommendation:</b> keep that shape, and extend the cavern guarantee to every layer: each predator seated in a cast has at least one prey in that cast. Measure how often the unlinked fill is used under D1 before deciding whether it stays.</p></div>
+    <div class="dec"><h3><span class="id">D4</span>Evil apexes: matched by their raws, or added by wiring only?</h3>
+      <p>The engine lets the grimeling, nightwing and harpy past the unliving filter so they match their raw biomes; the explorer adds them only where it wires them.</p>
+      <p class="rec"><b>Recommendation:</b> the engine's way (it is what runs in the game); the explorer follows.</p></div>
+    <div class="dec"><h3><span class="id">D5</span>What the rebuild removes</h3>
+      <p class="rec"><b>Recommendation:</b> delete the tier ladder as a feeding test (<code>ROSTER.FP.eats</code>), the v7.1 roster links (<code>ROSTER.linkable</code>, gobble edges by guild), and DF's <code>HUNTS_VERMIN</code> writes (DF lets it take any vermin, which breaks your flying-vermin rule). The coupling nudge stays off, per the 16 Oct ruling. The FREQUENCY ladder sets arrival odds, not feeding, and stays as it is.</p></div>
+    <div class="dec"><h3><span class="id">D6</span>Where the one copy of the rules lives</h3>
+      <p class="rec"><b>Recommendation:</b> a rules file in the seasonal-wildlife repo (<code>rules/new-rules.json</code>). A generator writes it into a Lua table that ships in the package (no file reading at run time, so nothing slow and nothing that can fail on load), and the desk and explorer read the same file. A rule change becomes one edit plus regeneration.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>The rebuild, in order</h2>
+  <p>Branch <code>v8-newrules</code> from c125091; release key 8.0.0. Each phase ends on a check that must pass before the next starts. As always, a phase is finished only when it is in the packaged zip, not on the dev copy.</p>
+  <ol class="phases">
+    <li><span class="tag">A</span><div>
+      <h3>Write the rules down once</h3>
+      <ul>
+        <li>Move every rule table into <code>rules/new-rules.json</code>: diets, bars, never-lists, role, guild and habitat overrides, extra and limited biomes, evil apexes, wetland ground, vermin types and sides, LINK_AS, the apex lists, and D1's size factor.</li>
+        <li>The desk and the explorer load it; their hand-kept copies are deleted.</li>
+        <li>Build D1's animal rule in the explorer, with a switch for <code>k</code>, and publish the measurements for your choice.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Explorer from the rules file, desk parity exact, and your choice of <code>k</code> (D1) recorded.</p></div></li>
+    <li><span class="tag">B</span><div>
+      <h3>One feeding test in the engine</h3>
+      <ul>
+        <li>Generate <code>RULES</code> (Lua) from the file; write <code>RULES.eats(a, b, layer)</code> returning the reasons, as the explorer's does.</li>
+        <li>Route every caller through it: cast growth, the cast edge set, the hunting-pair filter, vermin selection. Delete the predicates D5 removes.</li>
+        <li>A conformance test: the explorer exports every (hunter, prey, layer) verdict on a set of forts; the engine harness computes its own and the two must agree on every pair.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Conformance 100% on the test forts; fixes, controls, water, onoff and gui suites green; luacheck at or under 37.</p></div></li>
+    <li><span class="tag">C</span><div>
+      <h3>What the tool writes in play</h3>
+      <ul>
+        <li>The hunting-pair write (ecology) relates only pairs <code>RULES</code> allows among the units present.</li>
+        <li>Vermin classes written from <code>RULES</code>' vermin verdicts; no <code>HUNTS_VERMIN</code>.</li>
+        <li>Verdicts cached per fort and cast, so the write stays a table lookup under FUSE's 250 ms warning.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>A rig probe on a new embark: every written pair and every vermin class is one <code>RULES</code> allows; no pass over budget.</p></div></li>
+    <li><span class="tag">D</span><div>
+      <h3>The cast builder on New Rules</h3>
+      <ul>
+        <li>Growth, seed and guarantees as D3 decides, using <code>RULES</code>.</li>
+        <li>With the same site and year seed, the engine and the explorer build the same 28 casts.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Identical casts engine vs explorer on the test forts, every season and layer.</p></div></li>
+    <li><span class="tag">E</span><div>
+      <h3>Validation in play</h3>
+      <ul>
+        <li>New embarks only (startdwarf 50, caverns breached at the start, embark size 4), v7.6.6 and v8 on the same tiles, 5 reps per arm, with a receipt that each fort's subjects are on the map.</li>
+        <li>Measured: casts built at embark match the explorer's; every predator kill is a pair <code>RULES</code> allows; no barred pair ever recorded; vermin eaten by allowed consumers; frame time per pass.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Zero disallowed kills or relations across all reps; frame budget held. A rep with no data is marked pending, not passed.</p></div></li>
+    <li><span class="tag">F</span><div>
+      <h3>The interface catches up</h3>
+      <ul>
+        <li>Rev 5's step 2: a Casts view (seven layers × four seasons) in the window and web page, now with each cast's links and why; every switch in the controls registry.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Window and web harnesses extended and green; panel and page round trips on the rig.</p></div></li>
+    <li><span class="tag">G</span><div>
+      <h3>Package and release</h3>
+      <ul>
+        <li>Validator claims for v8 (casts, rules conformance, writes), then validate-full at 0 FAIL.</li>
+        <li>Build the zip, install it as a player would (dev copy removed), and play one packaged year on a new fort with <code>off</code> at the end.</li>
+        <li>Docs (USAGE, STATE, HANDOFF, changelog); merge on your word.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>The packaged zip passes its year; this is the finished deliverable.</p></div></li>
+  </ol>
+</section>
+
+<section>
+  <h2>How it fits the beta plan (rev 5)</h2>
+  <p>Rev 5's step 0 items 0.1–0.3 were built on 16–17 Oct; 0.4 (caps count groups) is open. Livestock as prey (step 1.2) and civ-race hunting (step 1.6) both depend on the feeding test, so the rebuild goes first and the open items resume on the rebuilt engine.</p>
+  <div class="order"><span>rev 5 step 0.1–0.3 (built)</span><i>→</i><span class="new">rebuild A–E</span><i>→</i><span>step 0.4</span><i>→</i><span>step 1</span><i>→</i><span class="new">F (= step 2)</span><i>→</i><span class="new">G (= step 3)</span><i>→</i><span>beta play-through plan</span></div>
+  <p class="note">Your 16 Oct rulings carry over: problems are solved one at a time by tuning what exists, all nudges stay off by default, irruptions and livestock as prey stay on, and the play-through plan is written last.</p>
+</section>
+
+<section>
+  <h2>Risks and how each is checked</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Risk</th><th>Check</th></tr></thead>
+    <tbody>
+      <tr><td>D1's rule is too loose or too tight, and casts lose variety or slots go empty</td><td>Measured in the explorer before it is built (Phase A); unlinked fills and empty slots reported per layer.</td></tr>
+      <tr><td>The engine and the explorer drift again</td><td>One rules file, generated code, and the Phase B conformance test in the harness on every change.</td></tr>
+      <tr><td>The pools differ in play: DF-stocked entries, created entries, placed thieves</td><td>Conformance runs on the engine's own pool for the Phase E forts, not only on explorer fixtures.</td></tr>
+      <tr><td>DF does not act on the composite vermin classes (<code>SWV_type@SIDE</code>, v7.6.2)</td><td>Never tried in play; Phase C's probe checks vermin actually eaten, by class.</td></tr>
+      <tr><td>The pair lookup costs frame time on big forts</td><td>Verdicts cached per cast; Phase E times every pass with the plugin and the tool each on and off.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>Code map</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Today (seasonal-wildlife.lua, 21,986 lines)</th><th>After the rebuild</th></tr></thead>
+    <tbody>
+      <tr><td><code>ROSTER.FP.eats</code> (the tier ladder, line ~9516) in growth and the cast edge set</td><td><code>RULES.eats</code></td></tr>
+      <tr><td>Hunting-pair write (<code>ecoArmed</code> ~5543, <code>ecologyRun</code> ~6084), filtered by the cast's ladder edges</td><td>Same write, filtered by <code>RULES</code> pairs</td></tr>
+      <tr><td><code>VERMIN.gobbleApply</code> and its wants and extras (~17037–17670)</td><td>Classes from <code>RULES</code> vermin verdicts</td></tr>
+      <tr><td><code>MODEL.forcedDiet</code>, <code>MODEL.apexBar</code> and the tables in <code>ROSTER.FP</code> and <code>MODEL</code></td><td>Generated from <code>rules/new-rules.json</code></td></tr>
+      <tr><td><code>ROSTER.linkable</code>, <code>ROSTER.gobbleEdges</code>, <code>HUNT.apply</code> (HUNTS_VERMIN)</td><td>Removed (D5)</td></tr>
+      <tr><td>Desk <code>design.py</code> and explorer <code>foodweb_sim.js</code> tables</td><td>Read the rules file</td></tr>
+    </tbody>
+  </table></div>
+</section>
+</div>
