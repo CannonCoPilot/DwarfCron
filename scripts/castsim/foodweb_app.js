@@ -868,7 +868,7 @@
       const tr = YEAR[L + '|' + s];
       if (!tr) return '<td></td>';
       const k = L + '|' + s;
-      const mem = SLOTSORT(tr.members).map(m => `<li class="${m.slot === 'apex' ? 'apex' : ''}" title="${esc(m.how)}"><i style="background:var(--${SLOT_COL[m.slot] || 'muted'})"></i>${esc(BY[m.t].nm)}${tr.seed === m.t ? ' <em>seed</em>' : ''}${tr.guarantee.includes(m.t) ? ' <em>added</em>' : ''}${state.sel === m.t ? ' ◆' : ''}</li>`).join('');
+      const mem = SLOTSORT(tr.members).map(m => `<li class="${m.slot === 'apex' ? 'apex' : ''}" title="${esc(m.how)}"><i style="background:var(--${SLOT_COL[m.slot] || 'muted'})"></i>${esc(BY[m.t].nm)}${tr.seed === m.t ? ' <em>seed</em>' : ''}${tr.guarantee.includes(m.t) ? ' <em>added</em>' : ''}${(tr.bonus || []).includes(m.t) ? ' <em>bonus</em>' : ''}${state.sel === m.t ? ' ◆' : ''}</li>`).join('');
       const vm = tr.vermin.map(v => esc(BY[v.t].nm)).join(', ');
       const un = Object.keys(tr.unfilled).length ? `<p class="warnline">unfilled: ${esc(Object.entries(tr.unfilled).map(([s, w]) => s + ' ' + w.split(':')[0]).join('; '))}</p>` : '';
       return `<td><button type="button" class="cast${state.castSel === k ? ' on' : ''}" data-cast="${k}" aria-pressed="${state.castSel === k}"><span class="built">built ${tr.built} of ${Object.keys(YEAR).filter(k => k.includes('|')).length}</span><ul>${mem}</ul><p class="verm">${vm}</p>${un}</button></td>`;

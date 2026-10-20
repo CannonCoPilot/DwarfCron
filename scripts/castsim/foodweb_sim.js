@@ -34,6 +34,8 @@
     const WATER_BUG_APEX = new Set(M.water_bug_apex), VERMIN_FRESH = new Set(M.vermin_fresh);
     const WETLAND_GROUND = new Set(M.wetland_ground || []);
     const OFF_LAYERS = setOf(M.off_layers || {});   // G2 (user 20 Oct): layers a species is never on
+    // user 20 Oct (later): a giant herbivore cast with no eater takes one in a bonus seat; animal people that hunt a species
+    const BONUS_PREDATOR = new Set(M.bonus_predator || []), HUNTED_BY = M.hunted_by || {};
     const GIANT_BUGS = new Set(M.giant_bugs), SALT_WET = new Set(M.salt_wet), NOT_RAPTOR = new Set(M.fly_not_raptor);
     const VDIET = {};
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
@@ -474,6 +476,11 @@
       const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t], d = FORCED_DIET[a.t];
       if (d && d.sentients && y && y.sent && d.sentients.some(L => y[L])) return true;   // harpy, grimeling: apex or not
       if (y && y.apex) return false;   // no apex is prey, past here
+      // user 20 Oct (later): animal people on the named layers hunt this species (the woolly mammoth: only those whose root
+      // animal is a predator; the fluffy wambler: every one on land-ground or land-flying)
+      const hb = HUNTED_BY[b.t];
+      if (hb && a.ap && !a.civ && !a.v && hb.animal_people.some(L => laysOf(a.t).includes(L)) &&
+          (!hb.root_predator || (BY[a.rt] && predator(BY[a.rt])))) return true;
       if (x && x.exApex && y && y.sent && habEats(x.hab, y.hab)) return true;
       if (!d) return false;
       if ((d.prey || []).includes(b.t)) return true;
@@ -783,6 +790,19 @@
           for (const x of cands) if (!taken.has(x.c.t) && predator(x.c) && !x.c.se && (!best || (x.c.m || 0) > (best.c.m || 0))) best = x;
           if (best) { const s = best.slots.find(s => s === 'apex' || s === 'meso') || 'meso'; put(best, s, 'web guarantee: predator'); out.guarantee.push(best.c.t); }
         }
+      }
+      // user 20 Oct (later): a giant herbivore no member eats takes one of its eaters from the season list, in a bonus seat
+      // (outside the slot table), by pick weight; none in season, none added
+      out.bonus = [];
+      for (const m of members.slice()) {
+        if (!BONUS_PREDATOR.has(m.c.t) || members.some(x => x !== m && eats(x, m, L))) continue;
+        const el = [];
+        for (const x of cands) if (!taken.has(x.c.t)) {
+          const s = x.slots.find(z => z === 'meso' || z === 'apex') || x.slots[0];
+          if (eats({ c: x.c, slot: s, vermin: false }, m, L)) el.push([x, s]);
+        }
+        const x = pick(el.map(e => e[0]));
+        if (x) { put(x, el.find(e => e[0] === x)[1], 'bonus predator for ' + m.c.t); out.bonus.push(x.c.t); }
       }
       // vermin
       const vl = verm.filter(v => !taken.has(v.c.t));

@@ -37,6 +37,8 @@ WATER_BUG_APEX = set(RO['WATER_BUG_APEX'])
 VERMIN_FRESH = set(RO['VERMIN_FRESH'])
 VERMIN_GROUND = set(RO['VERMIN_GROUND'])
 OFF_LAYERS = sets(RO.get('OFF_LAYERS', {}))
+BONUS_PREDATOR = set(RO.get('BONUS_PREDATOR', []))
+HUNTED_BY = dict(RO.get('HUNTED_BY', {}))
 FLY_NOT_RAPTOR = set(RO['FLY_NOT_RAPTOR'])
 PLACED_PLANTS = set(RO['PLACED_PLANTS'])
 FILTER_FEEDERS = set(RO['FILTER_FEEDERS'])
@@ -64,6 +66,7 @@ def meta():
     """the tables the explorer's simulator reads (creatures.json meta, beside the desk's own)"""
     return {
         'rules_version': VERSION, 'off_layers': {k: sorted(v) for k, v in OFF_LAYERS.items()},
+        'bonus_predator': sorted(BONUS_PREDATOR), 'hunted_by': HUNTED_BY,
         'fresh_eaters': sorted(FRESH_EATERS), 'giant_fly_skip': sorted(GIANT_FLY_SKIP), 'gobble_rules': GOBBLE_RULES,
         'vclass': VCLASS, 'gobble_edges': GOBBLE_EDGES, 'hab_class': HAB_CLASS, 'hab_eats': {k: sorted(v) for k, v in HAB_EATS.items()},
     }
