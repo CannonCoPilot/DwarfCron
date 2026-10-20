@@ -36,6 +36,7 @@ LEG_WORDS = ('LEG', 'FOOT', 'FEET', 'TOE', 'QUADRUPED', 'HUMANOID', 'INSECT', 'S
 def swv_class(c):
     """VERMIN.swvClass (engine): the tool's own vermin class, from flags and creature classes"""
     a, f, cc = c['any'], c['flags'], c['cclass']
+    if c.get('token') in DS.VERMIN_INSECT: return 'SWV_FLYING_INSECT'   # user 19 Oct: the fairy (engine VERMIN.SWV_OVERRIDE)
     if 'EDIBLE_GROUND_BUG' in cc: return 'SWV_GROUND_BUG'
     if 'VERMIN_FISH' in f: return 'SWV_SMALL_FISH'
     if a('AQUATIC') or a('IMMOBILE_LAND'): return 'SWV_SMALL_FISH'
@@ -108,7 +109,7 @@ def main():
         bodies = sorted(e['bodies'])
         rows.append({
             't': tok, 'nm': name_of(D, tok), 'g': e['guild'], 'h': e['habitat'], 'ro': e['role'], 'v': bool(e['gameVermin']),
-            'vc': ('VG' if tok in DS.VERMIN_GROUND else E.vclass(e)) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
+            'vc': ('VG' if tok in DS.VERMIN_GROUND else 'VI' if tok in DS.VERMIN_INSECT else E.vclass(e)) if e['gameVermin'] else None, 'm': e['mass'], 'c0': e['cmin'], 'c1': e['cmax'],
             'bn': bool(e['benign']), 'gi': bool(e['giant']), 'ap': bool(e['ap']), 'apv': bool(e['apVermin']), 'civ': bool(e['civ']),
             'se': bool(e['sentient']), 'lp': bool(e['largePred']), 'war': bool(e['war']), 'pet': pet or 0, 'pet0': e['pet'] or 0,
             'sav': bool(e['savage']), 'gd': bool(e['good']), 'ev': bool(e['evil']), 'ex': bool(e['extinct']),
