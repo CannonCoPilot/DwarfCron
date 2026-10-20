@@ -55,7 +55,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phase A done · 20 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phases A and B done · 20 Oct 2026</span>
   <h1>New Rules Rebuild</h1>
   <p class="lede">Port the New Rules into the tool exactly as the Food Web Explorer defines them. The same rules grow every season's casts, link the season's layers, and decide what the tool writes in play. The explorer is the specification, and rig tests check that the tool follows it.</p>
   <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>analysis v3 · ae2b9a50</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
@@ -127,7 +127,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
         <li>Every caller goes through it: cast growth, the cast's edge set, the hunting-pair filter, and vermin selection. Predicates that no New Rules family uses are removed, and the conformance test below shows nothing depended on them.</li>
         <li>Conformance test: the explorer exports every (eater, eaten, layer, cross-layer) verdict, with its families, on the six forts. The engine harness computes its own, and the two must agree on every pair.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Conformance is 100% on all six forts. The fixes, controls, water, onoff and gui suites are green. luacheck stays at 37 or below.</p></div></li>
+      <p class="exit"><b>Exit</b>Conformance is 100% on all six forts. The fixes, controls, water, onoff and gui suites are green. luacheck stays at 37 or below. <b>Done 20 Oct:</b> the engine's tables are generated from the rules file (V7.RULES, sw <code>b14b5eb</code>); V7.NR, the Lua port of New Rules, agrees with the explorer on all 385,796 pairs (55,179 linked) and the check catches deliberate mutants; Q1 applied with the explorer's reach wire (sw <code>bcc7189</code>). Every suite green, luacheck 37. Routing the callers moved to the phases that change them: cast growth, the edge set and vermin selection in C, the hunting-pair write in D, each through an adapter from the engine's pool entries to the explorer's records, checked against the explorer on the fort's own pool.</p></div></li>
     <li><span class="tag">C</span><div>
       <h3>The cast builder on New Rules</h3>
       <ul>
