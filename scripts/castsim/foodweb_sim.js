@@ -38,6 +38,7 @@
     const P0 = Object.assign({}, M.params);
     // user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine MODEL.link)
     const LINK_AS = M.link_as || {}, FORCED_PREY = M.forced_prey || {}, FORCED_DIET = M.forced_diet || {};
+    const FLIER_ONLY_PREY = new Set(M.flier_only_prey || []), FLIER_ONLY_TYPES = new Set(M.flier_only_types || []);
     const link = c => (LINK_AS[c.t] && BY[LINK_AS[c.t]]) || c;
 
     // ------------------------------------------------------------ the fort
@@ -381,6 +382,7 @@
       const sd = sidesOf(b.c.t), sw = b.c.swv;
       const fdA = FORCED_DIET[a.c.t] || {};
       if ((fdA.noTypes || []).includes(sw)) return null;   // user 19 Oct: the alligator's barred vermin types
+      if (FLIER_ONLY_TYPES.has(sw)) { const g = (CUR.apexOn || {})[a.c.t]; if (g && g.surf && !g.flyHunter) return null; }   // the bat's type
       const ex = sw ? extras(a.c).find(x => sd.includes(x.side) && (!x.only || x.only === sw) && (!x.skip || x.skip !== sw)) : null;
       const fresh = ex ? `GOBBLE_VERMIN_CLASS:${sw}@${ex.side} written (${ex.why})` : null;
       const g = gobbleSet(a.c, L);
@@ -436,6 +438,7 @@
     function apexBar(a, b) {
       const fdA = FORCED_DIET[a.t] || {};
       if ((fdA.never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
+      if (FLIER_ONLY_PREY.has(b.t)) { const g = (CUR.apexOn || {})[a.t]; if (g && g.surf && !g.flyHunter) return true; }   // user 19 Oct: the bat
       // user 19 Oct: the alligator takes nothing that flies, and no insect vermin
       if (fdA.noFliers && ((!b.v && (b.h === 'flier' || b.h === 'waterbird')) || laysOf(b.t).includes('flying') || (b.v && sidesOf(b.t).includes('FLYING')))) return true;
       if (b.v && (fdA.noTypes || []).includes(b.swv)) return true;
@@ -614,7 +617,9 @@
           gapex: !v && apexL.includes('ground'),
           // user 19 Oct: fish prey of the ocean and fresh water; a ground snake (legless, a hunter guild)
           fish: !v && wet.length > 0 && lc.h === 'aquatic' && !predator(lc), snake: !v && g && !!c.lg && (lc.g === 'ML' || lc.g === 'AL'),
-          ocean: !v && ls.includes('ocean') };   // user 19 Oct: on the ocean layer (the polar bear's diet)
+          ocean: !v && ls.includes('ocean'),
+          flyHunter: !v && f && (apexL.includes('flying') || predator(lc)),   // user 19 Oct: the bat's only surface eaters
+          surf: g || f || wet.length > 0 };   // user 19 Oct: on the ocean layer (the polar bear's diet)
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };

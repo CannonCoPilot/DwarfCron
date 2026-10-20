@@ -125,7 +125,7 @@ def main():
         'slots': DS.SLOTS, 'tier': D.TIER, 'reach': EN.REACH, 'vdiet': {k: sorted(v) for k, v in EN.VDIET.items()},
         'never_prey': sorted(EN.T['NEVER_PREY']), 'aquatic_apex': EN.R0['aquatic_apex'],
         'real_apex': {k: [v[0], v[1]] for k, v in DS.REAL_APEX.items()},
-        'link_as': DS.LINK_AS, 'forced_prey': DS.FORCED_PREY, 'forced_diet': {k: dict(v, vermin=[list(x) for x in v.get('vermin', [])]) for k, v in DS.FORCED_DIET.items()},
+        'link_as': DS.LINK_AS, 'forced_prey': DS.FORCED_PREY, 'flier_only_prey': sorted(DS.FLIER_ONLY_PREY), 'flier_only_types': ['SWV_BAT'], 'forced_diet': {k: dict(v, vermin=[list(x) for x in v.get('vermin', [])]) for k, v in DS.FORCED_DIET.items()},
         'extra_biomes': {k: sorted(v) for k, v in DS.EXTRA_BIOMES.items()},
         'evil_extra_biomes': {k: sorted(v) for k, v in DS.EVIL_EXTRA_BIOMES.items()},
         'biome_limit': {k: sorted(v) for k, v in DS.BIOME_LIMIT.items()},

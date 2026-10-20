@@ -81,6 +81,8 @@ WEIRD = {
 LINK_AS = {'GIGANTIC SQUID': 'GIANT_OCTOPUS', 'GIANT_LEOPARD_SEAL': 'LEOPARD_SEAL'}
 # user 17 Oct: every apex of the layer takes this species (engine ROSTER.FP.FORCED_PREY)
 FORCED_PREY = {'LEOPARD_SEAL': 'ocean'}
+# user 19 Oct: on the surface only a land-flying predator or apex eats the bat (engine ROSTER.FP.FLIER_ONLY_PREY)
+FLIER_ONLY_PREY = {'BAT'}
 # user 19 Oct: the osprey and eagle eat every ocean and freshwater fish prey and ground snake, never an apex (engine
 # MODEL.forcedDiet). The desk has no body plan, so it models the fish only: no cast holds them with a ground snake.
 _FISH_LAND_VERMIN = [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH'), ('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]
@@ -572,6 +574,9 @@ class Design:
     def eats(self, a, b):
         if a['vermin']: return False
         ea, eb = a['e'], b['e']
+        if eb['token'] in FLIER_ONLY_PREY:   # user 19 Oct: the bat, on the surface, to flying predators and apexes only
+            g = self.ground_fly.get(ea['token'])
+            if g and not g['flyHunter']: return False
         d = FORCED_DIET.get(ea['token'])
         if d and eb['token'] not in self.apex_any and (eb['token'] in d.get('prey', ()) or (d.get('fish') and self.ground_fly.get(eb['token'], {}).get('fish'))
                                                      or (d.get('ocean') and not eb['gameVermin'] and 'ocean' in eb.get('layers', ()))): return True
@@ -798,7 +803,8 @@ class Design:
                 # user 19 Oct: an ocean-shore predator; a land-ground apex
                 'oshore': (not v) and 'ocean' in ls and 'shore' in self.slots_for(e, 'ocean', sub) and bool(self.predator(le) or self.apex_tier(e, 'ocean')),
                 'gapex': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground')),
-                'fish': (not v) and bool(wet) and le['habitat'] == 'aquatic' and not self.predator(le)}
+                'fish': (not v) and bool(wet) and le['habitat'] == 'aquatic' and not self.predator(le),
+                'flyHunter': (not v) and 'flying' in ls and bool(self.apex_tier(e, 'flying') or self.predator(le))}
         self.apex_any = {}
         for tok, e in pool.items():
             if e['gameVermin']: continue
