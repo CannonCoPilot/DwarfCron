@@ -64,7 +64,7 @@
     land: new Set(ALL_LAND), cells: new Set(['benign', 'neutral', 'savage'].flatMap(v => ['good', 'neutral', 'evil'].map(a => v + '|' + a))), neighbours: new Set(ALL_LAND), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'ALL', lake: true, river: true, brook: true, pool: true, fz: 'ALL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    tab: 'surface', edges: 'all', fam: { newrules: true, hunt: false, gobble: false, raws: false, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    tab: 'surface', seasonBy: 'raws', edges: 'all', fam: { newrules: true, hunt: false, gobble: false, raws: false, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)
@@ -178,10 +178,19 @@
   let VIEW = null;   // { nodes, byT, edges (array of {a,b,L}), adj }
   const edgeCache = new Map();
   function seasonsIn() { return state.season === 'all' ? [0, 1, 2, 3] : [+state.season]; }
+  // the season buttons read DF's raws (NO_SPRING..NO_WINTER: who can be on the map that season) or, once a year is built,
+  // that year's casts (who the tool puts in the season's cast); user 19 Oct: the raws alone barely change by season
+  function castMembers(L) {
+    if (state.seasonBy !== 'casts' || !YEAR) return null;
+    const set = new Set();
+    for (const s of seasonsIn()) { const tr = YEAR[L + '|' + s]; if (tr) { tr.members.forEach(m => set.add(m.t)); tr.vermin.forEach(v => set.add(v.t)); } }
+    return set;
+  }
   function layerItems(L) {
-    const map = new Map();
+    const map = new Map(), cm = castMembers(L);
     for (const s of seasonsIn()) for (const x of (BUILD.B.lists[L + '|' + s] || [])) {
       if (x.vfish) continue;
+      if (cm && !cm.has(x.c.t)) continue;
       const k = x.c.t;
       if (!map.has(k)) map.set(k, { c: x.c, vermin: x.vermin, vclass: x.vclass, slots: x.slots.slice(), tier: x.tier });
     }
@@ -215,7 +224,7 @@
     // map-only vermin (stocked from a neighbouring region tile, on none of the fort's layers): placed by the sides their raws
     // give them, drawn hollow, never cast
     const SIDE_LAYERS = { GROUND: ['ground'], FLYING: ['flying'], OCEAN: ['ocean'], FRESH: ['fresh'], CAVERN: CAVS };
-    if (state.vermin) for (const t in (BUILD.B.mapOnly || {})) {
+    if (state.vermin && !(state.seasonBy === 'casts' && YEAR)) for (const t in (BUILD.B.mapOnly || {})) {   // map-only vermin are never cast
       const mo = BUILD.B.mapOnly[t];
       if (byT[t]) continue;
       if (state.season !== 'all' && mo.c.ns[+state.season]) continue;
@@ -226,7 +235,7 @@
       byT[t] = n; nodes.push(n);
     }
     const edges = [];
-    const fkey = BUILD.key + '|' + state.season + '|' + state.vermin + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
+    const fkey = BUILD.key + '|' + state.season + '|' + (state.seasonBy === 'casts' && YEAR ? 'casts' + YEAR._site : 'raws') + '|' + state.vermin + '|' + ls.join(',') + '|' + FAM_ORDER.map(f => state.fam[f] ? 1 : 0).join('');
     let E = edgeCache.get(fkey);
     if (!E) { E = computeEdges(nodes); edgeCache.set(fkey, E); }
     for (const [x, y, fams] of E) edges.push({ a: byT[x], b: byT[y], fams, f: FAM_ORDER.find(f => fams.some(z => z.f === f)) });
@@ -677,7 +686,8 @@
     YEAR = sim.year(BUILD.B, BUILD.spec, prmNow(), site, 250);
     YEAR._site = site;
     state.castSel = null;
-    renderYear(); draw();
+    state.seasonBy = 'casts';   // a built year: the season buttons show its casts
+    syncControls(); refreshView(); renderYear();
   }
   function runYears() {
     if (!BUILD.spec) return;
@@ -869,7 +879,11 @@
     $('#oz').value = state.oz; $('#fz').value = state.fz;
     for (const k of [1, 2, 3]) $('#cv' + k).checked = state.caverns.has(k);
     $('#assign').checked = state.assign;
-    seg('#season', [['all', 'All'], [0, 'Spring'], [1, 'Summer'], [2, 'Autumn'], [3, 'Winter']], state.season, v => { state.season = v; refreshView(); });
+    seg('#season', [['all', 'All'], [0, 'Spring'], [1, 'Summer'], [2, 'Autumn'], [3, 'Winter']], state.season, v => { state.season = v; syncControls(); refreshView(); });
+    seg('#seasonBy', [['raws', "DF's raws"], ['casts', 'Built year']], state.seasonBy, v => { state.seasonBy = v; syncControls(); refreshView(); });
+    $('#seasonNote').textContent = state.seasonBy === 'casts'
+      ? (YEAR ? ' the built year\'s casts' + (state.season === 'all' ? ' (all four seasons)' : '') : ' build one year below first (one surroundings cell on)')
+      : ' who can be on the map that season (DF\'s season tags: few species have one)';
     $('#tabs').innerHTML = [['surface', 'Surface'], ['cavern', 'Caverns']].map(([t, lab]) => {
       const n = !BUILD ? '' : Object.values(BUILD.B.P).filter(p => (p.layers || []).some(L => (t === 'cavern' ? CAVS : SURF).includes(L) && BUILD.B.active.includes(L)) && (state.vermin || !p.c.v)).length;
       return `<button type="button" role="tab" aria-selected="${state.tab === t}" data-tab="${t}">${lab} <span>${n}</span></button>`; }).join('');

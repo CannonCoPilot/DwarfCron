@@ -163,6 +163,7 @@ BODY = r"""
     <div><span class="lbl">View</span><div class="viewtabs" id="tabs" role="tablist"></div></div>
     <div><span class="lbl">Layer</span><div class="seg" id="layer"></div></div>
     <div><span class="lbl">Season</span><div class="seg" id="season"></div></div>
+    <div><span class="lbl">Season by</span><div class="seg" id="seasonBy"></div><span class="small" id="seasonNote"></span></div>
   </div>
   <div class="toolbar">
     <div><span class="lbl">Colour</span><div class="seg" id="color"></div></div>
