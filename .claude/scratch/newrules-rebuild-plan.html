@@ -55,7 +55,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phases A and B done · 20 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phases A, B and C done · 20 Oct 2026</span>
   <h1>New Rules Rebuild</h1>
   <p class="lede">Port the New Rules into the tool exactly as the Food Web Explorer defines them. The same rules grow every season's casts, link the season's layers, and decide what the tool writes in play. The explorer is the specification, and rig tests check that the tool follows it.</p>
   <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>analysis v3 · ae2b9a50</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
@@ -93,16 +93,16 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <section>
   <h2>The targets the rig tests check</h2>
-  <p>These are the explorer's own predictions (v42, its builder with G2 and G3, regenerated in Phase A), over 200 years (800 seasons) on each of the six analysis forts. A season's surface casts are scored as one web. A predator is an apex or meso seat, or a sentient seat whose creature is a predator by role. Vermin are never predators.</p>
+  <p>These are the explorer's own predictions (v44: G2, G3, and your later rules -- bonus predators for the giant herbivores and the woolly mammoth, animal people hunting the mammoth and the wambler, the whale shark's vermin, no harp seal on the giant walrus), over 200 years (800 seasons) on each of the six analysis forts. A season's surface casts are scored as one web. A predator is an apex or meso seat, or a sentient seat whose creature is a predator by role. Vermin are never predators.</p>
   <div class="tbl"><table>
     <thead><tr><th>Fort</th><th>Surface members with no partner</th><th>Seasons with any</th><th>Predators without prey</th><th>Caverns</th></tr></thead>
     <tbody>
-      <tr><td>Terrifying broadleaf, river</td><td class="num">52 of 20,356 (0.26%)</td><td class="num">6.5%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Terrifying broadleaf, river</td><td class="num">3 of 20,408 (0.01%)</td><td class="num">0.4%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
       <tr><td>Calm temperate lake</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
-      <tr><td>Savage tropical coast</td><td class="num">28 of 30,557 (0.09%)</td><td class="num">3.5%</td><td class="num">0</td><td class="num">1 · 0</td></tr>
+      <tr><td>Savage tropical coast</td><td class="num">14 of 30,549 (0.05%)</td><td class="num">1.75%</td><td class="num">0</td><td class="num">1 · 0</td></tr>
       <tr><td>Good temperate brook</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
-      <tr><td>Evil tundra, murky pools</td><td class="num">104 of 16,379 (0.63%)</td><td class="num">13.0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
-      <tr><td>Savage good arctic coast</td><td class="num">92 of 23,204 (0.40%)</td><td class="num">10.3%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Evil tundra, murky pools</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Savage good arctic coast</td><td class="num">29 of 23,224 (0.12%)</td><td class="num">3.5%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
     </tbody>
   </table></div>
   <p class="note">Caverns: members with no partner · predators without prey. The surface residue is mostly giant herbivores (brachiosaurus, brontosaurus, deinotherium, woolly mammoth) whose few eaters weren't cast that season. That comes from the draw, not from a missing rule, and the tool should show the same residue. Against the analysis prototype, five forts are identical and the tropical coast moved by one surface member. G2 done properly (the two bugs lose the layer, not only the list) shifts the random draws. That also turned up one cavern member with no partner in 16,813: a draltha seeded into cavern 3 with none of its three eaters cast. So the cavern target is near 0, not exactly 0. Stored as <code>data/castsim/foodweb/targets.json</code>.</p>
@@ -135,7 +135,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
         <li>The final step lists the season's cross-layer links among the land-ground, land-flying and water casts.</li>
         <li>The engine scores holes the same way the analysis does: surface joined per season, caverns per cast, predators by role.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Given the same site and year seed, the engine and the explorer build the same 28 casts and the same cross-layer links. Run offline in the engine harness over 200 years, the engine's hole counts equal the targets table exactly.</p></div></li>
+      <p class="exit"><b>Exit</b>Given the same site and year seed, the engine and the explorer build the same 28 casts and the same cross-layer links. Run offline in the engine harness over 200 years, the engine's hole counts equal the targets table exactly. <b>Done 20 Oct (sw <code>65ef111</code>):</b> on the explorer's season lists the engine builds the same 2,960 casts (six forts, 20 years) seat by seat and draw by draw, the same links across layers, and the same 200-year holes; the check catches deliberate mutants. castYear now builds on New Rules and keeps each season's cross-layer links. Whether the engine's own pool and lists on a real fort match the explorer's is Phase D's rig probe.</p></div></li>
     <li><span class="tag">D</span><div>
       <h3>What the tool writes in play</h3>
       <ul>
