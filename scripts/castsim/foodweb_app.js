@@ -885,6 +885,14 @@
       '(no apex is prey, grazers eat nothing, the land/water and ground/flying bars, the birds\', bears\' and alligator\'s own diets, the squid and giant leopard seal read as their models). ' +
       'The feeding links above (New Rules and the rest) are what the tool writes for play; pick them here to see how casts would grow on them instead.';
   }
+  function renderLayerSeg() {
+    // user 19 Oct: the layer buttons must show which is selected, and each its creature count (the view's season and vermin
+    // switches applied), so the filter can be seen to work
+    const lcount = L => BUILD ? layerItems(L).filter(it => state.vermin || !it.vermin).length : 0;
+    const tabL = (state.tab === 'cavern' ? CAVS : SURF).filter(L => !BUILD || BUILD.B.active.includes(L));
+    seg('#layer', [['all', (state.tab === 'cavern' ? 'All caverns' : 'All surface layers')]].concat(tabL.map(L => [L, LNAME[L] + ' · ' + lcount(L)])),
+      state.layer, v => { state.layer = v; state.sel = null; renderLayerSeg(); refreshView(); });
+  }
   function syncControls() {
     $('#nbiomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)}</legend>` +
       bs.map(b => `<label class="ck"><input type="checkbox" id="nb_${b}" data-nb="${b}" ${state.neighbours.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
@@ -905,7 +913,7 @@
     $('#tabs').innerHTML = [['surface', 'Surface'], ['cavern', 'Caverns']].map(([t, lab]) => {
       const n = !BUILD ? '' : Object.values(BUILD.B.P).filter(p => (p.layers || []).some(L => (t === 'cavern' ? CAVS : SURF).includes(L) && BUILD.B.active.includes(L)) && (state.vermin || !p.c.v)).length;
       return `<button type="button" role="tab" aria-selected="${state.tab === t}" data-tab="${t}">${lab} <span>${n}</span></button>`; }).join('');
-    seg('#layer', [['all', state.tab === 'cavern' ? 'All caverns' : 'All surface layers']].concat((state.tab === 'cavern' ? CAVS : SURF).map(L => [L, LNAME[L]])), state.layer, v => { state.layer = v; state.sel = null; refreshView(); });
+    renderLayerSeg();
     seg('#color', [['slot', 'Trophic slot'], ['cavern', 'Cavern layer'], ['value', 'Value'], ['habitat', 'Habitat'], ['inclusion', 'How often cast']], state.color, v => { state.color = v; syncControls(); renderLegend(); draw(); });
     seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
@@ -999,6 +1007,7 @@
   }
   function refreshView() {
     makeView(); layout(); transform = d3.zoomIdentity; d3.select(canvas).call(zoom.transform, transform);
+    renderLayerSeg();
     dl.innerHTML = VIEW.nodes.map(n => `<option value="${esc(n.c.nm)}">`).join('');
     if (state.sel && !VIEW.byT[state.sel]) state.sel = null;
     state.selEdge = null; $('#edgepop').hidden = true;
