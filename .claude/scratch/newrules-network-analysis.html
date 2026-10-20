@@ -1,0 +1,212 @@
+<title>New Rules Network Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{color-scheme:light;
+--bg:#eef2ef;--surface:#ffffff;--sunk:#e2e9e4;--ink:#1c2925;--muted:#5a6a64;--line:#cdd8d2;
+--accent:#2b6656;--accent-ink:#ffffff;--warn:#8a5a12;--warn-bg:#f5ead2;--good:#2f7a4a;--good-bg:#dcefe2;--bad:#a23b2c;
+--serif:"Literata",Georgia,serif;--sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+--bg:#121a17;--surface:#19231f;--sunk:#202c27;--ink:#dfe8e3;--muted:#97a8a0;--line:#2d3b35;
+--accent:#7fbfa8;--accent-ink:#0e1613;--warn:#e0b467;--warn-bg:#382c16;--good:#7cc79a;--good-bg:#1d3326;--bad:#ec8a7a}}
+:root[data-theme="dark"]{color-scheme:dark;
+--bg:#121a17;--surface:#19231f;--sunk:#202c27;--ink:#dfe8e3;--muted:#97a8a0;--line:#2d3b35;
+--accent:#7fbfa8;--accent-ink:#0e1613;--warn:#e0b467;--warn-bg:#382c16;--good:#7cc79a;--good-bg:#1d3326;--bad:#ec8a7a}
+body{background:var(--bg);color:var(--ink);font:15.5px/1.6 var(--sans)}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:20px;padding-block:28px 72px;display:grid;gap:32px}
+h1,h2,h3{font-family:var(--serif);margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:2.1rem}h2{font-size:1.4rem}h3{font-size:1.06rem}
+p{margin:0;max-width:72ch}
+code{font-family:var(--mono);font-size:.86em}
+.eyebrow{font:600 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+header{display:grid;gap:10px}
+header .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font:.8rem var(--mono);color:var(--muted)}
+section{display:grid;gap:14px}
+.lede{font-size:1.06rem}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font:600 .66rem var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.grp td{background:var(--sunk);font:600 .74rem var(--mono);letter-spacing:.04em;color:var(--ink)}
+.better{color:var(--good);font-weight:600}.worse{color:var(--bad);font-weight:600}
+ul{margin:0;padding-left:1.2rem;display:grid;gap:5px;max-width:74ch}
+.note{font-size:.88rem;color:var(--muted);max-width:76ch}
+.key{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.key>div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:6px}
+.key b.k{font:600 .7rem var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+.q{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:6px;padding:11px 14px;display:grid;gap:5px}
+.q h3 .id{font:600 .76rem var(--mono);color:var(--warn);margin-right:8px}
+dl.terms{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:0;font-size:.9rem;max-width:80ch}
+dl.terms dt{font-weight:600}dl.terms dd{margin:0;color:var(--ink)}
+@media (max-width:560px){h1{font-size:1.6rem}dl.terms{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Seasonal Wildlife · food-web analysis · 20 Oct 2026</span>
+  <h1>New Rules Network Analysis</h1>
+  <p class="lede">New Rules as a directed graph (eater → eaten), against the two ladders that built casts before it, with each creature's seat, guild, habitat and mass on the nodes. Then the casts each builder produces, scored on the New Rules web inside each season's cast, and your walk algorithm prototyped and measured the same way.</p>
+  <div class="meta"><span>6 forts · every layer · 4 seasons = 148 graphs per network</span><span>casts: 3 forts × 200 years × 4 builders</span><span>explorer v41 · engine v7.6.6</span></div>
+</header>
+
+<section>
+  <h2>What the analysis shows</h2>
+  <div class="key">
+    <div><b class="k">Structure</b><p>New Rules is a cleaner web than either ladder. It has no mutual or cyclic predation, predators outweigh their prey (median ×3.3, against ×1.0 for both ladders), and more animals sit on an apex-to-vermin chain (51%, against 38% and 43%).</p></div>
+    <div><b class="k">Casts</b><p>Built and scored on New Rules, casts have fewer holes than today's. On your Terrifying fort, land-ground casts with a member that has no partner drop from 16% to 6%. The holes that remain are specific creatures, listed below, and "Build one year" cannot show them.</p></div>
+    <div><b class="k">Your walk</b><p>Every member ends up on a vermin-to-apex chain. Selection then follows connectedness (rank correlation 0.66–0.92 against 0.14–0.25 today), casts grow to 10–12 animals, and layers with no apex seat get no casts at all.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Do creature raws define seasons?</h2>
+  <p>Almost never. Of 869 natural surface creatures, 61 carry any <code>NO_SPRING</code>…<code>NO_WINTER</code> tag, and 57 of those are <code>NO_WINTER</code> alone (hibernators). In the caverns it is 2 of 57. So a raws-based season filter keeps nearly the same list in spring, summer and autumn and drops a few hibernators in winter. The seasonal variety in a built year comes from the tool assigning species to each season's cast, not from DF.</p>
+</section>
+
+<section>
+  <h2>The three networks</h2>
+  <dl class="terms">
+    <dt>Old ladder</dt><dd>The tool's cast-building links through 16 Oct (v7.6.1), taken from the explorer's own code at that date (v3).</dd>
+    <dt>Today's ladder</dt><dd>The cast builder the tool runs now: the same ladder, with your bars applied (no apex is prey, no grazer eats, the diets and never-lists).</dd>
+    <dt>New Rules</dt><dd>Your four rules (DF's diet tokens, vermin the tool feeds, mass and numbers, hunting pairs) with every bar and diet.</dd>
+  </dl>
+  <p class="note">A network here is one season's candidate list for one layer, with each species able to take any seat it is eligible for. A built cast seats each species once, so the cast tables further down are what actually reaches a fort.</p>
+
+  <h3>All six forts together</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Measure</th><th class="n">Old ladder</th><th class="n">Today's ladder</th><th class="n">New Rules</th><th>Reading</th></tr></thead>
+    <tbody>
+      <tr><td>Mutual pairs (A eats B and B eats A)</td><td class="n worse">19,541</td><td class="n">20</td><td class="n better">0</td><td>The old ladder let apex candidates eat each other in either seat.</td></tr>
+      <tr><td>Graphs containing a feeding cycle</td><td class="n worse">132 of 148 (largest 62 species)</td><td class="n">8 (largest 4)</td><td class="n better">0</td><td>New Rules is acyclic everywhere: energy flows one way.</td></tr>
+      <tr><td>Animal links where the prey outweighs the eater</td><td class="n">45%</td><td class="n">44%</td><td class="n better">31%</td><td>Ecological webs are size-structured; the ladder ignored size.</td></tr>
+      <tr><td>Median eater ÷ prey mass</td><td class="n">×1.0</td><td class="n">×1.0</td><td class="n better">×3.3</td><td>Predators larger than their prey, as in nature.</td></tr>
+      <tr><td>Animals on an apex → … → vermin chain</td><td class="n">43%</td><td class="n">38%</td><td class="n better">51%</td><td>More species sit in the web's spine, rather than at a dead end.</td></tr>
+      <tr><td>Mean longest chain (trophic level)</td><td class="n">2.75</td><td class="n">2.46</td><td class="n">2.60</td><td>The old ladder's chains are long because they run through its cycles.</td></tr>
+      <tr><td>Species with no link at all</td><td class="n">32</td><td class="n">43</td><td class="n better">14</td><td>Mostly giant mosquito and giant dragonfly on land-flying (see below).</td></tr>
+      <tr><td>Predator-on-predator links</td><td class="n">–</td><td class="n">3,075</td><td class="n">25,676</td><td>88% come from Mass and numbers alone and 78% involve an animal person or sentient seat (41% are one animal person eating another). Between two ordinary animals: 2,091.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Your fort: temperate broadleaf forest, temperate river, Terrifying (spring)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer · network</th><th class="n">Species</th><th class="n">Links</th><th class="n">Top / middle / basal / none</th><th class="n">Mutual</th><th class="n">Prey outweighs eater</th><th class="n">Eater ÷ prey mass</th><th class="n">On an apex-to-vermin chain</th><th class="n">Longest chain</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="9">land-ground</td></tr>
+      <tr><td>old ladder</td><td class="n">216</td><td class="n">16,519</td><td class="n">0 / 97 / 119 / 0</td><td class="n">1,431</td><td class="n">53%</td><td class="n">×0.93</td><td class="n">43 of 134</td><td class="n">2.6</td></tr>
+      <tr><td>today's ladder</td><td class="n">213</td><td class="n">11,521</td><td class="n">50 / 54 / 109 / 0</td><td class="n">0</td><td class="n">52%</td><td class="n">×0.89</td><td class="n">54 of 148</td><td class="n">2.4</td></tr>
+      <tr><td>New Rules</td><td class="n">213</td><td class="n">10,064</td><td class="n">50 / 64 / 99 / 0</td><td class="n">0</td><td class="n">40%</td><td class="n">×1.9</td><td class="n">64 of 148</td><td class="n">2.7</td></tr>
+      <tr class="grp"><td colspan="9">land-flying</td></tr>
+      <tr><td>old ladder</td><td class="n">72</td><td class="n">1,810</td><td class="n">0 / 38 / 34 / 0</td><td class="n">91</td><td class="n">56%</td><td class="n">×0.98</td><td class="n">24 of 40</td><td class="n">2.6</td></tr>
+      <tr><td>today's ladder</td><td class="n">70</td><td class="n">1,361</td><td class="n">13 / 25 / 32 / 0</td><td class="n">0</td><td class="n">59%</td><td class="n">×0.18</td><td class="n">24 of 41</td><td class="n">2.4</td></tr>
+      <tr><td>New Rules</td><td class="n">70</td><td class="n">979</td><td class="n">11 / 39 / 18 / 2</td><td class="n">0</td><td class="n">17%</td><td class="n">×5.8</td><td class="n">39 of 41</td><td class="n">3.1</td></tr>
+      <tr class="grp"><td colspan="9">freshwater (a river: no apex seat)</td></tr>
+      <tr><td>old ladder</td><td class="n">58</td><td class="n">774</td><td class="n">32 / 0 / 26 / 0</td><td class="n">0</td><td class="n">56%</td><td class="n">×0.79</td><td class="n">–</td><td class="n">2.0</td></tr>
+      <tr><td>today's ladder</td><td class="n">61</td><td class="n">723</td><td class="n">21 / 19 / 21 / 0</td><td class="n">3</td><td class="n">53%</td><td class="n">×0.87</td><td class="n">–</td><td class="n">2.7</td></tr>
+      <tr><td>New Rules</td><td class="n">61</td><td class="n">1,099</td><td class="n">9 / 33 / 19 / 0</td><td class="n">0</td><td class="n">26%</td><td class="n">×3.5</td><td class="n">–</td><td class="n">3.2</td></tr>
+      <tr class="grp"><td colspan="9">cavern 2</td></tr>
+      <tr><td>old ladder</td><td class="n">43</td><td class="n">481</td><td class="n">0 / 28 / 15 / 0</td><td class="n">24</td><td class="n">44%</td><td class="n">×1.0</td><td class="n">16 of 28</td><td class="n">3.0</td></tr>
+      <tr><td>today's ladder</td><td class="n">43</td><td class="n">419</td><td class="n">10 / 18 / 15 / 0</td><td class="n">0</td><td class="n">43%</td><td class="n">×1.0</td><td class="n">14 of 28</td><td class="n">2.8</td></tr>
+      <tr><td>New Rules</td><td class="n">43</td><td class="n">520</td><td class="n">10 / 15 / 18 / 0</td><td class="n">0</td><td class="n">32%</td><td class="n">×2.5</td><td class="n">15 of 28</td><td class="n">2.6</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Top: eaten by nothing; basal: eats nothing (vermin, grazers); "none": no link either way. Longest chain is the highest prey-averaged trophic level. The chain column counts prey- and predator-seat animals that sit between an apex above and a vermin below.</p>
+</section>
+
+<section>
+  <h2>Which links changed, on your fort</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Removed by New Rules (were in today's ladder)</th><th>Added by New Rules</th></tr></thead>
+    <tbody>
+      <tr><td>land-ground<br><span class="note">−3,270 / +1,813</span></td>
+        <td><ul><li>623 small predators on grazers: snail man → diadectes, beetle man → megatherium</li><li>430 prey on prey: kiwi man → arthropleura</li><li>393 small predators on larger prey: fox → giant wild boar</li><li>1,044 apexes on vermin: thylacine → fox squirrel</li></ul></td>
+        <td><ul><li>predator on predator, from Mass and numbers: adder man → adder (its own root animal), black bear man → adder</li><li>prey and small predators on vermin: emu → ant, arthropleura man → chipmunk</li></ul></td></tr>
+      <tr><td>land-flying<br><span class="note">−562 / +180</span></td>
+        <td><ul><li>208 raptors and raptor-guild animal people on land birds: bluejay man → giant peach-faced lovebird</li><li>107 apexes on vermin: giant eagle → peach-faced lovebird</li></ul></td>
+        <td><ul><li>72 giant birds on small birds: giant bluejay → blue jay</li><li>24 giant flying insects on small birds: giant firefly → blue jay (your giant-flying-prey rule)</li></ul></td></tr>
+      <tr><td>freshwater<br><span class="note">−180 / +556</span></td>
+        <td><ul><li>river otter → sturgeon, giant osprey → brook lamprey</li></ul></td>
+        <td><ul><li>alligator snapping turtle → mink, osprey → mink (Mass and numbers)</li><li>hibbertopterus → char (fish vermin)</li></ul></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>The casts: where the web has holes</h2>
+  <p>Each cast is scored on the New Rules links among its own members, in their actual seats, because that is the web the tool will write in play. Member-level averages hide holes (98–100% of members have a partner almost everywhere), so these are the share of casts with at least one hole.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Fort · layer</th><th class="n">A member with no partner</th><th class="n">A predator with no prey</th><th class="n">A prey nothing eats</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">Terrifying broadleaf, river — builder today (ladder) → builder on New Rules</td></tr>
+      <tr><td>land-ground</td><td class="n">16% → <span class="better">6%</span></td><td class="n">14% → 15%</td><td class="n">16% → <span class="better">6%</span></td></tr>
+      <tr><td>freshwater</td><td class="n">10% → <span class="better">0%</span></td><td class="n">7% → 8%</td><td class="n">10% → <span class="better">0%</span></td></tr>
+      <tr><td>land-flying</td><td class="n">15% → 15%</td><td class="n">14% → 14%</td><td class="n">16% → 16%</td></tr>
+      <tr><td>caverns</td><td class="n">0% → 0%</td><td class="n">20% → 20%</td><td class="n">0% → 0%</td></tr>
+      <tr class="grp"><td colspan="4">Savage tropical coast</td></tr>
+      <tr><td>land-ground</td><td class="n">16% → <span class="better">3%</span></td><td class="n">7% → 6%</td><td class="n">16% → <span class="better">3%</span></td></tr>
+      <tr><td>ocean</td><td class="n">8% → <span class="better">0%</span></td><td class="n">5% → 6%</td><td class="n">8% → <span class="better">0%</span></td></tr>
+      <tr><td>land-flying</td><td class="n worse">51% → 47%</td><td class="n worse">56% → 51%</td><td class="n">9% → 9%</td></tr>
+      <tr class="grp"><td colspan="4">Calm temperate lake</td></tr>
+      <tr><td>every layer</td><td class="n">0–2%</td><td class="n">0%, caverns 20%</td><td class="n">0%, land-flying 9%</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The old builder (v7.6.1) scores like today's ladder on land-ground; on the coast it is worse on ocean (23% of casts with an unlinked member) and better on land-flying (37% against 51%).</p>
+  <h3>Who the holes are, under New Rules</h3>
+  <ul>
+    <li><b>Sentient seats with no prey:</b> cavern gorlak, plump helmet man and manera; freshwater platypus man, hippo man and beaver man. These make up nearly all of the caverns' 20%.</li>
+    <li><b>Flying sentient seats with no link at all:</b> animal people of insect and bat roots (fly man, roach man, mosquito man, mantis man, firefly man, moth man, bat man). These make up most of the coast's land-flying holes.</li>
+    <li><b>Giant mosquito and giant dragonfly on land-flying:</b> your 17 Oct rule made them freshwater apexes, but they are still on the land-flying list, where New Rules gives them no link. When one takes the flying apex seat, that cast has an apex with no web.</li>
+    <li><b>Land-flying casts are not grown on links:</b> they are filled straight from the slot table (apex, two fliers, vermin), so no builder connects them. Over half the coast's flying casts seat a predator with no prey in the cast.</li>
+    <li><b>The largest grazers</b> (brachiosaurus, brontosaurus, diplodocus): nothing in the cast is big enough to eat them, and grazers eat nothing, so they stand alone.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Your walk algorithm, prototyped</h2>
+  <p>Built as you described: for each layer and season, a non-apex seed and an apex (neither repeated within the year), a quarter of the layer's vermin dealt to each season, and a random walk from each vermin and from the seed up through its eaters to the apex. A step goes only to an eater that can still reach the apex, so no walk dead-ends. Scored exactly like the builders.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Land-ground, 200 years</th><th class="n">Terrifying broadleaf</th><th class="n">Calm temperate lake</th><th class="n">Savage tropical coast</th></tr></thead>
+    <tbody>
+      <tr><td>Animals per cast (builder on New Rules → walk)</td><td class="n">8.0 → 12.4</td><td class="n">7.0 → 10.1</td><td class="n">8.0 → 12.2</td></tr>
+      <tr><td>Vermin per cast</td><td class="n">3.0 → 6.8</td><td class="n">3.0 → 5.5</td><td class="n">3.0 → 5.9</td></tr>
+      <tr><td>Selection follows connectedness (rank correlation, cast rate vs links)</td><td class="n">0.14 → <span class="worse">0.66</span></td><td class="n">−0.26 → <span class="worse">0.92</span></td><td class="n">0.21 → <span class="worse">0.67</span></td></tr>
+      <tr><td>Unevenness of selection (Gini of cast rates)</td><td class="n">0.53 → 0.63</td><td class="n">0.17 → 0.49</td><td class="n">0.51 → 0.56</td></tr>
+      <tr><td>Species ever cast in 200 years</td><td class="n">184 → 168 of 184</td><td class="n">43 → 43 of 43</td><td class="n">195 → 180 of 195</td></tr>
+      <tr><td>Most cast</td><td class="n">smilodon 21% → hamster man 27%</td><td class="n">lion 27% → rattlesnake 77%</td><td class="n">lion 20% → honey badger man 24%</td></tr>
+      <tr><td>Casts with a member that has no partner</td><td class="n better">6% → 0%</td><td class="n">0% → 0%</td><td class="n better">3% → 0%</td></tr>
+      <tr><td>Vermin dropped, all layers (no path to that season's apex)</td><td class="n">424</td><td class="n">0</td><td class="n">337</td></tr>
+      <tr><td>Season casts with no seed that reaches the apex, all layers</td><td class="n">110</td><td class="n">0</td><td class="n">118</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li><b>What it does well:</b> every member lies on a vermin-to-apex chain, and casts with an unlinked member fall to zero on land-ground, ocean and caverns.</li>
+    <li><b>Why selection concentrates:</b> a uniform step to "any eater that can reach the apex" passes most often through species that sit on many chains: mid-sized predators and animal people with many Mass-and-numbers links. The calm lake's rattlesnake is in 77% of its land-ground casts. This is the hub inflation you wanted to avoid. The builder today does not show it: its selection is close to independent of how connected a species is.</li>
+    <li><b>Where it cannot run:</b> a layer with no apex seat (a river's freshwater cast) gets no cast at all, and land-flying vermin often have no route to that season's apex.</li>
+    <li><b>Ways to keep its strength without the inflation (untested):</b> weight each step against how often the eater has already been cast, or keep the slot-table builder and add the walk's directed guarantee (every predator seated gets a prey in its cast, every prey an eater).</li>
+  </ul>
+</section>
+
+<section>
+  <h2>What this means for the port</h2>
+  <ul>
+    <li>New Rules goes in as it is. On structure it is the better web on every measure above, and none of these findings asks for a rule to be re-decided.</li>
+    <li>The rig tests check, for every cast in play: each New Rules link among the units present is written, no other link is, and the cast-hole rates match what the explorer predicts for that fort. A hole in play that the explorer did not predict is a bug in the port. A predicted hole is one of the cases listed below.</li>
+    <li>Four gaps are in what New Rules leaves for the casts, not in the rules. They are yours to call:</li>
+  </ul>
+  <div class="q"><h3><span class="id">G1</span>Sentient seats with no prey or no links</h3><p>Cavern gorlak, plump helmet man and manera; freshwater platypus, hippo and beaver men; flying insect- and bat-root animal people. Leave them as they are, or give them links?</p></div>
+  <div class="q"><h3><span class="id">G2</span>Giant mosquito and giant dragonfly on land-flying</h3><p>They have no links there under New Rules. Take them off the land-flying list, now that they are freshwater apexes?</p></div>
+  <div class="q"><h3><span class="id">G3</span>Land-flying casts are not grown on links</h3><p>Grow them on New Rules like the other layers, so the flying apex and fliers have their prey in the same cast?</p></div>
+  <div class="q"><h3><span class="id">G4</span>How casts are selected</h3><p>Keep today's builder (even, not hub-driven) and add a directed guarantee, or develop the walk with a weighting against over-picked species? I can measure either variant the same way before anything is built.</p></div>
+</section>
+
+<section>
+  <h2>Method</h2>
+  <ul class="note">
+    <li>Forts: your Terrifying broadleaf forest + temperate river; the explorer's five presets (calm temperate lake, savage tropical coast, good temperate brook, evil tundra with murky pools, savage good arctic coast); all with caverns 1–3 and your cavern picks.</li>
+    <li>Graphs: the explorer's own link functions (New Rules; the ladder family); the old ladder from explorer v3 (commit f6d36122). Trophic levels prey-averaged (solved as a linear system); cycles by strongly connected components; paths by breadth-first search (scipy).</li>
+    <li>Casts: the explorer's cast builder (growth on the ladder, or on New Rules), the old v3 builder, and the walk prototype; 200 years each, seeds as the explorer's.</li>
+    <li>Scripts: DwarfCron <code>scripts/castsim/netanalysis/</code> (export.js, analyze.py, casts.js, README). Nothing here has run in a game yet.</li>
+  </ul>
+</section>
+</div>
