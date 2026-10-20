@@ -685,6 +685,7 @@
     const site = 1 + Math.floor(Math.random() * 9999);
     YEAR = sim.year(BUILD.B, BUILD.spec, prmNow(), site, 250);
     YEAR._site = site;
+    YEAR._links = linksDesc(prmNow());
     state.castSel = null;
     state.seasonBy = 'casts';   // a built year: the season buttons show its casts
     syncControls(); refreshView(); renderYear();
@@ -828,6 +829,7 @@
   function hideTip() { ctip.hidden = true; }
   function renderYear() {
     const box = $('#year');
+    $('#yearLinks').textContent = YEAR ? '· grown on ' + YEAR._links : '';
     if (!YEAR || !BUILD.spec) { box.innerHTML = ''; return; }
     const act = BUILD.B.active;
     const cell = (L, s) => {
@@ -837,7 +839,7 @@
       const mem = SLOTSORT(tr.members).map(m => `<li class="${m.slot === 'apex' ? 'apex' : ''}" title="${esc(m.how)}"><i style="background:var(--${SLOT_COL[m.slot] || 'muted'})"></i>${esc(BY[m.t].nm)}${tr.seed === m.t ? ' <em>seed</em>' : ''}${tr.guarantee.includes(m.t) ? ' <em>added</em>' : ''}${state.sel === m.t ? ' ◆' : ''}</li>`).join('');
       const vm = tr.vermin.map(v => esc(BY[v.t].nm)).join(', ');
       const un = Object.keys(tr.unfilled).length ? `<p class="warnline">unfilled: ${esc(Object.entries(tr.unfilled).map(([s, w]) => s + ' ' + w.split(':')[0]).join('; '))}</p>` : '';
-      return `<td><button type="button" class="cast${state.castSel === k ? ' on' : ''}" data-cast="${k}" aria-pressed="${state.castSel === k}"><span class="built">built ${tr.built} of ${Object.keys(YEAR).length - 1}</span><ul>${mem}</ul><p class="verm">${vm}</p>${un}</button></td>`;
+      return `<td><button type="button" class="cast${state.castSel === k ? ' on' : ''}" data-cast="${k}" aria-pressed="${state.castSel === k}"><span class="built">built ${tr.built} of ${Object.keys(YEAR).filter(k => k.includes('|')).length}</span><ul>${mem}</ul><p class="verm">${vm}</p>${un}</button></td>`;
     };
     box.innerHTML = `<div class="tbl"><table class="yeargrid"><thead><tr><th>layer</th>${SEASONS.map(s => `<th>${s}</th>`).join('')}</tr></thead><tbody>` +
       act.map(L => `<tr><th scope="row">${esc(LNAME[L])}</th>${[0, 1, 2, 3].map(s => cell(L, s)).join('')}</tr>`).join('') + '</tbody></table></div>';
@@ -867,6 +869,22 @@
     el.innerHTML = opts.map(([v, lab]) => `<button type="button" aria-pressed="${String(v) === String(cur)}" data-v="${v}">${esc(lab)}</button>`).join('');
     el.onclick = ev => { const b = ev.target.closest('button[data-v]'); if (b) cb(b.dataset.v); };
   }
+  // which links the cast builder grows casts on (user 19 Oct: say it plainly, and the choice must take)
+  const famNames = () => FAM_ORDER.filter(f => state.fam[f]).map(f => FAM[f].lab);
+  function linksDesc(p) {
+    if (p.links !== 'network') return 'the cast ladder (as the tool does)';
+    const n = FAM_ORDER.filter(f => (p.network || state.fam)[f]).map(f => FAM[f].lab);
+    return n.length ? 'the feeding links switched on above: ' + n.join(', ') : 'no links (every feeding link is switched off above)';
+  }
+  function renderLinks() {
+    const on = famNames();
+    seg('#p_links', [['engine', 'Cast ladder (the tool)'], ['network', 'Links switched on above' + (on.length ? ' (' + on.join(', ') + ')' : ' (none on)')]], state.prm.links,
+      v => { state.prm.links = v; renderLinks(); });
+    $('#linksNote').textContent = 'Casts are grown on ' + linksDesc(Object.assign({}, state.prm, { network: state.fam })) + '. ' +
+      'The tool itself grows its casts on the cast ladder: a higher trophic tier eats a lower one its habitat reaches, with your rules applied ' +
+      '(no apex is prey, grazers eat nothing, the land/water and ground/flying bars, the birds\', bears\' and alligator\'s own diets, the squid and giant leopard seal read as their models). ' +
+      'The feeding links above (New Rules and the rest) are what the tool writes for play; pick them here to see how casts would grow on them instead.';
+  }
   function syncControls() {
     $('#nbiomes').innerHTML = BIOME_GROUPS.map(([g, bs]) => `<fieldset><legend>${esc(g)}</legend>` +
       bs.map(b => `<label class="ck"><input type="checkbox" id="nb_${b}" data-nb="${b}" ${state.neighbours.has(b) ? 'checked' : ''}><span>${esc(bname(b))}</span></label>`).join('') + '</fieldset>').join('');
@@ -893,7 +911,7 @@
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
     seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
     $('#fams').innerHTML = FAM_ORDER.map(f => `<label class="ck" title="${esc(FAM[f].note)}"><input type="checkbox" id="f_${f}" data-f="${f}" ${state.fam[f] ? 'checked' : ''}><i class="ln" style="--lc:var(--${FAM[f].col})"></i>${esc(FAM[f].lab)} <span class="small">(${esc(FAM[f].def)})</span></label>`).join('');
-    seg('#p_links', [['engine', 'Cast ladder (engine)'], ['network', 'Rules switched on above']], state.prm.links, v => { state.prm.links = v; syncControls(); });
+    renderLinks();
     $('#verm').checked = state.vermin;
     for (const [k, id] of [['ap_pick', 'p_ap'], ['giant', 'p_gi'], ['pack', 'p_pack'], ['apex_pack', 'p_apack'], ['reuse', 'p_reuse'], ['hv_top', 'p_hv']]) $('#' + id).value = state.prm[k];
     $('#p_seed').checked = state.prm.seed; $('#p_weird').checked = state.prm.weird; $('#p_guar').checked = state.prm.guarantee;
@@ -927,7 +945,7 @@
   }
   $('#tabs').addEventListener('click', ev => { const b = ev.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); });
   $('#verm').onchange = e => { state.vermin = e.target.checked; renderSurroundings(); refreshView(); };
-  $('#fams').addEventListener('change', ev => { const f = ev.target.dataset.f; if (!f) return; state.fam[f] = ev.target.checked; refreshView(); });
+  $('#fams').addEventListener('change', ev => { const f = ev.target.dataset.f; if (!f) return; state.fam[f] = ev.target.checked; renderLinks(); refreshView(); });
   $('#presets').onclick = ev => { const b = ev.target.closest('button[data-p]'); if (b) applyPreset(b.dataset.p); };
   const num = (id, k) => { $('#' + id).onchange = e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v >= 0) state.prm[k] = v; else e.target.value = state.prm[k]; }; };
   num('p_ap', 'ap_pick'); num('p_gi', 'giant'); num('p_pack', 'pack'); num('p_apack', 'apex_pack'); num('p_reuse', 'reuse'); num('p_hv', 'hv_top');

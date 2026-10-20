@@ -95,6 +95,8 @@ section#sim{margin-top:22px;display:grid;gap:12px}
 .simhead{display:block}
 .params{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:end}.params label{display:grid;gap:2px;font-size:.78rem;color:var(--muted)}
 .params label.ck{display:flex;color:var(--ink)}
+.params .pl{display:grid;gap:2px;font-size:.78rem;color:var(--muted)}
+#linksNote{font-size:.8rem;color:var(--muted);margin:2px 0 0;max-width:110ch}
 #simNote{color:var(--warn);font-size:.86rem}
 .yeargrid{min-width:820px}.yeargrid td{padding:3px;width:22%}.yeargrid th[scope=row]{white-space:nowrap;font-family:var(--mono)}
 button.cast{all:unset;box-sizing:border-box;display:block;width:100%;padding:5px 7px;border-radius:5px;cursor:pointer;border:1px solid transparent}
@@ -194,13 +196,14 @@ BODY = r"""
       <label>apex pack ×<input type="number" id="p_apack" step="0.5" min="0"></label>
       <label>repeat weight ×<input type="number" id="p_reuse" step="0.01" min="0"></label>
       <label>high value, top share<input type="number" id="p_hv" step="0.05" min="0" max="1"></label>
-      <label>growth links<span class="seg" id="p_links"></span></label>
+      <div class="pl" role="group" aria-label="Growth links">growth links<span class="seg" id="p_links"></span></div>
       <label class="ck"><input type="checkbox" id="p_seed">seed each cast</label>
       <label class="ck"><input type="checkbox" id="p_weird">cavern weirdness tilt</label>
       <label class="ck"><input type="checkbox" id="p_guar">cavern web guarantee</label>
       <button type="button" class="linkish" id="p_reset">engine defaults</button>
     </div>
   </div>
+  <p id="linksNote"></p>
   <div class="row">
     <button type="button" class="btn" id="run1">Build one year</button>
     <label class="small">years <select id="p_years"><option>50</option><option>100</option><option>200</option><option>500</option><option>1000</option></select></label>
@@ -208,7 +211,7 @@ BODY = r"""
     <button type="button" class="btn" id="pin">Pin as baseline</button>
     <span class="small" id="runState"></span><span class="small" id="pinState"></span>
   </div>
-  <h3>One year <span class="note">click a cast to light it in the network</span></h3>
+  <h3>One year <span class="note">click a cast to light it in the network</span> <span class="note" id="yearLinks"></span></h3>
   <div id="year"></div>
   <h3>Across the years</h3>
   <div id="stats"></div>
