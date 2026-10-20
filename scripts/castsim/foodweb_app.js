@@ -285,12 +285,16 @@
   }
   function radius(c) { return 2.6 + 1.9 * Math.sqrt(Math.min(40, Math.max(1, c.c1 || 1))); }
   // NODE SIZE (user 20 Oct): body size, value, pack size or how often cast, each over the pack-size range (cluster max 1..40)
-  const R_LO = radius({ c1: 1 }), R_HI = radius({ c1: 40 });
-  const LOGM = (() => { const v = FWDATA.creatures.map(c => c.m).filter(m => m > 0).map(Math.log10); return [Math.min(...v), Math.max(...v)]; })();
+  const R_LO = radius({ c1: 1 }), R_HI = radius({ c1: 40 }), BODY_LO = 2.5;
   function sizeOf(n) {
     const at = t => R_LO + (R_HI - R_LO) * Math.max(0, Math.min(1, t));
-    // squared, so the many mid-sized animals stay mid-sized and a full view does not overrun its bands
-    if (state.size === 'body') return at(n.c.m > 0 ? ((Math.log10(n.c.m) - LOGM[0]) / (LOGM[1] - LOGM[0])) ** 2 : 0);
+    // user 20 Oct (later: "from 1L to 100L there's not much difference"): log10 body volume from 100 cm3 to 10 m3, to the power
+    // 1.5, down to a smaller floor (2.5): each tenfold step 1 L .. 10 m3 reads 3.6, 5.6, 8.1, 11.2, 14.6, and the node area
+    // of a full view stays near the squared scale's
+    if (state.size === 'body') {
+      const t = n.c.m > 0 ? Math.max(0, Math.min(1, (Math.log10(n.c.m) - 2) / 5)) : 0;
+      return BODY_LO + (R_HI - BODY_LO) * t ** 1.5;
+    }
     if (state.size === 'value') return at(n.value || 0);
     if (state.size === 'cast') {
       const st = STATS && STATS.by[n.L];
@@ -610,7 +614,7 @@
     $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>${esc(SIZE_LEGEND[state.size === 'cast' && !STATS ? 'nocast' : state.size])}</span>` +
       `<span>${sw('none', 'ring')}high-value: a possible seed</span>${Object.keys(BUILD.B.mapOnly || {}).length ? '<span>hollow: map-only vermin from a neighbouring tile</span>' : ''}<span>${FAM_ORDER.filter(f => state.fam[f]).map(f => `<span class="ln" style="--lc:var(--${FAM[f].col})">${esc(FAM[f].lab.toLowerCase())}</span>`).join(' ')}; dashed: the selection's predators; click a link for details</span></div>`;
   }
-  const SIZE_LEGEND = { pack: 'largest group the raws allow (cluster max)', body: 'body size (log scale, smallest to largest of all creatures)',
+  const SIZE_LEGEND = { pack: 'largest group the raws allow (cluster max)', body: 'body size, log scale: 100 cm³ or less smallest, 10 m³ or more largest',
     value: 'low → high value (as the Value colour); vermin smallest', cast: 'never → most often cast (√ share of season casts)',
     nocast: 'run the simulator to size by how often cast' };
   function shapeSvg(sh, col) {

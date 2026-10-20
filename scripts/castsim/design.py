@@ -112,6 +112,9 @@ FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp 
     'HARPY': {'sentients': ['ground', 'flying'], 'overApex': True, 'vermin': []},
     'GRIMELING': {'sentients': ['ocean', 'fresh'], 'overApex': True, 'vermin': []},
     'CRETACEOUS_UTAHRAPTOR': {'bigPrey': 1000000, 'vermin': []},
+    # user 20 Oct (later): the small pterosaurs take every flying vermin and the freshwater flying insects
+    'CRETACEOUS_SINOPTERUS': {'vermin': [('FLYING',), ('FRESH', 'SWV_FLYING_INSECT')]},
+    'JURASSIC_RHAMPHORHYNCHUS': {'vermin': [('FLYING',), ('FRESH', 'SWV_FLYING_INSECT')]},
 }
 # user 20 Oct: the extinct apexes eat any non-apex sentient by habitat class (engine MODEL.habEats)
 HAB_CLASS = {'land': 'ground', 'flier': 'flier', 'waterbird': 'flier', 'semiaquatic': 'shore', 'aquatic': 'water'}
