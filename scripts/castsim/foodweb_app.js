@@ -66,7 +66,8 @@
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'ALL', lake: true, river: true, brook: true, pool: true, fz: 'ALL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
     size: 'pack', tab: 'surface', seasonBy: 'raws', edges: 'all', fam: { newrules: true, hunt: false, gobble: false, raws: false, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
-    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
+    // rebuild plan rev 7 (user 20 Oct): casts grow on New Rules (the v8 builder); the cast ladder is the tool to v7.6.6
+    prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'network' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)
   const SAVK = ['benign', 'neutral', 'savage'], ALK = ['good', 'neutral', 'evil'];
@@ -715,6 +716,7 @@
     YEAR = sim.year(BUILD.B, BUILD.spec, prmNow(), site, 250);
     YEAR._site = site;
     YEAR._links = linksDesc(prmNow());
+    YEAR._prm = prmNow();
     state.castSel = null;
     state.seasonBy = 'casts';   // a built year: the season buttons show its casts
     syncControls(); refreshView(); renderYear();
@@ -871,8 +873,28 @@
       const un = Object.keys(tr.unfilled).length ? `<p class="warnline">unfilled: ${esc(Object.entries(tr.unfilled).map(([s, w]) => s + ' ' + w.split(':')[0]).join('; '))}</p>` : '';
       return `<td><button type="button" class="cast${state.castSel === k ? ' on' : ''}" data-cast="${k}" aria-pressed="${state.castSel === k}"><span class="built">built ${tr.built} of ${Object.keys(YEAR).filter(k => k.includes('|')).length}</span><ul>${mem}</ul><p class="verm">${vm}</p>${un}</button></td>`;
     };
+    // G3 (user 20 Oct): the season's links across its land-ground, land-flying and water casts, and its holes (plan rev 7):
+    // surface casts joined, each cavern alone; a predator is an apex or meso seat, or a creature that is a predator by role
+    const nm = t => esc(BY[t].nm), ln = L => esc(LNAME[L]);
+    const crossCell = s => {
+      const xs = (YEAR.cross || [])[s];
+      if (!xs) return '<td><p class="note">the cast ladder links no layers</p></td>';
+      const li = xs.map(([a, la, b, lb, why]) => `<li title="${esc(why)}">${nm(a)} <span class="note">(${ln(la)})</span> eats ${nm(b)} <span class="note">(${ln(lb)})</span></li>`).join('');
+      return `<td>${xs.length ? `<details><summary>${xs.length} link${xs.length === 1 ? '' : 's'}</summary><ul class="cross">${li}</ul></details>` : '<p class="note">none</p>'}</td>`;
+    };
+    const holeCell = s => {
+      const H = sim.seasonHoles(YEAR, s, YEAR._prm || prmNow()), out = [];
+      for (const [k, h] of Object.entries(H)) {
+        const lab = k === 'surface' ? 'surface' : LNAME[k];
+        const bad = [h.unlinked.length ? 'no partner: ' + h.unlinked.map(nm).join(', ') : '', h.unfed.length ? 'predator without prey: ' + h.unfed.map(nm).join(', ') : ''].filter(Boolean);
+        out.push(bad.length ? `<p class="warnline">${esc(lab)}: ${bad.join('; ')}</p>` : `<p class="note">${esc(lab)}: ${h.members} members, every one linked; ${h.predators} predators, every one fed</p>`);
+      }
+      return `<td>${out.join('')}</td>`;
+    };
     box.innerHTML = `<div class="tbl"><table class="yeargrid"><thead><tr><th>layer</th>${SEASONS.map(s => `<th>${s}</th>`).join('')}</tr></thead><tbody>` +
-      act.map(L => `<tr><th scope="row">${esc(LNAME[L])}</th>${[0, 1, 2, 3].map(s => cell(L, s)).join('')}</tr>`).join('') + '</tbody></table></div>';
+      act.map(L => `<tr><th scope="row">${esc(LNAME[L])}</th>${[0, 1, 2, 3].map(s => cell(L, s)).join('')}</tr>`).join('') +
+      `<tr><th scope="row">across layers</th>${[0, 1, 2, 3].map(crossCell).join('')}</tr>` +
+      `<tr><th scope="row">holes</th>${[0, 1, 2, 3].map(holeCell).join('')}</tr>` + '</tbody></table></div>';
   }
   const SLOTSORT = ms => ms.slice().sort((a, b) => sim.SLOT_ORDER.indexOf(a.slot) - sim.SLOT_ORDER.indexOf(b.slot));
   document.addEventListener('click', ev => {
@@ -902,18 +924,20 @@
   // which links the cast builder grows casts on (user 19 Oct: say it plainly, and the choice must take)
   const famNames = () => FAM_ORDER.filter(f => state.fam[f]).map(f => FAM[f].lab);
   function linksDesc(p) {
-    if (p.links !== 'network') return 'the cast ladder (as the tool does)';
+    if (p.links !== 'network') return 'the cast ladder (the tool to v7.6.6)';
     const n = FAM_ORDER.filter(f => (p.network || state.fam)[f]).map(f => FAM[f].lab);
     return n.length ? 'the feeding links switched on above: ' + n.join(', ') : 'no links (every feeding link is switched off above)';
   }
   function renderLinks() {
     const on = famNames();
-    seg('#p_links', [['engine', 'Cast ladder (the tool)'], ['network', 'Links switched on above' + (on.length ? ' (' + on.join(', ') + ')' : ' (none on)')]], state.prm.links,
+    const nrOnly = on.length === 1 && state.fam.newrules;
+    seg('#p_links', [['network', nrOnly ? 'New Rules (v8)' : 'Links switched on above' + (on.length ? ' (' + on.join(', ') + ')' : ' (none on)')], ['engine', 'Cast ladder (to v7.6.6)']], state.prm.links,
       v => { state.prm.links = v; renderLinks(); });
     $('#linksNote').textContent = 'Casts are grown on ' + linksDesc(Object.assign({}, state.prm, { network: state.fam })) + '. ' +
-      'The tool itself grows its casts on the cast ladder: a higher trophic tier eats a lower one its habitat reaches, with your rules applied ' +
-      '(no apex is prey, grazers eat nothing, the land/water and ground/flying bars, the birds\', bears\' and alligator\'s own diets, the squid and giant leopard seal read as their models). ' +
-      'The feeding links above (New Rules and the rest) are what the tool writes for play; pick them here to see how casts would grow on them instead.';
+      'From v8 the tool grows every cast on New Rules (rebuild plan rev 7): land-flying grows too, with no seed, and a last step links the season\'s ' +
+      'land-ground, land-flying and water casts by the rules that work across layers (the year grid lists them, with each season\'s holes). ' +
+      'The cast ladder is how the tool grew casts up to v7.6.6: a higher trophic tier eats a lower one its habitat reaches, with your rules applied; ' +
+      'it stays inside the hunting pairs only.';
   }
   function renderLayerSeg() {
     // user 19 Oct: the layer buttons must show which is selected, and each its creature count (the view's season and vermin

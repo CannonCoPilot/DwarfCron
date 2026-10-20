@@ -5,7 +5,8 @@ The creature fields are the desk's (design.Design, engine.Engine: the engine's c
 Design.pool makes (placed plants, colony insects, the filter feeder); the gates, layers, slots, food-web test and cast build
 are ported to foodweb_sim.js, which follows the engine (sw-wt/plugin ROSTER.FP, v7.6.1) where the engine has moved past the
 desk: CAVE.ASSIGN (the user's cavern picks), the cavern food-web guarantee, the brook roster, hvSet's pet value for giants
-(the root's) and its tie-break. Usage: python3 foodweb_export.py  (writes data/castsim/foodweb/creatures.json)
+(the root's) and its tie-break. The rule tables come from the one copy, sw-wt/plugin rules/new-rules.json (castsim.rules).
+Usage: python3 foodweb_export.py  (writes data/castsim/foodweb/creatures.json)
 """
 from __future__ import annotations
 
@@ -18,13 +19,13 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import design as DS  # noqa: E402
 import engine as EN  # noqa: E402
+import rules as RU  # noqa: E402
 from design import Design, explicit_water, fresh_raw  # noqa: E402
 from design_run import wiring  # noqa: E402
 from raws import LAND, OCEANS, LAKES, RIVERS, POOLS  # noqa: E402
 
 ROOT = HERE.parent.parent
 OUT = ROOT / 'data/castsim/foodweb/creatures.json'
-SW = Path.home() / 'Claude/Projects/sw-wt/plugin/scripts/seasonal-wildlife.lua'
 THIEF_TAGS = ('CURIOUSBEAST_EATER', 'CURIOUSBEAST_GUZZLER', 'CURIOUSBEAST_ITEM', 'MISCHIEVOUS', 'LOCKPICKER', 'TRAPAVOID')
 BROOK_MAX_MASS = 25000      # engine V7.WB.BROOK_MAX_MASS
 WATER_ALL = OCEANS + LAKES + RIVERS + POOLS
@@ -50,17 +51,6 @@ def swv_class(c):
     if not a('NOBONES'): return 'SWV_HERP'
     if 'VERMIN_GROUNDER' in f: return 'SWV_GROUND_BUG'
     return 'SWV_OTHER'
-
-
-def cave_assign():
-    """CAVE.ASSIGN as the engine has it (the user's 56 picks, 16 Oct), read from the Lua source"""
-    src = SW.read_text()
-    a = src.index('CAVE.ASSIGN = {')
-    b = src.index('\n}', a)
-    out = {}
-    for m in re.finditer(r"(?:\['([^']+)'\]|([A-Z_]+))\s*=\s*\{([\d,\s]*)\}", src[a:b]):
-        out[m.group(1) or m.group(2)] = [int(x) for x in m.group(3).replace(' ', '').split(',') if x]
-    return out
 
 
 def name_of(D, tok):
@@ -124,20 +114,21 @@ def main():
     meta = {
         'land': LAND, 'oceans': OCEANS, 'lakes': LAKES, 'rivers': RIVERS, 'pools': POOLS,
         'slots': DS.SLOTS, 'tier': D.TIER, 'reach': EN.REACH, 'vdiet': {k: sorted(v) for k, v in EN.VDIET.items()},
-        'never_prey': sorted(EN.T['NEVER_PREY']), 'aquatic_apex': EN.R0['aquatic_apex'],
+        'never_prey': sorted(RU.NEVER_PREY), 'aquatic_apex': EN.R0['aquatic_apex'],
         'real_apex': {k: [v[0], v[1]] for k, v in DS.REAL_APEX.items()},
-        'link_as': DS.LINK_AS, 'forced_prey': DS.FORCED_PREY, 'flier_only_prey': sorted(DS.FLIER_ONLY_PREY), 'flier_only_types': ['SWV_BAT'], 'forced_diet': {k: dict(v, vermin=[list(x) for x in v.get('vermin', [])]) for k, v in DS.FORCED_DIET.items()},
+        'link_as': DS.LINK_AS, 'forced_prey': DS.FORCED_PREY, 'flier_only_prey': sorted(DS.FLIER_ONLY_PREY), 'flier_only_types': sorted(RU.FLIER_ONLY_TYPES), 'forced_diet': {k: dict(v, vermin=[list(x) for x in v.get('vermin', [])]) for k, v in DS.FORCED_DIET.items()},
         'extra_biomes': {k: sorted(v) for k, v in DS.EXTRA_BIOMES.items()},
         'evil_extra_biomes': {k: sorted(v) for k, v in DS.EVIL_EXTRA_BIOMES.items()},
         'biome_limit': {k: sorted(v) for k, v in DS.BIOME_LIMIT.items()},
         'giant_bugs': sorted(DS.GIANT_BUGS), 'water_bug_apex': sorted(DS.WATER_BUG_APEX), 'vermin_fresh': sorted(DS.VERMIN_FRESH), 'evil_apex': DS.EVIL_APEX,
         'evil_apex_biomes': {k: sorted(v) for k, v in DS.EVIL_APEX_BIOMES.items()},
-        'salt_wet': sorted(DS.SALT_WET), 'fly_not_raptor': ['BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'], 'wiring': W, 'cave_assign': cave_assign(), 'wetland_ground': sorted(DS.WETLAND_GROUND),
+        'salt_wet': sorted(DS.SALT_WET), 'fly_not_raptor': sorted(DS.FLY_NOT_RAPTOR), 'wiring': W, 'cave_assign': RU.CAVE_ASSIGN, 'wetland_ground': sorted(DS.WETLAND_GROUND),
         'params': {'pack': EN.CAST_DEF['pack'], 'giant': EN.CAST_DEF['giant'], 'hv_top': EN.CAST_DEF['hv_top'],
                    'reuse': DS.REUSE, 'ap_pick': EN.R0['ap_pick'], 'apex_pack': DS.APEX_PACK},
         'pool_cap': DS.POOL_CAP, 'brook_max_mass': BROOK_MAX_MASS,
         'savage_at': DS.SAVAGE_AT, 'evil_at': DS.EVIL_AT, 'good_at': DS.GOOD_AT,
-        'funnel': funnel, 'source': 'DF 53.16 vanilla raws via castsim.raws; engine sw-wt/plugin v7.6.1',
+        **RU.meta(),
+        'funnel': funnel, 'source': f'DF 53.16 vanilla raws via castsim.raws; rules sw-wt/plugin rules/new-rules.json {RU.VERSION}',
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({'meta': meta, 'creatures': rows}, separators=(',', ':')))

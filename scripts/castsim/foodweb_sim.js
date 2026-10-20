@@ -33,6 +33,7 @@
     const EVIL_APEX_B = setOf(M.evil_apex_biomes);
     const WATER_BUG_APEX = new Set(M.water_bug_apex), VERMIN_FRESH = new Set(M.vermin_fresh);
     const WETLAND_GROUND = new Set(M.wetland_ground || []);
+    const OFF_LAYERS = setOf(M.off_layers || {});   // G2 (user 20 Oct): layers a species is never on
     const GIANT_BUGS = new Set(M.giant_bugs), SALT_WET = new Set(M.salt_wet), NOT_RAPTOR = new Set(M.fly_not_raptor);
     const VDIET = {};
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
@@ -170,7 +171,7 @@
           else if (!c.d || c.d[0] <= k && k <= c.d[1]) out.push('cavern' + k);
         }
       }
-      return out;
+      return OFF_LAYERS[c.t] ? out.filter(L => !OFF_LAYERS[c.t].has(L)) : out;
     }
 
     // ------------------------------------------------------------ slots
@@ -294,22 +295,19 @@
       land: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1 }, flier: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1 },
       waterbird: { land: 1, flier: 1, waterbird: 1, semiaquatic: 1, aquatic: 1 }, semiaquatic: { land: 1, waterbird: 1, semiaquatic: 1, aquatic: 1 },
       aquatic: { waterbird: 1, semiaquatic: 1, aquatic: 1 } };
-    const GOBBLE_RULES = [
-      { name: 'small land insectivore/omnivore', classes: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_COLONY'], match: c => ({ ML: 1, PL: 1, SH: 1 })[c.g] && c.m < 10000 && (c.carn || !c.grz) },
-      { name: 'waterbird / fish-eater', classes: ['SWV_SMALL_FISH'], match: c => ({ WB: 1, FF: 1, FC: 1 })[c.g] },
-      { name: 'raptor', classes: ['SWV_SMALL_BIRD', 'SWV_BAT', 'SWV_SMALL_MAMMAL'], match: c => c.g === 'RP' },
-      { name: 'bat / land bird', classes: ['SWV_FLYING_INSECT'], match: c => c.g === 'LB' },
-      { name: 'snake', classes: ['SWV_SMALL_MAMMAL', 'SWV_HERP'], match: c => c.g === 'ML' && c.lg },
-    ];
-    const VCLASS = { VG: ['SWV_GROUND_BUG', 'SWV_SOIL', 'SWV_SMALL_MAMMAL', 'SWV_HERP', 'SWV_OTHER'], VC: ['SWV_COLONY'], VF: ['SWV_SMALL_FISH'],
-      VB: ['SWV_SMALL_BIRD', 'SWV_BAT'], VI: ['SWV_FLYING_INSECT'] };
-    const GOBBLE_EDGES = [{ g: 'ML', v: ['VG', 'VC', 'VF'] }, { g: 'AW', v: ['VF'] }, { g: 'MW', v: ['VF'] }, { g: 'RP', v: ['VB', 'VI'] }, { g: 'LB', v: ['VB', 'VI', 'VG'], cave: true }];
+    // the rules file's vermin tables (VERMIN.GOBBLE_RULES, VCLASS, GOBBLE_EDGES): a rule matches by guild, and by mass_below,
+    // carnivore_or_not_grazer and legless where it names them; a guild row with where 'cave' feeds in the caverns only
+    const GOBBLE_RULES = M.gobble_rules.map(r => ({ name: r.name, classes: r.classes,
+      match: c => r.guild.includes(c.g) && (r.mass_below === undefined || c.m < r.mass_below) &&
+        (!r.carnivore_or_not_grazer || c.carn || !c.grz) && (!r.legless || c.lg) }));
+    const VCLASS = M.vclass;
+    const GOBBLE_EDGES = M.gobble_edges.filter(r => r.guild).map(r => ({ g: r.guild, v: r.vermin, cave: r.where === 'cave' }));
     // VERMIN SIDES (user 17 Oct; engine VERMIN composite classes SWV_<type>@<SIDE>): a vermin is fed on only from the sides a
     // consumer may take -- none for a giant, a land-ground apex or an ocean apex; FLYING only for a land-flying apex; else
     // all but GROUND when the consumer is on the ocean or freshwater, OCEAN when on freshwater only, FRESH when on the ocean only
     // (user 17 Oct, later: a consumer on both waters eats both, no ground); the duck, goose and swan also take every
     // freshwater vermin whatever their sides (engine VERMIN.FRESH_EATERS; vanilla has no heron)
-    const FRESH_EATERS = new Set(['BIRD_DUCK', 'BIRD_GOOSE', 'BIRD_SWAN']);
+    const FRESH_EATERS = new Set(M.fresh_eaters);
     let CUR = { P: {}, promoted: new Set(), mapOnly: {} };
     const SIDE = { ground: 'GROUND', flying: 'FLYING', ocean: 'OCEAN', fresh: 'FRESH', cavern1: 'CAVERN', cavern2: 'CAVERN', cavern3: 'CAVERN' };
     const laysOf = t => ((CUR.P[t] && CUR.P[t].layers) || []);
@@ -366,7 +364,7 @@
     const groundPrey = c => !c.v && !c.gi && c.g !== 'GZ' && laysOf(c.t).includes('ground') && !predator(link(c)) && !apexTier(c, 'ground', CUR.promoted);
     // prey on a layer: not vermin, a grazer, a predator (read as its LINK_AS model) or an apex of that layer (engine VERMIN.preyOn)
     const preyOn = (c, L) => !c.v && c.g !== 'GZ' && laysOf(c.t).includes(L) && !predator(link(c)) && !apexTier(c, L, CUR.promoted);
-    const GIANT_FLY_SKIP = new Set(['GIANT_MOTH', 'GIANT_BUTTERFLY_MONARCH']);
+    const GIANT_FLY_SKIP = new Set(M.giant_fly_skip);
     // every extra wiring of a consumer (engine VERMIN.extras): { side, only, skip, why }
     function extras(c) {
       const out = [];
@@ -470,8 +468,7 @@
     }
     // user 19 Oct: the osprey's and eagle's own diet (engine MODEL.forcedDiet): fish prey and ground snakes, never an apex
     // the extinct apexes' sentient rule (user 20 Oct): ground eat ground, fliers ground/fliers, shore ground/water, water shore/water
-    const HAB_CLASS = { land: 'ground', flier: 'flier', waterbird: 'flier', semiaquatic: 'shore', aquatic: 'water' };
-    const HAB_EATS = { ground: ['ground'], flier: ['ground', 'flier'], shore: ['ground', 'water'], water: ['shore', 'water'] };
+    const HAB_CLASS = M.hab_class, HAB_EATS = M.hab_eats;
     const habEats = (ha, hb) => (HAB_EATS[HAB_CLASS[ha || 'land']] || []).includes(HAB_CLASS[hb || 'land']);
     function forcedDiet(a, b) {
       const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t], d = FORCED_DIET[a.t];
@@ -715,8 +712,10 @@
       let free = cands.filter(x => !taken.has(x.c.t) && room(x).length);
       const hv = hvSet(free, prm);
       out.hv = hv;
-      const direct = L === 'flying';
-      if (!direct && prm.seed) {
+      // G3 (user 20 Oct): growing on links (New Rules), land-flying grows like every layer, with no seed; on the cast ladder
+      // (the tool to v7.6.6) it is drawn slot by slot and its web comes after
+      const direct = L === 'flying' && LINKS === 'engine';
+      if (!direct && prm.seed && L !== 'flying') {
         const seeds = free.filter(x => hv[x.c.t] && !x.c.se && !x.c.ap);
         const s = pick(seeds);
         if (s) {
@@ -841,7 +840,71 @@
         tr.built = n + 1;
         casts[L + '|' + s] = tr;
       });
+      // G3 (user 20 Oct): the last step links the season's land-ground, land-flying and water casts by the rules that work
+      // across layers (New Rules without the hunting pairs, which stay within a cast). Not enumerable: callers loop the casts.
+      if ((prm.links || 'engine') !== 'engine') {
+        const on = Object.assign({}, prm.network || {}, { hunt: false, ladder: false, crossLayer: true });
+        Object.defineProperty(casts, 'cross', { value: [0, 1, 2, 3].map(s => crossLinks(casts, s, on)), enumerable: false });
+      }
       return casts;
+    }
+    const SURFACE = ['ground', 'flying', 'ocean', 'fresh'];
+    const seatsOf = (casts, s, layers) => layers.flatMap(L => { const tr = casts[L + '|' + s]; if (!tr) return [];
+      return tr.members.map(m => ({ t: m.t, L, slot: m.slot, vermin: false })).concat(tr.vermin.map(v => ({ t: v.t, L, slot: 'vermin', vermin: true }))); });
+    const pairWhy = (a, b, on) => linkWhy({ c: BY[a.t], slots: [a.slot], vermin: a.vermin }, { c: BY[b.t], slots: [b.slot], vermin: b.vermin, vclass: BY[b.t].vc }, a.L, on);
+    // one season's cross-layer links: [eater, its layer, eaten, its layer, why] for a pair on no common cast, once per pair
+    function crossLinks(casts, s, on) {
+      const seats = seatsOf(casts, s, SURFACE), out = [], seen = new Set(), together = new Set();
+      for (const a of seats) for (const b of seats) if (a.L === b.L) together.add(a.t + '|' + b.t);
+      for (const a of seats) {
+        if (a.vermin) continue;
+        for (const b of seats) {
+          const k = a.t + '>' + b.t;
+          if (a.L === b.L || a.t === b.t || seen.has(k) || together.has(a.t + '|' + b.t)) continue;
+          const w = pairWhy(a, b, on);
+          if (w.length) { seen.add(k); out.push([a.t, a.L, b.t, b.L, w.map(x => x.d).join(' | ')]); }
+        }
+      }
+      return out;
+    }
+    // CAST HOLES (rebuild plan rev 7; the network analysis v3): one season's surface casts scored as one web with their
+    // cross-layer links, and each cavern cast alone. A predator is an apex or meso seat, or another seat whose creature is a
+    // predator (a sentient seat by its role); vermin never. Returns, per realm, the members, those with no partner, the
+    // predators and those with no prey.
+    function levelOf(e) {
+      const c = BY[e.t];
+      if (e.vermin || c.v) return 'vermin';
+      if (e.slot === 'apex') return 'apex';
+      if (e.slot === 'sentient') return c.ro === 'predator' ? 'predator' : 'prey';
+      return tierOf({ c, slot: e.slot, vermin: false }) >= 2 ? 'predator' : 'prey';
+    }
+    function realmScore(seats, joinAcross, on) {
+      const toks = [...new Set(seats.map(e => e.t))], ix = new Map(toks.map((t, i) => [t, i]));
+      const by = toks.map(() => []); seats.forEach(e => by[ix.get(e.t)].push(e));
+      const eatsAny = toks.map(() => false), partner = toks.map(() => false);
+      for (let i = 0; i < toks.length; i++) for (let j = 0; j < toks.length; j++) {
+        if (i === j) continue;
+        let hit = false;
+        for (const a of by[i]) { if (a.vermin) continue; for (const b of by[j]) {
+          if (a.L !== b.L && !joinAcross) continue;
+          if (pairWhy(a, b, a.L === b.L ? on.within : on.across).length) { hit = true; break; } } if (hit) break; }
+        if (hit) { eatsAny[i] = true; partner[i] = true; partner[j] = true; }
+      }
+      const r = { members: toks.length, unlinked: [], predators: 0, unfed: [] };
+      toks.forEach((t, i) => {
+        if (!partner[i]) r.unlinked.push(t);
+        const lv = levelOf(by[i][0]);
+        if (lv === 'apex' || lv === 'predator') { r.predators++; if (!eatsAny[i]) r.unfed.push(t); }
+      });
+      return r;
+    }
+    function seasonHoles(casts, s, prm) {
+      const within = Object.assign({}, prm.network || {}), across = Object.assign({}, within, { hunt: false, ladder: false, crossLayer: true });
+      const on = { within, across }, out = {};
+      const surf = seatsOf(casts, s, SURFACE).filter(e => BY[e.t]);
+      if (surf.length) out.surface = realmScore(surf, true, on);
+      for (const L of ['cavern1', 'cavern2', 'cavern3']) { const cs = seatsOf(casts, s, [L]).filter(e => BY[e.t]); if (cs.length) out[L] = realmScore(cs, false, on); }
+      return out;
     }
     // N years: per layer, how often each species is cast, seeded, apex
     function years(B, spec, prm, n, site) {
@@ -900,7 +963,7 @@
       LINKS = keep;
       return edges;
     }
-    return { M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, extras, link, forcedPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
+    return { seasonHoles, crossLinks, OFF_LAYERS, M, BY, P0, LAYERS, SLOT_ORDER, tierOf, build, year, years, cast, potentialEdges, vanillaEdges, vanillaEats, linkWhy, FAMILIES, NEW_RULES, gobbleSet, allowedSides, sidesOf, FRESH_EATERS, groundPrey, extras, link, forcedPrey, useBuild: B => { CUR = { P: B.P, promoted: B.promoted || new Set(), mapOnly: B.mapOnly || {}, apexOn: B.apexOn || {} }; }, apexBar, rawSides, huntFlag, armedWhy, slotsFor, apexTier, predator, eats, layersOf, pool, Rng, hvSet, codeFor };
   }
 
   const api = { make, LAYERS };

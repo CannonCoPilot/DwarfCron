@@ -106,6 +106,8 @@ button.cast ul{list-style:none;margin:2px 0;padding:0;display:grid;gap:1px}.year
 .yeargrid li.apex{font-weight:700}.yeargrid em{font-style:normal;font:600 .6rem var(--mono);text-transform:uppercase;color:var(--accent)}
 .built{font:600 .6rem var(--mono);color:var(--muted);text-transform:uppercase}.verm{font-size:.72rem;color:var(--muted);margin:2px 0 0}
 .warnline{font-size:.7rem;color:var(--warn);margin:2px 0 0}
+.yeargrid td>p.note,.yeargrid summary{font-size:.72rem;margin:2px 0}.yeargrid summary{cursor:pointer;font-family:var(--mono)}
+.yeargrid ul.cross{list-style:none;margin:2px 0;padding:0;display:grid;gap:1px;max-height:240px;overflow:auto}.yeargrid ul.cross li{display:block;font-size:.72rem}
 .tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}.tabs button{font:inherit;font-size:.8rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 11px;cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:10px}
@@ -126,7 +128,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
 BODY = r"""
 <div class="wrap">
 <header class="top">
-  <span class="eyebrow">Seasonal Wildlife · the cast builder of engine v7.6.1 · DF 53.16 raws</span>
+  <span class="eyebrow">Seasonal Wildlife · v42 · the v8 cast builder on New Rules (rebuild plan rev 7) · DF 53.16 raws</span>
   <h1>Food Web Explorer</h1>
   <p>Every wild creature in the raws, the feeding links seasonal-wildlife imposes on them (each rule switchable, each link clickable for the rule and numbers behind it), and the cast builder, running in the page.
   Choose a fort on the left; the network shows what passes its gates, layer by layer. Then build casts below and change the rules
@@ -219,14 +221,16 @@ BODY = r"""
   <details class="how"><summary>How the cast builder decides</summary>
   <ol>
     <li><b>Gates.</b> A creature is a candidate when it is wild and natural, its BIOME (with the tool's own additions and limits) names one of the fort's biomes, and it passes that biome's savagery, good/evil and extinct rules.</li>
-    <li><b>Layers.</b> Land-ground, land-flying, ocean, freshwater (one cast: lake, else river or brook, else murky pool) and caverns 1 to 3 (your cavern picks, or DF's raw depth).</li>
+    <li><b>Layers.</b> Land-ground, land-flying, ocean, freshwater (one cast: lake, else river or brook, else murky pool) and caverns 1 to 3 (your cavern picks, or DF's raw depth). The giant mosquito and giant dragonfly are never on land-flying (G2, user 20 Oct).</li>
     <li><b>Slots.</b> Each layer has a slot table (apex, meso, grazer, ground prey, flier, fish, pelagic, shore, waterbird, swimmer, sentient, vermin); a creature's habitat, guild and apex eligibility say which slots it can take.</li>
     <li><b>Apex.</b> A weighted draw among the eligible apexes in season: the square root of group size (body × mean pack) against the largest, times the pick weight.</li>
     <li><b>Seed.</b> One high-value species (war-trainable, or the top share by pet value or by body size; never sentient), not on land-flying.</li>
-    <li><b>Growth.</b> Candidates linked to any member (it eats a member or a member eats it) fill the emptiest slot, by pick weight; a slot nothing links to is filled anyway. Pick weight: pack hunters ×pack bonus, animal people ×, giants ×, ×repeat weight per cast already holding the species this year (a sentient seat counts only against its later sentient seats), and in caverns the weirdness tilt.</li>
+    <li><b>Growth.</b> On New Rules (v8; the cast ladder up to v7.6.6), on every layer, land-flying included (G3, user 20 Oct). Candidates linked to any member (it eats a member or a member eats it) fill the emptiest slot, by pick weight; a slot nothing links to is filled anyway. Pick weight: pack hunters ×pack bonus, animal people ×, giants ×, ×repeat weight per cast already holding the species this year (a sentient seat counts only against its later sentient seats), and in caverns the weirdness tilt.</li>
     <li><b>Sentients.</b> Every layer has one sentient slot; a sentient fills only that slot (the harpy and nightwing also keep their evil flying apex seat).</li>
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
+    <li><b>Across layers.</b> Last, the season's land-ground, land-flying and water casts are linked by the New Rules that work across layers: DF's diet tokens, the vermin the tool feeds, and mass and numbers. Hunting pairs stay within one cast (G3, user 20 Oct).</li>
+    <li><b>Holes.</b> Each season is scored as one surface web plus each cavern alone. A member with no partner, and a predator without prey, are listed under the year (a predator is an apex or meso seat, or a creature that is a predator by role; vermin never). Rig tests hold the tool to these.</li>
   </ol>
   <p class="small"><b>New Rules</b> is the rule set we are building together, one rule at a time; its current rules are listed in the switch's tooltip and in every link's popup. It holds DF's own diet tokens, the vermin the tool feeds, mass and numbers trimmed by the vermin side rules, and (20 Oct) the hunting pairs written in play.</p>
   <p class="small"><b>The network's links are the rules seasonal-wildlife applies to creatures</b> (engine v7.6.1; switch each on or off above the network):
@@ -244,6 +248,7 @@ BODY = r"""
   In the Levels layout an apex or predator that eats nothing under the links switched on is drawn in the prey tier.
   Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
   <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
+  The rule tables come from the one copy, the plugin's rules/new-rules.json (user 20 Oct); the engine is held to it by its rules check.
   Not modelled: DF's own stocking on a real fort (stocked water entries, the zone read from stocked species), exhaustion stand-ins, placed thieves and apexes, and everything after the cast (FREQUENCY, caps, pauses).
   Source: castsim foodweb_export.py and foodweb_sim.js, checked against the desk simulator (exact pools, layers and slots; cast rates within sampling noise).</p>
   </details>

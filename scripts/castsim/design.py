@@ -26,11 +26,10 @@ from __future__ import annotations
 import math
 import random
 
+import rules as R
 from engine import Engine, REACH, R0, CAST_DEF, ROLE, HABITAT_OVERRIDE, GUILD_OVERRIDE
 
 SAVAGE_AT, EVIL_AT, GOOD_AT = 66, 66, 32          # DF: savagery 66+ = savage; evil 66+ = evil, 0-32 = good
-SALT_WET = {'MARSH_TEMPERATE_SALTWATER', 'MARSH_TROPICAL_SALTWATER', 'SWAMP_TEMPERATE_SALTWATER', 'SWAMP_TROPICAL_SALTWATER',
-            'SWAMP_MANGROVE'}
 POOL_CAP = 20000                                   # "small" for the murky-pool mini roster, cm3 (engine V7.WB.POOL_MAX_MASS)
 SUBTER = ('SUBTERRANEAN_WATER', 'SUBTERRANEAN_CHASM')
 EXTINCT_RULE = {
@@ -44,197 +43,32 @@ EXTINCT_RULE = {
 LAYERS = ['ground', 'flying', 'ocean', 'fresh', 'cavern1', 'cavern2', 'cavern3']
 LAYER_NAME = {'ground': 'land-ground', 'flying': 'land-flying', 'ocean': 'ocean (saltwater)', 'fresh': 'freshwater',
               'cavern1': 'cavern 1', 'cavern2': 'cavern 2', 'cavern3': 'cavern 3'}
-# slot -> (min, max) per cast; the count is drawn per cast inside the range
-SLOTS = {
-    'ground': {'apex': (1, 1), 'meso': (2, 2), 'grazer': (2, 2), 'ground prey': (2, 2), 'sentient': (1, 1), '_vermin': (3, 3)},
-    'flying': {'apex': (1, 1), 'flier': (2, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
-    'ocean': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'pelagic': (1, 1), 'shore': (1, 2), 'waterbird': (1, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
-    'fresh:lake': {'apex': (1, 1), 'meso': (1, 2), 'fish': (3, 3), 'shore': (1, 2), 'waterbird': (1, 2), 'sentient': (1, 1), '_vermin': (2, 3)},
-    'fresh:river': {'meso': (1, 1), 'fish': (2, 2), 'shore': (1, 1), 'waterbird': (1, 1), 'sentient': (1, 1), '_vermin': (2, 2)},
-    'fresh:pool': {'meso': (1, 1), 'fish': (2, 2), 'sentient': (1, 1), '_vermin': (2, 2)},
-    'cavern': {'apex': (1, 1), 'meso': (1, 1), 'ground prey': (1, 1), 'flier': (1, 1), 'swimmer': (1, 1), 'sentient': (1, 1), '_vermin': (2, 2)},
-}
 SLOT_LABEL = {'swimmer': 'amphib or aquatic', 'flier': 'flier'}
 
-# a first-cut weirdness score for the cavern species (0 = a real animal's cave form, 1 = wholly alien); the user's call.
-# Low: cave forms of real animals. Middle: cave animal people, humanoids, odd-but-animal. High: bodiless, eyeballs, blobs.
-WEIRD = {
-    'BAT_GIANT': .10, 'RAT_GIANT': .10, 'RAT_LARGE': .05, 'MOLE_GIANT': .10, 'MOLE_DOG_NAKED': .10, 'BLIND_CAVE_BEAR': .15,
-    'CROCODILE_CAVE': .15, 'OLM_GIANT': .15, 'TOAD_GIANT_CAVE': .15, 'BIRD_SWALLOW_CAVE_GIANT': .15, 'GIANT_EARTHWORM': .20,
-    'SPIDER_CAVE_GIANT': .25, 'HELMET_SNAKE': .35, 'POND_GRABBER': .40, 'ELK_BIRD': .40, 'DRALTHA': .45,
-    'TROGLODYTE': .30, 'RODENT MAN': .35, 'OLM_MAN': .35, 'CAVE_FISH_MAN': .35, 'BAT_MAN': .35, 'CAVE_SWALLOW_MAN': .35,
-    'AMPHIBIAN_MAN': .40, 'REPTILE_MAN': .40, 'SERPENT_MAN': .40, 'ANT_MAN': .45, 'TROLL': .50, 'BLIND_CAVE_OGRE': .50,
-    'GREMLIN': .55, 'DRUNIAN': .55, 'GORLAK': .60, 'MANERA': .60, 'PLUMP_HELMET_MAN': .65, 'CRUNDLE': .60, 'BUGBAT': .60,
-    'MOLEMARIAN': .65, 'RUTHERER': .65, 'MAGMA_CRAB': .60, 'CAVE_DRAGON': .70, 'JABBERER': .70, 'REACHER': .75,
-    'VORACIOUS_CAVE_CRAWLER': .75, 'CAVE_FLOATER': .80, 'GREEN_DEVOURER': .80, 'CAVE_BLOB': .90, 'FLOATING_GUTS': .90,
-    'FLESH_BALL': .90, 'CREEPING_EYE': .95, 'HUNGRY_HEAD': .95,
-    # cavern vermin
-    'FISH_CAVE': .10, 'LOBSTER_CAVE': .15, 'OLM': .10, 'BIRD_SWALLOW_CAVE': .10, 'SPIDER_CAVE': .15, 'CAP_HOPPER': .55,
-    'CREEPY_CRAWLER': .60, 'MAGGOT_PURRING': .70, 'SNAKE_FIRE': .70,
-}
-
-
-# Real-life apex predators that DF does not tag LARGE_PREDATOR (several not even CARNIVORE, so the tool reads them as
-# prey). 'apex': joins the apex draw like a flagged predator. 'local': apex only where no true apex is in season on the
-# layer (the top predator of a small or depleted community). Proposed 10 Oct; the user's call.
-# user 17 Oct: a species read as another for every feeding link and the slots that steer them (engine ROSTER.FP.LINK_AS)
-LINK_AS = {'GIGANTIC SQUID': 'GIANT_OCTOPUS', 'GIANT_LEOPARD_SEAL': 'LEOPARD_SEAL'}
-# user 17 Oct: every apex of the layer takes this species (engine ROSTER.FP.FORCED_PREY)
-FORCED_PREY = {'LEOPARD_SEAL': 'ocean'}
-# user 19 Oct: on the surface only a land-flying predator or apex eats the bat (engine ROSTER.FP.FLIER_ONLY_PREY)
-FLIER_ONLY_PREY = {'BAT'}
-# user 19 Oct: the osprey and eagle eat every ocean and freshwater fish prey and ground snake, never an apex (engine
-# MODEL.forcedDiet). The desk has no body plan, so it models the fish only: no cast holds them with a ground snake.
-_FISH_LAND_VERMIN = [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH'), ('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]
-FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp vermin, and the hare
-    'BIRD_OSPREY': {'fish': True, 'noPelagic': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},   # 20 Oct: no pelagic fish
-    'BIRD_EAGLE': {'fish': True, 'noPelagic': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
-    'BIRD_OWL_GREAT_HORNED': {'prey': ['HARE'], 'vermin': [('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]},
-    # user 19 Oct: the peregrine takes ground snakes and never the raven, duck or rabbit
-    'BIRD_FALCON_PEREGRINE': {'snake': True, 'never': ['BIRD_RAVEN', 'BIRD_DUCK', 'RABBIT'], 'vermin': []},
-    # user 19 Oct: the grizzly and black bear take every ocean vermin and freshwater small fish; the polar bear every
-    # non-vermin on the ocean layer (no cast holds a bear with ocean creatures, so the desk's casts do not change)
-    'BEAR_GRIZZLY': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
-    'BEAR_BLACK': {'vermin': [('OCEAN',), ('FRESH', 'SWV_SMALL_FISH')]},
-    'BEAR_POLAR': {'ocean': True, 'vermin': []},
-    # user 19 Oct: the alligator takes nothing that flies, no insect vermin, and every swimming (ocean or freshwater) vermin.
-    # The desk's ladder has no vermin types; the alligator's ladder vermin are small fish only, so only noFliers matters here.
-    'ALLIGATOR': {'noFliers': True, 'noTypes': ['SWV_FLYING_INSECT', 'SWV_GROUND_BUG', 'SWV_COLONY'], 'swimVermin': True,
-                  'vermin': [('OCEAN',), ('FRESH',)]},
-    # user 20 Oct (engine ROSTER.FP.FORCED_DIET)
-    'CROCODILE_CAVE': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
-    'BLIND_CAVE_BEAR': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
-    'BAT_GIANT': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
-    'HIPPO': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
-    'GIANT_HIPPO': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
-    'BEAVER': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
-    'GIANT_ALLIGATOR': {'prey': ['GIANT_HIPPO'], 'vermin': []},
-    'HARPY': {'sentients': ['ground', 'flying'], 'overApex': True, 'vermin': []},
-    'GRIMELING': {'sentients': ['ocean', 'fresh'], 'overApex': True, 'vermin': []},
-    'CRETACEOUS_UTAHRAPTOR': {'bigPrey': 1000000, 'vermin': []},
-    # user 20 Oct (later): the pterosaurs take every flying vermin and the freshwater flying insects
-    'CRETACEOUS_SINOPTERUS': {'vermin': [('FLYING',), ('FRESH', 'SWV_FLYING_INSECT')]},
-    'JURASSIC_RHAMPHORHYNCHUS': {'vermin': [('FLYING',), ('FRESH', 'SWV_FLYING_INSECT')]},
-    'CRETACEOUS_QUETZALCOATLUS': {'vermin': [('FLYING',), ('FRESH', 'SWV_FLYING_INSECT')]},
-}
-# user 20 Oct: the extinct apexes eat any non-apex sentient by habitat class (engine MODEL.habEats)
-HAB_CLASS = {'land': 'ground', 'flier': 'flier', 'waterbird': 'flier', 'semiaquatic': 'shore', 'aquatic': 'water'}
-HAB_EATS = {'ground': {'ground'}, 'flier': {'ground', 'flier'}, 'shore': {'ground', 'water'}, 'water': {'shore', 'water'}}
-REAL_APEX = {
-    'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
-    'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
-    'LYNX': ('ground', 'local', 'the Eurasian lynx tops forests that have no wolves or bears'),
-    'COYOTE': ('ground', 'local', 'the apex where wolves are gone; hunts in packs'),
-    'WOLVERINE': ('ground', 'local', 'tops tundra and taiga communities; drives wolves off kills'),
-    'BIRD_FALCON_PEREGRINE': ('flying', 'apex', 'the apex aerial hunter of other birds (under the 2,000 cm3 raptor floor)'),
-    # user 17 Oct: "take away apex from leopard seal" (every ocean apex takes it: FORCED_PREY) and give the giant leopard seal apex
-    'GIANT_LEOPARD_SEAL': ('ocean', 'apex', 'user 17 Oct: apex/meso/shore, with the leopard seal\'s links (LINK_AS)'),
-    'FISH_GROUPER_GIANT': ('ocean', 'local', 'top reef predator where sharks are few (DF: read as fish prey)'),
-    'FISH_BARRACUDA_GREAT': ('ocean', 'local', 'a reef top predator (DF: read as fish prey)'),
-    'FISH_PIKE': ('fresh', 'apex', 'the top predator of northern lakes and rivers (DF: read as fish prey)'),
-    'FISH_GAR_LONGNOSE': ('fresh', 'local', 'top predator of warm rivers without crocodilians (DF: read as fish prey)'),
-    'ALLIGATOR SNAPPING TURTLE': ('fresh', 'local', 'the ambush apex of southern rivers'),
-    # user 13 Oct: two more freshwater apexes
-    'FISH_TIGERFISH': ('fresh', 'apex', 'the goliath tigerfish tops African rivers and lakes'),
-    'ANACONDA': ('fresh', 'apex', 'the apex of Amazon rivers and lakes (reaches tropical lakes and rivers through EXTRA_BIOMES)'),
-}
-# Real-life hunters DF does not tag CARNIVORE (or BONECARN), so the tool reads them as prey (user 12 Oct: apply). Upper-level
-# predators only: mid-level fish (cod, carp, bluefish, skate) stay in the fish slot, penguins stay shore birds. In the
-# engine this is MODEL.ROLE = 'predator' entries.
-REAL_CARNIVORE = {
-    'FISH_PIKE': 'freshwater ambush predator of fish, frogs, ducklings', 'FISH_GAR_LONGNOSE': 'freshwater fish hunter',
-    'FISH_TIGERFISH': 'pack-hunting freshwater predator', 'FISH_BARRACUDA_GREAT': 'reef predator of fish',
-    'FISH_GROUPER_GIANT': 'reef predator: fish, rays, small sharks, turtles', 'FISH_CONGER_EEL': 'nocturnal fish and octopus hunter',
-    'FISH_MARLIN': 'pelagic hunter of tuna and squid', 'FISH_SWORDFISH': 'pelagic hunter of fish and squid',
-    'FISH_TUNA_BLUEFIN': 'pelagic hunter of fish and squid', 'FISH_HALIBUT': 'large benthic fish hunter',
-    'FISH_COELACANTH': 'deep-water fish hunter', 'FISH_OPAH': 'hunter of squid and small fish',
-    'SHARK_ANGEL': 'ambush shark', 'SHARK_NURSE': 'benthic shark: fish, crustaceans, squid', 'SHARK_REEF_WHITETIP': 'reef shark',
-    'SHARK_SPINY_DOGFISH': 'pack-hunting small shark', 'SHARK_WOBBEGONG_SPOTTED': 'ambush shark',
-    'LEOPARD_SEAL': 'hunts penguins and other seals', 'ELEPHANT_SEAL': 'hunts squid and fish', 'HARP_SEAL': 'hunts fish and crustaceans',
-    'WALRUS': 'eats clams; takes seals at times', 'MINK': 'semiaquatic hunter of fish, frogs, rodents', 'WEASEL': 'hunter of rodents and birds',
-    # user 13 Oct: giant bugs eat whatever they can catch (the raws give these no CARNIVORE)
-    'GIANT_MANTIS': 'ambush hunter', 'GIANT_DRAGONFLY': 'the top aerial insect predator', 'GIANT_TICK': 'blood-feeder, carries disease',
-    'GIANT_MOSQUITO': 'blood-feeder, carries disease', 'GIANT_ROACH': 'eats anything it can catch',
-}
+# The rule tables (user 9-20 Oct) live in one copy, sw-wt/plugin rules/new-rules.json (user 20 Oct, Q2), with the user's
+# reasons in its _notes; castsim.rules reads it. The names below are the desk's, kept for its callers.
+SLOTS = R.SLOTS                    # slot -> (min, max) per cast; the count is drawn per cast inside the range
+SALT_WET = R.SALT_WET
+WEIRD = R.WEIRD                    # cavern weirdness 0-1 (0 a real animal's cave form, 1 wholly alien)
+LINK_AS, FORCED_PREY, FLIER_ONLY_PREY = R.LINK_AS, R.FORCED_PREY, R.FLIER_ONLY_PREY
+FORCED_DIET = R.FORCED_DIET        # engine MODEL.forcedDiet; the desk models the fish, the named prey and noFliers
+HAB_CLASS, HAB_EATS = R.HAB_CLASS, R.HAB_EATS   # the extinct apexes' sentient rule (engine MODEL.habEats)
+REAL_APEX = R.REAL_APEX            # (layer, 'apex'|'local', why): 'local' only where no true apex is in season
+REAL_CARNIVORE = R.ROLE_NOTE       # real-life hunters DF does not tag CARNIVORE (engine MODEL.ROLE 'predator' entries)
 REUSE = 0.01          # x per cast the species is already on this year (user 12 Oct; was CAST_DEF reuse 0.1)
-# sponges are placed like plants on the bed (user 30 Sep, 12 Oct): they pass the wild and natural filters and the biome
-# gates, enter the water layers they live in, and take no cast slot; the sponge man is a natural filter-feeder creature
-PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
-# Evil apexes for the layers an evil region had none on (user 12 Oct): the harpy (EVIL, LARGE_PREDATOR raptor; kept out of
-# the flying apex only by its sentience) on land-flying, the grimeling (EVIL, LARGE_PREDATOR semiaquatic hunter of marshes
-# and swamps; DF tags it NO_EAT+NO_DRINK, so it is let through the natural filter like the sponge man) on freshwater.
-# Wired into every land biome / freshwater body of an evil region.
-EVIL_APEX = {'HARPY': 'flying', 'GRIMELING': 'fresh', 'NIGHTWING': 'flying'}
-# user 20 Oct: the grimeling is on land-ground too where it matches a marsh or swamp (engine ROSTER.FP.WETLAND_GROUND)
-WETLAND_GROUND = {'GRIMELING'}
-# user 13 Oct: the nightwing (EVIL, LARGE_PREDATOR desert flier; DF tags it NO_EAT+NO_DRINK and sentient) is the evil desert
-# flier, wired only into an evil region's deserts (the harpy covers its grass, savanna, shrub and marsh)
-EVIL_APEX_BIOMES = {'NIGHTWING': {'DESERT_BADLAND', 'DESERT_ROCK', 'DESERT_SAND'}}
-def _bx(*names):
-    """biome names, ANY_* groups expanded"""
-    from raws import AGG
-    return {b for n in names for b in AGG.get(n, [n])}
-
-
-# Tool-side biome additions (user 13 Oct): the species is treated as living in these biomes as well as its raws' own. Apex
-# predators stuck in tropical-only subtypes (DF rarely makes tropical land) moved into the realistic ecotypes beside them,
-# MOUNTAIN given its first true apex, and the temperate wetlands kept an apex once the dingo is narrowed. The gates
-# (savage, alignment, extinct) still apply per biome. In the engine: ROSTER.EXTRA_BIOMES, read by buildPool.
-EXTRA_BIOMES = {
-    'LION': _bx('GRASSLAND_TEMPERATE', 'SAVANNA_TEMPERATE', 'SHRUBLAND_TEMPERATE', 'DESERT_BADLAND', 'DESERT_SAND'),
-    'TIGER': _bx('GRASSLAND_TROPICAL', 'SAVANNA_TROPICAL', 'FOREST_TAIGA', 'ANY_TEMPERATE_FOREST', 'GRASSLAND_TEMPERATE'),
-    'HYENA': _bx('ANY_DESERT', 'SAVANNA_TEMPERATE'),
-    'CHEETAH': _bx('DESERT_SAND', 'DESERT_ROCK', 'SAVANNA_TEMPERATE'),
-    'PYTHON': _bx('ANY_TROPICAL_SWAMP', 'ANY_TROPICAL_MARSH', 'FOREST_TROPICAL_DRY_BROADLEAF', 'GRASSLAND_TROPICAL', 'SAVANNA_TROPICAL'),
-    'MONITOR_LIZARD': _bx('ANY_DESERT', 'SWAMP_MANGROVE', 'MARSH_TROPICAL_FRESHWATER'),
-    'COUGAR': _bx('MOUNTAIN', 'DESERT_BADLAND', 'DESERT_ROCK', 'GRASSLAND_TEMPERATE', 'SWAMP_TEMPERATE_FRESHWATER'),
-    'LEOPARD': _bx('MOUNTAIN'),
-    'JAGUAR': _bx('ANY_TEMPERATE_WETLAND'),
-    'BEAR_BLACK': _bx('ANY_TEMPERATE_WETLAND'),
-    'WOLF': _bx('ANY_TEMPERATE_WETLAND'),
-    'ANACONDA': _bx('LAKE_TROPICAL_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
-    # user 20 Oct: the grimeling to any marsh, any swamp, any lake or any river (its raws name every marsh and swamp already)
-    'GRIMELING': _bx('ANY_LAKE', 'ANY_RIVER'),
-    # user 17 Oct: the giant dragonfly and giant mosquito hunt over lakes and rivers; the mosquito is freshwater vermin
-    'GIANT_DRAGONFLY': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'GIANT_MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'), 'MOSQUITO': _bx('LAKE_TEMPERATE_FRESHWATER', 'LAKE_TROPICAL_FRESHWATER', 'RIVER_TEMPERATE_FRESHWATER', 'RIVER_TROPICAL_FRESHWATER'),
-}
-# ... and on evil biomes only: the evil roster widened beyond its narrow raw ranges (user 13 Oct)
-EVIL_EXTRA_BIOMES = {
-    'BEAK_DOG': _bx('ANY_WETLAND'),
-    'STRANGLER': _bx('ANY_TROPICAL_FOREST', 'ANY_TEMPERATE_FOREST'),
-    'BLENDEC_FOUL': _bx('ANY_FOREST'),
-    'OGRE': _bx('MOUNTAIN', 'ANY_DESERT'),
-}
-# the dingo's raws say NOT_FREEZING (23 of 27 land biomes), so it took half the ground apex draws: kept to arid, open and dry
-# country (user 13 Oct)
-BIOME_LIMIT = {
-    'DINGO': _bx('ANY_DESERT', 'ANY_GRASSLAND', 'ANY_SAVANNA', 'ANY_SHRUBLAND', 'FOREST_TROPICAL_DRY_BROADLEAF', 'FOREST_TEMPERATE_BROADLEAF'),
-}
-# Giant bug apexes (user 13 Oct): the giant bug-likes that hunt (the three giant arachnids, and five the raws left without
-# CARNIVORE, made predators in REAL_CARNIVORE) live in ANY savage or evil land biome of the fort, a calm evil one included
-# (past their giant SAVAGE tag), and are true apexes there; a flier is eligible on land-ground as well as land-flying.
-GIANT_BUGS = {'GIANT_JUMPING_SPIDER', 'GIANT_BARK_SCORPION', 'GIANT_BROWN_RECLUSE_SPIDER', 'GIANT_MANTIS', 'GIANT_DRAGONFLY',
-              'GIANT_TICK', 'GIANT_MOSQUITO', 'GIANT_ROACH'}
-# user 17 Oct ("Changing Vermin the Tool Feeds"; engine ROSTER.FP.HABITAT / WATER_BUG_APEX / VERMIN_FRESH): the giant mantis and
-# giant roach are fliers, not waterbirds; no giant bug flier is on land-ground; the giant dragonfly and giant mosquito are
-# freshwater apexes and waterbirds (lake: apex + waterbird; river: waterbird); the mosquito is freshwater vermin only
-HABITAT = {'GIANT_MANTIS': 'flier', 'GIANT_ROACH': 'flier',
-           # user 20 Oct: the gila monster is a desert land animal (its raws' AMPHIBIOUS read semiaquatic); the giant follows
-           'GILA_MONSTER': 'land', 'GIANT_GILA_MONSTER': 'land'}
-# user 20 Oct: white stork and kea land-bird prey; puffin, loon and albatross waterbird prey (engine MODEL.ROLE 'prey' and
-# MODEL.GUILD_OVERRIDE; the four were REAL_CARNIVORE from 12 Oct, the kea's BONECARN reads raptor)
-PREY_BIRDS = {'BIRD_STORK_WHITE': 'LB', 'BIRD_KEA': 'LB', 'BIRD_PUFFIN': 'WB', 'BIRD_LOON': 'WB', 'BIRD_ALBATROSS': 'WB'}
-# seabirds and the stork are never flying apexes (engine ROSTER.FLY_NOT_RAPTOR)
-FLY_NOT_RAPTOR = {'BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'}
-WATER_BUG_APEX = {'GIANT_DRAGONFLY', 'GIANT_MOSQUITO'}
-VERMIN_FRESH = {'MOSQUITO'}
-VERMIN_GROUND = {'ROACH_LARGE'}
-VERMIN_INSECT = {'FAIRY'}   # user 19 Oct: the fairy is a flying insect (engine VERMIN.SWV_OVERRIDE; cast class VI)   # user 17 Oct: the large roach is ground vermin (engine ROSTER.FP.VERMIN_GROUND; class VG)
-APEX_PACK = 1.5       # the apex draw's pack bonus (user 13 Oct; was the cast-wide x3): group size already counts the pack
+PLACED_PLANTS = R.PLACED_PLANTS    # placed like plants on the bed, no cast slot
+EVIL_APEX, EVIL_APEX_BIOMES, WETLAND_GROUND = R.EVIL_APEX, R.EVIL_APEX_BIOMES, R.WETLAND_GROUND
+EXTRA_BIOMES, EVIL_EXTRA_BIOMES, BIOME_LIMIT = R.EXTRA_BIOMES, R.EVIL_EXTRA_BIOMES, R.BIOME_LIMIT
+GIANT_BUGS, WATER_BUG_APEX = R.GIANT_BUGS, R.WATER_BUG_APEX
+OFF_LAYERS = R.OFF_LAYERS          # G2 (user 20 Oct): layers a species is never on
+HABITAT = R.HABITAT_OVERRIDE
+PREY_BIRDS = {t: g for t, g in R.GUILD_OVERRIDE.items() if R.ROLE.get(t) == 'prey'}
+FLY_NOT_RAPTOR = R.FLY_NOT_RAPTOR  # seabirds and the stork are never flying apexes
+VERMIN_FRESH, VERMIN_GROUND = R.VERMIN_FRESH, R.VERMIN_GROUND
+VERMIN_INSECT = {t for t, c in R.SWV_OVERRIDE.items() if c == 'SWV_FLYING_INSECT'}   # the fairy (cast class VI)
+APEX_PACK = R.APEX_PACK            # the apex draw's pack bonus: group size already counts the pack
 APEX_FLOOR = 0.0      # no size floor: the square-root weight already favours the large (a 10% floor cut lions beside ogres)
-# filter feeders DF marks NO_EAT+NO_DRINK: kept natural (user 10 Oct); an immobile sponge is placed like a plant on the
-# bed (user 30 Sep) and takes no cast slot
-FILTER_FEEDERS = {'SPONGE_MAN'}
+FILTER_FEEDERS = R.FILTER_FEEDERS  # NO_EAT+NO_DRINK filter feeders kept natural (user 10 Oct)
 
 
 def weird_weight(k, s):
@@ -316,9 +150,9 @@ class Design:
         self.apex_any = {}        # token -> the layers it is an apex of on the current embark (never prey)
         self.cur_pool = {}        # the current embark's pool (LINK_AS models)
         self.promoted = set()     # (layer, token): true apexes by hand-wiring on the current embark
-        for tok in REAL_CARNIVORE: ROLE.setdefault(tok, 'predator')   # the CARNIVORE classifier fix (before any classify)
-        for tok, g in PREY_BIRDS.items(): ROLE[tok] = 'prey'; GUILD_OVERRIDE[tok] = g
-        HABITAT_OVERRIDE.update(HABITAT)
+        ROLE.update(R.ROLE)   # the rules file's roles, guilds and habitats, before any classify
+        GUILD_OVERRIDE.update(R.GUILD_OVERRIDE)
+        HABITAT_OVERRIDE.update(R.HABITAT_OVERRIDE)
         self.E = Engine(raws, align={'good': True, 'evil': True})   # alignment is gated per biome below
         self.R = self.E.R
 
@@ -499,6 +333,8 @@ class Design:
             for k in spec.get('caverns') or ():
                 if (not lo or not hi) or lo <= k <= hi: out.append(f'cavern{k}')
                 else: notes.append((f'cavern{k}', f'raw depth {lo}-{hi}'))
+        off = OFF_LAYERS.get(e['token'], ())   # G2 (user 20 Oct): the giant mosquito and giant dragonfly are never on land-flying
+        for L in [L for L in out if L in off]: out.remove(L); notes.append((L, 'never on this layer (rules OFF_LAYERS, G2)'))
         return out, notes
 
     # ------------------------------------------------------------------ slot eligibility

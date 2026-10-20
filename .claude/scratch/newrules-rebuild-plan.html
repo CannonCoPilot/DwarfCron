@@ -55,7 +55,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · 20 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phase A done · 20 Oct 2026</span>
   <h1>New Rules Rebuild</h1>
   <p class="lede">Port the New Rules into the tool exactly as the Food Web Explorer defines them. The same rules grow every season's casts, link the season's layers, and decide what the tool writes in play. The explorer is the specification, and rig tests check that the tool follows it.</p>
   <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>analysis v3 · ae2b9a50</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
@@ -93,19 +93,19 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <section>
   <h2>The targets the rig tests check</h2>
-  <p>These are the explorer's predictions with G2 and G3, over 200 years (800 seasons) on each of the six analysis forts. A season's surface casts are scored as one web. A predator is an apex or meso seat, or a sentient seat whose creature is a predator by role. Vermin are never predators.</p>
+  <p>These are the explorer's own predictions (v42, its builder with G2 and G3, regenerated in Phase A), over 200 years (800 seasons) on each of the six analysis forts. A season's surface casts are scored as one web. A predator is an apex or meso seat, or a sentient seat whose creature is a predator by role. Vermin are never predators.</p>
   <div class="tbl"><table>
     <thead><tr><th>Fort</th><th>Surface members with no partner</th><th>Seasons with any</th><th>Predators without prey</th><th>Caverns</th></tr></thead>
     <tbody>
       <tr><td>Terrifying broadleaf, river</td><td class="num">52 of 20,356 (0.26%)</td><td class="num">6.5%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
       <tr><td>Calm temperate lake</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
-      <tr><td>Savage tropical coast</td><td class="num">29 of 30,553 (0.09%)</td><td class="num">3.6%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Savage tropical coast</td><td class="num">28 of 30,557 (0.09%)</td><td class="num">3.5%</td><td class="num">0</td><td class="num">1 · 0</td></tr>
       <tr><td>Good temperate brook</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
       <tr><td>Evil tundra, murky pools</td><td class="num">104 of 16,379 (0.63%)</td><td class="num">13.0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
       <tr><td>Savage good arctic coast</td><td class="num">92 of 23,204 (0.40%)</td><td class="num">10.3%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
     </tbody>
   </table></div>
-  <p class="note">Caverns: members with no partner · predators without prey. The surface residue is mostly giant herbivores (brachiosaurus, brontosaurus, deinotherium, woolly mammoth) whose few eaters weren't cast that season. That comes from the draw, not from a missing rule, and the tool should show the same residue. These come from the analysis prototype of G2 and G3. Phase A rebuilds them in the explorer itself and republishes this table from it. Any change there is reported before Phase B starts.</p>
+  <p class="note">Caverns: members with no partner · predators without prey. The surface residue is mostly giant herbivores (brachiosaurus, brontosaurus, deinotherium, woolly mammoth) whose few eaters weren't cast that season. That comes from the draw, not from a missing rule, and the tool should show the same residue. Against the analysis prototype, five forts are identical and the tropical coast moved by one surface member. G2 done properly (the two bugs lose the layer, not only the list) shifts the random draws. That also turned up one cavern member with no partner in 16,813: a draltha seeded into cavern 3 with none of its three eaters cast. So the cavern target is near 0, not exactly 0. Stored as <code>data/castsim/foodweb/targets.json</code>.</p>
 </section>
 
 <section>
@@ -119,7 +119,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
         <li>Store the rules once (Q2). Every table moves into the rules file, and the desk and the explorer load it: diets, bars, never-lists, role, guild and habitat overrides, extra and limited biomes, evil apexes (Q1), wetland ground, vermin types and sides, LINK_AS, and the apex lists.</li>
         <li>Regenerate the targets table from the explorer and publish explorer v42.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Desk parity is exact. The explorer reads the rules file. The targets come from the explorer itself and agree with the prototype, or the difference has been reported to you.</p></div></li>
+      <p class="exit"><b>Exit</b>Desk parity is exact. The explorer reads the rules file. The targets come from the explorer itself and agree with the prototype, or the difference has been reported to you. <b>Done 20 Oct:</b> rules file sw <code>8cdae46</code> (40 tables, engine 0 drift, G2 pending for Phase B); desk and explorer read it with unchanged output; parity exact with G2; explorer v42.</p></div></li>
     <li><span class="tag">B</span><div>
       <h3>One feeding test in the engine</h3>
       <ul>

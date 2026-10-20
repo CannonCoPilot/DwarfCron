@@ -22,3 +22,8 @@ Part 2 (season casts joined across layers):
     # sim_proto.js = scripts/castsim/foodweb_sim.js with two prototype lines (G3): in cast(),
     #   const direct = L === 'flying' && !prm.flyGrow;   and   if (!direct && prm.seed && L !== 'flying') {
     node realm.js DIR 200         # DIR/graph/realm.json; reads DIR/graph/sim_proto.js
+
+Targets (rebuild plan rev 7, Phase A): the explorer's own builder, G2 + G3 in foodweb_sim.js (OFF_LAYERS from the rules file;
+land-flying grown on New Rules with no seed; the cross-layer step; seasonHoles), no prototype:
+
+    node targets.js 200 ../../../data/castsim/foodweb/targets.json
