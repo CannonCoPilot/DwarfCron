@@ -64,7 +64,7 @@
     land: new Set(ALL_LAND), cells: new Set(['benign', 'neutral', 'savage'].flatMap(v => ['good', 'neutral', 'evil'].map(a => v + '|' + a))), neighbours: new Set(ALL_LAND), iso: false,
     extinct: 'UNTAMED_WILDS', ocean: true, oz: 'ALL', lake: true, river: true, brook: true, pool: true, fz: 'ALL',
     caverns: new Set([1, 2, 3]), assign: true, season: 'all', layer: 'all', color: 'slot', shape: 'level', layout: 'levels',
-    tab: 'surface', seasonBy: 'raws', edges: 'all', fam: { newrules: true, hunt: false, gobble: false, raws: false, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
+    size: 'pack', tab: 'surface', seasonBy: 'raws', edges: 'all', fam: { newrules: true, hunt: false, gobble: false, raws: false, flags: false, ladder: false, mass: false }, selEdge: null, vermin: true, years: 200, sel: null, hover: null, castSel: null, statsLayer: null, search: '',
     prm: Object.assign({}, sim.P0, { seed: true, weird: true, guarantee: true, links: 'engine' }),
   };
   // SURROUNDINGS (user 17 Oct): DF's nine, savagery (benign, neutral, savage) x alignment (good, neutral, evil)
@@ -258,6 +258,7 @@
       for (const t in hv) if (byT[t] && byT[t].L === L) byT[t].hv = hv[t];
     }
     VIEW = { nodes, byT, edges, adj, why, layers: ls };
+    applySize();
   }
   // every pair in one realm (the surface, or one cavern) that a switched-on rule links; the cast-bound rules (hunting pairs,
   // the ladder) need a layer both are on, the others only the realm (a raptor's vermin, the tool's gobble, the raws' tokens)
@@ -283,6 +284,21 @@
     return out;
   }
   function radius(c) { return 2.6 + 1.9 * Math.sqrt(Math.min(40, Math.max(1, c.c1 || 1))); }
+  // NODE SIZE (user 20 Oct): body size, value, pack size or how often cast, each over the pack-size range (cluster max 1..40)
+  const R_LO = radius({ c1: 1 }), R_HI = radius({ c1: 40 });
+  const LOGM = (() => { const v = FWDATA.creatures.map(c => c.m).filter(m => m > 0).map(Math.log10); return [Math.min(...v), Math.max(...v)]; })();
+  function sizeOf(n) {
+    const at = t => R_LO + (R_HI - R_LO) * Math.max(0, Math.min(1, t));
+    // squared, so the many mid-sized animals stay mid-sized and a full view does not overrun its bands
+    if (state.size === 'body') return at(n.c.m > 0 ? ((Math.log10(n.c.m) - LOGM[0]) / (LOGM[1] - LOGM[0])) ** 2 : 0);
+    if (state.size === 'value') return at(n.value || 0);
+    if (state.size === 'cast') {
+      const st = STATS && STATS.by[n.L];
+      return at(st ? Math.sqrt((st.seasons[n.t] || 0) / st.casts) : 0);
+    }
+    return radius(n.c);
+  }
+  function applySize() { if (VIEW) for (const n of VIEW.nodes) n.r = sizeOf(n); }
 
   // ------------------------------------------------------------------ layout
   let W = 800, H = 560, transform = d3.zoomIdentity;
@@ -591,9 +607,12 @@
     if (state.shape === 'level') shapePart = [[3, 'apex'], [2, 'predator'], [1, 'prey'], [0, 'vermin']].map(([l, lab]) => `<span>${sw('var(--muted)', LEVEL_SHAPE[l])}${lab}</span>`).join('');
     else if (state.shape === 'habitat') shapePart = Object.entries(HAB_SHAPE).map(([h, s]) => `<span>${sw('var(--muted)', s)}${h}</span>`).join('');
     else shapePart = Object.entries(FAM_SHAPE).filter(([f]) => f !== 'other').map(([f, s]) => `<span>${sw('var(--muted)', s)}${f}</span>`).join('');
-    $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>largest group the raws allow (cluster max)</span>` +
+    $('#legend').innerHTML = `<div><b>Colour</b>${colorPart}</div><div><b>Shape</b>${shapePart}</div><div><b>Size</b><span>${esc(SIZE_LEGEND[state.size === 'cast' && !STATS ? 'nocast' : state.size])}</span>` +
       `<span>${sw('none', 'ring')}high-value: a possible seed</span>${Object.keys(BUILD.B.mapOnly || {}).length ? '<span>hollow: map-only vermin from a neighbouring tile</span>' : ''}<span>${FAM_ORDER.filter(f => state.fam[f]).map(f => `<span class="ln" style="--lc:var(--${FAM[f].col})">${esc(FAM[f].lab.toLowerCase())}</span>`).join(' ')}; dashed: the selection's predators; click a link for details</span></div>`;
   }
+  const SIZE_LEGEND = { pack: 'largest group the raws allow (cluster max)', body: 'body size (log scale, smallest to largest of all creatures)',
+    value: 'low → high value (as the Value colour); vermin smallest', cast: 'never → most often cast (√ share of season casts)',
+    nocast: 'run the simulator to size by how often cast' };
   function shapeSvg(sh, col) {
     const f = `fill="${col}"`;
     switch (sh) {
@@ -723,6 +742,7 @@
       if (acc.n < n) return setTimeout(chunk, 0);
       btn.disabled = false;
       STATS = acc;
+      if (state.size === 'cast') { applySize(); layout(); }
       if (!state.statsLayer || !B.active.includes(state.statsLayer)) state.statsLayer = state.layer !== 'all' && B.active.includes(state.layer) ? state.layer : B.active[0];
       renderStats(); renderInspector(); renderLegend(); draw();
     }
@@ -917,6 +937,7 @@
     renderLayerSeg();
     seg('#color', [['slot', 'Trophic slot'], ['cavern', 'Cavern layer'], ['value', 'Value'], ['habitat', 'Habitat'], ['inclusion', 'How often cast']], state.color, v => { state.color = v; syncControls(); renderLegend(); draw(); });
     seg('#shape', [['level', 'Trophic level'], ['habitat', 'Habitat'], ['guild', 'Guild']], state.shape, v => { state.shape = v; syncControls(); renderLegend(); draw(); });
+    seg('#size', [['body', 'Body size'], ['value', 'Value'], ['pack', 'Pack size'], ['cast', 'How often cast']], state.size, v => { state.size = v; syncControls(); applySize(); layout(); renderLegend(); draw(); });
     seg('#lay', [['levels', 'Levels'], ['force', 'Force']], state.layout, v => { state.layout = v; syncControls(); layout(); draw(); });
     seg('#edges', [['focus', 'Selected only'], ['all', 'All']], state.edges, v => { state.edges = v; syncControls(); draw(); });
     $('#fams').innerHTML = FAM_ORDER.map(f => `<label class="ck" title="${esc(FAM[f].note)}"><input type="checkbox" id="f_${f}" data-f="${f}" ${state.fam[f] ? 'checked' : ''}><i class="ln" style="--lc:var(--${FAM[f].col})"></i>${esc(FAM[f].lab)} <span class="small">(${esc(FAM[f].def)})</span></label>`).join('');

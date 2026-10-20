@@ -170,6 +170,7 @@ BODY = r"""
   <div class="toolbar">
     <div><span class="lbl">Colour</span><div class="seg" id="color"></div></div>
     <div><span class="lbl">Shape</span><div class="seg" id="shape"></div></div>
+    <div><span class="lbl">Size</span><div class="seg" id="size"></div></div>
     <div><span class="lbl">Layout</span><div class="seg" id="lay"></div></div>
     <div><span class="lbl">Show links</span><div class="seg" id="edges"></div></div>
     <div><label class="ck"><input type="checkbox" id="verm">vermin</label></div>
