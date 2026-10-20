@@ -39,7 +39,7 @@ for (const [fk, f] of Object.entries(FORTS)) {
     }
     return ecache.get(k);
   }
-  const lev = m => m.vermin ? 'vermin' : m.slot === 'apex' ? 'apex' : (cur.tierOf({ c: BY[m.t], slot: m.slot, vermin: false }) >= 2 ? 'predator' : 'prey');
+  const lev = m => (m.vermin || (BY[m.t] && BY[m.t].v)) ? 'vermin' : m.slot === 'apex' ? 'apex' : m.slot === 'sentient' ? (BY[m.t].ro === 'predator' ? 'predator' : 'prey') : (cur.tierOf({ c: BY[m.t], slot: m.slot, vermin: false }) >= 2 ? 'predator' : 'prey');
   function score(L, members) {
     const ms = members.filter(m => BY[m.t]);
     const n = ms.length, out = ms.map(() => []), inn = ms.map(() => []);

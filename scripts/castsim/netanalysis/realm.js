@@ -26,7 +26,7 @@ function edge(a, b) {   // a, b: {t, L, slot, vermin}; a eats b?
   }
   return ecache.get(k);
 }
-const lev = m => m.vermin ? 'vermin' : m.slot === 'apex' ? 'apex' : (sim.tierOf({ c: BY[m.t], slot: m.slot, vermin: false }) >= 2 ? 'predator' : 'prey');
+const lev = m => (m.vermin || (BY[m.t] && BY[m.t].v)) ? 'vermin' : m.slot === 'apex' ? 'apex' : m.slot === 'sentient' ? (BY[m.t].ro === 'predator' ? 'predator' : 'prey') : (sim.tierOf({ c: BY[m.t], slot: m.slot, vermin: false }) >= 2 ? 'predator' : 'prey');
 // score one realm: entries = seated members of several casts (a species may hold seats in two casts: one node)
 function realm(entries, joinAcross) {
   const toks = [...new Set(entries.map(e => e.t))], ix = new Map(toks.map((t, i) => [t, i]));
@@ -95,7 +95,7 @@ for (const [fk, f] of Object.entries(FORTS)) {
             if (!dL && dR) bump(S.rescued, nm);
             if (dR === 1 && J.across[i].size === 1 && !J.within[i].size) bump(S.leafAcross, nm);
             if (J.across[i].size > J.within[i].size && J.within[i].size >= 0 && J.across[i].size) bump(S.homeElsewhere, nm);
-            if (J.lv[i] === 'apex' || J.lv[i] === 'predator') { S.cons++; if (!per.out[i].size) S.unfedLayer++; if (!J.out[i].size) S.unfedRealm++; }
+            if (J.lv[i] === 'apex' || J.lv[i] === 'predator') { S.cons++; if (!per.out[i].size) S.unfedLayer++; if (!J.out[i].size) { S.unfedRealm++; bump(S.unfedNames = S.unfedNames || {}, nm + ' ' + J.seats[i][0].slot); } }
             if (J.lv[i] === 'prey') { S.prey++; if (!per.inn[i].size) S.uneatenLayer++; if (!J.inn[i].size) S.uneatenRealm++; }
           }
           S.orphLayer += oL; S.orphRealm += oR; if (oL) S.castsOrphLayer++; if (oR) S.castsOrphRealm++;
