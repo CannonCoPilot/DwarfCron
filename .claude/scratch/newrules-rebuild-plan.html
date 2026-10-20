@@ -55,114 +55,124 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Seasonal Wildlife · plan rev 6 (draft for review) · 20 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · 20 Oct 2026</span>
   <h1>New Rules Rebuild</h1>
-  <p class="lede">Make the New Rules the one feeding test the tool uses: to grow each season's cast, to write who hunts whom in play, and to feed vermin. The Food Web Explorer becomes the specification, and the tool is generated from the same rules.</p>
-  <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
+  <p class="lede">Port the New Rules into the tool exactly as the Food Web Explorer defines them. The same rules grow every season's casts, link the season's layers, and decide what the tool writes in play. The explorer is the specification, and rig tests check that the tool follows it.</p>
+  <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>analysis v3 · ae2b9a50</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
 </header>
 
+<p class="flag"><b>What changed from rev 6.</b> Rev 6 proposed changing New Rules: a new size rule in place of the ladder, dropping mass and numbers, and a prey guarantee on every layer. That came from the wrong conclusion. You ruled that New Rules is the rule, so rev 6's D1–D3 are withdrawn and the port is exact. The network analysis (v3) supports this: with G2 and G3, no fort has a predator without prey.</p>
+
 <section>
-  <h2>Why a rebuild, not another rule</h2>
-  <p>From 17 to 20 October we set about 45 feeding rules in the explorer, and each was mirrored by hand into the engine. Three things measured today say the next step is structural:</p>
+  <h2>What is settled</h2>
   <div class="tbl"><table>
-    <thead><tr><th>Finding</th><th>Measured</th><th>What it means</th></tr></thead>
+    <thead><tr><th>Ruling</th><th>What the rebuild does</th></tr></thead>
     <tbody>
-      <tr><td>Growing casts on New Rules instead of the tool's tier ladder barely changes them</td><td class="num">mean cast-rate change 0.7 points; 1 species moves &gt;5 points (savage tropical coast, 150 years, ground + ocean)</td><td>Switching the growth mode alone would be a relabel.</td></tr>
-      <tr><td>Among animals, New Rules adds no links of its own</td><td class="num">DF diet tokens and tool-fed vermin link 0% of animal candidates; hunting pairs 88%, mass and numbers 82%</td><td>The animal links come from "hunting pairs", which still pass through the ladder, and from mass and numbers, which is broad. New Rules needs its own animal-to-animal rule.</td></tr>
-      <tr><td>Growth links almost every candidate under either mode</td><td class="num">85–99% of candidates link to some cast member at each growth step</td><td>The slot tables shape the casts, and the food web hardly does. A selective animal rule changes that.</td></tr>
-      <tr><td>The rules live in three copies</td><td class="num">engine Lua, desk Python, explorer JS; 21 diet overrides, 28 role fixes, 16 extra-biome entries and more</td><td>Every rule today costs three edits, an export, tests and a deploy. Drift has already happened (next row).</td></tr>
-      <tr><td>The engine and the explorer admit the evil apexes differently</td><td class="num">engine: raw biomes past the unliving filter; desk and explorer: by wiring only</td><td>Parity tests pass on their forts but do not cover this path.</td></tr>
-      <tr><td>Six separate feeding predicates in the engine</td><td class="num"><code>ROSTER.FP.eats</code>, <code>V7.WAT.eats</code>, <code>ROSTER.linkable</code>, gobble edges, <code>MODEL</code> predation, <code>VERMIN.eats</code></td><td>One question ("does A eat B here?") should have one answer.</td></tr>
+      <tr><td>New Rules is the rule set, ported exactly</td><td>All four families, unchanged: DF's own diet tokens, vermin the tool feeds, mass and numbers, and hunting pairs written in play. No new rule, no re-review. Mass-only links are written in play like the others.</td></tr>
+      <tr><td>The ladder no longer builds casts</td><td>Cast growth tests New Rules. The ladder's check stays only where New Rules already uses it: inside the hunting-pairs family, which relates a pair only along the cast's own edges.</td></tr>
+      <tr><td>G1: sentient seats stay as they are</td><td>No change. They are not holes: the cavern ones are prey by role, and the flying insect-rooted men are fed across layers.</td></tr>
+      <tr><td>G2: giant mosquito and giant dragonfly off land-flying</td><td>Both come off the land-flying lists. Before G2 they were the only predators left unfed on the joined surface (evil tundra, 1.0%).</td></tr>
+      <tr><td>G3: land-flying grown on New Rules, then the layers linked</td><td>Land-flying grows on New Rules like the other layers, with no seed. Then a final step writes the New Rules links between the season's land-ground, land-flying and water casts. Only families that work across layers count there: diet tokens, tool vermin, and mass and numbers. Hunting pairs stay within one layer, as in the explorer.</td></tr>
+      <tr><td>G4: no directed guarantee</td><td>No new "every predator has prey" rule. The cavern rule that exists today (one predator and one prey per cast) is kept unchanged.</td></tr>
+      <tr><td>Rig tests check adherence</td><td>The tool writes exactly the New Rules links, and no others. The tool's cast holes match the explorer's prediction. Targets are below.</td></tr>
     </tbody>
   </table></div>
-  <p class="note">The cast numbers come from the explorer's own cast builder (the desk-checked mirror of the engine), not from the rig. None of the 17–20 Oct rules has been tried in a running game yet.</p>
 </section>
 
 <section>
-  <h2>Decisions for you</h2>
-  <p>Six choices change what gets built. Each has my recommendation; nothing below starts until you have answered D1–D4.</p>
+  <h2>Open for you</h2>
   <div class="decisions">
-    <div class="dec"><h3><span class="id">D1</span>What makes one animal hunt another, with the ladder gone</h3>
-      <p>Today's hunting-pair rule already checks: the hunter is armed (a predator not wholly BENIGN, a raptor, a predator seat, a hunting cavern civ race), its habitat reaches the prey's, two water animals share a water body, a raptor takes nothing over twice its mass, civ races are spared, the hunting group weighs at least 5% of the prey, and every one of your bars and diets applies. Then it also requires the ladder.</p>
-      <p class="rec"><b>Recommendation:</b> keep every check above, drop the ladder, and add one size rule in its place: prey no heavier than the hunting group (group size × body mass) times a factor <code>k</code>. Before you choose <code>k</code>, the explorer shows each value's effect (links per predator, candidates linked, species whose cast rate moves) so the choice is made on numbers.</p></div>
-    <div class="dec"><h3><span class="id">D2</span>Mass and numbers: keep it in New Rules?</h3>
-      <p>It was the coupling nudge's test (off by default) and is broad: alone it links 82% of animal candidates. Its vermin side rules duplicate the vermin rule's.</p>
-      <p class="rec"><b>Recommendation:</b> drop it from New Rules once D1's rule exists; keep its vermin side rules inside the vermin rule, where they already run.</p></div>
-    <div class="dec"><h3><span class="id">D3</span>How a cast grows on the web</h3>
-      <p>Growth adds a candidate linked to any member (it eats one or is eaten by one); a slot nothing links to is filled anyway; caverns guarantee one predator and one prey.</p>
-      <p class="rec"><b>Recommendation:</b> keep that shape, and extend the cavern guarantee to every layer: each predator seated in a cast has at least one prey in that cast. Measure how often the unlinked fill is used under D1 before deciding whether it stays.</p></div>
-    <div class="dec"><h3><span class="id">D4</span>Evil apexes: matched by their raws, or added by wiring only?</h3>
-      <p>The engine lets the grimeling, nightwing and harpy past the unliving filter so they match their raw biomes; the explorer adds them only where it wires them.</p>
-      <p class="rec"><b>Recommendation:</b> the engine's way (it is what runs in the game); the explorer follows.</p></div>
-    <div class="dec"><h3><span class="id">D5</span>What the rebuild removes</h3>
-      <p class="rec"><b>Recommendation:</b> delete the tier ladder as a feeding test (<code>ROSTER.FP.eats</code>), the v7.1 roster links (<code>ROSTER.linkable</code>, gobble edges by guild), and DF's <code>HUNTS_VERMIN</code> writes (DF lets it take any vermin, which breaks your flying-vermin rule). The coupling nudge stays off, per the 16 Oct ruling. The FREQUENCY ladder sets arrival odds, not feeding, and stays as it is.</p></div>
-    <div class="dec"><h3><span class="id">D6</span>Where the one copy of the rules lives</h3>
-      <p class="rec"><b>Recommendation:</b> a rules file in the seasonal-wildlife repo (<code>rules/new-rules.json</code>). A generator writes it into a Lua table that ships in the package (no file reading at run time, so nothing slow and nothing that can fail on load), and the desk and explorer read the same file. A rule change becomes one edit plus regeneration.</p></div>
+    <div class="dec"><h3><span class="id">Q1</span>Evil apexes: matched by their raws, or added by wiring only?</h3>
+      <p>The engine lets the grimeling, nightwing and harpy past the unliving filter, so they match their raw biomes. The explorer, and so New Rules, adds them only where they are wired (the 'reach' wire for the grimeling at an evil marsh or swamp). Today the two disagree on that path, and the parity tests don't cover it.</p>
+      <p class="rec"><b>Recommendation:</b> follow the explorer's way. The port is exact, and the explorer is the spec, so the engine stops admitting evil apexes by their raws. If you want the raws' way instead, the explorer changes first and the engine follows.</p></div>
+    <div class="dec"><h3><span class="id">Q2</span>Where the one copy of the rules lives</h3>
+      <p>Each rule is kept by hand in three places today: engine Lua, desk Python and explorer JS. Every rule from 17 to 20 Oct took three edits, and the evil-apex path above has already drifted.</p>
+      <p class="rec"><b>Recommendation:</b> a rules file in the seasonal-wildlife repo (<code>rules/new-rules.json</code>). A generator turns it into a Lua table that ships in the package, so nothing is read from disk at run time and nothing can fail on load. The desk and the explorer read the same file. The rules keep the explorer's content and change only where they are stored.</p></div>
   </div>
 </section>
 
 <section>
+  <h2>The targets the rig tests check</h2>
+  <p>These are the explorer's predictions with G2 and G3, over 200 years (800 seasons) on each of the six analysis forts. A season's surface casts are scored as one web. A predator is an apex or meso seat, or a sentient seat whose creature is a predator by role. Vermin are never predators.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Fort</th><th>Surface members with no partner</th><th>Seasons with any</th><th>Predators without prey</th><th>Caverns</th></tr></thead>
+    <tbody>
+      <tr><td>Terrifying broadleaf, river</td><td class="num">52 of 20,356 (0.26%)</td><td class="num">6.5%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Calm temperate lake</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Savage tropical coast</td><td class="num">29 of 30,553 (0.09%)</td><td class="num">3.6%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Good temperate brook</td><td class="num">0</td><td class="num">0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Evil tundra, murky pools</td><td class="num">104 of 16,379 (0.63%)</td><td class="num">13.0%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+      <tr><td>Savage good arctic coast</td><td class="num">92 of 23,204 (0.40%)</td><td class="num">10.3%</td><td class="num">0</td><td class="num">0 · 0</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Caverns: members with no partner · predators without prey. The surface residue is mostly giant herbivores (brachiosaurus, brontosaurus, deinotherium, woolly mammoth) whose few eaters weren't cast that season. That comes from the draw, not from a missing rule, and the tool should show the same residue. These come from the analysis prototype of G2 and G3. Phase A rebuilds them in the explorer itself and republishes this table from it. Any change there is reported before Phase B starts.</p>
+</section>
+
+<section>
   <h2>The rebuild, in order</h2>
-  <p>Branch <code>v8-newrules</code> from c125091; release key 8.0.0. Each phase ends on a check that must pass before the next starts. As always, a phase is finished only when it is in the packaged zip, not on the dev copy.</p>
+  <p>Branch <code>v8-newrules</code> from c125091; release key 8.0.0. Each phase ends on a check that must pass before the next one starts. A phase is finished only when it is in the packaged zip, not on the dev copy.</p>
   <ol class="phases">
     <li><span class="tag">A</span><div>
-      <h3>Write the rules down once</h3>
+      <h3>The explorer becomes the full spec</h3>
       <ul>
-        <li>Move every rule table into <code>rules/new-rules.json</code>: diets, bars, never-lists, role, guild and habitat overrides, extra and limited biomes, evil apexes, wetland ground, vermin types and sides, LINK_AS, the apex lists, and D1's size factor.</li>
-        <li>The desk and the explorer load it; their hand-kept copies are deleted.</li>
-        <li>Build D1's animal rule in the explorer, with a switch for <code>k</code>, and publish the measurements for your choice.</li>
+        <li>Build G2 and G3 into the explorer and the desk properly: the land-flying lists, land-flying grown on New Rules, and the step that links the layers. Today they exist only as the analysis prototype.</li>
+        <li>Store the rules once (Q2). Every table moves into the rules file, and the desk and the explorer load it: diets, bars, never-lists, role, guild and habitat overrides, extra and limited biomes, evil apexes (Q1), wetland ground, vermin types and sides, LINK_AS, and the apex lists.</li>
+        <li>Regenerate the targets table from the explorer and publish explorer v42.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Explorer from the rules file, desk parity exact, and your choice of <code>k</code> (D1) recorded.</p></div></li>
+      <p class="exit"><b>Exit</b>Desk parity is exact. The explorer reads the rules file. The targets come from the explorer itself and agree with the prototype, or the difference has been reported to you.</p></div></li>
     <li><span class="tag">B</span><div>
       <h3>One feeding test in the engine</h3>
       <ul>
-        <li>Generate <code>RULES</code> (Lua) from the file; write <code>RULES.eats(a, b, layer)</code> returning the reasons, as the explorer's does.</li>
-        <li>Route every caller through it: cast growth, the cast edge set, the hunting-pair filter, vermin selection. Delete the predicates D5 removes.</li>
-        <li>A conformance test: the explorer exports every (hunter, prey, layer) verdict on a set of forts; the engine harness computes its own and the two must agree on every pair.</li>
+        <li>Generate <code>RULES</code> (Lua) from the file. <code>RULES.eats(a, b, layer, crossLayer)</code> returns the passing families and the reasons, as the explorer's New Rules does.</li>
+        <li>Every caller goes through it: cast growth, the cast's edge set, the hunting-pair filter, and vermin selection. Predicates that no New Rules family uses are removed, and the conformance test below shows nothing depended on them.</li>
+        <li>Conformance test: the explorer exports every (eater, eaten, layer, cross-layer) verdict, with its families, on the six forts. The engine harness computes its own, and the two must agree on every pair.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Conformance 100% on the test forts; fixes, controls, water, onoff and gui suites green; luacheck at or under 37.</p></div></li>
+      <p class="exit"><b>Exit</b>Conformance is 100% on all six forts. The fixes, controls, water, onoff and gui suites are green. luacheck stays at 37 or below.</p></div></li>
     <li><span class="tag">C</span><div>
-      <h3>What the tool writes in play</h3>
-      <ul>
-        <li>The hunting-pair write (ecology) relates only pairs <code>RULES</code> allows among the units present.</li>
-        <li>Vermin classes written from <code>RULES</code>' vermin verdicts; no <code>HUNTS_VERMIN</code>.</li>
-        <li>Verdicts cached per fort and cast, so the write stays a table lookup under FUSE's 250 ms warning.</li>
-      </ul>
-      <p class="exit"><b>Exit</b>A rig probe on a new embark: every written pair and every vermin class is one <code>RULES</code> allows; no pass over budget.</p></div></li>
-    <li><span class="tag">D</span><div>
       <h3>The cast builder on New Rules</h3>
       <ul>
-        <li>Growth, seed and guarantees as D3 decides, using <code>RULES</code>.</li>
-        <li>With the same site and year seed, the engine and the explorer build the same 28 casts.</li>
+        <li>Growth tests <code>RULES</code> on all seven layers, land-flying included (G3). Slot tables, seeds, cavern pairing and sentient seats are kept as they are (G1, G4).</li>
+        <li>The final step lists the season's cross-layer links among the land-ground, land-flying and water casts.</li>
+        <li>The engine scores holes the same way the analysis does: surface joined per season, caverns per cast, predators by role.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Identical casts engine vs explorer on the test forts, every season and layer.</p></div></li>
-    <li><span class="tag">E</span><div>
-      <h3>Validation in play</h3>
+      <p class="exit"><b>Exit</b>Given the same site and year seed, the engine and the explorer build the same 28 casts and the same cross-layer links. Run offline in the engine harness over 200 years, the engine's hole counts equal the targets table exactly.</p></div></li>
+    <li><span class="tag">D</span><div>
+      <h3>What the tool writes in play</h3>
       <ul>
-        <li>New embarks only (startdwarf 50, caverns breached at the start, embark size 4), v7.6.6 and v8 on the same tiles, 5 reps per arm, with a receipt that each fort's subjects are on the map.</li>
-        <li>Measured: casts built at embark match the explorer's; every predator kill is a pair <code>RULES</code> allows; no barred pair ever recorded; vermin eaten by allowed consumers; frame time per pass.</li>
+        <li>The relation write covers the New Rules pairs among the units present. That means hunting pairs within a layer, mass-and-numbers pairs, and the cross-layer pairs from Phase C.</li>
+        <li>Vermin classes (<code>SWV_type@SIDE</code>) and DF's diet tokens come from <code>RULES</code>' vermin verdicts.</li>
+        <li>Verdicts are cached per fort and cast, so each write is a table lookup and stays under FUSE's 250 ms warning.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Zero disallowed kills or relations across all reps; frame budget held. A rep with no data is marked pending, not passed.</p></div></li>
+      <p class="exit"><b>Exit</b>A rig probe on a new embark, compared with the explorer's link set for that fort's own pool and casts. Every written relation and vermin class is a New Rules link, every New Rules link among present units is written, and no pass goes over budget.</p></div></li>
+    <li><span class="tag">E</span><div>
+      <h3>Rig tests: does the tool follow New Rules?</h3>
+      <ul>
+        <li>New embarks only: startdwarf 50, caverns breached at the start, embark size 4, and a receipt that each fort's subjects are on the map. v7.6.6 and v8 run on the same tiles, with 5 reps per arm.</li>
+        <li><b>Links:</b> at embark and at each season change, the tool's written relations and vermin classes are dumped and diffed against the explorer's New Rules links for that fort's pool and casts. The test passes only with nothing extra and nothing missing.</li>
+        <li><b>Holes:</b> the casts the tool built are scored, and the holes compared with the explorer's prediction for the same casts. With identical casts the counts must be identical. Across reps the rates must sit with the targets table's.</li>
+        <li><b>Kills:</b> every predator kill and every vermin eaten is checked as a New Rules pair. Frame time is recorded for each pass.</li>
+      </ul>
+      <p class="exit"><b>Exit</b>Links and holes match on every rep, with zero kills outside New Rules and the frame budget held. A rep with no data is marked pending, not passed.</p></div></li>
     <li><span class="tag">F</span><div>
       <h3>The interface catches up</h3>
       <ul>
-        <li>Rev 5's step 2: a Casts view (seven layers × four seasons) in the window and web page, now with each cast's links and why; every switch in the controls registry.</li>
+        <li>Rev 5's step 2: a Casts view (seven layers × four seasons) in the window and the web page. It now shows each cast's links, its cross-layer links, and why each exists. Every switch goes in the controls registry.</li>
       </ul>
-      <p class="exit"><b>Exit</b>Window and web harnesses extended and green; panel and page round trips on the rig.</p></div></li>
+      <p class="exit"><b>Exit</b>The window and web harnesses are extended and green, and the panel and page round trips work on the rig.</p></div></li>
     <li><span class="tag">G</span><div>
       <h3>Package and release</h3>
       <ul>
-        <li>Validator claims for v8 (casts, rules conformance, writes), then validate-full at 0 FAIL.</li>
-        <li>Build the zip, install it as a player would (dev copy removed), and play one packaged year on a new fort with <code>off</code> at the end.</li>
-        <li>Docs (USAGE, STATE, HANDOFF, changelog); merge on your word.</li>
+        <li>Validator claims for v8 (casts, rules conformance, writes, holes), then validate-full at 0 FAIL.</li>
+        <li>Build the zip and install it as a player would, with the dev copy removed. Play one packaged year on a new fort, with <code>off</code> at the end.</li>
+        <li>Docs (USAGE, STATE, HANDOFF, changelog); merge when you say so.</li>
       </ul>
-      <p class="exit"><b>Exit</b>The packaged zip passes its year; this is the finished deliverable.</p></div></li>
+      <p class="exit"><b>Exit</b>The packaged zip passes its year. This is the finished deliverable.</p></div></li>
   </ol>
 </section>
 
 <section>
   <h2>How it fits the beta plan (rev 5)</h2>
-  <p>Rev 5's step 0 items 0.1–0.3 were built on 16–17 Oct; 0.4 (caps count groups) is open. Livestock as prey (step 1.2) and civ-race hunting (step 1.6) both depend on the feeding test, so the rebuild goes first and the open items resume on the rebuilt engine.</p>
+  <p>Rev 5's step 0 items 0.1–0.3 were built on 16–17 Oct; 0.4 (caps count groups) is still open. Livestock as prey (step 1.2) and civ-race hunting (step 1.6) both depend on the feeding test, so the rebuild goes first. The open items resume on the rebuilt engine.</p>
   <div class="order"><span>rev 5 step 0.1–0.3 (built)</span><i>→</i><span class="new">rebuild A–E</span><i>→</i><span>step 0.4</span><i>→</i><span>step 1</span><i>→</i><span class="new">F (= step 2)</span><i>→</i><span class="new">G (= step 3)</span><i>→</i><span>beta play-through plan</span></div>
   <p class="note">Your 16 Oct rulings carry over: problems are solved one at a time by tuning what exists, all nudges stay off by default, irruptions and livestock as prey stay on, and the play-through plan is written last.</p>
 </section>
@@ -172,11 +182,12 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
   <div class="tbl"><table>
     <thead><tr><th>Risk</th><th>Check</th></tr></thead>
     <tbody>
-      <tr><td>D1's rule is too loose or too tight, and casts lose variety or slots go empty</td><td>Measured in the explorer before it is built (Phase A); unlinked fills and empty slots reported per layer.</td></tr>
-      <tr><td>The engine and the explorer drift again</td><td>One rules file, generated code, and the Phase B conformance test in the harness on every change.</td></tr>
-      <tr><td>The pools differ in play: DF-stocked entries, created entries, placed thieves</td><td>Conformance runs on the engine's own pool for the Phase E forts, not only on explorer fixtures.</td></tr>
-      <tr><td>DF does not act on the composite vermin classes (<code>SWV_type@SIDE</code>, v7.6.2)</td><td>Never tried in play; Phase C's probe checks vermin actually eaten, by class.</td></tr>
-      <tr><td>The pair lookup costs frame time on big forts</td><td>Verdicts cached per cast; Phase E times every pass with the plugin and the tool each on and off.</td></tr>
+      <tr><td>The explorer's G2 and G3 differ from the analysis prototype</td><td>Phase A republishes the targets from the explorer, and any change is reported before the engine work starts.</td></tr>
+      <tr><td>The engine and the explorer drift again</td><td>One rules file, generated code, and the Phase B conformance test on every change.</td></tr>
+      <tr><td>The pools differ in play (DF-stocked entries, created entries, placed thieves)</td><td>Phases D and E compare against the explorer run on the fort's own pool, not only the six fixtures.</td></tr>
+      <tr><td>Writing mass-only and cross-layer links changes behaviour in play (more relations than before)</td><td>Phase E measures it against v7.6.6 on the same tiles: kills, losses by species, and frame time.</td></tr>
+      <tr><td>DF does not act on the composite vermin classes (<code>SWV_type@SIDE</code>, v7.6.2)</td><td>Never tried in play. Phase D's probe and Phase E's kill check record vermin actually eaten, by class.</td></tr>
+      <tr><td>The pair lookup costs frame time on big forts</td><td>Verdicts are cached per cast. Phase E times every pass, with the plugin and the tool each on and off.</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -186,11 +197,14 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
   <div class="tbl"><table>
     <thead><tr><th>Today (seasonal-wildlife.lua, 21,986 lines)</th><th>After the rebuild</th></tr></thead>
     <tbody>
-      <tr><td><code>ROSTER.FP.eats</code> (the tier ladder, line ~9516) in growth and the cast edge set</td><td><code>RULES.eats</code></td></tr>
-      <tr><td>Hunting-pair write (<code>ecoArmed</code> ~5543, <code>ecologyRun</code> ~6084), filtered by the cast's ladder edges</td><td>Same write, filtered by <code>RULES</code> pairs</td></tr>
-      <tr><td><code>VERMIN.gobbleApply</code> and its wants and extras (~17037–17670)</td><td>Classes from <code>RULES</code> vermin verdicts</td></tr>
-      <tr><td><code>MODEL.forcedDiet</code>, <code>MODEL.apexBar</code> and the tables in <code>ROSTER.FP</code> and <code>MODEL</code></td><td>Generated from <code>rules/new-rules.json</code></td></tr>
-      <tr><td><code>ROSTER.linkable</code>, <code>ROSTER.gobbleEdges</code>, <code>HUNT.apply</code> (HUNTS_VERMIN)</td><td>Removed (D5)</td></tr>
+      <tr><td><code>ROSTER.FP.eats</code> (the tier ladder, line ~9516) as cast growth and the cast edge set</td><td>Growth by <code>RULES.eats</code>; the ladder check stays only inside the hunting-pairs family</td></tr>
+      <tr><td>Land-flying cast drawn directly from its slot lists</td><td>Grown on <code>RULES</code> (G3); giant mosquito and dragonfly off its lists (G2)</td></tr>
+      <tr><td>No link between a season's layers</td><td>Cross-layer step: diet tokens, tool vermin, mass and numbers</td></tr>
+      <tr><td>Hunting-pair write (<code>ecoArmed</code> ~5543, <code>ecologyRun</code> ~6084)</td><td>Writes every New Rules pair among present units, including mass and cross-layer pairs</td></tr>
+      <tr><td><code>MODEL</code> eats (mass and numbers), used only by coupling (off)</td><td>A New Rules family, written in play; the coupling nudge stays off</td></tr>
+      <tr><td><code>VERMIN.gobbleApply</code> and its rules, guild rows and extras (~17037–17670)</td><td>The same classes, from <code>RULES</code>' vermin verdicts</td></tr>
+      <tr><td><code>MODEL.forcedDiet</code>, <code>MODEL.apexBar</code> and the tables in <code>ROSTER.FP</code>, <code>MODEL</code> and <code>VERMIN</code></td><td>Generated from <code>rules/new-rules.json</code> (Q2)</td></tr>
+      <tr><td><code>FP.mark</code> admitting evil apexes by their raws</td><td>As Q1 decides</td></tr>
       <tr><td>Desk <code>design.py</code> and explorer <code>foodweb_sim.js</code> tables</td><td>Read the rules file</td></tr>
     </tbody>
   </table></div>
