@@ -128,7 +128,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
 BODY = r"""
 <div class="wrap">
 <header class="top">
-  <span class="eyebrow">Seasonal Wildlife · v43 · the v8 cast builder on New Rules (rebuild plan rev 7) · DF 53.16 raws</span>
+  <span class="eyebrow">Seasonal Wildlife · v44 · the v8 cast builder on New Rules (rebuild plan rev 7) · DF 53.16 raws</span>
   <h1>Food Web Explorer</h1>
   <p>Every wild creature in the raws, the feeding links seasonal-wildlife imposes on them (each rule switchable, each link clickable for the rule and numbers behind it), and the cast builder, running in the page.
   Choose a fort on the left; the network shows what passes its gates, layer by layer. Then build casts below and change the rules
@@ -228,7 +228,7 @@ BODY = r"""
     <li><b>Growth.</b> On New Rules (v8; the cast ladder up to v7.6.6), on every layer, land-flying included (G3, user 20 Oct). Candidates linked to any member (it eats a member or a member eats it) fill the emptiest slot, by pick weight; a slot nothing links to is filled anyway. Pick weight: pack hunters ×pack bonus, animal people ×, giants ×, ×repeat weight per cast already holding the species this year (a sentient seat counts only against its later sentient seats), and in caverns the weirdness tilt.</li>
     <li><b>Sentients.</b> Every layer has one sentient slot; a sentient fills only that slot (the harpy and nightwing also keep their evil flying apex seat).</li>
     <li><b>Cavern web guarantee.</b> A cavern cast with no prey or no predator takes one.</li>
-    <li><b>Bonus predator.</b> A giant herbivore (brachiosaurus, brontosaurus, diplodocus, stegosaurus, ankylosaurus, triceratops, parasaurolophus, iguanodon, deinotherium, therizinosaurus, tsintaosaurus) that no member eats takes one of its eaters from the season list in a bonus seat, outside the slot table (user 20 Oct).</li>
+    <li><b>Bonus predator.</b> A giant herbivore (brachiosaurus, brontosaurus, diplodocus, stegosaurus, ankylosaurus, triceratops, parasaurolophus, iguanodon, deinotherium, therizinosaurus, tsintaosaurus, and the woolly mammoth) that no member eats takes one of its eaters from the season list in a bonus seat, outside the slot table (user 20 Oct).</li>
     <li><b>Vermin.</b> What the members eat first, one per vermin class, then any.</li>
     <li><b>Across layers.</b> Last, the season's land-ground, land-flying and water casts are linked by the New Rules that work across layers: DF's diet tokens, the vermin the tool feeds, and mass and numbers. Hunting pairs stay within one cast (G3, user 20 Oct).</li>
     <li><b>Holes.</b> Each season is scored as one surface web plus each cavern alone. A member with no partner, and a predator without prey, are listed under the year (a predator is an apex or meso seat, or a creature that is a predator by role; vermin never). Rig tests hold the tool to these.</li>
