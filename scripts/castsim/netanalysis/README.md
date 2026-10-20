@@ -16,3 +16,9 @@ Run (DIR is any scratch folder):
     node casts.js DIR 200         # builders x forts, 200 years; DIR/graph/holes.json
 
 Report: artifact "New Rules Network Analysis" (DwarfCron .claude/scratch/newrules-network-analysis.html).
+
+Part 2 (season casts joined across layers):
+
+    # sim_proto.js = scripts/castsim/foodweb_sim.js with two prototype lines (G3): in cast(),
+    #   const direct = L === 'flying' && !prm.flyGrow;   and   if (!direct && prm.seed && L !== 'flying') {
+    node realm.js DIR 200         # DIR/graph/realm.json; reads DIR/graph/sim_proto.js
