@@ -122,7 +122,8 @@
         else if (b.P[t].layers.some(L => !B.P[t].layers.includes(L))) B.P[t] = Object.assign({}, B.P[t], { layers: [...new Set(B.P[t].layers.concat(b.P[t].layers))] });
       }
       for (const t in b.mapOnly || {}) if (!B.mapOnly[t]) B.mapOnly[t] = b.mapOnly[t];
-      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = Object.fromEntries(Object.keys(y).map(k => [k, Array.isArray(y[k]) ? [...new Set((x[k] || []).concat(y[k]))] : !!(x[k] || y[k])])); }
+      for (const t in b.apexOn || {}) { const x = B.apexOn[t] || {}, y = b.apexOn[t]; B.apexOn[t] = Object.fromEntries(Object.keys(y).map(k => [k, Array.isArray(y[k]) ? [...new Set((x[k] || []).concat(y[k]))]
+        : typeof y[k] === 'boolean' ? !!(x[k] || y[k]) : (x[k] !== undefined ? x[k] : y[k])])); }   // booleans or-ed, lists united, values kept
       for (const x of b.promoted || []) B.promoted.add(x);
       for (const L of LAYERS) for (const t of b.layerSets[L]) if (!B.layerSets[L].includes(t)) B.layerSets[L].push(t);
       for (const L of b.active) if (!B.active.includes(L)) B.active.push(L);
@@ -273,7 +274,7 @@
           for (const L of common) for (const x of sim.linkWhy({ c: a.c, slots: a.slotsBy[L], vermin: false }, { c: b.c, slots: b.slotsBy[L], vermin: b.vermin, vclass: b.c.vc }, L, on))
             if (!fams.some(y => y.f === x.f)) fams.push(Object.assign({ L }, x));
         } else if (b.layers.some(L => ra.has(realmOf(L)))) {
-          const L = a.L, off = Object.assign({}, on, { hunt: false, ladder: false });
+          const L = a.L, off = Object.assign({}, on, { hunt: false, ladder: false, crossLayer: true });
           fams = sim.linkWhy({ c: a.c, slots: a.slotsBy[L], vermin: false }, { c: b.c, slots: b.slotsBy[b.L], vermin: b.vermin, vclass: b.c.vc }, L, off).map(x => Object.assign({ L }, x));
         }
         if (fams.length) out.push([a.t, b.t, fams]);

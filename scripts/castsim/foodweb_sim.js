@@ -341,6 +341,9 @@
       if (lays.includes('ocean') && !lays.includes('fresh')) s = s.filter(x => x !== 'FRESH');
       const why = [];
       if (wet) why.push('on ' + ['ocean', 'fresh'].filter(L => lays.includes(L)).join(' and ') + ': no ' + ['GROUND', 'OCEAN', 'FRESH'].filter(x => !s.includes(x)).join('/').toLowerCase() + ' vermin');
+      // user 20 Oct: no flying vermin for a non-flier
+      const gfF = (CUR.apexOn || {})[c.t];
+      if (!((gfF && gfF.flier) || c.h === 'flier' || c.h === 'waterbird') && s.includes('FLYING')) { s = s.filter(x => x !== 'FLYING'); why.push('not a flier: no flying vermin'); }
       // user 17 Oct: an ocean or freshwater apex or predator with no shore seat takes no ground or flying vermin
       const gf = (CUR.apexOn || {})[c.t];
       if (gf && gf.water && !gf.shore) {
@@ -398,6 +401,8 @@
       { id: 'raws', label: "DF's own diet tokens", test: (a, b) => vanillaEats(a.c, b.c) },
       { id: 'gobble', label: 'Vermin the tool feeds', test: (a, b, L) => gobbleWhy(a, b, L) },
       { id: 'mass', label: 'Mass and numbers (side rules)', test: (a, b) => massWhy(a.c, b.c) },
+      // user 20 Oct: "Add the 'Hunting Pairs' to 'New Rules'" (a shared layer, as the family itself: none across layers)
+      { id: 'hunt', label: 'Hunting pairs written in play', test: (a, b, L, on) => (on && on.crossLayer) ? null : ((linkWhy(a, b, L, { hunt: 1 })[0] || {}).d || null) },
     ];
     const grpOf = c => Math.max(1, Math.floor(((c.c0 || 1) + (c.c1 || 1)) / 2));
     function armedWhy(c, slots, L) {
@@ -430,8 +435,7 @@
       if (c.v) return null;
       if (c.h === 'waterbird') return 'DIVE_HUNTS_VERMIN (waterbird)';
       if (c.h === 'flier' && c.ro === 'predator') return 'DIVE_HUNTS_VERMIN (predatory flier)';
-      if (c.ro === 'predator' && c.m < 150000 && (c.h === 'land' || c.h === 'semiaquatic')) return 'HUNTS_VERMIN (small land predator)';
-      return null;
+      return null;   // user 20 Oct: HUNTS_VERMIN (any vermin, flying too) is no longer written on small land predators
     }
     // user 17 Oct: no link from a land-ground apex or predator to anything on land-flying (vermin too: a map-only vermin by
     // its FLYING side), unless the hunter is on land-flying too and the prey on land-ground; engine MODEL.apexBar
@@ -440,7 +444,11 @@
       if ((fdA.never || []).includes(b.t)) return true;   // user 19 Oct: a bird's 'never' list
       if (FLIER_ONLY_PREY.has(b.t)) { const g = (CUR.apexOn || {})[a.t]; if (g && g.surf && !g.flyHunter) return true; }   // user 19 Oct: the bat
       // user 19 Oct: the alligator takes nothing that flies, and no insect vermin
-      if (fdA.noFliers && ((!b.v && (b.h === 'flier' || b.h === 'waterbird')) || laysOf(b.t).includes('flying') || (b.v && sidesOf(b.t).includes('FLYING')))) return true;
+      // user 20 Oct: a waterbird is no flier for the alligator; flying vermin still are
+      if (fdA.noFliers && ((!b.v && b.h === 'flier') || (b.v && sidesOf(b.t).includes('FLYING')))) return true;
+      // user 20 Oct: no flying-only vermin for a non-flier
+      if (b.v) { const sd = sidesOf(b.t); if (sd.includes('FLYING') && !sd.some(s => s === 'GROUND' || s === 'OCEAN' || s === 'FRESH')) {
+        const xa = (CUR.apexOn || {})[a.t]; if (!((xa && xa.flier) || a.h === 'flier' || a.h === 'waterbird')) return true; } }
       if (b.v && (fdA.noTypes || []).includes(b.swv)) return true;
       const A = CUR.apexOn || {}, x = A[a.t];
       let y = A[b.t];
@@ -457,14 +465,21 @@
       return false;
     }
     // user 19 Oct: the osprey's and eagle's own diet (engine MODEL.forcedDiet): fish prey and ground snakes, never an apex
+    // the extinct apexes' sentient rule (user 20 Oct): ground eat ground, fliers ground/fliers, shore ground/water, water shore/water
+    const HAB_CLASS = { land: 'ground', flier: 'flier', waterbird: 'flier', semiaquatic: 'shore', aquatic: 'water' };
+    const HAB_EATS = { ground: ['ground'], flier: ['ground', 'flier'], shore: ['ground', 'water'], water: ['shore', 'water'] };
+    const habEats = (ha, hb) => (HAB_EATS[HAB_CLASS[ha || 'land']] || []).includes(HAB_CLASS[hb || 'land']);
     function forcedDiet(a, b) {
-      const d = FORCED_DIET[a.t];
+      const A = CUR.apexOn || {}, x = A[a.t], y = A[b.t], d = FORCED_DIET[a.t];
+      if (d && d.sentients && y && y.sent && d.sentients.some(L => y[L])) return true;   // harpy, grimeling: apex or not
+      if (y && y.apex) return false;   // no apex is prey, past here
+      if (x && x.exApex && y && y.sent && habEats(x.hab, y.hab)) return true;
       if (!d) return false;
-      const y = (CUR.apexOn || {})[b.t];
-      if (y && y.apex) return false;
       if ((d.prey || []).includes(b.t)) return true;
+      if (d.bigPrey && y && y.ground && (y.mass || 0) >= d.bigPrey && !b.v && !predator(link(b))) return true;
       if (d.swimVermin && b.v && !(d.noTypes || []).includes(b.swv)) { const sd = sidesOf(b.t); if ((sd.includes('OCEAN') || sd.includes('FRESH')) && !sd.includes('FLYING')) return true; }
-      return !!(y && ((d.fish && y.fish) || (d.snake && y.snake) || (d.ocean && y.ocean)));
+      if (d.fish && y && y.fish && !(d.noPelagic && y.pelagic)) return true;
+      return !!(y && ((d.snake && y.snake) || (d.ocean && y.ocean)));
     }
     // user 17 Oct: every apex of the layer FORCED_PREY names takes that species (the leopard seal on the ocean)
     function forcedPrey(a, b) {
@@ -505,7 +520,7 @@
       };
       if (on.newrules) {
         const hits = [];
-        for (const r of NEW_RULES) { const w = r.test(a, b, L); if (w) hits.push(`${r.label}: ${w}`); }
+        for (const r of NEW_RULES) { const w = r.test(a, b, L, on); if (w) hits.push(`${r.label}: ${w}`); }
         if (hits.length) out.push({ f: 'newrules', d: hits.join(' | ') });
       }
       if (on.hunt && !b.vermin) {
@@ -608,7 +623,7 @@
         const apexL = v ? [] : ls.filter(L => !!apexTier(c, L, promoted));
         const wet = ls.filter(L => L === 'ocean' || L === 'fresh');
         const g = ls.includes('ground'), f = ls.includes('flying');
-        if (!(g || f || wet.length || apexL.length)) continue;
+        if (!ls.length) continue;
         apexOn[t] = { hunter: !v && g && (apexL.includes('ground') || predator(lc)), ground: g, flying: f,
           water: !v && wet.length > 0 && (wet.some(L => apexL.includes(L)) || predator(lc)),
           shore: !v && wet.some(L => slotsFor(c, L, sub, promoted).includes('shore')), apex: apexL.length > 0, apexL, wet: wet.length > 0,
@@ -619,7 +634,10 @@
           fish: !v && wet.length > 0 && lc.h === 'aquatic' && !predator(lc), snake: !v && g && !!c.lg && (lc.g === 'ML' || lc.g === 'AL'),
           ocean: !v && ls.includes('ocean'),
           flyHunter: !v && f && (apexL.includes('flying') || predator(lc)),   // user 19 Oct: the bat's only surface eaters
-          surf: g || f || wet.length > 0 };   // user 19 Oct: on the ocean layer (the polar bear's diet)
+          surf: g || f || wet.length > 0,
+          // user 20 Oct: a sentient prey, its habitat class, an extinct apex, the pelagic guild, a flier, freshwater
+          sent: !v && !!c.se && !c.civ, hab: lc.h, exApex: !v && !!c.ex && apexL.length > 0, mass: lc.m || 0, pelagic: lc.g === 'PE',
+          flier: !v && (lc.h === 'flier' || lc.h === 'waterbird' || f), fresh: ls.includes('fresh') };   // user 19 Oct: on the ocean layer (the polar bear's diet)
       }
       CUR = { P, promoted, mapOnly, apexOn };
       return { P, fbs, promoted, rejected, sub, layerSets, active, lists, mapOnly, apexOn };

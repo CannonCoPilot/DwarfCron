@@ -87,8 +87,8 @@ FLIER_ONLY_PREY = {'BAT'}
 # MODEL.forcedDiet). The desk has no body plan, so it models the fish only: no cast holds them with a ground snake.
 _FISH_LAND_VERMIN = [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH'), ('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]
 FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp vermin, and the hare
-    'BIRD_OSPREY': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
-    'BIRD_EAGLE': {'fish': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
+    'BIRD_OSPREY': {'fish': True, 'noPelagic': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},   # 20 Oct: no pelagic fish
+    'BIRD_EAGLE': {'fish': True, 'noPelagic': True, 'snake': True, 'vermin': _FISH_LAND_VERMIN},
     'BIRD_OWL_GREAT_HORNED': {'prey': ['HARE'], 'vermin': [('GROUND', 'SWV_SMALL_MAMMAL'), ('GROUND', 'SWV_HERP')]},
     # user 19 Oct: the peregrine takes ground snakes and never the raven, duck or rabbit
     'BIRD_FALCON_PEREGRINE': {'snake': True, 'never': ['BIRD_RAVEN', 'BIRD_DUCK', 'RABBIT'], 'vermin': []},
@@ -101,7 +101,21 @@ FORCED_DIET = {   # user 19 Oct, and the great horned owl: land mammal and herp 
     # The desk's ladder has no vermin types; the alligator's ladder vermin are small fish only, so only noFliers matters here.
     'ALLIGATOR': {'noFliers': True, 'noTypes': ['SWV_FLYING_INSECT', 'SWV_GROUND_BUG', 'SWV_COLONY'], 'swimVermin': True,
                   'vermin': [('OCEAN',), ('FRESH',)]},
+    # user 20 Oct (engine ROSTER.FP.FORCED_DIET)
+    'CROCODILE_CAVE': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
+    'BLIND_CAVE_BEAR': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
+    'BAT_GIANT': {'prey': ['RUTHERER', 'DRALTHA'], 'vermin': []},
+    'HIPPO': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
+    'GIANT_HIPPO': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
+    'BEAVER': {'fish': True, 'vermin': [('OCEAN', 'SWV_SMALL_FISH'), ('FRESH', 'SWV_SMALL_FISH')]},
+    'GIANT_ALLIGATOR': {'prey': ['GIANT_HIPPO'], 'vermin': []},
+    'HARPY': {'sentients': ['ground', 'flying'], 'overApex': True, 'vermin': []},
+    'GRIMELING': {'sentients': ['ocean', 'fresh'], 'overApex': True, 'vermin': []},
+    'CRETACEOUS_UTAHRAPTOR': {'bigPrey': 1000000, 'vermin': []},
 }
+# user 20 Oct: the extinct apexes eat any non-apex sentient by habitat class (engine MODEL.habEats)
+HAB_CLASS = {'land': 'ground', 'flier': 'flier', 'waterbird': 'flier', 'semiaquatic': 'shore', 'aquatic': 'water'}
+HAB_EATS = {'ground': {'ground'}, 'flier': {'ground', 'flier'}, 'shore': {'ground', 'water'}, 'water': {'shore', 'water'}}
 REAL_APEX = {
     'PYTHON': ('ground', 'apex', 'large constrictors take deer and pigs; Burmese pythons are the apex of the Everglades today'),
     'MONITOR_LIZARD': ('ground', 'apex', 'the Komodo dragon is the apex predator of its islands'),
@@ -578,9 +592,12 @@ class Design:
         if eb['token'] in FLIER_ONLY_PREY:   # user 19 Oct: the bat, on the surface, to flying predators and apexes only
             g = self.ground_fly.get(ea['token'])
             if g and not g['flyHunter']: return False
-        d = FORCED_DIET.get(ea['token'])
-        if d and eb['token'] not in self.apex_any and (eb['token'] in d.get('prey', ()) or (d.get('fish') and self.ground_fly.get(eb['token'], {}).get('fish'))
-                                                     or (d.get('ocean') and not eb['gameVermin'] and 'ocean' in eb.get('layers', ()))): return True
+        if not b['vermin'] and self.forced_diet(ea, eb): return True   # the user's own diets (engine MODEL.forcedDiet)
+        if b['vermin'] and eb['gameVermin']:   # user 20 Oct: no flying-only vermin for a non-flier
+            ls = eb.get('layers', ())
+            if 'flying' in ls and not any(L in ls for L in ('ground', 'ocean', 'fresh')):
+                g = self.ground_fly.get(ea['token'], {})
+                if not (g.get('flier') or ea['habitat'] in ('flier', 'waterbird') or 'flying' in ea.get('layers', ())): return False
         if self.apex_bar(ea, eb): return False   # user 17 Oct: the link bars on the real species
         if FORCED_PREY.get(eb['token']) in self.apex_any.get(ea['token'], ()): return True   # the leopard seal to every ocean apex
         ea, eb = self.link(ea), self.link(eb)    # LINK_AS
@@ -761,14 +778,32 @@ class Design:
         return tr
 
     # ------------------------------------------------------------------ the whole embark
+    def forced_diet(self, ea, eb):
+        """the user's own diets (engine MODEL.forcedDiet): sentients past the apex rule (harpy, grimeling), then never an apex:
+        the extinct apexes' sentients by habitat class, named prey, ground prey of a ton or more, fish prey (no pelagic for
+        the eagle and osprey), the polar bear's ocean creatures"""
+        d, t = FORCED_DIET.get(ea['token']), eb['token']
+        ls = eb.get('layers', ())
+        sent = eb['sentient'] and not eb['civ'] and not eb['gameVermin']
+        if d and d.get('sentients') and sent and any(L in ls for L in d['sentients']): return True
+        if t in self.apex_any: return False
+        if sent and ea['extinct'] and ea['token'] in self.apex_any:
+            if HAB_CLASS.get(eb['habitat'], 'ground') in HAB_EATS.get(HAB_CLASS.get(self.link(ea)['habitat'], 'ground'), ()): return True
+        if not d: return False
+        if t in d.get('prey', ()): return True
+        if d.get('bigPrey') and 'ground' in ls and eb['mass'] >= d['bigPrey'] and not eb['gameVermin'] and not self.predator(self.link(eb)): return True
+        g = self.ground_fly.get(t, {})
+        if d.get('fish') and g.get('fish') and not (d.get('noPelagic') and self.link(eb)['guild'] == 'PE'): return True
+        return bool(d.get('ocean') and not eb['gameVermin'] and 'ocean' in ls)
+
     def apex_bar(self, ea, eb):
         """user 17 Oct, the link bars (engine MODEL.apexBar): no apex is prey; no land-ground apex or predator takes anything on
         land-flying (a flying hunter on the ground is kept); no ocean or freshwater apex or predator links either way with a
         land-ground or land-flying creature unless either can take a shore seat."""
         if eb['token'] in self.apex_any: return True
         if eb['token'] in FORCED_DIET.get(ea['token'], {}).get('never', ()): return True   # user 19 Oct: a bird's 'never' list
-        if FORCED_DIET.get(ea['token'], {}).get('noFliers') and (('flying' in eb.get('layers', ())) or (not eb['gameVermin'] and eb['habitat'] in ('flier', 'waterbird'))):
-            return True   # user 19 Oct: the alligator takes nothing that flies
+        if FORCED_DIET.get(ea['token'], {}).get('noFliers') and ((not eb['gameVermin'] and eb['habitat'] == 'flier') or (eb['gameVermin'] and 'flying' in eb.get('layers', ()))):
+            return True   # user 19 Oct: the alligator takes nothing that flies (20 Oct: waterbirds yes)
         a, b = self.ground_fly.get(ea['token']), self.ground_fly.get(eb['token'])
         if not a or not b: return False
         if a['hunter'] and b['flying'] and not (a['flying'] and b['ground']): return True
@@ -805,7 +840,8 @@ class Design:
                 'oshore': (not v) and 'ocean' in ls and 'shore' in self.slots_for(e, 'ocean', sub) and bool(self.predator(le) or self.apex_tier(e, 'ocean')),
                 'gapex': (not v) and 'ground' in ls and bool(self.apex_tier(e, 'ground')),
                 'fish': (not v) and bool(wet) and le['habitat'] == 'aquatic' and not self.predator(le),
-                'flyHunter': (not v) and 'flying' in ls and bool(self.apex_tier(e, 'flying') or self.predator(le))}
+                'flyHunter': (not v) and 'flying' in ls and bool(self.apex_tier(e, 'flying') or self.predator(le)),
+                'flier': (not v) and (le['habitat'] in ('flier', 'waterbird') or 'flying' in ls)}
         self.apex_any = {}
         for tok, e in pool.items():
             if e['gameVermin']: continue
