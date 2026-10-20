@@ -132,7 +132,7 @@ def main():
         'biome_limit': {k: sorted(v) for k, v in DS.BIOME_LIMIT.items()},
         'giant_bugs': sorted(DS.GIANT_BUGS), 'water_bug_apex': sorted(DS.WATER_BUG_APEX), 'vermin_fresh': sorted(DS.VERMIN_FRESH), 'evil_apex': DS.EVIL_APEX,
         'evil_apex_biomes': {k: sorted(v) for k, v in DS.EVIL_APEX_BIOMES.items()},
-        'salt_wet': sorted(DS.SALT_WET), 'fly_not_raptor': ['BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'], 'wiring': W, 'cave_assign': cave_assign(),
+        'salt_wet': sorted(DS.SALT_WET), 'fly_not_raptor': ['BIRD_ALBATROSS', 'BIRD_LOON', 'BIRD_PUFFIN', 'BIRD_STORK_WHITE'], 'wiring': W, 'cave_assign': cave_assign(), 'wetland_ground': sorted(DS.WETLAND_GROUND),
         'params': {'pack': EN.CAST_DEF['pack'], 'giant': EN.CAST_DEF['giant'], 'hv_top': EN.CAST_DEF['hv_top'],
                    'reuse': DS.REUSE, 'ap_pick': EN.R0['ap_pick'], 'apex_pack': DS.APEX_PACK},
         'pool_cap': DS.POOL_CAP, 'brook_max_mass': BROOK_MAX_MASS,

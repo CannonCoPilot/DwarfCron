@@ -32,6 +32,7 @@
     const EXTRA = setOf(M.extra_biomes), EVIL_EXTRA = setOf(M.evil_extra_biomes), LIMIT = setOf(M.biome_limit);
     const EVIL_APEX_B = setOf(M.evil_apex_biomes);
     const WATER_BUG_APEX = new Set(M.water_bug_apex), VERMIN_FRESH = new Set(M.vermin_fresh);
+    const WETLAND_GROUND = new Set(M.wetland_ground || []);
     const GIANT_BUGS = new Set(M.giant_bugs), SALT_WET = new Set(M.salt_wet), NOT_RAPTOR = new Set(M.fly_not_raptor);
     const VDIET = {};
     for (const k in M.vdiet) VDIET[k] = M.vdiet[k];
@@ -75,6 +76,8 @@
           if (al === 'evil') for (const t in M.evil_apex) {
             if (M.evil_apex[t] === L && (!EVIL_APEX_B[t] || EVIL_APEX_B[t].has(b))) out.push([L, t, 'wire', b]);
           }
+          // the grimeling onto land-ground at an evil marsh or swamp: 'reach' adds the biome, no apex promotion (user 20 Oct)
+          if (al === 'evil' && L === 'ground' && (b.startsWith('MARSH') || b.startsWith('SWAMP'))) for (const t of WETLAND_GROUND) out.push([L, t, 'reach', b]);
         }
       }
       return out;
@@ -117,8 +120,8 @@
       }
       const promoted = new Set();
       for (const [L, t, kind, b] of wiresFor(fbs)) {
-        promoted.add(L + '|' + t);
-        if (kind !== 'wire') continue;
+        if (kind !== 'reach') promoted.add(L + '|' + t);
+        if (kind !== 'wire' && kind !== 'reach') continue;
         if (P[t]) { if (!P[t].matched.includes(b)) { P[t].matched.push(b); P[t].matched.sort(); P[t].wired = true; } continue; }
         if (BY[t]) P[t] = { c: BY[t], matched: [b], extra: [b], wired: true };
       }
@@ -135,6 +138,7 @@
         if (verm) { if (vc === 'VB' || vc === 'VI') out.push('flying'); else if (vc !== 'VF') out.push('ground'); }
         else if (hab === 'land') out.push('ground');
         else if (hab === 'flier' || hab === 'waterbird') out.push('flying');   // no giant bug flier on land-ground (user 17 Oct)
+        else if (hab === 'semiaquatic' && WETLAND_GROUND.has(c.t) && land.some(b => b.startsWith('MARSH') || b.startsWith('SWAMP'))) out.push('ground');   // the grimeling (user 20 Oct)
       }
       const wet = hab === 'aquatic' || hab === 'semiaquatic';
       const waterHere = p.matched.filter(b => fbs[b].kind !== 'land' && fbs[b].kind !== 'cavern');

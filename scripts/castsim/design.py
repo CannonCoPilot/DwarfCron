@@ -165,6 +165,8 @@ PLACED_PLANTS = {'SPONGE', 'GIANT_SPONGE'}
 # and swamps; DF tags it NO_EAT+NO_DRINK, so it is let through the natural filter like the sponge man) on freshwater.
 # Wired into every land biome / freshwater body of an evil region.
 EVIL_APEX = {'HARPY': 'flying', 'GRIMELING': 'fresh', 'NIGHTWING': 'flying'}
+# user 20 Oct: the grimeling is on land-ground too where it matches a marsh or swamp (engine ROSTER.FP.WETLAND_GROUND)
+WETLAND_GROUND = {'GRIMELING'}
 # user 13 Oct: the nightwing (EVIL, LARGE_PREDATOR desert flier; DF tags it NO_EAT+NO_DRINK and sentient) is the evil desert
 # flier, wired only into an evil region's deserts (the harpy covers its grass, savanna, shrub and marsh)
 EVIL_APEX_BIOMES = {'NIGHTWING': {'DESERT_BADLAND', 'DESERT_ROCK', 'DESERT_SAND'}}
@@ -350,6 +352,11 @@ class Design:
                 if al == 'evil':
                     for t, el in EVIL_APEX.items():
                         if el == L and b in EVIL_APEX_BIOMES.get(t, (b,)): out.append((L, t, 'wire', b))
+                    # user 20 Oct: the grimeling onto land-ground at an evil marsh or swamp ('reach': the biome, no apex
+                    # promotion). The engine reaches the same biomes through its raws: it lets the evil apexes past the unliving
+                    # filter (ROSTER.FP.mark), which this desk does not.
+                    if L == 'ground' and b.startswith(('MARSH', 'SWAMP')):
+                        for t in sorted(WETLAND_GROUND): out.append((L, t, 'reach', b))
         return out
 
     @staticmethod
@@ -422,8 +429,8 @@ class Design:
         # apexes of the layer on this embark
         self.promoted = set()
         for L, t, kind, b in self.wires_for(fbs):
-            self.promoted.add((L, t))
-            if kind != 'wire': continue
+            if kind != 'reach': self.promoted.add((L, t))
+            if kind not in ('wire', 'reach'): continue
             if t in pool:
                 if b not in pool[t]['matched']: pool[t]['matched'] = sorted(set(pool[t]['matched']) | {b}); pool[t].setdefault('wired', []).append(b)
                 continue
@@ -461,7 +468,9 @@ class Design:
             elif hab == 'land': out.append('ground')
             elif hab in ('flier', 'waterbird'):
                 out.append('flying')   # user 17 Oct: no giant bug flier on land-ground (was: hunts on the ground too, 13 Oct)
-            elif hab == 'semiaquatic': notes.append(('ground', 'amphibious: never on land-ground'))
+            elif hab == 'semiaquatic':
+                if e['token'] in WETLAND_GROUND and any(b.startswith(('MARSH', 'SWAMP')) for b in land): out.append('ground')
+                else: notes.append(('ground', 'amphibious: never on land-ground'))
         # a water layer takes aquatic and amphibious species on any biome match; land animals, fliers and insects only
         # where their raws name the water body itself (ALL_MAIN or ANY_TROPICAL would put rats and beetles in every pool)
         wet = hab in ('aquatic', 'semiaquatic')
