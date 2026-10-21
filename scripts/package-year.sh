@@ -21,12 +21,14 @@ HACK="$STEAM/DFHack/hack"
 DEV="$DF_DIR/dfhack-config/scripts"
 log() { echo "[package-year] $*"; }
 die() { echo "[package-year] FATAL: $*" >&2; exit 1; }
+# the rig's state word (stopped / running ...); the whole reply is read, so `head` never cuts the pipe under pipefail
+rig() { "$C" status 2>/dev/null | awk 'NR==1{print $1}'; }
 tick_abs() { "$C" state 2>/dev/null | tr ' ' '\n' | awk -F= '$1=="year"{y=$2} $1=="tick"{t=$2} END{print y*403200+t}'; }
 
 case "${1:-}" in
 install)
     zip="${2:-}"; [ -f "$zip" ] || die "no zip: $zip"
-    "$C" status | head -1 | grep -q stopped || die "stop DF first"
+    [ "$(rig)" = stopped ] || die "stop DF first"
     ts=$(date +%Y%m%d-%H%M%S); bk="$root/data/package-install/$ts-v8"; mkdir -p "$bk/devcopy/gui" "$bk/hack"
     # the dev copy: every seasonal-wildlife script in dfhack-config/scripts shadows the package's (DFHack reads it first)
     n=0
@@ -47,7 +49,7 @@ install)
     ;;
 embark)
     name="${2:-}"; [ -n "$name" ] || die "usage: embark NAME"
-    "$C" status | head -1 | grep -q running || "$C" start
+    [ "$(rig)" = running ] || "$C" start
     CX_EMBARK_SIZE=4 "$C" embark region16 135 23 "$name" 11 7 || die "embark failed"
     "$C" cmd cx-load breach auto | tail -1
     "$C" cmd seasonal-wildlife cast status | head -2
@@ -84,7 +86,7 @@ check)
     ;;
 restore-dev)
     d="${2:-}"; [ -d "$d/devcopy" ] || die "no devcopy in $d"
-    "$C" status | head -1 | grep -q stopped || die "stop DF first"
+    [ "$(rig)" = stopped ] || die "stop DF first"
     (cd "$d/devcopy" && find . -type f) | while read -r rel; do mkdir -p "$DEV/$(dirname "$rel")"; cp "$d/devcopy/$rel" "$DEV/$rel"; done
     log "dev copy restored into $DEV"
     ;;
