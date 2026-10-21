@@ -56,11 +56,43 @@ for (const k in P.lists) lists[k] = arr(P.lists[k]).map(x => ({ c: BY[x.t], verm
 const apexOn = {}; for (const t in P.apexOn) apexOn[t] = Object.assign({}, P.apexOn[t], { apexL: arr(P.apexOn[t].apexL) });
 const mapOnly = {}; for (const t in P.mapOnly) mapOnly[t] = { sides: arr(P.mapOnly[t].sides) };
 const B = { P: Pmap, promoted: new Set(arr(P.promoted)), mapOnly, apexOn, lists, active: arr(P.active), sub: P.sub || null };
+// a context the engine used that is not the build's (the added layer's growth, the vermin writer): its map-only species,
+// apex flags and promotions, on the probe's records and layers
+const ctxOf = X => {
+  if (!X) return B;
+  const ao = {}; for (const t in X.apexOn || {}) ao[t] = Object.assign({}, X.apexOn[t], { apexL: arr(X.apexOn[t].apexL) });
+  const mo = {}; for (const t in X.mapOnly || {}) mo[t] = { sides: arr(X.mapOnly[t].sides) };
+  return Object.assign({}, B, { promoted: new Set(arr(X.promoted)), mapOnly: mo, apexOn: ao });
+};
 sim.useBuild(B);
 const prm = Object.assign({}, P.prm, { links: 'network', network: { newrules: true } });
 console.log(`     build inputs: ${P.fromBuild ? 'the build\'s own (records as read at the build)' : 'read afresh at the probe (casts built in an earlier session)'}`);
 if (P.salt) console.log(`     note: salt ${P.salt} (the explorer's year() has none) -- casts will differ`);
-const cs = sim.year(B, {}, prm, P.site, P.year);
+// a layer cast after the build (sw ROSTER.castAddMissing: its water found later) is grown after the year, as the engine
+// grows it: the year without it, then its four seasons on the year's repeat counts with V7.NR's seeds, then the season's
+// cross-layer links over every cast
+const added = Object.keys(P.added || {}).filter(L => B.active.includes(L));
+let cs;
+if (!added.length) cs = sim.year(B, {}, prm, P.site, P.year);
+else {
+  console.log(`     ${added.join(', ')} cast after the build: the explorer grows ${added.length > 1 ? 'them' : 'it'} after the year, as the engine does` + (P.crossAdded ? '' : ' (engine: no cross-layer relink after the add)'));
+  const y0 = sim.year(Object.assign({}, B, { active: B.active.filter(L => !added.includes(L)) }), {}, prm, P.site, P.year);
+  const used = {}, out = {};
+  let built = 0, n = 0;
+  sim.useBuild(ctxOf(P.addCtx));   // the added layer grows on the fort as the engine read it then
+  for (const key in y0) { out[key] = y0[key]; built++; for (const m of y0[key].members) { const k = m.slot === 'sentient' ? 'SN|' + m.t : m.t; used[k] = (used[k] || 0) + 1; } }
+  for (let s0 = 0; s0 < 4; s0++) for (const L of added) {
+    n++;
+    const seed = (P.site * 7919 + P.year * 104729 + s0 * 131 + sim.LAYERS.indexOf(L) * 17) % 2147483647;
+    const tr = sim.cast(B.lists[L + '|' + s0], L, B.sub, used, sim.Rng(seed), prm, {});
+    tr.built = built + n;
+    out[L + '|' + s0] = tr;
+  }
+  const on = Object.assign({}, prm.network || {}, { hunt: false, ladder: false, crossLayer: true });
+  Object.defineProperty(out, 'cross', { value: [0, 1, 2, 3].map(s0 => sim.crossLinks(out, s0, on)), enumerable: false });
+  cs = out;
+  sim.useBuild(B);
+}
 let castDiff = 0;
 for (const key in P.casts) {
   const e = P.casts[key], j = cs[key];
@@ -89,7 +121,7 @@ if (P.writeRecords) {
   const WR = {}; for (const t in P.writeRecords) WR[t] = norm(P.writeRecords[t]);
   wsim = SIM.make({ meta: DATA.meta, creatures: Object.values(WR).map(r => Object.assign({ nm: r.t.toLowerCase(), b: (EX[r.t] && EX[r.t].b) || [] }, r)) });
   wPmap = {}; for (const t in (P.writeP || {})) wPmap[t] = { c: wsim.BY[t], layers: arr(P.writeP[t].layers) };
-  wsim.useBuild(Object.assign({}, B, { P: wPmap }));
+  wsim.useBuild(Object.assign({}, ctxOf(P.writeCtx), { P: wPmap }));
 }
 const SURF = new Set(['ground', 'flying', 'ocean', 'fresh']);
 const realmOf = L => SURF.has(L) ? 'surface' : L;
@@ -129,6 +161,32 @@ say(wBad === 0, `vermin writes: ${wN} consumer x vermin pairs present within a r
 for (const x of wEx) console.log('     ' + x);
 
 sim.useBuild(B);
+// ---------------------------------------------------------------- helpers: season pair sets, seats, the outsider rule
+const pairSet = s0 => {
+  const out = new Set();
+  for (const key in cs) if (key.endsWith('|' + s0)) for (const [x, y] of cs[key].edges) out.add(x + '|' + y);
+  for (const x of cs.cross[s0]) out.add(x[0] + '|' + x[2]);
+  return out;
+};
+const seatedIn = s0 => {
+  const out = new Set();
+  for (const key in cs) if (key.endsWith('|' + s0)) { for (const m of cs[key].members) out.add(m.t); for (const v of cs[key].vermin) out.add(v.t); }
+  return out;
+};
+// a pair with a side outside the season's casts: New Rules on every layer both are on, with each side's slots (V7.NR.outsider)
+const within = Object.assign({}, prm.network || {}), across = Object.assign({}, within, { hunt: false, ladder: false, crossLayer: true });
+const outsider = (ta, tb, now = true) => {
+  if (now && P.castMembers && P.castMembers[ta] && P.castMembers[tb]) return false;   // ROSTER.castOutsider: two members keep to the casts
+  if (now && P.inSeason && !(P.inSeason[ta] && P.inSeason[tb])) return false;          // ... and both sides must be in season
+  const A = BY[ta], Bc = BY[tb];
+  if (!A || !Bc || A.v || Bc.v) return false;
+  const sa = (P.slotsBy || {})[ta] || {}, sb = (P.slotsBy || {})[tb] || {};
+  for (const La of (Pmap[ta] && Pmap[ta].layers) || []) for (const Lb of (Pmap[tb] && Pmap[tb].layers) || []) {
+    if (La !== Lb && !(SURF.has(La) && SURF.has(Lb))) continue;
+    if (sim.linkWhy({ c: A, slots: arr(sa[La]), vermin: false }, { c: Bc, slots: arr(sb[Lb]), vermin: false, vclass: Bc.vc }, La, La === Lb ? within : across).length) return true;
+  }
+  return false;
+};
 // ---------------------------------------------------------------- 4. relations
 const s = P.season;
 const jset = new Set();
@@ -138,7 +196,82 @@ const eset = new Set(arr(P.seasonPairs));
 const onlyE = [...eset].filter(k => !jset.has(k)), onlyJ = [...jset].filter(k => !eset.has(k));
 say(onlyE.length === 0 && onlyJ.length === 0, `season ${s} pairs: engine ${eset.size}, explorer ${jset.size}` + (onlyE.length + onlyJ.length ? `; engine only ${onlyE.slice(0, 5).join(' ')}; explorer only ${onlyJ.slice(0, 5).join(' ')}` : ', the same'));
 const rel = arr(P.relations).map(r => r[0]);
-const outside = rel.filter(k => !eset.has(k) && !k.endsWith('|DOMESTIC'));
-say(outside.length === 0, `relations written: ${rel.length} species pairs (${rel.join(', ') || 'none yet'}); ${outside.length ? outside.length + ' outside the season set: ' + outside.join(', ') : 'all in the season set (or a fort animal)'}`);
+// the written-pair record is the year's: a pair written in an earlier season is judged by that season's set; an outsider
+// pair by New Rules on its own layers
+const earlier = new Set(); for (let s0 = 0; s0 < s; s0++) for (const k of pairSet(s0)) earlier.add(k);
+const outside = rel.filter(k => { if (eset.has(k) || earlier.has(k) || k.endsWith('|DOMESTIC')) return false; const [a, b] = k.split('|'); return !(P.live && outsider(a, b, false)); });
+say(outside.length === 0, `relations written: ${rel.length} species pairs this year (${rel.slice(0, VERBOSE ? 999 : 8).join(', ') || 'none yet'}${rel.length > 8 && !VERBOSE ? ', ...' : ''}); ${outside.length ? outside.length + ' outside New Rules: ' + outside.join(', ') : 'all New Rules pairs of their season (or outsiders New Rules allows, or a fort animal)'}`);
+// ---------------------------------------------------------------- Phase E (probes from sw v8 Phase E on): holes, live cells, kills, pass times
+// probes written before sw's `(not ok) and err or nil` fix carry the string 'nil' for no error
+const holesErr = P.holesErr && P.holesErr !== 'nil' ? P.holesErr : null;
+if (P.holes || holesErr) {
+  // holes: the engine's own score of the casts it built, against the explorer's on the casts it builds
+  let hDiff = 0;
+  const hs = x => JSON.stringify({ m: x.members, p: x.predators, u: arr(x.unlinked).slice().sort(), f: arr(x.unfed).slice().sort() });
+  const tally = [];
+  for (let s0 = 0; s0 < 4; s0++) {
+    const e = arr(P.holes)[s0] || {}, j = sim.seasonHoles(cs, s0, prm);
+    for (const realm of new Set([...Object.keys(e), ...Object.keys(j)])) {
+      if (!e[realm] || !j[realm] || hs(e[realm]) !== hs(j[realm])) { hDiff++; console.log(`     holes season ${s0} ${realm}: engine ${e[realm] ? hs(e[realm]) : 'none'} explorer ${j[realm] ? hs(j[realm]) : 'none'}`); }
+      else if (arr(j[realm].unlinked).length || arr(j[realm].unfed).length) tally.push(`s${s0} ${realm}: no partner ${arr(j[realm].unlinked).join(' ') || '-'}; unfed ${arr(j[realm].unfed).join(' ') || '-'}`);
+    }
+  }
+  say(!holesErr && hDiff === 0, `holes: the engine's score of its casts ${holesErr ? 'FAILED: ' + holesErr : hDiff ? 'differs from the explorer\'s in ' + hDiff + ' season realm(s)' : 'equals the explorer\'s in every season and realm'}` + (tally.length ? '' : ' (no holes)'));
+  for (const x of tally) console.log('     ' + x);
+}
+if (P.live) {
+  // live cells: what DF holds now between the wild units on the map, held to the season's New Rules pairs
+  const set = pairSet(s), seat = seatedIn(s);
+  let nPairs = 0, nCells = 0, nW = 0, extra = [], missing = [], outW = 0, outMiss = [], unslot = 0, staleD = 0;
+  for (const key in P.live) {
+    const L = P.live[key], [a, b] = key.split('~');
+    nPairs++; nCells += L.n; nW += L.w; unslot += L.ns;
+    const both = seat.has(a) && seat.has(b);
+    const inAB = set.has(a + '|' + b), inBA = set.has(b + '|' + a);
+    const oAB = !both && !inAB && outsider(a, b), oBA = !both && !inBA && outsider(b, a);
+    if (L.w > 0) {
+      if (!inAB && !inBA && !oAB && !oBA) extra.push(`${a}~${b} (${L.w} cells)`);
+      else if (!inAB && !inBA) outW += L.w;
+    }
+    if (inAB && L.abU > 0) { missing.push(`${a}>${b} ${L.abU}/${L.abS}`); staleD += L.abD || 0; }
+    if (inBA && L.baU > 0) { missing.push(`${b}>${a} ${L.baU}/${L.baS}`); staleD += L.baD || 0; }
+    if (oAB && L.abU > 0) outMiss.push(`${a}>${b} ${L.abU}/${L.abS}`);
+    if (oBA && L.baU > 0) outMiss.push(`${b}>${a} ${L.baU}/${L.baS}`);
+  }
+  say(extra.length === 0, `live cells, season ${s}: ${nCells} unit pairs over ${nPairs} species pairs on the map, ${nW} written; ${extra.length ? extra.length + ' species pair(s) written outside New Rules: ' + extra.slice(0, 8).join(', ') : 'none written outside New Rules'}` + (outW ? ` (${outW} cells are outsider pairs New Rules allows)` : ''));
+  say(missing.length === 0, `live cells: New Rules pairs the ecology write covers ${missing.length ? 'left unwritten: ' + missing.slice(0, 8).join(', ') : 'are all written'}` + (unslot ? ` (${unslot} unit pairs not yet slotted, not judged)` : ''));
+  if (missing.length && P.live[Object.keys(P.live)[0]].abD !== undefined) console.log(`     of the unwritten cells, ${staleD} are in the write's memo as written (DF reset them since; the memo keeps them until its refresh), the rest are newer than the last pass`);
+  if (outMiss.length) console.log(`     outsider pairs New Rules allows but unwritten (ROSTER.castOutsider may withhold them; not judged): ${outMiss.slice(0, 8).join(', ')}`);
+}
+if (P.kills) {
+  // kills: every death DF recorded this year with a wild killer and a wild victim is a New Rules pair of its season
+  const yr = P.cur_year, wildWild = [], other = {};
+  for (const k of arr(P.kills)) {
+    if (k.y !== yr) continue;
+    const kw = k.ks && k.ks.wild && !k.ks.tame, vw = k.vs && k.vs.wild && !k.vs.tame;
+    if (k.killer && kw && vw) wildWild.push(k);
+    else { const why = !k.killer ? 'no killer (' + (k.cause || '?') + ')' : k.ks && k.ks.cit ? 'a citizen killed' : !vw ? 'victim not wild' : 'killer gone or not wild'; other[why] = (other[why] || 0) + 1; }
+  }
+  const bad = [], backEx = [];
+  let fwd = 0, back = 0;
+  for (const k of wildWild) {
+    const s0 = Math.min(3, Math.max(0, Math.floor((k.t || 0) / 100800)));
+    const seat = seatedIn(s0);
+    const ps = pairSet(s0), out2 = !(seat.has(k.killer) && seat.has(k.victim));
+    if (ps.has(k.killer + '|' + k.victim) || (out2 && outsider(k.killer, k.victim, false))) fwd++;
+    // DF's relation is mutual: on a written pair the prey may fight back and win
+    else if (ps.has(k.victim + '|' + k.killer) || (out2 && outsider(k.victim, k.killer, false))) { back++; backEx.push(`${k.killer}>${k.victim}`); }
+    else bad.push(`${k.killer}>${k.victim} (season ${s0}, ${k.cause})`);
+  }
+  say(bad.length === 0, `kills this year: ${wildWild.length} wild-on-wild: ${fwd} eater took eaten on a New Rules pair, ${back} prey killed its eater on one${back ? ' (' + backEx.slice(0, 4).join(', ') + ')' : ''}, ${bad.length} outside New Rules${bad.length ? ': ' + bad.slice(0, 8).join(', ') : ''}${wildWild.length ? '' : ' (none yet: pending, not passed)'}` + (Object.keys(other).length ? `; other deaths: ${Object.entries(other).map(([w, n]) => n + ' ' + w).join(', ')}` : ''));
+  for (const k of wildWild.slice(0, VERBOSE ? 99 : 6)) console.log(`     ${k.killer} killed ${k.victim} (tick ${k.t}, ${k.cause})`);
+}
+if (P.perf) {
+  // pass times: the FUSE laps of the tool's passes this session (job budget 250 ms; lap budget 50 ms)
+  const rows = Object.entries(P.perf).filter(([, v]) => v.runs > 0).sort();
+  const worst = rows.reduce((m, [, v]) => Math.max(m, v.worst), 0);
+  say(worst <= 250, `pass times: ${rows.length} laps timed, worst ${worst} ms` + (worst > 250 ? ' -- over the 250 ms job budget' : ' (under 250 ms)'));
+  for (const [n, v] of rows) if (n.startsWith('ecology') || v.worst > 50) console.log(`     ${n}: ${v.runs} runs, mean ${v.mean.toFixed(1)} ms, worst ${v.worst} ms, over 50 ms ${v.over}`);
+}
 console.log(fails === 0 ? 'nr probe: the engine follows New Rules on this fort' : `nr probe: ${fails} check(s) failed`);
 process.exit(fails ? 1 : 0);
