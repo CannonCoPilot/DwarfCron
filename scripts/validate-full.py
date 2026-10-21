@@ -54,6 +54,8 @@ BACKUPS = Path.home() / "Library/Application Support/CrossOver/df-snapshots/save
 # must be on the same branch). Checks whose behaviour changed with a release branch on it.
 def deployed_version():
     f = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress/dfhack-config/scripts/seasonal-wildlife.lua"
+    if not f.exists():   # v8 Phase G: the installed package (no dev copy)
+        f = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/DFHack/hack/scripts/seasonal-wildlife.lua"
     m = re.search(r"^-- v(\d+)\.(\d+)\.(\d+) \u2014", f.read_text(errors="replace"), re.M) if f.exists() else None
     return tuple(int(x) for x in m.groups()) if m else (0, 0, 0)
 V = deployed_version()
@@ -66,6 +68,10 @@ V70 = V >= (7, 0, 0)
 # v7.1 is built on the v7.0.0 changelog header (the lead bumps it at release), so the version line alone cannot tell
 # v7.1 from v7.0: the deployed engine carries the v7.1 groups table (V7.GRP) and the controls module sits beside it.
 DEPLOYED = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress/dfhack-config/scripts"
+# v8 Phase G: a player's install has no dev copy; the package's scripts are in DFHack's hack/scripts (validate what ships)
+PACKAGED = DEPLOYED.parent.parent.parent / "DFHack/hack/scripts"
+if not (DEPLOYED / "seasonal-wildlife.lua").exists() and (PACKAGED / "seasonal-wildlife.lua").exists():
+    DEPLOYED = PACKAGED
 def deployed_is_v71():
     f = DEPLOYED / "seasonal-wildlife.lua"
     return f.exists() and "V7.GRP = " in f.read_text(errors="replace")
@@ -582,9 +588,20 @@ FORT_HINT = {
 }
 _FORT_WORDS = ("CTRL", "Ringhatchets", "LAKE", "RIVER4", "OCEAN2", "BOATS", "region9", "region1", "MAGMA", "SPLIT")
 
+# v8 Phase G (validate-full 20261020-211908): claims whose feature a later release removed. The check still runs (its
+# receipt is kept), the verdict says what replaced it.
+SUPERSEDED = {
+    "mech.v70.builder": "v7.4 (F-builder): `roster build` grows the season casts (one builder); v8: on New Rules -- v8.casts, v8.conformance.casts",
+    "mech.v71.flying": "v7.4: the flying roster is the land-flying cast (`roster build flying` is gone); v8.conformance.casts",
+    "bl.deepwater": "v7.5 full pool: the ocean layer exists only where the fort has ocean (ROSTER.FP); v8.casts",
+    "mech.v71.vrm.edges_src": "v8 Phase D: vermin writes are New Rules' verdicts (composite SWV_<type>@<SIDE> classes and names), not GOBBLE_RULES/edges -- v8.writes.vermin",
+}
 def rec(cid, verdict, expected, got, shots=(), data=None, note=""):
     assert cid in CLAIM, cid
     c = CLAIM[cid]
+    if cid in SUPERSEDED and verdict in ("FAIL", "PASS"):
+        note = (note + "; " if note else "") + f"superseded ({verdict} as written): " + SUPERSEDED[cid]
+        verdict = "NOT-TESTABLE-HERE"
     if verdict == "NOT-TESTABLE-HERE":
         hint = FORT_HINT.get(cid, "")
         if not note:
@@ -1363,13 +1380,16 @@ print(json.encode({bad=bad, armed=armed, benign=benign, raptors=raptors, reach=r
     x = luaj("""
 local sw=reqscript('seasonal-wildlife'); local R=sw.ROSTER; local cfg=sw.loadConfig(); local s=df.global.cur_season
 local pool=sw.buildPool(cfg); local e0,q0
+local onMap = {}; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then onMap[u.race] = (onMap[u.race] or 0) + 1 end end
 for _,e in ipairs(pool) do
-  if not e0 and e.inEmbark and not e.locked and e.cat~='vermin' and e.layer=='land' and R.wants(cfg,e.key,s) and #sw.RESERVE.entries(e.key)>0 then
+  if not e0 and e.inEmbark and not e.locked and e.cat~='vermin' and e.layer=='land' and R.wants(cfg,e.key,s) and #sw.RESERVE.entries(e.key)>0
+     and (onMap[e.idx] or 0) == 0 then   -- v7.5 (user 13 Oct): exhausted = entry at 0 AND none on the map
     for _,q in ipairs(pool) do
       if q~=e and q.inEmbark and not q.locked and q.cat~='vermin' and cfg.allow[q.key]==true and R.group(q)==R.group(e)
          and not sw.inSeason(cfg,q.key,s) and not (q.noSeason and q.noSeason[s]) then e0=e break end end end end
 if not e0 then print(json.encode({none=true})) return end
 local live0=sw.RESERVE.of(e0.key); cfg.exhaust.enabled=true; cfg.exhaust.stamp=-1; sw.saveConfig(cfg)
+sw.CACHE.appliedStamp = R.exhaustStamp()   -- v7.3: the check waits for this season's apply; the probe stands for it
 sw.RESERVE.set(e0.key, 0)
 local made=R.exhaustCheck(cfg, s)
 local held=R.exhaustHolds(cfg, e0.key)
@@ -1382,7 +1402,7 @@ local outS = prom and sw.inSeason(cfg3, prom, s) or false
 sw.RESERVE.set(e0.key, live0)
 print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, promoted=prom or '', in_season=inS, back=back, out_after_roll=not outS}))""", timeout=300)
     if isinstance(x, dict) and x.get("none"):
-        rec("mech.v69.exhaust", "NOT-TESTABLE-HERE", "an in-season land species with an active out-of-season group-mate", json.dumps(x))
+        rec("mech.v69.exhaust", "NOT-TESTABLE-HERE", "an in-season land species, none of it on the map (v7.5), with an active out-of-season group-mate", json.dumps(x))
     else:
         ok = isinstance(x, dict) and x.get("made", 0) >= 1 and x.get("held") and x.get("after") == 0 and x.get("promoted") and x.get("in_season") and x.get("back", 0) >= 1 and x.get("out_after_roll")
         rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
@@ -1404,7 +1424,7 @@ print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, p
     if V71:   # scav section 14: 'on' only with the tool enabled too; `now` says why nothing ran
         s1ok = ("scavenging: on" in s1) if on_ else ("scavenging: off (the tool is disabled; the scavenging switch is on)" in s1)
         s2ok = bool(re.search(r"scavenge: \d+ eaten", s2)) and (on_ or "nothing ran: the tool is disabled" in s2)
-        ok = (re.search(r"scavenging: off(?! \(the tool)", s0) and s1ok and s2ok and re.search(r"scavenging: off(?! \(the tool)", s3)
+        ok = (re.search(r"scavenging: (off(?! \(the tool)|on)", s0) and s1ok and s2ok and re.search(r"scavenging: off(?! \(the tool)", s3)
               and "error" not in (s1 + s2).lower())
     else:
         ok = ("scavenging: off" in s0 and "scavenging: on" in s1 and re.search(r"scavenge: \d+ eaten", s2) and "scavenging: off" in s3
@@ -2082,7 +2102,8 @@ local left,leftT=0,{}; for _,e in ipairs(pool) do if e.inEmbark then local f=sw.
 local nat={}; for t in pairs(nativeT) do nat[#nat+1]=t end; table.sort(nat)
 print(json.encode({species=species, wrote=wrote, dive=dive, hunt=hunt, missing=bad, restored=restored, left=left, left_castes=leftT, native=nat}))
 """, timeout=180)
-    ok = isinstance(h, dict) and (h.get("species") or 0) > 0 and not h.get("missing") and h.get("restored") == h.get("wrote") and h.get("left") == 0
+    # v7.2: the run's earlier `enable` turned hunting on, so this `on` may write nothing new; `off` puts back everything held
+    ok = isinstance(h, dict) and (h.get("species") or 0) > 0 and not h.get("missing") and (h.get("restored") == h.get("wrote") or (h.get("wrote") == 0 and (h.get("restored") or 0) > 0)) and h.get("left") == 0
     rec("mech.hunt", "PASS" if ok else ("NOT-TESTABLE-HERE" if isinstance(h, dict) and h.get("species") == 0 else "FAIL"),
         "every targeted species carries its flag on every caste; off clears exactly what was written and nothing it wrote is left set", json.dumps(h), data=h,
         note="castes that carried the flag before the write are DF's own and stay set (native: " + ", ".join((h or {}).get("native") or []) + ")" if isinstance(h, dict) else "")
@@ -2319,7 +2340,7 @@ def overlay_state(txt):
 # rig's own Phase D-E kit: `cast nrprobe` writes the engine's state, DwarfCron scripts/castsim/nr_probe_check.js holds it
 # to the Food Web Explorer.
 V8_FORT = os.environ.get("V8_FORT", "V8E_A2")
-DFDIR = DEPLOYED.parent.parent
+DFDIR = Path.home() / "Library/Application Support/CrossOver/Bottles/Win10/drive_c/Program Files (x86)/Steam/steamapps/common/Dwarf Fortress"   # the probe writes in DF's folder
 def v8_check(probe_name):
     src = DFDIR / probe_name
     dst = OUT / probe_name
@@ -2523,8 +2544,9 @@ def phase_cli():
     ir1 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','on'); print(json.encode({out=out}))", timeout=60)
     ir2 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','irruption','off'); print(json.encode({out=out}))", timeout=60)
     s0, s1, s2 = (str(x.get("out") if isinstance(x, dict) else x) for x in (ir0, ir1, ir2))
-    rec("cli.irruption", "PASS" if "irruptions: off" in s0 and "irruptions: on" in s1 and "threshold" in s1 and "cavern 1" in s1 and "irruptions: off" in s2 else "FAIL",
-        "off by default; on shows threshold and pressures; off again", (s0 + " | " + s1 + " | " + s2)[:400])
+    # v8: irruptions are on by default (user 16 Oct, beta rulings R6.1); the status reads either way, on and off answer
+    rec("cli.irruption", "PASS" if ("irruptions: on" in s0 or "irruptions: off" in s0) and "irruptions: on" in s1 and "threshold" in s1 and "cavern 1" in s1 and "irruptions: off" in s2 else "FAIL",
+        "the status answers (on by default since 16 Oct); on shows threshold and pressures; off again", (s0 + " | " + s1 + " | " + s2)[:400])
     rec("plan.irruptions", "PASS" if "irruptions: on" in s1 and "irruptions: off" in s2 else "FAIL", "the opt-in module answers on and off; plotinfo.invasions is never referenced by the tool", "on/off receipts above; plotinfo.invasions appears in the script once, in the module's comment saying it is never touched", note="built in v6.1.0 on E29/E23 (armed, not aimed; the roster the dial); T9 measures the arming path")
     rec("mech.irruption.arm", "NOT-TESTABLE-HERE", "a cavern arrival under pinned pressure across a season", "", note="T9 (experiments/T9.json, scripts/t9-tally.py): two replicates each of module on and off with every cavern's pressure pinned at the threshold")
     rec("plan.patterns", "PASS" if ok else "FAIL", "the arrival-pattern library on the scheduler: steady, burst, trickle, dawn, follow", p1,
@@ -2536,7 +2558,8 @@ def phase_mechanics():
     rc, out = cmd("enable")
     g = ground("B1-enabled")
     rec("mech.sched", "PASS" if g.get("sched") else "FAIL", "repeat-util reports seasonal-wildlife scheduled after enable", out, data={"sched": g.get("sched")})
-    rec("cli.enable", "PASS" if "enabled" in out and g.get("sched") else "FAIL", "'enabled' and the job registered", out)
+    # v7.2: a bare `enable` turns every feature on ('this fort: every feature on'), not the rotation alone
+    rec("cli.enable", "PASS" if ("every feature on" in out or "enabled" in out) and g.get("sched") else "FAIL", "'every feature on' (v7.2) and the job registered", out)
     # --- build a full roster on all three layers, apply, and read the pool back
     # v6.3: `now` (phase_cli) already applies the whole roster, so this apply would change nothing on its own; every managed
     # entry is first set to a sentinel 77, so the apply has to write each one (zero it or stock it) to pass
@@ -2738,7 +2761,7 @@ def phase_mechanics():
         "at least one cavern band with levels and an edge-water count", out, data={"bands": bands})
     def unit_tile(uid):
         return luaj(f"local u=df.unit.find({uid}); local d=dfhack.maps.getTileFlags(u.pos); local b=dfhack.maps.getTileBlock(u.pos); "
-                    f"print(json.encode({{z=u.pos.z, sub=d.subterranean, out=d.outside, water=(d.flow_size>=4 and not d.liquid_type), gfeat=b.global_feature}}))")
+                    f"print(json.encode({{z=u.pos.z, sub=d.subterranean, out=d.outside, water=(d.flow_size>=1 and not d.liquid_type), deep=(d.flow_size>=4), gfeat=b.global_feature}}))")
     rc, out = cmd("place", "CROCODILE_CAVE", "1", "cavern")
     m = re.search(r"at ids (\d+)", out); t = unit_tile(int(m.group(1))) if m else {}
     inband = any(int(lo) <= t.get("z", -1) <= int(hi) for _, _, lo, hi, _, _ in bands)
@@ -2746,8 +2769,9 @@ def phase_mechanics():
         "placed; the tile is subterranean, not outside, water, and its z lies in a surveyed cavern band", out + "\n" + json.dumps(t), data={"tile": t})
     rc, out = cmd("place", "BEAVER", "1", "water")
     m = re.search(r"at ids (\d+)", out); t = unit_tile(int(m.group(1))) if m else {}
-    rec("mech.water.outside", "PASS" if (m and t.get("out") and t.get("water") and not t.get("sub")) or (not m and "no free water tile" in out) else ("NOT-TESTABLE-HERE" if "no stocked" in out else "FAIL"),
-        "placed in outside water, or refused for want of one; never a subterranean tile", out + "\n" + json.dumps(t), data={"tile": t})
+    shore = "on the shore" in out or "air-breather" in out   # v7.3 (F17): an air-breather enters on the shore beside the water
+    rec("mech.water.outside", "PASS" if (m and t.get("out") and (t.get("water") or shore) and not t.get("sub")) or (not m and ("no free water tile" in out or "no free shore tile" in out)) else ("NOT-TESTABLE-HERE" if "no stocked" in out else "FAIL"),
+        "placed in outside water (an air-breather on its shore, v7.3 F17), or refused for want of one; never a subterranean tile", out + "\n" + json.dumps(t), data={"tile": t})
     # --- v5.9.6: the cavern stocking pass under the cavern quota (retired in v6.5)
     if V65:
         rc, out = cmd("cavern", "on")
@@ -2838,8 +2862,10 @@ def phase_mechanics():
                "local held={}; local mn=999; local saved=sw.CAVERN.saved and sw.CAVERN.saved() or {}; "
                "for tok,_ in pairs(saved) do local ri=sw.raceIndex(tok); local cr=ri and df.creature_raw.find(ri); if cr then held[#held+1]={tok, cr.frequency}; if cr.frequency<mn then mn=cr.frequency end end end; "
                "print(json.encode({held=(r and r.held) or 0, open=(r and r.open) or 0, min_freq=mn, sample=held, status=sw.CAVERN.status(cfg)}))", timeout=180)
-    okc = isinstance(cav, dict) and int(cav.get("held", 0)) > 0 and int(cav.get("min_freq", 999)) == 1
-    rec("mech.quota.cavern", "PASS" if okc else "FAIL", "CAVERN.apply holds ≥1 species and the minimum written frequency is 1 (never 0)",
+    absq = cfgv("groups.absolute").get("groups.absolute") is not False
+    okc = isinstance(cav, dict) and int(cav.get("held", 0)) > 0 and int(cav.get("min_freq", 999)) == (0 if absq else 1)
+    # v7.4 (F19): under the absolute caps (the default) a resting species is held at 0 (vermin at 1, the freeze guard)
+    rec("mech.quota.cavern", "PASS" if okc else "FAIL", "CAVERN.apply holds ≥1 species; the minimum written frequency is 0 under the absolute caps (v7.4), else 1",
         json.dumps(cav)[:600], data=cav if isinstance(cav, dict) else None)
     rc, out = cmd("limits" if V65 else "quota")
     thr = "cavern ceiling:" in out
@@ -3330,8 +3356,11 @@ def phase_gui():
     for _ in range(4): key("CUSTOM_T", 0.6)   # round the cycle back to steady
     key("CUSTOM_I", 1.2); ti = screen("C17e2-layers-irruption"); pi = shot("C17e2-layers-irruption")
     # v7.1 (ui e64f323): the three pressures are space-separated ('0.00 0.00 0.00') to fit the four-column table
-    oki = "Irruptions ON" in ti and re.search(r"cavern pressure\s+-\s+-\s+[\d.]+(?: / | +)[\d.]+(?: / | +)[\d.]+", ti) is not None
-    key("CUSTOM_I", 1.0)   # back off
+    oki = ("Irruptions ON" in ti or "Irruptions off" in ti or "Irruptions OFF" in ti) and re.search(r"cavern pressure\s+-\s+-\s+[\d.]+(?: / | +)[\d.]+(?: / | +)[\d.]+", ti) is not None
+    if not oki:   # v8: on by default since 16 Oct, so the first I turned them off; the second shows them on
+        key("CUSTOM_I", 1.2); ti = screen("C17e3-layers-irruption-on")
+        oki = "Irruptions ON" in ti and re.search(r"cavern pressure\s+-\s+-\s+[\d.]+(?: / | +)[\d.]+(?: / | +)[\d.]+", ti) is not None
+    key("CUSTOM_I", 1.0)   # back
     rec("gui.k.layI", "PASS" if oki else "FAIL", "the status says Irruptions ON and the pressure row shows three numbers", ti[:500], shots=[pi] if pi else [])
     led0 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
     key("CUSTOM_R", 1.0); key("SELECT", 2.5); tr = screen("C17f-layers-preset")   # v6.3: the preset asks first
@@ -3618,8 +3647,9 @@ print(json.encode(out))""")
             "fresh: cadence 3000, nudge false; pre-v7.1 1500 -> 3000, nudge true -> false, 2000 kept; a config with a hunters table untouched",
             json.dumps({k: j.get(k) for k in ("cad", "nudge", "m1500", "mNudge", "m2000", "mV71")}))
         on = j.get("fishOn") or []
-        ok = j.get("fishers") is True and len(on) > 0 and all("BEAR" in t for t in on)
-        rec("mech.v71.fish_bears_default", "PASS" if ok else "FAIL", "v7.fishers on; every fisher_list token turned on is a BEAR",
+        ok = j.get("fishers") is False and len(on) > 0 and all("BEAR" in t for t in on)
+        # v7.3 (F15): the fishers are parked, off by default; the list still names the bears
+        rec("mech.v71.fish_bears_default", "PASS" if ok else "FAIL", "v7.fishers off (parked, v7.3 F15); every fisher_list token turned on is a BEAR",
             json.dumps({"fishers": j.get("fishers"), "on": on, "off": j.get("fishOff")}))
 
     # ---- pick a packaged species with stock on the map, and place one BEFORE the raws are written (the unit-write subject)
@@ -3861,10 +3891,11 @@ print(json.encode(out))""")
         else:
             rec("mech.v71.raptor_cap", "NOT-TESTABLE-HERE", "BIRD_EAGLE, DEER and RABBIT raws", json.dumps(j)[:300], note="vanilla raws carry all three")
         swd, swo = j.get("sw") or {}, j.get("swOff") or {}
-        want = {"SHARK_GREAT_WHITE": True, "CROCODILE_SALTWATER": True, "POND_GRABBER": True, "SHARK_NURSE": True, "FISH_LAMPREY_SEA": False, "FISH_PIKE": False}
+        # v7.5: FISH_PIKE is a curated freshwater apex (MODEL), so a carnivorous swimmer; the lamprey stays out
+        want = {"SHARK_GREAT_WHITE": True, "CROCODILE_SALTWATER": True, "POND_GRABBER": True, "SHARK_NURSE": True, "FISH_LAMPREY_SEA": False, "FISH_PIKE": True}
         present = [t for t in want if t in swd]
         ok = bool(present) and all(swd.get(t) == want[t] for t in present) and not any(swo.get(t) for t in present)
-        rec("mech.v71.swimscav", "PASS" if ok else "FAIL", "true for the four carnivorous swimmers, false for the lamprey and the pike; all false with swim_scav off",
+        rec("mech.v71.swimscav", "PASS" if ok else "FAIL", "true for the carnivorous swimmers (the pike a freshwater apex since v7.5), false for the lamprey; all false with swim_scav off",
             json.dumps({"on": swd, "off": swo, "missing_raws": [t for t in want if t not in swd]}))
     coh0 = j.get("coh") or {} if not bad(j) else {}
     cl = (j.get("cl") or {}) if not bad(j) else {}
@@ -4500,9 +4531,9 @@ print(json.encode(out))""")
     else:
         a = j.get("auto")
         ok = (a is not None and j.get("land") == a and j.get("ocean") == a and j.get("lake") == a and j.get("river") == a
-              and j.get("cavern") == j.get("cap") and j.get("cav1") == j.get("cap") and j.get("defMode") == "formula" and j.get("defCap") == 5)
+              and j.get("cavern") == j.get("cap") and j.get("cav1") == j.get("cap") and j.get("defMode") == "formula" and j.get("defCap") == 7)
         rec("mech.v71.limits.formula", "PASS" if ok else "FAIL",
-            "default mode formula; land = water:ocean = water:lake = water:river = floor(sqrt(embark))+1; every cavern = cavern_cap (default 5)", json.dumps(j))
+            "default mode formula; land = water:ocean = water:lake = water:river = floor(sqrt(embark))+1; every cavern = cavern_cap (default 7 since v7.6.1)", json.dumps(j))
 
     # ---- limits fixed N / formula through the console (manipulation: the persisted mode and number)
     t1 = tool("limits", "fixed", "2")
@@ -4546,10 +4577,10 @@ print(json.encode({mode=c.limits.mode, fixed=c.limits.fixed, wceil=c.limits.wate
     if bad(j):
         rec_bad("mech.v71.migrate", j)
     else:
-        ok = (j.get("mode") == "fixed" and j.get("fixed") == 4 and j.get("wceil") == 0 and j.get("so") is True and j.get("cap") == 5
-              and j.get("cmax") == 5 and j.get("mode2") == "formula" and j.get("wceil2") == 30)
+        ok = (j.get("mode") == "fixed" and j.get("fixed") == 4 and j.get("wceil") == 0 and j.get("so") is True and j.get("cap") == 7
+              and j.get("cmax") == 7 and j.get("mode2") == "formula" and j.get("wceil2") == 30)   # cap 7: v7.6.1
         rec("mech.v71.migrate", "PASS" if ok else "FAIL",
-            "v7.0 config: land auto=false/4 -> mode fixed 4; water ceiling 12 -> 0; seasons_own true; cavern cap 5 (old cavern_max 2 dropped); an auto land with ceiling 30 -> formula, 30 kept",
+            "v7.0 config: land auto=false/4 -> mode fixed 4; water ceiling 12 -> 0; seasons_own true; cavern cap 7 (v7.6.1; old cavern_max 2 dropped); an auto land with ceiling 30 -> formula, 30 kept",
             json.dumps(j))
 
     # ---- the adaptive clock: state, forward, pause (pure, on a synthetic groups record)
@@ -4642,6 +4673,7 @@ if d ~= nil then
   -- v7.1-a4fix (Alpha Four 3.8): with the tool off the roster steers nothing, so every held species is open: cavern_hold_mix
   -- holds it at max(2, weight // 10) (never above its weight, never below 1); mix off holds it at 1
   local function want(t)
+    if cfg.groups.absolute ~= false then return 0 end   -- v7.4 (F19): a full cavern holds its species at 0 under the absolute caps
     if not cfg.groups.cavern_hold_mix then return CAV.SUPPRESSED end
     local b = math.max(1, math.floor(cfg.odds['cavern:' .. t] or snap0[t] or pre[t] or 1))
     return math.max(1, math.min(b, math.max(2, b // 10)))
@@ -4657,8 +4689,9 @@ if d ~= nil then
     out.held = out.held + 1
     local s = sp[t]; local cr = CAV.rawFor(t)
     if not s or not s.natural or s.deep or (s.shared and not cfg.groups.cavern_hold_shared) or not s.d[d] then out.bad[#out.bad+1] = t end
-    if cr and cr.frequency ~= want(t) then out.bad[#out.bad+1] = t .. '@' .. tostring(cr.frequency) .. '~' .. tostring(want(t)) end
-    if cr and cr.frequency == 0 then out.zero = out.zero + 1 end
+    if cr and cr.frequency ~= want(t) and not (want(t) == 0 and cr.frequency == 1) then out.bad[#out.bad+1] = t .. '@' .. tostring(cr.frequency) .. '~' .. tostring(want(t)) end
+    if cr and cr.frequency == 0 and cfg.groups.absolute == false then out.zero = out.zero + 1 end
+    out.absolute = cfg.groups.absolute ~= false
   end
   G.cavernHold(cfg, {})
   local back, diff = 0, {}
@@ -4926,7 +4959,8 @@ print(json.encode(out))""".replace("@TOK@", m.group(1)))
             if bad(j):
                 rec_bad("mech.v71.lead.water", j)
             elif j.get("leader"):
-                ok = j.get("leaderWet") and j.get("label") in ("school", "pod") and j.get("followers") == j.get("others")
+                # v7.3 (F17): an air-breather's group enters on the shore, so its leader stands beside the water, not in it
+                ok = (j.get("leaderWet") or "on the shore" in t) and j.get("label") in ("school", "pod") and j.get("followers") == j.get("others")
                 rec("mech.v71.lead.water", "PASS" if ok else "FAIL", "the drawn group's leader stands in water; every other member follows it at follow_school/follow_pod",
                     json.dumps(j) + "\n" + t[:300])
             else:
@@ -4959,7 +4993,8 @@ print(json.encode(best or {}))""".replace("@OCEAN@", "true" if has("ocean") else
         t = tool("place", j["tok"], "6", j.get("layer") or "land")
         ids = _b_ids(t)
         if not ids:
-            rec("mech.v71.lead.place", "FAIL", f"`place {j['tok']} 6` places a group", t[:600])
+            rec("mech.v71.lead.place", "NOT-TESTABLE-HERE" if "no registered water body" in t else "FAIL", f"`place {j['tok']} 6` places a group", t[:600],
+                note="the fort has no water body this species may enter (CTRL: no ocean)" if "no registered water body" in t else "")
         else:
             k = luap("""local sw=reqscript('seasonal-wildlife'); local g=sw.loadGroups(); local ids={@IDS@}
 local want = {}; for _, id in ipairs(ids) do want[id] = true end
@@ -6599,6 +6634,8 @@ print(json.encode(out))""")
     en0 = cfgv("enabled").get("enabled")
     if en0 is not True:
         tool("enable", timeout=300)
+    if cfgv("vermin_eat.forage").get("vermin_eat.forage") is not True:
+        tool("vermin", "forage", "on")   # v7.3 (F15): parked, off by default; the timed window needs it on
     fz = cfgv("enabled", "vermin_eat.forage")
     if manip("mech.v71.vrm.perf", "the tool and foraging on for the timed window", (fz.get("enabled") is True and fz.get("vermin_eat.forage") is True) or DRY, json.dumps(fz)):
         luap("local sw=reqscript('seasonal-wildlife'); sw.FUSE.stats[sw.VERMIN.FORAGE.JOB]=nil; print(json.encode({ok=true}))")
@@ -6806,8 +6843,12 @@ print(json.encode({{units=B and B.units or 0, most=most, most_n=mn, sp=sp, C=B a
                     rec(cid, "NOT-TESTABLE-HERE", "the most-present species among the candidates", ev + "\n" + lines[:600],
                         note="the species most present in the body is not a candidate now (out of season or unstocked), so its balance factor is not shown")
                 else:
-                    ok = wsum > 0 and bal is not None and bal < 1 and " x " in lines and "base" in lines
-                    rec(cid, "PASS" if ok else "FAIL", "weights sum > 0; the most-present species' balance < 1; `water mix` prints base x factor = weight",
+                    wm = re.search(r"want (\d+)% have (\d+)%", (mrow or {}).get("why") or "")
+                    # v8 (20261020-211908): the balance is the LEVEL's share against its target (BEAVER: H want 76% have
+                    # 71% -> 1.07), so it is > 1 when that level is short, < 1 when it is over, whatever the species' count
+                    dirok = bool(wm) and bal is not None and ((bal > 1) == (int(wm.group(2)) < int(wm.group(1))) or abs(bal - 1) < 1e-6)
+                    ok = wsum > 0 and dirok and " x " in lines and "base" in lines
+                    rec(cid, "PASS" if ok else "FAIL", "weights sum > 0; the most-present species' balance moves its level toward its share (> 1 short, < 1 over); `water mix` prints base x factor = weight",
                         ev + "\n" + lines[:800], note="" if feed else "no prey candidate showed a feed factor (no predator group that takes it is swimming here)")
     # ---- R43/R49: the apex limit per body (synthetic census on the engine's own mix) and the lamprey's level
     cid = "mech.v71.water.apexlimit"
@@ -7504,7 +7545,7 @@ print(json.encode(out))""", timeout=180)
             rec("web.v71.cluster", "PASS" if not wrong else "FAIL", "gmin < gmax, gmax == cluster_number[0] (the max) for every two-number species",
                 json.dumps({"species_checked": rows, "wrong": wrong[:15]}))
     # guard: the v7.1 refusals
-    g1, gb1 = curl(f"/act?t={tok}&id=roster_build&arg=everything", "POST")
+    g1, gb1 = curl(f"/act?t={tok}&id=apex_now&arg=everything", "POST")   # v7.4: roster_build takes no argument; apex_now has a list
     g2, _ = curl(f"/set?t={tok}&id=hunters.stoop.chance&v=60", "GET")
     g3, _ = curl("/set?t=wrong&id=hunters.stoop.chance&v=60", "POST")
     g4, _ = curl("/controls.json?t=wrong")
