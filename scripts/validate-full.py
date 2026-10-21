@@ -7323,17 +7323,23 @@ print(json.encode({census=ok and by or tostring(by), loop=old, ids=ids}))""")
     if bad(a):
         rec_bad(cid, a)
     elif _d_perf_legacy(cid, "census", True):
-        b = luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils')
-local g = utils.clone(sw.loadGroups(), true); local _, list = sw.discoverGroups(g)
-local ids = {}; for _, grp in ipairs(list or {}) do for _, id in ipairs(grp.ids) do ids[#ids+1] = id end end; table.sort(ids)
-print(json.encode({ids=ids}))""")
+        # both paths in one call, on one tick (validate-full 20261020-221344: two calls with the game running between them
+        # saw a group of ten arrive between the census read and the legacy one)
+        b = luap("""local sw=reqscript('seasonal-wildlife'); local utils=require('utils'); local C=sw.CACHE
+local function ids()
+  local g = utils.clone(sw.loadGroups(), true); local _, list = sw.discoverGroups(g)
+  local t = {}; for _, grp in ipairs(list or {}) do for _, id in ipairs(grp.ids) do t[#t+1] = id end end; table.sort(t); return t end
+local legacy = ids()
+sw.V7.PERF.cfgRO(); local p = C.cfg.perf; p.legacy_census = false
+local census = ids(); p.legacy_census = true
+print(json.encode({ids=legacy, census_ids=census}))""")
         _d_perf_legacy(cid, "census", False)
         if bad(b):
             rec_bad(cid, b)
         else:
-            ok = isinstance(a.get("census"), dict) and a.get("census") == a.get("loop") and (a.get("ids") or []) == (b.get("ids") or [])
+            ok = isinstance(a.get("census"), dict) and a.get("census") == a.get("loop") and (b.get("census_ids") or []) == (b.get("ids") or [])
             rec(cid, "PASS" if ok else "FAIL", "census counts == the v7.0 loop's; discoverGroups' ids the same with legacy_census",
-                json.dumps({"census": a.get("census"), "loop": a.get("loop"), "ids": (a.get("ids") or [])[:30], "legacy_ids": (b.get("ids") or [])[:30]}))
+                json.dumps({"census": a.get("census"), "loop": a.get("loop"), "ids": (b.get("census_ids") or [])[:30], "legacy_ids": (b.get("ids") or [])[:30]}))
     # P6 live (headless: the window's two sums)
     cid = "perf.p6.live"
     j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg)
