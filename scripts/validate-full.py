@@ -1381,12 +1381,20 @@ print(json.encode({bad=bad, armed=armed, benign=benign, raptors=raptors, reach=r
 local sw=reqscript('seasonal-wildlife'); local R=sw.ROSTER; local cfg=sw.loadConfig(); local s=df.global.cur_season
 local pool=sw.buildPool(cfg); local e0,q0
 local onMap = {}; for _,u in ipairs(df.global.world.units.active) do if not dfhack.units.isDead(u) then onMap[u.race] = (onMap[u.race] or 0) + 1 end end
+local function standIn(e,q)   -- exhaustCheck's own test: castReplaceOk, then stock DF can send on that layer
+  local ok, L = R.castReplaceOk(cfg,pool,e,q,s); if not ok then return false end
+  if L then return R.FP.standInStock(q, L, sw.RESERVE.load()) > 0 end
+  local lq, h = sw.RESERVE.of(q.key); return lq + h > 0 end
 for _,e in ipairs(pool) do
   if not e0 and e.inEmbark and not e.locked and e.cat~='vermin' and e.layer=='land' and R.wants(cfg,e.key,s) and #sw.RESERVE.entries(e.key)>0
      and (onMap[e.idx] or 0) == 0 then   -- v7.5 (user 13 Oct): exhausted = entry at 0 AND none on the map
     for _,q in ipairs(pool) do
-      if q~=e and q.inEmbark and not q.locked and q.cat~='vermin' and cfg.allow[q.key]==true and R.group(q)==R.group(e)
-         and not sw.inSeason(cfg,q.key,s) and not (q.noSeason and q.noSeason[s]) then e0=e break end end end end
+      -- v7.3 under season casts the stand-in must pass ROSTER.castReplaceOk (slot, guild, size, biome, food web; 12 Oct:
+      -- else the slot stays empty), so the probe picks a species that has one; casts off: the v6.9 group-mate
+      local cast = R.castOn(cfg)
+      if q~=e and q.inEmbark and not q.locked and q.cat~='vermin' and not sw.inSeason(cfg,q.key,s) and not (q.noSeason and q.noSeason[s])
+         and ((not cast and cfg.allow[q.key]==true and R.group(q)==R.group(e))
+              or (cast and (cfg.allow[q.key]~=nil) and standIn(e,q))) then e0=e break end end end end
 if not e0 then print(json.encode({none=true})) return end
 local live0=sw.RESERVE.of(e0.key); cfg.exhaust.enabled=true; cfg.exhaust.stamp=-1; sw.saveConfig(cfg)
 sw.CACHE.appliedStamp = R.exhaustStamp()   -- v7.3: the check waits for this season's apply; the probe stands for it
@@ -1405,7 +1413,7 @@ local outS = prom and sw.inSeason(cfg3, prom, s) or false
 sw.RESERVE.set(e0.key, live0)
 print(json.encode({key=e0.key, live0=live0, made=made, held=held, after=after, promoted=prom or '', in_season=inS, back=back, out_after_roll=not outS}))""", timeout=300)
     if isinstance(x, dict) and x.get("none"):
-        rec("mech.v69.exhaust", "NOT-TESTABLE-HERE", "an in-season land species, none of it on the map (v7.5), with an active out-of-season group-mate", json.dumps(x))
+        rec("mech.v69.exhaust", "NOT-TESTABLE-HERE", "an in-season land species, none of it on the map (v7.5), with an out-of-season stand-in (casts on: one ROSTER.castReplaceOk passes)", json.dumps(x))
     else:
         ok = isinstance(x, dict) and x.get("made", 0) >= 1 and x.get("held") and x.get("after") == 0 and x.get("promoted") and x.get("in_season") and x.get("back", 0) >= 1 and x.get("out_after_roll")
         rec("mech.v69.exhaust", "PASS" if ok else "FAIL", "1+ replacement; key held at 0 through `now`; the mate in season; season given back by the roll",
