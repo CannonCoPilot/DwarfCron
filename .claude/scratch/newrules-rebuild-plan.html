@@ -55,7 +55,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phases A, B and C done · 20 Oct 2026</span>
+  <span class="eyebrow">Seasonal Wildlife · plan rev 7 · Phases A–D done · 20 Oct 2026</span>
   <h1>New Rules Rebuild</h1>
   <p class="lede">Port the New Rules into the tool exactly as the Food Web Explorer defines them. The same rules grow every season's casts, link the season's layers, and decide what the tool writes in play. The explorer is the specification, and rig tests check that the tool follows it.</p>
   <div class="meta"><span>engine v7.6.6 · c125091 · branch v7.5-fullpool</span><span>explorer v41</span><span>analysis v3 · ae2b9a50</span><span>harness: fixes 336/0 · controls 461/0 · water 66/0 · onoff 24/0 · gui 0 fail</span></div>
@@ -143,7 +143,7 @@ ul{margin:0;padding-left:1.2rem;display:grid;gap:4px;max-width:72ch}
         <li>Vermin classes (<code>SWV_type@SIDE</code>) and DF's diet tokens come from <code>RULES</code>' vermin verdicts.</li>
         <li>Verdicts are cached per fort and cast, so each write is a table lookup and stays under FUSE's 250 ms warning.</li>
       </ul>
-      <p class="exit"><b>Exit</b>A rig probe on a new embark, compared with the explorer's link set for that fort's own pool and casts. Every written relation and vermin class is a New Rules link, every New Rules link among present units is written, and no pass goes over budget.</p></div></li>
+      <p class="exit"><b>Exit</b>A rig probe on a new embark, compared with the explorer's link set for that fort's own pool and casts. Every written relation and vermin class is a New Rules link, every New Rules link among present units is written, and no pass goes over budget. <b>Done 20 Oct (sw <code>c08d8d2</code>–<code>23b3104</code>):</b> the relation write keeps to the season's New Rules pairs; every New Rules eater is armed; vermin classes and by-name diets come from New Rules within each realm (exact on 47,535 pairs offline). On a new fort (V83NR_GOOD3, DFHack 53.16-r3) all six probe checks pass: records, 24 casts, 67 cross links, 131 season pairs, vermin writes (3,673 pairs), relations; the ecology pass runs 28 ms. The probe found two things now settled: the tool's own writes leaking back into its records (fixed), and DF's reading of the raws differing from the desk export in 12 fields (the explorer now uses DF's reading; the amphibian vermin stay herps and the moon snail a small fish). DFHack updated itself to r3 meanwhile; the plugin is rebuilt for it (sw <code>cba7305</code>).</p></div></li>
     <li><span class="tag">E</span><div>
       <h3>Rig tests: does the tool follow New Rules?</h3>
       <ul>
