@@ -1392,6 +1392,9 @@ local live0=sw.RESERVE.of(e0.key); cfg.exhaust.enabled=true; cfg.exhaust.stamp=-
 sw.CACHE.appliedStamp = R.exhaustStamp()   -- v7.3: the check waits for this season's apply; the probe stands for it
 sw.RESERVE.set(e0.key, 0)
 local made=R.exhaustCheck(cfg, s)
+-- v7.5: the first pass only starts the zero clock; exhausted once stock 0 and none on the map held ROSTER.EXHAUST_SETTLE
+if made == 0 and cfg.exhaust.zero and cfg.exhaust.zero[e0.key] then
+  cfg.exhaust.zero[e0.key] = cfg.exhaust.zero[e0.key] - R.EXHAUST_SETTLE; made=R.exhaustCheck(cfg, s) end
 local held=R.exhaustHolds(cfg, e0.key)
 dfhack.run_command_silent('seasonal-wildlife','now')   -- silent: its 'active: N [ms]' line would break the JSON read
 local cfg2=sw.loadConfig(); local after=sw.RESERVE.of(e0.key); local prom
@@ -2761,15 +2764,20 @@ def phase_mechanics():
         "at least one cavern band with levels and an edge-water count", out, data={"bands": bands})
     def unit_tile(uid):
         return luaj(f"local u=df.unit.find({uid}); local d=dfhack.maps.getTileFlags(u.pos); local b=dfhack.maps.getTileBlock(u.pos); "
-                    f"print(json.encode({{z=u.pos.z, sub=d.subterranean, out=d.outside, water=(d.flow_size>=1 and not d.liquid_type), deep=(d.flow_size>=4), gfeat=b.global_feature}}))")
+                    f"local near=false; for dz=-1,0 do for dx=-4,4 do for dy=-4,4 do local f=dfhack.maps.getTileFlags(u.pos.x+dx,u.pos.y+dy,u.pos.z+dz); "
+                    f"if f and f.flow_size>=1 and not f.liquid_type then near=true end end end end; "
+                    f"print(json.encode({{z=u.pos.z, sub=d.subterranean, out=d.outside, water=(d.flow_size>=1 and not d.liquid_type), deep=(d.flow_size>=4), gfeat=b.global_feature, near=near}}))")
     rc, out = cmd("place", "CROCODILE_CAVE", "1", "cavern")
     m = re.search(r"at ids (\d+)", out); t = unit_tile(int(m.group(1))) if m else {}
     inband = any(int(lo) <= t.get("z", -1) <= int(hi) for _, _, lo, hi, _, _ in bands)
-    rec("mech.cavern.place", "PASS" if m and t.get("sub") and not t.get("out") and t.get("water") and inband else ("NOT-TESTABLE-HERE" if "no stocked" in out else "FAIL"),
+    # the registry reads a cavern once the fort finds it (v7.1): a refusal for an undiscovered cavern is this fort's limit
+    rec("mech.cavern.place", "PASS" if m and t.get("sub") and not t.get("out") and t.get("water") and inband else ("NOT-TESTABLE-HERE" if ("no stocked" in out or "is not discovered yet" in out) else "FAIL"),
         "placed; the tile is subterranean, not outside, water, and its z lies in a surveyed cavern band", out + "\n" + json.dumps(t), data={"tile": t})
     rc, out = cmd("place", "BEAVER", "1", "water")
     m = re.search(r"at ids (\d+)", out); t = unit_tile(int(m.group(1))) if m else {}
-    shore = "on the shore" in out or "air-breather" in out   # v7.3 (F17): an air-breather enters on the shore beside the water
+    # v7.3 (F17): an air-breather enters on a dry tile within V7.WAT.SHORE_R (4) of the water, at its level or one above;
+    # `place` does not print the entry note, so the shore is read off the map
+    shore = bool(t.get("near"))
     rec("mech.water.outside", "PASS" if (m and t.get("out") and (t.get("water") or shore) and not t.get("sub")) or (not m and ("no free water tile" in out or "no free shore tile" in out)) else ("NOT-TESTABLE-HERE" if "no stocked" in out else "FAIL"),
         "placed in outside water (an air-breather on its shore, v7.3 F17), or refused for want of one; never a subterranean tile", out + "\n" + json.dumps(t), data={"tile": t})
     # --- v5.9.6: the cavern stocking pass under the cavern quota (retired in v6.5)
@@ -3586,7 +3594,9 @@ V71_FILES = ["seasonal-wildlife.lua", "gui/seasonal-wildlife.lua", "seasonal-wil
 # 2 readouts); cx-lifecycle.sh deploy-tool ships and byte-checks the scripts when the tree has them, and so does this
 AQ_FILES = ["seasonal-wildlife-aquarium.lua", "seasonal-wildlife-aquarium-gfx.lua"]
 AQ_SHIPPED = (TOOL / "scripts" / AQ_FILES[0]).exists()
-AQ_EXPECT = {"controls": 17, "actions": 4, "readouts": 2}
+# the registry's aquarium rows grew from v7.1-rc's 17 to 30 (v7.1-bed rounds, v8 Phase F switches); 30 rows of
+# B/E/F/I('aquarium.*') in seasonal-wildlife-controls.lua (validate-full 20261020-214219)
+AQ_EXPECT = {"controls": 30, "actions": 4, "readouts": 2}
 
 def v71_deploy():
     rows, ok = [], True
@@ -7480,7 +7490,7 @@ def v71_web():
               "actions": len(_aq(reg.get("actions") or [])), "readouts": len(_aq(reg.get("readouts") or []))}
         ok = ok and aq["section"] and aq["available"] and all(aq[k] == v for k, v in AQ_EXPECT.items())
     rec("web.v71.controls", "PASS" if ok else "FAIL", "200; >= 12 sections; >= 300 controls; every available non-{T} row has a value"
-        + ("; the Aquarium section available with 17 controls, 4 actions, 2 readouts" if AQ_SHIPPED else ""),
+        + ((f"; the Aquarium section available with {AQ_EXPECT['controls']} controls, 4 actions, 2 readouts") if AQ_SHIPPED else ""),
         json.dumps({"status": c, "sections": len(secs), "controls": len(ctl), "species_rows": len(reg.get("species") or []),
                     "actions": len(reg.get("actions") or []), "missing_value": missing[:20], "aquarium": aq, "bytes": len(body)}))
     # set: a value, a range refusal, an unknown id
