@@ -51,7 +51,19 @@ embark)
     name="${2:-}"; [ -n "$name" ] || die "usage: embark NAME"
     [ "$(rig)" = running ] || "$C" start
     CX_EMBARK_SIZE=4 "$C" embark region16 135 23 "$name" 11 7 || die "embark failed"
-    "$C" cmd cx-load breach auto | tail -1
+    b=$("$C" cmd cx-load breach auto); echo "$b" | tail -1
+    # the year's fort lives through it (V8PKG, 20 Oct: 63 dead by tick 291k -- cave dragons, giant cave spiders and blind
+    # cave bears up the shaft, which walks both ways; BUILDINGDESTROYER 2 and 1 break a hatch): the caves stay discovered,
+    # the shaft is walled in stone on the two levels under the fort floor
+    col=$(echo "$b" | sed -n 's/.*breach: column \([0-9]*\),\([0-9]*\) z\([0-9]*\)\.\..*/\1 \2 \3/p' | head -1)
+    if [ -n "$col" ]; then
+        set -- $col
+        # through Lua: `cx-lifecycle cmd` splits the quoted paint spec into words and the paint never takes
+        "$C" lua "dfhack.run_command_silent('tiletypes-command p any ; p s wall ; p m stone ; p sp normal'); for _,z in ipairs({$(( $3 - 1 )),$(( $3 - 2 ))}) do dfhack.run_command_silent('tiletypes-here-point --cursor $1,$2,'..z) end; local T=df.tiletype; print('seal:', T[dfhack.maps.getTileType($1,$2,$(( $3 - 1 )))], T[dfhack.maps.getTileType($1,$2,$(( $3 - 2 )))])" | tail -1
+        log "shaft sealed at $1,$2 z$(( $3 - 1 )) and z$(( $3 - 2 ))"
+    else
+        log "WARNING: no shaft column in the breach reply; the shaft stays open"
+    fi
     "$C" cmd seasonal-wildlife cast status | head -2
     ;;
 year)
@@ -62,8 +74,10 @@ year)
     while :; do
         now=$(tick_abs); [ "$now" -ge "$end" ] && break
         left=$((end - now)); n=$((left < 20000 ? left : 20000))
+        "$C" cmd cx-load sustain | tail -1   # rig embarks carry no drink (V8PKG: 9 died of thirst)
         "$C" step "$n" 300 | tail -1
         after=$(tick_abs)
+        if "$C" screen 2>/dev/null | grep -q "settlement has crumbled"; then die "LOST: the settlement crumbled at $after; read the deaths before the engine"; fi
         [ "$after" -gt "$now" ] || die "the step did not advance ($now): a hang or a lost fort; the last named save is the restore point"
         if [ "$after" -ge "$nextsave" ]; then "$C" save "$name-t$((after / 1000))k" | tail -1; nextsave=$((nextsave + 100000)); fi
     done
