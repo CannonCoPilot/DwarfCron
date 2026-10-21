@@ -97,6 +97,7 @@ CLAIMS = [
     # ---- v8 UI step 2 (user 21 Oct): one view model both interfaces read (V7.UI.state, ROSTER.castsView live, the endpoints)
     ("v8.ui.model", "MECH", "`ecosystem` (V7.UI.state) reads each layer's groups as the groups record holds them, every layer with its pause and label, in < 200 ms; /ecosystem.json serves it", "UI redesign step 2", "shipped v8"),
     ("v8.ui.live", "MECH", "the Casts view's live parts: each cast member's count on the map equals a raw walk of the wild units, its holes are New Rules' own, and /casts.json carries them", "UI redesign step 2", "shipped v8"),
+    ("v8.ui.page", "WEB", "the game's own web page draws its eight tabs with no page error: Start reads the tool's state, This season draws every member of the season's casts as a lane node, The year a cell per cast, Ecosystem a card per layer, Settings the seven goal groups", "UI redesign step 3", "shipped v8"),
     ("v8.ui.stale", "MECH", "casts record the builder's settings: current after a rebuild, a builder setting changed since is named (applies at the next rebuild), and setting it back clears it", "UI redesign step 2", "shipped v8"),
     # ---- W0 (v6.3, alpha trial one): the validator sees what the player sees. Each of these failed on v6.2.1 first.
     ("w0.keys", "GUI", "no window key collides with a DF global binding (the macro keys Ctrl+R/L/P/S, the FPS keys Alt+=/-) or a DFHack global keybinding", "alpha 1 steps 3.5/4.4; plan rev 2 W0/W9", "shipped v6.3"),
@@ -2497,6 +2498,32 @@ print(json.encode({members=nm, tokens=ntok, bad=bad, holes=nh, holesKnown=hk, er
     rec("v8.ui.stale", "PASS" if ok_st else "FAIL",
         "after `cast rebuild`: current (recorded); apex_pack 2: stale on cast.apex_pack; back to 1.5: current",
         f"rebuild: {(rb or '').splitlines()[0][:120] if rb else ''}; after rebuild {s0}; set 2 {s1}; set 1.5 {s2}", data={"s0": s0, "s1": s1, "s2": s2})
+    # v8 UI step 3: the page itself, served by the game, in headless Chrome (tests/web/shoot.mjs --probe: window.SWC.view())
+    port = 8643
+    rc, wout = sh("cmd", "seasonal-wildlife-web", "start", str(port), timeout=60)
+    tm = re.search(r"\?t=([0-9a-f]+)", wout)
+    probes, perr, shots_dir = {}, [], OUT / "v8-ui-page"
+    if tm:
+        time.sleep(1)
+        pr2 = subprocess.run(["node", str(TOOL / "tests/web/shoot.mjs"), f"http://127.0.0.1:{port}/?t={tm.group(1)}", str(shots_dir),
+                              "start,season,year,eco,map,species,settings,log", "--wait", "4000", "--probe"], capture_output=True, text=True, timeout=400)
+        for ln in pr2.stdout.splitlines():
+            if ln.startswith("PROBE "):
+                _, tab, js = ln.split(" ", 2)
+                try: probes[tab] = json.loads(js) if js != "null" else None
+                except Exception: probes[tab] = None
+            elif ln.startswith("ERROR "): perr.append(ln[6:])
+    sh("cmd", "seasonal-wildlife-web", "stop", timeout=60)
+    P_ = lambda t: probes.get(t) or {}
+    okp = (bool(tm) and not perr and len(probes) == 8 and P_("start").get("say") and P_("start").get("ecoRead")
+           and P_("season").get("laneNodes", 0) > 0 and P_("season").get("laneNodes") == P_("season").get("laneWant")
+           and P_("year").get("yearCells", 0) > 0 and P_("year").get("yearCells") == P_("year").get("yearWant")
+           and P_("eco").get("ecoLayers", 0) > 0 and P_("settings").get("goals") == 7)
+    rec("v8.ui.page", "PASS" if okp else "FAIL",
+        "no page error on any tab; Start's state sentence; lane nodes = the season's members + vermin; year cells = the casts; a card per layer; seven goal groups",
+        f"start: {P_('start').get('say')!r}; season {P_('season').get('season')}: {P_('season').get('laneNodes')} nodes of {P_('season').get('laneWant')}, {P_('season').get('laneEdges')} links; "
+        f"year {P_('year').get('yearCells')} of {P_('year').get('yearWant')} cells; eco {P_('eco').get('ecoLayers')} layer cards; settings {P_('settings').get('goals')} goals; "
+        f"page errors {perr[:4] or 'none'}", shots=sorted(str(x) for x in shots_dir.glob("*.png")) if shots_dir.exists() else [], data={"probes": probes, "errors": perr})
     # coverage: the offline harness on the checkout under test
     cov = subprocess.run(["lua", str(TOOL / "tests/web/harness.lua"), str(TOOL), "coverage"], capture_output=True, text=True, timeout=300)
     last = (cov.stdout.strip().splitlines() or [""])[-1]
