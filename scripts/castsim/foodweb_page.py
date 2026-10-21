@@ -128,7 +128,7 @@ details.how ol{margin:8px 0 4px;padding-left:1.3rem;display:grid;gap:5px;max-wid
 BODY = r"""
 <div class="wrap">
 <header class="top">
-  <span class="eyebrow">Seasonal Wildlife · v44 · the v8 cast builder on New Rules (rebuild plan rev 7) · DF 53.16 raws</span>
+  <span class="eyebrow">Seasonal Wildlife · v45 · the v8 cast builder on New Rules (rebuild plan rev 7) · DF 53.16 raws</span>
   <h1>Food Web Explorer</h1>
   <p>Every wild creature in the raws, the feeding links seasonal-wildlife imposes on them (each rule switchable, each link clickable for the rule and numbers behind it), and the cast builder, running in the page.
   Choose a fort on the left; the network shows what passes its gates, layer by layer. Then build casts below and change the rules
@@ -250,6 +250,7 @@ BODY = r"""
   Vermin links reach anything in the same realm (the surface, or one cavern); hunting pairs and the ladder need a shared layer. A snake is read from its BODY tokens (no legs, feet or toes), as the engine reads no STANCE part.</p>
   <p class="small"><b>Raws links</b> are the only creature-to-creature diet tokens in DF 53.16's vanilla raws: GOBBLE_VERMIN_CLASS (kiwi, hedgehog, pangolin, duck, goose, peafowl and turkey eat the EDIBLE_GROUND_BUG vermin: ant, beetle, large roach, thrips), GOBBLE_VERMIN_CREATURE (unused in vanilla) and the peregrine's DIVE_HUNTS_VERMIN (any vermin). CARNIVORE, LARGE_PREDATOR and BONECARN name no prey; SPECIFIC_FOOD names plants. <b>Engine ladder links</b> are the v7.6.1 engine's feeding test, kept for comparison: a higher trophic tier eats a lower one when its habitat reaches the other's; shore animals and waterbirds take aquatic creatures up to their own size; vermin by diet class. Growth in the simulator follows the links you choose under Build casts.
   The rule tables come from the one copy, the plugin's rules/new-rules.json (user 20 Oct); the engine is held to it by its rules check.
+  Each creature's New Rules fields are DF's own reading of the raws, as the tool reads them in play (user 20 Oct: carnivore from BONECARN, sentience from INTELLIGENT, a missing pet value as 1, copied variations' tokens, vermin sizes, and no water from broad biome tokens), dumped from the game; the amphibian vermin are herps and the moon snail a small fish (rules SWV_OVERRIDE).
   Not modelled: DF's own stocking on a real fort (stocked water entries, the zone read from stocked species), exhaustion stand-ins, placed thieves and apexes, and everything after the cast (FREQUENCY, caps, pauses).
   Source: castsim foodweb_export.py and foodweb_sim.js, checked against the desk simulator (exact pools, layers and slots; cast rates within sampling noise).</p>
   </details>

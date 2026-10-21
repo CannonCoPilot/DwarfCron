@@ -20,6 +20,7 @@ import random
 from pathlib import Path
 
 from raws import Raws
+import dfread
 
 T = json.loads((Path(__file__).parent / 'engine_tables.json').read_text())
 R0 = T['roster']
@@ -128,6 +129,10 @@ class Engine:
         self.extinct_fix(tok, out)                                                                    # V7.EXTINCT.model (sw:14403)
         out['civ'] = self.is_civ(c, out)                                                              # V7.isCivRaw (sw:2282)
         out['locked'] = out['eco'] not in self.classes
+        ov = dfread.classify_overrides(tok)   # DF's own reading wins where it was dumped (user 20 Oct; castsim.dfread)
+        if ov:
+            if not out['gameVermin']: ov['category'] = ov['role']
+            out.update(ov)
         self._class[tok] = out
         return out
 

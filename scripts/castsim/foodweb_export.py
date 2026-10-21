@@ -20,6 +20,7 @@ sys.path.insert(0, str(HERE))
 import design as DS  # noqa: E402
 import engine as EN  # noqa: E402
 import rules as RU  # noqa: E402
+import dfread  # noqa: E402
 from design import Design, explicit_water, fresh_raw  # noqa: E402
 from design_run import wiring  # noqa: E402
 from raws import LAND, OCEANS, LAKES, RIVERS, POOLS  # noqa: E402
@@ -96,6 +97,12 @@ def main():
         body = [x for t in R.src[tok]['toks'] if t[0] == 'BODY' for x in t[1:]]
         legless = bool(body) and not any(w in x for x in body for w in LEG_WORDS)   # engine VERMIN.legless: no STANCE part
         swv = swv_class(c) if e['gameVermin'] else None
+        dr = dfread.rec(tok)   # DF's own reading (user 20 Oct): the raw-derived New Rules fields as the engine reads them
+        if dr:
+            A = dfread.arr
+            gvc, gvt, dhv, legless = sorted(A(dr.get('gvc'))), sorted(A(dr.get('gvt'))), bool(dr.get('dhv')), bool(dr.get('lg'))
+            if e['gameVermin']: swv = dr.get('swv') or swv
+        if e['gameVermin'] and tok in RU.SWV_OVERRIDE: swv = RU.SWV_OVERRIDE[tok]   # the rules file's vermin types win
         bodies = sorted(e['bodies'])
         rows.append({
             't': tok, 'nm': name_of(D, tok), 'g': e['guild'], 'h': e['habitat'], 'ro': e['role'], 'v': bool(e['gameVermin']),
@@ -110,6 +117,10 @@ def main():
             'pl': plant, 'nat': bool(wild and natural), 'th': thief,
             'cc': sorted(c['cclass']), 'gvc': gvc, 'gvt': gvt, 'dhv': dhv, 'swv': swv, 'carn': bool(e['carnivore']), 'grz': bool(c['any']('GRAZER') or c['any']('STANDARD_GRAZER')), 'lg': legless, 'amb': bool(c['any']('AMBUSHPREDATOR')), 'wb': bodies,
         })
+        if dr:
+            row = rows[-1]
+            row.update(cc=sorted(dfread.arr(dr.get('cc'))), grz=bool(dr.get('grz')), amb=bool(dr.get('amb')), pet=dr.get('pet') or 0,
+                       war=bool(dr.get('war')), fa=bool(dr.get('fa')), bo=bool(dr.get('bo')))
     W = {f'{sav}|{al}|{L}|{b}': [[t, k] for t, k in v] for (sav, al, L, b), v in D.wiring.items()}
     meta = {
         'land': LAND, 'oceans': OCEANS, 'lakes': LAKES, 'rivers': RIVERS, 'pools': POOLS,
@@ -127,7 +138,7 @@ def main():
                    'reuse': DS.REUSE, 'ap_pick': EN.R0['ap_pick'], 'apex_pack': DS.APEX_PACK},
         'pool_cap': DS.POOL_CAP, 'brook_max_mass': BROOK_MAX_MASS,
         'savage_at': DS.SAVAGE_AT, 'evil_at': DS.EVIL_AT, 'good_at': DS.GOOD_AT,
-        **RU.meta(),
+        **RU.meta(), 'df_records': dfread.SOURCE,
         'funnel': funnel, 'source': f'DF 53.16 vanilla raws via castsim.raws; rules sw-wt/plugin rules/new-rules.json {RU.VERSION}',
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
