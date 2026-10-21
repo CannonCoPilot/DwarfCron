@@ -199,8 +199,13 @@ const rel = arr(P.relations).map(r => r[0]);
 // the written-pair record is the year's: a pair written in an earlier season is judged by that season's set; an outsider
 // pair by New Rules on its own layers
 const earlier = new Set(); for (let s0 = 0; s0 < s; s0++) for (const k of pairSet(s0)) earlier.add(k);
-const outside = rel.filter(k => { if (eset.has(k) || earlier.has(k) || k.endsWith('|DOMESTIC')) return false; const [a, b] = k.split('|'); return !(P.live && outsider(a, b, false)); });
-say(outside.length === 0, `relations written: ${rel.length} species pairs this year (${rel.slice(0, VERBOSE ? 999 : 8).join(', ') || 'none yet'}${rel.length > 8 && !VERBOSE ? ', ...' : ''}); ${outside.length ? outside.length + ' outside New Rules: ' + outside.join(', ') : 'all New Rules pairs of their season (or outsiders New Rules allows, or a fort animal)'}`);
+// a non-wild target (engine ecoIsTarget): a caravan's or visitor's animal is always a target (VISITOR:); the fort's own
+// (DOMESTIC:) only under ecology.livestock or domestic. Probes before 21 Oct name the fort's as bare DOMESTIC.
+const fortPrey = P.livestock === true || P.domestic === true;
+const notWild = b => b.startsWith('VISITOR:') || ((b === 'DOMESTIC' || b.startsWith('DOMESTIC:')) && (fortPrey || P.livestock === undefined));
+const outside = rel.filter(k => { if (eset.has(k) || earlier.has(k)) return false; const [a, b] = k.split('|'); if (notWild(b)) return false; return !(P.live && outsider(a, b, false)); });
+const visitorN = rel.filter(k => k.split('|')[1].startsWith('VISITOR:')).length, fortN = rel.filter(k => k.split('|')[1].startsWith('DOMESTIC')).length;
+say(outside.length === 0, `relations written: ${rel.length} species pairs this year (${rel.slice(0, VERBOSE ? 999 : 8).join(', ') || 'none yet'}${rel.length > 8 && !VERBOSE ? ', ...' : ''}); ${outside.length ? outside.length + ' outside New Rules: ' + outside.join(', ') : 'all New Rules pairs of their season (or outsiders New Rules allows)'}; not wild: ${visitorN} visitor/caravan pair(s), ${fortN} fort-animal pair(s) (fort animals prey: ${P.livestock === undefined ? 'not in this probe' : fortPrey ? 'on' : 'off'})`);
 // ---------------------------------------------------------------- Phase E (probes from sw v8 Phase E on): holes, live cells, kills, pass times
 // probes written before sw's `(not ok) and err or nil` fix carry the string 'nil' for no error
 const holesErr = P.holesErr && P.holesErr !== 'nil' ? P.holesErr : null;
