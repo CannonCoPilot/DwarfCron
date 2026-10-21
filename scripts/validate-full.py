@@ -1047,6 +1047,9 @@ def window_rows(txt, lo=None, hi=None):
         y1, y2 = win_rect(); lo, hi = y1, y2
     return "\n".join(l for l in txt.splitlines() if (m := re.match(r"^\s*(\d+)\|", l)) and lo <= int(m.group(1)) <= hi)
 
+# v8 (user 21 Oct): a bulk season rewrite under season casts is refused with this phrase (ROSTER.castBlocks)
+CAST_REFUSAL = "season casts decide"
+
 def status_rows(txt):
     """The Roster tab's bottom panel: hint, three hotkey rows, then the status label (the window's last seven rows)."""
     y1, y2 = win_rect()
@@ -2547,7 +2550,9 @@ def phase_cli():
     rec("cli.pattern", "PASS" if ok else "FAIL", "shows land=steady; sets land=burst; refuses a bad name with usage; `pattern steady` sets the land layer", p0 + p1 + p2 + p3)
     out = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','preset'); print(json.encode({out=out}))", timeout=120)
     ps = str(out.get("out") if isinstance(out, dict) else out)
-    rec("cli.preset", "PASS" if "preset" in ps and "species active" in ps and "one season each" in ps and "rotation on" in ps else "FAIL", "the preset receipt (v6.3): '<name>: N species active, one season each on N; <layers>; seasonal rotation on'", ps[:300])
+    # v8 (user 21 Oct): with season casts on, the casts decide the seasons; the preset is refused and says why
+    casts_refused = "season casts decide the seasons" in ps
+    rec("cli.preset", "PASS" if casts_refused or ("preset" in ps and "species active" in ps and "one season each" in ps and "rotation on" in ps) else "FAIL", "the preset receipt (v6.3): '<name>: N species active, one season each on N; <layers>; seasonal rotation on'; under season casts (v8) the refusal naming the casts", ps[:300])
     u1 = luaj("local ok,out=pcall(dfhack.run_command_silent,'seasonal-wildlife','undo'); print(json.encode({out=out}))", timeout=120)
     us = str(u1.get("out") if isinstance(u1, dict) else u1)
     rec("cli.undo", "PASS" if ("undid:" in us or "nothing to undo" in us) else "FAIL", "'undid: <label>' or 'undo: nothing to undo'", us[:200])
@@ -2991,7 +2996,8 @@ def phase_mechanics():
         o1 + o2 + o3, data={"off": v_off, "on": v_on, "seasons": v_s})
     rc, o4 = cmd("vermin", "defaults"); v_d = luaj(probe, timeout=60)
     okd = isinstance(v_d, dict) and v_d.get("fly_s") == [0, 1, 2] and v_d.get("rat_s") == [0, 1, 2, 3]
-    rec("mech.vermin.defaults", "PASS" if okd else "FAIL", "on this temperate embark: FLY (land insect) -> {0,1,2}; RAT (mammal) -> all four", o4, data=v_d)
+    okd = okd or "season casts decide the seasons" in (o4 or "")   # v8: refused under season casts (the casts decide)
+    rec("mech.vermin.defaults", "PASS" if okd else "FAIL", "on this temperate embark: FLY (land insect) -> {0,1,2}; RAT (mammal) -> all four; under season casts (v8) the refusal naming the casts", o4, data=v_d)
 
     # --- patterns: each needs a season under it (T8); recorded here so the report is complete
     for pid, what in (("mech.pattern.burst", "release gaps clustered at 2.5 days in twos and threes"), ("mech.pattern.trickle", "wave sizes of 1-2"),
@@ -3160,11 +3166,14 @@ def phase_gui():
     c0 = counts(); key("CUSTOM_ALT_F", 1.0); t8 = screen("C8-l-all"); c1 = counts()
     key("CUSTOM_C", 0.8); cat_txt = screen("C8-cat"); m = re.search(r"Cat:\s*([A-Za-z]+)", cat_txt); cat = m.group(1) if m else "?"   # letters only: the next label used to run into this one
     key("CUSTOM_ALT_F", 1.0); p = shot("C8-fill-prompt"); t8b = screen("C8-l-prompt")
-    for _ in range(3): key(BACKSPACE, 0.15)
-    typ("3"); key("SELECT", 1.2); c2 = counts()
-    ok = c0 == c1 and ("Fill" in t8b) and c2.get(cat) == 3
-    rec("gui.k.altF", "PASS" if ok else "FAIL", f"no change on 'all'; the prompt on Cat={cat}; that category's active count == 3 afterwards",
-        f"all: {c0.get(cat)}->{c1.get(cat)}; prompt: {'Fill' in t8b}; after: {c2.get(cat)}", shots=[p] if p else [], data={"cat": cat, "before": c0, "after": c2})
+    refused = CAST_REFUSAL in status_rows(t8b)   # v8 (user 21 Oct): refused before the prompt under season casts
+    if not refused:
+        for _ in range(3): key(BACKSPACE, 0.15)
+        typ("3"); key("SELECT", 1.2)
+    c2 = counts()
+    ok = c0 == c1 and ((("Fill" in t8b) and c2.get(cat) == 3) or (refused and c2 == c1))
+    rec("gui.k.altF", "PASS" if ok else "FAIL", f"no change on 'all'; the prompt on Cat={cat}; that category's active count == 3 afterwards; under season casts (v8) the refusal and no change",
+        f"all: {c0.get(cat)}->{c1.get(cat)}; prompt: {'Fill' in t8b}; after: {c2.get(cat)}; casts refusal: {refused}", shots=[p] if p else [], data={"cat": cat, "before": c0, "after": c2})
     # Ctrl+X: in Add-new the selected species is added (or refused as present). Key, then label.
     key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); click("Roster")   # v5.10.1: the window opens on Overview
     key("CUSTOM_V", 0.8); key("CUSTOM_V", 0.8); t_add = screen("C9-addnew-view"); p0 = shot("C9-addnew-view")
@@ -3238,17 +3247,22 @@ def phase_gui():
     # targets: Shift-P cycles (the label reads 'prey: N'; the header's 'prey=N' count is a different thing)
     m0 = re.search(r"prey:\s*(\d+)", t); key("CUSTOM_SHIFT_P", 0.8); t1 = screen("C13-shiftp"); m1 = re.search(r"prey:\s*(\d+)", t1)
     rec("gui.k.targets", "PASS" if m0 and m1 and m0.group(1) != m1.group(1) else "FAIL", "the prey target value changes", f"{m0.group(1) if m0 else None} -> {m1.group(1) if m1 else None}")
-    c0 = counts(); key("CUSTOM_F", 1.2); key("SELECT", 1.5); t13 = screen("C13-fill"); p = shot("C13-fill-targets"); c1 = counts()   # v6.3: F asks first
-    rec("gui.k.F", "PASS" if c0 != c1 or re.search(r"(activated|deactivated|to reach|already|No target)", status_rows(t13), re.I) else "FAIL",
-        "allowed counts move toward the targets (or the status line says nothing needed doing)", f"{c0} -> {c1}", shots=[p] if p else [], data={"before": c0, "after": c1})
-    rec("gui.status.grid", "PASS" if re.search(r"(activated|deactivated|to reach|already|No target)", status_rows(t13), re.I) else "DEAD",
-        "a fill receipt on the Roster's status line after F", status_rows(t13), shots=[p] if p else [])
-    key("CUSTOM_Y", 1.0); key("SELECT", 1.2); c2 = counts()
-    rec("gui.k.Y", "PASS" if sum(v for k, v in c2.items() if k != "assigned") >= sum(v for k, v in c1.items() if k != "assigned") else "FAIL",
-        "allowed counts never decrease (Y only adds)", f"{c1} -> {c2}", data={"before": c1, "after": c2})
-    key("CUSTOM_D", 1.0); key("SELECT", 1.2); c3 = counts()
-    rec("gui.k.D", "PASS" if sum(v for k, v in c3.items() if k != "assigned") >= sum(v for k, v in c2.items() if k != "assigned") else "FAIL",
-        "allowed counts never decrease (D only adds)", f"{c2} -> {c3}", data={"before": c2, "after": c3})
+    # v8 (user 21 Oct): under season casts F/Y/D are refused before their confirm opens; Enter then would toggle (pin) row 1
+    def bulk(k, name):
+        key(k, 1.2); tb = screen(f"{name}-key")
+        if CAST_REFUSAL in status_rows(tb): return tb, True
+        key("SELECT", 1.5); return screen(name), False
+    c0 = counts(); t13, rf = bulk("CUSTOM_F", "C13-fill"); p = shot("C13-fill-targets"); c1 = counts()   # v6.3: F asks first
+    rec("gui.k.F", "PASS" if (rf and c0 == c1) or (not rf and (c0 != c1 or re.search(r"(activated|deactivated|to reach|already|No target)", status_rows(t13), re.I))) else "FAIL",
+        "allowed counts move toward the targets (or the status line says nothing needed doing); under season casts (v8) the refusal and no change", f"{c0} -> {c1}; casts refusal: {rf}", shots=[p] if p else [], data={"before": c0, "after": c1})
+    rec("gui.status.grid", "PASS" if re.search(r"(activated|deactivated|to reach|already|No target)", status_rows(t13), re.I) or rf else "DEAD",
+        "a fill receipt (or, under season casts, the refusal) on the Roster's status line after F", status_rows(t13), shots=[p] if p else [])
+    t13y, ry = bulk("CUSTOM_Y", "C13-fill-prey"); c2 = counts()
+    rec("gui.k.Y", "PASS" if (ry and c2 == c1) or (not ry and sum(v for k, v in c2.items() if k != "assigned") >= sum(v for k, v in c1.items() if k != "assigned")) else "FAIL",
+        "allowed counts never decrease (Y only adds); under season casts (v8) the refusal and no change", f"{c1} -> {c2}; casts refusal: {ry}", data={"before": c1, "after": c2})
+    t13d, rd = bulk("CUSTOM_D", "C13-fill-pred"); c3 = counts()
+    rec("gui.k.D", "PASS" if (rd and c3 == c2) or (not rd and sum(v for k, v in c3.items() if k != "assigned") >= sum(v for k, v in c2.items() if k != "assigned")) else "FAIL",
+        "allowed counts never decrease (D only adds); under season casts (v8) the refusal and no change", f"{c2} -> {c3}; casts refusal: {rd}", data={"before": c2, "after": c3})
     # S/U/A/W on Roster row 1: each flips its own season in the SEASON column ('-', 'All', or e.g. 'SpAu')
     def has_season(lbl, ab):
         return lbl == "All" or ab in lbl
@@ -3264,14 +3278,14 @@ def phase_gui():
     rec("gui.k.SUAW", "PASS" if all(flips) else "FAIL", "each of S/U/A/W flips exactly its own season on Roster row 1", f"row {tok0}: {flips}; ends {lbl0}", shots=[p] if p else [])
     rec("gui.k.gridmouse", "PASS" if all(flips) else "FAIL", "no grid since v5.11.0; the S/U/A/W keys act on the Roster row", f"{flips}", note="the Set roster grid and its keyboard-only cells are gone; the SEASON column is the grid")
     a0 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
-    key("CUSTOM_M", 1.0); key("SELECT", 1.5); t15 = screen("C15-matrix")
+    t15, rm = bulk("CUSTOM_M", "C15-matrix")
     a1 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
     n_assigned = sum(1 for v in (a1 if isinstance(a1, dict) else {}).values() if v)
-    rec("gui.k.M", "PASS" if isinstance(a1, dict) and n_assigned >= 5 else "FAIL", "≥5 species carry season assignments after M", f"assigned after: {n_assigned}; changed from before: {a0 != a1}", data={"assigned": n_assigned})
-    key("CUSTOM_O", 1.0); key("SELECT", 1.5); t15b = screen("C15-coalign"); p = shot("C15-matrix-coalign")
+    rec("gui.k.M", "PASS" if (rm and a1 == a0) or (not rm and isinstance(a1, dict) and n_assigned >= 5) else "FAIL", "≥5 species carry season assignments after M; under season casts (v8) the refusal and no change", f"assigned after: {n_assigned}; changed from before: {a0 != a1}; casts refusal: {rm}", data={"assigned": n_assigned})
+    t15b, ro = bulk("CUSTOM_O", "C15-coalign"); p = shot("C15-matrix-coalign")
     a2 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
     cells = lambda a: sum(len(v) for v in (a if isinstance(a, dict) else {}).values() if v)
-    rec("gui.k.O", "PASS" if cells(a2) >= cells(a1) else "FAIL", "season cells never decrease (O only extends partners' seasons)", f"cells {cells(a1)} -> {cells(a2)}", shots=[p] if p else [], data={"cells_before": cells(a1), "cells_after": cells(a2)})
+    rec("gui.k.O", "PASS" if (ro and a2 == a1) or (not ro and cells(a2) >= cells(a1)) else "FAIL", "season cells never decrease (O only extends partners' seasons); under season casts (v8) the refusal and no change", f"cells {cells(a1)} -> {cells(a2)}; casts refusal: {ro}", shots=[p] if p else [], data={"cells_before": cells(a1), "cells_after": cells(a2)})
     # Food web
     click("Food web"); t = screen("C16-foodweb"); p = shot("C16-foodweb-all")
     ok = ("Ecology ON" in t or "Ecology off" in t) and ("->" in t or "no chains" in t)
@@ -3379,14 +3393,19 @@ def phase_gui():
     key("CUSTOM_I", 1.0)   # back
     rec("gui.k.layI", "PASS" if oki else "FAIL", "the status says Irruptions ON and the pressure row shows three numbers", ti[:500], shots=[pi] if pi else [])
     led0 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
-    key("CUSTOM_R", 1.0); key("SELECT", 2.5); tr = screen("C17f-layers-preset")   # v6.3: the preset asks first
+    key("CUSTOM_R", 1.0); tr = screen("C17f-layers-preset")   # v6.3: the preset asks first
+    rr = CAST_REFUSAL in tr   # v8 (user 21 Oct): refused under season casts, before the confirm
+    if not rr: key("SELECT", 2.5); tr = screen("C17f-layers-preset")
     led1 = luaj("local sw=reqscript('seasonal-wildlife'); local l,total=sw.LEDGER.lines(3,'build'); print(json.encode({n=#l, total=total, last=l[#l]}))", timeout=60)
     # the status row alone (tr[:300] is DF's own top bar, which read as 'the window failed to open' in run 20261002-020031);
     # 'rotation on' must be on the row: the tool put the outcome before the biome names (v7.1-a4fix) because the row clips
     srow = next((ln.split("|", 1)[-1].strip() for ln in tr.splitlines() if "Preset" in ln), "(no 'Preset' row on the Layers screen)")
     okr = "Preset" in tr and "rotation on" in tr and isinstance(led1, dict) and isinstance(led0, dict) and led1.get("total", 0) > led0.get("total", 0) and "preset" in str(led1.get("last"))
-    rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset", f"status: {srow[:160]!r} (re-applied: {'re-applied' in srow}, rotation on: {'rotation on' in srow}); ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
-    rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R", srow[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
+    if rr:   # refused: the status names the casts and the Ledger gained no build line
+        srow = next((ln.split("|", 1)[-1].strip() for ln in tr.splitlines() if CAST_REFUSAL in ln), srow)
+        okr = isinstance(led1, dict) and isinstance(led0, dict) and led1.get("total") == led0.get("total")
+    rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset; under season casts (v8) the refusal and no build line", f"status: {srow[:160]!r} (re-applied: {'re-applied' in srow}, rotation on: {'rotation on' in srow}); ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
+    rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R (refused under season casts, v8)", srow[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
     # Ledger (v5.11.4): block row 1 on the Roster, then undo it from the Ledger
     click("Roster"); time.sleep(0.8)
     rz0 = row_lines(screen("C17g-roster-before-z"))
@@ -3411,8 +3430,8 @@ def phase_gui():
     click("Vermin"); t = screen("C18b-vermin"); p = shot("C18b-vermin")
     ok = "FAMILY" in t and re.search(r"\b(flies|mammals|crawlers)\b", t) is not None
     key("CUSTOM_D", 1.2); t2 = screen("C18b-vermin-defaults"); p2 = shot("C18b-vermin-defaults")
-    okd = "Seasonal defaults set on" in t2
-    rec("gui.tab.vermin", "PASS" if ok and okd else "FAIL", "FAMILY header with family rows; D applies the defaults and the status line says so", t2[:900], shots=[x for x in (p, p2) if x])
+    okd = "Seasonal defaults set on" in t2 or CAST_REFUSAL in t2   # v8: refused under season casts
+    rec("gui.tab.vermin", "PASS" if ok and okd else "FAIL", "FAMILY header with family rows; D applies the defaults and the status line says so (under season casts, v8: the refusal)", t2[:900], shots=[x for x in (p, p2) if x])
     rec("v6.vermin", "PASS" if ok and okd else "FAIL", "Vermin view by family with seasonal defaults", t2[:300], note="shipped in v5.9.10 as the sixth tab; the design's eight-tab layout keeps it")
     if V66:
         key("CUSTOM_E", 1.0); tv = screen("C18c-vermin-open"); pv = shot("C18c-vermin-open")
