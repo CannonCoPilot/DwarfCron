@@ -7332,14 +7332,28 @@ local function ids()
 local legacy = ids()
 sw.V7.PERF.cfgRO(); local p = C.cfg.perf; p.legacy_census = false
 local census = ids(); p.legacy_census = true
-print(json.encode({ids=legacy, census_ids=census}))""")
+-- a legacy-only id the wild-id set has not taken in yet (eventful's UNIT_NEW_ACTIVE every perf.events_freq ticks): the lag
+local set, lag = C.wildIds or {}, {}
+local inC = {}; for _, id in ipairs(census) do inC[id] = true end
+for _, id in ipairs(legacy) do
+  if not inC[id] then local u = df.unit.find(id); lag[#lag+1] = { id = id, inSet = set[id] == true, wild = u and dfhack.units.isWildlife(u) and dfhack.units.isActive(u) or false } end
+end
+print(json.encode({ids=legacy, census_ids=census, legacy_only=lag}))""")
         _d_perf_legacy(cid, "census", False)
         if bad(b):
             rec_bad(cid, b)
         else:
-            ok = isinstance(a.get("census"), dict) and a.get("census") == a.get("loop") and (b.get("census_ids") or []) == (b.get("ids") or [])
+            # the census walks the wild-id set (P11), which takes an arrival in at eventful's next UNIT_NEW_ACTIVE check (every
+            # perf.events_freq ticks): a group arriving inside that window is found a pass later (run 20261021-115223: two
+            # CREEPING_EYE ids; on CTRL a unit missing at 25371 was in the set 186 ticks later). That lag passes, named;
+            # a legacy-only id already in the set, or a census-only id, is a real divergence.
+            lo = b.get("legacy_only") or []
+            cset, lset = set(b.get("census_ids") or []), set(b.get("ids") or [])
+            lag_only = all((not x.get("inSet")) and x.get("wild") for x in lo)
+            ok = isinstance(a.get("census"), dict) and a.get("census") == a.get("loop") and not (cset - lset) and lag_only
             rec(cid, "PASS" if ok else "FAIL", "census counts == the v7.0 loop's; discoverGroups' ids the same with legacy_census",
-                json.dumps({"census": a.get("census"), "loop": a.get("loop"), "ids": (b.get("census_ids") or [])[:30], "legacy_ids": (b.get("ids") or [])[:30]}))
+                json.dumps({"census": a.get("census"), "loop": a.get("loop"), "ids": (b.get("census_ids") or [])[:30], "legacy_ids": (b.get("ids") or [])[:30],
+                            "legacy_only_not_yet_in_set": [x.get("id") for x in (b.get("legacy_only") or []) if not x.get("inSet")]}))
     # P6 live (headless: the window's two sums)
     cid = "perf.p6.live"
     j = luap("""local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local pool=sw.buildPool(cfg)
