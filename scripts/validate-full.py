@@ -21,7 +21,7 @@ visible a PNG of the DF window plus the text grid. The rig is CTRL (inland, dry,
 opened) with one excursion to LAKE for the water layer, which is dormant everywhere else.
 
 Runs only when the rig is free; leaves it at the title with the forts byte-identical.
-Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui] [--only PHASE] [--v71 AREA,...]   (PHASE: w0 model mech v65 v66 v68 v69 v70 v71 gui)
+Usage: validate-full.py [--fort CTRL] [--skip-lake] [--skip-gui] [--only PHASE] [--v71 AREA,...]   (PHASE: w0 model mech v65 v66 v68 v69 v70 v71 v8 gui)
        validate-full.py --list [TEXT]           print the claim register (id, surface, claimed-as, claim); no rig
        validate-full.py --dry-run [--only PHASE] [--v71 AREA,...]
                                                 walk the phases against a stub rig: every Lua probe through luac53,
@@ -71,11 +71,23 @@ def deployed_is_v71():
     return f.exists() and "V7.GRP = " in f.read_text(errors="replace")
 V71 = V >= (7, 1, 0) or deployed_is_v71()
 if DRY:   # the dry run walks every gated branch as the newest release would
-    V, V65, V66, V67, V68, V69, V70, V71 = (7, 1, 0), True, True, True, True, True, True, True
+    V, V65, V66, V67, V68, V69, V70, V71 = (8, 0, 0), True, True, True, True, True, True, True
 
 # ----------------------------------------------------------------------------- the claims ---
 # id, surface, claim, source, claimed-as
 CLAIMS = [
+    # ---- v8 (the New Rules rebuild, plan rev 7; Phase G): the casts, their rules, the writes in play, the holes, the views
+    ("v8.casts", "MECH", "the fort's casts are grown on New Rules: every present layer has its four season casts, stamped with the rules file's version", "rebuild plan rev 7 Phase C; USAGE v8", "shipped v8"),
+    ("v8.conformance.records", "MECH", "the engine's creature records for the fort's pool equal the explorer's, field by field (DF's own reading of the raws)", "plan rev 7 Phase D", "shipped v8"),
+    ("v8.conformance.casts", "MECH", "the explorer's builder on the engine's own context and lists builds the engine's casts seat for seat, and the same cross-layer links", "plan rev 7 Phases C-D", "shipped v8"),
+    ("v8.writes.vermin", "MECH", "what each consumer's written vermin classes and names feed is exactly New Rules' links over the vermin present", "plan rev 7 Phase D", "shipped v8"),
+    ("v8.writes.relations", "MECH", "right after an ecology pass, DF's relation cells between the wild units on the map hold nothing outside New Rules and every New Rules pair the write covers", "plan rev 7 Phase E", "shipped v8"),
+    ("v8.holes", "MECH", "the engine's score of its casts (members with no partner, predators unfed) equals the explorer's in every season and realm", "plan rev 7 Phase E", "shipped v8"),
+    ("v8.addlayer", "MECH", "a layer cast after the build (its water found later) joins the season's cross-layer links at once", "plan rev 7 Phase E (V8E_A1/A2)", "shipped v8"),
+    ("v8.view", "GUI", "the window's Casts tab draws the year's casts, links and cross-layer links, each link with why, in < 100 ms", "plan rev 7 Phase F", "shipped v8"),
+    ("v8.web", "WEB", "the web page's /casts.json serves the same model (every link with why)", "plan rev 7 Phase F", "shipped v8"),
+    ("v8.controls", "CLI", "the registry's Season casts section holds the casts' switches and the explorer's six builder settings, and a set through it reaches the builder", "plan rev 7 Phase F; user 20 Oct", "shipped v8"),
+    ("v8.controls.coverage", "STATIC", "every setting in the engine's defaults is a registry row, a Panel switch or listed data (tests/web/harness.lua coverage)", "plan rev 7 Phase F", "shipped v8"),
     # ---- W0 (v6.3, alpha trial one): the validator sees what the player sees. Each of these failed on v6.2.1 first.
     ("w0.keys", "GUI", "no window key collides with a DF global binding (the macro keys Ctrl+R/L/P/S, the FPS keys Alt+=/-) or a DFHack global keybinding", "alpha 1 steps 3.5/4.4; plan rev 2 W0/W9", "shipped v6.3"),
     ("w0.overlay", "MECH", "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)", "alpha 1 steps 6.2/6.3/10.1; W0", "shipped v6.3"),
@@ -2299,6 +2311,111 @@ def overlay_state(txt):
         return (json.loads(txt).get("seasonal-wildlife.groups") or {}).get("enabled")
     except Exception:
         return None
+
+
+# ============================================================================== v8 ====
+# The New Rules rebuild's claims, on a fort the v8 engine embarked (its casts built at embark, as a player's are). The fort
+# is restored from its backup and never saved; the CTRL session's teardown follows. The probe and its check are the
+# rig's own Phase D-E kit: `cast nrprobe` writes the engine's state, DwarfCron scripts/castsim/nr_probe_check.js holds it
+# to the Food Web Explorer.
+V8_FORT = os.environ.get("V8_FORT", "V8E_A2")
+DFDIR = DEPLOYED.parent.parent
+def v8_check(probe_name):
+    src = DFDIR / probe_name
+    dst = OUT / probe_name
+    if not src.exists():
+        return None, f"no probe file {src}"
+    dst.write_bytes(src.read_bytes())
+    p = subprocess.run(["node", str(ROOT / "scripts/castsim/nr_probe_check.js"), str(dst)], capture_output=True, text=True, timeout=300)
+    lines = [(l[:4], l[5:], l) for l in p.stdout.splitlines() if l[:5] in ("PASS ", "FAIL ")]   # verdict, text, the line
+    return lines, p.stdout
+
+def v8_line(lines, prefix):
+    for verdict, text, l in (lines or []):
+        if text.startswith(prefix):
+            return (verdict, l)
+    return (None, f"no '{prefix}' line")
+
+def phase_v8():
+    log(f"== v8: the New Rules casts, conformance, writes, holes, views and controls on {V8_FORT}")
+    sh("title", timeout=180)
+    sh("save-restore", f"{V8_FORT}.preverify", timeout=300)
+    rc, out = sh("load", V8_FORT, timeout=300)
+    if rc != 0:
+        for c in CLAIMS:
+            if c[0].startswith("v8.") and c[0] != "v8.controls.coverage":
+                rec(c[0], "NOT-TESTABLE-HERE", f"the v8 fort {V8_FORT} loads", out[:200])
+        return
+    time.sleep(1)
+    st = tool("cast", "status")
+    v = luaj("""
+local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local cs=c.casts
+local L, n = {}, 0
+for k, byS in pairs((cs and cs.layers) or {}) do local m=0; for s=1,4 do if byS[s] then m=m+1; n=n+1 end end; L[k]=m end
+print(json.encode({year=cs and cs.year, nr=cs and cs.nr, rules=sw.V7.RULES.version, layers=L, casts=n, on=sw.ROSTER.castOn(c)}))""")
+    full = bool(v.get("layers")) and all(x == 4 for x in v.get("layers", {}).values())
+    rec("v8.casts", "PASS" if v.get("on") and full and v.get("nr") == v.get("rules") else "FAIL",
+        "casts on; four season casts on every present layer; stamped with the rules version",
+        f"on {v.get('on')}, {v.get('casts')} casts over {len(v.get('layers') or {})} layers {json.dumps(v.get('layers'))}, casts.nr {v.get('nr')} v rules {v.get('rules')}; {st.splitlines()[0] if st else ''}", data=v)
+    # one ecology pass, then the probe: the live cells are read as the write leaves them (a probe between passes sees DF's
+    # own writes and units newer than the pass)
+    tool("groups", "ecology", "now")
+    pr = tool("cast", "nrprobe", "nrprobe-validate.json")
+    lines, text = v8_check("nrprobe-validate.json")
+    (OUT / "v8-probe-check.txt").write_text(text or "")
+    def one(cid, prefixes, expected):
+        got = [v8_line(lines, p) for p in prefixes]
+        ok = lines is not None and all(g[0] == "PASS" for g in got)
+        rec(cid, "PASS" if ok else "FAIL", expected, " | ".join(g[1][:220] for g in got) if lines is not None else str(text), data={"probe": pr[:300]})
+    one("v8.conformance.records", ["records"], "the check's records line PASS")
+    one("v8.conformance.casts", ["casts", "cross-layer links", "season"], "the check's casts, cross-layer links and season pairs lines PASS")
+    one("v8.writes.vermin", ["vermin writes"], "the check's vermin writes line PASS")
+    one("v8.writes.relations", ["relations written", "live cells, season", "live cells: New Rules"], "relations written, live cells (nothing outside) and live cells (nothing missing) PASS")
+    one("v8.holes", ["holes"], "the check's holes line PASS")
+    rec("v8.addlayer", "NOT-TESTABLE-HERE", "a fort whose water is found after the build",
+        "", note="the embark save's casts already hold their layers; rig check DwarfCron a17ec5da: V8E_A2 at the summer turn, cross 162 equal to the explorer's (fixed in sw 288eb2d)")
+    # the views
+    w = luaj("""
+local G=reqscript('gui/seasonal-wildlife'); if not (G.view and G.view.subviews and G.view.subviews[1]) then dfhack.run_command('gui/seasonal-wildlife') end
+local win=G.view.subviews[1]; local ci; for i,l in ipairs(win.subviews.tabs.labels) do if l=='Casts' then ci=i end end
+local out={tab=ci, modes={}}
+if ci then win.subviews.pages:setSelected(ci)
+  for _,m in ipairs({'casts','links','cross'}) do win.subviews.casts_mode:setOption(m); local t=dfhack.getTickCount(); win:refreshCasts()
+    out.modes[m]={ms=dfhack.getTickCount()-t, lines=#(win.subviews.casts.choices or {})} end end
+local sw=reqscript('seasonal-wildlife'); local v=sw.ROSTER.castsView(sw.loadConfig(), {why=true}); local ne,nw,nx,nxw=0,0,0,0
+for _,c in ipairs(v.casts) do for _,e in ipairs(c.edges) do ne=ne+1; if e.why then nw=nw+1 end end end
+for s=1,4 do for _,x in ipairs(v.cross[s]) do nx=nx+1; if x.why then nxw=nxw+1 end end end
+out.links, out.why, out.cross, out.crosswhy = ne, nw, nx, nxw
+G.view:dismiss()
+local okW, W = pcall(reqscript, 'seasonal-wildlife-web'); local okJ, js = false, nil
+if okW and W.castsJson then okJ, js = pcall(W.castsJson) end
+out.web = okJ and #js or -1; out.webwhy = okJ and select(2, js:gsub('"why":', '')) or 0
+print(json.encode(out))""", timeout=180)
+    modes = w.get("modes") or {}
+    fast = len(modes) == 3 and all(m.get("ms", 999) < 100 and m.get("lines", 0) > 3 for m in modes.values())   # 0 ms is a time (not `or`)
+    rec("v8.view", "PASS" if w.get("tab") and fast and w.get("links") == w.get("why") and w.get("cross") == w.get("crosswhy") and w.get("links") else "FAIL",
+        "the Casts tab draws its three views in < 100 ms each; every link and cross-layer link has a why",
+        f"tab {w.get('tab')}, views {json.dumps(modes)}; links {w.get('links')} ({w.get('why')} with why), cross {w.get('cross')} ({w.get('crosswhy')} with why)", data=w)
+    rec("v8.web", "PASS" if (w.get("web") or -1) > 0 and (w.get("webwhy") or 0) >= (w.get("links") or 1) else "FAIL",
+        "/casts.json (castsJson) serves the model, a why on every link",
+        f"{w.get('web')} bytes, {w.get('webwhy')} whys for {w.get('links')} links + {w.get('cross')} cross", data=w)
+    # the registry: the section's rows, and a builder setting set through it reaching the builder
+    lst = sh("cmd", "seasonal-wildlife-controls", "list", "casts", timeout=120)[1]
+    want = ["cast.enabled", "cast.cavern_assign", "cast.web_guarantee", "cast.thief_place", "cast.cavern_rest_freq", "cast.extinct_rule",
+            "roster.ap_pick", "cast.giant", "cast.pack", "cast.apex_pack", "cast.reuse", "cast.hv_top"]
+    missing = [k for k in want if k not in lst]
+    sh("cmd", "seasonal-wildlife-controls", "set", "cast.apex_pack", "2", timeout=120)
+    p1 = luaj("local sw=reqscript('seasonal-wildlife'); print(json.encode({v=sw.V7.NR.prmOf(sw.loadConfig()).apex_pack}))")
+    sh("cmd", "seasonal-wildlife-controls", "set", "cast.apex_pack", "1.5", timeout=120)
+    p2 = luaj("local sw=reqscript('seasonal-wildlife'); print(json.encode({v=sw.V7.NR.prmOf(sw.loadConfig()).apex_pack}))")
+    rec("v8.controls", "PASS" if not missing and p1.get("v") == 2 and p2.get("v") == 1.5 else "FAIL",
+        "the Season casts section lists the twelve rows; apex pack set to 2 through the registry reaches V7.NR.prmOf, and back to 1.5",
+        f"missing rows: {missing or 'none'}; builder apex_pack after set 2: {p1.get('v')}, after set 1.5: {p2.get('v')}", data={"list": lst[:1500]})
+    # coverage: the offline harness on the checkout under test
+    cov = subprocess.run(["lua", str(TOOL / "tests/web/harness.lua"), str(TOOL), "coverage"], capture_output=True, text=True, timeout=300)
+    last = (cov.stdout.strip().splitlines() or [""])[-1]
+    rec("v8.controls.coverage", "PASS" if cov.returncode == 0 else "FAIL", "coverage: every setting registered or data", last)
+    sh("title", timeout=180)
 
 # ============================================================================== PHASES ====
 def phase_setup(fort):
@@ -7564,7 +7681,7 @@ def _dry_patch():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fort", default="CTRL"); ap.add_argument("--skip-lake", action="store_true"); ap.add_argument("--skip-gui", action="store_true")
-    ap.add_argument("--only", choices=["w0", "model", "mech", "v65", "v66", "v68", "v69", "v70", "v71", "gui"], help="run only the named phase between setup and teardown (mech: the B-block mechanics, best with --preset)")
+    ap.add_argument("--only", choices=["w0", "model", "mech", "v65", "v66", "v68", "v69", "v70", "v71", "v8", "gui"], help="run only the named phase between setup and teardown (mech: the B-block mechanics, best with --preset)")
     ap.add_argument("--no-overlay-restore", action="store_true", help="v6.2.1 driver behaviour, kept to show w0.overlay failing first")
     ap.add_argument("--v71", default="", help="comma list of v7.1 sub-phases to run (" + ",".join(V71_AREAS) + "); default all")
     ap.add_argument("--list", nargs="?", const="", default=None, metavar="TEXT", help="print the claim register (rows containing TEXT) and exit; no rig")
@@ -7668,6 +7785,9 @@ def main():
         if not a.only and V71:   # after w0: v7.1 places units (apex, irruption, place clusters) that w0's tab timings must not carry
             try: phase_v71(a.fort, areas)
             except Exception as e: log(f"!! phase_v71 raised: {e!r}")
+        if a.only == "v8" or (not a.only and V >= (8, 0, 0)):   # last: it loads the v8 fort (the teardown restores the session's own)
+            try: phase_v8()
+            except Exception as e: log(f"!! phase_v8 raised: {e!r}")
     finally:
         # w0.overlay: put DFHack's overlay switch back the way this run found it, then prove it
         was = overlay_state(ov0)
