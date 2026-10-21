@@ -94,6 +94,10 @@ CLAIMS = [
     ("v8.web", "WEB", "the web page's /casts.json serves the same model (every link with why)", "plan rev 7 Phase F", "shipped v8"),
     ("v8.controls", "CLI", "the registry's Season casts section holds the casts' switches and the explorer's six builder settings, and a set through it reaches the builder", "plan rev 7 Phase F; user 20 Oct", "shipped v8"),
     ("v8.controls.coverage", "STATIC", "every setting in the engine's defaults is a registry row, a Panel switch or listed data (tests/web/harness.lua coverage)", "plan rev 7 Phase F", "shipped v8"),
+    # ---- v8 UI step 2 (user 21 Oct): one view model both interfaces read (V7.UI.state, ROSTER.castsView live, the endpoints)
+    ("v8.ui.model", "MECH", "`ecosystem` (V7.UI.state) reads each layer's groups as the groups record holds them, every layer with its pause and label, in < 200 ms; /ecosystem.json serves it", "UI redesign step 2", "shipped v8"),
+    ("v8.ui.live", "MECH", "the Casts view's live parts: each cast member's count on the map equals a raw walk of the wild units, its holes are New Rules' own, and /casts.json carries them", "UI redesign step 2", "shipped v8"),
+    ("v8.ui.stale", "MECH", "casts record the builder's settings: current after a rebuild, a builder setting changed since is named (applies at the next rebuild), and setting it back clears it", "UI redesign step 2", "shipped v8"),
     # ---- W0 (v6.3, alpha trial one): the validator sees what the player sees. Each of these failed on v6.2.1 first.
     ("w0.keys", "GUI", "no window key collides with a DF global binding (the macro keys Ctrl+R/L/P/S, the FPS keys Alt+=/-) or a DFHack global keybinding", "alpha 1 steps 3.5/4.4; plan rev 2 W0/W9", "shipped v6.3"),
     ("w0.overlay", "MECH", "a validation run leaves DFHack's overlay settings as it found them (seasonal-wildlife.groups not left enabled)", "alpha 1 steps 6.2/6.3/10.1; W0", "shipped v6.3"),
@@ -2446,6 +2450,53 @@ print(json.encode(out))""", timeout=180)
     rec("v8.controls", "PASS" if not missing and p1.get("v") == 2 and p2.get("v") == 1.5 else "FAIL",
         "the Season casts section lists the twelve rows; apex pack set to 2 through the registry reaches V7.NR.prmOf, and back to 1.5",
         f"missing rows: {missing or 'none'}; builder apex_pack after set 2: {p1.get('v')}, after set 1.5: {p2.get('v')}", data={"list": lst[:1500]})
+    # v8 UI step 2: the shared view model, corroborated by the groups record and a raw unit walk
+    m = luaj("""
+local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig()
+local t=dfhack.getTickCount(); local u=sw.V7.UI.state(cfg); local ms=dfhack.getTickCount()-t
+local g=sw.loadGroups(); local cnt={}
+for _,grp in ipairs(g.groups) do if not grp.seeded then local k=sw.V7.GRP.lk(grp); cnt[k]=(cnt[k] or 0)+1 end end
+local bad={}
+for _,r in ipairs(u.layers) do
+  if r.n ~= (cnt[r.lk] or 0) then bad[#bad+1]=r.lk..' '..r.n..' v '..(cnt[r.lk] or 0) end
+  if type(r.pause)~='table' or not r.label then bad[#bad+1]=r.lk..' no pause/label' end
+  if r.pause and r.pause.on and r.n < r.cap and not tostring(r.next):find('paused until',1,true) then bad[#bad+1]=r.lk..' held below cap reads '..tostring(r.next) end
+end
+local W=reqscript('seasonal-wildlife-web'); local okJ,js=pcall(W.ecosystemJson); local e=okJ and json.decode(js) or {}
+print(json.encode({ms=ms, layers=#u.layers, bad=bad, tool=u.tool.enabled, casts=u.casts.year, kills=#u.kills, pairs=u.writes.pairs, web=okJ and #js or -1, weblayers=#(e.layers or {})}))""", timeout=180)
+    rec("v8.ui.model", "PASS" if m.get("layers") and not m.get("bad") and m.get("ms", 999) < 200 and m.get("weblayers") == m.get("layers") else "FAIL",
+        "every layer's count equals the groups record, every row with a pause and a label (held below the cap: 'paused until'), < 200 ms; /ecosystem.json the same layers",
+        f"{m.get('layers')} layers in {m.get('ms')} ms; mismatches {m.get('bad') or 'none'}; tool on {m.get('tool')}, casts year {m.get('casts')}, kills {m.get('kills')}, pairs {m.get('pairs')}; ecosystem.json {m.get('web')} bytes, {m.get('weblayers')} layers", data=m)
+    lv = luaj("""
+local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); local all=df.global.world.raws.creatures.all
+local raw={}
+for _,u in ipairs(df.global.world.units.active) do
+  if not dfhack.units.isDead(u) and dfhack.units.isActive(u) and dfhack.units.isWildlife(u) then local t=all[u.race].creature_id; raw[t]=(raw[t] or 0)+1 end
+end
+local v=sw.ROSTER.castsView(cfg, {live=true}); local bad, seen, nm, nh, hk, ntok = {}, {}, 0, 0, 0, 0
+local hs={}
+for s,h in pairs(v.holes or {}) do if type(h)=='table' then for realm,r in pairs(h) do if type(r)=='table' then
+  for _,t in ipairs(r.unlinked or {}) do hs[(s-1)..'|'..t]=true end; for _,t in ipairs(r.unfed or {}) do hs[(s-1)..'|'..t]=true end end end end end
+for _,c in ipairs(v.casts) do for _,mb in ipairs(c.members) do nm=nm+1
+  if not seen[mb.t] then seen[mb.t]=true; ntok=ntok+1; if mb.n ~= (raw[mb.t] or 0) then bad[#bad+1]=mb.t..' '..tostring(mb.n)..' v raw '..(raw[mb.t] or 0) end end
+  if mb.hole then nh=nh+1; if hs[c.season..'|'..mb.t] then hk=hk+1 end end end end
+local W=reqscript('seasonal-wildlife-web'); local okJ,js=pcall(W.castsJson); local j=okJ and json.decode(js) or {}
+local jn=0; for _,c in ipairs(j.casts or {}) do for _,mb in ipairs(c.members or {}) do if mb.n ~= nil then jn=jn+1 end end end
+print(json.encode({members=nm, tokens=ntok, bad=bad, holes=nh, holesKnown=hk, err=v.holes and v.holes.err or nil, jsonN=jn, web=okJ and #js or -1}))""", timeout=240)
+    rec("v8.ui.live", "PASS" if lv.get("members") and not lv.get("bad") and lv.get("holes") == lv.get("holesKnown") and not lv.get("err") and lv.get("jsonN") == lv.get("members") else "FAIL",
+        "every cast member's on-map count equals a raw walk of the active wild units; every member marked a hole is in New Rules' hole lists; /casts.json carries a count on every member",
+        f"{lv.get('members')} members ({lv.get('tokens')} species); count mismatches {lv.get('bad') or 'none'}; holes marked {lv.get('holes')} ({lv.get('holesKnown')} in the lists){'; holes error ' + str(lv.get('err')) if lv.get('err') else ''}; casts.json {lv.get('web')} bytes, {lv.get('jsonN')} counts", data=lv)
+    stale_q = "local sw=reqscript('seasonal-wildlife'); local s=sw.ROSTER.castStale(sw.loadConfig()); local o={} for _,x in ipairs(s or {}) do o[#o+1]=x.path end; print(json.encode({known=s~=nil, paths=o}))"
+    rb = tool("cast", "rebuild")
+    s0 = luaj(stale_q)
+    tool("cast", "set", "apex_pack", "2")
+    s1 = luaj(stale_q)
+    tool("cast", "set", "apex_pack", "1.5")
+    s2 = luaj(stale_q)
+    ok_st = s0.get("known") and s0.get("paths") == [] and s1.get("paths") == ["cast.apex_pack"] and s2.get("paths") == []
+    rec("v8.ui.stale", "PASS" if ok_st else "FAIL",
+        "after `cast rebuild`: current (recorded); apex_pack 2: stale on cast.apex_pack; back to 1.5: current",
+        f"rebuild: {(rb or '').splitlines()[0][:120] if rb else ''}; after rebuild {s0}; set 2 {s1}; set 1.5 {s2}", data={"s0": s0, "s1": s1, "s2": s2})
     # coverage: the offline harness on the checkout under test
     cov = subprocess.run(["lua", str(TOOL / "tests/web/harness.lua"), str(TOOL), "coverage"], capture_output=True, text=True, timeout=300)
     last = (cov.stdout.strip().splitlines() or [""])[-1]
