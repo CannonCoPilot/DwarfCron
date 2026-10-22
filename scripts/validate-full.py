@@ -134,7 +134,7 @@ CLAIMS = [
     ("gui.help", "GUI", "Alt+H opens a help page for the tab with the vocabulary", "W11", "shipped v6.6"),
     ("gui.vermin.species", "GUI", "E on the Vermin tab opens a family to its species rows, each with active/inactive, seasons and stock", "W12; alpha 1 step 8.1", "shipped v6.6"),
     ("gui.seasons.edit", "GUI", "S U A W on the Seasons tab edit the selected species' seasons and the Roster shows the change", "W12; alpha 1 step 5.1", "shipped v6.6"),
-    ("gui.layout", "GUI", "the window opens taller than 34 rows when the screen allows, with all nine tabs on one row", "W9; alpha 1 step 1.3", "shipped v6.6"),
+    ("gui.layout", "GUI", "the window opens taller than 34 rows when the screen allows, with all its tabs on one row (six since v8)", "W9; alpha 1 step 1.3; v8 UI step 4", "shipped v6.6"),
     # ---- CLI verbs (USAGE.md "Console commands"; the script's dispatch table)
     ("cli.status", "CLI", "`status` lists biomes, layers, the limits line ('limits [mode]:' since v7.1), cavern line, on-the-map counts, the invasion field, and the embark subset", "USAGE.md", "shipped"),
     ("cli.now", "CLI", "`now` applies the current season's roster once and reports the active count", "USAGE.md", "shipped"),
@@ -220,7 +220,7 @@ CLAIMS = [
     ("mech.season.boundary", "MECH", "the roster is re-applied at each season boundary and held daily against refunds", "USAGE.md Between the seasons", "shipped"),
     ("mech.coupling", "MECH", "when a prey group arrives, coupling closes the pool to its armed natural predators for up to two days", "USAGE.md v5.4/5.6", "shipped"),
     # ---- GUI: window and tabs
-    ("gui.open", "GUI", "`gui/seasonal-wildlife` opens a resizable window titled 'Seasonal Wildlife' with nine tabs, the Panel second (v6.3)", "script", "shipped"),
+    ("gui.open", "GUI", "`gui/seasonal-wildlife` opens a resizable window titled 'Seasonal Wildlife' with its tabs (v8: Start, This season, Year, Ecosystem, Settings, Log)", "script; v8 UI step 4", "shipped"),
     ("gui.tab.roster", "GUI", "Roster tab: header with biomes and per-category counts, filter row (Alt+S search), creature list with cat/size/biome/season/ab/ok/why columns, season keys S/U/A/W, matrix and co-align keys, targets row, fill keys, Ctrl action keys, status line", "USAGE.md Roster tab", "shipped"),
     ("gui.tab.setroster", "GUI", "Set roster folded into the Roster (v5.11.0): the targets row, fill keys, matrix/co-align keys and season keys are on the Roster page and the season grid is its SEASON column", "USAGE.md Roster tab", "shipped"),
     ("gui.tab.foodweb", "GUI", "Food web tab: ecology-switch line, season selector, chains (All) or trophic pyramid + aquatic mini-web (a season)", "USAGE.md Food web tab", "shipped"),
@@ -3652,17 +3652,33 @@ def phase_static():
         rec(cid, "BACKLOG", "unscheduled by the Backlog's own terms", "")
     # doc drift
     m = re.search(r"\*\*Status:\*\*\s*v([\d.]+).*?DF ([\d.]+)\s*/\s*DFHack ([\d.r-]+)", usage, re.S)
+    # v8 UI step 5: USAGE's status is a table since v7; its bold row is the version the guide describes (the old
+    # one-line form no longer matched, so the check passed on nothing)
+    mt = None if m else re.search(r"^> \| \*\*v([\d.]+)\*\* \|[^\n]*?DFHack ([\d.]+-r\d+)", usage, re.M)
+    doc_v, doc_dh = (m.group(1), m.group(3)) if m else (mt.group(1), mt.group(2)) if mt else (None, None)
     ver = re.search(r"--\s*v(\d+\.\d+(?:\.\d+)?)\s*—", src)   # v6.1.1: any major, not only v5
-    rec("doc.usage.version", "DOC-DRIFT" if m and ver and m.group(1) != ver.group(1) else "PASS",
-        "USAGE.md's Status header names the shipped version", f"USAGE.md says v{m.group(1) if m else '?'} / DF {m.group(2) if m else '?'}; the script's newest changelog entry is v{ver.group(1) if ver else '?'}; the rig is DF {rig_versions()['df']} / DFHack {rig_versions()['dfhack']}")
+    rec("doc.usage.version", "DOC-DRIFT" if not doc_v or (ver and doc_v != ver.group(1)) else "PASS",
+        "USAGE.md's Status header names the shipped version", f"USAGE.md says v{doc_v or '?'} / DFHack {doc_dh or '?'}; the script's newest changelog entry is v{ver.group(1) if ver else '?'}; the rig is DF {rig_versions()['df']} / DFHack {rig_versions()['dfhack']}")
     cav_doc = "WITHDRAWN" in usage and "inert" in usage
     cav_code = "held at frequency" in src
     rec("doc.usage.cavernquota", "DOC-DRIFT" if cav_doc and cav_code else "PASS",
         "USAGE.md describes the cavern quota the way the code enforces it",
         "USAGE.md: 'The cavern ceiling is withdrawn … inert'; code: v5.8.1 CAVERN holds managed species at frequency 1 over the ceiling (verified live in mech.quota.cavern)")
-    ds = re.search(r"Three tabs:", src)
-    rec("doc.docstring.tabs", "DOC-DRIFT" if ds else "PASS", "the docstring's tab count matches the window",
-        "docstring says 'Three tabs' and lists status/now/enable/disable; the window has five tabs and the console has eleven verbs")
+    # v8 UI step 5: both docstrings (the engine's ships as `help seasonal-wildlife`, the window's as `help gui/...`) name
+    # every tab the window's TabBar draws and no retired count or tab (the old check looked only for 'Three tabs:')
+    gsrc = (TOOL / "scripts/gui/seasonal-wildlife.lua").read_text(errors="replace")
+    tb = re.search(r"TabBar\{[^\n]*?labels=\{([^}]*)\}", gsrc)
+    tabs = re.findall(r"'([^']+)'", tb.group(1)) if tb else []
+    def docstring(t):
+        d = re.search(r"--\[====\[(.*?)\]====\]", t, re.S)
+        return d.group(1) if d else ""
+    bad = []
+    for nm, d in (("seasonal-wildlife", docstring(src)), ("gui/seasonal-wildlife", docstring(gsrc))):
+        miss = [x for x in tabs if x not in d]
+        old = re.findall(r"\b(?:Three|Five|Nine) tabs\b|\bOverview \(|\bthe Panel\b", d)
+        if miss or old or not d: bad.append(f"{nm}: missing {miss or '-'}; retired {old or '-'}")
+    rec("doc.docstring.tabs", "DOC-DRIFT" if bad or not tabs else "PASS", "both docstrings name the window's tabs",
+        "; ".join(bad) if bad else f"the window's TabBar: {', '.join(tabs)}; both docstrings name each, none names a retired tab" if tabs else "the TabBar's labels were not found")
     rec("doc.design.views", "PASS", "the design report presents §11 as the v6.0 catalogue", "§11 is under '5 · Work packages → v6.0 The window' and PLAN §3.6 lists it as v6.0; not presented as shipped",
         note="the report does not say 'shipped' for any of the thirteen views; the shipped five are named in §2 as 'the v4 window'")
     dk = sorted((ROOT / ".claude/scratch").glob("docket-r*.html"), key=lambda p: int(re.search(r"r(\d+)", p.name).group(1)))
