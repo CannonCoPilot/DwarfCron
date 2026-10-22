@@ -186,6 +186,11 @@ CLAIMS = [
     ("mech.vermin.family", "MECH", "`vermin <family> off|on` blocks and allows every species of the family; `seasons` and `abundance` write every member", "USAGE.md v5.9.10", "shipped"),
     ("mech.vermin.defaults", "MECH", "`vermin defaults` seasons every vermin species by family and layer: land insects spring-autumn (summer-autumn on a cold embark), mammals, fish, caverns and water all year", "USAGE.md v5.9.10; PLAN 3.5", "shipped"),
     ("gui.tab.vermin", "GUI", "Vermin tab: one row per family with n / allowed / season / abundance / layers, D applies the defaults and the status line says so", "USAGE.md v5.9.10", "shipped"),
+    ("gui.tab.start", "GUI", "Start, the page the window opens on (v8 UI step 4): the tool's state in one sentence, the switch-on and rebuild keys, each layer against its cap with its pause, this season's casts with their holes, the next season change and the ledger's last lines", "UI redesign step 4", "shipped v8"),
+    ("gui.tab.season", "GUI", "This season (v8 UI step 4): the season's casts by layer with each member's count on the map and its holes; G shows each cast's links with why and the season's cross-layer links; a selected member's eats / eaten by below", "UI redesign step 4", "shipped v8"),
+    ("gui.tab.year", "GUI", "Year (v8 UI step 4): seven layers by four seasons, each cell the cast's seed, size and holes; Enter opens a layer in This season", "UI redesign step 4", "shipped v8"),
+    ("gui.tab.kills", "GUI", "Ecosystem > Kills (v8 UI step 4): kills involving wildlife, the pairs the tool wrote, the stand-ins", "UI redesign step 4", "shipped v8"),
+    ("gui.tabs6", "GUI", "six tabs (Start, This season, Year, Ecosystem, Settings, Log); Ecosystem and Settings name their pages on a second row, a click on one opens it, Alt+V moves to the next", "UI redesign step 4", "shipped v8"),
     ("gui.tab.overview", "GUI", "Overview tab, the page the window opens on: date and switches, what each layer holds now, groups against their count, in-season counts, the next boundary with arrivals and departures, the ledger's last lines", "USAGE.md v5.10.1", "shipped"),
     ("gui.roster.why", "GUI", "the Roster's why column shows who set a species' state and when (you, fill, matrix, co-align, vermin, defaults; compact since v5.10.8) and explains an untouched or locked species; the full reason is on the detail page", "USAGE.md v5.10.5/v5.10.8", "shipped"),
     ("gui.species.detail", "GUI", "`i` on a Roster row opens the species detail over the window (what it is, body, embark, allowed and why, abundance, seasons, eats, eaten by, on the map, history); Esc closes it", "USAGE.md v5.10.7", "shipped"),
@@ -596,6 +601,18 @@ _FORT_WORDS = ("CTRL", "Ringhatchets", "LAKE", "RIVER4", "OCEAN2", "BOATS", "reg
 # v8 Phase G (validate-full 20261020-211908): claims whose feature a later release removed. The check still runs (its
 # receipt is kept), the verdict says what replaced it.
 SUPERSEDED = {
+    # v8 UI step 4 (user 21 Oct, full restructure): the window's six tabs; the pre-v8 Food web (the pairing rule), the
+    # Seasons matrix and the Overview are gone, their content in Start, This season and Year
+    "gui.tab.overview": "v8 UI: the Overview became Start -- gui.tab.start",
+    "gui.tab.foodweb": "v8 UI: the pre-v8 Food web (the pairing rule) is retired; the casts' links are This season -- gui.tab.season",
+    "gui.k.webN": "v8 UI: This season's N picks the season -- gui.tab.season",
+    "gui.k.webG": "v8 UI: This season's G shows links and cross-layer links -- gui.tab.season",
+    "gui.k.webL": "v8 UI: This season draws every layer -- gui.tab.season",
+    "v6.web.graph": "v8 UI: the casts' links on This season and the web page's lanes -- gui.tab.season, v8.ui.page",
+    "v6.web.byseason": "v8 UI: Year, seven layers by four seasons -- gui.tab.year",
+    "v6.web.bylayer": "v8 UI: This season, one block per layer -- gui.tab.season",
+    "gui.tab.seasons": "v8 UI: the Seasons matrix became Year (the casts by season) -- gui.tab.year",
+    "gui.seasons.edit": "v8 UI: seasons are edited on Settings > Species (S U A W, a pin under casts) -- gui.k.SUAW",
     "mech.v70.builder": "v7.4 (F-builder): `roster build` grows the season casts (one builder); v8: on New Rules -- v8.casts, v8.conformance.casts",
     "mech.v71.flying": "v7.4: the flying roster is the land-flying cast (`roster build flying` is gone); v8.conformance.casts",
     "bl.deepwater": "v7.5 full pool: the ocean layer exists only where the fort has ocean (ROSTER.FP); v8.casts",
@@ -717,6 +734,15 @@ def typ(text, wait=0.5):
 
 def click(label, wait=1.2):
     rc, out = sh("ui", "click", label, timeout=60); time.sleep(wait); return out
+
+# v8 UI step 4: the window's pages by name -- the six tabs over ten pages (Win.TABS); the old tab names map to where
+# their pages went. Selected through the window (a screen click on 'Year' would find DF's own date first); gui.tabs6
+# clicks the tab bar and the second row itself.
+PAGE_OF = {"Overview": "Start", "Panel": "Controls", "Roster": "Species", "Seasons": "Year", "Casts": "This season", "Food web": "This season"}
+def page(name, wait=1.2):
+    nm = PAGE_OF.get(name, name)
+    luap(f"local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; w:showPage(w.PAGE[{json.dumps(nm)}]); print(json.encode({{ok=true}}))", timeout=60)
+    time.sleep(wait)
 
 def step(ticks, secs=240):
     """Run the fort `ticks` ticks. r2: in chunks of 3,000 or fewer -- `cx-lifecycle step` stops at its wall-time cap and
@@ -2169,11 +2195,11 @@ local function T(t, name, f) local t0=dfhack.getTickCount(); local ok,err=pcall(
 T(out.tabs, 'open', function() gw.show_gui() end)
 local scr=gw.view; local w=scr and scr.subviews and scr.subviews[1]
 if w then
-  for i,m in ipairs({'refreshOverview','refresh','refreshSeasons','refreshWeb','refreshLive','refreshLayers','refreshVermin','refreshLedger','refreshPanel'}) do
-    if w[m] then w.subviews.pages:setSelected(math.min(i, #w.subviews.pages.subviews)); T(out.tabs, m, function() w[m](w) end) end
+  for i,t in ipairs(w.TABS or {}) do   -- v8 UI step 4: every page the window has, in its order
+    local m=t[2]; w.subviews.pages:setSelected(i); T(out.tabs, m, function() w[m](w) end)
   end
-  if w.subviews.web_mode then
-    for _,mode in ipairs({'graph','byseason','bylayer'}) do T(out.tabs, 'web:'..mode, function() w.subviews.web_mode:setOption(mode,false); w:refreshWeb() end) end
+  if w.subviews.sea_mode then
+    for _,mode in ipairs({'links','cross'}) do T(out.tabs, 'season:'..mode, function() w.subviews.sea_mode:setOption(mode,false); w:refreshSeason() end) end
   end
   pcall(function() scr:dismiss() end)
 end
@@ -2417,11 +2443,11 @@ print(json.encode({year=cs and cs.year, nr=cs and cs.nr, rules=sw.V7.RULES.versi
     # the views
     w = luaj("""
 local G=reqscript('gui/seasonal-wildlife'); if not (G.view and G.view.subviews and G.view.subviews[1]) then dfhack.run_command('gui/seasonal-wildlife') end
-local win=G.view.subviews[1]; local ci; for i,l in ipairs(win.subviews.tabs.labels) do if l=='Casts' then ci=i end end
+local win=G.view.subviews[1]; local ci=win.PAGE and win.PAGE['This season']   -- v8 UI step 4: the casts are This season
 local out={tab=ci, modes={}}
-if ci then win.subviews.pages:setSelected(ci)
-  for _,m in ipairs({'casts','links','cross'}) do win.subviews.casts_mode:setOption(m); local t=dfhack.getTickCount(); win:refreshCasts()
-    out.modes[m]={ms=dfhack.getTickCount()-t, lines=#(win.subviews.casts.choices or {})} end end
+if ci then win:showPage(ci)
+  for _,m in ipairs({'lanes','links','cross'}) do win.subviews.sea_mode:setOption(m); local t=dfhack.getTickCount(); win:refreshSeason()
+    out.modes[m]={ms=dfhack.getTickCount()-t, lines=#(win.subviews.sea_list.choices or {})} end end
 local sw=reqscript('seasonal-wildlife'); local v=sw.ROSTER.castsView(sw.loadConfig(), {why=true}); local ne,nw,nx,nxw=0,0,0,0
 for _,c in ipairs(v.casts) do for _,e in ipairs(c.edges) do ne=ne+1; if e.why then nw=nw+1 end end end
 for s=1,4 do for _,x in ipairs(v.cross[s]) do nx=nx+1; if x.why then nxw=nxw+1 end end end
@@ -2434,7 +2460,7 @@ print(json.encode(out))""", timeout=180)
     modes = w.get("modes") or {}
     fast = len(modes) == 3 and all(m.get("ms", 999) < 100 and m.get("lines", 0) > 3 for m in modes.values())   # 0 ms is a time (not `or`)
     rec("v8.view", "PASS" if w.get("tab") and fast and w.get("links") == w.get("why") and w.get("cross") == w.get("crosswhy") and w.get("links") else "FAIL",
-        "the Casts tab draws its three views in < 100 ms each; every link and cross-layer link has a why",
+        "This season draws its three views (lanes, links, across layers) in < 100 ms each; every link and cross-layer link has a why",
         f"tab {w.get('tab')}, views {json.dumps(modes)}; links {w.get('links')} ({w.get('why')} with why), cross {w.get('cross')} ({w.get('crosswhy')} with why)", data=w)
     rec("v8.web", "PASS" if (w.get("web") or -1) > 0 and (w.get("webwhy") or 0) >= (w.get("links") or 1) else "FAIL",
         "/casts.json (castsJson) serves the model, a why on every link",
@@ -3098,18 +3124,18 @@ def phase_mechanics():
 def phase_gui():
     log("== GUI")
     sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0)
-    # v5.10.1: the opening page (Overview) builds the pool twice and reads the ledger before it draws;
-    # run 144111 dumped the screen at 2.5 s and caught the frame before it. Wait for the content, up to 10 s.
+    # v5.10.1: the opening page builds the pool twice and reads the ledger before it draws; run 144111 dumped the screen
+    # at 2.5 s and caught the frame before it. Wait for the content, up to 10 s. v8 UI step 4: the page is Start.
     txt = ""
     for _ in range(8):
-        txt = screen("C0-overview")
-        if "Seasonal Wildlife" in txt and ("On the map" in txt or "CREATURE" in txt): break
+        txt = screen("C0-start")
+        if "Seasonal Wildlife" in txt and ("Layers now" in txt or "CREATURE" in txt): break
         time.sleep(1.0)
-    p = shot("C0-overview")
-    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Overview", "Panel", "Roster", "Seasons", "Food web", "Live", "Layers", "Vermin", "Ledger")) and "Set roster" not in txt
-    rec("gui.open", "PASS" if ok else "FAIL", "window title and the nine tab labels on screen", txt[:600], shots=[p] if p else [])
+    p = shot("C0-start")
+    ok = "Seasonal Wildlife" in txt and all(t in txt for t in ("Start", "This season", "Year", "Ecosystem", "Settings", "Log")) and "Set roster" not in txt
+    rec("gui.open", "PASS" if ok else "FAIL", "window title and the six tab labels on screen", txt[:600], shots=[p] if p else [])
     # Panel (v6.3, W8)
-    click("Panel"); tp = screen("C0b-panel"); pp = shot("C0b-panel")
+    page("Panel"); tp = screen("C0b-panel"); pp = shot("C0b-panel")
     okp = all(t in tp for t in ("SWITCHES", "Seasonal rotation", "Ecology", "JOBS", "season roster", "All off")) and "[ON]" in tp
     rec("gui.tab.panel", "PASS" if okp else "FAIL", "SWITCHES with [ON]/[off] rows, JOBS with timings, the all on / all off keys", window_rows(tp), shots=[pp] if pp else [])
     q0 = luaj("local sw=reqscript('seasonal-wildlife'); local c=sw.loadConfig(); local ru=require('repeat-util'); print(json.encode({enabled=c.enabled, eco=c.ecology.enabled, sched=ru.isScheduled and ru.isScheduled('seasonal-wildlife') or false}))", timeout=60)
@@ -3120,11 +3146,13 @@ def phase_gui():
     oka = isinstance(q1, dict) and q1.get("enabled") is False and q1.get("held") == 0 and not q1.get("sched") and isinstance(q2, dict) and q2.get("enabled") == q0.get("enabled") and q2.get("eco") == q0.get("eco")
     rec("mech.panel.alloff", "PASS" if oka else "FAIL", "after All off: rotation off, no job scheduled, no frequency held; after All on: the switches as before",
         f"before {q0}; off {q1}; on {q2}; status: {'All off' in tx}/{'All on' in ta}", data={"before": q0, "off": q1, "on": q2})
-    # Overview (v5.10.1): the page the window opens on
-    ok = "On the map" in txt and "Next boundary" in txt and "Recent" in txt and "In season now" in txt
-    rec("gui.tab.overview", "PASS" if ok else "FAIL", "On the map / In season now / Next boundary / Recent blocks on the opening page", txt[:900], shots=[p] if p else [])
-    rec("v6.overview", "PASS" if ok else "FAIL", "Overview view: what the map holds now, next boundary, recent ledger", txt[:300], note="shipped in v5.10.1 as the first tab")
-    click("Roster"); txt = screen("C0-roster"); p = shot("C0-roster")
+    # Start (v8 UI step 4; was the Overview): the page the window opens on
+    oks = (any(w in txt for w in ("Everything is running", "The tool is off", "The tool is on", "casts set the seasons")) and "Layers now" in txt
+           and "Switch everything on" in txt and "Rebuild the casts" in txt and "Next boundary" in txt and "Recent" in txt)
+    rec("gui.tab.start", "PASS" if oks else "FAIL", "the state sentence, O / B keys, Layers now, the season's casts, Next boundary, Recent", window_rows(txt), shots=[p] if p else [])
+    rec("gui.tab.overview", "PASS" if oks else "FAIL", "the Overview's blocks, now on Start", txt[:300])
+    rec("v6.overview", "PASS" if oks else "FAIL", "Overview view: what the map holds now, next boundary, recent ledger", txt[:300], note="shipped in v5.10.1 as the first tab; v8 UI step 4: Start")
+    page("Roster"); txt = screen("C0-roster"); p = shot("C0-roster")
     rows = row_lines(txt)
     ok = all(k in txt for k in ("View:", "Cat:", "Biome:", "Season:")) and len(rows) >= 5 and "Apply now" in txt and ("Send off" if V65 else "Force wave") in txt and "Fill to targets" in txt and "Matrix assign" in txt
     rec("gui.tab.roster", "PASS" if ok else "FAIL", "filter row, ≥5 creature rows with ab/ok columns, the Ctrl keys and the folded Set roster keys", txt[:800], shots=[p] if p else [],
@@ -3157,7 +3185,7 @@ def phase_gui():
             return m.group(1) if m else None
         rec(cid, "PASS" if val(t0) and val(t1) and val(t0) != val(t1) else "FAIL", f"the {lab} filter label changes", f"{val(t0)} -> {val(t1)}", shots=[p] if p else [])
     # reopen for a clean filter state
-    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); click("Roster")   # v5.10.1: the window opens on Overview
+    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); page("Roster")   # v5.10.1: the window opens on Overview
     # Enter toggles allow on the selected (first) row
     t0 = screen("C2-enter-before"); r0 = row_lines(t0)
     key("SELECT"); t1 = screen("C2-enter-after"); r1 = row_lines(t1); p = shot("C2-enter-toggle")
@@ -3253,7 +3281,7 @@ def phase_gui():
     rec("gui.k.altF", "PASS" if ok else "FAIL", f"no change on 'all'; the prompt on Cat={cat}; that category's active count == 3 afterwards; under season casts (v8) the refusal and no change",
         f"all: {c0.get(cat)}->{c1.get(cat)}; prompt: {'Fill' in t8b}; after: {c2.get(cat)}; casts refusal: {refused}", shots=[p] if p else [], data={"cat": cat, "before": c0, "after": c2})
     # Ctrl+X: in Add-new the selected species is added (or refused as present). Key, then label.
-    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); click("Roster")   # v5.10.1: the window opens on Overview
+    key("LEAVESCREEN", 1.0); sh("cmd", "gui/seasonal-wildlife", timeout=120); time.sleep(2.0); page("Roster")   # v5.10.1: the window opens on Overview
     key("CUSTOM_V", 0.8); key("CUSTOM_V", 0.8); t_add = screen("C9-addnew-view"); p0 = shot("C9-addnew-view")
     rows_add = row_lines(t_add); pick = rows_add[0][0] if rows_add else None
     key("CUSTOM_CTRL_X", 1.2); t9 = screen("C9-x-key"); x_key = "Add " in t9
@@ -3364,27 +3392,52 @@ def phase_gui():
     a2 = luaj("local sw=reqscript('seasonal-wildlife'); local cfg=sw.loadConfig(); print(json.encode(cfg.assign or {}))", timeout=60)
     cells = lambda a: sum(len(v) for v in (a if isinstance(a, dict) else {}).values() if v)
     rec("gui.k.O", "PASS" if (ro and a2 == a1) or (not ro and cells(a2) >= cells(a1)) else "FAIL", "season cells never decrease (O only extends partners' seasons); under season casts (v8) the refusal and no change", f"cells {cells(a1)} -> {cells(a2)}; casts refusal: {ro}", shots=[p] if p else [], data={"cells_before": cells(a1), "cells_after": cells(a2)})
-    # Food web
-    click("Food web"); t = screen("C16-foodweb"); p = shot("C16-foodweb-all")
-    ok = ("Ecology ON" in t or "Ecology off" in t) and ("->" in t or "no chains" in t)
-    rec("gui.tab.foodweb", "PASS" if ok else "FAIL", "the ecology line and predator -> prey chains", t[:800], shots=[p] if p else [])
-    key("CUSTOM_N", 1.2); t1 = screen("C16-foodweb-season"); p1 = shot("C16-foodweb-spring")
-    rec("gui.k.webN", "PASS" if "Spring" in t1 and t1 != t else "FAIL", "the season selector moves to Spring and the view changes (pyramid)", t1[:800], shots=[p1] if p1 else [])
-    # v5.11.1: the modes. G -> Graph (edges with the live pairs marked), G -> By season (four columns), L -> By layer
-    key("CUSTOM_G", 1.2); tg = screen("C16b-web-graph"); pg = shot("C16b-web-graph")
-    okg = "as a graph" in tg and ("-->" in tg or "==>" in tg) and "live pair" in tg
-    rec("gui.k.webG", "PASS" if okg else "FAIL", "Mode: Graph — 'as a graph', an edge arrow and the live-pair legend", tg[:700], shots=[pg] if pg else [])
-    rec("v6.web.graph", "PASS" if okg else "FAIL", "Food web as a graph with live pairs", tg[:300], note="shipped in v5.11.1 as the Graph mode (G); live pairs read from DF's reaction table (ecoLivePairs)")
-    key("CUSTOM_G", 1.2); ts = screen("C16c-web-byseason"); ps = shot("C16c-web-byseason")
-    oks = all(x in ts for x in ("Spring", "Summer", "Autumn", "Winter")) and "mass ratio" in ts and "arrive" in ts
-    rec("v6.web.byseason", "PASS" if oks else "FAIL", "Food web by season — four columns with the mass ratio and arrivals", ts[:300], shots=[ps] if ps else [], note="shipped in v5.11.1 as the By season mode")
-    key("CUSTOM_L", 1.2); tl = screen("C16d-web-bylayer"); pl = shot("C16d-web-bylayer")
-    okl = "LAND" in tl and "bridge edges" in tl
-    rec("gui.k.webL", "PASS" if okl else "FAIL", "Mode: By layer — a LAND column and the bridge-edges line", tl[:500], shots=[pl] if pl else [])
-    rec("v6.web.bylayer", "PASS" if okl else "FAIL", "Food web by layer, side by side", tl[:300], note="shipped in v5.11.1 as the By layer mode (L)")
-    key("CUSTOM_G", 1.0)   # back to Pyramid for whatever follows
+    # v8 UI step 4: This season (was Casts and the pre-v8 Food web; those claims are superseded)
+    for cid in ("gui.tab.foodweb", "gui.k.webN", "gui.k.webG", "gui.k.webL", "v6.web.graph", "v6.web.byseason", "v6.web.bylayer"):
+        rec(cid, "NOT-TESTABLE-HERE", "the page is retired", "", note="superseded: " + SUPERSEDED[cid])
+    page("This season"); t = screen("C16-season"); p = shot("C16-season-lanes")
+    oks = "Season:" in t and "Show: Lanes" in t and " here" in t and ("LAND-GROUND" in t or "CAVERN 1" in t or "OCEAN" in t)
+    sel = luap("""local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; local l=w.subviews.sea_list
+local idx; for i,ch in ipairs(l:getChoices()) do if ch.pick and ch.pick.t and ch.pick.slot then idx=i; break end end
+if idx then l:setSelected(idx); w:seasonPick(nil, l:getChoices()[idx]) end
+local d={}; for _,t in ipairs(w.subviews.season_detail.text or {}) do if type(t)=='table' then d[#d+1]=tostring(t.text or '') end end
+print(json.encode({idx=idx, detail=table.concat(d,' | ')}))""", timeout=60)
+    td = screen("C16-season-detail")
+    okd = isinstance(sel, dict) and "eats (" in (sel.get("detail") or "") and "eaten by (" in (sel.get("detail") or "")
+    key("CUSTOM_G", 1.2); tl = screen("C16b-season-links"); pl = shot("C16b-season-links")
+    okl = "Show: Links" in tl and " > " in tl
+    key("CUSTOM_G", 1.2); tx = screen("C16c-season-cross"); px = shot("C16c-season-cross")
+    okx = "Show: Across layers" in tx and "cross-layer link" in tx
+    key("CUSTOM_G", 1.0)   # back to Lanes
+    rec("gui.tab.season", "PASS" if oks and okd and okl and okx else "FAIL",
+        "layer blocks with member rows ('N here'); a selected member's eats / eaten by below; G: Links ('a > b'), Across layers",
+        f"lanes {oks}; detail {okd} ({(sel or {}).get('detail', '')[:160] if isinstance(sel, dict) else sel}); links {okl}; across {okx}", shots=[x for x in (p, pl, px) if x])
+    page("Year"); t = screen("C16d-year"); p = shot("C16d-year")
+    oky = all(x in t for x in ("Spring", "Summer", "Autumn", "Winter")) and "land-ground" in t and "links" in t
+    op = luap("""local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; local l=w.subviews.year
+local ch; for _,c in ipairs(l:getChoices()) do if c.lane then ch=c; break end end
+if ch then w:act_year_open(nil, ch) end
+print(json.encode({lane=ch and ch.lane, page=w.subviews.pages:getSelected(), want=w.PAGE['This season']}))""", timeout=60)
+    oko = isinstance(op, dict) and op.get("lane") and op.get("page") == op.get("want")
+    rec("gui.tab.year", "PASS" if oky and oko else "FAIL", "four season columns, the land-ground row, the across-layers row; Enter on a layer opens This season",
+        f"grid {oky}; open {op}", shots=[p] if p else [])
+    page("Kills"); t = screen("C16e-kills"); p = shot("C16e-kills")
+    rec("gui.tab.kills", "PASS" if "Kills involving wildlife" in t and "Hunting pairs the tool wrote" in t and "Stand-ins" in t else "FAIL",
+        "the three blocks", window_rows(t)[:600], shots=[p] if p else [])
+    # the tab bar and the second row, by screen clicks and keys
+    click("Ecosystem"); t1 = screen("C16f-ecosystem")
+    pg1 = luap("local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; print(json.encode({p=w.subviews.pages:getSelected(), live=w.PAGE.Live, layers=w.PAGE.Layers, kills=w.PAGE.Kills}))", timeout=60)
+    sub_ok = all(x in t1 for x in ("Live", "Layers", "Kills", "Alt+V"))
+    sh("key", "CUSTOM_ALT_V", timeout=60); time.sleep(1.0)
+    pg2 = luap("local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; print(json.encode({p=w.subviews.pages:getSelected()}))", timeout=60)
+    click("Kills", 1.0)   # the second row is the first "Kills" on the screen
+    pg3 = luap("local G=reqscript('gui/seasonal-wildlife'); local w=G.view.subviews[1]; print(json.encode({p=w.subviews.pages:getSelected()}))", timeout=60)
+    ok6 = (isinstance(pg1, dict) and pg1.get("p") in (pg1.get("live"), pg1.get("layers"), pg1.get("kills")) and sub_ok
+           and isinstance(pg2, dict) and pg2.get("p") != pg1.get("p") and isinstance(pg3, dict) and pg3.get("p") == pg1.get("kills"))
+    rec("gui.tabs6", "PASS" if ok6 else "FAIL", "a click on Ecosystem opens one of its pages and the second row names Live, Layers, Kills; Alt+V moves on; a click on Kills opens it",
+        f"after the click {pg1}; second row {sub_ok}; after Alt+V {pg2}; after the Kills click {pg3}", shots=[x for x in (shot("C16f-ecosystem"),) if x])
     # Live
-    click("Live"); t = screen("C17-live"); p = shot("C17-live")
+    page("Live"); t = screen("C17-live"); p = shot("C17-live")
     GH = "Groups:" if V66 else "Resident groups:"   # v6.6 (W11): 'Groups: on  N at once ...'
     ok = GH in t and "ecology:" in t and "Wild on map:" in t and (("limits:" in t or "limits [" in t) if V65 else ("quota:" in t))
     rec("gui.tab.live", "PASS" if ok else "FAIL", "resident groups / ecology / Wild on map / quota lines", t[:900], shots=[p] if p else [])
@@ -3451,7 +3504,7 @@ def phase_gui():
     rec("gui.k.liveW", "PASS" if w0 > 0 and w1 == 0 else ("NOT-TESTABLE-HERE" if w0 == 0 else "FAIL"), "W clears the roaming-source flag on every wild land unit (force Wildlife), like Ctrl+F", f"flagged {w0} -> {w1}")
     rec("v6.live.hotkeys", "PASS" if okh and isinstance(q1, dict) and q0.get("coupling") != q1.get("coupling") else "FAIL", "Live tab hotkeys P K Q X W F and Enter centres the map", f"Herds & packs reached: {okh}; P flips coupling: {q0.get('coupling') if isinstance(q0, dict) else q0} -> {q1.get('coupling') if isinstance(q1, dict) else q1}; group-row keys above", note="shipped in v5.11.2")
     # Layers (v5.11.3)
-    click("Layers"); t = screen("C17e-layers"); p = shot("C17e-layers")
+    page("Layers"); t = screen("C17e-layers"); p = shot("C17e-layers")
     # v7.1 (R7, ui e64f323): the 'groups at once' row is 'group cap' (the map-size formula or the fixed cap per layer)
     okl = all(x in t for x in ("LAND", "WATER", "CAVERN", "pattern", *(("ceiling", "group cap" if V71 else "groups at once") if V65 else ("quota", "concurrent groups")), "Caverns:", "preset:")) and ("water:" in t)
     rec("gui.tab.layers", "PASS" if okl else "FAIL", "the three columns, the setting rows, the water line, the caverns block and the preset line", t[:900], shots=[p] if p else [])
@@ -3485,10 +3538,10 @@ def phase_gui():
     rec("gui.k.layR", "PASS" if okr else "FAIL", "the status says re-applied and the Ledger gained a build line naming the preset; under season casts (v8) the refusal and no build line", f"status: {srow[:160]!r} (re-applied: {'re-applied' in srow}, rotation on: {'rotation on' in srow}); ledger build lines {led0.get('total') if isinstance(led0, dict) else led0} -> {led1.get('total') if isinstance(led1, dict) else led1}: {str(led1.get('last'))[:120] if isinstance(led1, dict) else ''}")
     rec("v6.presets", "PASS" if okr else "FAIL", "biome presets: applied at first run and re-applied with R (refused under season casts, v8)", srow[:300], note="shipped in v5.11.3: the window's first run applies it, R and `preset` re-apply it")
     # Ledger (v5.11.4): block row 1 on the Roster, then undo it from the Ledger
-    click("Roster"); time.sleep(0.8)
+    page("Roster"); time.sleep(0.8)
     rz0 = row_lines(screen("C17g-roster-before-z"))
     key("SELECT", 1.0); rz1 = row_lines(screen("C17g-roster-blocked"))
-    click("Ledger"); tl = screen("C17h-ledger"); pl = shot("C17h-ledger")
+    page("Ledger"); tl = screen("C17h-ledger"); pl = shot("C17h-ledger")
     okt = "recorded" in tl and "newest last" in tl and re.search(r"y\d+ \w+ \d+\s+\w+", tl) is not None
     rec("gui.tab.ledger", "PASS" if okt else "FAIL", "the header with the recorded count and dated lines", tl[:600], shots=[pl] if pl else [])
     rec("v6.ledger", "PASS" if okt else "FAIL", "Ledger — every write and why, with undo", tl[:300], note="shipped in v5.11.4 as the eighth tab")
@@ -3496,16 +3549,13 @@ def phase_gui():
     rec("gui.k.ledgerK", "PASS" if "kind=" in tk else "FAIL", "the header carries kind=<kind> after K", tk[:300])
     for _ in range(14): key("CUSTOM_K", 0.3)   # back round to all
     key("CUSTOM_Z", 2.0); tz = screen("C17h-ledger-undo"); pz = shot("C17h-ledger-undo")
-    click("Roster"); time.sleep(0.8); rz2 = row_lines(screen("C17g-roster-after-z"))
+    page("Roster"); time.sleep(0.8); rz2 = row_lines(screen("C17g-roster-after-z"))
     okz = rz0 and rz1 and rz2 and rz0[0][0] == rz2[0][0] and rz0[0][2] != rz1[0][2] and rz2[0][2] == rz0[0][2] and "Undid" in tz
     rec("gui.k.ledgerZ", "PASS" if okz else "FAIL", "row 1's ok column: flipped by Enter, back after Z; the Ledger status says Undid", f"{rz0[0][:3] if rz0 else None} -> {rz1[0][:3] if rz1 else None} -> {rz2[0][:3] if rz2 else None}; status: {'Undid' in tz}", shots=[pz] if pz else [])
     rec("v6.undo", "PASS" if okz else "FAIL", "undo for roster edits (10-deep snapshot ring)", f"undo restored row 1: {okz}", note="shipped in v5.11.4: UNDO ring in site data, Z on the Ledger tab and the undo verb")
-    # Seasons
-    click("Seasons"); t = screen("C18-seasons"); p = shot("C18-seasons")
-    ok = all(s in t for s in ("Spring", "Summer", "Autumn", "Winter")) and re.search(r"[X+\-.]\s+[X+\-.]\s+[X+\-.]\s+[X+\-.]", t)
-    rec("gui.tab.seasons", "PASS" if ok else "FAIL", "four season columns and +/-/X/. marks", t[:800], shots=[p] if p else [])
+    rec("gui.tab.seasons", "NOT-TESTABLE-HERE", "the page is retired", "", note="superseded: " + SUPERSEDED["gui.tab.seasons"])
     # Vermin (v5.9.10)
-    click("Vermin"); t = screen("C18b-vermin"); p = shot("C18b-vermin")
+    page("Vermin"); t = screen("C18b-vermin"); p = shot("C18b-vermin")
     ok = "FAMILY" in t and re.search(r"\b(flies|mammals|crawlers)\b", t) is not None
     key("CUSTOM_D", 1.2); t2 = screen("C18b-vermin-defaults"); p2 = shot("C18b-vermin-defaults")
     okd = "Seasonal defaults set on" in t2 or CAST_REFUSAL in t2   # v8: refused under season casts
@@ -3515,18 +3565,14 @@ def phase_gui():
         key("CUSTOM_E", 1.0); tv = screen("C18c-vermin-open"); pv = shot("C18c-vermin-open")
         okv = re.search(r"^\s*\d+\|.*\s{3,}\S+\s+(active|inactive)\s", tv, re.M) is not None
         rec("gui.vermin.species", "PASS" if okv else "FAIL", "species rows under the opened family, each with active/inactive", window_rows(tv), shots=[pv] if pv else [])
-        click("Seasons"); time.sleep(0.8); key("STANDARDSCROLL_DOWN", 0.5); key("STANDARDSCROLL_DOWN", 0.5)
-        ts0 = screen("C18d-seasons-sel"); key("CUSTOM_S", 1.0); ts1 = screen("C18d-seasons-S"); ps = shot("C18d-seasons-edit")
-        m = re.search(r"(\S+): (\S+)", window_rows(ts1))
-        oke = bool(re.search(r"[A-Z_]{3,}: (Sp|Su|Au|Wi|All)", ts1) or "last season stays" in ts1)
-        rec("gui.seasons.edit", "PASS" if oke else "FAIL", "the Seasons status line names the species and its new seasons (or the last-season refusal)", window_rows(ts1)[:600], shots=[ps] if ps else [])
+        rec("gui.seasons.edit", "NOT-TESTABLE-HERE", "the page is retired", "", note="superseded: " + SUPERSEDED["gui.seasons.edit"])
         sh("key", "CUSTOM_ALT_H", timeout=60); time.sleep(1.0); th = screen("C18e-help"); ph = shot("C18e-help")
         okh = "Help:" in th and "The words" in th
         key("LEAVESCREEN", 0.8)
         rec("gui.help", "PASS" if okh else "FAIL", "a Help dialog with the tab's text and the vocabulary", th[:600], shots=[ph] if ph else [])
         y1, y2 = win_rect()
-        rows_ = [l for l in th.splitlines() if all(w in l for w in ("Overview", "Panel", "Roster", "Ledger"))]
-        rec("gui.layout", "PASS" if (y2 - y1 + 1) > 34 and rows_ else "FAIL", "window taller than 34 rows; one screen row holds Overview, Panel, Roster and Ledger",
+        rows_ = [l for l in th.splitlines() if all(w in l for w in ("Start", "This season", "Ecosystem", "Log"))]
+        rec("gui.layout", "PASS" if (y2 - y1 + 1) > 34 and rows_ else "FAIL", "window taller than 34 rows; one screen row holds Start, This season, Ecosystem and Log",
             f"window rows {y1}-{y2} ({y2 - y1 + 1}); tab row found: {bool(rows_)}", shots=[ph] if ph else [])
     # close
     key("LEAVESCREEN", 1.2); t = screen("C19-closed")
