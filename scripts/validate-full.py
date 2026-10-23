@@ -96,7 +96,7 @@ CLAIMS = [
     ("v8.controls.coverage", "STATIC", "every setting in the engine's defaults is a registry row, a Panel switch or listed data (tests/web/harness.lua coverage)", "plan rev 7 Phase F", "shipped v8"),
     # ---- v8 UI step 2 (user 21 Oct): one view model both interfaces read (V7.UI.state, ROSTER.castsView live, the endpoints)
     ("v8.ui.model", "MECH", "`ecosystem` (V7.UI.state) reads each layer's groups as the groups record holds them, every layer with its pause and label, in < 200 ms; /ecosystem.json serves it", "UI redesign step 2", "shipped v8"),
-    ("v8.ui.live", "MECH", "the Casts view's live parts: each cast member's count on the map equals a raw walk of the wild units, its holes are New Rules' own, and /casts.json carries them", "UI redesign step 2", "shipped v8"),
+    ("v8.ui.live", "MECH", "the Casts view's live parts: the current season's member counts equal a raw walk of the wild units, other seasons show their own tally, its holes are New Rules' own, and /casts.json carries them", "UI redesign step 2; season tally 23 Oct", "shipped v8"),
     ("v8.ui.page", "WEB", "the game's own web page draws its eight tabs with no page error: Start reads the tool's state, This season draws every member of the season's casts as a lane node, The year a cell per cast, Ecosystem a card per layer, Settings the seven goal groups", "UI redesign step 3", "shipped v8"),
     ("v8.ui.stale", "MECH", "casts record the builder's settings: current after a rebuild, a builder setting changed since is named (applies at the next rebuild), and setting it back clears it", "UI redesign step 2", "shipped v8"),
     # ---- W0 (v6.3, alpha trial one): the validator sees what the player sees. Each of these failed on v6.2.1 first.
@@ -2504,15 +2504,24 @@ local v=sw.ROSTER.castsView(cfg, {live=true}); local bad, seen, nm, nh, hk, ntok
 local hs={}
 for s,h in pairs(v.holes or {}) do if type(h)=='table' then for realm,r in pairs(h) do if type(r)=='table' then
   for _,t in ipairs(r.unlinked or {}) do hs[(s-1)..'|'..t]=true end; for _,t in ipairs(r.unfed or {}) do hs[(s-1)..'|'..t]=true end end end end end
-for _,c in ipairs(v.casts) do for _,mb in ipairs(c.members) do nm=nm+1
-  if not seen[mb.t] then seen[mb.t]=true; ntok=ntok+1; if mb.n ~= (raw[mb.t] or 0) then bad[#bad+1]=mb.t..' '..tostring(mb.n)..' v raw '..(raw[mb.t] or 0) end end
-  if mb.hole then nh=nh+1; if hs[c.season..'|'..mb.t] then hk=hk+1 end end end end
+local cs=df.global.cur_season; local T=sw.V7.TALLY.read(); local tbad, np, views = {}, 0, {}
+for _,c in ipairs(v.casts) do
+  views[c.season+1]=c.view
+  for _,mb in ipairs(c.members) do
+    if c.season==cs then nm=nm+1
+      if not seen[mb.t] then seen[mb.t]=true; ntok=ntok+1; if mb.n ~= (raw[mb.t] or 0) then bad[#bad+1]=mb.t..' '..tostring(mb.n)..' v raw '..(raw[mb.t] or 0) end end
+    else np=np+1
+      local p=(T.past or {})[tostring(c.season)]
+      local want=(c.view=='past' or c.view=='lastyear') and p and ((p.by or {})[mb.t] or 0) or nil
+      if c.view=='now' or mb.n ~= want then tbad[#tbad+1]=c.season..'|'..mb.t..' '..tostring(c.view)..' '..tostring(mb.n)..' v '..tostring(want) end
+    end
+    if mb.hole then nh=nh+1; if hs[c.season..'|'..mb.t] then hk=hk+1 end end end end
 local W=reqscript('seasonal-wildlife-web'); local okJ,js=pcall(W.castsJson); local j=okJ and json.decode(js) or {}
-local jn=0; for _,c in ipairs(j.casts or {}) do for _,mb in ipairs(c.members or {}) do if mb.n ~= nil then jn=jn+1 end end end
-print(json.encode({members=nm, tokens=ntok, bad=bad, holes=nh, holesKnown=hk, err=v.holes and v.holes.err or nil, jsonN=jn, web=okJ and #js or -1}))""", timeout=240)
-    rec("v8.ui.live", "PASS" if lv.get("members") and not lv.get("bad") and lv.get("holes") == lv.get("holesKnown") and not lv.get("err") and lv.get("jsonN") == lv.get("members") else "FAIL",
-        "every cast member's on-map count equals a raw walk of the active wild units; every member marked a hole is in New Rules' hole lists; /casts.json carries a count on every member",
-        f"{lv.get('members')} members ({lv.get('tokens')} species); count mismatches {lv.get('bad') or 'none'}; holes marked {lv.get('holes')} ({lv.get('holesKnown')} in the lists){'; holes error ' + str(lv.get('err')) if lv.get('err') else ''}; casts.json {lv.get('web')} bytes, {lv.get('jsonN')} counts", data=lv)
+local jn=0; for _,c in ipairs(j.casts or {}) do if c.season==cs then for _,mb in ipairs(c.members or {}) do if mb.n ~= nil then jn=jn+1 end end end end
+print(json.encode({members=nm, tokens=ntok, bad=bad, holes=nh, holesKnown=hk, err=v.holes and v.holes.err or nil, jsonN=jn, web=okJ and #js or -1, other=np, tallyBad=tbad, views=views}))""", timeout=240)
+    rec("v8.ui.live", "PASS" if lv.get("members") and not lv.get("bad") and not lv.get("tallyBad") and lv.get("holes") == lv.get("holesKnown") and not lv.get("err") and lv.get("jsonN") == lv.get("members") else "FAIL",
+        "the current season's cast members: each on-map count equals a raw walk of the active wild units and /casts.json carries it; every other season's count is that season's tally (V7.TALLY: this year's if it has passed, last year's if it has not come round, none without a record; user 23 Oct); every member marked a hole is in New Rules' hole lists",
+        f"{lv.get('members')} current-season members ({lv.get('tokens')} species); count mismatches {lv.get('bad') or 'none'}; other seasons {lv.get('other')} members, views {lv.get('views')}, tally mismatches {lv.get('tallyBad') or 'none'}; holes marked {lv.get('holes')} ({lv.get('holesKnown')} in the lists){'; holes error ' + str(lv.get('err')) if lv.get('err') else ''}; casts.json {lv.get('web')} bytes, {lv.get('jsonN')} counts", data=lv)
     stale_q = "local sw=reqscript('seasonal-wildlife'); local s=sw.ROSTER.castStale(sw.loadConfig()); local o={} for _,x in ipairs(s or {}) do o[#o+1]=x.path end; print(json.encode({known=s~=nil, paths=o}))"
     rb = tool("cast", "rebuild")
     s0 = luaj(stale_q)
