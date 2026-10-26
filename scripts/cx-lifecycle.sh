@@ -206,7 +206,9 @@ cmd_stop() {
     done
     if is_running; then
         log "still running after ${waited}s; terminating the prefix"
-        "$WINESERVER" -k 2>/dev/null
+        # 26 Oct 2026: with no WINEPREFIX this returned 1 and ended nothing (CX_BOTTLE is not exported, and alone it
+        # does not find the bottle either), so the prefix was never terminated and sessions were left half-ended
+        WINEPREFIX="$CX_BOTTLE_DIR" "$WINESERVER" -k 2>/dev/null || log "wineserver -k returned $? for $CX_BOTTLE_DIR"
         sleep 2
     fi
     # 28 Sep 2026: a DF up two days (6.4 GB, loads 48 s -> 400 s+) ignored both `die` and `wineserver -k`, so the
